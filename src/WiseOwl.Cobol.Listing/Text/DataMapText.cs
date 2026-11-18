@@ -14,9 +14,9 @@ public static class DataMapText
     /// <summary>The data map's rows: a heading, then one row per name in the order written (its id, listing line, level, kind,
     /// name indented two columns per level of nesting, offset, length in character positions, bytes, usage and picture), and
     /// under it, indented, what else the data map holds of it (the OCCURS, REDEFINES, RENAMES, GLOBAL, EXTERNAL and BASED facts,
-    /// whether it is part of a type declaration or an implicit item, the condition-name's values or the constant's specification,
-    /// and the .NET field and type it became). Then the file map: each file-name, its line, organization, access mode and records,
-    /// and under it its keys and its connector (<see cref="FileDetails"/>).</summary>
+    /// whether it is part of a type declaration or an implicit item, the condition-name's values, the constant's specification or
+    /// the cd-name's FOR phrase, and the .NET field and type it became). Then the file map: each file-name, its line, organization,
+    /// access mode and records, and under it its keys, its reports and its connector (<see cref="FileDetails"/>).</summary>
     public static IEnumerable<string> Rows(ListingDataMap map, int width)
     {
         yield return string.Create(CultureInfo.InvariantCulture,
@@ -49,7 +49,7 @@ public static class DataMapText
     }
 
     /// <summary>What the second row of a file map entry says: its RECORD KEY, each ALTERNATE RECORD KEY (with DUPLICATES when the
-    /// phrase is written), its RELATIVE KEY item, and the connector the run unit registers it under (with the field that holds an
+    /// phrase is written), its RELATIVE KEY item, the reports its REPORT clause names, and the connector the run unit registers it under (with the field that holds an
     /// object's connector key).</summary>
     public static string FileDetails(ListingFileEntry file)
     {
@@ -57,6 +57,8 @@ public static class DataMapText
         if (file.RecordKey is { } key) facts.Add("RECORD KEY " + KeyText(key));
         foreach (var alternate in file.AlternateKeys) facts.Add("ALTERNATE KEY " + KeyText(alternate));
         if (file.RelativeKey is { } relative) facts.Add(string.Create(CultureInfo.InvariantCulture, $"RELATIVE KEY #{relative}"));
+        if (file.Reports.Count > 0)
+            facts.Add("REPORTS " + string.Join(" ", file.Reports.Select(r => "#" + r.ToString(CultureInfo.InvariantCulture))));
         facts.Add("CONNECTOR " + file.Connector + (file.ConnectorField is { } field ? " (.NET " + field + ")" : ""));
         return string.Join("  ", facts);
     }
@@ -85,7 +87,13 @@ public static class DataMapText
         if (item.Based) facts.Add("BASED");
         if (item.TypeDeclaration) facts.Add("TYPE DECLARATION");
         if (item.Implicit) facts.Add("IMPLICIT");
-        if (item.Values.Count > 0) facts.Add((item.Kind == ListingDataItemKind.Constant ? "AS " : "VALUE ") + string.Join(", ", item.Values));
+        if (item.Values.Count > 0)
+            facts.Add(item.Kind switch
+            {
+                ListingDataItemKind.Constant => "AS ",
+                ListingDataItemKind.CommunicationDescription => "FOR ",
+                _ => "VALUE ",
+            } + string.Join(", ", item.Values));
         if (item.NativeField is { } field) facts.Add($".NET {field} : {item.NativeType}");
         return string.Join("  ", facts);
     }
@@ -98,6 +106,7 @@ public static class DataMapText
         ListingDataItemKind.Index => "index",
         ListingDataItemKind.Constant => "const",
         ListingDataItemKind.Report => "rd",
+        ListingDataItemKind.CommunicationDescription => "cd",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a data map entry kind with no word"),
     };
 

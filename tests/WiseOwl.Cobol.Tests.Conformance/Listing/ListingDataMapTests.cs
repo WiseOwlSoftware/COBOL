@@ -66,12 +66,12 @@ public sealed class ListingDataMapTests : IDisposable
         "       END PROGRAM DMAP.",                                            // 33
     ];
 
-    private CompilerDriver.Result Compile(ListingSectionSet sections, IEnumerable<string>? source = null)
+    private CompilerDriver.Result Compile(ListingSectionSet sections, IEnumerable<string>? source = null, int dialect = 2023)
     {
         string path = Path.Combine(_dir, "dmap.cob");
         File.WriteAllText(path, string.Join("\n", source ?? Source));
         var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "dmap.dll"),
-            DialectLevel: 2023, Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json) { Sections = sections }));
+            DialectLevel: dialect, Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json) { Sections = sections }));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
         return result;
     }
@@ -144,7 +144,8 @@ public sealed class ListingDataMapTests : IDisposable
         Assert.Equal(programs["INNER"], Item(map, "W").Program);
         Assert.All(map.Items.Where(i => i.Name != "W"), i => Assert.Equal(programs["DMAP"], i.Program));
 
-        // The file map: the SELECT entry's file, its organization, its access mode (the default, §2023:12.4.5.3) and its record.
+        // The file map: the SELECT entry's file, its organization, its access mode (the default: §2023:12.4.5.5.3 GR1, "If the
+        // ACCESS MODE clause is not specified, sequential access is assumed") and its record.
         var file = Assert.Single(map.Files);
         Assert.Equal(("F", 6, "SEQUENTIAL", "SEQUENTIAL", false), (file.Name, file.Line ?? 0, file.Organization, file.Access, file.SortMerge));
         Assert.Equal([Item(map, "F-REC").Id], file.Records);
@@ -234,5 +235,255 @@ public sealed class ListingDataMapTests : IDisposable
         var listing = Compile(ListingSectionSet.Of(ListingSection.Source)).Listing!;
         Assert.Null(listing.DataMap);
         Assert.All(listing.Lines, l => Assert.Null(l.Margin));
+    }
+
+    private static readonly ListingSectionSet DataMapSections =
+        ListingSectionSet.Of(ListingSection.Source, ListingSection.Programs, ListingSection.DataMap);
+
+    /// <summary>A TYPE clause's effect is "as though the data description identified by type-name-1 had been coded in place"
+    /// (§2023:13.18.57.4 GR1), so each entry it copies stands in the program, on the line and at the offset of the entry that writes
+    /// the clause; the type declaration's own entries are listed where they are written and, since "A type declaration has no
+    /// storage associated with it" (§2023:13.18.58.4 GR2), with no offset, bytes or field, and their lines' margins print no
+    /// offset (kb/Work PB5925 review round 1, finding 1).</summary>
+    [Fact]
+    public void ATypesCopies_StandWhereTheTypeClauseIsWritten_AndTheTypeDeclarationHasNoStorage()
+    {
+        string[] typed =
+        [
+            "       IDENTIFICATION DIVISION.",          // 1
+            "       PROGRAM-ID. OUTER.",                // 2
+            "       DATA DIVISION.",                    // 3
+            "       WORKING-STORAGE SECTION.",          // 4
+            "       01 T-REC IS TYPEDEF GLOBAL.",       // 5
+            "          05 T-A PIC X(3).",               // 6
+            "             88 T-A-YES VALUE \"YES\".",   // 7
+            "          05 T-B PIC 9(4).",               // 8
+            "       PROCEDURE DIVISION.",               // 9
+            "           CALL \"INNER\".",               // 10
+            "           STOP RUN.",                     // 11
+            "       IDENTIFICATION DIVISION.",          // 12
+            "       PROGRAM-ID. INNER.",                // 13
+            "       DATA DIVISION.",                    // 14
+            "       WORKING-STORAGE SECTION.",          // 15
+            "       01 G.",                             // 16
+            "          05 W-PAD PIC X(5).",             // 17
+            "          05 W-IN TYPE T-REC.",            // 18
+            "          05 W-IN2 TYPE T-REC.",           // 19
+            "       PROCEDURE DIVISION.",               // 20
+            "           MOVE \"YES\" TO T-A OF W-IN.",  // 21
+            "           GOBACK.",                       // 22
+            "       END PROGRAM INNER.",                // 23
+            "       END PROGRAM OUTER.",                // 24
+        ];
+        var listing = Compile(DataMapSections, typed).Listing!;
+        var map = Assert.IsType<ListingDataMap>(listing.DataMap);
+        var programs = listing.Programs.ToDictionary(p => p.Name, p => p.Id);
+
+        // The type declaration: OUTER's, on the lines written, no storage.
+        var declared = map.Items.Where(i => i.Line is >= 5 and <= 8).ToList();
+        Assert.Equal([("T-REC", 5), ("T-A", 6), ("T-A-YES", 7), ("T-B", 8)], declared.Select(i => (i.Name, i.Line ?? 0)));
+        Assert.All(declared, i => Assert.Equal(programs["OUTER"], i.Program));
+        Assert.All(declared.Where(i => i.Kind == ListingDataItemKind.Data), i =>
+        {
+            Assert.True(i.TypeDeclaration);
+            Assert.Equal(((int?)null, (int?)null, (string?)null), (i.Offset, i.Bytes, i.NativeField));
+        });
+        // X(3) and 9(4): 3 and 4 positions (§2023:13.18.40.4 GR14), the type 7.
+        Assert.Equal([7, 3, 4], declared.Where(i => i.Kind == ListingDataItemKind.Data).Select(i => i.Length ?? 0));
+        Assert.All(listing.Lines.Where(l => l.Number is >= 5 and <= 8 && l.Margin is not null), l => Assert.Null(l.Margin!.Offset));
+
+        // Each copy: INNER's, on its TYPE clause's line, owned by the entry that writes the clause, at the offset coded in place:
+        // W-IN follows W-PAD's 5 positions and W-IN2 follows W-IN's 7, so W-IN's T-A is at 5 and T-B at 8, W-IN2's at 12 and 15.
+        foreach (var (owner, line, start) in new[] { ("W-IN", 18, 5), ("W-IN2", 19, 12) })
+        {
+            var site = Item(map, owner);
+            var copies = map.Items.Where(i => i.Line == line && i.Id != site.Id).ToList();
+            Assert.Equal(["T-A", "T-A-YES", "T-B"], copies.Select(i => i.Name));
+            Assert.All(copies, i => Assert.Equal(programs["INNER"], i.Program));
+            Assert.All(copies, i => Assert.False(i.TypeDeclaration));
+            Assert.Equal((site.Id, (int?)start, (int?)3), (copies[0].Owner ?? 0, copies[0].Offset, copies[0].Length));
+            Assert.Equal(copies[0].Id, copies[1].Owner);
+            Assert.Equal((site.Id, (int?)(start + 3), (int?)4), (copies[2].Owner ?? 0, copies[2].Offset, copies[2].Length));
+            Assert.Equal(new ListingMargin(site.Id, site.Offset, site.Length, site.Usage), listing.Lines.Single(l => l.Number == line).Margin);
+        }
+    }
+
+    /// <summary>The data map holds every declared name of every section (section 6.6; kb/Work PB5925 review round 1, findings 2 and
+    /// 3): a report description entry and its report group description entries; and the file map holds each file's keys, the
+    /// reports its REPORT clause names and its connector.</summary>
+    [Fact]
+    public void TheReportSectionAndTheFileKeys_AreInTheMaps()
+    {
+        string[] reported =
+        [
+            "       IDENTIFICATION DIVISION.",                                       // 1
+            "       PROGRAM-ID. P5.",                                                // 2
+            "       ENVIRONMENT DIVISION.",                                          // 3
+            "       INPUT-OUTPUT SECTION.",                                          // 4
+            "       FILE-CONTROL.",                                                  // 5
+            "           SELECT IF1 ASSIGN TO \"IF1.DAT\"",                           // 6
+            "               ORGANIZATION IS INDEXED ACCESS MODE IS DYNAMIC",         // 7
+            "               RECORD KEY IS IR-KEY",                                   // 8
+            "               ALTERNATE RECORD KEY IS IR-ALT WITH DUPLICATES.",        // 9
+            "           SELECT RF1 ASSIGN TO \"RF1.DAT\"",                           // 10
+            "               ORGANIZATION IS RELATIVE ACCESS MODE IS RANDOM",         // 11
+            "               RELATIVE KEY IS W-RK.",                                  // 12
+            "           SELECT RPTF ASSIGN TO \"RF.TXT\".",                          // 13
+            "       DATA DIVISION.",                                                 // 14
+            "       FILE SECTION.",                                                  // 15
+            "       FD IF1.",                                                        // 16
+            "       01 IR.",                                                         // 17
+            "          05 IR-KEY PIC X(4).",                                         // 18
+            "          05 IR-ALT PIC X(4).",                                         // 19
+            "       FD RF1.",                                                        // 20
+            "       01 RR PIC X(10).",                                               // 21
+            "       FD RPTF REPORT IS RPT.",                                         // 22
+            "       WORKING-STORAGE SECTION.",                                       // 23
+            "       01 W-RK PIC 9(4).",                                              // 24
+            "       01 W-N PIC 9(3) VALUE 5.",                                       // 25
+            "       REPORT SECTION.",                                                // 26
+            "       RD RPT.",                                                        // 27
+            "       01 RL TYPE DETAIL LINE PLUS 1.",                                 // 28
+            "          05 COLUMN 1 PIC 9(3) SOURCE W-N.",                            // 29
+            "       PROCEDURE DIVISION.",                                            // 30
+            "           STOP RUN.",                                                  // 31
+        ];
+        var listing = Compile(DataMapSections, reported).Listing!;
+        var map = Assert.IsType<ListingDataMap>(listing.DataMap);
+
+        // The report-name and its two report group description entries, in the order written, in the REPORT section; the column
+        // entry defines a printable item of PICTURE 9(3), 3 positions (§2023:13.18.40.4 GR14); a report group entry is stored
+        // nowhere of its own, so it has no offset, bytes or field.
+        var rpt = Item(map, "RPT");
+        Assert.Equal((ListingDataItemKind.Report, 27, "REPORT"), (rpt.Kind, rpt.Line ?? 0, rpt.Section));
+        var group = map.Items.Where(i => i.Line is 28 or 29).ToList();
+        Assert.Equal([("RL", 1, rpt.Id), ("FILLER", 5, group[0].Id)], group.Select(i => (i.Name, i.Level ?? 0, i.Owner ?? 0)));
+        Assert.All(group, i => Assert.Equal("REPORT", i.Section));
+        Assert.Equal(("9(3)", 3), (group[1].Picture, group[1].Length ?? 0));
+        Assert.All(group, i => Assert.Equal(((int?)null, (int?)null, (string?)null), (i.Offset, i.Bytes, i.NativeField)));
+
+        // The keys: "The RECORD KEY clause specifies the prime record key access path" (§2023:12.4.5.12.1); the WITH DUPLICATES
+        // phrase is the alternate key's (§2023:12.4.5.6.4 GR4); the RELATIVE KEY data item; "The REPORT clause identifies the
+        // reports that may be written to a report file" (§2023:13.18.46.1). Each file has a connector of its own.
+        var if1 = Assert.Single(map.Files, f => f.Name == "IF1");
+        Assert.Equal(("IR-KEY", false), (if1.RecordKey!.Name, if1.RecordKey.Duplicates));
+        Assert.Equal([Item(map, "IR-KEY").Id], if1.RecordKey.Items);
+        var alternate = Assert.Single(if1.AlternateKeys);
+        Assert.Equal(("IR-ALT", true), (alternate.Name, alternate.Duplicates));
+        Assert.Equal([Item(map, "IR-ALT").Id], alternate.Items);
+        Assert.Null(if1.RelativeKey);
+        Assert.Empty(if1.Reports);
+        var rf1 = Assert.Single(map.Files, f => f.Name == "RF1");
+        Assert.Equal((Item(map, "W-RK").Id, true, 0), (rf1.RelativeKey ?? 0, rf1.RecordKey is null, rf1.AlternateKeys.Count));
+        Assert.Equal([rpt.Id], Assert.Single(map.Files, f => f.Name == "RPTF").Reports);
+        Assert.All(map.Files, f => Assert.False(string.IsNullOrEmpty(f.Connector)));
+        Assert.Equal(map.Files.Count, map.Files.Select(f => f.Connector).Distinct(StringComparer.Ordinal).Count());
+        string page = string.Join("\n", ListingPages.Of(File.ReadAllText(Path.Combine(_dir, "dmap.lst")), ListingSection.DataMap));
+        Assert.Contains($"RECORD KEY IR-KEY (#{Item(map, "IR-KEY").Id})  ALTERNATE KEY IR-ALT (#{Item(map, "IR-ALT").Id}) DUPLICATES",
+            page, StringComparison.Ordinal);
+    }
+
+    /// <summary>A method's own data division is in the data map, in the method it is written in (section 6.6; kb/Work PB5925 review
+    /// round 1, finding 2).</summary>
+    [Fact]
+    public void AMethodsOwnData_IsInTheDataMap()
+    {
+        string[] oo =
+        [
+            "       IDENTIFICATION DIVISION.",          // 1
+            "       CLASS-ID. DMAPM INHERITS FROM BASE.", // 2
+            "       ENVIRONMENT DIVISION.",             // 3
+            "       CONFIGURATION SECTION.",            // 4
+            "       REPOSITORY.",                       // 5
+            "           CLASS BASE.",                   // 6
+            "       IDENTIFICATION DIVISION.",          // 7
+            "       OBJECT.",                           // 8
+            "       PROCEDURE DIVISION.",               // 9
+            "       IDENTIFICATION DIVISION.",          // 10
+            "       METHOD-ID. M1.",                    // 11
+            "       DATA DIVISION.",                    // 12
+            "       LOCAL-STORAGE SECTION.",            // 13
+            "       01 ML PIC X(4).",                   // 14
+            "       LINKAGE SECTION.",                  // 15
+            "       01 MK PIC 9(2).",                   // 16
+            "       PROCEDURE DIVISION USING MK.",      // 17
+            "           MOVE \"AB\" TO ML.",            // 18
+            "       END METHOD M1.",                    // 19
+            "       END OBJECT.",                       // 20
+            "       END CLASS DMAPM.",                  // 21
+        ];
+        var listing = Compile(DataMapSections, oo).Listing!;
+        var map = Assert.IsType<ListingDataMap>(listing.DataMap);
+        int method = Assert.Single(listing.Programs, p => p.Kind == ListingProgramKind.Method).Id;
+        var ml = Item(map, "ML");
+        var mk = Item(map, "MK");
+        // X(4) is 4 positions, 9(2) 2 (§2023:13.18.40.4 GR14).
+        Assert.Equal((14, (int?)method, "LOCAL-STORAGE", 4), (ml.Line ?? 0, ml.Program, ml.Section, ml.Length ?? 0));
+        Assert.Equal((16, (int?)method, "LINKAGE", 2), (mk.Line ?? 0, mk.Program, mk.Section, mk.Length ?? 0));
+    }
+
+    /// <summary>An item the standard defines implicitly is in the data map, marked implicit: the CAPACITY IN register, which "shall
+    /// be treated as though implicitly defined at the same level as the entry containing the OCCURS clause" (§2023:13.18.38.3
+    /// SR30); a compiler temporary is no declared name and is not (section 6.6; kb/Work PB5925 review round 1, finding 5).</summary>
+    [Fact]
+    public void ACapacityRegister_IsInTheDataMap_MarkedImplicit_AtItsTablesLevel()
+    {
+        string[] dynamic =
+        [
+            "       IDENTIFICATION DIVISION.",                                  // 1
+            "       PROGRAM-ID. CAPP.",                                         // 2
+            "       DATA DIVISION.",                                            // 3
+            "       WORKING-STORAGE SECTION.",                                  // 4
+            "       01 G.",                                                     // 5
+            "          05 T OCCURS DYNAMIC CAPACITY IN T-CAP PIC X(2).",        // 6
+            "       PROCEDURE DIVISION.",                                       // 7
+            "           DISPLAY T-CAP.",                                        // 8
+            "           STOP RUN.",                                             // 9
+        ];
+        var map = Assert.IsType<ListingDataMap>(Compile(DataMapSections, dynamic).Listing!.DataMap);
+        var t = Item(map, "T");
+        var cap = Item(map, "T-CAP");
+        Assert.Equal((6, t.Level, t.Owner, true), (cap.Line ?? 0, cap.Level, cap.Owner, cap.Implicit));
+        Assert.Equal(["G", "T", "T-CAP"], map.Items.Select(i => i.Name));
+        Assert.All(map.Items.Where(i => i.Name != "T-CAP"), i => Assert.False(i.Implicit));
+    }
+
+    /// <summary>A communication description entry declares its cd-name, and its record area is the implicit description the
+    /// standard prints: "For each input CD entry, a record area of 87 contiguous character positions is allocated"
+    /// (§1985:XIV.2.2.4 GR2), MESSAGE COUNT "an elementary data item whose implicit description is that of an integer of 6 digits"
+    /// (§1985:XIV.2.2.4 GR2k), the area's last 6 of its 87 positions; the record written after it is one by which the area "may
+    /// be implicitly redefined by user-specified record description entries" (§1985:XIV.2.1.2), so it is the CD's too (kb/Work
+    /// PB5925 review round 1, the sibling sweep of findings 2 and 5).</summary>
+    [Fact]
+    public void ACommunicationDescription_IsInTheDataMap_WithItsImplicitArea()
+    {
+        string[] cd =
+        [
+            "       IDENTIFICATION DIVISION.",          // 1
+            "       PROGRAM-ID. CDP.",                  // 2
+            "       DATA DIVISION.",                    // 3
+            "       WORKING-STORAGE SECTION.",          // 4
+            "       01 W PIC X.",                       // 5
+            "       COMMUNICATION SECTION.",            // 6
+            "       CD CDI FOR INITIAL INPUT",          // 7
+            "           SYMBOLIC QUEUE IS CQ",          // 8
+            "           MESSAGE COUNT IS CMC.",         // 9
+            "       01 CREC PIC X(87).",                // 10
+            "       PROCEDURE DIVISION.",               // 11
+            "       P0.",                               // 12
+            "           STOP RUN.",                     // 13
+        ];
+        var map = Assert.IsType<ListingDataMap>(Compile(DataMapSections, cd, dialect: 85).Listing!.DataMap);
+        var cdi = Item(map, "CDI");
+        Assert.Equal((ListingDataItemKind.CommunicationDescription, 7, "COMMUNICATION"), (cdi.Kind, cdi.Line ?? 0, cdi.Section));
+        Assert.Equal(["INITIAL INPUT"], cdi.Values);
+        var area = map.Items.Where(i => i.Line == 7 && i.Kind == ListingDataItemKind.Data).ToList();
+        Assert.All(area, i => Assert.True(i.Implicit));
+        Assert.Equal((1, cdi.Id, 87), (area[0].Level ?? 0, area[0].Owner ?? 0, area[0].Length ?? 0));
+        Assert.Equal((87 - 6, 6), (Item(map, "CMC").Offset ?? 0, Item(map, "CMC").Length ?? 0));
+        Assert.Equal((0, 12), (Item(map, "CQ").Offset ?? -1, Item(map, "CQ").Length ?? 0));   // the area's first item, X(12) (GR2)
+        var crec = Item(map, "CREC");
+        Assert.Equal((cdi.Id, false), (crec.Owner ?? 0, crec.Implicit));
+        Assert.False(Item(map, "W").Implicit);
     }
 }

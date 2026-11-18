@@ -406,7 +406,8 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::InTypeDeclaration": [
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
+      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
+      "WiseOwl.Cobol.Binding.SymbolTableFinish"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::IndexQualifierChainMatches": [
       "WiseOwl.Cobol.Binding.Model.SymbolTable"

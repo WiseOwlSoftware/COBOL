@@ -41,7 +41,7 @@ The listing is made of sections, each starting a page, in this order:
 | Options | `options` | every option of the compilation, its value and whether it was given or left at its default; then the compiler, the runtime, .NET and the operating system |
 | Source | `source` | every line of the source and of each library text, with the diagnostics under their lines and the `>>DISPLAY` output (below) |
 | Program map | `programs` | every program, its kind, the listing lines it spans, and the programs nested in it; for each program the compiler bound, its COMMON, INITIAL, RECURSIVE and PROTOTYPE attributes, the name it is externalized as, and the .NET type it became |
-| Data map | `data-map` | every data item, condition-name, index-name, constant and file of every program, in the order written, with its level, offset, length, usage, picture and the .NET field it became; and, in the source section, each data description line's offset, length and usage in the right margin |
+| Data map | `data-map` | every data item, condition-name, index-name, constant, report, CD and file of every program, class and method, in the order written, with its level, offset, length, usage, picture and the .NET field it became; and, in the source section, each data description line's offset, length and usage in the right margin |
 | Statistics | `statistics` | the lines by kind and by file, the programs, the statements, the diagnostics by severity, and each verb with its count and lines |
 | Diagnostics | `diagnostics` | the summary of every diagnostic; without this section no diagnostic is printed under its line either |
 
@@ -94,16 +94,31 @@ program map says the same under its last program, and the JSON header's `parse` 
 no error, `NotParsed` when the source was not parsed). The statistics hold no timings, so two listings of one source differ
 only where the compilations did.
 
-The data map lists every name the data division declares, in the order written: each data description entry (FILLER
-included), each level-88 condition-name, each INDEXED BY index-name, each constant, and each level-66 entry. An entry is
-indented under the group it belongs to, a condition-name under its conditional variable and an index-name under its table.
+The data map lists every name the data division declares, in the order written, in every program, class, method and
+interface: each data description entry (FILLER included), each level-88 condition-name, each INDEXED BY index-name, each
+constant, each level-66 entry, each type declaration (marked `TYPE DECLARATION`; it has no storage, so no offset, bytes or
+field), each report (`rd`) with its report group description entries, and each CD (`cd`, its FOR phrase on the row under it)
+with the record area the standard describes for it. An item the standard defines implicitly, a CAPACITY IN register or an
+item of a CD's record area, is marked `IMPLICIT`; the compiler's own temporaries are not listed. The entries a TYPE clause
+copies are listed on the line of the entry that writes the clause, in its program, at their offsets there. An entry is
+indented under the group it belongs to, a condition-name under its conditional variable, an index-name under its table, a
+report group entry under its report and a CD's area and records under the CD.
 For a data item it gives the listing line it is declared on, its level, its offset from the start of its level-1 record in
 bytes (for an item of a table, its first occurrence's), its length in character positions (what `FUNCTION LENGTH` returns),
 the bytes it occupies (every occurrence of a table), its usage and picture; and, on the row under it, its OCCURS,
 DEPENDING ON, INDEXED BY, REDEFINES and RENAMES facts (each naming another entry by its `#id`), GLOBAL, EXTERNAL and BASED,
 and the field of the compiled program that holds it with its .NET type. A condition-name's row under it gives its values,
 a constant's its specification. The file map follows: each file, the line of its file control entry, its organization,
-access mode and record descriptions.
+access mode and record descriptions, and on the row under it its RECORD KEY, each ALTERNATE RECORD KEY (with DUPLICATES),
+its RELATIVE KEY item, the reports it is written to and the name its file connector has in the run unit:
+
+```text
+    ID   LINE  NAME                           ORGANIZATION     ACCESS     RECORDS
+     1      6  IF1                            INDEXED          DYNAMIC    1
+                RECORD KEY IR-KEY (#2)  ALTERNATE KEY IR-ALT (#3) DUPLICATES  CONNECTOR P5::IF1
+     2     11  RPTF                           SEQUENTIAL       SEQUENTIAL
+                REPORTS #6  CONNECTOR P5::RPTF
+```
 
 ```text
     ID   LINE  LVL KIND   NAME                           OFFSET LENGTH  BYTES  USAGE           PICTURE

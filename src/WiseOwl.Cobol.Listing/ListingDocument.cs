@@ -274,9 +274,9 @@ public enum ListingSection
     /// <summary>The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with
     /// its count and its lines.</summary>
     Statistics,
-    /// <summary>The data map and the file map: every data item, condition-name, index-name, constant-name and file-name with its
-    /// level, offset, lengths, usage, picture and the .NET field it became; and, in the source section, each data description
-    /// line's offset, length and usage in the margin.</summary>
+    /// <summary>The data map and the file map: every data item, condition-name, index-name, constant-name, report-name, cd-name
+    /// and file-name with its level, offset, lengths, usage, picture and the .NET field it became, and each file's keys, reports
+    /// and connector; and, in the source section, each data description line's offset, length and usage in the margin.</summary>
     DataMap,
 }
 

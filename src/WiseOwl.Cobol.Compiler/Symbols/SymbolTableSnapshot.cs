@@ -33,6 +33,8 @@ internal enum NameClass
     File,
     /// <summary>A report-name (a report description entry).</summary>
     Report,
+    /// <summary>A cd-name (a communication description entry).</summary>
+    CommunicationDescription,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>
@@ -143,7 +145,14 @@ internal sealed record FileNameAttributes(bool SortMerge, string Organization, s
 /// <param name="Duplicates">The WITH DUPLICATES phrase.</param>
 internal sealed record FileKey(string Name, IReadOnlyList<int> Items, bool Duplicates);
 
-/// <summary>A report-name's attributes (a report description entry, ISO §2023:13.15).</summary>
+/// <summary>A report-name's attributes (a report description entry, ISO §2023:13.14).</summary>
 /// <param name="File">The entry of the file whose REPORT clause names the report, or null.</param>
 /// <param name="Global">The GLOBAL clause.</param>
 internal sealed record ReportAttributes(int? File, bool Global) : SymbolAttributes;
+
+/// <summary>A cd-name's attributes (a communication description entry, ISO §1985:XIV.2.2).</summary>
+/// <param name="Mode">The entry's FOR phrase without INITIAL: <c>INPUT</c>, <c>OUTPUT</c> or <c>I-O</c>.</param>
+/// <param name="Initial">The INITIAL clause.</param>
+/// <param name="Area">The entry of the implicit description of its record area.</param>
+/// <param name="Records">The entries of the level-1 records written after it, which implicitly redefine that area.</param>
+internal sealed record CommunicationAttributes(string Mode, bool Initial, int Area, IReadOnlyList<int> Records) : SymbolAttributes;

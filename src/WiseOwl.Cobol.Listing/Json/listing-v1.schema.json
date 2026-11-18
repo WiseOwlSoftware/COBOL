@@ -784,7 +784,7 @@
       ],
       "properties": {
         "items": {
-          "description": "Every data description entry, condition-name, index-name and constant-name of every program, in the order written: FILLER entries, INDEXED BY index-names, constants and level-66 and level-88 entries included.",
+          "description": "Every data description entry, condition-name, index-name, constant-name, report-name and cd-name of every program, class, method and interface, in the order written: FILLER entries, INDEXED BY index-names, named CAPACITY registers, constants, type declarations, level-66 and level-88 entries, the report group description entries of each report and the implicit description of each CD's record area included.",
           "type": "array",
           "items": {
             "description": "One name of the data map (DESIGN-listing.md section 6.6).",
@@ -795,12 +795,14 @@
                 "type": "integer"
               },
               "kind": {
-                "description": "Data, condition, index or constant. Data: A data description entry (a data-name or FILLER), a level-66 RENAMES entry included. Condition: A condition-name (a level-88 entry). Index: An index-name an INDEXED BY phrase declares. Constant: A constant-name a constant entry declares.",
+                "description": "Data, condition, index, constant, report or cd. Data: A data description entry (a data-name or FILLER), a level-66 RENAMES entry included. Condition: A condition-name (a level-88 entry). Index: An index-name an INDEXED BY phrase declares. Constant: A constant-name a constant entry declares. Report: A report-name a report description entry (an RD entry) declares; its report group description entries follow it as Data entries of the REPORT section. CommunicationDescription: A cd-name a communication description entry (a CD entry) declares; the implicit description of its record area and the records written after it follow it as Data entries of the COMMUNICATION section that it owns.",
                 "enum": [
                   "Data",
                   "Condition",
                   "Index",
-                  "Constant"
+                  "Constant",
+                  "Report",
+                  "CommunicationDescription"
                 ]
               },
               "name": {
@@ -829,21 +831,21 @@
                 ]
               },
               "level": {
-                "description": "The level-number of a data description entry (66 for a RENAMES entry), 88 for a condition-name; null for an index-name or a constant-name.",
+                "description": "The level-number of a data description entry (66 for a RENAMES entry) or of a report group description entry, 88 for a condition-name; null for an index-name, a constant-name, a report-name or a cd-name.",
                 "type": [
                   "integer",
                   "null"
                 ]
               },
               "owner": {
-                "description": "The Id of the group a data item is subordinate to, of a condition-name's conditional variable or of the table whose INDEXED BY phrase declares an index-name; null for a level 1, 66 or 77 item and a constant.",
+                "description": "The Id of the group a data item is subordinate to, of a condition-name's conditional variable, of the table whose INDEXED BY phrase declares an index-name, of the report a level-1 report group description entry describes, or of the CD whose record area or record a level-1 entry describes; null for any other level 1, 66 or 77 item, a constant, a report-name and a cd-name.",
                 "type": [
                   "integer",
                   "null"
                 ]
               },
               "section": {
-                "description": "The data division section that describes a data item: FILE, WORKING-STORAGE, LOCAL-STORAGE, LINKAGE, COMMUNICATION or another section; null for the other kinds.",
+                "description": "The data division section that describes a data item, a report-name or a cd-name: FILE, WORKING-STORAGE, LOCAL-STORAGE, LINKAGE, COMMUNICATION, REPORT or another section; null for the other kinds.",
                 "type": [
                   "string",
                   "null"
@@ -932,7 +934,7 @@
                 "type": "boolean"
               },
               "offset": {
-                "description": "The offset of a data item's first occurrence from the start of its level-1 record, in bytes; null when it has no fixed offset (an item of a table of dynamic capacity) and for the other kinds.",
+                "description": "The offset of a data item's first occurrence from the start of its level-1 record, in bytes; null when it has no fixed offset (an item of a table of dynamic capacity), has no storage (an entry of a type declaration, a report group description entry, an implicit register) and for the other kinds.",
                 "type": [
                   "integer",
                   "null"
@@ -946,14 +948,14 @@
                 ]
               },
               "bytes": {
-                "description": "The bytes a data item occupies, every occurrence of a table counted, or null.",
+                "description": "The bytes a data item occupies, every occurrence of a table counted; null for an entry that has no storage and for the other kinds.",
                 "type": [
                   "integer",
                   "null"
                 ]
               },
               "nativeField": {
-                "description": "The field of the compiled program that holds a data item or an index-name, or null for an item that owns no field (a level-66 alias) and for the other kinds.",
+                "description": "The field of the compiled program that holds a data item or an index-name, or null for an item that owns no field (a level-66 alias, an entry with no storage) and for the other kinds.",
                 "type": [
                   "string",
                   "null"
@@ -967,11 +969,19 @@
                 ]
               },
               "values": {
-                "description": "A condition-name's values as its VALUE clause writes them (a range as low THRU high), or a constant-name's specification as written; empty for the other kinds and for a refused constant entry.",
+                "description": "A condition-name's values as its VALUE clause writes them (a range as low THRU high), or a constant-name's specification as written, or a cd-name's FOR phrase (INPUT, OUTPUT or I-O, after INITIAL when the entry writes it); empty for the other kinds and for a refused constant entry.",
                 "type": "array",
                 "items": {
                   "type": "string"
                 }
+              },
+              "typeDeclaration": {
+                "description": "The entry is a type declaration (a TYPEDEF entry) or part of one: it describes a type and has no storage (ISO §2023:13.18.58.4 GR2); the entries a TYPE clause copies from it are listed where that clause is written.",
+                "type": "boolean"
+              },
+              "implicit": {
+                "description": "The standard defines the item implicitly where the entry that names it is written (a CAPACITY IN register, ISO §2023:13.18.38.3 SR30; an entry of a CD's record area, ISO §1985:XIV.2.2), so no data description entry of its own describes it. A compiler temporary is no declared name and is not in the data map.",
+                "type": "boolean"
               }
             },
             "required": [
@@ -982,7 +992,9 @@
               "global",
               "external",
               "based",
-              "values"
+              "values",
+              "typeDeclaration",
+              "implicit"
             ]
           }
         },
@@ -1048,6 +1060,87 @@
               "global": {
                 "description": "The GLOBAL clause.",
                 "type": "boolean"
+              },
+              "recordKey": {
+                "description": "The RECORD KEY clause's key (ISO §2023:12.4.5.12), or null when the entry writes none.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "description": "The key as written: the data-name (with its subscripts), or the record-key-name a SOURCE phrase defines.",
+                    "type": "string"
+                  },
+                  "items": {
+                    "description": "The Id of each data item the key is made of, in the order they compose it.",
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "duplicates": {
+                    "description": "The WITH DUPLICATES phrase.",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "name",
+                  "items",
+                  "duplicates"
+                ]
+              },
+              "alternateKeys": {
+                "description": "Each ALTERNATE RECORD KEY clause's key (ISO §2023:12.4.5.6), in the order written.",
+                "type": "array",
+                "items": {
+                  "description": "A key of an indexed file (the file map, DESIGN-listing.md section 6.6).",
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "The key as written: the data-name (with its subscripts), or the record-key-name a SOURCE phrase defines.",
+                      "type": "string"
+                    },
+                    "items": {
+                      "description": "The Id of each data item the key is made of, in the order they compose it.",
+                      "$ref": "#/properties/dataMap/properties/files/items/properties/recordKey/properties/items"
+                    },
+                    "duplicates": {
+                      "description": "The WITH DUPLICATES phrase.",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "items",
+                    "duplicates"
+                  ]
+                }
+              },
+              "relativeKey": {
+                "description": "The Id of the RELATIVE KEY data item (ISO §2023:12.4.5.13), or null.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "reports": {
+                "description": "The Id of each report its REPORT clause names.",
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "connector": {
+                "description": "The name the run unit registers the file connector under: the program's path and the file-name, the external name of an EXTERNAL file, or the class's band for a file of an object or a factory.",
+                "type": "string"
+              },
+              "connectorField": {
+                "description": "For a file of an object or a factory, the field that holds each object's own connector key; null for every other file.",
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "required": [
@@ -1058,7 +1151,10 @@
               "access",
               "records",
               "external",
-              "global"
+              "global",
+              "alternateKeys",
+              "reports",
+              "connector"
             ]
           }
         }
@@ -1076,7 +1172,7 @@
         "type": "object",
         "properties": {
           "section": {
-            "description": "The section. Source: The source section: every physical line of every file read, with the DISPLAY directive's transfers. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end. Options: The options in effect: every option with its value and whether it is the default, the compiler and the host. Statistics: The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with its count and its lines. DataMap: The data map and the file map: every data item, condition-name, index-name, constant-name and file-name with its level, offset, lengths, usage, picture and the .NET field it became; and, in the source section, each data description line's offset, length and usage in the margin.",
+            "description": "The section. Source: The source section: every physical line of every file read, with the DISPLAY directive's transfers. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end. Options: The options in effect: every option with its value and whether it is the default, the compiler and the host. Statistics: The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with its count and its lines. DataMap: The data map and the file map: every data item, condition-name, index-name, constant-name, report-name, cd-name and file-name with its level, offset, lengths, usage, picture and the .NET field it became, and each file's keys, reports and connector; and, in the source section, each data description line's offset, length and usage in the margin.",
             "enum": [
               "Source",
               "Programs",

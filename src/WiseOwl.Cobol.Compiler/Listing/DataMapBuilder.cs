@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Listing.Building;
 
 /// <summary>
 /// ⛔ THE DATA MAP AND THE FILE MAP, A VIEW OF THE SYMBOL TABLE (docs/rearchitecture/DESIGN-listing.md section 6.6): each data,
-/// condition, index and constant entry of the finished table becomes a <see cref="ListingDataItem"/> and each file entry a
+/// condition, index, constant, report and cd entry of the finished table becomes a <see cref="ListingDataItem"/> and each file entry a
 /// <see cref="ListingFileEntry"/>, in the table's declaration order, each placed on its listing line through the one index. It
 /// reads only the snapshot (<see cref="SymbolTableSnapshot"/>) and the source's lines: no binder type, no second walk of the data
 /// division. The program map's attributes (<see cref="ProgramAttributesOf"/>) are the same table's program entries.
@@ -34,11 +34,27 @@ internal static class DataMapBuilder
         // A data-map id is the 1-based place among the data map's own entries; an attribute naming another entry names its id.
         var itemIds = new Dictionary<int, int>();
         foreach (var entry in symbols.Entries)
-            if (entry.Class is NameClass.Data or NameClass.Condition or NameClass.Index or NameClass.Constant or NameClass.Report)
+            if (entry.Class is NameClass.Data or NameClass.Condition or NameClass.Index or NameClass.Constant or NameClass.Report
+                or NameClass.CommunicationDescription)
                 itemIds[entry.Id] = itemIds.Count + 1;
         int? Item(int? entry) => entry is { } id && itemIds.TryGetValue(id, out int item) ? item : null;
         IReadOnlyList<int> Items(IEnumerable<int> entries) => [.. entries.Select(e => Item(e)).OfType<int>()];
         ListingFileKey? Key(FileKey? key) => key is null ? null : new ListingFileKey(key.Name, Items(key.Items), key.Duplicates);
+        // The links the table records on the other side: a level-1 entry of a CD's area or record is owned by the CD (as a report
+        // group's is by its report), and a file lists the reports its REPORT clause names (each report records its file).
+        var cdOwner = new Dictionary<int, int>();
+        var reportsOf = new Dictionary<int, List<int>>();
+        foreach (var entry in symbols.Entries)
+            switch (entry.Attributes)
+            {
+                case CommunicationAttributes cd:
+                    foreach (int level1 in cd.Records.Prepend(cd.Area)) cdOwner[level1] = entry.Id;
+                    break;
+                case ReportAttributes { File: { } file }:
+                    if (!reportsOf.TryGetValue(file, out var reports)) reportsOf[file] = reports = [];
+                    reports.Add(entry.Id);
+                    break;
+            }
 
         var items = new List<ListingDataItem>(itemIds.Count);
         var files = new List<ListingFileEntry>();
@@ -49,7 +65,8 @@ internal static class DataMapBuilder
             {
                 case DataAttributes d:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Data, entry.Name, at.Program, at.Line, at.Column,
-                        d.Level, Item(d.Parent), SectionWord(d.Section), d.Usage, d.Picture, d.Category, d.OccursMin, d.OccursMax,
+                        d.Level, Item(d.Parent ?? (cdOwner.TryGetValue(entry.Id, out int cd) ? cd : null)),
+                        SectionWord(d.Section), d.Usage, d.Picture, d.Category, d.OccursMin, d.OccursMax,
                         Item(d.DependingOn), [.. d.Indexes.Select(i => Item(i)).OfType<int>()], Item(d.Redefines), Item(d.RenamesFrom),
                         Item(d.RenamesThru), d.Global, d.External, d.Based, d.Offset, d.Length, d.Bytes, d.NativeField, d.NativeType, [],
                         d.TypeDeclaration, d.Implicit));
@@ -74,10 +91,17 @@ internal static class DataMapBuilder
                         null, null, SectionWord(DataSection.Report), null, null, null, null, null, null, [], null, null, null, r.Global,
                         false, false, null, null, null, null, null, [], false, false));
                     break;
+                case CommunicationAttributes m:
+                    items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.CommunicationDescription, entry.Name, at.Program,
+                        at.Line, at.Column, null, null, SectionWord(DataSection.Communication), null, null, null, null, null, null, [], null,
+                        null, null, false, false, false, null, null, null, null, null, [m.Initial ? "INITIAL " + m.Mode : m.Mode], false,
+                        false));
+                    break;
                 case FileNameAttributes f:
                     files.Add(new ListingFileEntry(files.Count + 1, entry.Name, at.Program, at.Line, at.Column, f.SortMerge,
                         f.Organization, f.Access, Items(f.Records), f.External, f.Global, Key(f.RecordKey),
-                        [.. f.AlternateKeys.Select(k => Key(k)!)], Item(f.RelativeKey), f.Connector, f.ConnectorField));
+                        [.. f.AlternateKeys.Select(k => Key(k)!)], Item(f.RelativeKey), Items(reportsOf.GetValueOrDefault(entry.Id) ?? []),
+                        f.Connector, f.ConnectorField));
                     break;
                 case ProgramAttributes:
                     break;   // the program map's (ProgramAttributesOf)

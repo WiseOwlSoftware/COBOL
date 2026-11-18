@@ -756,8 +756,12 @@ PB5932's lead.
 ### 6.6 Data map: a view of the symbol table
 
 Every data item of every program, in definition order, including those GnuCOBOL omits (INDEXED BY indexes, level-78 and
-CONSTANT entries, condition-names, level-66 entries, compiler-implicit items marked as such). The data map is a VIEW of
-the symbol table's data, index, condition and constant entries (section 4.1); it does not walk `DataBindResult.Forest`
+CONSTANT entries, condition-names, level-66 entries, the items the standard defines implicitly, marked as such). (Step 6
+review round 1, correction:) "compiler-implicit items" read as the compiler's own temporaries, which no rule of the standard
+defines and no program names; they are no declared name and have no entry. What is listed and marked implicit is what the
+STANDARD defines implicitly where an entry names it: a CAPACITY IN register (ISO §2023:13.18.38.3 SR30) and the record area
+of a CD (ISO §1985:XIV.2.2.4 GR2). The data map is a VIEW of the symbol table's data, index, condition, constant, report and
+cd entries (section 4.1); it does not walk `DataBindResult.Forest`
 or any binder type. Each attribute is written into the entry by the binder at the point it decides it:
 
 | Column | Written into the entry by |
@@ -772,7 +776,13 @@ or any binder type. Each attribute is written into the entry by the binder at th
 | the native field and its .NET type | the storage-form decision (`StorageForm`, taken in Bind): the field's name (`DataItem.ClrName`, `StructName` for a group's record struct) and the .NET type the decision requires (`NativeInt` -> `long` or `Int128` of n digits, `CharImage` -> a character image of width n, `NativeFloat`, `DynamicTable`, `ObjectRef`, `PointerRef`, `TierBWindow` -> a window of a redefinition class), spelled by ONE function on `StorageForm` that both backends implement against. It is the binder's decision behind the backend-neutral seam, so it names no emitted source and is the same for the Roslyn and the CIL backend |
 
 Files get a file map, a view of the file entries: the file-name, organization, access, record keys, the record area and
-the connector's native field.
+the connector's native field. (Step 6 review round 1, as built:) the record keys are the RECORD KEY's and each ALTERNATE
+RECORD KEY's (the key as written, the entries it is made of, the DUPLICATES phrase) and the RELATIVE KEY item; the record
+area is the file's record entries; the file map also lists the reports its REPORT clause names. A file connector is held
+in the run unit's registry under a NAME, not in a native field (correction): the file map gives that name (`FileModel.CobolName`,
+the program's path and the file-name, or an EXTERNAL file's external name) and, for a file of an object or a factory, the
+field that holds each object's own connector key (`FileModel.InstanceKeyField`). So the table is finished after the run unit
+names every connector (`BinderDriver`, after `QualifyClassFiles`).
 
 **As built (step 6), with the corrections the code proved:**
 
@@ -796,12 +806,26 @@ the connector's native field.
   `DataItem.FieldType` wraps for a table; the data map prints `DataItem.ClrName` and `FieldType`, and an index-name's cell
   `StorageElementType(StorageForm.IndexCell)`. Both are the binder's decision, the same for every backend.
 - **What the table holds.** Every name a source element declared, in definition order: each record's entries in the order
-  written (FILLER included, each level-88 under its conditional variable, each INDEXED BY index-name under its table, the level-66
-  entries after their record), the constant entries (`ConstantEntryBinder.DeclaredConstants`: a constant makes no data item,
-  ISO §2023:13.10.4 GR1, so it is the one fact read off the binder) and the file-names (`FileModel.SelectName`, read before the
-  run unit renames the connector), ordered by their positions. Compiler temporaries are no declared name and have no entry. A
-  condition-name now carries its position (`Condition88.DeclaredAt`, copied by `CopyOnto`); an index-name stands on its table's
-  entry; a file on its SELECT entry (`FileModel.EntryAt`).
+  written (FILLER included, each level-88 under its conditional variable, each INDEXED BY index-name under its table, a named
+  CAPACITY register after its table's subordinates, marked implicit, the level-66 entries after their record), the type
+  declarations (`ForestSlice.TypeDecls`: listed where written, with no offset, bytes or field, since "A type declaration has no
+  storage associated with it", ISO §2023:13.18.58.4 GR2), the constant entries (`ConstantEntryBinder.DeclaredConstants`: a constant
+  makes no data item, ISO §2023:13.10.4 GR1, so it is read off the binder), the file-names (`FileModel.SelectName`), each report
+  description entry with its report group description entries (`ReportScope.Declared`, `ReportModel.WrittenEntries`: stored
+  nowhere of their own, so no offset, bytes or field; a printable entry has its item's usage, picture and length), and each CD's
+  cd-name with the implicit description of its record area (`CommunicationSlice.Declared`), ordered by their positions. The
+  source elements are each program unit, the OBJECT and FACTORY of each class with each method's own LOCAL-STORAGE and LINKAGE
+  entries and type declarations (`OoMethodSymbol.Binding`, `DataScope.TypeDecls`), and each interface's methods. Compiler
+  temporaries are no declared name and have no entry. A condition-name carries its position (`Condition88.DeclaredAt`, copied by
+  `CopyOnto`); an index-name stands on its table's entry; a file on its SELECT entry (`FileModel.EntryAt`). (Step 6 review round
+  1, correction:) a level-1 entry of a CD's area or record is owned by its CD, as a report group's is by its report.
+- **A copy stands where its clause is written (step 6 review round 1, correction).** A TYPE or SAME AS clause's effect is "as
+  though the data description identified by type-name-1 had been coded in place" (ISO §2023:13.18.57.4 GR1), but a copied entry
+  keeps its template's `DeclaredAt`. The table places every data entry by ONE answer, `SymbolTableFinish.WrittenAt`: the entry's
+  `DataItem.ReferenceSite` (the entry that wrote the clause), whose position is its own for a written entry; a copy's
+  condition-names and index-names stand on the same line. So a copy belongs to the program, the line and the margin of its
+  reference, and the type declaration's lines carry only the declaration's own facts. `DataBinder.CloneRenamesOnto` now records
+  `ClonedFrom` like every other copy, so a level-66 entry of a type is placed the same way.
 - **The program a name belongs to is placed, not carried.** A data map entry's `Program` is the innermost program of the listing
   line its declaration stands on (`ListingLine.Program`), so the snapshot carries no unit and no name is compared.
 - **What is finished, and when.** `EditionContext.RecordsSymbols` (the driver sets it through `ListingFacts.ReadsSymbols`: the
@@ -1562,8 +1586,10 @@ marked "step 6").** The finished table (`SymbolTableFinish.Of`, `SymbolTableWrit
 with `ListingLine.Margin` for definition lines, `DataMapText`, the program attributes, `--listing-sections data-map`; the
 benchmark's `All` row. (Step 6, kb/Work PB5932:) the ONE store, below, is split out as step 6b: it is a restructuring of the
 whole binder's name resolution (65 tables, 194 members, 124 + 130 + 40 comparison sites, section 6.7.2), which the data map does
-not stand on (its entries and attributes are complete by construction, read off the frozen bound model) and the occurrences of
-step 7 do. Step 6b lands before step 7 branches.
+not stand on (its entries and attributes are read off the frozen bound model, whose every declaring structure step 6 walks:
+section 6.6 "What the table holds") and the occurrences of step 7 do. (Step 6 review round 1, correction:) the first build walked
+only the program forests and claimed completeness by construction; the REPORT SECTION, the methods' own data, the type
+declarations, the CAPACITY registers and the CDs were missing, and step 6 now walks each. Step 6b lands before step 7 branches.
 
 **Step 6b - the one store of names (kb/Work PB5932).** The ONE store first: `NameTableOwnershipDriftTests` is written first on
 the step's branch and runs red, its failures matching the evidence of section 6.7.2 (a check that could fail); then

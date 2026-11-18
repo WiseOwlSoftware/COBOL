@@ -6,9 +6,10 @@ namespace WiseOwl.Cobol.Listing;
 /// <summary>The data map and the file map (DESIGN-listing.md section 6.6): a view of the compiler's symbol table, every name the
 /// data division declared with what the compiler decided for it.</summary>
 /// <remarks>Step 6 of the design's section 11.</remarks>
-/// <param name="Items">Every data description entry, condition-name, index-name, constant-name and report-name of every program,
-/// class, method and interface, in the order written: FILLER entries, INDEXED BY index-names, named CAPACITY registers, constants,
-/// type declarations, level-66 and level-88 entries and the report group description entries of each report included.</param>
+/// <param name="Items">Every data description entry, condition-name, index-name, constant-name, report-name and cd-name of every
+/// program, class, method and interface, in the order written: FILLER entries, INDEXED BY index-names, named CAPACITY registers,
+/// constants, type declarations, level-66 and level-88 entries, the report group description entries of each report and the
+/// implicit description of each CD's record area included.</param>
 /// <param name="Files">Every file-name of every program, in the order written.</param>
 public sealed record ListingDataMap(IReadOnlyList<ListingDataItem> Items, IReadOnlyList<ListingFileEntry> Files);
 
@@ -26,11 +27,14 @@ public enum ListingDataItemKind
     /// <summary>A report-name a report description entry (an RD entry) declares; its report group description entries follow it as
     /// <see cref="Data"/> entries of the <c>REPORT</c> section.</summary>
     Report,
+    /// <summary>A cd-name a communication description entry (a CD entry) declares; the implicit description of its record area and
+    /// the records written after it follow it as <see cref="Data"/> entries of the <c>COMMUNICATION</c> section that it owns.</summary>
+    CommunicationDescription,
 }
 
 /// <summary>One name of the data map (DESIGN-listing.md section 6.6).</summary>
 /// <param name="Id">1-based, in the order written.</param>
-/// <param name="Kind">Data, condition, index, constant or report.</param>
+/// <param name="Kind">Data, condition, index, constant, report or cd.</param>
 /// <param name="Name">The name as written, or <c>FILLER</c>.</param>
 /// <param name="Program">The <see cref="ListingProgram.Id"/> of the program that declares it, or null when its line is not listed
 /// in any program.</param>
@@ -38,11 +42,12 @@ public enum ListingDataItemKind
 /// <param name="Column">The 1-based character position of the declaration in that line's text, or null with
 /// <paramref name="Line"/>.</param>
 /// <param name="Level">The level-number of a data description entry (66 for a RENAMES entry) or of a report group description
-/// entry, 88 for a condition-name; null for an index-name, a constant-name or a report-name.</param>
+/// entry, 88 for a condition-name; null for an index-name, a constant-name, a report-name or a cd-name.</param>
 /// <param name="Owner">The <see cref="Id"/> of the group a data item is subordinate to, of a condition-name's conditional variable,
-/// of the table whose INDEXED BY phrase declares an index-name, or of the report a level-1 report group description entry
-/// describes; null for a level 1, 66 or 77 item, a constant and a report-name.</param>
-/// <param name="Section">The data division section that describes a data item or a report-name: <c>FILE</c>,
+/// of the table whose INDEXED BY phrase declares an index-name, of the report a level-1 report group description entry
+/// describes, or of the CD whose record area or record a level-1 entry describes; null for any other level 1, 66 or 77 item, a
+/// constant, a report-name and a cd-name.</param>
+/// <param name="Section">The data division section that describes a data item, a report-name or a cd-name: <c>FILE</c>,
 /// <c>WORKING-STORAGE</c>, <c>LOCAL-STORAGE</c>, <c>LINKAGE</c>, <c>COMMUNICATION</c>, <c>REPORT</c> or another section; null for
 /// the other kinds.</param>
 /// <param name="Usage">A data item's usage, as the USAGE clause spells it, or null for a group that states none and for the other
@@ -71,11 +76,13 @@ public enum ListingDataItemKind
 /// owns no field (a level-66 alias, an entry with no storage) and for the other kinds.</param>
 /// <param name="NativeType">The .NET type of that field, as C# spells it, or null with <paramref name="NativeField"/>.</param>
 /// <param name="Values">A condition-name's values as its VALUE clause writes them (a range as <c>low THRU high</c>), or a
-/// constant-name's specification as written; empty for the other kinds and for a refused constant entry.</param>
+/// constant-name's specification as written, or a cd-name's FOR phrase (<c>INPUT</c>, <c>OUTPUT</c> or <c>I-O</c>, after
+/// <c>INITIAL</c> when the entry writes it); empty for the other kinds and for a refused constant entry.</param>
 /// <param name="TypeDeclaration">The entry is a type declaration (a TYPEDEF entry) or part of one: it describes a type and has no
 /// storage (ISO §2023:13.18.58.4 GR2); the entries a TYPE clause copies from it are listed where that clause is written.</param>
 /// <param name="Implicit">The standard defines the item implicitly where the entry that names it is written (a CAPACITY IN
-/// register, ISO §2023:13.18.38.3 SR30), so no data description entry of its own describes it.</param>
+/// register, ISO §2023:13.18.38.3 SR30; an entry of a CD's record area, ISO §1985:XIV.2.2), so no data description entry of its
+/// own describes it. A compiler temporary is no declared name and is not in the data map.</param>
 public sealed record ListingDataItem(int Id, ListingDataItemKind Kind, string Name, int? Program, int? Line, int? Column, int? Level,
     int? Owner, string? Section, string? Usage, string? Picture, string? Category, int? OccursMin, int? OccursMax, int? DependingOn,
     IReadOnlyList<int> Indexes, int? Redefines, int? RenamesFrom, int? RenamesThru, bool Global, bool External, bool Based,
@@ -98,13 +105,14 @@ public sealed record ListingDataItem(int Id, ListingDataItemKind Kind, string Na
 /// <param name="AlternateKeys">Each ALTERNATE RECORD KEY clause's key (ISO §2023:12.4.5.6), in the order written.</param>
 /// <param name="RelativeKey">The <see cref="ListingDataItem.Id"/> of the RELATIVE KEY data item (ISO §2023:12.4.5.13), or
 /// null.</param>
+/// <param name="Reports">The <see cref="ListingDataItem.Id"/> of each report its REPORT clause names.</param>
 /// <param name="Connector">The name the run unit registers the file connector under: the program's path and the file-name, the
 /// external name of an EXTERNAL file, or the class's band for a file of an object or a factory.</param>
 /// <param name="ConnectorField">For a file of an object or a factory, the field that holds each object's own connector key; null
 /// for every other file.</param>
 public sealed record ListingFileEntry(int Id, string Name, int? Program, int? Line, int? Column, bool SortMerge, string Organization,
     string Access, IReadOnlyList<int> Records, bool External, bool Global, ListingFileKey? RecordKey,
-    IReadOnlyList<ListingFileKey> AlternateKeys, int? RelativeKey, string Connector, string? ConnectorField);
+    IReadOnlyList<ListingFileKey> AlternateKeys, int? RelativeKey, IReadOnlyList<int> Reports, string Connector, string? ConnectorField);
 
 /// <summary>A key of an indexed file (the file map, DESIGN-listing.md section 6.6).</summary>
 /// <param name="Name">The key as written: the data-name (with its subscripts), or the record-key-name a SOURCE phrase defines.</param>

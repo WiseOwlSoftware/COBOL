@@ -45,3 +45,13 @@ the parent's. The first run finished every declared name for the standard listin
 put SM201A's standard text listing at +12.6 %; `EditionContext.RecordsNames` now gates the names to the data map. SM201A's
 standard row still reads +11.2 % on the second run from a no-listing full compile 2.07 MB under the parent's for the same code
 (+5.2 % against the parent's), filed as a lead on the measurement.
+
+**Review round 1.** A TYPE copy's entries were placed on the type declaration's lines and in its program: every data entry is
+now placed at the entry that writes the TYPE or SAME AS clause (`SymbolTableFinish.WrittenAt`, `DataItem.ReferenceSite`;
+§2023:13.18.57.4 GR1), and the type declaration is listed where written with no storage (§2023:13.18.58.4 GR2). The data map
+now holds the REPORT SECTION, each method's and interface's own data, the CAPACITY IN registers (marked implicit,
+§2023:13.18.38.3 SR30) and each CD with the implicit record area §1985:XIV.2.2.4 GR2 describes; the file map holds the record
+keys, the RELATIVE KEY, the reports and the connector's run-unit name, so the table is finished after the connectors are
+named. Section 6.6's "compiler-implicit items" is corrected to the items the standard defines implicitly. One citation was
+wrong (the default access mode is §2023:12.4.5.5.3 GR1). Five new `ListingDataMapTests` cases; kb/Work/PB5925's
+2026-11-18-listing-step-6-review-r1.md records each fix.

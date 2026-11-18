@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Runtime.Communication;
 using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
@@ -33,17 +34,17 @@ internal static class SymbolTableFinish
             var u = unit;
             elements.Add([(PositionOf(u.DeclaredAt), () => into.Declare(u, NameClass.Program, u.Name, PositionOf(u.DeclaredAt),
                     _ => new ProgramAttributes(u.IsFunction, u.Common, u.Initial, u.Recursive, u.IsPrototype, u.ExternalizedName, u.ClassName))),
-                .. names ? Declarations(into, u.Data, binders.Of(u).Data, methods: false) : []]);
+                .. names ? Declarations(into, u.Data, binders.Of(u).Data.Constants, methods: []) : []]);
         }
         if (names)
         {
             foreach (var cls in classes)
             {
-                elements.Add(Declarations(into, cls.Data, binders.ObjectOf(cls).Data, methods: true));
-                elements.Add(Declarations(into, cls.FactoryData, binders.FactoryOf(cls).Data, methods: true));
+                elements.Add(Declarations(into, cls.Data, binders.ObjectOf(cls).Data.Constants, cls.Symbol.Methods));
+                elements.Add(Declarations(into, cls.FactoryData, binders.FactoryOf(cls).Data.Constants, cls.Symbol.FactoryMethods));
             }
             foreach (var (iface, data) in interfaces)
-                elements.Add(Declarations(into, data, binders.Interfaces[iface], methods: true));
+                elements.Add(Declarations(into, data, binders.Interfaces[iface].Constants, iface.Prototypes));
         }
         foreach (var element in elements.Where(static e => e.Count > 0).OrderBy(static e => FirstLine(e)))
             foreach (var (_, declare) in element) declare();
@@ -57,33 +58,41 @@ internal static class SymbolTableFinish
     /// The declarations of one source element's names (docs/rearchitecture/DESIGN-listing.md sections 6.6 and 6.7.1): declare into
     /// <paramref name="into"/> every name this source element declared, in definition order, each with the symbol the binder
     /// made for it. Every data description entry of every section (FILLER included, each level-88 and level-66 entry, each
-    /// INDEXED BY index-name and each named CAPACITY register), its methods' own entries when <paramref name="methods"/>, its type
-    /// declarations, its constant entries, its file-names and its report description entries with their report group entries.
+    /// INDEXED BY index-name and each named CAPACITY register), the own entries of each of its <paramref name="methods"/> (the
+    /// class half's or the interface's own roster, <see cref="OoMethodSymbol.Binding"/>), its type declarations, its CDs with their
+    /// record areas, its constant entries, its file-names and its report description entries with their report group entries.
     /// <paramref name="data"/> is what the element's data binding published (<see cref="DataBindResult"/>, frozen); the constant
-    /// entries make no data item and a method's entries are its binder's (<paramref name="binder"/>), so those are read off the
-    /// binder itself. A container's GLOBAL names are the container's entries, never repeated here; compiler temporaries are no
-    /// declared name and have no entry.
+    /// entries make no data item, so they are read off the element's <paramref name="constants"/>. A container's GLOBAL names are
+    /// the container's entries, never repeated here; compiler temporaries are no declared name and have no entry.
     /// <para>The attributes are read off each symbol when the snapshot is made (<see cref="SymbolTableWriter.Snapshot"/>), once
     /// the bind is finished: the binder records each decision on the symbol it decides it for, so the table carries no second
     /// copy of any of them.</para>
     /// </summary>
     private static List<(SymbolPosition At, Action Declare)> Declarations(SymbolTableWriter into, DataBindResult data,
-        DataBinder binder, bool methods)
+        ConstantEntryBinder constants, IReadOnlyList<OoMethodSymbol> methods)
     {
         var written = new List<(SymbolPosition At, int Order, Action Declare)>();
         int order = 0;
         var seen = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        IReadOnlyList<OoMethodSymbol> ownMethods = methods ? binder.Oo.BoundMethods : [];
         var roots = data.Forest.Roots.Concat(data.Linkage.Roots)
-            .Concat(ownMethods.SelectMany(static m => m.Binding is { } b ? b.LocalRoots.Concat(b.LinkageRoots) : []))
-            .Concat(data.Forest.TypeDecls.Values).Concat(ownMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
+            .Concat(methods.SelectMany(static m => m.Binding is { } b ? b.LocalRoots.Concat(b.LinkageRoots) : []))
+            .Concat(data.Forest.TypeDecls.Values).Concat(methods.SelectMany(static m => m.DataScope.TypeDecls.Values));
+        // A CD entry declares its cd-name, then the implicit description of its record area (ISO §1985:XIV.2.2, ISO/IEC
+        // 1989:2002 A.1.2.3), which the binder adds to the forest as a root standing on the CD entry; the area is declared with its
+        // cd-name, never a second time as a root of its own.
+        foreach (var cd in data.Communication.Declared)
+        {
+            var model = cd;
+            seen.Add(model.Area);
+            written.Add((PositionOf(model.Area.DeclaredAt), order++, () => DeclareCommunication(into, model)));
+        }
         foreach (var root in roots)
             if (!root.IsCompilerTemp && seen.Add(root))
             {
                 var item = root;
-                written.Add((WrittenAt(root), order++, () => DeclareTree(into, item)));
+                written.Add((WrittenAt(root), order++, () => DeclareTree(into, item, implicitly: false)));
             }
-        foreach (var (name, line, column, value, global) in binder.Constants.DeclaredConstants())
+        foreach (var (name, line, column, value, global) in constants.DeclaredConstants())
             written.Add((new SymbolPosition(line, column), order++,
                 () => into.Declare(new ConstantSymbol(name), NameClass.Constant, name, new SymbolPosition(line, column),
                     _ => new ConstantAttributes(value, global))));
@@ -106,10 +115,12 @@ internal static class SymbolTableFinish
     /// <summary>Declare <paramref name="item"/>, then its condition-names and index-names, then its subordinates, then the named
     /// CAPACITY register its OCCURS clause defines, then the level-66 entries that rename within it: the order the entries are
     /// written in a record.</summary>
-    private static void DeclareTree(SymbolTableWriter into, DataItem item)
+    /// <param name="implicitly">The entry is part of a description the standard defines implicitly (a CD's record area), which no
+    /// data description entry writes.</param>
+    private static void DeclareTree(SymbolTableWriter into, DataItem item, bool implicitly)
     {
         var at = WrittenAt(item);
-        into.Declare(item, NameClass.Data, item.CobolName ?? "FILLER", at, ids => DataAttributesOf(item, ids));
+        into.Declare(item, NameClass.Data, item.CobolName ?? "FILLER", at, ids => DataAttributesOf(item, implicitly, ids));
         foreach (var condition in item.Own88s)
         {
             var c = condition;
@@ -123,13 +134,13 @@ internal static class SymbolTableFinish
             into.Declare(ix, NameClass.Index, ix.Name, at,
                 ids => new IndexAttributes(ids(ix.Table) ?? 0, ix.Cell, Passes.StorageFormPass.StorageElementType(IndexCellForm)));
         }
-        foreach (var child in item.Children) DeclareTree(into, child);
+        foreach (var child in item.Children) DeclareTree(into, child, implicitly);
         // §2023:13.18.38.3 SR30: data-name-3 of CAPACITY IN "shall be treated as though implicitly defined at the same level as the
         // entry containing the OCCURS clause". The register is the view DynamicResolve mints for the table; a type declaration's
         // table has none (it is minted where the type is used).
         if (item.OccursSpec is { CapacityName: { } capacity, CapacityRegister: { } register })
             into.Declare(register, NameClass.Data, capacity, at, ids => RegisterAttributesOf(register, item, ids));
-        foreach (var alias in item.Renames66) DeclareTree(into, alias);
+        foreach (var alias in item.Renames66) DeclareTree(into, alias, implicitly);
     }
 
     /// <summary>⛔ WHERE A DATA ENTRY IS WRITTEN, the one answer the table places a data entry by: the entry's own position, or, for
@@ -148,7 +159,7 @@ internal static class SymbolTableFinish
     /// <summary>A data item's attributes (DESIGN-listing.md section 6.6), each read where the binder recorded it. An entry of a
     /// type declaration describes a type and has no storage (ISO §2023:13.18.58.4 GR2: "A type declaration has no storage
     /// associated with it"), so it has no offset, no bytes and no field.</summary>
-    private static DataAttributes DataAttributesOf(DataItem item, Func<object, int?> ids)
+    private static DataAttributes DataAttributesOf(DataItem item, bool implicitly, Func<object, int?> ids)
     {
         var pic = item.Pic;
         var usage = pic?.Usage ?? item.OwnUsage;
@@ -177,7 +188,25 @@ internal static class SymbolTableFinish
             NativeField: ownsField ? item.ClrName : null,
             NativeType: ownsField ? item.FieldType : null,
             TypeDeclaration: type,
-            Implicit: false);
+            Implicit: implicitly);
+    }
+
+    /// <summary>Declare the communication description entry <paramref name="cd"/>: its cd-name (ISO §1985:XIV.2.2), then the implicit
+    /// description of its record area, each entry of it marked implicit. The level-1 entries written after the CD are roots of their
+    /// own (<see cref="Declarations"/>).</summary>
+    private static void DeclareCommunication(SymbolTableWriter into, CommunicationDescription cd)
+    {
+        var at = PositionOf(cd.Area.DeclaredAt);
+        into.Declare(cd, NameClass.CommunicationDescription, cd.Name, at, ids => new CommunicationAttributes(
+            cd.Format switch
+            {
+                CommunicationFormat.Input => "INPUT",
+                CommunicationFormat.Output => "OUTPUT",
+                CommunicationFormat.InputOutput => "I-O",
+                _ => throw new ArgumentOutOfRangeException(nameof(cd), cd.Format, "a CD format with no word"),
+            },
+            cd.IsInitial, ids(cd.Area) ?? 0, [.. cd.Records.Select(ids).OfType<int>()]));
+        DeclareTree(into, cd.Area, implicitly: true);
     }
 
     /// <summary>A named CAPACITY register's attributes: an implicit item at the level of its <paramref name="table"/>
