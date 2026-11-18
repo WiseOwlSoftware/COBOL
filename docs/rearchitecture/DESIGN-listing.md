@@ -4,9 +4,11 @@
 > (the 1985 standard minimum, kb/Work PB5923, branch `listing-step-1`); STEP 2 BUILT (the JSON listing and its schema, branch
 > `listing-step-2`); STEP 3 BUILT (diagnostics, branch `listing-step-3`); STEP 4a BUILT (the directive hooks, witnessed at 2023,
 > branch `listing-step-4a`); STEP 4b BUILT (the hooks witnessed at 2002 and 2014, branch `listing-step-4b`); STEP 5 BUILT (the
-> options, the program map, the statistics and verbs, `--listing-sections`, branch `listing-step-5`); steps 6 to 9 not yet
-> built.** Where building a step proved this document wrong it was corrected in the same change; each correction is
-> marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)" or "(step 5)" in the section it changed.
+> options, the program map, the statistics and verbs, `--listing-sections`, branch `listing-step-5`); STEP 6 BUILT (the
+> finished symbol table, the data map and file map, the program attributes and the margin, branch `listing-step-6`); steps
+> 6b (the one store of names, kb/Work PB5932) and 7 to 9 not yet built.** Where building a step proved this document wrong it
+> was corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)",
+> "(step 5)" or "(step 6)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -150,8 +152,8 @@ Four facts the listing needs are missing today and are added by this design:
    and line number (section 4.4; step 1);
 3. structured bind diagnostics (section 6.3; step 3, built);
 4. ONE symbol table holding every name with its attributes and its occurrences (position, length, use), which today
-   is spread over dozens of tables and recorded nowhere (section 6.7.1: the store and its attributes in step 6, the
-   occurrences in step 7).
+   is spread over dozens of tables and recorded nowhere (section 6.7.1: (step 6) the finished table's entries and attributes
+   in step 6, the one store in step 6b, the occurrences in step 7).
 
 ## 4. The ONE listing model
 
@@ -307,7 +309,8 @@ is one member's name), and a second enum of sections for the request would be a 
 joins the enum; `ListingSectionSet.Standard` is section 8's default. Like a format, a section joins the enum WITH its
 builder (`ListingSection` has `Source`, `Programs`, `Diagnostics`, `Options` and `Statistics`; the data map, the
 cross-reference and the object-code sections join with steps 6 to 8), so no request names a section the compiler cannot
-produce, and `all` equals `standard` until step 6. ONE table, `ListingSections`, holds each section's command-line word and
+produce, and `all` equals `standard` until step 6. (Step 6:) `ListingSection.DataMap` (`data-map`) joins with its builder,
+`DataMapBuilder`; it is not in `standard` (section 13 item 1), so `all` is `standard` plus the data map. ONE table, `ListingSections`, holds each section's command-line word and
 parses a list (`Spelling`, `Spellings`, `TryParse`, `StandardSpelling`, `AllSpelling`); `ListingSectionSet.ToString` spells a
 set back through it. `ListingRequest.SectionsProblem` (at least one section) is asked by the constructor and the `init`
 accessor like the request's other rules; `Sections` is an init property beside the positional ones, `Standard` unless set.
@@ -337,10 +340,10 @@ beside the positional ones so a reader sees the version the file was WRITTEN at,
 | `Line.Replaced` (REPLACE) | `TextStageTrace` replacement events | Text stages | The source was read |
 | `Line.Listed`, `PageBreakBefore` | `ListingVisibility` over the directive events and inclusions | Listing build | Always |
 | `Programs` (names, nesting, ranges), DATE-COMPILED, verb counts | `SourceUnitFacts`, read off the parse tree the parser built, recovered or not | Parse (Phase 1) | The text stages finished |
-| `Programs` (attributes, the .NET type) | the symbol table's program entries | Bind | The bind finished |
+| `Programs` (attributes, the .NET type) | the symbol table's program entries; (step 6) `ListingProgram.Attributes`, joined by `DataMapBuilder.ProgramAttributesOf` through the program entry's position | Bind | The bind finished with no error |
 | `Diagnostics` | `CompilerDriver.Result.Diagnostics`: the front end's `Diagnostic`s, the binder's records (`EditionContext.Records`), each expansion's own compilation's records moved to its EXPANDS entry, and the backend's, which the seam reports as the same `Diagnostic` (step 3; section 6.3) | Every phase | Always (what was reported) |
 | `Displays` | `CompileOutputLine` with destination Listing and its origin | Text stages | The source was read |
-| `DataMap` | the symbol table snapshot's entries and their attributes (section 6.6) | Bind | The bind finished |
+| `DataMap` | the symbol table snapshot's entries and their attributes (section 6.6); (step 6) `DataMapBuilder`, and the margin by `LineAnnotationBuilder` | Bind | (step 6) The bind finished with no error: a refused program's sizes are not a compiled program's, so the section says `the bind refused the program` (`the source was not parsed` after a front-end error) |
 | `CrossReference`, `Line.Names`, `Line.Margin` | the symbol table snapshot's entries and occurrences (section 6.7.1) | Bind | The bind finished |
 | `ObjectCode` | the produced assembly and its portable PDB, read with `System.Reflection.Metadata` (section 6.9) | After the backend | An assembly was written |
 | `Options`, `Header` | `CompilerDriver.Options`, the compilation timestamp; (step 5) the options rows are built by `OptionsSectionBuilder` in the composition root and deposited as plain values (`ListingFacts.Options`, section 6.4) | Driver | Always |
@@ -742,12 +745,23 @@ listing line, and its name indented two columns per level of nesting, so a conta
 INITIAL, RECURSIVE, IS PROTOTYPE, the externalized name and the .NET type are the symbol table's program attributes and join
 in step 6. After a parse that recovered (`ListingHeader.Parse` is `Recovered`, section 6.1) the map ends with a blank row and
 the note `TextListingRenderer.RecoveredNote` composes: the source units are only those the recovery kept (review R1-1).
+(Step 6:) the attributes join as `ListingProgram.Attributes` (`ListingProgramAttributes`: COMMON, INITIAL, RECURSIVE, IS
+PROTOTYPE, the externalized name, the .NET type `BoundUnit.ClassName`), printed on a row under the program
+(`ProgramMapText.AttributesText`). The join needs no name comparison: the program entry is declared at the unit's first token
+(`BoundUnit.DeclaredAt`, new), which the one index places on a listing line whose `Program` is that unit
+(`DataMapBuilder.ProgramAttributesOf`). They are present when the program map or the data map is asked for and the bind accepted
+the program; the bound class, factory, object and method units carry no position yet, so their attributes are kb/Work
+PB5932's lead.
 
 ### 6.6 Data map: a view of the symbol table
 
 Every data item of every program, in definition order, including those GnuCOBOL omits (INDEXED BY indexes, level-78 and
-CONSTANT entries, condition-names, level-66 entries, compiler-implicit items marked as such). The data map is a VIEW of
-the symbol table's data, index, condition and constant entries (section 4.1); it does not walk `DataBindResult.Forest`
+CONSTANT entries, condition-names, level-66 entries, the items the standard defines implicitly, marked as such). (Step 6
+review round 1, correction:) "compiler-implicit items" read as the compiler's own temporaries, which no rule of the standard
+defines and no program names; they are no declared name and have no entry. What is listed and marked implicit is what the
+STANDARD defines implicitly where an entry names it: a CAPACITY IN register (ISO §2023:13.18.38.3 SR30) and the record area
+of a CD (ISO §1985:XIV.2.2.4 GR2). The data map is a VIEW of the symbol table's data, index, condition, constant, report and
+cd entries (section 4.1); it does not walk `DataBindResult.Forest`
 or any binder type. Each attribute is written into the entry by the binder at the point it decides it:
 
 | Column | Written into the entry by |
@@ -762,7 +776,90 @@ or any binder type. Each attribute is written into the entry by the binder at th
 | the native field and its .NET type | the storage-form decision (`StorageForm`, taken in Bind): the field's name (`DataItem.ClrName`, `StructName` for a group's record struct) and the .NET type the decision requires (`NativeInt` -> `long` or `Int128` of n digits, `CharImage` -> a character image of width n, `NativeFloat`, `DynamicTable`, `ObjectRef`, `PointerRef`, `TierBWindow` -> a window of a redefinition class), spelled by ONE function on `StorageForm` that both backends implement against. It is the binder's decision behind the backend-neutral seam, so it names no emitted source and is the same for the Roslyn and the CIL backend |
 
 Files get a file map, a view of the file entries: the file-name, organization, access, record keys, the record area and
-the connector's native field.
+the connector's native field. (Step 6 review round 1, as built:) the record keys are the RECORD KEY's and each ALTERNATE
+RECORD KEY's (the key as written, the entries it is made of, the DUPLICATES phrase) and the RELATIVE KEY item; the record
+area is the file's record entries; the file map also lists the reports its REPORT clause names. A file connector is held
+in the run unit's registry under a NAME, not in a native field (correction): the file map gives that name (`FileModel.CobolName`,
+the program's path and the file-name, or an EXTERNAL file's external name) and, for a file of an object or a factory, the
+field that holds each object's own connector key (`FileModel.InstanceKeyField`). So the table is finished after the run unit
+names every connector (`BinderDriver`, after `QualifyClassFiles`).
+
+**As built (step 6), with the corrections the code proved:**
+
+- **The snapshot is plain values in a layer of its own.** `SymbolTableSnapshot`, `SymbolEntry`, `NameClass`, `SymbolPosition`
+  and one attributes record per class (`ProgramAttributes`, `DataAttributes`, `ConditionAttributes`, `IndexAttributes`,
+  `ConstantAttributes`, `FileNameAttributes`) live in `WiseOwl.Cobol.Symbols` (src/WiseOwl.Cobol.Compiler/Symbols/), the layer
+  `compiler.symbols` of architecture-edges.json, which depends on nothing; the binder, the listing builder and the driver may use
+  it. So the builder reads the table and cannot reach a binder type, by the layering test.
+- **Attributes are read off the symbol once the bind is finished, not written beside it (correction).** "Each attribute is
+  written into the entry by the binder at the point it decides it" would store every fact twice, on the symbol the binder
+  decides it for (`DataItem`, `FileModel`, `Condition88`, `IndexDeclaration`) and on the entry, kept in step by nothing (one
+  decider, rule 4). The binder already records each decision on its symbol, and the offsets are final only when the layout is.
+  So `SymbolTableFinish.Of` (binder layer, after `ElementBinders.Freeze`) declares each name into a `SymbolTableWriter` with
+  its symbol, and `SymbolTableWriter.Snapshot` reads every entry's attributes then, from the frozen `DataBindResult` of each
+  unit: the level, `DataItem.Section`, the usage (`UsageFamilies.UsageWord`), `PictureText`, the category, `OccursSpec`
+  (minimum, maximum, the DEPENDING ON object), `Indexes`, `RedefinesTarget`, `Renames`, GLOBAL, EXTERNAL, BASED, the offset
+  (`RecordLayout.OffsetInRootWithEveryIndexOne`: the first occurrence's, none in a table of dynamic capacity), the length
+  (`ItemLength.Positions`) and the bytes (`RecordLayout.OccupiedBytes`).
+- **The .NET type has one spelling already (correction).** "Spelled by ONE function on `StorageForm`" is
+  `StorageFormPass.StorageElementType` (made internal for this), which `DataItem.ElementType` reproduces and
+  `DataItem.FieldType` wraps for a table; the data map prints `DataItem.ClrName` and `FieldType`, and an index-name's cell
+  `StorageElementType(StorageForm.IndexCell)`. Both are the binder's decision, the same for every backend.
+- **What the table holds.** Every name a source element declared, in definition order: each record's entries in the order
+  written (FILLER included, each level-88 under its conditional variable, each INDEXED BY index-name under its table, a named
+  CAPACITY register after its table's subordinates, marked implicit, the level-66 entries after their record), the type
+  declarations (`ForestSlice.TypeDecls`: listed where written, with no offset, bytes or field, since "A type declaration has no
+  storage associated with it", ISO §2023:13.18.58.4 GR2), the constant entries (`ConstantEntryBinder.DeclaredConstants`: a constant
+  makes no data item, ISO §2023:13.10.4 GR1, so it is read off the binder), the file-names (`FileModel.SelectName`), each report
+  description entry with its report group description entries (`ReportScope.Declared`, `ReportModel.WrittenEntries`: stored
+  nowhere of their own, so no offset, bytes or field), and each CD's
+  cd-name with the implicit description of its record area (`CommunicationSlice.Declared`), ordered by their positions. The
+  source elements are each program unit, the OBJECT and FACTORY of each class with each method's own LOCAL-STORAGE and LINKAGE
+  entries and type declarations (`OoMethodSymbol.Binding`, `DataScope.TypeDecls`), and each interface's methods. Compiler
+  temporaries are no declared name and have no entry. A condition-name carries its position (`Condition88.DeclaredAt`, copied by
+  `CopyOnto`); an index-name stands on its table's entry; a file on its SELECT entry (`FileModel.EntryAt`). (Step 6 review round
+  1, correction:) a level-1 entry of a CD's area or record is owned by its CD, as a report group's is by its report.
+- **A report group entry is described by the item its data-name names (step 6 review round 2, correction).** Round 1 described
+  an entry by the printable item a COLUMN clause places, so a SUM entry with no COLUMN clause was listed as a group, and a
+  printing SUM entry by its printable item, though "the data-name is the name of the sum counter, not the name of the associated
+  printable item" (ISO §2023:13.18.54.4 GR5). The binder now records, where it makes each item, the one item each written entry
+  describes (`ReportModel.ItemOf`, written by `ReportModel.Describe`): a SUM entry's counter register first, else the printable
+  item, else, for an elementary entry with a PICTURE and no COLUMN clause, the unprintable item (ISO §2023:13.18.53.4 GR3: it
+  "defines an unprintable item"), analysed once by the printable item's analyzer; a group entry has none.
+  `ReportSourceFamily.Category` reads the same item (its families now carry their written `Entry`), so SR4's "numeric data item"
+  and the data map read one answer. A sum counter is listed with category NUMERIC and its digits as its length, and no picture
+  or usage: it "is a conceptual data item that behaves as a data item of the category numeric" (GR1). The entry is declared as
+  that item, so an attribute naming the counter names the entry.
+- **No field for a LINKAGE item; a type declaration's condition-names and index-names are marked (step 6 review round 2,
+  correction).** "The linkage section describes formal parameters and returning items" (ISO §2023:13.7.1): their storage is the
+  activating element's, and the compiled code holds only an argument carrier whose form the backend picks per calling convention
+  (a program's `ref` parameter, a method's formal pointer and local), which no bound fact names. So a LINKAGE item has no native
+  field or type, as an entry of a type declaration has none. A method's LOCAL-STORAGE item's native field is the method's local
+  variable of that name and type. A condition-name or index-name of a type declaration's entry is marked `TypeDeclaration` like
+  the entry (`ConditionAttributes`, `IndexAttributes`), and the index-name has no field either.
+- **A copy stands where its clause is written (step 6 review round 1, correction).** A TYPE or SAME AS clause's effect is "as
+  though the data description identified by type-name-1 had been coded in place" (ISO §2023:13.18.57.4 GR1), but a copied entry
+  keeps its template's `DeclaredAt`. The table places every data entry by ONE answer, `SymbolTableFinish.WrittenAt`: the entry's
+  `DataItem.ReferenceSite` (the entry that wrote the clause), whose position is its own for a written entry; a copy's
+  condition-names and index-names stand on the same line. So a copy belongs to the program, the line and the margin of its
+  reference, and the type declaration's lines carry only the declaration's own facts. `DataBinder.CloneRenamesOnto` now records
+  `ClonedFrom` like every other copy, so a level-66 entry of a type is placed the same way.
+- **The program a name belongs to is placed, not carried.** A data map entry's `Program` is the innermost program of the listing
+  line its declaration stands on (`ListingLine.Program`), so the snapshot carries no unit and no name is compared.
+- **What is finished, and when.** `EditionContext.RecordsSymbols` (the driver sets it through `ListingFacts.ReadsSymbols`: the
+  program map or the data map asked for) finishes the program entries; `EditionContext.RecordsNames` (`ListingFacts.ReadsNames`:
+  the data map) every other name. The standard listing holds the program map and not the data map, so it finishes only the
+  program entries: the first benchmark run, which finished every name for it, put the standard listing of SM201A at +12.6 %
+  over no listing on a full compile, over its 10 % budget (section 9).
+- **Text.** `DataMapText.Rows`: a row per entry (id, line, level, kind, the name indented under its owner, offset, length, bytes,
+  usage, picture), the rest on a row under it (`DataMapText.Details`), then the file map. The margin (section 6.2) is
+  `ListingMargin(Item, Offset, Length, Usage)`, made once by `LineAnnotationBuilder.MarkMargins` for each line that declares a
+  data item, printed by `TextListingRenderer.WithMargin` from column 100 on a page at least 132 wide.
+- **Witnesses.** `ListingDataMapTests` (Conformance: every name in the order written with its line, each offset, length and
+  byte count derived from the PICTURE character-strings and §2023:13.18.40.4 GR14, §2023:13.18.38.4 GR4, §2023:13.18.44.4 GR1 and
+  §2023:13.18.45.4 GR2, the links between entries, the file map, the program attributes, the margin equal to the data map's
+  facts and printed from column 100, a bind error's `NotProducible`, no data map when none is asked);
+  `ListingOffDoesNoWorkDriftTests.WithoutASymbolTableSection_TheBindFinishesNoSymbolTable` and its control (section 9).
 
 ### 6.7 Cross-reference
 
@@ -922,6 +1019,10 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
 - **Where the result lives.** The classified occurrences are the entries' own, in the finished snapshot, read by
   `CrossReferenceBuilder` (the cross-reference section and the JSON), and by `LineAnnotationBuilder` (`ListingLine.Names`
   for the HTML links, `ListingLine.Margin` for the text margin). Nothing else derives a reference's position or use.
+- **(Step 6:) where Finish lives.** `SymbolTable` is in `compiler.model`, which is backend input and may not name the binder's
+  constant table or `StorageFormPass` (`ArchitectureEdgesDriftTests` and `BackendContractDriftTests` refused a first build that
+  put `Finish` there). The finishing is therefore `SymbolTableFinish.Of` in the binder layer. Step 6b, which makes the table the
+  one store of names, decides where the grown `SymbolTable` lives (kb/Work PB5932).
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1260,7 +1361,7 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
 `CompileStateDriftTests` classifies it as an output selection.
 (Step 5:) `--listing-sections` takes one value, a comma list of section words, `standard` and `all` (each word trimmed, case
 ignored, the union of the words), read by `ListingSections.TryParse`; an empty or unknown word is an argument error. It
-accepts the sections built so far (`source`, `programs`, `diagnostics`, `options`, `statistics`); `data-map`, `xref`,
+accepts the sections built so far (`source`, `programs`, `diagnostics`, `options`, `statistics`, and (step 6) `data-map`); `xref`,
 `object-map` and `object-code` join with steps 6 to 8, each with its builder, as `html` joins `--listing-format` with its
 renderer. Naming it asks for a listing at any edition.
 
@@ -1317,6 +1418,12 @@ renderer. Naming it asks for a listing at any edition.
   budget, and step 5's own cost, in the front end and bind with a listing, is +0.38 to +0.65 MB per program over step 4a's
   `Text` rows. It adds no no-listing work (the statements are read only under `Frontend.RecordsListing`, the options rows only
   in the driver's listing branch), and the `None` rows are within 0.23 MB of step 4a's.
+  (Step 6:) the `All` row (every section, text and JSON) is +11.1 to +20.2 % over `None` on a full compile, inside its 25 %
+  budget; the `None` rows of the front end and bind are within 0.6 MB of the parent commit's, measured beside them on the same
+  host (the README's step-6 table). The standard listing finishes only the program entries of the symbol table
+  (`EditionContext.RecordsNames`, section 6.6); SM201A's `Text` full compile reads +11.2 % over `None` on the run, from a `None`
+  row 2.07 MB under the parent's for the same code, and +5.2 % against the parent's (kb/Work PB5925's lead
+  `2026-11-18-full-compile-allocation-noise`).
 
 ## 10. Test plan
 
@@ -1356,7 +1463,8 @@ captured listing.
 3. **Provenance.** A copybook copied twice with different REPLACING: two blocks, each `R` row's compiled text equal to
    the replacement the test wrote; a diagnostic in the second copy is anchored in the second block. Omitted lines of a
    false `>>IF` are marked and listed.
-4. **Sections.** Data map: offsets and lengths computed by hand from the PICTURE clauses of the test's own record, every INDEXED BY index and constant present; cross-reference: a fixture with one read, one
+4. **Sections.** Data map: offsets and lengths computed by hand from the PICTURE clauses of the test's own record, every INDEXED BY index and constant present
+   (step 6: `ListingDataMapTests`, section 6.6); cross-reference: a fixture with one read, one
    write, one modify (ADD TO) and one definition of the same name yields exactly those four uses at those lines and
    columns, `ADD WS-A` / `TO WS-B` on two lines puts each use on its own line, and `MOVE WS-X (WS-X) TO WS-X` yields two
    reads and one write (section 6.7.1); a line's `Margin` and `Names` equal what the data map and cross-reference say of
@@ -1490,18 +1598,30 @@ names, nesting and ranges and the verb counts from `SourceUnitFacts` (the source
 attributes and .NET types, and the statistics' counts of names and uses, join in steps 6 and 7 as views of the symbol
 table when it exists.
 
-**Step 6 - the symbol table and the data map.** The ONE store first: `NameTableOwnershipDriftTests` is written first on
+**Step 6 - the symbol table's entries and attributes, and the data map. BUILT (branch `listing-step-6`; the corrections above
+marked "step 6").** The finished table (`SymbolTableFinish.Of`, `SymbolTableWriter`, `SymbolTableSnapshot` in
+`WiseOwl.Cobol.Symbols`), deposited by the driver when `EditionContext.RecordsSymbols`; `DataMapBuilder`, `LineAnnotationBuilder`
+with `ListingLine.Margin` for definition lines, `DataMapText`, the program attributes, `--listing-sections data-map`; the
+benchmark's `All` row. (Step 6, kb/Work PB5932:) the ONE store, below, is split out as step 6b: it is a restructuring of the
+whole binder's name resolution (65 tables, 194 members, 124 + 130 + 40 comparison sites, section 6.7.2), which the data map does
+not stand on (its entries and attributes are read off the frozen bound model, whose every declaring structure step 6 walks:
+section 6.6 "What the table holds") and the occurrences of step 7 do. (Step 6 review round 1, correction:) the first build walked
+only the program forests and claimed completeness by construction; the REPORT SECTION, the methods' own data, the type
+declarations, the CAPACITY registers and the CDs were missing, and step 6 now walks each. Step 6b lands before step 7 branches.
+
+**Step 6b - the one store of names (kb/Work PB5932).** The ONE store first: `NameTableOwnershipDriftTests` is written first on
 the step's branch and runs red, its failures matching the evidence of section 6.7.2 (a check that could fail); then
 `src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs` grows into the table (`SymbolEntry`, `CobolName`,
 `SymbolTable.Declare`, `SymbolTable.SetAttributes`, `SymbolTable.Identify` as the only lookup, `SymbolTable.Declarations`
 returning only `DeclarationFact`), every name table moved into it and made private, every lookup converted to `Identify`
 or classified in `string-parameter-members.json` with its reason, every `CobolNames.Same` / `Comparer` / name comparison
-moved in or classified in `name-comparisons.json` (seeded from section 6.7.2's evidence), and each attribute of section
-6.6 written into its entry where the binder decides it (the declaring binders, the redefinition pass, the layout step,
-the storage-form decision with its one .NET-type spelling); `SymbolTable.Finish()` and the snapshot handed to the
-collector. The step lands only with `NameTableOwnershipDriftTests` green. Then the data map and file map as views of the
+moved in or classified in `name-comparisons.json` (seeded from section 6.7.2's evidence), and (step 6) each attribute of
+section 6.6 still read off its symbol when the table is finished, never stored a second time; `SymbolTable.Finish()` and the
+snapshot handed to the collector. The step lands only with `NameTableOwnershipDriftTests` green. Then the data map and file map as views of the
 snapshot (`DataMapBuilder`), `LineAnnotationBuilder` with `ListingLine.Margin` for definition lines, and the `All`
-benchmark row. `Identify` records nothing yet; the table's entries and attributes are complete.
+benchmark row. `Identify` records nothing yet; the table's entries and attributes are complete. (Step 6:) the data map, the
+`LineAnnotationBuilder` margin and the `All` row are built in step 6; step 6b moves the finishing into the grown table, whose
+`Declare` then replaces `SymbolTableWriter.Declare`, and the data map is unchanged.
 
 **Step 7 - occurrences and the cross-reference.** The table's second half: `GrammarNameSlotDriftTests` written first
 and red (with the `NameSlotFixture.g4` self-test), then the grammar labels on every name slot (`CobolParserCore.g4` and

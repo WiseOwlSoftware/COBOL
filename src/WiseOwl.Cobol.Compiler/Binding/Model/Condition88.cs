@@ -22,6 +22,10 @@ public sealed class Condition88
     /// <summary>The conditional variable (the immediately superior data item the condition tests).</summary>
     public required DataItem Parent { get; init; }
 
+    /// <summary>Where the level-88 entry is written (the resultant position of its level-number), which the finished symbol table
+    /// carries (docs/rearchitecture/DESIGN-listing.md section 6.6); a copy stands where its template is written.</summary>
+    public WiseOwl.Cobol.Editions.DiagnosticCursor DeclaredAt { get; init; }
+
     /// <summary>
     /// The VALUE set: each entry is a single value (<c>High</c> null) or an inclusive THRU range. The raw source
     /// text of each operand is kept (e.g. <c>"\"Y\""</c>, <c>5</c>, <c>-9</c>); the emitter decodes it against the
@@ -72,7 +76,7 @@ public sealed class Condition88
     /// CLONE's storage, not the template's.</para></summary>
     public Condition88 CopyOnto(DataItem newParent)
     {
-        var c = new Condition88 { Name = Name, Parent = newParent, Alphabet = Alphabet, FalseValue = FalseValue };
+        var c = new Condition88 { Name = Name, Parent = newParent, DeclaredAt = DeclaredAt, Alphabet = Alphabet, FalseValue = FalseValue };
         c.Values.AddRange(Values);
         c._clonedFrom = this;
         return c;

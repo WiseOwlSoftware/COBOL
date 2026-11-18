@@ -154,6 +154,15 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// (<see cref="ClientWrittenTokens"/>).</summary>
     public ClientWrittenTokens ClientWritten { get; init; } = ClientWrittenTokens.FlaggedOnly;
 
+    /// <summary>The compilation's listing reads the finished symbol table (docs/rearchitecture/DESIGN-listing.md sections 6.6 and
+    /// 9): the bind finishes it (<c>BinderDriver.Symbols</c>) only then, so a compilation without a listing of the symbol table's
+    /// sections does no symbol-table work. An OUTPUT selection: it decides what the build writes, never what a source means.</summary>
+    public bool RecordsSymbols { get; init; }
+
+    /// <summary>The finished symbol table holds every declared name, not only the program entries (docs/rearchitecture/DESIGN-listing.md
+    /// section 9): only the data map reads them, so the program map alone finishes the program entries and no more.</summary>
+    public bool RecordsNames { get; init; }
+
     /// <summary>The compilation's §2023:4.2.10 warning mechanism is ON — the CLI's <c>--flag-extensions</c> (kb/Work
     /// PB1525): "An implementation shall provide a warning mechanism that optionally may be invoked by the user at
     /// compile time to indicate use of a nonstandard extension in a compilation group". Orthogonal to

@@ -35,6 +35,9 @@ internal sealed class BoundUnit
     /// than the referencing element's; kb/Work PB989). A contained program's own context carries no start token,
     /// so this reads the first token under it.</summary>
     public required int SourcePosition;
+    /// <summary>The resultant position of the unit's first token, which the finished symbol table carries
+    /// (docs/rearchitecture/DESIGN-listing.md section 6.5).</summary>
+    public WiseOwl.Cobol.Editions.DiagnosticCursor DeclaredAt;
     public BoundUnit? Parent;
     public List<BoundUnit> Children = [];
     public bool Initial, Common, Recursive;

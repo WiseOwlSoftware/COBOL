@@ -341,8 +341,8 @@ public sealed class DataItem
         "a fact about the type DECLARATION's references, never a clause of the entry")]
     public bool ReferencedByTypeClause { get; set; }
 
-    /// <summary>The entry a TYPE / SAME AS copy reproduced this subordinate from (<c>DataBinder.CloneItem</c>), or
-    /// null for a written entry. Followed to its end it names the WRITTEN definition the copy stands for — the
+    /// <summary>The entry a TYPE / SAME AS copy reproduced this subordinate from (<c>DataBinder.CloneItem</c>, and
+    /// <c>DataBinder.CloneRenamesOnto</c> for a level-66 entry of the type), or null for a written entry. Followed to its end it names the WRITTEN definition the copy stands for — the
     /// identity ISO §2023:8.4.2.2.1 rule 4 asks about ("any other definition of the name"), so a reference to the one
     /// copy of a type member is not made ambiguous by the member's own declaration (kb/Work PB1476).</summary>
     [DescriptionCopy(DescriptionCopyKind.None, "the copy's provenance — identity, written by CloneItem itself")]

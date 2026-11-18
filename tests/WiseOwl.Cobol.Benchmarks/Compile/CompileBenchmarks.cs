@@ -26,8 +26,9 @@ namespace WiseOwl.Cobol.Benchmarks.Compile;
 /// THE LISTING'S COST (DESIGN-listing.md section 9; kb/Work PB5923): <see cref="ListingMode"/> compiles each program with no
 /// listing (<see cref="ListingMode.None"/>, the path every caller that asks for none takes), with the paginated text
 /// listing (<see cref="ListingMode.Text"/>, written beside the assembly) and with the text and the JSON listing
-/// (<see cref="ListingMode.TextAndJson"/>, step 2). The budgets: None within the run-to-run noise of the parent commit, Text
-/// (and Text with JSON, the standard sections in two formats) at most 10 % over None. Later steps add <c>All</c>. Allocated
+/// (<see cref="ListingMode.TextAndJson"/>, step 2), and every section in both formats (<see cref="ListingMode.All"/>, step 6:
+/// the data map). The budgets: None within the run-to-run noise of the parent commit, Text (and Text with JSON, the standard
+/// sections in two formats) at most 10 % over None, All at most 25 %. Allocated
 /// bytes come from the <c>MemoryDiagnoser</c> of <see cref="BenchmarkConfig"/>.
 /// </para>
 /// </summary>
@@ -41,10 +42,10 @@ public class CompileBenchmarks
     public string Program { get; set; } = "";
 
     /// <summary>Which listing each compile writes (DESIGN-listing.md section 9).</summary>
-    public enum ListingMode { None, Text, TextAndJson }
+    public enum ListingMode { None, Text, TextAndJson, All }
 
     /// <summary>The listing asked of every compile of the case.</summary>
-    [Params(ListingMode.None, ListingMode.Text, ListingMode.TextAndJson)]
+    [Params(ListingMode.None, ListingMode.Text, ListingMode.TextAndJson, ListingMode.All)]
     public ListingMode Listing { get; set; }
 
     private CompilerDriver.Options _full = null!;
@@ -68,6 +69,9 @@ public class CompileBenchmarks
                 ListingMode.Text => new WiseOwl.Cobol.Listing.ListingRequest(),
                 ListingMode.TextAndJson => new WiseOwl.Cobol.Listing.ListingRequest(
                     Formats: WiseOwl.Cobol.Listing.ListingFormats.Text | WiseOwl.Cobol.Listing.ListingFormats.Json),
+                ListingMode.All => new WiseOwl.Cobol.Listing.ListingRequest(
+                    Formats: WiseOwl.Cobol.Listing.ListingFormats.Text | WiseOwl.Cobol.Listing.ListingFormats.Json)
+                    { Sections = WiseOwl.Cobol.Listing.ListingSectionSet.All },
                 _ => throw new InvalidOperationException($"no listing request for {Listing}"),
             });
         _checkOnly = _full with { CheckOnly = true };
@@ -93,17 +97,21 @@ public class CompileBenchmarks
         if (Listing != ListingMode.None && (full.Listing is null || !File.Exists(listing)
                 || full.Listing.Lines.Count(l => l.Inclusion is null) != File.ReadAllText(source).Split('\n').Length))
             throw new InvalidOperationException($"{Program}: the {Listing} case wrote no listing of every source line");
-        if (Listing == ListingMode.TextAndJson && (!File.Exists(json)
+        bool writesJson = Listing is ListingMode.TextAndJson or ListingMode.All;
+        if (writesJson && (!File.Exists(json)
                 || WiseOwl.Cobol.Listing.Json.JsonListingWriter.Read(File.ReadAllText(json)).Lines.Count != full.Listing!.Lines.Count))
-            throw new InvalidOperationException($"{Program}: the TextAndJson case wrote no JSON listing of every line");
-        if (Listing != ListingMode.TextAndJson && File.Exists(json))
+            throw new InvalidOperationException($"{Program}: the {Listing} case wrote no JSON listing of every line");
+        if (Listing == ListingMode.All && full.Listing!.DataMap is not { Items.Count: > 0 })
+            throw new InvalidOperationException($"{Program}: the All case holds no data map");
+        if (!writesJson && File.Exists(json))
             throw new InvalidOperationException($"{Program}: the {Listing} case wrote a JSON listing");
         if (Listing == ListingMode.None && (full.Listing is not null || File.Exists(listing)))
             throw new InvalidOperationException($"{Program}: the None case wrote a listing");
         Console.WriteLine($"// witness {Program} {Listing}: {full.Inputs.FilesRead.Count} files read ({copybooksRead} library "
                           + $"texts), assembly {new FileInfo(full.OutputDll).Length} bytes"
                           + (Listing != ListingMode.None ? $", listing {new FileInfo(listing).Length} bytes" : "")
-                          + (Listing == ListingMode.TextAndJson ? $", JSON {new FileInfo(json).Length} bytes" : ""));
+                          + (writesJson ? $", JSON {new FileInfo(json).Length} bytes" : "")
+                          + (Listing == ListingMode.All ? $", data map {full.Listing!.DataMap!.Items.Count} names" : ""));
     }
 
     [GlobalCleanup]

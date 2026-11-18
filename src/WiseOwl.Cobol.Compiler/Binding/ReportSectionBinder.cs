@@ -2651,11 +2651,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // it prints nothing and has no printable field, but §2023:13.18.54.4 GR6 gives a SUM clause's data-name-1 "the
             // operand of the SOURCE … clause" of it to add. (A printable entry's occurrences are recorded where its
             // field is made, below, beside the operands that field cycles through.)
+            // The item an elementary entry with a PICTURE and no COLUMN clause describes (ReportModel.ItemOf): what its data-name
+            // names, and the category §2023:13.18.54.3 SR4 asks of it. Analysed once per written entry.
+            if (columns.Count == 0 && sums.Count == 0 && picText is not null && model.ItemOf(ge) is null)
+                model.Describe(ge, UnprintableItem(ge, level, entryName, picText, usageText ?? inheritedUsage, ownSign,
+                    reportEditing, reportLocale, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'"));
             if (columns.Count == 0 && sums.Count == 0 && sourceOps.Count > 0)
             {
                 var sourceFamily = SourceFamilyOf(ge, entryName, 0, chain, model, st);
-                sourceFamily.Category ??= UnprintablePictureCategory(ge, picText, usageText ?? inheritedUsage, ownSign,
-                    reportEditing, reportLocale, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}'");
                 RecordSourceOccurrences(sourceFamily, sourceOps, 1, ownCond, st, VaryingUsesOf(ge, 0, st), model);
             }
 
@@ -2782,11 +2785,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     CobolName = entryName,
                     ClrName = "_rptItem" + uid,
                     Pic = pic,
+                    PictureText = picText,   // the PICTURE character-string as written, which the symbol table lists
                     OwnSign = ownSign,
                     Justified = justified,
                     BlankWhenZero = blankWhenZero,
                 };
                 item.Uid = uid;
+                model.Describe(ge, item);   // what the entry's data-name names, unless a SUM clause made it its counter's
                 // The collected image fact — compose wants the printable CHARACTER image. ⛔ THE IMAGE-FORM QUESTION,
                 // so the ONE predicate that asks it (PicInfo.IsCharacterFormNumeric): §2023:13.18.60.3 SR7 admits USAGE
                 // NATIONAL for a report group item and SR12 a numeric picture with it, and a printable item is
@@ -2835,7 +2840,6 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (sums.Count == 0)
                 {
                     var sourceFamily = SourceFamilyOf(ge, entryName, columns.Count, chain, model, st);
-                    sourceFamily.Category ??= pic.Category;
                     RecordSourceOccurrences(sourceFamily, srcs, columns.Count, ownCond, st, field.Varyings, model,
                         field.RepetitionOrdinal);
                 }
@@ -3368,6 +3372,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Name = entryName,
             Report = model,
+            Entry = ge,
             Group = st.Group!,
             BaseId = baseId,
             Repetitions = [.. st.Repetitions.Select(f => f.Spec)],
@@ -3395,6 +3400,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             SkeletonWhere = sumWhere,
         };
         st.SumFamilies[ge] = family;
+        model.Describe(ge, family.Register);   // §2023:13.18.54.4 GR5: the entry's data-name names the counter
         model.SumFamilies.Add(family);
         model.EntryFamilies.Add(family);
         // §2023:13.18.54.4 GR5 — a data-name immediately after the level number names THE COUNTER. Publish it into
@@ -3420,6 +3426,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Name = entryName,
             Report = model,
+            Entry = ge,
             Group = st.Group!,
             Repetitions = [.. st.Repetitions.Select(f => f.Spec)],
             Columns = Math.Max(1, columnCount),
@@ -3486,19 +3493,24 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return uses;
     }
 
-    /// <summary>The category of an UNPRINTABLE SOURCE entry's PICTURE — what §2023:13.18.54.3 SR4's "numeric data item"
-    /// asks of data-name-1 when no printable item was analysed for it (kb/Work PB1294). Null for an entry with no
-    /// PICTURE. The analysis is the printable item's own, so an entry's PICTURE is judged by one analyzer; it is run
-    /// ONLY for the unprintable entry, whose printable twin does not exist, so no diagnostic is raised twice.</summary>
-    private PicCategory? UnprintablePictureCategory(Core.ReportGroupEntryContext ge, string? picText, string? usageText,
+    /// <summary>The UNPRINTABLE item an elementary entry with a PICTURE and no COLUMN clause describes (ISO §2023:13.18.53.4 GR3,
+    /// "defines an unprintable item"): what its data-name names (<see cref="ReportModel.ItemOf"/>) and the category
+    /// §2023:13.18.54.3 SR4's "numeric data item" asks of data-name-1 when no printable item was analysed for it (kb/Work
+    /// PB1294). The analysis is the printable item's own, so an entry's PICTURE is judged by one analyzer; it is run ONLY for
+    /// the unprintable entry, whose printable twin does not exist, so no diagnostic is raised twice. The item is composed into
+    /// no line and emitted nowhere: it is a description, with no uid and no native name.</summary>
+    private DataItem UnprintableItem(Core.ReportGroupEntryContext ge, int level, string? entryName, string picText, string? usageText,
         SignSpec? ownSign, List<EditingPhraseSpec>? editing, LocaleEditSpec? locale, string where)
     {
-        if (picText is null) return null;
         var usage = PictureAnalyzer.ParseUsage(usageText, Edition, where);
         var pic = PictureAnalyzer.Analyze(picText, usage, Edition, where, ownSign, currencies: _d.State.Configuration.CurrencySigns,
             editing: editing, localeFormat2: locale, decimalPointIsComma: _d.State.Configuration.DecimalPointIsComma);
         ScreenReportEntryPicture(ge, pic, picText, where, summed: false);
-        return pic?.Category;
+        return new DataItem
+        {
+            Level = level, DeclaredAt = Edition.Cursor, CobolName = entryName, ClrName = "", Pic = pic, PictureText = picText,
+            OwnSign = ownSign,
+        };
     }
 
     /// <summary>The report entries whose analysed PICTURE has been screened by <see cref="ScreenReportEntryPicture"/>: a

@@ -36,7 +36,7 @@ internal static class ProgramRangeBuilder
         }
 
         var programs = placed.Select(p => new ListingProgram(p.Unit.Id, p.Unit.Name, KindOf(p.Unit.Kind),
-            p.Unit.Parent is { } parent && kept.Contains(parent) ? parent : null, DepthOf(p.Unit), p.First, p.Last)).ToList();
+            p.Unit.Parent is { } parent && kept.Contains(parent) ? parent : null, DepthOf(p.Unit), p.First, p.Last, null)).ToList();
         foreach (var program in programs.OrderBy(p => p.Depth))   // deeper units paint over their parents: innermost wins
             for (int n = program.FirstLine; n <= program.LastLine; n++) lines[n - 1].Program = program.Id;
         return programs;

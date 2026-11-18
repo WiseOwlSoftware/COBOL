@@ -1,6 +1,6 @@
 ---
 title: The source listing
-description: When the compiler writes a source listing, its sections (options, source, program map, statistics and verbs, diagnostics), how it is paginated, its JSON form and schema, and the options that control it.
+description: When the compiler writes a source listing, its sections (options, source, program map, data map, statistics and verbs, diagnostics), how it is paginated, its JSON form and schema, and the options that control it.
 sidebar:
   order: 10
 ---
@@ -25,7 +25,7 @@ compile is often the one most worth reading. A source file that does not exist h
 | `--listing [on\|off]` | write a listing (a bare `--listing` is `on`); default `on` at `--std 85`, `off` at the later editions |
 | `--listing-output <BASE>` | write the listing to `BASE.lst` (and `BASE.lst.json`); `-` writes it to standard output instead of a file, in the one format requested. Default: the output assembly's path without its extension |
 | `--listing-format text\|json` | a format to write: `text` is the paginated listing `BASE.lst`, `json` the JSON listing `BASE.lst.json` (below). Repeat it for both (`--listing-format text --listing-format json`); default `text`. With `--listing-output -` exactly one format may be named |
-| `--listing-sections <LIST>` | the sections to produce, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `standard` and `all` (below); default `standard`, which is all five |
+| `--listing-sections <LIST>` | the sections to produce, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `data-map`, `standard` and `all` (below); default `standard`, which is every section but the data map |
 | `--listing-page-length <N>` | lines per page, the four heading lines included (default 60); `0` paginates only where a page must start (below). At least 5 otherwise |
 | `--listing-page-width <N>` | columns per page, 100 to 255 (default 132) |
 
@@ -40,13 +40,14 @@ The listing is made of sections, each starting a page, in this order:
 |---|---|---|
 | Options | `options` | every option of the compilation, its value and whether it was given or left at its default; then the compiler, the runtime, .NET and the operating system |
 | Source | `source` | every line of the source and of each library text, with the diagnostics under their lines and the `>>DISPLAY` output (below) |
-| Program map | `programs` | every program, its kind, the listing lines it spans, and the programs nested in it |
+| Program map | `programs` | every program, its kind, the listing lines it spans, and the programs nested in it; for each program the compiler bound, its COMMON, INITIAL, RECURSIVE and PROTOTYPE attributes, the name it is externalized as, and the .NET type it became |
+| Data map | `data-map` | every data item, condition-name, index-name, constant, report, CD and file of every program, class and method, in the order written, with its level, offset, length, usage, picture and the .NET field it became; and, in the source section, each data description line's offset, length and usage in the right margin |
 | Statistics | `statistics` | the lines by kind and by file, the programs, the statements, the diagnostics by severity, and each verb with its count and lines |
 | Diagnostics | `diagnostics` | the summary of every diagnostic; without this section no diagnostic is printed under its line either |
 
-`standard` names all five, and is the default; `all` names every section the compiler can produce, which today is the same
-five. Words combine: `--listing-sections source,statistics` writes those two. A section the compilation could not produce
-(the program map of a source that was not parsed) prints its title and why. The JSON listing holds the same sections as the
+`standard` names every section but the data map, and is the default; `all` names every section the compiler can produce, the
+data map included. Words combine: `--listing-sections source,statistics` writes those two. A section the compilation could not produce
+(the program map of a source that was not parsed, the data map of a program the compiler refused) prints its title and why. The JSON listing holds the same sections as the
 text listing: a section not asked for is absent from both.
 
 The options section reads, for example:
@@ -93,12 +94,57 @@ program map says the same under its last program, and the JSON header's `parse` 
 no error, `NotParsed` when the source was not parsed). The statistics hold no timings, so two listings of one source differ
 only where the compilations did.
 
+The data map lists every name the data division declares, in the order written, in every program, class, method and
+interface: each data description entry (FILLER included), each level-88 condition-name, each INDEXED BY index-name, each
+constant, each level-66 entry, each type declaration (marked `TYPE DECLARATION`, with its condition-names and index-names; it
+has no storage, so no offset, bytes or field), each report (`rd`) with its report group description entries (an entry with a
+SUM clause is its sum counter, a numeric item with the PICTURE's digits as its length and no picture or usage of its own; an
+elementary entry with no COLUMN clause, the unprintable item its PICTURE describes), and each CD (`cd`, its FOR phrase on the row under it)
+with the record area the standard describes for it. An item the standard defines implicitly, a CAPACITY IN register or an
+item of a CD's record area, is marked `IMPLICIT`; the compiler's own temporaries are not listed. The entries a TYPE clause
+copies are listed on the line of the entry that writes the clause, in its program, at their offsets there. An entry is
+indented under the group it belongs to, a condition-name under its conditional variable, an index-name under its table, a
+report group entry under its report and a CD's area and records under the CD.
+For a data item it gives the listing line it is declared on, its level, its offset from the start of its level-1 record in
+bytes (for an item of a table, its first occurrence's), its length in character positions (what `FUNCTION LENGTH` returns),
+the bytes it occupies (every occurrence of a table), its usage and picture; and, on the row under it, its OCCURS,
+DEPENDING ON, INDEXED BY, REDEFINES and RENAMES facts (each naming another entry by its `#id`), GLOBAL, EXTERNAL and BASED,
+and the field of the compiled program that holds it with its .NET type (none for a LINKAGE SECTION item, whose storage is the
+caller's; a method's LOCAL-STORAGE item is held in the method's local variable). A condition-name's row under it gives its values,
+a constant's its specification. The file map follows: each file, the line of its file control entry, its organization,
+access mode and record descriptions, and on the row under it its RECORD KEY, each ALTERNATE RECORD KEY (with DUPLICATES),
+its RELATIVE KEY item, the reports it is written to and the name its file connector has in the run unit:
+
+```text
+    ID   LINE  NAME                           ORGANIZATION     ACCESS     RECORDS
+     1      6  IF1                            INDEXED          DYNAMIC    1
+                RECORD KEY IR-KEY (#2)  ALTERNATE KEY IR-ALT (#3) DUPLICATES  CONNECTOR P5::IF1
+     2     11  RPTF                           SEQUENTIAL       SEQUENTIAL
+                REPORTS #6  CONNECTOR P5::RPTF
+```
+
+```text
+    ID   LINE  LVL KIND   NAME                           OFFSET LENGTH  BYTES  USAGE           PICTURE
+     1      5      const  K                                   -      -      -
+                            AS 5
+     2      6  01  data   REC                                 0     19     19
+                            .NET REC : _T_0
+     3      7  05  data     A                                 0      3      3  DISPLAY         X(3)
+                              .NET A : string
+     4      8  05  data     T                                 3      4     12
+                              OCCURS 3  INDEXED BY #5  .NET T : _T_2[]
+```
+
+With the data map, the source section prints the same offset, length and usage in the margin of each line that declares a
+data item, from column 100 of a page 132 columns wide or wider (`OFF=0 LEN=3 DISPLAY`). The data map is not produced when the
+compiler refused the program, since the sizes it would show are those of a program that did not compile.
+
 ## What a page holds
 
 Each page begins with heading lines: the compiler and its version, the edition (for example
 `ANSI X3.23-1985 (--std 85)`), the name of the program the page's first line belongs to, the compilation date and time,
-and the page number; then the section's title (`SOURCE` and the source path, `OPTIONS`, `PROGRAMS`, `STATISTICS` or
-`DIAGNOSTICS`); a blank line; and, on a source page, a ruler that numbers the 80 source columns. A page outside the source
+and the page number; then the section's title (`SOURCE` and the source path, `OPTIONS`, `PROGRAMS`, `DATA MAP`,
+`STATISTICS` or `DIAGNOSTICS`); a blank line; and, on a source page, a ruler that numbers the 80 source columns. A page outside the source
 section names the first program of the source.
 No heading line is wider than the page. When the first one does not fit, the compiler's version is shortened first, then
 the edition; the date and time and the page number are always printed whole, and so is the program name unless it is
@@ -232,7 +278,9 @@ directive, ...), whether it was listed and whether a page starts before it, the 
 DATE-COMPILED paragraph and a line REPLACE changed, what the compiler compiled in its place, every COPY statement's
 SUPPRESS phrase, every `>>DISPLAY` transfer to the listing (`displays`), every program with its listing lines, every
 diagnostic with its code, severity, message, listing line, file, line and column, the options (`options`), the statistics
-with every line kind and severity counted (`statistics`), and which sections were asked for (`sections`). Each diagnostic also carries the
+with every line kind and severity counted (`statistics`), the data map (`dataMap`: its `items` and `files`, each naming the
+others by id), each bound program's `attributes`, each definition line's `margin`, and which sections were asked for
+(`sections`). Each diagnostic also carries the
 citations its message makes as data, `citations`: for the example above
 `[{ "edition": 2023, "locator": "13.18.40.3", "rule": "SR14" }]`. A line lists the ids of the diagnostics placed on it. The text and
 the JSON listing of one compilation are renderings of one document, so they always agree.

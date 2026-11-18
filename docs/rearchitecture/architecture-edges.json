@@ -60,6 +60,12 @@
       ]
     },
     {
+      "id": "compiler.symbols",
+      "namespaces": [
+        "WiseOwl.Cobol.Symbols"
+      ]
+    },
+    {
       "id": "compiler.model",
       "namespaces": [
         "WiseOwl.Cobol.Binding.Model"
@@ -266,6 +272,10 @@
       "runtime"
     ],
     [
+      "compiler.binding",
+      "compiler.symbols"
+    ],
+    [
       "compiler.validation",
       "compiler.binding"
     ],
@@ -426,12 +436,20 @@
       "editions"
     ],
     [
+      "compiler.listing",
+      "compiler.symbols"
+    ],
+    [
       "compiler.pipeline",
       "compiler.listing"
     ],
     [
       "compiler.pipeline",
       "listing"
+    ],
+    [
+      "compiler.pipeline",
+      "compiler.symbols"
     ],
     [
       "cli",

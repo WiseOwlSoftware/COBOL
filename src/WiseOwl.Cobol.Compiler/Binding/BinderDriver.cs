@@ -42,6 +42,11 @@ internal sealed class BinderDriver
         ?? throw new InvalidOperationException("BinderDriver.Session was read before Bind made it");
     private BindSession? _session;
 
+    /// <summary>The finished symbol table of the bind (docs/rearchitecture/DESIGN-listing.md section 6.7.1), made once the data
+    /// binding is frozen when <see cref="EditionContext.RecordsSymbols"/> asks for it; null otherwise. The listing's collector
+    /// takes it; nothing else reads it.</summary>
+    internal global::WiseOwl.Cobol.Symbols.SymbolTableSnapshot? Symbols { get; private set; }
+
     /// <summary>Bind the WHOLE compilation group in <paramref name="tree"/> under the targeted EDITION
     /// (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the driver fails the
     /// compile when any exist, BEFORE emit). <paramref name="turnEvents"/> are the frontend's <c>&gt;&gt;TURN</c>
@@ -317,6 +322,8 @@ internal sealed class BinderDriver
         // in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys
         // by its run-unit external name, exactly like a program's.
         foreach (var cls in classes) QualifyClassFiles(cls);
+        // The finished symbol table, once every file connector has its run-unit name (DESIGN-listing.md sections 6.6 and 6.7.1).
+        if (edition.RecordsSymbols) Symbols = SymbolTableFinish.Of(units, classes, interfaceData, session.Binders, edition.RecordsNames);
 
         // Declaratives emit the __IoCheck/__RunUse machinery, which reads CobolFile even when the unit declares
         // NO files (IC401M: mode-scoped USE procedures in a file-less flagging program) — the IO using must
@@ -538,6 +545,7 @@ internal sealed class BinderDriver
         {
             Name = name, ExternalizedName = externalized, ClassName = className,
             SourcePosition = FirstToken(ctx)?.StartIndex ?? 0,
+            DeclaredAt = FirstToken(ctx) is { } first ? new(first.Line, first.Column) : default,
             Parent = parent, Initial = initial, Common = common, Recursive = recursive,
             IsFunction = isFunction, IsPrototype = isPrototype,
         };

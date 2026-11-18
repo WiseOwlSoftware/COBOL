@@ -111,7 +111,7 @@ TABLE = [
     {"key": "editions-diagnostics", "area": "editions", "name": "editions and diagnostics",
      "include": ["src/WiseOwl.Cobol.Editions/**", F + "/Diagnostics/**", "src/WiseOwl.Cobol.Analyzers/**"]},
     {"key": "listing", "area": "listing", "name": "the source listing",
-     "include": ["src/WiseOwl.Cobol.Listing/**", C + "/Listing/**"]},
+     "include": ["src/WiseOwl.Cobol.Listing/**", C + "/Listing/**", C + "/Symbols/**"]},
     {"key": "cli", "area": "cli", "name": "CLI", "include": ["src/WiseOwl.Cobol.Cli/**"]},
     {"key": "tests-scripts-ci", "area": "process/tooling", "name": "tests, scripts and CI",
      "include": ["tests/**", "scripts/**", "tools/**", ".github/**", ".claude/**", "*.ps1", "Directory.*.props", "WiseOwl.Cobol.sln"]},

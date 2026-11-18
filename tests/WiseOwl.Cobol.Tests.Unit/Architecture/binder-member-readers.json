@@ -38,6 +38,9 @@
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.OoDataBinder"
     ],
+    "WiseOwl.Cobol.Binding.ConstantEntryBinder::DeclaredConstants": [
+      "WiseOwl.Cobol.Binding.SymbolTableFinish"
+    ],
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::ExpandPicConstants": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
@@ -274,7 +277,8 @@
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
-      "WiseOwl.Cobol.Binding.SubscriptBinder"
+      "WiseOwl.Cobol.Binding.SubscriptBinder",
+      "WiseOwl.Cobol.Binding.SymbolTableFinish"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ContainingDefinitionNames": [
       "WiseOwl.Cobol.Binding.BinderDriver",
@@ -402,7 +406,8 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::InTypeDeclaration": [
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
+      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
+      "WiseOwl.Cobol.Binding.SymbolTableFinish"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::IndexQualifierChainMatches": [
       "WiseOwl.Cobol.Binding.Model.SymbolTable"

@@ -3180,6 +3180,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 ThruQualifiers = info.ThruQualifiers,
             },
         };
+        clone.ClonedFrom = src;   // a copy like every other member of the type (§2023:8.4.2.2.1 rule 4; DataItem.ReferenceSite)
         clone.Uid = _uidCounter++;
         clone.Parent = target;
         target.Renames66.Add(clone);
@@ -3191,7 +3192,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private void BindCondition(Core.DataDescriptionEntryContext entry, DataItem parent, bool registerGlobal = true)
     {
         if (entry.dataName()?.GetText() is not { } name) return;
-        var cond = new Condition88 { Name = name, Parent = parent };
+        var cond = new Condition88 { Name = name, Parent = parent, DeclaredAt = new(entry.Start.Line, entry.Start.Column) };
         // §2023:13.18.63.3 SR25 — a format 3 VALUE clause under a CONSTANT RECORD entry (DataBinder.ValuePlacement,
         // the ONE placement screen; kb/Work PB551).
         ScreenConditionValuePlacement(name, parent);
