@@ -104,7 +104,7 @@ residueOpening
 // (the parse layer's 0g arm must still see every one; a reserved word after `&` is the operand's).
 residueItem
     : residueOpening
-    | AMPERSAND concatOperand
+    | AMPERSAND refConcatOperand1=concatOperand
     ;
 
 // The literal shapes that begin with an unsigned integer: the integer itself and the integer-led comma decimal
@@ -178,7 +178,7 @@ valueClauseOperand
 // clause's identical phrase cannot be decided by position (see CobolData.g4 valueClause); its binder peels it by
 // symbol instead, and TrailingInPhraseDriftTests pins both formats together.
 valueRange
-    : valueOperand (THRU | THROUGH) valueOperand (IN? cobolWord)?
+    : valueOperand (THRU | THROUGH) valueOperand (IN? refCobolWord1=cobolWord)?
     ;
 
 // Range form for VALUE clauses (no binary arithmetic).
@@ -321,7 +321,7 @@ partialXorExpression
     ;
 
 partialAndExpression
-    : partialComparison ( AND succeedingCondition )*
+    : refPartialComparison1=partialComparison ( AND succeedingCondition )*
     ;
 
 // SR5's four shapes, in `comparisonExpression`'s own order and spelling with the leading comparisonOperand removed:
@@ -329,7 +329,7 @@ partialAndExpression
 // without the identifier, and a sign condition without its identifier / arithmetic expression (one alternative —
 // §2023:8.8.4.7.2's two operand forms occupy the same position).
 partialComparison
-    : IS? NOT? classConditionName                              // class condition without the identifier
+    : IS? NOT? refClassConditionName1=classConditionName                              // class condition without the identifier
     | IS? NOT? (POSITIVE | NEGATIVE | ZERO)                    // sign condition without its operand (ZERO the keyword, §2023:8.8.4.7.2 — not ZEROS/ZEROES, PB510)
     | abbreviatedRelation                                      // leftmost portion is a relational operator
     ;
@@ -411,7 +411,7 @@ booleanFactor     : B_NOT booleanFactor
 
 comparisonExpression
     : comparisonOperand IS? NOT? OMITTED                           // omitted-argument condition (§2023:8.8.4.8; 2002+ - kb/Work PB133)
-    | comparisonOperand IS? NOT? classConditionName                // class condition
+    | comparisonOperand IS? NOT? refClassConditionName1=classConditionName                // class condition
     | comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)      // sign condition (merged from signCondition); §2023:8.8.4.7.2 prints the keyword ZERO only — PB510
     | comparisonOperand ( comparisonOperator comparisonOperand )?  // existing relational + bare operand
     ;
@@ -448,19 +448,19 @@ comparisonExpression
 // and OBJECT REFERENCE took this keyword set and `CLASS-ID. NUMERIC.` parsed. GrammarRuleUniquenessDriftTests holds
 // every rule name to one definition.
 classConditionName
-    : NUMERIC
-    | ALPHABETIC
-    | ALPHABETIC_LOWER
-    | ALPHABETIC_UPPER
-    | cobolWord                     // alphabet-name-1, or a user-defined CLASS from SPECIAL-NAMES
-    | BOOLEAN                       // §2023:8.8.4.4.4 GR3 e) — reserved (and so reachable here) at 2002+ only
-    | FARTHEST_FROM_ZERO            // GR3 g) — this and the six below reserved (reachable here) at 2014+ only
-    | FLOAT_INFINITY                // GR3 h)
-    | FLOAT_NOT_A_NUMBER            // GR3 i)
-    | FLOAT_NOT_A_NUMBER_QUIET      // GR3 j)
-    | FLOAT_NOT_A_NUMBER_SIGNALING  // GR3 k)
-    | IN_ARITHMETIC_RANGE           // GR3 l)
-    | NEAREST_TO_ZERO               // GR3 m)
+    : nnNumeric1=NUMERIC
+    | nnAlphabetic1=ALPHABETIC
+    | nnAlphabeticLower1=ALPHABETIC_LOWER
+    | nnAlphabeticUpper1=ALPHABETIC_UPPER
+    | nameCobolWord1=cobolWord                     // alphabet-name-1, or a user-defined CLASS from SPECIAL-NAMES
+    | nnBoolean1=BOOLEAN                       // §2023:8.8.4.4.4 GR3 e) — reserved (and so reachable here) at 2002+ only
+    | nnFarthestFromZero1=FARTHEST_FROM_ZERO            // GR3 g) — this and the six below reserved (reachable here) at 2014+ only
+    | nnFloatInfinity1=FLOAT_INFINITY                // GR3 h)
+    | nnFloatNotANumber1=FLOAT_NOT_A_NUMBER            // GR3 i)
+    | nnFloatNotANumberQuiet1=FLOAT_NOT_A_NUMBER_QUIET      // GR3 j)
+    | nnFloatNotANumberSignaling1=FLOAT_NOT_A_NUMBER_SIGNALING  // GR3 k)
+    | nnInArithmeticRange1=IN_ARITHMETIC_RANGE           // GR3 l)
+    | nnNearestToZero1=NEAREST_TO_ZERO               // GR3 m)
     ;
 
 // ⛔ THE PRINTED OPERATOR SET OF §2023:8.8.4.2.2 FORMAT 1 (General-relation), NOT A SUPERSET OF IT (kb/Work PB1034),
@@ -587,7 +587,7 @@ primaryExpression
     | ALL? ZERO_ARITH                  // figurative [ALL] ZERO the token rewriter marks arithmetic (kb/Work PB3846)
     | functionCall
     | inlineMethodInvocation           // §2023:8.4.3.1.2 Format 4 (§2023:8.4.3.4) — the Format-1 twin above
-    | dataReference
+    | refDataReference1=dataReference
     | objectView                       // §2023:8.4.3.1.2 Format 5 (§2023:8.4.3.5)
     | selfAndSuper                     // §2023:8.4.3.1.2 Format 6's SELF / SUPER (§2023:8.4.3.8)
     | LPAREN arithmeticExpression RPAREN
@@ -680,7 +680,7 @@ primaryExpression
 // §2023:8.4.3.2.3 SR6's verdict in IntrinsicBinder (`subscriptPart() is null` with a refModPart is the argument-list
 // error) instead of a raw parse error (kb/Work PB2113).
 functionCall
-    : FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? refModPart*
+    : FUNCTION refFunctionName1=functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)? refModPart*
     | reservedIntrinsicArgFn (subscriptPart | refModPart) refModPart*
     | RANDOM subscriptPart? refModPart*
     ;
@@ -777,11 +777,11 @@ cceXor     : cceAnd ( xorOperator cceAnd )* ;
 cceAnd     : cceNot ( AND cceNot )* ;
 cceNot     : NOT? ccePrimary ;
 ccePrimary : LPAREN constantConditionalExpression RPAREN
-           | definedCondition
+           | nnDefinedCondition1=definedCondition
            | cceRelationOrBoolean ;
 // §2023:7.3.8.4.4 defined-condition. DEFINED is a token only under PrimeDirectiveExpr (a primed-lexer keyword). Listed
 // before cceRelationOrBoolean so a trailing DEFINED selects it; a cobolWord with no DEFINED falls through.
-definedCondition : cobolWord IS? NOT? DEFINED ;
+definedCondition : nnCobolWord1=cobolWord IS? NOT? DEFINED ;
 // ⛔ NO `IS? NOT?` BEFORE comparisonOperator (kb/Work PB1034): §2023:7.3.8.2 SR1 a) makes the relation "formed according to
 // the rules in 8.8.4.2", whose operator set is comparisonOperator's alone — it carries its own IS and its own NOT. The
 // prefix this rule used to write was a second, unscreened way to say NOT, which let `>>IF X NOT >= 3` through the
@@ -801,12 +801,12 @@ cceRelationOrBoolean
 // the stage's semantic rules (§2023:5.2.6.4, §2023:7.3.12.4 GR5), checked against the ONE implementor-name table. Juxtaposed
 // operands are separated as an arithmetic expression ends — `1 - 2` is one subtraction (§2023:7.3.6 has no argument
 // juxtaposition), `1 "A"` two operands. Reached ONLY from the directive-expression re-parse, like every fragment here.
-displayDirectiveFragment : displayDirectiveOperand+ displayUponPhrase? EOF ;
+displayDirectiveFragment : nnDisplayDirectiveOperand1=displayDirectiveOperand+ displayUponPhrase? EOF ;
 displayDirectiveOperand
-    : {parameterPhraseAhead()}? cobolWord cobolWord        // PARAMETER compilation-variable-name-1
+    : {parameterPhraseAhead()}? nnCobolWord1=cobolWord nnCobolWord2=cobolWord        // PARAMETER compilation-variable-name-1
     | compileTimeOperand
     ;
-displayUponPhrase : UPON cobolWord+ ;
+displayUponPhrase : UPON nnCobolWord1=cobolWord+ ;
 
 // The word after FUNCTION (§2023:8.4.3.2.2): a function-prototype-name-1 or an intrinsic-function-name-1.
 // ⛔ THE NAME ARM IS cobolWord, NEVER A BARE IDENTIFIER (kb/Work PB2721). A function-prototype-name is a user-defined
@@ -818,7 +818,7 @@ displayUponPhrase : UPON cobolWord+ ;
 // spelled by IDENTIFIER is §2023:8.9-reserved, so the §2023:8.9 funnel the cobolWord arm passes through never meets one; the
 // reserved ones have their own tokens and their own arm.
 functionName
-    : cobolWord
+    : refCobolWord1=cobolWord
     | intrinsicKeywordName
     ;
 
@@ -934,17 +934,17 @@ predefinedNull
 // (concat-operator-2002 → COBOL0900 below 2002); the grammar itself is edition-agnostic (superset parse at
 // every --std).
 concatenationExpression
-    : concatOperand (AMPERSAND concatOperand)+
+    : refConcatOperand1=concatOperand (AMPERSAND refConcatOperand2=concatOperand)+
     ;
 
 concatOperand
-    : STRINGLIT
-    | NATLIT
-    | BOOLLIT
-    | HEXLIT
+    : nnStringlit1=STRINGLIT
+    | nnNatlit1=NATLIT
+    | nnBoollit1=BOOLLIT
+    | nnHexlit1=HEXLIT
     | figurativeConstant
     | predefinedNull     // NO operand (§2023:8.8.3.2 SR1) — admitted so ConcatFolder refuses it by name (kb/Work PB1427)
-    | cobolWord          // a constant-name or a symbolic-character (kb/Work PB1406); LAST, after the keyword figuratives
+    | refCobolWord1=cobolWord          // a constant-name or a symbolic-character (kb/Work PB1406); LAST, after the keyword figuratives
     ;
 
 signedNumericLiteral
@@ -1006,7 +1006,7 @@ integerLiteral
 // `integer-n` writes `integerOperand`, not `integerLiteral` (IntegerOperandSlotDriftTests holds the inventory).
 integerOperand
     : integerLiteral
-    | cobolWord
+    | refCobolWord1=cobolWord
     ;
 
 signedIntegerLiteral
@@ -1052,7 +1052,7 @@ figurativeConstant
     | ALL highValueWord
     | ALL lowValueWord
     | ALL quoteWord
-    | ALL cobolWord   // Format 7 — ALL symbolic-character-1 (§2023:8.3.3.6.2; SR4: a SYMBOLIC CHARACTERS name — kb/Work PB110),
+    | ALL refCobolWord1=cobolWord   // Format 7 — ALL symbolic-character-1 (§2023:8.3.3.6.2; SR4: a SYMBOLIC CHARACTERS name — kb/Work PB110),
                       // OR Format 6 over a constant-name literal-1 (§2023:13.10.3 SR2 — kb/Work PB1627): the parse cannot
                       // tell the two words apart, so ConcatFolder.FoldAllLiteral resolves a constant-name first and
                       // the Format 7 readers take the rest. LAST so the keyword forms and ALL literal-1 win; the bare

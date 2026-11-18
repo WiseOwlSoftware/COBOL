@@ -22,6 +22,11 @@ core** — the first OO attempt did that and caused deterministic LL regressions
 impossible by splitting over-broad rules. A new `statement` alternative must lead with a DISTINCT token, never
 `IDENTIFIER` — when a verb-word doubles as a user-word, use token + `cobolWord` name slot.
 
+**Every name slot carries a classifying label** (`refDataReference1=dataReference`, `defProcedureName1=procedureName`,
+`nnBoolean1=BOOLEAN`: a prefix `ref`/`qual`/`def`/`nn`/`name`, a name and an ordinal unique in the rule;
+DESIGN-frontend-grammar.md section 3.17). `GrammarNameSlotDriftTests` computes the slots from the ATN and names any rule
+whose slots and labels are not one for one; a test that reads the grammar's text reads it through `GrammarSource.Read`.
+
 Add rules INCREMENTALLY with a gate run after each; the shared parser regresses easily.
 
 Direction of travel: the target architecture is a SUPERSET grammar where the edition predicates are REMOVED and

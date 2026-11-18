@@ -36,7 +36,7 @@ public sealed class PrintedFormatAlternativeDriftTests
     /// not be satisfiable by a word inside a comment.</summary>
     private static IEnumerable<(string File, string Text)> Grammars() => GrammarFiles
         .Where(f => !f.EndsWith("CobolLexer.g4", StringComparison.Ordinal))
-        .Select(f => (Path.GetFileName(f), StripComments(File.ReadAllText(f))));
+        .Select(f => (Path.GetFileName(f), StripComments(GrammarSource.Read(f))));
 
     private static string StripComments(string t) =>
         Regex.Replace(Regex.Replace(t, @"//[^\n]*", ""), @"/\*.*?\*/", "", RegexOptions.Singleline);

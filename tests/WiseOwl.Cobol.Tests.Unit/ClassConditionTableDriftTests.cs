@@ -43,7 +43,7 @@ public sealed class ClassConditionTableDriftTests
     {
         string path = TestRepo.Src(Path.Combine(
             "WiseOwl.Cobol.Frontend", "Grammar", "Core", "CobolExpressions.g4"));
-        string text = Regex.Replace(File.ReadAllText(path), @"//[^\r\n]*", "");
+        string text = Regex.Replace(GrammarSource.Read(path), @"//[^\r\n]*", "");
         foreach (string chunk in text.Split(';'))
         {
             var m = Regex.Match(chunk, @"\A\s*classConditionName\s*:(?<body>.*)\z", RegexOptions.Singleline);
@@ -134,7 +134,7 @@ public sealed class ClassConditionTableDriftTests
         foreach (string file in Directory.EnumerateFiles(grammarDir, "*.g4", SearchOption.AllDirectories))
         {
             if (file.Contains(Path.Combine("obj", ""), StringComparison.Ordinal)) continue;
-            string text = Regex.Replace(File.ReadAllText(file), @"//[^\r\n]*", "");
+            string text = Regex.Replace(GrammarSource.Read(file), @"//[^\r\n]*", "");
             foreach (string chunk in text.Split(';'))
             {
                 var m = Regex.Match(chunk, @"\A\s*(?<name>[a-z]\w*)\s*:(?<body>.*)\z", RegexOptions.Singleline);

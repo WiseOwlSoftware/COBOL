@@ -17,10 +17,10 @@ options {
 
 performStatement
     // Out-of-line: explicit forms to avoid greedy "PERFORM target" swallowing options
-    : PERFORM procedureName performTimes                                       // PERFORM para N TIMES
-    | PERFORM procedureName performUntil                                       // PERFORM para UNTIL cond
-    | PERFORM procedureName performVarying                                     // PERFORM para VARYING ...
-    | PERFORM procedureName (THRU | THROUGH) procedureName performOptions?     // PERFORM para THRU para [options]
+    : PERFORM refProcedureName1=procedureName performTimes                                       // PERFORM para N TIMES
+    | PERFORM refProcedureName2=procedureName performUntil                                       // PERFORM para UNTIL cond
+    | PERFORM refProcedureName3=procedureName performVarying                                     // PERFORM para VARYING ...
+    | PERFORM refProcedureName4=procedureName (THRU | THROUGH) refProcedureName5=procedureName performOptions?     // PERFORM para THRU para [options]
     // Inline forms — Formats 2 & 3 MERGED into ONE inline alternative (design §1.4 ⇒ zero cross-format lookahead):
     //   ≥1 WHEN ⇒ Format 3 (exception-checking, §2023:14.9.28.2 Format 3), enforced at BIND
     //   (PF3-STRUCT-WHEN-REQUIRED / COBOL1597); no WHEN ⇒ Format 2 (inline). performInlineHead? absent +
@@ -38,7 +38,7 @@ performStatement
     | PERFORM performInlineHead? statementBlock
         performWhenPhrase* performWhenOther? performWhenCommon? performFinally?
       END_PERFORM
-    | PERFORM procedureName                                                    // PERFORM para (simple, out-of-line)
+    | PERFORM refProcedureName6=procedureName                                                    // PERFORM para (simple, out-of-line)
     ;
 
 // The inline head: Format-2 loop control (TIMES/UNTIL/VARYING) OR the Format-3 [WITH] LOCATION phrase.
@@ -73,7 +73,7 @@ performLocationPhrase
 // binds and the binder emits the specific COBOL0711 rather than a generic parse error).
 // imperative-statement-2 is unbracketed inside the WHEN group's brace ⇒ REQUIRED (§2023:5.2.6.3; kb/Work PB396).
 performWhenPhrase
-    : WHEN EXCEPTION performWhenModeList statementBlock      // EXCEPTION { INPUT|OUTPUT|I-O|EXTEND | file-name-1… }
+    : WHEN EXCEPTION refPerformWhenModeList1=performWhenModeList statementBlock      // EXCEPTION { INPUT|OUTPUT|I-O|EXTEND | file-name-1… }
     | WHEN           performWhenEcList   statementBlock      // exception-name-1… | exception-name-2 FILE file-name-2…
     ;
 
@@ -82,16 +82,16 @@ performWhenPhrase
 // EXCEPTION selects exactly ONE mode OR a file-name list — never a mix; bind-enforced (COBOL1598).
 performWhenModeList
     : INPUT | OUTPUT | I_O | EXTEND
-    | fileName ({whenOperandAhead()}? fileName)*             // gated CONTINUATION only (first operand unconditional)
+    | refFileName1=fileName ({whenOperandAhead()}? refFileName2=fileName)*             // gated CONTINUATION only (first operand unconditional)
     ;
 
 // { exception-name-1 }… | { exception-name-2 FILE file-name-2 }… — the EC set is open (EC-USER-*) ⇒ cobolWord.
 performWhenEcList
-    : performWhenEcItem ({whenOperandAhead()}? performWhenEcItem)*   // gated CONTINUATION only
+    : nnPerformWhenEcItem1=performWhenEcItem ({whenOperandAhead()}? nnPerformWhenEcItem2=performWhenEcItem)*   // gated CONTINUATION only
     ;
 
 performWhenEcItem
-    : cobolWord (FILE fileName)*             // inner FILE-loop is self-bounding (FILE ∉ cobolWord, leads no statement)
+    : nnCobolWord1=cobolWord (FILE refFileName1=fileName)*             // inner FILE-loop is self-bounding (FILE ∉ cobolWord, leads no statement)
     ;
 // KNOWN LIMITATION (documented; masked while the F3 runtime is staged): a WHEN body that is a BARE 2023
 // inline-method-invocation (`WHEN EC-X  obj(args)`) whose object is a cobolWord can be annexed here as a
@@ -114,7 +114,7 @@ performFinally
     ;
 
 performTarget
-    : procedureName ((THRU | THROUGH) procedureName)?
+    : refProcedureName1=procedureName ((THRU | THROUGH) refProcedureName2=procedureName)?
     ;
 
 performOptions
@@ -129,7 +129,7 @@ performOptions
 // DISPLAY / INSPECT / FROM slots follow the same shape). kb/Work PB86: the arm was missing (a parse error), and
 // the keyword-omitted spelling bound but ran ONCE.
 performTimes
-    : (integerLiteral | functionCall | inlineMethodInvocation | dataReference) TIMES
+    : (integerLiteral | functionCall | inlineMethodInvocation | refDataReference1=dataReference) TIMES
     ;
 
 performUntil
@@ -388,9 +388,9 @@ evaluateWhenItem
 // integer" is met by an integer function and refused for a numeric one (§2023:8.4.3.2.3 SR11) — at bind, by the ONE
 // operand-class screen (OperandPositions.GoToDependingSelector). functionCall FIRST: it is keyword-led.
 goToStatement
-    : GO TO? procedureName+ DEPENDING ON?                 // §2023:14.9.17.2 Format 2 (depending)
-      (functionCall | inlineMethodInvocation | dataReference)
-    | GO TO? procedureName                                // §2023:14.9.17.2 Format 1 (unconditional)
+    : GO TO? refProcedureName1=procedureName+ DEPENDING ON?                 // §2023:14.9.17.2 Format 2 (depending)
+      (functionCall | inlineMethodInvocation | refDataReference1=dataReference)
+    | GO TO? refProcedureName2=procedureName                                // §2023:14.9.17.2 Format 1 (unconditional)
     | GO TO?                                              // ANSI X3.23-1985 target-less GO TO — no ISO 2023
                                                           // format prints it; DELETED by ISO 2002 and gated by
                                                           // name (BareGotoRemoved2002) rather than left to a
@@ -408,7 +408,7 @@ goToStatement
 // CobolErrorStrategy re-codes by name (COBOL2269, the one statement-format-shape code). AT is printed without an
 // underline in every AT END phrase (§2023:5.2.3 optional word), so `SEARCH … END …` is conforming ISO.
 searchStatement
-    : SEARCH dataReference (VARYING receivingIdentifier)?
+    : SEARCH refDataReference1=dataReference (VARYING receivingIdentifier)?
       conditionalPhrases
       searchWhenClause+
       END_SEARCH?
@@ -435,7 +435,7 @@ searchWhenClause
 // `searchAllKeyPhrase` this rule referenced was read by NO binder, so the phrase was accepted and silently
 // discarded. Both shapes now arrive as syntax errors that CobolErrorStrategy re-codes as COBOL2269.
 searchAllStatement
-    : SEARCH ALL dataReference
+    : SEARCH ALL refDataReference1=dataReference
       conditionalPhrases
       searchAllWhenClause
       END_SEARCH?
@@ -458,7 +458,7 @@ alterStatement
     ;
 
 alterEntry
-    : procedureName TO (PROCEED TO)? procedureName
+    : refProcedureName1=procedureName TO (PROCEED TO)? refProcedureName2=procedureName
     ;
 
 // ==========================================
@@ -492,19 +492,19 @@ useStatement
     // §1985:VII.4.6.2 underlines AFTER and PROCEDURE in Format 1; the version pass refuses each omission at --std 85
     // (use-without-after-2002, use-without-procedure-2002; kb/Work PB4919):
     // audit:required-word AFTER PROCEDURE decided-by VersionConformancePass.VisitUseStatement at 1985
-    : USE GLOBAL? BEFORE REPORTING reportGroupReference
+    : USE GLOBAL? BEFORE REPORTING refReportGroupReference1=reportGroupReference
     // Format 3 (exception-name, EC model 2002+ — binder-gated): USE [AFTER] {EXCEPTION CONDITION | EC}
     // {exception-name-1 | exception-name-2 {FILE file-name-2}…}… (ISO §2023:14.9.49.2; SR12: EC ≡ EXCEPTION
     // CONDITION). Exception-names are cobolWords — an OPEN set (EC-USER-*, §2023:14.6.13.1.1 / §2023:7.3.25.3 SR2), so
     // name validation (and SR13/SR14) is the binder's, never a token enumeration. (§2023:7.3.25.3 is the TURN
     // compiler directive's syntax rules, which is where the EC-USER-* name shape is fixed.)
-    | USE AFTER? (EXCEPTION CONDITION | EC) useEcEntry+
+    | USE AFTER? (EXCEPTION CONDITION | EC) nnUseEcEntry1=useEcEntry+
     // Format 4 (ISO §2023:14.9.49.2 — USE [AFTER] {EXCEPTION OBJECT | EO} {class-name | interface-name}, ONE
     // operand; SR15: EO ≡ EXCEPTION OBJECT): the exception-OBJECT declarative selector (GR14 — class-or-
     // subclass / IMPLEMENTS match; GR3: F4 REPLACES the F1/F3 tiers for object raises). EC-OO wave.
-    | USE AFTER? (EXCEPTION OBJECT | EO) cobolWord
+    | USE AFTER? (EXCEPTION OBJECT | EO) refCobolWord1=cobolWord
     // Format 1: USE [GLOBAL] [AFTER] [STANDARD] {EXCEPTION | ERROR} [PROCEDURE] [ON] {file-name+ | INPUT | OUTPUT | I-O | EXTEND}
-    | USE GLOBAL? AFTER? STANDARD? (EXCEPTION | ERROR) PROCEDURE? ON? useOnTarget
+    | USE GLOBAL? AFTER? STANDARD? (EXCEPTION | ERROR) PROCEDURE? ON? refUseOnTarget1=useOnTarget
     // X3.23-1985 debug-module format (obsolete '85 element DELETED by ISO 2002 — the whole facility,
     // DEBUG-* registers included, is absent from the 2023 text): USE FOR DEBUGGING ON {cd-name-1 |
     // [ALL REFERENCES OF] identifier-1 | file-name-1 | procedure-name-1 | ALL PROCEDURES}… .
@@ -529,14 +529,14 @@ useStatement
 // takes it as the optional word whenever an identifier follows.
 useDebugTarget
     : ALL PROCEDURES
-    | ALL REFERENCES? OF? dataReference
-    | dataReference
+    | ALL REFERENCES? OF? refDataReference1=dataReference
+    | refDataReference2=dataReference
     ;
 
 // One Format-3 scope entry: an exception-name, optionally file-scoped ({FILE file-name-2}… — each file carries
 // its own FILE word per the §2023:14.9.49.2 format figure; SR13 requires an EC-I-O name when FILE is given).
 useEcEntry
-    : cobolWord (FILE fileName)*
+    : nnCobolWord1=cobolWord (FILE refFileName1=fileName)*
     ;
 
 useOnTarget
@@ -544,7 +544,7 @@ useOnTarget
     | OUTPUT                    // all files opened for OUTPUT
     | I_O                       // all files opened for I-O
     | EXTEND                    // all files opened for EXTEND
-    | fileName+                 // specific file name(s)
+    | refFileName1=fileName+                 // specific file name(s)
     ;
 
 // ==========================================
@@ -570,7 +570,7 @@ exitStatement
 stopStatement
     : STOP RUN (statusPhrase)?   // status phrase introduction-gated after binding (VersionConformancePass → Check(StopRunStatus2002))
     | STOP literal                     // STOP literal (Format 2, obsolete)
-    | STOP cobolWord                   // STOP literal-1 written as a symbolic-character (Format 2, obsolete)
+    | STOP refCobolWord1=cobolWord                   // STOP literal-1 written as a symbolic-character (Format 2, obsolete)
     ;
 
 // The shared run-unit-termination status phrase (ISO §2023:14.9.42.2 STOP / §2023:14.9.18.2 GOBACK). ONE rule referenced
@@ -587,7 +587,7 @@ stopStatement
 // at §2023:14.9.42.2 carries the identical underlining, which is why ONE rule is right for both verbs and why
 // fixing it here fixes both (feedback_scan_all_similar).
 statusPhrase
-    : WITH? (ERROR | NORMAL) STATUS? (dataReference | literal)?
+    : WITH? (ERROR | NORMAL) STATUS? (refDataReference1=dataReference | literal)?
     ;
 
 // ==========================================

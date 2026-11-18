@@ -35,7 +35,7 @@ fileControlParagraph
 // — OPEN/CLOSE take file-name LISTS, and re-admitting the word there would let a list absorb the next
 // statement's leading keyword again (the PB693 defect). DataBinder reads `grp.fileName()` null-safely.
 fileControlClauseGroup
-    : SELECT OPTIONAL? (fileName | reservedGatedWord) { declareName(TokenStream.LT(-1)); }   // keywordContinuesHere (kb/Work PB805)
+    : SELECT OPTIONAL? (defFileName1=fileName | defReservedGatedWord1=reservedGatedWord) { declareName(TokenStream.LT(-1)); }   // keywordContinuesHere (kb/Work PB805)
       fileControlClauses*
       DOT
     ;
@@ -46,8 +46,8 @@ fileControlClauseGroup
 // implementor's (§2023:12.4.5.2 SR5): WiseOwl COBOL's determination (docs/CONFORMANCE.md §7 row DOC-A.1-71) is applied BY
 // NAME at bind, in `AssignTargetRule` — never by a one-operand grammar that answered a legal list with COBOL0308.
 assignClause
-    : ASSIGN TO? assignTarget+ (USING dataReference)?
-    | ASSIGN USING dataReference
+    : ASSIGN TO? refAssignTarget1=assignTarget+ (USING refDataReference1=dataReference)?
+    | ASSIGN USING refDataReference2=dataReference
     ;
 
 // literal-1 is written as ANY literal token or concatenation expression here — the alphanumeric-only,
@@ -57,7 +57,7 @@ assignClause
 // A grammar that admitted only STRINGLIT refused the hexadecimal-alphanumeric X"..." literal and a concatenation
 // expression (§2023:8.8.3.3 GR3 "may be used anywhere a literal of that class may be used") anonymously, and admitted ""
 assignTarget
-    : cobolWord
+    : refCobolWord1=cobolWord
     | numericLiteral
     | nonNumericLiteral
     ;
@@ -115,9 +115,9 @@ fileControlClauses
 // clauses that print the same pair (ForPhrasePairDriftTests).
 fileCollatingSequenceClause
     : COLLATING? SEQUENCE
-      ( OF dataReference+ IS? cobolWord             // Format 2: OF {data-name-1 | record-key-name-1}… IS alphabet-name-3
+      ( OF refDataReference1=dataReference+ IS? refCobolWord1=cobolWord             // Format 2: OF {data-name-1 | record-key-name-1}… IS alphabet-name-3
       | collatingForPhrase+                         // Format 1: {FOR ALPHANUMERIC | FOR NATIONAL} IS alphabet-name …
-      | IS? cobolWord cobolWord?                    // Format 1: IS alphabet-name-1 [alphabet-name-2]
+      | IS? refCobolWord2=cobolWord refCobolWord3=cobolWord?                    // Format 1: IS alphabet-name-1 [alphabet-name-2]
       )
     ;
 
@@ -157,7 +157,7 @@ lockOnPhrase
     ;
 
 fileReserveClause
-    : RESERVE integerOperand (AREA | AREAS)?
+    : RESERVE refIntegerOperand1=integerOperand (AREA | AREAS)?
     ;
 
 // PADDING CHARACTER: PADDING [CHARACTER] IS {data-name-1 | literal-1} — the ANSI X3.23-1985 Sequential I-O
@@ -178,7 +178,7 @@ fileReserveClause
 // legal declaration exactly at 2014/2023, where §2023:8.9 does not reserve the word, and draws a targeted
 // COBOL0901 at 85/2002 through dataName's generated `reservedGatedWord` alternative.
 paddingCharacterClause
-    : PADDING CHARACTER? IS? (literal | dataReference)
+    : PADDING CHARACTER? IS? (literal | refDataReference1=dataReference)
     ;
 
 // ISO §2023:12.4.5.11 RECORD DELIMITER clause: RECORD DELIMITER IS {STANDARD-1 | feature-name-1}. The general
@@ -192,7 +192,7 @@ paddingCharacterClause
 // declined accept-inert (COBOL1778, Annex A.3 item 26, kb/Work PB292); and the clause on a file with fixed-length
 // records is refused post-build (§2023:12.4.5.11.3 SR1, COBOL7599).
 recordDelimiterClause
-    : RECORD DELIMITER IS? (STANDARD_1 | cobolWord)
+    : RECORD DELIMITER IS? (nnStandard11=STANDARD_1 | nnCobolWord1=cobolWord)
     ;
 
 // ISO §2023:12.4.5.10: the leading "ORGANIZATION IS" is optional — a bare organization type
@@ -256,11 +256,11 @@ accessMode
 // `dataReference` cannot swallow `SOURCE` in any case, because SOURCE is a reserved token at every edition
 // (tests/version-matrix/reserved-words.json: r85/r2002/r2014/r2023 all true) and is not in `cobolWord`.
 recordKeyClause
-    : RECORD KEY? IS? (recordKeySourcePhrase | dataReference)
+    : RECORD KEY? IS? (defRecordKeySourcePhrase1=recordKeySourcePhrase | refDataReference1=dataReference)
     ;
 
 alternateKeyClause
-    : ALTERNATE RECORD KEY? IS? (recordKeySourcePhrase | dataReference)
+    : ALTERNATE RECORD KEY? IS? (defRecordKeySourcePhrase1=recordKeySourcePhrase | refDataReference1=dataReference)
       (WITH? DUPLICATES)?
       alternateKeySuppressWhen?
     ;
@@ -272,11 +272,11 @@ alternateKeyClause
 // `record-key-name-1`. data-name-2 keeps the general `dataReference` surface the data-name-1 arm already uses,
 // so an OF/IN-qualified data-name-2 resolves by §2023:8.4.2.2 as data-name-1 does.
 recordKeySourcePhrase
-    : recordKeyName SOURCE IS? dataReference+
+    : defRecordKeyName1=recordKeyName SOURCE IS? refDataReference1=dataReference+
     ;
 
 recordKeyName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // ISO §2023:12.4.5.6.2 — SUPPRESS [WHEN] literal-1: alternate-key suppression (a COBOL-2023 addition). literal-1 is the
@@ -303,7 +303,7 @@ alternateKeySuppressWhen
 // ISO §2023:12.4.5.8.2: only STATUS is a required keyword (FILE STATUS IS data-name-1, STATUS underlined);
 // FILE and IS are optional, so a bare "STATUS data-name" is a valid FILE STATUS clause.
 fileStatusClause
-    : FILE? STATUS IS? dataReference
+    : FILE? STATUS IS? refDataReference1=dataReference
     ;
 
 // ISO §2023:12.4.5.13.2 prints `<u>RELATIVE</u> KEY IS data-name-1`: only RELATIVE is underlined (measured, p360), so KEY
@@ -312,7 +312,7 @@ fileStatusClause
 // SemanticBuilder; KEY was never required, and that check is gone (kb/Work PB756). The dataReference is captured as
 // the relative key either way, so random/dynamic WRITE/REWRITE/DELETE position correctly.
 relativeKeyClause
-    : RELATIVE KEY? IS? dataReference
+    : RELATIVE KEY? IS? refDataReference1=dataReference
     ;
 
 // I-O-CONTROL. §2023:12.4.6.2 prints `I-O-CONTROL. [[apply-commit-clause].] [[{same-clause}…].]` (rendered, PDF p363 /
@@ -337,7 +337,7 @@ ioControlParagraph
 // tells them apart (SR1 vs SR3), so the binder classifies each operand. COMMIT stays the required anchor, so the
 // clause can never match on APPLY alone.
 applyCommitClause
-    : APPLY COMMIT ON? dataReference*
+    : APPLY COMMIT ON? refDataReference1=dataReference*
     ;
 
 ioControlClause
@@ -366,7 +366,7 @@ ioControlClause
 // AREA and FOR are optional words (Format 1 `SAME AREA FOR file-1 …` underlines only SAME), so the
 // "SAME AREA" clause may be written `SAME file-1 file-2` (as SQ206A does). Files may be comma-separated.
 sameClause
-    : SAME (RECORD | SORT | SORT_MERGE)? AREA? FOR? fileName (COMMA? fileName)*
+    : SAME (RECORD | SORT | SORT_MERGE)? AREA? FOR? refFileName1=fileName (COMMA? refFileName2=fileName)*
     ;
 
 // MULTIPLE FILE TAPE clause (obsolete; removed from later standards). Describes several files sharing
@@ -375,11 +375,11 @@ sameClause
 // the I-O-CONTROL error production (COBOL1970 "not a clause", false) and lose the clause's COBOL0902 from 2002 on;
 // FileControlBinder.ScreenMultipleFileClause refuses the empty list by name (COBOL5944).
 multipleFileClause
-    : multipleKeyword FILE TAPE? (CONTAINS? multipleFileTapeEntry (COMMA? multipleFileTapeEntry)*)?
+    : multipleKeyword FILE TAPE? (CONTAINS? refMultipleFileTapeEntry1=multipleFileTapeEntry (COMMA? refMultipleFileTapeEntry2=multipleFileTapeEntry)*)?
     ;
 
 multipleFileTapeEntry
-    : fileName (POSITION integerLiteral)?
+    : refFileName1=fileName (POSITION integerLiteral)?
     ;
 
 // X3.23-1985 RERUN clause (I-O-CONTROL) — states WHEN rerun records are written; the implementor provides at
@@ -400,14 +400,14 @@ multipleFileTapeEntry
 // FileControlBinder.ScreenRerunClauses refuses the missing file by name (COBOL6496).
 // The ON operand and condition-name-1 (a switch-status condition) are both plain words → cobolWord.
 rerunClause
-    : RERUN (ON cobolWord)? EVERY? rerunEvery
+    : RERUN (ON refCobolWord1=cobolWord)? EVERY? refRerunEvery1=rerunEvery
     ;
 
 rerunEvery
-    : (END OF?)? (REEL | UNIT) OF? fileName
-    | integerLiteral RECORDS (OF? fileName)?
+    : (END OF?)? (REEL | UNIT) OF? refFileName1=fileName
+    | integerLiteral RECORDS (OF? refFileName2=fileName)?
     | integerLiteral CLOCK_UNITS
-    | cobolWord
+    | refCobolWord1=cobolWord
     ;
 
 // ==========================================
@@ -453,7 +453,7 @@ recordLockPhrase
 // Each opened file may carry an obsolete tape phrase (ISO §2023:14.9.27): REVERSED or WITH NO REWIND —
 // vertical/tape positioning hints with no effect on disk files, parsed and ignored.
 openFileSpec
-    : dataReference (REVERSED | WITH? NO REWIND)?
+    : refDataReference1=dataReference (REVERSED | WITH? NO REWIND)?
     ;
 
 openMode
@@ -464,11 +464,11 @@ openMode
     ;
 
 closeStatement
-    : CLOSE closeFilePhrase (closeFilePhrase)*
+    : CLOSE refCloseFilePhrase1=closeFilePhrase (refCloseFilePhrase2=closeFilePhrase)*
     ;
 
 closeFilePhrase
-    : fileName closeOption?
+    : refFileName1=fileName closeOption?
     ;
 
 closeOption
@@ -511,7 +511,7 @@ closeOption
 // arm, FILE (a reserved word, never a fileName) is a syntax error here: §2023:5.2.1 admits only the words a general
 // format prints, "in the sequence given in the general format", and neither READ format prints FILE.
 readStatement
-    : READ fileName
+    : READ refFileName1=fileName
       readDirection?
       RECORD?
       readInto?
@@ -577,7 +577,7 @@ readInto
     ;
 
 readKey
-    : KEY IS? dataReference
+    : KEY IS? refDataReference1=dataReference
     ;
 
 // ==========================================
@@ -607,7 +607,7 @@ readKey
 // phrase takes the first alternative (the two places are then adjacent). Which place the edition prints is asked in ONE
 // place, VersionConformancePass.ParseArm.GateRetryLockPlace, from the written order alone.
 writeStatement
-    : WRITE (recordName | FILE fileName)
+    : WRITE (recordName | FILE refFileName1=fileName)
       recordFromPhrase?
       writeBeforeAfter?
       ( retryLockPhrases conditionalPhrases     // 2014 / 2023 Format 1, and Format 2 at every edition
@@ -678,12 +678,12 @@ recordFromPhrase
 writeBeforeAfter
     : (BEFORE AFTER? | AFTER BEFORE?) ADVANCING?
       ( PAGE
-      | (functionCall | inlineMethodInvocation | dataReference | integerLiteral | literal) (LINE | LINES)?
+      | (functionCall | inlineMethodInvocation | refDataReference1=dataReference | integerLiteral | literal) (LINE | LINES)?
       )
     ;
 
 recordName
-    : dataReference
+    : refDataReference1=dataReference
     ;
 
 // ==========================================
@@ -702,7 +702,7 @@ recordName
 // (feedback_two_arm_dispatch). WRITE's two formats carry NO such word — do not mirror it there.
 
 rewriteStatement
-    : REWRITE (recordName | FILE fileName) RECORD?
+    : REWRITE (recordName | FILE refFileName1=fileName) RECORD?
       recordFromPhrase?
       retryLockPhrases?   // §2023:14.9.35.2 — the pair WRITE prints too; REWRITE prints it before INVALID KEY at every edition (§2002:14.8.33.1)
       conditionalPhrases
@@ -715,7 +715,7 @@ rewriteStatement
 // ==========================================
 
 deleteStatement
-    : DELETE fileName RECORD?
+    : DELETE refFileName1=fileName RECORD?
       (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002)). The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       conditionalPhrases
       END_DELETE?
@@ -727,12 +727,12 @@ deleteStatement
 // ==========================================
 
 deleteFileStatement
-    : DELETE FILE OVERRIDE? fileName
+    : DELETE FILE OVERRIDE? refFileName1=fileName
       // §2023:14.9.10.2 Format 2's {file-name-1}… repetition (kb/Work PB134; GR12 — as-if one statement per
       // name). A phrase keyword (RETRY …) ends the list through the ONE generated `{!keywordContinuesHere()}?`
       // on cobolWord's keyword alternatives (kb/Work PB805) — this loop's follow set holds the RETRY / ON
       // EXCEPTION / END-DELETE phrases — never through the five-word hand predicate that stood here.
-      fileName*
+      refFileName2=fileName*
       (retryPhrase)?   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002)). The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       conditionalPhrases
       END_DELETE?
@@ -741,7 +741,7 @@ deleteFileStatement
 
 // COBOL-2002 UNLOCK statement (ISO §2023:14.9.47): release all this-connector record locks on the file.
 unlockStatement
-    : UNLOCK fileName (RECORD | RECORDS)?
+    : UNLOCK refFileName1=fileName (RECORD | RECORDS)?
     ;
 
 // ==========================================
@@ -749,7 +749,7 @@ unlockStatement
 // ==========================================
 
 startStatement
-    : START fileName
+    : START refFileName1=fileName
       (FIRST | LAST | startKeyPhrase)?
       conditionalPhrases
       END_START?
@@ -767,7 +767,7 @@ startStatement
 // The operand SET is a different question — `comparisonOperator` is the condition language's whole operator
 // list, wider than the §2023:8.8.4.2 general-relation format SR3 admits here (kb/Work PB333).
 startKeyPhrase
-    : KEY comparisonOperator dataReference startWithLength?   // WITH LENGTH introduction-gated in the VersionConformancePass parse arm (VisitStartWithLength → Check(StartWithLength2002))
+    : KEY comparisonOperator refDataReference1=dataReference startWithLength?   // WITH LENGTH introduction-gated in the VersionConformancePass parse arm (VisitStartWithLength → Check(StartWithLength2002))
     ;
 
 // ISO §2023:14.9.41.2 prints `[ WITH LENGTH arithmetic-expression-1 ]` with LENGTH underlined and WITH NOT
@@ -805,7 +805,7 @@ sortStatement
     ;
 
 sortFileName
-    : dataReference
+    : refDataReference1=dataReference
     ;
 
 sortKeyPhrase
@@ -838,7 +838,7 @@ sortCollatingPhrase
     // COLLATING SEQUENCE {IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS alphabet-name-1 |
     // FOR NATIONAL IS alphabet-name-2}…} (ISO §2023:14.9.40.2 / §2023:14.9.24.2). alphabet-name-2 + the FOR forms
     // are the 2002 national class — gated on recognition (VisitSortCollatingPhrase).
-    : COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord (cobolWord)?)
+    : COLLATING? SEQUENCE (collatingForPhrase+ | IS? refCobolWord1=cobolWord (refCobolWord2=cobolWord)?)
     ;
 
 // The ONE FOR-class collating subrule (ISO §2023:12.3.6.2 OBJECT-COMPUTER / §2023:14.9.40.2 SORT — the PROGRAM
@@ -851,7 +851,7 @@ sortCollatingPhrase
 // §2023:14.9.40.2 (folio 745 rules {ALPHANUMERIC, …, NATIONAL, SEQUENCE, …}). FOR appears in none of the three, so
 // relaxing the shared rule accepts no illegal source at any of its sites.
 collatingForPhrase
-    : FOR? (ALPHANUMERIC | NATIONAL) IS? cobolWord
+    : FOR? (ALPHANUMERIC | NATIONAL) IS? refCobolWord1=cobolWord
     ;
 
 sortUsingPhrase
@@ -863,11 +863,11 @@ sortGivingPhrase
     ;
 
 sortInputProcedurePhrase
-    : INPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
+    : INPUT PROCEDURE IS? refProcedureName1=procedureName ((THRU | THROUGH) refProcedureName2=procedureName)?
     ;
 
 sortOutputProcedurePhrase
-    : OUTPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
+    : OUTPUT PROCEDURE IS? refProcedureName1=procedureName ((THRU | THROUGH) refProcedureName2=procedureName)?
     ;
 
 // ==========================================
@@ -883,7 +883,7 @@ mergeStatement
     ;
 
 mergeFileName
-    : dataReference
+    : refDataReference1=dataReference
     ;
 
 mergeKeyPhrase
@@ -899,7 +899,7 @@ mergeGivingPhrase
     ;
 
 mergeOutputProcedurePhrase
-    : OUTPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
+    : OUTPUT PROCEDURE IS? refProcedureName1=procedureName ((THRU | THROUGH) refProcedureName2=procedureName)?
     ;
 
 // ==========================================
@@ -912,7 +912,7 @@ mergeOutputProcedurePhrase
 // a parse error could not. SR4 lets AT END and NOT AT END be written in reversed order. READ is NOT the same case:
 // §2023:14.9.30.2 brackets its pair with choice indicators, so there both phrases really are optional.
 returnStatement
-    : RETURN fileName RECORD?
+    : RETURN refFileName1=fileName RECORD?
       (INTO receivingIdentifier)?
       conditionalPhrases
       END_RETURN?
@@ -924,7 +924,7 @@ returnStatement
 // ==========================================
 
 releaseStatement
-    : RELEASE dataReference
+    : RELEASE refDataReference1=dataReference
       recordFromPhrase?   // the one FROM phrase rule, defined beside writeStatement (kb/Work PB2650)
 
     ;
@@ -951,7 +951,7 @@ stringStatement
 // repository name + parens) still parses as a dataReference and is resolved by the binder's
 // KeywordOmittedFunction path — unchanged.
 strUnstrSender
-    : functionCall | inlineMethodInvocation | dataReference
+    : functionCall | inlineMethodInvocation | refDataReference1=dataReference
     ;
 
 strUnstrOperand
@@ -1034,7 +1034,7 @@ unstringTallying
 // The function-identifier is an added ALTERNATIVE beside dataReference rather than a shared operand rule, so
 // the generated .dataReference() accessor stays; unifying it is kb/Work PB2114.
 inspectStatement
-    : INSPECT BACKWARD? (functionCall | inlineMethodInvocation | dataReference)
+    : INSPECT BACKWARD? (functionCall | inlineMethodInvocation | refDataReference1=dataReference)
       ( inspectTallyingPhrase inspectReplacingPhrase?
       | inspectReplacingPhrase
       | inspectConvertingPhrase )

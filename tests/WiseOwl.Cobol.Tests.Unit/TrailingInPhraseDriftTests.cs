@@ -49,7 +49,7 @@ public sealed class TrailingInPhraseDriftTests
         string grammarRoot = TestRepo.Src(Path.Combine("WiseOwl.Cobol.Frontend", "Grammar"));
         foreach (string file in Directory.EnumerateFiles(grammarRoot, "*.g4", SearchOption.AllDirectories))
         {
-            string text = Regex.Replace(File.ReadAllText(file), @"//[^\r\n]*", "");
+            string text = Regex.Replace(GrammarSource.Read(file), @"//[^\r\n]*", "");
             foreach (string chunk in text.Split(';'))
             {
                 var m = Regex.Match(chunk, @"\A\s*(?<name>[a-z]\w*)\s*:(?<body>.*)\z", RegexOptions.Singleline);
@@ -96,7 +96,7 @@ public sealed class TrailingInPhraseDriftTests
     [Fact]
     public void RangeAlphabetPhrase_InIsOptional_InEveryFormatThatPrintsIt()
     {
-        string grammar = Regex.Replace(File.ReadAllText(TestRepo.Src(Path.Combine("WiseOwl.Cobol.Frontend", "Grammar",
+        string grammar = Regex.Replace(GrammarSource.Read(TestRepo.Src(Path.Combine("WiseOwl.Cobol.Frontend", "Grammar",
             "Core", "CobolExpressions.g4"))), @"//[^\r\n]*", "");
         Assert.Matches(new Regex(@"\bvalueRange\s*:[^;]*\(\s*IN\?\s+cobolWord\s*\)\?"), grammar);
         string binder = File.ReadAllText(TestRepo.Src(Path.Combine("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs")));

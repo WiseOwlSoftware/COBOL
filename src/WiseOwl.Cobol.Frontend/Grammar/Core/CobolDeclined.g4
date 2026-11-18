@@ -116,31 +116,31 @@ validationClause
 // of different constructs that happen to share four keywords — `className` (Core/CobolExpressions.g4) is the
 // condition's ONE list, and ClassConditionTableDriftTests exempts this rule BY NAME with that reason.
 validateClassClause
-    : CLASS IS? validateClassOperand
+    : CLASS IS? refValidateClassOperand1=validateClassOperand
     ;
 
 // The printed brace group. alphabet-name-1 and class-name-1 are user-defined words (§2023:8.9 reserves neither),
 // so they ride cobolWord; the five keywords are reserved at every edition the clause exists in and need
 // explicit arms because cobolWord does not admit them. Order follows the printed column.
 validateClassOperand
-    : NUMERIC
-    | ALPHABETIC
-    | ALPHABETIC_LOWER
-    | ALPHABETIC_UPPER
-    | BOOLEAN
-    | cobolWord
+    : nnNumeric1=NUMERIC
+    | nnAlphabetic1=ALPHABETIC
+    | nnAlphabeticLower1=ALPHABETIC_LOWER
+    | nnAlphabeticUpper1=ALPHABETIC_UPPER
+    | nnBoolean1=BOOLEAN
+    | nameCobolWord1=cobolWord
     ;
 
 // ISO §2023:13.18.17.2 — DEFAULT IS { literal-1 | identifier-1 | NONE }. NONE is a §2023:8.10 context-sensitive word
 // ("DEFAULT clause") and needs no token of its own: it rides dataReference, and the binder names the clause
 // either way. IS is not underlined in the printed format (an optional word, §2023:5.2.3).
 validateDefaultClause
-    : DEFAULT IS? (literal | dataReference)
+    : DEFAULT IS? (literal | refDataReference1=dataReference)
     ;
 
 // ISO §2023:13.18.18.2 — DESTINATION IS { identifier-1 } … (DESTINATION underlined, IS not).
 validateDestinationClause
-    : DESTINATION IS? dataReference+
+    : DESTINATION IS? refDataReference1=dataReference+
     ;
 
 // ISO §2023:13.18.31.2 — INVALID WHEN condition-1 (both words underlined). §2023:13.16.2 prints this clause inside a
@@ -160,11 +160,11 @@ validatePresentWhenClause
 // ISO §2023:13.18.64.2 — VARYING { data-name-1 [ FROM arith-1 ] [ BY arith-2 ] } … The report-writer leg is the
 // same shape and IS supported (A.4.11 item 20 / reportVaryingClause); same split as PRESENT WHEN.
 validateVaryingClause
-    : VARYING validateVaryingSpec+
+    : VARYING defValidateVaryingSpec1=validateVaryingSpec+
     ;
 
 validateVaryingSpec
-    : cobolWord (FROM arithmeticExpression)? (BY arithmeticExpression)?
+    : defCobolWord1=cobolWord (FROM arithmeticExpression)? (BY arithmeticExpression)?
     ;
 
 // ISO §2023:13.18.62.2 — { VALIDATE-STATUS | VAL-STATUS } IS { identifier-1 | literal-1 }
@@ -202,14 +202,14 @@ validateVaryingSpec
 // DIFFERENT phrase on a different page — validateValidPhrase below keeps VALUE's WHEN required. Two formats,
 // two verdicts, both measured.
 validateStatusClause
-    : (VALIDATE_STATUS | VAL_STATUS) IS? (literal | dataReference)
-      WHEN? NO? ERROR (ON validateStatusStage+)? FOR dataReference+
+    : (VALIDATE_STATUS | VAL_STATUS) IS? (literal | refDataReference1=dataReference)
+      WHEN? NO? ERROR (ON nnValidateStatusStage1=validateStatusStage+)? FOR refDataReference2=dataReference+
     ;
 
 validateStatusStage
-    : CONTENT
-    | FORMAT
-    | cobolWord      // RELATION (§2023:8.10 context-sensitive — no token, arrives as IDENTIFIER)
+    : nnContent1=CONTENT
+    | nnFormat1=FORMAT
+    | nnCobolWord1=cobolWord      // RELATION (§2023:8.10 context-sensitive — no token, arrives as IDENTIFIER)
     ;
 
 // ISO §2023:13.18.63.2 FORMAT 5 (content-validation-entry) — the tail that turns a level-88 VALUE list into a
