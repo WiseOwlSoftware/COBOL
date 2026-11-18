@@ -16,3 +16,9 @@ all go by that id. Sweep: every other read of `MAIN_REF` by name is the id-less 
 `mark-published` (one read, no key) and the one-shot `extract_main` test now use. The `compute` seam takes `(repo, commit)`;
 the new cases move the ref between resolve and compute and check the key, the archive and the content stay at the old id
 (red on the old code: the seam did not exist).
+
+**Review round 1 (blocking, fixed).** The R1-2 case stubbed the compute and so never ran `extract_verdict` or
+`main_ledger(commit=)`; a mutation that archived origin/main by name kept it green. The case now builds two commits whose
+`scripts/fuzz_history.py` and `FUZZ-LEDGER.md` name themselves A and B, moves origin/main to B after resolving A's id, and
+runs the real `extract_verdict`, `main_ledger` and default-compute `main_verdict` at A's id. The reviewer's three mutations
+(by-name archive, by-name ledger, compute handed None) each go RED; the code is GREEN.
