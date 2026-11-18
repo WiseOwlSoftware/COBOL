@@ -34,3 +34,13 @@ definition (R5-2), and the evidence file names `SymbolTable` (R5-3).
 the census the new project needs showed four tolerated architecture rows grown on main since the last census, none of them
 the listing's (kb/Work PB5923 lead). The KEPT row `1989-RV-A.2.46.3-3` rests on a derivation whose "no listing" premise is
 now false; its re-adjudication needs a suite case that can read a listing (kb/Work PB5926).
+
+**Review round 1.** The first heading line cut its own left part when it was too long, so a release build's long version
+pushed out the compilation instant and the program-name. The line now gives up the version first, then the edition, and
+never the instant or the page number. Two other heading problems were fixed with it: a long source path now keeps its
+file name, and a long COPY banner wraps. New tests cover every outcome a listing can follow: check-only, a refused
+assembly write, a refused listing write, an output refused before the source is read, and the listed pass of a failed
+parse. A test also holds the outcome map total, and the line index is tested on hand-built maps. A compilation without a
+listing no longer evaluates the trace's arguments: each recording call checks `TextStageTrace.Records` first, and
+`TextStageTrace.None` throws if called. kb/Work/PB5923/2026-11-18-listing-step-1-review-r1.md says how each finding was
+fixed.

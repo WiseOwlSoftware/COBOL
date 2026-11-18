@@ -243,13 +243,17 @@ public sealed class Listing1985Tests : IDisposable
         Assert.Equal(ListingOutcome.FrontendError, frontend.Listing!.Header.Outcome);
         Assert.Equal(LinesOf(source).Length + 2 * LinesOf(Path.Combine(_dir, "REC85.cpy")).Length, frontend.Listing.Lines.Count);
         Assert.Contains(frontend.Listing.Programs, p => p.Name == "OUTER85");
+        // DESIGN-listing.md section 4.3: the programs are read off the tree the parser built, recovered or not.
+        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null)],
+            frontend.Listing.Sections.Select(s => (s.Section, s.Produced, s.Reason)));
         Assert.True(File.Exists(Path.Combine(_dir, "outer85.lst")));
 
         // A bind error: a reference to a name the program does not declare.
         var (bind, _, _) = Compile(new ListingRequest(), Main.Replace("DISPLAY WC.", "DISPLAY NO-SUCH-NAME.", StringComparison.Ordinal));
         Assert.Equal(CompilerDriver.Outcome.BindError, bind.Status);
         Assert.Equal(ListingOutcome.BindError, bind.Listing!.Header.Outcome);
-        Assert.All(bind.Listing.Sections, s => Assert.True(s.Produced, s.Reason));
+        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null)],
+            bind.Listing.Sections.Select(s => (s.Section, s.Produced, s.Reason)));
 
         // No source: nothing was read, so nothing is listed.
         var missing = CompiledProgramCache.CompileCold(new CompilerDriver.Options(Path.Combine(_dir, "absent.cob"), DialectLevel: 85,

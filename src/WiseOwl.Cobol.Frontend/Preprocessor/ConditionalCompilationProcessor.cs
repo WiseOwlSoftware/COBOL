@@ -105,7 +105,7 @@ public static partial class ConditionalCompilationProcessor
         // to the RESULTANT frame the parser's tokens use — and each compilation-variable event's, which is an encounter's,
         // and each inclusion range the source listing reads (DESIGN-listing.md section 4.4).
         int[] resultantLine = CopyProcessor.ReplaceLineMap(expanded.Text, edition);
-        copyProcessor.Trace.ToResultantFrame(resultantLine);
+        if (copyProcessor.Trace.Records) copyProcessor.Trace.ToResultantFrame(resultantLine);
         var encounters = run.Encounters
             .Select(e => new DirectiveEncounter(resultantLine[e.Line] + 1, e.ChangesState)).ToArray();
         var compilationVariables = run.CompilationVariables
@@ -588,7 +588,7 @@ public static partial class ConditionalCompilationProcessor
             _depth = depth;
             _renderBase = _flushBase + lineOffset;   // the copybook's first line in the output frame (kb/Work PB1066)
             var result = Render(copybookText, division);
-            _copy!.Trace.PlaceInclusion(_renderBase, result.Lines.Length);   // the source listing's inclusion range (DESIGN-listing.md section 4.4)
+            if (_copy!.Trace.Records) _copy.Trace.PlaceInclusion(_renderBase, result.Lines.Length);   // the source listing's inclusion range (DESIGN-listing.md section 4.4)
             (_depth, _renderBase, _flushBase) = (savedDepth, savedRenderBase, savedFlushBase);
             return result;
         }

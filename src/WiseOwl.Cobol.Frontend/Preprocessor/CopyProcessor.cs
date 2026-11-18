@@ -1076,9 +1076,12 @@ public sealed class CopyProcessor(
             bool? standsInIdentification = division.InIdentificationDivisionAt(text, copyIdx);
             var one = ResolveOneCopy(mapped, copyIdx, alreadyIncluded, inLibraryText: depth > 0, standsInIdentification, out int afterCopy);
             // The source listing's record of the statement (DESIGN-listing.md section 4.4): the library text, placed by the
-            // merged driver as it renders it, lies between Begin and End, so a COPY met inside it is its child.
-            if (one.TextName is { } textName)
-                Trace.BeginInclusion(depth + 1, copyLine.Origin, mapped.PointAt(Math.Max(afterCopy - 1, copyIdx)).Origin, textName,
+            // merged driver as it renders it, lies between Begin and End, so a COPY met inside it is its child. Asked only of a
+            // trace that records: the arguments cost a LineOrigin per statement, which a compilation without a listing must not
+            // pay (DESIGN-listing.md section 9; kb/Work PB5923 review R1-3).
+            bool traced = Trace.Records && one.TextName is not null;
+            if (traced)
+                Trace.BeginInclusion(depth + 1, copyLine.Origin, mapped.PointAt(Math.Max(afterCopy - 1, copyIdx)).Origin, one.TextName!,
                     one.LibraryName, one.CopybookPath, one.Outcome switch
                     {
                         CopyOutcome.Found => TextInclusionOutcome.Found,
@@ -1108,7 +1111,7 @@ public sealed class CopyProcessor(
                 w.Append(one.Text.AsSpan(), copyLine);
                 w.NewLine(copyLine);
             }
-            if (one.TextName is not null) Trace.EndInclusion();
+            if (traced) Trace.EndInclusion();
             pos = afterCopy;
         }
         division.Finish(text);

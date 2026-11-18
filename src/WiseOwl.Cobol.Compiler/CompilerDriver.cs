@@ -192,8 +192,9 @@ public static class CompilerDriver
         };
     }
 
-    /// <summary>The outcome as the listing names it.</summary>
-    private static WiseOwl.Cobol.Listing.ListingOutcome ListingOutcomeOf(Outcome outcome) => outcome switch
+    /// <summary>The outcome as the listing names it: every outcome that read the source, by its own name (the Unit assembly's
+    /// <c>ListingOutcomeMapTests</c> holds it total).</summary>
+    internal static WiseOwl.Cobol.Listing.ListingOutcome ListingOutcomeOf(Outcome outcome) => outcome switch
     {
         Outcome.Success => WiseOwl.Cobol.Listing.ListingOutcome.Success,
         Outcome.FrontendError => WiseOwl.Cobol.Listing.ListingOutcome.FrontendError,

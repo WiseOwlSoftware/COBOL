@@ -28,7 +28,8 @@ public sealed record ListingRequest(string? OutputBase = null, int PageLength = 
     /// <summary>The default (and widest fully used) page width.</summary>
     public const int DefaultPageWidth = 132;
 
-    /// <summary>The narrowest page: the source columns need 97, the heading a little more.</summary>
+    /// <summary>The narrowest page: the source columns need 97, and the heading's instant and page number 40 (DESIGN-listing.md
+    /// section 6.1: what yields when the first heading line does not fit).</summary>
     public const int MinimumPageWidth = 100;
 
     /// <summary>The widest page.</summary>

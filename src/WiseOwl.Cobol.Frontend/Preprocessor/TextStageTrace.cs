@@ -43,8 +43,11 @@ public sealed record TextInclusion(int Id, int? Parent, int Depth, SourceOrigin 
 /// recorded at the one place it acts, so the listing never re-derives an inclusion from text. One trace per run of the text
 /// stages, created beside that run's <c>DiagnosticBag</c>; the run whose diagnostics are the compilation's is the run the
 /// listing reads (<c>Frontend.ListingTrace</c>).
-/// <para>A compilation that asks for no listing passes <see cref="None"/>, whose methods record nothing (DESIGN-listing.md
-/// section 9: no listing, no listing work).</para>
+/// <para>A compilation that asks for no listing passes <see cref="None"/> (DESIGN-listing.md section 9: no listing, no listing
+/// work). ⛔ EVERY RECORDING CALL IS ASKED ONLY WHEN <see cref="Records"/> IS TRUE, so a call's arguments (an origin the
+/// caller computes, a switch) are never evaluated for a compilation without a listing; <see cref="None"/>'s recording methods
+/// THROW, so a call site that forgets the question fails every compilation of a COPY statement without a listing, the
+/// no-work drift test (<c>ListingOffDoesNoWorkDriftTests</c>) first (kb/Work PB5923 review R1-3).</para>
 /// <para>The inclusions are recorded in the merged driver's OUTPUT frame (<c>CopyProcessor.ExpandCopiesOneLevel</c> begins
 /// one, <c>ConditionalCompilationProcessor.Run.RenderCopybook</c> places its library text) and carried through REPLACE to
 /// the resultant frame by the one line map REPLACE answers (<c>CopyProcessor.ReplaceLineMap</c>), so a copybook copied
@@ -123,9 +126,13 @@ public class TextStageTrace
     {
         public override bool Records => false;
         internal override void BeginInclusion(int depth, SourceOrigin copyFirst, SourceOrigin copyLast, string textName,
-            string? libraryName, string? file, TextInclusionOutcome outcome) { }
-        internal override void PlaceInclusion(int outputFirst, int lineCount) { }
-        internal override void EndInclusion() { }
-        internal override void ToResultantFrame(int[] resultantLine) { }
+            string? libraryName, string? file, TextInclusionOutcome outcome) => throw NotRecording();
+        internal override void PlaceInclusion(int outputFirst, int lineCount) => throw NotRecording();
+        internal override void EndInclusion() => throw NotRecording();
+        internal override void ToResultantFrame(int[] resultantLine) => throw NotRecording();
+
+        private static InvalidOperationException NotRecording() => new(
+            "a text stage recorded into TextStageTrace.None: every recording call asks TextStageTrace.Records first, so a "
+            + "compilation without a listing evaluates none of its arguments (DESIGN-listing.md section 9)");
     }
 }

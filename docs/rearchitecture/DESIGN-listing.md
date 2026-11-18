@@ -318,7 +318,11 @@ format maps (`ReferenceFormatMap` per file) and its `SourceUnitFacts`, and `Fron
 `Frontend.ReferenceFormats` and `Frontend.UnitFacts` from the same tuple it sets `LineMap` from, in both arms. So the
 line index, the inclusion ranges and the anchored diagnostics always describe one resultant frame. A test pins the
 failed case: the PB1066 shape (a `>>SOURCE FORMAT` in an exception-checking PERFORM's WHEN phrase) plus a syntax error,
-which forces the speculative re-run, and the listing anchors each syntax error on the line `diagnostics` names.
+which forces the speculative re-run, and the listing anchors each syntax error on the line `diagnostics` names. (Step 1,
+review R1-2:) step 1 has no diagnostics section, so its test (`ListingOutcomeTests.AFailedParse_ListsThePassWhoseDiagnosticsAreReported`)
+pins the pass itself: the lines after the WHEN phrase's directive are listed in the form the REPORTED pass read them in (free;
+the speculative re-run reads them fixed from END-PERFORM on), and the line the reported error names is a listed line
+holding the offending word; listing the last pass instead turns it red. Step 3 adds the anchoring assertion.
 
 Events, each recorded at the one place the stage acts:
 
@@ -430,7 +434,13 @@ A return point added to the body later needs no listing code. The no-listing pat
 collector. (Step 1:) `Compile` builds the facts, runs `CompileCore`, returns at once when no source text was deposited
 (`ListingFacts.Frontend` is null), and otherwise asks `ListingWriter.Write` for a `ListingWritten(Document, File, Error)`,
 which it folds into the result; the driver maps its `Outcome` to `ListingOutcome` (`ListingOutcomeOf`). The front end is
-built by the one `CompilerDriver.NewFrontend`, which the no-work drift test reads.
+built by the one `CompilerDriver.NewFrontend`, which the no-work drift test reads. (Step 1, review R1-2:) each kind of
+outcome is a test (section 10 item 8): `Listing1985Tests.AFailedCompilation_StillListsItsSource` (front-end error, bind
+error, no source) and `ListingOutcomeTests` (check-only, the refused assembly write of the last return, an output refused
+before the source is read, a refused listing write, the listed pass of a failed parse), each asserting the outcome the
+header names and the `ListingSectionStatus` of every section. A backend error has no source that reaches it (it is Roslyn
+refusing generated C#, a compiler defect), so its witness is the outcome map: `ListingOutcomeMapTests` holds
+`ListingOutcomeOf` total, every outcome that read the source mapping to the listing outcome of its own name.
 
 ## 5. The single compilation timestamp
 
@@ -458,6 +468,16 @@ the innermost program containing the page's first listed source line (§1985:VI.
 the source section it is the first outermost program. A compilation group of several outermost programs starts each on
 a new page.
 
+(Step 1, review R1-1:) line 1 never exceeds the page width, and when it does not fit, the fields YIELD in a fixed order:
+the compiler's version first, cut at its end (a release build's version is `30.0.0+` and a 40-character commit, so its
+build metadata goes first), then the edition, cut at its end, then the program-name, cut at its end. The instant and the
+page number never yield: with their separators they take at most 40 columns, and the narrowest page is 100. So the two
+facts the 1985 heading exists to carry, the program-name and the instant, are whole at every width for every name of 60
+characters or fewer, which covers every `--std 85` name (30 characters at most) and every 63-character name at the default
+width; only a longer name (a literal program-name of a later edition) on a narrow page is cut, after everything else has
+yielded. One function composes the line (`TextListingRenderer.IdentificationLine`, the page number included). Line 2 keeps
+the END of a source path that does not fit (the file's name), behind `...`.
+
 ### 6.2 Source
 
 One row per listed line, at the default width 132:
@@ -477,7 +497,9 @@ cols 100-132 the embedded margin: the line's `ListingLine.Margin`, printed as th
 
 A ruler (`----+----1----+----2 ...`) under each page heading marks the source columns. Each inclusion opens with a
 banner row naming the text-name, library, the file read and the depth (`COPY PAYREC OF LIB1 -> lib/PAYREC.cpy (depth 1)`),
-and a row `R` under each line REPLACE changed prints the compiled text. A DATE-COMPILED paragraph prints its replacement
+and a row `R` under each line REPLACE changed prints the compiled text. (Step 1:) the banner is text in the source
+columns like any line, so a banner longer than 80 positions (a long path) wraps onto `+` rows as a long line does: no row
+of a page is wider than the page. A DATE-COMPILED paragraph prints its replacement
 in place of its first line, marked 'E', and its comment-entry continuation lines are not printed (the paragraph "is
 replaced"); the JSON keeps the written text.
 
@@ -966,7 +988,11 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
   occurrence was recorded and no `ListingFacts` was built. (Step 1:) the test is in the Unit assembly, because it reads
   the front end the driver builds through the internal `CompilerDriver.NewFrontend`; it also asserts that no file was
   hashed (`CompilationInputs.FileDigests` empty) and the clock was not read, and a control case with a listing shows each
-  assertion able to fail. Occurrences join it in step 7.
+  assertion able to fail. Occurrences join it in step 7. (Step 1, review R1-3:) a recording call's ARGUMENTS are work too
+  (`CopyProcessor.ExpandCopiesOneLevel` computes the COPY statement's last origin, a `LineOrigin` per statement, to pass
+  to `BeginInclusion`), so every recording call into `TextStageTrace` is asked only when `TextStageTrace.Records` is true,
+  and `TextStageTrace.None`'s recording methods THROW: a call site that forgets the question fails every compilation of a
+  COPY statement without a listing, the no-work drift test's own program first.
 - **Budgets, measured.** No listing: compile time within the run-to-run noise of the parent commit, and allocated bytes
   per compile no more than the parent's plus the line-kind arrays (one byte per physical line read). Standard text
   listing: at most 10 % over the no-listing compile. Every section in every format: at most 25 %.
@@ -1031,9 +1057,12 @@ captured listing.
    property of `CompilerDriver.Options`; the no-listing path does no work (section 9); the manual's command-line page
    names every listing option (`UserManualDriftTests`).
 7. **Unit tests** of `ListingVisibility` and `PageComposer` over hand-built line lists (one per rule above), and of
-   `ListingLineIndex` over hand-built maps; `PhysicalLineKindDriftTests` (section 4.4.1).
+   `ListingLineIndex` over hand-built maps (step 1: `ListingLineIndexTests`, a copybook copied at two depths, framing
+   lines, a file no inclusion holds, omission); `PhysicalLineKindDriftTests` (section 4.4.1).
 8. **Failed compilations.** One test per kind of outcome (section 4.6): the sections present and the
-   `ListingSectionStatus` of each absent one; the failed-parse test of section 4.4 (the listed pass).
+   `ListingSectionStatus` of each absent one; the failed-parse test of section 4.4 (the listed pass). (Step 1:)
+   `tests/WiseOwl.Cobol.Tests.Conformance/Listing/ListingOutcomeTests.cs`, beside the 1985 class's failed-compilation
+   case, and `ListingOutcomeMapTests` (Unit) for the backend error no source reaches (section 4.6).
 
 The inventory rows the listing makes testable (`1985-GR-VI.3.4.4-1`, `1985-GR-VI.3.3.4-1`, `1985-GR-X.3.1.4-1`,
 PB5924's IV.7 rows, the 2023 LISTING/PAGE/COPY rows whose derivations rest on "no listing", and the twelve 2002 rows of
@@ -1064,7 +1093,7 @@ the 1985 minimum, so PB5923 closes first.
   `ReferenceFormatProcessor.NormalizeToFreeFormMapped`; stored by `ReferenceFormatMap.Create` and answered by
   `ReferenceFormatMap.KindAt`.
 - Front end, provenance: `src/WiseOwl.Cobol.Frontend/Preprocessor/TextStageTrace.cs` (inclusion events only in this step)
-  recorded in `CopyProcessor.ResolveOneCopy`, `CopyProcessor.ExpandCopiesOneLevel` and
+  recorded in `CopyProcessor.ExpandCopiesOneLevel` (from `ResolveOneCopy`'s result) and
   `ConditionalCompilationProcessor.Run.RenderCopybook`; `src/WiseOwl.Cobol.Frontend/Pipeline/SourceUnitFacts.cs` (program
   names, nesting and ranges, the DATE-COMPILED paragraph's range, the comment-entry paragraphs) collected in
   `Frontend.Parse`; `Frontend.RunTextStages` and `Frontend.Preprocess` carry the per-pass trace, and `Frontend.Parse`
@@ -1075,12 +1104,14 @@ the 1985 minimum, so PB5923 closes first.
   `CompilerDriver.Result` gains `Listing`, `CompilerDriver.Compile` becomes the one-exit wrapper (section 4.6).
 - CLI: `CliOptions` and `Program.BuildParser` gain `--listing`, `--listing-output`, `--listing-page-length`,
   `--listing-page-width` (text only); `Program.RunCompile` handles `--listing-output -`.
-- Tests: `tests/WiseOwl.Cobol.Tests.Conformance/Listing/Listing1985Tests.cs`,
-  `tests/WiseOwl.Cobol.Tests.Unit/Listing/ListingVisibilityTests.cs`, `PageComposerTests.cs`,
-  `tests/WiseOwl.Cobol.Tests.Unit/Listing/PhysicalLineKindDriftTests.cs`, the failed-compilation tests of section 10 item 8,
-  and `tests/WiseOwl.Cobol.Tests.Conformance/Listing/ListingOffDoesNoWorkDriftTests.cs`.
-- Measurement (section 9): `CompileBenchmarks` gains `ListingMode` (`None`, `Text`) and `[MemoryDiagnoser]`; the `None`
-  row against the parent commit and the `Text` row land in `tests/WiseOwl.Cobol.Benchmarks/README.md`.
+- Tests: `tests/WiseOwl.Cobol.Tests.Conformance/Listing/Listing1985Tests.cs` and `ListingOutcomeTests.cs` (the
+  failed-compilation tests of section 10 item 8); in `tests/WiseOwl.Cobol.Tests.Unit/Listing/`: `ListingVisibilityTests.cs`,
+  `PageComposerTests.cs`, `TextListingRendererTests.cs`, `ListingLineIndexTests.cs`, `ListingOutcomeMapTests.cs`,
+  `PhysicalLineKindDriftTests.cs`, `ListingCliTests.cs` and `ListingOffDoesNoWorkDriftTests.cs` (Unit, because it reads the
+  internal `CompilerDriver.NewFrontend`; section 9).
+- Measurement (section 9): `CompileBenchmarks` gains `[Params] Listing` of type `CompileBenchmarks.ListingMode` (`None`,
+  `Text`); `[MemoryDiagnoser]` is already the class's (`BenchmarkConfig`); the `None` row against the parent commit and the
+  `Text` row land in `tests/WiseOwl.Cobol.Benchmarks/README.md`.
 - Docs: `docs/manual/user-guide/listing.md` (new), `docs/manual/user-guide/command-line.md`,
   `docs/conformance/7/DOC-A.1-117.md` (a listing at `--std 85` by default, on request otherwise; copied text listed;
   the effect of logical conversion), DESIGN.md section 0.5's row moves to "step 1 built". The 1985 records (the GAP and

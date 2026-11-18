@@ -34,6 +34,10 @@ command-line error, reported before anything is compiled (exit status 1), never 
 Each page begins with four heading lines: the compiler and its version, the edition (for example
 `ANSI X3.23-1985 (--std 85)`), the name of the program the page's first line belongs to, the compilation date and time,
 and the page number; then `SOURCE` and the source path; a blank line; and a ruler that numbers the 80 source columns.
+No heading line is wider than the page. When the first one does not fit, the compiler's version is shortened first, then
+the edition; the date and time and the page number are always printed whole, and so is the program name unless it is
+longer than 60 characters on a narrow page. A source path too long for the second line keeps its end (the file's name)
+after `...`. A `COPY` banner too long for the 80 source columns continues on rows marked `+`, as a long source line does.
 
 The program name follows the program-name rule of COBOL-85: "The program-name identifies the source program, the object
 program, and all listings pertaining to a particular program" (section VI.3.3.4, and X.3.1.4 for a nested program). A page
