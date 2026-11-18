@@ -1567,9 +1567,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // the mechanical arm `undefined-in-rule` (§8 DRV-1985-GR-XIV.2.2.4-7, -29, DRV-1985-GR-XIV.3.6.4-5).
             "1985-GR-XIV.2.2.4-7", "1985-GR-XIV.2.2.4-29", "1985-GR-XIV.3.6.4-5",
             // ⚙ The first ARGUED 1985 rows, added deliberately (kb/Work PB5373 class 2, signature `claude: 2026-11-14`):
-            // `unpopulatable-antecedent` (no device superimposes; no source listing is produced, DOC-A.1-117), each standing
-            // on the UPHELD record of the orchestrator's cobol-refuter pass, tests/version-matrix/derivation-refutations/pb5373-class2.jsonl.
-            "1985-GR-XIV.3.6.4-16", "1985-GR-VI.3.4.4-1",
+            // `unpopulatable-antecedent` (no device superimposes), standing on the UPHELD record of the orchestrator's
+            // cobol-refuter pass, tests/version-matrix/derivation-refutations/pb5373-class2.jsonl. (1985-GR-VI.3.4.4-1 stood here until
+            // kb/Work PB5923: its antecedent, no source listing, is a nonconformance at 1985, not a closed set.)
+            "1985-GR-XIV.3.6.4-16",
             // ⚙ Two more, added deliberately (records-85-held, the same signature): GR17 and GR18 restated on GR2 (no WiseOwl
             // device is line-oriented, section 3.3), each on the UPHELD record of
             // tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl.
