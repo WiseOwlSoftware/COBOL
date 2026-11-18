@@ -27,7 +27,7 @@ compile is often the one most worth reading. A source file that does not exist h
 | `--listing-page-width <N>` | columns per page, 100 to 255 (default 132) |
 
 Each listing option other than `--listing off` asks for a listing at any edition. A value outside its range is a
-command-line error (exit status 2), never a COBOL diagnostic.
+command-line error, reported before anything is compiled (exit status 1), never a COBOL diagnostic.
 
 ## What a page holds
 

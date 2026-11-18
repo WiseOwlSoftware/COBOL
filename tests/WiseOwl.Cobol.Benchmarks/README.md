@@ -368,6 +368,32 @@ than its records, where the sort writes sorted runs to temporary files and merge
 D-SWK). Both implementations get the same limit, and the record shows the spilling case's peak staying nearly flat as
 the input grows (kb/Work PB2777).
 
+### The listing's cost (kb/Work PB5923, DESIGN-listing.md section 9)
+
+`CompileBenchmarks` takes `Listing` = `None` (no listing: the path every caller that asks for none takes) and `Text` (the
+paginated text listing written beside the assembly). Its witness: `Text` wrote a listing of every source line, `None` wrote
+none. Measured on 2026-11-18, Release, one Windows host, the parent commit (`eb507bc720`, no `Listing` parameter) and the
+step-1 branch (`listing-step-1` after the `Wrap` fix) run back to back. Mean time and allocated bytes per compile:
+
+| Program | Method | parent | None | Text | parent alloc | None alloc | Text alloc |
+|---|---|---|---|---|---|---|---|
+| IX113A | FrontEndAndBind | 109.88 ms | 111.47 ms | 94.75 ms | 72.82 MB | 72.93 MB | 79.44 MB |
+| IX113A | FullCompile | 514.99 ms | 532.80 ms | 573.45 ms | 179.05 MB | 180.86 MB | 185.05 MB |
+| NC105A | FrontEndAndBind | 73.76 ms | 90.46 ms | 100.41 ms | 37.01 MB | 37.02 MB | 40.54 MB |
+| NC105A | FullCompile | 462.43 ms | 439.66 ms | 467.15 ms | 108.95 MB | 109.29 MB | 113.17 MB |
+| NC218A | FrontEndAndBind | 84.03 ms | 88.12 ms | 97.47 ms | 32.60 MB | 33.19 MB | 36.06 MB |
+| NC218A | FullCompile | 447.90 ms | 414.73 ms | 457.81 ms | 97.87 MB | 102.53 MB | 105.55 MB |
+| SM201A | FrontEndAndBind | 57.98 ms | 57.84 ms | 57.95 ms | 16.41 MB | 16.11 MB | 17.69 MB |
+| SM201A | FullCompile | 203.88 ms | 204.96 ms | 194.96 ms | 36.53 MB | 36.54 MB | 39.90 MB |
+
+Reading them: the host was loaded (StdDev 20-30 % of the mean on most rows), so no time row can decide the budgets
+(None within the parent's noise; Text at most 10 % over None); every time difference above is inside one standard
+deviation. Allocated bytes are steadier: `Text` costs 2-9 % over `None` on a full compile and 9-10 % on the front end
+alone, and `None` equals the parent within 0.6 MB except NC218A's full compile (+4.7 MB, where the front end alone differs
+by 0.6 MB, so the rest is the backend's own variation). A quiet-host re-measure is owed (kb/Work PB5927). The first run,
+before `TextListingRenderer.Wrap` stopped allocating a string per character, showed `Text` 28-35 % over `None` on the
+front end; that is the fix the measurement found.
+
 ---
 
 ## Not measured here

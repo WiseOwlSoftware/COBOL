@@ -11,5 +11,5 @@ Records: `1985-GR-VI.3.4.4-1` NOT-IMPLEMENTED -> CONFORMS, `1985-GR-VI.3.3.4-1` 
 CONFORMS, witnessed by `Listing1985Tests`; `inventory_view.py --summary` 1985 went from "2275 rules · 3 GAP (3 open)" to
 "2275 rules · 0 GAP". The unnumbered IV.7 rules stay PB5924's.
 
-Leads left: PB5926 (the KEPT row `1989-RV-A.2.46.3-3` rests on a derivation whose "no listing" premise step 1 falsified);
+Leads left: PB5927 (re-measure the cost on a quiet host; the step-1 run was too noisy to decide the time budgets), PB5926 (the KEPT row `1989-RV-A.2.46.3-3` rests on a derivation whose "no listing" premise step 1 falsified);
 `2026-11-18-census-growth.md` beside this file.
