@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-GR-VI.3.3.4-1",
  "rule-digest": "8d72a00ee7b5",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitModuleRegistrar; src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs#EmitEntry; src/WiseOwl.Cobol.Runtime/Control/ProgramRegistry.cs#Register",
- "test-ref": "conformance:cases/VI.3.3@1985-PROGRAM-ID-PARAGRAPH/1985-GR-VI_3_3_4-1",
- "notes": "kb/Work PB5923 (re-adjudicated from CONFORMS, 2026-11-18). §1985:VI.3.3.4 GR1: \"The program-name identifies the source program, the object program, and all listings pertaining to a particular program.\" The source program and the object program half holds: BinderDriver.MakeUnit reads the PROGRAM-ID program-name as the unit's Name, the emitted class and ExternalizedName carry it, ProgramEmitter.EmitModuleRegistrar and HostEntryEmitter.EmitEntry register it, and a CALL finds the program by it (the AS literal-1 phrase of 2002 is refused at --std 85, COBOL0900). The \"all listings\" half has nothing to identify: §1985:IV.7.1 requires an output listing and the compiler produces none (PB5923). PARTIAL until a listing carries the program-name.",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Listing/ProgramRangeBuilder.cs#Build; src/WiseOwl.Cobol.Listing/Text/TextListingRenderer.cs#IdentificationLine; src/WiseOwl.Cobol.Listing/Text/PageComposer.cs#Compose",
+ "test-ref": "conformance:cases/VI.3.3@1985-PROGRAM-ID-PARAGRAPH/1985-GR-VI_3_3_4-1; conformance-test:Listing1985Tests.EachPageHeading_NamesTheInnermostProgramOfItsFirstLine",
+ "notes": "kb/Work PB5923 (closed by step 1 of docs/rearchitecture/DESIGN-listing.md, 2026-11-18). §1985:VI.3.3.4 GR1: \"The program-name identifies the source program, the object program, and all listings pertaining to a particular program.\" The source and object program half holds as before: BinderDriver.MakeUnit reads the PROGRAM-ID program-name as the unit's Name, the emitted class and ExternalizedName carry it, ProgramEmitter.EmitModuleRegistrar and HostEntryEmitter.EmitEntry register it, and a CALL finds the program by it (the AS literal-1 phrase of 2002 is refused at --std 85, COBOL0900). The listing half now holds: the compiler produces a listing at --std 85 (§1985:IV.7.1), ProgramRangeBuilder.Build gives every listing line the program that contains it, and every page heading (TextListingRenderer.IdentificationLine through PageComposer.Compose) names the program of the page's first line; each separately compiled program after the first starts a page.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

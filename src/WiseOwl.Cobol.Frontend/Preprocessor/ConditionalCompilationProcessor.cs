@@ -100,10 +100,12 @@ public static partial class ConditionalCompilationProcessor
         var expanded = run.Render(text, new DivisionCursor(startsInIdentificationDivision: true, EditionInfo.Of(dialectLevel, permissive).HasCompilerDirectives));   // a source text begins in an IDENTIFICATION DIVISION
         var edition = EditionInfo.Of(dialectLevel, permissive);
         var resultant = CopyProcessor.ApplyReplaceStatements(expanded, edition, diagnostics, copyProcessor.ReferenceFormats);   // Step 3 — REPLACE over the expanded compilation group
-        if (run.Encounters.Count == 0) return new ConditionalCompilationResult(resultant, [], []);
+        if (run.Encounters.Count == 0 && !copyProcessor.Trace.Records) return new ConditionalCompilationResult(resultant, [], []);
         // Each encounter's line in the driver's OUTPUT frame, carried through REPLACE (which may drop and join lines)
-        // to the RESULTANT frame the parser's tokens use — and each compilation-variable event's, which is an encounter's.
+        // to the RESULTANT frame the parser's tokens use — and each compilation-variable event's, which is an encounter's,
+        // and each inclusion range the source listing reads (DESIGN-listing.md section 4.4).
         int[] resultantLine = CopyProcessor.ReplaceLineMap(expanded.Text, edition);
+        if (copyProcessor.Trace.Records) copyProcessor.Trace.ToResultantFrame(resultantLine);
         var encounters = run.Encounters
             .Select(e => new DirectiveEncounter(resultantLine[e.Line] + 1, e.ChangesState)).ToArray();
         var compilationVariables = run.CompilationVariables
@@ -586,6 +588,7 @@ public static partial class ConditionalCompilationProcessor
             _depth = depth;
             _renderBase = _flushBase + lineOffset;   // the copybook's first line in the output frame (kb/Work PB1066)
             var result = Render(copybookText, division);
+            if (_copy!.Trace.Records) _copy.Trace.PlaceInclusion(_renderBase, result.Lines.Length);   // the source listing's inclusion range (DESIGN-listing.md section 4.4)
             (_depth, _renderBase, _flushBase) = (savedDepth, savedRenderBase, savedFlushBase);
             return result;
         }

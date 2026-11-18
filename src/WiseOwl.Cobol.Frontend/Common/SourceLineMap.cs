@@ -143,6 +143,9 @@ public sealed class SourceLineMap
         return new SourceLineMap(o);
     }
 
+    /// <summary>How many resultant lines the map holds (line 1 through this).</summary>
+    public int Count => _origins.Length;
+
     /// <summary>The file and physical line of RESULTANT line <paramref name="line"/> (1-based, the ANTLR token line), or
     /// null when the line is outside the mapped text (a synthetic position).</summary>
     public SourceOrigin? Origin(int line) => line >= 1 && line <= _origins.Length ? _origins[line - 1].Origin : null;

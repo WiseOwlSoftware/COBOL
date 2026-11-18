@@ -22,6 +22,13 @@ namespace WiseOwl.Cobol.Benchmarks.Compile;
 /// iterations). The COLD number, a fresh <c>cobol</c> process per compile, is what a user waits for; it is timed by
 /// <c>scripts/arch/perf_baseline.py</c> as a whole process.
 /// </para>
+/// <para>
+/// THE LISTING'S COST (DESIGN-listing.md section 9; kb/Work PB5923): <see cref="ListingMode"/> compiles each program with no
+/// listing (<see cref="ListingMode.None"/>, the path every caller that asks for none takes) and with the paginated text
+/// listing (<see cref="ListingMode.Text"/>, written beside the assembly). The budgets: None within the run-to-run noise of
+/// the parent commit, Text at most 10 % over None. Later steps add <c>All</c>. Allocated bytes come from the
+/// <c>MemoryDiagnoser</c> of <see cref="BenchmarkConfig"/>.
+/// </para>
 /// </summary>
 [Config(typeof(BenchmarkConfig))]
 public class CompileBenchmarks
@@ -31,6 +38,13 @@ public class CompileBenchmarks
     /// <c>tests/nist/copylib</c>, several of them with REPLACING), so it measures the library-text path.</summary>
     [Params("IX113A", "NC105A", "NC218A", "SM201A")]
     public string Program { get; set; } = "";
+
+    /// <summary>Which listing each compile writes (DESIGN-listing.md section 9).</summary>
+    public enum ListingMode { None, Text }
+
+    /// <summary>The listing asked of every compile of the case.</summary>
+    [Params(ListingMode.None, ListingMode.Text)]
+    public ListingMode Listing { get; set; }
 
     private CompilerDriver.Options _full = null!;
     private CompilerDriver.Options _checkOnly = null!;
@@ -46,7 +60,8 @@ public class CompileBenchmarks
         _outputDirectory = ScratchDirectory.Create("pb2117-compile-");
         string source = TestRepo.Nist("programs", Program + ".cob");
         _full = new CompilerDriver.Options(source, Path.Combine(_outputDirectory, Program + ".dll"),
-            NistTestName: Program, DialectLevel: 85);
+            NistTestName: Program, DialectLevel: 85,
+            Listing: Listing == ListingMode.Text ? new WiseOwl.Cobol.Listing.ListingRequest() : null);
         _checkOnly = _full with { CheckOnly = true };
 
         var full = CompilerDriver.Compile(_full);
@@ -63,8 +78,16 @@ public class CompileBenchmarks
             Path.GetFullPath(source), StringComparison.OrdinalIgnoreCase));
         if (Program.StartsWith("SM", StringComparison.Ordinal) && copybooksRead == 0)
             throw new InvalidOperationException($"{Program}: the compile read no COPY library text");
-        Console.WriteLine($"// witness {Program}: {full.Inputs.FilesRead.Count} files read ({copybooksRead} library "
-                          + $"texts), assembly {new FileInfo(full.OutputDll).Length} bytes");
+        // The listing witness: the Text case wrote a listing that lists every line of the source; None wrote none.
+        string listing = Path.ChangeExtension(full.OutputDll, WiseOwl.Cobol.Listing.ListingRequest.TextExtension);
+        if (Listing == ListingMode.Text && (full.Listing is null || !File.Exists(listing)
+                || full.Listing.Lines.Count(l => l.Inclusion is null) != File.ReadAllText(source).Split('\n').Length))
+            throw new InvalidOperationException($"{Program}: the Text case wrote no listing of every source line");
+        if (Listing == ListingMode.None && (full.Listing is not null || File.Exists(listing)))
+            throw new InvalidOperationException($"{Program}: the None case wrote a listing");
+        Console.WriteLine($"// witness {Program} {Listing}: {full.Inputs.FilesRead.Count} files read ({copybooksRead} library "
+                          + $"texts), assembly {new FileInfo(full.OutputDll).Length} bytes"
+                          + (Listing == ListingMode.Text ? $", listing {new FileInfo(listing).Length} bytes" : ""));
     }
 
     [GlobalCleanup]

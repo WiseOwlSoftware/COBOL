@@ -31,8 +31,17 @@ public static partial class ReferenceFormatProcessor
     /// quotation symbol, a national literal only by the floating form, no multiple-character token split by a join.</item>
     /// </list>
     /// </summary>
-    private sealed class LogicalLineBuilder(string file, ReferenceFormatDiagnostics? gates, bool fixedForm)
+    private sealed class LogicalLineBuilder(string file, ReferenceFormatDiagnostics? gates, bool fixedForm, PhysicalLineKind[]? kinds)
     {
+        /// <summary>Record what the physical line at <paramref name="site"/> is (<see cref="PhysicalLineKind"/>; DESIGN-listing.md
+        /// section 4.4.1): the classifier records the indicator's answer first, and this builder overrides it where IT decides
+        /// the line is blank, a comment or a compiler directive. A conversion that keeps no kinds (a carried candidate,
+        /// decided after COPY) records nothing.</summary>
+        public void Classify(TextSite site, PhysicalLineKind kind)
+        {
+            if (kinds is not null) kinds[site.Line - 1] = kind;
+        }
+
         private readonly List<string> _lines = [];
         private readonly List<List<OriginSpan>> _origins = [];   // per resultant line, where its characters came from (PB1801)
 
@@ -239,11 +248,16 @@ public static partial class ReferenceFormatProcessor
             int first = FirstNonSpace(text);
             if (first < 0)
             {
-                if (!fixedContinuation) Discard(site);   // a blank line (§2023:6.3.6): discarded; a blank continuation has no text to append
+                if (!fixedContinuation)
+                {
+                    Classify(site, PhysicalLineKind.Blank);
+                    Discard(site);   // a blank line (§2023:6.3.6): discarded; a blank continuation has no text to append
+                }
                 return;
             }
             if (CommentAt(text, first))
             {
+                if (!fixedContinuation) Classify(site, PhysicalLineKind.Comment);
                 ReportComment(text, first, site);
                 Discard(site);                           // a comment line (§2023:6.2.3.1 1)): discarded, never a join
                 return;
@@ -283,7 +297,9 @@ public static partial class ReferenceFormatProcessor
                 return;
             }
             string line = state.InLiteral ? kept : kept.TrimSpacesEnd();
-            Emit(line, site.Spans(file, 0, 0, line.Length), state, IsDirectiveLine(kept));
+            bool directive = IsDirectiveLine(kept);
+            if (directive && (gates is null || gates.HasCompilerDirectives)) Classify(site, PhysicalLineKind.Directive);
+            Emit(line, site.Spans(file, 0, 0, line.Length), state, directive);
         }
 
         /// <summary>Whether program text is a compiler directive line (§2023:7.3.3 SR2): the indicator preceded only by

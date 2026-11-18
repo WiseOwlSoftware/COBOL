@@ -285,6 +285,8 @@ internal static class CompiledProgramCache
         (_, string s) => "s:" + s,
         (_, bool or int or long or Enum) => value.GetType().Name + ":" + Convert.ToString(value, CultureInfo.InvariantCulture),
         (_, IEnumerable<string> list) => "[" + string.Join("\u001f", list) + "]",
+        (_, WiseOwl.Cobol.Listing.ListingRequest listing) => string.Create(CultureInfo.InvariantCulture,
+            $"listing:{listing.OutputBase ?? "null"}\u001f{listing.PageLength}\u001f{listing.PageWidth}"),
         _ => throw new NotSupportedException(
             $"CompilerDriver.Options.{name} is a {value.GetType()}, which the compiled-program cache key has no "
             + "rendering for — add one to CompiledProgramCache.KeyValue (kb/Work PB985) before the option ships."),

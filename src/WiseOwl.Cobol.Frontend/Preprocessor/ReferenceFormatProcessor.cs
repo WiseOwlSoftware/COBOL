@@ -142,13 +142,15 @@ public static partial class ReferenceFormatProcessor
         // before the first line that could be a >>SOURCE directive in either reading (kb/Work PB1362).
         bool firstFixed = initialFixed ?? IsFixedForm(lines[..FirstSourceDirectiveCandidate(lines)]);
         var (segments, directiveLines) = FormatSegments(lines, firstFixed, gates, sourcePath, implicitOps ?? []);
+        // What each physical line is, recorded where the conversion decides it (DESIGN-listing.md section 4.4.1).
+        var kinds = new PhysicalLineKind[lines.Length];
 
         // No format boundary → the whole text is one segment in its initial format.
         if (segments.Count == 0)
         {
-            formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines);
             bool? inIdentificationDivision = startsInIdentificationDivision;
-            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, paragraphWordAsReplaced, ref inIdentificationDivision);
+            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, paragraphWordAsReplaced, kinds, ref inIdentificationDivision);
+            formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines, kinds);
             return Mapped(wl, wo, sourcePath);
         }
 
@@ -158,8 +160,6 @@ public static partial class ReferenceFormatProcessor
         // directive lines blanked — a fixed segment's continuation joins reduce its line count exactly as the
         // whole-file path already does.
         // A segment boundary at 0-based line i changes the format from the NEXT line: 1-based line i + 2.
-        formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null,
-            segments.Select(s => (s.Index + 2, s.Fixed)), directiveLines, lines);
         var outLines = new List<string>();
         var outOrigins = new List<LineOrigin>();   // where each output line came from (kb/Work PB82, PB1801)
         bool segFixed = firstFixed;
@@ -173,7 +173,7 @@ public static partial class ReferenceFormatProcessor
             int segEnd = s < segments.Count ? segments[s].Index + (keepsLine ? 1 : 0) : lines.Length;   // exclusive
             if (segEnd > segStart)
             {
-                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, paragraphWordAsReplaced, ref inIdentification);
+                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, paragraphWordAsReplaced, kinds, ref inIdentification);
                 outLines.AddRange(sl);
                 outOrigins.AddRange(so);
             }
@@ -181,6 +181,7 @@ public static partial class ReferenceFormatProcessor
             {
                 if (!keepsLine)
                 {
+                    kinds[segments[s].Index] = PhysicalLineKind.Directive;   // a >>SOURCE FORMAT line, discarded here (§2023:6.5 1))
                     outLines.Add("");                 // the discarded directive line → a blank line (slot preserved)
                     outOrigins.Add(new LineOrigin(new SourceOrigin(sourcePath, segments[s].Index + 1)));
                 }
@@ -188,6 +189,8 @@ public static partial class ReferenceFormatProcessor
                 segStart = segments[s].Index + 1;
             }
         }
+        formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null,
+            segments.Select(s => (s.Index + 2, s.Fixed)), directiveLines, lines, kinds);
         return Mapped(outLines, outOrigins, sourcePath);
     }
 

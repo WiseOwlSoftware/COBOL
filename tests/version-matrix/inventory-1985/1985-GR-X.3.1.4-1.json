@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-GR-X.3.1.4-1",
  "rule-digest": "62ddb53a25a4",
- "verdict": "PARTIAL",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
- "test-ref": "conformance:cases/X.3.1@1985-PROGRAM-ID-PARAGRAPH-AND-NESTED-SOURCE/1985-GR-X_3_1_4-1",
- "notes": "kb/Work PB5923 (re-adjudicated from CONFORMS, 2026-11-18). §1985:X.3.1.4 GR1: \"The program-name identifies the source program, the object program, and all listings pertaining to a particular program.\" The source and object program half holds (BinderDriver.MakeUnit takes the name from PROGRAM-ID; ProgramTable.CallProgram/ResolveVisible find the object program by it, contained programs included). The \"all listings\" half has nothing to identify: §1985:IV.7.1 requires an output listing and the compiler produces none (PB5923). PARTIAL until a listing carries the program-name.",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Listing/ProgramRangeBuilder.cs#Build; src/WiseOwl.Cobol.Listing/Text/TextListingRenderer.cs#IdentificationLine",
+ "test-ref": "conformance:cases/X.3.1@1985-PROGRAM-ID-PARAGRAPH-AND-NESTED-SOURCE/1985-GR-X_3_1_4-1; conformance-test:Listing1985Tests.EachPageHeading_NamesTheInnermostProgramOfItsFirstLine",
+ "notes": "kb/Work PB5923 (closed by step 1 of docs/rearchitecture/DESIGN-listing.md, 2026-11-18). §1985:X.3.1.4 GR1: \"The program-name identifies the source program, the object program, and all listings pertaining to a particular program.\" The source and object program half holds as before (BinderDriver.MakeUnit takes the name from PROGRAM-ID; ProgramTable.CallProgram/ResolveVisible find the object program by it, contained programs included). The listing half now holds for a contained program: ProgramRangeBuilder.Build gives each listing line the INNERMOST program that contains it, so a page whose first line lies in a nested program names the nested program (TextListingRenderer.IdentificationLine); the witness forces pages inside the nested program and checks every heading against the program ranges read from the source text.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
