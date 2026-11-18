@@ -50,7 +50,7 @@ embedded `source` that compiles clean at the introducing edition and produces th
 Every construct owes BOTH obligations: the per-edition behavior, and the correct diagnostic when the targeted
 edition lacks or removed it. Diagnosing is half the product.
 
-Claim the diagnostic code from `session-probe.ps1`, never by reading a list.
+Claim the diagnostic code from `session_probe.py`, never by reading a list.
 
 ## 4. ⛔ The edition-gate sweep — the step that gets missed
 

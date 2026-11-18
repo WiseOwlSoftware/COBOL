@@ -141,7 +141,7 @@ filed with its rate (`kb/Work/PB1957`); a flake is a kb/Work defect fixed at its
   PB4332), so a test keyed on host ACL or file-lock semantics can be green here and red there. Read the
   verdict for the commit you pushed:
   `gh run list --branch main --commit <sha> --json databaseId,status,conclusion,displayTitle`, then
-  `gh run view <id> --log-failed` on a red. `scripts/session-probe.ps1` prints the latest run's conclusion at
+  `gh run view <id> --log-failed` on a red. `scripts/session_probe.py` prints the latest run's conclusion at
   session start, so a red main is never inferred from silence (`kb/Work/PB796`).
 - ⛔ **AND IT IS NO LONGER OPTIONAL TO READ IT: `ci-gate` IS A REQUIRED STATUS CHECK ON `main`.** `ci-gate` is the
   workflow's terminal job — `if: always()`, `needs:` every other job, PASS only when each is `success` or

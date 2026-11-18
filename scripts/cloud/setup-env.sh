@@ -21,7 +21,7 @@
 # host run the same, latest versions), installed the way CI installs it (scripts/install-tool.sh's block below):
 #   * the .NET SDK — the version CI builds with (global.json's 10.0.100 and rollForward latestMinor accept it)
 #   * the JDK      — the Frontend's ANTLR generation (the image's own java 21 stays behind it on PATH)
-#   * pwsh         — the ANTLR generation, session-probe.ps1, fetch-gnucobol-tests.ps1
+#   * pwsh         — the ANTLR generation, fetch-gnucobol-tests.ps1
 #   * gh, jq       — the landing and orchestrator scripts
 #   * `python`     — toolchain.env's CPython through uv; every hook and doc command spells it `python`, and
 #                    scripts/python-resolve.sh accepts no other version

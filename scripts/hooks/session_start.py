@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """SessionStart hook — inject the mechanical live-state probe into the session.
 
-Plan §0's bootstrap step ③ is "run session-probe.ps1". As a manual ritual it gets skipped; as a hook it cannot be.
+Plan §0's bootstrap step ③ is "run session_probe.py". As a manual ritual it gets skipped; as a hook it cannot be.
 Never fails the session: any error is reported as context, not raised.
 
 In a claude.ai cloud session (CLAUDE_CODE_REMOTE=true) it first does the per-CLONE setup: the PUBLIC
@@ -19,11 +19,12 @@ import os
 import pathlib
 import subprocess
 import sys
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from concurrent.futures import ThreadPoolExecutor
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams and session_probe
+sys.dont_write_bytecode = True   # no __pycache__ litter in the tree on every session start
 from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-PROBE = REPO / "scripts" / "session-probe.ps1"
 
 
 SKILLS = "tools/claude-skills"   # the PUBLIC brent-tools plugin: fleet scripts + base skills (kb/Work/PB1699)
@@ -101,19 +102,12 @@ def fetch_cloud_corpus() -> str:
     return f"cloud session: GnuCOBOL corpus fetch → {status}\n"
 
 
-def probe() -> str:
-    if not PROBE.exists():
-        return f"session-probe.ps1 not found at {PROBE}"
+def probe(pool: ThreadPoolExecutor) -> str:
+    """The live-state probe (scripts/session_probe.py), its sections concurrent on `pool` (kb/Work PB5939). Each section
+    guards itself, so only a failure of the driver as a whole reaches here."""
     try:
-        # -Command (not -File) so the console encoding can be set first: the probe emits '·' and '⚠',
-        # which the default OEM code page turns into mojibake.
-        r = subprocess.run(
-            ["pwsh", "-NoProfile", "-Command",
-             f"[Console]::OutputEncoding=[Text.Encoding]::UTF8; & '{PROBE.as_posix()}'"],
-            capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=240, cwd=str(REPO),   # the branch survey (prune_worktrees.py, ~20-40 s) runs inside it; the hook allows 300
-        )
-        return ((r.stdout or "") + (r.stderr or "")).strip() or "session-probe produced no output"
+        import session_probe
+        return session_probe.run(pool).strip() or "session-probe produced no output"
     except Exception as exc:  # noqa: BLE001 - a hook must never break the session
         return f"session-probe failed: {exc}"
 
@@ -232,12 +226,18 @@ def _self_test() -> int:
 
 
 def main() -> None:
-    payload = hook_payload()   # read FIRST: the probe's child processes inherit stdin and could consume it
-    text = skills_block(str(payload.get("source") or "startup"), session_lane()) + init_cloud_submodules() + \
-        local_skills_hint() + (
-            "Mechanical live state (scripts/session-probe.ps1). Plan §0 is the live-state SSOT; "
-            "this is the computed half.\n\n" + probe()
-        ) + tooling(payload)
+    payload = hook_payload()   # read FIRST, before any read of the repository starts
+    import session_probe
+    # The probe's sections and the tooling check are independent reads: all start at once, the text keeps its order, and
+    # the hook takes as long as the slowest read, not the sum (32.7 s typical, 107 s worst measured; kb/Work PB5939).
+    with ThreadPoolExecutor(max_workers=len(session_probe.SECTIONS) + 1) as pool:
+        tooling_text = pool.submit(tooling, payload)
+        probe_text = probe(pool)
+        text = skills_block(str(payload.get("source") or "startup"), session_lane()) + init_cloud_submodules() + \
+            local_skills_hint() + (
+                "Mechanical live state (scripts/session_probe.py). Plan §0 is the live-state SSOT; "
+                "this is the computed half.\n\n" + probe_text
+            ) + tooling_text.result()
     json.dump(
         {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}},
         sys.stdout,

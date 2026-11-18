@@ -592,7 +592,7 @@ entry there (`lineage.py --self-test` adds a 2027 and watches the order, the bri
 | `next` | (an older edition only) the change record against the next held edition (§10.2) |
 | `notes` | the fix-queue item id for a DIVERGES; the owner decision for a non-support |
 
-`scripts/session-probe.ps1` reports each edition's live GAP count from the view — the **burn-down metric** for P14.
+`scripts/session_probe.py` reports each edition's live GAP count from the view — the **burn-down metric** for P14.
 
 > **⛔ DESIGN CORRECTION, superseding the `file:line` this table used to specify.** `code-location` is a **path,
 > optionally plus a `#Symbol`** — never a line number. A line number rots on the next edit to the file, so 3,790

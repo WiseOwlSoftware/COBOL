@@ -1694,7 +1694,7 @@ its 20,406 cases (30,609).**
 week of them is never on disk at once. `Gate._record_growth` therefore writes one small file per GREEN code-lane gate that
 ran its hosts (a RED, a REUSED or COMPOSED verdict and the inert lane are no sample) under `<git common dir>/cobol-gate-growth/`: the
 run's UTC start, `tests_s` and the Conformance cases discovered. `gate_growth.py status` reads the trailing 7 days and
-prints one line, which `session-probe.ps1` shows every session: **WITHIN**; **FIRED** (the population arm needs no window;
+prints one line, which `session_probe.py` shows every session: **WITHIN**; **FIRED** (the population arm needs no window;
 the time arm needs a complete one); **PARTIAL** (the samples span under 7 days or number under 10: the median is shown, never
 judged, because one afternoon of a dozen concurrent gates is not a week: the first reading, 2026-11-01, was a 7.7-minute
 median over 16 gates in a single day, the box's three-gate steady state of §3.14.5); or **NOT MEASURED**. FIRED exits 1 and

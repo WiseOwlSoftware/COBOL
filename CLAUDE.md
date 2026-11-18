@@ -97,7 +97,7 @@ merge main again before it lands, and a hold not verified with `git diff` are ea
 2. **`docs/REARCHITECTURE_PLAN.md` §0** — live state, gates, open GAPs, decisions and the campaign narrative. It carries
    no worklist and must never regrow one (rule 8). Trust §0 over any status written anywhere else, including memory —
    but trust `kb/Work/` over §0 for what is OPEN.
-3. **`pwsh scripts/session-probe.ps1`** — the mechanical state check (branch · dirty/unpushed · next-free
+3. **`python scripts/session_probe.py`** — the mechanical state check (branch · dirty/unpushed · next-free
    diagnostic code · VCR todos · corpus counts · inventory GAP). Never hand-read state a script can compute. The
    `session-start` skill walks these three steps.
 4. Before the session ends: update the `kb/Work/` notes you touched, update §0, add a DEVLOG entry.

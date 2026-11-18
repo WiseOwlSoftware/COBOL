@@ -253,7 +253,8 @@ def main() -> int:
         # status reads origin/main's COMMITTED tree, never the checkout's (reviews R3-1 to R6-2): an edit, an untracked
         # note or a checkout behind main cannot reach the answer.
         repo = ScratchRepo.init(root / "repo")
-        repo.commit("base", {"kb/Work/PB1.md": "committed\n", "scripts/x.py": "committed\n", "elsewhere.txt": "no\n"})
+        repo.commit("base", {"kb/Work/PB1.md": "committed\n", "scripts/x.py": "committed\n", "elsewhere.txt": "no\n",
+                             "conformance-suite/fuzz-history.json": "{}\n", "FUZZ-LEDGER.md": "ledger\n"})
         repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
         repo.write({"kb/Work/PB1.md": "edited\n", "kb/Work/PB2.md": "untracked\n"})
         out = root / "extract"
@@ -263,6 +264,24 @@ def main() -> int:
                and (out / "kb/Work/PB1.md").read_text(encoding="utf-8") == "committed\n", got)
         expect("SYNC the extract holds everything the render reads", set(fh.MAIN_EXTRACT) >= {
             "scripts", "kb/Work", fh.HISTORY.relative_to(fh.REPO).as_posix(), fh.LEDGER_MD.relative_to(fh.REPO).as_posix()})
+
+        # the verdict is kept while what it is a function of is the same, and recomputed when main's content moves
+        calls: list[int] = []
+
+        def compute(_repo):
+            calls.append(1)
+            return {"same": True, "version": f"v{len(calls)}"}
+        first, again = fh.main_verdict(repo.path, compute), fh.main_verdict(repo.path, compute)
+        expect("SYNC a main that has not moved is judged once", first == again == {"same": True, "version": "v1"}
+               and len(calls) == 1, (first, again, calls))
+        repo.commit("moves scripts", {"scripts/x.py": "moved\n"})
+        repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
+        moved_main = fh.main_verdict(repo.path, compute)
+        expect("SYNC a main that moved is judged again", moved_main["version"] == "v2" and len(calls) == 2, (moved_main, calls))
+        repo.commit("moves kb", {"kb/Work/PB1.md": "moved\n"})
+        repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
+        expect("SYNC an error verdict is never kept", fh.main_verdict(repo.path, lambda _r: {"error": "boom"}) == {"error": "boom"}
+               and fh.main_verdict(repo.path, compute)["version"] == "v3", calls)
 
         # HISTORY: the subcommand, on a history file of its own
         hfile = root / "fuzz-history.json"

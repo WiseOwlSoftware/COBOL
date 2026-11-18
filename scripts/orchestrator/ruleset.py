@@ -49,6 +49,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from typing import Callable
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -204,24 +205,32 @@ def queue_depth(gh: Gh, repo: str):
 
 
 def check(gh: Gh, committed: dict) -> tuple[str, str, list[str]]:
-    """(state, one-line detail, differences)."""
+    """(state, one-line detail, differences). Once the repository is named, the four reads that need nothing of each other
+    (the ruleset, the repository settings, the classic protection, the queue depth) go out together: five sequential `gh`
+    calls were 9.4 s of the SessionStart hook (kb/Work PB5939). Their answers are taken in the order the sequential check
+    read them, so what is reported first, and which unobserved read makes the state SKIPPED, are what they were."""
     want = strip_notes(committed)
     try:
-        repo = repo_name(gh)
-        live = find_ruleset(gh, repo, want["ruleset"]["name"])
-        if live is None:
-            return ABSENT, (f"no ruleset '{want['ruleset']['name']}' on {repo}:{BRANCH} — the merge queue is NOT "
-                            "applied; landing is BLOCKED until the owner re-applies it (ruleset.py apply): the queue "
-                            "is the only landing path"), []
-        diffs = differences(want["ruleset"], live, "ruleset")
-        code, settings = _api(gh, f"repos/{repo}")
-        diffs += differences(want["repository"], settings if code == 200 else {}, "repository")
-        code, _ = _api(gh, f"repos/{repo}/branches/{BRANCH}/protection")
-        if code != 404:
-            diffs.append(f"branch protection: the classic protection is still on {BRANCH} (apply deletes it)")
-        depth = queue_depth(gh, repo)
-        if depth is None:
-            diffs.append(f"merge queue: GitHub reports no merge queue on {BRANCH}")
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            repo = repo_name(gh)
+            ruleset = pool.submit(find_ruleset, gh, repo, want["ruleset"]["name"])
+            settings = pool.submit(_api, gh, f"repos/{repo}")
+            protection = pool.submit(_api, gh, f"repos/{repo}/branches/{BRANCH}/protection")
+            depth_read = pool.submit(queue_depth, gh, repo)
+            live = ruleset.result()
+            if live is None:
+                return ABSENT, (f"no ruleset '{want['ruleset']['name']}' on {repo}:{BRANCH} — the merge queue is NOT "
+                                "applied; landing is BLOCKED until the owner re-applies it (ruleset.py apply): the queue "
+                                "is the only landing path"), []
+            diffs = differences(want["ruleset"], live, "ruleset")
+            code, repo_settings = settings.result()
+            diffs += differences(want["repository"], repo_settings if code == 200 else {}, "repository")
+            code, _ = protection.result()
+            if code != 404:
+                diffs.append(f"branch protection: the classic protection is still on {BRANCH} (apply deletes it)")
+            depth = depth_read.result()
+            if depth is None:
+                diffs.append(f"merge queue: GitHub reports no merge queue on {BRANCH}")
     except Unobserved as e:
         return SKIPPED, (f"the live state was not read ({e}) — NOT RUN, never a pass; landing is BLOCKED until "
                          "check reads ACTIVE"), []
