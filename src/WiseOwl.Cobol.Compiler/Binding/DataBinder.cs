@@ -1240,7 +1240,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                 $"{face} '{written}': '{item.CobolName}' is not a table element, so it takes no subscript "
-                + "(ISO §2002:8.4.1.2.2 SR2)");
+                + $"(ISO {edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2002:8.4.1.2.2 SR2", "§2002:8.4.1.2.2 SR2")})");
             return false;
         }
         if (subscripts.Count != arity)
@@ -3463,7 +3463,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 Edition.Error(DiagnosticCatalog.ValueThroughNotAscending, $"condition-name '{cond.Name}': the VALUE "
                     + $"range {lo} THRU {hi} does not ascend — {lo} is {(order == 0 ? "equal to" : "greater than")} "
                     + $"{hi}{(cond.Alphabet is { } al ? $" in alphabet '{al}'" : "")}, and the value of literal-2 shall be "
-                    + "less than the value of literal-3 (ISO §2023:13.18.63.3 SR26)");
+                    + $"less than the value of literal-3 (ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.3 SR26", "§2023:13.18.63.3 SR26")})");
         }
     }
 
@@ -4094,7 +4094,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             Edition.Error(DiagnosticCatalog.ValueFormat1SingleLiteral, $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
                 + "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase "
-                + "(ISO §2023:13.18.63.2)");
+                + $"(ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.2", "§2023:13.18.63.2")})");
             rawValue = null;
         }
 
@@ -5334,7 +5334,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             Edition.Error(DiagnosticCatalog.UsageGroupContradiction, $"data item '{item.CobolName ?? "FILLER"}': "
                 + $"USAGE {UsageFamilies.UsageWord(ownWritten)} contradicts the USAGE {UsageFamilies.UsageWord(fromGroup)} written for the group item "
                 + $"'{inherited.FromName ?? "FILLER"}' to which it is subordinate — a USAGE clause may be written "
-                + "in both entries, but the same usage shall be specified in both (ISO §2023:13.18.60.3 SR2)");
+                + $"in both entries, but the same usage shall be specified in both (ISO {Edition.Edition.Cite("§1985:VI.5.14.3 SR2", "§2023:13.18.60.3 SR2", "§2023:13.18.60.3 SR2")})");
         }
 
         // What THIS entry hands down: its own (or implied) clause together with the representation entry bind

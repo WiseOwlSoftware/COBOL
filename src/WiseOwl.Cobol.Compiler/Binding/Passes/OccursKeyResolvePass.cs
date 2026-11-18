@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Binding.Model;
@@ -75,7 +76,7 @@ internal sealed class OccursKeyResolvePass : IBindPass
                         + "entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)");
                     item = null;
                 }
-                else if (item is not null && OccursKeyItemFault(table, item, binder.Edition.DialectLevel) is { } fault)
+                else if (item is not null && OccursKeyItemFault(table, item, binder.Edition.Edition) is { } fault)
                 {
                     binder.Edition.Error(DiagnosticCatalog.OccursKeyItemNotAdmitted,
                         $"{keyPhrase} '{written}' on '{subject}': {fault}");
@@ -110,9 +111,9 @@ internal sealed class OccursKeyResolvePass : IBindPass
     /// key's entry, whether or not the key lies under it; the narrowing to a group in the key's own hierarchy
     /// (the walk below) is ISO/IEC 1989:2002's change (§2002:F.2, item 84). So at 85 the entries are asked in source order
     /// (<see cref="OccursEntryBetween"/>) and that walk replaces the hierarchy one, which it contains.</para></summary>
-    private static string? OccursKeyItemFault(DataItem table, DataItem key, int dialectLevel)
+    private static string? OccursKeyItemFault(DataItem table, DataItem key, EditionInfo edition)
     {
-        if (dialectLevel < 2002 && OccursEntryBetween(table, key) is { } between)
+        if (edition.Year < 2002 && OccursEntryBetween(table, key) is { } between)
             return $"'{between.CobolName ?? between.ClrName}', an entry that contains an OCCURS clause, is written between the "
                 + $"table entry and the key's entry '{key.CobolName ?? key.ClrName}' — \"There must not be any entry that contains "
                 + "an OCCURS clause between the descriptions of the data items identified by the data-names in the KEY IS "
@@ -121,7 +122,7 @@ internal sealed class OccursKeyResolvePass : IBindPass
         // SR4 asks about a group BETWEEN the table entry and its key. When the key IS the table (SR6 admits that), no group
         // lies between them: key.Parent is already above the table, so the walk below would never meet it and would
         // charge the key with any OCCURS group that merely ENCLOSES the table (a table inside OUTER OCCURS 2).
-        for (DataItem? g = ReferenceEquals(key, table) || dialectLevel < 2002 ? null : key.Parent;
+        for (DataItem? g = ReferenceEquals(key, table) || edition.Year < 2002 ? null : key.Parent;
              g is not null && !ReferenceEquals(g, table); g = g.Parent)
             if (g.IsTable && (ItemCategory.GroupKindsOf(g) & Sr4Kinds) != 0)
                 return $"the key is subordinate to '{g.CobolName ?? g.ClrName}', a group within the table that contains an "
@@ -130,7 +131,7 @@ internal sealed class OccursKeyResolvePass : IBindPass
                     + "OCCURS clause, that group item shall not contain an OCCURS clause\" (ISO §2023:13.18.38.3 SR4)";
         if (!ReferenceEquals(key, table) && key.IsTable)
             return "the key's own entry contains an OCCURS clause — \"The data item identified by data-name-2 shall not "
-                + "contain an OCCURS clause except when data-name-2 is the subject of the entry\" (ISO §2023:13.18.38.3 SR6)";
+                + $"contain an OCCURS clause except when data-name-2 is the subject of the entry\" (ISO {edition.Cite("§1985:VI.5.8.3 SR11", "§2023:13.18.38.3 SR6", "§2023:13.18.38.3 SR6")})";
         if (ItemCategory.IsBooleanMessageTagObjectOrPointer(key))
             return "the key is a data item of class boolean, message-tag, object or pointer — \"The KEY phrase shall not "
                 + "be specified for a data item of class boolean, message-tag, object, or pointer\" (ISO §2023:13.18.38.3 SR8)";

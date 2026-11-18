@@ -54,14 +54,16 @@ public sealed class StringUnstringOperandScreenTests
         01 SG TYPE TG.
         """;
 
-    private static void Refuses(string pid, string extraData, string statement, string code, string rule, int fromEdition)
+    /// <param name="rule1985">The citation asked at COBOL-85, where the statement's rule is numbered by §1985:VI.6.25.3 or VI.6.27.3
+    /// (kb/Work PB4950: a diagnostic cites the rule of the edition in force); null where <paramref name="rule"/> serves.</param>
+    private static void Refuses(string pid, string extraData, string statement, string code, string rule, int fromEdition, string? rule1985 = null)
     {
         foreach (int edition in EditionHarness.Editions.Where(e => e >= fromEdition))
         {
             var (ok, errors, _) = EditionHarness.CompileFull(Prog(pid + "E" + edition, extraData, statement), edition);
             Assert.False(ok, $"[{pid}] `{statement}` must be REJECTED at --std {edition}");
             EditionHarness.AssertHasDiagnostic(errors, code);
-            EditionHarness.AssertHasDiagnostic(errors, rule);
+            EditionHarness.AssertHasDiagnostic(errors, edition == 85 && rule1985 is not null ? rule1985 : rule);
         }
     }
 
@@ -72,7 +74,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S3A", "STRING \"AB,CD\" DELIMITED BY \"\" INTO OUT1.")]
     [InlineData("S3B", "STRING \"AB,CD\" DELIMITED BY X\"\" INTO OUT1.")]
     public void String_ZeroLengthLiteral2_IsSR3(string pid, string statement) =>
-        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.43.3 SR3", fromEdition: 85);
+        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.43.3 SR3", fromEdition: 85, rule1985: "ISO §1985:VI.6.25.3 SR2");
 
     /// <summary>§2023:14.9.43.3 SR8 — "Where identifier-1 or identifier-2 is an elementary numeric data item, it shall be
     /// described as an integer without the symbol 'P' in its picture character-string." Only SR7's identifier-4 had
@@ -86,7 +88,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S8E", "STRING \"AB05CD\" DELIMITED BY N2 INTO OUT1.", "symbol P")]
     public void String_NonIntegerOrPScaledNumericIdentifier_IsSR8(string pid, string statement, string wording)
     {
-        Refuses("PB1182" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.43.3 SR8", fromEdition: 85);
+        Refuses("PB1182" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.43.3 SR8", fromEdition: 85, rule1985: "ISO §1985:VI.6.25.3 SR6");
         Refuses("PB1182" + pid + "W", "", statement, "COBOL1651", wording, fromEdition: 85);
     }
 
@@ -98,7 +100,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S2B", "STRING ALL ZEROS DELIMITED BY SIZE INTO OUT1.")]
     [InlineData("S2C", "STRING \"A B\" DELIMITED BY ALL SPACES INTO OUT1.")]
     public void String_FigurativeBeginningWithAll_IsSR2(string pid, string statement) =>
-        Refuses("PB1181" + pid, "", statement, "COBOL1757", "ISO §2023:14.9.43.3 SR2", fromEdition: 85);
+        Refuses("PB1181" + pid, "", statement, "COBOL1757", "ISO §2023:14.9.43.3 SR2", fromEdition: 85, rule1985: "ISO §1985:VI.6.25.3 SR1");
 
     /// <summary>§2023:14.9.48.3 SR1 — "Literal-1 and literal-2 shall be literals of the category alphanumeric or national
     /// and shall be neither a figurative constant that begins with the word ALL nor a zero-length literal." Its
@@ -114,7 +116,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("U1G", "UNSTRING S DELIMITED BY \",\" OR X\"\" INTO A B C.", "zero-length literal")]
     public void Unstring_DelimiterLiteral_IsSR1(string pid, string statement, string wording)
     {
-        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.48.3 SR1", fromEdition: 85);
+        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.48.3 SR1", fromEdition: 85, rule1985: "ISO §1985:VI.6.27.3 SR1");
         Refuses("PB1181" + pid + "W", "", statement, "COBOL1651", wording, fromEdition: 85);
     }
 
@@ -136,7 +138,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("U4A", "UNSTRING S DELIMITED BY \",\" INTO N2 M.")]
     [InlineData("U4B", "UNSTRING S DELIMITED BY \",\" INTO NQ M.")]
     public void Unstring_PScaledNumericReceiver_IsSR4(string pid, string statement) =>
-        Refuses("PB1182" + pid, "", statement, "COBOL1626", "ISO §2023:14.9.48.3 SR4", fromEdition: 85);
+        Refuses("PB1182" + pid, "", statement, "COBOL1626", "ISO §2023:14.9.48.3 SR4", fromEdition: 85, rule1985: "ISO §1985:VI.6.27.3 SR3");
 
     /// <summary>§2023:14.9.48.3 SR4 on the GROUP receivers the screen used to exempt wholesale: a BIT group is class and
     /// category boolean (§2023:13.18.29.4 GR1 a)) and a strongly-typed group's category is its type-name (§2023:8.5.2.1) —

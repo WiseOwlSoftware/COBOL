@@ -384,6 +384,16 @@ public abstract class CobolParserCoreBase : Parser
     protected bool reservedHere(string keyword)
         => ReservedWords.Find(CobolKeywords.Spelling(keyword))?.IsReservedAt(Edition.Year) ?? false;
 
+    /// <summary>⛔ A CLOSED FORMAT'S REFUSAL WORDED FOR THE COMPILE EDITION (kb/Work PB4950): <see cref="ClosedFormat.Refusal"/> cites the
+    /// general format of the edition in force, which only the parser knows. Diagnosis only (<c>CobolErrorStrategy</c>); never called
+    /// while parsing.</summary>
+    internal string ClosedFormatRefusal(Cst.ClosedFormat format, string word, string? owner) => format.Refusal(word, owner, Edition);
+
+    /// <summary>⛔ THE WORDS OR CITATION OF A DIAGNOSIS, CHOSEN FOR THE COMPILE EDITION (kb/Work PB4950): <see cref="EditionInfo.Cite"/>
+    /// on the parser's edition, for a message the error strategy composes. Diagnosis only (<c>CobolErrorStrategy</c>); never called while
+    /// parsing.</summary>
+    internal string CiteByEdition(string y1985, string y2002, string y2023) => Edition.Cite(y1985, y2002, y2023);
+
     /// <summary>⛔ WHETHER A GENERAL FORMAT OF THIS EDITION CAN PRINT <paramref name="keyword"/> — what a syntax
     /// diagnostic may name as EXPECTED (kb/Work PB4174; <c>AdmittedKinds</c>). The parse is the superset of the four
     /// editions, so its expected set holds words the compile edition does not have (B-SHIFT-L at COBOL-2014, PROTOTYPE

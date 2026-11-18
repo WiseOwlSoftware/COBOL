@@ -83,7 +83,7 @@ internal sealed class BinderDriver
         // The procedure division's general-format screens the superset grammar leaves to a named refusal (kb/Work
         // PB351, PB1146): a conditional statement as an imperative-statement operand (§2023:14.5.1) and a body mixing
         // §2023:14.2.1 Format 1 and Format 2 (§2023:14.4.1). Pre-bind for the same reason: pure syntax over the raw tree.
-        global::WiseOwl.Cobol.Validation.ProcedureFormatPass.Run(tree, edition);
+        global::WiseOwl.Cobol.Validation.ProcedureFormatPass.Run(tree, edition, edition.Edition);
         // ISO §2023:10.7.3 — every end marker against the definition it ends, and SR1's presence rule (kb/Work PB988).
         // Pre-bind for the same reason: a pure syntax rule over the raw tree, asked once of EVERY definition the
         // source states (parameterized skeletons included) before the OO table renames anything.
@@ -235,7 +235,7 @@ internal sealed class BinderDriver
         // so neither existing pass's charter covers it. It walks the RAW parse tree once, never once per binding
         // site; the rule itself is the shared frontend ArithmeticFormationRules, which the compile-time
         // expression evaluator invokes on its own trees. kb/Work PB158.
-        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(ctx, edition);
+        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(ctx, edition, edition.Edition);
 
         // The literal-syntax pass (ISO §2023:8.3.3.2.3 SR1/SR6, §2023:8.3.3.4.3 SR1, §2023:8.3.3.5.3 SR1/SR5) — a sibling on the
         // same footing: the length and hexadecimal-grouping rules are properties of the literal TOKEN, whatever
@@ -916,9 +916,14 @@ internal sealed class BinderDriver
                     using var _ = edition.At(sources.NameOf(c));
                     edition.Error(DiagnosticCatalog.DuplicateContainedProgramName,
                         $"program '{c.Name}' contained in '{root.Name}' repeats the name of another program "
-                        + $"contained in '{root.Name}' — the names assigned to programs that are contained "
-                        + "directly or indirectly within the same outermost program shall be unique within that "
-                        + "outermost program (ISO §2023:8.4.6.3)");
+                        + $"contained in '{root.Name}' — "
+                        + edition.Edition.Cite(
+                            "when two programs in a run unit are identically named, at least one of them must be directly or indirectly "
+                            + "contained within another separately compiled program which does not contain the other (ISO §1985:X.1.3.8.1)",
+                            "the names assigned to programs that are contained directly or indirectly within the same outermost program "
+                            + "shall be unique within that outermost program (ISO §2023:8.4.6.3)",
+                            "the names assigned to programs that are contained directly or indirectly within the same outermost program "
+                            + "shall be unique within that outermost program (ISO §2023:8.4.6.3)"));
                 }
         }
 

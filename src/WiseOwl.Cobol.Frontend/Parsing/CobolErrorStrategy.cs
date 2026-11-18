@@ -1824,8 +1824,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2173,
                 "Both general formats of the MOVE statement put the whole sending specification directly after "
                 + "the verb — Format 1 is 'MOVE { identifier-1 | literal-1 } TO { identifier-2 } …' and Format 2 "
-                + "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
-                + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2).", 0));
+                + ((CobolParserCoreBase)recognizer).CiteByEdition(
+                    "is 'MOVE { CORRESPONDING | CORR } identifier-1 TO identifier-2' — so no format admits a "
+                    + "CORRESPONDING phrase after a sending operand (ISO §1985:VI.6.19.2).",
+                    "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
+                    + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2).",
+                    "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
+                    + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2)."), 0));
 
         // ⛔ 0h. A WORD THE STATEMENT JUST WRITTEN DOES NOT PRINT HERE (kb/Work PB906). A statement the parser has ended
         // and a word that no statement, phrase or entry can take after it (not a scope terminator, which hint 13
@@ -2108,8 +2113,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var run = at.ResidueRunOpening;
         return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                 Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
-            closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token),
-                at.OwnerName()) + ".", 0, run?.Start, LeavesNoTail: run is null);
+            ((CobolParserCoreBase)recognizer).ClosedFormatRefusal(closedFormat,
+                run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token), at.OwnerName()) + ".", 0, run?.Start, LeavesNoTail: run is null);
     }
 
     /// <summary>A closed format's residue: the format whose list stands there, and the error production's form

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Frontend.Expressions;
@@ -52,12 +53,13 @@ using Core = CobolParserCore;
 /// </summary>
 public static class ArithmeticFormationRules
 {
-    /// <summary>The §2023:8.8.1.2 Table 3 message — quotes the table and names the two symbols of the invalid pair.</summary>
-    public const string StackedUnaryMessage =
-        "ISO §2023:8.8.1.2 Table 3 (combinations of symbols in arithmetic expressions): the pair "
+    /// <summary>The Table 3 message of <paramref name="edition"/> — §2023:8.8.1.2 Table 3, or at COBOL-85 the table of
+    /// §1985:VI.6.2.3 SR3 — quoting the table and naming the two symbols of the invalid pair (kb/Work PB4950).</summary>
+    public static string StackedUnaryMessage(EditionInfo edition) =>
+        $"ISO {edition.Cite("§1985:VI.6.2.3 SR3", "§2023:8.8.1.2 Table 3", "§2023:8.8.1.2 Table 3")} (combinations of symbols in arithmetic expressions): the pair "
         + "(unary '+' or '−', unary '+' or '−') is an invalid pair — a unary operator may not be immediately "
         + "followed by another unary operator. Note that a sign written ADJACENT to the digits is part of the "
-        + "numeric literal (§2023:8.3.3.3.2 rule 2), so '- -2' is the permissible (unary, literal) pair; only a "
+        + $"numeric literal ({edition.Cite("§1985:IV.4.2.2.2.2 SR2", "§2023:8.3.3.3.2 rule 2", "§2023:8.3.3.3.2 rule 2")}), so '- -2' is the permissible (unary, literal) pair; only a "
         + "SEPARATED second sign is a second unary operator";
 
     /// <summary>The §2023:8.8.2 Table 4 message — the boolean counterpart of the same cell.</summary>
@@ -74,13 +76,13 @@ public static class ArithmeticFormationRules
     /// <see cref="StackedNot"/> directly. The RULE is those two per-node tests; this is only a way to reach them.</summary>
     /// <param name="tree">The parse tree to screen; null is a no-op.</param>
     /// <param name="report">Receives the offending token and the message. The CODE is the caller's.</param>
-    public static void Check(IParseTree? tree, Action<IToken, string> report)
+    public static void Check(IParseTree? tree, Action<IToken, string> report, EditionInfo edition)
     {
         if (tree is null) return;
         switch (tree)
         {
             case Core.UnaryExpressionContext u when StackedUnarySign(u) is { } sign:
-                report(sign, StackedUnaryMessage);
+                report(sign, StackedUnaryMessage(edition));
                 break;
             case Core.BooleanFactorContext bf when StackedNot(bf) is { } not:
                 report(not, StackedNotMessage);
@@ -89,7 +91,7 @@ public static class ArithmeticFormationRules
                 report(count, ShiftCountMessage(shift));
                 break;
         }
-        for (int i = 0; i < tree.ChildCount; i++) Check(tree.GetChild(i), report);
+        for (int i = 0; i < tree.ChildCount; i++) Check(tree.GetChild(i), report, edition);
     }
 
     /// <summary>The §2023:8.8.2 Table 4 (B-NOT, B-NOT) test. <c>booleanFactor : B_NOT booleanFactor | …</c>

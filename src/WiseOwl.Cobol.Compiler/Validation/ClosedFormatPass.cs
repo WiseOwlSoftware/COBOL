@@ -119,7 +119,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             _edition.Error(DiagnosticCatalog.ParagraphInteriorPeriod,
                 $"{row.Subject} paragraph: a separator period follows '{WrittenOpening(sentences[i].Entries[^1])}' "
                 + $"and the paragraph goes on with '{WrittenOpening(sentences[i + 1].Entries[0])}' — the ISO "
-                + $"§2023:{row.Clause} general format prints {row.Printed} (§2023:5.2.1); delete this period");
+                + $"{row.ClauseIn(_edition.Edition)} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRuleIn(_edition.Edition)}); delete this period");
         }
         if (sentences[^1].Period is null)
         {
@@ -127,7 +127,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             using var at = _edition.At(last.Stop);
             _edition.Error(DiagnosticCatalog.ParagraphPeriodMissing,
                 $"{row.Subject} paragraph: it ends after '{WrittenOpening(last)}' without a separator period — the "
-                + $"ISO §2023:{row.Clause} general format prints {row.Printed} (§2023:5.2.1); write the period");
+                + $"ISO {row.ClauseIn(_edition.Edition)} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRuleIn(_edition.Edition)}); write the period");
         }
     }
 
@@ -235,7 +235,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
                 + "in ClosedFormats.ByContext, which ClosedFormatDriftTests exists to prevent");
             return null;
         }
-        _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx)));
+        _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx), _edition.Edition));
         return null;   // nothing below an error production is diagnosed — one diagnostic per word run
     }
 

@@ -149,15 +149,15 @@ public sealed class EmbeddedBlockReading
            || CobolKeywordTokens.TryTokenType(token.Text, out int type) && type == token.Type;
 
     /// <summary>The message of COBOL5818 for a closed block, or of COBOL5842 for an unterminated one, of
-    /// <paramref name="language"/>.</summary>
-    private static string Message(string language, bool closed)
+    /// <paramref name="language"/>, the separator period cited in the rule of <paramref name="edition"/>.</summary>
+    private static string Message(string language, bool closed, EditionInfo edition)
         => closed
             ? $"[{Diagnostics.DiagnosticDescriptors.COBOL5818.Code}] EXEC {language}: ISO/IEC 1989 defines no EXEC construct. "
               + $"The text through END-EXEC is an embedded {language} block, the input of a precompiler that translates it to "
               + "COBOL before compilation (ISO §2023:4.2.14), and this implementation has no precompiler. Run the source through "
               + "the precompiler first and compile the COBOL it writes."
             : $"[{Diagnostics.DiagnosticDescriptors.COBOL5842.Code}] EXEC {language}: the embedded {language} block has no "
-              + "END-EXEC. The separator period that ends the sentence (ISO §2023:8.3.5 rule 3) comes first, so the block is taken "
+              + $"END-EXEC. The separator period that ends the sentence (ISO {edition.Cite("§1985:IV.4.2.1 SR3", "§2023:8.3.5 rule 3", "§2023:8.3.5 rule 3")}) comes first, so the block is taken "
               + "through the text before that period. Write END-EXEC after the block's text and before that period.";
 
     /// <summary>Does the source hold a block? Then it does not parse, whatever the parse's own syntax errors.</summary>
@@ -165,8 +165,8 @@ public sealed class EmbeddedBlockReading
 
     /// <summary>Report each block once, at its EXEC, in source order, through <paramref name="report"/> (the token and the
     /// message, the shape of a syntax error).</summary>
-    public void Report(Action<IToken, string> report)
+    public void Report(Action<IToken, string> report, EditionInfo edition)
     {
-        foreach (var (exec, language, closed) in _blocks) report(exec, Message(language, closed));
+        foreach (var (exec, language, closed) in _blocks) report(exec, Message(language, closed, edition));
     }
 }

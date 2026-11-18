@@ -99,7 +99,7 @@ internal static class OperandPositions
     public static readonly OperandPosition WriteAdvancingIdentifier = new(
         "WRITE ADVANCING", "identifier-2", "§2023:14.9.51.3 SR14",
         "an integer data item",
-        OperandClasses.IntegerItem, DiagnosticCatalog.WriteAdvancingOperand);
+        OperandClasses.IntegerItem, DiagnosticCatalog.WriteAdvancingOperand, Rule1985: "§1985:VII.4.7.3 SR4");
 
     /// <summary>Every row (the drift test holds this against the declared fields, so a row cannot be declared
     /// and forgotten here).</summary>

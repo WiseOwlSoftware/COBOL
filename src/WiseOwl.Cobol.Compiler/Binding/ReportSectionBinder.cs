@@ -1209,10 +1209,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     ? $"{ReportGroupTypeWords(g.Kind)} for control '{model.Controls[g.ControlLevel].Display}' ("
                         + $"'{first[(g.Kind, g.ControlLevel)].Name ?? "FILLER"}' is the first); at most one CONTROL HEADING and at "
                         + "most one CONTROL FOOTING may be defined for each control data item or FINAL of the CONTROL clause (ISO "
-                        + "§2023:13.18.57.3 SR14)"
+                        + Edition.Edition.Cite("§1985:XIII.3.20.3 SR4", "§2023:13.18.57.3 SR14", "§2023:13.18.57.3 SR14") + ")"
                     : $"{ReportGroupTypeWords(g.Kind)} ('{first[(g.Kind, -1)].Name ?? "FILLER"}' is the first); REPORT HEADING, "
                         + "PAGE HEADING, REPORT FOOTING, and PAGE FOOTING may each appear no more than once in any given report "
-                        + "description (ISO §2023:13.18.57.3 SR13)"));
+                        + $"description (ISO {Edition.Edition.Cite("§1985:XIII.3.20.3 SR2", "§2023:13.18.57.3 SR13", "§2023:13.18.57.3 SR13")})"));
         }
         if (model.Groups.Count > 0 && !model.Groups.Exists(g => g.Kind is ReportGroupKindModel.Detail
                 or ReportGroupKindModel.ControlHeading or ReportGroupKindModel.ControlFooting))
@@ -1220,7 +1220,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             using var at = Edition.At(model.Groups[0].Entry);
             Edition.Error(DiagnosticCatalog.ReportGroupSetRule, $"RD '{model.Name}' describes no body group: each report "
                 + "description shall include at least one body group, a DETAIL, CONTROL HEADING or CONTROL FOOTING group "
-                + "(ISO §2023:13.18.57.3 SR15)");
+                + $"(ISO {Edition.Edition.Cite("§1985:XIII.3.20.3 SR7", "§2023:13.18.57.3 SR15", "§2023:13.18.57.3 SR15")})");
         }
     }
 
@@ -1633,10 +1633,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // (kb/Work PB1288).
             if (level == 1 && !type)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a level 1 entry with no TYPE clause; "
-                    + "the TYPE clause shall be specified in every level 1 entry (ISO §2023:13.15.3 SR5)");
+                    + $"the TYPE clause shall be specified in every level 1 entry (ISO {Edition.Edition.Cite("§1985:XIII.3.9.2 Format 1", "§2023:13.15.3 SR5", "§2023:13.15.3 SR5")})");
             else if (level != 1 && type)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} writes a TYPE clause at level {level}; "
-                    + "the TYPE clause may be specified only in a level 1 entry (ISO §2023:13.15.3 SR5)");
+                    + $"the TYPE clause may be specified only in a level 1 entry (ISO {Edition.Edition.Cite("§1985:XIII.3.9.2", "§2023:13.15.3 SR5", "§2023:13.15.3 SR5")})");
             // SR9 — "Every elementary entry with a COLUMN clause but no LINE clause shall be subordinate to an entry
             // with a LINE clause" (and §2023:13.18.14.3 SR3, the same rule from the COLUMN clause's side). It is a rule
             // about the entry's ANCESTRY, so it reads the level hierarchy — never the line the build happens to have
@@ -1645,8 +1645,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (elementary && column && !line && !SubordinateToLineClause(entries, i))
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a COLUMN clause but neither a LINE "
                     + "clause of its own nor an entry above it that has one; every elementary entry with a COLUMN clause "
-                    + "but no LINE clause shall be subordinate to an entry with a LINE clause (ISO §2023:13.15.3 SR9, "
-                    + "§2023:13.18.14.3 SR3)");
+                    + "but no LINE clause shall be subordinate to an entry with a LINE clause (ISO "
+                    + Edition.Edition.Cite("§1985:XIII.3.9.3 SR10c", "§2023:13.15.3 SR9, §2023:13.18.14.3 SR3", "§2023:13.15.3 SR9, §2023:13.18.14.3 SR3") + ")");
             // SR12 — "A PICTURE clause shall be specified in every elementary entry that has a SOURCE or SUM clause."
             // The rule has no COLUMN condition: an unprintable SOURCE entry and a SUM entry that prints nothing need
             // one too (§2023:13.18.54.4 GR1 sizes the counter from it). SR14's VALUE-implied picture is the VALUE
@@ -1654,7 +1654,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (elementary && (source || sum) && !picture)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a {(sum ? "SUM" : "SOURCE")} clause "
                     + "but no PICTURE clause; a PICTURE clause shall be specified in every elementary entry that has a "
-                    + "SOURCE or SUM clause (ISO §2023:13.15.3 SR12)");
+                    + $"SOURCE or SUM clause (ISO {Edition.Edition.Cite("§1985:XIII.3.9.3 SR11", "§2023:13.15.3 SR12", "§2023:13.15.3 SR12")})");
             // §2023:13.18.54.2 — the SUM clause is the repeated `SUM OF … [UPON …]` group followed by ONE RESET phrase and ONE
             // rounded-phrase; the grammar's reportSumClause takes the groups together, so a SECOND clause in an entry
             // means a RESET or ROUNDED phrase (or another clause) was written BETWEEN two SUM groups (kb/Work PB1295).
@@ -1680,7 +1680,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (notElementary.Count > 0)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a group entry and writes "
                         + $"{string.Join(", ", notElementary)}; the PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE "
-                        + "clauses may be written only in an elementary entry (ISO §2023:13.15.3 SR11)");
+                        + $"clauses may be written only in an elementary entry (ISO {Edition.Edition.Cite("§1985:XIII.3.9.3 SR4d", "§2023:13.15.3 SR11", "§2023:13.15.3 SR11")})");
             }
             else
             {
@@ -2673,7 +2673,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"RD '{model.Name}': printable item at COLUMN {col} "
                             + "has a VALUE clause but no PICTURE clause, and none is implied: the PICTURE clause may be "
                             + "omitted only when an alphanumeric, boolean or national literal that is not a zero-length "
-                            + "literal is specified in the VALUE clause (ISO §2023:13.15.3 SR14)");
+                            + $"literal is specified in the VALUE clause (ISO {Edition.Edition.Cite("§1985:XIII.3.9.3 SR11", "§2023:13.15.3 SR14", "§2023:13.15.3 SR14")})");
                     chain.Add((level, ownCond, EntryRepetitions(columns, ownOccurs), entryName));
                     return;
                 }
@@ -2690,7 +2690,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // character-string contains the symbol 'S'" — and SR2, through the ONE elementary-subject test the
                 // data description entry reads (kb/Work PB537: this arm had no screen at all).
                 if (ownSign is not null
-                    && DataBinder.SignClauseElementaryDefect(pic, picText, "report group description entry") is { } signDefect)
+                    && DataBinder.SignClauseElementaryDefect(pic, picText, "report group description entry", Edition.Edition) is { } signDefect)
                 {
                     Edition.Error(DiagnosticCatalog.SignClauseSubject,
                         $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {signDefect}");
@@ -3618,15 +3618,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"RD '{model.Name}': the UPON operand '{written}' is "
                 + $"{(sfx.RefMods > 0 ? "reference-modified" : "subscripted")}. Data-name-2 shall be the name of "
-                + "a detail (ISO §2023:13.18.54.3 SR7) — a report group is named, never indexed, and where a general "
-                + "format writes data-name-n reference modification is not permitted (§2023:8.4.3.3.3 SR5 NOTE).");
+                + $"a detail (ISO {Edition.Edition.Cite("§1985:XIII.3.19.3 SR2", "§2023:13.18.54.3 SR7", "§2023:13.18.54.3 SR7")}) — a report group is named, never indexed, and where a general "
+                + "format writes data-name-n reference modification is not permitted"
+                + Edition.Edition.Cite("", " (§2023:8.4.3.3.3 SR5 NOTE)", " (§2023:8.4.3.3.3 SR5 NOTE)") + ".");
             return null;
         }
         if (quals.Count > 1)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"RD '{model.Name}': the UPON operand '{written}' carries "
-                + $"{quals.Count} qualifiers; data-name-2 \"may be qualified only by a report-name\" (ISO "
-                + "§2023:13.18.54.3 SR7), which is one qualifier (§2023:8.4.2.2.2 Format 1).");
+                + $"{quals.Count} qualifiers; "
+                + Edition.Edition.Cite("data-name-1 \"may be qualified by a report-name\" (ISO §1985:XIII.3.19.3 SR2)",
+                    "data-name-2 \"may be qualified only by a report-name\" (ISO §2023:13.18.54.3 SR7)",
+                    "data-name-2 \"may be qualified only by a report-name\" (ISO §2023:13.18.54.3 SR7)")
+                + ", which is one qualifier" + Edition.Edition.Cite("", " (§2023:8.4.2.2.2 Format 1)", " (§2023:8.4.2.2.2 Format 1)") + ".");
             return null;
         }
         return new ReportDetailRef(name, quals.Count == 1 ? quals[0] : null) { Ctx = dref };
@@ -4454,15 +4458,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (match == ReportGroupResolution.Match.None)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} does not name a report group. Data-name-2 shall be "
-                + "the name of a detail (ISO §2023:13.18.54.3 SR7).");
+                + $"the name of a detail (ISO {Edition.Edition.Cite("§1985:XIII.3.19.3 SR2", "§2023:13.18.54.3 SR7", "§2023:13.18.54.3 SR7")}).");
             return;
         }
         if (group!.Kind is not ReportGroupKindModel.Detail)
         {
             Edition.Error(DiagnosticCatalog.ReportSumUponNotDetail, $"{where} names a report group of TYPE "
                 + $"{ReportGroupTypeWords(group.Kind)}; data-name-2 shall be the name of a DETAIL (ISO "
-                + "§2023:13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§2023:14.9.16.3 SR1), "
-                + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on.");
+                + Edition.Edition.Cite("§1985:XIII.3.19.3 SR2) — only a detail is the operand of a GENERATE statement (§1985:XIII.4.3.3 SR1), "
+                    + "which is the event the UPON phrase selects subtotalling on (§1985:XIII.3.19.4 GR8).",
+                    "§2023:13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§2023:14.9.16.3 SR1), "
+                    + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on.",
+                    "§2023:13.18.54.3 SR7) — only a detail is the operand of a GENERATE statement (§2023:14.9.16.3 SR1), "
+                    + "which is the event §2023:13.18.54.4 GR7 c) 2) accumulates on."));
             return;
         }
         if (Edition.DialectLevel < 2002 && !ReferenceEquals(owner, model))
@@ -4688,7 +4696,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         Edition.Error(DiagnosticCatalog.ReportSubscriptCounter, $"RD '{model.Name}' entry "
                             + $"'{ge.dataName().NameOrNull() ?? "FILLER"}': '{word}' is used as a subscript. In the report "
                             + "section, neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used "
-                            + "as a subscript (ISO §2023:8.4.2.3.3 SR8)");
+                            + $"as a subscript (ISO {Edition.Edition.Cite("§1985:XIII.1.2.4", "§2023:8.4.2.3.3 SR8", "§2023:8.4.2.3.3 SR8")})");
                     }
             }
     }

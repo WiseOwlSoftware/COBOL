@@ -43,17 +43,29 @@ using Core = CobolParserCore;
 /// <param name="OpenModeClause">The clause that states the open-mode rule.</param>
 /// <param name="OrganizationCode">The diagnostic for the organization rule.</param>
 /// <param name="OpenModeCode">The diagnostic for the open-mode rule.</param>
+/// <param name="OrganizationClause1985">The clause of ANSI X3.23-1985 that states the organization rule, in its own words
+/// (kb/Work PB4950: a message cites the rule of the edition in force).</param>
+/// <param name="OpenModeClause1985">The clause of ANSI X3.23-1985 that states the open-mode rule: its OPEN general format
+/// writes each phrase in the group of the modes that admit it.</param>
 internal readonly record struct OpenTapePhraseRule(
     string Phrase, Func<FileModel, bool> AdmitsOrganization, string OrganizationFace, string OrganizationClause,
-    BoundOpenMode[] Modes, string OpenModeClause, string OrganizationCode, string OpenModeCode)
+    BoundOpenMode[] Modes, string OpenModeClause, string OrganizationCode, string OpenModeCode,
+    string OrganizationClause1985, string OpenModeClause1985)
 {
+    /// <summary>The organization rule's clause in <paramref name="edition"/>.</summary>
+    public string OrganizationClauseIn(EditionInfo edition) => edition.Cite(OrganizationClause1985, OrganizationClause, OrganizationClause);
+
+    /// <summary>The open-mode rule's clause in <paramref name="edition"/>.</summary>
+    public string OpenModeClauseIn(EditionInfo edition) => edition.Cite(OpenModeClause1985, OpenModeClause, OpenModeClause);
+
     /// <summary>§2023:14.9.27.3 SR5 + SR6 — NO REWIND is for sequential files (§2023:9.1.7.2 admits BOTH sequential
     /// kinds, the same <see cref="FileModel.IsSequential"/> predicate the CLOSE twin §2023:14.9.6.3 SR1 tests) under
     /// INPUT or OUTPUT.</summary>
     private static readonly OpenTapePhraseRule NoRewind = new(
         "WITH NO REWIND", f => f.IsSequential, "sequential", "ISO §2023:14.9.27.3 SR5",
         [BoundOpenMode.Input, BoundOpenMode.Output], "ISO §2023:14.9.27.3 SR6",
-        DiagnosticCatalog.OpenNoRewindOrganization.Code, DiagnosticCatalog.OpenNoRewindOpenMode.Code);
+        DiagnosticCatalog.OpenNoRewindOrganization.Code, DiagnosticCatalog.OpenNoRewindOpenMode.Code,
+        "ISO §1985:VII.4.3.4 GR9", "ISO §1985:VII.4.3.2, whose general format writes WITH NO REWIND in the INPUT and OUTPUT groups only");
 
     /// <summary>COBOL-85's REVERSED — NARROWER than its sibling on BOTH axes (VERSION_CHANGE_REFERENCE row
     /// 7.12): RECORD sequential organization only, because the phrase's whole effect is the backward retrieval
@@ -66,7 +78,8 @@ internal readonly record struct OpenTapePhraseRule(
         + "VERSION_CHANGE_REFERENCE row 7.12",
         [BoundOpenMode.Input], "VERSION_CHANGE_REFERENCE row 7.12 — COBOL-85's OPEN general format writes "
         + "REVERSED in the INPUT group only",
-        DiagnosticCatalog.OpenReversedOrganization.Code, DiagnosticCatalog.OpenReversedOpenMode.Code);
+        DiagnosticCatalog.OpenReversedOrganization.Code, DiagnosticCatalog.OpenReversedOpenMode.Code,
+        "ISO §1985:VII.4.3.3 SR1", "ISO §1985:VII.4.3.2, whose general format writes REVERSED in the INPUT group only");
 
     /// <summary>⛔ THE ONE LOOKUP, and the reason the rows are named rather than indexed: a switch over the
     /// enum cannot silently mis-key when a member is inserted, and a member with NO row is LOUD at the first
@@ -345,17 +358,26 @@ internal sealed class StatementValidation(DataBinder data)
         }
         data.Edition.Error(DiagnosticCatalog.AmbiguousProcedureName,
             $"{verb} '{ambiguity.Name}': the reference is not unique — this source element declares that name "
-            + $"{ambiguity.Candidates.Count} times ({candidates}) — so it identifies no one procedure (ISO "
-            + "§2023:8.4.2.1: \"a statement shall contain a reference that uniquely identifies that resource\"). "
-            + "§2023:8.4.2.2.1 requires that \"uniqueness shall be established through qualification for each "
-            + "user-defined name explicitly referenced, except as specified in rules 2 through 6\": rule 1 "
-            + "(\"No other name has the identical spelling\") is false here, and rule 6 (\"The name is a "
-            + "paragraph-name and the section containing the reference also contains the named paragraph\") "
-            + "does not apply to this reference. Write the qualifier — paragraph-name IN section-name, "
-            + "§2023:8.4.2.2.2 format 4 — or rename one of the declarations; a duplicated SECTION-name takes no "
-            + "qualifier at all and can only be renamed.");
+            + $"{ambiguity.Candidates.Count} times ({candidates}) — so it identifies no one procedure ({data.Edition.Edition.Quoted()}). "
+            + data.Edition.Edition.Cite(
+                "§1985:IV.4.3.8.1 SRL2.1 requires that \"uniqueness must be established through a sequence of qualifiers which "
+                + "precludes any ambiguity of reference\" for each nonunique user-defined name that is explicitly referenced, and "
+                + "SRL2.6 excuses only a paragraph-name referred to from within the same section, which this reference is not. "
+                + "Write the qualifier — paragraph-name IN section-name, §1985:IV.4.3.8.1 format 2 — or rename one of the "
+                + "declarations; a duplicated SECTION-name takes no qualifier at all and can only be renamed.",
+                SameUniquenessRules, SameUniquenessRules));
         return false;
     }
+
+    /// <summary>The uniqueness-by-qualification sentences of §2023:8.4.2.2.1 as the 2002 and later editions read them (kb/Work PB4950).</summary>
+    private const string SameUniquenessRules =
+        "§2023:8.4.2.2.1 requires that \"uniqueness shall be established through qualification for each "
+        + "user-defined name explicitly referenced, except as specified in rules 2 through 6\": rule 1 "
+        + "(\"No other name has the identical spelling\") is false here, and rule 6 (\"The name is a "
+        + "paragraph-name and the section containing the reference also contains the named paragraph\") "
+        + "does not apply to this reference. Write the qualifier — paragraph-name IN section-name, "
+        + "§2023:8.4.2.2.2 format 4 — or rename one of the declarations; a duplicated SECTION-name takes no "
+        + "qualifier at all and can only be renamed.";
 
     /// <summary>⛔ ISO §2023:14.9.28.3 SR11 — the DECLARATIVES constraint on a <c>procedure-name-1 THRU
     /// procedure-name-2</c> range (kb/Work PB433): "When procedure-name-1 and procedure-name-2 are both
@@ -1835,7 +1857,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             data.Edition.Error(rule.OrganizationCode,
                 $"OPEN '{file.CobolName}' {rule.Phrase} — the phrase may be specified only for "
-                + $"{rule.OrganizationFace} files ({rule.OrganizationClause})");
+                + $"{rule.OrganizationFace} files ({rule.OrganizationClauseIn(data.Edition.Edition)})");
             return false;
         }
         if (!rule.Modes.Contains(mode))
@@ -1843,7 +1865,7 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(rule.OpenModeCode,
                 $"OPEN {OpenModeFace(mode)} '{file.CobolName}' {rule.Phrase} — the phrase may be specified only "
                 + $"when the {string.Join(" or ", rule.Modes.Select(OpenModeFace))} phrase is specified "
-                + $"({rule.OpenModeClause})");
+                + $"({rule.OpenModeClauseIn(data.Edition.Edition)})");
             return false;
         }
         return true;
@@ -1939,7 +1961,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.Linage is not null) return true;
         data.Edition.Error(DiagnosticCatalog.WriteEndOfPageWithoutLinage, $"WRITE END-OF-PAGE on file '{file.CobolName}', whose file "
-            + "description entry has no LINAGE clause (ISO §2023:14.9.51.3 SR19)");
+            + $"description entry has no LINAGE clause (ISO {data.Edition.Edition.Cite("§1985:VII.4.7.3 SR8", "§2023:14.9.51.3 SR19", "§2023:14.9.51.3 SR19")})");
         return false;
     }
 

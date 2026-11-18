@@ -37,6 +37,8 @@ public sealed class FileControlKeyRuleSpecTests
         ["§2023:12.4.5.13.3 SR1"] = "§1985:IV.4.3.8.2.3 SR4",
         ["§2023:12.4.5.13.3 SR2"] = "§1985:VIII.2.4.3 SR2",
         ["§2023:12.4.5.13.3 SR3"] = "§1985:VIII.2.4.3 SR3",
+        // kb/Work PB4950: the required-clause rule cites the general format of the 1985 module that holds the file.
+        ["ISO §2023:12.4.5.1 Format 1"] = "ISO §1985:IX.2.3.2",
         ["category alphanumeric or category national"] = "the category alphanumeric (ANSI §1985:IX.2.7.3 SR2)",
         ["category alphanumeric or national"] = "the category alphanumeric (ANSI §1985:IX.2.5.3 SR2)",
     };
@@ -420,7 +422,7 @@ public sealed class FileControlKeyRuleSpecTests
             Assert.All(hits, hit =>
             {
                 Assert.Contains("file 'F' has no ASSIGN clause", hit, StringComparison.Ordinal);
-                Assert.Contains("ISO §2023:12.4.5.1", hit, StringComparison.Ordinal);
+                Assert.Contains(edition < 2002 ? "ISO §1985:" : "ISO §2023:12.4.5.1", hit, StringComparison.Ordinal);
             });
         }
     }

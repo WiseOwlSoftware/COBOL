@@ -39,13 +39,13 @@ namespace WiseOwl.Cobol.Validation;
 /// where a single traversal belongs. Riding <see cref="CursorFollowingVisitor"/> means the diagnostic cursor
 /// follows the walk, so the position comes from the same mechanism every other pass uses.</para>
 /// </summary>
-internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
+internal sealed class ExpressionFormationPass(IDiagnosticSink sink, EditionInfo edition) : CursorFollowingVisitor(sink)
 {
     /// <summary>Screen every text of the group (<see cref="GroupBindContext.Texts"/>: the written tree and the text of each expansion of a
     /// skeleton read from the repository, kb/Work PB4483) for §2023:8.8.1.2 Table 3 / §2023:8.8.2 Table 4 invalid symbol pairs.</summary>
-    internal static void Run(GroupBindContext group, IDiagnosticSink sink)
+    internal static void Run(GroupBindContext group, IDiagnosticSink sink, EditionInfo edition)
     {
-        var pass = new ExpressionFormationPass(sink);
+        var pass = new ExpressionFormationPass(sink, edition);
         foreach (var text in group.Texts) pass.VisitPositioned(text);
     }
 
@@ -55,7 +55,7 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
         if (ArithmeticFormationRules.StackedUnarySign(ctx) is { } sign)
         {
             using var _ = Sink.At(sign);
-            Report(ArithmeticFormationRules.StackedUnaryMessage);
+            Report(ArithmeticFormationRules.StackedUnaryMessage(edition));
         }
         return base.VisitChildren(ctx);
     }

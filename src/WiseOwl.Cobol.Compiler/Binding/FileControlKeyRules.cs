@@ -692,6 +692,18 @@ internal static class FileControlKeyRules
     /// test derives the set from the printed diagrams and refuses a line that opens unbracketed with no row.
     /// <para>SELECT is also unbracketed, and is the entry itself. SORT-MERGE: Format 4 prints ASSIGN, and an SD's
     /// entry is Format 4 (§2023:12.4.5.2 SR13), so the clause is required of it too.</para></summary>
+    /// <summary>The general format of the file control entry of the 1985 module that holds a file of <paramref name="kind"/>: the
+    /// sequential module's (§1985:VII.2.3.2) for a record or line sequential file, the relative (§1985:VIII.2.3.2), the indexed
+    /// (§1985:IX.2.3.2) and the sort-merge (§1985:XI.2.3.2) module's for theirs (kb/Work PB4950). Each prints its required clauses
+    /// with no bracket.</summary>
+    private static string FileControlFormat1985(FileKinds kind) => kind switch
+    {
+        FileKinds.Indexed => "§1985:IX.2.3.2",
+        FileKinds.Relative => "§1985:VIII.2.3.2",
+        FileKinds.SortMerge => "§1985:XI.2.3.2",
+        _ => "§1985:VII.2.3.2",
+    };
+
     private static readonly RequiredClause[] RequiredClauses =
     [
         new("ASSIGN", FileFormats.Format1 | FileFormats.Format2 | FileFormats.Format3 | FileFormats.Format4,
@@ -1027,8 +1039,9 @@ internal static class FileControlKeyRules
             if ((required.ScreenedOn & kind) == 0 || !required.Applies(file) || required.Written(file)) continue;
             using var at = edition.At(file.EntryAt);   // the ABSENCE of a clause has nothing but the entry to point at
             edition.Error(DiagnosticCatalog.FileControlClauseRequired,
-                $"{required.KindFace}file '{file.CobolName}' has no {required.Face} clause (ISO §2023:12.4.5.1 "
-                + $"{required.FormatsFace}: the {required.Face} clause is printed with no bracket around it, so the "
+                $"{required.KindFace}file '{file.CobolName}' has no {required.Face} clause (ISO "
+                + edition.Edition.Cite($"{FileControlFormat1985(kind)}", $"§2023:12.4.5.1 {required.FormatsFace}", $"§2023:12.4.5.1 {required.FormatsFace}")
+                + $": the {required.Face} clause is printed with no bracket around it, so the "
                 + "entry shall specify it)");
         }
         // Role-outer: each role's operands are enumerated ONCE for all of its rules, so a file control entry
