@@ -48,15 +48,15 @@ factoryParagraph
 // `CLASS-ID. C INHERITS B.` is conforming source (§2023:8.3.2.4.3) that this rule refused with COBOL0001. FROM is
 // §2023:8.9-reserved at every edition, so it can never be a className and `FROM?` cannot mis-bind one.
 classIdParagraph
-    : CLASS_ID DOT className externalizedNamePhrase? (IS? FINAL)? (INHERITS FROM? className+)?
-      (USING ooParameterName+)?   // §2023:11.3.2 — a PARAMETERIZED class (kb/Work PB759; see ooParameterName)
+    : CLASS_ID DOT defClassName1=className externalizedNamePhrase? (IS? FINAL)? (INHERITS FROM? refClassName1=className+)?
+      (USING defOoParameterName1=ooParameterName+)?   // §2023:11.3.2 — a PARAMETERIZED class (kb/Work PB759; see ooParameterName)
       DOT
     ;   // [AS literal-1] sits between object-class-name-1 and [IS FINAL] per the §2023:11.3.2 format (kb/Work PB303); [IS FINAL] precedes INHERITS per the §2023:10.6 format (:12742-12744); a FINAL class shall not be a superclass (§2023:11.3.4 GR3; an INHERITS naming one is §2023:11.3.3 SR5 — bind-gated COBOL2791).
         // INHERITS repetition PARSES per the §2023:11.3.2 format (superset parse — P3 doctrine); v1 REJECTS 2+ bases
         // LOUDLY at pass-1 (COBOL0849; SSOT §18 #18 / A.4.10) — never a bare syntax error, never a silent drop.
 
 className
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // §2023:11.3.2 / §2023:11.6.2 `[ USING { parameter-name-1 } … ]` — the FORMAL parameters of a PARAMETERIZED class or
@@ -67,7 +67,7 @@ className
 // parameterized definition is a SKELETON: it binds and emits nothing of its own; each REPOSITORY `EXPANDS`
 // phrase creates a class or interface from it (Oo/OoExpansion.cs, §2023:12.3.8.4 GR5/GR8).
 ooParameterName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // OBJECT (instance) definition — instance data (DATA DIVISION) + instance methods (in the PROCEDURE DIVISION).
@@ -83,11 +83,11 @@ objectParagraph
     ;
 
 implementsClause
-    : IMPLEMENTS interfaceName+ DOT
+    : IMPLEMENTS refInterfaceName1=interfaceName+ DOT
     ;
 
 interfaceName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // INTERFACE definition (§2023:11.6 :13157; §2023:10.6 :12783-12796 — NO data division at the interface level; methods
@@ -95,50 +95,50 @@ interfaceName
 // COBOL2272, the one §2023:10.6.2 SR4 prototype-body screen). INHERITS repetition is SUPPORTED (C# interface lists are native — the deliberate asymmetry
 // with the class-side single-inheritance restriction, SSOT §18.18).
 interfaceDefinition
-    : (IDENTIFICATION DIVISION DOT)? INTERFACE_ID DOT interfaceName
+    : (IDENTIFICATION DIVISION DOT)? INTERFACE_ID DOT defInterfaceName1=interfaceName
       // The INTERFACE-ID paragraph general format (§2023:11.6.2) prints [AS literal-1] between interface-name-1
       // and the INHERITS clause; kb/Work PB303.
       externalizedNamePhrase?
       // FROM is an optional word here too — measured on printed page 298 / folio 268, where INHERITS carries a
       // rule at 95.0% cover and FROM's box 139.98–168.06 carries none (§2023:8.3.2.4.3; the same sweep that fixed
       // classIdParagraph above — one rule, two sites, both measured rather than assumed from the other).
-      (INHERITS FROM? interfaceName+)?
-      (USING ooParameterName+)?   // §2023:11.6.2 — a PARAMETERIZED interface (kb/Work PB759; see ooParameterName)
+      (INHERITS FROM? refInterfaceName1=interfaceName+)?
+      (USING defOoParameterName1=ooParameterName+)?   // §2023:11.6.2 — a PARAMETERIZED interface (kb/Work PB759; see ooParameterName)
       DOT
       optionsParagraph?    // §2023:10.6.1 (kb/Work PB135; prototypes bind no bodies — the parse is the obligation)
       environmentDivision?
       (PROCEDURE DIVISION DOT methodDefinition*)?
-      END INTERFACE interfaceName DOT
+      END INTERFACE refInterfaceName2=interfaceName DOT
     ;
 
 // METHOD-ID … END METHOD — a method definition (its own DATA/PROCEDURE divisions). ISO §2023:11.7 / §12798.
 methodDefinition
     : (IDENTIFICATION DIVISION DOT)? METHOD_ID DOT
-      ( methodName externalizedNamePhrase? | methodPropertySelector )   // §2023:11.7.2 prints [AS literal-1] on the method-name-1 ARM ONLY — a GET/SET PROPERTY method's name is implementor-defined (§2023:11.7.4 GR1a), so it has none (kb/Work PB303)
+      ( defMethodName1=methodName externalizedNamePhrase? | methodPropertySelector )   // §2023:11.7.2 prints [AS literal-1] on the method-name-1 ARM ONLY — a GET/SET PROPERTY method's name is implementor-defined (§2023:11.7.4 GR1a), so it has none (kb/Work PB303)
       OVERRIDE? (IS? FINAL)? DOT
       optionsParagraph?    // §2023:10.6.1 [options-paragraph] in the method skeleton (kb/Work PB135; overrides per §2023:11.9.4 GR1)
       environmentDivision?
       dataDivision?
       procedureDivision?
-      END methodKeyword methodName? DOT
+      END methodKeyword refMethodName1=methodName? DOT
     ;   // the ONLY ISO method attributes: [OVERRIDE] [IS FINAL] (§2023:10.6 :12798-12821; Spec corrections #4 — ABSTRACT is NOT ISO); SR4a/SR3/FINAL enforced at bind (0837/0838/0839)
 
 methodName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // METHOD-ID. GET|SET PROPERTY prop-name — the explicit property-accessor selector (§2023:10.6 :12810-12814;
 // §2023:11.7 SR6/SR7 shape checks are pass-1, COBOL0842).
 methodPropertySelector
-    : (GET | SET) PROPERTY propertyName
+    : (GET | SET) PROPERTY defPropertyName1=propertyName
     ;
 
 propertyName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 endClassHeader
-    : END CLASS className DOT
+    : END CLASS refClassName1=className DOT
     ;
 
 // ── INVOKE statement (ISO §2023:14.9.23) ──
@@ -155,7 +155,7 @@ invokeTarget
 
 invokeMethodName
     : literal
-    | dataReference
+    | refDataReference1=dataReference
     ;
 
 invokeUsing
@@ -282,7 +282,7 @@ invokeReturning
 // carries — PB848's and PB815's sibling sweeps each found it independently.
 objectReferenceUsage
     : OBJECT REFERENCE (FACTORY OF?)? ACTIVE_CLASS         // GR22 e) — the active class; SR16 placement checked in the binder
-    | OBJECT REFERENCE (FACTORY OF?)? className ONLY?      // GR22 c)/d) — interface-name-1 or object-class-name-1
+    | OBJECT REFERENCE (FACTORY OF?)? refClassName1=className ONLY?      // GR22 c)/d) — interface-name-1 or object-class-name-1
     | OBJECT REFERENCE                                     // GR22 b) — the UNIVERSAL object reference
     ;
 
@@ -349,5 +349,5 @@ inlineMethodInvocation
 // resolution (ExpressionBinder.LiteralAliasOf) and refuses a word that names no constant by the INVOKE statement's
 // literal-1 rule (§2023:8.4.3.4.3 SR3 makes the inline form that INVOKE; §2023:14.9.23.3 SR2).
 inlineInvocationSegment
-    : COLONCOLON (literal | cobolWord) (LPAREN argumentList RPAREN)?
+    : COLONCOLON (literal | refCobolWord1=cobolWord) (LPAREN argumentList RPAREN)?
     ;

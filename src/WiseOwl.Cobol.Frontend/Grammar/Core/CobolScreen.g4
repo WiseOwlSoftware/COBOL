@@ -42,7 +42,7 @@ screenSection
 // PB845, PB4889): the clause list is its own rule, screenDescriptionBody, followed by the period alone
 // (ReadingParsesFollowDriftTests), so the predicate's probe reads exactly the entry's clauses.
 screenDescriptionEntry
-    : levelNumber ({entryNameHere(RULE_screenDescriptionBody)}? dataName)? screenDescriptionBody DOT
+    : levelNumber ({entryNameHere(RULE_screenDescriptionBody)}? defDataName1=dataName)? screenDescriptionBody DOT
     ;
 
 screenDescriptionBody
@@ -89,13 +89,13 @@ screenClause
 // is harmless in a DECLINED module: everything this rule matches is refused by name at bind, so a wider surface
 // only converts more COBOL0001 parse errors into the named COBOL1560.
 screenLineClause
-    : LINE NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD | MINUS)? (dataReference | integerLiteral)
+    : LINE NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD | MINUS)? (refDataReference1=dataReference | integerLiteral)
     ;
 
 // {COLUMN | COL | COLUMNS | COLS} NUMBER IS [PLUS | + | MINUS | -] {identifier-2 | integer-2}
 // (ISO §2023:13.17.2; §2023:13.18.14 SR1 admits the plural spellings).
 screenColumnClause
-    : (COLUMN | COL | COLUMNS | COLS) NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD | MINUS)? (dataReference | integerLiteral)
+    : (COLUMN | COL | COLUMNS | COLS) NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD | MINUS)? (refDataReference1=dataReference | integerLiteral)
     ;
 
 // BLANK {LINE | SCREEN}   (§2023:13.18.7; the screen description entry's §2023:13.17.2 format 2 (elementary) is
@@ -130,12 +130,12 @@ screenUnderlineClause     : UNDERLINE_ ;
 
 // FOREGROUND-COLOR IS {identifier | integer}
 screenForegroundColorClause
-    : FOREGROUND_COLOR IS? (dataReference | integerLiteral)
+    : FOREGROUND_COLOR IS? (refDataReference1=dataReference | integerLiteral)
     ;
 
 // BACKGROUND-COLOR IS {identifier | integer}
 screenBackgroundColorClause
-    : BACKGROUND_COLOR IS? (dataReference | integerLiteral)
+    : BACKGROUND_COLOR IS? (refDataReference1=dataReference | integerLiteral)
     ;
 
 // AUTO, SECURE, FULL, REQUIRED
@@ -146,17 +146,17 @@ screenRequiredClause : REQUIRED ;
 
 // FROM {identifier | literal}
 screenFromClause
-    : FROM (dataReference | literal)
+    : FROM (refDataReference1=dataReference | literal)
     ;
 
 // TO identifier
 screenToClause
-    : TO dataReference
+    : TO refDataReference1=dataReference
     ;
 
 // USING identifier
 screenUsingClause
-    : USING dataReference
+    : USING refDataReference1=dataReference
     ;
 
 // ==========================================
@@ -192,8 +192,8 @@ screenPositionPhrase
     ;
 
 screenPositionLeg
-    : LINE NUMBER? IS? (dataReference | integerLiteral)
-    | (COLUMN | COL | COLUMNS | COLS) NUMBER? IS? (dataReference | integerLiteral)
+    : LINE NUMBER? IS? (refDataReference1=dataReference | integerLiteral)
+    | (COLUMN | COL | COLUMNS | COLS) NUMBER? IS? (refDataReference2=dataReference | integerLiteral)
     ;
 
 // SET screen-name-1 ATTRIBUTE {| BELL | BLINK | HIGHLIGHT | LOWLIGHT | REVERSE-VIDEO | UNDERLINE |} {OFF|ON} …
@@ -206,7 +206,7 @@ screenPositionLeg
 // edition (Format 1 requires TO, Format 2 requires UP/DOWN BY), so recognizing it everywhere is what lets the
 // named refusal replace a raw parse error at COBOL-85 too.
 setScreenAttributeStatement
-    : {setAttributeAhead()}? SET dataReference cobolWord screenAttributeSetting+
+    : {setAttributeAhead()}? SET refDataReference1=dataReference nnCobolWord1=cobolWord screenAttributeSetting+
     ;
 
 screenAttributeSetting

@@ -29,11 +29,11 @@ reportSection
 // reports the RD with no report group entry (COBOL2708), exactly as the sort-merge twin's "one or more record
 // description entries" is a bind-time rule (COBOL1837) — a rule-named diagnostic, not a parse error.
 reportDescriptionEntry
-    : RD reportName reportDescriptionClause* DOT (constantEntry | reportGroupEntry)*
+    : RD defReportName1=reportName reportDescriptionClause* DOT (constantEntry | reportGroupEntry)*
     ;
 
 reportName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // ⛔ THE ONE PARSE SHAPE OF A REPORT-GROUP REFERENCE (`GENERATE`'s data-name-1, §2023:14.9.16.3 SR1; USE BEFORE
@@ -45,7 +45,7 @@ reportName
 // funnel that turns (head, qualifier) into exactly one group and diagnoses an ambiguous reference
 // (§2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1) instead of taking the first report that happens to carry the name.
 reportGroupReference
-    : cobolWord ((IN | OF) reportName)?
+    : refCobolWord1=cobolWord ((IN | OF) qualReportName1=reportName)?
     ;
 
 reportDescriptionClause
@@ -62,7 +62,7 @@ reportGlobalClause
 
 // CODE literal (§2023:13.18.12) — a 2-char prefix written on every line of the report.
 reportCodeClause
-    : CODE IS? (literal | dataReference)
+    : CODE IS? (literal | refDataReference1=dataReference)
     ;
 
 // CONTROL(S) {FINAL | data-name}... (§2023:13.18.16) — the control hierarchy (major→minor).
@@ -70,7 +70,7 @@ reportControlClause
     // §2023:13.18.16.2 prints `FINAL [ data-name-1 ] …`: FINAL once, first. The binder refuses a FINAL written again or
     // after a data-name (COBOL2421), and the grammar audit reports it as DECIDED (kb/Work PB2024):
     // audit:repeated-word FINAL decided-by ReportSectionBinder.BindReportDescriptionClauses
-    : (CONTROL IS? | CONTROLS ARE?) (FINAL | dataReference)+
+    : (CONTROL IS? | CONTROLS ARE?) (FINAL | refDataReference1=dataReference)+
     ;
 
 // PAGE [LIMIT IS | LIMITS ARE] { integer-1 | [integer-1 {LINE | LINES}] [integer-2 {COLS | COLUMNS}] }
@@ -95,15 +95,15 @@ reportPageClause
     // grammar audit reads the next line and reports the phrases' words as DECIDED (kb/Work PB2024):
     // audit:repeated-word HEADING FIRST DETAIL DE LAST CONTROL CH FOOTING decided-by ReportSectionBinder.BindReportDescriptionClauses
     : PAGE (LIMIT IS? | IS | LIMITS ARE? | ARE)?
-      ( integerOperand (LINE | LINES) reportPageWidth?
-      | integerOperand
+      ( refIntegerOperand1=integerOperand (LINE | LINES) reportPageWidth?
+      | refIntegerOperand2=integerOperand
       | reportPageWidth )
       reportPageSubclause*
     ;
 
 // integer-2 {COLS | COLUMNS} — the page width (§2023:13.18.39.4 GR2b).
 reportPageWidth
-    : integerOperand (COLS | COLUMNS)
+    : refIntegerOperand1=integerOperand (COLS | COLUMNS)
     ;
 
 // The five trailing phrases, each its own bracket with no ellipsis (SR4 gives the order licence; §2023:5.2.7 the
@@ -111,11 +111,11 @@ reportPageWidth
 // ⚠ HEADING is a terminal of TWO alternatives (the HEADING phrase and LAST CONTROL HEADING): a reader classifies
 // a phrase by ReportSectionBinder.PagePhraseOf (its first token and the one after it), never by `HEADING()`.
 reportPageSubclause
-    : HEADING IS? integerOperand
-    | FIRST (DETAIL | DE) IS? integerOperand
-    | LAST (CONTROL HEADING | CH) IS? integerOperand
-    | LAST (DETAIL | DE) IS? integerOperand
-    | FOOTING IS? integerOperand
+    : HEADING IS? refIntegerOperand1=integerOperand
+    | FIRST (DETAIL | DE) IS? refIntegerOperand2=integerOperand
+    | LAST (CONTROL HEADING | CH) IS? refIntegerOperand3=integerOperand
+    | LAST (DETAIL | DE) IS? refIntegerOperand4=integerOperand
+    | FOOTING IS? refIntegerOperand5=integerOperand
     ;
 
 // ==========================================
@@ -136,7 +136,7 @@ reportPageSubclause
 // source. entryNameHere asks the grammar whether the entry's clauses read the rest of the entry, which is why the clause
 // list is its own rule (reportGroupBody, the probe's rule, followed by the period alone: ReadingParsesFollowDriftTests).
 reportGroupEntry
-    : levelNumber ({entryNameHere(RULE_reportGroupBody)}? dataName)? reportGroupBody DOT
+    : levelNumber ({entryNameHere(RULE_reportGroupBody)}? defDataName1=dataName)? reportGroupBody DOT
     ;
 
 reportGroupBody
@@ -185,7 +185,7 @@ reportGroupType
 // FIRST token: `PAGE` is also a terminal of OR PAGE, so a reader keyed on PAGE() would take a control heading for a
 // page heading.
 reportControlName
-    : (ON | FOR)? (FINAL | dataReference)
+    : (ON | FOR)? (FINAL | refDataReference1=dataReference)
     ;
 
 // {LINE NUMBER IS | LINE NUMBERS ARE | LINES ARE} {integer-1 [ON NEXT PAGE] | {PLUS|+} integer-2 | ON NEXT PAGE}...
@@ -203,8 +203,8 @@ reportLineClause
     ;
 
 reportLineOperand
-    : reportRelativeSign integerOperand
-    | integerOperand (ON? NEXT PAGE)?
+    : reportRelativeSign refIntegerOperand1=integerOperand
+    | refIntegerOperand2=integerOperand (ON? NEXT PAGE)?
     | ON? NEXT PAGE
     ;
 
@@ -222,7 +222,7 @@ reportRelativeSign
 // NEXT GROUP IS {integer-1 | {PLUS|+} integer-2 | NEXT PAGE [WITH RESET]}  (§2023:13.18.37.2, PDF p427 rendered — both
 // the outer and the inner delimiters are braces). Bound by ReportSectionBinder BindNextGroupClauses (kb/Work PB957).
 reportNextGroupClause
-    : NEXT GROUP IS? (reportRelativeSign integerOperand | integerOperand | NEXT PAGE (WITH? RESET)?)
+    : NEXT GROUP IS? (reportRelativeSign refIntegerOperand1=integerOperand | refIntegerOperand2=integerOperand | NEXT PAGE (WITH? RESET)?)
     ;
 
 // {COLUMN NUMBER | COLUMN NUMBERS | COLUMNS | COL NUMBER | COL NUMBERS | COLS} {LEFT|CENTER|RIGHT} [IS|ARE]
@@ -258,7 +258,7 @@ reportColumnAlignment
     ;
 
 reportColumnOperand
-    : reportRelativeSign? integerOperand
+    : reportRelativeSign? refIntegerOperand1=integerOperand
     ;
 
 // {SOURCE IS | SOURCES ARE} {identifier-1 | arithmetic-expression-1}... [rounded-phrase]  (§2023:13.18.53.2)
@@ -319,7 +319,7 @@ reportSumClause
 
 reportSumGroup
     : SUM OF? reportValueOperand (COMMA? reportValueOperand)*
-      (UPON dataReference (COMMA? dataReference)*)?
+      (UPON refDataReference1=dataReference (COMMA? refDataReference2=dataReference)*)?
     ;
 // ⛔ `sumOperand : dataReference (OF reportName)?` IS GONE, and this comment stands where it was so the trailing
 // qualifier is not re-added. It was DEAD: `dataReference`'s own `dataReferenceSuffix*` swallows `OF word` as an
@@ -328,7 +328,7 @@ reportSumGroup
 // qualifier is recognised where it is resolved (ReportSectionBinder ResolveSumAddend, SR4 g).
 
 reportSumReset
-    : RESET ON? (FINAL | dataReference)
+    : RESET ON? (FINAL | refDataReference1=dataReference)
     ;
 
 // GROUP INDICATE  (§2023:13.18.28) — print this field only on the first
@@ -348,11 +348,11 @@ reportPresentWhenClause
 // repeating report entry (a multiple LINE/COLUMN clause or a report-group OCCURS, §2023:13.18.64.3 SR1).
 // Introduction-gated post-bind by VersionConformancePass ParseArm.VisitReportVaryingClause.
 reportVaryingClause
-    : VARYING reportVaryingSpec+
+    : VARYING defReportVaryingSpec1=reportVaryingSpec+
     ;
 
 reportVaryingSpec
-    : cobolWord (FROM arithmeticExpression)? (BY arithmeticExpression)?
+    : defCobolWord1=cobolWord (FROM arithmeticExpression)? (BY arithmeticExpression)?
     ;
 
 // ==========================================
@@ -361,7 +361,7 @@ reportVaryingSpec
 
 // INITIATE report-name... (§2023:14.9.21) — begin report processing: reset LINE-COUNTER/PAGE-COUNTER + SUM counters.
 initiateStatement
-    : INITIATE reportName+
+    : INITIATE refReportName1=reportName+
     ;
 
 // GENERATE {data-name-1 | report-name-1} (§2023:14.9.16.2) — produce a detail line (or summary reporting).
@@ -371,12 +371,12 @@ initiateStatement
 // `reportName`: `GENERATE DET-A OF R-B` is legal COBOL and used to be COBOL0001 (kb/Work PB365). A qualified
 // operand can only be the data-name form (a report-name has no qualifier), which the binder relies on.
 generateStatement
-    : GENERATE reportGroupReference
+    : GENERATE refReportGroupReference1=reportGroupReference
     ;
 
 // TERMINATE report-name... (§2023:14.9.46) — end report processing: produce final CONTROL/REPORT FOOTINGs.
 terminateStatement
-    : TERMINATE reportName+
+    : TERMINATE refReportName1=reportName+
     ;
 
 // SUPPRESS PRINTING (§2023:14.9.45) — inhibit printing of a report group for the current instance. The statement

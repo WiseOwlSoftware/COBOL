@@ -32,7 +32,7 @@ public sealed class PartialExpressionSpineDriftTests
     /// rule whose comment block sits between its name and its ':' (<c>valueClause</c>) is not found at all. Both
     /// were measured on the first run of this test — the failure branch, fired once, per feedback
     /// green_gates_arent_evidence.</summary>
-    private static string Grammar(string file) => Regex.Replace(File.ReadAllText(Path.Combine(TestRepo.Root,
+    private static string Grammar(string file) => Regex.Replace(GrammarSource.Read(Path.Combine(TestRepo.Root,
         "src", "WiseOwl.Cobol.Frontend", "Grammar", "Core", file)), @"//[^\r\n]*", "");
 
     private static string RuleBody(string file, string rule)

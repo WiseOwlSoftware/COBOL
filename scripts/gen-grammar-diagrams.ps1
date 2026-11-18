@@ -77,6 +77,7 @@ function Convert-G4ToEbnf([string]$g4) {
     $g = [regex]::Replace($g, '(?:parser|lexer)?\s*grammar[^;]*;', '')# grammar header
     $g = [regex]::Replace($g, 'options\s*\{[^}]*\}', '')              # options block
     $g = [regex]::Replace($g, '\{[^{}]*\}\??', '')                    # {…}? predicates + {…} actions
+    $g = [regex]::Replace($g, '\b[a-z][A-Za-z0-9_]*\s*\+?=\s*', '')   # element labels (refX=, nnY+=; DESIGN-listing.md 6.7.1)
     $sb = New-Object System.Text.StringBuilder
     foreach ($m in [regex]::Matches($g, '([A-Za-z_]\w*)\s*:(.*?);', 'Singleline')) {
         $name = $m.Groups[1].Value

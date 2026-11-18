@@ -25,7 +25,7 @@ communicationSection
 // which format is a table (CommunicationFormats), so a clause of another format is refused by name rather than as a token
 // error. The series of data-names is A.1.2.1's second option of Formats 1 and 3, its count asked by the binder.
 communicationDescriptionEntry
-    : CD cdName FOR? cdMode (cdClause+ | cdSeriesName+)? DOT dataDescriptionEntry*
+    : CD defCdName1=cdName FOR? cdMode (cdClause+ | defCdSeriesName1=cdSeriesName+)? DOT dataDescriptionEntry*
     ;
 
 // cd-name-1 is a user-defined word (ISO/IEC 1989:2002 8.3.1.1.1, A.1.2.1), so it does not ride dataName, whose FILLER is a reserved
@@ -33,7 +33,7 @@ communicationDescriptionEntry
 // (IsProvableUserWordPosition) make a word §2023:8.9 reserves draw COBOL0901. The actions record the name for keywordContinuesHere, and for
 // communicationNameFollows: a SEND of the COBOL-85 format 1 and of the 2023 format are the same tokens.
 cdName
-    : (cobolWord | reservedGatedWord) { declareName(TokenStream.LT(-1)); declareCommunicationName(TokenStream.LT(-1)); }
+    : (nameCobolWord1=cobolWord | nameReservedGatedWord1=reservedGatedWord) { declareName(TokenStream.LT(-1)); declareCommunicationName(TokenStream.LT(-1)); }
     ;
 
 cdMode
@@ -42,40 +42,40 @@ cdMode
     ;
 
 cdClause
-    : SYMBOLIC? QUEUE IS? dataName
-    | SYMBOLIC? SUB_QUEUE_1 IS? dataName
-    | SYMBOLIC? SUB_QUEUE_2 IS? dataName
-    | SYMBOLIC? SUB_QUEUE_3 IS? dataName
-    | messageKeyword DATE IS? dataName
-    | messageKeyword TIME IS? dataName
-    | SYMBOLIC? SOURCE IS? dataName
-    | SYMBOLIC? TERMINAL IS? dataName
-    | TEXT LENGTH IS? dataName
-    | END KEY IS? dataName
-    | STATUS KEY IS? dataName
-    | messageKeyword? COUNT IS? dataName
-    | DESTINATION COUNT IS? dataName
-    | DESTINATION TABLE OCCURS integerOperand TIMES? (INDEXED BY? indexNameList)?
-    | ERROR KEY IS? dataName
-    | SYMBOLIC? DESTINATION IS? dataName
+    : SYMBOLIC? QUEUE IS? defDataName1=dataName
+    | SYMBOLIC? SUB_QUEUE_1 IS? defDataName2=dataName
+    | SYMBOLIC? SUB_QUEUE_2 IS? defDataName3=dataName
+    | SYMBOLIC? SUB_QUEUE_3 IS? defDataName4=dataName
+    | messageKeyword DATE IS? defDataName5=dataName
+    | messageKeyword TIME IS? defDataName6=dataName
+    | SYMBOLIC? SOURCE IS? defDataName7=dataName
+    | SYMBOLIC? TERMINAL IS? defDataName8=dataName
+    | TEXT LENGTH IS? defDataName9=dataName
+    | END KEY IS? defDataName10=dataName
+    | STATUS KEY IS? defDataName11=dataName
+    | messageKeyword? COUNT IS? defDataName12=dataName
+    | DESTINATION COUNT IS? defDataName13=dataName
+    | DESTINATION TABLE OCCURS refIntegerOperand1=integerOperand TIMES? (INDEXED BY? defIndexNameList1=indexNameList)?
+    | ERROR KEY IS? defDataName14=dataName
+    | SYMBOLIC? DESTINATION IS? defDataName15=dataName
     ;
 
 cdSeriesName
-    : dataName
+    : nameDataName1=dataName
     ;
 
 // A.2.1.1: `ACCEPT cd-name-1 MESSAGE COUNT`. No other ACCEPT writes COUNT or MESSAGE after its operand.
 acceptMessageCountStatement
-    : ACCEPT cobolWord messageKeyword? COUNT
+    : ACCEPT refCobolWord1=cobolWord messageKeyword? COUNT
     ;
 
 // A.2.2.1 and A.2.3.1, with the COBOL-85 KEY phrase (deleted by 2002: communication-key-phrase-removed-2002).
 enableStatement
-    : ENABLE communicationPath cobolWord communicationKeyPhrase?
+    : ENABLE communicationPath refCobolWord1=cobolWord communicationKeyPhrase?
     ;
 
 disableStatement
-    : DISABLE communicationPath cobolWord communicationKeyPhrase?
+    : DISABLE communicationPath refCobolWord1=cobolWord communicationKeyPhrase?
     ;
 
 communicationPath
@@ -93,13 +93,13 @@ communicationKeyPhrase
 
 // A.2.4.1: `PURGE cd-name-1`.
 purgeStatement
-    : PURGE cobolWord
+    : PURGE refCobolWord1=cobolWord
     ;
 
 // A.2.5.1. The word after the cd-name parts it from the 2023 RECEIVE, whose operand GIVING follows. WITH is optional in
 // WITH DATA and DATA is not; ConditionalStatements reads the two statementBlocks as the statement's conditional phrases.
 communicationReceiveStatement
-    : RECEIVE cobolWord (messageKeyword | SEGMENT) INTO receivingIdentifier
+    : RECEIVE refCobolWord1=cobolWord (messageKeyword | SEGMENT) INTO receivingIdentifier
       receiveNoDataPhrase? receiveWithDataPhrase? END_RECEIVE?
     ;
 
@@ -114,8 +114,8 @@ receiveWithDataPhrase
 // A.2.6.1 Formats 1 and 2. `SEND x FROM y` is also the 2023 format's shape, and a parse alternative cannot read which x is:
 // the statement arm's predicate asks communicationNameFollows, and a SEND that writes an indicator can only be this rule.
 communicationSendStatement
-    : SEND cobolWord FROM sendIdentifier
-    | SEND cobolWord (FROM sendIdentifier)? sendIndicator sendAdvancingPhrase? sendReplacingPhrase?
+    : SEND refCobolWord1=cobolWord FROM sendIdentifier
+    | SEND refCobolWord2=cobolWord (FROM sendIdentifier)? sendIndicator sendAdvancingPhrase? sendReplacingPhrase?
     ;
 
 // ⛔ IDENTIFIER-1, IDENTIFIER-2 AND IDENTIFIER-3 ARE IDENTIFIERS, SO EACH TAKES EVERY SENDING IDENTIFIER FORMAT (kb/Work PB5603).
@@ -127,7 +127,7 @@ communicationSendStatement
 sendIdentifier
     : functionCall
     | inlineMethodInvocation
-    | dataReference
+    | refDataReference1=dataReference
     ;
 
 sendIndicator

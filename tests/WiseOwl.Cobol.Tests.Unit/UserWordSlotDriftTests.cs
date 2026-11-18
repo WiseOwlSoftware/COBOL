@@ -94,9 +94,9 @@ public sealed class UserWordSlotDriftTests
     {
         var files = ParserGrammars().ToList();
         Assert.True(files.Count >= 10, $"only {files.Count} parser grammar file(s) found — the scan is blind");
-        int rules = files.Sum(f => Rule.Matches(StripActions(Comment.Replace(File.ReadAllText(f), ""))).Count);
+        int rules = files.Sum(f => Rule.Matches(StripActions(Comment.Replace(GrammarSource.Read(f), ""))).Count);
         Assert.True(rules > 500, $"only {rules} parser rule(s) read — the rule scan broke");
-        var found = files.SelectMany(f => BareIdentifierRules(File.ReadAllText(f))).ToHashSet(StringComparer.Ordinal);
+        var found = files.SelectMany(f => BareIdentifierRules(GrammarSource.Read(f))).ToHashSet(StringComparer.Ordinal);
         var unargued = found.Where(r => !ArguedSites.ContainsKey(r)).OrderBy(r => r, StringComparer.Ordinal).ToList();
         Assert.True(unargued.Count == 0,
             $"rule(s) [{string.Join(", ", unargued)}] spell a bare IDENTIFIER. A user-defined-word slot is `cobolWord` — the "
@@ -112,7 +112,7 @@ public sealed class UserWordSlotDriftTests
     [Fact]
     public void TheMovedSlots_ReadCobolWord()
     {
-        string all = string.Join("\n", ParserGrammars().Select(f => StripActions(Comment.Replace(File.ReadAllText(f), ""))));
+        string all = string.Join("\n", ParserGrammars().Select(f => StripActions(Comment.Replace(GrammarSource.Read(f), ""))));
         string Body(string rule) => Rule.Matches(all).Single(m => m.Groups[1].Value == rule).Groups[2].Value;
         Assert.Matches(@"TYPE\s+TO\?\s+cobolWord", Body("typeClause"));
         Assert.Matches(@"^\s*cobolWord\s*\|\s*intrinsicKeywordName\s*$", Body("functionName"));
