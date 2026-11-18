@@ -69,8 +69,11 @@ public sealed partial class FileControlBinder
             if (screened && SelectedFiles.ContainsKey(name))
             {
                 Edition.Error(DiagnosticCatalog.FileNameSelectedTwice, $"file-name '{name}' is specified in a second "
-                    + "SELECT clause; ISO §2023:12.4.5.2 SR2: \"A given file-name may be specified in only one SELECT clause "
-                    + "within a factory, function, object, or program.\"");
+                    + "SELECT clause; ISO "
+                    + Edition.Edition.Cite(
+                        "§1985:VII.2.3.3 SR2: \"Each file-name in the Data Division must be specified only once in the FILE-CONTROL paragraph.\"",
+                        "§2023:12.4.5.2 SR2: \"A given file-name may be specified in only one SELECT clause within a factory, function, object, or program.\"",
+                        "§2023:12.4.5.2 SR2: \"A given file-name may be specified in only one SELECT clause within a factory, function, object, or program.\""));
                 continue;
             }
             var file = new FileModel { CobolName = name, SelectName = name, HasSelect = true, Optional = grp.OPTIONAL() is not null };

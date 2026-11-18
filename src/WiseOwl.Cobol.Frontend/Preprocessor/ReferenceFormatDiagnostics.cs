@@ -209,7 +209,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnContinuationQuote(string file, int line, int column, char quote)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LiteralContinuationQuote.Code,
             $"the first nonblank character of a continuation line of a literal shall be {QuoteName(quote)}, the quotation "
-            + "symbol used in the literal's opening delimiter (ISO §2023:6.2.3.2 SR6)", At(file, line, column), default);
+            + $"symbol used in the literal's opening delimiter (ISO {Edition.Cite("§1985:IV.7.2.2", "§2023:6.2.3.2 SR6", "§2023:6.2.3.2 SR6")})", At(file, line, column), default);
 
     /// <summary>§2023:6.3.5 2) — COBOL2685: a national literal continued by the fixed continuation indicator.</summary>
     public void OnNationalFixedContinuation(string file, int line)

@@ -276,16 +276,23 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // may be referenced in names a SOURCE clause (§2023:13.18.60.3 SR10; §1985:VI.5.14.3 SR5; kb/Work PB5188).
         if (MoveTable16.SenderClassRefusal(operand) is { } classRefusal)
         {
-            ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of §2023:13.18.53.4 GR1 "
-                + $"from identifier-1 is invalid — {classRefusal} (ISO §2023:13.18.53.3 SR2)");
+            ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of {ImplicitMoveRule()} "
+                + $"from identifier-1 is invalid — {classRefusal} (ISO {SourceMoveRule()})");
             return true;
         }
         if (printable is null || MoveTable16.Validity(operand, Table16Operand.Of(printable), printable, MoveTable16.CitationsOf(ctx.Edition.Edition)) is not { } refusal)
             return false;
-        ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of §2023:13.18.53.4 GR1 "
-            + $"from identifier-1 to the printable item is invalid — {refusal.Reason} (ISO §2023:13.18.53.3 SR2)");
+        ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of {ImplicitMoveRule()} "
+            + $"from identifier-1 to the printable item is invalid — {refusal.Reason} (ISO {SourceMoveRule()})");
         return true;
     }
+
+    /// <summary>The rule that makes a SOURCE clause an implicit MOVE, in the edition in force (kb/Work PB4950): §2023:13.18.53.4 GR1, or at
+    /// COBOL-85 the SOURCE clause's own §1985:XIII.3.18.3 SR2.</summary>
+    private string ImplicitMoveRule() => ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.4 GR1", "§2023:13.18.53.4 GR1");
+
+    /// <summary>The rule that identifier-1 shall be valid as the sending operand of that MOVE, in the edition in force (kb/Work PB4950).</summary>
+    private string SourceMoveRule() => ctx.Edition.Edition.Cite("§1985:XIII.3.18.3 SR2", "§2023:13.18.53.3 SR2", "§2023:13.18.53.3 SR2");
 
     /// <summary>⛔ THE VALUE EACH ROLLED ADDITION ADDS (ISO §2023:13.18.54.4 GR6; kb/Work PB1294) — bound once every
     /// report's own clauses are, because a rolled total may name an entry of ANOTHER report (§2023:13.18.54.3 SR4 g)).

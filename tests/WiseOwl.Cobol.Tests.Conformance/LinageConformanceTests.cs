@@ -672,7 +672,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "SR19");
+        EditionHarness.AssertHasDiagnostic(diags, "§1985:VII.4.7.3 SR8");   // at --std 85 the rule is the 1985 sequential WRITE's (kb/Work PB4950)
     }
 
     [Fact]   // SR18: ADVANCING PAGE and END-OF-PAGE shall not both appear in one WRITE.

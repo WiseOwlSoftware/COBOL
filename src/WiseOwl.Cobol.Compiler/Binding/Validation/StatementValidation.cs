@@ -379,15 +379,14 @@ internal sealed class StatementValidation(DataBinder data)
         }
         data.Edition.Error(DiagnosticCatalog.AmbiguousProcedureName,
             $"{verb} '{ambiguity.Name}': the reference is not unique — this source element declares that name "
-            + $"{ambiguity.Candidates.Count} times ({candidates}) — so it identifies no one procedure (ISO "
-            + "§2023:8.4.2.1: \"a statement shall contain a reference that uniquely identifies that resource\"). "
-            + "§2023:8.4.2.2.1 requires that \"uniqueness shall be established through qualification for each "
-            + "user-defined name explicitly referenced, except as specified in rules 2 through 6\": rule 1 "
-            + "(\"No other name has the identical spelling\") is false here, and rule 6 (\"The name is a "
-            + "paragraph-name and the section containing the reference also contains the named paragraph\") "
-            + "does not apply to this reference. Write the qualifier — paragraph-name IN section-name, "
-            + "§2023:8.4.2.2.2 format 4 — or rename one of the declarations; a duplicated SECTION-name takes no "
-            + "qualifier at all and can only be renamed.");
+            + $"{ambiguity.Candidates.Count} times ({candidates}) — so it identifies no one procedure ({data.Edition.Edition.Quoted()}). "
+            + data.Edition.Edition.Cite(
+                "§1985:IV.4.3.8.1 SRL2.1 requires that \"uniqueness must be established through a sequence of qualifiers which "
+                + "precludes any ambiguity of reference\" for each nonunique user-defined name that is explicitly referenced, and "
+                + "SRL2.6 excuses only a paragraph-name referred to from within the same section, which this reference is not. "
+                + "Write the qualifier — paragraph-name IN section-name, §1985:IV.4.3.8.1 format 2 — or rename one of the "
+                + "declarations; a duplicated SECTION-name takes no qualifier at all and can only be renamed.",
+                SameUniquenessRules, SameUniquenessRules));
         return false;
     }
 
@@ -399,6 +398,16 @@ internal sealed class StatementValidation(DataBinder data)
     private const string PerformRangeSequenceRule =
         "§2023:14.9.28.4 GR4 — \"all statements beginning with the first statement of procedure-name-1 and ending with the last "
         + "statement of procedure-name-2\"";
+
+    /// <summary>The uniqueness-by-qualification sentences of §2023:8.4.2.2.1 as the 2002 and later editions read them (kb/Work PB4950).</summary>
+    private const string SameUniquenessRules =
+        "§2023:8.4.2.2.1 requires that \"uniqueness shall be established through qualification for each "
+        + "user-defined name explicitly referenced, except as specified in rules 2 through 6\": rule 1 "
+        + "(\"No other name has the identical spelling\") is false here, and rule 6 (\"The name is a "
+        + "paragraph-name and the section containing the reference also contains the named paragraph\") "
+        + "does not apply to this reference. Write the qualifier — paragraph-name IN section-name, "
+        + "§2023:8.4.2.2.2 format 4 — or rename one of the declarations; a duplicated SECTION-name takes no "
+        + "qualifier at all and can only be renamed.";
 
     /// <summary>⛔ ISO §2023:14.9.28.3 SR11 — the DECLARATIVES constraint on a <c>procedure-name-1 THRU
     /// procedure-name-2</c> range (kb/Work PB433): "When procedure-name-1 and procedure-name-2 are both
@@ -2020,7 +2029,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.Linage is not null) return true;
         data.Edition.Error(DiagnosticCatalog.WriteEndOfPageWithoutLinage, $"WRITE END-OF-PAGE on file '{file.CobolName}', whose file "
-            + "description entry has no LINAGE clause (ISO §2023:14.9.51.3 SR19)");
+            + $"description entry has no LINAGE clause (ISO {data.Edition.Edition.Cite("§1985:VII.4.7.3 SR8", "§2023:14.9.51.3 SR19", "§2023:14.9.51.3 SR19")})");
         return false;
     }
 

@@ -348,8 +348,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                 $"'{text}': a subscript is written on '{subject}', whose data description entry neither "
                 + "contains an OCCURS clause nor is subordinate to one, so no subscript may be written on it "
-                + "(ISO §2023:8.4.2.3.3 SR2). For a character span write the reference-modification colon form "
-                + $"instead — '{subject} (1:n)' (§2023:8.4.3.3).");
+                + $"(ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2", "§2023:8.4.2.3.3 SR2")}). For a character span write the reference-modification colon form "
+                + $"instead — '{subject} (1:n)' ({data.Edition.Edition.Cite("§1985:IV.4.3.8.4", "§2023:8.4.3.3", "§2023:8.4.3.3")}).");
         else
             data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
                 $"'{text}': {written} subscript{(written == 1 ? "" : "s")} written, but the description of "
@@ -924,7 +924,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             string text = tokens[0].InputStream is { } stream
                 ? stream.GetText(new Antlr4.Runtime.Misc.Interval(tokens[0].StartIndex, tokens[^1].StopIndex))
                 : string.Join(" ", tokens.Select(t => t.Text));
-            data.Edition.Error(DiagnosticCatalog.NotASubscript, IllegalPositionMessage(text.Trim(), position));
+            data.Edition.Error(DiagnosticCatalog.NotASubscript, IllegalPositionMessage(text.Trim(), position, data.Edition.Edition));
             return null;
         }
         return MaterializeSegment(expr, position, tokens[0].Line) is { } temp ? PositionRead(temp, position) : null;
@@ -932,16 +932,25 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
     /// <summary>The COBOL2363 text for a position that is not an arithmetic expression (kb/Work PB1030) — the
     /// word ALL in a subscript names §2023:8.4.2.3.3 SR6's two contexts; anything else names the position's own rule.</summary>
-    private static string IllegalPositionMessage(string segment, SegmentPosition position) =>
+    private static string IllegalPositionMessage(string segment, SegmentPosition position, EditionInfo edition) =>
         position == SegmentPosition.RefMod
             ? $"'{segment}' is written as a reference-modification bound, but a leftmost-position and a length shall "
-              + "be arithmetic expressions (ISO §2023:8.4.3.3.3 SR4)."
+              + $"be arithmetic expressions (ISO {edition.Cite("§1985:IV.4.3.8.4.3 SR2", "§2023:8.4.3.3.3 SR4", "§2023:8.4.3.3.3 SR4")})."
         : CobolNames.Same(segment, "ALL")
-            ? "the subscript ALL is written where it is not permitted: ISO §2023:8.4.2.3.3 SR6 — \"The subscript ALL may "
-              + "be used only\" when the subscripted identifier is an intrinsic function argument, or as the rightmost "
-              + "or only subscript of a table in the table format of a SORT statement. Write the occurrence you mean."
-        : $"'{segment}' is written as a subscript, but a subscript is ALL, an arithmetic expression, or an index-name "
-          + "optionally followed by + or - and an integer (ISO §2023:8.4.2.3.2).";
+            ? "the subscript ALL is written where it is not permitted: ISO "
+              + edition.Cite(
+                  "§1985:IV.4.3.8.2.3 SR7 — \"The subscript ALL may be used only\" when the subscripted identifier is used as a "
+                  + "function argument. Write the occurrence you mean.",
+                  AllSubscriptRule2023, AllSubscriptRule2023)
+        : $"'{segment}' is written as a subscript, but a subscript is "
+          + edition.Cite("ALL, an integer, a data-name or an index-name, the last two optionally followed by + or - and an integer (ISO §1985:IV.4.3.8.2.2).",
+              "ALL, an arithmetic expression, or an index-name optionally followed by + or - and an integer (ISO §2023:8.4.2.3.2).",
+              "ALL, an arithmetic expression, or an index-name optionally followed by + or - and an integer (ISO §2023:8.4.2.3.2).");
+
+    /// <summary>§2023:8.4.2.3.3 SR6 as the 2002 and later editions word the places the subscript ALL is admitted.</summary>
+    private const string AllSubscriptRule2023 =
+        "§2023:8.4.2.3.3 SR6 — \"The subscript ALL may be used only\" when the subscripted identifier is an intrinsic function "
+        + "argument, or as the rightmost or only subscript of a table in the table format of a SORT statement. Write the occurrence you mean.";
 
     /// <summary>A subscript data-name → its C# read expression: an INDEXED BY index-name (a <c>long</c> field), or
     /// a (possibly OF/IN-qualified, ISO §2023:8.4.2.3.2) numeric data item read; <see langword="null"/> if unresolvable.

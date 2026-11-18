@@ -71,7 +71,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                       + $"so write 'FUNCTION {fn}'.";
                 ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                     $"'{fn}' is written without the word FUNCTION, but the REPOSITORY paragraph does not declare "
-                    + $"it. ISO §2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY — {remedy}");
+                    + $"it. ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — {remedy}");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {fn}");
             }
             // The parenthesis after the name is the ARGUMENT LIST (subscriptPart) unless it holds a colon, in which
@@ -144,8 +144,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExprError Sr6ArgumentListError(string display)
     {
         ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"'{display} (…)' — the '(' after the name of a function that "
-            + "takes arguments is ALWAYS its argument list (ISO §2023:8.4.3.2.3 SR6), so this is an argument list "
-            + "and 'start:length' is not a valid argument (SR8). Reference-modify the RESULT by writing the "
+            + $"takes arguments is ALWAYS its argument list (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2, whose general format writes the argument list before the reference-modifier", "§2023:8.4.3.2.3 SR6", "§2023:8.4.3.2.3 SR6")}), so this is an argument list "
+            + $"and 'start:length' is not a valid argument ({ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "SR8", "SR8")}). Reference-modify the RESULT by writing the "
             + $"argument list first: {display}(<arguments>) (start:length).");
         return BoundExprError.Refused(ctx.Edition, $"{display} arguments");
     }
@@ -434,7 +434,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (sp is null && sig.MinArgs != 0) return null;
             ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                 $"'{name}' is written without the word FUNCTION, but the REPOSITORY paragraph does not declare "
-                + $"it. ISO §2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY — "
+                + $"it. ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — "
                 + $"write 'FUNCTION {name}', or add 'REPOSITORY. FUNCTION {name} INTRINSIC.' (or FUNCTION ALL "
                 + "INTRINSIC).");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
@@ -572,7 +572,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (item.functionArgument() is { } a) { args.Add(a); continue; }
             ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"malformed function-argument list '{DataBinder.WrittenText(sp)}' — an "
                 + "argument is an identifier, a literal, a boolean expression, or an arithmetic expression, and ALL is "
-                + "none of them (ISO §2023:8.4.3.2.3 SR8)");
+                + $"none of them (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8", "§2023:8.4.3.2.3 SR8")})");
             return null;
         }
         return ArgumentsOf(args);
@@ -607,8 +607,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 using var _ = ctx.Edition.At(given!);
                 ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                     $"'{DataBinder.WrittenText(given!)}' follows '{WrittenBefore(arg, given!)}', "
-                    + "on which no subscript may be written (ISO §2023:8.4.2.3.3 SR2), so it begins the next argument — and an "
-                    + "argument written in parentheses is an arithmetic or a boolean expression, which this is not (ISO §2023:8.4.3.2.3 SR8)");
+                    + $"on which no subscript may be written (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2", "§2023:8.4.2.3.3 SR2")}), so it begins the next argument — and an "
+                    + $"argument written in parentheses is an arithmetic or a boolean expression, which this is not (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8", "§2023:8.4.3.2.3 SR8")})");
                 return null;
             }
             read.Add(next);

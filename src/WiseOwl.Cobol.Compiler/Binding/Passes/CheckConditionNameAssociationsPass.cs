@@ -41,14 +41,13 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
                     + "this level-88 entry does not immediately follow a data description entry describing a "
                     + "data item — the condition-name entries for a particular conditional variable shall "
                     + "immediately follow the entry describing the item with which the condition-name is "
-                    + "associated (ISO §2023:13.16.3 SR24)");
+                    + $"associated (ISO {binder.Edition.Edition.Cite("§1985:VI.5.3.4 GR2", "§2023:13.16.3 SR24", "§2023:13.16.3 SR24")})");
                 continue;
             }
             if (ConditionalVariableExclusion(variable) is not { } excluded) continue;
             binder.Edition.Error(DiagnosticCatalog.ConditionNameVariableExcluded, $"condition-name '{name}': the entry "
                 + $"it follows describes '{variable.CobolName ?? "FILLER"}', and a condition-name may not be "
-                + $"associated with {excluded.Article} — ISO §2023:13.16.3 SR24 excludes "
-                + $"\"{excluded.Letter}) {excluded.Text}\"{excluded.Also}");
+                + $"associated with {excluded.Article} — ISO {excluded.Excludes(binder.Edition.Edition)}");
         }
     }
 
@@ -66,8 +65,23 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
     /// <summary>One lettered exclusion of ISO §2023:13.16.3 SR24. <paramref name="Text"/> is the standard's own
     /// sentence; <paramref name="Article"/> is the same shape phrased for a message ("a level 66 entry");
     /// <paramref name="Also"/> carries a second rule stating the SAME prohibition, empty for most rows.</summary>
+    /// <param name="Letter1985">The letter of the same exclusion in §1985:VI.5.3.4 GR2 (a to d), or null where 1985 has no such
+    /// exclusion (ANY LENGTH, STRONG types, variable-length groups are later facilities; kb/Work PB4950).</param>
+    /// <param name="Text1985">The 1985 rule's own sentence for <paramref name="Letter1985"/>.</param>
+    /// <param name="Also1985">What the 1985 text adds in <paramref name="Also"/>'s place (§1985:VI.5.14.3 SR7 states the index
+    /// prohibition again).</param>
     internal readonly record struct Sr24Exclusion(char Letter, string Text, string Article,
-        Func<DataItem, bool> Applies, string Also = "");
+        Func<DataItem, bool> Applies, string Also = "", char? Letter1985 = null, string? Text1985 = null, string? Also1985 = null)
+    {
+        /// <summary>The rule and its exclusion as <paramref name="edition"/> words them: the citation, then the quoted
+        /// lettered sentence and the rule that states it again, if any.</summary>
+        public string Excludes(EditionInfo edition)
+        {
+            string later = $"§2023:13.16.3 SR24 excludes \"{Letter}) {Text}\"{Also}";
+            return edition.Cite(Letter1985 is { } l && Text1985 is { } t ? $"§1985:VI.5.3.4 GR2 excludes \"{l}. {t}\"{Also1985}" : later,
+                later, later);
+        }
+    }
 
     /// <summary>⛔ THE EIGHT EXCLUSIONS OF ISO §2023:13.16.3 SR24, as a table — the ONE place the rule is written
     /// down. Each predicate is a static lambda held in this static array, so the walk allocates nothing.</summary>
@@ -82,12 +96,14 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
         // the shape directly and asserts it names a), because a row nothing can contradict is a row nobody has
         // verified (and because a future model that DID give an 88 a DataItem must not silently start accepting
         // `88 A VALUE 1. 88 B VALUE 2.` as an association of B with A).
-        new('a', "Another level 88 entry.", "another level-88 entry", static d => d.Level == 88),
+        new('a', "Another level 88 entry.", "another level-88 entry", static d => d.Level == 88,
+            Letter1985: 'a', Text1985: "Another condition-name."),
 
         // b) A level 66 entry.
         // The measured wrong answer: a 66 RENAMES alias is attached to its owning record's Renames66 list and
         // never pushed on the level stack, so the old `stack.Peek()` reader walked BACK PAST it.
-        new('b', "A level 66 entry.", "a level-66 RENAMES entry", static d => d.Level == 66),
+        new('b', "A level 66 entry.", "a level-66 RENAMES entry", static d => d.Level == 66,
+            Letter1985: 'b', Text1985: "A level 66 item."),
 
         // c) An alphanumeric group containing items with a usage other than display.
         // ⛔ INHERITED CITATION, RE-DERIVED (kb/Work PB932). This cited §2023:8.5.1.3, which is the LEVELS clause and
@@ -105,7 +121,9 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
         new('c', "An alphanumeric group containing items with a usage other than display.",
             "an alphanumeric group containing an item whose usage is not DISPLAY",
             static d => ItemCategory.IsAlphanumericGroup(d)
-                && AnySubordinate(d, static x => UsageOtherThanDisplay(x))),
+                && AnySubordinate(d, static x => UsageOtherThanDisplay(x)),
+            Letter1985: 'c',
+            Text1985: "A group containing items with descriptions including JUSTIFIED, SYNCHRONIZED, or USAGE (other than USAGE IS DISPLAY)."),
 
         // d) A group containing items described with a JUSTIFIED or SYNCHRONIZED clause.
         // ANY group, not only an alphanumeric one — the letter says "A group" where c) says "An alphanumeric
@@ -120,14 +138,19 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
         // JUSTIFIED has no such arm — §2023:13.18.31.3 SR1 confines it to the elementary item level.
         new('d', "A group containing items described with a JUSTIFIED or SYNCHRONIZED clause.",
             "a group containing an item described with a JUSTIFIED or SYNCHRONIZED clause",
-            static d => d.IsGroup && AnySubordinate(d, static x => x.Justified || x.Synchronized is not null)),
+            static d => d.IsGroup && AnySubordinate(d, static x => x.Justified || x.Synchronized is not null),
+            Letter1985: 'c',
+            Text1985: "A group containing items with descriptions including JUSTIFIED, SYNCHRONIZED, or USAGE (other than USAGE IS DISPLAY)."),
 
         // e) A data item of the class index, message-tag, object, or pointer.
         new('e', "A data item of the class index, message-tag, object, or pointer.",
             "a data item of the class index, message-tag, object, or pointer",
             static d => ItemCategory.IsIndexMessageTagObjectOrPointer(d),
             Also: "; the same prohibition is ISO §2023:13.18.60.3 SR11, \"An elementary data item of class index, "
-                + "message-tag, object, or pointer shall not be a conditional variable\""),
+                + "message-tag, object, or pointer shall not be a conditional variable\"",
+            Letter1985: 'd', Text1985: "An index data item.",
+            Also1985: "; the same prohibition is ISO §1985:VI.5.14.3 SR7, \"An elementary data item described with a USAGE IS INDEX "
+                + "clause must not be a conditional variable\""),
 
         // f) A data item described with the ANY LENGTH clause.
         new('f', "A data item described with the ANY LENGTH clause.",

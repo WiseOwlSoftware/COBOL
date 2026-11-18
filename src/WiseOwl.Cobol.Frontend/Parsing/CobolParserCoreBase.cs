@@ -398,11 +398,6 @@ public abstract class CobolParserCoreBase : Parser
         => Canonical(keyword) is { } w
            && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || CobolLexer.IsKeywordWhereFree(w));
 
-    /// <summary>The citation or quoted words of the edition in force (<see cref="EditionInfo.Cite"/>, kb/Work PB4950): a syntax
-    /// diagnostic cites the rule of the edition the program is compiled under. Diagnosis only (<c>CobolErrorStrategy.CiteAt</c>);
-    /// never called while parsing.</summary>
-    internal string EditionCitation(string y1985, string y2002, string y2023) => Edition.Cite(y1985, y2002, y2023);
-
     /// <summary>⛔ WHETHER THIS EDITION HAS A USER-DEFINED WORD TO PRINT WHERE A FORMAT SPECIFIES A LITERAL (kb/Work PB4435).
     /// The word there is a constant-name: ISO §2023:13.10.3 SR2, "Except in a compiler directive, constant-name-1 may be used
     /// anywhere that a format specifies a literal of the class and category of constant-name-1". The parse writes such a
@@ -1203,14 +1198,10 @@ public abstract class CobolParserCoreBase : Parser
     internal bool ReservedAsAName(IToken token)
         => ReservedUserWordViolation(token, atAName: true) is not null || ExtensionReservedWord(token) is not null;
 
-    /// <summary>The edition the parse is diagnosed for, for the diagnosis that words a citation by edition (kb/Work PB4950).
-    /// Diagnosis only (<c>CobolErrorStrategy</c>); never read while parsing.</summary>
+    /// <summary>⛔ THE ONE EDITION READ OF A DIAGNOSIS (kb/Work PB4950): the edition the parse is diagnosed for, so a syntax diagnostic
+    /// cites the rule of the edition in force through <see cref="EditionInfo.Cite"/> (and a closed format's refusal through
+    /// <see cref="Cst.ClosedFormat.Refusal"/>). Diagnosis only (<c>CobolErrorStrategy</c>); never read while parsing.</summary>
     internal EditionInfo EditionInForce => Edition;
-
-    /// <summary>⛔ A CLOSED FORMAT'S REFUSAL WORDED FOR THE COMPILE EDITION (kb/Work PB4950): <see cref="ClosedFormat.Refusal"/> cites the
-    /// general format of the edition in force, which only the parser knows. Diagnosis only (<c>CobolErrorStrategy</c>); never called
-    /// while parsing.</summary>
-    internal string ClosedFormatRefusal(Cst.ClosedFormat format, string word, string? owner) => format.Refusal(word, owner, Edition);
 
     /// <summary>The canonical word of the keyword <paramref name="token"/> when this implementation reserves it for a
     /// nonstandard extension (§2023:4.2.10 3), else null.</summary>

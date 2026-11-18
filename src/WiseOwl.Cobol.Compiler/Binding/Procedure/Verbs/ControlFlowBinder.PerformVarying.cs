@@ -250,7 +250,7 @@ internal sealed partial class ControlFlowBinder
         if (!Admits(slot, kind) && e is not BoundExprError)
         {
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
-                $"'{text}' is not one of the operands ISO §2023:14.9.28.2's varying-phrase prints in this slot — "
+                $"'{text}' is not one of the operands ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.2", "§2023:14.9.28.2", "§2023:14.9.28.2")}'s varying-phrase prints in this slot — "
                 + (slot is VaryingSlot.By
                     ? "the BY phrase's brace group is { identifier-4 | literal-2 }"
                     : "the FROM phrase's brace group is { identifier-3 | index-name-2 | literal-1 }")

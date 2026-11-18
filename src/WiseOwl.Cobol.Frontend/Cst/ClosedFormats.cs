@@ -77,7 +77,7 @@ public static class ClosedFormats
             // folio 363. Keeps COBOL1941 and its message verbatim: the code was allocated for this format and
             // is pinned by conformance:cases/13.16-Data-description/pb487-unrecognized-data-clause.
             [typeof(Core.DataDescriptionClauseContext)] =
-                new("13.16.2", "Format 1 ", "data description entry", "clause", DiagnosticCatalog.DataClauseUnrecognized),
+                new("13.16.2", "Format 1 ", "data description entry", "clause", DiagnosticCatalog.DataClauseUnrecognized, "VI.5.3.2"),
 
             // §2023:13.4.5.2 — the file description entry (FD). PDF p372-373 / folios 342-343.
             [typeof(Core.FileDescriptionClauseContext)] =

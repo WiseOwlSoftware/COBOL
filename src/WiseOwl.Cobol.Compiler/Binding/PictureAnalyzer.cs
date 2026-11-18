@@ -863,7 +863,7 @@ public static class PictureAnalyzer
                 {
                     edition.Error(DiagnosticCatalog.PictureRepetitionFactor, $"{where}: the repetition factor "
                         + $"'({factor}{(close > 0 ? ")" : "")}' after the symbol '{c}' in PICTURE {picture} is not "
-                        + "an unsigned nonzero integer (ISO §2023:13.18.40.3 SR6)");
+                        + $"an unsigned nonzero integer (ISO {edition.Edition.Cite("§1985:VI.5.9.4 GR7", "§2023:13.18.40.3 SR6", "§2023:13.18.40.3 SR6")})");
                     return false;
                 }
                 if (!RepeatableSymbol(c, edition.DialectLevel, isCurrencySymbol, decimalPointIsComma))

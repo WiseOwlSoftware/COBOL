@@ -194,7 +194,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
                 {
                     tier = RedefinesTier.Rejected;
                     reject = $"REDEFINES over '{occTarget.CobolName ?? occTarget.ClrName}', whose data "
-                        + "description entry contains an OCCURS clause (ISO §2023:13.18.44.3 SR5)";
+                        + $"description entry contains an OCCURS clause (ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR5", "§2023:13.18.44.3 SR5", "§2023:13.18.44.3 SR5")})";
                 }
             // The SR12/SR14 TIER verdict for a retained class (the DIAGNOSTIC fired per written entry in the
             // grouping loop above, before dissolution — no second diagnostic here): the class rejects with

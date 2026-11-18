@@ -3224,7 +3224,9 @@ public static class DiagnosticCatalog
         "COBOL2495", "floating-comment-not-separated", EditionSeverity.Error,
         "A floating comment indicator *> is written directly after another character. ISO §2023:6.2.3.2 SR2: \"The "
         + "floating comment indicator of an inline comment shall be preceded by a separator space\". Write a space "
-        + "before the *>.", "ISO §2023:6.2.3.2 SR2");
+        + "before the *>.", "ISO §2023:6.2.3.2 SR2",
+        No1985Rule: "The floating comment indicator (*>) is not in ANSI X3.23-1985, whose reference format knows only the "
+            + "column-7 comment indicator, so there is no 1985 rule to cite; the facility begins in COBOL-2002 (kb/Work PB4950).");
 
     /// <summary>COBOL2496 — a multiple-character floating indicator split across a fixed-form continued line and
     /// its continuation line (kb/Work PB1493): the continued line ends with the indicator's first character and the
@@ -5811,7 +5813,10 @@ public static class DiagnosticCatalog
         + "COMPUTE has no receiving category outside numeric and numeric-edited. SR5 brings a ROUNDED identifier "
         + "under the same rule: \"If identifier-1 is specified with the ROUNDED phrase, it is considered to be "
         + "an arithmetic-expression.\"",
-        "ISO §2023:13.18.53.3 / §2023:13.18.53.4");
+        "ISO §2023:13.18.53.3 / §2023:13.18.53.4",
+        No1985Rule: "The SOURCE clause of ANSI X3.23-1985 names an identifier (§1985:XIII.3.18.2: SOURCE IS identifier-1): an "
+            + "arithmetic-expression and the ROUNDED phrase of the SOURCE clause, and so the rule that the entry then define a numeric "
+            + "item, begin in COBOL-2002, so there is no 1985 rule to cite (kb/Work PB4950).");
 
     /// <summary>COBOL2142 — a multi-operand SOURCE clause with at least one arithmetic-expression operand
     /// whose operands are not each parenthesized (ISO §2023:13.18.53.3 SR7). The rule is what makes the operand LIST
@@ -9087,7 +9092,9 @@ public static class DiagnosticCatalog
         "COBOL1507", "function-id-returning-required", EditionSeverity.Error,
         "A function definition or prototype specifies no RETURNING phrase in its procedure division header. A function "
         + "delivers its result through the RETURNING item (§2023:14.2).",
-        "ISO §2023:14.2");
+        "ISO §2023:14.2",
+        No1985Rule: "A function definition (FUNCTION-ID) and a function prototype are not in ANSI X3.23-1985: it has no "
+            + "user-defined functions, so there is no 1985 rule to cite; the facility begins in COBOL-2002 (kb/Work PB4950).");
 
     /// <summary>COBOL1508 — function id duplicated (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor FunctionIdDuplicated = new(
@@ -9381,7 +9388,10 @@ public static class DiagnosticCatalog
         "The method name literal of an INVOKE statement is not an alphanumeric or national literal, is zero-length, or "
         + "the invoked operand is neither a data item nor a class the source element may reference. §2023:14.9.23.3 SR2: "
         + "\"Literal-1 shall be of class alphanumeric or national and shall not be a zero-length literal.\"",
-        "ISO §2023:14.9.23.3 SR2");
+        "ISO §2023:14.9.23.3 SR2",
+        No1985Rule: "The INVOKE statement, method names and object references are not in ANSI X3.23-1985 (its Procedure Division "
+            + "has no INVOKE and its CALL names a program, not a method), so there is no 1985 rule to cite; the statement begins in "
+            + "COBOL-2002 (kb/Work PB4950).");
 
     /// <summary>COBOL0824 — the receiver of an INVOKE is not an object reference (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor InvokeReceiverNotObjectReference = new(

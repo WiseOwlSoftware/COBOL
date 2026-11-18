@@ -582,7 +582,7 @@ public sealed class Frontend
             var blockReports = new DiagnosticBag();
             var blockListener = new CobolErrorListener(blockReports, sourcePath, LineMap, cuts);
             embeddedBlocks.Report((exec, message) =>
-                blockListener.SyntaxError(TextWriter.Null, null!, exec, exec.Line, exec.Column, message, null!));
+                blockListener.SyntaxError(TextWriter.Null, null!, exec, exec.Line, exec.Column, message, null!), edition);
             diagnostics.AddBeforeEffects(blockReports.Diagnostics, parseStart);
         }
 
