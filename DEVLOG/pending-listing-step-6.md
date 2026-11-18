@@ -39,4 +39,9 @@ mutations each turned their test red and were reverted (conditions dropped, the 
 marked, the table finished whatever the request, INITIAL read as COMMON, the class halves not walked, the section dropped
 from the text order).
 
-**Measured** (`CompileBenchmarks.ListingMode.All`, the README's step-6 table): MEASUREMENT.
+**Measured** (`CompileBenchmarks.ListingMode.All`, the README's step-6 table, with the parent commit run beside it): every
+section in both formats is +11.1 to +20.2 % over no listing on a full compile (budget 25 %); no-listing rows within 0.6 MB of
+the parent's. The first run finished every declared name for the standard listing, which reads only the program entries, and
+put SM201A's standard text listing at +12.6 %; `EditionContext.RecordsNames` now gates the names to the data map. SM201A's
+standard row still reads +11.2 % on the second run from a no-listing full compile 2.07 MB under the parent's for the same code
+(+5.2 % against the parent's), filed as a lead on the measurement.

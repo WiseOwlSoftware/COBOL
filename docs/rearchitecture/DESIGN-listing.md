@@ -1376,6 +1376,12 @@ renderer. Naming it asks for a listing at any edition.
   budget, and step 5's own cost, in the front end and bind with a listing, is +0.38 to +0.65 MB per program over step 4a's
   `Text` rows. It adds no no-listing work (the statements are read only under `Frontend.RecordsListing`, the options rows only
   in the driver's listing branch), and the `None` rows are within 0.23 MB of step 4a's.
+  (Step 6:) the `All` row (every section, text and JSON) is +11.1 to +20.2 % over `None` on a full compile, inside its 25 %
+  budget; the `None` rows of the front end and bind are within 0.6 MB of the parent commit's, measured beside them on the same
+  host (the README's step-6 table). The standard listing finishes only the program entries of the symbol table
+  (`EditionContext.RecordsNames`, section 6.6); SM201A's `Text` full compile reads +11.2 % over `None` on the run, from a `None`
+  row 2.07 MB under the parent's for the same code, and +5.2 % against the parent's (kb/Work PB5925's lead
+  `2026-11-18-full-compile-allocation-noise`).
 
 ## 10. Test plan
 

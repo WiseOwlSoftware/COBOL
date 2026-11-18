@@ -503,6 +503,35 @@ by several MB both ways (NC105A's `Text` is 4.8 MB under step 4a's, NC218A's `Te
 variation. The front end and bind with `Text` is 11 to 16 % over `None`, as it was before step 5 (10.2 to 14.2 % at step 4a):
 that ratio is of the front end alone, where the listing's work is, and the budget is the compile's. Time rows are not shown:
 StdDev was up to 51 % of the mean (kb/Work PB5927).
+
+**Step 6 (kb/Work PB5925, the data map from the symbol table): the `All` row.** Step 6 adds `ListingMode.All` (every section,
+the data map included, in text and JSON). Measured on 2026-11-18, Release, one Windows host, one full run of
+`dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*` on the `listing-step-6`
+branch (32 cases) and one on its parent `0d4042678a` (24 cases, no `All`), the parent's in parentheses. Allocated bytes per
+compile:
+
+| Program | Method | None | Text | TextAndJson | All | Text over None | All over None |
+|---|---|---|---|---|---|---|---|
+| IX113A | FrontEndAndBind | 68.63 (68.69) MB | 76.42 (76.34) MB | 85.32 (85.19) MB | 96.60 MB | +11.4 % | +40.8 % |
+| IX113A | FullCompile | 169.36 (173.08) MB | 180.54 (182.69) MB | 192.23 (192.23) MB | 203.37 MB | +6.6 % | +20.1 % |
+| NC105A | FrontEndAndBind | 35.28 (34.69) MB | 39.14 (39.60) MB | 44.44 (44.39) MB | 46.32 MB | +10.9 % | +31.3 % |
+| NC105A | FullCompile | 102.42 (103.39) MB | 111.50 (107.56) MB | 111.45 (115.50) MB | 114.09 MB | +8.9 % | +11.4 % |
+| NC218A | FrontEndAndBind | 30.83 (31.15) MB | 34.88 (35.43) MB | 40.23 (39.58) MB | 40.98 MB | +13.1 % | +32.9 % |
+| NC218A | FullCompile | 100.19 (100.33) MB | 100.95 (100.18) MB | 105.47 (109.30) MB | 111.36 MB | +0.8 % | +11.1 % |
+| SM201A | FrontEndAndBind | 15.10 (15.57) MB | 17.05 (17.22) MB | 19.18 (19.27) MB | 21.06 MB | +12.9 % | +39.5 % |
+| SM201A | FullCompile | 35.76 (37.83) MB | 39.78 (39.89) MB | 41.75 (41.80) MB | 42.99 MB | +11.2 % | +20.2 % |
+
+Reading them: every section in both formats (`All`) is +11.1 % to +20.2 % over no listing on a full compile, inside its 25 %
+budget (DESIGN-listing.md section 9); the data map's own cost is the front end and bind's `All` over `TextAndJson`, +0.75 to
++11.28 MB (the witness counts 164 names in NC218A's data map, 275 in NC105A's, 293 in SM201A's and 1,544 in IX113A's). Step 6 adds no no-listing work: the `None` rows of the front end and bind are within
+0.6 MB of the parent's, both ways. The standard text listing finishes only the program entries (`EditionContext.RecordsNames`);
+the first run of this step finished every name for it and put SM201A's `Text` at 40.32 MB (+12.6 %), which is why. On this run
+SM201A's `Text` full compile reads +11.2 % over `None`, over its 10 % budget, but the cause is the `None` row: step 6's
+`Text` is the parent's within 0.11 MB (39.78 against 39.89), and its `None` full compile is 2.07 MB under the parent's for the
+same no-listing code (35.76 against 37.83), the backend's run-to-run variation; against the parent's `None` it is +5.2 %, as
+step 5 measured. A full compile's allocation varies by about 2 MB between runs of one tree, which on SM201A's 36 MB is as large
+as the budget's margin (kb/Work PB5925's lead `2026-11-18-full-compile-allocation-noise`). Time rows are not shown (kb/Work
+PB5927).
 ---
 
 ## Not measured here
