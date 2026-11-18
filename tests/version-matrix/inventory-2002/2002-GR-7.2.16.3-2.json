@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.16.3-2",
+ "rule-digest": "8473ceb9d473",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/TextStageTrace.cs#PageDirective; src/WiseOwl.Cobol.Compiler/Listing/DirectiveEffectsBuilder.cs#Build; src/WiseOwl.Cobol.Compiler/Listing/ListingVisibility.cs#Apply; src/WiseOwl.Cobol.Listing/Text/PageComposer.cs#Compose",
+ "test-ref": "conformance-test:Listing2002Tests.APageDirective_EjectsAPage_ThenIsListed_ButNotUnderListingOff; unit:ListingVisibilityTests.APageDirective_StartsAPage_OnlyWhereItIsListed",
+ "notes": "kb/Work PB5925 (listing step 4b of docs/rearchitecture/DESIGN-listing.md, 2026-11-18), judged by the 2002 text. §2002:7.2.16.3 GR2: \"If a source listing is being produced, a PAGE directive shall cause page ejection followed by listing of the PAGE directive.\" The listed PAGE line has PageBreakBefore and is the first row of the page the text listing starts with a form feed; witnessed at --std 2002."
+}

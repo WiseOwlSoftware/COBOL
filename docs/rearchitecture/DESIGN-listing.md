@@ -3,8 +3,9 @@
 > **Status: DESIGN, APPROVED BY THE CODEBASE OWNER (Claude, CLAUDE.md "Ownership"; decision kb/Work PB5925). STEP 1 BUILT
 > (the 1985 standard minimum, kb/Work PB5923, branch `listing-step-1`); STEP 2 BUILT (the JSON listing and its schema, branch
 > `listing-step-2`); STEP 3 BUILT (diagnostics, branch `listing-step-3`); STEP 4a BUILT (the directive hooks, witnessed at 2023,
-> branch `listing-step-4a`); steps 4b to 9 not yet built.** Where building a step proved this document wrong it was corrected
-> in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)" or "(step 4a)" in the section it changed.
+> branch `listing-step-4a`); STEP 4b BUILT (the hooks witnessed at 2002 and 2014, branch `listing-step-4b`); steps 5 to 9 not
+> yet built.** Where building a step proved this document wrong it was corrected in the same change; each correction is
+> marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)" or "(step 4b)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -87,7 +88,15 @@ at GAP: `2002-FMT-7.2.15.1`, `2002-FMT-7.2.16.1` (the LISTING and PAGE formats),
 `2002-GR-7.2.15.2-2`, `-3`, `-4`, `-5`, `2002-GR-7.2.16.3-2`, `2002-RV-15.80.2-3`, `2002-DOC-B.1-90` and
 `2002-DOC-B.1-165` (`2002-GR-7.2.15.2-1` and `2002-GR-7.2.16.3-1`, `-3` are OK). Step 4b (section 11) builds the
 behaviour they need and adjudicates all twelve. 2014 has no inventory (no rule catalog), so its rules are met by the
-same code and witnessed by `Listing2014Tests`, with no rows to close. Steps 4a and 4b are built in order with the rest
+same code and witnessed by `Listing2014Tests`, with no rows to close. (Step 4b:) the behaviour needed no code: step 4a's
+trace and visibility rules are edition-neutral, and both editions' rules are the 2023 sentences (each re-read and checked
+in its own text; 2002 and 2014 have no PUSH, POP or DISPLAY directive and no exception-checking PERFORM). Ten of the twelve
+rows are CONFORMS with `Listing2002Tests` as witnesses, and `2002-GR-7.2.15.2-1`'s prose, which said no listing is
+produced, is restated. The two DOC rows, `2002-DOC-B.1-90` and `2002-DOC-B.1-165`, could not close: a 2002 DOC row's
+CONFORMS owes its own register anchor `docs/CONFORMANCE.md#2002-DOC-B.1-<n>`, and section 7 of the statement is the 2023
+A.1 register, whose audit refuses any other key (kb/Work PB5930, which holds both rows; it blocks every 2002 DOC row). Their
+determinations are documented all the same, in DOC-A.1-117 and DOC-A.1-200, which name B.1 items 90 and 165 and 2014's A.1
+items 106 and 182. Steps 4a and 4b are built in order with the rest
 (section 11; owner order 2026-11-18).
 
 2002 removed DATE-COMPILED ("AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, and SECURITY paragraphs", §2002:F.1), so
@@ -1196,6 +1205,9 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
   (Step 4a:) step 4a also touches the no-listing path (the driver carries the LISTING state for PUSH / POP; DISPLAY's LISTING
   destination is a stream of its own; the replacing actions take a null match observer), so it measures `None` against its
   parent: the front end and bind allocate within 0.21 MB of the parent on all four programs (the README's step-4a table).
+  (Step 4b:) step 4b is not in the list above and changes no product code (`git diff --stat` of its branch against its
+  parent touches no file under `src/`), so no cost moved and nothing was measured; a benchmark run would compare identical
+  assemblies.
 
 ## 10. Test plan
 
@@ -1227,6 +1239,11 @@ captured listing.
    and §2002:7.1.2.3 GR4, GR5, the '/' line (§2002:6.2.6.1) and WHEN-COMPILED (§2002:15.80.2 RV3); they are the witnesses
    of the twelve 2002 rows of section 2.2. `Listing2014Tests.cs`: the same against §2014:7.3.16.2 GR2-GR5, §2014:7.3.17.3
    GR2, GR3, §2014:7.2.2.3 GR4, GR5 and §2014:15.92.2 RV3. No DISPLAY case at 2002 or 2014: the directive is new in 2023.
+   (Step 4b:) a hook whose rule is the same sentence in the three editions is ONE body, `ListingHookCases` (Conformance,
+   parameterized by edition), and each edition's class holds a fact per hook that cites its OWN edition's rule and calls
+   that body; `Listing2023Tests`' four shared cases call it too, and it gains the PAGE-with-no-listing, '/' line and
+   WHEN-COMPILED cases at §2023:7.3.19.4 GR3, §2023:6.3.7.2 and §2023:15.99.3 RV3. The GR5 case covers both directions (an
+   OFF in library text copied under ON, an ON in library text copied under OFF).
 3. **Provenance.** A copybook copied twice with different REPLACING: two blocks, each `R` row's compiled text equal to
    the replacement the test wrote; a diagnostic in the second copy is anchored in the second block. Omitted lines of a
    false `>>IF` are marked and listed.
@@ -1342,7 +1359,7 @@ summary; `ListingCitation` and the `citations` field (section 6.3, 7.3).
 derivations that rest on "no listing" (`DRV-GR-7.3.18.3-2..5`, `DRV-GR-7.3.19.4-2`, `DRV-GR-7.2.3.4-4/-5`) are retired and
 witnessed by `Listing2023Tests`. The code is edition-neutral: the same trace and visibility rules serve 2002 and 2014.
 
-**Step 4b - 2002 and 2014.** `tests/WiseOwl.Cobol.Tests.Conformance/Listing/Listing2002Tests.cs`
+**Step 4b - 2002 and 2014. BUILT (branch `listing-step-4b`; the corrections above marked "step 4b").** `tests/WiseOwl.Cobol.Tests.Conformance/Listing/Listing2002Tests.cs`
 and `Listing2014Tests.cs` (section 10 item 2), each citing its own edition's rules (memory rule: each edition stands on
 its own text); the records change adjudicates the twelve 2002 rows of section 2.2 (`2002-FMT-7.2.15.1`,
 `2002-FMT-7.2.16.1`, `2002-GR-7.1.2.3-4`, `-5`, `2002-GR-7.2.15.2-2` to `-5`, `2002-GR-7.2.16.3-2`, `2002-RV-15.80.2-3`,

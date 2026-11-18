@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-7.2.16.1",
+ "rule-digest": "61d700a96c64",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/TextStageTrace.cs#PageDirective",
+ "test-ref": "conformance:cases/7.3.18-LISTING/pb725_directive_facility",
+ "notes": "kb/Work PB5925 (listing step 4b of docs/rearchitecture/DESIGN-listing.md, 2026-11-18), judged by the 2002 text. §2002:7.2.16.1 is >>PAGE with an optional comment-text-1, which §2002:7.2.16.2 SR2 leaves unchecked. The witnesses compile '>>PAGE THE DATA ITEMS FOLLOW', '>>PAGE NOT LISTED' and '>>PAGE NO LISTING' at --std 2002 with no diagnostic, and the listed one ejects a page and is listed (§2002:7.2.16.3 GR2). Own witness: pb725_directive_facility, which writes '>>LISTING ON' and '>>PAGE' with comment-text at --std 2002 and matches its golden; the listing facts at 2002 are Listing2002Tests (a conformance-test class, which the lineage check does not take as a KEPT row's own witness)."
+}

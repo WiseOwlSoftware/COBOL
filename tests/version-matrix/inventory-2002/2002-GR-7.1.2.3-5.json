@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-5",
+ "rule-digest": "6a60a1e5b941",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#RenderCopybook; src/WiseOwl.Cobol.Frontend/Preprocessor/TextStageTrace.cs#ListingRestoredAtInclusionEnd; src/WiseOwl.Cobol.Compiler/Listing/DirectiveEffectsBuilder.cs#Build; src/WiseOwl.Cobol.Compiler/Listing/ListingVisibility.cs#Apply",
+ "test-ref": "conformance-test:Listing2002Tests.TheListingStateAtTheCopy_IsInEffectAfterTheLibraryText",
+ "notes": "kb/Work PB5925 (listing step 4b of docs/rearchitecture/DESIGN-listing.md, 2026-11-18), judged by the 2002 text. §2002:7.1.2.3 GR5: \"At the completion of copying the library text into the compilation group, the LISTING directive that is in effect for the COPY statement itself is considered to be in effect, regardless of any LISTING directives in the library text.\" The conditional-compilation driver takes the LISTING state at the COPY and puts it back at the end of the library text (ConditionalCompilationProcessor.Run.RenderCopybook). The witness covers both directions at --std 2002: an OFF inside library text copied under ON does not hide the lines after the COPY, and an ON inside library text copied under OFF does not list them; it is red with the restore disabled."
+}

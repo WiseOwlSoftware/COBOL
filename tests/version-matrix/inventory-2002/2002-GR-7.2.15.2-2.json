@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.15.2-2",
+ "rule-digest": "c7fbe9db35ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#listing-directive-2002; src/WiseOwl.Cobol.Compiler/Listing/ListingVisibility.cs#Apply",
+ "test-ref": "conformance-test:Listing2002Tests.ListingOff_StopsTheLinesAfterIt_UntilOn_AndEveryListingDirectiveIsListed; unit:ListingVisibilityTests.ListingOff_StopsTheLinesAfterIt_EveryListingDirectiveIsListed_AndOnResumes",
+ "notes": "kb/Work PB5925 (listing step 4b of docs/rearchitecture/DESIGN-listing.md, 2026-11-18), judged by the 2002 text. The compiler produces a source listing on request at --std 2002 (cobol --listing; DOC-A.1-117, B.1 item 90), so §2002:7.2.15.2 GR1's \"Otherwise, the following general rules apply\" holds and the row is decided by the listing. GR2: \"The default LISTING directive is '>>LISTING ON'.\" The driver's LISTING state starts ON (ConditionalCompilationProcessor.Run._listingOn) and so does the visibility pass; the witness lists every line before its first LISTING OFF."
+}
