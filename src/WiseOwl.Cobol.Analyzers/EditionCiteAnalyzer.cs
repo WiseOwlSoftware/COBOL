@@ -22,8 +22,8 @@ namespace WiseOwl.Cobol.Analyzers;
 /// the program. The derivation repeats until nothing changes, across the files of the compilation. <c>EditionInfo</c>'s own file is
 /// the decider: it is neither scanned nor derived from (its <c>bool</c> properties are named rule facts).</para>
 /// <para><b>ACROSS ASSEMBLIES, BY ATTRIBUTE.</b> An analyzer sees one compilation, and a referenced assembly is metadata with no bodies to
-/// derive from. So a derived member another assembly can read (public, or protected in a public type: the products grant
-/// <c>InternalsVisibleTo</c> only to tests) must carry <c>[EditionDerived]</c> (<see cref="UnmarkedId"/>, an error where it is
+/// derive from. So a derived member another assembly can read (public or protected all the way out, or internal in an assembly that
+/// grants <c>InternalsVisibleTo</c> to an assembly that is not a test, read from the compilation's own attributes) must carry <c>[EditionDerived]</c> (<see cref="UnmarkedId"/>, an error where it is
 /// declared; a seed, which every compilation knows by name, needs none), and a referenced member that carries it is derived in the compilation that reads it. The rule that requires the mark
 /// is the one that computes the need for it, so the set cannot drift. The attribute is matched by its name,
 /// <c>EditionDerivedAttribute</c>, in any namespace (<c>WiseOwl.Cobol.Runtime.EditionDerivedAttribute</c> is the products' one).</para>
@@ -59,13 +59,13 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         "A string chosen by edition outside EditionInfo.Cite",
         "This {0} chooses a string by edition, directly or through an alias of the edition; write it as "
         + "EditionInfo.Cite(y1985, later[, y2002][, y2014]) (kb/Work PB4950, docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a)",
-        "WiseOwl.Editions", DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: [WellKnownDiagnosticTags.CompilationEnd]);
+        "WiseOwl.Editions", DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: [WellKnownDiagnosticTags.CompilationEnd, WellKnownDiagnosticTags.NotConfigurable]);
 
     private static readonly DiagnosticDescriptor Unmarked = new(UnmarkedId,
         "An edition-derived member another assembly can read is not marked [EditionDerived]",
         "'{0}' answers an edition question and another assembly can read it; mark it [EditionDerived] so the compilations that read it "
         + "derive from it (kb/Work PB4950, docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a)",
-        "WiseOwl.Editions", DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: [WellKnownDiagnosticTags.CompilationEnd]);
+        "WiseOwl.Editions", DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: [WellKnownDiagnosticTags.CompilationEnd, WellKnownDiagnosticTags.NotConfigurable]);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = [Choice, Unmarked];
 
@@ -78,7 +78,8 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.RegisterCompilationStartAction(start =>
         {
-            var state = new State(start.Compilation.GetTypeByMetadataName(EditionInfoName));
+            var state = new State(start.Compilation.GetTypeByMetadataName(EditionInfoName),
+                InternalsReachAnotherProduct(start.Compilation.Assembly));
             start.RegisterSemanticModelAction(sm => state.Collect(sm.SemanticModel, sm.CancellationToken));
             start.RegisterCompilationEndAction(state.Report);
         });
@@ -104,7 +105,7 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         public bool DerivedOnly { get; } = derivedOnly;
     }
 
-    private sealed class State(INamedTypeSymbol? editionInfo)
+    private sealed class State(INamedTypeSymbol? editionInfo, bool internalsReachAnotherProduct)
     {
         private readonly HashSet<string> _seedNames = SeedNames(editionInfo);
         private readonly ConcurrentBag<Declaration> _declarations = [];
@@ -266,7 +267,8 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
                 if (c.DerivedOnly ? c.Reads.Any(Derived) : c.Fires || c.Reads.Any(s => IsSeed(s) || Derived(s)))
                     end.ReportDiagnostic(Diagnostic.Create(Choice, c.Location, c.Kind));
             foreach (var d in declarations)
-                if (derived.Contains(d.Declared) && !IsSeed(d.Declared) && VisibleToAnotherAssembly(d.Declared) && !IsMarked(d.Declared))
+                if (derived.Contains(d.Declared) && !IsSeed(d.Declared) && VisibleToAnotherAssembly(d.Declared, internalsReachAnotherProduct)
+                    && !IsMarked(d.Declared))
                     end.ReportDiagnostic(Diagnostic.Create(Unmarked, d.Declared.Locations.FirstOrDefault(), d.Declared.ToDisplayString()));
         }
     }
@@ -280,14 +282,29 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
             || path.EndsWith(".g.cs", StringComparison.Ordinal);
     }
 
-    /// <summary>Public, or protected in a public type, all the way out: the products grant <c>InternalsVisibleTo</c> only to tests.</summary>
-    private static bool VisibleToAnotherAssembly(ISymbol symbol)
+    /// <summary>Whether another assembly can read the member: public or protected all the way out; or internal, when the compilation
+    /// grants <c>InternalsVisibleTo</c> to another product assembly (<paramref name="internalsReachAnotherProduct"/>).</summary>
+    private static bool VisibleToAnotherAssembly(ISymbol symbol, bool internalsReachAnotherProduct)
     {
         for (ISymbol? s = symbol; s is not null and not INamespaceSymbol; s = s.ContainingSymbol)
-            if (s.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Protected or Accessibility.ProtectedOrInternal))
-                return false;
+        {
+            bool outward = s.DeclaredAccessibility is Accessibility.Public or Accessibility.Protected or Accessibility.ProtectedOrInternal;
+            bool internalToAProduct = internalsReachAnotherProduct
+                && s.DeclaredAccessibility is Accessibility.Internal or Accessibility.ProtectedAndInternal;
+            if (!outward && !internalToAProduct) return false;
+        }
         return true;
     }
+
+    /// <summary>Whether the assembly grants <c>InternalsVisibleTo</c> to an assembly that is not a test assembly, read from the
+    /// compilation's own attributes (the SDK writes a csproj's <c>InternalsVisibleTo</c> items into them). A test assembly is one
+    /// whose name has a dotted segment that is <c>Tests</c> or ends in it (<c>WiseOwl.Cobol.Tests.Unit</c>): a test reads the product
+    /// but is no compilation this analyzer judges. Any other grantee is taken for a product, the safe direction (a mark more, never a
+    /// derivation missed).</summary>
+    private static bool InternalsReachAnotherProduct(IAssemblySymbol assembly) =>
+        assembly.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "System.Runtime.CompilerServices.InternalsVisibleToAttribute"
+            && a.ConstructorArguments.Length == 1 && a.ConstructorArguments[0].Value is string grantee
+            && !grantee.Split(',')[0].Trim().Split('.').Any(segment => segment.EndsWith("Tests", StringComparison.Ordinal)));
 
     /// <summary>Whether <paramref name="e"/> can answer null: the null literal, or an arm of a conditional or switch expression that can.</summary>
     private static bool YieldsNull(ExpressionSyntax e) => e switch

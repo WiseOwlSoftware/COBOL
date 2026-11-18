@@ -16,9 +16,22 @@ asks it, `EditionCitationNet`, was laid as a ratchet of 298 codes and 1638 diagn
 - **One decider, enforced by the build.** A Roslyn analyzer (`src/WiseOwl.Cobol.Analyzers`, loaded by every `src` project)
   computes the edition-derived values of each real compilation as a fixed point, aliases included, and makes any other choice
   of words by edition a build error (WOCA0001). A derived member another assembly reads carries `[EditionDerived]` (WOCA0002),
-  so the derivation crosses projects. Three merge reds came from a test that rebuilt the compilation by hand; the analyzer
-  replaced it. Every quotation a COBOL-85 message carries
-  was checked against the 1985 rule it cites, over the rendered diagnostics of every refusal at 85.
+  so the derivation crosses projects. That covers public members, and internal ones when the assembly grants
+  `InternalsVisibleTo` to another product. Three merge reds came from a test that rebuilt the compilation by hand; the
+  analyzer replaced it. Every quotation a COBOL-85 message carries was checked against the 1985 rule it cites, over the
+  rendered diagnostics of every refusal at 85.
+- **The analyzer misses no tree, no project, and no build, and cannot be silenced.**
+  - It reads generated files (the ANTLR parser, the `*.Table.cs` files) like any other.
+  - `AnalyzerWiringDriftTests` has MSBuild evaluate every src project in Debug and Release. Each must load the analyzer pinned
+    to one configuration and must leave analyzers on.
+  - Both rules are `NotConfigurable`, so NoWarn, a lowered severity, `.editorconfig`, `.globalconfig` and `#pragma` cannot turn
+    them off. `[SuppressMessage]`, the one form the tag does not stop, is refused in the tree, along with any line naming a
+    rule to silence it.
+  - The analyzer is built under one configuration in every build: every reference pins it to Release, and a nested build such
+    as the runtime's per-platform ReadyToRun publish builds no references. This ends a CS2012 race and a Release build that was
+    never incremental. A self-test builds the runtime in Release twice to hold it.
+  - The held-output target that keeps a language server's lock from failing a build is defined once, for every src Roslyn
+    component.
 - **The net is a plain rule.** The ratchet file is deleted. Any later-edition-only citation at 85 fails, unless it is an edition
   gate or its descriptor records `No1985Rule` (docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a).
 

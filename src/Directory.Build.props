@@ -12,16 +12,21 @@
     (WOCA0001, one decider of a message's words by edition, docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a) is a build ERROR in the
     compilation MSBuild actually builds: its sources, its SDK-supplied generators' output, its references. Item conditions
     are evaluated after every property, so the project's own IsRoslynComponent is already set here.
-    ⛔ The platform-specific global properties do not reach the analyzer build (GlobalPropertiesToRemove). The runtime publishes one
-    ReadyToRun image per platform in parallel (RuntimeIdentifier and PublishDir differ per publish), and each publish resolves this
-    reference. With those properties flowing, each was a distinct build of the analyzer project, and both wrote the one
-    obj/Release/netstandard2.0 assembly at once (CS2012 "being used by another process", kb/Work PB4950 round 9). Without them
-    every publish asks for the same build, and MSBuild builds it once. The analyzer is platform-neutral, so nothing it builds differs.
+    ⛔ ONE CONFIGURATION BUILDS THE ANALYZER, whatever the referencing build passes (kb/Work PB4950 rounds 9 and 10). MSBuild
+    hands a referenced project every global property of the build that references it, and it can drop only a NAMED list of
+    them, never all of them. So two rules hold instead. Every reference pins the analyzer to Release (SetConfiguration): a build
+    tool has one configuration, and the caller's is not its. And a nested build of a src project builds no references
+    (BuildProjectReferences=false): the outer build of that project has built them, and the nested build only re-compiles the
+    project itself (the runtime's per-platform ReadyToRun publishes). Before these rules each nested publish built the analyzer
+    again, as another configuration, into the one obj/Release/netstandard2.0. Two builds wrote it at once (CS2012), and the
+    differing assembly attributes made every Release build recompile it. scripts/test_analyzer_builds_once.py builds the runtime
+    in Release twice and requires the analyzer built under exactly one configuration and not rebuilt on an unchanged tree.
+    AnalyzerWiringDriftTests refuses a nested MSBuild call in src that omits BuildProjectReferences=false.
   -->
   <ItemGroup Condition="'$(IsRoslynComponent)' != 'true'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj"
                       OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all"
-                      GlobalPropertiesToRemove="RuntimeIdentifier;PublishDir;SelfContained" />
+                      SetConfiguration="Configuration=Release" />
   </ItemGroup>
 
 </Project>

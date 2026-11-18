@@ -63,6 +63,83 @@ public sealed class EditionCiteAnalyzerTests
             .Select(x => $"{x.Span.Path}:{x.Span.StartLinePosition.Line + 1}: {x.Diagnostic.Id} {Kind(x.Diagnostic)}")];
     }
 
+    /// <summary>A diagnostic option for every tree, as a <c>.editorconfig</c> (per tree) or a <c>.globalconfig</c> (global) sets one.</summary>
+    private sealed class ConfiguredSeverity(string id, ReportDiagnostic severity, bool global) : SyntaxTreeOptionsProvider
+    {
+        public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken) => GeneratedKind.Unknown;
+
+        public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken,
+            out ReportDiagnostic severity1) => Configured(diagnosticId, !global, out severity1);
+
+        public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken,
+            out ReportDiagnostic severity1) => Configured(diagnosticId, global, out severity1);
+
+        private bool Configured(string diagnosticId, bool applies, out ReportDiagnostic configured)
+        {
+            configured = severity;
+            return applies && diagnosticId == id;
+        }
+    }
+
+    /// <summary>The analyzer's diagnostics that survive every filter the compiler applies (compilation options, configured severities,
+    /// <c>#pragma</c>, <c>[SuppressMessage]</c>), each as "id severity".</summary>
+    private static IReadOnlyList<string> Surviving(string source, Func<CSharpCompilationOptions, CSharpCompilationOptions> configure)
+    {
+        var options = configure(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
+            nullableContextOptions: NullableContextOptions.Enable));
+        var compilation = CSharpCompilation.Create("planted",
+            [CSharpSyntaxTree.ParseText(Decider, Parse, path: "EditionInfo.cs"), CSharpSyntaxTree.ParseText(source, Parse, path: "planted.cs")],
+            Framework, options);
+        var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+        Assert.True(errors.Count == 0, "the planted source does not bind:\n" + string.Join("\n", errors.Take(20)));
+        return [.. compilation.WithAnalyzers([new EditionCiteAnalyzer()]).GetAllDiagnosticsAsync().GetAwaiter().GetResult()
+            .Where(d => d.Id.StartsWith("WOCA", StringComparison.Ordinal) && !d.IsSuppressed)
+            .Select(d => $"{d.Id} {d.Severity}")];
+    }
+
+    /// <summary>⛔ THE RULES CANNOT BE SILENCED (kb/Work PB4950 round 10). Both carry <see cref="WellKnownDiagnosticTags.NotConfigurable"/>,
+    /// so NoWarn, a severity lowered to warning (the only way WarningsNotAsErrors could reach one), a <c>.editorconfig</c> or
+    /// <c>.globalconfig</c> severity and <c>#pragma warning disable</c> neither turn one off nor lower it below an error, just as the
+    /// test the analyzer replaced could not be silenced. Each form is planted here and the error survives it. Without the tag every
+    /// one of them silenced the rule.</summary>
+    [Theory]
+    [InlineData("none")]
+    [InlineData("NoWarn")]
+    [InlineData("warning")]
+    [InlineData("editorconfig")]
+    [InlineData("globalconfig")]
+    [InlineData("pragma")]
+    public void NoFormOfSilencing_SilencesARule(string form)
+    {
+        const string choice = """string A(EditionInfo e) => e.Year < 2002 ? "ISO §1985:VI" : "ISO §2023:8";""";
+        string source = form switch
+        {
+            "pragma" => "using WiseOwl.Cobol.Editions;\nclass C\n{\n#pragma warning disable WOCA0001\n    " + choice + "\n#pragma warning restore WOCA0001\n}\n",
+            _ => "using WiseOwl.Cobol.Editions;\nclass C\n{\n    " + choice + "\n}\n",
+        };
+        Func<CSharpCompilationOptions, CSharpCompilationOptions> configure = form switch
+        {
+            "NoWarn" => o => o.WithSpecificDiagnosticOptions([new("WOCA0001", ReportDiagnostic.Suppress)]),
+            "warning" => o => o.WithSpecificDiagnosticOptions([new("WOCA0001", ReportDiagnostic.Warn)]),
+            "editorconfig" => o => o.WithSyntaxTreeOptionsProvider(new ConfiguredSeverity("WOCA0001", ReportDiagnostic.Suppress, global: false)),
+            "globalconfig" => o => o.WithSyntaxTreeOptionsProvider(new ConfiguredSeverity("WOCA0001", ReportDiagnostic.Suppress, global: true)),
+            _ => o => o,
+        };
+        Assert.Equal(["WOCA0001 Error"], Surviving(source, configure));
+    }
+
+    /// <summary>The one form <see cref="WellKnownDiagnosticTags.NotConfigurable"/> does not stop: <c>[SuppressMessage]</c> is applied by
+    /// the analyzer driver, after the tag is read. So it is refused where it is written (AnalyzerWiringDriftTests'
+    /// <c>NoSourceOrConfiguration_NamesARuleToSilenceIt</c> scans every product source). This test pins the premise of that scan:
+    /// if a later Roslyn honors the tag here too, it goes red, and the scan can go.</summary>
+    [Fact]
+    public void SuppressMessage_IsTheOneFormTheTagDoesNotStop_SoTheTreeRefusesIt()
+    {
+        const string source = "using WiseOwl.Cobol.Editions;\nclass C\n{\n    [System.Diagnostics.CodeAnalysis.SuppressMessage(\"WiseOwl.Editions\", "
+            + "\"WOCA0001\")]\n    string A(EditionInfo e) => e.Year < 2002 ? \"ISO §1985:VI\" : \"ISO §2023:8\";\n}\n";
+        Assert.Empty(Surviving(source, o => o));
+    }
+
     /// <summary>A WOCA0001 message names the shape ("This conditional expression chooses ..."); a WOCA0002 one names the member.</summary>
     private static string Kind(Diagnostic d)
     {
@@ -177,6 +254,30 @@ public sealed class EditionCiteAnalyzerTests
             """;
         Assert.Equal(["reader.cs:4: WOCA0001 conditional expression"],
             Analyze([MetadataReference.CreateFromImage(image.ToArray())], ("reader.cs", reader)));
+    }
+
+    /// <summary>An internal derived member is visible to another assembly when the compilation grants <c>InternalsVisibleTo</c> to a
+    /// product assembly (kb/Work PB4950 round 10), read from the compilation's own attributes: it must carry the mark. A grant to a
+    /// test assembly alone does not make it so.</summary>
+    [Theory]
+    [InlineData("WiseOwl.Cobol.Compiler", true)]
+    [InlineData("WiseOwl.Cobol.Compiler, PublicKey=0024000004800000", true)]
+    [InlineData("WiseOwl.Cobol.Tests.Unit", false)]
+    [InlineData("Other.IntegrationTests", false)]
+    public void AnInternalDerivedMember_IsMarked_WhenAProductIsGrantedItsInternals(string grantee, bool marked)
+    {
+        string library = $$"""
+            [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("{{grantee}}")]
+            namespace Lib;
+            using WiseOwl.Cobol.Editions;
+            internal static class Rules
+            {
+                internal static bool Old(EditionInfo e) => e.Year < 2002;
+                private static bool Hidden(EditionInfo e) => e.Year < 2002;
+            }
+            """;
+        Assert.Equal(marked ? ["library.cs:6: WOCA0002 Lib.Rules.Old(WiseOwl.Cobol.Editions.EditionInfo)"] : [],
+            Analyze([], ("EditionInfo.cs", Decider), ("library.cs", library)));
     }
 
     /// <summary>A tree with an auto-generated header (the ANTLR parser, a <c>*.Table.cs</c> file) is analyzed like any other (kb/Work

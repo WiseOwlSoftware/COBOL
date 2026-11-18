@@ -23,8 +23,9 @@
     <ProjectReference Include="..\..\src\WiseOwl.Cobol.Compiler\WiseOwl.Cobol.Compiler.csproj" />
     <ProjectReference Include="..\..\src\WiseOwl.Cobol.Runtime\WiseOwl.Cobol.Runtime.csproj" />
     <ProjectReference Include="..\..\src\WiseOwl.Cobol.Cli\WiseOwl.Cobol.Cli.csproj" />
-    <!-- The build's analyzers, as a library: EditionCiteAnalyzerTests runs each over planted source to prove it fires. -->
-    <ProjectReference Include="..\..\src\WiseOwl.Cobol.Analyzers\WiseOwl.Cobol.Analyzers.csproj" />
+    <!-- The build's analyzers, as a library: EditionCiteAnalyzerTests runs each over planted source to prove it fires. Pinned
+         to Release, as every reference to it is (src/Directory.Build.props): one configuration builds it. -->
+    <ProjectReference Include="..\..\src\WiseOwl.Cobol.Analyzers\WiseOwl.Cobol.Analyzers.csproj" SetConfiguration="Configuration=Release" />
   </ItemGroup>
 
 </Project>
