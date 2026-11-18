@@ -898,7 +898,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout); off = RecordLayout.Advance(off, p.FixedWidth); break;
                 case VarPartKind.NestedTable:
                 case VarPartKind.OdoTable:   // the components at the table's MAXIMUM: where compare / the boundary look for them
-                    for (int i = 0; i < p.Occurs; i++) ContiguousLayout(p.Item!, off + i * (p.FixedWidth / p.Occurs), layout);
+                    for (int i = 0; i < p.Occurs; i++) ContiguousLayout(p.Item!, RecordLayout.OccurrenceAt(off, i, p.FixedWidth / p.Occurs), layout);
                     off = RecordLayout.Advance(off, p.FixedWidth);
                     break;
                 case VarPartKind.OdoFixed:
@@ -1385,7 +1385,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             }
             using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
                 w.Line($"{f.Name}[__i] = {CarrierFromChars(f, RuntimeApi.NatReadWindow("__s",
-                    $"{off} + __i * {RuntimeApi.BytesPerNational * pos}", $"{pos}"))};");
+                    $"{off} + __i * {RecordLayout.ItemSize(RecordLayout.Product(RuntimeApi.BytesPerNational, pos))}", $"{pos}"))};");
             return;
         }
         if (f.Occurs == 0)

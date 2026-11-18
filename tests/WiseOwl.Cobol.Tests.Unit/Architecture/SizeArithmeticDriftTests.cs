@@ -56,6 +56,10 @@ public sealed class SizeArithmeticDriftTests
             new(@"\b" + LocalWidth + @"\s*\*\s*\(?(?:long\)\s*)?[A-Za-z_(]|[\w)]\s*\*\s*\(?(?:\(long\)\s*)?" + LocalWidth + @"\b",
                 RegexOptions.Compiled)),
         ("an offset accumulated by += or -= (RecordLayout.Advance)", new(@"\b(?:off|offset|running)\s*[+-]=", RegexOptions.Compiled)),
+        ("an occurrence stride computed by dividing a width by its count (RecordLayout.OccurrenceAt)",
+            new(@"\*\s*\([^()]*/\s*[\w.]*\bOccurs\s*\)", RegexOptions.Compiled)),
+        ("a national width multiplied (RecordLayout.Product)",
+            new(@"\bBytesPerNational\s*\*|\*\s*[\w.]*\bBytesPerNational\b", RegexOptions.Compiled)),
         ("a width clamped by (int)Math.Min (RecordLayout.ItemSize / SaturatedBound)",
             new(@"\(int\)\s*Math\.(?:Min|Clamp)\([^;]*(?:Width|Extent|RecordSize)", RegexOptions.Compiled)),
     ];
@@ -108,6 +112,8 @@ public sealed class SizeArithmeticDriftTests
     [InlineData("if (sib.RedefinesTargetName is null) off += Width(sib);")]
     [InlineData("long fixedUnits = bits ? 0 : RecordLayout.PhysicalWidth(record) - (long)elem * max;")]
     [InlineData("fixedPart -= (long)elem * max;")]
+    [InlineData("for (int i = 0; i < p.Occurs; i++) ContiguousLayout(p.Item!, off + i * (p.FixedWidth / p.Occurs), layout);")]
+    [InlineData("$\"{off} + __i * {RuntimeApi.BytesPerNational * pos}\", $\"{pos}\"))};\");")]
     public void TheBannedShapes_AreCaught(string line) => Assert.NotNull(ShapeOf(line));
 
     /// <summary>The narrowing accepts every measure an item within the limit has and refuses the next value, a negative one and a
