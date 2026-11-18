@@ -19,6 +19,9 @@ namespace WiseOwl.Cobol.Listing.Text;
 /// text's column, wrapped at the page width (<see cref="DiagnosticRows"/>). After the source section, on a page of its own, the
 /// summary: the counts by severity, then every diagnostic in listing order with its listing line, file, line and column
 /// (<see cref="SummaryRows"/>).</para>
+/// <para>Under a line a replacing action changed (marked 'R'), its compiled text in rows marked 'R' (<see cref="ReplacedRows"/>);
+/// after a DISPLAY directive's line, whether or not that line is printed, each transfer to the listing as
+/// <c>DISPLAY: text</c> (<see cref="DisplayRows"/>; DESIGN-listing.md section 6.10).</para>
 /// </summary>
 public static class TextListingRenderer
 {
@@ -43,11 +46,18 @@ public static class TextListingRenderer
         var banners = document.Inclusions.Where(i => firstLineOf.ContainsKey(i.Id)).ToDictionary(i => firstLineOf[i.Id]);
         var files = document.Files.ToDictionary(f => f.Id, f => f.Path);
         var diagnostics = document.Diagnostics.ToDictionary(d => d.Id);
+        var displays = document.Displays.ToLookup(d => d.Line);
 
         var rows = new List<ListingRow>();
         foreach (var line in document.Lines)
         {
-            if (!line.Listed || line.Replacement == ListingReplacement.DateCompiledEntry) continue;
+            // §2023:7.3.12.4 GR2: the transfer takes place "irrespective of whether it is suppressed by the LISTING directive".
+            if (!line.Listed || line.Replacement == ListingReplacement.DateCompiledEntry)
+            {
+                foreach (var display in displays[line.Number])
+                    rows.AddRange(DisplayRows(display).Select(row => new ListingRow(row, false, ProgramOf(line))));
+                continue;
+            }
             bool breakBefore = line.PageBreakBefore;
             if (banners.TryGetValue(line.Number, out var inclusion))
             {
@@ -69,11 +79,15 @@ public static class TextListingRenderer
                 rows.Add(new ListingRow(pieces == 0 ? SourceRow(line, piece) : ContinuationRow(piece), pieces == 0 && breakBefore, ProgramOf(line)));
                 pieces++;
             }
+            if (line.Replacement == ListingReplacement.Replacing)
+                rows.AddRange(ReplacedRows(line.Replaced ?? "").Select(row => new ListingRow(row, false, ProgramOf(line))));
             // The caret stands under the column only where the row shows the line whole and as written.
-            bool whole = pieces == 1 && line.Replacement == ListingReplacement.None;
+            bool whole = pieces == 1 && line.Replacement is ListingReplacement.None or ListingReplacement.Replacing;
             foreach (int id in line.Diagnostics)
                 foreach (string row in DiagnosticRows(diagnostics[id], whole ? line.Text : null, request.PageWidth))
                     rows.Add(new ListingRow(row, false, ProgramOf(line)));
+            foreach (var display in displays[line.Number])
+                rows.AddRange(DisplayRows(display).Select(row => new ListingRow(row, false, ProgramOf(line))));
         }
         var header = document.Header;
         var listing = new StringBuilder();
@@ -93,6 +107,34 @@ public static class TextListingRenderer
             (page, program) => [IdentificationLine(header, program, page, request.PageWidth), "DIAGNOSTICS", ""],
             firstPage: sourcePages + 1);
         return listing.ToString();
+    }
+
+    /// <summary>The rows under a line a replacing action changed (DESIGN-listing.md section 6.2): each line of its compiled text
+    /// <paramref name="replaced"/> in the source columns, marked 'R' in the marker column, a long one wrapped onto '+' rows; an
+    /// empty compiled text (the replacement removed what the line held) is one empty 'R' row.</summary>
+    public static IEnumerable<string> ReplacedRows(string replaced)
+    {
+        foreach (string resultant in replaced.Split('\n'))
+        {
+            bool first = true;
+            foreach (string piece in Wrap(resultant))
+            {
+                yield return first ? new string(' ', 8) + "R" + new string(' ', TextColumn - 10) + piece : ContinuationRow(piece);
+                first = false;
+            }
+        }
+    }
+
+    /// <summary>The rows of one DISPLAY directive transfer (DESIGN-listing.md section 6.10): <c>DISPLAY: text</c> in the source
+    /// columns, a long one wrapped onto '+' rows.</summary>
+    public static IEnumerable<string> DisplayRows(ListingDisplay display)
+    {
+        bool first = true;
+        foreach (string piece in Wrap("DISPLAY: " + display.Text))
+        {
+            yield return first ? new string(' ', TextColumn - 1) + piece : ContinuationRow(piece);
+            first = false;
+        }
     }
 
     /// <summary>The rows of one diagnostic under its line (DESIGN-listing.md section 6.3): a caret under its column when
@@ -223,12 +265,13 @@ public static class TextListingRenderer
     private const string Separator = "  ";
 
     /// <summary>The marker column of a row (DESIGN-listing.md section 6.2): 'X' omitted by conditional compilation, 'E' the
-    /// DATE-COMPILED replacement, '/' a page-eject comment line, '*' a comment line, 'D' a debugging line, '&gt;' a compiler
-    /// directive line, '-' a continuation line; a space otherwise.</summary>
+    /// DATE-COMPILED replacement, 'R' changed by REPLACE or COPY REPLACING, '/' a page-eject comment line, '*' a comment line,
+    /// 'D' a debugging line, '&gt;' a compiler directive line, '-' a continuation line; a space otherwise.</summary>
     public static char MarkerOf(ListingLine line) => line switch
     {
         { Omitted: true } => 'X',
         { Replacement: ListingReplacement.DateCompiled } => 'E',
+        { Replacement: ListingReplacement.Replacing } => 'R',
         { Kind: ListingLineKind.PageEjectComment } => '/',
         { Kind: ListingLineKind.Comment } => '*',
         { Kind: ListingLineKind.DebuggingLine } => 'D',

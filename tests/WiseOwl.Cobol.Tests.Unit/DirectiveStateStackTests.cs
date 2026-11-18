@@ -46,6 +46,7 @@ public sealed class DirectiveStateStackTests
         [Constructs.LeapSecondDirective2002] = LeapSecondIsRestored,
         [Constructs.DefineDirective2002] = DefineIsRestored,
         [Constructs.SourceFormatDirective2002] = SourceFormatIsRestored,
+        [Constructs.ListingDirective2002] = ListingIsRestored,
     };
 
     public static TheoryData<string> CarriedRows()
@@ -193,6 +194,30 @@ public sealed class DirectiveStateStackTests
             """, CnFrontend.LeftDirectives, new DiagnosticBag(), "t.cob", 2023);
         Assert.Contains("INSIDE-SAW-2", text);
         Assert.Contains("AFTER-SAW-1", text);
+    }
+
+    /// <summary>The LISTING state a PUSH saves (§2023:7.3.22.4 GR1) is restored by the POP (§2023:7.3.20.4 GR1): the driver,
+    /// which holds the state, records OFF in force inside (the control) and ON again at the POP, the change the source listing
+    /// replays (DESIGN-listing.md section 4.4). The listing's own end-to-end witness is <c>Listing2023Tests</c>.</summary>
+    private static void ListingIsRestored()
+    {
+        var trace = new TextStageTrace();
+        var copy = new CopyProcessor([], new DiagnosticBag(), dialectLevel: 2023, permissive: false, trace: trace);
+        ConditionalCompilationProcessor.ProcessWithCopy("""
+            >>LISTING ON
+            >>PUSH LISTING
+            >>LISTING OFF
+            INSIDE
+            >>POP LISTING
+            AFTER
+            """, copy, CnFrontend.LeftDirectives, new DiagnosticBag(), "t.cob", 2023);
+        Assert.Equal(
+            [
+                new TextListingSwitch(TextListingSwitchCause.Directive, true, null, 1),
+                new TextListingSwitch(TextListingSwitchCause.Directive, false, null, 3),
+                new TextListingSwitch(TextListingSwitchCause.Pop, true, null, 5),
+            ],
+            trace.ListingSwitches);
     }
 
     private static void SourceFormatIsRestored()

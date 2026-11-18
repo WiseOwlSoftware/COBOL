@@ -1515,8 +1515,10 @@ code:
   - **the conditional-compilation driver's state** — the compilation-variable table (§2023:7.3.22.4 GR3: "all instances
     of that directive are pushed") and the frontend-inline FLAG options. The driver runs BEFORE the parse, so
     `Frontend.Parse` is a FIXED POINT: `ConditionalCompilationProcessor.Manipulate` returns the resultant text with
-    every directive ENCOUNTER (its resultant line and whether it changed the driver's state), the parse places the
-    ops, `ConditionalCompilationResult.KeyImplicitOps` keys each op to the first directive encounter on a later line
+    every state ENCOUNTER (`StateEncounter`: its resultant line and whether it changed the driver's state — each
+    directive and, while a source listing is produced, each library text's start and end, where §2023:7.2.3.4 GR5 reads
+    the LISTING state; DESIGN-listing.md section 4.4), the parse places the
+    ops, `ConditionalCompilationResult.KeyImplicitOps` keys each op to the first encounter on a later line
     and drops every PUSH/POP pair that encloses no state change, and the text manipulation re-runs with that program
     (the driver applies a keyed op immediately before its encounter, through its own `DirectiveStateStack`) until
     the parse places the program it was run with. An ordinary source — no DEFINE, FLAG or PUSH/POP inside a handler

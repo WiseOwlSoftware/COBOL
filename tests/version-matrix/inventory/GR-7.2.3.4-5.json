@@ -2,8 +2,8 @@
  "rule-id": "GR-7.2.3.4-5",
  "rule-digest": "6a60a1e5b941",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002",
- "derivation": "docs/CONFORMANCE.md#DRV-GR-7.2.3.4-5",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#RenderCopybook; src/WiseOwl.Cobol.Frontend/Preprocessor/TextStageTrace.cs#ListingRestoredAtInclusionEnd; src/WiseOwl.Cobol.Compiler/Listing/DirectiveEffectsBuilder.cs#Build",
+ "test-ref": "conformance-test:Listing2023Tests.AListingOffInLibraryText_DoesNotOutliveIt",
  "editions": "2002,2014,2023",
- "notes": "GR5: 'At the completion of copying the library text into the compilation group, the LISTING directive that is in effect for the COPY statement itself is considered to be in effect, regardless of any LISTING directives in the library text.' No source listing is produced (docs/CONFORMANCE.md §5 prose: '>>LISTING / >>PAGE (§7.3.18 / §7.3.19) — no source listing is produced, so listing on/off and page ejects are inert'); the LISTING directive is recognized and consumed, carrying no state that could leak out of a copybook. Vacuously satisfied; no observable behaviour to test. || editions (adjudicator): 2002, 2014, 2023 (the LISTING directive is a §7.3 compiler directive; the rule is moot at 85, which has no directives)"
+ "notes": "kb/Work PB5925 (listing step 4a of docs/rearchitecture/DESIGN-listing.md, 2026-11-18). §2023:7.2.3.4 GR5: \"At the completion of copying the library text into the compilation group, the LISTING directive that is in effect for the COPY statement itself is considered to be in effect, regardless of any LISTING directives in the library text.\" ConditionalCompilationProcessor.Run.RenderCopybook saves the state at the COPY statement and restores it when the library text ends, recording the change, which the listing applies after the inclusion's last line; a PUSH after the COPY therefore saves the restored state. The earlier CONFORMS rested on the signed derivation DRV-GR-7.2.3.4-5 (unpopulatable-antecedent: no listing is produced, A.1 item 117); a listing is now produced on request (cobol --listing at 2002, 2014 and 2023), so the antecedent is populated and the derivation is withdrawn."
 }

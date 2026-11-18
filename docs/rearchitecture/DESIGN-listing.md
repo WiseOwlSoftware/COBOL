@@ -2,9 +2,9 @@
 
 > **Status: DESIGN, APPROVED BY THE CODEBASE OWNER (Claude, CLAUDE.md "Ownership"; decision kb/Work PB5925). STEP 1 BUILT
 > (the 1985 standard minimum, kb/Work PB5923, branch `listing-step-1`); STEP 2 BUILT (the JSON listing and its schema, branch
-> `listing-step-2`); STEP 3 BUILT (diagnostics, branch `listing-step-3`); steps 4a to 9 not yet built.** Where building a step
-> proved this document wrong it was corrected in the same change; each correction is marked "(step 1)", "(step 2)" or "(step 3)"
-> in the section it changed.
+> `listing-step-2`); STEP 3 BUILT (diagnostics, branch `listing-step-3`); STEP 4a BUILT (the directive hooks, witnessed at 2023,
+> branch `listing-step-4a`); steps 4b to 9 not yet built.** Where building a step proved this document wrong it was corrected
+> in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)" or "(step 4a)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -119,8 +119,8 @@ The design names the structures each part reads. Every claim is from the tree at
 | COPY expansion, its depth, the copybook found | `CopyProcessor.ExpandCopiesOneLevel` (the `expandCopybook` callback gets the depth and the resultant line piece where the copybook begins), `CopyProcessor.ResolveOneCopy` (`OneCopyResult`: outcome, path, mapped text), `CopyProcessor.ParseCopyStatement` (reads SUPPRESS) |
 | COPY text-names and library-names | `CopyNameUse`, `Frontend.CopyNames` |
 | REPLACE and COPY REPLACING | `CopyProcessor.ApplyReplaceStatements`, `CopyProcessor.ApplyReplacements` |
-| `>>LISTING`, `>>PAGE` | Consumed with no effect: `ConditionalCompilationProcessor.Run.Render`'s default arm (`CompilerDirectiveCatalog.IsDirective`); `DirectiveStateRegistry`'s `Constructs.ListingDirective2002` row says "NONE HELD" |
-| `>>DISPLAY` | `ConditionalCompilationProcessor.ApplyDisplay` and `DisplayDestinations` (ConditionalCompilationProcessor.Display.cs): LISTING maps to `CompileOutputStream.Standard`; lines collected on `DiagnosticBag.CompileOutput` as `CompileOutputLine(Stream, Text)` with no position |
+| `>>LISTING`, `>>PAGE` | (before step 4a) Consumed with no effect: `ConditionalCompilationProcessor.Run.Render`'s default arm (`CompilerDirectiveCatalog.IsDirective`); `DirectiveStateRegistry`'s `Constructs.ListingDirective2002` row said "NONE HELD". (Step 4a:) `Render`'s `LISTING` and `PAGE` arms; the driver holds the LISTING state, carried for PUSH / POP; section 4.4 |
+| `>>DISPLAY` | `ConditionalCompilationProcessor.ApplyDisplay` and `DisplayDestinations` (ConditionalCompilationProcessor.Display.cs): (before step 4a) LISTING mapped to `CompileOutputStream.Standard`; lines collected on `DiagnosticBag.CompileOutput` as `CompileOutputLine(Stream, Text)` with no position. (Step 4a:) LISTING maps to `CompileOutputStream.Listing`, which `ApplyDisplay` sends into the trace when a listing is produced |
 | Front-end diagnostics | `Diagnostic(Code, Severity, Message, Location, Span)` (src/WiseOwl.Cobol.Frontend/Diagnostics/Diagnostic.cs), structured, physical `SourceLocation` |
 | Bind diagnostics | (before step 3) `EditionContext.Diagnostics` and `EditionContext.Warnings` were `List<string>`, rendered at report time from the resultant `EditionContext.Cursor`; `CompilerDriver.Result.Errors` and `Result.Warnings` are strings. (Step 3:) `EditionContext.Records` holds each as a `Diagnostic`; section 6.3 |
 | Edition citation in a message | `EditionInfo.Cite` (src/WiseOwl.Cobol.Editions/EditionInfo.cs), chooses the edition's text when the message is built |
@@ -225,7 +225,7 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingLine> Lines,             // the source section, in listing order
     IReadOnlyList<ListingProgram> Programs,       // every program, function, class, method; nesting; line ranges
     IReadOnlyList<ListingDiagnostic> Diagnostics, // in listing order
-    IReadOnlyList<ListingDisplayLine> Displays,   // >>DISPLAY UPON LISTING transfers
+    IReadOnlyList<ListingDisplay> Displays,       // >>DISPLAY UPON LISTING transfers (step 4a)
     IReadOnlyList<ListingOption> Options,
     ListingStatistics Statistics,
     ListingDataMap? DataMap,                      // null when not requested or not producible
@@ -233,7 +233,7 @@ public sealed record ListingDocument(
     ListingObjectCodeMap? ObjectCode,             // from the assembly and its PDB (section 6.9)
     IReadOnlyList<ListingSectionStatus> Sections); // each requested section: produced, or why not
 // (Step 1 builds Header, Files, Inclusions, Lines, Programs and Sections; step 3 Diagnostics and ListingLine.Diagnostics;
-// each later step adds its members.)
+// step 4a Displays, ListingInclusion.Suppress and ListingReplacement.Replacing; each later step adds its members.)
 
 public sealed record ListingLine(
     int Number,                 // the listing line number, 1-based, unique in the document
@@ -250,10 +250,12 @@ public sealed record ListingLine(
     int? Program,               // ListingProgram id of the innermost program containing the line
     ListingReplacement Replacement, // (step 1) WHICH replacement: None | DateCompiled (the paragraph's first line, printed
                                 //   in place of Text, marked 'E') | DateCompiledEntry (a further line of its comment-entry,
-                                //   replaced with it and not printed); step 4a adds the REPLACE / REPLACING kind, shown
-                                //   as an 'R' row UNDER the line. The two render differently, so the kind is data.
+                                //   replaced with it and not printed) | (step 4a) Replacing (REPLACE or COPY REPLACING
+                                //   matched text beginning on the line: printed as written, marked 'R', with 'R' rows UNDER
+                                //   it). The kinds render differently, so the kind is data.
     string? Replaced,           // what the compiler compiled in place of Text, when different: DATE-COMPILED's
-                                //   replacement, or the line's resultant text after REPLACE / REPLACING
+                                //   replacement, or (step 4a) every resultant line the index places on the line, joined by
+                                //   LF (empty when the replacement removed what the line held)
     IReadOnlyList<int> Diagnostics,  // ListingDiagnostic ids anchored on this line
     ListingMargin? Margin,      // the embedded margin, computed ONCE by the builder (section 6.2): a definition line's
                                 //   offset, length and usage, or a statement line's defining listing lines
@@ -350,6 +352,55 @@ Events, each recorded at the one place the stage acts:
 | `ListingDirective` | `ConditionalCompilationProcessor.Run.Render`, emitting branch only | origin, ON or OFF |
 | `PageDirective` | `ConditionalCompilationProcessor.Run.Render`, emitting branch only | origin |
 
+**As built (step 4a), with the corrections the code proved.**
+
+- **The LISTING state has ONE holder, the conditional-compilation driver, and the trace records its CHANGES.** The table above
+  records only the LISTING directive and leaves §2023:7.2.3.4 GR5 (the state at the end of library text) to the listing's
+  visibility pass. The code proved two more ways the state changes, which no pass over physical lines can see: a PUSH saves
+  and a POP restores it (the LISTING directive is pushable, §2023:7.3.22.4 GR2 saves every directive "other than EVALUATE, IF,
+  PAGE, POP, or PUSH"), and the implicit PUSH ALL / POP ALL of an exception-checking PERFORM (§2023:14.9.28.4 GR14) restore it
+  at END-PERFORM. Deciding GR5 in the listing would have been a second implementation of a rule the driver must apply anyway
+  (a PUSH after the COPY saves the restored state). So `ConditionalCompilationProcessor.Run` holds `_listingOn` (ON by default,
+  §2023:7.3.18.3 GR2), carried by its `DirectiveStateStack` (`DirectiveStateRegistry`'s LISTING row names the driver) and
+  restored in `RenderCopybook` at the end of each library text, and records every change as a `TextListingSwitch(Cause, On,
+  Inclusion, Line)`: `Directive` (the directive's physical line in its inclusion; the line itself is always listed, GR3),
+  `Pop` (a written POP's line), `ImplicitPop` (the END PERFORM phrase's RESULTANT line, the op's own line) and `InclusionEnd`
+  (the inclusion that ended). The trailing implicit ops, keyed after the last encounter, are applied at the end of the source
+  text when a listing records, since the lines after them are listed by the state they restore. A LISTING directive changes
+  state a PUSH saves only while a listing is produced (GR1), so `StateEncounter.ChangesState` is set for it only then:
+  a compilation without a listing re-runs no text stage for it.
+- **GR5 reads the state at a library text's START and END, so those are encounters too** (review round 1, R1-1). The driver
+  applies an implicit op lazily, immediately before the encounter it is keyed to, which is exact for every state a directive
+  reads. GR5 is the one reader that is not a directive: `RenderCopybook` takes "the LISTING directive that is in effect for
+  the COPY statement itself" at the COPY and puts it back at the end of the library text. Keyed to directives alone, the
+  POP ALL before an END-PERFORM written between the last directive and a COPY acted only at the first directive INSIDE the
+  library text, after the state at the COPY was taken, and the end of the library text then put back the stale OFF, hiding
+  every line after the COPY. So while a listing records, each library text's first line and the line after its last are
+  `StateEncounter`s (`ChangesState` false; `MeetLibraryTextBoundary`), the ops key to them like to a directive
+  (`KeyImplicitOps`, by resultant line: the COPY expansion begins and ends a line, so no op shares an encounter's line), and
+  an op inside the library text after its last directive acts before GR5 restores. Without a listing nothing reads the
+  LISTING state (GR1), so no boundary is recorded and the encounter program is the one a compilation without a listing had.
+- **Every fact carries the inclusion OPEN when the stage met it** (`TextStageTrace.Current`): a directive, a DISPLAY transfer,
+  a PAGE directive, and a COPY REPLACING match (made in `ResolveOneCopy` before the inclusion begins, so `OneCopyResult`
+  carries the matched lines to `BeginInclusion`). A copybook copied twice therefore places each fact in its own block. A
+  REPLACE match is made after every inclusion closed, so it is recorded by the merged driver's output line
+  (`ApplyReplaceStatements` reports each match's offset to an observer only a listing passes) and carried to the resultant
+  frame by `ToResultantFrame` with the inclusion ranges; the listing places it through `ListingLineIndex.Of(int, SourceOrigin)`.
+- **The 'R' rows are the resultant text, placed by the one index.** The `Replaced` event of the table above carried the matched
+  and the replacement text; the listing needs the text the compiler COMPILED from the line, which the resultant text holds
+  (`Frontend.ResultantText`, the listed pass's text, beside its `LineMap`). `DirectiveEffectsBuilder.MarkReplaced` gives each
+  changed line every resultant line the index places on it, so a replacement that spans lines or joins them is shown whole.
+- **SUPPRESS** is parsed by `ParseCopyStatement` and recorded on the inclusion (`TextInclusion.Suppress`, `ListingInclusion.Suppress`).
+- **DISPLAY** (the paragraph below): `CompileOutputLine` does NOT gain an origin. The decision "into the listing or to an output
+  stream" is made once, in `ApplyDisplay`: a `Listing` destination goes into the trace (`TextStageTrace.Display`, with the
+  inclusion and the directive's physical line) when the trace records, and is a `CompileOutputStream.Listing` transfer on the
+  bag otherwise, which the CLI writes to standard output. So a compilation with a listing transfers no `Listing` line at all,
+  and the placement needs the inclusion, which an origin alone does not name.
+- **Placement.** `DirectiveEffectsBuilder` (Compiler, `Listing/`) is the one placement of these facts: each becomes a listing
+  line through `ListingLineIndex`, a fact no listing line holds throws (an unresolvable input fails loudly), and
+  `DirectiveEffects` (the state from each listing line on, the LISTING directive lines, the PAGE lines, the suppressed lines) is
+  what `ListingVisibility` reads.
+
 The inclusion's RESULTANT range is what makes a copybook copied twice two blocks of listing lines with a right answer
 for "which one": `ListingLineIndex` maps a resultant line to the innermost inclusion whose range holds it, then the
 line's origin (`SourceLineMap.Origin`) to the physical line within that inclusion. The merged driver already places a
@@ -361,10 +412,10 @@ Listing order: the main source's physical lines in order; after the last physica
 inclusion's lines (recursively), each at `Depth + 1`. An inclusion that found no library text (`NotFound`, `Circular`)
 lists no lines; its diagnostic is anchored on the COPY statement.
 
-`DISPLAY` transfers: `CompileOutputStream` gains a `Listing` member, and `CompileOutputLine` gains the directive's origin
-(`SourceOrigin At`). `DisplayDestinations` returns `Listing` for LISTING and for no UPON phrase (GR6). When the
-compilation produces a listing, the builder places each `Listing` line at its directive; when it does not, the CLI
-writes `Listing` lines to standard output exactly as `Standard` lines are written today, which is the documented
+`DISPLAY` transfers: `CompileOutputStream` gains a `Listing` member. `DisplayDestinations` returns `Listing` for LISTING and
+for no UPON phrase (GR6). When the compilation produces a listing, the transfer is recorded into the trace at its directive
+(step 4a: not as a `CompileOutputLine` with an origin, see above) and the builder places it as a `ListingDisplay`; when it
+does not, the CLI writes `Listing` lines to standard output exactly as `Standard` lines are written, which is the documented
 no-listing behaviour of DOC-A.1-53/54 and §2023:7.3.12.4 GR2's implementor-defined case.
 
 #### 4.4.1 The kind of each physical line: `PhysicalLineKind` and `ReferenceFormatMap.KindAt`
@@ -412,6 +463,12 @@ whether a page starts before it. Renderers never re-decide it.
 - At an inclusion: if `Suppress`, every line of it (and of inclusions nested in it) is `Listed = false`; the COPY
   statement's own lines are listed by the ordinary rule (§2023:7.2.3.4 GR4). At the end of every inclusion, suppressed or
   not, the state returns to the state at its COPY statement (GR5).
+- (Step 4a:) the pass DECIDES none of the state: it replays `DirectiveEffects.States`, the driver's own state at each change
+  (a LISTING directive, a POP, an implicit POP ALL, the end of an inclusion, section 4.4), applying the changes that govern
+  from one listing line in the order the driver made them. A line of `Suppress` library text is not listed even when it is a
+  LISTING directive: §2023:7.3.18.3 GR3's exception names suppression "by a LISTING directive", and §2023:7.2.3.4 GR4 says the
+  library text "is not listed". A POP line under OFF is a source line and is not listed; the state it restores governs the
+  lines after it.
 - `PageBreakBefore = true` for a listed line of kind `PageEjectComment` (§1985:IV.7.2.4, §2023:6.3.7.2), a listed
   `PageDirective` line (§2023:7.3.19.4 GR2), and the first line of each outermost program after the first. (Step 1:) an
   outermost program's listing range begins right after the previous one's last line (the first at line 1, the last ends
@@ -522,7 +579,11 @@ and a row `R` under each line REPLACE changed prints the compiled text. (Step 1:
 columns like any line, so a banner longer than 80 positions (a long path) wraps onto `+` rows as a long line does: no row
 of a page is wider than the page. A DATE-COMPILED paragraph prints its replacement
 in place of its first line, marked 'E', and its comment-entry continuation lines are not printed (the paragraph "is
-replaced"); the JSON keeps the written text.
+replaced"); the JSON keeps the written text. (Step 4a:) a line REPLACE or COPY REPLACING changed is printed as written, marked
+'R', and under it each line of its compiled text in a row with 'R' in column 9 and the text in the source columns
+(`TextListingRenderer.ReplacedRows`); a caret still stands under such a line, since the row shows it as written. A DISPLAY
+directive's transfer prints after its directive's rows, or where they would stand when the line is not listed
+(`TextListingRenderer.DisplayRows`, section 6.10).
 
 ### 6.3 Diagnostics
 
@@ -1083,7 +1144,7 @@ path is never taken for a format) and accepts `text` and `json`; `html` is refus
 validator on the root command applies `ListingRequest.FormatsProblem` to the two options together (`-` with two formats is
 an argument error). With `-`, `RunCompile` prints `ListingOutput.Render` of the one format before the diagnostics; the
 `>>DISPLAY` lines that go to standard output follow it there, so a JSON listing on standard output is followed by them
-(step 4a sends DISPLAY UPON LISTING into the listing itself).
+(step 4a sends DISPLAY UPON LISTING into the listing itself, so only UPON CONSOLE or SYSOUT follow it).
 `Resolve` builds a `ListingRequest` on `CliOptions`; `RunCompile` passes it as `CompilerDriver.Options.Listing`. The
 library default is null (no listing), so every caller that builds `Options` itself (the test suites, `check-batch`, an
 expansion's own compilation in `ExpansionAssemblies`) does no listing work; the per-edition default is a CLI decision.
@@ -1132,6 +1193,9 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
   budget (IX113A's front end and bind +0.85 MB); the cause was a closure per character of every token in
   `MarginRCutScreen.Warnings`, which step 3's larger `SourceLocation` made larger, and with it removed `None` allocates 5.3 MB
   (7 %) less than the parent on IX113A.
+  (Step 4a:) step 4a also touches the no-listing path (the driver carries the LISTING state for PUSH / POP; DISPLAY's LISTING
+  destination is a stream of its own; the replacing actions take a null match observer), so it measures `None` against its
+  parent: the front end and bind allocate within 0.21 MB of the parent on all four programs (the README's step-4a table).
 
 ## 10. Test plan
 
@@ -1268,10 +1332,12 @@ carries the records; `SourceLocation.ResultantLine` and `Frame` (stamped by `Sou
 line on `Diagnostic`; `BackendDiagnostic` deleted; `ListingDiagnostic`, `ListingLine.Diagnostics`, inline rows and the
 summary; `ListingCitation` and the `citations` field (section 6.3, 7.3).
 
-**Step 4a - the directive hooks, witnessed at 2023.** `TextStageTrace` gains `ListingDirective`, `PageDirective` and
+**Step 4a - the directive hooks, witnessed at 2023. BUILT (branch `listing-step-4a`; the corrections above marked "step 4a").**
+`TextStageTrace` gains `ListingDirective`, `PageDirective` and
 `Replaced` (recorded in `ConditionalCompilationProcessor.Run.Render`, `CopyProcessor.ApplyReplacements`,
 `CopyProcessor.ApplyReplaceStatements`); SUPPRESS on inclusions; `CompileOutputStream.Listing` and
-`CompileOutputLine.At`, `ConditionalCompilationProcessor.DisplayDestinations`; `ListingVisibility`'s directive rules;
+`CompileOutputLine.At` (step 4a: no `At`; the transfer is recorded into the trace with its inclusion, section 4.4),
+`ConditionalCompilationProcessor.DisplayDestinations`; `ListingVisibility`'s directive rules;
 `DirectiveStateRegistry`'s LISTING row stops saying "NONE HELD"; DOC-A.1-53, DOC-A.1-54, DOC-A.1-117, DOC-A.1-200; the 2023
 derivations that rest on "no listing" (`DRV-GR-7.3.18.3-2..5`, `DRV-GR-7.3.19.4-2`, `DRV-GR-7.2.3.4-4/-5`) are retired and
 witnessed by `Listing2023Tests`. The code is edition-neutral: the same trace and visibility rules serve 2002 and 2014.

@@ -26,19 +26,22 @@ public sealed class JsonListingWriterTests
         new ListingHeader("30.0.0", 85, "COBOL-85", Instant, "main.cob", ListingOutcome.BindError),
         [new ListingFile(1, "main.cob", ListingFileRole.Source, new string('a', 64)),
          new ListingFile(2, "lib/REC.cpy", ListingFileRole.Library, new string('b', 64))],
-        [new ListingInclusion(1, null, 1, 2, 2, "REC", "LIB", 2, ListingInclusionOutcome.Found),
-         new ListingInclusion(2, 1, 2, 3, 3, "\"gone.cpy\"", null, null, ListingInclusionOutcome.NotFound)],
+        [new ListingInclusion(1, null, 1, 2, 2, "REC", "LIB", 2, ListingInclusionOutcome.Found, false),
+         new ListingInclusion(2, 1, 2, 3, 3, "\"gone.cpy\"", null, null, ListingInclusionOutcome.NotFound, true)],
         [new ListingLine(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000100 ID DIVISION.", false, true,
             false, 0, ListingReplacement.None, null, [1]),
          new ListingLine(2, 1, 2, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000200 DATE-COMPILED. X.", false, true,
             true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00.", []),
          new ListingLine(3, 2, 1, 1, 1, ListingLineForm.Free, ListingLineKind.PageEjectComment, "*> été", true, false,
-            false, null, ListingReplacement.DateCompiledEntry, null, [])],
+            false, null, ListingReplacement.DateCompiledEntry, null, []),
+         new ListingLine(4, 1, 3, null, 0, ListingLineForm.Free, ListingLineKind.Source, "MOVE A TO B.", false, true,
+            false, 0, ListingReplacement.Replacing, "MOVE X TO B.\nDISPLAY B.", [])],
         [new ListingProgram(0, "MAIN", ListingProgramKind.Program, null, 0, 1, 3),
          new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 2, 3)],
         [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "no (ISO §2023:14.9.8.4 GR1)", 1, 1, 1, 8,
             [new ListingCitation(2023, "14.9.8.4", "GR1"), new ListingCitation(1985, "VI.5.3", null)]),
          new ListingDiagnostic(2, "CS0103", ListingSeverity.Warning, "generated", null, null, null, null, [])],
+        [new ListingDisplay(4, "HELLO 42")],
         [new ListingSectionStatus(ListingSection.Source, true, null),
          new ListingSectionStatus(ListingSection.Programs, false, "the bind refused the program"),
          new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
@@ -56,8 +59,8 @@ public sealed class JsonListingWriterTests
     public void TheDocument_OpensWithItsSchemaAndVersion()
     {
         var json = Written(EveryMember());
-        Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "sections"],
-            json.Select(p => p.Key));
+        Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "displays",
+            "sections"], json.Select(p => p.Key));
         Assert.Equal("urn:wiseowl:cobol:listing:v1", (string?)json["$schema"]);
         Assert.Equal("1.0", (string?)json["schemaVersion"]);
     }
@@ -87,6 +90,14 @@ public sealed class JsonListingWriterTests
         Assert.Equal("PageEjectComment", (string?)copied["kind"]);
         Assert.Equal("the bind refused the program", (string?)json["sections"]![1]!["reason"]);
         Assert.False(json["sections"]![0]!.AsObject().ContainsKey("reason"));
+        Assert.False((bool?)copy["suppress"]);                    // a false is written: the member is never null
+        Assert.True((bool?)missing["suppress"]);
+        var changed = json["lines"]![3]!.AsObject();
+        Assert.Equal("Replacing", (string?)changed["replacement"]);
+        Assert.Equal("MOVE X TO B.\nDISPLAY B.", (string?)changed["replaced"]);
+        var display = Assert.Single(json["displays"]!.AsArray())!.AsObject();
+        Assert.Equal(4, (int?)display["line"]);
+        Assert.Equal("HELLO 42", (string?)display["text"]);
     }
 
     [Fact]
