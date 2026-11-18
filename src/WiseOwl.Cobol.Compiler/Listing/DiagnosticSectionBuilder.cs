@@ -15,8 +15,9 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// directive) keeps its line: the summary names it, and the source section prints only the lines it prints.</remarks>
 internal static class DiagnosticSectionBuilder
 {
-    /// <summary>The diagnostics of <paramref name="facts"/>, in listing order (placed ones by line and column, then the rest in
-    /// report order), each id its 1-based place in that order; and each line's ids written to its draft.</summary>
+    /// <summary>The diagnostics <paramref name="reported"/>, in listing order (placed ones by line and column, then the rest in
+    /// report order), each id its 1-based place in that order. The builder writes each line's ids to its draft
+    /// (<see cref="LineDraft.AddDiagnostic"/>) when the diagnostics section is asked for.</summary>
     public static List<ListingDiagnostic> Build(IReadOnlyList<Diagnostic> reported, FrontendFacts frontend, ListingLineIndex index,
         IReadOnlyDictionary<string, int> fileIds, IReadOnlyList<LineDraft> drafts)
     {
@@ -38,7 +39,6 @@ internal static class DiagnosticSectionBuilder
             var draft = line is { } number ? drafts[number - 1] : null;
             diagnostics.Add(new ListingDiagnostic(id, d.Code, SeverityOf(d.Severity), d.Message, line, draft?.File, draft?.FileLine,
                 draft is null ? null : column, ListingCitation.Scan(d.Message)));
-            draft?.AddDiagnostic(id);
         }
         return diagnostics;
     }

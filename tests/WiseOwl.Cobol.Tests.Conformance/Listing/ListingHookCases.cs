@@ -116,8 +116,8 @@ internal sealed class ListingHookCases(string dir, int edition)
         Assert.False(hiddenPage.PageBreakBefore);
         Assert.Equal([page.Number], listing.Lines.Where(l => l.PageBreakBefore).Select(l => l.Number));
 
-        string[] pages = text.Split(PageComposer.FormFeed);
-        Assert.Equal(3, pages.Length);   // the page before the PAGE directive, the page it starts, the summary
+        string[] pages = ListingPages.Of(text, ListingSection.Source);
+        Assert.Equal(2, pages.Length);   // the page before the PAGE directive, the page it starts
         string first = pages[1].Split('\n').Skip(ListingRequest.TextHeadingLines).First(r => r.Length > 0);
         Assert.EndsWith(lines[page.FileLine - 1], first.TrimEnd(), StringComparison.Ordinal);
     }
@@ -210,7 +210,7 @@ internal sealed class ListingHookCases(string dir, int edition)
         Assert.Equal(ListingLineKind.Comment, asterisk.Kind);
         Assert.Equal([slant.Number], listing.Lines.Where(l => l.PageBreakBefore).Select(l => l.Number));
 
-        string[] pages = text.Split(PageComposer.FormFeed);
+        string[] pages = ListingPages.Of(text, ListingSection.Source);
         var slantPage = pages.Single(p => p.Contains(lines[slant.FileLine - 1], StringComparison.Ordinal)).Split('\n');
         Assert.EndsWith(lines[slant.FileLine - 1], slantPage[ListingRequest.TextHeadingLines].TrimEnd(), StringComparison.Ordinal);
         var asteriskPage = pages.Single(p => p.Contains(lines[asterisk.FileLine - 1], StringComparison.Ordinal)).Split('\n');

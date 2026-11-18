@@ -27,9 +27,14 @@ internal sealed record FrontendFacts(string SourcePath, IReadOnlyDictionary<stri
 /// <param name="edition">The targeted edition.</param>
 /// <param name="clock">The compile-clock seam (<c>IntrinsicBinder.CompileClock</c>), read through
 /// <see cref="CompilationInputs.ReadCompilationTime"/> so the listing and WHEN-COMPILED share one instant.</param>
+/// <param name="options">The options section's rows (DESIGN-listing.md section 6.4), built by the composition root, which alone
+/// may name the compilation's options type.</param>
 internal sealed class ListingFacts(ListingRequest request, CompilationInputs inputs, string sourcePath, string outputDll,
-    Editions.EditionInfo edition, Func<DateTimeOffset> clock)
+    Editions.EditionInfo edition, Func<DateTimeOffset> clock, IReadOnlyList<ListingOption> options)
 {
+    /// <summary>The options section's rows: every option of the compilation, then the compiler and the host.</summary>
+    public IReadOnlyList<ListingOption> Options { get; } = options;
+
     /// <summary>The source path as the compilation read it.</summary>
     public string SourcePath { get; } = sourcePath;
 

@@ -35,8 +35,64 @@ public static class TextListingRenderer
     public static readonly string Ruler = new string(' ', TextColumn - 1)
         + string.Concat(Enumerable.Range(1, TextWidth / 10).Select(n => "----+----" + (n % 10).ToString(CultureInfo.InvariantCulture)));
 
-    /// <summary>Render <paramref name="document"/> as the paginated text listing <paramref name="request"/> asks for.</summary>
+    /// <summary>The order the sections are printed in (DESIGN-listing.md section 7.1): options, source with inline diagnostics,
+    /// program map, statistics and verbs, diagnostic summary. Every member of <see cref="ListingSection"/> once (the Unit
+    /// assembly's <c>TextListingRendererTests</c> holds it so).</summary>
+    public static readonly IReadOnlyList<ListingSection> SectionOrder =
+        [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.Statistics, ListingSection.Diagnostics];
+
+    /// <summary>Render <paramref name="document"/> as the paginated text listing <paramref name="request"/> asks for: each section
+    /// the document holds (<see cref="ListingDocument.Sections"/>), in <see cref="SectionOrder"/>, each starting a page; a section
+    /// that could not be produced prints why. One buffer holds every section: the listing is never copied to join them.</summary>
     public static string Render(ListingDocument document, ListingRequest request)
+    {
+        var listing = new StringBuilder();
+        // Outside the source section a heading names the first outermost program (section 6.1).
+        string? firstProgram = document.Programs.FirstOrDefault(p => p.Depth == 0)?.Name;
+        var header = document.Header;
+        int pages = 0;
+        foreach (var section in SectionOrder)
+        {
+            if (document.Sections.FirstOrDefault(s => s.Section == section) is not { } status) continue;
+            if (pages > 0) listing.Append(PageComposer.FormFeed);
+            IReadOnlyList<string> Heading(int page, string? program) => section == ListingSection.Source
+                ? [IdentificationLine(header, program, page, request.PageWidth),
+                   KeepEnd(TitleOf(section) + "  ", header.MainSource, request.PageWidth), "", Ruler]
+                : [IdentificationLine(header, program, page, request.PageWidth), TitleOf(section), ""];
+            IReadOnlyList<ListingRow> rows = !status.Produced
+                ? [.. Indented("Not produced: " + status.Reason, 0, 2, request.PageWidth).Select(r => new ListingRow(r, false, firstProgram))]
+                : section == ListingSection.Source ? SourceRows(document, request)
+                : [.. RowsOf(section, document, request.PageWidth).Select(r => new ListingRow(r, false, firstProgram))];
+            pages += PageComposer.Compose(listing, rows, request.PageLength, Heading, firstPage: pages + 1);
+        }
+        return listing.ToString();
+    }
+
+    /// <summary>The second heading line of a section's pages.</summary>
+    public static string TitleOf(ListingSection section) => section switch
+    {
+        ListingSection.Source => "SOURCE",
+        ListingSection.Programs => "PROGRAMS",
+        ListingSection.Diagnostics => "DIAGNOSTICS",
+        ListingSection.Options => "OPTIONS",
+        ListingSection.Statistics => "STATISTICS",
+        _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no title"),
+    };
+
+    /// <summary>The rows of a produced section other than the source, none wider than <paramref name="width"/>.</summary>
+    private static IEnumerable<string> RowsOf(ListingSection section, ListingDocument document, int width) => section switch
+    {
+        ListingSection.Options => OptionRows(document.Options, width),
+        ListingSection.Programs => ProgramRows(document.Programs, width),
+        ListingSection.Statistics => document.Statistics is { } statistics ? StatisticsRows(statistics, document.Files, width)
+            : throw new InvalidOperationException("the statistics section is produced but the document holds no statistics"),
+        ListingSection.Diagnostics => SummaryRows(document, width),
+        _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section the text listing cannot print"),
+    };
+
+    /// <summary>The source section's rows (DESIGN-listing.md section 6.2): each listed line, the banner of each inclusion, the
+    /// compiled text under a replaced line, each diagnostic under its line and each DISPLAY transfer at its directive.</summary>
+    private static List<ListingRow> SourceRows(ListingDocument document, ListingRequest request)
     {
         var programs = document.Programs.ToDictionary(p => p.Id, p => p.Name);
         string? ProgramOf(ListingLine line) => line.Program is { } id ? programs[id] : null;
@@ -89,24 +145,138 @@ public static class TextListingRenderer
             foreach (var display in displays[line.Number])
                 rows.AddRange(DisplayRows(display).Select(row => new ListingRow(row, false, ProgramOf(line))));
         }
-        var header = document.Header;
-        var listing = new StringBuilder();
-        int sourcePages = PageComposer.Compose(listing, rows, request.PageLength, (page, program) =>
-        [
-            IdentificationLine(header, program, page, request.PageWidth),
-            KeepEnd("SOURCE  ", header.MainSource, request.PageWidth),
-            "",
-            Ruler,
-        ], firstPage: 1);
-        // The summary starts a page (DESIGN-listing.md section 7.1); outside the source section a heading names the first outermost
-        // program (section 6.1). One buffer holds both sections: the listing is never copied to join them.
-        string? firstProgram = document.Programs.FirstOrDefault(p => p.Depth == 0)?.Name;
-        listing.Append(PageComposer.FormFeed);
-        PageComposer.Compose(listing,
-            [.. SummaryRows(document, request.PageWidth).Select(row => new ListingRow(row, false, firstProgram))], request.PageLength,
-            (page, program) => [IdentificationLine(header, program, page, request.PageWidth), "DIAGNOSTICS", ""],
-            firstPage: sourcePages + 1);
-        return listing.ToString();
+        return rows;
+    }
+
+    /// <summary>The options section's rows (DESIGN-listing.md section 6.4): each option's name, where its value comes from
+    /// (<c>default</c>, <c>specified</c>, or <c>host</c> for a fact of the compiler or the host) and its value, a long value
+    /// wrapped under itself.</summary>
+    public static IEnumerable<string> OptionRows(IReadOnlyList<ListingOption> options, int width)
+    {
+        yield return Columns(("OPTION", OptionNameWidth), ("ORIGIN", OriginWidth)) + "VALUE";
+        foreach (var option in options)
+        {
+            // The value starts on the option's row and goes on under itself.
+            string lead = Columns((option.Name, OptionNameWidth), (OriginWord(option.Origin), OriginWidth));
+            bool first = true;
+            foreach (string piece in Indented(option.Value, 0, 0, width - lead.Length))
+            {
+                yield return (first ? lead : new string(' ', lead.Length)) + piece;
+                first = false;
+            }
+        }
+    }
+
+    private const int OptionNameWidth = 24, OriginWidth = 11;
+
+    /// <summary>The word an option row's origin is printed as.</summary>
+    public static string OriginWord(ListingOptionOrigin origin) => origin switch
+    {
+        ListingOptionOrigin.Default => "default",
+        ListingOptionOrigin.Specified => "specified",
+        ListingOptionOrigin.Host => "host",
+        _ => throw new ArgumentOutOfRangeException(nameof(origin), origin, "an option origin with no word"),
+    };
+
+    /// <summary>The program map's rows (DESIGN-listing.md section 6.5): each source unit in text order, its id, kind, first and
+    /// last listing line, and its name indented two columns per level of nesting, so a contained unit stands under the unit
+    /// that contains it.</summary>
+    public static IEnumerable<string> ProgramRows(IReadOnlyList<ListingProgram> programs, int width)
+    {
+        yield return string.Create(CultureInfo.InvariantCulture, $"{"ID",6}  {"KIND",-9} {"FIRST",6}  {"LAST",6}  NAME");
+        foreach (var p in programs)
+            foreach (string row in Indented(string.Create(CultureInfo.InvariantCulture,
+                         $"{p.Id,6}  {KindWord(p.Kind),-9} {p.FirstLine,6}  {p.LastLine,6}  {new string(' ', 2 * p.Depth)}{p.Name}"),
+                         0, ProgramNameColumn + 2 * p.Depth, width))
+                yield return row;
+    }
+
+    /// <summary>The 0-based column a program row's name starts at, before its nesting indent.</summary>
+    public const int ProgramNameColumn = 34;
+
+    /// <summary>The word a source unit's kind is printed as.</summary>
+    public static string KindWord(ListingProgramKind kind) => kind switch
+    {
+        ListingProgramKind.Program => "program",
+        ListingProgramKind.Function => "function",
+        ListingProgramKind.Class => "class",
+        ListingProgramKind.Interface => "interface",
+        ListingProgramKind.Factory => "factory",
+        ListingProgramKind.Object => "object",
+        ListingProgramKind.Method => "method",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a source unit kind with no word"),
+    };
+
+    /// <summary>The statistics section's rows (DESIGN-listing.md section 6.8): the lines by kind, then each file's lines, then
+    /// the programs, statements and diagnostics by severity, then each verb with its count and its listing lines (IBM's
+    /// VBREF). A count shows only the line kinds that have lines; the model holds every kind.</summary>
+    public static IEnumerable<string> StatisticsRows(ListingStatistics statistics, IReadOnlyList<ListingFile> files, int width)
+    {
+        yield return Columns(("LINES", StatisticNameWidth)) + CountText(statistics.Lines.Lines);
+        foreach (var (name, count) in CountsOf(statistics.Lines)) yield return Columns(("  " + name, StatisticNameWidth)) + CountText(count);
+        yield return "";
+        yield return "FILES";
+        var paths = files.ToDictionary(f => f.Id, f => f.Path);
+        const int Detail = 6 + 2 + CountWidth + 2;   // the column a file's path and its counts start at
+        foreach (var file in statistics.Files)
+        {
+            foreach (string row in Indented(string.Create(CultureInfo.InvariantCulture,
+                         $"{file.File,6}  {CountText(file.Lines.Lines)}  {paths[file.File]}"), 0, Detail, width))
+                yield return row;
+            foreach (string row in Indented(string.Join(", ", CountsOf(file.Lines).Select(c => string.Create(CultureInfo.InvariantCulture,
+                         $"{c.Name} {c.Count}"))), Detail, Detail, width))
+                yield return row;
+        }
+        yield return "";
+        if (statistics.Parse is { } parse)
+        {
+            yield return Columns(("PROGRAMS", StatisticNameWidth)) + CountText(parse.Programs);
+            yield return Columns(("STATEMENTS", StatisticNameWidth)) + CountText(parse.Statements);
+        }
+        else yield return "PROGRAMS AND STATEMENTS: not counted, the source was not parsed";
+        yield return Columns(("DIAGNOSTICS", StatisticNameWidth)) + string.Join("   ", statistics.Diagnostics.Select(d =>
+            string.Create(CultureInfo.InvariantCulture, $"{SeverityWord(d.Severity)} {d.Count}")));
+        if (statistics.Parse is not { } verbs) yield break;
+        yield return "";
+        yield return Columns(("VERB", StatisticNameWidth)) + "COUNT".PadLeft(CountWidth) + "  LINES";
+        foreach (var verb in verbs.Verbs)
+            foreach (string row in Indented(Columns((verb.Verb, StatisticNameWidth)) + CountText(verb.Count) + "  "
+                         + string.Join(" ", verb.Lines.Select(l => l.ToString(CultureInfo.InvariantCulture))),
+                         0, StatisticNameWidth + CountWidth + 2, width))
+                yield return row;
+    }
+
+    /// <summary>The named counts of one count of lines: each line kind that has lines, then the omitted, copied and unlisted lines.</summary>
+    private static IEnumerable<(string Name, int Count)> CountsOf(ListingLineCounts counts) =>
+        counts.Kinds.Where(k => k.Count > 0).Select(k => (LineKindWord(k.Kind), k.Count))
+            .Append(("omitted", counts.Omitted)).Append(("copied", counts.Copied)).Append(("not listed", counts.Unlisted));
+
+    private static string CountText(int count) => count.ToString(CultureInfo.InvariantCulture).PadLeft(CountWidth);
+
+    private const int StatisticNameWidth = 24, CountWidth = 7;
+
+    /// <summary>The words a line kind is printed as.</summary>
+    public static string LineKindWord(ListingLineKind kind) => kind switch
+    {
+        ListingLineKind.Source => "source",
+        ListingLineKind.Comment => "comment",
+        ListingLineKind.PageEjectComment => "page-eject comment",
+        ListingLineKind.DebuggingLine => "debugging",
+        ListingLineKind.Continuation => "continuation",
+        ListingLineKind.Directive => "directive",
+        ListingLineKind.CommentEntry => "comment-entry",
+        ListingLineKind.CcvsExcluded => "CCVS-excluded",
+        ListingLineKind.NotAnIndicator => "not an indicator",
+        ListingLineKind.Blank => "blank",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a line kind with no word"),
+    };
+
+    /// <summary>Each text padded to its width; a text as wide as its column, or wider, is followed by one space.</summary>
+    private static string Columns(params ReadOnlySpan<(string Text, int Width)> columns)
+    {
+        var row = new StringBuilder();
+        foreach (var (text, columnWidth) in columns) row.Append(text.Length < columnWidth ? text.PadRight(columnWidth) : text + " ");
+        return row.ToString();
     }
 
     /// <summary>The rows under a line a replacing action changed (DESIGN-listing.md section 6.2): each line of its compiled text

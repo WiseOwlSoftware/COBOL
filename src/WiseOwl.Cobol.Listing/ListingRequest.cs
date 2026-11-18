@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Listing;
 /// <see cref="ListingRequest"/>, or null for no listing and no listing work. Every format renders the one document the builder
 /// made (<see cref="ListingOutput"/>), so the formats cannot disagree. A request is never one the listing would fail: its
 /// constructor, each <c>init</c> accessor and so every <c>with</c> expression ask the request's rules
-/// (<see cref="PageLengthProblem"/>, <see cref="PageWidthProblem"/>, <see cref="FormatsProblem"/>) and throw
+/// (<see cref="PageLengthProblem"/>, <see cref="PageWidthProblem"/>, <see cref="FormatsProblem"/>, <see cref="SectionsProblem"/>) and throw
 /// <see cref="ArgumentException"/> on a problem.
 /// </summary>
 /// <param name="OutputBase">Where the listing goes: <c>BASE</c> plus each format's extension (<see cref="ListingOutput.Extension"/>);
@@ -39,6 +39,12 @@ public sealed record ListingRequest(string? OutputBase = null, int PageLength = 
 
     /// <summary>The formats to write: never none, and one alone when the listing goes to standard output.</summary>
     public ListingFormats Formats { get => _formats; init => _formats = Valid(FormatsProblem(_outputBase, value), nameof(Formats), value); }
+
+    private readonly ListingSectionSet _sections = ListingSectionSet.Standard;
+
+    /// <summary>The sections to produce (<c>--listing-sections</c>; DESIGN-listing.md section 8): never none
+    /// (<see cref="SectionsProblem"/>); <see cref="ListingSectionSet.Standard"/> unless set.</summary>
+    public ListingSectionSet Sections { get => _sections; init => _sections = Valid(SectionsProblem(value), nameof(Sections), value); }
 
     /// <summary><paramref name="value"/>, or the <see cref="ArgumentException"/> its <paramref name="problem"/> is.</summary>
     private static T Valid<T>(string? problem, string parameter, T value) =>
@@ -91,6 +97,10 @@ public sealed record ListingRequest(string? OutputBase = null, int PageLength = 
                 + string.Join(", ", each.Select(ListingOutput.Spelling)) + ")";
         return null;
     }
+
+    /// <summary>Why <paramref name="sections"/> are no sections for a listing, or null when they are: at least one.</summary>
+    public static string? SectionsProblem(ListingSectionSet sections) =>
+        sections.IsEmpty ? "a listing has at least one section" : null;
 
     /// <summary>Why <paramref name="pageWidth"/> is no page width, or null when it is one.</summary>
     public static string? PageWidthProblem(int pageWidth) =>

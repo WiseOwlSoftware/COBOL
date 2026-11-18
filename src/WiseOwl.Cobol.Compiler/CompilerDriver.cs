@@ -187,7 +187,8 @@ public static class CompilerDriver
         if (options.Listing is not { } request) return CompileCore(options, new Frontend.CompilationInputs(), listing: null);
         var inputs = new Frontend.CompilationInputs { DigestsFiles = true };
         var facts = new WiseOwl.Cobol.Listing.Building.ListingFacts(request, inputs, options.SourcePath, options.OutputDll(),
-            Editions.EditionInfo.Of(options.DialectLevel, options.Permissive), Binding.Procedure.IntrinsicBinder.CompileClock);
+            Editions.EditionInfo.Of(options.DialectLevel, options.Permissive), Binding.Procedure.IntrinsicBinder.CompileClock,
+            request.Sections.Contains(WiseOwl.Cobol.Listing.ListingSection.Options) ? OptionsSectionBuilder.Build(options) : []);
         var result = CompileCore(options, inputs, facts);
         if (facts.Frontend is null) return result;   // no source text was read: nothing to list (DESIGN-listing.md section 4.6)
         facts.DepositDiagnostics(result.Diagnostics);   // every return carries them (DESIGN-listing.md section 6.3)

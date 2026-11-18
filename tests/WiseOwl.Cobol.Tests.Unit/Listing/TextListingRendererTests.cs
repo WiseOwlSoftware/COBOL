@@ -109,8 +109,9 @@ public sealed class TextListingRendererTests
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 2)],
             [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "a message of many words " + string.Join(" ", Enumerable.Repeat("word", 60)),
                 2, 2, 1, 8, [])],
-            [],
-            [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null)]);
+            [], [], null,
+            [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null),
+             new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         var request = new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth);
         // A form feed opens each page after the first; it is no column.
         string[] rows = [.. TextListingRenderer.Render(document, request).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
@@ -171,7 +172,8 @@ public sealed class TextListingRendererTests
             [new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       MOVE X TO Y.", false, true, false, null,
                 ListingReplacement.None, null, [1, 2])],
             [], [Diagnostic(1, ListingSeverity.Error, "e"), Diagnostic(2, ListingSeverity.Warning, "w"), Diagnostic(3, ListingSeverity.Warning, "g", line: null)],
-            [], []);
+            [], [], null,
+            [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         Assert.Equal(
         [
             "Errors: 1   Warnings: 2   Information: 0",

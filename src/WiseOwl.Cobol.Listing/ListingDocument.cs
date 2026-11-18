@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Listing;
 /// an immutable record. The summaries are the JSON schema's descriptions (<see cref="Json.ListingJsonSchema"/>), so they state
 /// what a reader of the listing needs; step notes go in remarks. Step 1 of the design's section 11 built the header, files,
 /// inclusions, lines and programs; step 2 the JSON form; step 3 the diagnostics; step 4a the directive hooks (the LISTING and
-/// PAGE directives, COPY SUPPRESS, the DISPLAY directive's transfers, the lines REPLACE changed); later steps add their
-/// sections beside them.</remarks>
+/// PAGE directives, COPY SUPPRESS, the DISPLAY directive's transfers, the lines REPLACE changed); step 5 the options, the
+/// statistics and the verbs, and the choice of sections; later steps add their sections beside them.</remarks>
 /// <param name="Header">The compiler, the edition, the compilation timestamp, the main source and the outcome.</param>
 /// <param name="Files">Every file read: the source and each library text.</param>
 /// <param name="Inclusions">Every COPY statement processed, in text order.</param>
@@ -24,7 +24,14 @@ namespace WiseOwl.Cobol.Listing;
 /// <param name="Diagnostics">Every diagnostic the compilation reported of its source, in listing order: those placed on a line by
 /// line and column, then those placed on none in the order they were reported.</param>
 /// <param name="Displays">Every transfer of a DISPLAY directive to the listing, in the order the directives were processed.</param>
-/// <param name="Sections">Each section of the listing: produced, or why not (DESIGN-listing.md section 4.3).</param>
+/// <param name="Options">The options section: every option of the compilation with its value and whether it is the default,
+/// then the compiler and the host it ran on; empty when the section was not asked for.</param>
+/// <param name="Statistics">The statistics section: lines by kind and by file, programs, statements, diagnostics by severity
+/// and the verbs; null when the section was not asked for.</param>
+/// <param name="Sections">Each section the listing was asked for, in the order of <see cref="ListingSection"/>: produced, or
+/// why not (DESIGN-listing.md section 4.3). A section not asked for has no entry and its part of the document is empty: the
+/// lines and the DISPLAY transfers are the source section's, the diagnostics the diagnostics section's. The header, the
+/// files, the inclusions and the programs are always present, since the lines and every page heading refer to them.</param>
 public sealed record ListingDocument(
     ListingHeader Header,
     IReadOnlyList<ListingFile> Files,
@@ -33,6 +40,8 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingProgram> Programs,
     IReadOnlyList<ListingDiagnostic> Diagnostics,
     IReadOnlyList<ListingDisplay> Displays,
+    IReadOnlyList<ListingOption> Options,
+    ListingStatistics? Statistics,
     IReadOnlyList<ListingSectionStatus> Sections)
 {
     /// <summary>The identifier of the JSON schema's major version 1 (DESIGN-listing.md section 7.3): every JSON listing of this
@@ -225,15 +234,21 @@ public enum ListingProgramKind
 /// <param name="LastLine">The last listing line of the unit.</param>
 public sealed record ListingProgram(int Id, string Name, ListingProgramKind Kind, int? Parent, int Depth, int FirstLine, int LastLine);
 
-/// <summary>The sections of a listing.</summary>
+/// <summary>The sections of a listing (DESIGN-listing.md section 8, <c>--listing-sections</c>). A section joins this enum
+/// with its builder, so a request can name only a section the compiler can produce.</summary>
 public enum ListingSection
 {
-    /// <summary>The source section: every physical line of every file read.</summary>
+    /// <summary>The source section: every physical line of every file read, with the DISPLAY directive's transfers.</summary>
     Source,
     /// <summary>The program map: every source unit, its nesting and its listing lines.</summary>
     Programs,
     /// <summary>The diagnostics: each at its line in the source section, and all of them in the summary at the end.</summary>
     Diagnostics,
+    /// <summary>The options in effect: every option with its value and whether it is the default, the compiler and the host.</summary>
+    Options,
+    /// <summary>The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with
+    /// its count and its lines.</summary>
+    Statistics,
 }
 
 /// <summary>How serious a diagnostic is.</summary>

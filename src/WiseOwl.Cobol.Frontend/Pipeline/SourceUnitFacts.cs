@@ -22,12 +22,19 @@ public sealed record SourceUnit(int Id, int? Parent, SourceUnitKind Kind, string
 /// <summary>A position of the resultant text (1-based line, 0-based column), as the parser's tokens carry it.</summary>
 public readonly record struct ResultantPoint(int Line, int Column);
 
+/// <summary>One statement as the parse read it (DESIGN-listing.md section 6.8): its verb as written and where it begins.</summary>
+/// <param name="Verb">The first word of the statement, in upper case: the verb as the programmer wrote it, never as the binder
+/// desugars it (<c>GO</c> of GO TO, <c>NEXT</c> of NEXT SENTENCE).</param>
+/// <param name="At">The position of that word.</param>
+public sealed record SourceStatement(string Verb, ResultantPoint At);
+
 /// <summary>
 /// ⛔ WHAT THE PARSE SAYS ABOUT THE SOURCE that the listing places on it (DESIGN-listing.md sections 4.3 and 11, step 1;
 /// kb/Work PB5923): the source units with their nesting and resultant line ranges (the page heading names the innermost
 /// program of its first line, §1985:VI.3.3.4 GR1 and §1985:X.3.1.4 GR1), the DATE-COMPILED paragraphs whose comment-entry
 /// the listing replaces (§1985:VI.3.4.4 GR1), and the head of every comment-entry paragraph (which settles a
-/// <see cref="Preprocessor.PhysicalLineKind.CommentEntryCandidate"/> line). Read off the parse tree the parser built,
+/// <see cref="Preprocessor.PhysicalLineKind.CommentEntryCandidate"/> line), and every statement with its verb (the listing's
+/// statement count and verb counts, section 6.8). Read off the parse tree the parser built,
 /// recovered or not, so a listing of a program that does not parse still names its programs. Collected only when the
 /// compilation asks for a listing (<see cref="Frontend.RecordsListing"/>).
 /// </summary>
@@ -43,18 +50,22 @@ public sealed class SourceUnitFacts
     /// DATE-COMPILED, SECURITY, REMARKS).</summary>
     public required IReadOnlyList<ResultantPoint> CommentEntryParagraphs { get; init; }
 
+    /// <summary>Every statement the parse read, in text order, a statement nested in another included.</summary>
+    public required IReadOnlyList<SourceStatement> Statements { get; init; }
+
     /// <summary>Read the facts off <paramref name="tree"/>.</summary>
     public static SourceUnitFacts Read(CobolParserCore.CompilationUnitContext tree)
     {
         var units = new List<SourceUnit>();
         var dateCompiled = new List<ResultantPoint>();
         var commentEntries = new List<ResultantPoint>();
-        Walk(tree, parent: null, units, dateCompiled, commentEntries);
-        return new SourceUnitFacts { Units = units, DateCompiled = dateCompiled, CommentEntryParagraphs = commentEntries };
+        var statements = new List<SourceStatement>();
+        Walk(tree, parent: null, units, dateCompiled, commentEntries, statements);
+        return new SourceUnitFacts { Units = units, DateCompiled = dateCompiled, CommentEntryParagraphs = commentEntries, Statements = statements };
     }
 
     private static void Walk(IParseTree node, int? parent, List<SourceUnit> units, List<ResultantPoint> dateCompiled,
-        List<ResultantPoint> commentEntries)
+        List<ResultantPoint> commentEntries, List<SourceStatement> statements)
     {
         if (node is not ParserRuleContext context) return;
         int? inner = parent;
@@ -74,9 +85,25 @@ public sealed class SourceUnitFacts
                 or CobolParserCore.RemarksParagraphContext:
                 commentEntries.Add(new ResultantPoint(context.Start.Line, context.Start.Column));
                 return;
+            // A statement the parse began and recovered from consumed at least its first token; one that consumed none (its
+            // stop token precedes its start) is no statement of the source.
+            case CobolParserCore.StatementContext when context.Start is { Type: > 0 } verb
+                && context.Stop is { } last && last.TokenIndex >= verb.TokenIndex:
+                statements.Add(new SourceStatement(VerbOf(verb.Text), new ResultantPoint(verb.Line, verb.Column)));
+                break;
         }
         for (int i = 0; i < context.ChildCount; i++)
-            Walk(context.GetChild(i), inner, units, dateCompiled, commentEntries);
+            Walk(context.GetChild(i), inner, units, dateCompiled, commentEntries, statements);
+    }
+
+    /// <summary>The verb a statement's first token spells: its first word (a token that is a whole embedded block, which a
+    /// recovered parse can hold, begins with its word), in upper case. A verb is a reserved word of the standard, so the
+    /// invariant upper case is its one spelling.</summary>
+    private static string VerbOf(string token)
+    {
+        int end = 0;
+        while (end < token.Length && !char.IsWhiteSpace(token[end])) end++;
+        return token[..end].ToUpperInvariant();
     }
 
     /// <summary>The kind and name of the source unit <paramref name="context"/> opens, or nulls when it opens none (or the

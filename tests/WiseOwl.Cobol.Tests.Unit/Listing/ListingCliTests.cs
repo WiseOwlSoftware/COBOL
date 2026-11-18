@@ -66,6 +66,18 @@ public sealed class ListingCliTests
         Assert.Null(Resolve("a.cob", "--std", "85", "--listing", "off", "--listing-format", "json").Listing);   // off wins
     }
 
+    /// <summary><c>--listing-sections</c> (DESIGN-listing.md section 8): a comma list of section words, <c>standard</c> and
+    /// <c>all</c>; the default is <c>standard</c>; naming it asks for a listing at any edition.</summary>
+    [Fact]
+    public void TheListingSections_ReachTheRequest()
+    {
+        Assert.Equal(ListingSectionSet.Standard, Resolve("a.cob", "--std", "85").Listing!.Sections);
+        Assert.Equal(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.Source, ListingSection.Options) },
+            Resolve("a.cob", "--std", "2023", "--listing-sections", "options,source").Listing);
+        Assert.Equal(ListingSectionSet.All, Resolve("a.cob", "--listing-sections=all").Listing!.Sections);
+        Assert.Null(Resolve("a.cob", "--std", "85", "--listing", "off", "--listing-sections", "all").Listing);   // off wins
+    }
+
     /// <summary>End to end: <c>--listing-format text --listing-format json</c> writes <c>BASE.lst</c> and <c>BASE.lst.json</c>,
     /// both renderings of the one document; <c>--listing-format json</c> alone writes no text listing.</summary>
     [Fact]
@@ -121,6 +133,9 @@ public sealed class ListingCliTests
     [InlineData("--listing-page-length", "-1")]
     [InlineData("--listing-format", "html")]
     [InlineData("--listing-format", "text,json")]
+    [InlineData("--listing-sections", "source,xref")]
+    [InlineData("--listing-sections", "source,")]
+    [InlineData("--listing-sections", "")]
     public void ABadValue_IsAnArgumentError(string option, string value) => Assert.NotEmpty(Errors("a.cob", option, value));
 
     /// <summary>A listing on standard output is ONE format: two would interleave in one stream.</summary>
