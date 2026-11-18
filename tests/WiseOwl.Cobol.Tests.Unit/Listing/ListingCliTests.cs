@@ -52,6 +52,45 @@ public sealed class ListingCliTests
             Resolve("a.cob", "--listing-output", "out/x", "--listing-page-length", "0", "--listing-page-width", "200").Listing);
     }
 
+    /// <summary><c>--listing-format</c> (DESIGN-listing.md section 8): repeatable, each occurrence one format, the default text,
+    /// and naming one asks for a listing at any edition.</summary>
+    [Fact]
+    public void TheListingFormats_ReachTheRequest()
+    {
+        Assert.Equal(new ListingRequest(Formats: ListingFormats.Json), Resolve("a.cob", "--std", "2023", "--listing-format", "json").Listing);
+        Assert.Equal(new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json),
+            Resolve("a.cob", "--listing-format", "text", "--listing-format=JSON").Listing);
+        Assert.Equal(new ListingRequest(Formats: ListingFormats.Json), Resolve("--listing-format", "json", "a.cob").Listing);
+        Assert.Equal(new ListingRequest("-", Formats: ListingFormats.Json),
+            Resolve("a.cob", "--listing-output", "-", "--listing-format", "json").Listing);
+        Assert.Null(Resolve("a.cob", "--std", "85", "--listing", "off", "--listing-format", "json").Listing);   // off wins
+    }
+
+    /// <summary>End to end: <c>--listing-format text --listing-format json</c> writes <c>BASE.lst</c> and <c>BASE.lst.json</c>,
+    /// both renderings of the one document; <c>--listing-format json</c> alone writes no text listing.</summary>
+    [Fact]
+    public void TheCommandLine_WritesEachFormatRequested()
+    {
+        string dir = WiseOwl.Cobol.Tests.Shared.ScratchDirectory.Create("listing-cli-json");
+        try
+        {
+            string src = Path.Combine(dir, "clij.cob");
+            File.WriteAllText(src, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CLIJ.\n       PROCEDURE DIVISION.\n"
+                + "       MAIN-PARA.\n           STOP RUN.\n");
+            string dll = Path.Combine(dir, "clij.dll"), lst = Path.Combine(dir, "clij.lst"), json = Path.Combine(dir, "clij.lst.json");
+            Assert.Equal(0, Program.Parse([src, "-o", dll, "--listing-format", "text", "--listing-format", "json"]).Invoke());
+            var read = WiseOwl.Cobol.Listing.Json.JsonListingWriter.Read(File.ReadAllText(json));
+            Assert.Equal(File.ReadAllText(src).Split('\n'), read.Lines.Select(l => l.Text));   // every physical line, as written
+            Assert.Contains("PROGRAM-ID. CLIJ.", File.ReadAllText(lst), StringComparison.Ordinal);
+            File.Delete(lst);
+            File.Delete(json);
+            Assert.Equal(0, Program.Parse([src, "-o", dll, "--listing-format", "json"]).Invoke());
+            Assert.True(File.Exists(json));
+            Assert.False(File.Exists(lst));
+        }
+        finally { WiseOwl.Cobol.Tests.Shared.ScratchDirectory.Remove(dir); }
+    }
+
     /// <summary>End to end through the command line: at <c>--std 85</c> the compile writes <c>&lt;out&gt;.lst</c> with no
     /// listing option, and <c>--listing off</c> writes none.</summary>
     [Fact]
@@ -80,5 +119,13 @@ public sealed class ListingCliTests
     [InlineData("--listing-page-width", "256")]
     [InlineData("--listing-page-length", "4")]
     [InlineData("--listing-page-length", "-1")]
+    [InlineData("--listing-format", "html")]
+    [InlineData("--listing-format", "text,json")]
     public void ABadValue_IsAnArgumentError(string option, string value) => Assert.NotEmpty(Errors("a.cob", option, value));
+
+    /// <summary>A listing on standard output is ONE format: two would interleave in one stream.</summary>
+    [Fact]
+    public void TwoFormatsOnStandardOutput_IsAnArgumentError() =>
+        Assert.Contains(Errors("a.cob", "--listing-output", "-", "--listing-format", "text", "--listing-format", "json"),
+            e => e.Contains("one format", StringComparison.Ordinal));
 }

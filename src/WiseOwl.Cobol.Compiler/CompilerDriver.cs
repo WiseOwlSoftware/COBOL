@@ -187,8 +187,8 @@ public static class CompilerDriver
         return result with
         {
             Listing = written.Document,
-            OutputFiles = written.File is { } file ? [.. result.OutputFiles, file] : result.OutputFiles,
-            Errors = written.Error is { } error ? [.. result.Errors, error] : result.Errors,
+            OutputFiles = [.. result.OutputFiles, .. written.Files],
+            Errors = [.. result.Errors, .. written.Errors],
         };
     }
 

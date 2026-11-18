@@ -11,6 +11,15 @@
   <PropertyGroup>
     <RootNamespace>WiseOwl.Cobol.Listing</RootNamespace>
     <AssemblyName>WiseOwl.Cobol.Listing</AssemblyName>
+    <!-- DESIGN-listing.md section 7.3: the JSON schema's descriptions are the model's XML documentation
+         (Json/ListingJsonSchema.cs), so the documentation file is built, and with TreatWarningsAsErrors a public member
+         without documentation (CS1591) fails the build: no property of the published interface goes without its meaning. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The committed, generated schema (ListingJsonSchema.Committed); ListingJsonSchemaDriftTests regenerates it. -->
+    <EmbeddedResource Include="Json/listing-v1.schema.json" LogicalName="WiseOwl.Cobol.Listing.Json.listing-v1.schema.json" />
+  </ItemGroup>
 
 </Project>

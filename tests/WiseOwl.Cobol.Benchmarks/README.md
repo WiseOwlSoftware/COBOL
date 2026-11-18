@@ -394,6 +394,30 @@ by 0.6 MB, so the rest is the backend's own variation). A quiet-host re-measure 
 before `TextListingRenderer.Wrap` stopped allocating a string per character, showed `Text` 28-35 % over `None` on the
 front end; that is the fix the measurement found.
 
+**Step 2 (kb/Work PB5925, the JSON listing): `Text` re-measured with JSON.** `Listing` gains `TextAndJson` (the text and the
+JSON listing written beside the assembly); its witness reads the JSON back and checks it holds every line of the listing.
+Measured on 2026-11-18, Release, one Windows host, the `listing-step-2` branch, the three modes in one run
+(`dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*`, 24 cases, 289 s):
+
+| Program | Method | None | Text | TextAndJson | None alloc | Text alloc | TextAndJson alloc | JSON file |
+|---|---|---|---|---|---|---|---|---|
+| IX113A | FrontEndAndBind | 105.22 ms | 138.54 ms | 115.60 ms | 72.86 MB | 79.50 MB | 87.70 MB | |
+| IX113A | FullCompile | 537.42 ms | 531.81 ms | 544.54 ms | 176.62 MB | 185.40 MB | 191.30 MB | 2,134,814 B |
+| NC105A | FrontEndAndBind | 78.00 ms | 93.36 ms | 75.44 ms | 37.40 MB | 40.70 MB | 45.55 MB | |
+| NC105A | FullCompile | 527.50 ms | 480.64 ms | 518.82 ms | 104.86 MB | 112.39 MB | 112.45 MB | 1,141,529 B |
+| NC218A | FrontEndAndBind | 82.78 ms | 64.68 ms | 78.54 ms | 32.59 MB | 36.57 MB | 40.72 MB | |
+| NC218A | FullCompile | 411.81 ms | 463.53 ms | 448.69 ms | 102.14 MB | 101.32 MB | 105.96 MB | 1,126,280 B |
+| SM201A | FrontEndAndBind | 48.86 ms | 51.13 ms | 63.53 ms | 15.97 MB | 17.62 MB | 19.44 MB | |
+| SM201A | FullCompile | 184.95 ms | 241.36 ms | 314.27 ms | 38.60 MB | 39.89 MB | 41.13 MB | 452,259 B |
+
+Reading them: the host was loaded again (StdDev 25-40 % of the mean on most rows, SM201A's `TextAndJson` full compile 25 %),
+so, as at step 1, no time row decides a budget; every time difference but SM201A's full compile is inside one standard
+deviation, and SM201A's is the noisiest case of the run. Allocated bytes: on a full compile `TextAndJson` costs 3.7-8.3 %
+over `None` (inside the 10 % budget of the standard listing), and 0.1-3.2 % over `Text` alone; on the front end alone,
+where the listing is a larger share, 20-25 % over `None` and 10-12 % over `Text`. The JSON file is 3.5 times the text
+listing (it carries every line's attributes as named properties, indented), and is built as one string before it is
+written. The quiet-host re-measure of every row is still owed (kb/Work PB5927).
+
 ---
 
 ## Not measured here

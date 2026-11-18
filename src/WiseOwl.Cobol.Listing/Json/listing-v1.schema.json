@@ -1,0 +1,369 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wiseowl:cobol:listing:v1",
+  "title": "WiseOwl COBOL source listing, schema version 1.0",
+  "description": "The source listing of one compilation: the source as read, with its COPY inclusions and programs. Lines are referred to by their listing line number and files by their id. Every format (text, JSON) renders this one document.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "The identifier of the schema the document follows: urn:wiseowl:cobol:listing:v1 for every version of major 1.",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "description": "The schema version the document was written at, <major>.<minor>. A reader of major 1 reads every 1.x document and ignores the properties it does not know.",
+      "type": "string"
+    },
+    "header": {
+      "description": "The compiler, the edition, the compilation timestamp, the main source and the outcome.",
+      "type": "object",
+      "properties": {
+        "compilerVersion": {
+          "description": "The compiler's informational version.",
+          "type": "string"
+        },
+        "edition": {
+          "description": "The edition's year as --std spells it (85, 2002, 2014, 2023).",
+          "type": "integer"
+        },
+        "editionName": {
+          "description": "The edition's name.",
+          "type": "string"
+        },
+        "compiledAt": {
+          "description": "The compilation's one instant (DESIGN-listing.md section 5): the same instant WHEN-COMPILED and DATE-COMPILED's replacement denote.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "mainSource": {
+          "description": "The path of the source file compiled.",
+          "type": "string"
+        },
+        "outcome": {
+          "description": "How far the compilation got. Success: The assembly was written. FrontendError: The text stages or the parser refused the source. BindError: The binder refused the program. BackendError: The backend could not produce the assembly. OutputNotWritable: The source compiled, but the host refused to write the assembly.",
+          "enum": [
+            "Success",
+            "FrontendError",
+            "BindError",
+            "BackendError",
+            "OutputNotWritable"
+          ]
+        }
+      },
+      "required": [
+        "compilerVersion",
+        "edition",
+        "editionName",
+        "compiledAt",
+        "mainSource",
+        "outcome"
+      ]
+    },
+    "files": {
+      "description": "Every file read: the source and each library text.",
+      "type": "array",
+      "items": {
+        "description": "One file the compilation read.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "1-based; the source is 1.",
+            "type": "integer"
+          },
+          "path": {
+            "description": "The path as the compilation read it.",
+            "type": "string"
+          },
+          "role": {
+            "description": "Source or library text. Source: The source file the compilation was asked to compile. Library: A library text a COPY statement read.",
+            "enum": [
+              "Source",
+              "Library"
+            ]
+          },
+          "sha256": {
+            "description": "The lowercase hexadecimal SHA-256 digest of the file's bytes as read.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "role",
+          "sha256"
+        ]
+      }
+    },
+    "inclusions": {
+      "description": "Every COPY statement processed, in text order.",
+      "type": "array",
+      "items": {
+        "description": "One COPY statement and the library text it brought in.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "1-based, in text order.",
+            "type": "integer"
+          },
+          "parent": {
+            "description": "The inclusion whose library text holds the COPY statement, or null for the source.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "depth": {
+            "description": "1 for a COPY statement of the source, one more per library text it is nested in.",
+            "type": "integer"
+          },
+          "copyLine": {
+            "description": "The listing line the COPY word stands on.",
+            "type": "integer"
+          },
+          "copyLastLine": {
+            "description": "The listing line the statement ends on; the inclusion's lines follow it.",
+            "type": "integer"
+          },
+          "textName": {
+            "description": "The text-name or literal the statement names.",
+            "type": "string"
+          },
+          "libraryName": {
+            "description": "The library-name or literal of its OF / IN phrase, or null.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "description": "The Id of the library text read, or null when none was.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "outcome": {
+            "description": "Found, not found or circular. Found: The library text was found and copied. NotFound: No library text of that name was found; nothing was copied. Circular: The library text copies itself, directly or through others; it was not copied again.",
+            "enum": [
+              "Found",
+              "NotFound",
+              "Circular"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "depth",
+          "copyLine",
+          "copyLastLine",
+          "textName",
+          "outcome"
+        ]
+      }
+    },
+    "lines": {
+      "description": "The source section, in listing order: every physical line of every file read, each inclusion's lines after the last line of its COPY statement.",
+      "type": "array",
+      "items": {
+        "description": "One physical line of the source section (DESIGN-listing.md section 4.2).",
+        "type": "object",
+        "properties": {
+          "number": {
+            "description": "The listing line number, 1-based, unique in the document.",
+            "type": "integer"
+          },
+          "file": {
+            "description": "The Id the line is read from.",
+            "type": "integer"
+          },
+          "fileLine": {
+            "description": "The 1-based physical line of that file.",
+            "type": "integer"
+          },
+          "inclusion": {
+            "description": "The Id the line belongs to; null for the source.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "depth": {
+            "description": "The inclusion depth, 0 for the source.",
+            "type": "integer"
+          },
+          "form": {
+            "description": "Fixed or free form. Fixed: Fixed-form reference format: sequence area, indicator area, areas A and B, identification area. Free: Free-form reference format.",
+            "enum": [
+              "Fixed",
+              "Free"
+            ]
+          },
+          "kind": {
+            "description": "What the line is. Source: A line of program text. Comment: A comment line: the fixed-form * indicator, or the floating comment indicator. PageEjectComment: A comment line with the fixed-form slant (/) indicator, which ejects a page before it is listed. DebuggingLine: A debugging line: the fixed-form D indicator, or the floating >>D indicator. Continuation: A fixed-form continuation line (the hyphen indicator). Directive: A compiler directive line, where the edition has compiler directives. CommentEntry: A line of the comment-entry of an IDENTIFICATION DIVISION paragraph such as AUTHOR or DATE-COMPILED. CcvsExcluded: A line the NIST CCVS column-7 conventions exclude (the --nist dialect only). NotAnIndicator: A line whose indicator area holds a character that is no indicator, read as program text. Blank: A blank line: nothing but spaces in its program text.",
+            "enum": [
+              "Source",
+              "Comment",
+              "PageEjectComment",
+              "DebuggingLine",
+              "Continuation",
+              "Directive",
+              "CommentEntry",
+              "CcvsExcluded",
+              "NotAnIndicator",
+              "Blank"
+            ]
+          },
+          "text": {
+            "description": "The physical text as the file holds it, tabs expanded.",
+            "type": "string"
+          },
+          "omitted": {
+            "description": "A false conditional-compilation branch omitted the line.",
+            "type": "boolean"
+          },
+          "listed": {
+            "description": "The visibility pass's answer: the text renderer prints it.",
+            "type": "boolean"
+          },
+          "pageBreakBefore": {
+            "description": "The visibility pass's answer: a page starts before it.",
+            "type": "boolean"
+          },
+          "program": {
+            "description": "The Id of the innermost program containing the line.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "replacement": {
+            "description": "Which replacement the compiler made of the line, if any. None: The line was compiled as written. DateCompiled: The first line of a DATE-COMPILED paragraph, whose paragraph \"is replaced during compilation with a paragraph of the form\" DATE-COMPILED. current date. (§1985:VI.3.4.4 GR1): the listing prints the replacement in its place. DateCompiledEntry: A further line of the comment-entry of a replaced DATE-COMPILED paragraph: replaced with the paragraph, so the text listing does not print it (the model keeps the written text).",
+            "enum": [
+              "None",
+              "DateCompiled",
+              "DateCompiledEntry"
+            ]
+          },
+          "replaced": {
+            "description": "What the compiler compiled in place of Text, when it is printed in its place.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "number",
+          "file",
+          "fileLine",
+          "depth",
+          "form",
+          "kind",
+          "text",
+          "omitted",
+          "listed",
+          "pageBreakBefore",
+          "replacement"
+        ]
+      }
+    },
+    "programs": {
+      "description": "Every source unit, in text order, with its nesting and listing line range.",
+      "type": "array",
+      "items": {
+        "description": "One source unit of the compilation group (DESIGN-listing.md section 6.5).",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "0-based, in text order.",
+            "type": "integer"
+          },
+          "name": {
+            "description": "The name its identification paragraph declares, as written.",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Program, function, class, ... Program: A program. Function: A user-defined function. Class: A class definition. Interface: An interface definition. Factory: The factory definition of a class. Object: The object (instance) definition of a class. Method: A method definition.",
+            "enum": [
+              "Program",
+              "Function",
+              "Class",
+              "Interface",
+              "Factory",
+              "Object",
+              "Method"
+            ]
+          },
+          "parent": {
+            "description": "The Id of the unit that directly contains it, or null.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "depth": {
+            "description": "0 for an outermost unit.",
+            "type": "integer"
+          },
+          "firstLine": {
+            "description": "The first listing line of the unit.",
+            "type": "integer"
+          },
+          "lastLine": {
+            "description": "The last listing line of the unit.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "depth",
+          "firstLine",
+          "lastLine"
+        ]
+      }
+    },
+    "sections": {
+      "description": "Each section of the listing: produced, or why not (DESIGN-listing.md section 4.3).",
+      "type": "array",
+      "items": {
+        "description": "Whether a section was produced and, when not, why (DESIGN-listing.md section 4.3): a section is never left out silently.",
+        "type": "object",
+        "properties": {
+          "section": {
+            "description": "The section. Source: The source section: every physical line of every file read. Programs: The program map: every source unit, its nesting and its listing lines.",
+            "enum": [
+              "Source",
+              "Programs"
+            ]
+          },
+          "produced": {
+            "description": "Whether the listing holds the section.",
+            "type": "boolean"
+          },
+          "reason": {
+            "description": "Why the section was not produced (the phase that stopped it), or null when it was.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "section",
+          "produced"
+        ]
+      }
+    }
+  },
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "header",
+    "files",
+    "inclusions",
+    "lines",
+    "programs",
+    "sections"
+  ]
+}
