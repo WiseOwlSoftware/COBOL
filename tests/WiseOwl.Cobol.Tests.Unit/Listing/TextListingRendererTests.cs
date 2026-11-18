@@ -101,7 +101,7 @@ public sealed class TextListingRendererTests
         string source = dir + "/main.cob", library = dir + "/REC.cpy";
         var document = new ListingDocument(Header(source: source),
             [new ListingFile(1, source, ListingFileRole.Source, "00"), new ListingFile(2, library, ListingFileRole.Library, "00")],
-            [new ListingInclusion(1, null, 1, 1, 1, "REC", null, 2, ListingInclusionOutcome.Found)],
+            [new ListingInclusion(1, null, 1, 1, 1, "REC", null, 2, ListingInclusionOutcome.Found, false)],
             [
                 new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       COPY REC.", false, true, false, 0, ListingReplacement.None, null, []),
                 new(2, 2, 1, 1, 1, ListingLineForm.Fixed, ListingLineKind.Source, "       01 R PIC X.", false, true, false, 0, ListingReplacement.None, null, [1]),
@@ -109,6 +109,7 @@ public sealed class TextListingRendererTests
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 2)],
             [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "a message of many words " + string.Join(" ", Enumerable.Repeat("word", 60)),
                 2, 2, 1, 8, [])],
+            [],
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null)]);
         var request = new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth);
         // A form feed opens each page after the first; it is no column.
@@ -170,7 +171,7 @@ public sealed class TextListingRendererTests
             [new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       MOVE X TO Y.", false, true, false, null,
                 ListingReplacement.None, null, [1, 2])],
             [], [Diagnostic(1, ListingSeverity.Error, "e"), Diagnostic(2, ListingSeverity.Warning, "w"), Diagnostic(3, ListingSeverity.Warning, "g", line: null)],
-            []);
+            [], []);
         Assert.Equal(
         [
             "Errors: 1   Warnings: 2   Information: 0",

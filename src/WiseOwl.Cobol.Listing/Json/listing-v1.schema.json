@@ -148,6 +148,10 @@
               "NotFound",
               "Circular"
             ]
+          },
+          "suppress": {
+            "description": "The statement writes the SUPPRESS phrase: the library text it incorporates is not listed, and the statement itself is (§2023:7.2.3.4 GR4).",
+            "type": "boolean"
           }
         },
         "required": [
@@ -156,7 +160,8 @@
           "copyLine",
           "copyLastLine",
           "textName",
-          "outcome"
+          "outcome",
+          "suppress"
         ]
       }
     },
@@ -236,15 +241,16 @@
             ]
           },
           "replacement": {
-            "description": "Which replacement the compiler made of the line, if any. None: The line was compiled as written. DateCompiled: The first line of a DATE-COMPILED paragraph, whose paragraph \"is replaced during compilation with a paragraph of the form\" DATE-COMPILED. current date. (§1985:VI.3.4.4 GR1): the listing prints the replacement in its place. DateCompiledEntry: A further line of the comment-entry of a replaced DATE-COMPILED paragraph: replaced with the paragraph, so the text listing does not print it (the model keeps the written text).",
+            "description": "Which replacement the compiler made of the line, if any. None: The line was compiled as written. DateCompiled: The first line of a DATE-COMPILED paragraph, whose paragraph \"is replaced during compilation with a paragraph of the form\" DATE-COMPILED. current date. (§1985:VI.3.4.4 GR1): the listing prints the replacement in its place. DateCompiledEntry: A further line of the comment-entry of a replaced DATE-COMPILED paragraph: replaced with the paragraph, so the text listing does not print it (the model keeps the written text). Replacing: A replacing action of a REPLACE statement or of a COPY statement's REPLACING phrase matched text that begins on the line, so what was compiled is not what was written: the text listing prints the line as written, marked 'R', and under it the compiled text.",
             "enum": [
               "None",
               "DateCompiled",
-              "DateCompiledEntry"
+              "DateCompiledEntry",
+              "Replacing"
             ]
           },
           "replaced": {
-            "description": "What the compiler compiled in place of Text, when it is printed in its place.",
+            "description": "What the compiler compiled in place of Text: DATE-COMPILED's replacement, printed in its place; or, for a line a replacing action changed, the resultant text compiled from it (one line of text per resultant line, joined by line feeds; empty when the replacement removed everything the line held), printed under it.",
             "type": [
               "string",
               "null"
@@ -425,6 +431,28 @@
         ]
       }
     },
+    "displays": {
+      "description": "Every transfer of a DISPLAY directive to the listing, in the order the directives were processed.",
+      "type": "array",
+      "items": {
+        "description": "One transfer of a DISPLAY directive to the listing (§2023:7.3.12.4 GR1, GR5 a), GR6; DESIGN-listing.md section 6.10): printed at its directive's place whether or not a LISTING directive suppresses that line (GR2).",
+        "type": "object",
+        "properties": {
+          "line": {
+            "description": "The listing line of the DISPLAY directive.",
+            "type": "integer"
+          },
+          "text": {
+            "description": "The data transferred: each operand's image, in the order written, separated by one space.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "line",
+          "text"
+        ]
+      }
+    },
     "sections": {
       "description": "Each section of the listing: produced, or why not (DESIGN-listing.md section 4.3).",
       "type": "array",
@@ -468,6 +496,7 @@
     "lines",
     "programs",
     "diagnostics",
+    "displays",
     "sections"
   ]
 }

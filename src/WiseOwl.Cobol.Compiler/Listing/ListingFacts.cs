@@ -7,9 +7,10 @@ using WiseOwl.Cobol.Frontend.Preprocessor;
 namespace WiseOwl.Cobol.Listing.Building;
 
 /// <summary>What the front end's LISTED pass leaves for the listing (DESIGN-listing.md section 4.4): every file's
-/// reference-format map, the text stages' trace, the parse's unit facts and the resultant line map, all of one pass.</summary>
+/// reference-format map, the text stages' trace, the parse's unit facts, the resultant line map and the resultant text it maps,
+/// all of one pass.</summary>
 internal sealed record FrontendFacts(string SourcePath, IReadOnlyDictionary<string, ReferenceFormatMap> Formats,
-    TextStageTrace Trace, SourceUnitFacts? Units, SourceLineMap LineMap);
+    TextStageTrace Trace, SourceUnitFacts? Units, SourceLineMap LineMap, string ResultantText);
 
 /// <summary>
 /// ⛔ THE LISTING'S COLLECTOR (DESIGN-listing.md section 4.6): <c>CompilerDriver</c>'s body DEPOSITS each fact here as its phase
@@ -63,6 +64,6 @@ internal sealed class ListingFacts(ListingRequest request, CompilationInputs inp
     {
         if (!frontend.ReferenceFormats.ContainsKey(SourcePath)) return;
         Frontend = new FrontendFacts(SourcePath, frontend.ReferenceFormats, frontend.ListingTrace, frontend.UnitFacts,
-            frontend.LineMap);
+            frontend.LineMap, frontend.ResultantText);
     }
 }

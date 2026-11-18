@@ -34,7 +34,7 @@ public sealed class ListingLineIndexTests
     private static TextInclusion Inclusion(int id, int? parent, int depth, int copyLine, string copyFile, string text, string file,
         int first, int last) =>
         new(id, parent, depth, new SourceOrigin(copyFile, copyLine), new SourceOrigin(copyFile, copyLine), text, null, file,
-            TextInclusionOutcome.Found, first, last);
+            TextInclusionOutcome.Found, first, last, Suppress: false);
 
     private static ListingLineIndex Index(int omitted = 0) => IndexAndMap(omitted).Index;
 

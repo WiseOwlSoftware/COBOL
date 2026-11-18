@@ -80,6 +80,11 @@ public sealed class Frontend
     /// <see cref="RecordsListing"/> is false or no text was parsed.</summary>
     public SourceUnitFacts? UnitFacts { get; private set; }
 
+    /// <summary>The RESULTANT text of the listed pass: the text the parser read, whose lines <see cref="LineMap"/> maps (the
+    /// source listing prints the line a REPLACE or COPY REPLACING changed as compiled from it, DESIGN-listing.md section 6.2).
+    /// Empty until a source has been read.</summary>
+    public string ResultantText { get; private set; } = "";
+
     /// <summary>Add a directory to the COPY copybook search path.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
@@ -147,7 +152,7 @@ public sealed class Frontend
             int diagnosticsBeforeLexing = passDiagnostics.Diagnostics.Count;
             var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas, referenceFormatGates);
             // What the source listing reads of this pass (DESIGN-listing.md section 4.4): taken from the SAME pass as LineMap.
-            var listed = new ListedPass(trace, formats, RecordsListing ? SourceUnitFacts.Read(tree) : null);
+            var listed = new ListedPass(trace, formats, RecordsListing ? SourceUnitFacts.Read(tree) : null, processed.Text);
             // A debugging line the §2023:6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(
@@ -210,7 +215,7 @@ public sealed class Frontend
 
     /// <summary>What the source listing reads of one pass of the text stages and its parse (DESIGN-listing.md section 4.4).</summary>
     private readonly record struct ListedPass(Preprocessor.TextStageTrace Trace,
-        IReadOnlyDictionary<string, Preprocessor.ReferenceFormatMap> Formats, SourceUnitFacts? UnitFacts);
+        IReadOnlyDictionary<string, Preprocessor.ReferenceFormatMap> Formats, SourceUnitFacts? UnitFacts, string ResultantText);
 
     /// <summary>Expose <paramref name="pass"/> as the listed pass, beside <see cref="LineMap"/>, which the caller set from the
     /// same pass.</summary>
@@ -219,6 +224,7 @@ public sealed class Frontend
         ListingTrace = pass.Trace;
         ReferenceFormats = pass.Formats;
         UnitFacts = pass.UnitFacts;
+        ResultantText = pass.ResultantText;
     }
 
     /// <summary>The text stages — the normalizer, then <see cref="Preprocess"/> — run to a FIXED POINT of the comment-entry

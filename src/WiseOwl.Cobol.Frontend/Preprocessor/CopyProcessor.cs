@@ -119,9 +119,12 @@ public sealed class CopyProcessor(
     /// replace-also-last-2002), a REPLACE that follows no separator period below 2002 (replace-anywhere-2002), and ends a
     /// statement's scope at the edition's own boundary (<see cref="EditionInfo.ReplaceScopeEndsWithSeparatelyCompiledProgram"/>);
     /// the diagnostics are reported only when <paramref name="diagnostics"/> is given (the line-map replay passes none).</para>
+    /// <para><paramref name="matched"/>, when given, is told the offset in <paramref name="mapped"/> at which each replacing
+    /// action's match begins: the source listing's record of the lines REPLACE changed (DESIGN-listing.md section 4.4).</para>
     /// </summary>
     internal static MappedText ApplyReplaceStatements(MappedText mapped, EditionInfo edition,
-        DiagnosticBag? diagnostics = null, IReadOnlyDictionary<string, ReferenceFormatMap>? formats = null)
+        DiagnosticBag? diagnostics = null, IReadOnlyDictionary<string, ReferenceFormatMap>? formats = null,
+        Action<int>? matched = null)
     {
         string text = mapped.Text;
         var w = new OriginWriter();
@@ -141,14 +144,14 @@ public sealed class CopyProcessor(
                 if (scopeEnds[nextEnd] > from)
                 {
                     w.AppendMapped(ApplyReplacements(mapped.Slice(from, scopeEnds[nextEnd] - from), states.Active,
-                        ReplaceResultRule, edition, IsDebuggingLineAt(text, from), diagnostics, formats));
+                        ReplaceResultRule, edition, IsDebuggingLineAt(text, from), diagnostics, formats, Shifted(matched, from)));
                     from = scopeEnds[nextEnd];
                 }
                 states.EndScope();
             }
             if (to > from)
                 w.AppendMapped(ApplyReplacements(mapped.Slice(from, to - from), states.Active, ReplaceResultRule, edition,
-                    IsDebuggingLineAt(text, from), diagnostics, formats));
+                    IsDebuggingLineAt(text, from), diagnostics, formats, Shifted(matched, from)));
         }
 
         while (pos < text.Length)
@@ -342,6 +345,10 @@ public sealed class CopyProcessor(
         return [.. ends];
     }
 
+    /// <summary>A match observer for a slice that begins at <paramref name="from"/> of the text <paramref name="matched"/>
+    /// observes: the slice's offsets shifted to that text's. Null when there is no observer (no listing).</summary>
+    private static Action<int>? Shifted(Action<int>? matched, int from) => matched is null ? null : at => matched(from + at);
+
     /// <summary>Where each line of <paramref name="text"/> lands in the text <see cref="ApplyReplaceStatements"/>
     /// makes of it: element <c>i</c> is the 0-based RESULTANT line holding input line <c>i</c> (kb/Work PB1066). A
     /// kept line maps to itself shifted by the lines REPLACE removed above it; a line REPLACE removed (a REPLACE
@@ -495,9 +502,12 @@ public sealed class CopyProcessor(
     /// its own line's indicator. <paramref name="edition"/> decides whether the resultant text is laid out in fixed-form
     /// lines (<see cref="EditionInfo.ReplacedTextIsLaidOutInFixedForm"/>), which is when the COBOL-85 rules of introduced
     /// lines and continued literals apply.</para>
+    /// <para><paramref name="onMatch"/>, when given, is told the offset in <paramref name="mapped"/> at which each match begins
+    /// (the source listing's record of a changed line, DESIGN-listing.md section 4.4); a compilation without a listing passes
+    /// none.</para>
     private static MappedText ApplyReplacements(MappedText mapped, IReadOnlyList<Replacement> replacements,
         ResultRule rule, EditionInfo edition, bool firstLineIsDebugging, DiagnosticBag? diagnostics,
-        IReadOnlyDictionary<string, ReferenceFormatMap>? formats)
+        IReadOnlyDictionary<string, ReferenceFormatMap>? formats, Action<int>? onMatch = null)
     {
         bool fixedForm = edition.ReplacedTextIsLaidOutInFixedForm;
         var active = replacements.Where(r => r.From.Count > 0).ToList();   // an empty operand cannot match
@@ -565,6 +575,7 @@ public sealed class CopyProcessor(
 
                     int matchStart = words[w].Start;
                     int matchEnd = words[w + from.Count - 1].End;
+                    onMatch?.Invoke(matchStart);
                     sb.AppendSlice(mapped, copiedUpTo, matchStart - copiedUpTo);
                     int lineStart = matchStart == 0 ? 0 : text.LastIndexOf('\n', matchStart - 1) + 1;
                     bool onDebuggingLine = lineStart == 0 ? firstLineIsDebugging : StartsWithCarrier(text, lineStart);
@@ -631,6 +642,7 @@ public sealed class CopyProcessor(
                 bool trailing = kind == ReplaceKind.Trailing && CobolNames.EndsWith(word, part);
                 if (!leading && !trailing) continue;
 
+                onMatch?.Invoke(words[w].Start);
                 sb.AppendSlice(mapped, copiedUpTo, words[w].Start - copiedUpTo);
                 var at = mapped.PointAt(words[w].Start);
                 string produced = leading ? string.Concat(to.Text.AsSpan(), word[part.Length..])
@@ -667,8 +679,11 @@ public sealed class CopyProcessor(
     /// after normalization and COPY … REPLACING — kb/Work PB82); null for the not-found / circular comment lines.</param>
     /// <param name="TextName">The text-name or literal the statement names, or null when the statement could not be parsed.</param>
     /// <param name="LibraryName">The library-name or literal of the statement's OF / IN phrase, or null.</param>
+    /// <param name="Suppress">The statement writes the SUPPRESS phrase (§2023:7.2.3.4 GR4: its library text is not listed).</param>
+    /// <param name="ReplacedLines">The physical lines of the library text where the REPLACING phrase matched; recorded only for
+    /// a compilation that produces a listing (<see cref="TextStageTrace.Records"/>), null otherwise.</param>
     internal readonly record struct OneCopyResult(CopyOutcome Outcome, string Text, string? CopybookPath, MappedText? Mapped = null,
-        string? TextName = null, string? LibraryName = null);
+        string? TextName = null, string? LibraryName = null, bool Suppress = false, IReadOnlyList<SourceOrigin>? ReplacedLines = null);
 
     /// <summary>Parse and resolve ONE COPY statement whose keyword is at <paramref name="copyIdx"/> — parse it
     /// (<see cref="ParseCopyStatement"/>, advancing <paramref name="afterCopy"/> past its separator period), find the
@@ -719,14 +734,14 @@ public sealed class CopyProcessor(
             // every path — never a silently omitted COPY (kb/Work PB1355).
             string named = statement.LibraryName is { } lib ? $"{libraryName} OF {lib}" : libraryName;
             Report(DiagnosticDescriptors.CBL3620, at, named, string.Join("; ", LibraryPlaces()));
-            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{named} — library text not found", null, TextName: libraryName, LibraryName: statement.LibraryName);
+            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{named} — library text not found", null, TextName: libraryName, LibraryName: statement.LibraryName, Suppress: statement.Suppress);
         }
         if (!alreadyIncluded.Add(copybookPath))
         {
             // ISO §2023:7.2.3.4 GR12: "The library text being copied shall not cause the processing of a COPY statement
             // that directly or indirectly copies itself."
             Report(DiagnosticDescriptors.CBL3621, at, libraryName);
-            return new OneCopyResult(CopyOutcome.Circular, $"{NotePrefix}{libraryName} — circular include skipped", null, TextName: libraryName, LibraryName: statement.LibraryName);
+            return new OneCopyResult(CopyOutcome.Circular, $"{NotePrefix}{libraryName} — circular include skipped", null, TextName: libraryName, LibraryName: statement.LibraryName, Suppress: statement.Suppress);
         }
 
         // Library text goes through the same §2023:6.5 logical conversion as the source text, starting in the format in
@@ -739,7 +754,7 @@ public sealed class CopyProcessor(
         if (_inputs.ReadSourceText(copybookPath, _diagnostics) is not { } libraryText)
         {
             alreadyIncluded.Remove(copybookPath);   // nothing was included, so a later COPY of it is no circular include
-            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{libraryName} — library text malformed for its byte-order mark", null, TextName: libraryName, LibraryName: statement.LibraryName);
+            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{libraryName} — library text malformed for its byte-order mark", null, TextName: libraryName, LibraryName: statement.LibraryName, Suppress: statement.Suppress);
         }
 
         var edition = EditionInfo.Of(dialectLevel, permissive);
@@ -786,9 +801,14 @@ public sealed class CopyProcessor(
                 + "shall not contain a COPY statement\"); nesting is permitted only without REPLACING "
                 + "(GR12). Flatten the copybook, or drop the REPLACING phrase.",
                 at, default);
+        // The source listing's record of the lines the REPLACING phrase changed (DESIGN-listing.md section 4.4): asked only of a
+        // trace that records, so a compilation without a listing builds no list and no observer.
+        List<SourceOrigin>? replacedLines = Trace.Records ? [] : null;
         var copybookMapped = ApplyReplacements(normalizedMapped, statement.Replacements, CopyResultRule, edition,
-            IsDebuggingLineAt(normalized, 0), _diagnostics, _referenceFormats);
-        return new OneCopyResult(CopyOutcome.Found, copybookMapped.Text, copybookPath, copybookMapped, libraryName, statement.LibraryName);
+            IsDebuggingLineAt(normalized, 0), _diagnostics, _referenceFormats,
+            replacedLines is null ? null : at => replacedLines.Add(normalizedMapped.PointAt(at).Origin));
+        return new OneCopyResult(CopyOutcome.Found, copybookMapped.Text, copybookPath, copybookMapped, libraryName, statement.LibraryName,
+            statement.Suppress, replacedLines);
     }
 
     /// <summary>The spelling the REPLACING phrase of a COPY statement gives a word of its library text, for the reader of that text to
@@ -842,14 +862,14 @@ public sealed class CopyProcessor(
     /// the REPLACING phrase was written (§2023:7.2.3.4 GR10 turns on that, not on how many operands parsed), its operands,
     /// and the position just past the statement's separator period.</summary>
     private readonly record struct CopyStatement(string? TextName, bool TextNameIsWord, string? LibraryName,
-        bool LibraryNameIsWord, bool ReplacingSpecified, List<Replacement> Replacements, int End);
+        bool LibraryNameIsWord, bool Suppress, bool ReplacingSpecified, List<Replacement> Replacements, int End);
 
     /// <summary>Parse the COPY statement at <paramref name="copyIdx"/> in its §2023:7.2.3.2 general-format order, over
     /// §2023:7.2.2.5 text-words: <c>COPY {text-name-1 | literal-1} [{OF | IN} {library-name-1 | literal-2}]
     /// [SUPPRESS [PRINTING]] [REPLACING operands…] .</c> — the statement ends at its separator period (§2023:7.2.3.4 GR6
     /// "beginning with the reserved word COPY and ending with the separator period, inclusive"), so a period inside
     /// pseudo-text or a literal no longer ends it. A word out of that order is COBOL2449; SUPPRESS has no effect on
-    /// the resultant text (GR4 governs only a listing, which this compiler does not produce). kb/Work PB1354. The literal forms
+    /// the resultant text (GR4 governs only the listing: the library text is not listed, DESIGN-listing.md section 4.5). kb/Work PB1354. The literal forms
     /// of the two names and the SUPPRESS phrase are COBOL-2002 introductions COBOL-85's COPY did not have, gated by
     /// <see cref="GateCopyPhrase"/> (kb/Work PB1601).</summary>
     private CopyStatement ParseCopyStatement(MappedText mapped, int copyIdx)
@@ -865,9 +885,11 @@ public sealed class CopyProcessor(
             c.Advance(w);
             libraryName = ReadCopyName(mapped, c, "library-name-1 or literal-2", out libraryNameIsWord);
         }
+        bool suppress = false;
         if (c.TryPeek(out w) && w.IsWord("SUPPRESS"))
         {
             GateCopyPhrase(mapped, w.Start, Constructs.CopySuppress2002, "the COPY statement's SUPPRESS phrase");
+            suppress = true;
             c.Advance(w);
             if (c.TryPeek(out w) && w.IsWord("PRINTING")) c.Advance(w);
         }
@@ -893,7 +915,7 @@ public sealed class CopyProcessor(
             c.MarkError();
         }
         c.ExpectSeparatorPeriod();
-        return new CopyStatement(textName, textNameIsWord, libraryName, libraryNameIsWord, replacing, replacements, c.Pos);
+        return new CopyStatement(textName, textNameIsWord, libraryName, libraryNameIsWord, suppress, replacing, replacements, c.Pos);
     }
 
     /// <summary>⛔ THE EDITION GATE OF THE COPY STATEMENT'S OWN PHRASES — the introduction gate (COBOL0900 below the
@@ -1087,7 +1109,7 @@ public sealed class CopyProcessor(
                         CopyOutcome.Found => TextInclusionOutcome.Found,
                         CopyOutcome.Circular => TextInclusionOutcome.Circular,
                         _ => TextInclusionOutcome.NotFound,
-                    });
+                    }, one.Suppress, one.ReplacedLines ?? []);
             if (one.Outcome == CopyOutcome.Found)
             {
                 w.NewLine(copyLine);

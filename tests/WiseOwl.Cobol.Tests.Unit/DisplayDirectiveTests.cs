@@ -28,8 +28,10 @@ public sealed class DisplayDirectiveTests
         return (bag.CompileOutput.ToArray(), bag);
     }
 
+    // What reaches the compiler's standard output when no listing is produced: the Standard stream and the Listing stream,
+    // which the command line writes there (DOC-A.1-53, DOC-A.1-54; DESIGN-listing.md section 6.10).
     private static string[] Std(string directives) => Run(directives).Output
-        .Where(o => o.Stream == CompileOutputStream.Standard).Select(o => o.Text).ToArray();
+        .Where(o => o.Stream != CompileOutputStream.Error).Select(o => o.Text).ToArray();
 
     private static string[] Codes(DiagnosticBag bag) => bag.Diagnostics.Select(d => d.Code).ToArray();
 
@@ -37,13 +39,13 @@ public sealed class DisplayDirectiveTests
     public void OperandsAreTransferredInOrderAsOneLine()
         => Assert.Equal(["HELLO-COMPILE 42"], Std(" >>DISPLAY \"HELLO-COMPILE\" 42\n"));
 
-    [Fact] // GR6: "If the UPON phrase is not specified, the default is as if UPON LISTING were specified" — and DOC-A.1-53/54
-           // route LISTING to the standard output when no listing is produced
-    public void NoUponPhrase_IsAsIfUponListing_WhichIsStandardOutput()
+    [Fact] // GR6: "If the UPON phrase is not specified, the default is as if UPON LISTING were specified" — the listing's
+           // device, which DOC-A.1-53/54 route to the standard output when no listing is produced (this run records none)
+    public void NoUponPhrase_IsAsIfUponListing()
     {
         var plain = Run(" >>DISPLAY \"X\"\n").Output;
         var listing = Run(" >>DISPLAY \"X\" UPON LISTING\n").Output;
-        Assert.Equal([new CompileOutputLine(CompileOutputStream.Standard, "X")], plain);
+        Assert.Equal([new CompileOutputLine(CompileOutputStream.Listing, "X")], plain);
         Assert.Equal(plain, listing);
     }
 
@@ -53,16 +55,22 @@ public sealed class DisplayDirectiveTests
     [InlineData("UPON CONSOLE", "S")]
     [InlineData("UPON SYSOUT", "S")]
     [InlineData("UPON SysErr", "E")]
-    [InlineData("UPON LISTING", "S")]
+    [InlineData("UPON LISTING", "L")]
     [InlineData("UPON CONSOLE SYSERR", "SE")]
-    [InlineData("UPON SYSERR CONSOLE LISTING", "ESS")]
-    [InlineData("UPON LISTING SYSERR", "SE")]
+    [InlineData("UPON SYSERR CONSOLE LISTING", "ESL")]
+    [InlineData("UPON LISTING SYSERR", "LE")]
     [InlineData("UPON SYSERR LISTING SYSOUT", "ESS", false)]   // a second run of devices: refused (next test); nothing transferred
     public void Upon_NamesTheDestinations(string upon, string streams, bool valid = true)
     {
         var (output, _) = Run($" >>DISPLAY \"X\" {upon}\n");
         if (!valid) { Assert.Empty(output); return; }
-        Assert.Equal(streams, string.Concat(output.Select(o => o.Stream == CompileOutputStream.Standard ? 'S' : 'E')));
+        Assert.Equal(streams, string.Concat(output.Select(o => o.Stream switch
+        {
+            CompileOutputStream.Standard => 'S',
+            CompileOutputStream.Error => 'E',
+            CompileOutputStream.Listing => 'L',
+            _ => '?',
+        })));
         Assert.All(output, o => Assert.Equal("X", o.Text));
     }
 
@@ -192,7 +200,7 @@ public sealed class DisplayDirectiveTests
             var result = WiseOwl.Cobol.CompilerDriver.Compile(new WiseOwl.Cobol.CompilerDriver.Options(path, CheckOnly: true));
             Assert.True(result.Success, string.Join("\n", result.Errors));
             Assert.Equal(
-                [new CompileOutputLine(CompileOutputStream.Standard, "to-stdout 1"), new CompileOutputLine(CompileOutputStream.Error, "to-stderr")],
+                [new CompileOutputLine(CompileOutputStream.Listing, "to-stdout 1"), new CompileOutputLine(CompileOutputStream.Error, "to-stderr")],
                 result.CompileOutput);
         }
         finally { ScratchDirectory.Remove(dir); }
