@@ -245,8 +245,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (page.integerOperand() is null && subs.Length > 0)
                     Edition.Error(DiagnosticCatalog.ReportPagePhraseWithoutLimit, $"{rdWhere}: the PAGE clause "
                         + $"specifies {string.Join(", ", subs.Select(s => PagePhraseWords(PagePhraseOf(s))).Distinct())} "
-                        + "but no integer-1 (the page limit): those phrases may be specified only if integer-1 is "
-                        + "specified (ISO §2023:13.18.39.3 SR3)");
+                        + "but no integer-1 (the page limit): "
+                        + Edition.Edition.Cite(
+                            "the general format prints integer-1 as a required element of the clause, with those phrases after "
+                            + "it (ISO §1985:XIII.3.8.2)",
+                            "those phrases may be specified only if integer-1 is specified (ISO §2023:13.18.39.3 SR3)",
+                            "those phrases may be specified only if integer-1 is specified (ISO §2023:13.18.39.3 SR3)"));
                 var writtenPhrases = new List<(PagePhrase Phrase, int Value, Core.ReportPageSubclauseContext Ctx)>();
                 foreach (var sub in subs)
                 {
@@ -1524,7 +1528,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 string where = $"RD '{model.Name}' entry '{ge.dataName().NameOrNull() ?? "FILLER"}'";
                 if (ge.reportGroupBody().reportGroupClause().Any(c => c.occursClause() is not null))
                     Edition.Error(DiagnosticCatalog.ReportColumnClauseRule, $"{where}: a multiple COLUMN clause and an OCCURS "
-                        + "clause may not both be present in the same report group description entry (ISO §2023:13.18.14.3 SR10 a))");
+                        + "clause may not both be present in the same report group description entry (ISO §2023:13.18.14.3 SR10 a)"
+                        + NotInCobol85("a multiple COLUMN clause") + ")");
                 int? last = null;
                 foreach (var op in cc.reportColumnOperand())
                 {
@@ -1533,7 +1538,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     if (last is { } previous && v <= previous)
                         Edition.Error(DiagnosticCatalog.ReportColumnClauseRule, $"{where}: in a multiple COLUMN clause all the "
                             + $"occurrences of integer-1 shall be in increasing order of magnitude — {v} follows {previous} "
-                            + "(ISO §2023:13.18.14.3 SR10 b))");
+                            + "(ISO §2023:13.18.14.3 SR10 b)" + NotInCobol85("a multiple COLUMN clause") + ")");
                     last = v;
                 }
             }
@@ -3505,7 +3510,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (picText is null || pic is null || !_reportPicturesScreened.Add(ge)) return;
         _d.ScreenPictureDigitCapacity(pic, $"{where} (PICTURE {picText})");
-        if (summed && MoveTable16.NumericSenderRefusal(Table16Operand.Of(pic)) is { } why)
+        if (summed && MoveTable16.NumericSenderRefusal(Table16Operand.Of(pic), MoveTable16.CitationsOf(Edition.Edition)) is { } why)
             Edition.Error(DiagnosticCatalog.ReportSumEntryCategory, $"{where}: its PICTURE {picText} is of a category that cannot "
                 + $"receive a numeric sum, and the entry contains a SUM clause: {why}. The category of the subject of the entry "
                 + "shall be valid as the category of a receiving operand in a MOVE statement for a sending operand of the "
@@ -4014,6 +4019,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return true;
     }
 
+    private const string ColumnOrderRule =
+        "are not each subject to a different PRESENT WHEN clause (ISO §2023:13.18.14.3 SR7)";
+
+    private const string ColumnOverlapRule =
+        "are not each subject to a different PRESENT WHEN clause (ISO §2023:13.18.14.3 SR8 a))";
+
+    /// <summary>The words that tell a COBOL-85 compile that the rule it just broke belongs to a construct COBOL-2002 introduced (a
+    /// page width, a multiple COLUMN clause): "; <paramref name="construct"/> is not in COBOL-85, so this rule requires COBOL-2002
+    /// (targeting COBOL-85)", the edition gate's own phrase, and nothing at the editions that have the construct (kb/Work PB4950).</summary>
+    private string NotInCobol85(string construct) => Edition.DialectLevel < 2002
+        ? $"; {construct} is not in COBOL-85, so this rule requires COBOL-2002 (targeting COBOL-{Edition.DialectLevel})"
+        : "";
+
     /// <summary>⛔ THE PRINTABLE ITEMS OF ONE REPORT LINE, AS A SET (ISO §2023:13.18.14.3 SR7, SR8; kb/Work PB1222), asked
     /// of each line after the whole source element is described, because the printable-size is a picture's. The
     /// walk is the NOMINAL one (<see cref="NominalPlacements"/>), so a rule is judged on what the entries as
@@ -4060,7 +4078,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + $"{pj.Right}, past the page width {model.PageWidth}"
                     + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
                     + "; the rightmost column positions of all absolute items shall not exceed the page width "
-                    + "(ISO §2023:13.18.14.3 SR8 b))");
+                    + "(ISO §2023:13.18.14.3 SR8 b)" + NotInCobol85("a page width") + ")");
             for (int i = 0; i < j; i++)
             {
                 var pi = all[i];
@@ -4078,15 +4096,19 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     && pj.Spec.Value <= pi.Spec.Value)
                 {
                     Report(pj, pi, Sr7, $"the absolute items '{EntryName(pi.Field)}' (COLUMN {pi.Spec.Value}) and "
-                        + $"'{EntryName(pj.Field)}' (COLUMN {pj.Spec.Value}) are not in increasing numerical order and are not "
-                        + "each subject to a different PRESENT WHEN clause (ISO §2023:13.18.14.3 SR7)");
+                        + $"'{EntryName(pj.Field)}' (COLUMN {pj.Spec.Value}) are not in increasing numerical order and "
+                        + Edition.Edition.Cite(
+                            "the printable items of a print line must be defined in ascending column number order (ISO §1985:XIII.3.11.3 SR2)",
+                            ColumnOrderRule, ColumnOrderRule));
                     continue;
                 }
                 // SR8 a)
                 if (pj.Left <= pi.Right && pi.Left <= pj.Right)
                     Report(pj, pi, Sr8a, $"the items '{EntryName(pi.Field)}' (columns {pi.Left}-{pi.Right}) and "
-                        + $"'{EntryName(pj.Field)}' (columns {pj.Left}-{pj.Right}) overlap and are not each subject to a "
-                        + "different PRESENT WHEN clause (ISO §2023:13.18.14.3 SR8 a))");
+                        + $"'{EntryName(pj.Field)}' (columns {pj.Left}-{pj.Right}) overlap and "
+                        + Edition.Edition.Cite(
+                            "each printable item must occupy a unique sequence of contiguous character positions (ISO §1985:XIII.3.11.3 SR2)",
+                            ColumnOverlapRule, ColumnOverlapRule));
             }
         }
 
@@ -4108,7 +4130,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + $"width {model.PageWidth}" + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
                 + " although they are not each subject to a different PRESENT WHEN clause, or the largest of those that "
                 + "are is itself too wide; relative printable items at the end of a report line shall not cause the "
-                + "page width to be exceeded (ISO §2023:13.18.14.3 SR8 c))");
+                + "page width to be exceeded (ISO §2023:13.18.14.3 SR8 c)" + NotInCobol85("a page width") + ")");
         }
     }
 

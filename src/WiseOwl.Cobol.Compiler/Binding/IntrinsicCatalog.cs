@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Frozen;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
@@ -198,7 +199,19 @@ public static class IntrinsicCatalog
     /// from an extended letter to a basic one (kb/Work PB4420), so a USER-DEFINED word asks this same question.</summary>
     public static bool TryGet(string name, out IntrinsicSig sig) => Table.TryGetValue(name, out sig);
 
+    /// <summary>⛔ THE PARAGRAPH OF THE 1989 INTRINSIC FUNCTION MODULE THAT DEFINES A FUNCTION (kb/Work PB4950): ANSI X3.23a-1989
+    /// Section A prints one paragraph per function, <c>2.5 THE ACOS FUNCTION</c> through <c>2.46 THE WHEN-COMPILED FUNCTION</c>, in
+    /// ALPHABETICAL order, after 2.1 to 2.4 (the module's introduction, ARGUMENTS, TYPES OF FUNCTIONS and the summary table). The
+    /// module's functions are the rows introduced at COBOL-85, so the number is derived from the table, never listed:
+    /// the n-th by ordinal name is paragraph 5 + n, and <c>Intrinsic1989ModuleDriftTests</c> reads every heading of the standard
+    /// against it. Null for a function the 1989 module does not define (every one a later edition introduced).</summary>
+    public static int? Paragraph1989(string name) => Module1989.TryGetValue(name, out int n) ? n : null;
+
     private static readonly Dictionary<string, IntrinsicSig> Table = Build();
+
+    private static readonly FrozenDictionary<string, int> Module1989 = Table.Values
+        .Where(s => s.IntroducedIn == 85).Select(s => s.Name).Order(StringComparer.Ordinal)
+        .Select((name, i) => (name, paragraph: 5 + i)).ToFrozenDictionary(p => p.name, p => p.paragraph, CobolKeywords.Comparer);
 
     private static Dictionary<string, IntrinsicSig> Build()
     {

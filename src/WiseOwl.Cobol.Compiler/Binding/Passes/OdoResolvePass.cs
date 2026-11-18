@@ -79,7 +79,7 @@ internal sealed class OdoResolvePass : IBindPass
             // SR16: 0 ≤ integer-1 < integer-2.
             if (spec.Min < 0 || spec.Min >= spec.Max)
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingBoundsInvalid, $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
-                    + "be greater than or equal to zero and less than integer-2 (ISO §2023:13.18.38.3 SR16)");
+                    + $"be greater than or equal to zero and less than integer-2 (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR5", "§2023:13.18.38.3 SR16", "§2023:13.18.38.3 SR16")})");
 
             // data-name-1 resolution. A counter under a group the table is ALSO subordinate to is found first:
             // §2023:8.4.2.2.1 rule 5 makes the groups superordinate to both the data-name and the subject IMPLICIT
@@ -179,7 +179,7 @@ internal sealed class OdoResolvePass : IBindPass
             // item is NOT an integer data item).
             if (notInteger && !DeclarationFact(dep))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectNotInteger, $"OCCURS DEPENDING ON '{depName}' on '{subject}': data-name-1 "
-                    + "shall describe an integer (ISO §2023:13.18.38.3 SR17)" + via);
+                    + $"shall describe an integer (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR6", "§2023:13.18.38.3 SR17", "§2023:13.18.38.3 SR17")})" + via);
 
             // SR18 / SR21 (kb/Work PB1261, PB5797): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
             // or the table's current extent would depend on a counter that a program sharing the record cannot see
@@ -229,7 +229,7 @@ internal sealed class OdoResolvePass : IBindPass
                         continue;
                     binder.Edition.Error(DiagnosticCatalog.OccursDependingTableInRedefinesArea, $"occurs-depending table '{subject}' lies within a REDEFINES "
                         + "area: neither the original nor a redefinition may include an OCCURS DEPENDING ON "
-                        + "table (ISO §2023:13.18.44.3 SR5)" + via);
+                        + $"table (ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR5", "§2023:13.18.44.3 SR5", "§2023:13.18.44.3 SR5")})" + via);
                     break;
                 }
 

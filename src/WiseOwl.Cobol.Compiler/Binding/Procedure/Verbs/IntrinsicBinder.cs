@@ -1801,7 +1801,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // — the one half of "integer literal" the schema's value test (IntegerViolation, COBOL1627) cannot see.
         for (int i = 1; i <= 2 && i < args.Count; i++)
             if (args[i] is BoundNumericLiteral bl && !IntrinsicResultType.IsIntegerOperand(bl)
-                && IntrinsicArgumentRules.IntegerViolation(bl, ctx.Options.Arithmetic) is null)
+                && IntrinsicArgumentRules.IntegerViolation(bl, ctx.Options.Arithmetic, ctx.Edition.Edition) is null)
                 ctx.Edition.Error(DiagnosticCatalog.BaseConvertArgumentRule, $"FUNCTION BASECONVERT: argument-{i + 1} shall be a positive "
                     + $"nonzero numeric INTEGER literal or data item, not '{bl.Text}' (ISO §2023:15.12.3 rule 1)");
 
@@ -2108,14 +2108,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // A predicate is asked only at an edition whose rule states it (ArgPredicate.Since, kb/Work PB5162).
             foreach (var p in rule.Predicates)
                 if (p.AppliesAt(ctx.Edition.Edition.Year)
-                    && IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
+                    && IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i]), ctx.Edition.Edition, sig.Name) is { } pWhy)
                     Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: IntrinsicArgumentRules.IsCoercible(p, rule, args[i]));
-            if (IntrinsicArgumentRules.Violation(rule, args[i], ctx.Edition.Edition, ctx.Options.Arithmetic) is not { } why) continue;
-            ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})", args[i]);
+            if (IntrinsicArgumentRules.Violation(rule, args[i], ctx.Edition.Edition, ctx.Options.Arithmetic, sig.Name) is not { } why) continue;
+            ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({IntrinsicCitations.Clause(ctx.Edition.Edition, sig.Name, rule.Clause)})", args[i]);
         }
 
         // CROSS-ARGUMENT (fix-queue PB31) — §2023:15.59.3 r2 and its siblings, which no per-position check can see.
-        if (IntrinsicArgumentRules.CrossViolation(schema, args) is { } cross)
+        if (IntrinsicArgumentRules.CrossViolation(schema, args, ctx.Edition.Edition, sig.Name) is { } cross)
             Report($"FUNCTION {sig.Name} {cross}");
 
         // CONCAT's USAGE halves (kb/Work PB58): §2023:15.18.3 r2 "If any argument is usage national, all arguments
@@ -2382,13 +2382,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // §2023:15.50.3 r1 admits an item, a literal, a based entry or a type-name; name what was written, never
         // "a numeric literal" (the misattributed default that once covered a group ref-mod too, kb/Work PB70).
         BoundBoolOperand => InadmissibleArgument(sig,
-            "is a boolean expression, which §2023:15.50.3 r1 does not admit — it takes an alphanumeric, national or "
+            $"is a boolean expression, which {ArgumentClause(sig, "§2023:15.50.3 r1")} does not admit — it takes an alphanumeric, national or "
             + "boolean LITERAL, a based entry, a type-name, or a DATA ITEM of any class (write the expression's "
-            + "result to a boolean item and take its LENGTH)", "§2023:15.50.3 r1"),
+            + "result to a boolean item and take its LENGTH)", ArgumentClause(sig, "§2023:15.50.3 r1")),
         _ => InadmissibleArgument(sig,
-            $"is {WrittenForm(args[0])}, which §2023:15.50.3 r1 does not admit — it takes an alphanumeric, national or "
+            $"is {WrittenForm(args[0])}, which {ArgumentClause(sig, "§2023:15.50.3 r1")} does not admit — it takes an alphanumeric, national or "
             + "boolean literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
-            "§2023:15.50.3 r1"),
+            ArgumentClause(sig, "§2023:15.50.3 r1")),
     };
 
     /// <summary>What a LENGTH / BYTE-LENGTH argument that reached the catch-all WAS, in the words the diagnostic
@@ -2783,6 +2783,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// view, a variable-length (OCCURS DEPENDING) group, or an ANY LENGTH item (§2023:15.14.4 r2/r5) — have a byte
     /// length known only at runtime; with no runtime BYTE-LENGTH body (the §2023:15.14 CONSTANT-entry path aside) they
     /// stage LOUD by name, the LENGTH discipline (§1.4).</summary>
+    /// <summary>The clause that states <paramref name="sig"/>'s argument rule in the edition in force: <paramref name="clause2023"/>, or at
+    /// COBOL-85 the "Arguments" subclause of the function's paragraph of the 1989 module (<see cref="IntrinsicCitations.Clause"/>).</summary>
+    private string ArgumentClause(IntrinsicSig sig, string clause2023) => IntrinsicCitations.Clause(ctx.Edition.Edition, sig.Name, clause2023);
+
     /// <summary>An argument the §15 rules make INADMISSIBLE, reported where it is decidable — at BIND (fix-queue
     /// PB52 cause 3). Returns a <see cref="BoundExprError"/> so the caller's expression shape is unchanged.</summary>
     /// <remarks>
@@ -2817,8 +2821,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // ⚠ THE SIBLING CLAUSE DIFFERS AND THE TWO MUST NOT BE UNIFIED: §2023:15.50.3 r1 admits "an alphanumeric,
         // national, or BOOLEAN literal", so `FUNCTION LENGTH(B"101")` is legal where BYTE-LENGTH's is not.
         BoundStringLiteral => InadmissibleArgument(sig,
-            "is a literal of a class §2023:15.14.3 r1 does not admit — it takes an alphanumeric or national literal "
-            + "(a boolean literal is admissible to FUNCTION LENGTH, §2023:15.50.3 r1, but not here)", "§2023:15.14.3 r1"),
+            $"is a literal of a class {ArgumentClause(sig, "§2023:15.14.3 r1")} does not admit — it takes an alphanumeric or national literal "
+            + "(a boolean literal is admissible to FUNCTION LENGTH, §2023:15.50.3 r1, but not here)", ArgumentClause(sig, "§2023:15.14.3 r1")),
         // ⛔ THE RUNTIME SHAPES ROUTE TO THE RUNTIME BODY, EXACTLY AS LENGTH's DO (kb/Work PB61 — every one of
         // these was a BoundExprError that COMPILED CLEAN and threw NotImplementedCobolFeatureException at run time,
         // the wrong-stage family, while the LENGTH twin one method up had been given its runtime channel). The
@@ -2865,12 +2869,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A NUMERIC literal remains invalid — §2023:15.14.3 r1 admits only "an alphanumeric or national literal"
         // (a numeric DATA ITEM is "a data item of any class or category" and folds on the arm above).
         BoundBoolOperand => InadmissibleArgument(sig,
-            "is a boolean expression, which §2023:15.14.3 r1 does not admit — it takes an alphanumeric or national "
-            + "LITERAL, a based entry, a type-name, or a DATA ITEM of any class", "§2023:15.14.3 r1"),   // kb/Work PB65
+            $"is a boolean expression, which {ArgumentClause(sig, "§2023:15.14.3 r1")} does not admit — it takes an alphanumeric or national "
+            + "LITERAL, a based entry, a type-name, or a DATA ITEM of any class", ArgumentClause(sig, "§2023:15.14.3 r1")),   // kb/Work PB65
         _ => InadmissibleArgument(sig,
-            $"is {WrittenForm(args[0])}, which §2023:15.14.3 r1 does not admit — it takes an alphanumeric or national "
+            $"is {WrittenForm(args[0])}, which {ArgumentClause(sig, "§2023:15.14.3 r1")} does not admit — it takes an alphanumeric or national "
             + "literal, a based entry, a type-name, or a DATA ITEM of any class (a numeric ITEM is fine)",
-            "§2023:15.14.3 r1"),
+            ArgumentClause(sig, "§2023:15.14.3 r1")),
     };
 
     /// <summary>SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§2023:15.83 / §2023:15.43 / §2023:15.58) — a compile-time PICTURE fold, like
@@ -3380,7 +3384,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.AllSubscriptNotRepeatable,
                 $"FUNCTION {sig.Name} argument '{name}(… ALL …)': the ALL subscript is permitted only when the "
-                + "function's definition permits an argument to be repeated a variable number of times (ISO §2023:15.3), and "
+                + "function's definition permits an argument to be repeated a variable number of times (ISO "
+                + ctx.Edition.Edition.Cite("§1989:A.2.2", "§2023:15.3", "§2023:15.3") + "), and "
                 + $"FUNCTION {sig.Name}'s general format repeats none — write the occurrence you mean, or use a function "
                 + "whose format is `{ argument } …` (MAX, MIN, SUM, MEAN, …).");
             args.Add(BoundOperandError.Refused(ctx.Edition, $"FUNCTION {sig.Name} table(ALL) argument"));

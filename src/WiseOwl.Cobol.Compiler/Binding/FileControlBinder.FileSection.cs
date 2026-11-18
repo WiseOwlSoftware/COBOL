@@ -236,22 +236,25 @@ public sealed partial class FileControlBinder
     {
         if (FileDescriptionFormats.RowOf(clause) is not { } row) return true;
         using var _ = Edition.At(clause);
-        if (row.HomeEntry is { } home)
+        if (row.HomeEntry is not null)
         {
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({DataBinder.WrittenText(clause)}) is "
-                + $"written in the file description entry for '{fdName}', but it is a clause of {home}, and no ISO "
-                + "§2023:13.4.5.2 file description format contains it — write it in the SELECT entry for "
+                + $"written in the file description entry for '{fdName}', but it is a clause of "
+                + $"{FileDescriptionFormats.HomeEntryOf(Edition.Edition, row, format, file.Organization)}, and no ISO "
+                + $"{FileDescriptionFormats.FormatCitation(Edition.Edition, format, file.Organization)} file description "
+                + "format contains it — write it in the SELECT entry for "
                 + $"'{fdName}'. It is not bound here, so it has no effect on the file.");
             return false;
         }
         if ((row.Formats & format) == 0)
         {
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({DataBinder.WrittenText(clause)}) is not "
-                + $"a clause of {FileDescriptionFormats.Caption(format)} of the file description entry: file "
+                + $"a clause of {FileDescriptionFormats.Caption(Edition.Edition, format, file.Organization)} of the file description entry: file "
                 + $"'{fdName}' is {file.OrganizationFace}"
                 + (format == FileDescriptionFormat.Report ? ", and its entry specifies a REPORT clause" : "")
-                + $", and {FileDescriptionFormats.BindingRule(format)}. §2023:13.4.5.2 prints that format with only "
-                + $"the {FileDescriptionFormats.Admitted(format)}.");
+                + $", and {FileDescriptionFormats.BindingRule(Edition.Edition, format, file.Organization)}. "
+                + $"{FileDescriptionFormats.FormatCitation(Edition.Edition, format, file.Organization)} prints that format with only "
+                + $"the {FileDescriptionFormats.Admitted(Edition.Edition, format)}.");
             return false;
         }
         // §2023:13.4.5.3 SR4 (FORMATS 1 AND 3 — the formats a LINE SEQUENTIAL file can be written in): "neither the

@@ -361,6 +361,15 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
+    private const string PerformRangeDeclarativesRule =
+        "\"When procedure-name-1 and procedure-name-2 are both specified and either is the name of a procedure in the "
+        + "declaratives portion of the procedure division, both shall be procedure-names in the same declarative section\" "
+        + "(ISO §2023:14.9.28.3 SR11)";
+
+    private const string PerformRangeSequenceRule =
+        "§2023:14.9.28.4 GR4 — \"all statements beginning with the first statement of procedure-name-1 and ending with the last "
+        + "statement of procedure-name-2\"";
+
     /// <summary>⛔ ISO §2023:14.9.28.3 SR11 — the DECLARATIVES constraint on a <c>procedure-name-1 THRU
     /// procedure-name-2</c> range (kb/Work PB433): "When procedure-name-1 and procedure-name-2 are both
     /// specified and either is the name of a procedure in the declaratives portion of the procedure division,
@@ -397,12 +406,17 @@ internal sealed class StatementValidation(DataBinder data)
 
         data.Edition.Error(DiagnosticCatalog.PerformRangeDeclaratives,
             $"{verb} '{name1}' THRU '{name2}': {Portion(first, name1)} and {Portion(thru, name2)}, so the range "
-            + "straddles a boundary the standard does not admit — \"When procedure-name-1 and procedure-name-2 "
-            + "are both specified and either is the name of a procedure in the declaratives portion of the "
-            + "procedure division, both shall be procedure-names in the same declarative section\" (ISO "
-            + "§2023:14.9.28.3 SR11). The range is a SEQUENCE of procedures (§2023:14.9.28.4 GR4 — \"all statements "
-            + "beginning with the first statement of procedure-name-1 and ending with the last statement of "
-            + "procedure-name-2\"), and the procedures between the two ends here belong to a different USE "
+            + "straddles a boundary the standard does not admit — "
+            + data.Edition.Edition.Cite(
+                "\"Where procedure-name-1 and procedure-name-2 are both specified and either is the name of a procedure in "
+                + "the declaratives portion of the Procedure Division, both must be procedure-names in the same declarative "
+                + "section\" (ISO §1985:VI.6.21.3 SR11)",
+                PerformRangeDeclarativesRule, PerformRangeDeclarativesRule)
+            + ". The range is a SEQUENCE of procedures ("
+            + data.Edition.Edition.Cite(
+                "§1985:VI.6.21.4 GR7 — control is transferred to \"the first statement of the specified set of statements\"",
+                PerformRangeSequenceRule, PerformRangeSequenceRule)
+            + "), and the procedures between the two ends here belong to a different USE "
             + "procedure, or to none. Perform the declarative range and the nondeclarative range separately, "
             + "or name two procedures of the one declarative section.");
         return false;
@@ -460,7 +474,10 @@ internal sealed class StatementValidation(DataBinder data)
                     ? $"in a different declarative section, '{referencingSection!.Name}'"
                     : "in the nondeclarative portion of the procedure division")
                 + " — \"Procedure-names within a declarative section may be referenced in a different declarative "
-                + "section or in a nondeclarative procedure only with a PERFORM statement\" (ISO §2023:14.9.49.3 SR4). A USE "
+                + "section or in a nondeclarative procedure only with a PERFORM statement\" (ISO "
+                + new EditionCite("§2023:14.9.49.3 SR4", "§1985:VII.4.6.4 GR3", "§1985:VIII.4.8.4 GR3", "§1985:IX.4.8.4 GR3")
+                    .AtEveryOrganization(data.Edition.Edition.Year)
+                + "). A USE "
                 + "procedure is entered by its USE dispatch or performed; PERFORM it, or move the shared code out of "
                 + "the declaratives.");
             return false;
@@ -469,9 +486,14 @@ internal sealed class StatementValidation(DataBinder data)
         if (fromDeclarative && !target.IsDeclarative && kind != ProcedureReferenceKind.Resume)
             data.Edition.Warning(DiagnosticCatalog.DeclarativeReferencesNondeclarative,
                 $"{verb} '{name}': '{name}' is in the nondeclarative portion of the procedure division, and this "
-                + $"statement is in declarative section '{referencingSection!.Name}' — \"Within a declarative "
-                + "procedure, there shall be no reference to any nondeclarative procedures except in a RESUME "
-                + "statement\" (ISO §2023:14.9.49.3 SR3)");
+                + $"statement is in declarative section '{referencingSection!.Name}' — \""
+                + data.Edition.Edition.Cite("Within a declarative procedure, there must be no reference to any nondeclarative procedures",
+                    "Within a declarative procedure, there shall be no reference to any nondeclarative procedures except in a RESUME statement",
+                    "Within a declarative procedure, there shall be no reference to any nondeclarative procedures except in a RESUME statement")
+                + "\" (ISO "
+                + new EditionCite("§2023:14.9.49.3 SR3", "§1985:VII.4.6.4 GR2", "§1985:VIII.4.8.4 GR2", "§1985:IX.4.8.4 GR2")
+                    .AtEveryOrganization(data.Edition.Edition.Year)
+                + ")");
         return true;
     }
 
@@ -1175,7 +1197,9 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(function, out var category)) return true;
         data.Edition.Error(DiagnosticCatalog.CharacterOperandUsage, $"INSPECT identifier-1 '{refText}' is {IntrinsicArgumentRules.FunctionUsageReason(category)}, "
-            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §2023:14.9.22.3 SR1)");
+            + "so it is not an elementary item described implicitly or explicitly as "
+            + data.Edition.Edition.Cite("USAGE IS DISPLAY (ISO §1985:VI.6.18.3 SR1)", "usage display or national (ISO §2023:14.9.22.3 SR1)",
+                "usage display or national (ISO §2023:14.9.22.3 SR1)"));
         return false;
     }
 
@@ -1481,7 +1505,8 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!file.IsSortMerge) return null;
         string msg = $"{verb} may not name the sort-merge file '{file.CobolName}' — an SD file-name may "
-            + "appear only in SORT/MERGE/RELEASE/RETURN (ISO §2023:13.4.6.3 SR3/SR4"
+            + "appear only in SORT/MERGE/RELEASE/RETURN (ISO "
+            + data.Edition.Edition.Cite("§1985:II.2.2.2.1.1; §1985:II.2.2.2.1.2", "§2023:13.4.6.3 SR3/SR4", "§2023:13.4.6.3 SR3/SR4")
             + (verbRule is null ? ")" : $"; {verbRule})");
         data.Edition.Error(DiagnosticCatalog.SortMergeFileInIoStatement, msg);
         return msg;

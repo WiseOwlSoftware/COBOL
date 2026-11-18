@@ -3,6 +3,7 @@
 using System.Collections.Frozen;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 
 using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
 
@@ -43,8 +44,12 @@ internal enum FileDescriptionFormat
 /// <param name="DeletedAt2002">A COBOL-85 FD clause ISO/IEC 1989:2002 deleted (LABEL RECORDS, DATA RECORDS,
 /// VALUE OF). It stood in every '85 FD format, so it is admitted in all three here and its edition is decided by
 /// its removal gate; it is left out of the "admits only" sentence, which quotes the current §2023:13.4.5.2.</param>
+/// <param name="IntroducedIn">The edition that introduced the clause (85 unless stated): the "admits only" sentence of a COBOL-85
+/// diagnostic lists what the 1985 file description entries held, which has neither this clause nor, where it was deleted, lacks
+/// the <paramref name="DeletedAt2002"/> ones (kb/Work PB4950).</param>
 internal sealed record FileDescriptionClauseRow(
-    Type Context, string Name, FileDescriptionFormat Formats, string? HomeEntry = null, bool DeletedAt2002 = false);
+    Type Context, string Name, FileDescriptionFormat Formats, string? HomeEntry = null, bool DeletedAt2002 = false,
+    int IntroducedIn = 85);
 
 /// <summary>⛔ THE ONE PLACE THE FILE DESCRIPTION ENTRY'S FORMAT IS DECIDED AND ITS CLAUSE ADMISSIBILITY IS ASKED
 /// (kb/Work PB1238, PB1081, PB865).
@@ -68,7 +73,7 @@ internal static class FileDescriptionFormats
     public static readonly IReadOnlyList<FileDescriptionClauseRow> Rows =
     [
         new(typeof(Core.FileGlobalExternalClauseContext), "IS EXTERNAL / IS GLOBAL clause", FileDescriptionFormat.All),
-        new(typeof(Core.FormatClauseContext), "FORMAT clause", FileDescriptionFormat.Sequential),
+        new(typeof(Core.FormatClauseContext), "FORMAT clause", FileDescriptionFormat.Sequential, IntroducedIn: 2002),
         new(typeof(Core.BlockContainsClauseContext), "BLOCK CONTAINS clause", FileDescriptionFormat.All),
         new(typeof(Core.RecordClauseContext), "RECORD clause", FileDescriptionFormat.All),
         new(typeof(Core.LinageClauseContext), "LINAGE clause", FileDescriptionFormat.Sequential),
@@ -109,6 +114,39 @@ internal static class FileDescriptionFormats
     public static FileDescriptionClauseRow? RowOf(Core.FileDescriptionClauseContext clause) =>
         clause.ChildCount > 0 && ByContext.TryGetValue(clause.GetChild(0).GetType(), out var row) ? row : null;
 
+    /// <summary>The module of ANSI X3.23-1985 that holds the file description entry of a file written in <paramref name="format"/>:
+    /// the sequential I-O module VII, the relative VIII, the indexed IX, and the Report Writer XIII for a report file. COBOL-85
+    /// states one entry per module where the 2023 text has the three formats of one clause.</summary>
+    private static string Module1985(FileDescriptionFormat format, FileOrganization organization) => format switch
+    {
+        FileDescriptionFormat.Report => "XIII",
+        FileDescriptionFormat.RelativeOrIndexed => organization is FileOrganization.Indexed ? "IX" : "VIII",
+        _ => "VII",
+    };
+
+    /// <summary>The kind of file a 1985 entry describes ("relative"), as the module's function paragraph words it.</summary>
+    private static string Kind1985(FileDescriptionFormat format, FileOrganization organization) => format switch
+    {
+        FileDescriptionFormat.Report => "report",
+        FileDescriptionFormat.RelativeOrIndexed => organization is FileOrganization.Indexed ? "indexed" : "relative",
+        _ => "sequential",
+    };
+
+    /// <summary>⛔ HOW A DIAGNOSTIC NAMES THE FORMAT'S ENTRY in the edition in force (kb/Work PB4950): <see cref="Caption(FileDescriptionFormat)"/>
+    /// from COBOL-2002 on, and at COBOL-85 the form of the entry in the module that holds the file ("the relative-file form").</summary>
+    public static string Caption(EditionInfo edition, FileDescriptionFormat format, FileOrganization organization) =>
+        edition.Cite($"the {Kind1985(format, organization)}-file form", Caption(format), Caption(format));
+
+    /// <summary>The citation of the clause list the format prints, in the edition in force: the general format of §2023:13.4.5.2 or
+    /// the file description entry's of §1985:VII.3.2 / VIII.3.2 / IX.3.2 / XIII.3.2.</summary>
+    public static string FormatCitation(EditionInfo edition, FileDescriptionFormat format, FileOrganization organization) =>
+        edition.Cite($"§1985:{Module1985(format, organization)}.3.2", "§2023:13.4.5.2", "§2023:13.4.5.2");
+
+    /// <summary>The entry the clause belongs to, as a message names it, in the edition in force: the file control entry of §2023:12.4.5.1
+    /// or, at COBOL-85, of the module that holds the file (§1985:VII.2.3, VIII.2.3, IX.2.3).</summary>
+    public static string HomeEntryOf(EditionInfo edition, FileDescriptionClauseRow row, FileDescriptionFormat format, FileOrganization organization) =>
+        edition.Cite($"the file control entry (ISO §1985:{Module1985(format, organization)}.2.3)", row.HomeEntry!, row.HomeEntry!);
+
     /// <summary>How a diagnostic names a format: "Format 2 (relative-or-indexed)", as §2023:13.4.5.2 captions it.</summary>
     public static string Caption(FileDescriptionFormat format) => format switch
     {
@@ -130,8 +168,20 @@ internal static class FileDescriptionFormats
         _ => throw new ArgumentOutOfRangeException(nameof(format), format, "not a single §2023:13.4.5.2 format"),
     };
 
+    /// <summary>The §2023:13.4.5.3 syntax rule that binds an entry to <paramref name="format"/>, quoted, in the edition in force:
+    /// at COBOL-85 the function paragraph of the module's file description entry, which states the kind of file it describes.</summary>
+    public static string BindingRule(EditionInfo edition, FileDescriptionFormat format, FileOrganization organization) =>
+        edition.Cite($"ISO §1985:{Module1985(format, organization)}.3.2.1: \"The file description entry furnishes information "
+            + $"concerning the physical structure, identification, and ... names pertaining to a{(Kind1985(format, organization) == "indexed" ? "n" : "")} "
+            + $"{Kind1985(format, organization)} file\"",
+            BindingRule(format), BindingRule(format));
+
     /// <summary>The clauses <paramref name="format"/> admits, in the printed order, for the diagnostic's "admits
-    /// only …" sentence — derived from the table, never restated.</summary>
-    public static string Admitted(FileDescriptionFormat format) =>
-        string.Join(", ", Rows.Where(r => !r.DeletedAt2002 && (r.Formats & format) != 0).Select(r => r.Name));
+    /// only …" sentence — derived from the table, never restated. At COBOL-85 it lists the clauses the 1985 entry printed: the
+    /// ones COBOL-2002 deleted, and not the ones it introduced.</summary>
+    public static string Admitted(EditionInfo edition, FileDescriptionFormat format) =>
+        string.Join(", ", Rows
+            .Where(r => (r.Formats & format) != 0
+                && (edition.Year < 2002 ? r.IntroducedIn <= 85 : !r.DeletedAt2002))
+            .Select(r => r.Name));
 }

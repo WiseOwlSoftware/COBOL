@@ -546,7 +546,7 @@ public sealed class Frontend
         var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts);
         // ISO §2023:6.3.5 1) / §2023:6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
         // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
-        LiteralScreen.ReportUnterminated(tokens.GetTokens(), (t, descriptor, message) =>
+        LiteralScreen.ReportUnterminated(tokens.GetTokens(), edition, (t, descriptor, message) =>
             sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, $"[{descriptor.Code}] {message}", null!));
         foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens.GetTokens()))
             sr7.SyntaxError(TextWriter.Null, null!, pic, pic.Line, pic.Column,

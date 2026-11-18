@@ -1452,14 +1452,14 @@ internal static partial class IntrinsicArgumentRules
     /// admits class alphabetic there (<see cref="EditionInfo.AlphabeticIsAlphanumeric"/>), the one place the edition enters
     /// the class screen; §2023:15.3 prints no such sentence.</para>
     /// </remarks>
-    public static string? Violation(ArgRule rule, BoundOperand op, EditionInfo edition, ArithmeticMode arithmetic)
+    public static string? Violation(ArgRule rule, BoundOperand op, EditionInfo edition, ArithmeticMode arithmetic, string function)
     {
         char kind = rule.Kind;
         // §2023:15.3 TYPE 6 IS "INTEGER", AND INTEGER IS NOT A CLASS (fix-queue PB40) — so the class test below
         // cannot express it and never could. Both an integer function and a numeric function are class NUMERIC
         // (§2023:15.2 items 5 and 6, "these are of the class and category numeric"), so `'i'` admitted both and
         // `FUNCTION CHAR(FUNCTION ABS(<scaled item>))` compiled clean. This arm is the missing half.
-        if (kind == 'i' && IntegerViolation(op, arithmetic) is { } notInteger) return notInteger;
+        if (kind == 'i' && IntegerViolation(op, arithmetic, edition) is { } notInteger) return notInteger;
 
         var candidates = CandidateClasses(op);
         if (candidates.Length == 0) return null;                          // not statically decidable — fail open
@@ -1471,7 +1471,7 @@ internal static partial class IntrinsicArgumentRules
             // right: `FUNCTION MAX(SPACE "A")` is two alphanumeric arguments (§2023:15.59.3 r2 — the same class).
             // The clause is the ROW's (PB58 — the message used to say "§2023:15.71.3" for MAX's §2023:15.59.3 r1).
             return candidates.All(PolymorphicExcluded.Contains)
-                ? $"is of class {Describe(candidates)}, which ISO {rule.Clause} excludes from a MAX/MIN-family argument list"
+                ? $"is of class {Describe(candidates)}, which ISO {IntrinsicCitations.Clause(edition, function, rule.Clause)} excludes from a MAX/MIN-family argument list"
                 : null;
         }
 
@@ -1482,19 +1482,19 @@ internal static partial class IntrinsicArgumentRules
         string wanted = ok.Length == 1
             ? Name(ok[0])
             : string.Join(", ", ok[..^1].Select(Name)) + " or " + Name(ok[^1]);
-        return $"is of class {Describe(candidates)}; ISO §2023:15.3 requires class {wanted}";
+        return $"is of class {Describe(candidates)}; ISO {IntrinsicCitations.ArgumentTypes(edition)} requires class {wanted}";
     }
 
     /// <summary>Why this operand violates a per-position <see cref="ArgPredicate"/>, or <see langword="null"/>
     /// (kb/Work PB58). <paramref name="knownWidth"/> is the operand's STATIC width in character positions when
     /// the caller can determine one (<c>IntrinsicBinder.KnownWidth</c>), else null — the width kinds fail OPEN on
     /// a runtime width, like every arm here.</summary>
-    public static string? PredicateViolation(ArgPredicate p, BoundOperand op, int? knownWidth) => p.Kind switch
+    public static string? PredicateViolation(ArgPredicate p, BoundOperand op, int? knownWidth, EditionInfo edition, string function) => p.Kind switch
     {
         ArgPredicateKind.MinWidth when knownWidth is { } w && w < p.N =>
-            $"is {w} character position(s) in length; ISO {p.Clause} requires at least {p.N}",
+            $"is {w} character position(s) in length; ISO {IntrinsicCitations.Clause(edition, function, p.Clause)} requires at least {p.N}",
         ArgPredicateKind.ExactWidth when knownWidth is { } w && w != p.N =>
-            $"is {w} character position(s) in length; ISO {p.Clause} requires exactly {p.N}",
+            $"is {w} character position(s) in length; ISO {IntrinsicCitations.Clause(edition, function, p.Clause)} requires exactly {p.N}",
         // "an integer data item or integer literal" — an ARITHMETIC EXPRESSION is neither, whatever it evaluates to
         // (a parenthesised function-identifier or bare data reference or literal is written as one, and is refused: the
         // argument binder wraps it as the computed operand it is, IntrinsicBinder.BindArgOperandCore, kb/Work PB4635). A
@@ -1507,16 +1507,16 @@ internal static partial class IntrinsicArgumentRules
         // "a boolean expression or literal" belongs to the positions whose class kind is BOOLEAN, which CONCAT's is not; a boolean DATA ITEM or
         // boolean LITERAL is admitted (IsBooleanExpression).
         ArgPredicateKind.DataItemOrLiteralOnly when (op is BoundComputedOperand && !IsDataItem(op)) || IsBooleanExpression(op) =>
-            $"is {OperandShapeName(op)}, not a data item or literal, which ISO {p.Clause} requires",
+            $"is {OperandShapeName(op)}, not a data item or literal, which ISO {IntrinsicCitations.Clause(edition, function, p.Clause)} requires",
         // §2023:15.48.3 r3 "shall be a data item": the literal that rule was written to exclude, and an arithmetic or
         // boolean expression, are not one; a nested function-identifier IS (§2023:8.4.3.2.4 GR1), kb/Work PB4507.
         ArgPredicateKind.DataItemOnly when !IsDataItem(op) =>
-            $"is {OperandShapeName(op)}, not a data item, which ISO {p.Clause} requires",
+            $"is {OperandShapeName(op)}, not a data item, which ISO {IntrinsicCitations.Clause(edition, function, p.Clause)} requires",
         ArgPredicateKind.NotStrongGroup when op is BoundFieldOperand { Place.DescribedItem: { } it }
                                              && StrongTypeModel.IsStrongGroup(it) =>
-            $"is a strongly-typed group item, which ISO {p.Clause} does not admit",
+            $"is a strongly-typed group item, which ISO {IntrinsicCitations.Clause(edition, function, p.Clause)} does not admit",
         ArgPredicateKind.CharacterCategory when EditedCategoryOf(op) is { } edited =>
-            $"is of an EDITED category ({edited}), which the CATEGORY wording of ISO {p.Clause} does not admit",
+            $"is of an EDITED category ({edited}), which the CATEGORY wording of ISO {IntrinsicCitations.Clause(edition, function, p.Clause)} does not admit",
         _ => null,
     };
 
@@ -1627,23 +1627,23 @@ internal static partial class IntrinsicArgumentRules
     /// "valid date". Nothing consulted <see cref="PicInfo.IsFloat"/> here.
     /// </para>
     /// </remarks>
-    internal static string? NonIntegralItemReason(PicInfo? pic) =>
+    internal static string? NonIntegralItemReason(PicInfo? pic, EditionInfo edition) =>
         // ⛔ THE PREDICATE IS PicInfo.IsIntegerDescription, NOT A SECOND COPY OF IT. This method adds only the
         // PROSE; the decision is §2023:5.5 2)b)2.'s conjunction, written down once. Usage INDEX cannot reach here
         // anyway (class index, §2023:13.18.60 — the 'i' class screen rejects it first), and the primitive excludes it.
         pic is not { Category: PicCategory.Numeric, Usage: not Usage.Index } || pic.IsIntegerDescription ? null
         : pic.IsFloat
-            ? "is a floating-point numeric data item (ISO §2023:14.6.8.3), which ISO §2023:15.3 type 6 does not admit — "
+            ? $"is a floating-point numeric data item (ISO §2023:14.6.8.3), which ISO {IntrinsicCitations.IntegerType(edition)} does not admit — "
               + "it requires an integer data item or an always-integral arithmetic expression, and a "
               + "floating-point item's declared value set contains non-integers whatever this reference holds"
             // §2023:15.3 type 6 — "an integer data item". A numeric item with digits to the right of the decimal
             // point is not one, and as an arithmetic expression it does not always result in an integer either.
-            : "is a numeric data item with digits to the right of the decimal point, which ISO §2023:15.3 type 6 does "
+            : $"is a numeric data item with digits to the right of the decimal point, which ISO {IntrinsicCitations.IntegerType(edition)} does "
               + "not admit — it requires an integer data item or an always-integral arithmetic expression";
 
     /// <summary>Does this item's DESCRIPTION admit a non-integral value? The boolean face of
     /// <see cref="NonIntegralItemReason"/>, for the expression walks that need the predicate without the prose.</summary>
-    private static bool AdmitsNonIntegralValue(PicInfo? pic) => NonIntegralItemReason(pic) is not null;
+    private static bool AdmitsNonIntegralValue(PicInfo? pic) => NonIntegralItemReason(pic, EditionInfo.Latest) is not null;
 
     /// <summary>
     /// Why this operand cannot satisfy a §2023:15.3 <b>type 6 (Integer)</b> position, or <see langword="null"/>.
@@ -1663,24 +1663,24 @@ internal static partial class IntrinsicArgumentRules
     /// standard settles it on the function's TYPE, and the expression arm judges a function TERM the same way.
     /// </para>
     /// </remarks>
-    public static string? IntegerViolation(BoundOperand op, ArithmeticMode arithmetic) => op switch
+    public static string? IntegerViolation(BoundOperand op, ArithmeticMode arithmetic, EditionInfo edition) => op switch
     {
         // §2023:8.4.3.2.3 SR11 — a NUMERIC function, whatever this reference would evaluate to.
         BoundComputedOperand { Expr: BoundIntrinsicCall ic }
             when ic.ResultType is IntrinsicType.Numeric =>
-            $"is FUNCTION {ic.Sig.Name}, a numeric function, which ISO §2023:8.4.3.2.3 SR11 bars from an integer "
+            $"is FUNCTION {ic.Sig.Name}, a numeric function, which ISO {IntrinsicCitations.NumericFunctionAsInteger(edition)} bars from an integer "
             + "operand position even though a particular reference might yield an integer value",
         // §2023:15.3 type 6 — "an integer data item". The item shapes that are NOT one live in the ONE primitive
         // (§2023:5.5 2)b)2.'s two conditions: FIXED-POINT, and no digit positions right of the radix point).
         BoundFieldOperand { Place.DescribedItem: { IsGroup: false } item }
-            when NonIntegralItemReason(item.Pic) is { } why => why,
+            when NonIntegralItemReason(item.Pic, edition) is { } why => why,
         // A numeric LITERAL whose VALUE is not an integer (kb/Work PB58; the floating form, kb/Work PB248):
         // neither an integer literal (§2023:5.5 2)a) — "an integer literal, as defined in 8.3.3.3.2, Fixed-point
         // numeric literals", which no §2023:8.3.3.3.3 floating-point literal is) nor an arithmetic expression that
         // always results in an integer value. "1.0" and "1.0E2" are left alone — their VALUES are integral and
         // type 6's expression alternative admits them.
         BoundNumericLiteral lit when HasNonIntegralValue(lit.Text) =>
-            $"is the numeric literal {lit.Text}, whose value is not an integer — ISO §2023:15.3 type 6 requires an "
+            $"is the numeric literal {lit.Text}, whose value is not an integer — ISO {IntrinsicCitations.IntegerType(edition)} requires an "
             + "integer data item, an integer literal, or an always-integral arithmetic expression",
         // §2023:15.3 type 6's EXPRESSION alternative, FAIL CLOSED (kb/Work PB5886): admitted only when NotAlwaysIntegral shows the
         // expression is an integer for every valuation; its doc states what that covers.
@@ -2037,7 +2037,7 @@ internal static partial class IntrinsicArgumentRules
     /// a rejected one.
     /// </para>
     /// </remarks>
-    public static string? CrossViolation(ArgSchema schema, IReadOnlyList<BoundOperand> args)
+    public static string? CrossViolation(ArgSchema schema, IReadOnlyList<BoundOperand> args, EditionInfo edition, string function)
     {
         if (schema.Cross == CrossArgRule.None || args.Count < 2) return null;
 
@@ -2060,9 +2060,9 @@ internal static partial class IntrinsicArgumentRules
             if (common.Length == 0)
                 return schema.Cross == CrossArgRule.AllSameClass
                     ? $"argument-{i + 1} is of class {Describe(cs)}, which cannot agree with the earlier "
-                      + $"arguments; ISO {schema.CrossClause} requires all arguments to be of the same class"
+                      + $"arguments; ISO {IntrinsicCitations.Clause(edition, function, schema.CrossClause)} requires all arguments to be of the same class"
                     : $"argument-{i + 1} is of class {Describe(cs)}, which cannot agree with argument-1; "
-                      + $"ISO {schema.CrossClause} requires it to be of the same class as argument-1";
+                      + $"ISO {IntrinsicCitations.Clause(edition, function, schema.CrossClause)} requires it to be of the same class as argument-1";
         }
         return null;
     }

@@ -310,10 +310,11 @@ public sealed partial class DataBinder
     /// §2023:13.18.44.3 SR1 (restated by §2023:13.16.3 SR4); the TYPEDEF row is §2023:13.16.3 SR4 alone, which nothing asked until
     /// kb/Work PB486, so `01 T PIC X(4) IS TYPEDEF.` compiled. §2023:13.16.3 SR4 ends "The remaining clauses may be
     /// written in any order", so this set is closed.</summary>
-    private static readonly (DataClauseKind Kind, string Rule, DiagnosticDescriptor Code)[] LeadingClauses =
+    private static readonly (DataClauseKind Kind, string Rule, string Rule1985, DiagnosticDescriptor Code)[] LeadingClauses =
     [
-        (DataClauseKind.Redefines, "§2023:13.18.44.3 SR1", DiagnosticCatalog.RedefinesEntryRule),
-        (DataClauseKind.Typedef, "§2023:13.16.3 SR4", DiagnosticCatalog.DataClausePlacement),
+        (DataClauseKind.Redefines, "§2023:13.18.44.3 SR1", "§1985:VI.5.10.3 SR1", DiagnosticCatalog.RedefinesEntryRule),
+        // TYPEDEF is no 1985 clause: its refusal at 85 is the edition gate's, so the rule is the same text at every edition.
+        (DataClauseKind.Typedef, "§2023:13.16.3 SR4", "§2023:13.16.3 SR4", DiagnosticCatalog.DataClausePlacement),
     ];
 
     /// <summary>§2023:13.16.3 SR4's positional sentences: "The REDEFINES clause, if specified, shall immediately follow
@@ -327,13 +328,13 @@ public sealed partial class DataBinder
     {
         var clauses = entry.Clauses;
         for (int i = 1; i < clauses.Count; i++)
-            foreach (var (kind, rule, code) in LeadingClauses)
+            foreach (var (kind, rule, rule1985, code) in LeadingClauses)
                 if (clauses[i].Kind == kind)
                     Edition.Error(code, $"'{cobolName ?? "FILLER"}': the {DataClauseKinds.Name(kind)} clause follows "
                         + $"{DataClauseKinds.Name(clauses[0].Kind)} but shall immediately follow the entry-name clause"
                         + (kind == DataClauseKind.Redefines
                             ? ", or the level-number when the entry-name clause is not specified" : "")
-                        + $" (ISO {rule})");
+                        + $" (ISO {Edition.Edition.Cite(rule1985, rule, rule)})");
     }
 
     internal static string SectionWords(EntrySection section) => section switch

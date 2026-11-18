@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
@@ -216,10 +217,10 @@ public static class MoveTable16
     /// two entries are ONE body: the item-keyed rules live in the overload, this one adds only the arms a data
     /// item can never satisfy (a figurative constant is not a data item), and the NEXT item-keyed rule reaches
     /// both askers without an edit.</para></summary>
-    private static string? ShapeRefusal(BoundOperand sender, Table16Operand receiver)
+    private static string? ShapeRefusal(BoundOperand sender, Table16Operand receiver, MoveCitations cites)
     {
         // SR8 and every other rule keyed on the sending DATA ITEM — asked through the one item-keyed entry.
-        if (sender is BoundFieldOperand f && ShapeRefusal(f.Place.Item, receiver) is { } itemKeyed)
+        if (sender is BoundFieldOperand f && ShapeRefusal(f.Place.Item, receiver, cites) is { } itemKeyed)
             return itemKeyed;
 
         // ⚠ PAGE-COUNTER / LINE-COUNTER ARE NOT SR8's SENDERS, BY DESIGN (kb/Work PB1746, review R1-1). SR8 keys on "a data
@@ -244,7 +245,7 @@ public static class MoveTable16
         // §2023:14.9.25.3 SR5's SPACE arm rides the same reader (kb/Work PB3605): it is prohibited at every edition, so it
         // is a flat refusal here and not one of FigurativeAssociation.GateSr5's edition rows.
         return sender is BoundFigurative or BoundAllLiteral
-            ? MoveValidity.FigurativeRefusal(FigurativeSenderOf(sender), receiver.Heading)
+            ? MoveValidity.FigurativeRefusal(FigurativeSenderOf(sender), receiver.Heading, cites)
             : null;
     }
 
@@ -279,8 +280,33 @@ public static class MoveTable16
     /// reference "a numeric or numeric-edited item", and a group item is neither. The §2023:14.9.25.4 GR4 group
     /// exemption is Table 16's, not SR8's — SR10 is the rule that routes to the table, and SR10 does not reach
     /// a case SR8 describes.</para></summary>
-    private static string? ShapeRefusal(DataItem sender, Table16Operand receiver) =>
-        MoveValidity.BinaryWidthRefusal(IsBinaryWidth(sender), receiver.Heading);
+    private static string? ShapeRefusal(DataItem sender, Table16Operand receiver, MoveCitations cites) =>
+        MoveValidity.BinaryWidthRefusal(IsBinaryWidth(sender), receiver.Heading, cites);
+
+    /// <summary>⛔ THE CITATIONS OF §2023:14.9.25.3's RULES IN THE EDITION IN FORCE (kb/Work PB4950), which every asker of the chain hands
+    /// to <see cref="MoveValidity"/>: the 2023 numbers from COBOL-2002 on, and at COBOL-85 the three general rules of
+    /// §1985:VI.6.19.4 rule 3 that state what Table 16 prints — a) SPACE, an alphabetic, alphanumeric-edited item to a numeric one,
+    /// b) a numeric item (ZERO included) to an alphabetic one, c) a noninteger one to an alphanumeric one. A rule 85 lacks (the boolean
+    /// and national cells, SR7's boolean characters, SR8's binary usages: categories and usages COBOL-2002 introduced) stays at its 2023
+    /// number and says so with the edition gate's own phrase, "(targeting COBOL-85)".</summary>
+    public static MoveCitations CitationsOf(EditionInfo edition)
+    {
+        string toNumeric = edition.Cite("ISO §1985:VI.6.19.4 GR3a", MoveCitations.Iso2023.ToNumeric, MoveCitations.Iso2023.ToNumeric);
+        string toAlphabetic = edition.Cite("ISO §1985:VI.6.19.4 GR3b", MoveCitations.Iso2023.NumericToAlphabetic, MoveCitations.Iso2023.NumericToAlphabetic);
+        string notIn85(string cite, string what) => edition.Cite(
+            $"{cite}; {what} are COBOL-2002 introductions (targeting COBOL-{edition.Year})", cite, cite);
+        return MoveCitations.Iso2023 with
+        {
+            Boolean = notIn85(MoveCitations.Iso2023.Boolean, "the boolean category and boolean characters"),
+            BinaryWidth = notIn85(MoveCitations.Iso2023.BinaryWidth, "the BINARY-CHAR, -SHORT, -LONG and -DOUBLE usages"),
+            Table16 = notIn85(MoveCitations.Iso2023.Table16, "the national and boolean categories"),
+            Space = edition.Cite("ISO §1985:VI.6.19.4 GR3a", MoveCitations.Iso2023.Space, MoveCitations.Iso2023.Space),
+            Zero = edition.Cite("ISO §1985:VI.6.19.4 GR3b", MoveCitations.Iso2023.Zero, MoveCitations.Iso2023.Zero),
+            ToNumeric = toNumeric,
+            NumericToAlphabetic = toAlphabetic,
+            Noninteger = edition.Cite("ISO §1985:VI.6.19.4 GR3c", MoveCitations.Iso2023.Noninteger, MoveCitations.Iso2023.Noninteger),
+        };
+    }
 
     /// <summary>SR8's antecedent — "a data item described with usage binary-char, binary-short, binary-long, or
     /// binary-double" — the ONE reading of it, which the universal crossing's description carries too
@@ -330,9 +356,9 @@ public static class MoveTable16
     /// three edition rows live in <c>FigurativeAssociation.GateSr5</c>, and a figurative constant is not a data
     /// item, so no operand this entry can be given could reach it.</para>
     /// </summary>
-    public static string? DataItemRefusal(DataItem sender, DataItem receiver) =>
-        Chain(sender, ShapeRefusal(sender, Table16Operand.Of(receiver)), Table16Operand.Of(sender),
-              Table16Operand.Of(receiver), receiver)?.Reason;
+    public static string? DataItemRefusal(DataItem sender, DataItem receiver, MoveCitations cites) =>
+        Chain(sender, ShapeRefusal(sender, Table16Operand.Of(receiver), cites), Table16Operand.Of(sender),
+              Table16Operand.Of(receiver), receiver, cites)?.Reason;
 
     /// <summary>
     /// ⭐ <b>THE WHOLE OF ISO §2023:14.9.25.3's OPERAND-PAIR VALIDITY QUESTION FOR ONE RECEIVING PLACE</b> — SR2, SR6/SR7/SR8,
@@ -346,15 +372,15 @@ public static class MoveTable16
     /// <c>--permissive</c> re-reading) while every other asker only needs "valid or not, and why". The RULES are
     /// written once, here; only the framing is the caller's.</para>
     /// </summary>
-    public static MoveRefusal? Validity(BoundOperand sender, Place receiver) =>
-        Validity(sender, Table16Operand.Of(receiver), receiver.DescribedItem);
+    public static MoveRefusal? Validity(BoundOperand sender, Place receiver, MoveCitations cites) =>
+        Validity(sender, Table16Operand.Of(receiver), receiver.DescribedItem, cites);
 
     /// <summary>The same question against a receiving POSITION rather than a place — the form §2023:14.9.20.3 SR4 asks,
     /// whose receiving operand is "an item of the specified category": a hypothetical elementary item that has a
     /// Table-16 position and no data item (<paramref name="receiverItem"/> null, which SR9's reader reads as
     /// "not a group" — exactly what such an item is).</summary>
-    public static MoveRefusal? Validity(BoundOperand sender, Table16Operand receiver, DataItem? receiverItem) =>
-        Chain(OperandItem(sender), ShapeRefusal(sender, receiver), SenderPosition(sender), receiver, receiverItem);
+    public static MoveRefusal? Validity(BoundOperand sender, Table16Operand receiver, DataItem? receiverItem, MoveCitations cites) =>
+        Chain(OperandItem(sender), ShapeRefusal(sender, receiver, cites), SenderPosition(sender), receiver, receiverItem, cites);
 
     /// <summary>ISO §2023:13.18.54.3 SR2 — "The category of the subject of the entry shall be valid as the category of a
     /// receiving operand in a MOVE statement for a sending operand of the category numeric" — as the REASON the
@@ -364,19 +390,19 @@ public static class MoveTable16
     /// "of the category numeric", which says nothing of a decimal point, cannot refuse more than (the NONINTEGER
     /// row adds only "No" cells, among them the alphanumeric receivers an integer sum may legally fill).
     /// ⛔ It rides <see cref="Chain"/> like every other asker, so a rule added to the chain reaches it.</summary>
-    public static string? NumericSenderRefusal(Table16Operand receiver) =>
-        Chain(null, null, new Table16Operand(PicCategory.Numeric), receiver, null)?.Reason;
+    public static string? NumericSenderRefusal(Table16Operand receiver, MoveCitations cites) =>
+        Chain(null, null, new Table16Operand(PicCategory.Numeric), receiver, null, cites)?.Reason;
 
     /// <summary>The ONE chain every composite entry runs, in SR order. SR2 first (it is a whole-group identity
     /// rule and pre-empts every per-category reading); SR8 (with SR6/SR7 for a bound operand) and SR9 next,
     /// because §2023:14.9.25.3 SR10 — Table 16 — applies only "for all other cases not described in Syntax rules 8
     /// and 9"; the table last.</summary>
     private static MoveRefusal? Chain(DataItem? senderItem, string? shape, Table16Operand senderPos,
-                                      Table16Operand receiverPos, DataItem? receiverItem) =>
+                                      Table16Operand receiverPos, DataItem? receiverItem, MoveCitations cites) =>
         StrongGroupRefusal(senderItem, receiverItem) is { } sr2 ? new MoveRefusal(MoveRule.StrongGroup, sr2)
         : shape is { } sr8 ? new MoveRefusal(MoveRule.SourceShape, sr8)
         : VariableLengthRefusal(senderItem, receiverItem) is { } sr9 ? new MoveRefusal(MoveRule.VariableLength, sr9)
-        : MoveValidity.Table16Refusal(senderPos.Heading, receiverPos.Heading) is { } sr10
+        : MoveValidity.Table16Refusal(senderPos.Heading, receiverPos.Heading, cites) is { } sr10
             ? new MoveRefusal(MoveRule.Table16, sr10)
         : null;
 

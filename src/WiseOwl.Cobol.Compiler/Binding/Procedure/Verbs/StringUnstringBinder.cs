@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
@@ -55,7 +56,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             // "WiseOwl.Cobol.Runtime.CellPointer" — OperandText's `_ => Read(p).ToString()` arm, reached because
             // nothing upstream refused the operand — and `STRING <COMP> …` / `STRING <INDEX> …` / a NUMERIC
             // literal-1 were accepted the same way. The receiver arm had the screen; the sending arm did not.
-            if (Sr1Offence(values[i]) is { } sendOffence)
+            if (Sr1Offence(values[i], ctx.Edition.Edition) is { } sendOffence)
                 return Sr1Reject($"STRING sending operand '{DataBinder.WrittenText(phrases[i].strUnstrOperand())}'", sendOffence);
             if (Sr8Offence(values[i]) is { } sendSr8)
                 return Reject($"STRING sending operand '{DataBinder.WrittenText(phrases[i].strUnstrOperand())}' {sendSr8} (ISO §2023:14.9.43.3 SR8)");
@@ -69,7 +70,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                     $"STRING DELIMITED BY '{(dp.ALL() is not null ? "ALL " : "")}{DataBinder.WrittenText(dp.strUnstrOperand())}': the delimiter is a figurative constant that begins with "
                     + $"the word ALL, which literal-2 {ctx.Edition.Edition.Cite("must not be", "shall not be", "shall not be")} (ISO {StringAllRule})",
                     $"STRING DELIMITED BY ALL literal (ISO {StringAllRule})");
-            if (Sr1Offence(d) is { } delimOffence)     // identifier-2 / literal-2 — SR1's second named position
+            if (Sr1Offence(d, ctx.Edition.Edition) is { } delimOffence)     // identifier-2 / literal-2 — SR1's second named position
                 return Sr1Reject($"STRING DELIMITED BY '{DataBinder.WrittenText(dp.strUnstrOperand())}'", delimOffence);
             // SR3 — literal-2 shall not be a zero-length literal (§2023:8.3.3.1: contiguous delimiters). The run-time kernel
             // reads a zero-length delimiter as DELIMITED BY SIZE, which is GR3 b)'s rule for a zero-length IDENTIFIER-2
@@ -122,7 +123,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // so `STRING … INTO <a COMP item>` compiled clean and crashed at the statement. It now asks the SAME
         // reader the two SENDING positions ask (kb/Work PB664): one sentence, one predicate, three positions.
         var intoOperand = new BoundFieldOperand(into);
-        if (Sr1Offence(intoOperand) is { } intoOffence)
+        if (Sr1Offence(intoOperand, ctx.Edition.Edition) is { } intoOffence)
             return Sr1Reject($"STRING INTO '{intoText}'", intoOffence);
         // ⛔ SR1's SECOND SENTENCE, and it is the same rule (kb/Work PB664): "If any one of literal-1,
         // literal-2, identifier-1, identifier-2, or identifier-3 is of class national, then all shall be of
@@ -263,10 +264,11 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                     : !UnstringReceiverAllowed(target.Item.Pic)))
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandUsage,
-                    $"UNSTRING INTO '{DataBinder.WrittenText(drefs[0])}' requires a usage-display alphabetic/alphanumeric/"
-                    + "numeric or usage-national national/numeric receiver, a numeric one without the symbol P; "
-                    + "edited, COMP, packed, index, float and boolean (bit-group) receivers have no character image, "
-                    + "and a strongly-typed group's category is its type-name (§2023:8.5.2.1) (ISO §2023:14.9.48.3 SR4)");
+                    $"UNSTRING INTO '{DataBinder.WrittenText(drefs[0])}' requires "
+                    + ctx.Edition.Edition.Cite(
+                        "a usage-display alphabetic, alphanumeric or numeric receiver, a numeric one without the symbol P; "
+                        + "edited, COMP, packed, index and float receivers have no character image (ISO §1985:VI.6.27.3 SR3)",
+                        UnstringReceiverSr4, UnstringReceiverSr4));
             }
             bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
             if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
@@ -461,7 +463,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// PB3665; the choice is recorded in docs/CONFORMANCE.md). The folded FUNCTION LENGTH is one of them, and is
     /// refused as the function it is, not as a numeric literal.</para>
     /// <para>Edition-invariant: SR1 is unchanged at 85/2002/2014/2023.</para></summary>
-    private static string? Sr1Offence(BoundOperand op) => op switch
+    private static string? Sr1Offence(BoundOperand op, EditionInfo edition) => op switch
     {
         // ⛔ A FUNCTION-IDENTIFIER IS AN IDENTIFIER, SO IT IS ASKED THE USAGE HALF (kb/Work PB3665). §2023:15.2 gives only the
         // alphanumeric (display) and national functions a usage SR1 admits: a numeric or integer function states none and a
@@ -471,8 +473,9 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // call, the lowered tree and the fold; it precedes the literal arm so the fold never reaches it.
         _ when IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(op, out var functionCategory) =>
             $"is {IntrinsicArgumentRules.FunctionUsageReason(functionCategory)}, so it is not described as usage display or national; "
-            + "SR1 requires every identifier except the POINTER to be usage display or national",
-        BoundNumericLiteral => "is a numeric literal; SR1 admits only alphanumeric, boolean and national literals",
+            + UsageRequirement(edition),
+        BoundNumericLiteral => "is a numeric literal; " + edition.Cite("SR2 admits only nonnumeric literals",
+            "SR1 admits only alphanumeric, boolean and national literals", "SR1 admits only alphanumeric, boolean and national literals"),
         // ⛔ THE USAGE HALF IS THE ONE PREDICATE (kb/Work PB3228, with INSPECT SR1/SR2: ItemCategory.IsDisplayOrNationalUsage).
         // This arm used to re-derive it from `Pic.Usage` guarded by !IsGroup, so a BIT GROUP — §2023:13.18.29.4 GR1 b) "treated
         // as though it were an elementary data item of usage bit" — fell to `_ => null` and compiled clean, where INSPECT
@@ -483,7 +486,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // compiled and then aborted at run time in the Tier-C whole-group island.
         BoundFieldOperand { Place: { } p } when p.DenotedItem is not null
             && ItemCategory.UsageOutsideDisplayOrNational(p.Item) is { } outside =>
-            UsageOffence(p.Item, outside),
+            UsageOffence(p.Item, outside, edition),
         // ⛔ A COUNTER REGISTER IS AN IDENTIFIER TOO (kb/Work PB1746): PAGE-COUNTER and LINE-COUNTER are "temporary
         // unsigned integer data items" (§2023:8.4.3.15.4 GR1) whose implicit description is a 32-bit binary integer
         // (AlgebraicRanges.CounterRegisterUsage), so SR1's "usage display or national" refuses them as it refuses a
@@ -491,17 +494,17 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         // the field arm above never sees; LINAGE-COUNTER's PIC 9(d) is usage display and passes.
         BoundComputedOperand { Expr: var register } when AlgebraicRanges.CounterRegisterIsUsageDisplay(register) is false =>
             $"is a counter register, an unsigned integer item of USAGE {AlgebraicRanges.CounterRegisterUsage(register)}, "
-            + "which has no character image; SR1 requires every identifier except the POINTER to be usage display or national",
+            + "which has no character image; " + UsageRequirement(edition),
         _ => null,
     };
 
     /// <summary>The phrase naming WHICH item keeps <paramref name="operand"/> from SR1's usage sentence: the operand
     /// itself (an elementary item, or a bit group that is one by §2023:13.18.29.4 GR1 b)) or the leaf a strongly-typed group
     /// holds. <paramref name="outside"/> comes from <see cref="ItemCategory.UsageOutsideDisplayOrNational"/>.</summary>
-    private static string UsageOffence(DataItem operand, DataItem outside)
+    private static string UsageOffence(DataItem operand, DataItem outside, EditionInfo edition)
     {
         string usage = ItemCategory.UsageOf(outside)?.ToString() ?? "(none)";
-        const string requirement = "which has no character image; SR1 requires every identifier except the POINTER to be usage display or national";
+        string requirement = "which has no character image; " + UsageRequirement(edition);
         if (!ReferenceEquals(outside, operand))
             return $"is a strongly-typed group item holding '{outside.CobolName ?? outside.ClrName}' of USAGE {usage}, "
                 + requirement + ", and a strongly-typed group's usage is that of the elementary items it is made of "
@@ -517,8 +520,23 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// share, and reports through <see cref="AllOrNothingClass"/> as COBOL2306 (kb/Work PB980).</summary>
     private BoundStatement Sr1Reject(string where, string offence)
     {
-        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandUsage, $"{where} {offence} (ISO §2023:14.9.43.3 SR1)");
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandUsage,
+            $"{where} {offence} (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.25.3 SR2", "§2023:14.9.43.3 SR1", "§2023:14.9.43.3 SR1")})");
     }
+
+    /// <summary>UNSTRING's receiver rule as the 2002 text and later word it.</summary>
+    private const string UnstringReceiverSr4 =
+        "a usage-display alphabetic/alphanumeric/numeric or usage-national national/numeric receiver, a numeric one without the symbol P; "
+        + "edited, COMP, packed, index, float and boolean (bit-group) receivers have no character image, "
+        + "and a strongly-typed group's category is its type-name (§2023:8.5.2.1) (ISO §2023:14.9.48.3 SR4)";
+
+    /// <summary>The usage sentence of STRING's identifier rule, as the edition in force words and numbers it: SR1 of the
+    /// 2002 text and later ("shall be usage display or national"), SR2 of COBOL-85 ("must be described implicitly or
+    /// explicitly as USAGE IS DISPLAY", which has no national usage).</summary>
+    private static string UsageRequirement(EditionInfo edition) => edition.Cite(
+        "SR2 requires every identifier except the POINTER to be described implicitly or explicitly as USAGE IS DISPLAY",
+        "SR1 requires every identifier except the POINTER to be usage display or national",
+        "SR1 requires every identifier except the POINTER to be usage display or national");
 
     /// <summary>ISO §2023:14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender (as its printable name), or
     /// <see langword="null"/> when it is a permitted one. Reads the category off whichever operand shape the

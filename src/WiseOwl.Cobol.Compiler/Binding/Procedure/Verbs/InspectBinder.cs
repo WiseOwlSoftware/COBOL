@@ -122,8 +122,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 + (ItemCategory.IsGroupItem(target.Item)
                     ? $"one of the {ItemCategory.Spell(ItemCategory.GroupKindsOf(target.Item))}"
                     : $"an elementary item of USAGE {ItemCategory.UsageOf(target.Item)?.ToString() ?? "(none)"}")
-                + "; SR1 admits an alphanumeric or national GROUP item or an ELEMENTARY item described implicitly "
-                + "or explicitly as usage display or national (ISO §2023:14.9.22.3 SR1)");
+                + "; SR1 admits " + ctx.Edition.Edition.Cite(
+                    "a group item or an elementary item described implicitly or explicitly as USAGE IS DISPLAY (ISO §1985:VI.6.18.3 SR1)",
+                    InspectIdentifier1Rule, InspectIdentifier1Rule));
         }
 
         // ⛔ A FORMAT 3 WHOSE IDENTIFIER-1 READS AN OCCURS DEPENDING ON OBJECT: WHEN IS IT READ (kb/Work PB5119; DialectBehavior
@@ -321,6 +322,11 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (c.AFTER() is not null) return (null, InspectCharOperand(chars[0]).Op);
         return (null, null);
     }
+
+    /// <summary>INSPECT's identifier-1 rule as the 2002 text and later word it.</summary>
+    private const string InspectIdentifier1Rule =
+        "an alphanumeric or national GROUP item or an ELEMENTARY item described implicitly "
+        + "or explicitly as usage display or national (ISO §2023:14.9.22.3 SR1)";
 
     /// <summary>Bind an INSPECT operand (identifier-3..7 / literal-1..5 / figurative): a figurative constant is an
     /// implicit ONE-character item (ISO §2023:14.9.22.3 SR3 — and a figurative beginning with ALL is forbidden there);

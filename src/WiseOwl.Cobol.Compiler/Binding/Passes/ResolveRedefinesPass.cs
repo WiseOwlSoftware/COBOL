@@ -183,7 +183,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                         $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn8 ? " THRU " + tn8 : "")}: "
                         + $"{rangeFault}; none of the items within the range, including data-name-2 and data-name-3, "
                         + "shall be of class object, message-tag, or pointer, a variable-length data item, or an "
-                        + "occurs-depending table (ISO §2023:13.18.45.3 SR8)");
+                        + $"occurs-depending table (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8", "§2023:13.18.45.3 SR8")})");
                     continue;
                 }
                 // The no-THRU alias inherits the renamed item's description (§2023:13.18.45 GR1) — the resolver
@@ -409,14 +409,14 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 $"'{name}' REDEFINES '{tname}': the entry '{between.CobolName ?? "FILLER"}' between them defines new "
                 + "storage — the entries giving the new descriptions of the storage area shall follow the entries "
                 + "defining the area of data-name-2, without intervening entries that define new storage areas "
-                + "(ISO §2023:13.18.44.3 SR10)");
+                + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR11", "§2023:13.18.44.3 SR10", "§2023:13.18.44.3 SR10")})");
 
         // SR2 — a 77 and an 01 are both roots, so name resolution alone cannot tell them apart; the written
         // level-numbers can.
         if (item.Level != target.Level)
             binder.Edition.Error(DiagnosticCatalog.RedefinesEntryRule,
                 $"'{name}' REDEFINES '{tname}': the level-numbers of data-name-2 ({target.Level}) and the subject of "
-                + $"the entry ({item.Level}) shall be identical (ISO §2023:13.18.44.3 SR2)");
+                + $"the entry ({item.Level}) shall be identical (ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR2", "§2023:13.18.44.3 SR2", "§2023:13.18.44.3 SR2")})");
 
         // SR3 — first half: no REDEFINES in a level-1 FILE SECTION entry (the records of one FD already share their
         // area, §2023:13.18.33.4 GR3, and that implicit redefinition is not this clause). The second half, an FD with a
@@ -424,13 +424,13 @@ internal sealed class ResolveRedefinesPass : IBindPass
         if (item.Parent is null && item.Level == 1 && item.Section == EntrySection.File)
             binder.Edition.Error(DiagnosticCatalog.RedefinesEntryRule,
                 $"'{name}': the REDEFINES clause shall not be specified in a level-1 entry in the file section "
-                + "(ISO §2023:13.18.44.3 SR3)");
+                + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR3", "§2023:13.18.44.3 SR3", "§2023:13.18.44.3 SR3")})");
 
         // The communication section's twin (ISO/IEC 1989:2002 13.16.42 SR4): a CD's records already share its area.
         if (item.Parent is null && item.Level == 1 && item.Section == EntrySection.Communication)
             binder.Edition.Error(DiagnosticCatalog.RedefinesEntryRule,
                 $"'{name}': the REDEFINES clause shall not be specified in a level-1 entry in the communication section "
-                + "(ISO/IEC 1989:2002 13.16.42 SR4)");
+                + $"({binder.Edition.Edition.Cite("ISO §1985:VI.5.10.3 SR4", "ISO/IEC 1989:2002 13.16.42 SR4", "ISO/IEC 1989:2002 13.16.42 SR4")})");
 
         // SR13 — a constant record cannot be redefined and then modified through the redefining name.
         if (target.IsConstantRecord)
