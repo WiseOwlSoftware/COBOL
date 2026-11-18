@@ -3,9 +3,10 @@
 > **Status: DESIGN, APPROVED BY THE CODEBASE OWNER (Claude, CLAUDE.md "Ownership"; decision kb/Work PB5925). STEP 1 BUILT
 > (the 1985 standard minimum, kb/Work PB5923, branch `listing-step-1`); STEP 2 BUILT (the JSON listing and its schema, branch
 > `listing-step-2`); STEP 3 BUILT (diagnostics, branch `listing-step-3`); STEP 4a BUILT (the directive hooks, witnessed at 2023,
-> branch `listing-step-4a`); STEP 4b BUILT (the hooks witnessed at 2002 and 2014, branch `listing-step-4b`); steps 5 to 9 not
-> yet built.** Where building a step proved this document wrong it was corrected in the same change; each correction is
-> marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)" or "(step 4b)" in the section it changed.
+> branch `listing-step-4a`); STEP 4b BUILT (the hooks witnessed at 2002 and 2014, branch `listing-step-4b`); STEP 5 BUILT (the
+> options, the program map, the statistics and verbs, `--listing-sections`, branch `listing-step-5`); steps 6 to 9 not yet
+> built.** Where building a step proved this document wrong it was corrected in the same change; each correction is
+> marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)" or "(step 5)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -228,7 +229,7 @@ The model's root (all types are immutable `sealed record`s with `IReadOnlyList` 
 namespace WiseOwl.Cobol.Listing;
 
 public sealed record ListingDocument(
-    ListingHeader Header,                         // compiler version, edition, timestamp, main source, outcome
+    ListingHeader Header,                         // compiler version, edition, timestamp, main source, outcome, parse
     IReadOnlyList<ListingFile> Files,             // every file read: id, path, role (source | library), SHA-256
     IReadOnlyList<ListingInclusion> Inclusions,   // every COPY, in text order, with parent, depth, outcome, SUPPRESS
     IReadOnlyList<ListingLine> Lines,             // the source section, in listing order
@@ -236,13 +237,14 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingDiagnostic> Diagnostics, // in listing order
     IReadOnlyList<ListingDisplay> Displays,       // >>DISPLAY UPON LISTING transfers (step 4a)
     IReadOnlyList<ListingOption> Options,
-    ListingStatistics Statistics,
+    ListingStatistics Statistics,                 // (step 5) ListingStatistics?: null when not requested
     ListingDataMap? DataMap,                      // null when not requested or not producible
     ListingCrossReference? CrossReference,
     ListingObjectCodeMap? ObjectCode,             // from the assembly and its PDB (section 6.9)
     IReadOnlyList<ListingSectionStatus> Sections); // each requested section: produced, or why not
 // (Step 1 builds Header, Files, Inclusions, Lines, Programs and Sections; step 3 Diagnostics and ListingLine.Diagnostics;
-// step 4a Displays, ListingInclusion.Suppress and ListingReplacement.Replacing; each later step adds its members.)
+// step 4a Displays, ListingInclusion.Suppress and ListingReplacement.Replacing; step 5 Options and Statistics; each later
+// step adds its members.)
 
 public sealed record ListingLine(
     int Number,                 // the listing line number, 1-based, unique in the document
@@ -285,10 +287,30 @@ from the parse before it maps (section 4.4.1); the switch is `ListingLineKinds.O
 Every other record (`ListingInclusion`, `ListingProgram`, `ListingDiagnostic`, `ListingDataItem`, `ListingSymbol`,
 `ListingReference`, `ListingObjectRange`, ...) refers to lines by `Number` and to files by id. Section 6 defines each.
 
+(Step 5:) **What a request changes is what the document HOLDS, never what is computed.** `Sections` has one status per
+section ASKED FOR, in the order of the one enum `ListingSection`; a section not asked for has no status and its part of the
+document is empty: `Lines` and `Displays` are the source section's, `Diagnostics` (and each line's `Diagnostics`) the
+diagnostics section's, `Options` the options section's (an empty list), `Statistics` the statistics section's (null). The
+header, `Files`, `Inclusions` and `Programs` are always held: every line, inclusion and diagnostic refers to them, and every
+page heading names a program (§1985:VI.3.3.4 GR1), so the `programs` section decides whether the program MAP is printed, not
+whether the units exist. The builder places, decides and counts every line whatever was asked for, since the program
+ranges, the diagnostics' placement and the statistics stand on them; so the statistics of a listing without its source
+section count every line, and those of one without its diagnostics section count every diagnostic.
+
 `ListingRequest` (also in this assembly) is the input: `Formats` (flags: Text, Html, Json), `OutputBase` (a path without
 extension, or null for the default), `Sections` (flags), `PageLength`, `PageWidth`. (Step 1 builds `OutputBase`,
 `PageLength` and `PageWidth`, with the one validation of each, `ListingRequest.PageLengthProblem` and `PageWidthProblem`,
 that the command line calls; `OutputBase` `-` writes no file. `Formats` arrives with JSON in step 2 and `Sections` in step 5.)
+(Step 5:) `Sections` is no flags enum: the JSON contract refuses a flags enum in the model (`ListingJson`'s converter, a value
+is one member's name), and a second enum of sections for the request would be a second list of them. It is
+`ListingSectionSet`, a value set over the one enum `ListingSection`, so `ListingSectionSet.All` holds a section the day it
+joins the enum; `ListingSectionSet.Standard` is section 8's default. Like a format, a section joins the enum WITH its
+builder (`ListingSection` has `Source`, `Programs`, `Diagnostics`, `Options` and `Statistics`; the data map, the
+cross-reference and the object-code sections join with steps 6 to 8), so no request names a section the compiler cannot
+produce, and `all` equals `standard` until step 6. ONE table, `ListingSections`, holds each section's command-line word and
+parses a list (`Spelling`, `Spellings`, `TryParse`, `StandardSpelling`, `AllSpelling`); `ListingSectionSet.ToString` spells a
+set back through it. `ListingRequest.SectionsProblem` (at least one section) is asked by the constructor and the `init`
+accessor like the request's other rules; `Sections` is an init property beside the positional ones, `Standard` unless set.
 (Step 2:) `ListingFormats` has `Text` and `Json` only: a format joins the enum WITH its renderer, so `Html` is added by
 step 9, and no request can name a format the compiler cannot write. ONE table, `ListingOutput`, holds each format's
 command-line spelling, file extension and renderer (`Spelling`, `Extension`, `Render`, `TryParse`, `Each`); the listing's
@@ -321,7 +343,8 @@ beside the positional ones so a reader sees the version the file was WRITTEN at,
 | `DataMap` | the symbol table snapshot's entries and their attributes (section 6.6) | Bind | The bind finished |
 | `CrossReference`, `Line.Names`, `Line.Margin` | the symbol table snapshot's entries and occurrences (section 6.7.1) | Bind | The bind finished |
 | `ObjectCode` | the produced assembly and its portable PDB, read with `System.Reflection.Metadata` (section 6.9) | After the backend | An assembly was written |
-| `Options`, `Header` | `CompilerDriver.Options`, the compilation timestamp | Driver | Always |
+| `Options`, `Header` | `CompilerDriver.Options`, the compilation timestamp; (step 5) the options rows are built by `OptionsSectionBuilder` in the composition root and deposited as plain values (`ListingFacts.Options`, section 6.4) | Driver | Always |
+| `Statistics` (step 5) | the finished lines, the diagnostics, the programs and `SourceUnitFacts.Statements` (`StatisticsSectionBuilder`, section 6.8) | Listing build | The source was read; the verbs once it was parsed |
 
 A listing is produced on EVERY outcome once the source text was read: frontend error, bind error, backend error and
 success. A section that cannot be built at the outcome reached is not omitted silently: its `ListingSectionStatus` says
@@ -565,6 +588,13 @@ width; only a longer name (a literal program-name of a later edition) on a narro
 yielded. One function composes the line (`TextListingRenderer.IdentificationLine`, the page number included). Line 2 keeps
 the END of a source path that does not fit (the file's name), behind `...`.
 
+(Step 5, review R1-1:) the header also carries `Parse` (`ListingParse`: `NotParsed`, `Parsed`, `Recovered`), what the parse
+made of the source. The front end decides it once, on the pass the listing is of: `Recovered` is its own verdict that the parse
+did not read the source cleanly (`LexAndParse`'s `parsed` is false: a syntax error or an embedded block), carried as
+`SourceUnitFacts.Recovered`; `ListingBuilder.ParseOf` only maps it. Everything read off the parse tree (the program map,
+section 6.5, and the statistics' programs, statements and verbs, section 6.8) is read off a recovered tree too, and the
+recovery may skip source, so after a recovery those parts hold only what it kept; each says so (below), from this one fact.
+
 ### 6.2 Source
 
 One row per listed line, at the default width 132:
@@ -669,7 +699,34 @@ positions natively. A backend diagnostic with no COBOL position goes to the summ
 Every option of the compilation with its value and whether it is the default: each public property of
 `CompilerDriver.Options`, the edition, `--permissive`, the listing request itself, the compiler version (the assembly's
 informational version), the runtime version, the .NET runtime version and the host operating system. Built from one table
-in `OptionsSectionBuilder`; a drift test holds it to every public property of `CompilerDriver.Options`.
+in `OptionsSectionBuilder`; a drift test holds it to every public property of `CompilerDriver.Options`. The compiler and
+runtime versions, and the page heading's, are spelled by one function, `ListingBuilder.VersionOf` (an assembly's
+informational version, else its assembly version), so the rows of one listing spell their versions alike (review R1-2).
+
+**As built (step 5), with the corrections the code proved:**
+
+- **The table lives in the composition root.** The builder's layer (`compiler.listing`) may not name `CompilerDriver`
+  (section 4.2, step 1), and the table must read `CompilerDriver.Options`, so `OptionsSectionBuilder` is in the namespace
+  `WiseOwl.Cobol` beside the driver, and the driver hands its rows to `ListingFacts` as plain `ListingOption` values, built
+  only when the options section is asked for.
+- **One row per settable public property** of `CompilerDriver.Options` (`OptionsSectionBuilder.Table`, each row naming its
+  property by `nameof`, the command line's spelling of the option and of its value), and the listing request expands into one
+  row per settable public property of `ListingRequest` (`RequestTable`: `--listing-output`, `--listing-format`,
+  `--listing-sections`, `--listing-page-length`, `--listing-page-width`). Then four `Host` rows: `compiler`, `runtime` (the
+  `WiseOwl.Cobol.Runtime` assembly's informational version), `.NET` and `operating system`. The edition is the `--std` row
+  (`85 (ANSI X3.23-1985)`).
+- **Default means the library's default.** `ListingOption.Origin` is `Default` when the value is spelled as
+  `new CompilerDriver.Options(source)`'s (or `new ListingRequest()`'s) is, `Specified` otherwise, and `Host` for a fact of the
+  compiler or the host. Two rows decide it themselves: the source, which has no default, and the output path, whose default is
+  DERIVED from the source path (`Row.DerivedFrom`): it is the default when `OutputPath` is null, whatever path it derives to.
+  The command line's own per-edition default (a listing at `--std 85`) is not the library's, so `--listing` is `Specified` in
+  every listing; the guide says so.
+- **The drift test, `OptionsSectionDriftTests` (Unit), holds the table to both types by behaviour, not by name alone:** every
+  settable public property has exactly one row and no row names another; at the defaults every option row is `Default` but the
+  source and `--listing`; and for each property, setting it ALONE to another value (a value of its type, made by the test)
+  changes exactly its row, which becomes `Specified`, besides the rows `DerivedFrom` it. A property added without a row, a
+  row naming no property, and a row reading another row's property are each red (shown by mutation, kb/Work PB5925's
+  step-5 note).
 
 ### 6.5 Program map (nested programs)
 
@@ -678,6 +735,13 @@ INITIAL / RECURSIVE / IS PROTOTYPE, first and last listing line, and, once bound
 type it became. A view of the symbol table's program entries (whose attributes the binder writes from `BoundUnit` when
 it creates them) joined to the source's program ranges (`SourceUnitFacts`, from the parse tree, so names and ranges
 exist on a failed bind).
+
+(Step 5:) the names, kinds, nesting and listing lines are built (`ProgramRangeBuilder`, step 1); the text listing prints them
+as the `PROGRAMS` section (`ProgramMapText.Rows`): one row per unit in text order, its id, kind, first and last
+listing line, and its name indented two columns per level of nesting, so a contained unit stands under its container. COMMON,
+INITIAL, RECURSIVE, IS PROTOTYPE, the externalized name and the .NET type are the symbol table's program attributes and join
+in step 6. After a parse that recovered (`ListingHeader.Parse` is `Recovered`, section 6.1) the map ends with a blank row and
+the note `TextListingRenderer.RecoveredNote` composes: the source units are only those the recovery kept (review R1-1).
 
 ### 6.6 Data map: a view of the symbol table
 
@@ -1010,6 +1074,28 @@ severity, and VBREF: each verb as written, its count and every listing line. Ver
 (`SourceUnitFacts`), so they are counted as the programmer wrote them (not as the binder desugared them) and exist on a
 failed bind. No timings: they make two listings of one source differ for no reader's benefit.
 
+**As built (step 5):** `ListingStatistics(Lines, Files, Diagnostics, Parse)`, built by `StatisticsSectionBuilder` from the
+finished lines and the diagnostics the compilation reported:
+- `ListingLineCounts(Lines, Kinds, Omitted, Copied, Unlisted)` for the whole listing and for each file (`ListingFileStatistics`,
+  in the order of the files; a library text copied twice counts each copy). `Kinds` holds EVERY `ListingLineKind`, a zero
+  included, in enum order, so a kind added to the enum is counted with no change here; "suppressed" is `Unlisted`, a line
+  `ListingVisibility` did not list (a LISTING directive or COPY SUPPRESS).
+- `Diagnostics`: every `ListingSeverity`, counted from every diagnostic reported, whether or not the diagnostics section is
+  asked for.
+- `Parse` (`ListingParseStatistics(Programs, Statements, Verbs)`), null when the source was not parsed. It is read off the
+  tree the parse built, recovered or not; after a recovery (`ListingHeader.Parse` is `Recovered`, section 6.1) the recovery
+  may have skipped statements, even every statement after the error, so the counts are of what it kept, and the text says so
+  under `STATEMENTS` (review R1-1; the step-5 design said only that the counts "exist on a failed bind", which is true of a
+  failed bind but not complete after a failed parse). The verbs and
+  statements are `SourceUnitFacts.Statements`: each node of the grammar's `statement` rule the parse built, a statement nested
+  in another included (the MOVE of `IF A MOVE B TO C END-IF` is a statement of its own); a recovered node that consumed no
+  token is none. A statement's verb is its first word in upper case (`GO` of GO TO, `NEXT` of NEXT SENTENCE): the verb as
+  written, never as the binder desugars it. Each `ListingVerb` holds its count and the listing line each of its statements
+  begins on, placed through the one index (`ListingLineIndex.Of`), in listing order, one entry per statement; the verbs are in
+  the ordinal order of their words.
+- The text prints the kinds that have lines, each file's counts, the programs, statements and diagnostics, then the verbs
+  (IBM's VBREF): `VERB  COUNT  LINES` (`StatisticsText.Rows`).
+
 ### 6.9 COBOL to object-code map (backend-neutral; owner 2026-11-18)
 
 The owner, 2026-11-18: "It also makes no sense to link to C# code when we switch to the IL generation." No section,
@@ -1059,6 +1145,15 @@ diagnostics and print inline; the summary adds a table of flagged constructs by 
 Each implements `IListingRenderer` and visits the document through `IListingSectionVisitor<T>`, one method per section
 type: a section type added without a method in every renderer is a compile error.
 
+(Step 5:) the visitor is not built yet: the JSON writer serializes the record and walks no section, so the text renderer is
+the only renderer that walks sections, and an interface with one implementation would guarantee nothing a total switch does
+not. The text renderer dispatches on `ListingSection` in one place (`TextListingRenderer.Render` over `SectionOrder`, with
+`TitleOf`; the rows of each section other than the source and the summary are a class of their own, `OptionsText`,
+`ProgramMapText` and `StatisticsText`, so a section added is a class added), every switch throws on a member it does not know, and `ListingSectionsTests` holds
+`SectionOrder`, `TitleOf` and `ListingSections.Spelling` total over the enum: a section added without its place in the text
+listing is red at test time, as a format without its renderer is (`ListingOutputTests`). Step 9 builds the visitor with
+HTML, the second renderer that walks sections.
+
 ### 7.1 Paginated text (`TextListingRenderer`)
 
 UTF-8, LF line ends, a form feed (U+000C) before every page after the first. `PageLength` (default 60 lines including
@@ -1067,6 +1162,9 @@ the heading; 0 = no pagination, so only '/' and `>>PAGE` produce form feeds) and
 `PageBreakBefore`, or when the page is full. A row wider than the page wraps onto `+` rows. Sections in order: options,
 source with inline diagnostics, program map, data map, cross-reference, statistics and verbs, object-code map, diagnostic
 summary; each starts a page.
+(Step 5:) a page outside the source section has three heading lines (the identification line, the section's title, a blank
+line) and no ruler, and names the first outermost program (section 6.1). A section asked for that could not be produced
+prints its title and `Not produced: <reason>` (section 4.3). The pages are numbered through the whole listing.
 
 ### 7.2 HTML (`HtmlListingRenderer`)
 
@@ -1160,6 +1258,11 @@ library default is null (no listing), so every caller that builds `Options` itse
 expansion's own compilation in `ExpansionAssemblies`) does no listing work; the per-edition default is a CLI decision.
 `check-batch` never writes a listing. `Options.Listing` decides what the build writes, never what a source means:
 `CompileStateDriftTests` classifies it as an output selection.
+(Step 5:) `--listing-sections` takes one value, a comma list of section words, `standard` and `all` (each word trimmed, case
+ignored, the union of the words), read by `ListingSections.TryParse`; an empty or unknown word is an argument error. It
+accepts the sections built so far (`source`, `programs`, `diagnostics`, `options`, `statistics`); `data-map`, `xref`,
+`object-map` and `object-code` join with steps 6 to 8, each with its builder, as `html` joins `--listing-format` with its
+renderer. Naming it asks for a listing at any edition.
 
 ## 9. Performance budget
 
@@ -1209,6 +1312,11 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
   (Step 4b:) step 4b is not in the list above and changes no product code (`git diff --stat` of its branch against its
   parent touches no file under `src/`), so no cost moved and nothing was measured; a benchmark run would compare identical
   assemblies.
+  (Step 5:) step 5 is not in the list above, but the default request now produces three more sections, so it measures every
+  row (the README's step-5 table): the standard text listing is +0.2 to +5.4 % over `None` on a full compile, inside its 10 %
+  budget, and step 5's own cost, in the front end and bind with a listing, is +0.38 to +0.65 MB per program over step 4a's
+  `Text` rows. It adds no no-listing work (the statements are read only under `Frontend.RecordsListing`, the options rows only
+  in the driver's listing branch), and the `None` rows are within 0.23 MB of step 4a's.
 
 ## 10. Test plan
 
@@ -1279,6 +1387,15 @@ captured listing.
    copy of a copybook placed in the second block, and one record per printed diagnostic on a front-end error, a bind error and
    a success with warnings (`ListingDiagnosticsTests`, Conformance); the shared citation vectors (`ListingCitationTests` and
    `citation.py --self-test`). Section 6.3 names each.
+7b. **Options, program map, statistics and sections (step 5).** `OptionsSectionDriftTests` (section 6.4); `ListingSectionsTests`
+   (Unit: one spelling, title and text place per section, `standard` and `all`, the parser, a request of no section refused);
+   `ListingSectionRenderingTests` (Unit: the line counts, the order and pages of the sections, the program map, the options and
+   statistics rows, a section not produced); `ListingCliTests.TheListingSections_ReachTheRequest`;
+   `ListingSectionsOfACompilationTests` (Conformance: the program map's nesting and lines, the verbs as written with their
+   listing lines through two copies of a library text, the line counts by kind and file, the verbs of a failed bind, the options
+   given and defaulted, only the sections asked for in the text and the JSON, no diagnostic printed without its section). The
+   tests of one section read that section's pages (`ListingPages`), so a section printed beside it moves nothing they check.
+   `JsonSchemaSubset` checks `$ref`, which the exporter writes once the statistics hold one type twice.
 8. **Failed compilations.** One test per kind of outcome (section 4.6): the sections present and the
    `ListingSectionStatus` of each absent one; the failed-parse test of section 4.4 (the listed pass). (Step 1:)
    `tests/WiseOwl.Cobol.Tests.Conformance/Listing/ListingOutcomeTests.cs`, beside the 1985 class's failed-compilation
@@ -1367,7 +1484,8 @@ its own text); the records change adjudicates the twelve 2002 rows of section 2.
 `2002-DOC-B.1-90`, `2002-DOC-B.1-165`) with those tests as witnesses; DOC-A.1-117's 2002 and 2014 annex items (B.1 item
 90, A.1 item 106) and the stage items (B.1 item 165, A.1 item 182) are documented.
 
-**Step 5 - options, program map, statistics and verbs.** `OptionsSectionBuilder` with its drift test; the program map's
+**Step 5 - options, program map, statistics and verbs. BUILT (branch `listing-step-5`; the corrections above marked "step 5").**
+`OptionsSectionBuilder` with its drift test; the program map's
 names, nesting and ranges and the verb counts from `SourceUnitFacts` (the source); `--listing-sections`. The program
 attributes and .NET types, and the statistics' counts of names and uses, join in steps 6 and 7 as views of the symbol
 table when it exists.

@@ -47,6 +47,14 @@
             "BackendError",
             "OutputNotWritable"
           ]
+        },
+        "parse": {
+          "description": "Whether the source was parsed, and whether the parse had to recover from a syntax error: the program map and the statistics' programs, statements and verbs are read off the parse, so after a recovery they hold only what the recovery kept. NotParsed: The source was not parsed: the text stages refused it. Parsed: The parse read the whole source with no syntax error. Recovered: The parse recovered from a syntax error and may have skipped source: a program, statement or verb the recovery skipped is missing from the program map and the statistics.",
+          "enum": [
+            "NotParsed",
+            "Parsed",
+            "Recovered"
+          ]
         }
       },
       "required": [
@@ -55,7 +63,8 @@
         "editionName",
         "compiledAt",
         "mainSource",
-        "outcome"
+        "outcome",
+        "parse"
       ]
     },
     "files": {
@@ -453,19 +462,257 @@
         ]
       }
     },
+    "options": {
+      "description": "The options section: every option of the compilation with its value and whether it is the default, then the compiler and the host it ran on; empty when the section was not asked for.",
+      "type": "array",
+      "items": {
+        "description": "One row of the options section (DESIGN-listing.md section 6.4).",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "The option as the command line spells it (--std), or the name of the fact (source, compiler).",
+            "type": "string"
+          },
+          "value": {
+            "description": "Its value, as the command line spells it where it has a spelling; for a default that is derived from another value (the output path), the value derived.",
+            "type": "string"
+          },
+          "origin": {
+            "description": "Default, specified, or a fact of the compiler or the host. Default: An option the compilation was not given a value for: its default. Specified: An option given a value other than its default. Host: No option: a fact of the compiler or of the host the compilation ran on (a version, the operating system).",
+            "enum": [
+              "Default",
+              "Specified",
+              "Host"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "origin"
+        ]
+      }
+    },
+    "statistics": {
+      "description": "The statistics section: lines by kind and by file, programs, statements, diagnostics by severity and the verbs; null when the section was not asked for.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "lines": {
+          "description": "Every line of the listing, counted.",
+          "type": "object",
+          "properties": {
+            "lines": {
+              "description": "The lines.",
+              "type": "integer"
+            },
+            "kinds": {
+              "description": "The lines of each kind, every kind once, in the order of ListingLineKind.",
+              "type": "array",
+              "items": {
+                "description": "The lines of one kind.",
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "description": "The kind. Source: A line of program text. Comment: A comment line: the fixed-form * indicator, or the floating comment indicator. PageEjectComment: A comment line with the fixed-form slant (/) indicator, which ejects a page before it is listed. DebuggingLine: A debugging line: the fixed-form D indicator, or the floating >>D indicator. Continuation: A fixed-form continuation line (the hyphen indicator). Directive: A compiler directive line, where the edition has compiler directives. CommentEntry: A line of the comment-entry of an IDENTIFICATION DIVISION paragraph such as AUTHOR or DATE-COMPILED. CcvsExcluded: A line the NIST CCVS column-7 conventions exclude (the --nist dialect only). NotAnIndicator: A line whose indicator area holds a character that is no indicator, read as program text. Blank: A blank line: nothing but spaces in its program text.",
+                    "enum": [
+                      "Source",
+                      "Comment",
+                      "PageEjectComment",
+                      "DebuggingLine",
+                      "Continuation",
+                      "Directive",
+                      "CommentEntry",
+                      "CcvsExcluded",
+                      "NotAnIndicator",
+                      "Blank"
+                    ]
+                  },
+                  "count": {
+                    "description": "The lines of that kind.",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "count"
+                ]
+              }
+            },
+            "omitted": {
+              "description": "The lines a false conditional-compilation branch omitted (Omitted).",
+              "type": "integer"
+            },
+            "copied": {
+              "description": "The lines of library text a COPY statement copied (Inclusion set).",
+              "type": "integer"
+            },
+            "unlisted": {
+              "description": "The lines the source section does not print (Listed false): a LISTING directive or COPY SUPPRESS suppressed them.",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "lines",
+            "kinds",
+            "omitted",
+            "copied",
+            "unlisted"
+          ]
+        },
+        "files": {
+          "description": "The lines of each file read, counted, in the order of the files: a library text copied twice counts each copy.",
+          "type": "array",
+          "items": {
+            "description": "The lines of one file.",
+            "type": "object",
+            "properties": {
+              "file": {
+                "description": "The Id.",
+                "type": "integer"
+              },
+              "lines": {
+                "description": "Its lines, counted: each listing line read from the file, so each inclusion of a library text counts.",
+                "type": "object",
+                "properties": {
+                  "lines": {
+                    "description": "The lines.",
+                    "type": "integer"
+                  },
+                  "kinds": {
+                    "description": "The lines of each kind, every kind once, in the order of ListingLineKind.",
+                    "$ref": "#/properties/statistics/properties/lines/properties/kinds"
+                  },
+                  "omitted": {
+                    "description": "The lines a false conditional-compilation branch omitted (Omitted).",
+                    "type": "integer"
+                  },
+                  "copied": {
+                    "description": "The lines of library text a COPY statement copied (Inclusion set).",
+                    "type": "integer"
+                  },
+                  "unlisted": {
+                    "description": "The lines the source section does not print (Listed false): a LISTING directive or COPY SUPPRESS suppressed them.",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "lines",
+                  "kinds",
+                  "omitted",
+                  "copied",
+                  "unlisted"
+                ]
+              }
+            },
+            "required": [
+              "file",
+              "lines"
+            ]
+          }
+        },
+        "diagnostics": {
+          "description": "The diagnostics the compilation reported, counted by severity, every severity once.",
+          "type": "array",
+          "items": {
+            "description": "The diagnostics of one severity.",
+            "type": "object",
+            "properties": {
+              "severity": {
+                "description": "The severity. Error: An error: the compilation fails. Warning: A warning: the compilation does not fail. Info: Information.",
+                "enum": [
+                  "Error",
+                  "Warning",
+                  "Info"
+                ]
+              },
+              "count": {
+                "description": "The diagnostics of that severity.",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "severity",
+              "count"
+            ]
+          }
+        },
+        "parse": {
+          "description": "The programs, statements and verbs the parse read, or null when the source was not parsed. After a parse that recovered from a syntax error (the header's parse is Recovered) they are only those the recovery kept.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "programs": {
+              "description": "The source units of the program map (Programs).",
+              "type": "integer"
+            },
+            "statements": {
+              "description": "The statements, a statement nested in another counted as well.",
+              "type": "integer"
+            },
+            "verbs": {
+              "description": "Each verb, by the word that begins its statements, in the ordinal order of that word.",
+              "type": "array",
+              "items": {
+                "description": "One verb of the verb counts (IBM's VBREF).",
+                "type": "object",
+                "properties": {
+                  "verb": {
+                    "description": "The word that begins the statements, in upper case (MOVE, GO, NEXT).",
+                    "type": "string"
+                  },
+                  "count": {
+                    "description": "The statements it begins.",
+                    "type": "integer"
+                  },
+                  "lines": {
+                    "description": "The listing line each of those statements begins on, in listing order, one entry per statement (a line that begins two of them appears twice); a statement on no line the listing holds has none.",
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "verb",
+                  "count",
+                  "lines"
+                ]
+              }
+            }
+          },
+          "required": [
+            "programs",
+            "statements",
+            "verbs"
+          ]
+        }
+      },
+      "required": [
+        "lines",
+        "files",
+        "diagnostics"
+      ]
+    },
     "sections": {
-      "description": "Each section of the listing: produced, or why not (DESIGN-listing.md section 4.3).",
+      "description": "Each section the listing was asked for, in the order of ListingSection: produced, or why not (DESIGN-listing.md section 4.3). A section not asked for has no entry and its part of the document is empty: the lines and the DISPLAY transfers are the source section's, the diagnostics the diagnostics section's. The header, the files, the inclusions and the programs are always present, since the lines and every page heading refer to them.",
       "type": "array",
       "items": {
         "description": "Whether a section was produced and, when not, why (DESIGN-listing.md section 4.3): a section is never left out silently.",
         "type": "object",
         "properties": {
           "section": {
-            "description": "The section. Source: The source section: every physical line of every file read. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end.",
+            "description": "The section. Source: The source section: every physical line of every file read, with the DISPLAY directive's transfers. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end. Options: The options in effect: every option with its value and whether it is the default, the compiler and the host. Statistics: The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with its count and its lines.",
             "enum": [
               "Source",
               "Programs",
-              "Diagnostics"
+              "Diagnostics",
+              "Options",
+              "Statistics"
             ]
           },
           "produced": {
@@ -497,6 +744,7 @@
     "programs",
     "diagnostics",
     "displays",
+    "options",
     "sections"
   ]
 }

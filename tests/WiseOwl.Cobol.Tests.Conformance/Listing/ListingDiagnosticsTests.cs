@@ -91,13 +91,11 @@ public sealed class ListingDiagnosticsTests : IDisposable
 
         // The text listing: under the entry's row a caret at its column, then the arrow row; the summary on a page of its own.
         string text = File.ReadAllText(Path.Combine(work, "diag1.lst"));
-        string[] pages = text.Split(PageComposer.FormFeed);
-        string[] rows = pages[0].Split('\n');
+        string[] rows = ListingPages.Of(text, ListingSection.Source)[0].Split('\n');
         int row = Array.FindIndex(rows, r => r.EndsWith(lines[entry - 1], StringComparison.Ordinal));
         Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + d.Column!.Value - 1) + "^", rows[row + 1]);
         Assert.StartsWith(new string(' ', TextListingRenderer.TextColumn - 1) + $"==> error {d.Code} (col {d.Column}): ", rows[row + 2], StringComparison.Ordinal);
-        string summary = pages[^1];
-        Assert.Equal("DIAGNOSTICS", summary.Split('\n')[1]);
+        string summary = Assert.Single(ListingPages.Of(text, ListingSection.Diagnostics));
         Assert.Contains("Errors: 1   Warnings: 0   Information: 0", summary, StringComparison.Ordinal);
         // The summary entry (DESIGN-listing.md section 6.3): "line  severity CODE file(line,col): message", wrapped at the page width
         // with its further rows indented 8. The entry is the row that opens it and the rows indented under it. They hold exactly

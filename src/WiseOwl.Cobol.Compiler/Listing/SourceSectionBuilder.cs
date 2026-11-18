@@ -41,7 +41,7 @@ internal sealed class LineDraft
 /// <summary>
 /// ⛔ THE ONE MAP from the front end's <see cref="PhysicalLineKind"/> to the model's <see cref="ListingLineKind"/>
 /// (DESIGN-listing.md section 4.2): the Listing assembly references nothing, so it declares its own enum, and this switch is
-/// total — <c>ListingLineKindDriftTests</c> holds every member of either enum to it. A comment-entry candidate has no image:
+/// total — <c>PhysicalLineKindDriftTests.TheKindMap_IsTotal_BothWays</c> holds every member of either enum to it. A comment-entry candidate has no image:
 /// the builder settles it from the parse first (<see cref="SourceSectionBuilder.SettleCandidates"/>).
 /// </summary>
 internal static class ListingLineKinds

@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Cli;
 /// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
 /// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions] [--repository-update on|off]
 /// [--repository DIR] [--reference FILE.dll] [--repository-check on|off] [--listing [on|off]] [--listing-output BASE]
-/// [--listing-format text|json]... [--listing-page-length N] [--listing-page-width N]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
+/// [--listing-format text|json]... [--listing-sections LIST] [--listing-page-length N] [--listing-page-width N]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
 /// option can swallow a following flag. The generated C# is written next to the output assembly
 /// (<c>&lt;name&gt;.g.cs</c>) so the translation is directly inspectable.
 /// </remarks>
@@ -239,6 +239,19 @@ internal static class Program
                 if (!WiseOwl.Cobol.Listing.ListingOutput.TryParse(v, out _))
                     result.AddError($"--listing-format must be one of {WiseOwl.Cobol.Listing.ListingOutput.Spellings.Replace('|', ',')} (got {v}).");
         });
+        var listingSectionsOption = new Option<string?>("--listing-sections")
+        {
+            Description = $"The listing's sections, a comma list of {WiseOwl.Cobol.Listing.ListingSections.Spellings} (default "
+                + $"{WiseOwl.Cobol.Listing.ListingSections.StandardSpelling}, which is "
+                + string.Join(",", WiseOwl.Cobol.Listing.ListingSectionSet.Standard.Each().Select(WiseOwl.Cobol.Listing.ListingSections.Spelling))
+                + "). Implies --listing on.",
+            HelpName = "LIST",
+        };
+        listingSectionsOption.Validators.Add(result =>
+        {
+            if (result.GetValueOrDefault<string?>() is { } list && !WiseOwl.Cobol.Listing.ListingSections.TryParse(list, out _, out string? problem))
+                result.AddError($"--listing-sections: {problem}.");
+        });
         var listingPageLengthOption = new Option<int?>("--listing-page-length")
         {
             Description = $"Listing lines per page, the heading included; 0 = unpaginated (default {WiseOwl.Cobol.Listing.ListingRequest.DefaultPageLength}). Implies --listing on.",
@@ -267,7 +280,8 @@ internal static class Program
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
             signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, repositoryUpdateOption,
             repositoryOption, referenceOption, repositoryCheckOption,
-            listingOption, listingOutputOption, listingFormatOption, listingPageLengthOption, listingPageWidthOption,
+            listingOption, listingOutputOption, listingFormatOption, listingSectionsOption, listingPageLengthOption,
+            listingPageWidthOption,
         };
         // Two options together (DESIGN-listing.md section 8): a listing written to standard output is written in one format.
         root.Validators.Add(result =>
@@ -310,13 +324,18 @@ internal static class Program
             int? pageLength = parse.GetValue(listingPageLengthOption), pageWidth = parse.GetValue(listingPageWidthOption);
             bool listingNamed = parse.GetResult(listingOption) is not null;
             string[]? formats = parse.GetValue(listingFormatOption) is { Length: > 0 } namedFormats ? namedFormats : null;
+            string? sections = parse.GetValue(listingSectionsOption);
             bool listingOn = listingNamed ? TryParseOnOff(parse.GetValue(listingOption), out bool on) ? on : true
-                : output is not null || formats is not null || pageLength is not null || pageWidth is not null || std == 85;
+                : output is not null || formats is not null || sections is not null || pageLength is not null || pageWidth is not null
+                  || std == 85;
+            // The validator above has already refused a list it cannot read, so a false here can only be the absent option.
+            var sectionSet = sections is not null && WiseOwl.Cobol.Listing.ListingSections.TryParse(sections, out var namedSections, out _)
+                ? namedSections : WiseOwl.Cobol.Listing.ListingSectionSet.Standard;
             var listing = listingOn
                 ? new WiseOwl.Cobol.Listing.ListingRequest(output,
                     pageLength ?? WiseOwl.Cobol.Listing.ListingRequest.DefaultPageLength,
                     pageWidth ?? WiseOwl.Cobol.Listing.ListingRequest.DefaultPageWidth,
-                    formats is null ? WiseOwl.Cobol.Listing.ListingFormats.Text : ListingFormatsOf(formats))
+                    formats is null ? WiseOwl.Cobol.Listing.ListingFormats.Text : ListingFormatsOf(formats)) { Sections = sectionSet }
                 : null;
 
             return new CliOptions(

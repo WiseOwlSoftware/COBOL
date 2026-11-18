@@ -1054,6 +1054,7 @@
     "--listing-output",
     "--listing-page-length",
     "--listing-page-width",
+    "--listing-sections",
     "--nist",
     "--numeric-display",
     "--output",

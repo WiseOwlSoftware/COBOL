@@ -152,7 +152,7 @@ public sealed class Frontend
             int diagnosticsBeforeLexing = passDiagnostics.Diagnostics.Count;
             var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas, referenceFormatGates);
             // What the source listing reads of this pass (DESIGN-listing.md section 4.4): taken from the SAME pass as LineMap.
-            var listed = new ListedPass(trace, formats, RecordsListing ? SourceUnitFacts.Read(tree) : null, processed.Text);
+            var listed = new ListedPass(trace, formats, RecordsListing ? SourceUnitFacts.Read(tree, recovered: !parsed) : null, processed.Text);
             // A debugging line the §2023:6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(

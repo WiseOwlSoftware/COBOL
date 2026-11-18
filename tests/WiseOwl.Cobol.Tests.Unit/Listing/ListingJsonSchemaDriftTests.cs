@@ -105,6 +105,10 @@ public sealed class ListingJsonSchemaDriftTests
         Assert.Empty(JsonSchemaSubset.Validate(schema, written));
         written["lines"]![0]!["kind"] = "NoSuchKind";
         Assert.Contains(JsonSchemaSubset.Validate(schema, written), e => e.Contains("$.lines[0].kind", StringComparison.Ordinal));
+        // A value the schema reaches through a $ref (the exporter writes one for a type it has written already) is checked too.
+        written["statistics"]!["files"]![0]!["lines"]!["kinds"]![0]!["kind"] = "NoSuchKind";
+        Assert.Contains(JsonSchemaSubset.Validate(schema, written),
+            e => e.Contains("$.statistics.files[0].lines.kinds[0].kind", StringComparison.Ordinal));
     }
 
     private static string FirstDifference(string a, string b)

@@ -22,6 +22,9 @@ namespace WiseOwl.Cobol.Listing.Text;
 /// <para>Under a line a replacing action changed (marked 'R'), its compiled text in rows marked 'R' (<see cref="ReplacedRows"/>);
 /// after a DISPLAY directive's line, whether or not that line is printed, each transfer to the listing as
 /// <c>DISPLAY: text</c> (<see cref="DisplayRows"/>; DESIGN-listing.md section 6.10).</para>
+/// <para>The sections are printed in <see cref="SectionOrder"/>, each starting a page (section 7.1). This class composes the pages
+/// and prints the source section and the diagnostics summary; each other section's rows are its own class's
+/// (<see cref="OptionsText"/>, <see cref="ProgramMapText"/>, <see cref="StatisticsText"/>), so a section added is a class added.</para>
 /// </summary>
 public static class TextListingRenderer
 {
@@ -35,8 +38,64 @@ public static class TextListingRenderer
     public static readonly string Ruler = new string(' ', TextColumn - 1)
         + string.Concat(Enumerable.Range(1, TextWidth / 10).Select(n => "----+----" + (n % 10).ToString(CultureInfo.InvariantCulture)));
 
-    /// <summary>Render <paramref name="document"/> as the paginated text listing <paramref name="request"/> asks for.</summary>
+    /// <summary>The order the sections are printed in (DESIGN-listing.md section 7.1): options, source with inline diagnostics,
+    /// program map, statistics and verbs, diagnostic summary. Every member of <see cref="ListingSection"/> once (the Unit
+    /// assembly's <c>ListingSectionsTests.EverySection_HasOneSpelling_OneTitle_AndOnePlaceInTheTextOrder</c> holds it so).</summary>
+    public static readonly IReadOnlyList<ListingSection> SectionOrder =
+        [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.Statistics, ListingSection.Diagnostics];
+
+    /// <summary>Render <paramref name="document"/> as the paginated text listing <paramref name="request"/> asks for: each section
+    /// the document holds (<see cref="ListingDocument.Sections"/>), in <see cref="SectionOrder"/>, each starting a page; a section
+    /// that could not be produced prints why. One buffer holds every section: the listing is never copied to join them.</summary>
     public static string Render(ListingDocument document, ListingRequest request)
+    {
+        var listing = new StringBuilder();
+        // Outside the source section a heading names the first outermost program (section 6.1).
+        string? firstProgram = document.Programs.FirstOrDefault(p => p.Depth == 0)?.Name;
+        var header = document.Header;
+        int pages = 0;
+        foreach (var section in SectionOrder)
+        {
+            if (document.Sections.FirstOrDefault(s => s.Section == section) is not { } status) continue;
+            if (pages > 0) listing.Append(PageComposer.FormFeed);
+            IReadOnlyList<string> Heading(int page, string? program) => section == ListingSection.Source
+                ? [IdentificationLine(header, program, page, request.PageWidth),
+                   KeepEnd(TitleOf(section) + "  ", header.MainSource, request.PageWidth), "", Ruler]
+                : [IdentificationLine(header, program, page, request.PageWidth), TitleOf(section), ""];
+            IReadOnlyList<ListingRow> rows = !status.Produced
+                ? [.. Indented("Not produced: " + status.Reason, 0, 2, request.PageWidth).Select(r => new ListingRow(r, false, firstProgram))]
+                : section == ListingSection.Source ? SourceRows(document, request)
+                : [.. RowsOf(section, document, request.PageWidth).Select(r => new ListingRow(r, false, firstProgram))];
+            pages += PageComposer.Compose(listing, rows, request.PageLength, Heading, firstPage: pages + 1);
+        }
+        return listing.ToString();
+    }
+
+    /// <summary>The second heading line of a section's pages.</summary>
+    public static string TitleOf(ListingSection section) => section switch
+    {
+        ListingSection.Source => "SOURCE",
+        ListingSection.Programs => "PROGRAMS",
+        ListingSection.Diagnostics => "DIAGNOSTICS",
+        ListingSection.Options => "OPTIONS",
+        ListingSection.Statistics => "STATISTICS",
+        _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no title"),
+    };
+
+    /// <summary>The rows of a produced section other than the source, none wider than <paramref name="width"/>.</summary>
+    private static IEnumerable<string> RowsOf(ListingSection section, ListingDocument document, int width) => section switch
+    {
+        ListingSection.Options => OptionsText.Rows(document.Options, width),
+        ListingSection.Programs => ProgramMapText.Rows(document.Programs, document.Header.Parse, width),
+        ListingSection.Statistics => document.Statistics is { } statistics ? StatisticsText.Rows(statistics, document.Files, document.Header.Parse, width)
+            : throw new InvalidOperationException("the statistics section is produced but the document holds no statistics"),
+        ListingSection.Diagnostics => SummaryRows(document, width),
+        _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section the text listing cannot print"),
+    };
+
+    /// <summary>The source section's rows (DESIGN-listing.md section 6.2): each listed line, the banner of each inclusion, the
+    /// compiled text under a replaced line, each diagnostic under its line and each DISPLAY transfer at its directive.</summary>
+    private static List<ListingRow> SourceRows(ListingDocument document, ListingRequest request)
     {
         var programs = document.Programs.ToDictionary(p => p.Id, p => p.Name);
         string? ProgramOf(ListingLine line) => line.Program is { } id ? programs[id] : null;
@@ -89,24 +148,15 @@ public static class TextListingRenderer
             foreach (var display in displays[line.Number])
                 rows.AddRange(DisplayRows(display).Select(row => new ListingRow(row, false, ProgramOf(line))));
         }
-        var header = document.Header;
-        var listing = new StringBuilder();
-        int sourcePages = PageComposer.Compose(listing, rows, request.PageLength, (page, program) =>
-        [
-            IdentificationLine(header, program, page, request.PageWidth),
-            KeepEnd("SOURCE  ", header.MainSource, request.PageWidth),
-            "",
-            Ruler,
-        ], firstPage: 1);
-        // The summary starts a page (DESIGN-listing.md section 7.1); outside the source section a heading names the first outermost
-        // program (section 6.1). One buffer holds both sections: the listing is never copied to join them.
-        string? firstProgram = document.Programs.FirstOrDefault(p => p.Depth == 0)?.Name;
-        listing.Append(PageComposer.FormFeed);
-        PageComposer.Compose(listing,
-            [.. SummaryRows(document, request.PageWidth).Select(row => new ListingRow(row, false, firstProgram))], request.PageLength,
-            (page, program) => [IdentificationLine(header, program, page, request.PageWidth), "DIAGNOSTICS", ""],
-            firstPage: sourcePages + 1);
-        return listing.ToString();
+        return rows;
+    }
+
+    /// <summary>Each text padded to its width; a text as wide as its column, or wider, is followed by one space.</summary>
+    internal static string Columns(params ReadOnlySpan<(string Text, int Width)> columns)
+    {
+        var row = new StringBuilder();
+        foreach (var (text, columnWidth) in columns) row.Append(text.Length < columnWidth ? text.PadRight(columnWidth) : text + " ");
+        return row.ToString();
     }
 
     /// <summary>The rows under a line a replacing action changed (DESIGN-listing.md section 6.2): each line of its compiled text
@@ -188,6 +238,11 @@ public static class TextListingRenderer
         ListingSeverity.Info => "info",
         _ => throw new ArgumentOutOfRangeException(nameof(severity), severity, "a severity with no word"),
     };
+
+    /// <summary>The note each part read off a parse that recovered from a syntax error prints (DESIGN-listing.md sections 6.5
+    /// and 6.8; <see cref="ListingParse.Recovered"/>): <paramref name="what"/> holds only what the recovery kept.</summary>
+    public static string RecoveredNote(string what) =>
+        $"the parse recovered from a syntax error: {what} are only those it kept, none from source it skipped";
 
     /// <summary><paramref name="text"/> as rows of at most <paramref name="width"/> positions: the first indented by
     /// <paramref name="first"/> spaces, the rest by <paramref name="rest"/>, broken at a space where one is, else cut.</summary>

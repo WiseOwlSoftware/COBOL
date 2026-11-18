@@ -50,7 +50,7 @@ public sealed class TextListingRendererTests
     private const string InstantText = "2026-11-18 09:30:15 -08:00";
 
     private static ListingHeader Header(string version = ReleaseVersion, string source = "/src/p.cob") =>
-        new(version, 85, "ANSI X3.23-1985", Instant, source, ListingOutcome.Success);
+        new(version, 85, "ANSI X3.23-1985", Instant, source, ListingOutcome.Success, ListingParse.Parsed);
 
     /// <summary>DESIGN-listing.md section 6.1: the compilation instant (§1985:VI.3.4.1, §1989:A.2.46.3 RV3), the program-name
     /// (§1985:VI.3.3.4 GR1) and the page number never yield to the compiler's version; the version yields first, at its end.
@@ -109,8 +109,9 @@ public sealed class TextListingRendererTests
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 2)],
             [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "a message of many words " + string.Join(" ", Enumerable.Repeat("word", 60)),
                 2, 2, 1, 8, [])],
-            [],
-            [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null)]);
+            [], [], null,
+            [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null),
+             new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         var request = new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth);
         // A form feed opens each page after the first; it is no column.
         string[] rows = [.. TextListingRenderer.Render(document, request).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
@@ -171,7 +172,8 @@ public sealed class TextListingRendererTests
             [new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       MOVE X TO Y.", false, true, false, null,
                 ListingReplacement.None, null, [1, 2])],
             [], [Diagnostic(1, ListingSeverity.Error, "e"), Diagnostic(2, ListingSeverity.Warning, "w"), Diagnostic(3, ListingSeverity.Warning, "g", line: null)],
-            [], []);
+            [], [], null,
+            [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         Assert.Equal(
         [
             "Errors: 1   Warnings: 2   Information: 0",

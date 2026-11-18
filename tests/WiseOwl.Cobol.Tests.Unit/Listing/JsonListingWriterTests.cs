@@ -23,7 +23,7 @@ public sealed class JsonListingWriterTests
     /// <summary>A document holding every member of every record, each nullable member once present and once absent, so a
     /// property the writer or the reader mishandles has a value here to be lost.</summary>
     internal static ListingDocument EveryMember() => new(
-        new ListingHeader("30.0.0", 85, "COBOL-85", Instant, "main.cob", ListingOutcome.BindError),
+        new ListingHeader("30.0.0", 85, "COBOL-85", Instant, "main.cob", ListingOutcome.BindError, ListingParse.Parsed),
         [new ListingFile(1, "main.cob", ListingFileRole.Source, new string('a', 64)),
          new ListingFile(2, "lib/REC.cpy", ListingFileRole.Library, new string('b', 64))],
         [new ListingInclusion(1, null, 1, 2, 2, "REC", "LIB", 2, ListingInclusionOutcome.Found, false),
@@ -42,9 +42,19 @@ public sealed class JsonListingWriterTests
             [new ListingCitation(2023, "14.9.8.4", "GR1"), new ListingCitation(1985, "VI.5.3", null)]),
          new ListingDiagnostic(2, "CS0103", ListingSeverity.Warning, "generated", null, null, null, null, [])],
         [new ListingDisplay(4, "HELLO 42")],
+        [new ListingOption("--std", "85 (ANSI X3.23-1985)", ListingOptionOrigin.Specified),
+         new ListingOption("--permissive", "off", ListingOptionOrigin.Default),
+         new ListingOption("compiler", "30.0.0", ListingOptionOrigin.Host)],
+        new ListingStatistics(
+            new ListingLineCounts(4, [new ListingKindCount(ListingLineKind.Source, 3), new ListingKindCount(ListingLineKind.PageEjectComment, 1)], 1, 1, 1),
+            [new ListingFileStatistics(1, new ListingLineCounts(3, [new ListingKindCount(ListingLineKind.Source, 3)], 0, 0, 0))],
+            [new ListingSeverityCount(ListingSeverity.Error, 1), new ListingSeverityCount(ListingSeverity.Warning, 1)],
+            new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [4, 4]), new ListingVerb("STOP", 1, [])])),
         [new ListingSectionStatus(ListingSection.Source, true, null),
          new ListingSectionStatus(ListingSection.Programs, false, "the bind refused the program"),
-         new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
+         new ListingSectionStatus(ListingSection.Diagnostics, true, null),
+         new ListingSectionStatus(ListingSection.Options, true, null),
+         new ListingSectionStatus(ListingSection.Statistics, true, null)]);
 
     /// <summary>Each line as a value: a record's list member compares by reference, so a line's diagnostic ids are compared as a
     /// sequence beside the rest of it.</summary>
@@ -60,7 +70,7 @@ public sealed class JsonListingWriterTests
     {
         var json = Written(EveryMember());
         Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "displays",
-            "sections"], json.Select(p => p.Key));
+            "options", "statistics", "sections"], json.Select(p => p.Key));
         Assert.Equal("urn:wiseowl:cobol:listing:v1", (string?)json["$schema"]);
         Assert.Equal("1.0", (string?)json["schemaVersion"]);
     }

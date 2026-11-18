@@ -144,7 +144,7 @@ public sealed class Listing1985Tests : IDisposable
         string asterisk = main.Single(l => l.Length > 6 && l[6] == '*');
         string beforeAsterisk = main[Array.IndexOf(main, asterisk) - 1];
 
-        string[] pages = File.ReadAllText(Path.Combine(_dir, "outer85.lst")).Split(PageComposer.FormFeed);
+        string[] pages = ListingPages.Of(File.ReadAllText(Path.Combine(_dir, "outer85.lst")), ListingSection.Source);
         // The page that holds the slant line: its first row after the heading IS the slant line.
         var slantPage = pages.Single(p => p.Contains(slant, StringComparison.Ordinal)).Split('\n');
         Assert.EndsWith(slant, slantPage[ListingRequest.TextHeadingLines].TrimEnd(), StringComparison.Ordinal);
@@ -210,12 +210,14 @@ public sealed class Listing1985Tests : IDisposable
         foreach (var line in listing.Lines.Where(l => l.Inclusion is null))
             Assert.Equal(ProgramOfSourceLine(line.FileLine), listing.Programs.Single(p => p.Id == line.Program).Name);
 
-        string[] all = File.ReadAllText(Path.Combine(_dir, "outer85.lst")).Split(PageComposer.FormFeed);
-        // The diagnostics summary ends the listing on a page of its own, naming the first outermost program (section 6.1); the
-        // pages before it are the source section's.
-        Assert.Equal("DIAGNOSTICS", all[^1].Split('\n')[1]);
-        Assert.Contains("(--std 85)  OUTER85  ", all[^1].Split('\n')[0], StringComparison.Ordinal);
-        string[] pages = all[..^1];
+        string text = File.ReadAllText(Path.Combine(_dir, "outer85.lst"));
+        // The diagnostics summary ends the listing on a page of its own, naming the first outermost program (section 6.1), as the
+        // other sections' pages do; the source section's pages name the innermost program of their first line.
+        string[] all = text.Split(PageComposer.FormFeed);
+        Assert.Equal(ListingSection.Diagnostics, ListingPages.SectionOf(all[^1]));
+        foreach (string other in all.Where(p => ListingPages.SectionOf(p) != ListingSection.Source))
+            Assert.Contains("(--std 85)  OUTER85  ", other.Split('\n')[0], StringComparison.Ordinal);
+        string[] pages = ListingPages.Of(text, ListingSection.Source);
         Assert.True(pages.Length > 4, $"only {pages.Length} pages");
         int checkedPages = 0;
         foreach (string page in pages)
@@ -245,7 +247,8 @@ public sealed class Listing1985Tests : IDisposable
         Assert.Equal(LinesOf(source).Length + 2 * LinesOf(Path.Combine(_dir, "REC85.cpy")).Length, frontend.Listing.Lines.Count);
         Assert.Contains(frontend.Listing.Programs, p => p.Name == "OUTER85");
         // DESIGN-listing.md section 4.3: the programs are read off the tree the parser built, recovered or not.
-        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null), (ListingSection.Diagnostics, true, null)],
+        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null), (ListingSection.Diagnostics, true, null),
+             (ListingSection.Options, true, null), (ListingSection.Statistics, true, null)],
             frontend.Listing.Sections.Select(s => (s.Section, s.Produced, s.Reason)));
         Assert.True(File.Exists(Path.Combine(_dir, "outer85.lst")));
 
@@ -253,7 +256,8 @@ public sealed class Listing1985Tests : IDisposable
         var (bind, _, _) = Compile(new ListingRequest(), Main.Replace("DISPLAY WC.", "DISPLAY NO-SUCH-NAME.", StringComparison.Ordinal));
         Assert.Equal(CompilerDriver.Outcome.BindError, bind.Status);
         Assert.Equal(ListingOutcome.BindError, bind.Listing!.Header.Outcome);
-        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null), (ListingSection.Diagnostics, true, null)],
+        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null), (ListingSection.Diagnostics, true, null),
+             (ListingSection.Options, true, null), (ListingSection.Statistics, true, null)],
             bind.Listing.Sections.Select(s => (s.Section, s.Produced, s.Reason)));
 
         // No source: nothing was read, so nothing is listed.
