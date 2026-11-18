@@ -550,7 +550,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         {
             Error(DiagnosticCatalog.DigitCapacityUnder1, $"{what} has {digits} digit positions; the number of digit "
                 + "positions of a numeric or fixed-point numeric-edited item shall range from 1 through "
-                + (DialectLevel < 2002 ? "18 (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)" : "31 (ISO §2023:13.18.40.3 SR14)"));
+                + Edition.Cite("18 (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)", "31 (ISO §2023:13.18.40.3 SR14)", "31 (ISO §2023:13.18.40.3 SR14)"));
             return;
         }
         if (Edition.DigitCapacityExcess(digits) is not { } excess) return;

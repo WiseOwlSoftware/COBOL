@@ -629,7 +629,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Warning(DiagnosticCatalog.IndexNameContext,
                     $"the index-name '{DataBinder.WrittenText(dref)}' is used as an arithmetic operand; {ctx.Edition.Edition.Contexts()} "
                     + "admits an index-name only in a subscript, PERFORM/SEARCH VARYING, SET, or as an operand OF a "
-                    + "relation condition, never inside an arithmetic expression — accepted under "
+                    + "relation condition, never inside an arithmetic expression"
+                    + ctx.Edition.Edition.Cite("", " (§2023:8.8.4.2.13)", " (§2023:8.8.4.2.13)") + " — accepted under "
                     + "--permissive, computing the occurrence number");
             else
             {
@@ -637,7 +638,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     $"the index-name '{DataBinder.WrittenText(dref)}' is not an arithmetic operand (ISO {ctx.Edition.Edition.NotArithmetic()} "
                     + "admits an index-name only in a subscript, PERFORM/SEARCH "
                     + "VARYING, SET, or as an operand OF a relation condition, never inside an arithmetic "
-                    + "expression). SET a data item to the index first "
+                    + "expression" + ctx.Edition.Edition.Cite("", ", §2023:8.8.4.2.13", ", §2023:8.8.4.2.13") + "). SET a data item to the index first "
                     + $"(SET data-item TO {DataBinder.WrittenText(dref)}) — or --permissive accepts it as the occurrence "
                     + "number");
                 return BoundExprError.Refused(ctx.Edition, $"index-name '{DataBinder.WrittenText(dref)}' in an arithmetic expression");

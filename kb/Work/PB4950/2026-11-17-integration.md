@@ -30,3 +30,14 @@
   `§1985:IV.2.1` and `§1985:IV.6.4.1.2`). Three Conformance tests pinned a 2023 rule number at 85 (`ValueClauseScreenTests`,
   `LinageConformanceTests.Sr18`, `SequentialFileIoSpecTests`'s WRITE INVALID KEY row) and now ask the edition's own.
 - **Left:** the 2002 and 2014 directions, and the 2002 rows this note claimed, are kb/Work PB5922.
+- **Audit and differential.** All 477 distinct `§1985:`/`§1989:` citations the branch adds under `src/` resolve (cite.py's
+  structure check); a 30-citation sample re-checked against each rule's own words passed 30 of 30 (two Format designators are
+  box-drawn figures, checked by structure; one GR3a re-checked on the source's own quotation). The sample found one wrong rule
+  (`§1985:VII.2.4.3 GR2` for the sequential ACCESS MODE refusal; now `§1985:VII.2.4.2`). The arch oracle of origin/main 941231def9
+  against this branch, 22641 cases (every suite case and refusal at each edition, the matrix, NIST, optional words): emitted C#
+  byte-identical in every case, outcome and every diagnostic's code, severity, line and column identical in every case; 1426 cases
+  differ in message text only (1365 refusals and 2 suite cases at 85, 22 matrix cells at 85, 37 refusals at 2002/2014/2023: the
+  index-name rule written `§2023:13.18.38.3 SR7` where some messages wrote `r7`, and COBOL2788 no longer printing its 1985 rule at
+  the later editions). The comparison also found three regressions of 2023 text that the merge had introduced, fixed before it was
+  counted: COBOL5716 quoting "section-name SECTION." where §2023:14.2.1 prints "section-name-1 SECTION.", COBOL2026 ending "GR7 b))",
+  and COBOL1637 losing its `§2023:8.8.4.2.13`.

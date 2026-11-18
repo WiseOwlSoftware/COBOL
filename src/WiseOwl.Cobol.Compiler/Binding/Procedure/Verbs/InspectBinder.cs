@@ -411,7 +411,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 if (!literal5)
                     return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                         $"INSPECT operand '{ConcatFolder.Spelling(fig)}' is a figurative constant that begins with the "
-                        + (ctx.Edition.DialectLevel < 2002 ? "word ALL, which each literal must not be" : "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be")
+                        + ctx.Edition.Edition.Cite("word ALL, which each literal must not be",
+                            "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be",
+                            "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be")
                         + $" (ISO {InspectLiteralRule})",
                         $"INSPECT operand ALL figurative (ISO {InspectLiteralRule})"), false);
                 // Literal-5's ALL literal-1 / ALL symbolic-character-1, through THE ONE figurative binder (it folds a
@@ -488,7 +490,8 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // The grammar admits a numeric literal here; SR3 does not (alphanumeric/boolean/national literals only).
         return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
             $"INSPECT operand '{c.GetText()}' is a numeric literal; each INSPECT literal "
-            + (ctx.Edition.DialectLevel < 2002 ? "must be a nonnumeric literal" : "shall be an alphanumeric, boolean, or national literal")
+            + ctx.Edition.Edition.Cite("must be a nonnumeric literal", "shall be an alphanumeric, boolean, or national literal",
+                "shall be an alphanumeric, boolean, or national literal")
             + $" (ISO {InspectLiteralRule})",
             $"INSPECT operand '{c.GetText()}' (ISO {InspectLiteralRule})"), false);
     }

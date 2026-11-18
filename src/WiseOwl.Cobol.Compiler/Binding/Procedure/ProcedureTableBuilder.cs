@@ -214,8 +214,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             ctx.Edition.Error(DiagnosticCatalog.QualifiedProcedureHeader,
                 $"{kind}-name '{ProcedureNameShape.AsWritten(pn)}' is written qualified in its "
                 + $"{kind} header — a {kind}-name that is being defined is written alone (ISO "
-                + ctx.Edition.Edition.Cite("§1985:IV.6.4.1.4.2", "§2023:14.2.1", "§2023:14.2.1")
-                + ": \"section-name SECTION.\", \"paragraph-name.\"); qualification ("
+                + ctx.Edition.Edition.Cite("§1985:IV.6.4.1.4.2: \"section-name SECTION.\", \"paragraph-name.\"",
+                    "§2023:14.2.1: \"section-name-1 SECTION.\", \"paragraph-name-1.\"",
+                    "§2023:14.2.1: \"section-name-1 SECTION.\", \"paragraph-name-1.\"")
+                + "); qualification ("
                 + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1", "§2023:8.4.2.2.2", "§2023:8.4.2.2.2") + ") belongs to a "
                 + "reference"
                 + ctx.Edition.Edition.Cite("", ", and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph", ", and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph")

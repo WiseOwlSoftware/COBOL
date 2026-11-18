@@ -593,12 +593,15 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"{set} — '{refText}' IS a condition-name, but the SPECIAL-NAMES kind: it "
                 + $"names the status of external switch {switchName} ("
-                + data.Edition.Edition.Cite("ISO §1985:VI.4.5.4 GR2", "ISO §2023:12.3.7, and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated with a conditional variable",
-                    "ISO §2023:12.3.7, and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated with a conditional variable")
-                + "). "
-                + (data.Edition.DialectLevel < 2002
-                    ? "\"Condition-name-1 must be associated with a conditional variable\" (ISO §1985:VI.6.23.3 SR6), "
-                    : "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), ")
+                + data.Edition.Edition.Cite("ISO §1985:VI.4.5.4 GR2). ",
+                    "ISO §2023:12.3.7), and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated "
+                    + "with a conditional variable. ",
+                    "ISO §2023:12.3.7), and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated "
+                    + "with a conditional variable. ")
+                + data.Edition.Edition.Cite(
+                    "\"Condition-name-1 must be associated with a conditional variable\" (ISO §1985:VI.6.23.3 SR6), ",
+                    "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), ",
+                    "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), ")
                 + "so this operand is not admitted in Format 4. Set the switch through Format 3 — "
                 + "SET <mnemonic-name> TO ON or OFF (SR5).");
         else
