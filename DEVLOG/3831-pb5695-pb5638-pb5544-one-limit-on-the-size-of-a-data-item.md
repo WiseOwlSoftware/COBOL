@@ -1,4 +1,4 @@
-## PB5695, PB5638, PB5544: one limit on the size of a data item, the 1985 every-entry FD rules, and the ALL walk's reference modifier
+## Entry 3831 — 2026-11-17 20:31 PST — PB5695, PB5638, PB5544: one limit on the size of a data item, the 1985 every-entry FD rules, and the ALL walk's reference modifier
 
 Three 1985 refusal defects, fixed in one branch.
 
@@ -37,3 +37,4 @@ programs at 85 and 2023 against main shows no change.
 A differential `check-batch` over 21,102 (source, edition) entries against a main build changed only the probes' verdicts:
 every NIST program at 85 and every conformance case at 85 and 2023 kept its verdict. A lead filed on the way: PB5913, a
 PICTURE of 64 M positions costs about 30 s of compile time, on main as well.
+
