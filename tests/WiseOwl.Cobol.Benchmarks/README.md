@@ -532,6 +532,28 @@ same no-listing code (35.76 against 37.83), the backend's run-to-run variation; 
 step 5 measured. A full compile's allocation varies by about 2 MB between runs of one tree, which on SM201A's 36 MB is as large
 as the budget's margin (kb/Work PB5925's lead `2026-11-18-full-compile-allocation-noise`). Time rows are not shown (kb/Work
 PB5927).
+
+**Step 7a (kb/Work PB5925, a classifying label on every name slot of the grammar): the `None` row against the parent.** Step 7a
+adds no listing section; it adds 452 element labels to the grammar, and ANTLR makes each a field of its rule's context class, so
+every parse of every compilation, with or without a listing, allocates larger context objects. Measured on 2026-11-18, Release,
+one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FrontEndAndBind*'`
+twice on the `listing-step-7` branch (commit 4340f3a1e4) and twice on its parent `6cb363e123`, alternating. Allocated bytes per
+front end and bind, the two runs of each tree:
+
+| Program | Listing | Parent | Step 7a | Step 7a over the parent (both runs) |
+|---|---|---|---|---|
+| IX113A | None | 68.63, 68.54 MB | 68.92, 68.88 MB | +0.25 to +0.38 MB (+0.4 to +0.5 %) |
+| NC105A | None | 34.67, 34.63 MB | 35.24, 34.83 MB | +0.16 to +0.61 MB |
+| NC218A | None | 30.61, 30.60 MB | 30.79, 30.77 MB | +0.16 to +0.19 MB |
+| SM201A | None | 15.25, 15.26 MB | 16.92, 15.30 MB | +0.04 MB on the second run; the first is an outlier (+1.67 MB, beside its own `All` row, 21.28 MB on one run and 23.09 MB on the other) |
+| IX113A | Text | 76.48, 76.49 MB | 76.73, 76.73 MB | +0.24 to +0.25 MB |
+| IX113A | All | 97.17, 97.18 MB | 97.26, 97.31 MB | +0.08 to +0.14 MB |
+
+Reading them: the parent repeats itself within 0.1 MB on IX113A, NC218A and SM201A, and step 7a is above it on both runs by a
+fixed amount that grows with the program (about 0.3 MB on IX113A, 0.2 MB on NC218A): the label fields. It is a cost of the
+design's own mechanism (DESIGN-listing.md section 6.7.1 classifies each slot by its label), outside the budget's letter for the
+`None` row ("the parent's plus the line-kind arrays"), so section 9 now names it beside the line-kind arrays, with this
+measurement; no listing work runs without a listing. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

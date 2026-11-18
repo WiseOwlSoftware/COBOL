@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Antlr4.Runtime;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -112,8 +111,9 @@ public sealed class GrammarNameSlotDriftTests
             Assert.True(run.ExitCode == 0 && !Regex.IsMatch(run.Stdout + run.Stderr, @"(?m)^(warning|error)\("),
                 $"ANTLR refused the fixture (exit {run.ExitCode}):{Environment.NewLine}{run.Stdout}{run.Stderr}");
 
-            string[] references = [.. ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
-                .Append(typeof(Parser).Assembly.Location).Distinct(StringComparer.OrdinalIgnoreCase)];
+            // The test host's trusted platform assemblies hold the framework and every package the test project takes,
+            // the ANTLR runtime the generated parser derives from among them.
+            string[] references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator);
             CSharpCompilation compilation = CSharpCompilation.Create(
                 "NameSlotFixtureGenerated",
                 Directory.GetFiles(output, "*.cs").Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f), path: f)),

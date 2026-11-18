@@ -1428,7 +1428,8 @@ renderer. Naming it asks for a listing at any edition.
   and `TextStageTrace.None`'s recording methods THROW: a call site that forgets the question fails every compilation of a
   COPY statement without a listing, the no-work drift test's own program first.
 - **Budgets, measured.** No listing: compile time within the run-to-run noise of the parent commit, and allocated bytes
-  per compile no more than the parent's plus the line-kind arrays (one byte per physical line read). Standard text
+  per compile no more than the parent's plus the line-kind arrays (one byte per physical line read) and (step 7a) the
+  name-slot label fields (one reference field per label in each parse-tree context of its rule, section 6.7.1). Standard text
   listing: at most 10 % over the no-listing compile. Every section in every format: at most 25 %.
 - **The harness.** `tests/WiseOwl.Cobol.Benchmarks/Compile/CompileBenchmarks.cs` (BenchmarkDotNet, Release, run by
   `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*`) gains, in step 1,
@@ -1469,6 +1470,14 @@ renderer. Naming it asks for a listing at any edition.
   (`EditionContext.RecordsNames`, section 6.6); SM201A's `Text` full compile reads +11.2 % over `None` on the run, from a `None`
   row 2.07 MB under the parent's for the same code, and +5.2 % against the parent's (kb/Work PB5925's lead
   `2026-11-18-full-compile-allocation-noise`).
+  (Step 7a:) step 7a is not in the list above, but its labels are fields of the parser's context classes, so they cost every
+  parse, with or without a listing. Measured twice on the branch and twice on its parent, alternating (the README's step-7a
+  table): the front end and bind with no listing allocate a fixed amount more on both runs, growing with the program (about
+  +0.3 MB, 0.4 to 0.5 %, on IX113A's 68.6 MB; +0.2 MB on NC218A), where the parent repeats itself within 0.1 MB. That is the
+  label fields, which the budget's letter ("the parent's plus the line-kind arrays") did not name; like the line-kind arrays
+  they are a fact the design records for every compilation so the listing can be exact (section 6.7.1's oracle reads each
+  slot's class from its label), so the budget now names them. Labels are plain fields, never list labels, for this reason
+  (section 6.7.1).
 
 ## 10. Test plan
 
