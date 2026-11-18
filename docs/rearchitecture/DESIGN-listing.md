@@ -365,10 +365,21 @@ Events, each recorded at the one place the stage acts:
   restored in `RenderCopybook` at the end of each library text, and records every change as a `TextListingSwitch(Cause, On,
   Inclusion, Line)`: `Directive` (the directive's physical line in its inclusion; the line itself is always listed, GR3),
   `Pop` (a written POP's line), `ImplicitPop` (the END PERFORM phrase's RESULTANT line, the op's own line) and `InclusionEnd`
-  (the inclusion that ended). The trailing implicit ops, keyed after the last directive, are applied at the end of the source
+  (the inclusion that ended). The trailing implicit ops, keyed after the last encounter, are applied at the end of the source
   text when a listing records, since the lines after them are listed by the state they restore. A LISTING directive changes
-  state a PUSH saves only while a listing is produced (GR1), so `DirectiveEncounter.ChangesState` is set for it only then:
+  state a PUSH saves only while a listing is produced (GR1), so `StateEncounter.ChangesState` is set for it only then:
   a compilation without a listing re-runs no text stage for it.
+- **GR5 reads the state at a library text's START and END, so those are encounters too** (review round 1, R1-1). The driver
+  applies an implicit op lazily, immediately before the encounter it is keyed to, which is exact for every state a directive
+  reads. GR5 is the one reader that is not a directive: `RenderCopybook` takes "the LISTING directive that is in effect for
+  the COPY statement itself" at the COPY and puts it back at the end of the library text. Keyed to directives alone, the
+  POP ALL before an END-PERFORM written between the last directive and a COPY acted only at the first directive INSIDE the
+  library text, after the state at the COPY was taken, and the end of the library text then put back the stale OFF, hiding
+  every line after the COPY. So while a listing records, each library text's first line and the line after its last are
+  `StateEncounter`s (`ChangesState` false; `MeetLibraryTextBoundary`), the ops key to them like to a directive
+  (`KeyImplicitOps`, by resultant line: the COPY expansion begins and ends a line, so no op shares an encounter's line), and
+  an op inside the library text after its last directive acts before GR5 restores. Without a listing nothing reads the
+  LISTING state (GR1), so no boundary is recorded and the encounter program is the one a compilation without a listing had.
 - **Every fact carries the inclusion OPEN when the stage met it** (`TextStageTrace.Current`): a directive, a DISPLAY transfer,
   a PAGE directive, and a COPY REPLACING match (made in `ResolveOneCopy` before the inclusion begins, so `OneCopyResult`
   carries the matched lines to `BeginInclusion`). A copybook copied twice therefore places each fact in its own block. A

@@ -232,6 +232,75 @@ public sealed class Listing2023Tests : IDisposable
     }
 
     /// <summary>
+    /// §2023:14.9.28.4 GR14's implicit POP ALL stands before END PERFORM, so it has acted when a COPY after END-PERFORM is met, and
+    /// §2023:7.2.3.4 GR5 ("the LISTING directive that is in effect for the COPY statement itself is considered to be in effect")
+    /// puts back ON at the end of the library text. A directive in the library text is the next one the driver meets; the
+    /// implicit op keyed to it acted there, after the state at the COPY had been taken, and the lines after the COPY were hidden
+    /// (kb/Work PB5925 review R1-1). Every line but the handler's is listed, the library text's included.
+    /// </summary>
+    [Fact]
+    public void ACopyAfterEndPerform_IsGovernedByTheStateTheImplicitPopRestored()
+    {
+        string[] lines =
+        [
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. L2023GR5.",
+            "       PROCEDURE DIVISION.",
+            "           PERFORM",
+            "               DISPLAY \"IMP1\"",
+            "           WHEN EC-SIZE",
+            "       >>LISTING OFF",
+            "               DISPLAY \"HANDLER\"",
+            "           END-PERFORM",
+            "           COPY DIRBOOK.",
+            "           DISPLAY \"AFTER-COPY\"",
+            "           STOP RUN.",
+        ];
+        string[] book = ["       >>DEFINE BOOKVAR 1", "           DISPLAY \"IN-BOOK\""];
+        var (_, listing, text) = Compile("lstgr5pop", lines, new Dictionary<string, string> { ["DIRBOOK.cpy"] = string.Join("\n", book) });
+        int handler = LineOf(lines, "HANDLER");
+        for (int n = 1; n <= lines.Length; n++)
+            Assert.Equal(n != handler, Source(listing, n).Listed);
+        var inclusion = Assert.Single(listing.Inclusions);
+        Assert.All(listing.Lines.Where(l => l.Inclusion == inclusion.Id), l => Assert.True(l.Listed));
+        Assert.True(Printed(text, Source(listing, LineOf(lines, "AFTER-COPY"))));
+    }
+
+    /// <summary>
+    /// The implicit POP ALL of an END PERFORM written in library text acts where it stands, inside the library text
+    /// (§2023:14.9.28.4 GR14: "Immediately preceding the END PERFORM phrase"), so the END-PERFORM line is listed; and at the end of
+    /// the library text §2023:7.2.3.4 GR5 puts back the LISTING state "in effect for the COPY statement itself", which is the
+    /// handler's OFF: the COPY line and the lines after it are not listed (kb/Work PB5925 review R1-1, the end of library text).
+    /// </summary>
+    [Fact]
+    public void AnEndPerformInLibraryText_PopsThere_AndGr5RestoresTheStateAtTheCopy()
+    {
+        string[] lines =
+        [
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. L2023GR5E.",
+            "       PROCEDURE DIVISION.",
+            "           PERFORM",
+            "               DISPLAY \"IMP1\"",
+            "           WHEN EC-SIZE",
+            "       >>LISTING OFF",
+            "               DISPLAY \"HANDLER\"",
+            "           COPY ENDBOOK.",
+            "           DISPLAY \"AFTER-COPY\"",
+            "           STOP RUN.",
+        ];
+        string[] book = ["               DISPLAY \"BOOK-HANDLER\"", "           END-PERFORM"];
+        var (_, listing, _) = Compile("lstgr5end", lines, new Dictionary<string, string> { ["ENDBOOK.cpy"] = string.Join("\n", book) });
+        var inclusion = Assert.Single(listing.Inclusions);
+        var copied = listing.Lines.Where(l => l.Inclusion == inclusion.Id).ToList();
+        Assert.Equal(book, copied.Select(l => l.Text));
+        Assert.Equal([false, true], copied.Select(l => l.Listed));
+        int offFrom = LineOf(lines, "HANDLER");
+        for (int n = 1; n <= lines.Length; n++)
+            Assert.Equal(n < offFrom, Source(listing, n).Listed);
+    }
+
+    /// <summary>
     /// §2023:7.3.12.4 GR1: the operands are transferred "to the source listing or compile-time-device-1 or both in the order listed";
     /// GR6: "If the UPON phrase is not specified, the default is as if UPON LISTING were specified"; GR5 a): LISTING transfers "to the
     /// same device as that used for source listings"; GR2: with a listing, "the data transfer shall take place irrespective of

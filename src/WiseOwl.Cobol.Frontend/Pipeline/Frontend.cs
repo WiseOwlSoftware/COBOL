@@ -160,7 +160,7 @@ public sealed class Frontend
             // The COBOL-85 `*>` the text stages left in the text, judged now that the debugging comment treatment has said which
             // of it is comment (kb/Work PB5588).
             referenceFormatGates.ReportSurvivingFloatingComments(commentLines, diagnosticsBeforeLexing);
-            bool mayMatter = directives.HasLineScopedEvents() || encounters.Directives.Any(e => e.ChangesState)
+            bool mayMatter = directives.HasLineScopedEvents() || encounters.Encounters.Any(e => e.ChangesState)
                 || formats.Values.Any(f => f.DirectiveLines.Count > 0);
             // The ops are read off the parse tree even when the parse reported errors: the state an op restores is what
             // MISREADS the text after it (a handler's >>SOURCE FORMAT left in force turns the lines that follow END-PERFORM
@@ -264,7 +264,7 @@ public sealed class Frontend
     /// confirming pass and one for the unrestored first run.</summary>
     private static int SpeculationBound(ConditionalCompilationResult encounters,
         IReadOnlyDictionary<string, ReferenceFormatMap> formats) =>
-        encounters.Directives.Count + formats.Values.Sum(f => f.DirectiveLines.Count) + 2;
+        encounters.Encounters.Count + formats.Values.Sum(f => f.DirectiveLines.Count) + 2;
 
     /// <summary>The word that closes an inline PERFORM, as a whole word of a physical line (a hyphen is a word
     /// character — <c>END-PERFORM-X</c> is another word).</summary>

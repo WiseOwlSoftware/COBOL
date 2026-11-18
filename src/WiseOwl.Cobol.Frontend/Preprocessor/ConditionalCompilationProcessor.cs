@@ -86,9 +86,9 @@ public static partial class ConditionalCompilationProcessor
         => Manipulate(text, copyProcessor, leaveDirectives, diagnostics, sourcePath, dialectLevel,
             permissive, inputs, implicitOps: []).Text;
 
-    /// <summary>The mapped driver with its DIRECTIVE ENCOUNTERS (kb/Work PB1066): the resultant text, plus — for
-    /// every <c>&gt;&gt;</c> line the driver met, in encounter order — the resultant line it ended on and whether it
-    /// changed the state this driver holds. <paramref name="implicitOps"/> is the §2023:14.9.28.4 GR14 implicit PUSH ALL /
+    /// <summary>The mapped driver with its STATE ENCOUNTERS (kb/Work PB1066): the resultant text, plus — for every
+    /// <c>&gt;&gt;</c> line the driver met and, with a listing, every library text's start and end, in encounter order — the
+    /// resultant line it stands on and whether it changed the state this driver holds. <paramref name="implicitOps"/> is the §2023:14.9.28.4 GR14 implicit PUSH ALL /
     /// POP ALL program a PREVIOUS run's parse placed (<see cref="ConditionalCompilationResult.KeyImplicitOps"/>),
     /// each applied immediately before the directive encounter it is keyed to; empty on the first run.</summary>
     public static ConditionalCompilationResult Manipulate(MappedText text, CopyProcessor copyProcessor,
@@ -111,7 +111,7 @@ public static partial class ConditionalCompilationProcessor
         int[] resultantLine = CopyProcessor.ReplaceLineMap(expanded.Text, edition);
         if (copyProcessor.Trace.Records) copyProcessor.Trace.ToResultantFrame(resultantLine);
         var encounters = run.Encounters
-            .Select(e => new DirectiveEncounter(resultantLine[e.Line] + 1, e.ChangesState)).ToArray();
+            .Select(e => new StateEncounter(resultantLine[e.Line] + 1, e.ChangesState)).ToArray();
         var compilationVariables = run.CompilationVariables
             .Select(e => e with { Line = resultantLine[e.Line] + 1 }).ToArray();
         return new ConditionalCompilationResult(resultant, encounters, compilationVariables);
@@ -158,7 +158,7 @@ public static partial class ConditionalCompilationProcessor
         // _flushBase the output-frame line at which the block now being COPY-expanded begins.
         private readonly IReadOnlyList<KeyedDirectiveOp> _implicitOps;
         private int _nextImplicitOp;
-        private readonly List<DirectiveEncounter> _encounters = [];
+        private readonly List<StateEncounter> _encounters = [];
         // kb/Work PB1368 — every change a DEFINE made to `_defines`, in encounter order (Line = 0-based line in THIS
         // run's output frame, like an encounter's): the compilation-variable TIMELINE the later stages read.
         private readonly List<CompilationVariableEvent> _compilationVariables = [];
@@ -176,9 +176,9 @@ public static partial class ConditionalCompilationProcessor
         private SourceOrigin _popAt;
         private int _implicitPopLine;
 
-        /// <summary>Every <c>&gt;&gt;</c> line met, in encounter order; <see cref="DirectiveEncounter.Line"/> is the
-        /// 0-based line of this run's OUTPUT frame.</summary>
-        public IReadOnlyList<DirectiveEncounter> Encounters => _encounters;
+        /// <summary>Every <c>&gt;&gt;</c> line met and, with a listing, every library text's start and end, in encounter order;
+        /// <see cref="StateEncounter.Line"/> is the 0-based line of this run's OUTPUT frame.</summary>
+        public IReadOnlyList<StateEncounter> Encounters => _encounters;
 
         /// <summary>Every change a DEFINE made to the compilation-variable table, in encounter order;
         /// <see cref="CompilationVariableEvent.Line"/> is the 0-based line of this run's OUTPUT frame.</summary>
@@ -243,12 +243,26 @@ public static partial class ConditionalCompilationProcessor
             else _trace.ListingPopped(_popAt, on);
         }
 
-        /// <summary>Apply implicit op <paramref name="keyed"/> (§2023:14.9.28.4 GR14), at the resultant line it names.</summary>
-        private void ApplyImplicit(KeyedDirectiveOp keyed)
+        /// <summary>Apply every implicit op (§2023:14.9.28.4 GR14) keyed before encounter <paramref name="encounter"/>, each at
+        /// the resultant line it names; <see cref="int.MaxValue"/> applies every op left.</summary>
+        private void ApplyImplicitOpsBefore(int encounter)
         {
-            _implicitPopLine = keyed.Op.Line;
-            _directiveState.Apply(keyed.Op);
-            _implicitPopLine = 0;
+            while (_nextImplicitOp < _implicitOps.Count && _implicitOps[_nextImplicitOp].BeforeEncounter <= encounter)
+            {
+                var keyed = _implicitOps[_nextImplicitOp++];
+                _implicitPopLine = keyed.Op.Line;
+                _directiveState.Apply(keyed.Op);
+                _implicitPopLine = 0;
+            }
+        }
+
+        /// <summary>Meet a library text's start or end at output-frame line <paramref name="line"/> (kb/Work PB5925 review
+        /// R1-1): §2023:7.2.3.4 GR5 reads the LISTING state there, so the implicit ops that stand before it act first, as at a
+        /// directive. Only while a listing records: without one nothing reads the LISTING state (§2023:7.3.18.3 GR1).</summary>
+        private void MeetLibraryTextBoundary(int line)
+        {
+            ApplyImplicitOpsBefore(_encounters.Count);
+            _encounters.Add(new StateEncounter(line, ChangesState: false));
         }
 
         /// <summary>Process <paramref name="text"/> (source or copybook) into the manipulated text, sharing this
@@ -365,9 +379,7 @@ public static partial class ConditionalCompilationProcessor
                 _diag.At = at;   // Flush may have re-anchored _diag.At inside a copybook; restore for this line
                 // §2023:14.9.28.4 GR14 (kb/Work PB1066): an implicit PUSH ALL / POP ALL a previous parse placed before THIS
                 // directive acts on the state here first, exactly as a written >>PUSH ALL / >>POP ALL would.
-                int encounter = _encounters.Count;
-                while (_nextImplicitOp < _implicitOps.Count && _implicitOps[_nextImplicitOp].BeforeDirective <= encounter)
-                    ApplyImplicit(_implicitOps[_nextImplicitOp++]);
+                ApplyImplicitOpsBefore(_encounters.Count);
                 bool changesState = false;
                 bool emitting = _stack.Count == 0 || _stack.Peek().Emitting;
                 var (keyword, rest) = SplitDirective(trimmed);
@@ -587,16 +599,16 @@ public static partial class ConditionalCompilationProcessor
                         else emit = CompilerDirectiveCatalog.IsDirective(keyword) ? "" : line;
                         break;
                 }
-                _encounters.Add(new DirectiveEncounter(_renderBase + output.Count, changesState));
+                _encounters.Add(new StateEncounter(_renderBase + output.Count, changesState));
                 output.Add(emit);
                 outputOrigins.Add(origin);
             }
 
             Flush();
-            // An implicit op keyed after the last directive (§2023:14.9.28.4 GR14: the POP ALL before an END PERFORM no directive
-            // follows) still acts on the LISTING state of the lines after it, which this stage records for the listing.
-            if (textId == 1 && _trace.Records)
-                while (_nextImplicitOp < _implicitOps.Count) ApplyImplicit(_implicitOps[_nextImplicitOp++]);
+            // An implicit op keyed after the last encounter (§2023:14.9.28.4 GR14: the POP ALL before an END PERFORM no directive
+            // and no library text follows) still acts on the LISTING state of the lines after it, which this stage records for
+            // the listing.
+            if (textId == 1 && _trace.Records) ApplyImplicitOpsBefore(int.MaxValue);
             // A directive OPENED in this text and still open at its end is unclosed: the source text is a compilation
             // group's end, a copybook's end is the end of its library text (§2023:7.3.16.3 SR7, §2023:7.3.13.3 SR9). Pop it, so
             // the text that follows the COPY is judged against the frames it opened itself.
@@ -648,11 +660,20 @@ public static partial class ConditionalCompilationProcessor
         private MappedText RenderCopybook(MappedText copybookText, int depth, int lineOffset, DivisionCursor division)
         {
             (int savedDepth, int savedRenderBase, int savedFlushBase) = (_depth, _renderBase, _flushBase);
-            bool listingAtCopy = _listingOn;
             _depth = depth;
             _renderBase = _flushBase + lineOffset;   // the copybook's first line in the output frame (kb/Work PB1066)
+            // The LISTING state in effect for the COPY statement is the state AFTER the implicit ops that stand before it (an
+            // END-PERFORM between the last directive and the COPY): GR5 below puts back this state, so it is read only once
+            // they acted (kb/Work PB5925 review R1-1).
+            if (_trace.Records) MeetLibraryTextBoundary(_renderBase);
+            bool listingAtCopy = _listingOn;
             var result = Render(copybookText, division);
-            if (_trace.Records) _trace.PlaceInclusion(_renderBase, result.Lines.Length);   // the source listing's inclusion range (DESIGN-listing.md section 4.4)
+            if (_trace.Records)
+            {
+                _trace.PlaceInclusion(_renderBase, result.Lines.Length);   // the source listing's inclusion range (DESIGN-listing.md section 4.4)
+                // An implicit op inside the library text after its last directive acts before the text ends, where it stands.
+                MeetLibraryTextBoundary(_renderBase + result.Lines.Length);
+            }
             // §2023:7.2.3.4 GR5: "At the completion of copying the library text into the compilation group, the LISTING directive
             // that is in effect for the COPY statement itself is considered to be in effect, regardless of any LISTING
             // directives in the library text."
