@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -786,7 +787,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// element's alone (ISO/IEC 1989:2002 8.4.5), so the element's own slice is the whole scope.</summary>
     private bool NamesCommunicationDescription(Core.DataReferenceContext operand) =>
         operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
-        && ctx.Data.State.Communication.ByName.ContainsKey(word.GetText());
+        && ctx.Symbols.Identify(word, NameClass.CommunicationDescription, report: false) is not null;
 
     /// <summary>An operand that is no procedure, data item, file or cd-name is told why. A qualified word whose HEAD is a
     /// paragraph or section the program declares (<c>P1 OF NOSEC</c>) is a procedure-name that identifies nothing,
@@ -967,7 +968,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private void AddDebugCdTarget(Core.DataReferenceContext operand, SectionInfo section)
     {
         string written = DebugOperandAsWritten(operand);
-        var cd = ctx.Data.State.Communication.ByName[operand.cobolWord()!.GetText()];
+        var cd = (CommunicationDescription)ctx.Symbols.Identify(operand.cobolWord()!, NameClass.CommunicationDescription, report: true)!.Symbol;
         if (_debugTargets.Any(t => t.CdKey == cd.Key))
         {
             ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "

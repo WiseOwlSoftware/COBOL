@@ -22,13 +22,19 @@ internal sealed record NameTableShape(
     string CobolNames,
     IReadOnlyList<string> Opaque)
 {
+    /// <summary>The types only <c>SymbolTable</c> makes: the name key and the answer of its lookup.</summary>
+    public IReadOnlyList<string> MadeOnlyByTable { get; init; } = [CobolName];
+
     public static NameTableShape Product { get; } = new(
         ["WiseOwl.Cobol.Binding", "WiseOwl.Cobol.Compiler.Oo"],
         "WiseOwl.Cobol.Binding.SymbolTable",
         "WiseOwl.Cobol.Binding.CobolName",
         "WiseOwl.Cobol.Binding.DeclarationFact",
         "WiseOwl.Cobol.Runtime.CobolNames",
-        ["WiseOwl.Cobol.Binding.SymbolId"]);
+        ["WiseOwl.Cobol.Binding.SymbolId"])
+    {
+        MadeOnlyByTable = ["WiseOwl.Cobol.Binding.CobolName", "WiseOwl.Cobol.Binding.IdentifiedName"],
+    };
 }
 
 /// <summary>One violation of a rule. <see cref="Key"/> is the line-independent identity the committed classifications
@@ -321,16 +327,17 @@ internal static class NameTableOwnership
             yield return new NameFinding(2, c.Shape.CobolName, c.Shape.CobolName, $"the name key {c.Shape.CobolName} does not exist");
             yield break;
         }
+        INamedTypeSymbol[] tableMade = [.. c.Shape.MadeOnlyByTable.Select(c.Compilation.GetTypeByMetadataName).OfType<INamedTypeSymbol>()];
         foreach (SyntaxTree tree in c.Compilation.SyntaxTrees)
         {
             SemanticModel model = c.Compilation.GetSemanticModel(tree);
             foreach (SyntaxNode node in tree.GetRoot().DescendantNodes().Where(n => n is BaseObjectCreationExpressionSyntax))
             {
-                if (model.GetTypeInfo(node).Type is { } made && SymbolEqualityComparer.Default.Equals(made, c.CobolName)
-                    && !c.InsideSymbolTable(model.GetEnclosingSymbol(node.SpanStart)) && !InsideType(model, node, c.CobolName))
+                if (model.GetTypeInfo(node).Type is INamedTypeSymbol made && tableMade.FirstOrDefault(t => SymbolEqualityComparer.Default.Equals(made, t)) is { } kind
+                    && !c.InsideSymbolTable(model.GetEnclosingSymbol(node.SpanStart)) && !InsideType(model, node, kind))
                 {
                     yield return new NameFinding(2, Normalize(node.ToString()), Where(node.GetLocation()),
-                        "a CobolName is made outside SymbolTable: only the table makes a name key from a parser token");
+                        $"a {kind.Name} is made outside SymbolTable: only the table makes a name key or a lookup's answer");
                 }
             }
         }

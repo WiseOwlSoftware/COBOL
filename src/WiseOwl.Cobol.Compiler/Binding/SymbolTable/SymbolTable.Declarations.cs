@@ -111,7 +111,7 @@ public sealed partial class SymbolTable
             if (!dataName && qualifiers.Count == 0 && _data.State.VisibleFiles.TryGetValue(name, out var file))
                 yield return new(DeclarationKind.FileName, Depth: _data.State.Inherited.FileDepth(file));
             // A cd-name is this element's own (2002 8.4.5), so it ranks at depth 0 (kb/Work PB4713).
-            if (!dataName && qualifiers.Count == 0 && _data.State.Communication.ByName.ContainsKey(name))
+            if (!dataName && qualifiers.Count == 0 && _table._cds.ContainsKey(Key(name)))
                 yield return new(DeclarationKind.CdName);
         }
 
