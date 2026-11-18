@@ -29,15 +29,26 @@ public sealed class JsonListingWriterTests
         [new ListingInclusion(1, null, 1, 2, 2, "REC", "LIB", 2, ListingInclusionOutcome.Found),
          new ListingInclusion(2, 1, 2, 3, 3, "\"gone.cpy\"", null, null, ListingInclusionOutcome.NotFound)],
         [new ListingLine(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000100 ID DIVISION.", false, true,
-            false, 0, ListingReplacement.None, null),
+            false, 0, ListingReplacement.None, null, [1]),
          new ListingLine(2, 1, 2, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000200 DATE-COMPILED. X.", false, true,
-            true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00."),
+            true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00.", []),
          new ListingLine(3, 2, 1, 1, 1, ListingLineForm.Free, ListingLineKind.PageEjectComment, "*> été", true, false,
-            false, null, ListingReplacement.DateCompiledEntry, null)],
+            false, null, ListingReplacement.DateCompiledEntry, null, [])],
         [new ListingProgram(0, "MAIN", ListingProgramKind.Program, null, 0, 1, 3),
          new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 2, 3)],
+        [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "no (ISO §2023:14.9.8.4 GR1)", 1, 1, 1, 8,
+            [new ListingCitation(2023, "14.9.8.4", "GR1"), new ListingCitation(1985, "VI.5.3", null)]),
+         new ListingDiagnostic(2, "CS0103", ListingSeverity.Warning, "generated", null, null, null, null, [])],
         [new ListingSectionStatus(ListingSection.Source, true, null),
-         new ListingSectionStatus(ListingSection.Programs, false, "the bind refused the program")]);
+         new ListingSectionStatus(ListingSection.Programs, false, "the bind refused the program"),
+         new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
+
+    /// <summary>Each line as a value: a record's list member compares by reference, so a line's diagnostic ids are compared as a
+    /// sequence beside the rest of it.</summary>
+    private static List<(ListingLine Line, string Diagnostics)> ByValue(IEnumerable<ListingLine> lines) =>
+        [.. lines.Select(l => (l with { Diagnostics = NoIds }, string.Join(",", l.Diagnostics)))];
+
+    private static readonly int[] NoIds = [];
 
     private static JsonObject Written(ListingDocument document) => JsonNode.Parse(JsonListingWriter.Write(document))!.AsObject();
 
@@ -45,7 +56,7 @@ public sealed class JsonListingWriterTests
     public void TheDocument_OpensWithItsSchemaAndVersion()
     {
         var json = Written(EveryMember());
-        Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "sections"],
+        Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "sections"],
             json.Select(p => p.Key));
         Assert.Equal("urn:wiseowl:cobol:listing:v1", (string?)json["$schema"]);
         Assert.Equal("1.0", (string?)json["schemaVersion"]);
@@ -102,7 +113,7 @@ public sealed class JsonListingWriterTests
         Assert.Equal(text, JsonListingWriter.Write(read));
         Assert.Equal(text, JsonListingWriter.Write(JsonListingWriter.Read(text)));
         Assert.Equal(document.Header, read.Header);
-        Assert.Equal(document.Lines, read.Lines);
+        Assert.Equal(ByValue(document.Lines), ByValue(read.Lines));
     }
 
     /// <summary>The compatibility policy: within a major every addition is optional and a reader ignores what it does not know.</summary>
@@ -115,7 +126,7 @@ public sealed class JsonListingWriterTests
         json["lines"]![0]!["aPropertyOfALaterMinor"] = "x";
         var read = JsonListingWriter.Read(json.ToJsonString());
         Assert.Equal("1.7", read.SchemaVersion);
-        Assert.Equal(EveryMember().Lines, read.Lines);
+        Assert.Equal(ByValue(EveryMember().Lines), ByValue(read.Lines));
     }
 
     [Theory]
@@ -161,7 +172,7 @@ public sealed class JsonListingWriterTests
         Assert.Equal((ListingLineKind)ListingJson.UnknownEnumValue, read.Lines[0].Kind);
         Assert.False(Enum.IsDefined(read.Lines[0].Kind));
         Assert.Equal((ListingSection)ListingJson.UnknownEnumValue, read.Sections[1].Section);
-        Assert.Equal(EveryMember().Lines[1], read.Lines[1]);
+        Assert.Equal(ByValue([EveryMember().Lines[1]]), ByValue([read.Lines[1]]));
         Assert.Throws<JsonException>(() => JsonListingWriter.Write(read));
 
         json["schemaVersion"] = ListingDocument.CurrentSchemaVersion;

@@ -19,12 +19,38 @@ public readonly struct SourceLocation : IEquatable<SourceLocation>
     /// <summary>Zero-based column offset within the line.</summary>
     public int Column { get; }
 
+    /// <summary>The 1-based RESULTANT line this location was located from (the line of the text the parser read, after COPY,
+    /// REPLACE and the reference-format conversion), or 0 when it was not located from a resultant position. Set only by
+    /// <see cref="SourceLineMap.Locate(int, int, string)"/>, the one mapping from a resultant position to a physical one, and
+    /// meaningful only in <see cref="Frame"/>: a copybook copied twice gives two resultant lines one physical line, and this
+    /// says which of them was meant (DESIGN-listing.md section 6.3).</summary>
+    public int ResultantLine { get; }
+
+    /// <summary>The <see cref="SourceLineMap.Frame"/> of the map that located this location, or 0 when none did. A text stage
+    /// that runs before the last numbers its lines in a frame of its own, so a reader of <see cref="ResultantLine"/> (the
+    /// source listing) uses it only when the frame is the one it places lines in.</summary>
+    public int Frame { get; }
+
     public SourceLocation(string fileName, int position, int line, int column)
     {
         FileName = fileName;
         Position = position;
         Line = line;
         Column = column;
+    }
+
+    /// <summary>This location as located from 1-based RESULTANT <paramref name="resultantLine"/> of the map whose
+    /// <see cref="SourceLineMap.Frame"/> is <paramref name="frame"/>.</summary>
+    public SourceLocation LocatedFrom(int resultantLine, int frame) => new(this, resultantLine, frame);
+
+    private SourceLocation(SourceLocation at, int resultantLine, int frame)
+    {
+        FileName = at.FileName;
+        Position = at.Position;
+        Line = at.Line;
+        Column = at.Column;
+        ResultantLine = resultantLine;
+        Frame = frame;
     }
 
     /// <summary>

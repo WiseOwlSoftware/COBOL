@@ -161,7 +161,7 @@ public sealed class SourceTextDecoderTests : IDisposable
         var w = Assert.Single(bag.Diagnostics);
         Assert.Equal("COBOL5435", w.Code);
         Assert.False(w.IsError);
-        Assert.Equal(path, w.Location.FileName);
+        Assert.Equal(path, w.Location!.Value.FileName);
         Assert.Contains("offset 10", w.Message);
         Assert.Contains(Path.GetFullPath(path), inputs.FilesRead);
     }
@@ -206,7 +206,7 @@ public sealed class SourceTextDecoderTests : IDisposable
         Assert.DoesNotContain('�', text);
         var w = Assert.Single(diags.Diagnostics);
         Assert.Equal("COBOL5435", w.Code);
-        Assert.EndsWith("lat.cpy", w.Location.FileName, StringComparison.OrdinalIgnoreCase);   // the library search probes the upper-case suffix first
+        Assert.EndsWith("lat.cpy", w.Location!.Value.FileName, StringComparison.OrdinalIgnoreCase);   // the library search probes the upper-case suffix first
     }
 
     [Fact] // A marked malformed library text is COBOL5434 once, and the COPY adds no second diagnostic and splices no text.

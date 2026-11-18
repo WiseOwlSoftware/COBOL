@@ -206,7 +206,7 @@ public sealed class PhysicalLinesTests
     public void FreeSegmentOfAFixedFile_IsSubjectToTheLimit()
     {
         var (_, bag) = Normalize(">>SOURCE FORMAT FREE\n" + new string('A', 256) + "\n", InitialReferenceFormat.Fixed);
-        Assert.Equal(1, bag.Diagnostics.Single(d => d.Code == "COBOL2653").Location.Line);   // line 2 (0-based 1)
+        Assert.Equal(1, bag.Diagnostics.Single(d => d.Code == "COBOL2653").Location!.Value.Line);   // line 2 (0-based 1)
     }
 
     [Fact] // DOC-A.1-156: a lone CR does not end a line — `>>` after it is not at a line start.
@@ -241,7 +241,7 @@ public sealed class PhysicalLinesTests
         var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(
             ">>SOURCE FORMAT FIXED\n      *\n" + "000100" + "X" + "DISPLAY \"A\".\n", new ReferenceFormatDiagnostics(2023, false, bag), "t.cob",
             InitialReferenceFormat.Free);
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2616" && d.Location.Line == 2);   // line 3 (0-based 2)
+        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL2616" && d.Location!.Value.Line == 2);   // line 3 (0-based 2)
         Assert.Equal(3, m.Lines[2].Origin.Line);
     }
 

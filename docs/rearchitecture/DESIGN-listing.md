@@ -2,8 +2,9 @@
 
 > **Status: DESIGN, APPROVED BY THE CODEBASE OWNER (Claude, CLAUDE.md "Ownership"; decision kb/Work PB5925). STEP 1 BUILT
 > (the 1985 standard minimum, kb/Work PB5923, branch `listing-step-1`); STEP 2 BUILT (the JSON listing and its schema, branch
-> `listing-step-2`); steps 3 to 9 not yet built.** Where building a step proved this document wrong it was corrected in the
-> same change; each correction is marked "(step 1)" or "(step 2)" in the section it changed.
+> `listing-step-2`); STEP 3 BUILT (diagnostics, branch `listing-step-3`); steps 4a to 9 not yet built.** Where building a step
+> proved this document wrong it was corrected in the same change; each correction is marked "(step 1)", "(step 2)" or "(step 3)"
+> in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -121,7 +122,7 @@ The design names the structures each part reads. Every claim is from the tree at
 | `>>LISTING`, `>>PAGE` | Consumed with no effect: `ConditionalCompilationProcessor.Run.Render`'s default arm (`CompilerDirectiveCatalog.IsDirective`); `DirectiveStateRegistry`'s `Constructs.ListingDirective2002` row says "NONE HELD" |
 | `>>DISPLAY` | `ConditionalCompilationProcessor.ApplyDisplay` and `DisplayDestinations` (ConditionalCompilationProcessor.Display.cs): LISTING maps to `CompileOutputStream.Standard`; lines collected on `DiagnosticBag.CompileOutput` as `CompileOutputLine(Stream, Text)` with no position |
 | Front-end diagnostics | `Diagnostic(Code, Severity, Message, Location, Span)` (src/WiseOwl.Cobol.Frontend/Diagnostics/Diagnostic.cs), structured, physical `SourceLocation` |
-| Bind diagnostics | `EditionContext.Diagnostics` and `EditionContext.Warnings` are `List<string>`, rendered at report time by `EditionContext.Render` from the resultant `EditionContext.Cursor`; `CompilerDriver.Result.Errors` and `Result.Warnings` are strings |
+| Bind diagnostics | (before step 3) `EditionContext.Diagnostics` and `EditionContext.Warnings` were `List<string>`, rendered at report time from the resultant `EditionContext.Cursor`; `CompilerDriver.Result.Errors` and `Result.Warnings` are strings. (Step 3:) `EditionContext.Records` holds each as a `Diagnostic`; section 6.3 |
 | Edition citation in a message | `EditionInfo.Cite` (src/WiseOwl.Cobol.Editions/EditionInfo.cs), chooses the edition's text when the message is built |
 | Program units | `BoundUnit.Name`, `ExternalizedName`, `ClassName`, `Parent`, `Children`, `Initial`, `Common`, `Recursive`, `IsFunction`, `IsPrototype`, `SourcePosition` (src/WiseOwl.Cobol.Compiler/Binding/Model/BoundUnit.cs); only after a successful bind |
 | Data items | `DataItem.Level`, `CobolName`, `ClrName`, `StructName`, `Pic`, `PictureText`, `Occurs`, `OccursSpec`, `RedefinesTarget`, `Renames`, `Storage` (`StorageForm`: `NativeInt`, `NativeFloat`, `CharImage`, ...), `DeclaredAt`, `Indexes`, `Own88s`; roots in `DataBindResult.Forest` (`ForestSlice.Roots`) |
@@ -137,7 +138,7 @@ Four facts the listing needs are missing today and are added by this design:
    (section 4.4.1; step 1);
 2. which INCLUSION a resultant line belongs to: a copybook copied twice has two inclusions whose lines share one file
    and line number (section 4.4; step 1);
-3. structured bind diagnostics (section 6.3; step 3);
+3. structured bind diagnostics (section 6.3; step 3, built);
 4. ONE symbol table holding every name with its attributes and its occurrences (position, length, use), which today
    is spread over dozens of tables and recorded nowhere (section 6.7.1: the store and its attributes in step 6, the
    occurrences in step 7).
@@ -231,7 +232,8 @@ public sealed record ListingDocument(
     ListingCrossReference? CrossReference,
     ListingObjectCodeMap? ObjectCode,             // from the assembly and its PDB (section 6.9)
     IReadOnlyList<ListingSectionStatus> Sections); // each requested section: produced, or why not
-// (Step 1 builds Header, Files, Inclusions, Lines, Programs and Sections; each later step adds its members.)
+// (Step 1 builds Header, Files, Inclusions, Lines, Programs and Sections; step 3 Diagnostics and ListingLine.Diagnostics;
+// each later step adds its members.)
 
 public sealed record ListingLine(
     int Number,                 // the listing line number, 1-based, unique in the document
@@ -303,7 +305,7 @@ beside the positional ones so a reader sees the version the file was WRITTEN at,
 | `Line.Listed`, `PageBreakBefore` | `ListingVisibility` over the directive events and inclusions | Listing build | Always |
 | `Programs` (names, nesting, ranges), DATE-COMPILED, verb counts | `SourceUnitFacts`, read off the parse tree the parser built, recovered or not | Parse (Phase 1) | The text stages finished |
 | `Programs` (attributes, the .NET type) | the symbol table's program entries | Bind | The bind finished |
-| `Diagnostics` | Front-end `Diagnostic`s, the binder's structured diagnostics, and each backend diagnostic converted by the DRIVER at the seam into the front end's backend-neutral `Diagnostic` (R5-1; section 6.3) | Every phase | Always (what was reported) |
+| `Diagnostics` | `CompilerDriver.Result.Diagnostics`: the front end's `Diagnostic`s, the binder's records (`EditionContext.Records`), each expansion's own compilation's records moved to its EXPANDS entry, and the backend's, which the seam reports as the same `Diagnostic` (step 3; section 6.3) | Every phase | Always (what was reported) |
 | `Displays` | `CompileOutputLine` with destination Listing and its origin | Text stages | The source was read |
 | `DataMap` | the symbol table snapshot's entries and their attributes (section 6.6) | Bind | The bind finished |
 | `CrossReference`, `Line.Names`, `Line.Margin` | the symbol table snapshot's entries and occurrences (section 6.7.1) | Bind | The bind finished |
@@ -335,7 +337,9 @@ which forces the speculative re-run, and the listing anchors each syntax error o
 review R1-2:) step 1 has no diagnostics section, so its test (`ListingOutcomeTests.AFailedParse_ListsThePassWhoseDiagnosticsAreReported`)
 pins the pass itself: the lines after the WHEN phrase's directive are listed in the form the REPORTED pass read them in (free;
 the speculative re-run reads them fixed from END-PERFORM on), and the line the reported error names is a listed line
-holding the offending word; listing the last pass instead turns it red. Step 3 adds the anchoring assertion.
+holding the offending word; listing the last pass instead turns it red. (Step 3:) the same test asserts the anchoring: the
+error naming the offending word is placed on its line at its column, and every reported error at the line and column its record
+names.
 
 Events, each recorded at the one place the stage acts:
 
@@ -428,7 +432,7 @@ The driver gets ONE exit for the listing. `CompilerDriver.Compile` has ten retur
 lines 169, 175, 251, 271, 275, 284, 306, 312, 316 and 321 at 16cf618813), and the hook must not depend on that count:
 `Compile` becomes a thin wrapper over the existing body (`CompileCore`, the current method with every return point
 unchanged). The body takes a `ListingFacts` collector and DEPOSITS each fact as its phase finishes: the front end's
-listed pass (after `Frontend.Parse`), the diagnostics (as each phase reports), the bound compilation (after
+listed pass (after `Frontend.Parse`), the diagnostics ((step 3) once, from `Result.Diagnostics`, which every return carries), the bound compilation (after
 `BinderDriver.Bind`, which hands over the finished symbol table), the assembly and PDB paths (after `backend.Emit`). The wrapper, when `Options.Listing` is set, builds and writes
 the listing from whatever the collector holds and returns the result with `Result.Listing` set and the listing files
 added to `Result.OutputFiles`.
@@ -536,13 +540,59 @@ is placed by its COBOL source position like every other (ruling of 2026-11-18: n
 code). The Roslyn backend's `#line` directives (section 6.9) make Roslyn report its own diagnostics at COBOL
 positions, which `RoslynBackend.Neutral` already reads through the mapped span; the CIL backend reports at COBOL
 positions natively. A backend diagnostic with no COBOL position goes to the summary.
-**The seam's type, R5-1.** `BackendDiagnostic` is declared in `WiseOwl.Cobol.CodeGen` beside `RoslynBackend`, and the
-builder may name no CodeGen type (section 6.9). So the DRIVER converts each backend diagnostic, where it receives the
-artifact, into the front end's `Diagnostic` (`WiseOwl.Cobol.Frontend.Diagnostics`: code, severity, message, a physical
-`SourceLocation`), which is backend-neutral and is what every other phase deposits; `ListingFacts` holds only `Diagnostic`s.
-A backend diagnostic whose location is not a COBOL file the compilation read (before step 8, the `.g.cs`) is deposited
-with no location: it is listed in the summary, without the generated path, so no listing names generated source.
 
+**As built (step 3), with the corrections the code proved:**
+
+- **ONE diagnostic record for every phase.** `WiseOwl.Cobol.Frontend.Diagnostics.Diagnostic(Code, Severity, Message,
+  Location, Span)` is it; `Location` is a `SourceLocation?` (null for a bind diagnostic reported with no cursor, a
+  diagnostic about the compilation unit as a whole, and for a backend diagnostic that names no position). (Step 3, correcting
+  R5-1:) the seam's `BackendDiagnostic` was the same record without the span, so it is DELETED (rule 4): the backend reports
+  the front end's `Diagnostic` (`BackendArtifact.Diagnostics`, `RoslynBackend.Neutral`), and no conversion at the driver
+  exists, because there is nothing to convert.
+- **The binder's records.** `EditionContext.Records` holds every error and warning in report order, each made by the one
+  `EditionContext.Record` from the cursor (`LocationOf(Cursor)`, or no location when no cursor is set; a diagnostic about
+  a skeleton read from the repository is located at its EXPANDS entry with the expansion's name in its message).
+  `EditionContext.Diagnostics` and `Warnings` are `IReadOnlyList<string>` views (`Diagnostic.ToString`, that is
+  `Diagnostic.Render`), byte-identical to the strings they were; `HasErrors` counts records; `WithdrawWarningsOf` removes
+  records. The once-per-fact rule keys on the rendered line as before.
+- **The resultant line, and its frame (correction).** "Front-end diagnostics gain the resultant line where the reporter
+  knows it" would have meant a change at every reporter, and the text stages report in numberings of their OWN (each stage
+  that maps text builds a `SourceLineMap` of its own), so a resultant line is meaningless without the numbering it is in.
+  The fact therefore lives where the mapping happens: `SourceLocation` gains `ResultantLine` and `Frame`, set ONLY by
+  `SourceLineMap.Locate` (the one resultant-to-physical mapping), and each `SourceLineMap` has a `Frame`, a process-unique
+  number. Every diagnostic located through a map (the parser's, the lexer's, the post-parse screens', every bind diagnostic)
+  carries them with no reporter changed; one located by a text stage carries that stage's frame. The listing uses the
+  resultant line only when the frame is the listed pass's `LineMap` (the map the reported parse and the bind located
+  through), so a line of another numbering can never pick the wrong inclusion.
+- **`CompilerDriver.Result.Diagnostics` (correction).** Every return of the body carries the records of the source's
+  diagnostics: the front end's bag, the binder's records, each expansion's own compilation's records moved to its EXPANDS
+  entry (`ExpansionAssemblies.AtTheEntry(Diagnostic, ...)`, the one decider; each printed line of the expansion's report is
+  its moved record's rendering), and the backend's errors. `Result.Errors` / `Warnings` stay the printed lines: each line
+  that reports a diagnostic is its record's `Diagnostic.Render`, and the only other lines name no source (the source file is
+  missing, the host refused an output, a listing file could not be written), which have no code and no position and are
+  not diagnostics of the source. `ListingDiagnosticsTests.EveryPrintedDiagnostic_IsARecord_AndTheListingHoldsEachOne` holds
+  that every line in a diagnostic's shape is a record's rendering. The test compile cache stores the records (format 4).
+- **Deposit.** The one exit deposits `Result.Diagnostics` into the collector once, after the body returns
+  (`ListingFacts.DepositDiagnostics`): every return carries them, so no return point has listing code.
+- **Placement.** `DiagnosticSectionBuilder` places each record through `ListingLineIndex.Place(SourceLocation)`: a location
+  of the index's frame goes to the inclusion its resultant line belongs to (`ListingLineIndex.Of(int, SourceOrigin)`, the
+  innermost inclusion holding the line whose file is the location's), any other to the first text that lists that
+  physical line; a location in no listed file (a generated `.g.cs`, an expansion's throw-away text) is placed on no line and
+  names no file, so no listing names generated source. The column is a 1-based position of the line's listed text
+  (`ReferenceFormatMap.ExpandedIndexAt`, tabs expanded). Listing order: placed diagnostics by line and column, then the
+  rest in report order; ids are 1-based in that order; `ListingLine.Diagnostics` names the ids on each line.
+- **Text.** Under a printed line, per diagnostic: a caret row when the line is printed whole as written (one row, no
+  replacement), at the column counted in positions (a supplementary-plane character is one); then
+  `==> severity CODE (col n): message` from the source text's column, wrapped at the page width under the message
+  (`TextListingRenderer.DiagnosticRows`, `Indented`). A diagnostic on a line the listing does not print is in the summary
+  only. The summary (`SummaryRows`) starts a page after the source section with the heading line `DIAGNOSTICS`: the counts
+  (`Errors: n   Warnings: n   Information: n`), then each diagnostic as `line  severity CODE file(line,col): message`
+  (`-` for no line), wrapped; its page heading names the first outermost program (section 6.1).
+- **Witnesses.** `DiagnosticRecordsTests` (Unit: the records and their views, the resultant line and frame, the severity map),
+  `ListingLineIndexTests.ALocation_IsPlacedInTheBlockOfItsResultantLine_OnlyInTheIndexsFrame`, `TextListingRendererTests`
+  (caret, wrap, summary), `ListingCitationTests`; `ListingDiagnosticsTests` (Conformance: a bind error placed, printed and
+  cited; the second copy of a copybook copied twice; one record per printed diagnostic) and the anchoring assertion of
+  `ListingOutcomeTests.AFailedParse_ListsThePassWhoseDiagnosticsAreReported` (section 4.4).
 ### 6.4 Options
 
 Every option of the compilation with its value and whether it is the default: each public property of
@@ -920,7 +970,7 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   assembly references no `Microsoft.CodeAnalysis*` assembly, and the documents of the `WiseOwl.Cobol.Listing.Building`
   namespace in the Compiler (the builder) reference no type from `Microsoft.CodeAnalysis*` or `WiseOwl.Cobol.CodeGen*` (a Roslyn
   semantic check of every referenced symbol) and contain no `.g.cs` path. It holds because backend diagnostics reach the
-  builder as the front end's `Diagnostic`, converted by the driver at the seam (R5-1, section 6.3). The Roslyn backend's `#line` writing lives in
+  builder as the front end's `Diagnostic`, which (step 3) is the seam's own diagnostic type (section 6.3). The Roslyn backend's `#line` writing lives in
   `WiseOwl.Cobol.CodeGen`, behind the seam; the listing never sees it.
 
 ### 6.10 DISPLAY directive output (2023)
@@ -997,9 +1047,17 @@ lists from `ListingCrossReference`; the renderer joins nothing and computes noth
   group has MEASURED in `tests/_shared/test-weights.json`, and a new class has no measurement, so it runs in the population
   until the weights carry it; declaring it then is kb/Work PB5925's lead `2026-11-18-schema-drift-preflight`.
 - The document carries `"$schema": "urn:wiseowl:cobol:listing:v1"` and `"schemaVersion": "1.<minor>"`.
-- Diagnostics carry `citation` as a field: the edition and locator parsed from the message by the one C# reader of the
-  citation format `§<edition>:<locator>[ <rule>]` (scripts/spec/citation.py's grammar, pinned by a shared vectors file),
-  until diagnostics carry their citation as data (open question 3).
+- Diagnostics carry their citations as a field. (Step 3:) the field is a LIST, `citations`, of `ListingCitation(Edition,
+  Locator, Rule)`: a message may cite several rules (`§2002:7.2.15.2 GR4` and a 1985 rule beside it), and keeping only the
+  first would drop the rest. Each is read from the message by the one C# reader of the citation format
+  `§<edition>:<locator>[ <rule>]`, `ListingCitation.Scan`, a port of `scripts/spec/citation.py`'s `scan`: a bare `§N` and
+  a malformed citation are none. The two readers are pinned by one vectors file,
+  `tests/WiseOwl.Cobol.Tests.Unit/Listing/citation-vectors.json` (each text's citations written by hand from the format's
+  specification), held by `ListingCitationTests` and by `citation.py --self-test`; open question 3 is decided below.
+- (Step 3:) the schema version stays `1.0`. The policy's minor bump is for documents a reader may already hold, and no
+  release has shipped the JSON listing (`git tag --contains` of step 2's commit lists none), so steps 3 to 9 complete 1.0
+  with the members required where they are never null; 1.0 freezes at the first release that ships the JSON listing, which
+  is the moment kb/Work PB5925's lead `2026-11-18-schema-version-bump` names for the surface record.
 
 **Versioning and compatibility policy.** The major version changes only when a property is removed, renamed, or changes
 meaning; the minor version changes when a property or an enum value is added. Within a major version every addition is
@@ -1068,6 +1126,12 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
   number left in a README. Open question 1 is decided from steps 6 to 9's rows.
   (Step 2:) the parameter gains `TextAndJson`; on a full compile it allocates 3.7-8.3 % over `None` and 0.1-3.2 % over
   `Text` (the README's step-2 table); the host's noise (StdDev 25-40 %) decided no time row, as at step 1 (kb/Work PB5927).
+  (Step 3:) step 3 is not in the list above, but it changes the no-listing path (a bind diagnostic is a record, not a string;
+  a located `SourceLocation` carries two more ints), so it measures the `None` budget against its parent, and the
+  `TextAndJson` row with the diagnostics section; the README's step-3 table holds both. The first run was over the `None`
+  budget (IX113A's front end and bind +0.85 MB); the cause was a closure per character of every token in
+  `MarginRCutScreen.Warnings`, which step 3's larger `SourceLocation` made larger, and with it removed `None` allocates 5.3 MB
+  (7 %) less than the parent on IX113A.
 
 ## 10. Test plan
 
@@ -1128,6 +1192,11 @@ captured listing.
 7. **Unit tests** of `ListingVisibility` and `PageComposer` over hand-built line lists (one per rule above), and of
    `ListingLineIndex` over hand-built maps (step 1: `ListingLineIndexTests`, a copybook copied at two depths, framing
    lines, a file no inclusion holds, omission); `PhysicalLineKindDriftTests` (section 4.4.1).
+7a. **Diagnostics (step 3).** The records and their rendered views, the severity map, the placement by frame over hand-built
+   maps, the caret, the wrapping and the summary (Unit); a bind error placed, printed and cited, a diagnostic in the second
+   copy of a copybook placed in the second block, and one record per printed diagnostic on a front-end error, a bind error and
+   a success with warnings (`ListingDiagnosticsTests`, Conformance); the shared citation vectors (`ListingCitationTests` and
+   `citation.py --self-test`). Section 6.3 names each.
 8. **Failed compilations.** One test per kind of outcome (section 4.6): the sections present and the
    `ListingSectionStatus` of each absent one; the failed-parse test of section 4.4 (the listed pass). (Step 1:)
    `tests/WiseOwl.Cobol.Tests.Conformance/Listing/ListingOutcomeTests.cs`, beside the 1985 class's failed-compilation
@@ -1193,9 +1262,11 @@ the 1985 minimum, so PB5923 closes first.
 drift test (a population class until the merge group measures it, then preflight: section 7.3), `--listing-format`; the
 `Text` benchmark row re-measured with JSON (`CompileBenchmarks.ListingMode.TextAndJson`, section 9).
 
-**Step 3 - diagnostics.** Structured bind diagnostics: `EditionContext.Error`, `EditionContext.Warning`, `EditionContext.Render`,
-`EditionContext.Diagnostics`, `EditionContext.Warnings` become records plus rendered views; `CompilerDriver.Result` carries
-the records; `Diagnostic` gains the resultant line; `ListingDiagnostic`, inline rows and the summary; the citation field.
+**Step 3 - diagnostics. BUILT (branch `listing-step-3`; the corrections above marked "step 3").** Structured bind
+diagnostics: `EditionContext.Records` with `Diagnostics` and `Warnings` as rendered views; `CompilerDriver.Result.Diagnostics`
+carries the records; `SourceLocation.ResultantLine` and `Frame` (stamped by `SourceLineMap.Locate`) in place of a resultant
+line on `Diagnostic`; `BackendDiagnostic` deleted; `ListingDiagnostic`, `ListingLine.Diagnostics`, inline rows and the
+summary; `ListingCitation` and the `citations` field (section 6.3, 7.3).
 
 **Step 4a - the directive hooks, witnessed at 2023.** `TextStageTrace` gains `ListingDirective`, `PageDirective` and
 `Replaced` (recorded in `ConditionalCompilationProcessor.Run.Render`, `CopyProcessor.ApplyReplacements`,
@@ -1261,10 +1332,14 @@ and derivations PB5923 and section 10 name; `docs/manual/user-guide/command-line
    walk. Decided again from the benchmark rows steps 6 to 9 land (section 9).
 2. **Should JSON contain every section regardless of `--listing-sections`?** Recommendation: no; one request, one
    document, so the three formats always agree.
-3. **Diagnostics carrying their citation as data.** `EditionInfo.Cite` returns a string spliced into the message, so the
-   JSON's `citation` field is parsed back out of the text. Recommendation: in step 3, make `EditionInfo.Cite` return a
-   structured value (edition, locator, rule) whose `ToString` is today's text, and carry it on the diagnostic; the parser
-   is then needed only for messages built elsewhere, and a drift test counts those to zero.
+3. **Diagnostics carrying their citation as data.** DECIDED in step 3: NO second copy; the message is the one source of a
+   diagnostic's citations and `ListingCitation.Scan` the one reader of them. The recommendation rested on a reading of
+   `EditionInfo.Cite` the code refutes: it chooses among whole TEXTS per edition (`Cite(y1985, y2002, y2023)`, 38 calls), not a
+   citation value, and the compiler's messages write their citations inline in about 9,000 string literals of the Compiler,
+   Frontend and Editions assemblies (a count of literals holding `§<edition>:`). A structured citation carried beside the text
+   would be a second statement of the same fact, kept in step with the first by nothing, and the drift test counting the rest
+   to zero would be a campaign over every message with no reader's benefit the parse does not already give. Every citation in
+   a message is already checked by `audit_code_citations.py`, so the text the reader parses is a valid citation.
 4. **COBOL source-level debugging (`#line` and a portable PDB).** DECIDED by the owner's ruling of 2026-11-18: both
    backends emit sequence points at COBOL statement granularity and a portable PDB, because the object-code map reads
    them (section 6.9). A .NET debugger steps through COBOL source as a consequence.

@@ -45,7 +45,7 @@ internal static class CompiledProgramCache
     internal const string MaxMbVariable = "WISEOWL_COBOL_COMPILE_CACHE_MAX_MB";
 
     /// <summary>Bumped whenever the entry layout or the key recipe changes — an old store then misses whole.</summary>
-    private const int FormatVersion = 3;   // 2: an entry carries the compilation's own output (kb/Work PB2116); 3: whether the assembly is a library (kb/Work PB2099)
+    private const int FormatVersion = 4;   // 2: an entry carries the compilation's own output (kb/Work PB2116); 3: whether the assembly is a library (kb/Work PB2099); 4: the diagnostics' records (DESIGN-listing.md section 6.3)
 
     /// <summary>Whether this process uses the cache (see the class remarks).</summary>
     internal static bool Enabled { get; } =
@@ -343,10 +343,26 @@ internal static class CompiledProgramCache
 
     /// <summary>A stored compilation. <paramref name="CompileOutput"/> is what the compilation itself transferred
     /// (the DISPLAY directive's lines, ISO §2023:7.3.12.4 1)): part of the result, so a hit replays it. <paramref name="Library"/>
-    /// is the result's <see cref="CompilerDriver.Result.Library"/>.</summary>
+    /// is the result's <see cref="CompilerDriver.Result.Library"/>; <paramref name="Diagnostics"/> its
+    /// <see cref="CompilerDriver.Result.Diagnostics"/>.</summary>
     private sealed record Entry(int Format, string Status, List<string> Errors, List<string> Warnings,
         string? GeneratedSource, List<StoredFile> Files, List<ReadInput> Reads, List<InputProbe> Probes,
-        List<EnvironmentRead> Environment, List<Frontend.Diagnostics.CompileOutputLine> CompileOutput, bool Library);
+        List<EnvironmentRead> Environment, List<Frontend.Diagnostics.CompileOutputLine> CompileOutput, bool Library,
+        List<StoredDiagnostic> Diagnostics);
+
+    /// <summary>One <see cref="Frontend.Diagnostics.Diagnostic"/> as stored. A location's resultant line and frame
+    /// (<see cref="Frontend.Common.SourceLocation.Frame"/>) are not: a frame names a line map of the process that compiled, and only a
+    /// listing reads them, whose compilation reads the clock and is never stored (<see cref="Cacheability"/>).</summary>
+    private sealed record StoredDiagnostic(string Code, Frontend.Diagnostics.DiagnosticSeverity Severity, string Message,
+        string? File, int Position, int Line, int Column, int SpanStart, int SpanLength)
+    {
+        public static StoredDiagnostic Of(Frontend.Diagnostics.Diagnostic d) => new(d.Code, d.Severity, d.Message,
+            d.Location?.FileName, d.Location?.Position ?? 0, d.Location?.Line ?? 0, d.Location?.Column ?? 0, d.Span.Start, d.Span.Length);
+
+        public Frontend.Diagnostics.Diagnostic ToDiagnostic() => new(Code, Severity, Message,
+            File is null ? null : new Frontend.Common.SourceLocation(File, Position, Line, Column),
+            new Frontend.Common.TextSpan(SpanStart, SpanLength));
+    }
 
     private sealed record StoredFile(string Name, string Blob);
 
@@ -422,6 +438,7 @@ internal static class CompiledProgramCache
                 OutputFiles = written,
                 CompileOutput = entry.CompileOutput,
                 Library = entry.Library,
+                Diagnostics = [.. entry.Diagnostics.Select(d => d.ToDiagnostic())],
             };
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
@@ -459,7 +476,7 @@ internal static class CompiledProgramCache
                     .Select(p => new ReadInput(p, Sha256Hex(File.ReadAllBytes(p))))],
                 [.. result.Inputs.Probes.Distinct()],
                 [.. result.Inputs.EnvironmentReads.Distinct()],
-                [.. result.CompileOutput], result.Library);
+                [.. result.CompileOutput], result.Library, [.. result.Diagnostics.Select(StoredDiagnostic.Of)]);
             string path = EntryPath(root, key);
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             string tmpEntry = path + "." + Guid.NewGuid().ToString("N") + ".tmp";

@@ -191,13 +191,14 @@ public sealed record BackendOptions(
     bool EmitPdb = true, CompilationInputs? Inputs = null,
     IReadOnlyList<string>? RepositoryReferences = null /* the external repository's assemblies the code names a type of */);
 
-/// One backend diagnostic; no Roslyn type crosses the seam (kb/Work PB4272, DESIGN-backend-abstraction §2.1).
-public sealed record BackendDiagnostic(string Code, DiagnosticSeverity Severity, string Message, SourceLocation? Location);
+/// A backend diagnostic is the front end's Diagnostic(Code, Severity, Message, SourceLocation? Location, Span): no Roslyn type
+/// crosses the seam (kb/Work PB4272, DESIGN-backend-abstraction §2.1), and one record serves every phase (DESIGN-listing.md
+/// section 6.3; the seam's former BackendDiagnostic, the same record without the span, was deleted by listing step 3).
 
 /// The result the driver consumes; backend-agnostic.
 public sealed record BackendArtifact(
     bool Success,
-    IReadOnlyList<BackendDiagnostic> Diagnostics,
+    IReadOnlyList<Diagnostic> Diagnostics,
     string? GeneratedSourcePath,               // .g.cs for Roslyn (always written); null for Cil
     string? AssemblyPath, IReadOnlyList<string> OutputFiles, bool Library);
 ```

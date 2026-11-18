@@ -45,15 +45,25 @@ public static class MarginRCutScreen
                 if (cuts.MarginRCutAt(token.Line, token.Column + offset) is not { EndsAtMarginR: true } cut)
                     continue;
                 var at = cut.CutLocation;
-                if (reported.Any(d => d.Code == DiagnosticCatalog.ProgramTextPastMarginR.Code && d.Location.Equals(at))) continue;
-                string code = DiagnosticCatalog.TokenCutAtMarginR.Code;
-                if (warnings.Any(d => d.Code == code && d.Location.Equals(at))) continue;
-                warnings.Add(new Diagnostic(code, DiagnosticSeverity.Warning,
+                if (Holds(reported, DiagnosticCatalog.ProgramTextPastMarginR.Code, at)
+                    || Holds(warnings, DiagnosticCatalog.TokenCutAtMarginR.Code, at)) continue;
+                warnings.Add(new Diagnostic(DiagnosticCatalog.TokenCutAtMarginR.Code, DiagnosticSeverity.Warning,
                     $"{cut.Cut.Account} The token '{WrittenSource.Of(token)}' ends at position {cut.Cut.LastProgramTextPosition} with the "
                     + "cut text right after it and no space between, so the compiler read the token as far as it was written within "
                     + $"the program-text area, which may not be the token meant. {cut.Cut.Remedy}", at, TextSpan.Empty));
             }
         }
         return warnings;
+    }
+
+    /// <summary>Whether <paramref name="diagnostics"/> holds a <paramref name="code"/> at <paramref name="at"/>. A loop, not a
+    /// lambda: <see cref="Warnings"/> runs its body once per character of every token, and a lambda capturing the cut's location
+    /// there made a closure per character, before any cut was found (about 112,000 per compile of NIST IX113A, 5.4 MB; found by the
+    /// allocation measurement of DESIGN-listing.md section 9 at listing step 3).</summary>
+    private static bool Holds(IReadOnlyList<Diagnostic> diagnostics, string code, SourceLocation at)
+    {
+        foreach (var d in diagnostics)
+            if (d.Code == code && d.Location is { } location && location.Equals(at)) return true;
+        return false;
     }
 }

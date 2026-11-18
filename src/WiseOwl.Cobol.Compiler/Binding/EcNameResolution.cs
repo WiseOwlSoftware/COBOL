@@ -187,8 +187,8 @@ internal static class EcNameResolution
                 + $"a name); {declined.Documentation} records the decline");
         }
         if (info.Level != 3 || info.Name.Length <= 31) return true;
-        if (edition.Warnings.Any(w =>
-                w.Contains(DiagnosticCatalog.EcNameWiderThanStatus.Code) && w.Contains(info.Name))) return true;
+        if (edition.Records.Any(d =>
+                d.Code == DiagnosticCatalog.EcNameWiderThanStatus.Code && d.Message.Contains(info.Name, StringComparison.Ordinal))) return true;
         edition.Warning(DiagnosticCatalog.EcNameWiderThanStatus,
             $"exception-name {info.Name} is {info.Name.Length} characters long; FUNCTION EXCEPTION-STATUS "
             + "returns a 31-character value (ISO §2023:15.33.3 r1), so this name and any other sharing its first 31 "
