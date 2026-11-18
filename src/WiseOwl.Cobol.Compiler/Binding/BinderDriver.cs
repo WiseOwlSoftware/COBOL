@@ -284,7 +284,8 @@ internal sealed class BinderDriver
         // fact set is complete. Each element's DataBindResult — what a backend reads in place of the binder — is made here, once;
         // everything below reads the bound model, and the binders stay with the session.
         var interfaceData = session.Binders.Freeze(units, classes);
-        if (edition.RecordsSymbols) Symbols = FinishSymbols(units, session.Binders);
+        // The finished symbol table, before the file connectors are renamed for the run unit (DESIGN-listing.md section 6.7.1).
+        if (edition.RecordsSymbols) Symbols = SymbolTableFinish.Of(units, classes, session.Binders);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
@@ -356,25 +357,6 @@ internal sealed class BinderDriver
             new ImportedTypes(table.ImportedClasses, table.ImportedInterfaces), turn, ecActive,
             anyFiles, edition.DialectLevel, edition.SignEncoding, expansions,
             entryUnits, publishes, interfaceRecords);
-    }
-
-    /// <summary>⛔ THE FINISHED SYMBOL TABLE (docs/rearchitecture/DESIGN-listing.md section 6.7.1): each program unit's entry, then
-    /// the names its own table declared (<see cref="SymbolTable.Finish"/>), in the order the units are written, so a container's
-    /// GLOBAL item has its id before a contained unit's attribute names it. Made after the data binding is frozen and before the
-    /// file connectors are renamed for the run unit, so a file-name is the one the program wrote.</summary>
-    private static global::WiseOwl.Cobol.Symbols.SymbolTableSnapshot FinishSymbols(IReadOnlyList<BoundUnit> units, ElementBinders binders)
-    {
-        var into = new SymbolTableWriter();
-        foreach (var unit in units.OrderBy(static u => u.SourcePosition))
-        {
-            var u = unit;
-            into.Declare(u, global::WiseOwl.Cobol.Symbols.NameClass.Program, u.Name,
-                new global::WiseOwl.Cobol.Symbols.SymbolPosition(u.DeclaredAt.Line, u.DeclaredAt.Column),
-                _ => new global::WiseOwl.Cobol.Symbols.ProgramAttributes(u.IsFunction, u.Common, u.Initial, u.Recursive, u.IsPrototype,
-                    u.ExternalizedName, u.ClassName));
-            binders.Of(u).Data.Symbols.Finish(into, u.Data);
-        }
-        return into.Snapshot();
     }
 
     /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source

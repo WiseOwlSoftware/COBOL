@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Listing;
+using WiseOwl.Cobol.Listing.Building;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -136,5 +137,41 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
         Assert.True(Assert.Single(trace.Inclusions).Suppress);
         Assert.Equal(2, trace.ReplacedLines.Count);   // the REPLACE match on A's line, the REPLACING match in the library text
         Assert.Empty(bag.CompileOutput);
+    }
+
+    /// <summary>The bind of <see cref="Source"/> under an edition context that does (<paramref name="recordsSymbols"/>) or does not
+    /// ask for the symbol table, through the front end and the binder the driver uses.</summary>
+    private WiseOwl.Cobol.Binding.BinderDriver Bind(bool recordsSymbols)
+    {
+        var (options, src) = Write(listing: null);
+        var frontend = CompilerDriver.NewFrontend(options, new CompilationInputs(), recordsListing: false);
+        var tree = frontend.Parse(src, new DiagnosticBag());
+        Assert.NotNull(tree);
+        var binder = new WiseOwl.Cobol.Binding.BinderDriver();
+        var edition = new WiseOwl.Cobol.Binding.EditionContext(85, false) { LineMap = frontend.LineMap, RecordsSymbols = recordsSymbols };
+        binder.Bind(tree, edition, frontend.Directives);
+        Assert.False(edition.HasErrors, string.Join("\n", edition.Diagnostics));
+        return binder;
+    }
+
+    /// <summary>Section 9: a bind that no listing section reads the symbol table of finishes none (<c>EditionContext.RecordsSymbols</c>
+    /// false, which the driver sets only through <c>ListingFacts.ReadsSymbols</c> of a request): no snapshot, no symbol-table work.</summary>
+    [Fact]
+    public void WithoutASymbolTableSection_TheBindFinishesNoSymbolTable()
+    {
+        Assert.Null(Bind(recordsSymbols: false).Symbols);
+        Assert.False(ListingFacts.ReadsSymbols(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.Source) }));
+    }
+
+    /// <summary>The control: asked, the same bind finishes the table, the program and the copied item X declared in it.</summary>
+    [Fact]
+    public void WithASymbolTableSection_TheBindFinishesTheSymbolTable()
+    {
+        var symbols = Bind(recordsSymbols: true).Symbols;
+        Assert.NotNull(symbols);
+        Assert.Equal([(WiseOwl.Cobol.Symbols.NameClass.Program, "NOWORK"), (WiseOwl.Cobol.Symbols.NameClass.Data, "X")],
+            symbols.Entries.Select(e => (e.Class, e.Name)));
+        Assert.True(ListingFacts.ReadsSymbols(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.DataMap) }));
+        Assert.True(ListingFacts.ReadsSymbols(new ListingRequest()));   // the standard sections hold the program map
     }
 }

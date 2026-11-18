@@ -1,13 +1,48 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Symbols;
 
-namespace WiseOwl.Cobol.Binding.Model;
+namespace WiseOwl.Cobol.Binding;
 
-public sealed partial class SymbolTable
+/// <summary>
+/// ⛔ THE FINISHING OF THE SYMBOL TABLE (docs/rearchitecture/DESIGN-listing.md section 6.7.1): once the data binding is frozen, every
+/// name each program unit declared is declared into one <see cref="SymbolTableWriter"/>, in the order the units are written, and the
+/// plain-valued <see cref="SymbolTableSnapshot"/> the listing reads is made. It is binder-side (it reads each unit's binder for the
+/// constant entries, which make no data item) and below the backend seam: no backend input names it.
+/// </summary>
+internal static class SymbolTableFinish
 {
+    /// <summary>The finished table of the group's program <paramref name="units"/> and the OBJECT and FACTORY halves of its
+    /// <paramref name="classes"/>: each source element's names (<see cref="Declarations"/>), a program unit's own entry first, the
+    /// elements in the order they are written. An attribute that names another entry (a contained program's reference to its
+    /// container's GLOBAL item) is read once every element has declared (<see cref="SymbolTableWriter.Snapshot"/>).</summary>
+    public static SymbolTableSnapshot Of(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes, ElementBinders binders)
+    {
+        var into = new SymbolTableWriter();
+        var elements = new List<List<(SymbolPosition At, Action Declare)>>();
+        foreach (var unit in units)
+        {
+            var u = unit;
+            elements.Add([(PositionOf(u.DeclaredAt), () => into.Declare(u, NameClass.Program, u.Name, PositionOf(u.DeclaredAt),
+                    _ => new ProgramAttributes(u.IsFunction, u.Common, u.Initial, u.Recursive, u.IsPrototype, u.ExternalizedName, u.ClassName))),
+                .. Declarations(into, u.Data, binders.Of(u).Data.Constants)]);
+        }
+        foreach (var cls in classes)
+        {
+            elements.Add(Declarations(into, cls.Data, binders.ObjectOf(cls).Data.Constants));
+            elements.Add(Declarations(into, cls.FactoryData, binders.FactoryOf(cls).Data.Constants));
+        }
+        foreach (var element in elements.Where(static e => e.Count > 0).OrderBy(static e => FirstLine(e)))
+            foreach (var (_, declare) in element) declare();
+        return into.Snapshot();
+
+        static (int, int) FirstLine(List<(SymbolPosition At, Action Declare)> element) =>
+            element.Where(static d => d.At.IsSet).Select(static d => (d.At.Line, d.At.Column)).DefaultIfEmpty((int.MaxValue, 0)).Min();
+    }
+
     /// <summary>
-    /// ⛔ FINISH THIS ELEMENT'S TABLE (docs/rearchitecture/DESIGN-listing.md sections 6.6 and 6.7.1): declare into
+    /// The declarations of one source element's names (docs/rearchitecture/DESIGN-listing.md sections 6.6 and 6.7.1): declare into
     /// <paramref name="into"/> every name this source element declared, in definition order, each with the symbol the binder
     /// made for it. Its own data description entries (every level, FILLER included, each level-88 and level-66 entry and each
     /// INDEXED BY index-name, in the order written), its constant entries and its file-names. <paramref name="data"/> is what the
@@ -18,7 +53,8 @@ public sealed partial class SymbolTable
     /// the bind is finished: the binder records each decision on the symbol it decides it for, so the table carries no second
     /// copy of any of them.</para>
     /// </summary>
-    internal void Finish(SymbolTableWriter into, DataBindResult data)
+    private static List<(SymbolPosition At, Action Declare)> Declarations(SymbolTableWriter into, DataBindResult data,
+        ConstantEntryBinder constants)
     {
         var written = new List<(SymbolPosition At, int Order, Action Declare)>();
         int order = 0;
@@ -29,7 +65,7 @@ public sealed partial class SymbolTable
                 var item = root;
                 written.Add((PositionOf(root.DeclaredAt), order++, () => DeclareTree(into, item)));
             }
-        foreach (var (name, line, column, value, global) in _data.Constants.DeclaredConstants())
+        foreach (var (name, line, column, value, global) in constants.DeclaredConstants())
             written.Add((new SymbolPosition(line, column), order++,
                 () => into.Declare(new ConstantSymbol(name), NameClass.Constant, name, new SymbolPosition(line, column),
                     _ => new ConstantAttributes(value, global))));
@@ -40,9 +76,8 @@ public sealed partial class SymbolTable
                 PositionOf(model.EntryAt), ids => FileAttributesOf(model, ids))));
         }
         // Definition order: by the position written, a declaration with none (an implied record) after its predecessors.
-        foreach (var (_, _, declare) in written.OrderBy(static w => w.At.IsSet ? w.At.Line : int.MaxValue)
-                     .ThenBy(static w => w.At.IsSet ? w.At.Column : 0).ThenBy(static w => w.Order))
-            declare();
+        return [.. written.OrderBy(static w => w.At.IsSet ? w.At.Line : int.MaxValue)
+            .ThenBy(static w => w.At.IsSet ? w.At.Column : 0).ThenBy(static w => w.Order).Select(static w => (w.At, w.Declare))];
     }
 
     /// <summary>Declare <paramref name="item"/>, then its condition-names and index-names, then its subordinates, then the level-66
@@ -150,7 +185,7 @@ public sealed partial class SymbolTable
 
 /// <summary>
 /// The writer of the finished symbol table (docs/rearchitecture/DESIGN-listing.md section 6.7.1): each element's table
-/// declares its names into it (<see cref="SymbolTable.Finish"/>), and <see cref="Snapshot"/> makes the plain-valued
+/// declares its names into it (<see cref="SymbolTableFinish"/>), and <see cref="Snapshot"/> makes the plain-valued
 /// <see cref="SymbolTableSnapshot"/> the listing reads. An entry's id is its 1-based declaration order; an attribute that names
 /// another symbol (a parent, a REDEFINES object, a DEPENDING ON object) names that symbol's id, which every element's
 /// declarations have been made before any attribute is read.

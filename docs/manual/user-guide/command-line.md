@@ -34,7 +34,7 @@ the form `--output=out.dll`.
 | `--listing [on\|off]` | writes the source listing `<out>.lst` (a bare `--listing` is `on`); default `on` at `--std 85`, `off` at the later editions — see [The source listing](../listing/) |
 | `--listing-output <BASE>` | writes the listing to `BASE.lst` (and `BASE.lst.json` with `--listing-format json`), or with `-` to standard output in the one format requested (implies a listing) |
 | `--listing-format text\|json` | a listing format to write, repeatable: `text` (`BASE.lst`, the default) or `json` (`BASE.lst.json`, the versioned JSON listing with its published schema; implies a listing) — see [The source listing](../listing/) |
-| `--listing-sections <LIST>` | the listing's sections, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `standard` and `all` (default `standard`, all five; implies a listing) — see [The source listing](../listing/) |
+| `--listing-sections <LIST>` | the listing's sections, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `data-map`, `standard` and `all` (default `standard`, every section but `data-map`; implies a listing) — see [The source listing](../listing/) |
 | `--listing-page-length <N>` | listing lines per page, the heading included (default 60; `0` paginates only at page-eject lines and new programs) |
 | `--listing-page-width <N>` | listing columns per page, 100 to 255 (default 132) |
 | `--nist <NAME>` | the placeholder preprocessing the NIST CCVS test programs need; for running that suite, not for application code |
