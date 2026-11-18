@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-4",
+ "rule-digest": "143cf48b8053",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Compiler/Listing/DirectiveEffectsBuilder.cs#Build; src/WiseOwl.Cobol.Compiler/Listing/ListingVisibility.cs#Apply",
+ "test-ref": "conformance-test:Listing2002Tests.CopySuppress_ListsTheCopyStatement_ButNotTheLibraryText; unit:ListingVisibilityTests.SuppressedLibraryText_IsNotListed_ButItsCopyStatementIs",
+ "notes": "kb/Work PB5925 (listing step 4b of docs/rearchitecture/DESIGN-listing.md, 2026-11-18), judged by the 2002 text. §2002:7.1.2.3 GR4: \"If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed. If a listing is being produced, the COPY statement itself is listed.\" CopyProcessor.ParseCopyStatement keeps the phrase, the trace records it on the inclusion (ListingInclusion.Suppress), and the listing lists no line of the library text while the COPY statement's lines follow the LISTING state; the witness at --std 2002 finds both copied lines in the model, unlisted, and the COPY statement printed."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.15.2-4",
+ "rule-digest": "61277e4c344d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Compiler/Listing/DirectiveEffectsBuilder.cs#Build; src/WiseOwl.Cobol.Compiler/Listing/ListingVisibility.cs#Apply",
+ "test-ref": "conformance-test:Listing2002Tests.ListingOff_StopsTheLinesAfterIt_UntilOn_AndEveryListingDirectiveIsListed; conformance-test:Listing2002Tests.APageDirective_EjectsAPage_ThenIsListed_ButNotUnderListingOff",
+ "notes": "kb/Work PB5925 (listing step 4b of docs/rearchitecture/DESIGN-listing.md, 2026-11-18), judged by the 2002 text. The compiler produces a source listing on request at --std 2002 (cobol --listing; DOC-A.1-117, B.1 item 90), so §2002:7.2.15.2 GR1's \"Otherwise, the following general rules apply\" holds and the row is decided by the listing. GR4: \"If OFF is specified, source lines shall not be listed until a LISTING directive specifying or implying the ON phrase is encountered, with the exception that another LISTING OFF directive shall be listed.\" The witness's two data lines after OFF are in the model, not listed and not printed; a PAGE directive line under OFF is not listed either (DESIGN-listing.md section 2.3)."
+}

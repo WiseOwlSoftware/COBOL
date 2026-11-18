@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.15.2-3",
+ "rule-digest": "fdc09f6688e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextStageTrace.cs#ListingDirective; src/WiseOwl.Cobol.Compiler/Listing/DirectiveEffectsBuilder.cs#Build; src/WiseOwl.Cobol.Compiler/Listing/ListingVisibility.cs#Apply",
+ "test-ref": "conformance-test:Listing2002Tests.ListingOff_StopsTheLinesAfterIt_UntilOn_AndEveryListingDirectiveIsListed; unit:ListingVisibilityTests.ListingOff_StopsTheLinesAfterIt_EveryListingDirectiveIsListed_AndOnResumes",
+ "notes": "kb/Work PB5925 (listing step 4b of docs/rearchitecture/DESIGN-listing.md, 2026-11-18), judged by the 2002 text. The compiler produces a source listing on request at --std 2002 (cobol --listing; DOC-A.1-117, B.1 item 90), so §2002:7.2.15.2 GR1's \"Otherwise, the following general rules apply\" holds and the row is decided by the listing. GR3: \"Each LISTING directive shall be listed, even if the listing is being suppressed by a LISTING directive.\" Each LISTING directive's line is recorded (TextStageTrace.ListingDirective) and listed whatever the state; the witness's second '>>LISTING OFF', met under OFF, is listed and printed."
+}
