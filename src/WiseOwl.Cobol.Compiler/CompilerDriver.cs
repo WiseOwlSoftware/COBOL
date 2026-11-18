@@ -161,6 +161,13 @@ public static class CompilerDriver
         /// every outcome the front end ran for; the CLI writes them before the diagnostics.</summary>
         public IReadOnlyList<Frontend.Diagnostics.CompileOutputLine> CompileOutput { get; init; } = [];
 
+        /// <summary>⛔ THE RECORD OF EVERY DIAGNOSTIC OF THE SOURCE (DESIGN-listing.md section 6.3), in the order each phase reported:
+        /// the front end's, the binder's, each expansion's own compilation's (located at its EXPANDS entry) and the backend's, errors
+        /// and warnings alike, each a <see cref="Diagnostic"/> with its code, severity, message and location. Every line of
+        /// <see cref="Errors"/> and <see cref="Warnings"/> that reports one of them is its <see cref="Diagnostic.Render"/>; their other lines
+        /// name no source (the source file is missing, the host refused an output) and have no record. Present on every outcome.</summary>
+        public IReadOnlyList<Diagnostic> Diagnostics { get; init; } = [];
+
         /// <summary>The source listing (DESIGN-listing.md section 4.6), when <see cref="Options.Listing"/> asked for one and the
         /// source text was read; null otherwise. Present on every outcome that read the source, failures included.</summary>
         public WiseOwl.Cobol.Listing.ListingDocument? Listing { get; init; }
@@ -300,10 +307,13 @@ public static class CompilerDriver
         // errors instead of losing it behind them (kb/Work PB4586). A directive that fails SR3/SR4 on a program that parses
         // reaches the bind with the same diagnostics on the edition's sink, as before.
         Validation.CobolWordsCategoryPass.Run(frontend.Directives.CobolWordsMap, edition);
+        // The records of the diagnostics reported so far, and of <later> (an expansion's own compilation, the backend): the one list
+        // every return below carries as Result.Diagnostics (DESIGN-listing.md section 6.3).
+        Diagnostic[] Reported(IEnumerable<Diagnostic>? later = null) => [.. diagnostics.Diagnostics, .. edition.Records, .. later ?? []];
         if (tree is null || diagnostics.HasErrors)
             return new Result(Outcome.FrontendError, "", null,
                 [.. diagnostics.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()!), .. edition.Diagnostics], feWarnings)
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, Diagnostics = Reported() };
         var emitter = new CSharpEmitter();
         // The external repository (ISO §2023:8.13; DESIGN-external-repository §9.3): the --repository directories, else the
         // output directory, then the --reference assemblies; the output itself is never resolved against.
@@ -322,11 +332,11 @@ public static class CompilerDriver
             // A data item past the size limit (COBOL7641) ends the binding there, before any pass narrows its size (kb/Work PB5695):
             // the diagnostics reported so far are the answer.
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings])
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, Diagnostics = Reported() };
         }
-        if (edition.Diagnostics.Count > 0)
+        if (edition.HasErrors)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings])
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, Diagnostics = Reported() };
 
         // Check-only: every edition-gating diagnostic is now produced (parse + the bind manifest incl. its
         // terminal conformance pass), so the compile VERDICT is settled — the verdict already includes the pass's
@@ -334,7 +344,8 @@ public static class CompilerDriver
         // backend + the dll/g.cs writes) — the dominant cost — since no runnable assembly is wanted (the INV-1
         // continuity sweep / CLI `check-batch`).
         if (options.CheckOnly)
-            return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]) { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
+            return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings])
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, Diagnostics = Reported() };
 
         // Phases 2b + 3 — the BACKEND (the ICodeGenBackend seam, P7 Step 1): render the bound tree and compile
         // the result. Everything after Bind sits behind the seam so a second backend (direct CIL, PHASE 16) is a
@@ -357,24 +368,30 @@ public static class CompilerDriver
             string[] warnings = [.. feWarnings, .. edition.Warnings, .. expansion.Warnings];
             if (expansion.Errors.Count > 0)
                 return new Result(expansion.Failure, outputDll, expansion.GeneratedCsPath, expansion.Errors, warnings)
-                    { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files };
+                    { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files, Diagnostics = Reported(expansion.Diagnostics) };
             var artifact = backend.Emit(bound, new BackendOptions(
                 outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
                 RepositoryReferences: [.. bound.Imported.Assemblies, .. bound.Expansions.ReferencedAssemblies]));
             if (!artifact.Success)
                 return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                     artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)
-                    { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles] };
+                    {
+                        Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles],
+                        Diagnostics = Reported([.. expansion.Diagnostics, .. artifact.Diagnostics.Where(d => d.IsError)]),
+                    };
 
             return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [], warnings)
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles], Library = artifact.Library };
+            {
+                Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles],
+                Library = artifact.Library, Diagnostics = Reported(expansion.Diagnostics),
+            };
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             return new Result(Outcome.OutputNotWritable, outputDll, null,
                 [$"cannot write the output of '{outputDll}': {e.Message}"],
                 [.. feWarnings, .. edition.Warnings, .. expansion?.Warnings ?? []])
-                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion?.Files ?? [] };
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion?.Files ?? [], Diagnostics = Reported(expansion?.Diagnostics) };
         }
     }
 }

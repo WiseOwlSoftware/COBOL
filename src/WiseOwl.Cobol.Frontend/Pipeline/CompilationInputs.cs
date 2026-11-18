@@ -103,7 +103,7 @@ public sealed class CompilationInputs : IRepositoryInputs
     private static void ReportOnce(DiagnosticBag? diagnostics, string code, DiagnosticSeverity severity, string message,
         SourceLocation at)
     {
-        if (diagnostics is not null && !diagnostics.Diagnostics.Any(d => d.Code == code && d.Location.FileName == at.FileName))
+        if (diagnostics is not null && !diagnostics.Diagnostics.Any(d => d.Code == code && d.Location?.FileName == at.FileName))
             diagnostics.Report(code, severity, message, at, default);
     }
 

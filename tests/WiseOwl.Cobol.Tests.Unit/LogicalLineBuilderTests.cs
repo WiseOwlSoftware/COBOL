@@ -272,7 +272,7 @@ public sealed class LogicalLineBuilderTests
         Assert.Single(found);
         Assert.Equal(code, found[0].Code);
         Assert.Equal(isError, found[0].IsError);
-        Assert.Equal((1, 0), (found[0].Location.Line, found[0].Location.Column));   // 0-based: the first indicator, line 2, column 1
+        Assert.Equal((1, 0), (found[0].Location!.Value.Line, found[0].Location!.Value.Column));   // 0-based: the first indicator, line 2, column 1
         Assert.StartsWith(Carrier, m.Text.Split('\n')[1]);                          // carried at every edition: the gate reports, it never drops
     }
 
@@ -285,7 +285,7 @@ public sealed class LogicalLineBuilderTests
     {
         var (_, bag) = Normalize("000100     DISPLAY \"A\".\n000200" + fixedIndicator + "    >>D DISPLAY \"B\".\n", InitialReferenceFormat.Fixed, 2002);
         var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL5770");
-        Assert.Equal((1, 11), (d.Location.Line, d.Location.Column));
+        Assert.Equal((1, 11), (d.Location!.Value.Line, d.Location!.Value.Column));
         Assert.True(d.IsError);
     }
 
@@ -316,7 +316,7 @@ public sealed class LogicalLineBuilderTests
         Assert.Equal("MOVE \"ABCD\" TO V.", m.Text.Split('\n')[0]);                 // the debugging line was passed over: the literal is joined
         gates.OnSourceDebuggingLines([m.Lines[1].Origin]);
         var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL3473");
-        Assert.Equal((1, 0), (d.Location.Line, d.Location.Column));
+        Assert.Equal((1, 0), (d.Location!.Value.Line, d.Location!.Value.Column));
     }
 
     [Theory] // kb/Work PB1494 / PB1758: the comment-entry paragraph HEADER stays program text (with its terminating period
@@ -352,7 +352,7 @@ public sealed class LogicalLineBuilderTests
         var (m, bag) = Normalize(src, InitialReferenceFormat.Fixed, 85);
         var error = Assert.Single(bag.Diagnostics);
         Assert.Equal("COBOL7165", error.Code);
-        Assert.Equal((3, 6), (error.Location.Line, error.Location.Column));   // 0-based: line 4, the indicator column 7
+        Assert.Equal((3, 6), (error.Location!.Value.Line, error.Location!.Value.Column));   // 0-based: line 4, the indicator column 7
         Assert.Equal("", m.Text.Split('\n')[3]);                              // the entry is still discarded
     }
 
@@ -418,7 +418,7 @@ public sealed class LogicalLineBuilderTests
         Assert.Equal(directive[..^2], lines[0].Trim());   // §2023:6.5 4): the program text ends before the indicator ("-)
         Assert.Equal("", lines[1]);                       // the continuation line took a discarded slot
         Assert.Equal("DISPLAY X.", lines[2].Trim());
-        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2696" && d.Location.Line == 1);
+        Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2696" && d.Location!.Value.Line == 1);
     }
 
     [Theory] // the fixed-form hyphen in column 7, with an interspersed comment line (never a join target), and a
@@ -464,8 +464,8 @@ public sealed class LogicalLineBuilderTests
             InitialReferenceFormat.Fixed);
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL0903");           // the first use, in the main source
         var unseparated = Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2495");
-        Assert.Equal("book.cpy", unseparated.Location.FileName);
-        Assert.Equal(2, unseparated.Location.Line);                              // 0-based: physical line 3 of the copybook
+        Assert.Equal("book.cpy", unseparated.Location!.Value.FileName);
+        Assert.Equal(2, unseparated.Location!.Value.Line);                              // 0-based: physical line 3 of the copybook
     }
 
     // ── kb/Work PB1914: a fixed-form debugging line (indicator D) and the continuation of a literal ──────────────
@@ -538,7 +538,7 @@ public sealed class LogicalLineBuilderTests
         gates.OnSourceDebuggingLines(isSource ? new[] { debuggingLine } : Array.Empty<SourceOrigin>());
         var d = bag.Diagnostics.Where(x => x.Code == "COBOL3473").ToArray();
         Assert.Equal(diagnosed ? 1 : 0, d.Length);
-        if (diagnosed) Assert.Equal((1, 6), (d[0].Location.Line, d[0].Location.Column));   // 0-based: line 2, the indicator column
+        if (diagnosed) Assert.Equal((1, 6), (d[0].Location!.Value.Line, d[0].Location!.Value.Column));   // 0-based: line 2, the indicator column
     }
 
     [Fact] // a debugging line the walk did NOT pass over (no literal awaits its continuation) is never diagnosed, source or not

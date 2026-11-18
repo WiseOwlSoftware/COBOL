@@ -3,6 +3,8 @@
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Common;
+using Diagnostic = WiseOwl.Cobol.Frontend.Diagnostics.Diagnostic;
+using DiagnosticSeverity = WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticSeverity;
 using WiseOwl.Cobol.Runtime;
 
 using WiseOwl.Cobol.Binding.Model;
@@ -13,8 +15,8 @@ namespace WiseOwl.Cobol.Binding;
 /// The per-compilation EDITION context — the bind-side half of the four-compilers-in-one mission. As of
 /// rearchitecture PHASE 02 this is a thin ADAPTER over the two things it always really was: an immutable
 /// <see cref="Editions.EditionInfo"/> value (the SINGLE source of the targeted ISO edition — 85 / 2002 / 2014 /
-/// 2023, the CLI's <c>--std</c> — and the strict/permissive <c>--permissive</c> axis) plus a stringly-typed
-/// diagnostic sink (the <see cref="Diagnostics"/> / <see cref="Warnings"/> channels). Splitting the two ends the
+/// 2023, the CLI's <c>--std</c> — and the strict/permissive <c>--permissive</c> axis) plus the bind's diagnostic sink, which keeps each
+/// diagnostic as a record (<see cref="Records"/>) and renders the <see cref="Diagnostics"/> / <see cref="Warnings"/> channels from them. Splitting the two ends the
 /// triple-sourcing of <c>DialectLevel</c> (P5) and lets the ONE <see cref="Editions.ConstructRegistry.Check"/>
 /// funnel — now living BELOW the frontend in <c>WiseOwl.Cobol.Editions</c> — report here through
 /// <see cref="IDiagnosticSink"/> without the frontend and the compiler each re-encoding the severity policy.
@@ -60,16 +62,30 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// Introduction gating (a construct NEWER than the edition, 0900) is an error on BOTH axes.</summary>
     public bool Permissive => Edition.Permissive;
 
-    /// <summary>Bind-time rejection diagnostics. Any entry fails the compilation (CompilerDriver → BindError).</summary>
-    public List<string> Diagnostics { get; } = [];
+    /// <summary>⛔ THE BIND'S DIAGNOSTICS AS RECORDS (DESIGN-listing.md section 6.3), errors and warnings in the order they were
+    /// reported: each the front end's <see cref="Diagnostic"/> (code, severity, message and the physical location the cursor
+    /// names, which keeps the resultant line it was located from). <see cref="Diagnostics"/> and <see cref="Warnings"/> are
+    /// views of them rendered by the one <see cref="Diagnostic.Render"/>, and the source listing places each by its location.
+    /// <see cref="Error(string, string)"/> and <see cref="Warning(string, string)"/> are the only writers.</summary>
+    public IReadOnlyList<Diagnostic> Records => _records;
+
+    private readonly List<Diagnostic> _records = [];
+    private int _errorCount;
+
+    /// <summary>Bind-time rejection diagnostics, rendered (a view of <see cref="Records"/>). Any entry fails the compilation
+    /// (CompilerDriver → BindError).</summary>
+    public IReadOnlyList<string> Diagnostics => Rendered(DiagnosticSeverity.Error);
 
     /// <summary>Non-failing edition diagnostics (obsolete/archaic flags; removed constructs under
-    /// <see cref="Permissive"/>). Printed to stderr by the CLI, carried on <see cref="CompilerDriver.Result"/>;
-    /// never fails a compile. <see cref="Warning"/> is the only writer.</summary>
-    public List<string> Warnings { get; } = [];
+    /// <see cref="Permissive"/>), rendered (a view of <see cref="Records"/>). Printed to stderr by the CLI, carried on
+    /// <see cref="CompilerDriver.Result"/>; never fails a compile. <see cref="Warning"/> is the only writer.</summary>
+    public IReadOnlyList<string> Warnings => Rendered(DiagnosticSeverity.Warning);
+
+    private string[] Rendered(DiagnosticSeverity severity) =>
+        [.. _records.Where(d => d.Severity == severity).Select(d => d.ToString())];
 
     /// <summary>True when any failing diagnostic has been recorded (the CompilerDriver fail-fast gate).</summary>
-    public bool HasErrors => Diagnostics.Count > 0;
+    public bool HasErrors => _errorCount > 0;
 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
     /// §2023:8.3.3.3.2 fixed-point literals 1–31 digits; the §2023:14.7 composite-of-operands rules; PICTURE digit
@@ -157,22 +173,20 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// physically holds it — the main source or a copybook).</summary>
     public int SourceLineOf(int resultantLine) => OriginOf(resultantLine).Line;
 
-    /// <summary>The <c>file(line,col): </c> prefix for the current cursor — rendered by <see cref="SourceLocation"/>
-    /// itself (the ONE format source; the parse-layer diagnostics print the same object), or empty when no cursor
-    /// is set — a diagnostic about the compilation unit as a whole.</summary>
-    private string Prefix() =>
-        Cursor.IsSet ? LocationOf(Cursor.Line, Cursor.Column) + ": " : "";
-
-    /// <summary>⛔ THE ONE RENDERING OF A DIAGNOSTIC LINE, for the current cursor. A diagnostic about the text of a skeleton read from the
-    /// repository (<see cref="DiagnosticRegion.IsRepositoryText"/>) is positioned at the EXPANDS entry and names the expansion after the
-    /// message, exactly as the report of an expansion's own compilation is (<c>ExpansionAssemblies.AtTheEntry</c>), because the positions of
-    /// its tokens are places in a text this compilation never read as a file (kb/Work PB4469, PB4483).</summary>
-    private string Render(string severity, string code, string message) =>
+    /// <summary>⛔ THE ONE RECORD OF A DIAGNOSTIC, for the current cursor (DESIGN-listing.md section 6.3): at the location the cursor
+    /// names (<see cref="LocationOf"/>, which keeps its resultant line), or none when no cursor is set — a diagnostic about the
+    /// compilation unit as a whole. A diagnostic about the text of a skeleton read from the repository
+    /// (<see cref="DiagnosticRegion.IsRepositoryText"/>) is located at the EXPANDS entry and names the expansion after the message,
+    /// exactly as the report of an expansion's own compilation is (<c>ExpansionAssemblies.AtTheEntry</c>), because the positions of
+    /// its tokens are places in a text this compilation never read as a file (kb/Work PB4469, PB4483). Its line is
+    /// <see cref="Diagnostic.Render"/>'s.</summary>
+    private Diagnostic Record(DiagnosticSeverity severity, string code, string message) =>
         Cursor.Region is { IsRepositoryText: true } region
-            ? $"{LocationOf(region.ReportedAt.Line, region.ReportedAt.Column)}: {severity} {code}: {message} {DiagnosticRegion.InTheExpansion(region.Name)}"
-            : $"{Prefix()}{severity} {code}: {message}";
+            ? new Diagnostic(code, severity, $"{message} {DiagnosticRegion.InTheExpansion(region.Name)}",
+                LocationOf(region.ReportedAt.Line, region.ReportedAt.Column), default)
+            : new Diagnostic(code, severity, message, Cursor.IsSet ? LocationOf(Cursor.Line, Cursor.Column) : null, default);
 
-    /// <summary>What makes two reports of <paramref name="line"/> one fact (<see cref="AddOnce"/>). The rendered line, except for the text of
+    /// <summary>What makes two reports of <paramref name="line"/> one fact. The rendered line, except for the text of
     /// a skeleton read from the repository: every diagnostic of it renders at the EXPANDS entry, so two distinct places of the text that raise
     /// the same words render alike, and the place in the text (the token's own column in the recorded text, which is one line) keeps them two
     /// (kb/Work PB4483) — as the expansion's own compilation, which reads the text at its own positions, reports them.</summary>
@@ -189,7 +203,12 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public void Error(string code, string message)
     {
         ErrorsRecorded++;
-        AddOnce(Diagnostics, Render("error", code, message));
+        var record = Record(DiagnosticSeverity.Error, code, message);
+        if (_muted == 0 && _reported.Add(KeyOf(record.ToString())))
+        {
+            _records.Add(record);
+            _errorCount++;
+        }
     }
 
     // ── ⛔ THE REFUSAL LEDGER (kb/Work PB1029) ─────────────────────────────────────────────────────────────────
@@ -320,31 +339,28 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// same position with the same words. A diagnostic that DOES depend on the actual parameters differs in its
     /// text and is kept for each expansion — which is exactly the per-expansion report a user needs. The position is
     /// the one <see cref="KeyOf"/> names, which for the text of a skeleton read from the repository is the place in
-    /// that text, not the EXPANDS entry every such diagnostic is printed at (kb/Work PB4483).</summary>
-    private void AddOnce(List<string> into, string line)
-    {
-        if (_muted == 0 && _reported.Add(KeyOf(line))) into.Add(line);
-    }
+    /// that text, not the EXPANDS entry every such diagnostic is printed at (kb/Work PB4483). <see cref="Error(string, string)"/>
+    /// and <see cref="AddWarningOnce"/> apply it, each to its record's rendered line.</summary>
     private readonly HashSet<string> _reported = new(StringComparer.Ordinal);
 
-    /// <summary>Record a warning line once (<see cref="AddOnce"/>'s rule), remembering the ones the text of a skeleton read from the
-    /// repository raised, by region, so <see cref="WithdrawWarningsOf"/> can withdraw them. Such a line is that region's alone: it is
-    /// printed at the region's EXPANDS entry with the expansion's name (<see cref="Render"/>), which no other text's line is.</summary>
-    private void AddWarningOnce(string line)
+    /// <summary>Record a warning once (the rule <see cref="_reported"/> keeps), remembering the ones the text of a skeleton read from
+    /// the repository raised, by region, so <see cref="WithdrawWarningsOf"/> can withdraw them. Such a warning is that region's alone:
+    /// it is located at the region's EXPANDS entry with the expansion's name (<see cref="Record"/>), which no other text's is.</summary>
+    private void AddWarningOnce(Diagnostic record)
     {
         if (_muted != 0) return;
-        string key = KeyOf(line);
+        string key = KeyOf(record.ToString());
         if (!_reported.Add(key)) return;
-        Warnings.Add(line);
+        _records.Add(record);
         if (Cursor.Region is { IsRepositoryText: true } region)
         {
             if (!_regionWarnings.TryGetValue(region, out var raised)) _regionWarnings[region] = raised = [];
-            raised.Add((key, line));
+            raised.Add((key, record));
         }
     }
 
-    /// <summary>The warnings each region of repository text raised (<see cref="AddWarningOnce"/>), as their once-key and line.</summary>
-    private readonly Dictionary<DiagnosticRegion, List<(string Key, string Line)>> _regionWarnings = [];
+    /// <summary>The warnings each region of repository text raised (<see cref="AddWarningOnce"/>), as their once-key and record.</summary>
+    private readonly Dictionary<DiagnosticRegion, List<(string Key, Diagnostic Record)>> _regionWarnings = [];
 
     /// <summary>⛔ THE GROUP DOES NOT ANSWER FOR AN EXPANSION'S TEXT WHEN ANOTHER COMPILATION DOES (kb/Work PB4469, PB4483). Withdraw the
     /// warnings raised while binding and screening the text of <paramref name="region"/>, an expansion of a skeleton read from the
@@ -358,9 +374,9 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public void WithdrawWarningsOf(DiagnosticRegion region)
     {
         if (!_regionWarnings.Remove(region, out var raised)) return;
-        foreach (var (key, line) in raised)
+        foreach (var (key, record) in raised)
         {
-            Warnings.Remove(line);
+            _records.RemoveAt(_records.FindIndex(r => ReferenceEquals(r, record)));
             _reported.Remove(key);
         }
     }
@@ -402,7 +418,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>Record a non-failing edition diagnostic (the 0903 obsolete/archaic flags; removed constructs
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>
-    public void Warning(string code, string message) => AddWarningOnce(Render("warning", code, message));
+    public void Warning(string code, string message) => AddWarningOnce(Record(DiagnosticSeverity.Warning, code, message));
 
     /// <summary>The <see cref="Warning"/> twin of the descriptor-keyed <see cref="Error(DiagnosticDescriptor,string)"/>.
     /// ⛔ ITS ABSENCE WAS A DEFECT, not a gap: a descriptor-carrying site that wanted a warning had no descriptor

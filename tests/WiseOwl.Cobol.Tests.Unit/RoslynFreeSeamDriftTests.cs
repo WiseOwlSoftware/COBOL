@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// be built with no Roslyn package. The facts the model used to ASK Roslyn — which characters an identifier may hold, and
 /// the C# reserved keywords (<see cref="CsNameReservationDriftTests"/>) — it now states, and this class pins each
 /// statement to the Roslyn the compiler builds against, as it pins the Roslyn backend's translation of its diagnostics
-/// into the seam's <see cref="BackendDiagnostic"/> to the text Roslyn itself renders, so the restructuring changes no
+/// into the seam's <see cref="WiseOwl.Cobol.Frontend.Diagnostics.Diagnostic"/> to the text Roslyn itself renders, so the restructuring changes no
 /// byte a user sees.
 /// </summary>
 [Trait("Sweep", "tree")]
@@ -117,7 +117,7 @@ public sealed class RoslynFreeSeamDriftTests
             && CsNames.IsIdentifierPartCharacter('1') && !CsNames.IsIdentifierPartCharacter('-'));   // the probe sees what it guards
     }
 
-    /// <summary>Each Roslyn diagnostic crosses the seam as a <see cref="BackendDiagnostic"/> that renders Roslyn's own line:
+    /// <summary>Each Roslyn diagnostic crosses the seam as a <see cref="WiseOwl.Cobol.Frontend.Diagnostics.Diagnostic"/> that renders Roslyn's own line:
     /// an error and a warning in the source (the generated C# is parsed without a path, so the line begins
     /// <c>(line,col)</c>), and an error that names no position. A hidden diagnostic is not carried.</summary>
     [Fact]

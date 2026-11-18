@@ -1243,23 +1243,37 @@ public sealed class ExternalRepositoryExpansionTests
     {
         string temp = Path.Combine(Path.GetTempPath(), "expansion-0123456789abcdef.cob");
         var entry = new WiseOwl.Cobol.Frontend.Common.SourceLocation("client.cob", 0, 7, 4);   // line 8, column 5 as a user reads it
-        string At(string diagnostic) => ExpansionAssemblies.AtTheEntry(diagnostic, temp, "HOLD-BOX", entry);
+        string At(string code, string message, WiseOwl.Cobol.Frontend.Common.SourceLocation? at,
+            WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticSeverity severity = WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticSeverity.Error) =>
+            ExpansionAssemblies.AtTheEntry(new WiseOwl.Cobol.Frontend.Diagnostics.Diagnostic(code, severity, message, at, default),
+                temp, "HOLD-BOX", entry).ToString();
+        WiseOwl.Cobol.Frontend.Common.SourceLocation InTemp(int line, int column) => new(temp, 0, line - 1, column - 1);
 
         // A positioned diagnostic: the throw-away file and its line are replaced; the expansion is named.
         Assert.Equal("client.cob(8,5): error COBOL2690: boom (ISO §2023:6.4.2) [in the expansion 'HOLD-BOX']",
-            At($"{temp}(41,9): error COBOL2690: boom (ISO §2023:6.4.2)"));
-        Assert.Equal("client.cob(8,5): warning COBOL0903: obsolete [in the expansion 'HOLD-BOX']", At($"{temp}(3,1): warning COBOL0903: obsolete"));
+            At("COBOL2690", "boom (ISO §2023:6.4.2)", InTemp(41, 9)));
+        Assert.Equal("client.cob(8,5): warning COBOL0903: obsolete [in the expansion 'HOLD-BOX']",
+            At("COBOL0903", "obsolete", InTemp(3, 1), WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticSeverity.Warning));
         // A diagnostic that names no position takes the entry's.
-        Assert.Equal("client.cob(8,5): error COBOL5962: nothing [in the expansion 'HOLD-BOX']", At("error COBOL5962: nothing"));
+        Assert.Equal("client.cob(8,5): error COBOL5962: nothing [in the expansion 'HOLD-BOX']", At("COBOL5962", "nothing", null));
         // A mention of the file inside a message is not left pointing at a file that is gone.
-        string mention = At($"error COBOL0001: cannot read {temp}");
+        string mention = At("COBOL0001", $"cannot read {temp}", null);
         Assert.DoesNotContain("expansion-0123456789abcdef", mention, StringComparison.Ordinal);
         Assert.Contains("the text of the expansion 'HOLD-BOX'", mention, StringComparison.Ordinal);
-        // The header line and the Roslyn diagnostics of the generated C# are not positions in the text.
-        Assert.Equal("the expansion assembly 'HOLD-BOX.dll' (ISO §2023:9.3.12):", At("the expansion assembly 'HOLD-BOX.dll' (ISO §2023:9.3.12):"));
-        Assert.Equal("HOLD-BOX.g.cs(12,3): error CS0103: no", At("HOLD-BOX.g.cs(12,3): error CS0103: no"));
+        // A Roslyn diagnostic of the generated C# is no position in the text: it keeps its own.
+        Assert.Equal("HOLD-BOX.g.cs(12,3): error CS0103: no", At("CS0103", "no", new("HOLD-BOX.g.cs", 0, 11, 2)));
+        // A line of the compilation's report with no record (an output the host refused) names no source: it is kept, with a
+        // mention of the throw-away file made the expansion's name; each line with a record is that record, moved.
+        var record = new WiseOwl.Cobol.Frontend.Diagnostics.Diagnostic("COBOL2690", WiseOwl.Cobol.Frontend.Diagnostics.DiagnosticSeverity.Error,
+            "boom", InTemp(41, 9), default);
+        var result = new CompilerDriver.Result(CompilerDriver.Outcome.OutputNotWritable, "", null,
+            [record.ToString(), $"cannot write the output of '{temp}': denied"], []) { Diagnostics = [record] };
+        var (errors, warnings, records) = ExpansionAssemblies.AtTheEntry(result, temp, "HOLD-BOX", entry);
+        Assert.Equal(["client.cob(8,5): error COBOL2690: boom [in the expansion 'HOLD-BOX']",
+            "cannot write the output of 'the text of the expansion 'HOLD-BOX'': denied"], errors);
+        Assert.Empty(warnings);
+        Assert.Equal(errors[0], Assert.Single(records).ToString());
     }
-
     [Fact]   // PB4457: the CLI names the generated C# only when there is a file to open.
     public void TheBackendFailureHeadline_NamesTheGeneratedCSharp_OnlyWhenItExists()
     {

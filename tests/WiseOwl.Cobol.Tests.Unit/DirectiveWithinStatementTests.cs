@@ -63,7 +63,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     public void AFinishedStatementEarlierInTheBlock_IsNotCarried()
     {
         var (_, bag) = Run(" PROCEDURE DIVISION.\n COPY cb1.\n DISPLAY A. COPY cb1\n >>DEFINE VV AS 1\n .\n >>DEFINE WW AS 2\n");
-        Assert.Equal([3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location.Line).ToArray());   // 0-based
+        Assert.Equal([3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location!.Value.Line).ToArray());   // 0-based
     }
 
     [Theory] // §2023:7.3.3 SR8 b): each is COBOL2697, at the directive's own line
@@ -77,14 +77,14 @@ public sealed class DirectiveWithinStatementTests : IDisposable
         var (_, bag) = Run(source);
         var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL2697");
         Assert.Contains(keyword + " statement", d.Message);
-        Assert.Equal(2, d.Location.Line);   // 0-based: the directive is the third physical line
+        Assert.Equal(2, d.Location!.Value.Line);   // 0-based: the directive is the third physical line
     }
 
     [Fact] // a statement split by TWO directives is reported at each
     public void StatementSplitByTwoDirectives_IsReportedAtEach()
     {
         var (_, bag) = Run(" PROCEDURE DIVISION.\n COPY\n >>DEFINE VV AS 1\n >>DEFINE WW AS 2\n cb1.\n");
-        Assert.Equal([2, 3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location.Line).ToArray());
+        Assert.Equal([2, 3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location!.Value.Line).ToArray());
     }
 
     [Theory] // the converse: a directive BETWEEN statements, or after a finished one, is anywhere else a directive may be
@@ -122,7 +122,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
         var (_, bag) = RunConverted("       PROCEDURE DIVISION.\n" + statement);
         var d = Assert.Single(bag.Diagnostics, x => x.Code == "COBOL2697");
         Assert.Contains(keyword + " statement", d.Message);
-        Assert.Equal(2, d.Location.Line);   // 0-based: the directive is the third physical line
+        Assert.Equal(2, d.Location!.Value.Line);   // 0-based: the directive is the third physical line
         if (pseudoTextRule is null) Assert.DoesNotContain("pseudo-text, which", d.Message);
         else Assert.Contains("inside pseudo-text, which " + pseudoTextRule + " also forbids", d.Message);
     }
@@ -131,7 +131,7 @@ public sealed class DirectiveWithinStatementTests : IDisposable
     public void StatementSplitByTwoSourceFormatDirectives_IsReportedAtEach()
     {
         var (_, bag) = RunConverted("       PROCEDURE DIVISION.\n       COPY\n       >>SOURCE FORMAT FIXED\n       >>SOURCE FORMAT FIXED\n       cb1.\n");
-        Assert.Equal([2, 3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location.Line).ToArray());
+        Assert.Equal([2, 3], bag.Diagnostics.Where(x => x.Code == "COBOL2697").Select(x => x.Location!.Value.Line).ToArray());
     }
 
     [Fact] // the discarded line of LIBRARY text is asked of the library text's own map

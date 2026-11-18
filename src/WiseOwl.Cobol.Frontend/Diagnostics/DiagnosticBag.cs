@@ -68,9 +68,10 @@ public sealed class DiagnosticBag
             int at = effectCount;
             for (int i = from; i < effectCount; i++)
             {
-                var effect = _diagnostics[i].Location;
-                if (effect.FileName == cause.Location.FileName
-                    && (effect.Line, effect.Column).CompareTo((cause.Location.Line, cause.Location.Column)) >= 0)
+                // A diagnostic with no location (none of the front end's: its reporters always name one) orders against nothing.
+                if (_diagnostics[i].Location is not { } effect || cause.Location is not { } own) continue;
+                if (effect.FileName == own.FileName
+                    && (effect.Line, effect.Column).CompareTo((own.Line, own.Column)) >= 0)
                 {
                     at = i;
                     break;

@@ -224,7 +224,7 @@ public sealed class CharacterPositionsTests
         string line = "000100 " + Wides(3) + "*> remark";
         var (_, bag) = Normalize(line + "\n", InitialReferenceFormat.Fixed, std: 2002);
         var diagnostic = Assert.Single(bag.Diagnostics, d => d.Message.Contains("separator space", StringComparison.Ordinal));
-        Assert.Equal(7 + 3, diagnostic.Location.Column);                      // 0-based position of the `*` in the line
+        Assert.Equal(7 + 3, diagnostic.Location!.Value.Column);                      // 0-based position of the `*` in the line
     }
 
     [Fact] // the Auto detector reads the same columns: a sequence area of supplementary DIGITS (U+1D7CE.., category Nd) is
