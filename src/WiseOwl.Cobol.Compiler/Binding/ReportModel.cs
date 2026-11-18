@@ -167,6 +167,22 @@ public sealed class ReportModel
     /// engine's, so it allocates no storage. LINE-COUNTER has no such register: SR3 bars it from the receiving
     /// side, and the sending side of both counters is <c>BoundReportCounterRef</c>.</summary>
     public required DataItem PageCounterRegister { get; init; }
+
+    /// <summary>⛔ THE DATA ITEM EACH WRITTEN ELEMENTARY ENTRY'S DATA-NAME NAMES (kb/Work PB5925 review round 2), keyed by the
+    /// written entry (<see cref="WrittenEntries"/>): for an entry containing a SUM clause, its sum counter's register
+    /// (<see cref="ReportSumFamily.Register"/> — ISO §2023:13.18.54.4 GR5, "the data-name is the name of the sum counter, not the
+    /// name of the associated printable item, if any"); for any other entry with a COLUMN clause, its printable item (a repeating
+    /// entry's first placement stands for it); for an elementary entry with a PICTURE and no COLUMN clause, the unprintable item
+    /// its PICTURE describes. A group entry has none. The one answer the symbol table describes an entry by and
+    /// <see cref="ReportSourceFamily.Category"/> reads, recorded where the binder makes each item.</summary>
+    public DataItem? ItemOf(Core.ReportGroupEntryContext entry) => _items.GetValueOrDefault(entry);
+
+    /// <summary>Record <paramref name="item"/> as what <paramref name="entry"/> describes (<see cref="ItemOf"/>); the first
+    /// record stands: a SUM entry's counter is recorded before its printable item, a repeating entry's first replay before the
+    /// rest.</summary>
+    internal void Describe(Core.ReportGroupEntryContext entry, DataItem item) => _items.TryAdd(entry, item);
+
+    private readonly Dictionary<Core.ReportGroupEntryContext, DataItem> _items = new(ReferenceEqualityComparer.Instance);
 }
 
 /// <summary>One report group description entry that carries a data-name (ISO §2023:13.15.3 SR7's "entry-name"):
@@ -861,6 +877,9 @@ public abstract class ReportEntryFamily
     /// <summary>The report description the entry is written in.</summary>
     public required ReportModel Report { get; init; }
 
+    /// <summary>The written entry (one of <see cref="ReportModel.WrittenEntries"/>) whose occurrences the family gathers.</summary>
+    public required Core.ReportGroupEntryContext Entry { get; init; }
+
     /// <summary>The report group description (the 01-level entry and everything under it) the entry is part of —
     /// §2023:13.18.54.3 SR4 b)/c) ask whether data-name-1 and the subject share one, and SR4 f) asks its TYPE.</summary>
     public required ReportGroupModel Group { get; init; }
@@ -927,8 +946,9 @@ public abstract class ReportEntryFamily
 /// <see cref="Category"/> is its PICTURE's category, which SR4's "numeric data item" asks.</summary>
 public sealed class ReportSourceFamily : ReportEntryFamily
 {
-    /// <summary>The category of the entry's PICTURE; null when it has none or none that analyzed.</summary>
-    public PicCategory? Category { get; set; }
+    /// <summary>The category of the entry's PICTURE, read off the item the entry describes (<see cref="ReportModel.ItemOf"/>);
+    /// null when it has none or none that analyzed.</summary>
+    public PicCategory? Category => Report.ItemOf(Entry)?.Pic?.Category;
 }
 
 /// <summary>

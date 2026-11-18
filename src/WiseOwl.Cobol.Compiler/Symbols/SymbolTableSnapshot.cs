@@ -92,8 +92,9 @@ internal enum DataSection { File, WorkingStorage, LocalStorage, Linkage, Communi
 /// entry that describes no printable item.</param>
 /// <param name="Bytes">The bytes it occupies (every occurrence of a table), or null for an entry that occupies no storage (an entry
 /// of a type declaration or of a report group, an implicit register).</param>
-/// <param name="NativeField">The field that holds it, or null for an item that owns no field (a RENAMES alias, an entry of a
-/// type declaration or of a report group, an implicit register).</param>
+/// <param name="NativeField">The field that holds it (for a method's LOCAL-STORAGE item, the method's local variable), or null for
+/// an item that owns no field (a RENAMES alias, an entry of a type declaration or of a report group, an implicit register, a
+/// LINKAGE SECTION item, whose storage is the activating element's, ISO §2023:13.7.1).</param>
 /// <param name="NativeType">The .NET type of that field, or null with it.</param>
 /// <param name="TypeDeclaration">The entry is a type declaration (a TYPEDEF entry) or part of one: it describes a type and has no
 /// storage (ISO §2023:13.18.58.4 GR2).</param>
@@ -107,13 +108,16 @@ internal sealed record DataAttributes(int Level, int? Parent, DataSection Sectio
 /// <summary>A condition-name's attributes.</summary>
 /// <param name="ConditionalVariable">The entry of its conditional variable.</param>
 /// <param name="Values">Its VALUE clause's values as written, a THRU range as <c>low THRU high</c>.</param>
-internal sealed record ConditionAttributes(int ConditionalVariable, IReadOnlyList<string> Values) : SymbolAttributes;
+/// <param name="TypeDeclaration">Its conditional variable is part of a type declaration (<see cref="DataAttributes.TypeDeclaration"/>).</param>
+internal sealed record ConditionAttributes(int ConditionalVariable, IReadOnlyList<string> Values, bool TypeDeclaration) : SymbolAttributes;
 
 /// <summary>An index-name's attributes.</summary>
 /// <param name="Table">The entry of the table whose INDEXED BY phrase declares it.</param>
-/// <param name="NativeField">The field that holds its occurrence number.</param>
-/// <param name="NativeType">The .NET type of that field.</param>
-internal sealed record IndexAttributes(int Table, string NativeField, string NativeType) : SymbolAttributes;
+/// <param name="NativeField">The field that holds its occurrence number, or null for an index-name of a type declaration's table,
+/// which has no storage (ISO §2023:13.18.58.4 GR2).</param>
+/// <param name="NativeType">The .NET type of that field, or null with it.</param>
+/// <param name="TypeDeclaration">Its table is part of a type declaration (<see cref="DataAttributes.TypeDeclaration"/>).</param>
+internal sealed record IndexAttributes(int Table, string? NativeField, string? NativeType, bool TypeDeclaration) : SymbolAttributes;
 
 /// <summary>A constant-name's attributes (ISO §2023:13.10).</summary>
 /// <param name="Value">What the entry specifies it stands for, as written (ISO §2023:13.10.3 SR9's specification), or null

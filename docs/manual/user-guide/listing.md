@@ -96,8 +96,10 @@ only where the compilations did.
 
 The data map lists every name the data division declares, in the order written, in every program, class, method and
 interface: each data description entry (FILLER included), each level-88 condition-name, each INDEXED BY index-name, each
-constant, each level-66 entry, each type declaration (marked `TYPE DECLARATION`; it has no storage, so no offset, bytes or
-field), each report (`rd`) with its report group description entries, and each CD (`cd`, its FOR phrase on the row under it)
+constant, each level-66 entry, each type declaration (marked `TYPE DECLARATION`, with its condition-names and index-names; it
+has no storage, so no offset, bytes or field), each report (`rd`) with its report group description entries (an entry with a
+SUM clause is its sum counter, a numeric item with the PICTURE's digits as its length and no picture or usage of its own; an
+elementary entry with no COLUMN clause, the unprintable item its PICTURE describes), and each CD (`cd`, its FOR phrase on the row under it)
 with the record area the standard describes for it. An item the standard defines implicitly, a CAPACITY IN register or an
 item of a CD's record area, is marked `IMPLICIT`; the compiler's own temporaries are not listed. The entries a TYPE clause
 copies are listed on the line of the entry that writes the clause, in its program, at their offsets there. An entry is
@@ -107,7 +109,8 @@ For a data item it gives the listing line it is declared on, its level, its offs
 bytes (for an item of a table, its first occurrence's), its length in character positions (what `FUNCTION LENGTH` returns),
 the bytes it occupies (every occurrence of a table), its usage and picture; and, on the row under it, its OCCURS,
 DEPENDING ON, INDEXED BY, REDEFINES and RENAMES facts (each naming another entry by its `#id`), GLOBAL, EXTERNAL and BASED,
-and the field of the compiled program that holds it with its .NET type. A condition-name's row under it gives its values,
+and the field of the compiled program that holds it with its .NET type (none for a LINKAGE SECTION item, whose storage is the
+caller's; a method's LOCAL-STORAGE item is held in the method's local variable). A condition-name's row under it gives its values,
 a constant's its specification. The file map follows: each file, the line of its file control entry, its organization,
 access mode and record descriptions, and on the row under it its RECORD KEY, each ALTERNATE RECORD KEY (with DUPLICATES),
 its RELATIVE KEY item, the reports it is written to and the name its file connector has in the run unit:

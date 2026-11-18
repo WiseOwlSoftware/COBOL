@@ -812,13 +812,31 @@ names every connector (`BinderDriver`, after `QualifyClassFiles`).
   storage associated with it", ISO §2023:13.18.58.4 GR2), the constant entries (`ConstantEntryBinder.DeclaredConstants`: a constant
   makes no data item, ISO §2023:13.10.4 GR1, so it is read off the binder), the file-names (`FileModel.SelectName`), each report
   description entry with its report group description entries (`ReportScope.Declared`, `ReportModel.WrittenEntries`: stored
-  nowhere of their own, so no offset, bytes or field; a printable entry has its item's usage, picture and length), and each CD's
+  nowhere of their own, so no offset, bytes or field), and each CD's
   cd-name with the implicit description of its record area (`CommunicationSlice.Declared`), ordered by their positions. The
   source elements are each program unit, the OBJECT and FACTORY of each class with each method's own LOCAL-STORAGE and LINKAGE
   entries and type declarations (`OoMethodSymbol.Binding`, `DataScope.TypeDecls`), and each interface's methods. Compiler
   temporaries are no declared name and have no entry. A condition-name carries its position (`Condition88.DeclaredAt`, copied by
   `CopyOnto`); an index-name stands on its table's entry; a file on its SELECT entry (`FileModel.EntryAt`). (Step 6 review round
   1, correction:) a level-1 entry of a CD's area or record is owned by its CD, as a report group's is by its report.
+- **A report group entry is described by the item its data-name names (step 6 review round 2, correction).** Round 1 described
+  an entry by the printable item a COLUMN clause places, so a SUM entry with no COLUMN clause was listed as a group, and a
+  printing SUM entry by its printable item, though "the data-name is the name of the sum counter, not the name of the associated
+  printable item" (ISO §2023:13.18.54.4 GR5). The binder now records, where it makes each item, the one item each written entry
+  describes (`ReportModel.ItemOf`, written by `ReportModel.Describe`): a SUM entry's counter register first, else the printable
+  item, else, for an elementary entry with a PICTURE and no COLUMN clause, the unprintable item (ISO §2023:13.18.53.4 GR3: it
+  "defines an unprintable item"), analysed once by the printable item's analyzer; a group entry has none.
+  `ReportSourceFamily.Category` reads the same item (its families now carry their written `Entry`), so SR4's "numeric data item"
+  and the data map read one answer. A sum counter is listed with category NUMERIC and its digits as its length, and no picture
+  or usage: it "is a conceptual data item that behaves as a data item of the category numeric" (GR1). The entry is declared as
+  that item, so an attribute naming the counter names the entry.
+- **No field for a LINKAGE item; a type declaration's condition-names and index-names are marked (step 6 review round 2,
+  correction).** "The linkage section describes formal parameters and returning items" (ISO §2023:13.7.1): their storage is the
+  activating element's, and the compiled code holds only an argument carrier whose form the backend picks per calling convention
+  (a program's `ref` parameter, a method's formal pointer and local), which no bound fact names. So a LINKAGE item has no native
+  field or type, as an entry of a type declaration has none. A method's LOCAL-STORAGE item's native field is the method's local
+  variable of that name and type. A condition-name or index-name of a type declaration's entry is marked `TypeDeclaration` like
+  the entry (`ConditionAttributes`, `IndexAttributes`), and the index-name has no field either.
 - **A copy stands where its clause is written (step 6 review round 1, correction).** A TYPE or SAME AS clause's effect is "as
   though the data description identified by type-name-1 had been coded in place" (ISO §2023:13.18.57.4 GR1), but a copied entry
   keeps its template's `DeclaredAt`. The table places every data entry by ONE answer, `SymbolTableFinish.WrittenAt`: the entry's

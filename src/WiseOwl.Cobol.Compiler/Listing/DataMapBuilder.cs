@@ -74,12 +74,12 @@ internal static class DataMapBuilder
                 case ConditionAttributes c:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Condition, entry.Name, at.Program, at.Line, at.Column,
                         88, Item(c.ConditionalVariable), null, null, null, null, null, null, null, [], null, null, null, false, false,
-                        false, null, null, null, null, null, c.Values, false, false));
+                        false, null, null, null, null, null, c.Values, c.TypeDeclaration, false));
                     break;
                 case IndexAttributes x:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Index, entry.Name, at.Program, at.Line, at.Column,
                         null, Item(x.Table), null, null, null, null, null, null, null, [], null, null, null, false, false, false,
-                        null, null, null, x.NativeField, x.NativeType, [], false, false));
+                        null, null, null, x.NativeField, x.NativeType, [], x.TypeDeclaration, false));
                     break;
                 case ConstantAttributes k:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Constant, entry.Name, at.Program, at.Line, at.Column,

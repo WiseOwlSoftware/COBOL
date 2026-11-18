@@ -72,14 +72,16 @@ public enum ListingDataItemKind
 /// null.</param>
 /// <param name="Bytes">The bytes a data item occupies, every occurrence of a table counted; null for an entry that has no storage
 /// and for the other kinds.</param>
-/// <param name="NativeField">The field of the compiled program that holds a data item or an index-name, or null for an item that
-/// owns no field (a level-66 alias, an entry with no storage) and for the other kinds.</param>
+/// <param name="NativeField">The field of the compiled program that holds a data item or an index-name (for a method's
+/// LOCAL-STORAGE item, the method's local variable), or null for an item that owns no field (a level-66 alias, an entry with no
+/// storage, a LINKAGE SECTION item, whose storage is the activating element's, ISO §2023:13.7.1) and for the other kinds.</param>
 /// <param name="NativeType">The .NET type of that field, as C# spells it, or null with <paramref name="NativeField"/>.</param>
 /// <param name="Values">A condition-name's values as its VALUE clause writes them (a range as <c>low THRU high</c>), or a
 /// constant-name's specification as written, or a cd-name's FOR phrase (<c>INPUT</c>, <c>OUTPUT</c> or <c>I-O</c>, after
 /// <c>INITIAL</c> when the entry writes it); empty for the other kinds and for a refused constant entry.</param>
-/// <param name="TypeDeclaration">The entry is a type declaration (a TYPEDEF entry) or part of one: it describes a type and has no
-/// storage (ISO §2023:13.18.58.4 GR2); the entries a TYPE clause copies from it are listed where that clause is written.</param>
+/// <param name="TypeDeclaration">The entry is a type declaration (a TYPEDEF entry) or part of one, or a condition-name or
+/// index-name of such an entry: it describes a type and has no storage (ISO §2023:13.18.58.4 GR2); the entries a TYPE clause
+/// copies from it are listed where that clause is written.</param>
 /// <param name="Implicit">The standard defines the item implicitly where the entry that names it is written (a CAPACITY IN
 /// register, ISO §2023:13.18.38.3 SR30; an entry of a CD's record area, ISO §1985:XIV.2.2), so no data description entry of its
 /// own describes it. A compiler temporary is no declared name and is not in the data map.</param>

@@ -55,3 +55,13 @@ keys, the RELATIVE KEY, the reports and the connector's run-unit name, so the ta
 named. Section 6.6's "compiler-implicit items" is corrected to the items the standard defines implicitly. One citation was
 wrong (the default access mode is §2023:12.4.5.5.3 GR1). Five new `ListingDataMapTests` cases; kb/Work/PB5925's
 2026-11-18-listing-step-6-review-r1.md records each fix.
+
+**Review round 2.** A report group entry was described by the printable item a COLUMN clause places, so a SUM entry with no
+COLUMN clause was listed as a group, and a printing SUM entry by its printable item although its data-name names the sum counter
+(§2023:13.18.54.4 GR5). The binder now records the one item each written entry describes (`ReportModel.ItemOf`: the counter
+register, else the printable item, else the unprintable item an elementary entry with no COLUMN clause defines,
+§2023:13.18.53.4 GR3), and `ReportSourceFamily.Category` reads the same item. A sum counter is listed NUMERIC with its digits as
+its length and no picture or usage (GR1). A LINKAGE item has no native field (§2023:13.7.1: its storage is the activating
+element's), and a type declaration's condition-names and index-names are marked `TypeDeclaration`. One new
+`ListingDataMapTests` case and two extended; three mutations each turned one red; kb/Work/PB5925's
+2026-11-18-listing-step-6-review-r2.md records each fix.

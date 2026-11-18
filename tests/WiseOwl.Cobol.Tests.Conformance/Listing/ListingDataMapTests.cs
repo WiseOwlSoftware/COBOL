@@ -283,11 +283,10 @@ public sealed class ListingDataMapTests : IDisposable
         var declared = map.Items.Where(i => i.Line is >= 5 and <= 8).ToList();
         Assert.Equal([("T-REC", 5), ("T-A", 6), ("T-A-YES", 7), ("T-B", 8)], declared.Select(i => (i.Name, i.Line ?? 0)));
         Assert.All(declared, i => Assert.Equal(programs["OUTER"], i.Program));
+        // Every entry of it, its condition-name too, is part of the type declaration (kb/Work PB5925 review round 2, finding 2).
+        Assert.All(declared, i => Assert.True(i.TypeDeclaration));
         Assert.All(declared.Where(i => i.Kind == ListingDataItemKind.Data), i =>
-        {
-            Assert.True(i.TypeDeclaration);
-            Assert.Equal(((int?)null, (int?)null, (string?)null), (i.Offset, i.Bytes, i.NativeField));
-        });
+            Assert.Equal(((int?)null, (int?)null, (string?)null), (i.Offset, i.Bytes, i.NativeField)));
         // X(3) and 9(4): 3 and 4 positions (§2023:13.18.40.4 GR14), the type 7.
         Assert.Equal([7, 3, 4], declared.Where(i => i.Kind == ListingDataItemKind.Data).Select(i => i.Length ?? 0));
         Assert.All(listing.Lines.Where(l => l.Number is >= 5 and <= 8 && l.Margin is not null), l => Assert.Null(l.Margin!.Offset));
@@ -420,6 +419,56 @@ public sealed class ListingDataMapTests : IDisposable
         // X(4) is 4 positions, 9(2) 2 (§2023:13.18.40.4 GR14).
         Assert.Equal((14, (int?)method, "LOCAL-STORAGE", 4), (ml.Line ?? 0, ml.Program, ml.Section, ml.Length ?? 0));
         Assert.Equal((16, (int?)method, "LINKAGE", 2), (mk.Line ?? 0, mk.Program, mk.Section, mk.Length ?? 0));
+        // "The linkage section describes formal parameters and returning items" (§2023:13.7.1): their storage is the activating
+        // element's, so the compiled method holds no field of its own for MK; ML is the method's own (kb/Work PB5925 review
+        // round 2, finding 3).
+        Assert.Equal(((string?)null, (string?)null), (mk.NativeField, mk.NativeType));
+        Assert.NotNull(ml.NativeField);
+    }
+
+    /// <summary>A report group description entry is described by the item its data-name names (kb/Work PB5925 review round 2,
+    /// finding 1): "If a data-name immediately follows the level number in the entry containing the SUM clause, the data-name is
+    /// the name of the sum counter, not the name of the associated printable item" (§2023:13.18.54.4 GR5), and the sum counter
+    /// "is a conceptual data item that behaves as a data item of the category numeric" whose digits are those of the entry's
+    /// PICTURE (GR1), so it has that many positions and no PICTURE or USAGE of its own, printable or not; an entry that "contains
+    /// no COLUMN clause and therefore defines an unprintable item" (§2023:13.18.53.4 GR3) is that elementary item.</summary>
+    [Fact]
+    public void AReportEntry_IsDescribedByTheItemItsDataNameNames()
+    {
+        string[] reported =
+        [
+            "       IDENTIFICATION DIVISION.",                                       // 1
+            "       PROGRAM-ID. P11.",                                               // 2
+            "       ENVIRONMENT DIVISION.",                                          // 3
+            "       INPUT-OUTPUT SECTION.",                                          // 4
+            "       FILE-CONTROL.",                                                  // 5
+            "           SELECT RPTF ASSIGN TO \"RF.TXT\".",                          // 6
+            "       DATA DIVISION.",                                                 // 7
+            "       FILE SECTION.",                                                  // 8
+            "       FD RPTF REPORT IS RPT.",                                         // 9
+            "       WORKING-STORAGE SECTION.",                                       // 10
+            "       01 W-N PIC 9(3) VALUE 5.",                                       // 11
+            "       REPORT SECTION.",                                                // 12
+            "       RD RPT.",                                                        // 13
+            "       01 RL TYPE DETAIL LINE PLUS 1.",                                 // 14
+            "          05 R-N COLUMN 1 PIC 9(3) SOURCE W-N.",                        // 15
+            "          05 R-S COLUMN 10 PIC ZZZZ9 SUM W-N.",                         // 16
+            "          05 R-U PIC S9(5) SUM W-N.",                                   // 17
+            "          05 R-V PIC 9(4) SOURCE W-N.",                                 // 18
+            "       PROCEDURE DIVISION.",                                            // 19
+            "           DISPLAY R-U.",                                               // 20
+            "           STOP RUN.",                                                  // 21
+        ];
+        var listing = Compile(DataMapSections, reported).Listing!;
+        var map = Assert.IsType<ListingDataMap>(listing.DataMap);
+        static (string?, string?, string?, int?) Described(ListingDataItem i) => (i.Category, i.Picture, i.Usage, i.Length);
+        // 9(3) and 9(4): 3 and 4 positions (§2023:13.18.40.4 GR14); ZZZZ9 and S9(5): 5 digits each (GR1).
+        Assert.Equal(("NUMERIC", "9(3)", "DISPLAY", 3), Described(Item(map, "R-N")));
+        Assert.Equal(("NUMERIC", null, null, 5), Described(Item(map, "R-S")));
+        Assert.Equal(("NUMERIC", null, null, 5), Described(Item(map, "R-U")));
+        Assert.Equal(("NUMERIC", "9(4)", "DISPLAY", 4), Described(Item(map, "R-V")));
+        Assert.Equal("GROUP", Item(map, "RL").Category);
+        Assert.Equal(5, listing.Lines.Single(l => l.Number == 17).Margin!.Length);
     }
 
     /// <summary>An item the standard defines implicitly is in the data map, marked implicit: the CAPACITY IN register, which "shall

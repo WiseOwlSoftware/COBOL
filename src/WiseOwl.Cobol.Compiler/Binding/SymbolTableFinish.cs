@@ -1,13 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Communication;
 using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
-
-using Core = CobolParserCore;
 
 /// <summary>
 /// ⛔ THE FINISHING OF THE SYMBOL TABLE (docs/rearchitecture/DESIGN-listing.md section 6.7.1): once the data binding is frozen, every
@@ -120,19 +117,21 @@ internal static class SymbolTableFinish
     private static void DeclareTree(SymbolTableWriter into, DataItem item, bool implicitly)
     {
         var at = WrittenAt(item);
+        bool type = DataBinder.InTypeDeclaration(item);
         into.Declare(item, NameClass.Data, item.CobolName ?? "FILLER", at, ids => DataAttributesOf(item, implicitly, ids));
         foreach (var condition in item.Own88s)
         {
             var c = condition;
             into.Declare(c, NameClass.Condition, c.Name, c.ClonedFrom is null ? PositionOf(c.DeclaredAt) : at,
                 ids => new ConditionAttributes(ids(c.Parent) ?? 0,
-                    [.. c.Values.Select(static v => v.High is { } high ? $"{v.Low} THRU {high}" : v.Low)]));
+                    [.. c.Values.Select(static v => v.High is { } high ? $"{v.Low} THRU {high}" : v.Low)], type));
         }
         foreach (var index in item.Indexes)
         {
             var ix = index;
             into.Declare(ix, NameClass.Index, ix.Name, at,
-                ids => new IndexAttributes(ids(ix.Table) ?? 0, ix.Cell, Passes.StorageFormPass.StorageElementType(IndexCellForm)));
+                ids => new IndexAttributes(ids(ix.Table) ?? 0, type ? null : ix.Cell,
+                    type ? null : Passes.StorageFormPass.StorageElementType(IndexCellForm), type));
         }
         foreach (var child in item.Children) DeclareTree(into, child, implicitly);
         // §2023:13.18.38.3 SR30: data-name-3 of CAPACITY IN "shall be treated as though implicitly defined at the same level as the
@@ -158,13 +157,15 @@ internal static class SymbolTableFinish
 
     /// <summary>A data item's attributes (DESIGN-listing.md section 6.6), each read where the binder recorded it. An entry of a
     /// type declaration describes a type and has no storage (ISO §2023:13.18.58.4 GR2: "A type declaration has no storage
-    /// associated with it"), so it has no offset, no bytes and no field.</summary>
+    /// associated with it"), so it has no offset, no bytes and no field. A LINKAGE SECTION item describes a formal parameter or
+    /// returning item (ISO §2023:13.7.1), whose storage is the activating element's: the compiled code holds no field of its own
+    /// for it, only an argument carrier whose form the backend picks per calling convention, so it has no field either.</summary>
     private static DataAttributes DataAttributesOf(DataItem item, bool implicitly, Func<object, int?> ids)
     {
         var pic = item.Pic;
         var usage = pic?.Usage ?? item.OwnUsage;
         bool type = DataBinder.InTypeDeclaration(item);
-        bool ownsField = !item.OwnsNoField && !type;
+        bool ownsField = !item.OwnsNoField && !type && item.Section is not EntrySection.Linkage;
         return new DataAttributes(
             Level: item.Level,
             Parent: item.Parent is { } parent ? ids(parent) : null,
@@ -252,42 +253,45 @@ internal static class SymbolTableFinish
 
     /// <summary>Declare the report description entry <paramref name="report"/>, then each of its report group description entries
     /// in the order written (ISO §2023:13.15): an entry's owner is the nearest entry before it of a lower level-number, a level-1
-    /// entry's the report. A report group entry is composed into a report line when the report is generated and is stored nowhere
-    /// else, so it has no offset, bytes or field; one that defines a printable item has that item's usage, picture, category and
-    /// length.</summary>
+    /// entry's the report. Each entry is described by the item its data-name names (<see cref="ReportModel.ItemOf"/>): a SUM
+    /// entry's sum counter (ISO §2023:13.18.54.4 GR5), another entry's printable or unprintable item, and a group entry by none.
+    /// The entry is declared as that item, so an attribute naming it (a COBOL-85 DEPENDING ON a sum counter) names the entry.</summary>
     private static void DeclareReport(SymbolTableWriter into, ReportModel report)
     {
         into.Declare(report, NameClass.Report, report.Name, PositionOf(report.At),
             ids => new ReportAttributes(report.File is { } file ? ids(file) : null, report.IsGlobal));
-        // The printable item each written entry defines (a repeating entry's first placement stands for it).
-        var printed = new Dictionary<Core.ReportGroupEntryContext, DataItem>(ReferenceEqualityComparer.Instance);
-        foreach (var field in report.Groups.SelectMany(static g => g.Lines).SelectMany(static l => l.Fields))
-            if (field.Entry is { } entry) printed.TryAdd(entry, field.PrintItem);
+        var counters = report.SumFamilies.Select(static f => f.Register).ToHashSet(ReferenceEqualityComparer.Instance);
         var chain = new List<(int Level, object Symbol)>();
         foreach (var entry in report.WrittenEntries)
         {
             int level = int.TryParse(entry.levelNumber().GetText(), out int written) ? written : 0;
             while (chain.Count > 0 && chain[^1].Level >= level) chain.RemoveAt(chain.Count - 1);
             object owner = chain.Count > 0 ? chain[^1].Symbol : report;
-            var item = printed.GetValueOrDefault(entry);
-            into.Declare(entry, NameClass.Data, entry.dataName()?.GetText() ?? "FILLER",
-                new SymbolPosition(entry.Start.Line, entry.Start.Column), ids => ReportEntryAttributesOf(level, ids(owner), item));
-            chain.Add((level, entry));
+            var item = report.ItemOf(entry);
+            bool counter = item is not null && counters.Contains(item);
+            object symbol = (object?)item ?? entry;
+            into.Declare(symbol, NameClass.Data, entry.dataName()?.GetText() ?? "FILLER",
+                new SymbolPosition(entry.Start.Line, entry.Start.Column), ids => ReportEntryAttributesOf(level, ids(owner), item, counter));
+            chain.Add((level, symbol));
         }
     }
 
-    /// <summary>A report group description entry's attributes (<see cref="DeclareReport"/>).</summary>
-    private static DataAttributes ReportEntryAttributesOf(int level, int? owner, DataItem? printable) => new(
+    /// <summary>A report group description entry's attributes (<see cref="DeclareReport"/>). A report group entry is composed into a
+    /// report line when the report is generated and is stored nowhere else, so it has no offset, bytes or field. A sum counter
+    /// (<paramref name="counter"/>) is "a conceptual data item that behaves as a data item of the category numeric", whose digits
+    /// are derived from the entry's PICTURE (ISO §2023:13.18.54.4 GR1): it has that category and that many positions, and no
+    /// PICTURE or USAGE of its own.</summary>
+    private static DataAttributes ReportEntryAttributesOf(int level, int? owner, DataItem? item, bool counter) => new(
         Level: level,
         Parent: owner,
         Section: DataSection.Report,
-        Usage: printable?.Pic is { } pic ? UsageFamilies.UsageWord(pic.Usage) : null,
-        Picture: printable?.PictureText,
-        Category: CategoryWord(printable?.Pic?.Category ?? PicCategory.Group),
+        Usage: !counter && item?.Pic is { } pic ? UsageFamilies.UsageWord(pic.Usage) : null,
+        Picture: counter ? null : item?.PictureText,
+        Category: CategoryWord(item?.Pic?.Category ?? PicCategory.Group),
         OccursMin: null, OccursMax: null, DependingOn: null, Indexes: [], Redefines: null, RenamesFrom: null, RenamesThru: null,
         Global: false, External: false, Based: false,
         Offset: null,
-        Length: printable is null ? null : ItemLength.Positions(printable),
+        Length: item is null ? null : ItemLength.Positions(item),
         Bytes: null, NativeField: null, NativeType: null,
         TypeDeclaration: false,
         Implicit: false);

@@ -955,7 +955,7 @@
                 ]
               },
               "nativeField": {
-                "description": "The field of the compiled program that holds a data item or an index-name, or null for an item that owns no field (a level-66 alias, an entry with no storage) and for the other kinds.",
+                "description": "The field of the compiled program that holds a data item or an index-name (for a method's LOCAL-STORAGE item, the method's local variable), or null for an item that owns no field (a level-66 alias, an entry with no storage, a LINKAGE SECTION item, whose storage is the activating element's, ISO §2023:13.7.1) and for the other kinds.",
                 "type": [
                   "string",
                   "null"
@@ -976,7 +976,7 @@
                 }
               },
               "typeDeclaration": {
-                "description": "The entry is a type declaration (a TYPEDEF entry) or part of one: it describes a type and has no storage (ISO §2023:13.18.58.4 GR2); the entries a TYPE clause copies from it are listed where that clause is written.",
+                "description": "The entry is a type declaration (a TYPEDEF entry) or part of one, or a condition-name or index-name of such an entry: it describes a type and has no storage (ISO §2023:13.18.58.4 GR2); the entries a TYPE clause copies from it are listed where that clause is written.",
                 "type": "boolean"
               },
               "implicit": {
