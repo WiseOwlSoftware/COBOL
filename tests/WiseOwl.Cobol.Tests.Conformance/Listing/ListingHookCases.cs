@@ -242,11 +242,18 @@ internal sealed class ListingHookCases(string dir, int edition)
 
         var (ok, stdout, detail) = CutRunner.Run(Path.Combine(dir, "lstwhen.dll"), dir);
         Assert.True(ok, detail);
+        Assert.Equal(WhenCompiledOf(instant), stdout.Trim());
+    }
+
+    /// <summary>The 21 character positions WHEN-COMPILED returns for <paramref name="instant"/>, from the returned-value table every
+    /// edition prints (§1989:A.2.46.3 RV1, §2002:15.80.2 RV1, §2014:15.92.2 RV1, §2023:15.99.3 RV1): the year, month, day, hours,
+    /// minutes, seconds and hundredths, then the sign and the hours and minutes of the offset from Coordinated Universal Time.</summary>
+    public static string WhenCompiledOf(DateTimeOffset instant)
+    {
         var offset = instant.Offset;
-        string expected = instant.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)
+        return instant.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)
             + (instant.Millisecond / 10).ToString("00", CultureInfo.InvariantCulture)
             + (offset < TimeSpan.Zero ? '-' : '+')
             + Math.Abs(offset.Hours).ToString("00", CultureInfo.InvariantCulture) + Math.Abs(offset.Minutes).ToString("00", CultureInfo.InvariantCulture);
-        Assert.Equal(expected, stdout.Trim());
     }
 }
