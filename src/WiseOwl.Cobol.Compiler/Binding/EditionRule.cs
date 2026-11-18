@@ -15,5 +15,5 @@ namespace WiseOwl.Cobol.Binding;
 internal readonly record struct EditionRule(string In1985, string InLater)
 {
     /// <summary>The citation of the edition in force, without the "ISO " lead-in.</summary>
-    public string In(EditionInfo edition) => edition.Cite(In1985, InLater, InLater);
+    public string In(EditionInfo edition) => edition.Cite(In1985, InLater);
 }

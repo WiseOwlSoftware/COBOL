@@ -281,9 +281,6 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             + "(ISO §1985:IV.4.3.8.3.2).",
             "subscript list writes at least one subscript (ISO §2023:8.4.2.3.2 — \"( subscript … )\") and a reference "
             + "modifier a leftmost position (ISO §2023:8.4.3.3.2); empty parentheses belong only to a function-identifier "
-            + "with no arguments (ISO §2023:8.4.3.2.2).",
-            "subscript list writes at least one subscript (ISO §2023:8.4.2.3.2 — \"( subscript … )\") and a reference "
-            + "modifier a leftmost position (ISO §2023:8.4.3.3.2); empty parentheses belong only to a function-identifier "
             + "with no arguments (ISO §2023:8.4.3.2.2).")
         + " Remove the parentheses, or write the subscript.";
 
@@ -345,9 +342,6 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                     + "(a USE FOR DEBUGGING statement, a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase)",
                     "§2023:8.4.2.3.3 SR5 requires \"Each table element reference shall be subscripted\" outside seven contexts "
                     + "(a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen "
-                    + "FROM/TO/USING phrase, a SUM addend)",
-                    "§2023:8.4.2.3.3 SR5 requires \"Each table element reference shall be subscripted\" outside seven contexts "
-                    + "(a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen "
                     + "FROM/TO/USING phrase, a SUM addend)")
                 + $", none of which this is. Write {arity} subscript{(arity == 1 ? "" : "s")}, "
                 + "outermost first.");
@@ -355,13 +349,13 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                 $"'{text}': a subscript is written on '{subject}', whose data description entry neither "
                 + "contains an OCCURS clause nor is subordinate to one, so no subscript may be written on it "
-                + $"(ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2", "§2023:8.4.2.3.3 SR2")}). For a character span write the reference-modification colon form "
-                + $"instead — '{subject} (1:n)' ({data.Edition.Edition.Cite("§1985:IV.4.3.8.4", "§2023:8.4.3.3", "§2023:8.4.3.3")}).");
+                + $"(ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2")}). For a character span write the reference-modification colon form "
+                + $"instead — '{subject} (1:n)' ({data.Edition.Edition.Cite("§1985:IV.4.3.8.4", "§2023:8.4.3.3")}).");
         else
             data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
                 $"'{text}': {written} subscript{(written == 1 ? "" : "s")} written, but the description of "
                 + $"'{subject}' contains {arity} OCCURS clause{(arity == 1 ? "" : "s")}; ISO "
-                + data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR2", "§2023:8.4.2.3.3 SR3", "§2023:8.4.2.3.3 SR3")
+                + data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR2", "§2023:8.4.2.3.3 SR3")
                 + " requires one subscript per OCCURS clause, written in the order of successively less inclusive "
                 + "dimensions of the table.");
         return true;
@@ -843,7 +837,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             if (DeclaredInHierarchy(item, decl)) continue;
             data.Edition.Error(DiagnosticCatalog.IndexNameNotInTable,
                 $"'{item.CobolName}' subscripted by the index-name '{t.Text}', which is not in the INDEXED BY "
-                + $"phrase of any OCCURS clause in this item's hierarchy (ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR3", "§2023:8.4.2.3.3 SR4", "§2023:8.4.2.3.3 SR4")})");
+                + $"phrase of any OCCURS clause in this item's hierarchy (ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR3", "§2023:8.4.2.3.3 SR4")})");
         }
     }
 
@@ -943,16 +937,15 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     private static string IllegalPositionMessage(string segment, SegmentPosition position, EditionInfo edition) =>
         position == SegmentPosition.RefMod
             ? $"'{segment}' is written as a reference-modification bound, but a leftmost-position and a length shall "
-              + $"be arithmetic expressions (ISO {edition.Cite("§1985:IV.4.3.8.4.3 SR2", "§2023:8.4.3.3.3 SR4", "§2023:8.4.3.3.3 SR4")})."
+              + $"be arithmetic expressions (ISO {edition.Cite("§1985:IV.4.3.8.4.3 SR2", "§2023:8.4.3.3.3 SR4")})."
         : CobolNames.Same(segment, "ALL")
             ? "the subscript ALL is written where it is not permitted: ISO "
               + edition.Cite(
                   "§1985:IV.4.3.8.2.3 SR7 — \"The subscript ALL may be used only\" when the subscripted identifier is used as a "
                   + "function argument. Write the occurrence you mean.",
-                  AllSubscriptRule2023, AllSubscriptRule2023)
+                  AllSubscriptRule2023)
         : $"'{segment}' is written as a subscript, but a subscript is "
           + edition.Cite("ALL, an integer, a data-name or an index-name, the last two optionally followed by + or - and an integer (ISO §1985:IV.4.3.8.2.2).",
-              "ALL, an arithmetic expression, or an index-name optionally followed by + or - and an integer (ISO §2023:8.4.2.3.2).",
               "ALL, an arithmetic expression, or an index-name optionally followed by + or - and an integer (ISO §2023:8.4.2.3.2).");
 
     /// <summary>§2023:8.4.2.3.3 SR6 as the 2002 and later editions word the places the subscript ALL is admitted.</summary>
@@ -1048,7 +1041,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         var ed = data.Edition.Edition;
         string what = $"the index-name '{name}' is not an identifier (ISO {ed.NotAnIdentifier()}) and a "
             + $"reference-modification leftmost-position/length is not one of {ed.Contexts()}'s five contexts (a "
-            + $"subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — {ed.Cite("§1985:VI.5.8.3 SR13", "§2023:8.4.3.3.3 SR4", "§2023:8.4.3.3.3 SR4")} makes both bounds "
+            + $"subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — {ed.Cite("§1985:VI.5.8.3 SR13", "§2023:8.4.3.3.3 SR4")} makes both bounds "
             + "arithmetic expressions";
         if (data.Edition.Permissive)
             data.Edition.Warning(DiagnosticCatalog.IndexNameContext,
@@ -1106,7 +1099,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         var edition = data.Edition.Edition;
         string what = item.Pic is { Usage: Usage.Index }
                 ? $"item '{name}', an index data item ("
-                  + edition.Cite("", "class index, ISO §2023:8.5.2.1 Table 2; ", "class index, ISO §2023:8.5.2.1 Table 2; ")
+                  + edition.Cite("", "class index, ISO §2023:8.5.2.1 Table 2; ")
                   + edition.IndexDataItemRule().Replace("ISO §2023:13.18.60.3", "§2023:13.18.60.3") + ")"
             // The class SPELLED by the one Table-2 spelling (kb/Work PB1400): `ToString().ToLowerInvariant()` of the
             // enum printed a numeric-edited subscript as "class numericediteddeediting".
@@ -1115,9 +1108,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
               + $"(ISO {edition.ClassRule()})";
         string where = position == SegmentPosition.Subscript
             ? "a subscript is " + edition.Cite("an integer data-name or literal (ISO §1985:IV.4.3.8.2.3 SR5)",
-                "arithmetic-expression-1 (ISO §2023:8.4.2.3.2)", "arithmetic-expression-1 (ISO §2023:8.4.2.3.2)")
+                "arithmetic-expression-1 (ISO §2023:8.4.2.3.2)")
             : "a reference-modification leftmost-position/length is an arithmetic expression (ISO "
-                + edition.Cite("§1985:IV.4.3.8.4.3 SR2", "§2023:8.4.3.3.3 SR4", "§2023:8.4.3.3.3 SR4") + ")";
+                + edition.Cite("§1985:IV.4.3.8.4.3 SR2", "§2023:8.4.3.3.3 SR4") + ")";
         // The SAME dialect gate the expression-binder screen carries (dialect_two_axes — every leniency is
         // dialect-gated): --permissive keeps the CobolTable.Occ(string) digit decode, which is the leniency
         // already implemented by that overload, and the emitted text is unchanged either way.

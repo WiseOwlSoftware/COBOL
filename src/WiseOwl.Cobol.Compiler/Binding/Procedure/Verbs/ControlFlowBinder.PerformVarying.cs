@@ -68,8 +68,6 @@ internal sealed partial class ControlFlowBinder
                     "ISO §1985:VI.6.21.2 prints the TIMES, UNTIL and VARYING phrases in three formats of their own (Formats 2, 3 and 4), so "
                     + "at most one may be specified. A VARYING phrase already carries its own UNTIL",
                     "ISO §2023:14.9.28.2 Format 2 prints ONE bracket over the three stacked alternatives times-phrase / until-phrase / "
-                    + "varying-phrase, so at most one may be specified. A VARYING phrase already carries its own UNTIL",
-                    "ISO §2023:14.9.28.2 Format 2 prints ONE bracket over the three stacked alternatives times-phrase / until-phrase / "
                     + "varying-phrase, so at most one may be specified. A VARYING phrase already carries its own UNTIL"));
     }
 
@@ -216,7 +214,8 @@ internal sealed partial class ControlFlowBinder
         // rather than to §2023:8.8.1.1 alone. PERFORM VARYING is a §2023:13.18.38.3 r7 index-name window (kb/Work R29) but
         // not on §2023:13.18.60.3 SR10's index-data-item list, and §2023:14.9.28.3 SR2 wants a numeric item (kb/Work PB215).
         BoundExpr e = host.Expr.BindIndexNameWindowOperandExpr(op,
-            "\"Each literal shall be numeric\" (ISO §2023:14.9.28.3 SR3)");
+            ctx.Edition.Edition.Cite("\"Each literal represents a numeric literal\" (ISO §1985:VI.6.21.3 SR5)",
+                "\"Each literal shall be numeric\" (ISO §2023:14.9.28.3 SR3)"));
         // GR12's window, applied before anything else can read the operand: an operand whose setting/augmenting
         // operation repeats carries its function activations to that operation (kb/Work PB437).
         if (IsPerEvaluationWindow(slot)) e = host.Udf.UdfAttachPerEvaluation(e, mark);
@@ -250,7 +249,7 @@ internal sealed partial class ControlFlowBinder
         if (!Admits(slot, kind) && e is not BoundExprError)
         {
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
-                $"'{text}' is not one of the operands ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.2", "§2023:14.9.28.2", "§2023:14.9.28.2")}'s varying-phrase prints in this slot — "
+                $"'{text}' is not one of the operands ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.2", "§2023:14.9.28.2")}'s varying-phrase prints in this slot — "
                 + (slot is VaryingSlot.By
                     ? "the BY phrase's brace group is { identifier-4 | literal-2 }"
                     : "the FROM phrase's brace group is { identifier-3 | index-name-2 | literal-1 }")
@@ -362,7 +361,7 @@ internal sealed partial class ControlFlowBinder
             string later = $"§2023:14.9.28.3 {rule}: \"{quoted}\"";
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandRule,
                 $"the PERFORM VARYING {phrase} operand '{operand}' violates ISO "
-                + ctx.Edition.Edition.Cite(rule1985 is null ? later : $"§1985:VI.6.21.3 {rule1985}: \"{quoted1985}\"", later, later));
+                + ctx.Edition.Edition.Cite(rule1985 is null ? later : $"§1985:VI.6.21.3 {rule1985}: \"{quoted1985}\"", later));
         }
     }
 }

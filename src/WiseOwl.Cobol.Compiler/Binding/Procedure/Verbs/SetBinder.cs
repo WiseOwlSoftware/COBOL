@@ -425,7 +425,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             $"SET '{DataBinder.WrittenText(dref)}': an index-name cannot be the {position} of a {carrier} SET — that operand "
             + $"shall be of category {carrier} ({cite}). An index-name operand belongs to Format 1, whose "
             + "receiver is a data item of class index or an integer data item (ISO "
-            + ctx.Edition.Edition.Cite("§1985:VI.6.23.3 SR2", "§2023:14.9.39.3 SR1", "§2023:14.9.39.3 SR1") + ")");
+            + ctx.Edition.Edition.Cite("§1985:VI.6.23.3 SR2", "§2023:14.9.39.3 SR1") + ")");
         return true;
     }
 
@@ -454,7 +454,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// COBOL-85's SET statement (§1985:VI.6.23.2) has no data-pointer format, so there it names that standard's formats.</summary>
     private string DataPointerSetRule(string format2023) => ctx.Edition.Edition.Cite(
         "ISO §1985:VI.6.23.2, whose SET statement has no data-pointer format",
-        $"ISO §2023:{format2023}, §2023:14.9.39.3 SR17", $"ISO §2023:{format2023}, §2023:14.9.39.3 SR17");
+        $"ISO §2023:{format2023}, §2023:14.9.39.3 SR17");
 
     /// <summary>SET data-pointer assignment (§2023:14.9.39 Format 7; Phase-4b increment 1): every target shall
     /// be USAGE POINTER (COBOL0869 otherwise); the sender is the NULL figurative or another data pointer
@@ -1457,8 +1457,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                         "not identifier-2 — ISO §1985:VI.6.23.3 SR2: \"Identifier-1 and identifier-2 must each reference an index data item or an "
                         + "elementary item described as an integer\" — nor integer-1",
                         "neither identifier-2 — ISO §2023:14.9.39.3 SR2: \"Identifier-2 shall reference a data item of class index\" — nor a numeric "
-                        + "operand of arithmetic-expression-1 (ISO §2023:8.8.1.1)",
-                        "neither identifier-2 — ISO §2023:14.9.39.3 SR2: \"Identifier-2 shall reference a data item of class index\" — nor a numeric "
                         + "operand of arithmetic-expression-1 (ISO §2023:8.8.1.1)"));
                 return null;
             default: return IndexAssignmentSender.ArithmeticExpression;
@@ -1498,7 +1496,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         ctx.Edition.Removed(DiagnosticCatalog.SetIndexAssignmentOperand.Code,
             $"SET '{text}' TO '{senderText}' violates ISO "
             + ctx.Edition.Edition.Cite("§1985:VI.6.23.3 SR2 — \"Identifier-1 and identifier-2 must each reference an index data item or an elementary item described as an integer\", and the format sends only index-name-2, identifier-2 or integer-1",
-                $"§2023:14.9.39.3 {rule}", $"§2023:14.9.39.3 {rule}"));
+                $"§2023:14.9.39.3 {rule}"));
         return ctx.Edition.Permissive;
     }
 

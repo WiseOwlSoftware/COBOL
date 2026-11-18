@@ -99,6 +99,6 @@ internal sealed class CheckSignClausesPass : IBindPass
     private static string? SignClauseGroupDefect(GroupKinds kinds, EditionInfo edition) =>
         (kinds & SignClauseGroupKinds) != 0 ? null
             : "the SIGN clause may be specified for a group item only when it is an alphanumeric group item, "
-              + $"national group item, or strongly-typed group item (ISO {edition.Cite("§1985:VI.5.12.3 SR1", "§2023:13.18.52.3 SR1", "§2023:13.18.52.3 SR1")}) — this entry is one of the "
+              + $"national group item, or strongly-typed group item (ISO {edition.Cite("§1985:VI.5.12.3 SR1", "§2023:13.18.52.3 SR1")}) — this entry is one of the "
               + $"{ItemCategory.Spell(kinds)}";
 }

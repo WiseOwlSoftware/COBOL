@@ -42,7 +42,7 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
     /// <paramref name="owner"/> is the entry's own name (<see cref="ClosedFormats.OwnerName"/>) or null.</summary>
     public string Refusal(string word, string? owner, EditionInfo edition)
         => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the ISO "
-           + $"{edition.Cite(Clause1985 is { } c1985 ? $"§1985:{c1985}" : $"§2023:{Clause}", $"§2023:{Clause}", $"§2023:{Clause}")} "
+           + $"{edition.Cite(Clause1985 is { } c1985 ? $"§1985:{c1985}" : $"§2023:{Clause}", $"§2023:{Clause}")} "
            + $"{FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
 }
 

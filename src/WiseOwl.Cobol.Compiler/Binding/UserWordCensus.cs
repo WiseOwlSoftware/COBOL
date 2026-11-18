@@ -49,8 +49,6 @@ internal sealed class UserWordCensus
             "(ISO §1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, can belong to one and only "
             + "one of these disjoint sets\"); the exceptions are the segment-numbers and the level-numbers",
             "(ISO §2023:8.3.2.2); the exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "
-            + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group",
-            "(ISO §2023:8.3.2.2); the exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "
             + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group")
         + (UserWordKinds.IsCopyName(first) || UserWordKinds.IsCopyName(second)
             ? "; below COBOL-2002 a COPY statement's text-name and library-name are user-defined words of disjoint sets of "

@@ -199,7 +199,6 @@ public sealed partial class FileControlBinder
             + "is a table element reference, which "
             + (Edition.Edition.Cite(
                 $"must be subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
-                "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)",
                 "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)")));
         return false;
     }
@@ -246,8 +245,6 @@ public sealed partial class FileControlBinder
                     "is subject to an OCCURS clause, so naming it is a table element reference, which must be subscripted, and "
                       + $"data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
                     "is subject to an OCCURS clause; data-name-1 shall not be subject to any OCCURS clauses "
-                      + "(ISO §2023:12.4.5.8.3 SR1)",
-                    "is subject to an OCCURS clause; data-name-1 shall not be subject to any OCCURS clauses "
                       + "(ISO §2023:12.4.5.8.3 SR1)")
             : SubjectToBased(item)
                 ? "is subject to a BASED clause; data-name-1 shall not be subject to a BASED clause in its data "
@@ -260,8 +257,6 @@ public sealed partial class FileControlBinder
                     $"is {shape}; data-name-1 must be defined in the Data Division as a two-character data item of the category "
                       + "alphanumeric and must not be defined in the File Section, Report Section, or the Communication Section "
                       + $"({ClauseOperandRules1985.FileStatusItem.Citation})",
-                    $"is {shape}; data-name-1 shall reference a two-character data item of the category alphanumeric, "
-                      + "defined in the working-storage, local-storage, or linkage section (ISO §2023:12.4.5.8.3 SR2)",
                     $"is {shape}; data-name-1 shall reference a two-character data item of the category alphanumeric, "
                       + "defined in the working-storage, local-storage, or linkage section (ISO §2023:12.4.5.8.3 SR2)")
             : null;
@@ -391,9 +386,6 @@ public sealed partial class FileControlBinder
                         $"LINAGE clause operand '{name}' is subject to an OCCURS clause, so naming it is a table element reference, which "
                           + "must be subscripted, and the clause's data-names are written without a subscript "
                           + $"({ClauseOperandRules1985.TableElementSubscripted.Citation})",
-                        $"LINAGE clause operand '{name}' is subject to an OCCURS clause; data-name-1, data-name-2, "
-                          + "data-name-3, and data-name-4 shall not be subject to any OCCURS clauses "
-                          + "(ISO §2023:13.18.34.3 SR1)",
                         $"LINAGE clause operand '{name}' is subject to an OCCURS clause; data-name-1, data-name-2, "
                           + "data-name-3, and data-name-4 shall not be subject to any OCCURS clauses "
                           + "(ISO §2023:13.18.34.3 SR1)"));

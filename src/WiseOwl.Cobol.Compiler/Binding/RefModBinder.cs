@@ -37,7 +37,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         if (!refs.Probing && refs.Diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
             data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                 $"'{name}' carries {written.RefModCount} reference modifications; a reference-modified item cannot itself "
-                + $"be reference-modified (ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier instead.");
+                + $"be reference-modified (ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier instead.");
         return false;
     }
 
@@ -186,7 +186,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>The citation of §2023:8.4.3.3.3 SR1 in the edition in force: COBOL-85 says "Data-name-1 must reference a data
     /// item whose usage is DISPLAY" (§1985:IV.4.3.8.4.3 SR1; kb/Work PB4950).</summary>
     internal static string RefModIdentifierRule(EditionInfo edition) =>
-        edition.Cite("§1985:IV.4.3.8.4.3 SR1", "§2023:8.4.3.3.3 SR1", "§2023:8.4.3.3.3 SR1");
+        edition.Cite("§1985:IV.4.3.8.4.3 SR1", "§2023:8.4.3.3.3 SR1");
 
     /// <summary>ISO §2023:8.4.3.3.3 SR1, read as an EXCLUSION test: the reason <paramref name="item"/> may NOT be
     /// identifier-1 of a reference modification, or null when it may. Admitted: a boolean, national, alphanumeric or
@@ -220,12 +220,12 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             { Category: PicCategory.NumericEdited } =>
                 underStrong ? "a numeric-edited item subordinate to a strongly-typed group item" : null,
             { Category: PicCategory.Numeric, Usage: Usage.Index } => edition.Cite("an index data item (usage INDEX)",
-                "an index data item (class index, ISO §2023:13.18.60)", "an index data item (class index, ISO §2023:13.18.60)"),
+                "an index data item (class index, ISO §2023:13.18.60)"),
             { Category: PicCategory.Numeric, Usage: Usage.Display or Usage.National, IsFloat: false } =>
                 underStrong ? "a numeric item subordinate to a strongly-typed group item" : null,
             { Category: PicCategory.Numeric } p =>
                 $"a numeric item of USAGE {p.Usage} (SR1 admits usage "
-                + edition.Cite("DISPLAY only", "DISPLAY or NATIONAL only", "DISPLAY or NATIONAL only") + ")",
+                + edition.Cite("DISPLAY only", "DISPLAY or NATIONAL only") + ")",
             { Category: PicCategory.ObjectReference } => "an object reference",
             { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer } => "a pointer",
             { } p => $"an item of category {p.Category}",
@@ -255,18 +255,18 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         int size = RefModPlace.PositionCount(item);
         if (start is { } s && (s < 1 || s > size))
             return $"leftmost-position {s} is not a position of the {size}-position item (ISO "
-                + edition.Cite("§1985:IV.4.3.8.4.4 GR4a", "§2023:8.4.3.3.4 5) b)", "§2023:8.4.3.3.4 5) b)") + ")";
+                + edition.Cite("§1985:IV.4.3.8.4.4 GR4a", "§2023:8.4.3.3.4 5) b)") + ")";
         if (omittedLength || length is not { } len) return null;
         if (len == 0 && !allowZeroLength)
             return "a zero length is not a positive nonzero integer (ISO "
-                + edition.Cite("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 5) c)", "§2023:8.4.3.3.4 5) c)")
+                + edition.Cite("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 5) c)")
                 + "; REF-MOD-ZERO-LENGTH is not on)";
         // (written `len > size - s2 + 1`, never `s2 + len - 1 > size`: a literal near Int128's top would wrap the sum;
         // s2 is within 1..size here, so the rewritten form cannot overflow)
         if (len > 0 && (start is { } s2 ? len > size - s2 + 1 : len > size))
             return $"the reference modification ({(start is { } s3 ? s3.ToString() : "…")}:{len}) extends past the "
                 + $"{size}-position item (ISO "
-                + edition.Cite("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 5) c)", "§2023:8.4.3.3.4 5) c)") + ")";
+                + edition.Cite("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 5) c)") + ")";
         return null;
     }
 
@@ -333,7 +333,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
                 data.Edition.Error(DiagnosticCatalog.RefModLeftmostPositionOmitted,
                     $"'{DataBinder.WrittenText(rmp).Trim()}': a reference modifier is written ( leftmost-position : "
                     + "[ length ] ) and only the length may be omitted, so the colon cannot lead (ISO "
-                    + data.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.2", "§2023:8.4.3.3.2") + "). Write "
+                    + data.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.2") + "). Write "
                     + "the leftmost position explicitly, for example (1:2).");
             return null;
         }

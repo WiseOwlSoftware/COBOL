@@ -215,12 +215,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 $"{kind}-name '{ProcedureNameShape.AsWritten(pn)}' is written qualified in its "
                 + $"{kind} header — a {kind}-name that is being defined is written alone (ISO "
                 + ctx.Edition.Edition.Cite("§1985:IV.6.4.1.4.2: \"section-name SECTION.\", \"paragraph-name.\"",
-                    "§2023:14.2.1: \"section-name-1 SECTION.\", \"paragraph-name-1.\"",
                     "§2023:14.2.1: \"section-name-1 SECTION.\", \"paragraph-name-1.\"")
                 + "); qualification ("
-                + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1", "§2023:8.4.2.2.2", "§2023:8.4.2.2.2") + ") belongs to a "
+                + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1", "§2023:8.4.2.2.2") + ") belongs to a "
                 + "reference"
-                + ctx.Edition.Edition.Cite("", ", and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph", ", and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph")
+                + ctx.Edition.Edition.Cite("", ", and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph")
                 + ". Write "
                 + $"'{ProcedureNameShape.Head(pn)}' in the header and qualify the references.");
         return ProcedureNameShape.Head(pn);
@@ -674,7 +673,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                             ctx.Edition.Error(DiagnosticCatalog.DebugAllOperandIsProcedure, $"declarative section "
                                 + $"'{section.Name}': USE FOR DEBUGGING ON ALL REFERENCES OF '{anm}' names a paragraph or "
                                 + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item (ISO "
-                                + ctx.Edition.Edition.Cite("§1985:XV.3.2.2", "§2023:14.4.1", "§2023:14.4.1") + ": a "
+                                + ctx.Edition.Edition.Cite("§1985:XV.3.2.2", "§2023:14.4.1") + ": a "
                                 + $"procedure-name refers to a paragraph or section); write ON {anm} for a procedure-name subject");
                             continue;
                         }
@@ -1229,5 +1228,5 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE may not name the "
             + $"sort/merge file '{fname}' (ISO " + ctx.Edition.Edition.Cite(
                 "§1985:II.2.2.2.1.1 and §1985:II.2.2.2.1.2: a sort or merge file is referred to and accessed only by the SORT or MERGE statement",
-                "§2023:14.9.49.3 SR2", "§2023:14.9.49.3 SR2") + ")");
+                "§2023:14.9.49.3 SR2") + ")");
 }

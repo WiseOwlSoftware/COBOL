@@ -32,8 +32,6 @@ public sealed partial class DataBinder
             + " " + Edition.Edition.Cite(
                 "(ISO §1985:VI.5.11.3 SR2: \"All RENAMES entries referring to data items within a given logical record must immediately follow the last data description entry of the associated record description entry.\")",
                 "(ISO §2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall "
-                + "immediately follow the last data description entry of the associated record description entry.\")",
-                "(ISO §2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall "
                 + "immediately follow the last data description entry of the associated record description entry.\")"));
     }
 
@@ -44,8 +42,6 @@ public sealed partial class DataBinder
             $"'{entryName ?? "FILLER"}': a data description entry follows the RENAMES entries of its record "
             + Edition.Edition.Cite(
                 "(ISO §1985:VI.5.11.3 SR2: \"All RENAMES entries referring to data items within a given logical record must immediately follow the last data description entry of the associated record description entry.\")",
-                "(ISO §2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall immediately "
-                + "follow the last data description entry of the associated record description entry.\")",
                 "(ISO §2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall immediately "
                 + "follow the last data description entry of the associated record description entry.\")"));
     }

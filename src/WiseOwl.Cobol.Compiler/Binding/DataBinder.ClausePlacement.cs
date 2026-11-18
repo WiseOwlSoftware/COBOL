@@ -59,10 +59,10 @@ internal sealed record ClausePlacementRule(
 {
     /// <summary>⛔ The rule's citation in the edition in force (kb/Work PB4950): <see cref="Rule1985"/> at COBOL-85 where
     /// ANSI X3.23-1985 states the rule, else <see cref="Rule"/>.</summary>
-    public string RuleIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Cite(Rule1985 ?? Rule, Rule, Rule);
+    public string RuleIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Cite(Rule1985 ?? Rule, Rule);
 
     /// <summary>The rule's own words in the edition in force: the 1985 sentence at COBOL-85 where the row carries one.</summary>
-    public string SentenceIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Cite(Sentence1985 ?? Sentence, Sentence, Sentence);
+    public string SentenceIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Cite(Sentence1985 ?? Sentence, Sentence);
 
     /// <summary>Why an entry at <paramref name="level"/> in <paramref name="section"/> breaks this
     /// <see cref="ClausePlacementKind.Residence"/> row, in words for the diagnostic — or null when it does not.
@@ -185,7 +185,7 @@ internal static class ClausePlacementRules
             "The OCCURS clause shall not be specified in a data description entry that: a) Has a level-number of 01, "
             + "66, 77, or 88",
             DiagnosticCatalog.DataClausePlacement, Levels: [1, 66, 77, 88],
-            Rule1985: "§1985:VI.5.8.3 SR1a",
+            Rule1985: "§1985:VI.5.8.3 SR1",   // the quotation is SR1's lead-in with its item a
             Sentence1985: "The OCCURS clause must not be specified in a data description entry that: a. Has a level-number of 01, 66, 77, or 88"),
         // §2023:13.16.3 SR7 — kb/Work PB518. The FD-record half is ScreenFileRecordEntryNames.
         new(DataClauseKind.External | DataClauseKind.Global, ClausePlacementKind.DataNameRequired, "§2023:13.16.3 SR7",
@@ -334,7 +334,7 @@ public sealed partial class DataBinder
                         + $"{DataClauseKinds.Name(clauses[0].Kind)} but shall immediately follow the entry-name clause"
                         + (kind == DataClauseKind.Redefines
                             ? ", or the level-number when the entry-name clause is not specified" : "")
-                        + $" (ISO {Edition.Edition.Cite(rule1985, rule, rule)})");
+                        + $" (ISO {Edition.Edition.Cite(rule1985, rule)})");
     }
 
     internal static string SectionWords(EntrySection section) => section switch
@@ -352,10 +352,10 @@ public sealed partial class DataBinder
         if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
             return "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
                 + "character-string as category numeric-edited or as numeric without the picture symbol 'S' "
-                + $"(ISO {edition.Cite("§1985:VI.5.4.3 SR1", "§2023:13.18.8.3 SR1", "§2023:13.18.8.3 SR1")}) — this item is of category {ItemCategory.CategoryName(pic)}";
+                + $"(ISO {edition.Cite("§1985:VI.5.4.3 SR1", "§2023:13.18.8.3 SR1")}) — this item is of category {ItemCategory.CategoryName(pic)}";
         if (!UsageFamilies.IsDisplayOrNational(pic.Usage))
             return "the subject of a BLANK WHEN ZERO clause shall be implicitly or explicitly described as usage "
-                + $"display or usage national (ISO {edition.Cite("§1985:VI.5.4.3 SR2", "§2023:13.18.8.3 SR2", "§2023:13.18.8.3 SR2")}) — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
+                + $"display or usage national (ISO {edition.Cite("§1985:VI.5.4.3 SR2", "§2023:13.18.8.3 SR2")}) — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
         return null;
     }
 
@@ -377,7 +377,7 @@ public sealed partial class DataBinder
         if (pic.Category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             || pic.EditMask is not null)
             return "the JUSTIFIED clause may be specified only for a data item whose category is alphabetic, "
-                + $"alphanumeric, boolean, or national (ISO {edition.Cite("§1985:VI.5.6.3 SR3", "§2023:13.18.32.3 SR3", "§2023:13.18.32.3 SR3")}) — this item is of category "
+                + $"alphanumeric, boolean, or national (ISO {edition.Cite("§1985:VI.5.6.3 SR3", "§2023:13.18.32.3 SR3")}) — this item is of category "
                 + ItemCategory.CategoryName(pic);
         return null;
     }

@@ -135,17 +135,17 @@ internal static class FileDescriptionFormats
     /// <summary>⛔ HOW A DIAGNOSTIC NAMES THE FORMAT'S ENTRY in the edition in force (kb/Work PB4950): <see cref="Caption(FileDescriptionFormat)"/>
     /// from COBOL-2002 on, and at COBOL-85 the form of the entry in the module that holds the file ("the relative-file form").</summary>
     public static string Caption(EditionInfo edition, FileDescriptionFormat format, FileOrganization organization) =>
-        edition.Cite($"the {Kind1985(format, organization)}-file form", Caption(format), Caption(format));
+        edition.Cite($"the {Kind1985(format, organization)}-file form", Caption(format));
 
     /// <summary>The citation of the clause list the format prints, in the edition in force: the general format of §2023:13.4.5.2 or
     /// the file description entry's of §1985:VII.3.2 / VIII.3.2 / IX.3.2 / XIII.3.2.</summary>
     public static string FormatCitation(EditionInfo edition, FileDescriptionFormat format, FileOrganization organization) =>
-        edition.Cite($"§1985:{Module1985(format, organization)}.3.2", "§2023:13.4.5.2", "§2023:13.4.5.2");
+        edition.Cite($"§1985:{Module1985(format, organization)}.3.2", "§2023:13.4.5.2");
 
     /// <summary>The entry the clause belongs to, as a message names it, in the edition in force: the file control entry of §2023:12.4.5.1
     /// or, at COBOL-85, of the module that holds the file (§1985:VII.2.3, VIII.2.3, IX.2.3).</summary>
     public static string HomeEntryOf(EditionInfo edition, FileDescriptionClauseRow row, FileDescriptionFormat format, FileOrganization organization) =>
-        edition.Cite($"the file control entry (ISO §1985:{Module1985(format, organization)}.2.3)", row.HomeEntry!, row.HomeEntry!);
+        edition.Cite($"the file control entry (ISO §1985:{Module1985(format, organization)}.2.3)", row.HomeEntry!);
 
     /// <summary>How a diagnostic names a format: "Format 2 (relative-or-indexed)", as §2023:13.4.5.2 captions it.</summary>
     public static string Caption(FileDescriptionFormat format) => format switch
@@ -172,9 +172,10 @@ internal static class FileDescriptionFormats
     /// at COBOL-85 the function paragraph of the module's file description entry, which states the kind of file it describes.</summary>
     public static string BindingRule(EditionInfo edition, FileDescriptionFormat format, FileOrganization organization) =>
         edition.Cite($"ISO §1985:{Module1985(format, organization)}.3.2.1: \"The file description entry furnishes information "
-            + $"concerning the physical structure, identification, and ... names pertaining to a{(Kind1985(format, organization) == "indexed" ? "n" : "")} "
+            + $"concerning the physical structure, identification, and {(Kind1985(format, organization) == "report" ? "report" : "record")}-names "
+            + $"pertaining to a{(Kind1985(format, organization) == "indexed" ? "n" : "")} "
             + $"{Kind1985(format, organization)} file\"",
-            BindingRule(format), BindingRule(format));
+            BindingRule(format));
 
     /// <summary>The clauses <paramref name="format"/> admits, in the printed order, for the diagnostic's "admits
     /// only …" sentence — derived from the table, never restated. At COBOL-85 it lists the clauses the 1985 entry printed: the

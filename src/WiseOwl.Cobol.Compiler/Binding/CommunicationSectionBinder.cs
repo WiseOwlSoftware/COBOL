@@ -127,10 +127,10 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
 
     /// <summary>The general format of the CD entry as the edition in force cites it: A.1.2.1 of ISO/IEC 1989:2002 (the later editions
     /// moved the communication facility to an annex of obsolete elements and keep that text), §1985:XIV.2.2.2 at COBOL-85.</summary>
-    private string FormatCitation() => Edition.Edition.Cite("ISO §1985:XIV.2.2.2", "ISO/IEC 1989:2002 A.1.2.1", "ISO/IEC 1989:2002 A.1.2.1");
+    private string FormatCitation() => Edition.Edition.Cite("ISO §1985:XIV.2.2.2", "ISO/IEC 1989:2002 A.1.2.1");
 
     /// <summary>The syntax rules of the CD entry, as a prefix to a rule number ("SR2"): A.1.2.2 of ISO/IEC 1989:2002, §1985:XIV.2.2.3.</summary>
-    private string SeriesRuleCitation() => Edition.Edition.Cite("ISO §1985:XIV.2.2.3", "ISO/IEC 1989:2002 A.1.2.2", "ISO/IEC 1989:2002 A.1.2.2");
+    private string SeriesRuleCitation() => Edition.Edition.Cite("ISO §1985:XIV.2.2.3", "ISO/IEC 1989:2002 A.1.2.2");
 
     private static string NoClauseRule2002(CommunicationFormat format) => "ISO/IEC 1989:2002 A.1.2.2 "
         + (format is CommunicationFormat.Output
@@ -173,7 +173,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                     format is CommunicationFormat.Output
                         ? "ISO §1985:XIV.2.2.3 SR8: \"If none of the optional clauses of the CD entry is specified, a level 01 data description entry must follow the CD entry.\""
                         : "ISO §1985:XIV.2.2.3 SR4: \"If neither option for specifying the interface area is used, a level 01 data description entry must follow the CD entry.\"",
-                    NoClauseRule2002(format), NoClauseRule2002(format)));
+                    NoClauseRule2002(format)));
         var area = BuildArea(name, format, names, destinationTable, indexNames, rootNames);
         host.State.Forest.AddWorkingStorageRoots([area]);
         // The records and the interface area share one area (§2002:A.1.2.2 SR9). A record with no character window, a pointer-class item or a
@@ -244,7 +244,6 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                     + $"{CommunicationFormats.FormatWords(format)} prints {header.Count}; "
                     + Edition.Edition.Cite(
                         $"ISO §1985:XIV.2.2.4 {(format is CommunicationFormat.Input ? "GR2k" : "GR24")}: the series, \"taken in order\", corresponds to the clauses.",
-                        "ISO/IEC 1989:2002 A.1.2.3: the series, \"taken in order\", corresponds to the clauses.",
                         "ISO/IEC 1989:2002 A.1.2.3: the series, \"taken in order\", corresponds to the clauses."));
             else
                 for (int i = 0; i < series.Length; i++)
@@ -262,7 +261,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         {
             if (names.Any(n => n.Key != field && CobolNames.Same(n.Value, name)))
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}' names the data-name '{name}' more than once; "
-                    + Edition.Edition.Cite("ISO §1985:XIV.2.2.3 ", "ISO/IEC 1989:2002 A.1.2.2 ", "ISO/IEC 1989:2002 A.1.2.2 ")
+                    + Edition.Edition.Cite("ISO §1985:XIV.2.2.3 ", "ISO/IEC 1989:2002 A.1.2.2 ")
                     + (format switch
                     {
                         CommunicationFormat.Input => "SR6",
@@ -272,7 +271,6 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                         format == CommunicationFormat.Output
                             ? ": the data-names \"must be unique within a CD entry\"."
                             : ": the data-names \"must be unique within the CD entry\".",
-                        ": the data-names \"shall be unique within the CD entry\".",
                         ": the data-names \"shall be unique within the CD entry\".")));
             names[field] = name;
         }
@@ -357,7 +355,6 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"the procedure division header specifies the USING phrase and CD '{initial[0].cdName().GetText()}' the INITIAL "
                     + $"clause; {SeriesRuleCitation()} SR2: \"" + Edition.Edition.Cite(
                         "The INITIAL clause must not be used in a program that specifies the USING phrase of the Procedure Division header.",
-                        "The INITIAL clause shall not be used in a program that specifies the USING phrase of the procedure division header.",
                         "The INITIAL clause shall not be used in a program that specifies the USING phrase of the procedure division header.") + "\"");
     }
 
@@ -379,15 +376,15 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                     if ((is1985 ? ItemLength.StandardDataFormatCharacters(record) : record.ByteWidth) is var size && size != required)
                         using (Edition.At(record))
                             Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"record '{record.CobolName ?? "FILLER"}' of CD '{cd.Name}' describes {size} character "
-                                + (is1985
-                                    ? $"positions in standard data format; ISO §1985:XIV.2.2.3 {rule}: it \"must describe a record of exactly {required} standard data format characters\" (§1985:IV.4.3.4)."
-                                    : $"positions; ISO/IEC 1989:2002 A.1.2.2 {rule}: it \"shall describe a record of exactly {required} alphanumeric character positions\"."));
+                                + Edition.Edition.Cite(
+                                    $"positions in standard data format; ISO §1985:XIV.2.2.3 {rule}: it \"must describe a record of exactly {required} standard data format characters\" (§1985:IV.4.3.4).",
+                                    $"positions; ISO/IEC 1989:2002 A.1.2.2 {rule}: it \"shall describe a record of exactly {required} alphanumeric character positions\"."));
             }
             foreach (var record in cd.Records.Skip(1))
                 if (FirstWithValue(record) is { } valued)
                     using (Edition.At(valued))
                         Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"'{valued.CobolName ?? "FILLER"}' has {(valued.Own88s.Count > 0 && valued.RawValue is null && valued.TableValues is null ? $"the condition-name '{valued.Own88s[0].Name}', whose entry is a VALUE clause," : "a VALUE clause")} in a record of CD '{cd.Name}' that is not its first; "
-                            + Edition.Edition.Cite("ISO §1985:XIV.2.2.3 (SR5, SR9 and SR14): ", "ISO/IEC 1989:2002 A.1.2.2: ", "ISO/IEC 1989:2002 A.1.2.2: ") + "\"only the first redefinition may contain VALUE clauses\".");
+                            + Edition.Edition.Cite("ISO §1985:XIV.2.2.3 (SR5, SR9 and SR14): ", "ISO/IEC 1989:2002 A.1.2.2: ") + "\"only the first redefinition may contain VALUE clauses\".");
         }
     }
 

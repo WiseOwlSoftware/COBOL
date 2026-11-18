@@ -39,7 +39,7 @@ public sealed partial class FileControlBinder
                         FileOrganization.Relative => "§1985:VIII.2.3.3 SR2",
                         FileOrganization.Indexed => "§1985:IX.2.3.3 SR2",
                         _ => "§1985:VII.2.3.3 SR2",
-                    }, "§2023:12.4.5.2 SR3", "§2023:12.4.5.2 SR3"));
+                    }, "§2023:12.4.5.2 SR3"));
         }
     }
 
@@ -67,7 +67,6 @@ public sealed partial class FileControlBinder
                     + "a file that no file control entry specifies; ISO " + Edition.Edition.Cite(
                         "§1985:VII.2.3.3 SR2 (§1985:VIII.2.3.3 SR2, §1985:IX.2.3.3 SR2): \"Each file-name in the Data Division must be "
                         + "specified only once in the FILE-CONTROL paragraph.\"",
-                        "§2023:13.4.5.3 SR1: \"File-name-1 shall be specified in a file control entry.\"",
                         "§2023:13.4.5.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
                 file = new FileModel { CobolName = name, SelectName = name };
                 _host.State.Files.Declare(name, file);
@@ -144,7 +143,6 @@ public sealed partial class FileControlBinder
                     + $"REPORT clause and has {entries.Length} record description or constant "
                     + $"entr{(entries.Length == 1 ? "y" : "ies")} subordinate to it — ISO "
                     + Edition.Edition.Cite("§1985:XIII.3.2.3 SR4: \"No record description entries may follow the file description entry for a report file.\"",
-                        "§2023:13.4.5.3 SR8: \"No record description entries or constant entries shall be associated with the file description entry for a report file.\"",
                         "§2023:13.4.5.3 SR8: \"No record description entries or constant entries shall be associated with the file description entry for a report file.\"")
                     + " Remove them; the report's lines come from its REPORT SECTION description.");
             // §2023:13.16.3 SR7's FD half — every WRITTEN record of an EXTERNAL / GLOBAL FD has a data-name
@@ -172,7 +170,6 @@ public sealed partial class FileControlBinder
                     + $"'{sdName}' names a file that no file control entry specifies; ISO " + Edition.Edition.Cite(
                         "§1985:XI.2.3.3 SR1: \"Each sort or merge file described in the Data Division must be specified only once in "
                         + "the FILE-CONTROL paragraph.\"",
-                        "§2023:13.4.6.3 SR1: \"File-name-1 shall be specified in a file control entry.\"",
                         "§2023:13.4.6.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
                 sdFile = new FileModel { CobolName = sdName, SelectName = sdName };
                 _host.State.Files.Declare(sdName, sdFile);
@@ -192,8 +189,6 @@ public sealed partial class FileControlBinder
                     + "file description entry " + Edition.Edition.Cite(
                         "(ISO §1985:XI.3.2.3 SR3) — a SORT or MERGE key is a data item within a record of this file, so there is "
                         + "nothing for the KEY phrase to name.",
-                        "(ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
-                        + "record of this file (§2023:14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name.",
                         "(ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
                         + "record of this file (§2023:14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name."));
             sdFile.Records.AddRange(sdRecords);
@@ -623,7 +618,7 @@ public sealed partial class FileControlBinder
             if (set.Medium is CodeSetMedium.NotProvided)
                 Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {name}: the {set.Phrase} coded "
                     + "character set's on-medium representation differs from the native encoding, and this processor "
-                    + $"does not provide alternate device code sets ({Edition.Edition.Cite("§1985:C.3 item 8", "Annex A §2023:A.3 item 27", "Annex A §2023:A.3 item 27")} — documented non-support, "
+                    + $"does not provide alternate device code sets ({Edition.Edition.Cite("§1985:C.3 item 8", "Annex A §2023:A.3 item 27")} — documented non-support, "
                     + "CONFORMANCE.md §2 row 27); NATIVE, STANDARD-1, STANDARD-2, UTF-16 and the ASCII code-name "
                     + "convert as the identity, and the EBCDIC code-name converts through its GR7 i correspondence");
             else if (set.Medium is CodeSetMedium.Translated)

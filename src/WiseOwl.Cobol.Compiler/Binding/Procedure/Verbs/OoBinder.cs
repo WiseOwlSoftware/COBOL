@@ -12,6 +12,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 
 using Core = CobolParserCore;
 using CobolNames = WiseOwl.Cobol.Runtime.CobolNames;   // the namespace holds a CobolClass too, which would hide the compiler's own CobolClass enum
+using WiseOwl.Cobol.Editions;
 
 /// <summary>
 /// The OO binder (P7 Step 10s — the OO half converts LAST, behind the OO goldens + method-scope tests):
@@ -1023,11 +1024,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationReturningShape,
                     $"the inline method invocation of \"{m.Name}\": the data item referenced in the "
                     + "RETURNING phrase of the invoked method's procedure division header shall not be "
-                    + (ctx.Edition.Edition.Cite(
-                        "described with the ANY LENGTH clause (ISO §2002:8.4.2.4.2 SR4)",
-                        "described with the ANY LENGTH clause (ISO §2002:8.4.2.4.2 SR4)",
-                        "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)",
-                        "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)")));
+                    + InlineReturningShapeRule(ctx.Edition.Edition));
             }
             if (ctx.Edition.Edition.Has(2014) && retModel.Pic is { Category: PicCategory.ObjectReference, ObjectRef: { Kind: ObjectRefKind.ActiveClass } })
             {
@@ -2225,5 +2222,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 + "of the EXIT statement; this is not a method procedure division)");
         }
         return new BoundMethodReturn(OoBindMethodRaising(e.raisingPhrase(), EcRaiseSite.Exit("EXIT METHOD")));
+    }
+
+    /// <summary>What an inline invocation's RETURNING item shall not be described with, by edition: ANY LENGTH at 2002 (and at 85,
+    /// which has no methods: its edition gate reads 2002), ANY LENGTH or ACTIVE-CLASS from 2014 (kb/Work PB5598, PB4950).</summary>
+    private static string InlineReturningShapeRule(EditionInfo edition)
+    {
+        const string y2002 = "described with the ANY LENGTH clause (ISO §2002:8.4.2.4.2 SR4)";
+        const string from2014 = "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)";
+        return edition.Cite(y2002, from2014, y2002, from2014);
     }
 }

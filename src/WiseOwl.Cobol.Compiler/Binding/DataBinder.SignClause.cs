@@ -86,7 +86,7 @@ public sealed partial class DataBinder
         // PICTURE-less signed usage such as BINARY-LONG SIGNED or FLOAT-LONG has no character-string to hold one).
         if (pic.Category is not PicCategory.Numeric || !pic.Signed || pictureText is null)
             return $"the SIGN clause may be specified for an elementary {entryKind} only when it is numeric and its "
-                + $"picture character-string contains the symbol 'S' (ISO {edition.Cite("§1985:VI.5.12.3 SR1", "§2023:13.18.52.3 SR1", "§2023:13.18.52.3 SR1")}) — this entry "
+                + $"picture character-string contains the symbol 'S' (ISO {edition.Cite("§1985:VI.5.12.3 SR1", "§2023:13.18.52.3 SR1")}) — this entry "
                 + (pictureText is null
                     ? $"has no PICTURE clause (USAGE {UsageFamilies.UsageWord(pic.Usage)})"
                     : pic.Category is PicCategory.Numeric
@@ -95,7 +95,7 @@ public sealed partial class DataBinder
         // SR2 — the usage of the elementary subject, written or inherited (§2023:13.18.60.4 GR1).
         if (pic.Usage is not (Usage.Display or Usage.National))
             return "the usage of an elementary item for which the SIGN clause is specified shall be display or "
-                + $"national (ISO {edition.Cite("§1985:VI.5.12.3 SR2", "§2023:13.18.52.3 SR2", "§2023:13.18.52.3 SR2")}) — this entry's usage is {UsageFamilies.UsageWord(pic.Usage)}";
+                + $"national (ISO {edition.Cite("§1985:VI.5.12.3 SR2", "§2023:13.18.52.3 SR2")}) — this entry's usage is {UsageFamilies.UsageWord(pic.Usage)}";
         return null;
     }
 }

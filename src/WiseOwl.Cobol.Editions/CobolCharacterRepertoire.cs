@@ -142,7 +142,7 @@ public static partial class CobolCharacterRepertoire
                 ? "\"Each character of a COBOL word that is not a special character word is selected from the set of letters, "
                   + "digits, and the hyphen\""
                 : "\"the hyphen may not appear as the first or last character in such words\"") + " (ISO §1985:IV.4.2.2.1)",
-            later, later);
+            later);
     }
 
     /// <summary>True when <paramref name="word"/> begins or ends with a hyphen or an underscore — the one test of the position rule
@@ -222,7 +222,7 @@ public static partial class CobolCharacterRepertoire
                 return $"the COBOL word '{word}' contains U+{cp:X4}, which is in no edition's Annex B, so it is not a "
                     + "character of a COBOL word at any edition: a word is made of "
                     + EditionInfo.Of(dialectLevel).Cite("letters, digits and the hyphen (ISO §1985:IV.4.2.2.1)",
-                        LaterWordCharacters, LaterWordCharacters);
+                        LaterWordCharacters);
         }
         return null;
     }

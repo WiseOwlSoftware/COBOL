@@ -1638,7 +1638,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         bool isSynonym = !CobolKeywords.Same(written, reserved);
         var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
             ? words.SynonymBy(written) : null;
-        string rule = EditionOf(recognizer).Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10", "§2023:4.2.10");
+        string rule = EditionOf(recognizer).Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10");
         return $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO {rule}; docs/CONFORMANCE.md D-RW1)"
             + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
                 ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §2023:7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word"
@@ -1750,7 +1750,6 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                         "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
                         + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
                         + "it (ISO " + EditionOf(recognizer).Cite("§1985:IV.2.1.4, with §1985:VI.6.13.2",
-                            "§2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3",
                             "§2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3") + ").", 0));
         }
 
@@ -1832,8 +1831,6 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 + EditionOf(recognizer).Cite(
                     "is 'MOVE { CORRESPONDING | CORR } identifier-1 TO identifier-2' — so no format admits a "
                     + "CORRESPONDING phrase after a sending operand (ISO §1985:VI.6.19.2).",
-                    "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
-                    + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2).",
                     "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
                     + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2)."), 0));
 
@@ -2001,8 +1998,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static string EmptyBlockMessage(string stmtName, EditionInfo edition)
         => $"The {stmtName} statement's general format shows an imperative-statement here that is not "
            + "bracketed, so at least one statement shall be specified: brackets are what license an "
-           + $"omission (ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2", "§2023:5.2.6.2")}), and one alternative of a brace group shall be explicitly specified "
-           + $"(ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.3", "§2023:5.2.6.3")}).";
+           + $"omission (ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2")}), and one alternative of a brace group shall be explicitly specified "
+           + $"(ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.3")}).";
 
     /// <summary>The name of the statement <paramref name="context"/> is, or of the innermost one around it, for a message
     /// (<c>EVALUATE</c>, <c>PERFORM</c>; <see cref="StatementName"/>).</summary>
@@ -3183,7 +3180,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>The words of the edition in force: <paramref name="y1985"/> at COBOL-85, <paramref name="later"/> from 2002 (kb/Work PB4950,
     /// <see cref="EditionInfo.Cite"/>), so a syntax diagnostic cites the rule of the edition the program is compiled under.</summary>
-    private static string CiteAt(Parser recognizer, string y1985, string later) => EditionOf(recognizer).Cite(y1985, later, later);
+    private static string CiteAt(Parser recognizer, string y1985, string later) => EditionOf(recognizer).Cite(y1985, later);
 
     /// <summary>⛔ THE ONE EDITION READ OF THE ERROR STRATEGY (kb/Work PB4950 review R1-2): the edition the parse is diagnosed for,
     /// through <see cref="CobolParserCoreBase.EditionInForce"/>. This strategy is installed only on a COBOL parser, so a recognizer

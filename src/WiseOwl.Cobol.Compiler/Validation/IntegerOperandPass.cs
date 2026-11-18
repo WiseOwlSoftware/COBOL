@@ -402,7 +402,6 @@ internal static class IntegerOperandRules
         + new EditionInfo(dialectLevel).Cite(
             "ISO §1985:I.1.7: \"Standard COBOL specifies no upper limit on such things as the number of statements in a program and "
             + "the number of operands permitted in certain statements\" — the limits of an implementation",
-            "ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of a compilation group\" — the limits of an implementation",
             "ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of a compilation group\" — the limits of an implementation");
 
     /// <summary>The slot of <paramref name="operand"/>, from the grammar rule that spells it. A rule the table
@@ -418,8 +417,6 @@ internal static class IntegerOperandRules
         EditionInfo.Of(dialectLevel).Cite(
             $"{where}: {subject} shall be nonzero — §1985:III.2: an integer \"must be neither signed nor zero unless "
               + "explicitly allowed by the rules for that format\", and no rule of this format permits zero here",
-            $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
-              + "otherwise specified in the associated rules\", and no rule of this format permits zero here",
             $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
               + "otherwise specified in the associated rules\", and no rule of this format permits zero here");
 

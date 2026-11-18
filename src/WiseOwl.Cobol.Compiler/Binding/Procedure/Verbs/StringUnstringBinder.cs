@@ -45,7 +45,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (BeginsWithAllWord(phrases[i].strUnstrOperand(), values[i]))   // SR2 — literal-1 shall not be a figurative beginning with the word ALL (a bare symbolic character is not — PB110)
                 values[i] = BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                     $"STRING sending operand '{DataBinder.WrittenText(phrases[i].strUnstrOperand())}' is a figurative constant that "
-                    + $"begins with the word ALL, which literal-1 {ctx.Edition.Edition.Cite("must not be", "shall not be", "shall not be")} (ISO {Sr(false, 2)})",
+                    + $"begins with the word ALL, which literal-1 {ctx.Edition.Edition.Cite("must not be", "shall not be")} (ISO {Sr(false, 2)})",
                     $"STRING sending ALL literal (ISO {Sr(false, 2)})");
             // ⛔ SR1 IS ONE SENTENCE ABOUT EVERY OPERAND OF THE STATEMENT, and it was enforced at ONE of its
             // three identifier positions (kb/Work PB664 — the sweep the MOVE screen's landing asked for).
@@ -65,7 +65,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (dp.ALL() is not null || BeginsWithAllWord(dp.strUnstrOperand(), d))
                 d = BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                     $"STRING DELIMITED BY '{(dp.ALL() is not null ? "ALL " : "")}{DataBinder.WrittenText(dp.strUnstrOperand())}': the delimiter is a figurative constant that begins with "
-                    + $"the word ALL, which literal-2 {ctx.Edition.Edition.Cite("must not be", "shall not be", "shall not be")} (ISO {Sr(false, 2)})",
+                    + $"the word ALL, which literal-2 {ctx.Edition.Edition.Cite("must not be", "shall not be")} (ISO {Sr(false, 2)})",
                     $"STRING DELIMITED BY ALL literal (ISO {Sr(false, 2)})");
             if (Sr1Offence(d, ctx.Edition.Edition) is { } delimOffence)     // identifier-2 / literal-2 — SR1's second named position
                 return Sr1Reject($"STRING DELIMITED BY '{DataBinder.WrittenText(dp.strUnstrOperand())}'", delimOffence);
@@ -74,7 +74,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             // and is no licence for a zero-length literal-2 (kb/Work PB1181).
             if (IsZeroLengthLiteral(d))
                 return Reject($"STRING DELIMITED BY {DataBinder.WrittenText(dp.strUnstrOperand())}: literal-2 is a zero-length literal "
-                    + $"(ISO {Sr(false, 3)}{ctx.Edition.Edition.Cite("", "; §2023:8.3.3.1", "; §2023:8.3.3.1")})");
+                    + $"(ISO {Sr(false, 3)}{ctx.Edition.Edition.Cite("", "; §2023:8.3.3.1")})");
             if (Sr8Offence(d) is { } delimSr8)
                 return Reject($"STRING DELIMITED BY '{DataBinder.WrittenText(dp.strUnstrOperand())}' {delimSr8} (ISO {Sr(false, 8)})");
             delims[i] = d;
@@ -185,7 +185,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
         if (un.strUnstrSender().dataReference() is { } aliasRef && host.Expr.LiteralAliasOf(aliasRef) is { } alias)
             return Reject(alias.Constant is not null
                 ? $"UNSTRING sender '{senderText}' is a constant-name, which stands only where a format specifies a "
-                    + $"literal; identifier-1 is a data item (ISO {Sr(true, 8)}{ctx.Edition.Edition.Cite("", "; §2023:13.10.3 SR2", "; §2023:13.10.3 SR2")})"
+                    + $"literal; identifier-1 is a data item (ISO {Sr(true, 8)}{ctx.Edition.Edition.Cite("", "; §2023:13.10.3 SR2")})"
                 : $"UNSTRING sender '{senderText}' is a symbolic-character, a figurative constant (ISO §2023:12.3.7.4 GR11 a)); "
                     + $"identifier-1 is a data item (ISO {Sr(true, 8)})");
         // SR2 — identifier-1 (the sender) shall be category alphanumeric or national (a fixed-length group and a
@@ -214,7 +214,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                         + $"begins with the word ALL, which literal-1 and literal-2 shall not be (ISO {Sr(true, 1)})");
                 if (IsZeroLengthLiteral(v))
                     return Reject($"UNSTRING DELIMITED BY {(all ? "ALL " : "")}{delimText}: the delimiter is "
-                        + $"a zero-length literal, which literal-1 and literal-2 shall not be (ISO {Sr(true, 1)}{ctx.Edition.Edition.Cite("", "; §2023:8.3.3.1", "; §2023:8.3.3.1")})");
+                        + $"a zero-length literal, which literal-1 and literal-2 shall not be (ISO {Sr(true, 1)}{ctx.Edition.Edition.Cite("", "; §2023:8.3.3.1")})");
                 // SR1 names the LITERAL positions (category alphanumeric or national) and SR2 the identifier ones, in
                 // the same clause. The sweep that screened only the sender left a numeric or edited DELIMITED BY
                 // operand binding clean (kb/Work PB155), and the literal arms were never asked at all (kb/Work PB1181).
@@ -265,7 +265,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                     + ctx.Edition.Edition.Cite(
                         "a usage-display alphabetic, alphanumeric or numeric receiver, a numeric one without the symbol P; "
                         + "edited, COMP, packed, index and float receivers have no character image (ISO §1985:VI.6.27.3 SR3)",
-                        UnstringReceiverSr4, UnstringReceiverSr4));
+                        UnstringReceiverSr4));
             }
             bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
             if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
@@ -472,7 +472,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             $"is {IntrinsicArgumentRules.FunctionUsageReason(functionCategory)}, so it is not described as usage display or national; "
             + UsageRequirement(edition),
         BoundNumericLiteral => "is a numeric literal; " + edition.Cite("SR2 admits only nonnumeric literals",
-            "SR1 admits only alphanumeric, boolean and national literals", "SR1 admits only alphanumeric, boolean and national literals"),
+            "SR1 admits only alphanumeric, boolean and national literals"),
         // ⛔ THE USAGE HALF IS THE ONE PREDICATE (kb/Work PB3228, with INSPECT SR1/SR2: ItemCategory.IsDisplayOrNationalUsage).
         // This arm used to re-derive it from `Pic.Usage` guarded by !IsGroup, so a BIT GROUP — §2023:13.18.29.4 GR1 b) "treated
         // as though it were an elementary data item of usage bit" — fell to `_ => null` and compiled clean, where INSPECT
@@ -532,7 +532,6 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// explicitly as USAGE IS DISPLAY", which has no national usage).</summary>
     private static string UsageRequirement(EditionInfo edition) => edition.Cite(
         "SR2 requires every identifier except the POINTER to be described implicitly or explicitly as USAGE IS DISPLAY",
-        "SR1 requires every identifier except the POINTER to be usage display or national",
         "SR1 requires every identifier except the POINTER to be usage display or national");
 
     /// <summary>ISO §2023:14.9.48.3 SR2 — the OFFENDING category of an UNSTRING sender (as its printable name), or
@@ -653,7 +652,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                 8 => "§1985:VI.6.25.3 SR6",
                 _ => null,
             };
-        return ctx.Edition.Edition.Cite(c1985 ?? c2023, c2023, c2023);
+        return ctx.Edition.Edition.Cite(c1985 ?? c2023, c2023);
     }
 
     /// <summary>True for an elementary fixed-point INTEGER item with no P scaling — the shape STRING SR7 /

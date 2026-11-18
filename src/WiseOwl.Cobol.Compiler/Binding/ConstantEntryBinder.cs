@@ -1075,7 +1075,6 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             : $"{where}: {what} '{word}' is not an integer literal — an integer-n position admits an integer literal "
               + owner.Edition.Edition.Cite(
                   "(ISO §1985:III.2, \"integer must be a numeric literal which is an integer\"), and COBOL-85 has no constant-name to stand for one",
-                  "(ISO §2023:5.5 1)), and COBOL-85 has no constant-name to stand for one",
                   "(ISO §2023:5.5 1)), and COBOL-85 has no constant-name to stand for one"));
         return null;
     }

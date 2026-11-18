@@ -113,7 +113,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             : $" (counting {(count == 1 ? "a REPORT SECTION entry" : $"{count} REPORT SECTION entries")} of that spelling)";
         string msg;
         // The uniqueness rule is the edition's own (kb/Work PB5627): §1985:IV.4.3.8.1 SRL2.1 below COBOL-2002.
-        string rule = data.Edition.Edition.Cite("ISO §1985:IV.4.3.8.1 SRL2.1", "ISO §2023:8.4.2.2", "ISO §2023:8.4.2.2");
+        string rule = data.Edition.Edition.Cite("ISO §1985:IV.4.3.8.1 SRL2.1", "ISO §2023:8.4.2.2");
         // ⛔ A DECLARED CONDITION-NAME (kb/Work PB567): one qualified by a data-name it is NOT subordinate to (`IS-A OF
         // H1`, H1 an unrelated record; `IS-A OF G1 OF S`, real ancestors in reversed order) is worded by the one
         // misqualified-condition text. Every other kind — an alphabet-name (kb/Work R38: GnuCOBOL's INSPECT CONVERTING
@@ -163,7 +163,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
               + $"is subordinate to the given qualifier{(qualifiers.Count > 1 ? "s" : "")} "
               + $"({string.Join(" OF ", qualifiers)}): a condition-name is qualified only by its conditional "
               + "variable and that variable's containing groups, innermost first (ISO "
-              + edition.Cite("§1985:IV.4.3.8.1 SRL2.4", "§2023:13.16.3 SR23; §2023:8.4.2.2.3 SR4, SR5", "§2023:13.16.3 SR23; §2023:8.4.2.2.3 SR4, SR5")
+              + edition.Cite("§1985:IV.4.3.8.1 SRL2.4", "§2023:13.16.3 SR23; §2023:8.4.2.2.3 SR4, SR5")
               + ").";
 
     /// <summary>What a named CAPACITY register is, as the noun phrase <see cref="HiddenConditionText"/> says (the register
@@ -182,7 +182,6 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         + "declared in a source element nearer than the containing program whose GLOBAL condition-name "
         + $"'{name}' it hides (ISO "
         + edition.Cite("§1985:X.1.3.8.2 GR3a: \"If the name is declared in program B, the object in program B is the referenced object\"",
-            "§2023:8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source element B is the referenced item\"",
             "§2023:8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source element B is the referenced item\"")
         + ").";
 
@@ -234,16 +233,16 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
                 + $"object (which fixes its length or its number of occurrences), and '{depending.Item.CobolName}' belongs to LINKAGE SECTION record '{record.CobolName}': the "
                 + "procedure division may not reference it ("
                 + data.Edition.Edition.Cite(
-                    y1985: "ISO §1985:X.5.1 GR4; §1985:IV.4.4.1: an implicit reference \"occurs if and only if the data item "
+                    "ISO §1985:X.5.1 GR4; §1985:IV.4.4.1: an implicit reference \"occurs if and only if the data item "
                         + "contributes to the execution of the statement\"",
+                    "ISO §2023:13.7.3 SR4; §2023:8.4.5: an implicit reference occurs when \"it contributes to, or is "
+                        + "affected by, the execution of the statement\"",
                     y2002: "ISO §2002:13.6.2 SR4; §2002:8.4.4: an implicit reference \"occurs if and only if the data item "
                         + "contributes to the execution of the statement\"",
                     y2014: "ISO §2014:13.7.2 SR4; §2014:8.4.4: an implicit reference occurs when \"it contributes to, or is "
-                        + "affected by, the execution of the statement\"",
-                    y2023: "ISO §2023:13.7.3 SR4; §2023:8.4.5: an implicit reference occurs when \"it contributes to, or is "
                         + "affected by, the execution of the statement\"")
                 + $"). Name '{record.CobolName}' in the procedure division header"
-                + data.Edition.Edition.Cite(".", ", or describe it BASED.", ", or describe it BASED."));
+                + data.Edition.Edition.Cite(".", ", or describe it BASED."));
             return;
         }
     }
@@ -260,16 +259,11 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             + (data.Edition.Edition.Cite(
                 "reference (ISO §1985:X.5.1 GR4): the record is not an operand of the USING phrase of the Procedure "
                     + "Division header, nor a redefinition or renaming of one. Name it in the header.",
-                "reference (ISO " + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
-                        y2023: "§2023:13.7.3 SR4")
+                "reference (ISO " + data.Edition.Edition.Cite("", "§2023:13.7.3 SR4", y2002: "§2002:13.6.2 SR4",
+                        y2014: "§2014:13.7.2 SR4")
                     + "): the record is not an operand of the USING or RETURNING phrase of the procedure division header, "
                     + "not a redefinition or renaming of one, and not BASED. Name it in the header, or describe it BASED ("
-                    + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ").",
-                "reference (ISO " + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
-                        y2023: "§2023:13.7.3 SR4")
-                    + "): the record is not an operand of the USING or RETURNING phrase of the procedure division header, "
-                    + "not a redefinition or renaming of one, and not BASED. Name it in the header, or describe it BASED ("
-                    + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ").")));
+                    + data.Edition.Edition.Cite("", "§2023:13.18.5", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5") + ").")));
 
     /// <summary>COBOL2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
     /// view; a SCREEN SECTION name, the section being declined as COBOL1560; a constant-name whose entry yielded no

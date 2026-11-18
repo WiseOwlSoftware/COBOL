@@ -266,7 +266,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                     "an index data item, and \"An index data item may not appear as an operand of an INITIALIZE statement\" "
                     + "(ISO §1985:VI.6.17.3 SR5); only a SEARCH or SET statement, a relation condition and the USING phrase of a "
                     + "Procedure Division header or CALL statement may reference one (§1985:VI.5.14.3 SR5)",
-                    Initialize2023, Initialize2023));
+                    Initialize2023));
             return;
         }
         if (place is RefModPlace)
@@ -949,7 +949,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (anyMoveFormCategory && MoveTable16.SenderClassRefusal(value, ctx.Edition.Edition) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING BY {senderText}: ISO {ctx.Edition.Edition.Cite("§1985:VI.6.17.3 SR2", "§2023:14.9.20.3 SR4", "§2023:14.9.20.3 SR4")} requires the implicit MOVE to be "
+                $"INITIALIZE REPLACING BY {senderText}: ISO {ctx.Edition.Edition.Cite("§1985:VI.6.17.3 SR2", "§2023:14.9.20.3 SR4")} requires the implicit MOVE to be "
                 + $"valid, and {classRefusal}");
             return;
         }
@@ -963,7 +963,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // reads (null receiver) as "not a group", i.e. a violation when the sender is a variable-length group.
             if (MoveTable16.Validity(value, recvPos, receiverItem: null, MoveTable16.CitationsOf(ctx.Edition.Edition))?.Reason is not { } refusal) continue;
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO {ctx.Edition.Edition.Cite("§1985:VI.6.17.3 SR2", "§2023:14.9.20.3 SR4", "§2023:14.9.20.3 SR4")} "
+                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO {ctx.Edition.Edition.Cite("§1985:VI.6.17.3 SR2", "§2023:14.9.20.3 SR4")} "
                 + $"requires that `MOVE {senderText} TO <an item of category "
                 + $"{InitializeCategories.Spelling(cat)}>` be valid, and {refusal}");
             return;   // one message per REPLACING item, naming the first offending category

@@ -109,7 +109,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                         $"'{item.CobolName ?? "FILLER"}' REDEFINES '{tname}': data-name-2 does not name a preceding "
                         + "entry in the same scope (ISO "
                         + binder.Edition.Edition.Cite($"§1985:VI.5.10.3 SR11; {binder.Edition.Edition.Citation()}",
-                            "§2023:13.18.44.3 SR4/SR7/SR10; §2023:8.4.2.1", "§2023:13.18.44.3 SR4/SR7/SR10; §2023:8.4.2.1") + ")");
+                            "§2023:13.18.44.3 SR4/SR7/SR10; §2023:8.4.2.1") + ")");
                 if (item.RedefinesTarget is null)
                     item.RedefinesTargetName = null;   // no half-state: an unresolved redefiner is an ordinary entry
                 // §2023:13.18.44.3 SR7 (kb/Work PB93 sweep): data-name-2 shall be the entry that ORIGINALLY defined the area
@@ -119,7 +119,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     binder.Edition.Removed(DiagnosticCatalog.RedefinesOfRedefinition.Code,
                         $"'{item.CobolName ?? "FILLER"}' REDEFINES '{viaRedefiner.CobolName ?? "FILLER"}', which is itself "
                         + "a redefinition — data-name-2 shall be the entry that originally defined the storage area "
-                        + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR8", "§2023:13.18.44.3 SR7", "§2023:13.18.44.3 SR7")})");
+                        + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR8", "§2023:13.18.44.3 SR7")})");
                 // §2023:13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY
                 // LENGTH clause — a runtime-length item has no fixed storage area a redefiner could overlay.
                 if (written && item.RedefinesTarget is { IsAnyLength: true })
@@ -165,7 +165,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     string missing = info.From is null ? info.FromName : info.ThruName!;
                     binder.Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
                         $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn ? " THRU " + tn : "")}: "
-                        + $"'{missing}' does not name an item of the record (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR4", "§2023:13.18.45.3 SR4", "§2023:13.18.45.3 SR4")}; "
+                        + $"'{missing}' does not name an item of the record (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR4", "§2023:13.18.45.3 SR4")}; "
                         + $"{binder.Edition.Edition.Citation()})");
                     continue;
                 }
@@ -184,7 +184,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                         $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn8 ? " THRU " + tn8 : "")}: "
                         + $"{rangeFault}; none of the items within the range, including data-name-2 and data-name-3, "
                         + "shall be of class object, message-tag, or pointer, a variable-length data item, or an "
-                        + $"occurs-depending table (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8", "§2023:13.18.45.3 SR8")})");
+                        + $"occurs-depending table (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8")})");
                     continue;
                 }
                 // The no-THRU alias inherits the renamed item's description (§2023:13.18.45 GR1) — the resolver
@@ -410,14 +410,14 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 $"'{name}' REDEFINES '{tname}': the entry '{between.CobolName ?? "FILLER"}' between them defines new "
                 + "storage — the entries giving the new descriptions of the storage area shall follow the entries "
                 + "defining the area of data-name-2, without intervening entries that define new storage areas "
-                + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR11", "§2023:13.18.44.3 SR10", "§2023:13.18.44.3 SR10")})");
+                + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR11", "§2023:13.18.44.3 SR10")})");
 
         // SR2 — a 77 and an 01 are both roots, so name resolution alone cannot tell them apart; the written
         // level-numbers can.
         if (item.Level != target.Level)
             binder.Edition.Error(DiagnosticCatalog.RedefinesEntryRule,
                 $"'{name}' REDEFINES '{tname}': the level-numbers of data-name-2 ({target.Level}) and the subject of "
-                + $"the entry ({item.Level}) shall be identical (ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR2", "§2023:13.18.44.3 SR2", "§2023:13.18.44.3 SR2")})");
+                + $"the entry ({item.Level}) shall be identical (ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR2", "§2023:13.18.44.3 SR2")})");
 
         // SR3 — first half: no REDEFINES in a level-1 FILE SECTION entry (the records of one FD already share their
         // area, §2023:13.18.33.4 GR3, and that implicit redefinition is not this clause). The second half, an FD with a
@@ -425,13 +425,13 @@ internal sealed class ResolveRedefinesPass : IBindPass
         if (item.Parent is null && item.Level == 1 && item.Section == EntrySection.File)
             binder.Edition.Error(DiagnosticCatalog.RedefinesEntryRule,
                 $"'{name}': the REDEFINES clause shall not be specified in a level-1 entry in the file section "
-                + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR3", "§2023:13.18.44.3 SR3", "§2023:13.18.44.3 SR3")})");
+                + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR3", "§2023:13.18.44.3 SR3")})");
 
         // The communication section's twin (ISO/IEC 1989:2002 13.16.42 SR4): a CD's records already share its area.
         if (item.Parent is null && item.Level == 1 && item.Section == EntrySection.Communication)
             binder.Edition.Error(DiagnosticCatalog.RedefinesEntryRule,
                 $"'{name}': the REDEFINES clause shall not be specified in a level-1 entry in the communication section "
-                + $"({binder.Edition.Edition.Cite("ISO §1985:VI.5.10.3 SR4", "ISO/IEC 1989:2002 13.16.42 SR4", "ISO/IEC 1989:2002 13.16.42 SR4")})");
+                + $"({binder.Edition.Edition.Cite("ISO §1985:VI.5.10.3 SR4", "ISO/IEC 1989:2002 13.16.42 SR4")})");
 
         // SR13 — a constant record cannot be redefined and then modified through the redefining name.
         if (target.IsConstantRecord)
@@ -451,7 +451,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
             binder.Edition.Error(DiagnosticCatalog.RedefinesStorageLargerThanTarget, $"'{name}' REDEFINES '{tname}': the redefining storage area "
                 + $"({itemBits} bits) is larger than the redefined ({targetBits}) — permitted only when the redefined "
                 + "item is level 1 and not EXTERNAL (ISO "
-                + binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR6", "§2023:13.18.44.3 SR8", "§2023:13.18.44.3 SR8") + ")");
+                + binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR6", "§2023:13.18.44.3 SR8") + ")");
 
         // SR15 — "The description of the subject of the entry shall be such that its required alignment is the same
         // as the alignment of the data item referenced by data-name-2." §2023:8.5.1.6.3 puts an elementary bit item that
@@ -531,7 +531,6 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 + $"{(operand.Level is 77 ? "77" : operand.Level is 66 ? "66" : "1")} "
                 + binder.Edition.Edition.Cite(
                     "(ISO §1985:VI.5.11.3 SR4: \"A 66 level entry cannot rename another 66 level entry nor can it rename a 77, 88, or 01 level entry.\")",
-                    "(ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")",
                     "(ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")"));
             ok = false;
         }
@@ -546,7 +545,6 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     + (ReferenceEquals(n, operand) ? "" : $" (of '{n.CobolName ?? "FILLER"}')")
                     + " " + binder.Edition.Edition.Cite(
                         "(ISO §1985:VI.5.11.3 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry nor be subordinate to an item that has an OCCURS clause in its data description entry.\")",
-                        "(ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses.\")",
                         "(ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses.\")"));
                 ok = false;
                 break;
@@ -584,9 +582,6 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 "(ISO §1985:VI.5.11.3 SR8: \"The beginning of the area described by data-name-3 must not be to the left of the "
                 + "beginning of the area described by data-name-2. The end of the area described by data-name-3 must be to the right "
                 + "of the end of the area described by data-name-2.\")",
-                "(ISO §2023:13.18.45.3 SR11: \"The beginning of the storage area described by data-name-3 shall not precede the "
-                + "beginning of the storage area described by data-name-2. The end of the storage area described by "
-                + "data-name-3 shall follow the end of the storage area described by data-name-2.\")",
                 "(ISO §2023:13.18.45.3 SR11: \"The beginning of the storage area described by data-name-3 shall not precede the "
                 + "beginning of the storage area described by data-name-2. The end of the storage area described by "
                 + "data-name-3 shall follow the end of the storage area described by data-name-2.\")"));

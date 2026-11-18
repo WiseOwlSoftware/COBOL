@@ -91,12 +91,12 @@ internal static class ReceivingOperandForms
             + "receiving operand (ISO §2023:8.4.3.13.3 SR4)"),
         [NonReceivableForm.LinageCounter] = new(DiagnosticCatalog.LinageCounterReceiving, (_, edition) =>
             "LINAGE-COUNTER shall not be referenced as a receiving operand (ISO "
-            + edition.Cite("§1985:VII.1.3.7", "§2023:8.4.3.14.3 SR2", "§2023:8.4.3.14.3 SR2") + "); only the "
+            + edition.Cite("§1985:VII.1.3.7", "§2023:8.4.3.14.3 SR2") + "); only the "
             + "input-output control system may change its value (ISO "
-            + edition.Cite("§1985:VII.1.3.7)", "§2023:13.18.34.4 GR7 b)", "§2023:13.18.34.4 GR7 b)")),
+            + edition.Cite("§1985:VII.1.3.7)", "§2023:13.18.34.4 GR7 b)")),
         [NonReceivableForm.LineCounter] = new(DiagnosticCatalog.ReportLineCounterReceiving, (_, edition) =>
             "LINE-COUNTER shall not be referenced as a receiving operand (ISO "
-            + edition.Cite("§1985:XIII.1.2.3", "§2023:8.4.3.15.3 SR3", "§2023:8.4.3.15.3 SR3") + ")"),
+            + edition.Cite("§1985:XIII.1.2.3", "§2023:8.4.3.15.3 SR3") + ")"),
     }.ToFrozenDictionary();
 
     /// <summary>The form of a <c>nonReceivableIdentifier</c> — the grammar's superset of the formats above that a

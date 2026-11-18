@@ -72,7 +72,6 @@ public sealed partial class FileControlBinder
                     + "SELECT clause; ISO "
                     + Edition.Edition.Cite(
                         "§1985:VII.2.3.3 SR2: \"Each file-name in the Data Division must be specified only once in the FILE-CONTROL paragraph.\"",
-                        "§2023:12.4.5.2 SR2: \"A given file-name may be specified in only one SELECT clause within a factory, function, object, or program.\"",
                         "§2023:12.4.5.2 SR2: \"A given file-name may be specified in only one SELECT clause within a factory, function, object, or program.\""));
                 continue;
             }
@@ -207,7 +206,7 @@ public sealed partial class FileControlBinder
                             $"file '{name}': RESERVE {file.ReserveAreas} AREAS exceeds this implementation's limit of "
                             + $"{WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas} input-output areas (ISO "
                             + Edition.Edition.Cite("§1985:VII.2.9.3 GR1, which makes the number of input-output areas allocated equal to integer-1",
-                                "§2023:4.2.15", "§2023:4.2.15") + ")");
+                                "§2023:4.2.15") + ")");
                         file.ReserveAreas = ConstantEntryBinder.RecoveredIntegerOperand;
                     }
                 }
@@ -240,7 +239,7 @@ public sealed partial class FileControlBinder
                             Edition.Error(DiagnosticCatalog.RecordDelimiterNameUndefined,
                                 $"file '{name}': RECORD DELIMITER IS {file.RecordDelimiter} names no method — the implementor-names "
                                 + $"of the clause are {string.Join(" and ", RecordDelimiterNames.Names)} ("
-                                + Edition.Edition.Cite("§1985:VII.2.8.4 GR3", "§2002:12.3.4.11.2 SR2", "§2023:12.4.5.11.3 SR2", "§2014:12.4.4.10.2 SR2")
+                                + Edition.Edition.Cite("§1985:VII.2.8.4 GR3", "§2023:12.4.5.11.3 SR2", y2002: "§2002:12.3.4.11.2 SR2", y2014: "§2014:12.4.4.10.2 SR2")
                                 + ")");
                     }
                 }
@@ -279,7 +278,7 @@ public sealed partial class FileControlBinder
                     + file.OrganizationFace
                     + " (ISO " + Edition.Edition.Cite(
                         "§1985:VII.2.4.2, whose ACCESS MODE clause for a sequential file prints SEQUENTIAL alone",
-                        "§2023:12.4.5.5.2 SR2", "§2023:12.4.5.5.2 SR2") + ")");
+                        "§2023:12.4.5.5.2 SR2") + ")");
             }
             // §2023:12.4.5.2 SR12 — "If the LINE SEQUENTIAL phrase of the ORGANIZATION clause is specified, the RESERVE
             // clause shall not be specified" (kb/Work PB781). A clause-pair exclusion decidable from the entry alone,
@@ -367,16 +366,16 @@ public sealed partial class FileControlBinder
             || file.HasVariableLengthRecords) return;
         string why = file.RecordContains is { } n
             ? $"its RECORD CONTAINS {n} CHARACTERS clause specifies fixed-length records ("
-              + Edition.Edition.Cite("§1985:VII.3.8.4 GR3", "§2002:13.16.41.3 GR6", "§2023:13.18.43.4 GR6", "§2014:13.18.43.3 GR6") + ")"
+              + Edition.Edition.Cite("§1985:VII.3.8.4 GR3", "§2023:13.18.43.4 GR6", y2002: "§2002:13.16.41.3 GR6", y2014: "§2014:13.18.43.3 GR6") + ")"
             : "it writes no RECORD clause and no record description of it is variable-length, so this implementation gives "
               + "it fixed-length records ("
-              + Edition.Edition.Cite("§1985:II.2.1.4.3", "§2002:13.16.41.3 GR5", "§2023:13.18.43.4 GR5", "§2014:13.18.43.3 GR5")
+              + Edition.Edition.Cite("§1985:II.2.1.4.3", "§2023:13.18.43.4 GR5", y2002: "§2002:13.16.41.3 GR5", y2014: "§2014:13.18.43.3 GR5")
               + "; docs/CONFORMANCE.md §7, Annex A.1 item 147)";
         using var at = Edition.At(file.RecordDelimiterAt);
         Edition.Error(DiagnosticCatalog.RecordDelimiterOnFixedLengthRecords,
             $"file '{file.CobolName}': RECORD DELIMITER IS {word} is specified for fixed-length records — {why}; the clause "
             + "\"may be specified only for variable-length records\" ("
-            + Edition.Edition.Cite("§1985:VII.2.8.3 SR1", "§2002:12.3.4.11.2 SR1", "§2023:12.4.5.11.3 SR1", "§2014:12.4.4.10.2 SR1")
+            + Edition.Edition.Cite("§1985:VII.2.8.3 SR1", "§2023:12.4.5.11.3 SR1", y2002: "§2002:12.3.4.11.2 SR1", y2014: "§2014:12.4.4.10.2 SR1")
             + "). A RECORD IS VARYING or a RECORD CONTAINS integer TO integer clause specifies variable-length records.");
     }
 

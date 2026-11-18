@@ -165,8 +165,6 @@ public sealed partial class DataBinder
                     "§1985:VI.5.8.2: Format 1 is OCCURS integer-2 TIMES and Format 2 is OCCURS integer-1 TO integer-2 TIMES "
                     + "DEPENDING ON data-name-1, with no STEP phrase)",
                     "§2023:13.18.38.2 Format 3: OCCURS [ integer-1 TO ] integer-2 TIMES "
-                    + "[ DEPENDING ON data-name-1 ] [ STEP integer-3 ])",
-                    "§2023:13.18.38.2 Format 3: OCCURS [ integer-1 TO ] integer-2 TIMES "
                     + "[ DEPENDING ON data-name-1 ] [ STEP integer-3 ])"));
         bool hasTo = occ.TO() is not null, depending = occ.DEPENDING() is not null;
         if (hasTo != depending)
@@ -175,7 +173,7 @@ public sealed partial class DataBinder
                 + "; a data description entry's occurs-depending table is Format 2, which prints "
                 + "\"OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1\" with no part optional, and a fixed "
                 + "table is Format 1, \"OCCURS integer-2 TIMES\" (ISO "
-                + Edition.Edition.Cite("§1985:VI.5.8.2", "§2023:13.18.38.2", "§2023:13.18.38.2") + ")");
+                + Edition.Edition.Cite("§1985:VI.5.8.2", "§2023:13.18.38.2") + ")");
     }
 
     /// <summary>⛔ §2023:13.18.38.3 SR29 (kb/Work PB1264): "The implementor shall specify a maximum permissible value for

@@ -65,10 +65,11 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     private bool Prints2002 => ctx.Edition.Edition.Year >= 2002;
 
     /// <summary>The rule as the program's edition prints it, located and quoted.</summary>
-    private string Cite(SyntaxRule rule) => Prints2002 ? $"§2002:{rule.Rule2002}: \"{rule.Sentence2002}\"" : $"§1985:{rule.Rule1985}: \"{rule.Sentence1985}\"";
+    private string Cite(SyntaxRule rule) =>
+        ctx.Edition.Edition.Cite($"§1985:{rule.Rule1985}: \"{rule.Sentence1985}\"", $"§2002:{rule.Rule2002}: \"{rule.Sentence2002}\"");
 
     /// <summary>SEND's general format in the program's edition.</summary>
-    private string SendFormat => Prints2002 ? "§2002:A.2.6.1" : "§1985:XIV.3.6.2";
+    private string SendFormat => ctx.Edition.Edition.Cite("§1985:XIV.3.6.2", "§2002:A.2.6.1");
 
     /// <summary>The cd-name a statement writes, or null after reporting it. A name that is no cd-name and a cd-name of the wrong format are the same code, each quoting the rule.</summary>
     private CommunicationDescription? ResolveCommunicationCd(Core.CobolWordContext word, CdRule rule)

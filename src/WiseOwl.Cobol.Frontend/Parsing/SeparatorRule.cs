@@ -88,14 +88,14 @@ public static class SeparatorRule
                     if (!IsSeparatorSpace(CharAt(text, t.StopIndex + 1)) && !IsDecimalComma(text, t))
                         yield return new(t, DiagnosticCatalog.SeparatorCommaWithoutSpace,
                             $"the {Name(t)} is not immediately followed by a space, so it is not a separator — ISO "
-                            + $"{edition.Cite("§1985:IV.4.2.1 SR2", "§2023:8.3.5 rule 2", "§2023:8.3.5 rule 2")} makes a comma or semicolon a separator only when a space follows it; write a space "
+                            + $"{edition.Cite("§1985:IV.4.2.1 SR2", "§2023:8.3.5 rule 2")} makes a comma or semicolon a separator only when a space follows it; write a space "
                             + "after it");
                     break;
                 case CobolLexer.DOT:
                     if (!IsSeparatorSpace(CharAt(text, t.StopIndex + 1)))
                         yield return new(t, DiagnosticCatalog.SeparatorPeriodWithoutSpace,
                             $"the period is not followed by a space, so it is not a separator period — ISO "
-                            + $"{edition.Cite("§1985:IV.4.2.1 SR3", "§2023:8.3.5 rule 3", "§2023:8.3.5 rule 3")} makes a period a separator only when a space follows it; write a space after it");
+                            + $"{edition.Cite("§1985:IV.4.2.1 SR3", "§2023:8.3.5 rule 3")} makes a period a separator only when a space follows it; write a space after it");
                     break;
                 default:
                     if (!LiteralTokens.Types.Contains(t.Type)) break;
@@ -103,14 +103,14 @@ public static class SeparatorRule
                         && !IsOperatorTouching(tokens, i - 1, t.StartIndex - 1))
                         yield return new(t, DiagnosticCatalog.SeparatorLiteralDelimiter,
                             $"the literal {Abbreviated(t.Text)} begins immediately after '{(char)CharAt(text, t.StartIndex - 1)}' — "
-                            + $"ISO {edition.Cite("§1985:IV.4.2.1 SR5", "§2023:8.3.5 rule 5", "§2023:8.3.5 rule 5")} requires an opening delimiter to be immediately preceded by a space, a "
+                            + $"ISO {edition.Cite("§1985:IV.4.2.1 SR5", "§2023:8.3.5 rule 5")} requires an opening delimiter to be immediately preceded by a space, a "
                             + "left parenthesis or an opening pseudo-text delimiter");
                     if (!ClosingDelimiterSeparated(text, t.StopIndex) && !IsOperatorTouching(tokens, i + 1, t.StopIndex + 1))
                     {
                         reportedCloseStop = t.StopIndex;
                         yield return new(t, DiagnosticCatalog.SeparatorLiteralDelimiter,
                             $"the literal {Abbreviated(t.Text)} is immediately followed by '{(char)CharAt(text, t.StopIndex + 1)}' — "
-                            + $"ISO {edition.Cite("§1985:IV.4.2.1 SR5", "§2023:8.3.5 rule 5", "§2023:8.3.5 rule 5")} requires a closing delimiter to be immediately followed by a space, "
+                            + $"ISO {edition.Cite("§1985:IV.4.2.1 SR5", "§2023:8.3.5 rule 5")} requires a closing delimiter to be immediately followed by a space, "
                             + "comma, semicolon, period, right parenthesis or closing pseudo-text delimiter");
                     }
                     break;
@@ -192,7 +192,7 @@ public static class SeparatorRule
         void Judge(IToken? op, string name, bool unary)
         {
             if (op is null || op.StartIndex < 0) return;   // a missing token of an error-recovered parse has no characters
-            if (OperatorSpacingMessage(text, op, name, edition.Cite("§1985:VI.6.2.2", "§2023:8.7.1", "§2023:8.7.1"), parenthesisAdmitted: unary) is { } message)
+            if (OperatorSpacingMessage(text, op, name, edition.Cite("§1985:VI.6.2.2", "§2023:8.7.1"), parenthesisAdmitted: unary) is { } message)
                 (found ??= []).Add(new(op, DiagnosticCatalog.SeparatorOperatorSpacing, message));
         }
 

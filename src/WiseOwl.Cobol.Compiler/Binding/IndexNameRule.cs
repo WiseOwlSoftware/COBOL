@@ -16,13 +16,13 @@ internal static class IndexNameRule
 {
     /// <summary>Why an index-name is no identifier (without the "ISO " lead-in).</summary>
     public static string NotAnIdentifier(this EditionInfo edition) =>
-        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:8.4.3.1.2", "§2023:8.4.3.1.2");
+        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:8.4.3.1.2");
 
     /// <summary>The rule that closes the contexts an index-name may appear in (without the "ISO " lead-in).</summary>
     public static string Contexts(this EditionInfo edition) =>
-        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:13.18.38.3 SR7", "§2023:13.18.38.3 SR7");
+        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:13.18.38.3 SR7");
 
     /// <summary>Why an index-name is no operand of an arithmetic expression (without the "ISO " lead-in).</summary>
     public static string NotArithmetic(this EditionInfo edition) =>
-        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:8.8.1.1 names no index-names; §2023:13.18.38.3 SR7", "§2023:8.8.1.1 names no index-names; §2023:13.18.38.3 SR7");
+        edition.Cite("§1985:VI.5.8.3 SR13", "§2023:8.8.1.1 names no index-names; §2023:13.18.38.3 SR7");
 }

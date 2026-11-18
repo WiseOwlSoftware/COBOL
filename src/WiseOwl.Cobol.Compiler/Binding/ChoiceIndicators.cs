@@ -45,7 +45,7 @@ internal static class ChoiceIndicators
         where T : ParserRuleContext
     {
         AtMostOnce(edition, occurrences.Length, statement, alternative,
-            $"ISO {edition.Edition.Cite($"§1985:{clause1985 ?? clause}", $"§2023:{clause}", $"§2023:{clause}")}");
+            $"ISO {edition.Edition.Cite($"§1985:{clause1985 ?? clause}", $"§2023:{clause}")}");
         return occurrences.Length > 0 ? occurrences[0] : null;
     }
 
@@ -71,7 +71,7 @@ internal static class ChoiceIndicators
                 $"{statement}: {alternative} is specified {count} times; {format}'s general "
                 + edition.Edition.Cite(
                     "format admits one option of its braces, and §1985:IV.2.1.4 admits a single option only once",
-                    ChoiceOnceSentence, ChoiceOnceSentence));
+                    ChoiceOnceSentence));
     }
 
     /// <summary>⛔ THE ONE READER of the FOR ALPHANUMERIC / FOR NATIONAL choice pair (kb/Work PB1075). Five general

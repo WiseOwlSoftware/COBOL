@@ -78,7 +78,6 @@ public sealed partial class FileControlBinder
         Edition.Error(DiagnosticCatalog.PaddingCharacterOperand, $"PADDING CHARACTER IS {written}: {via}literal-1 is not a "
             + "one-character " + (Edition.Edition.Cite(
                 "nonnumeric literal (ISO §1985:VII.2.7.3 SR1: \"Literal-1 must be a one-character nonnumeric literal.\")",
-                "alphanumeric literal (ISO §2002:12.3.4.10.2 SR1: \"Literal-1 shall be a one-character alphanumeric literal.\")",
                 "alphanumeric literal (ISO §2002:12.3.4.10.2 SR1: \"Literal-1 shall be a one-character alphanumeric literal.\")")));
 
     /// <summary>The one character literal-1 stands for, or null when it is not a one-character alphanumeric literal.</summary>
@@ -124,7 +123,7 @@ public sealed partial class FileControlBinder
         string? fault = table
             ? "is subject to an OCCURS clause, so every reference to it is a table element reference that shall be subscripted, "
               + "yet the clause's data-name-1 may be qualified and takes no subscript "
-              + Edition.Edition.Cite("(ISO §1985:IV.4.3.8.2.3 SR4 and §1985:VII.2.7.3 SR2)", "(ISO §2002:8.4.1.2.2 SR5)", "(ISO §2002:8.4.1.2.2 SR5)")
+              + Edition.Edition.Cite("(ISO §1985:IV.4.3.8.2.3 SR4 and §1985:VII.2.7.3 SR2)", "(ISO §2002:8.4.1.2.2 SR5)")
             : !ItemCategory.IsAlphanumeric(item) ? $"is {ItemCategory.Face(item)}, not of the category alphanumeric"
             : item.ByteWidth != 1 || DataItem.HasOdoOnOrBeneath(item)
                 ? $"is {item.ByteWidth} character positions long, not a one-character data item"
@@ -139,8 +138,6 @@ public sealed partial class FileControlBinder
                 "(ISO §1985:VII.2.7.3 SR3: \"Data-name-1 must be defined in the Data Division as a one-character data item of "
                   + "the category alphanumeric and must not be defined in the Communication Section, the File Section, or the "
                   + "Report Section.\")",
-                "(ISO §2002:12.3.4.10.2 SR3: \"Data-name-1 shall be a one-character data item of category alphanumeric, "
-                  + "defined in the working-storage, local-storage, or linkage section.\")",
                 "(ISO §2002:12.3.4.10.2 SR3: \"Data-name-1 shall be a one-character data item of category alphanumeric, "
                   + "defined in the working-storage, local-storage, or linkage section.\")")));
     }

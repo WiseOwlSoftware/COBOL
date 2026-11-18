@@ -505,7 +505,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public void Declined(DiagnosticDescriptor descriptor, string? seen = null)
     {
         // The descriptor's words in the edition in force: at 85 its 1985 ground when it has one (kb/Work PB4950, PB5875).
-        string title = Edition.Cite(descriptor.Title1985 ?? descriptor.Title, descriptor.Title, descriptor.Title);
+        string title = Edition.Cite(descriptor.Title1985 ?? descriptor.Title, descriptor.Title);
         string message = seen is null ? title : $"{seen}: {title}";
         if (Refuses(descriptor)) Error(descriptor.Code, message);
         else Warning(descriptor.Code, message);
@@ -550,14 +550,13 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         {
             Error(DiagnosticCatalog.DigitCapacityUnder1, $"{what} has {digits} digit positions; the number of digit "
                 + "positions of a numeric or fixed-point numeric-edited item shall range from 1 through "
-                + Edition.Cite("18 (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)", "31 (ISO §2023:13.18.40.3 SR14)", "31 (ISO §2023:13.18.40.3 SR14)"));
+                + Edition.Cite("18 (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)", "31 (ISO §2023:13.18.40.3 SR14)"));
             return;
         }
         if (Edition.DigitCapacityExcess(digits) is not { } excess) return;
         if (excess == DiagnosticCatalog.DigitCapacityOver31)
             Error(excess, $"{what} has {digits} digit positions; " + Edition.Cite(
                 "ANSI X3.23-1985 limits a numeric item to 18 digit positions (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)",
-                "ISO/IEC 1989 limits a numeric item to 31 digit positions (ISO §2023:13.18.40.3 SR14)",
                 "ISO/IEC 1989 limits a numeric item to 31 digit positions (ISO §2023:13.18.40.3 SR14)"));
         else
             Error(excess, $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "

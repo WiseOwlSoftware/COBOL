@@ -147,7 +147,7 @@ public sealed partial class SpecialNamesBinder
         /// CLASS IN phrase's count) cites the later text.</summary>
         public string Cite(EditionInfo edition, char item) => edition.Cite(
             item == LengthItem ? Rule1985Length : item == OrdinalItem || item == ClassItem ? Rule1985Numeric : $"§2023:12.3.7.3 {Rule(item)}",
-            $"§2023:12.3.7.3 {Rule(item)}", $"§2023:12.3.7.3 {Rule(item)}");
+            $"§2023:12.3.7.3 {Rule(item)}");
 
         /// <summary>The class every noninteger operand shall be (SR14 b2/c2, SR17 b3/c3).</summary>
         public LiteralClass LiteralClass => National ? LiteralClass.National : LiteralClass.Alphanumeric;
@@ -359,11 +359,11 @@ public sealed partial class SpecialNamesBinder
 
     /// <summary>The rule that bars a zero-length literal from an ALPHABET or CLASS literal operand: SR11 of §2023:12.3.7.3; COBOL-85
     /// has no such sentence, only the length of a nonnumeric literal, "1 through 160 characters" (§1985:IV.4.2.2.2.1).</summary>
-    private string ZeroLengthBarRule() => Edition.Edition.Cite("§1985:IV.4.2.2.2.1", "§2023:12.3.7.3 SR11", "§2023:12.3.7.3 SR11");
+    private string ZeroLengthBarRule() => Edition.Edition.Cite("§1985:IV.4.2.2.2.1", "§2023:12.3.7.3 SR11");
 
     /// <summary>The rule that bars a symbolic-character figurative constant from an ALPHABET or CLASS literal operand: SR11 of
     /// §2023:12.3.7.3, SR5 of §1985:VI.4.5.3.</summary>
-    private string SymbolicBarRule() => Edition.Edition.Cite("§1985:VI.4.5.3 SR5", "§2023:12.3.7.3 SR11", "§2023:12.3.7.3 SR11");
+    private string SymbolicBarRule() => Edition.Edition.Cite("§1985:VI.4.5.3 SR5", "§2023:12.3.7.3 SR11");
 
     /// <summary>⛔ THE ONE DECODING of a figurative constant written in a SPECIAL-NAMES literal slot (ISO §2023:12.3.7.4
     /// GR10; §2023:8.3.3.6.3 SR1 — "<i>A figurative constant may be used whenever 'literal' appears in a format</i>"): the
@@ -519,9 +519,9 @@ public sealed partial class SpecialNamesBinder
                     // review R2-2). Behaviour unchanged.
                     Edition.Error(r.Code, $"{r.What}: the ordinal {op.Spelling} names {op.Members} characters of the "
                         + "character set referenced by the IN alphabet (an ALSO group shares one ordinal position, "
-                        + $"ISO {Edition.Edition.Cite("§1985:VI.4.5.4 GR4d.6", "§2023:12.3.7.4 GR7 k6", "§2023:12.3.7.4 GR7 k6")}), "
+                        + $"ISO {Edition.Edition.Cite("§1985:VI.4.5.4 GR4d.6", "§2023:12.3.7.4 GR7 k6")}), "
                         + "so it is no single character to begin or end the run of native "
-                        + $"characters a THROUGH phrase expands (ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR11b", "§2023:12.3.7.4 GR12", "§2023:12.3.7.4 GR12")})");
+                        + $"characters a THROUGH phrase expands (ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR11b", "§2023:12.3.7.4 GR12")})");
                     ok = false;
                     continue;
                 }

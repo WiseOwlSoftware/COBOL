@@ -27,14 +27,14 @@ public sealed record ParagraphPeriod(string Clause, string Subject, string Print
 {
     /// <summary>The general format's citation in the edition in force, <c>§1985:VI.4.5.2</c> or <c>§2023:12.3.7.2</c>.</summary>
     public string FormatCitation(EditionInfo edition) =>
-        edition.Cite(Clause1985 is null ? $"§2023:{Clause}" : $"§1985:{Clause1985}", $"§2023:{Clause}", $"§2023:{Clause}");
+        edition.Cite(Clause1985 is null ? $"§2023:{Clause}" : $"§1985:{Clause1985}", $"§2023:{Clause}");
 
     /// <summary>What the format prints, completing "the general format prints …", in the edition in force.</summary>
-    public string PrintedIn(EditionInfo edition) => edition.Cite(Printed1985 ?? Printed, Printed, Printed);
+    public string PrintedIn(EditionInfo edition) => edition.Cite(Printed1985 ?? Printed, Printed);
 
     /// <summary>The rule that binds the punctuation a format prints, in the edition in force: §2023:5.2.1, and at COBOL-85
     /// §1985:IV.4.2.1 SR3 (the separator period "must be used only to indicate the end of a sentence, or as shown in formats").</summary>
-    public static string PunctuationRule(EditionInfo edition) => edition.Cite("§1985:IV.4.2.1 SR3", "§2023:5.2.1", "§2023:5.2.1");
+    public static string PunctuationRule(EditionInfo edition) => edition.Cite("§1985:IV.4.2.1 SR3", "§2023:5.2.1");
 }
 
 /// <summary>One sentence of a paragraph: its entries and the separator period that closes it (null when the

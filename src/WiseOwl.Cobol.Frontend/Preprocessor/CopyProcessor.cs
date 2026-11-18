@@ -163,7 +163,7 @@ public sealed class CopyProcessor(
             // The statement is parsed over text-words (§2023:7.2.4.2 general format) through its separator period — a
             // period INSIDE pseudo-text is a text-word of the operand, never the statement's end (kb/Work PB1354).
             var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE",
-                edition.Cite("§1985:XII.3.2", "§2023:7.2.4.2", "§2023:7.2.4.2"), formats, edition);
+                edition.Cite("§1985:XII.3.2", "§2023:7.2.4.2"), formats, edition);
             // §2023:7.2.4.3 SR2: "A REPLACE statement shall be preceded by a space except when it is the first statement in
             // a compilation group" — REPLACE directly after a parenthesis, a colon, a literal or a pseudo-text delimiter.
             if (replaceIdx > 0 && !CobolSpace.IsSeparator(text[replaceIdx - 1]))
@@ -390,7 +390,7 @@ public sealed class CopyProcessor(
         /// <summary>The rule and its words in the edition in force: COBOL-85 states what the processed text may not contain in
         /// XII.2.4 GR12 (COPY) and XII.3.4 GR5 (REPLACE), which name the statements and no directive, comment or blank line.</summary>
         public (string Rule, string Quoted) In(EditionInfo edition) =>
-            (edition.Cite(Rule1985, Rule, Rule), edition.Cite(Quoted1985, Quoted, Quoted));
+            (edition.Cite(Rule1985, Rule), edition.Cite(Quoted1985, Quoted));
     }
 
     private static readonly ResultRule CopyResultRule = new("COPY", false, "§2023:7.2.3.4 GR13",
@@ -409,7 +409,7 @@ public sealed class CopyProcessor(
     private static string ReplacePrecedingRule(EditionInfo edition) => edition.Cite(
         "§1985:XII.3.3 SR1: \"It must be preceded by a separator period except when it is the first statement in a separately "
         + "compiled program\"",
-        ReplacePrecedingRule2002, ReplacePrecedingRule2002);
+        ReplacePrecedingRule2002);
 
     private const string ReplacePrecedingRule2002 =
         "§2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space except when it is the first statement in a compilation group\"";
@@ -866,7 +866,7 @@ public sealed class CopyProcessor(
     {
         var edition = EditionInfo.Of(dialectLevel, permissive);
         var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY",
-            edition.Cite("§1985:XII.2.2", "§2023:7.2.3.2", "§2023:7.2.3.2"), _referenceFormats, edition);
+            edition.Cite("§1985:XII.2.2", "§2023:7.2.3.2"), _referenceFormats, edition);
 
         string? textName = ReadCopyName(mapped, c, "text-name-1 or literal-1", out bool textNameIsWord);
         string? libraryName = null;
@@ -1035,7 +1035,6 @@ public sealed class CopyProcessor(
     /// §1985:XII.2.3 SR7 at COBOL-85, §2023:7.2.3.3 SR1 from 2002.</summary>
     private string NestedCopyRule => EditionInfo.Of(dialectLevel, permissive).Cite(
         "§1985:XII.2.3 SR7: \"a COPY statement must not occur within a COPY statement\"",
-        "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"",
         "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
 
     /// <summary>Report a §2023:7.2.3.3 SR1 / SR2 placement violation (COBOL2451) at a SOURCE position.</summary>
@@ -1425,8 +1424,8 @@ public sealed class CopyProcessor(
 
         /// <summary>COBOL2572 — an operand whose content breaks one of <see cref="Rules"/>.</summary>
         public void Content(int at, int rule, string quoted, string what, string? rule1985 = null, string? quoted1985 = null)
-            => Content(at, edition.Cite(rule1985 ?? $"{Rules.Clause} SR{rule}", $"{Rules.Clause} SR{rule}", $"{Rules.Clause} SR{rule}"),
-                edition.Cite(quoted1985 ?? quoted, quoted, quoted), what);
+            => Content(at, edition.Cite(rule1985 ?? $"{Rules.Clause} SR{rule}", $"{Rules.Clause} SR{rule}"),
+                edition.Cite(quoted1985 ?? quoted, quoted), what);
 
         private void Content(int at, string citation, string quoted, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.ReplacingOperandContent.Code,
@@ -1440,9 +1439,9 @@ public sealed class CopyProcessor(
         /// <paramref name="place"/> names where the text-word is written.</summary>
         public void TextWordTooLong(int at, int length, string place)
         {
-            bool is2002 = edition.Year == 2002;
-            Content(at, is2002 ? Rules.Length2002 : $"{Rules.Clause} SR{Rules.Length}",
-                is2002 ? Rules.LengthQuote2002 : Rules.LengthQuote,
+            string later = $"{Rules.Clause} SR{Rules.Length}";
+            Content(at, edition.Cite(later, later, y2002: Rules.Length2002, y2014: later),
+                edition.Cite(Rules.LengthQuote, Rules.LengthQuote, y2002: Rules.LengthQuote2002, y2014: Rules.LengthQuote),
                 $"a text-word of {length} characters is written in {place}; the limit is {edition.MaxTextWordLength:N0}");
         }
 
@@ -1490,10 +1489,9 @@ public sealed class CopyProcessor(
             {
                 int codePoint = rune.Value;
                 if (!CobolCharacterRepertoire.IsOutsideRepertoire(codePoint, edition.Year)) continue;
-                bool is1985 = edition.Year == 85;
-                Content(word.Start, is1985 ? "§1985:III.2" : "§2002:7.1.1.4",
-                    is1985 ? "Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators"
-                           : "any other sequence of contiguous COBOL characters bounded by separators, except for: comments and the word 'COPY'",
+                Content(word.Start, edition.Cite("§1985:III.2", "§2002:7.1.1.4"),
+                    edition.Cite("Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators",
+                        "any other sequence of contiguous COBOL characters bounded by separators, except for: comments and the word 'COPY'"),
                     $"the text-word '{word.Value}' holds U+{codePoint:X4}, which is no character of the COBOL character repertoire");
                 return;
             }
@@ -1506,7 +1504,8 @@ public sealed class CopyProcessor(
         {
             if (diagnostics is null || Rules.Statement != "COPY" || !edition.ReplacingIdentifierSubscriptsRestricted) return;
             if (ReplacingIdentifierSubscripts.FirstArithmeticSubscript(words) is not var (start, end)) return;
-            Content(start, edition.Cite("§2014:7.2.2.2 SR9", "§2002:7.1.2.2 SR9", "§2014:7.2.2.2 SR9", "§2014:7.2.2.2 SR9"),
+            const string from2014 = "§2014:7.2.2.2 SR9";   // the restriction holds at 2002 and 2014 (ReplacingIdentifierSubscriptsRestricted)
+            Content(start, edition.Cite(from2014, from2014, y2002: "§2002:7.1.2.2 SR9", y2014: from2014),
                 "If subscripting is specified, it shall not include any arithmetic expressions as subscripts with the exception of a "
                 + "single literal or identifier, or an identifier plus or minus an integer",
                 $"the subscript '{words[0].Source[start..end].TrimSpaces()}' is an arithmetic expression");
@@ -1518,7 +1517,7 @@ public sealed class CopyProcessor(
                 $"{Rules.Statement} statement: {what} — " + Edition.Cite(
                     "§1985:IV.4.2.1 SR6: \"An opening pseudo-text delimiter must be immediately preceded by a space; a closing "
                     + "pseudo-text delimiter must be immediately followed by one of the separators space, comma, semicolon, or period\"",
-                    PseudoTextDelimiterRule2002, PseudoTextDelimiterRule2002), mapped.LocateAt(at), default);
+                    PseudoTextDelimiterRule2002), mapped.LocateAt(at), default);
 
         private const string PseudoTextDelimiterRule2002 =
             "§2023:8.3.5 6): \"An opening pseudo-text delimiter shall be immediately preceded by a space; a closing pseudo-text "

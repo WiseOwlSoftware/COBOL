@@ -50,18 +50,18 @@ internal static class SortKeyAdmission
     /// position), so a MERGE key refusal never quotes SORT's clause (kb/Work PB2512).</summary>
     public static string Clause(SortKeyRules rules, EditionInfo edition) => rules switch
     {
-        SortKeyRules.FileSort => edition.Cite("ISO §1985:XI.4.4.3 SR4", "ISO §2023:14.9.40.3 SR6", "ISO §2023:14.9.40.3 SR6"),
+        SortKeyRules.FileSort => edition.Cite("ISO §1985:XI.4.4.3 SR4", "ISO §2023:14.9.40.3 SR6"),
         SortKeyRules.TableSort => "ISO §2023:14.9.40.3 SR14",
-        _ => edition.Cite("ISO §1985:XI.4.1.3 SR4", "ISO §2023:14.9.24.3 SR4", "ISO §2023:14.9.24.3 SR4"),
+        _ => edition.Cite("ISO §1985:XI.4.1.3 SR4", "ISO §2023:14.9.24.3 SR4"),
     };
 
     /// <summary>The lettered sub-rule of the key rule that is the same obligation in both printings, in the edition in force
     /// (kb/Work PB4950): COBOL-85 letters the record-membership rule a), the group-with-ODO rule c), the OCCURS rule e) and the
     /// minimum-record-size rule f); 2023 letters them a), d), b) and f), and g).</summary>
-    public static string Occurs(EditionInfo edition) => edition.Cite("e)", "b) and f)", "b) and f)");
+    public static string Occurs(EditionInfo edition) => edition.Cite("e)", "b) and f)");
 
     /// <summary>The 1985 and 2023 letter of the minimum-record-size sub-rule.</summary>
-    public static string MinimumSize(EditionInfo edition) => edition.Cite("f)", "g)", "g)");
+    public static string MinimumSize(EditionInfo edition) => edition.Cite("f)", "g)");
 
     /// <summary>The refusal text for <paramref name="key"/> under <paramref name="rules"/> — the violated rule quoted
     /// with its clause — or <see langword="null"/> when the key is admissible. The first violation in the order the
@@ -81,11 +81,9 @@ internal static class SortKeyAdmission
                 + (ReferenceEquals(n, key) ? "described with an OCCURS clause" : $"subordinate to '{n.CobolName ?? n.ClrName}', "
                     + "which carries an OCCURS clause")
                 + edition.Cite(
-                    ": \"None of the data items identified by key data-names can be described by an entry that either contains an "
-                    + "OCCURS clause or is subordinate to an entry that contains an OCCURS clause\"",
-                    ": \"Key data names shall not be subject to any OCCURS clauses\" and \"None of the data items "
-                    + "identified by key data-names may be described by an entry that either contains an OCCURS clause "
-                    + "or is subordinate to an entry that contains an OCCURS clause\"",
+                    // SORT's SR4 e words it with "which" (§1985:XI.4.4.3), MERGE's with "that" (§1985:XI.4.1.3).
+                    $": \"None of the data items identified by key data-names can be described by an entry {Relative1985(verb)} either "
+                    + $"contains an OCCURS clause or is subordinate to an entry {Relative1985(verb)} contains an OCCURS clause\"",
                     ": \"Key data names shall not be subject to any OCCURS clauses\" and \"None of the data items "
                     + "identified by key data-names may be described by an entry that either contains an OCCURS clause "
                     + "or is subordinate to an entry that contains an OCCURS clause\"")
@@ -122,9 +120,6 @@ internal static class SortKeyAdmission
                     + "the USING phrase of a Procedure Division header, or the USING phrase of a CALL statement\" (ISO §1985:VI.5.14.3 SR5; ",
                     "\"An index data item may be referenced explicitly only in a SEARCH or SET statement, a relation condition, an "
                     + "intrinsic function argument, an inline method invocation argument, the USING phrase of a procedure division "
-                    + "header, or the USING phrase of a CALL or INVOKE statement\" (ISO §2023:13.18.60.3 SR10; ",
-                    "\"An index data item may be referenced explicitly only in a SEARCH or SET statement, a relation condition, an "
-                    + "intrinsic function argument, an inline method invocation argument, the USING phrase of a procedure division "
                     + "header, or the USING phrase of a CALL or INVOKE statement\" (ISO §2023:13.18.60.3 SR10; ")
                 + clause + ")";
 
@@ -136,7 +131,7 @@ internal static class SortKeyAdmission
             shape = "a variable-length group (ISO §2023:8.5.1.12.1)";
         else if (key.IsGroup && DataItem.DescendantsOf(key).Any(d => d.OccursSpec is { Depending: not null }))
             shape = edition.Cite("an occurs-depending group item (a group item that contains a variable occurrence data item)",
-                "an occurs-depending group item (ISO §2023:13.18.38.4 GR8)", "an occurs-depending group item (ISO §2023:13.18.38.4 GR8)");
+                "an occurs-depending group item (ISO §2023:13.18.38.4 GR8)");
         // COBOL-85's rule is one sentence about that one shape (§1985:XI.4.4.3 SR4 c), §1985:XI.4.1.3 SR4 c)); the shapes a variable-length
         // group and a dynamic-length item are COBOL-2002's.
         if (shape is not null && edition.Year < 2002)
@@ -157,4 +152,8 @@ internal static class SortKeyAdmission
                 + $"\" ({clause} d))";
         return null;
     }
+
+    /// <summary>The relative pronoun COBOL-85's key rule prints: "which" in the SORT statement's SR4 e (§1985:XI.4.4.3), "that" in the
+    /// MERGE statement's (§1985:XI.4.1.3).</summary>
+    private static string Relative1985(string verb) => verb == "SORT" ? "which" : "that";
 }

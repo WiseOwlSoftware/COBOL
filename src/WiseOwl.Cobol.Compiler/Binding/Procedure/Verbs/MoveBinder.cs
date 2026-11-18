@@ -793,7 +793,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             ctx.Edition.Error(DiagnosticCatalog.MoveShapeInvalid, $"{where}: MOVE is invalid — {refusal}"
                 + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }
                     ? " (a NUMERIC-typed function is the Noninteger sender, "
-                      + ctx.Edition.Edition.Cite("§1989:A.2.3", "§2023:15.2 item 4 / §2023:8.4.3.2.3 SR11", "§2023:15.2 item 4 / §2023:8.4.3.2.3 SR11")
+                      + ctx.Edition.Edition.Cite("§1989:A.2.3", "§2023:15.2 item 4 / §2023:8.4.3.2.3 SR11")
                       + "; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
                     : ""));
     }

@@ -41,7 +41,7 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
                     + "this level-88 entry does not immediately follow a data description entry describing a "
                     + "data item — the condition-name entries for a particular conditional variable shall "
                     + "immediately follow the entry describing the item with which the condition-name is "
-                    + $"associated (ISO {binder.Edition.Edition.Cite("§1985:VI.5.3.4 GR2", "§2023:13.16.3 SR24", "§2023:13.16.3 SR24")})");
+                    + $"associated (ISO {binder.Edition.Edition.Cite("§1985:VI.5.3.4 GR2", "§2023:13.16.3 SR24")})");
                 continue;
             }
             if (ConditionalVariableExclusion(variable) is not { } excluded) continue;
@@ -79,7 +79,7 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
         {
             string later = $"§2023:13.16.3 SR24 excludes \"{Letter}) {Text}\"{Also}";
             return edition.Cite(Letter1985 is { } l && Text1985 is { } t ? $"§1985:VI.5.3.4 GR2 excludes \"{l}. {t}\"{Also1985}" : later,
-                later, later);
+                later);
         }
     }
 

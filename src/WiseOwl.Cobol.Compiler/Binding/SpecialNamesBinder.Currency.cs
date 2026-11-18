@@ -36,7 +36,7 @@ public sealed partial class SpecialNamesBinder
     {
         /// <summary>The rule's citation in the edition in force, without the "ISO " lead-in.</summary>
         public string CitationAt(EditionInfo edition) =>
-            edition.Cite(Rule1985 ?? $"§2023:12.3.7.3 {Rule}", $"§2023:12.3.7.3 {Rule}", $"§2023:12.3.7.3 {Rule}");
+            edition.Cite(Rule1985 ?? $"§2023:12.3.7.3 {Rule}", $"§2023:12.3.7.3 {Rule}");
 
         public static CurrencyOperand Literal7 { get; } = new("literal-7", "SR18",
             "an alphanumeric or national literal that is not a figurative constant", RefusesHexadecimal: false,
@@ -183,7 +183,7 @@ public sealed partial class SpecialNamesBinder
         // literal's own introduction gate refuses it.
         if (bare.Hexadecimal && Edition.DialectLevel >= 2014)
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
-                + "SYMBOL phrase (ISO " + Edition.Edition.Cite("§2014:12.3.6.2 SR19", "§2014:12.3.6.2 SR19", "§2023:12.3.7.3 SR19", "§2014:12.3.6.2 SR19") + ")");
+                + "SYMBOL phrase (ISO " + HexadecimalCurrencyRule + ")");
         if (bare.Text.Length != 1)
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
@@ -215,7 +215,7 @@ public sealed partial class SpecialNamesBinder
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "
                 + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO "
-                + Edition.Edition.Cite("§2002:12.2.6.2 SR20b", "§2002:12.2.6.2 SR20b", "§2023:12.3.7.3 r23b", "§2023:12.3.7.3 r23b") + ")");
+                + CurrencyStringRule + ")");
             return false;
         }
         return true;
@@ -265,6 +265,27 @@ public sealed partial class SpecialNamesBinder
         if (exclusion.Excludes(c))
             Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"{what} '{c}': not a valid currency symbol — digits, "
                 + $"{exclusion.LetterText}, space, and + - , . * / ; ( ) \" = are excluded ({exclusion.Citation})");
+    }
+
+    /// <summary>The PICTURE SYMBOL rule for a hexadecimal currency literal: §2014:12.3.6.2 SR19 below 2023 (asked from 2014 only),
+    /// §2023:12.3.7.3 SR19 at 2023 (kb/Work PB4950).</summary>
+    private string HexadecimalCurrencyRule
+    {
+        get
+        {
+            const string y2014 = "§2014:12.3.6.2 SR19";
+            return Edition.Edition.Cite(y2014, "§2023:12.3.7.3 SR19", y2014);
+        }
+    }
+
+    /// <summary>The rule of the characters a currency string may not contain: 2002's SR20b (read at 85 too), 2014's and 2023's r23b.</summary>
+    private string CurrencyStringRule
+    {
+        get
+        {
+            const string y2002 = "§2002:12.2.6.2 SR20b", from2014 = "§2023:12.3.7.3 r23b";
+            return Edition.Edition.Cite(y2002, from2014, y2002, from2014);
+        }
     }
 }
 

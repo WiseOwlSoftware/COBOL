@@ -407,7 +407,7 @@ internal sealed class LinkageBinder(DataBinder data)
                 // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
-                    + $"(ISO {data.Edition.Edition.Cite("§1985:X.5.1", "§2023:14.2.2 SR1", "§2023:14.2.2 SR1")})");
+                    + $"(ISO {data.Edition.Edition.Cite("§1985:X.5.1", "§2023:14.2.2 SR1")})");
                 pos++;
                 continue;
             }
@@ -732,7 +732,7 @@ internal sealed class LinkageBinder(DataBinder data)
                         + "which includes the EXTERNAL clause\" (ISO §1985:X.4.5.3 SR2). The record named by the data-name is the "
                         + "run unit's one external record, which every program describing it shares (§1985:X.4.5.4 GR1), so two "
                         + "subjects claiming one name would share one storage area.",
-                        Rule2023, Rule2023));
+                        Rule2023));
                 return;
             }
             seen[externalized] = where;

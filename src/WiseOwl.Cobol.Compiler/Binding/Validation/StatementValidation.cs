@@ -52,10 +52,10 @@ internal readonly record struct OpenTapePhraseRule(
     string OrganizationClause1985, string OpenModeClause1985)
 {
     /// <summary>The organization rule's citation text in the edition in force.</summary>
-    public string OrganizationClauseIn(EditionInfo edition) => edition.Cite(OrganizationClause1985, OrganizationClause, OrganizationClause);
+    public string OrganizationClauseIn(EditionInfo edition) => edition.Cite(OrganizationClause1985, OrganizationClause);
 
     /// <summary>The open-mode rule's citation text in the edition in force.</summary>
-    public string OpenModeClauseIn(EditionInfo edition) => edition.Cite(OpenModeClause1985, OpenModeClause, OpenModeClause);
+    public string OpenModeClauseIn(EditionInfo edition) => edition.Cite(OpenModeClause1985, OpenModeClause);
 
     /// <summary>§2023:14.9.27.3 SR5 + SR6 — NO REWIND is for sequential files (§2023:9.1.7.2 admits BOTH sequential
     /// kinds, the same <see cref="FileModel.IsSequential"/> predicate the CLOSE twin §2023:14.9.6.3 SR1 tests) under
@@ -101,7 +101,7 @@ internal readonly record struct CorrespondingOperandRule(
 {
     /// <summary>The syntax rule of the edition in force that makes the CORRESPONDING operands group items, without the "ISO " lead-in:
     /// §1985:VI.6.19.3 SR3 (MOVE), §1985:VI.6.6.3 SR1 (ADD) and §1985:VI.6.26.3 SR1 (SUBTRACT) at COBOL-85 (kb/Work PB4950).</summary>
-    public string ClauseAt(EditionInfo edition) => edition.Cite(Clause1985, Clause, Clause);
+    public string ClauseAt(EditionInfo edition) => edition.Cite(Clause1985, Clause);
 
     /// <summary>ISO §2023:14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall
     /// not be reference-modified." Every group kind is a group data item, and NOTE 5 under §2023:14.9.25.4 GR11 puts
@@ -235,9 +235,6 @@ internal sealed class StatementValidation(DataBinder data)
                 + "(§1985:IV.4.3.8.4.1) decorate data items, not file-names.",
                 "ISO §2023:8.4.2.2.2 gives a file-name no qualified format (it appears there only as the file-report-qualifier "
                 + "of another name), and subscripting (§2023:8.4.2.3.1) and reference modification (§2023:8.4.3.3.1) decorate "
-                + "identifiers, not file-names.",
-                "ISO §2023:8.4.2.2.2 gives a file-name no qualified format (it appears there only as the file-report-qualifier "
-                + "of another name), and subscripting (§2023:8.4.2.3.1) and reference modification (§2023:8.4.3.3.1) decorate "
                 + "identifiers, not file-names.")
             + " Write the file-name as its SELECT clause spells it.");
         return null;
@@ -277,9 +274,6 @@ internal sealed class StatementValidation(DataBinder data)
                 "§1985:XIII.3.3.3 SR3: \"The subject of a file description entry that specifies a REPORT clause may be "
                 + "referenced in the Procedure Division only by the USE statement, the CLOSE statement, or the OPEN statement "
                 + "with the OUTPUT or EXTEND phrase\"",
-                "§2023:13.4.5.3 SR9: \"The subject of a file description entry that specifies a "
-                + "REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase "
-                + "of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\"",
                 "§2023:13.4.5.3 SR9: \"The subject of a file description entry that specifies a "
                 + "REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase "
                 + "of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\"")
@@ -326,7 +320,6 @@ internal sealed class StatementValidation(DataBinder data)
             $"{verb} '{refText}' names no procedure: no paragraph or section in this source element carries "
             + $"that name, so the reference identifies no resource (ISO {data.Edition.Edition.QuotedDash()}; "
             + data.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.6 — a paragraph-name or section-name \"may not be referenced from any other program\"",
-                "§2023:8.4.6.1 — a paragraph-name or section-name \"may be referenced only by statements in the source element in which the user-defined word is declared\"",
                 "§2023:8.4.6.1 — a paragraph-name or section-name \"may be referenced only by statements in the source element in which the user-defined word is declared\"")
             + ")"
             + (isDataName
@@ -379,10 +372,6 @@ internal sealed class StatementValidation(DataBinder data)
                     "and it is explicitly referenced here (ISO §2023:8.4.2.2.3 SR7 — \"If explicitly referenced, a "
                     + "paragraph-name shall not be duplicated within a section\"). No qualifier can separate the "
                     + "two: §2023:8.4.2.2.2 format 4 gives a paragraph-name only its section-name as a qualifier, and "
-                    + "both declarations carry the same one — rename one of the paragraphs.",
-                    "and it is explicitly referenced here (ISO §2023:8.4.2.2.3 SR7 — \"If explicitly referenced, a "
-                    + "paragraph-name shall not be duplicated within a section\"). No qualifier can separate the "
-                    + "two: §2023:8.4.2.2.2 format 4 gives a paragraph-name only its section-name as a qualifier, and "
                     + "both declarations carry the same one — rename one of the paragraphs."));
             return false;
         }
@@ -395,7 +384,7 @@ internal sealed class StatementValidation(DataBinder data)
                 + "SRL2.6 excuses only a paragraph-name referred to from within the same section, which this reference is not. "
                 + "Write the qualifier — paragraph-name IN section-name, §1985:IV.4.3.8.1 format 2 — or rename one of the "
                 + "declarations; a duplicated SECTION-name takes no qualifier at all and can only be renamed.",
-                SameUniquenessRules, SameUniquenessRules));
+                SameUniquenessRules));
         return false;
     }
 
@@ -459,11 +448,11 @@ internal sealed class StatementValidation(DataBinder data)
                 "\"Where procedure-name-1 and procedure-name-2 are both specified and either is the name of a procedure in "
                 + "the declaratives portion of the Procedure Division, both must be procedure-names in the same declarative "
                 + "section\" (ISO §1985:VI.6.21.3 SR11)",
-                PerformRangeDeclarativesRule, PerformRangeDeclarativesRule)
+                PerformRangeDeclarativesRule)
             + ". The range is a SEQUENCE of procedures ("
             + data.Edition.Edition.Cite(
                 "§1985:VI.6.21.4 GR7 — control is transferred to \"the first statement of the specified set of statements\"",
-                PerformRangeSequenceRule, PerformRangeSequenceRule)
+                PerformRangeSequenceRule)
             + "), and the procedures between the two ends here belong to a different USE "
             + "procedure, or to none. Perform the declarative range and the nondeclarative range separately, "
             + "or name two procedures of the one declarative section.");
@@ -521,8 +510,10 @@ internal sealed class StatementValidation(DataBinder data)
                 + "statement is " + (fromDeclarative
                     ? $"in a different declarative section, '{referencingSection!.Name}'"
                     : "in the nondeclarative portion of the procedure division")
-                + " — \"Procedure-names within a declarative section may be referenced in a different declarative "
-                + "section or in a nondeclarative procedure only with a PERFORM statement\" (ISO "
+                + " — \"" + data.Edition.Edition.Cite("Procedure-names associated with a USE statement",
+                    "Procedure-names within a declarative section")
+                + " may be referenced in a different declarative section or in a nondeclarative procedure only with a PERFORM "
+                + "statement\" (ISO "
                 + new EditionCite("§2023:14.9.49.3 SR4", "§1985:VII.4.6.4 GR3", "§1985:VIII.4.8.4 GR3", "§1985:IX.4.8.4 GR3")
                     .AtEveryOrganization(data.Edition.Edition.Year)
                 + "). A USE "
@@ -536,7 +527,6 @@ internal sealed class StatementValidation(DataBinder data)
                 $"{verb} '{name}': '{name}' is in the nondeclarative portion of the procedure division, and this "
                 + $"statement is in declarative section '{referencingSection!.Name}' — \""
                 + data.Edition.Edition.Cite("Within a declarative procedure, there must be no reference to any nondeclarative procedures",
-                    "Within a declarative procedure, there shall be no reference to any nondeclarative procedures except in a RESUME statement",
                     "Within a declarative procedure, there shall be no reference to any nondeclarative procedures except in a RESUME statement")
                 + "\" (ISO "
                 + new EditionCite("§2023:14.9.49.3 SR3", "§1985:VII.4.6.4 GR2", "§1985:VIII.4.8.4 GR2", "§1985:IX.4.8.4 GR2")
@@ -595,12 +585,9 @@ internal sealed class StatementValidation(DataBinder data)
                 + $"names the status of external switch {switchName} ("
                 + data.Edition.Edition.Cite("ISO §1985:VI.4.5.4 GR2). ",
                     "ISO §2023:12.3.7), and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated "
-                    + "with a conditional variable. ",
-                    "ISO §2023:12.3.7), and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated "
                     + "with a conditional variable. ")
                 + data.Edition.Edition.Cite(
                     "\"Condition-name-1 must be associated with a conditional variable\" (ISO §1985:VI.6.23.3 SR6), ",
-                    "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), ",
                     "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), ")
                 + "so this operand is not admitted in Format 4. Set the switch through Format 3 — "
                 + "SET <mnemonic-name> TO ON or OFF (SR5).");
@@ -616,7 +603,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>SET Format 4's rule that condition-name-1 is associated with a conditional variable, in the edition's own
     /// text (kb/Work PB4950).</summary>
     private static string SetConditionRule(EditionInfo edition) =>
-        edition.Cite("§1985:VI.6.23.3 SR6", "§2023:14.9.39.3 SR6", "§2023:14.9.39.3 SR6");
+        edition.Cite("§1985:VI.6.23.3 SR6", "§2023:14.9.39.3 SR6");
 
     /// <summary>The CORRESPONDING group-operand rule, ONE screen for its three spellings (kb/Work PB236), each
     /// asked as ITS OWN <see cref="CorrespondingOperandRule"/> row rather than as a shared approximation:
@@ -675,7 +662,6 @@ internal sealed class StatementValidation(DataBinder data)
                     + data.Edition.Edition.Cite(
                         "ISO §1985:IV.4.3.8.4.4 GR2: the item \"is operated upon for purposes of reference modification as if it were "
                         + "redefined as an alphanumeric data item\"",
-                        "ISO §2023:8.4.3.3.4 GR6: \"The unique data item is considered to be an elementary data item without the JUSTIFIED clause\"",
                         "ISO §2023:8.4.3.3.4 GR6: \"The unique data item is considered to be an elementary data item without the JUSTIFIED clause\"")
                     + $"), so it is not one (ISO {rule.ClauseAt(data.Edition.Edition)}). "
                     + "Name the group itself, or MOVE the modified reference to a matching item.");
@@ -801,9 +787,6 @@ internal sealed class StatementValidation(DataBinder data)
                         + "\"may be qualified\" and no more",
                         "ISO §2023:5.2.4 gives a \"User-defined word, including qualification and subscripting if needed\" those two "
                         + "decorations and no other, and §2023:8.4.3.3.3 SR5 permits reference modification only \"anywhere an identifier "
-                        + "referencing a data item of class alphanumeric, boolean, or national is permitted\"",
-                        "ISO §2023:5.2.4 gives a \"User-defined word, including qualification and subscripting if needed\" those two "
-                        + "decorations and no other, and §2023:8.4.3.3.3 SR5 permits reference modification only \"anywhere an identifier "
                         + "referencing a data item of class alphanumeric, boolean, or national is permitted\"")
                     + $". {rule}. Write the record-name "
                     + "alone; to send part of a record, use the FROM phrase or a MOVE.");
@@ -864,7 +847,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (file.IsSortMerge) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
             $"RELEASE '{refText}' — record-name-1 shall be the name of a logical record in a sort-merge (SD) "
-            + $"file description entry (ISO {data.Edition.Edition.Cite("§1985:XI.4.2.3 SR1", "§2023:14.9.32.3 SR1", "§2023:14.9.32.3 SR1")}); '{refText}' is a record of '{file.CobolName}', "
+            + $"file description entry (ISO {data.Edition.Edition.Cite("§1985:XI.4.2.3 SR1", "§2023:14.9.32.3 SR1")}); '{refText}' is a record of '{file.CobolName}', "
             + "which is described by an FD");
         return false;
     }
@@ -879,7 +862,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (file.IsSortMerge) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
             $"RETURN '{file.CobolName}' — file-name-1 shall be described by a sort-merge (SD) file description "
-            + $"entry in the data division (ISO {data.Edition.Edition.Cite("§1985:XI.4.3.3 SR2", "§2023:14.9.34.3 SR1", "§2023:14.9.34.3 SR1")}); this file is described by an FD");
+            + $"entry in the data division (ISO {data.Edition.Edition.Cite("§1985:XI.4.3.3 SR2", "§2023:14.9.34.3 SR1")}); this file is described by an FD");
         return false;
     }
 
@@ -969,7 +952,7 @@ internal sealed class StatementValidation(DataBinder data)
         // TABLE, and a character slice of one is not a table.
         if (operand.IsReferenceModified)
             Identifier1(verb, written, data.Edition.Edition.Cite("\"identifier-1 must not be subscripted or reference modified\"",
-                "\"Identifier-1 shall not be reference-modified\"", "\"Identifier-1 shall not be reference-modified\"")
+                "\"Identifier-1 shall not be reference-modified\"")
                 + $" ({SearchIdentifier1Rule("SR1")})");
 
         // SR2's second sentence — the ONLY written-form rule the subscript count can decide, and it is an UPPER
@@ -1005,7 +988,6 @@ internal sealed class StatementValidation(DataBinder data)
                 + (superordinate == 0 ? "no enclosing table"
                     : superordinate == 1 ? "1 enclosing table" : $"{superordinate} enclosing tables")
                 + " — " + data.Edition.Edition.Cite("\"identifier-1 must not be subscripted or reference modified\"",
-                    "\"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\"",
                     "\"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\"")
                 + $" ({SearchIdentifier1Rule("SR2")}). The search supplies that occurrence itself by varying the table's first "
                 + $"index ({SearchVariesIndexRule}); "
@@ -1051,16 +1033,15 @@ internal sealed class StatementValidation(DataBinder data)
     /// OCCURS clause with an INDEXED BY phrase and the absence of a subscript and a reference modifier, in one syntax rule
     /// (§1985:VI.6.22.3 SR1); COBOL-2002 and later split it over SR1 to SR3.</summary>
     private string SearchIdentifier1Rule(string sr2023) =>
-        "ISO " + data.Edition.Edition.Cite("§1985:VI.6.22.3 SR1", "§2023:14.9.37.3 " + sr2023, "§2023:14.9.37.3 " + sr2023);
+        "ISO " + data.Edition.Edition.Cite("§1985:VI.6.22.3 SR1", "§2023:14.9.37.3 " + sr2023);
 
     /// <summary>The words of the OCCURS-with-INDEXED requirement of identifier-1, in the edition's own text.</summary>
     private string SearchOccursQuote => data.Edition.Edition.Cite(
         "\"its description must contain an OCCURS clause including an INDEXED BY phrase\"",
-        "\"the data description of identifier-1 shall contain an OCCURS clause with an INDEXED phrase\"",
         "\"the data description of identifier-1 shall contain an OCCURS clause with an INDEXED phrase\"");
 
     /// <summary>The rule that a SEARCH varies the first index of identifier-1's table, in the edition's own text.</summary>
-    private string SearchVariesIndexRule => data.Edition.Edition.Cite("§1985:VI.6.22.4 GR2", "§2023:14.9.37.4 GR1", "§2023:14.9.37.4 GR1");
+    private string SearchVariesIndexRule => data.Edition.Edition.Cite("§1985:VI.6.22.4 GR2", "§2023:14.9.37.4 GR1");
 
     /// <summary>The identifier-1 sink (ISO §2023:14.9.37.3 SR1–SR3) — one code for one operand position, the same way
     /// COBOL1964–1966 group SR7–SR13 by the operand each is about.</summary>
@@ -1086,7 +1067,6 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.SearchEndSearchNextSentence,
             $"{verb}: the END-SEARCH phrase is specified and a WHEN phrase's body is NEXT SENTENCE — \"If the "
             + data.Edition.Edition.Cite("END-SEARCH phrase is specified, the NEXT SENTENCE phrase must not be specified\" (ISO §1985:VI.6.22.3 SR5",
-                "END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" (ISO §2023:14.9.37.3 SR4",
                 "END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" (ISO §2023:14.9.37.3 SR4")
             + "). Write CONTINUE in that WHEN phrase, or remove END-SEARCH and end the sentence with a period.");
         return false;
@@ -1103,7 +1083,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (ItemCategory.IsElementaryNumericReference(counter)) return true;
         string why = counter is RefModPlace
             ? ": a reference-modified item is class and category alphanumeric ("
-              + (InspectSizeRulesCoverDataItems ? "§1985:IV.4.3.8.4.4 GR5" : "§2023:8.4.3.3.4 GR6") + ")"
+              + data.Edition.Edition.Cite("§1985:IV.4.3.8.4.4 GR5", "§2023:8.4.3.3.4 GR6") + ")"
             : "";
         data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT TALLYING counter '{counter.Item.CobolName}' shall "
             + $"be an elementary numeric data item ({InspectRuleCitation("SR5", "SR6")}){why}");
@@ -1121,7 +1101,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The rule's citation in the edition being compiled: the 2023 number, or the 1985 number at --std 85, where
     /// the REPLACING pair is SR7 and the CHARACTERS rule SR8 (CONVERTING's is SR9 in both).</summary>
     private string InspectRuleCitation(string rule2023, string rule1985) =>
-        InspectSizeRulesCoverDataItems ? $"§1985:VI.6.18.3 {rule1985}" : $"§2023:14.9.22.3 {rule2023}";
+        data.Edition.Edition.Cite($"§1985:VI.6.18.3 {rule1985}", $"§2023:14.9.22.3 {rule2023}");
 
     /// <summary>SR7 — with REPLACING CHARACTERS, literal-3 shall be ONE character (§1985:VI.6.18.3 SR8 at --std 85, which
     /// asks a data item's size too, being a syntax rule there; from 2002 an identifier-5 of another size is the
@@ -1262,7 +1242,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The citation of the rule that an INSPECT operand reference an elementary item of usage display (or, from 2002,
     /// national): §1985:VI.6.18.3 SR2 ("must reference an elementary item described, implicitly or explicitly, as USAGE IS
     /// DISPLAY") at --std 85, §2023:14.9.22.3 SR2 from 2002 (kb/Work PB4950).</summary>
-    private string InspectOperandUsageCitation => "(ISO " + data.Edition.Edition.Cite("§1985:VI.6.18.3 SR2", "§2023:14.9.22.3 SR2", "§2023:14.9.22.3 SR2") + ")";
+    private string InspectOperandUsageCitation => "(ISO " + data.Edition.Edition.Cite("§1985:VI.6.18.3 SR2", "§2023:14.9.22.3 SR2") + ")";
 
     /// <summary>SR1's function-identifier half (kb/Work PB3665): identifier-1 "shall reference either an alphanumeric or
     /// national group item or an elementary item described implicitly or explicitly as usage display or national", and
@@ -1273,8 +1253,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (!IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(function, out var category)) return true;
         data.Edition.Error(DiagnosticCatalog.CharacterOperandUsage, $"INSPECT identifier-1 '{refText}' is {IntrinsicArgumentRules.FunctionUsageReason(category)}, "
             + "so it is not an elementary item described implicitly or explicitly as "
-            + data.Edition.Edition.Cite("USAGE IS DISPLAY (ISO §1985:VI.6.18.3 SR1)", "usage display or national (ISO §2023:14.9.22.3 SR1)",
-                "usage display or national (ISO §2023:14.9.22.3 SR1)"));
+            + data.Edition.Edition.Cite("USAGE IS DISPLAY (ISO §1985:VI.6.18.3 SR1)", "usage display or national (ISO §2023:14.9.22.3 SR1)"));
         return false;
     }
 
@@ -1476,9 +1455,9 @@ internal sealed class StatementValidation(DataBinder data)
         if (composite <= cap) return true;
         data.Edition.Error(DiagnosticCatalog.ArithmeticCompositeTooWide,
             $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
-            + (cap == 18
-                ? "ISO/IEC 1989:1985 caps the composite of operands at 18 digits (§1985:VI.6.4.4 item 2)"
-                : "ISO/IEC 1989 caps the composite of operands at 31 digits (§2023:14.7.7 rule 2 a))"));
+            + data.Edition.Edition.Cite(
+                "ISO/IEC 1989:1985 caps the composite of operands at 18 digits (§1985:VI.6.4.4 item 2)",
+                "ISO/IEC 1989 caps the composite of operands at 31 digits (§2023:14.7.7 rule 2 a))"));
         return false;
     }
 
@@ -1495,8 +1474,6 @@ internal sealed class StatementValidation(DataBinder data)
             $"INITIALIZE REPLACING repeats the category-name {InitializeCategories.Spelling(cat)} "
             + data.Edition.Edition.Cite(
                 "(ISO §1985:VI.6.17.3 SR3 — \"The same category cannot be repeated in a REPLACING phrase\")",
-                "(ISO §2023:14.9.20.3 SR6 — each category at most once in the phrase; §2023:5.2.6.4 — each alternative at "
-                + "most once within one category-name)",
                 "(ISO §2023:14.9.20.3 SR6 — each category at most once in the phrase; §2023:5.2.6.4 — each alternative at "
                 + "most once within one category-name)"));
         return false;
@@ -1565,7 +1542,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (place.NamedItem.Renames is null) return true;   // the entry the name denotes, under any decoration (Place.NamedItem)
         data.Edition.Error(DiagnosticCatalog.InitializeRenamesItem,
             $"INITIALIZE '{refText}' — the data description entry for identifier-1 shall not contain a RENAMES "
-            + "clause (ISO " + data.Edition.Edition.Cite("§1985:VI.6.17.3 SR6", "§2023:14.9.20.3 SR5", "§2023:14.9.20.3 SR5") + ")");
+            + "clause (ISO " + data.Edition.Edition.Cite("§1985:VI.6.17.3 SR6", "§2023:14.9.20.3 SR5") + ")");
         return false;
     }
 
@@ -1585,7 +1562,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (!file.IsSortMerge) return null;
         string msg = $"{verb} may not name the sort-merge file '{file.CobolName}' — an SD file-name may "
             + "appear only in SORT/MERGE/RELEASE/RETURN (ISO "
-            + data.Edition.Edition.Cite("§1985:II.2.2.2.1.1; §1985:II.2.2.2.1.2", "§2023:13.4.6.3 SR3/SR4", "§2023:13.4.6.3 SR3/SR4")
+            + data.Edition.Edition.Cite("§1985:II.2.2.2.1.1; §1985:II.2.2.2.1.2", "§2023:13.4.6.3 SR3/SR4")
             + (verbRule is null ? ")" : $"; {verbRule})");
         data.Edition.Error(DiagnosticCatalog.SortMergeFileInIoStatement, msg);
         return msg;
@@ -1655,11 +1632,14 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The citation of the SR4 text in force at the edition being compiled: the rule is SR4 of §2002:13.3.5.2,
     /// of §2014:13.4.5.2 and of §2023:13.4.6.3, in the same words (each --checked); §1985 has none
     /// (<see cref="ScreenSortMergeRecordReferences"/> asks nothing below 2002).</summary>
-    private string SortMergeRecordRuleCite => data.Edition.Edition.Cite(
-        "ISO §2002:13.3.5.2 SR4",
-        "ISO §2002:13.3.5.2 SR4",
-        "ISO §2023:13.4.6.3 SR4",
-        "ISO §2014:13.4.5.2 SR4");
+    private string SortMergeRecordRuleCite
+    {
+        get
+        {
+            const string y2002 = "ISO §2002:13.3.5.2 SR4";
+            return data.Edition.Edition.Cite(y2002, "ISO §2023:13.4.6.3 SR4", y2002, "ISO §2014:13.4.5.2 SR4");
+        }
+    }
 
     /// <summary>The citation of an input-output statement's rule in the edition in force (kb/Work PB4950): COBOL-85 states each
     /// statement once per I-O module, so its rule is the sequential (chapter VII), relative (VIII) or indexed (IX) module's
@@ -1674,7 +1654,7 @@ internal sealed class StatementValidation(DataBinder data)
             FileOrganization.Relative => relative,
             FileOrganization.Indexed => indexed,
             _ => sequential,
-        }, later, later);
+        }, later);
 
     /// <summary>⛔ THE ONE SCREEN for the L1–L3 "phrase written where this statement's syntax rules forbid it"
     /// leniency family (kb/Work PB144). Three syntax rules across READ/REWRITE/DELETE say a phrase "shall not be
@@ -1823,14 +1803,14 @@ internal sealed class StatementValidation(DataBinder data)
         var ed = data.Edition.Edition;
         string? refusal = WrittenSequentialReadPhrases(advancing, atEnd, notAtEnd, next, previous) is { } phrases
             ? $"the KEY phrase belongs to the random READ (Format 2), whose general format prints none of the phrases "
-                + $"ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO {ed.Cite("§1985:IX.4.5.2", "§2023:14.9.30.2", "§2023:14.9.30.2")}), and this statement specifies {phrases}; "
-                + $"those phrases make a sequential read (ISO {ed.Cite("§1985:IX.4.5.3 SR4", "§2023:14.9.30.4 GR19", "§2023:14.9.30.4 GR19")}), which has no KEY phrase"
+                + $"ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO {ed.Cite("§1985:IX.4.5.2", "§2023:14.9.30.2")}), and this statement specifies {phrases}; "
+                + $"those phrases make a sequential read (ISO {ed.Cite("§1985:IX.4.5.3 SR4", "§2023:14.9.30.4 GR19")}), which has no KEY phrase"
             : file.AccessMode == FileAccessMode.Sequential
                 ? "the file's access mode is SEQUENTIAL"
-                    + (file.AccessModeWritten ? "" : $" (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO {ed.Cite("§1985:IX.2.4.4 GR1", "§2023:12.4.5.5.3 GR1", "§2023:12.4.5.5.3 GR1")})")
-                    + $", so the NEXT phrase is implied (ISO {ed.Cite("§1985:IX.4.5.4 GR2", "§2023:14.9.30.3 SR8", "§2023:14.9.30.3 SR8")}) and the READ is a sequential read (ISO {ed.Cite("§1985:IX.4.5.3 SR4", "§2023:14.9.30.4 GR19", "§2023:14.9.30.4 GR19")}), "
-                    + $"which has no KEY phrase: the KEY phrase belongs to the random READ (Format 2, ISO {ed.Cite("§1985:IX.4.5.3 SR6", "§2023:14.9.30.2", "§2023:14.9.30.2")}); specify "
-                    + $"ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO {ed.Cite("§1985:IX.2.4.4 GR3, GR4", "§2023:12.4.5.5.3 GR3, GR4", "§2023:12.4.5.5.3 GR3, GR4")})"
+                    + (file.AccessModeWritten ? "" : $" (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO {ed.Cite("§1985:IX.2.4.4 GR1", "§2023:12.4.5.5.3 GR1")})")
+                    + $", so the NEXT phrase is implied (ISO {ed.Cite("§1985:IX.4.5.4 GR2", "§2023:14.9.30.3 SR8")}) and the READ is a sequential read (ISO {ed.Cite("§1985:IX.4.5.3 SR4", "§2023:14.9.30.4 GR19")}), "
+                    + $"which has no KEY phrase: the KEY phrase belongs to the random READ (Format 2, ISO {ed.Cite("§1985:IX.4.5.3 SR6", "§2023:14.9.30.2")}); specify "
+                    + $"ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO {ed.Cite("§1985:IX.2.4.4 GR3, GR4", "§2023:12.4.5.5.3 GR3, GR4")})"
                 : null;
         if (refusal is null) return true;
         data.Edition.Error(DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY on '{file.CobolName}': {refusal}");
@@ -1857,10 +1837,9 @@ internal sealed class StatementValidation(DataBinder data)
             + "description entry specifies no record description entries, so an INTO phrase shall be specified on "
             + "all READ statements associated with the file ("
             + data.Edition.Edition.Cite("ISO §1985:VII.3.1: \"Each file is defined by a file description entry and one or more record description entries\"",
-                "ISO §2023:13.4.5.3 SR3 c)", "ISO §2023:13.4.5.3 SR3 c)")
+                "ISO §2023:13.4.5.3 SR3 c)")
             + ") — its record area is the implied record of "
-            + data.Edition.Edition.Cite("a file without record description entries, which has no name", "§2023:14.9.30.4 GR6, which has no name",
-                "§2023:14.9.30.4 GR6, which has no name")
+            + data.Edition.Edition.Cite("a file without record description entries, which has no name", "§2023:14.9.30.4 GR6, which has no name")
             + ", and only READ … INTO can deliver the record. Write "
             + $"READ {file.CobolName} INTO identifier, or describe the record under the FD.");
         return false;
@@ -1877,7 +1856,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.Organization == FileOrganization.Indexed) return true;
         data.Edition.Error(DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY on '{file.CobolName}': the KEY phrase may be "
-            + $"specified only when ORGANIZATION IS INDEXED (ISO {data.Edition.Edition.Cite("§1985:IX.4.5.2", "§2023:14.9.30.3 SR10", "§2023:14.9.30.3 SR10")})");
+            + $"specified only when ORGANIZATION IS INDEXED (ISO {data.Edition.Edition.Cite("§1985:IX.4.5.2", "§2023:14.9.30.3 SR10")})");
         return false;
     }
 
@@ -1918,7 +1897,7 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.FormatRequiredPhraseOmitted,
             $"the {phrase} phrase is required on every {verb} statement and is omitted — {because} "
             + $"({citation}; brackets are the only convention that makes a portion of a general format "
-            + $"omissible, ISO {data.Edition.Edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2", "§2023:5.2.6.2")})");
+            + $"omissible, ISO {data.Edition.Edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2")})");
         return true;
     }
 
@@ -2018,14 +1997,14 @@ internal sealed class StatementValidation(DataBinder data)
         {
             data.Edition.Error(DiagnosticCatalog.OpenReportFileMode,
                 $"OPEN {OpenModeFace(mode)} '{file.CobolName}' — a report file shall not be opened INPUT or I-O "
-                + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.4.5.3 SR1", "§2023:14.9.27.3 SR1; §2023:13.18.46.3 SR3", "§2023:14.9.27.3 SR1; §2023:13.18.46.3 SR3")})");
+                + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.4.5.3 SR1", "§2023:14.9.27.3 SR1; §2023:13.18.46.3 SR3")})");
             ok = false;
         }
         if (file.Format is not null && mode is BoundOpenMode.IO)
         {
             data.Edition.Error(DiagnosticCatalog.FormatClauseViolation,
                 $"OPEN I-O '{file.CobolName}' — the file description entry specifies a FORMAT clause, and the I-O phrase shall not be specified for such a file "
-                + $"({data.Edition.Edition.Cite("ISO §2002:14.8.26.2 SR7", "ISO §2002:14.8.26.2 SR7", "ISO §2023:14.9.27.3 SR9", "ISO §2014:14.9.26.2 SR7")})");
+                + $"({FormatOpenIoRule})");
             ok = false;
         }
         if (mode is BoundOpenMode.Extend && file.AccessMode is not FileAccessMode.Sequential)
@@ -2033,14 +2012,14 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
                 $"OPEN EXTEND '{file.CobolName}' — the file's access mode is "
                 + $"{file.AccessMode.ToString().ToUpperInvariant()}; EXTEND requires sequential access "
-                + $"(ISO {data.Edition.Edition.Cite(file.Organization is FileOrganization.Indexed ? "§1985:IX.4.4.3 SR1" : "§1985:VIII.4.4.3 SR1", "§2023:14.9.27.3 SR2", "§2023:14.9.27.3 SR2")})");
+                + $"(ISO {data.Edition.Edition.Cite(file.Organization is FileOrganization.Indexed ? "§1985:IX.4.4.3 SR1" : "§1985:VIII.4.4.3 SR1", "§2023:14.9.27.3 SR2")})");
             ok = false;
         }
         if (mode is BoundOpenMode.Extend && file.Linage is not null)
         {
             data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
                 $"OPEN EXTEND '{file.CobolName}' — the file description entry specifies a LINAGE clause, which "
-                + $"EXTEND does not admit (ISO {data.Edition.Edition.Cite("§1985:VII.4.3.3 SR3", "§2023:14.9.27.3 SR2", "§2023:14.9.27.3 SR2")})");
+                + $"EXTEND does not admit (ISO {data.Edition.Edition.Cite("§1985:VII.4.3.3 SR3", "§2023:14.9.27.3 SR2")})");
             ok = false;
         }
         // The X3.23-1985 multiple file reel rules (kb/Work PB5086): the MULTIPLE FILE TAPE clause is the program's statement
@@ -2084,7 +2063,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.Linage is not null) return true;
         data.Edition.Error(DiagnosticCatalog.WriteEndOfPageWithoutLinage, $"WRITE END-OF-PAGE on file '{file.CobolName}', whose file "
-            + $"description entry has no LINAGE clause (ISO {data.Edition.Edition.Cite("§1985:VII.4.7.3 SR8", "§2023:14.9.51.3 SR19", "§2023:14.9.51.3 SR19")})");
+            + $"description entry has no LINAGE clause (ISO {data.Edition.Edition.Cite("§1985:VII.4.7.3 SR8", "§2023:14.9.51.3 SR19")})");
         return false;
     }
 
@@ -2097,7 +2076,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (!advancingPageWithAtEop) return true;
         data.Edition.Error(DiagnosticCatalog.WriteAdvancingPageWithEndOfPage, "WRITE ADVANCING PAGE with an END-OF-PAGE phrase: the two "
             + "shall not both be specified in a single WRITE statement (ISO "
-            + data.Edition.Edition.Cite("§1985:VII.4.7.3 SR7", "§2023:14.9.51.3 SR18", "§2023:14.9.51.3 SR18") + ")");
+            + data.Edition.Edition.Cite("§1985:VII.4.7.3 SR7", "§2023:14.9.51.3 SR18") + ")");
         return false;
     }
 
@@ -2123,7 +2102,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (!(file.Linage is not null && advancingNamesMnemonic)) return true;
         data.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"WRITE ADVANCING mnemonic-name on file '{file.CobolName}', whose "
             + "file description entry contains a LINAGE clause (ISO "
-            + data.Edition.Edition.Cite("§1985:VII.4.7.3 SR3", "§2023:14.9.51.3 SR13", "§2023:14.9.51.3 SR13") + ")");
+            + data.Edition.Edition.Cite("§1985:VII.4.7.3 SR3", "§2023:14.9.51.3 SR13") + ")");
         return false;
     }
 
@@ -2174,11 +2153,24 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The citation of the "at least one reference to an operand that is not a literal" sentence in the edition
     /// compiled (2002 onward; below it <see cref="CheckRelationHasNonLiteralOperand"/> asks the 1985 sentence): §2002:8.8.4.1.1,
     /// §2014:8.8.4.1.1 and §2023:8.8.4.2.1, each --checked.</summary>
-    private string RelationOperandRuleCite => data.Edition.Edition.Cite(
-        "§2002:8.8.4.1.1",
-        "§2002:8.8.4.1.1",
-        "§2023:8.8.4.2.1",
-        "§2014:8.8.4.1.1");
+    private string RelationOperandRuleCite
+    {
+        get
+        {
+            const string y2002 = "§2002:8.8.4.1.1";
+            return data.Edition.Edition.Cite(y2002, "§2023:8.8.4.2.1", y2002, "§2014:8.8.4.1.1");
+        }
+    }
+
+    /// <summary>The FORMAT clause's OPEN I-O rule by edition (no FORMAT clause in COBOL-85: its edition gate reads 2002).</summary>
+    private string FormatOpenIoRule
+    {
+        get
+        {
+            const string y2002 = "ISO §2002:14.8.26.2 SR7";
+            return data.Edition.Edition.Cite(y2002, "ISO §2023:14.9.27.3 SR9", y2002, "ISO §2014:14.9.26.2 SR7");
+        }
+    }
 
     /// <summary>⛔ THE ONE READING OF §1985:VI.6.3.1.5 — "Arithmetic-expression-1 must contain at least one reference to a
     /// variable" — for the sign condition <c>arithmetic-expression-1 IS [NOT] POSITIVE | NEGATIVE | ZERO</c> as written
@@ -2331,7 +2323,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             case RelationComparabilityBreach.IndexPair:
                 data.Edition.Error(DiagnosticCatalog.RelationIndexPair, "an index-name or index data item is compared "
-                    + "with an operand ISO " + data.Edition.Edition.Cite("§1985:VI.6.3.1.1.3", "§2023:8.8.4.2.13", "§2023:8.8.4.2.13")
+                    + "with an operand ISO " + data.Edition.Edition.Cite("§1985:VI.6.3.1.1.3", "§2023:8.8.4.2.13")
                     + " does not pair it with — \"Relation tests may be made only "
                     + "between\" two index-names, an index-name and a numeric data item or numeric literal, or an index "
                     + "data item and an index-name or another index data item");
@@ -2339,20 +2331,20 @@ internal sealed class StatementValidation(DataBinder data)
             case RelationComparabilityBreach.NumericAgainstCharacter when data.Edition.Permissive:
                 data.Edition.Warning(DiagnosticCatalog.RelationNumericNotInteger, "a numeric operand that is not an "
                     + "integer literal or an integer numeric data item of usage display or national is compared with a "
-                    + $"character operand (ISO {data.Edition.Edition.Cite("§1985:VI.6.3.1.1.2", "§2023:8.8.4.2.5", "§2023:8.8.4.2.5")}) — accepted under --permissive as the character comparison of "
+                    + $"character operand (ISO {data.Edition.Edition.Cite("§1985:VI.6.3.1.1.2", "§2023:8.8.4.2.5")}) — accepted under --permissive as the character comparison of "
                     + "its value's text");
                 break;
             case RelationComparabilityBreach.NumericAgainstCharacter:
                 data.Edition.Error(DiagnosticCatalog.RelationNumericNotInteger, "a numeric operand compared with an "
-                    + "operand of class alphanumeric, alphabetic or national shall be \"an integer literal or an integer "
-                    + "numeric data item of usage display or national\" ("
+                    + "operand of class alphanumeric, alphabetic or national shall be "
+                    // At COBOL-85 the words are the rule's own (quoted beside its citation below), never 2023's in quotation marks.
+                    + data.Edition.Edition.Cite("an integer literal or an integer numeric data item of usage display",
+                        "\"an integer literal or an integer numeric data item of usage display or national\"")
+                    + " ("
                     + data.Edition.Edition.Cite(
                         "ISO §1985:VI.6.3.1.1.2: \"If one of the operands is specified as numeric, it must be an integer data item or an integer literal\", "
                         + "and \"Numeric and nonnumeric operands may be compared only when their usage is the same\") — a non-integer, "
                         + "COMPUTATIONAL, packed or floating-point operand has no defined comparison with it",
-                        "ISO §2023:8.8.4.2.5; §2023:8.8.4.2.1 item 6 is the only such pair the standard defines) — a non-integer, "
-                        + "COMPUTATIONAL, packed, floating-point, arithmetic-expression or numeric, integer or index function-identifier "
-                        + "operand (§2023:15.2 states no usage for the item such a function returns) has no defined comparison with it",
                         "ISO §2023:8.8.4.2.5; §2023:8.8.4.2.1 item 6 is the only such pair the standard defines) — a non-integer, "
                         + "COMPUTATIONAL, packed, floating-point, arithmetic-expression or numeric, integer or index function-identifier "
                         + "operand (§2023:15.2 states no usage for the item such a function returns) has no defined comparison with it"));

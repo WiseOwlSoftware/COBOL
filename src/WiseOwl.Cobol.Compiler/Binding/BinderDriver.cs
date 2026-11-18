@@ -513,7 +513,7 @@ internal sealed class BinderDriver
         if (common && parent is null)
             edition.Error(DiagnosticCatalog.CommonProgramNotContained,
                 $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO "
-                + edition.Edition.Cite("§1985:X.3.1.3 SR3", "§2023:11.10.3 SR4", "§2023:11.10.3 SR4") + ")");
+                + edition.Edition.Cite("§1985:X.3.1.3 SR3", "§2023:11.10.3 SR4") + ")");
 
         // §2023:8.6.6 (:8821) "Functions and methods are always recursive" / §2023:9.4 (:12529) "a user defined
         // function always possesses the recursive attribute and may call itself" — implicit, never the
@@ -896,14 +896,10 @@ internal sealed class BinderDriver
                           + "those two programs must be directly or indirectly contained within another separately compiled program "
                           + "which does not contain the other\"",
                           "§2023:8.3.2.2: \"when two or more source elements identify something with the same externalized name, "
-                          + "they refer to the same instance\"",
-                          "§2023:8.3.2.2: \"when two or more source elements identify something with the same externalized name, "
                           + "they refer to the same instance\"") + ")"
                     : $"{Noun(kind)} and {Noun(first.Kind)} are not the same kind of entity or item ("
                       + edition.Edition.Cite("§1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, "
                           + "can belong to one and only one of these disjoint sets\"",
-                          "§2023:8.3.2.2: \"all instances of a given name that is externalized to the operating "
-                          + "environment shall identify the same kind of entity or item\"",
                           "§2023:8.3.2.2: \"all instances of a given name that is externalized to the operating "
                           + "environment shall identify the same kind of entity or item\"") + ")";
                 edition.Error(DiagnosticCatalog.DuplicateExternalizedDefinition,
@@ -930,8 +926,6 @@ internal sealed class BinderDriver
                         + edition.Edition.Cite(
                             "when two programs in a run unit are identically named, at least one of them must be directly or indirectly "
                             + "contained within another separately compiled program which does not contain the other (ISO §1985:X.1.3.8.1)",
-                            "the names assigned to programs that are contained directly or indirectly within the same outermost program "
-                            + "shall be unique within that outermost program (ISO §2023:8.4.6.3)",
                             "the names assigned to programs that are contained directly or indirectly within the same outermost program "
                             + "shall be unique within that outermost program (ISO §2023:8.4.6.3)"));
                 }

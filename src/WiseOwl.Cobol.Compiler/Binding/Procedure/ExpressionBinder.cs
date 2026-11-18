@@ -630,7 +630,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     $"the index-name '{DataBinder.WrittenText(dref)}' is used as an arithmetic operand; {ctx.Edition.Edition.Contexts()} "
                     + "admits an index-name only in a subscript, PERFORM/SEARCH VARYING, SET, or as an operand OF a "
                     + "relation condition, never inside an arithmetic expression"
-                    + ctx.Edition.Edition.Cite("", " (§2023:8.8.4.2.13)", " (§2023:8.8.4.2.13)") + " — accepted under "
+                    + ctx.Edition.Edition.Cite("", " (§2023:8.8.4.2.13)") + " — accepted under "
                     + "--permissive, computing the occurrence number");
             else
             {
@@ -638,7 +638,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     $"the index-name '{DataBinder.WrittenText(dref)}' is not an arithmetic operand (ISO {ctx.Edition.Edition.NotArithmetic()} "
                     + "admits an index-name only in a subscript, PERFORM/SEARCH "
                     + "VARYING, SET, or as an operand OF a relation condition, never inside an arithmetic "
-                    + "expression" + ctx.Edition.Edition.Cite("", ", §2023:8.8.4.2.13", ", §2023:8.8.4.2.13") + "). SET a data item to the index first "
+                    + "expression" + ctx.Edition.Edition.Cite("", ", §2023:8.8.4.2.13") + "). SET a data item to the index first "
                     + $"(SET data-item TO {DataBinder.WrittenText(dref)}) — or --permissive accepts it as the occurrence "
                     + "number");
                 return BoundExprError.Refused(ctx.Edition, $"index-name '{DataBinder.WrittenText(dref)}' in an arithmetic expression");
@@ -752,22 +752,21 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // rule written in two places. The class is ClassNameOf's, over the ONE §2023:8.5.2.1 classifier.
         RefModPlace =>
             $"a reference-modified operand of class {IntrinsicArgumentRules.ClassNameOf(p)} (ISO "
-            + edition.Cite("§1985:IV.4.3.8.4.4 GR2", "§2023:8.4.3.3.4 GR6", "§2023:8.4.3.3.4 GR6") + ")",
+            + edition.Cite("§1985:IV.4.3.8.4.4 GR2", "§2023:8.4.3.3.4 GR6") + ")",
         _ when p.Item.IsGroup =>
             $"group item '{p.Item.CobolName}' of class {IntrinsicArgumentRules.ClassNameOf(p)} (ISO "
-            + edition.Cite("§1985:IV.4.3.3", "§2023:8.5.2.1", "§2023:8.5.2.1") + ")",
+            + edition.Cite("§1985:IV.4.3.3", "§2023:8.5.2.1") + ")",
         // The INDEX arm the old switch lacked (kb/Work PB170): §2023:8.5.2.1 Table 2 puts an index data item in class
         // INDEX, and §2023:13.18.60.3 SR10's closed reference list — "a SEARCH or SET statement, a relation condition,
         // an intrinsic function argument" — has no arithmetic-operand entry. Named by the same words
         // ScreenResultant already used for the receiving side, so the two halves of one rule read alike.
         _ when p.Item.Pic is { Usage: Usage.Index } =>
             $"item '{p.Item.CobolName}', an index data item ("
-            + edition.Cite("", "class index, ISO §2023:8.5.2.1 Table 2; ", "class index, ISO §2023:8.5.2.1 Table 2; ")
+            + edition.Cite("", "class index, ISO §2023:8.5.2.1 Table 2; ")
             + edition.IndexDataItemRule().Replace("ISO §2023:13.18.60.3", "§2023:13.18.60.3") + ")",
         _ when p.Item.Pic is { Category: PicCategory.NumericEdited } =>
             $"item '{p.Item.CobolName}' of category numeric-edited (a numeric-edited data item is not a NUMERIC "
             + edition.Cite("data item — ISO §1985:IV.4.3.3, whose numeric edited category is of the alphanumeric class)",
-                "data item — ISO §2023:8.5.2.13 + §2023:8.5.2.1 Table 2; de-editing is a MOVE rule, §2023:14.9.25.4 GR6d1)",
                 "data item — ISO §2023:8.5.2.13 + §2023:8.5.2.1 Table 2; de-editing is a MOVE rule, §2023:14.9.25.4 GR6d1)"),
         // NO EditMask condition (kb/Work PB155): an alphanumeric-edited/national-edited picture is modeled as
         // Category Alphanumeric/National WITH an EditMask (there is no *Edited enum member for them), and the
@@ -778,7 +777,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             $"item '{p.Item.CobolName}' of category {ItemCategory.CategoryName(pic)}"
             + (pic.EditMask is not null ? edition.Cite(
                 " (an edited item is not a NUMERIC data item — ISO §1985:IV.4.3.3)",
-                " (an edited item is not a NUMERIC data item — ISO §2023:8.5.2.1 Table 2; the de-editing grant is MOVE's alone, §2023:14.9.25.4 GR6d1)",
                 " (an edited item is not a NUMERIC data item — ISO §2023:8.5.2.1 Table 2; the de-editing grant is MOVE's alone, §2023:14.9.25.4 GR6d1)") : ""),
         // ⛔ TOTAL BY CONSTRUCTION. The classifier has already said "not class numeric", so there is no
         // admissible shape left to fall through to — a pointer, a program-pointer, an object reference and an
@@ -800,7 +798,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             : $"symbolic-character '{alias.Word}' is a figurative constant other than ZERO and is not a numeric operand "
                 + ctx.Edition.Edition.Cite(
                     "(ISO §1985:VI.6.2.1 — the only figurative constant an arithmetic expression admits is ZERO (ZEROS, ZEROES))",
-                    "(ISO §2023:8.8.1.1; §2023:12.3.7.4 GR11 a); §2023:8.3.3.6.3 SR1 a))",
                     "(ISO §2023:8.8.1.1; §2023:12.3.7.4 GR11 a); §2023:8.3.3.6.3 SR1 a))"));
         return BoundExprError.Refused(ctx.Edition, $"'{alias.Word}' in a numeric context");
     }
@@ -1064,7 +1061,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 ? $"constant-name '{alias.Word}' shall not be specified as a receiving operand — it substitutes a literal "
                     + "(ISO §2023:13.10.4 GR1)"
                 : $"symbolic-character '{alias.Word}' shall not be specified as a receiving operand — it is a figurative "
-                    + $"constant (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.2.2.2.3", "§2023:12.3.7.4 GR11 a)", "§2023:12.3.7.4 GR11 a)")}), and a literal is never a receiving operand");
+                    + $"constant (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.2.2.2.3", "§2023:12.3.7.4 GR11 a)")}), and a literal is never a receiving operand");
         return null;
     }
 
@@ -1136,7 +1133,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // alphanumeric or national for a numeric or edited item and alphabetic for an alphabetic one (kb/Work PB5881).
         string actual = p is RefModPlace ? $"a reference-modified slice (category {ItemCategory.CategoryName(p)}, §2023:8.4.3.3.4 GR6)"
             : p.Item.IsGroup ? "a group item"
-            : pic is { Usage: Usage.Index } ? $"an index data item ({ctx.Edition.Edition.Cite("§1985:VI.5.14.3 SR5", "§2023:13.18.60.3 SR10", "§2023:13.18.60.3 SR10")})"
+            : pic is { Usage: Usage.Index } ? $"an index data item ({ctx.Edition.Edition.Cite("§1985:VI.5.14.3 SR5", "§2023:13.18.60.3 SR10")})"
             : edited ? "a numeric-edited item, which this receiver position does not admit"
             : $"of category {ItemCategory.CategoryName(p) ?? "unknown"}";
         ctx.Edition.Error(DiagnosticCatalog.ArithmeticResultantCategory,
@@ -1357,9 +1354,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     + "(ZEROS, ZEROES))",
                     "operand (ISO §2023:8.8.1.1 — the only figurative constant an arithmetic expression admits is ZERO "
                     + "(ZEROS, ZEROES); §2023:8.3.3.6.3 SR1a — where the literal is restricted to a numeric literal, ZERO "
-                    + "is permitted WITHOUT the ALL phrase)",
-                    "operand (ISO §2023:8.8.1.1 — the only figurative constant an arithmetic expression admits is ZERO "
-                    + "(ZEROS, ZEROES); §2023:8.3.3.6.3 SR1a — where the literal is restricted to a numeric literal, ZERO "
                     + "is permitted WITHOUT the ALL phrase)") + where);
             return BoundExprError.Refused(ctx.Edition, $"figurative constant '{ConcatFolder.Spelling(fig)}' in a numeric context");
         }
@@ -1379,8 +1373,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 + ctx.Edition.Edition.Cite(
                     "(ISO §1985:VI.6.2.1 — an arithmetic expression is an identifier of a numeric elementary item, a numeric "
                     + "literal or the figurative constant ZERO; a nonnumeric literal is none of them)",
-                    "(ISO §2023:8.8.1.1 — arithmetic operands shall be numeric; §2023:8.3.3.2.1 — both formats of the "
-                    + "alphanumeric literal are of class and category alphanumeric)",
                     "(ISO §2023:8.8.1.1 — arithmetic operands shall be numeric; §2023:8.3.3.2.1 — both formats of the "
                     + "alphanumeric literal are of class and category alphanumeric)") + where);
             return BoundExprError.Refused(ctx.Edition, $"literal {text} in a numeric context");
@@ -1542,7 +1534,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         string cls =IntrinsicArgumentRules.ClassOf(operand) is { } c ? IntrinsicArgumentRules.Name(c) : "non-numeric";
         string article = cls[0] is 'a' or 'e' or 'i' or 'o' or 'u' ? "an" : "a";
         string what = bound is BoundIntrinsicCall sc
-            ? $"FUNCTION {sc.Sig.Name} ({article} {cls} function, ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:15.2", "§2023:15.2")})"
+            ? $"FUNCTION {sc.Sig.Name} ({article} {cls} function, ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:15.2")})"
             : id switch
             {
                 Core.InlineMethodInvocationContext =>
@@ -1551,7 +1543,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     $"the object-view '{DataBinder.WrittenText(id)}' (an object reference, ISO §2023:8.4.3.5.4 GR1)",
                 Core.SelfAndSuperContext =>
                     $"'{DataBinder.WrittenText(id)}' (an object reference, ISO §2023:8.4.3.8.3 SR7)",
-                _ => $"the function-identifier '{id.GetText()}' ({article} {cls} result, ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:15.2", "§2023:15.2")})",
+                _ => $"the function-identifier '{id.GetText()}' ({article} {cls} result, ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:15.2")})",
             };
         bool decodable = IntrinsicArgumentRules.IsDigitDecodable(operand);
         if (ctx.Edition.Permissive && decodable)

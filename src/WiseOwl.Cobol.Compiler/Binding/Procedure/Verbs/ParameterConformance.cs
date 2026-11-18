@@ -74,21 +74,25 @@ internal readonly record struct BitAlignmentRule(string Clause, string Alignment
         // The edition decides the citation through the one decider (kb/Work PB4950); 1985 reads the 2002 form (summary).
         var edition = EditionInfo.Of(year);
         bool is2023 = edition.Has(2023);
-        string alignment = edition.Cite("§2002:8.5.1.5.3", "§2002:8.5.1.5.3", "§2023:8.5.1.6.3", "§2014:8.5.1.5.3");
+        string alignment = From2002(edition, "§2002:8.5.1.5.3", "§2014:8.5.1.5.3", "§2023:8.5.1.6.3");
         bool narrowed = is2023 && statement is BitAlignmentStatement.CallReference or BitAlignmentStatement.CallReturning
             or BitAlignmentStatement.Invoke or BitAlignmentStatement.Function;
         string clause = statement switch
         {
-            BitAlignmentStatement.CallReference => edition.Cite("§2002:14.8.4.2 SR6", "§2002:14.8.4.2 SR6", "§2023:14.9.4.3 SR6", "§2014:14.9.4.2 SR6"),
-            BitAlignmentStatement.CallReturning => edition.Cite("§2002:14.8.4.2 SR8", "§2002:14.8.4.2 SR8", "§2023:14.9.4.3 SR8", "§2014:14.9.4.2 SR8"),
-            BitAlignmentStatement.Invoke => edition.Cite("§2002:14.8.22.2 SR12", "§2002:14.8.22.2 SR12", "§2023:14.9.23.3 SR12", "§2014:14.9.22.2 SR12"),
-            BitAlignmentStatement.Function => edition.Cite("§2002:8.4.2.2.2 SR12", "§2002:8.4.2.2.2 SR12", "§2023:8.4.3.2.3 SR14", "§2014:8.4.2.2.2 SR14"),
-            BitAlignmentStatement.FilePhrase => edition.Cite("§2002:14.8.47.2 SR9, §2002:14.8.33.2 SR7", "§2002:14.8.47.2 SR9, §2002:14.8.33.2 SR7", "§2023:14.9.51.3 SR9, §2023:14.9.35.3 SR7", "§2014:14.9.47.2 SR9, §2014:14.9.33.2 SR6"),
-            BitAlignmentStatement.AddressOf => edition.Cite("§2002:8.4.2.11.2 SR3", "§2002:8.4.2.11.2 SR3", "§2023:8.4.3.11.3 SR4", "§2014:8.4.2.11.2 SR4"),
+            BitAlignmentStatement.CallReference => From2002(edition, "§2002:14.8.4.2 SR6", "§2014:14.9.4.2 SR6", "§2023:14.9.4.3 SR6"),
+            BitAlignmentStatement.CallReturning => From2002(edition, "§2002:14.8.4.2 SR8", "§2014:14.9.4.2 SR8", "§2023:14.9.4.3 SR8"),
+            BitAlignmentStatement.Invoke => From2002(edition, "§2002:14.8.22.2 SR12", "§2014:14.9.22.2 SR12", "§2023:14.9.23.3 SR12"),
+            BitAlignmentStatement.Function => From2002(edition, "§2002:8.4.2.2.2 SR12", "§2014:8.4.2.2.2 SR14", "§2023:8.4.3.2.3 SR14"),
+            BitAlignmentStatement.FilePhrase => From2002(edition, "§2002:14.8.47.2 SR9, §2002:14.8.33.2 SR7", "§2014:14.9.47.2 SR9, §2014:14.9.33.2 SR6", "§2023:14.9.51.3 SR9, §2023:14.9.35.3 SR7"),
+            BitAlignmentStatement.AddressOf => From2002(edition, "§2002:8.4.2.11.2 SR3", "§2014:8.4.2.11.2 SR4", "§2023:8.4.3.11.3 SR4"),
             _ => throw new ArgumentOutOfRangeException(nameof(statement), statement, "a bit-alignment statement the table does not carry"),
         };
         return new BitAlignmentRule(clause, alignment, WholeRefMod: !narrowed);
     }
+
+    /// <summary>A rule of bit items, which begin in COBOL 2002: COBOL-85 reads the 2002 text (each text written once here).</summary>
+    private static string From2002(EditionInfo edition, string y2002, string y2014, string y2023) =>
+        edition.Cite(y2002, y2023, y2002, y2014);
 }
 
 /// <summary>

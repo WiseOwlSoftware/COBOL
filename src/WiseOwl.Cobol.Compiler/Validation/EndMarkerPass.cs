@@ -182,6 +182,6 @@ internal static class EndMarkerPass
     {
         using var _ = edition.At(at);
         string later = $"§2023:10.7.3 {rule}";
-        edition.Error(DiagnosticCatalog.EndMarkerRule, $"{message} (ISO {edition.Edition.Cite(rule1985 ?? later, later, later)})");
+        edition.Error(DiagnosticCatalog.EndMarkerRule, $"{message} (ISO {edition.Edition.Cite(rule1985 ?? later, later)})");
     }
 }

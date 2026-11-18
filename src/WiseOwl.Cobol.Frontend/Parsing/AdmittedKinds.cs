@@ -95,7 +95,7 @@ internal static class AdmittedKinds
     {
         anOperandIsDue = false;
         // The rule that the elements of a general format are written in its sequence, in the edition in force (kb/Work PB4950).
-        string sequence = edition.Cite("§1985:IV.2.1", "§2023:5.2.1", "§2023:5.2.1");
+        string sequence = edition.Cite("§1985:IV.2.1", "§2023:5.2.1");
         if (token.Type == TokenConstants.EOF || admitted.Contains(token.Type) || admitted.Count == 0 && words.Count == 0)
             return null;
         // ⛔ A TOKEN THE CONSTRUCT JUST BEFORE IT COULD HAVE TAKEN IS A FAULT FURTHER ON, NOT A KIND REFUSED HERE (kb/Work
@@ -142,7 +142,7 @@ internal static class AdmittedKinds
         if (named.Statement && (literal || token.Type == CobolLexer.IDENTIFIER))
             return $"{written} is not expected here: a statement may begin at this position, and a statement begins with the "
                    + $"first word of its statement name, which {(literal ? "a literal" : "a user-defined word")} is not "
-                   + $"(ISO {edition.Cite("§1985:IV.6.4.1.2", "§2023:14.5.3.1; the names are Table 12's, §2023:14.5.1", "§2023:14.5.3.1; the names are Table 12's, §2023:14.5.1")}).";
+                   + $"(ISO {edition.Cite("§1985:IV.6.4.1.2", "§2023:14.5.3.1; the names are Table 12's, §2023:14.5.1")}).";
         // ⛔ A RESERVED WORD WHERE AN OPERAND IS DUE (kb/Work PB4301, PB4426): the position takes a user-defined word or a
         // literal, and a keyword of the next phrase (the TIMES of `OCCURS 0 TO TIMES`, the WHEN of `DISPLAY WHEN OTHER`)
         // was written instead: the element before it is incomplete, and what it needs is the position's own. Not at a

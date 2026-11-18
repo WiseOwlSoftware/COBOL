@@ -61,7 +61,7 @@ public readonly record struct MarginRCut(int Column, int LastProgramTextPosition
     /// immediately to the left of margin R"; kb/Work PB4950).</summary>
     public string AccountAt(EditionInfo edition)
     {
-            string rule = edition.Cite("§1985:IV.7.2", "§2023:6.3.1", "§2023:6.3.1");
+            string rule = edition.Cite("§1985:IV.7.2", "§2023:6.3.1");
             string shown = CharacterPositions.Count(Text) > MaxDroppedShown
                 ? Text[..CharacterPositions.IndexAt(Text, MaxDroppedShown)] + "..."
                 : Text;

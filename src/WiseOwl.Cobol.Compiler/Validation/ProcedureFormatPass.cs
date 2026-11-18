@@ -48,7 +48,7 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edit
 
     /// <summary>The procedure division's two body formats, in the edition in force (kb/Work PB4950): §2023:14.2.1 prints
     /// the with-sections and the without-sections formats; §1985:IV.6.4.1.4.2 prints the same two as Format 1 and Format 2.</summary>
-    private string Formats => edition.Cite("§1985:IV.6.4.1.4.2", "§2023:14.2.1", "§2023:14.2.1");
+    private string Formats => edition.Cite("§1985:IV.6.4.1.4.2", "§2023:14.2.1");
 
     // No statement and no procedure division header lives in these divisions; a nested program's or a method's
     // procedure division is a sibling of them, never inside one.
@@ -80,7 +80,7 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edit
               + edition.Cite(
                   "§1985:IV.6.4.3: \"any optional conditional phrase encountered is considered to be the next phrase of the nearest "
                   + "preceding unterminated statement with which that phrase is permitted to be associated\".",
-                  AssociationRule2023, AssociationRule2023)
+                  AssociationRule2023)
             : "";
         using var _ = Sink.At(s);
         Sink.Report(new EditionDiagnostic(DiagnosticCatalog.ConditionalStatementAsImperative.Code,
@@ -91,7 +91,7 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edit
                 $"§1985:IV.6.4.2.1.1 {ConditionalStatementRule1985(name)}: a {name} statement is one of the conditional statements; an "
                 + "imperative statement \"specifies an unconditional action to be taken by the object program or is a conditional "
                 + "statement that is delimited by its explicit scope terminator\" (§1985:IV.6.4.2.3.1)",
-                ConditionalOperandRule2023, ConditionalOperandRule2023)
+                ConditionalOperandRule2023)
             + $".{association} Write END-{name} to close it.",
             name, DiagnosticCatalog.ConditionalStatementAsImperative.IsoSection));
     }
@@ -206,7 +206,6 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edit
                     + (paragraphs.Length > 1 ? $" (nor are {paragraphs.Length - 1} more paragraphs after it)" : "")
                     + $" — {why}, and "
                     + edition.Cite("§1985:IV.6.4.1.2: \"If one paragraph is in a section, all paragraphs must be in sections\"",
-                        "§2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\"",
                         "§2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\""));
         }
         return base.VisitChildren(ctx);

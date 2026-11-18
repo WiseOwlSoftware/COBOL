@@ -1128,7 +1128,7 @@ internal static class FileControlKeyRules
             using var at = edition.At(file.EntryAt);   // the ABSENCE of a clause has nothing but the entry to point at
             edition.Error(DiagnosticCatalog.FileControlClauseRequired,
                 $"{required.KindFace}file '{file.CobolName}' has no {required.Face} clause (ISO "
-                + edition.Edition.Cite($"{FileControlFormat1985(kind)}", $"§2023:12.4.5.1 {required.FormatsFace}", $"§2023:12.4.5.1 {required.FormatsFace}")
+                + edition.Edition.Cite($"{FileControlFormat1985(kind)}", $"§2023:12.4.5.1 {required.FormatsFace}")
                 + $": the {required.Face} clause is printed with no bracket around it, so the "
                 + "entry shall specify it)");
         }

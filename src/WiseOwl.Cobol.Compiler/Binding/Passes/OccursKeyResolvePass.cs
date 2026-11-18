@@ -70,8 +70,6 @@ internal sealed class OccursKeyResolvePass : IBindPass
                             "\"The first specification of data-name-2 must be the name of either the entry containing the OCCURS clause "
                             + "or an entry subordinate to the entry containing the OCCURS clause\" (ISO §1985:VI.5.8.3 SR3)",
                             "\"The first specification of data-name-2 shall be the name of either the entry containing the OCCURS clause "
-                            + "or an entry subordinate to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)",
-                            "\"The first specification of data-name-2 shall be the name of either the entry containing the OCCURS clause "
                             + "or an entry subordinate to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)"));
                 else if (i > 0 && ReferenceEquals(item, table))
                 {
@@ -80,7 +78,6 @@ internal sealed class OccursKeyResolvePass : IBindPass
                         + "table entry itself — "
                         + binder.Edition.Edition.Cite(
                             "\"Subsequent specification of data-name-2 must be subordinate to the entry containing the OCCURS clause\" (ISO §1985:VI.5.8.3 SR3)",
-                            "\"Subsequent specification of data-name-2 shall be subordinate to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)",
                             "\"Subsequent specification of data-name-2 shall be subordinate to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)"));
                     item = null;
                 }
@@ -138,8 +135,9 @@ internal sealed class OccursKeyResolvePass : IBindPass
                     + "national group item, or strongly-typed group item that is subordinate to the entry containing the "
                     + "OCCURS clause, that group item shall not contain an OCCURS clause\" (ISO §2023:13.18.38.3 SR4)";
         if (!ReferenceEquals(key, table) && key.IsTable)
-            return "the key's own entry contains an OCCURS clause — \"The data item identified by data-name-2 shall not "
-                + $"contain an OCCURS clause except when data-name-2 is the subject of the entry\" (ISO {edition.Cite("§1985:VI.5.8.3 SR11", "§2023:13.18.38.3 SR6", "§2023:13.18.38.3 SR6")})";
+            return "the key's own entry contains an OCCURS clause — \"The data item identified by data-name-2 "
+                + edition.Cite("must not contain an OCCURS clause except when data-name-2 is the subject of the entry\" (ISO §1985:VI.5.8.3 SR11)",
+                    "shall not contain an OCCURS clause except when data-name-2 is the subject of the entry\" (ISO §2023:13.18.38.3 SR6)");
         if (ItemCategory.IsBooleanMessageTagObjectOrPointer(key))
             return "the key is a data item of class boolean, message-tag, object or pointer — \"The KEY phrase shall not "
                 + "be specified for a data item of class boolean, message-tag, object, or pointer\" (ISO §2023:13.18.38.3 SR8)";

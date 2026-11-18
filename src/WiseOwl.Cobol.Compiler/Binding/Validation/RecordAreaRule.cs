@@ -2,6 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
 
+using WiseOwl.Cobol.Editions;
+
 namespace WiseOwl.Cobol.Binding.Validation;
 
 /// <summary>
@@ -28,13 +30,13 @@ internal static class RecordAreaRule
     /// at <paramref name="editionYear"/>, with the sentence it prints — the 1985 wording uses "must", the 2002 one "shall".</summary>
     public static (string Cite, string Words) Describe(RecordAreaVerb verb, FileOrganization organization, int editionYear)
     {
-        bool is1985 = editionYear < 2002;
-        string must = is1985 ? "must" : "shall";
+        var edition = EditionInfo.Of(editionYear);
+        string must = edition.Cite("must", "shall");
         string words = verb is RecordAreaVerb.Read or RecordAreaVerb.Return
             ? $"The storage area associated with identifier-1 and the record area associated with file-name-1 {must} not be the "
               + "same storage area."
             : $"Record-name-1 and identifier-1 {must} not reference the same storage area.";
-        return (is1985 ? Cite1985(verb, organization) : Cite2002(verb), words);
+        return (edition.Cite(Cite1985(verb, organization), Cite2002(verb)), words);
     }
 
     private static string Cite1985(RecordAreaVerb verb, FileOrganization organization)

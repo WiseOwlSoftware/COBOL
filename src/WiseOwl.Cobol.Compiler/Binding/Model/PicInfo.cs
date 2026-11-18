@@ -307,7 +307,7 @@ public static class UsageFamilies
         Usage.FunctionPointer or Usage.MessageTag or Usage.ObjectReference or Usage.ProgramPointer
             => "ISO §2023:13.18.63.3 SR9; §2023:13.16.3 SR10",
         // COBOL-85 states the index exclusion in the USAGE clause's own rules (kb/Work PB4950).
-        Usage.Index => "a data item of class index — ISO " + edition.Cite("§1985:VI.5.14.3 SR6", "§2023:13.16.3 SR10", "§2023:13.16.3 SR10"),
+        Usage.Index => "a data item of class index — ISO " + edition.Cite("§1985:VI.5.14.3 SR6", "§2023:13.16.3 SR10"),
         _ => "a data item of class pointer — ISO §2023:13.16.3 SR10",
     };
 

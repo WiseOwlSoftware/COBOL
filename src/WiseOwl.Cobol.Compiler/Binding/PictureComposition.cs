@@ -227,9 +227,9 @@ internal static class PictureComposition
         // ⛔ THE CITATION OF EACH COMPOSITION RULE BY EDITION (kb/Work PB4950): the 2002/2014/2023 text names §2023:13.18.40.3's
         // syntax rule, the 1985 text the general or editing rule of §1985:VI.5.9.4 / VI.5.9.5 that says the same thing.
         string Rule(string sr, string rule1985) =>
-            edition.Edition.Cite(rule1985, $"§2023:13.18.40.3 {sr}", $"§2023:13.18.40.3 {sr}");
+            edition.Edition.Cite(rule1985, $"§2023:13.18.40.3 {sr}");
         // SR13's role swap: at COBOL-85 it is the period symbol's own rule (§1985:VI.5.9.4 GR8, "the rules for the period apply to the comma").
-        string Swap() => edition.Edition.Cite("§1985:VI.5.9.4 GR8", "SR13", "SR13");
+        string Swap() => edition.Edition.Cite("§1985:VI.5.9.4 GR8", "SR13");
 
         int Count(string sym)
         {
@@ -284,7 +284,7 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureComposition,
                 "the symbol 'Z' and the symbol '*' are mutually exclusive in character-string-1 — one item has one "
                 + $"replacement character, space for 'Z' and asterisk for '*' (ISO {Rule("SR21", "§1985:VI.5.9.5 GR3")}"
-                + edition.Edition.Cite("; §1985:VI.5.9.5 GR8", "; §2023:13.18.40.5 rule 7", "; §2023:13.18.40.5 rule 7") + ")");
+                + edition.Edition.Cite("; §1985:VI.5.9.5 GR8", "; §2023:13.18.40.5 rule 7") + ")");
 
         // SR23 "The editing sign control symbols '+', '-', 'CR', and 'DB' are mutually exclusive in
         // character-string-1 with the exception of a numeric-edited data item for a floating-point edited
@@ -347,7 +347,6 @@ internal static class PictureComposition
                 + (edition.Edition.Cite(
                     "the asterisk when used as the zero suppression symbol and the clause BLANK WHEN ZERO may not appear in "
                       + "the same entry (ISO §1985:VI.5.9.3 SR7)",
-                    "neither 'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)",
                     "neither 'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)")));
         if (blankWhenZero && Count("S") > 0 && edition.DialectLevel >= 2002)
             return Fail(DiagnosticCatalog.PictureComposition,
@@ -374,7 +373,7 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"character-string-1 uses {fixedCurrency} currency symbols as FIXED insertion — only one currency "
                 + $"symbol may be used (ISO {Rule("SR24", "§1985:VI.5.9.5 GR6")}). Two or more ADJACENT occurrences would be a floating "
-                + $"insertion string ({edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 rule 6", "§2023:13.18.40.5 rule 6")}); "
+                + $"insertion string ({edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 rule 6")}); "
                 + "these are separated by other symbols");
         if (fixedSign > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
@@ -451,7 +450,7 @@ internal static class PictureComposition
                 + $"decimal point position ({point}) — for floating insertion, at least one insertion symbol "
                 + $"shall be specified to the LEFT of the decimal point position (ISO {Rule("SR29", "§1985:VI.5.9.5 GR7")}"
                 + (decimalPointIsComma ? $"; {Swap()} — the rules for the symbol period apply to the symbol comma" : "")
-                + $"). {edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 rule 6", "§2023:13.18.40.5 rule 6")} "
+                + $"). {edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 rule 6")} "
                 + "defines the image only for a string that starts left of the point");
         }
 
@@ -757,7 +756,6 @@ internal static class PictureComposition
             + (EditionInfo.Of(dialectLevel).Cite(
                 " (at COBOL-85 the chart of §1985:VI.5.9.6, whose fixed currency symbol is leftmost, preceded at most by "
                   + "'+' or '-', §1985:VI.5.9.5 GR6)",
-                "",
                 "")));
 
         bool IsFixedExtended(Sym s, int at) => char1Extended.Contains(s.Kind) && !isFloating(at);

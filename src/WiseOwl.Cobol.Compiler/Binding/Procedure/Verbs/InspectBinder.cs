@@ -53,7 +53,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                         ? "CONVERTS it (ISO §2023:14.9.22.2 Format 4, which §2023:14.9.22.4 GR20 executes as a Format 2 "
                           + "over the same identifier-1)"
                         : "REPLACES characters in it (ISO §2023:14.9.22.2 Format 2/3, §2023:14.9.22.4 GR7)")
-                    + $" — a receiving operand, which ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR3a", "§2023:8.4.3.2.3 SR1", "§2023:8.4.3.2.3 SR1")} bars a function-identifier from. A "
+                    + $" — a receiving operand, which ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR3a", "§2023:8.4.3.2.3 SR1")} bars a function-identifier from. A "
                     + "function-identifier IS legal as INSPECT identifier-1 in Format 1 (TALLYING only)");
             }
             // Format 1: identifier-1 is only READ. It binds as an ordinary sending operand and flows to the
@@ -124,7 +124,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     : $"an elementary item of USAGE {ItemCategory.UsageOf(target.Item)?.ToString() ?? "(none)"}")
                 + "; SR1 admits " + ctx.Edition.Edition.Cite(
                     "a group item or an elementary item described implicitly or explicitly as USAGE IS DISPLAY (ISO §1985:VI.6.18.3 SR1)",
-                    InspectIdentifier1Rule, InspectIdentifier1Rule));
+                    InspectIdentifier1Rule));
         }
 
         // ⛔ A FORMAT 3 WHOSE IDENTIFIER-1 READS AN OCCURS DEPENDING ON OBJECT: WHEN IS IT READ (kb/Work PB5119; DialectBehavior
@@ -218,7 +218,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "INSPECT TALLYING FOR "
                             + (cp.FIRST() is not null ? "FIRST" : "TRAILING")
                             + ": the tallying-phrase of ISO "
-                            + ctx.Edition.Edition.Cite("§1985:VI.6.18.2 Format 1", "§2023:14.9.22.2", "§2023:14.9.22.2")
+                            + ctx.Edition.Edition.Cite("§1985:VI.6.18.2 Format 1", "§2023:14.9.22.2")
                             + " prints only CHARACTERS, ALL and LEADING");
                     InspectTallyKind kind = cp.ALL() is not null ? InspectTallyKind.All : InspectTallyKind.Leading;
                     foreach (var operand in cp.inspectCountOperand())
@@ -246,7 +246,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 }
                 if (item.TRAILING() is not null)
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "INSPECT REPLACING TRAILING: the replacing-phrase of ISO "
-                        + ctx.Edition.Edition.Cite("§1985:VI.6.18.2 Format 2", "§2023:14.9.22.2", "§2023:14.9.22.2")
+                        + ctx.Edition.Edition.Cite("§1985:VI.6.18.2 Format 2", "§2023:14.9.22.2")
                         + " prints only CHARACTERS, ALL, LEADING and FIRST");
                 InspectReplaceKind kind = item.ALL() is not null ? InspectReplaceKind.All
                     : item.FIRST() is not null ? InspectReplaceKind.First
@@ -286,7 +286,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     && ctx.Data.SpecialNames.IsAlphabetName(w))
                     ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                         $"INSPECT CONVERTING references the ALPHABET-name '{w}' — Format 4's operands are "
-                        + $"an identifier or a literal (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.18.3 SR3", "§2023:14.9.22.2", "§2023:14.9.22.2")}), and an alphabet-name is neither "
+                        + $"an identifier or a literal (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.18.3 SR3", "§2023:14.9.22.2")}), and an alphabet-name is neither "
                         + "(the CONVERTING-alphabet form is a GnuCOBOL extension). Write the character "
                         + "strings, or a data item holding them");
             var from = InspectCharOperand(conv.sendingOperand(0));
@@ -387,14 +387,13 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 $"INSPECT operand '{c.GetText()}' is a zero-length literal, which "
                 + ctx.Edition.Edition.Cite(
                     "a nonnumeric literal is not: it is 1 through 160 characters in length (ISO §1985:IV.4.2.2.2.1)",
-                    "literal-1 through literal-5 shall not be (ISO §2023:14.9.22.3 SR3)",
                     "literal-1 through literal-5 shall not be (ISO §2023:14.9.22.3 SR3)"),
                 $"INSPECT operand '{c.GetText()}' (ISO {InspectLiteralRule})")
             : literal;
 
     /// <summary>The syntax rule that bars a numeric literal and a figurative constant beginning with ALL from an INSPECT literal position, in
     /// the edition in force (kb/Work PB4950): §1985:VI.6.18.3 SR3 or §2023:14.9.22.3 SR3.</summary>
-    private string InspectLiteralRule => ctx.Edition.Edition.Cite("§1985:VI.6.18.3 SR3", "§2023:14.9.22.3 SR3", "§2023:14.9.22.3 SR3");
+    private string InspectLiteralRule => ctx.Edition.Edition.Cite("§1985:VI.6.18.3 SR3", "§2023:14.9.22.3 SR3");
 
     private (BoundOperand Op, bool Figurative) InspectCharOperandOf(Core.SendingOperandContext c, bool literal5)
     {
@@ -412,7 +411,6 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                         $"INSPECT operand '{ConcatFolder.Spelling(fig)}' is a figurative constant that begins with the "
                         + ctx.Edition.Edition.Cite("word ALL, which each literal must not be",
-                            "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be",
                             "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be")
                         + $" (ISO {InspectLiteralRule})",
                         $"INSPECT operand ALL figurative (ISO {InspectLiteralRule})"), false);
@@ -490,8 +488,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // The grammar admits a numeric literal here; SR3 does not (alphanumeric/boolean/national literals only).
         return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
             $"INSPECT operand '{c.GetText()}' is a numeric literal; each INSPECT literal "
-            + ctx.Edition.Edition.Cite("must be a nonnumeric literal", "shall be an alphanumeric, boolean, or national literal",
-                "shall be an alphanumeric, boolean, or national literal")
+            + ctx.Edition.Edition.Cite("must be a nonnumeric literal", "shall be an alphanumeric, boolean, or national literal")
             + $" (ISO {InspectLiteralRule})",
             $"INSPECT operand '{c.GetText()}' (ISO {InspectLiteralRule})"), false);
     }

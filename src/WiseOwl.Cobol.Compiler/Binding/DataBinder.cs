@@ -431,7 +431,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 + "containing program's configuration section applies to it " + Edition.Edition.Cite(
                     "(ISO §1985:VI.4.2: \"The entries explicitly or implicitly stated in the Configuration Section of a program which "
                     + "contains other programs apply to each contained program\")",
-                    "(ISO §2023:12.3.3 SR1 / §2023:12.3.4 GR1)", "(ISO §2023:12.3.3 SR1 / §2023:12.3.4 GR1)"));
+                    "(ISO §2023:12.3.3 SR1 / §2023:12.3.4 GR1)"));
         }
 
         // ARITHMETIC mode validity (§2023:11.9.5 / §2023:8.8.1): NATIVE, STANDARD-DECIMAL, and plain STANDARD are
@@ -918,8 +918,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 if (item.Level is not (1 or 77))
                     Edition.Error(DiagnosticCatalog.LevelNumberHierarchy, $"'{item.CobolName ?? "FILLER"}': level-number "
                         + $"{item.Level} opens no record — the first entry of a record description shall have level-number 1 "
-                        + $"(ISO {Edition.Edition.Cite("§1985:VI.5.7.4 GR1", "§2023:13.11.1, §2023:13.18.33.4 GR1", "§2023:13.11.1, §2023:13.18.33.4 GR1")}), and a level-77 item is not itself subdivided "
-                        + $"(ISO {Edition.Edition.Cite("§1985:IV.4.3.2.1", "§2023:8.5.1.3.2", "§2023:8.5.1.3.2")}); a level-number 2 through 49 entry shall follow an entry it can be subordinate to");
+                        + $"(ISO {Edition.Edition.Cite("§1985:VI.5.7.4 GR1", "§2023:13.11.1, §2023:13.18.33.4 GR1")}), and a level-77 item is not itself subdivided "
+                        + $"(ISO {Edition.Edition.Cite("§1985:IV.4.3.2.1", "§2023:8.5.1.3.2")}); a level-number 2 through 49 entry shall follow an entry it can be subordinate to");
                 renamesBegun = false;   // a new record (or 77): the previous record's RENAMES entries are over
                 // A METHOD's record or type declaration is the method's from here on (kb/Work PB3192): every name
                 // declared under it joins the method's own scope (NameScopeOf), never the class's.
@@ -987,7 +987,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (memberLevel is not { } first || first == level) return;
         Edition.Error(DiagnosticCatalog.LevelNumberHierarchy, $"{subject}: level-number {level} is not the level-number "
             + $"{first} of the other items immediately subordinate to {group} — all items immediately subordinate to a "
-            + $"given group item shall be described using numerically equal level-numbers (ISO {Edition.Edition.Cite("§1985:IV.4.3.2.1", "§2023:8.5.1.3.2", "§2023:8.5.1.3.2")})");
+            + $"given group item shall be described using numerically equal level-numbers (ISO {Edition.Edition.Cite("§1985:IV.4.3.2.1", "§2023:8.5.1.3.2")})");
     }
 
     /// <summary>Register a TYPEDEF type declaration (ISO §2023:13.18.58; data-model D17): a named level-01 template.
@@ -1159,27 +1159,27 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // ⛔ EVERY ARM OF THIS SCREEN NAMES THE RULE OF THE EDITION IT REFUSES AT (kb/Work PB5883 review R1-2).
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenText(dref)}': the clause's general format prints data-name-n"
-                + edition.Edition.Cite("", "", ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1)", "")
+                + edition.Edition.Cite("", ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1)", y2002: "")
                 + $"; {register} is a special register"
-                + edition.Edition.Cite("", "", $" — an identifier of §2023:8.4.3.1 Format {(register == "LINAGE-COUNTER" ? "10" : "11")}", "")
+                + edition.Edition.Cite("", $" — an identifier of §2023:8.4.3.1 Format {(register == "LINAGE-COUNTER" ? "10" : "11")}", y2002: "")
                 + " — and "
                 + (register == "LINAGE-COUNTER"
                     ? edition.Edition.Cite(
                         "\"LINAGE-COUNTER may be referenced only in Procedure Division statements\" (ISO §1985:VII.1.3.7)",
-                        "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2002:8.4.2.13.2 SR1)",
                         "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2023:8.4.3.14.3 SR1)",
-                        "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2014:8.4.2.14.2 SR1)")
+                        y2002: "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2002:8.4.2.13.2 SR1)",
+                        y2014: "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2014:8.4.2.14.2 SR1)")
                     : edition.Edition.Cite(
                         register == "PAGE-COUNTER"
                             ? "\"PAGE-COUNTER may be referenced only in the SOURCE clause of the Report Section and in Procedure "
                               + "Division statements\" (ISO §1985:XIII.1.2.2)"
                             : "\"In the Report Section a reference to LINE-COUNTER can only appear in a SOURCE clause\" "
                               + "(ISO §1985:XIII.3.5.6 SR2)",
-                        "\"In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause\" "
-                            + "(ISO §2002:8.4.2.14.2 SR1)",
                         "may be referenced only in a report-section SOURCE clause or in the procedure division "
                             + "(ISO §2023:8.4.3.15.3 SR1)",
-                        "\"In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause\" "
+                        y2002: "\"In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause\" "
+                            + "(ISO §2002:8.4.2.14.2 SR1)",
+                        y2014: "\"In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause\" "
                             + "(ISO §2014:8.4.2.15.2 SR1)")));
             return false;   // one true sentence: the operand is not a data-name, so its suffixes say nothing more
         }
@@ -1217,10 +1217,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     ", not identifier, which alone is \"a syntactically correct combination of a data-name, with its qualifiers, "
                         + "subscripts, and reference modifiers\" (ISO §1985:III.2, Identifier), and ",
                     // At COBOL-2002 a data-name-n includes subscription (§2002:5.1.3); what refuses it here is the caller's own rule.
-                    ", and ",
                     ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1) and carries no subscript "
                         + "— subscripting is §2023:8.4.2.3's qualified-data-name-with-subscripts, an identifier form, and ",
-                    ", whose subscripting each clause's own rule restricts (ISO §2014:E.2 item 25, \"Restrictions for "
+                    y2002: ", and ",
+                    y2014: ", whose subscripting each clause's own rule restricts (ISO §2014:E.2 item 25, \"Restrictions for "
                         + "Qualification and Subscripting of data-name-n\"), and ")
                 + subscriptRule);
         else if (refModified)
@@ -1243,7 +1243,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                 $"{face} '{written}': '{item.CobolName}' is not a table element, so it takes no subscript "
-                + $"(ISO {edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2002:8.4.1.2.2 SR2", "§2002:8.4.1.2.2 SR2")})");
+                + $"(ISO {edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2002:8.4.1.2.2 SR2")})");
             return false;
         }
         if (subscripts.Count != arity)
@@ -1298,11 +1298,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             + edition.Edition.Cite(
                 "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
                     + "data item of the class alphanumeric is permitted\" (ISO §1985:IV.4.3.8.4.3 SR3)",
-                "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
-                    + "data item of class alphanumeric, boolean, or national is permitted\" (ISO §2002:8.4.2.3.2 SR5)",
                 "\"where data-name-n is used in a general format or syntax rule, then reference-modification is not permitted\" "
                     + "(ISO §2023:8.4.3.3.3 NOTE)",
-                "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
+                y2002: "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
+                    + "data item of class alphanumeric, boolean, or national is permitted\" (ISO §2002:8.4.2.3.2 SR5)",
+                y2014: "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
                     + "data item of class alphanumeric, boolean, or national is permitted\" (ISO §2014:8.4.2.3.2 SR5)"));
 
     /// <summary>⛔ ISO §2023:8.4.3.14.3 SR1 — "LINAGE-COUNTER may be referenced only in procedure division statements", for
@@ -1318,9 +1318,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         using var cursor = edition.At(at);
         edition.Error(DiagnosticCatalog.LinageCounterOutsideProcedureDivision,
             $"{where} '{written}': LINAGE-COUNTER is a special register generated by a LINAGE clause (ISO "
-            + $"{edition.Edition.Cite("§1985:VII.1.3.7", "§2023:8.4.3.14.1", "§2023:8.4.3.14.1")}), and "
+            + $"{edition.Edition.Cite("§1985:VII.1.3.7", "§2023:8.4.3.14.1")}), and "
             + edition.Edition.Cite("\"LINAGE-COUNTER may be referenced only in Procedure Division statements\" (ISO §1985:VII.1.3.7)",
-                "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2023:8.4.3.14.3 SR1)",
                 "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2023:8.4.3.14.3 SR1)")
             + " — a report section clause is not one");
     }
@@ -1735,18 +1734,18 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 {
                     Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal "
                         + $"{raw} is alphanumeric but the item is numeric — all literals in the VALUE clause of a "
-                        + $"numeric item shall be numeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")}); under --permissive it is stored as "
+                        + $"numeric item shall be numeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2")}); under --permissive it is stored as "
                         + $"the number {content.Trim()}");
                     return Edition.Permissive ? content.Trim() : raw;
                 }
                 Edition.Error(DiagnosticCatalog.ValueLiteralClass, $"{where}: the VALUE literal {raw} is not a "
-                    + $"numeric literal and the item is numeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")})");
+                    + $"numeric literal and the item is numeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2")})");
                 return raw;
             }
             case PicCategory.Numeric when isNationalFigurative && !isZeroWord:
                 Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the figurative constant "
                     + $"{raw} is not a numeric literal — the VALUE of a numeric item shall be numeric or ZERO (ISO "
-                    + $"{Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")}); under --permissive the item is initialized to ZERO (a native numeric item "
+                    + $"{Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2")}); under --permissive the item is initialized to ZERO (a native numeric item "
                     + "holds no character fill)");
                 return Edition.Permissive ? "0" : raw;
             // ── SR4 sentence 1: an alphabetic / alphanumeric / alphanumeric-edited subject takes alphanumeric
@@ -1762,14 +1761,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     + "same category as the group item, or a figurative constant permitted in a MOVE statement to "
                     + "a receiving item of that category (ISO "
                     + Edition.Edition.Cite("§1985:VI.5.15.6 GR3",
-                        "§2023:13.18.63.3 SR13; §2023:8.5.2.1 — an alphanumeric group item has class and category alphanumeric",
                         "§2023:13.18.63.3 SR13; §2023:8.5.2.1 — an alphanumeric group item has class and category alphanumeric")
                     + ")");
                 break;
             case PicCategory.Alphanumeric when isNumeric && IsNumericLiteralForm(raw):
                 Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal {raw} is "
                     + "numeric but the item is alphabetic / alphanumeric / alphanumeric-edited — its VALUE literals "
-                    + $"shall be alphanumeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1b", "§2023:13.18.63.3 SR4", "§2023:13.18.63.3 SR4")}); under --permissive the literal's characters are "
+                    + $"shall be alphanumeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1b", "§2023:13.18.63.3 SR4")}); under --permissive the literal's characters are "
                     + "stored as MOVE would store them");
                 break;
             // ── SR4 sentences 2 and 3 — THE THIRD ARM of the size rule, which had no implementation at all while
@@ -1889,7 +1887,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (signedLiteral && !signBearing)
         {
             Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: a signed numeric literal in the VALUE clause "
-                + $"requires a signed numeric or sign-bearing numeric-edited subject ('{raw.Trim()}'; ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR2", "§2023:13.18.63.3 SR3", "§2023:13.18.63.3 SR3")})");
+                + $"requires a signed numeric or sign-bearing numeric-edited subject ('{raw.Trim()}'; ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR2", "§2023:13.18.63.3 SR3")})");
             return;
         }
 
@@ -1936,10 +1934,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (lowLitExp < lowStoredExp || (band is null && highLitExp > highStoredExp))
             Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, edited
                 ? $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not representable in the numeric-edited "
-                    + $"PICTURE {mask} without truncation of leading or trailing nonzero digits (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR6", "§2023:13.18.63.3 SR6")})"
+                    + $"PICTURE {mask} without truncation of leading or trailing nonzero digits (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR6")})"
                 : $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                     + "permissible value in the range the PICTURE indicates — it is not representable without truncation "
-                    + $"of leading or trailing nonzero digits (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")})");
+                    + $"of leading or trailing nonzero digits (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR2")})");
         else if (band is { } usageBand && !AlgebraicRanges.Admits(usageBand, magnitudeText, negative: negativeLiteral))
             // SR2's other half: "permissible values within the range indicated by the PICTURE clause or the USAGE
             // clause" (ISO §2023:13.18.63.3 SR2). A fixed-width binary usage (BINARY-CHAR … -DOUBLE, COMP-5) owns the
@@ -1949,7 +1947,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // HIGHEST/LOWEST-ALGEBRAIC fold agree on (kb/Work PB3997).
             Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                 + $"permissible value in the range the USAGE clause indicates — {(usageBand.FarthestNegative ?? "0")} through "
-                + $"{usageBand.Farthest} (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")})");
+                + $"{usageBand.Farthest} (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR2")})");
     }
 
     /// <summary>The stored digit-position span and P-signed scale of a FIXED-POINT item — plain numeric
@@ -2158,7 +2156,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Edition.Error(DiagnosticCatalog.UserWordWithoutLetter,
             $"the {kind.Spelling()} '{word}' contains no letter — with the exception of section-names, paragraph-names "
             + "and level-numbers, each user-defined word shall contain at least one basic letter or extended letter "
-            + $"(ISO {Edition.Edition.Cite("§1985:IV.4.2.2.1.1", "§2023:8.3.2.2", "§2023:8.3.2.2")})");
+            + $"(ISO {Edition.Edition.Cite("§1985:IV.4.2.2.1.1", "§2023:8.3.2.2")})");
     }
 
     /// <summary>Declare the unit's OWN name — the program-name of a PROGRAM-ID paragraph or the user-function-name of
@@ -3472,7 +3470,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 Edition.Error(DiagnosticCatalog.ValueThroughNotAscending, $"condition-name '{cond.Name}': the VALUE "
                     + $"range {lo} THRU {hi} does not ascend — {lo} is {(order == 0 ? "equal to" : "greater than")} "
                     + $"{hi}{(cond.Alphabet is { } al ? $" in alphabet '{al}'" : "")}, and the value of literal-2 shall be "
-                    + $"less than the value of literal-3 (ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.3 SR26", "§2023:13.18.63.3 SR26")})");
+                    + $"less than the value of literal-3 (ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.3 SR26")})");
         }
     }
 
@@ -3699,11 +3697,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             + (pairedConnective
                 ? "the leading braces are a required choice between 'VALUE IS' and 'VALUES ARE', so VALUE pairs "
                   + "with IS and VALUES with ARE (ISO "
-                  + Edition.Edition.Cite("§1985:VI.5.15.2 format 2", "§2023:13.18.63.2 formats 2/3/4, §2023:5.2.6.3",
-                      "§2023:13.18.63.2 formats 2/3/4, §2023:5.2.6.3") + ")"
+                  + Edition.Edition.Cite("§1985:VI.5.15.2 format 2", "§2023:13.18.63.2 formats 2/3/4, §2023:5.2.6.3") + ")"
                 : "format 1 (data-item) prints 'VALUE IS literal-1', and "
                   + Edition.Edition.Cite("the VALUE/VALUES choice is a format 2 matter (ISO §1985:VI.5.15.2)",
-                      "§2023:13.18.63.3 SR17's VALUE/VALUES equivalence is a format 2 rule that format 1 does not apply (ISO §2023:13.18.63.2 format 1)",
                       "§2023:13.18.63.3 SR17's VALUE/VALUES equivalence is a format 2 rule that format 1 does not apply (ISO §2023:13.18.63.2 format 1)")));
     }
 
@@ -4035,7 +4031,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         Edition.Error(DiagnosticCatalog.ValueFormatRequiresLevel88, $"{valueWhere}: {only} "
                             + "belongs to the VALUE clause's condition-name / content-validation formats, which "
                             + $"may be specified only on a level-88 entry; this entry is level {level} "
-                            + $"(ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.3 SR33", "§2023:13.18.63.3 SR33")})");
+                            + $"(ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.3 SR33")})");
                     else if (value.valueClauseTablePhrase() is { Length: > 0 } tphrases)
                     {
                         CheckValueConnective(value, pairedConnective: true, valueWhere);
@@ -4107,7 +4103,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             Edition.Error(DiagnosticCatalog.ValueFormat1SingleLiteral, $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
                 + "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase "
-                + $"(ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.2", "§2023:13.18.63.2")})");
+                + $"(ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.2")})");
             rawValue = null;
         }
 
@@ -4826,7 +4822,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             "the ALTERNATE RECORD KEY clause writes SUPPRESS WHEN literal-1", "§2023:12.4.5.6.2", "§2023:12.4.5.6.2");
 
         /// <summary>The format's words and its citation in the edition in force (kb/Work PB4950).</summary>
-        public string Format(EditionInfo edition) => $"{Words} (ISO {edition.Cite(Cite1985, Cite2023, Cite2023)})";
+        public string Format(EditionInfo edition) => $"{Words} (ISO {edition.Cite(Cite1985, Cite2023)})";
     }
 
     /// <summary>The RAW single-literal text of a VALUE operand — the data path's currency (decoded at emit
@@ -5265,8 +5261,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Usage.Index => (DiagnosticCatalog.UsageClauseCompatibility,
             "PICTURE may not be specified with USAGE INDEX — an index data item is picture-less, and "
             + "its content is an occurrence number rather than a pictured value (ISO "
-            + edition.Cite("§1985:VI.5.14.3 SR6; §1985:VI.5.9.3 SR5", "§2023:13.16.3 SR8; §2023:13.18.60.4 GR10",
-                "§2023:13.16.3 SR8; §2023:13.18.60.4 GR10") + ")"),
+            + edition.Cite("§1985:VI.5.14.3 SR6; §1985:VI.5.9.3 SR5", "§2023:13.16.3 SR8; §2023:13.18.60.4 GR10") + ")"),
         // §2023:13.16.3 SR8 names message-tag in the same sentence as the float usages, so it reaches this screen on
         // BOTH paths (its own clause, and the usage a group hands down — §2023:13.18.60.4 GR1), and before this arm the
         // fall-through below told the programmer their message-tag item was floating-point (kb/Work PB916).
@@ -5348,7 +5343,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             Edition.Error(DiagnosticCatalog.UsageGroupContradiction, $"data item '{item.CobolName ?? "FILLER"}': "
                 + $"USAGE {UsageFamilies.UsageWord(ownWritten)} contradicts the USAGE {UsageFamilies.UsageWord(fromGroup)} written for the group item "
                 + $"'{inherited.FromName ?? "FILLER"}' to which it is subordinate — a USAGE clause may be written "
-                + $"in both entries, but the same usage shall be specified in both (ISO {Edition.Edition.Cite("§1985:VI.5.14.3 SR2", "§2023:13.18.60.3 SR2", "§2023:13.18.60.3 SR2")})");
+                + $"in both entries, but the same usage shall be specified in both (ISO {Edition.Edition.Cite("§1985:VI.5.14.3 SR2", "§2023:13.18.60.3 SR2")})");
         }
 
         // What THIS entry hands down: its own (or implied) clause together with the representation entry bind
@@ -5591,7 +5586,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 (DiagnosticDescriptor sr8Rule, string sr8Text) = Sr8PicturelessVerdict(Edition.Edition, effective);
                 Edition.Error(sr8Rule, $"data item '{name}': {sr8Text} — the usage is the one written for the group "
                     + $"item '{fromGroup.FromName ?? "FILLER"}' and applies to each elementary item in it "
-                    + "(ISO " + Edition.Edition.Cite("§1985:VI.5.14.4 GR1", "§2023:13.18.60.4 GR1", "§2023:13.18.60.4 GR1") + ")");
+                    + "(ISO " + Edition.Edition.Cite("§1985:VI.5.14.4 GR1", "§2023:13.18.60.4 GR1") + ")");
                 item.Pic = fromGroup.Pictureless ?? PicInfo.Recovery();
                 item.PicIsUsageSynthesized = fromGroup.Pictureless is not null;
                 return;
@@ -5730,8 +5725,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private string? RedefinesDataName2(Core.DataReferenceContext dref, string? subject)
     {
         string face = $"'{subject ?? "FILLER"}' REDEFINES";
-        ScreenDataNameShape(dref, face, Edition,
-            "\"the reference to data-name-2 in the REDEFINES clause shall not be subscripted\" (ISO §2023:13.18.44.3 SR5)");
+        ScreenDataNameShape(dref, face, Edition, Edition.Edition.Cite(
+            // COBOL-85 has no sentence of its own: its REDEFINES format prints data-name-2, which the identifier rule above refuses.
+            "the REDEFINES clause's general format writes data-name-2 (ISO §1985:VI.5.10.2)",
+            "\"the reference to data-name-2 in the REDEFINES clause shall not be subscripted\" (ISO §2023:13.18.44.3 SR5)"));
         if (dref.dataReferenceSuffix().Any(s => s.qualification() is not null))
         {
             using var _ = Edition.At(dref);
@@ -5740,8 +5737,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 + Edition.Edition.Cite(
                     "\"Data-name-2 must not be qualified even if it is not unique since no ambiguity of reference exists in this "
                     + "case because of the required placement of the REDEFINES clause\" (ISO §1985:VI.5.10.3 SR7)",
-                    "\"Data-name-2 shall not be qualified\" (ISO §2023:13.18.44.3 SR6); \"no ambiguity of reference exists because "
-                    + "of the required placement of the REDEFINES clause\" (NOTE 1)",
                     "\"Data-name-2 shall not be qualified\" (ISO §2023:13.18.44.3 SR6); \"no ambiguity of reference exists because "
                     + "of the required placement of the REDEFINES clause\" (NOTE 1)"));
         }
@@ -6278,8 +6273,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string rule = Edition.Edition.Cite(
             "ISO §1985:IV.4.3.8.1 SR3: \"uniqueness must then be established through qualification for each user-defined "
                 + "name explicitly referenced\"",
-            "ISO §2023:8.4.2.2.3 SR1: \"For each non unique user-defined name that is explicitly referenced, uniqueness "
-                + "shall be established through a sequence of qualifiers that precludes any ambiguity of reference\"",
             "ISO §2023:8.4.2.2.3 SR1: \"For each non unique user-defined name that is explicitly referenced, uniqueness "
                 + "shall be established through a sequence of qualifiers that precludes any ambiguity of reference\"");
         string msg = $"{clauseFace} '{written}' does not uniquely identify {what} — {candidates.Count} "

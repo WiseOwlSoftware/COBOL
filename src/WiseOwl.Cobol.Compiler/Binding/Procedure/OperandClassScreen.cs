@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
+using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 /// <summary>The operand CLASSES a statement's identifier-position syntax rule can enumerate. Each member is one
@@ -169,7 +170,7 @@ internal static class OperandClassScreen
             case BoundFieldOperand { Place: var p }: return Screen(edition, pos, p, text);
             case BoundComputedOperand or BoundNumericLiteral { FunctionValue: true }:
                 if ((FunctionResultClasses(op) & pos.Admits) != 0) return true;
-                Report(edition, pos, text, DescribeFunctionResult(op));
+                Report(edition, pos, text, DescribeFunctionResult(op, edition.Edition));
                 return false;
             default:
                 Report(edition, pos, text, "not a data item");
@@ -186,15 +187,17 @@ internal static class OperandClassScreen
         : IntrinsicResultType.OperandCategory(op) is PicCategory.Numeric ? OperandClasses.NumericElementaryItem
         : OperandClasses.None;
 
-    private static string DescribeFunctionResult(BoundOperand op) =>
+    private static string DescribeFunctionResult(BoundOperand op, EditionInfo edition) =>
         IntrinsicResultType.OperandCategory(op) is PicCategory.Numeric
-            ? "a numeric function-identifier, and \"A numeric function shall not be specified where an integer "
-              + "operand is required\" (ISO §2023:8.4.3.2.3 SR11)"
+            ? "a numeric function-identifier, and " + edition.Cite(
+                "\"A function-identifier which references an integer or numeric function may be used only in an arithmetic "
+                + "expression\" (ISO §1985:IV.4.3.8.3.3 SR4)",
+                "\"A numeric function shall not be specified where an integer operand is required\" (ISO §2023:8.4.3.2.3 SR11)")
             : $"a function-identifier of category {IntrinsicResultType.OperandCategory(op)?.ToString().ToLowerInvariant() ?? "unknown"}";
 
     private static void Report(EditionContext edition, OperandPosition pos, string text, string what) =>
         edition.Error(pos.Diagnostic,
-            $"{pos.Statement} {pos.Operand} '{text}' shall reference {pos.Requirement} (ISO {edition.Edition.Cite(pos.Rule1985 ?? pos.Rule, pos.Rule, pos.Rule)}); "
+            $"{pos.Statement} {pos.Operand} '{text}' shall reference {pos.Requirement} (ISO {edition.Edition.Cite(pos.Rule1985 ?? pos.Rule, pos.Rule)}); "
             + $"'{text}' is {what}");
 
     private static string Describe(Place p)

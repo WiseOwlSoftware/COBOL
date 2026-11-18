@@ -71,7 +71,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                       + $"so write 'FUNCTION {fn}'.";
                 ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                     $"'{fn}' is written without the word FUNCTION, but the REPOSITORY paragraph does not declare "
-                    + $"it. ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — {remedy}");
+                    + $"it. ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — {remedy}");
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {fn}");
             }
             // The parenthesis after the name is the ARGUMENT LIST (subscriptPart) unless it holds a colon, in which
@@ -144,8 +144,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private BoundExprError Sr6ArgumentListError(string display)
     {
         ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"'{display} (…)' — the '(' after the name of a function that "
-            + $"takes arguments is ALWAYS its argument list (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2, whose general format writes the argument list before the reference-modifier", "§2023:8.4.3.2.3 SR6", "§2023:8.4.3.2.3 SR6")}), so this is an argument list "
-            + $"and 'start:length' is not a valid argument ({ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "SR8", "SR8")}). Reference-modify the RESULT by writing the "
+            + $"takes arguments is ALWAYS its argument list (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2, whose general format writes the argument list before the reference-modifier", "§2023:8.4.3.2.3 SR6")}), so this is an argument list "
+            + $"and 'start:length' is not a valid argument ({ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "SR8")}). Reference-modify the RESULT by writing the "
             + $"argument list first: {display}(<arguments>) (start:length).");
         return BoundExprError.Refused(ctx.Edition, $"{display} arguments");
     }
@@ -164,7 +164,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                 $"'{display}' carries {refMods.Length} reference modifications; the result of a function cannot "
-                + $"be reference-modified twice (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier.");
+                + $"be reference-modified twice (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier.");
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         // §2023:8.4.3.2.3 SR6 was already decided by the caller, from the definition, before the call bound — the
@@ -205,7 +205,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.RefModFunctionResultClass,
                 $"'{display}' is not an alphanumeric, boolean, or national function, so its result cannot be "
-                + $"reference-modified (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR2", "§2023:8.4.3.3.3 SR2", "§2023:8.4.3.3.3 SR2")}).");
+                + $"reference-modified (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR2", "§2023:8.4.3.3.3 SR2")}).");
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         if (spec is not { } rm) return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
@@ -434,7 +434,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (sp is null && sig.MinArgs != 0) return null;
             ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                 $"'{name}' is written without the word FUNCTION, but the REPOSITORY paragraph does not declare "
-                + $"it. ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — "
+                + $"it. ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.2 prints the word FUNCTION in every function-identifier and has no omission of it", "§2023:8.4.3.2.3 SR2 allows the omission only for an intrinsic named in REPOSITORY")} — "
                 + $"write 'FUNCTION {name}', or add 'REPOSITORY. FUNCTION {name} INTRINSIC.' (or FUNCTION ALL "
                 + "INTRINSIC).");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
@@ -572,7 +572,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (item.functionArgument() is { } a) { args.Add(a); continue; }
             ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"malformed function-argument list '{DataBinder.WrittenText(sp)}' — an "
                 + "argument is an identifier, a literal, a boolean expression, or an arithmetic expression, and ALL is "
-                + $"none of them (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8", "§2023:8.4.3.2.3 SR8")})");
+                + $"none of them (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8")})");
             return null;
         }
         return ArgumentsOf(args);
@@ -607,8 +607,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 using var _ = ctx.Edition.At(given!);
                 ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
                     $"'{DataBinder.WrittenText(given!)}' follows '{WrittenBefore(arg, given!)}', "
-                    + $"on which no subscript may be written (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2", "§2023:8.4.2.3.3 SR2")}), so it begins the next argument — and an "
-                    + $"argument written in parentheses is an arithmetic or a boolean expression, which this is not (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8", "§2023:8.4.3.2.3 SR8")})");
+                    + $"on which no subscript may be written (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2")}), so it begins the next argument — and an "
+                    + $"argument written in parentheses is an arithmetic or a boolean expression, which this is not (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8")})");
                 return null;
             }
             read.Add(next);
@@ -691,7 +691,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // at COBOL-85 the hint would send the reader to a construct the edition lacks (kb/Work PB4950).
             string hint = $"; the compilation group defines FUNCTION-ID {upper} — declare FUNCTION {upper} in this unit's "
                 + "REPOSITORY paragraph to reference it as a user-defined function (ISO §2023:12.3.8.4 GR12)";
-            string declareHint = host.UserFunctions?.ContainsKey(name) == true ? ctx.Edition.Edition.Cite("", hint, hint) : "";
+            string declareHint = host.UserFunctions?.ContainsKey(name) == true ? ctx.Edition.Edition.Cite("", hint) : "";
             // ⛔ The directive's SR3 lets it name a RESERVED word that never named a function (UNDEFINE "ACCEPT"); it
             // withdrew nothing the FUNCTION keyword could reach, so COBOL1501 is the true answer there. The cause is
             // told only for a word the catalog holds (review r1 R1-1).
@@ -702,7 +702,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + declareHint);
             else
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionUnknown, $"FUNCTION {upper} is not an intrinsic function of ISO/IEC 1989 "
-                    + $"({ctx.Edition.Edition.Cite("§1989:A.2.4 summary of functions", "§2023:15.6 summary of functions", "§2023:15.6 summary of functions")})" + declareHint);
+                    + $"({ctx.Edition.Edition.Cite("§1989:A.2.4 summary of functions", "§2023:15.6 summary of functions")})" + declareHint);
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
 
@@ -812,7 +812,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes "
                 + (sig.MinArgs == sig.MaxArgs ? $"{sig.MinArgs}" : sig.MaxArgs == int.MaxValue ? $"at least {sig.MinArgs}" : $"{sig.MinArgs}..{sig.MaxArgs}")
-                + $" argument(s); {given} given (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:15.3", "§2023:15.3")})");
+                + $" argument(s); {given} given (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:15.3")})");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
 
@@ -3398,7 +3398,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.AllSubscriptNotRepeatable,
                 $"FUNCTION {sig.Name} argument '{name}(… ALL …)': the ALL subscript is permitted only when the "
                 + "function's definition permits an argument to be repeated a variable number of times (ISO "
-                + ctx.Edition.Edition.Cite("§1989:A.2.2", "§2023:15.3", "§2023:15.3") + "), and "
+                + ctx.Edition.Edition.Cite("§1989:A.2.2", "§2023:15.3") + "), and "
                 + $"FUNCTION {sig.Name}'s general format repeats none — write the occurrence you mean, or use a function "
                 + "whose format is `{ argument } …` (MAX, MIN, SUM, MEAN, …).");
             args.Add(BoundOperandError.Refused(ctx.Edition, $"FUNCTION {sig.Name} table(ALL) argument"));

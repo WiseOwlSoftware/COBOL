@@ -142,7 +142,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
                 diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.DebuggingLineBetweenLiteralParts.Code,
                     "a debugging line (indicator D or >>D) is source under WITH DEBUGGING MODE, and a source line shall not stand "
                     + "between the parts of a continued literal: only comment lines and blank lines may (ISO "
-                    + Edition.Cite("§1985:IV.7.2.2", "§2023:6.3.5 2)", "§2023:6.3.5 2)") + ")",
+                    + Edition.Cite("§1985:IV.7.2.2", "§2023:6.3.5 2)") + ")",
                     At(origin.File, origin.Line, indicatorColumn), default);
     }
 
@@ -204,7 +204,6 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             $"{token} is split across a continued line and its continuation line; "
             + Edition.Cite(
                 "both characters composing the separator '==' must be on the same line (ISO §1985:IV.7.2.2)",
-                "all the characters of a multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))",
                 "all the characters of a multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))"),
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
@@ -213,7 +212,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnContinuationQuote(string file, int line, int column, char quote)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LiteralContinuationQuote.Code,
             $"the first nonblank character of a continuation line of a literal shall be {QuoteName(quote)}, the quotation "
-            + $"symbol used in the literal's opening delimiter (ISO {Edition.Cite("§1985:IV.7.2.2", "§2023:6.2.3.2 SR6", "§2023:6.2.3.2 SR6")})", At(file, line, column), default);
+            + $"symbol used in the literal's opening delimiter (ISO {Edition.Cite("§1985:IV.7.2.2", "§2023:6.2.3.2 SR6")})", At(file, line, column), default);
 
     /// <summary>§2023:6.3.5 2) — COBOL2685: a national literal continued by the fixed continuation indicator.</summary>
     public void OnNationalFixedContinuation(string file, int line)
@@ -277,7 +276,6 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             $"the indicator area (column 7) holds '{indicator}', which is not a fixed indicator: ISO "
             + Edition.Cite("§1985:IV.7.2.2 and §1985:IV.7.2.4 list * and / (comment line), - (continuation line) and space (source line), "
                     + "and the Debug module's D (debugging line)",
-                "§2023:6.2.2 lists *, / (comment line), - (continuation line) and space (source line)",
                 "§2023:6.2.2 lists *, / (comment line), - (continuation line) and space (source line)")
             + "; a NIST CCVS program's column-7 conventions are honored under --nist", At(file, line, FixedFormLine.IndicatorColumn), default);
 

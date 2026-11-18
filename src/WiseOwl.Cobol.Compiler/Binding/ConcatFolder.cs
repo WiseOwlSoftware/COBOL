@@ -181,7 +181,7 @@ internal static class ConcatFolder
     /// constant-name is never a figurative constant (§2023:13.10.3 SR6).</summary>
     private static void ReportZeroLength(string written, EditionContext? report) =>
         report?.Error(DiagnosticCatalog.AllLiteralZeroLength, $"'{written}': the literal-1 of an ALL figurative "
-            + $"shall not be a zero-length literal (ISO {report!.Edition.Cite("§1985:IV.4.2.2.2.3 GR6; §1985:IV.4.2.2.2.1", "§2023:8.3.3.6.3 SR2", "§2023:8.3.3.6.3 SR2")})");
+            + $"shall not be a zero-length literal (ISO {report!.Edition.Cite("§1985:IV.4.2.2.2.3 GR6; §1985:IV.4.2.2.2.1", "§2023:8.3.3.6.3 SR2")})");
 
     /// <summary>Fold <paramref name="ctx"/> to its equivalent single literal (§2023:8.8.3.3 GR2/GR3) in the literal
     /// environment <paramref name="env"/> (its HIGH-/LOW-VALUE characters and its constant-name and

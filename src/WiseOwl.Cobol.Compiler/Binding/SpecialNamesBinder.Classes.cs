@@ -173,13 +173,13 @@ public sealed partial class SpecialNamesBinder
                     + "group {symbolic-character-1}... [IS|ARE] {integer-1}..., so each repetition names at least one "
                     + "symbolic-character-1 and then at least one integer-1: the clause must open with a "
                     + "symbolic-character-1 and close with an integer-1 (ISO "
-                    + Edition.Edition.Cite("§1985:VI.4.5.3 SR9", "§2023:12.3.7.2 general format", "§2023:12.3.7.2 general format") + ")");
+                    + Edition.Edition.Cite("§1985:VI.4.5.3 SR9", "§2023:12.3.7.2 general format") + ")");
             else
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: {names.Count} "
                     + $"symbolic-character name(s) against {ords.Count} integer(s) — there shall be a one-to-one "
                     + "correspondence between the occurrences of symbolic-character-1 and of integer-1 in the clause, "
                     + "paired by position (ISO "
-                    + Edition.Edition.Cite("§1985:VI.4.5.3 SR8/SR9", "§2023:12.3.7.3 SR16 b/c", "§2023:12.3.7.3 SR16 b/c") + ")");
+                    + Edition.Edition.Cite("§1985:VI.4.5.3 SR8/SR9", "§2023:12.3.7.3 SR16 b/c") + ")");
             // RECOVERY, so the one refusal does not cascade into a false "'SC1' is not defined" at each use: the names
             // the clause wrote are declared with a placeholder value (never observed: the clause failed).
             foreach (var name in names)
@@ -213,8 +213,7 @@ public sealed partial class SpecialNamesBinder
                     Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS {symName} IS "
                         + $"{ordText}: the ordinal position does not exist in the "
                         + $"{(inSet is not null ? $"character set referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} characters)" : $"native character set ({CollatingTable.Repertoire} characters)")}"
-                        + " — ISO " + Edition.Edition.Cite("§1985:VI.4.5.3 SR10", $"§2023:12.3.7.3 SR16 {(national ? "f" : "e")}{(inSet is not null ? "1" : "2")}",
-                            $"§2023:12.3.7.3 SR16 {(national ? "f" : "e")}{(inSet is not null ? "1" : "2")}"));
+                        + " — ISO " + Edition.Edition.Cite("§1985:VI.4.5.3 SR10", $"§2023:12.3.7.3 SR16 {(national ? "f" : "e")}{(inSet is not null ? "1" : "2")}"));
                 // RECOVERY, so one bad ordinal does not cascade: the name is DECLARED (DeclareUserWord above), and a
                 // statement that uses it must find it defined rather than draw a second, false diagnostic ("'BIG' is
                 // not defined") for a name the program did write. The placeholder value is never observed — the
@@ -227,7 +226,7 @@ public sealed partial class SpecialNamesBinder
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: '{symName}' is "
                     + "already defined — a given symbolic-character-1 may be specified only once within the SYMBOLIC "
                     + "CHARACTER clauses of this SPECIAL-NAMES paragraph (ISO "
-                    + Edition.Edition.Cite("§1985:VI.4.5.3 SR7", "§2023:12.3.7.3 SR16 a", "§2023:12.3.7.3 SR16 a") + ")");
+                    + Edition.Edition.Cite("§1985:VI.4.5.3 SR7", "§2023:12.3.7.3 SR16 a") + ")");
         }
     }
 

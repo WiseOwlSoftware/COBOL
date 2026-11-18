@@ -297,13 +297,20 @@ The owner's decision of 2026-11-07: "a diagnostic cite the rule of the edition t
 directions: a construct valid in 1985 and 2023 cites the 2023 rule under `--std 2023` and the 1985 rule under `--std 85`. Where
 the edition in force has no such rule, the message cites the edition where the rule begins.
 
-- **One decider.** `EditionInfo.Cite(y1985, y2002, y2023, y2014)` (`src/WiseOwl.Cobol.Editions/EditionInfo.cs`) is the one choice
-  of a citation, or of the words a message quotes, by edition. A site never spells its own `DialectLevel < 2002 ? …` between two
-  citations; `EditionCiteOneDeciderDriftTests` (Unit) reads the syntax tree of every `src/**/*.cs` but the decider and the generated
-  parser and refuses a conditional expression, a switch expression or an if/else that chooses between strings on a condition that
-  reads the edition (an `int` member or `bool`-of-`int` method of `EditionInfo`, `DialectLevel`, `Std`, or an edition-named value
-  against an edition of `EditionInfo.All`), on one line or many. `EditionInfo`'s `bool` properties are named rule facts, so a
-  choice on one of them is a verdict and is not refused. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
+- **One decider.** `EditionInfo.Cite(y1985, later, y2002, y2014)` (`src/WiseOwl.Cobol.Editions/EditionInfo.cs`) is the one choice
+  of a citation, or of the words a message quotes, by edition: `y1985` at COBOL-85 and `later` from COBOL-2002 on, each text written
+  once, with `y2002` and `y2014` overriding only where that edition's own text differs. A text two editions share is written once
+  at a site (a local or constant passed twice), never twice. A site never spells its own `DialectLevel < 2002 ? …` between two
+  texts: `EditionCiteOneDeciderDriftTests` (Unit) compiles every `src/**/*.cs` as one compilation and computes, with the semantic
+  model, the EDITION-DERIVED values as a fixed point. Its seeds are `EditionInfo`'s `int` properties and `bool`-of-`int` methods
+  (by reflection), `DialectLevel` and `Std`; a `bool` or `int` local, field, parameter-free property or method whose initializer
+  or return expression reads one (or compares an edition-named value with an edition of `EditionInfo.All`) is edition-derived too,
+  across files, so an alias (`bool is1985 = …`, `Prints2002`, a chain of them) is seen wherever it is read. It refuses a
+  conditional expression, a switch expression or an if/else whose condition reads an edition-derived value and whose arms are two
+  strings (written, or of type string and not a call), outside `EditionInfo.cs`, generated code and the code generator (whose
+  strings are emitted C#). `EditionInfo`'s `bool` properties are named rule facts, and a choice that can answer null (a message or
+  none) is a verdict; neither is a choice of words. Every quotation a COBOL-85 message carries is the 1985 text of the rule it
+  cites, checked with `cite.py` over the rendered diagnostics of every refusal at 85. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
   `SearchAllFormat2Rules.Rule`, which maps 2023's SR6 to SR13 of SEARCH to each edition's rule).
 - **Declines.** A descriptor whose `Title` is its message (a decline, composed by `EditionContext.Declined`) carries
   `Title1985`, the message at 85 citing the 1985 ground; `Declined` renders it through `Cite`.

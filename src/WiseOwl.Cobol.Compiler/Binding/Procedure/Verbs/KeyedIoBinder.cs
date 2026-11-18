@@ -141,7 +141,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on "
                             + $"'{file.CobolName}': '{keyRef.GetText()}' is a record-key-name of another file; "
                             + "record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY "
-                            + $"clause associated with file-name-1 (ISO {ctx.Edition.Edition.Cite("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11", "§2023:14.9.30.3 SR11")})");
+                            + $"clause associated with file-name-1 (ISO {ctx.Edition.Edition.Cite("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11")})");
                     keyIndex = rki;
                 }
                 else if (host.Expr.ResolveSending(keyRef).PlaceOrReported(ctx.Edition) is not { } keyPlace)
@@ -156,7 +156,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence) is not { } ki)
                 {
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
-                        + $"operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO {ctx.Edition.Edition.Cite("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11", "§2023:14.9.30.3 SR11")})");
+                        + $"operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO {ctx.Edition.Edition.Cite("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11")})");
                 }
                 else keyIndex = ki;
             }
@@ -194,10 +194,16 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoPhraseForbiddenHere, $"the "
                 + (w.writeBeforeAfter() is not null ? "ADVANCING" : "END-OF-PAGE")
                 + $" phrase shall not be specified for a WRITE statement that references the "
-                + $"{file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}': \"If the organization "
-                + "of the write file is indexed or relative, format 2 shall be specified\" (ISO "
-                + ctx.Validation.IoRule(file, "§1985:VII.4.7.2", "§1985:VIII.4.9.2", "§1985:IX.4.9.2", "§2023:14.9.51.3 SR3")
-                + "), and Format 2 prints no print-control phrase");
+                + $"{file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}': "
+                // COBOL-85 has one WRITE format per I-O module, and the relative (§1985:VIII.4.9.2) and indexed (§1985:IX.4.9.2)
+                // ones print "WRITE record-name-1 [FROM identifier-1]" and the INVALID KEY phrases, no print-control phrase; 2002
+                // on, SR3 sends such a file to Format 2 (kb/Work PB4950 review R3-2).
+                + ctx.Edition.Edition.Cite(
+                    $"the {file.Organization.ToString().ToLowerInvariant()} I-O module's WRITE statement is \"WRITE record-name-1 [FROM "
+                    + "identifier-1]\" with the INVALID KEY phrases, and no print-control phrase (ISO "
+                    + ctx.Validation.IoRule(file, "§1985:VII.4.7.2", "§1985:VIII.4.9.2", "§1985:IX.4.9.2", "") + ")",
+                    "\"If the organization of the write file is indexed or relative, format 2 shall be specified\" (ISO "
+                    + "§2023:14.9.51.3 SR3), and Format 2 prints no print-control phrase"));
         KeyedInvalidKey? invalid = KeyedInvalidPhrase(w.conditionalPhrases());
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Write, w.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
         return new BoundKeyedWrite(file, record, bindFrom(), invalid)
@@ -223,7 +229,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     && file.AccessMode == FileAccessMode.Sequential,
                 ConditionalPhrases.KindOf(ik).Words, "REWRITE",
                 "a file with relative organization and sequential access mode",
-                "ISO " + ctx.Edition.Edition.Cite("§1985:VIII.4.6.3 SR3", "§2023:14.9.35.3 SR2", "§2023:14.9.35.3 SR2"));
+                "ISO " + ctx.Edition.Edition.Cite("§1985:VIII.4.6.3 SR3", "§2023:14.9.35.3 SR2"));
             invalid = KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Rewrite, rw.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
@@ -368,7 +374,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START WITH LENGTH on '{name}': the LENGTH phrase requires "
                 + "indexed organization (ISO " + ctx.Edition.Edition.Cite(
                     "§1985:IX.4.7.2 — START has no LENGTH phrase in COBOL-85, and the relative and indexed formats of START are the only ones",
-                    "§2023:14.9.41.3 SR8", "§2023:14.9.41.3 SR8") + ")");
+                    "§2023:14.9.41.3 SR8") + ")");
         Place? operand = null;
         // §2023:14.9.41.3 SR7 — "Record-key-name-1 shall be specified with the SOURCE phrase in the RECORD KEY clause or in
         // the ALTERNATE RECORD KEY clause in the file control entry for file-name-1" (kb/Work PB1099). The name is
@@ -412,7 +418,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + "FIRST or the LAST phrase shall be specified (ISO " + ctx.Edition.Edition.Cite(
                     "§1985:VIII.4.7.1 — START positions a relative or an indexed file, the sequential I-O module (§1985:VII) has no START statement, "
                     + "and FIRST and LAST begin in COBOL-2002",
-                    "§2023:14.9.41.3 SR2", "§2023:14.9.41.3 SR2") + ")");
+                    "§2023:14.9.41.3 SR2") + ")");
         }
         // A refused shape is reported; the key screens below have no operand to read, so the statement stops here.
         if (shapeRefused) return BoundRejected.Reported(ctx.Edition);
@@ -447,8 +453,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             if (operand is null)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the KEY phrase is omitted, so ISO "
-                    + ctx.Edition.Edition.Cite("§1985:VIII.4.7.4 GR2 and GR10 imply KEY IS EQUAL TO", "§2023:14.9.41.4 GR8 substitutes KEY IS EQUAL TO",
-                        "§2023:14.9.41.4 GR8 substitutes KEY IS EQUAL TO")
+                    + ctx.Edition.Edition.Cite("§1985:VIII.4.7.4 GR2 and GR10 imply KEY IS EQUAL TO", "§2023:14.9.41.4 GR8 substitutes KEY IS EQUAL TO")
                     + " the RELATIVE KEY item — but this file control "
                     + "entry has no RELATIVE KEY clause, so there is no key to compare. Add a RELATIVE KEY "
                     + "clause to the SELECT, or write an explicit KEY phrase.");
@@ -565,9 +570,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     private string ReadKeyShapeRule => ctx.Edition.Edition.Cite(
         "data-name-1 may be qualified (ISO §1985:IX.4.5.3 SR3), and a table element reference is subscripted "
             + "(ISO §1985:IV.4.3.8.2.3 SR4), so no table element is data-name-1",
-        "data-name-1 or record-key-name-1 may be qualified (ISO §2002:14.8.29.2 SR11)",
         "data-name-1 or record-key-name-1 may be qualified (ISO §2023:14.9.30.3 SR12) and carries no subscript",
-        "data-name-1 or record-key-name-1 may be qualified (ISO §2014:14.9.29.2 SR10) and carries no subscript");
+        y2002: "data-name-1 or record-key-name-1 may be qualified (ISO §2002:14.8.29.2 SR11)",
+        y2014: "data-name-1 or record-key-name-1 may be qualified (ISO §2014:14.9.29.2 SR10) and carries no subscript");
 
     /// <summary>The citation of a START syntax rule in the edition in force (kb/Work PB4950): the 2023 rule, or at --std 85 the
     /// rule of the module the file's organization puts START in (§1985:VIII.4.7.3 relative, §1985:IX.4.7.3 indexed; the sequential
@@ -579,15 +584,15 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             FileOrganization.Indexed => $"§1985:IX.4.7.3 {rule1985}",
             _ => "§1985:VIII.4.7.1",
         },
-        $"§2023:14.9.41.3 {rule2023}", $"§2023:14.9.41.3 {rule2023}");
+        $"§2023:14.9.41.3 {rule2023}");
 
     /// <summary>The START KEY phrase's own rule about the operand's shape, in the targeted edition's text (kb/Work PB5883).</summary>
     private string StartKeyShapeRule(FileModel file) => ctx.Edition.Edition.Cite(
         $"data-name-1 may be qualified (ISO §1985:{(file.Organization == FileOrganization.Relative ? "VIII" : "IX")}.4.7.3 SR2), "
             + "and a table element reference is subscripted (ISO §1985:IV.4.3.8.2.3 SR4), so no table element is data-name-1",
-        "data-name-1 or record-key-name-1 may be qualified (ISO §2002:14.8.37.2 SR4)",
         "data-name-1 or record-key-name-1 shall not be subject to any OCCURS clauses (ISO §2023:14.9.41.3 SR4)",
-        "data-name-1 or record-key-name-1 shall not be subscripted (ISO §2014:14.9.37.2 SR4)");
+        y2002: "data-name-1 or record-key-name-1 may be qualified (ISO §2002:14.8.37.2 SR4)",
+        y2014: "data-name-1 or record-key-name-1 shall not be subscripted (ISO §2014:14.9.37.2 SR4)");
 
     /// <summary>What a KEY phrase operand is as a record-key-name (<see cref="RecordKeyNameOf"/>).</summary>
     private enum RecordKeyNameUse

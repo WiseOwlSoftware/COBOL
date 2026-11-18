@@ -17,7 +17,7 @@ internal static class UniqueReferenceRule
 {
     /// <summary>The rule's citation in the edition form, without the "ISO " lead-in.</summary>
     public static string Citation(this EditionInfo edition) =>
-        edition.Cite("§1985:IV.4.3.8", "§2023:8.4.2.1", "§2023:8.4.2.1");
+        edition.Cite("§1985:IV.4.3.8", "§2023:8.4.2.1");
 
     /// <summary>The words the rule is quoted by. <paramref name="inOrderTo"/> selects the longer 2023 sentence that opens
     /// "In order to use a resource,".</summary>
@@ -25,8 +25,6 @@ internal static class UniqueReferenceRule
         edition.Cite(inOrderTo
                 ? "In order to use a resource, a statement in a COBOL program must contain a reference which uniquely identifies that resource"
                 : "a statement in a COBOL program must contain a reference which uniquely identifies that resource",
-            inOrderTo ? "In order to use a resource, a statement shall contain a reference that uniquely identifies that resource"
-                      : "a statement shall contain a reference that uniquely identifies that resource",
             inOrderTo ? "In order to use a resource, a statement shall contain a reference that uniquely identifies that resource"
                       : "a statement shall contain a reference that uniquely identifies that resource");
 

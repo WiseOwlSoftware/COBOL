@@ -56,10 +56,10 @@ public static class ArithmeticFormationRules
     /// <summary>The Table 3 message of <paramref name="edition"/> — §2023:8.8.1.2 Table 3, or at COBOL-85 the table of
     /// §1985:VI.6.2.3 SR3 — quoting the table and naming the two symbols of the invalid pair (kb/Work PB4950).</summary>
     public static string StackedUnaryMessage(EditionInfo edition) =>
-        $"ISO {edition.Cite("§1985:VI.6.2.3 SR3", "§2023:8.8.1.2 Table 3", "§2023:8.8.1.2 Table 3")} (combinations of symbols in arithmetic expressions): the pair "
+        $"ISO {edition.Cite("§1985:VI.6.2.3 SR3", "§2023:8.8.1.2 Table 3")} (combinations of symbols in arithmetic expressions): the pair "
         + "(unary '+' or '−', unary '+' or '−') is an invalid pair — a unary operator may not be immediately "
         + "followed by another unary operator. Note that a sign written ADJACENT to the digits is part of the "
-        + $"numeric literal ({edition.Cite("§1985:IV.4.2.2.2.2 SR2", "§2023:8.3.3.3.2 rule 2", "§2023:8.3.3.3.2 rule 2")}), so '- -2' is the permissible (unary, literal) pair; only a "
+        + $"numeric literal ({edition.Cite("§1985:IV.4.2.2.2.2 SR2", "§2023:8.3.3.3.2 rule 2")}), so '- -2' is the permissible (unary, literal) pair; only a "
         + "SEPARATED second sign is a second unary operator";
 
     /// <summary>The §2023:8.8.2 Table 4 message — the boolean counterpart of the same cell.</summary>
@@ -203,7 +203,7 @@ public static class ArithmeticFormationRules
     public static string SignRuleQuote(EditionInfo edition) => edition.Cite(
         "\"A literal must not contain more than one sign character. If a sign is used, it must appear as the leftmost "
         + "character of the literal\" (ISO §1985:IV.4.2.2.2.2 SR2)",
-        SignRuleQuote2023, SignRuleQuote2023);
+        SignRuleQuote2023);
 
     private const string SignRuleQuote2023 = "\"A literal shall not contain more than one sign character. If a sign is "
         + "used, it shall appear as the leftmost character of the literal\" (ISO §2023:8.3.3.3.2 2))";

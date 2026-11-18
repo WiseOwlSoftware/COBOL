@@ -147,10 +147,10 @@ internal static partial class PlacementRules
     {
         /// <summary>The rule's citation and words in the edition in force: the 1985 ones at COBOL-85 where the row carries them
         /// (kb/Work PB4950).</summary>
-        public string CiteIn(EditionInfo edition) => edition.Cite(Cite1985 ?? Cite, Cite, Cite);
+        public string CiteIn(EditionInfo edition) => edition.Cite(Cite1985 ?? Cite, Cite);
 
         /// <summary>The rule's own words in the edition in force.</summary>
-        public string ShallIn(EditionInfo edition) => edition.Cite(Shall1985 ?? Shall, Shall, Shall);
+        public string ShallIn(EditionInfo edition) => edition.Cite(Shall1985 ?? Shall, Shall);
     }
 
     /// <summary>§2023:14.9.14.3 SR1 — Format 1 only: a sentence by itself AND the only sentence of its paragraph.</summary>

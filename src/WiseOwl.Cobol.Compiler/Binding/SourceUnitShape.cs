@@ -73,7 +73,7 @@ internal static class SourceUnitShape
         {
             using var _ = edition.At(at);
             edition.Error(DiagnosticCatalog.SourceUnitFormat,
-                $"{what}: {requirement} (ISO {edition.Edition.Cite(rule1985, "§2023:10.6.1", "§2023:10.6.1")})");
+                $"{what}: {requirement} (ISO {edition.Edition.Cite(rule1985, "§2023:10.6.1")})");
         }
 
         // Positioned on the identification division: a CONTAINED unit's context is the synthetic programUnit
