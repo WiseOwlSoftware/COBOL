@@ -49,7 +49,15 @@ second copy of a copybook placed in the second block; one record per printed dia
 and a success with warnings) and the anchoring assertion design 4.4 asked of `ListingOutcomeTests.AFailedParse_ListsThePassWhoseDiagnosticsAreReported`.
 The copybook cases go red with the frame branch of `Place` switched off.
 
-**Measured** (design section 9): see `tests/WiseOwl.Cobol.Benchmarks/README.md`, step 3.
+**Measured** (design section 9; the README's step-3 table). Step 3 changes the no-listing path, so it measured `None` against
+its parent, and the first run was OVER budget: IX113A's front end and bind allocated 0.85 MB more than the parent. An exact
+probe (`GC.GetAllocatedBytesForCurrentThread` over 30 check-only compiles) and the runtime's allocation-tick sampling named the
+cause: `MarginRCutScreen.Warnings` built a closure capturing the cut's `SourceLocation` once per CHARACTER of every token,
+before asking whether there was a cut (about 112,000 closures, 5.4 MB per compile of IX113A), and the two new integers made
+each 8 bytes larger. The screen now asks with a loop (`MarginRCutScreen.Holds`): IX113A's check-only compile allocates
+68.1-68.2 MB against the parent's 73.1-73.7 MB, 7 % less. The same measurement found the text renderer copying the whole
+listing to append the summary (1.4 MB on IX113A); both sections are now composed into one buffer (`PageComposer.Compose`
+appends), and the text listing's cost over no listing is the parent's again.
 
 **Leads filed** beside kb/Work PB5925: a text stage's diagnostic in a twice-copied copybook is placed in the first block
 (`2026-11-18-text-stage-diagnostic-placement`); the model's records compare their lists by reference

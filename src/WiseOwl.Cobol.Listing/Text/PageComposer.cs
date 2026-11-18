@@ -35,6 +35,16 @@ public static class PageComposer
         int firstPage, out int pages)
     {
         var text = new StringBuilder();
+        pages = Compose(text, rows, pageLength, heading, firstPage);
+        return text.ToString();
+    }
+
+    /// <summary>As <see cref="Compose(IReadOnlyList{ListingRow}, int, Func{int, string?, IReadOnlyList{string}}, int)"/>, appending
+    /// the pages to <paramref name="text"/> (so a listing of several sections is built in one buffer, never copied to join them)
+    /// and answering how many pages were written.</summary>
+    public static int Compose(StringBuilder text, IReadOnlyList<ListingRow> rows, int pageLength,
+        Func<int, string?, IReadOnlyList<string>> heading, int firstPage)
+    {
         var page = new List<ListingRow>();
         int number = firstPage;
         string? program = null;   // carried from page to page: a page of rows that belong to no program names the last one
@@ -58,8 +68,7 @@ public static class PageComposer
             page.Add(row);
         }
         Close();   // the last page, or the one page of an empty section
-        pages = number - firstPage;
-        return text.ToString();
+        return number - firstPage;
     }
 
     private static void AppendLine(StringBuilder text, string line) => text.Append(line.AsSpan().TrimEnd(' ')).Append('\n');

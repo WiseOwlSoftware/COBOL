@@ -76,21 +76,23 @@ public static class TextListingRenderer
                     rows.Add(new ListingRow(row, false, ProgramOf(line)));
         }
         var header = document.Header;
-        string source = PageComposer.Compose(rows, request.PageLength, (page, program) =>
+        var listing = new StringBuilder();
+        int sourcePages = PageComposer.Compose(listing, rows, request.PageLength, (page, program) =>
         [
             IdentificationLine(header, program, page, request.PageWidth),
             KeepEnd("SOURCE  ", header.MainSource, request.PageWidth),
             "",
             Ruler,
-        ], firstPage: 1, out int sourcePages);
+        ], firstPage: 1);
         // The summary starts a page (DESIGN-listing.md section 7.1); outside the source section a heading names the first outermost
-        // program (section 6.1).
+        // program (section 6.1). One buffer holds both sections: the listing is never copied to join them.
         string? firstProgram = document.Programs.FirstOrDefault(p => p.Depth == 0)?.Name;
-        string summary = PageComposer.Compose(
+        listing.Append(PageComposer.FormFeed);
+        PageComposer.Compose(listing,
             [.. SummaryRows(document, request.PageWidth).Select(row => new ListingRow(row, false, firstProgram))], request.PageLength,
             (page, program) => [IdentificationLine(header, program, page, request.PageWidth), "DIAGNOSTICS", ""],
             firstPage: sourcePages + 1);
-        return source + PageComposer.FormFeed + summary;
+        return listing.ToString();
     }
 
     /// <summary>The rows of one diagnostic under its line (DESIGN-listing.md section 6.3): a caret under its column when

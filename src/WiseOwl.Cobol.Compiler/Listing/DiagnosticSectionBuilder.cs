@@ -38,13 +38,13 @@ internal static class DiagnosticSectionBuilder
             var draft = line is { } number ? drafts[number - 1] : null;
             diagnostics.Add(new ListingDiagnostic(id, d.Code, SeverityOf(d.Severity), d.Message, line, draft?.File, draft?.FileLine,
                 draft is null ? null : column, ListingCitation.Scan(d.Message)));
-            draft?.Diagnostics.Add(id);
+            draft?.AddDiagnostic(id);
         }
         return diagnostics;
     }
 
     /// <summary>The listing's severity of a compiler severity: every member by its own name (the Unit assembly's
-    /// <c>DiagnosticSectionBuilderTests</c> holds the map total).</summary>
+    /// <c>DiagnosticRecordsTests.TheSeverityMap_IsTotal</c> holds the map total).</summary>
     internal static ListingSeverity SeverityOf(DiagnosticSeverity severity) => severity switch
     {
         DiagnosticSeverity.Error => ListingSeverity.Error,

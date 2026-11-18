@@ -1128,7 +1128,10 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
   `Text` (the README's step-2 table); the host's noise (StdDev 25-40 %) decided no time row, as at step 1 (kb/Work PB5927).
   (Step 3:) step 3 is not in the list above, but it changes the no-listing path (a bind diagnostic is a record, not a string;
   a located `SourceLocation` carries two more ints), so it measures the `None` budget against its parent, and the
-  `TextAndJson` row with the diagnostics section; the README's step-3 table holds both.
+  `TextAndJson` row with the diagnostics section; the README's step-3 table holds both. The first run was over the `None`
+  budget (IX113A's front end and bind +0.85 MB); the cause was a closure per character of every token in
+  `MarginRCutScreen.Warnings`, which step 3's larger `SourceLocation` made larger, and with it removed `None` allocates 5.3 MB
+  (7 %) less than the parent on IX113A.
 
 ## 10. Test plan
 
