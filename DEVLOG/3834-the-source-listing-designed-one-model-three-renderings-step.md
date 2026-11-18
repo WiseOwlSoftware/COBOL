@@ -1,4 +1,4 @@
-## The source listing, designed: one model, three renderings, step 1 the 1985 minimum
+## Entry 3834 — 2026-11-18 00:03 PST — The source listing, designed: one model, three renderings, step 1 the 1985 minimum
 
 PB5925 decided that WiseOwl COBOL produces a source listing, built to be the best of any COBOL compiler, and that its
 design doc comes before any code (rule 2). This entry adds that doc, `docs/rearchitecture/DESIGN-listing.md`, and changes
@@ -80,3 +80,4 @@ has two primary inputs: the source with its provenance, and `SymbolTable`, grown
 store of names. Each entry holds the attributes the listing needs and every occurrence; there is no ledger beside it.
 Every section is a view of the two inputs. The guarantees of rounds 2 to 4 are now the table's invariants, and their
 drift tests are its proofs. The table and its attributes land in step 6 and its occurrences in step 7.
+
