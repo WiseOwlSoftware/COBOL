@@ -48,7 +48,7 @@ public static class ListingOutput
     public static bool TryParse(string spelling, out ListingFormats format)
     {
         foreach (var f in Enum.GetValues<ListingFormats>())
-            if (string.Equals(Spelling(f), spelling, StringComparison.OrdinalIgnoreCase)) { format = f; return true; }
+            if (string.Equals(Spelling(f), spelling, StringComparison.OrdinalIgnoreCase)) { format = f; return true; }   // not a COBOL word: a command-line format name
         format = default;
         return false;
     }
