@@ -1306,7 +1306,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     {
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
                             $"CANCEL target '{DataBinder.WrittenText(dref)}' is {targetFace}; "
-                            + "ISO §2023:14.9.5.3 SR1 admits an alphanumeric or national data item");
+                            + "ISO " + ctx.Edition.Edition.Cite("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1", "§2023:14.9.5.3 SR1")
+                            + ctx.Edition.Edition.Cite(" admits an alphanumeric data item", " admits an alphanumeric or national data item",
+                                " admits an alphanumeric or national data item"));
                         continue;
                     }
                     targets.Add((null, new BoundFieldOperand(p)));
@@ -1323,7 +1325,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     using (ctx.Edition.At(t))
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
                             $"CANCEL target '{DataBinder.WrittenText(t)}' is {computedFace}; "
-                            + "ISO §2023:14.9.5.3 SR1 admits an alphanumeric or national data item");
+                            + "ISO " + ctx.Edition.Edition.Cite("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1", "§2023:14.9.5.3 SR1")
+                            + ctx.Edition.Edition.Cite(" admits an alphanumeric data item", " admits an alphanumeric or national data item",
+                                " admits an alphanumeric or national data item"));
                     continue;
                 }
                 if (computed is not BoundOperandError) targets.Add((null, computed));

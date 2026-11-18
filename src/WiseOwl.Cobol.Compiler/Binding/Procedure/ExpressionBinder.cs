@@ -1003,10 +1003,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The <see cref="ReceivingBar"/> of a <see cref="NonReceivableForm"/> — its table row, naming the operand as
     /// written (rendered only here, once a prohibition applies: the screens run on every receiver).</summary>
-    private static ReceivingBar Bar(NonReceivableForm form, Antlr4.Runtime.ParserRuleContext written)
+    private ReceivingBar Bar(NonReceivableForm form, Antlr4.Runtime.ParserRuleContext written)
     {
         var rule = ReceivingOperandForms.Rules[form];
-        return new(rule.Descriptor.Code, rule.Message(DataBinder.WrittenText(written)));
+        return new(rule.Descriptor.Code, rule.Message(DataBinder.WrittenText(written), ctx.Edition.Edition));
     }
 
     /// <summary>Whether <paramref name="dref"/>, already resolved (as a SENDING operand) to <paramref name="place"/>,

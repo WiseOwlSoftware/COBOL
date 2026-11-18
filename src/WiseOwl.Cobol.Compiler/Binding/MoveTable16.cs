@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
@@ -422,8 +423,8 @@ public static class MoveTable16
     /// intrinsic call whose §2023:15.2 item 6 type is index — so the THIRD shape, an index-NAME operand
     /// (<c>BoundIndexRef</c>, which the same classifier has reported as class index since kb/Work R27), was
     /// class index to every other screen in the compiler and numeric to this one.</para></summary>
-    public static string? SenderClassRefusal(BoundOperand sender) =>
-        Sr1ClassRefusal(IntrinsicArgumentRules.ClassOf(sender),
+    public static string? SenderClassRefusal(BoundOperand sender, EditionInfo edition) =>
+        Sr1ClassRefusal(edition, IntrinsicArgumentRules.ClassOf(sender),
             sender is BoundComputedOperand { Expr: BoundIntrinsicCall ic }
                 ? $"§2023:15.2 item 6 — FUNCTION {ic.Sig.Name} over index arguments is an INDEX function, of the "
                   + "class and category index"
@@ -442,8 +443,8 @@ public static class MoveTable16
     /// any other place: §2023:8.4.3.3.4 GR6's unique data item has the class its rules give it, and §2023:8.4.3.3.3 SR5
     /// admits reference modification only over class alphanumeric, boolean or national anyway, so no excluded
     /// class can arrive wearing a modifier.</para></summary>
-    public static string? ReceiverClassRefusal(Place receiver) =>
-        Sr1ClassRefusal(IntrinsicArgumentRules.ClassOfPlace(receiver), null);
+    public static string? ReceiverClassRefusal(Place receiver, EditionInfo edition) =>
+        Sr1ClassRefusal(edition, IntrinsicArgumentRules.ClassOfPlace(receiver), null);
 
     /// <summary>
     /// ⭐ ISO §2023:14.9.25.3 SR1 ITSELF — <i>"The class of identifier-1 or identifier-2 shall not be index,
@@ -470,12 +471,21 @@ public static class MoveTable16
     /// <param name="cls">The operand's §2023:8.5.2.1 Table-2 class, or null when it is not statically decidable (a
     /// figurative constant whose class the context chooses) — which fails OPEN, as every class screen here does.</param>
     /// <param name="why">An operand-shape-specific reason to append, or null for the class's own.</param>
-    private static string? Sr1ClassRefusal(CobolClass? cls, string? why) => cls switch
+    private static string? Sr1ClassRefusal(EditionInfo edition, CobolClass? cls, string? why) => cls switch
     {
-        CobolClass.Index => "a MOVE operand shall not be of class index (ISO §2023:14.9.25.3 SR1; "
-            + (why ?? "§2023:13.18.60.3 SR10 — only a SEARCH or SET statement, a relation condition, an "
+        // COBOL-85 states the rule as its own SR4 ("An index data item must not appear as an operand of a MOVE statement",
+        // §1985:VI.6.19.3 SR4) and lists the contexts of an index data item in the USAGE clause (§1985:VI.5.14.3 SR5): no
+        // intrinsic function, no inline method and no INVOKE exist there (kb/Work PB4950).
+        CobolClass.Index => "a MOVE operand shall not be of class index (ISO "
+            + edition.Cite("§1985:VI.6.19.3 SR4", "§2023:14.9.25.3 SR1", "§2023:14.9.25.3 SR1") + "; "
+            + (why ?? edition.Cite("§1985:VI.5.14.3 SR5 — only a SEARCH or SET statement, a relation condition, the USING phrase of a "
+                    + "Procedure Division header or the USING phrase of a CALL statement may reference an index data item",
+                    "§2023:13.18.60.3 SR10 — only a SEARCH or SET statement, a relation condition, an "
                     + "intrinsic-function or inline-method argument, or a procedure-division / CALL / INVOKE "
-                    + "USING phrase may reference an index data item") + ")",
+                    + "USING phrase may reference an index data item",
+                    "§2023:13.18.60.3 SR10 — only a SEARCH or SET statement, a relation condition, an "
+                    + "intrinsic-function or inline-method argument, or a procedure-division / CALL / INVOKE "
+                    + "USING phrase may reference an index data item")) + ")",
         CobolClass.Pointer => "a MOVE operand shall not be of class pointer — §2023:8.5.2.1 Table 2 puts the "
             + "data-pointer, function-pointer and program-pointer categories in that class (ISO §2023:14.9.25.3 SR1; "
             + "§2023:13.18.60.3 SR9 — a data-pointer data item \"may be referenced explicitly only in a CALL "

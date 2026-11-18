@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
@@ -70,8 +71,8 @@ public sealed class MoveOperandClassDriftTests
             Assert.Fail($"USAGE {ItemCategory.Sr4PhraseOf(u)} is one of §2023:13.18.60.3 SR4's six phrases, so the "
                 + "§2023:14.9.25.3 SR1 class population must contain it.");
         var place = new MemberPlace(new AccessPath([]), item);
-        string? receiving = MoveTable16.ReceiverClassRefusal(place);
-        string? sending = MoveTable16.SenderClassRefusal(new BoundFieldOperand(place));
+        string? receiving = MoveTable16.ReceiverClassRefusal(place, EditionInfo.Latest);
+        string? sending = MoveTable16.SenderClassRefusal(new BoundFieldOperand(place), EditionInfo.Latest);
         Assert.NotNull(receiving);
         Assert.NotNull(sending);
         Assert.Equal(receiving, sending);
@@ -93,7 +94,7 @@ public sealed class MoveOperandClassDriftTests
         item.Pic = new PicInfo(cat, usage, Length: 4, Digits: cat is PicCategory.Numeric ? 4 : 0,
             Scale: 0, Signed: false);
         var place = new MemberPlace(new AccessPath([]), item);
-        Assert.Null(MoveTable16.ReceiverClassRefusal(place));
-        Assert.Null(MoveTable16.SenderClassRefusal(new BoundFieldOperand(place)));
+        Assert.Null(MoveTable16.ReceiverClassRefusal(place, EditionInfo.Latest));
+        Assert.Null(MoveTable16.SenderClassRefusal(new BoundFieldOperand(place), EditionInfo.Latest));
     }
 }

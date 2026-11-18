@@ -235,7 +235,7 @@ internal sealed class BinderDriver
         // so neither existing pass's charter covers it. It walks the RAW parse tree once, never once per binding
         // site; the rule itself is the shared frontend ArithmeticFormationRules, which the compile-time
         // expression evaluator invokes on its own trees. kb/Work PB158.
-        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(ctx, edition);
+        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(ctx, edition, edition.Edition);
 
         // The literal-syntax pass (ISO §2023:8.3.3.2.3 SR1/SR6, §2023:8.3.3.4.3 SR1, §2023:8.3.3.5.3 SR1/SR5) — a sibling on the
         // same footing: the length and hexadecimal-grouping rules are properties of the literal TOKEN, whatever
@@ -890,12 +890,21 @@ internal sealed class BinderDriver
                 if (shared && first.Kind == kind) continue;
                 using var _ = edition.At(at);
                 string why = first.Kind == kind
-                    ? $"two {kind} definitions cannot be one instance (§2023:8.3.2.2: \"when two or more source "
-                      + "elements identify something with the same externalized name, they refer to the same "
-                      + "instance\")"
-                    : $"{Noun(kind)} and {Noun(first.Kind)} are not the same kind of entity or item "
-                      + "(§2023:8.3.2.2: \"all instances of a given name that is externalized to the operating "
-                      + "environment shall identify the same kind of entity or item\")";
+                    ? $"two {kind} definitions cannot be one instance ("
+                      + edition.Edition.Cite("§1985:X.1.3.8.1: \"when two programs in a run unit are identically named, at least one of "
+                          + "those two programs must be directly or indirectly contained within another separately compiled program "
+                          + "which does not contain the other\"",
+                          "§2023:8.3.2.2: \"when two or more source elements identify something with the same externalized name, "
+                          + "they refer to the same instance\"",
+                          "§2023:8.3.2.2: \"when two or more source elements identify something with the same externalized name, "
+                          + "they refer to the same instance\"") + ")"
+                    : $"{Noun(kind)} and {Noun(first.Kind)} are not the same kind of entity or item ("
+                      + edition.Edition.Cite("§1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, "
+                          + "can belong to one and only one of these disjoint sets\"",
+                          "§2023:8.3.2.2: \"all instances of a given name that is externalized to the operating "
+                          + "environment shall identify the same kind of entity or item\"",
+                          "§2023:8.3.2.2: \"all instances of a given name that is externalized to the operating "
+                          + "environment shall identify the same kind of entity or item\"") + ")";
                 edition.Error(DiagnosticCatalog.DuplicateExternalizedDefinition,
                     $"{spelling} and {first.Spelling} both externalize the name "
                     + $"'{name}' in this compilation group — {why}");

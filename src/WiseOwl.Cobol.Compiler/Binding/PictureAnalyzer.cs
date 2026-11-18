@@ -637,7 +637,7 @@ public static class PictureAnalyzer
             edition.Error(DiagnosticCatalog.UsageClauseCompatibility, $"{where}: USAGE {UsageFamilies.UsageWord(usage)} requires a PICTURE that describes a numeric "
                 + $"item — PICTURE {picture} is "
                 + (category is PicCategory.NumericEdited ? "numeric-edited" : "alphabetic/alphanumeric")
-                + " (ISO §2023:13.18.60.3 SR3)");
+                + " (ISO " + edition.Edition.Cite("§1985:VI.5.14.3 SR3", "§2023:13.18.60.3 SR3", "§2023:13.18.60.3 SR3") + ")");
             return Usage.Display;
         }
 
@@ -978,8 +978,12 @@ public static class PictureAnalyzer
         => edition.Error(DiagnosticCatalog.PictureItemTooLarge, $"{where}: PICTURE {picture} describes "
             + $"{(positions > MaxCharacterPositions ? "more than " : "")}{Math.Min(positions, (long)MaxCharacterPositions)} "
             + $"character positions — WiseOwl COBOL's maximum for one elementary item is {MaxCharacterPositions} "
-            + "(⚠ implementor-defined: ISO §2023:13.18.40.3 SR4 bounds only the WRITTEN character-string and SR14 "
-            + "only a numeric item's digit positions, and Annex A.1 carries no maximum-item-size item)");
+            + "(⚠ implementor-defined: ISO "
+            + edition.Edition.Cite("§1985:VI.5.9.3 SR4 bounds only the WRITTEN character-string",
+                "§2023:13.18.40.3 SR4 bounds only the WRITTEN character-string and SR14 "
+                + "only a numeric item's digit positions, and Annex A.1 carries no maximum-item-size item",
+                "§2023:13.18.40.3 SR4 bounds only the WRITTEN character-string and SR14 "
+                + "only a numeric item's digit positions, and Annex A.1 carries no maximum-item-size item") + ")");
 
     /// <summary>Validate the PICTURE EDITING phrases (ISO §2023:13.18.40.3 SR8–SR12; COBOL-2023) and build the render
     /// rules. Emits the SR diagnostics (COBOL1591–1596, COBOL1955). Every legal shape produces a rule: a

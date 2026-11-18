@@ -39,13 +39,13 @@ namespace WiseOwl.Cobol.Validation;
 /// where a single traversal belongs. Riding <see cref="CursorFollowingVisitor"/> means the diagnostic cursor
 /// follows the walk, so the position comes from the same mechanism every other pass uses.</para>
 /// </summary>
-internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
+internal sealed class ExpressionFormationPass(IDiagnosticSink sink, EditionInfo edition) : CursorFollowingVisitor(sink)
 {
     /// <summary>Screen every text of the group (<see cref="GroupBindContext.Texts"/>: the written tree and the text of each expansion of a
     /// skeleton read from the repository, kb/Work PB4483) for §2023:8.8.1.2 Table 3 / §2023:8.8.2 Table 4 invalid symbol pairs.</summary>
-    internal static void Run(GroupBindContext group, IDiagnosticSink sink)
+    internal static void Run(GroupBindContext group, IDiagnosticSink sink, EditionInfo edition)
     {
-        var pass = new ExpressionFormationPass(sink);
+        var pass = new ExpressionFormationPass(sink, edition);
         foreach (var text in group.Texts) pass.VisitPositioned(text);
     }
 
@@ -109,8 +109,10 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
         DiagnosticCatalog.SuffixBeforeQualifier.Code, EditionSeverity.Error,
         DiagnosticCatalog.SuffixBeforeQualifier.Id,
         $"'{qualifier}' follows a subscript or reference modifier{(head is null ? "" : $" of '{head}'")}; the "
-        + "subscripts follow the WHOLE qualified name (ISO §2023:8.4.2.3.2) and a reference modifier the whole "
-        + "identifier (§2023:8.4.3.1.2 Format 3) — write the qualifiers first",
+        + "subscripts follow the WHOLE qualified name (ISO "
+        + edition.Cite("§1985:IV.4.3.8.2.2", "§2023:8.4.2.3.2", "§2023:8.4.2.3.2") + ") and a reference modifier the whole "
+        + "identifier (" + edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.1.2 Format 3", "§2023:8.4.3.1.2 Format 3")
+        + ") — write the qualifiers first",
         "an identifier", DiagnosticCatalog.SuffixBeforeQualifier.IsoSection));
 
     /// <summary>The first qualifier written after a subscript or reference modifier of the same reference, or null.

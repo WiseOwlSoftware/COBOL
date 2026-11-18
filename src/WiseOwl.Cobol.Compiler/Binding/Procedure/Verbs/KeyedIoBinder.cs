@@ -103,7 +103,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             && ConditionalPhrases.FirstOf(r.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey) is { } misplaced)
             ctx.Validation.ScreenForbiddenPhrase(true, ConditionalPhrases.KindOf(misplaced).Words, "READ",
                 "a file whose READ is a Format-1 sequential read (the NEXT phrase written or implied, SR8, SR9)",
-                "ISO §2023:14.9.30.2 Format 1 · §2023:14.9.30.4 GR19");
+                "ISO " + ctx.Validation.IoRule(file, "§1985:VII.4.4.2", "§1985:VIII.4.5.2 Format 1 · §1985:VIII.4.5.3 SR2",
+                    "§1985:IX.4.5.2 Format 1 · §1985:IX.4.5.3 SR4", "§2023:14.9.30.2 Format 1 · §2023:14.9.30.4 GR19"));
 
         int keyIndex = -1;   // the prime record key (GR31) / the relative key item (GR29) when no KEY phrase
         if (r.readKey()?.dataReference() is { } keyRef)
@@ -194,8 +195,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + (w.writeBeforeAfter() is not null ? "ADVANCING" : "END-OF-PAGE")
                 + $" phrase shall not be specified for a WRITE statement that references the "
                 + $"{file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}': \"If the organization "
-                + "of the write file is indexed or relative, format 2 shall be specified\" (ISO §2023:14.9.51.3 SR3), and "
-                + "Format 2 prints no print-control phrase");
+                + "of the write file is indexed or relative, format 2 shall be specified\" (ISO "
+                + ctx.Validation.IoRule(file, "§1985:VII.4.7.2", "§1985:VIII.4.9.2", "§1985:IX.4.9.2", "§2023:14.9.51.3 SR3")
+                + "), and Format 2 prints no print-control phrase");
         KeyedInvalidKey? invalid = KeyedInvalidPhrase(w.conditionalPhrases());
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Write, w.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
         return new BoundKeyedWrite(file, record, bindFrom(), invalid)
@@ -220,7 +222,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 file.Organization == FileOrganization.Relative
                     && file.AccessMode == FileAccessMode.Sequential,
                 ConditionalPhrases.KindOf(ik).Words, "REWRITE",
-                "a file with relative organization and sequential access mode", "ISO §2023:14.9.35.3 SR2");
+                "a file with relative organization and sequential access mode",
+                "ISO " + ctx.Edition.Edition.Cite("§1985:VIII.4.6.3 SR3", "§2023:14.9.35.3 SR2", "§2023:14.9.35.3 SR2"));
             invalid = KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Rewrite, rw.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
@@ -257,7 +260,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         {
             ctx.Validation.ScreenForbiddenPhrase(file.AccessMode == FileAccessMode.Sequential,
                 ConditionalPhrases.KindOf(ik).Words, "DELETE RECORD",
-                "a file that is in sequential access mode", "ISO §2023:14.9.10.3 SR2");
+                "a file that is in sequential access mode",
+                "ISO " + ctx.Validation.IoRule(file, "§1985:VIII.4.3.3 SR1", "§1985:VIII.4.3.3 SR1", "§1985:IX.4.3.3 SR1", "§2023:14.9.10.3 SR2"));
             invalid = KeyedInvalidPhrase(del.conditionalPhrases());
         }
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Delete, del.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)

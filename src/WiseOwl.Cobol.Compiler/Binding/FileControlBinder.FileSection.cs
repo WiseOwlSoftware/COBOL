@@ -34,7 +34,12 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(file.EntryAt);
             Edition.Error(DiagnosticCatalog.SelectWithoutFileDescription, $"file '{name}' is specified in a SELECT "
                 + "clause but has no file description entry (FD) or sort-merge file description entry (SD); ISO "
-                + "§2023:12.4.5.2 SR3");
+                + Edition.Edition.Cite(file.Organization switch
+                    {
+                        FileOrganization.Relative => "§1985:VIII.2.3.3 SR2",
+                        FileOrganization.Indexed => "§1985:IX.2.3.3 SR2",
+                        _ => "§1985:VII.2.3.3 SR2",
+                    }, "§2023:12.4.5.2 SR3", "§2023:12.4.5.2 SR3"));
         }
     }
 

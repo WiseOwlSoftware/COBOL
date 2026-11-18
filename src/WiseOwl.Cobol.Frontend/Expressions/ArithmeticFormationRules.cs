@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Frontend.Expressions;
@@ -195,8 +196,15 @@ public static class ArithmeticFormationRules
     public static bool SignAbuts(IToken sign, IToken first) =>
         first.Line == sign.Line && first.StartIndex == sign.StopIndex + 1;
 
-    /// <summary>§2023:8.3.3.3.2 rule 2 as written, for every diagnostic that cites it.</summary>
-    public const string SignRuleQuote = "\"A literal shall not contain more than one sign character. If a sign is "
+    /// <summary>§2023:8.3.3.3.2 rule 2 as written, for every diagnostic that cites it, in the words and the citation of the
+    /// edition in force (kb/Work PB4950): COBOL-85 states it as "A literal must not contain more than one sign character"
+    /// (§1985:IV.4.2.2.2.2 SR2).</summary>
+    public static string SignRuleQuote(EditionInfo edition) => edition.Cite(
+        "\"A literal must not contain more than one sign character. If a sign is used, it must appear as the leftmost "
+        + "character of the literal\" (ISO §1985:IV.4.2.2.2.2 SR2)",
+        SignRuleQuote2023, SignRuleQuote2023);
+
+    private const string SignRuleQuote2023 = "\"A literal shall not contain more than one sign character. If a sign is "
         + "used, it shall appear as the leftmost character of the literal\" (ISO §2023:8.3.3.3.2 2))";
 
     /// <summary>What is wrong with a unary-tier operand written as SIGNS in front of a bare numeric literal, where

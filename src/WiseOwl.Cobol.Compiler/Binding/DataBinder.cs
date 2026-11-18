@@ -1778,7 +1778,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     + $"({CobolLiteral.Decode(raw).Length} characters) exceeds the "
                     + $"{(subject.IsGroup ? $"group item's {alnumLimit} character positions"
                                           : $"item's {alnumLimit} character positions indicated by its PICTURE clause")}"
-                    + $" ({subject.CharacterSizeRule})");
+                    + $" ({subject.CharacterSizeRule(Edition.Edition)})");
                 break;
             // ── The SAME sentence on a NUMERIC-EDITED elementary subject (kb/Work PB4610). SR4's size sentences name
             //    "Alphanumeric literals in the VALUE clause of an elementary item", not the categories of the sentence
@@ -1798,7 +1798,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     && subject.SizePositions is { } editedLimit && CobolLiteral.Decode(raw).Length > editedLimit:
                 Edition.Error(DiagnosticCatalog.ValueNumericEditedOversize, $"{where}: the VALUE literal "
                     + $"({CobolLiteral.Decode(raw).Length} characters) exceeds the numeric-edited item's "
-                    + $"{editedLimit}-character edited size ({subject.CharacterSizeRule})");
+                    + $"{editedLimit}-character edited size ({subject.CharacterSizeRule(Edition.Edition)})");
                 break;
         }
         return raw;
@@ -4132,7 +4132,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // carried, and the message names the family the programmer actually wrote.
         if (pictureText is not null && UsageFamilies.IsPictureless(entryUsage))
         {
-            (DiagnosticDescriptor sr8Rule, string sr8Text) = Sr8PicturelessVerdict(entryUsage);
+            (DiagnosticDescriptor sr8Rule, string sr8Text) = Sr8PicturelessVerdict(Edition.Edition, entryUsage);
             Edition.Error(sr8Rule, $"{entryWhere}: {sr8Text}");
             pictureText = null;
         }
@@ -4980,7 +4980,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             Edition.Error(DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"{where}: {position.Operand} "
                 + $"'{WrittenText(op)}' is not a literal — {why}: "
-                + WiseOwl.Cobol.Frontend.Expressions.ArithmeticFormationRules.SignRuleQuote
+                + WiseOwl.Cobol.Frontend.Expressions.ArithmeticFormationRules.SignRuleQuote(Edition.Edition)
                 + $"; and {position.Format(Edition.Edition)}, which admits no arithmetic expression.");
             return;
         }
@@ -5235,7 +5235,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// call sites differ only in WHOSE clause they name, never in the verdict, which is what GR1 requires: the
     /// two spellings describe one item. Guard every call with <see cref="UsageFamilies.IsPictureless"/> — the
     /// float family is a named arm and the fall-through throws, so a usage outside the set is a crash, never a wrong message.</para></summary>
-    private static (DiagnosticDescriptor Rule, string Text) Sr8PicturelessVerdict(Usage usage) => usage switch
+    private static (DiagnosticDescriptor Rule, string Text) Sr8PicturelessVerdict(EditionInfo edition, Usage usage) => usage switch
     {
         Usage.ObjectReference => (DiagnosticCatalog.PictureWithObjectReferenceUsage,
             "PICTURE may not be specified with USAGE OBJECT REFERENCE (ISO §2023:13.16.3 SR8 — an "
@@ -5251,8 +5251,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             + "(ISO §2023:13.16.3 SR8)"),
         Usage.Index => (DiagnosticCatalog.UsageClauseCompatibility,
             "PICTURE may not be specified with USAGE INDEX — an index data item is picture-less, and "
-            + "its content is an occurrence number rather than a pictured value (ISO §2023:13.16.3 SR8; "
-            + "§2023:13.18.60.4 GR10)"),
+            + "its content is an occurrence number rather than a pictured value (ISO "
+            + edition.Cite("§1985:VI.5.14.3 SR6; §1985:VI.5.9.3 SR5", "§2023:13.16.3 SR8; §2023:13.18.60.4 GR10",
+                "§2023:13.16.3 SR8; §2023:13.18.60.4 GR10") + ")"),
         // §2023:13.16.3 SR8 names message-tag in the same sentence as the float usages, so it reaches this screen on
         // BOTH paths (its own clause, and the usage a group hands down — §2023:13.18.60.4 GR1), and before this arm the
         // fall-through below told the programmer their message-tag item was floating-point (kb/Work PB916).
@@ -5574,10 +5575,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // is that the two spellings differ.
             if (UsageFamilies.IsPictureless(effective))
             {
-                (DiagnosticDescriptor sr8Rule, string sr8Text) = Sr8PicturelessVerdict(effective);
+                (DiagnosticDescriptor sr8Rule, string sr8Text) = Sr8PicturelessVerdict(Edition.Edition, effective);
                 Edition.Error(sr8Rule, $"data item '{name}': {sr8Text} — the usage is the one written for the group "
                     + $"item '{fromGroup.FromName ?? "FILLER"}' and applies to each elementary item in it "
-                    + "(ISO §2023:13.18.60.4 GR1)");
+                    + "(ISO " + Edition.Edition.Cite("§1985:VI.5.14.4 GR1", "§2023:13.18.60.4 GR1", "§2023:13.18.60.4 GR1") + ")");
                 item.Pic = fromGroup.Pictureless ?? PicInfo.Recovery();
                 item.PicIsUsageSynthesized = fromGroup.Pictureless is not null;
                 return;

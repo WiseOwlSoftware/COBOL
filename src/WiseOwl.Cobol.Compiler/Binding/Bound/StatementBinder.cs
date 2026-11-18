@@ -796,7 +796,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // a feature WiseOwl COBOL had not implemented.
         _ when s.useStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.UseStatementPlacement,
             "USE: a USE statement shall immediately follow a section header in the declaratives portion of the "
-            + "procedure division and shall appear in a sentence by itself (ISO §2023:14.9.49.3 SR1); this one is "
+            + "procedure division and shall appear in a sentence by itself (ISO "
+            + data.Edition.Edition.Cite(s.useStatement().BEFORE() is not null ? "§1985:XIII.4.9.3 SR1" : "§1985:VII.4.6.3 SR1",
+                "§2023:14.9.49.3 SR1", "§2023:14.9.49.3 SR1") + "); this one is "
             + (Ctx.Enclosing.InDeclarative
                 ? "inside a declarative section, after its first sentence"
                 : "in the nondeclarative portion of the procedure division")),

@@ -213,9 +213,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         using (ctx.Edition.At(pn))   // the HEADER's position — a paragraph in a section is collected under its section's At
             ctx.Edition.Error(DiagnosticCatalog.QualifiedProcedureHeader,
                 $"{kind}-name '{ProcedureNameShape.AsWritten(pn)}' is written qualified in its "
-                + $"{kind} header — a {kind}-name that is being defined is written alone (ISO §2023:14.2.1: "
-                + "\"section-name-1 SECTION.\", \"paragraph-name-1.\"); qualification (§2023:8.4.2.2.2) belongs to a "
-                + "reference, and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph. Write "
+                + $"{kind} header — a {kind}-name that is being defined is written alone (ISO "
+                + ctx.Edition.Edition.Cite("§1985:IV.6.4.1.4.2", "§2023:14.2.1", "§2023:14.2.1")
+                + ": \"section-name SECTION.\", \"paragraph-name.\"); qualification ("
+                + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1", "§2023:8.4.2.2.2", "§2023:8.4.2.2.2") + ") belongs to a "
+                + "reference"
+                + ctx.Edition.Edition.Cite("", ", and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph", ", and §2023:14.4.1 gives it to the procedure-name that refers to a paragraph")
+                + ". Write "
                 + $"'{ProcedureNameShape.Head(pn)}' in the header and qualify the references.");
         return ProcedureNameShape.Head(pn);
     }
@@ -667,7 +671,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                         {
                             ctx.Edition.Error(DiagnosticCatalog.DebugAllOperandIsProcedure, $"declarative section "
                                 + $"'{section.Name}': USE FOR DEBUGGING ON ALL REFERENCES OF '{anm}' names a paragraph or "
-                                + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item (ISO §2023:14.4.1: a "
+                                + "section, and identifier-1 of ALL [REFERENCES OF] identifier-1 is a data item (ISO "
+                                + ctx.Edition.Edition.Cite("§1985:XV.3.2.2", "§2023:14.4.1", "§2023:14.4.1") + ": a "
                                 + $"procedure-name refers to a paragraph or section); write ON {anm} for a procedure-name subject");
                             continue;
                         }

@@ -100,7 +100,7 @@ public static class LiteralScreen
                     GateFloatingPoint(t, edition, sink);
                 continue;
             }
-            if (SignedSlot(node) is ({ } sign, { } first)) clean &= ScreenSign(node, sign, first, sink);
+            if (SignedSlot(node) is ({ } sign, { } first)) clean &= ScreenSign(node, sign, first, edition, sink);
             if (gateFormats && node is ParserRuleContext rule && NumericLiteralOf(rule) is { } numeric && !clientWritten.Contains(rule.Start))
                 clean &= ScreenDigitCapacity(rule, numeric, edition, sink);
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
@@ -164,14 +164,14 @@ public static class LiteralScreen
     /// <see cref="ArithmeticFormationRules.SignAbuts"/>. A separated sign makes two things of one: <c>MOVE - 5 TO A</c>
     /// is refused, where <c>-5</c> is the literal. (<c>IF A = - 5</c> never reaches here: a relation operand is an
     /// arithmetic expression, whose unary-operator alternative the parser takes first.)</summary>
-    private static bool ScreenSign(IParseTree node, IToken sign, IToken first, IDiagnosticSink sink)
+    private static bool ScreenSign(IParseTree node, IToken sign, IToken first, EditionInfo edition, IDiagnosticSink sink)
     {
         if (ArithmeticFormationRules.SignAbuts(sign, first)) return true;
         using var _ = sink.At(ExpansionToken.CursorOf(sign));
         string written = WrittenSource.Of((ParserRuleContext)node);
         Error(sink, DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"the numeric literal `{written}` has its sign "
-            + $"separated from its digits — {ArithmeticFormationRules.SignRuleQuote}, and a space or line break is a "
-            + $"separator (ISO §2023:8.3.5). Write `{sign.Text}{first.Text}` if the sign belongs to the literal.");
+            + $"separated from its digits — {ArithmeticFormationRules.SignRuleQuote(edition)}, and a space or line break is a "
+            + $"separator (ISO {edition.Cite("§1985:IV.4.2.1 SR1", "§2023:8.3.5", "§2023:8.3.5")}). Write `{sign.Text}{first.Text}` if the sign belongs to the literal.");
         return false;
     }
 

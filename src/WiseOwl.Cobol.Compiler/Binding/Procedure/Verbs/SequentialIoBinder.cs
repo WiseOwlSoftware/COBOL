@@ -231,7 +231,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         {
             ctx.Validation.ScreenForbiddenPhrase(true,
                 ConditionalPhrases.KindOf(wik).Words, "WRITE",
-                "a file with sequential organization", "ISO §2023:14.9.51.3 SR2");
+                "a file with sequential organization",
+                "ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.7.2", "§2023:14.9.51.3 SR2", "§2023:14.9.51.3 SR2"));
             winvalid = keyedIo.KeyedInvalidPhrase(w.conditionalPhrases());
         }
 
@@ -334,7 +335,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             ctx.Validation.ScreenForbiddenPhrase(true,
                 ConditionalPhrases.KindOf(ik).Words, "READ",
                 "a file with sequential organization, whose READ is a Format-1 sequential read",
-                "ISO §2023:14.9.30.2 Format 1 · §2023:14.9.30.4 GR19");
+                "ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.4.2", "§2023:14.9.30.2 Format 1 · §2023:14.9.30.4 GR19",
+                    "§2023:14.9.30.2 Format 1 · §2023:14.9.30.4 GR19"));
             invalid = keyedIo.KeyedInvalidPhrase(r.conditionalPhrases());
         }
         // COBOL-85: AT END is mandatory where no applicable USE procedure takes the exception (kb/Work PB5076).
@@ -407,7 +409,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         {
             ctx.Validation.ScreenForbiddenPhrase(true,
                 ConditionalPhrases.KindOf(ik).Words, "REWRITE",
-                "a file with sequential organization", "ISO §2023:14.9.35.3 SR2");
+                "a file with sequential organization",
+                "ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.5.2", "§2023:14.9.35.3 SR2", "§2023:14.9.35.3 SR2"));
             rinvalid = keyedIo.KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         var rewriteFrom = bindFrom();

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -54,11 +55,11 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         out RefResolution? refusal)
     {
         refusal = null;
-        if (RefModExclusion(described) is { } why)
+        if (RefModExclusion(described, data.Edition.Edition) is { } why)
         {
             if (!refs.Probing && refs.Diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
                 data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
-                    $"'{DataBinder.WrittenText(dref)}': reference modification of {why} is not permitted (ISO §2023:8.4.3.3.3 SR1)");
+                    $"'{DataBinder.WrittenText(dref)}': reference modification of {why} is not permitted (ISO {RefModIdentifierRule(data.Edition.Edition)})");
             refusal = RefResolution.Refused(DataBinder.WrittenText(dref));
             return null;
         }
@@ -87,10 +88,10 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// same two the syntactic path runs, in the same order, with the same COBOL1647.</summary>
     internal Place? RefModOf(Place inner, Core.RefModPartContext rmp, string what)
     {
-        if (RefModExclusion(inner.Item) is { } why)
+        if (RefModExclusion(inner.Item, data.Edition.Edition) is { } why)
         {
             data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
-                $"'{what}': reference modification of {why} is not permitted (ISO §2023:8.4.3.3.3 SR1)");
+                $"'{what}': reference modification of {why} is not permitted (ISO {RefModIdentifierRule(data.Edition.Edition)})");
             return null;
         }
         return ReadRefMod(rmp) is { } spec ? RefModView(inner.Item, inner, spec) : null;
@@ -178,9 +179,14 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// described by data-name-2 (§2023:13.18.45.4 GR1), never by its own entry (kb/Work PB1380).</para></summary>
     public Place? ResolveItemRefMod(DataItem item, IReadOnlyList<int> subscripts, int start, int? length, bool allowZeroLength = false) =>
         refs.Places.ResolveOccurrence(item, subscripts) is { } inner
-            && RefModExclusion(inner.Item) is null
+            && RefModExclusion(inner.Item, data.Edition.Edition) is null
             ? RefModView(inner.Item, inner, new RefModSpec(new PositionConstant(start), length is { } l ? new PositionConstant(l) : null, allowZeroLength))
             : null;
+
+    /// <summary>The citation of §2023:8.4.3.3.3 SR1 in the edition in force: COBOL-85 says "Data-name-1 must reference a data
+    /// item whose usage is DISPLAY" (§1985:IV.4.3.8.4.3 SR1; kb/Work PB4950).</summary>
+    internal static string RefModIdentifierRule(EditionInfo edition) =>
+        edition.Cite("§1985:IV.4.3.8.4.3 SR1", "§2023:8.4.3.3.3 SR1", "§2023:8.4.3.3.3 SR1");
 
     /// <summary>ISO §2023:8.4.3.3.3 SR1, read as an EXCLUSION test: the reason <paramref name="item"/> may NOT be
     /// identifier-1 of a reference modification, or null when it may. Admitted: a boolean, national, alphanumeric or
@@ -198,7 +204,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// wraps as a <c>NatImagePlace</c> over its <c>AsNat()</c> national-position string — §2023:13.18.29.4 GR2b's as-if
     /// PICTURE N(m) counts national positions, which since kb/Work PB327 are no longer the same string as the
     /// group's byte image.</summary>
-    internal static string? RefModExclusion(DataItem item)
+    internal static string? RefModExclusion(DataItem item, EditionInfo edition)
     {
         if (item.IsGroup)
             return StrongTypeModel.IsStrongGroup(item) ? "a strongly-typed group item"
@@ -213,11 +219,13 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             { Category: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } => null,
             { Category: PicCategory.NumericEdited } =>
                 underStrong ? "a numeric-edited item subordinate to a strongly-typed group item" : null,
-            { Category: PicCategory.Numeric, Usage: Usage.Index } => "an index data item (class index, ISO §2023:13.18.60)",
+            { Category: PicCategory.Numeric, Usage: Usage.Index } => edition.Cite("an index data item (usage INDEX)",
+                "an index data item (class index, ISO §2023:13.18.60)", "an index data item (class index, ISO §2023:13.18.60)"),
             { Category: PicCategory.Numeric, Usage: Usage.Display or Usage.National, IsFloat: false } =>
                 underStrong ? "a numeric item subordinate to a strongly-typed group item" : null,
             { Category: PicCategory.Numeric } p =>
-                $"a numeric item of USAGE {p.Usage} (SR1 admits usage DISPLAY or NATIONAL only)",
+                $"a numeric item of USAGE {p.Usage} (SR1 admits usage "
+                + edition.Cite("DISPLAY only", "DISPLAY or NATIONAL only", "DISPLAY or NATIONAL only") + ")",
             { Category: PicCategory.ObjectReference } => "an object reference",
             { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer } => "a pointer",
             { } p => $"an item of category {p.Category}",
@@ -241,20 +249,24 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     /// literal that exceeds the whole item is refused whatever the start, because no start in 1..size can make it fit.
     /// Returns the violated clause's words, or null.</para></summary>
     internal static string? LiteralRefModRangeViolation(DataItem item, Int128? start,
-        Int128? length, bool omittedLength, bool allowZeroLength)
+        Int128? length, bool omittedLength, bool allowZeroLength, EditionInfo edition)
     {
         if (item.IsDynamicLength || item.IsAnyLength || HasOdoOnOrBeneathOrDynamicTable(item)) return null;
         int size = RefModPlace.PositionCount(item);
         if (start is { } s && (s < 1 || s > size))
-            return $"leftmost-position {s} is not a position of the {size}-position item (ISO §2023:8.4.3.3.4 5) b))";
+            return $"leftmost-position {s} is not a position of the {size}-position item (ISO "
+                + edition.Cite("§1985:IV.4.3.8.4.4 GR4a", "§2023:8.4.3.3.4 5) b)", "§2023:8.4.3.3.4 5) b)") + ")";
         if (omittedLength || length is not { } len) return null;
         if (len == 0 && !allowZeroLength)
-            return "a zero length is not a positive nonzero integer (ISO §2023:8.4.3.3.4 5) c); REF-MOD-ZERO-LENGTH is not on)";
+            return "a zero length is not a positive nonzero integer (ISO "
+                + edition.Cite("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 5) c)", "§2023:8.4.3.3.4 5) c)")
+                + "; REF-MOD-ZERO-LENGTH is not on)";
         // (written `len > size - s2 + 1`, never `s2 + len - 1 > size`: a literal near Int128's top would wrap the sum;
         // s2 is within 1..size here, so the rewritten form cannot overflow)
         if (len > 0 && (start is { } s2 ? len > size - s2 + 1 : len > size))
             return $"the reference modification ({(start is { } s3 ? s3.ToString() : "…")}:{len}) extends past the "
-                + $"{size}-position item (ISO §2023:8.4.3.3.4 5) c))";
+                + $"{size}-position item (ISO "
+                + edition.Cite("§1985:IV.4.3.8.4.4 GR4b", "§2023:8.4.3.3.4 5) c)", "§2023:8.4.3.3.4 5) c)") + ")";
         return null;
     }
 
@@ -285,7 +297,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
     {
         if (refs.Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
         if (LiteralRefModRangeViolation(described, LiteralPosition(spec.Start), LiteralPosition(spec.Length),
-                spec.Length is null, spec.AllowZeroLength) is not { } why) return true;
+                spec.Length is null, spec.AllowZeroLength, data.Edition.Edition) is not { } why) return true;
         bool checking = RefModCheckingAt?.Invoke(line) ?? false;
         if (refs.Diagnosed.Add(dref))
         {
