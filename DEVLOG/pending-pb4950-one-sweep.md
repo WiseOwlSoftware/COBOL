@@ -17,3 +17,8 @@ asks it, `EditionCitationNet`, was laid as a ratchet of 298 codes and 1638 diagn
   gate or its descriptor records `No1985Rule` (docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a).
 
 kb/Work PB4950 is landed for 1985. The 2002 and 2014 directions are kb/Work PB5922.
+
+The runtime's `MoveValidity` keeps one form of each rule check, the one that takes the citations
+(`Table16Refusal`, `BinaryWidthRefusal`, `FigurativeRefusal` with `MoveCitations`). The run time passes
+`MoveCitations.Iso2023` explicitly. The two-argument overloads that forwarded to it are gone. Removing them changes the
+shipped public surface, so the runtime major is now 31 (`scripts/abi_pin.py bump --runtime-major`).

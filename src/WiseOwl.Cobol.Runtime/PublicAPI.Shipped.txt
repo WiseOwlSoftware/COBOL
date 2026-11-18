@@ -3529,8 +3529,6 @@ static WiseOwl.Cobol.Runtime.ManagedPointer<T>.Cell(T initial) -> WiseOwl.Cobol.
 static WiseOwl.Cobol.Runtime.ManagedPointer<T>.OverField(System.Func<T>! get, System.Action<T>! set) -> WiseOwl.Cobol.Runtime.ManagedPointer<T>!
 static WiseOwl.Cobol.Runtime.MoveSending.operator !=(WiseOwl.Cobol.Runtime.MoveSending left, WiseOwl.Cobol.Runtime.MoveSending right) -> bool
 static WiseOwl.Cobol.Runtime.MoveSending.operator ==(WiseOwl.Cobol.Runtime.MoveSending left, WiseOwl.Cobol.Runtime.MoveSending right) -> bool
-static WiseOwl.Cobol.Runtime.MoveValidity.BinaryWidthRefusal(bool binaryWidthSender, WiseOwl.Cobol.Runtime.Table16Category receiver) -> string?
-static WiseOwl.Cobol.Runtime.MoveValidity.Table16Refusal(WiseOwl.Cobol.Runtime.Table16Category sender, WiseOwl.Cobol.Runtime.Table16Category receiver) -> string?
 static WiseOwl.Cobol.Runtime.NotImplemented.Run(string! feature) -> void
 static WiseOwl.Cobol.Runtime.NotImplemented.Value<T>(string! feature) -> T
 static WiseOwl.Cobol.Runtime.NumProfile.operator !=(WiseOwl.Cobol.Runtime.NumProfile left, WiseOwl.Cobol.Runtime.NumProfile right) -> bool

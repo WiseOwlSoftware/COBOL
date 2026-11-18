@@ -100,12 +100,8 @@ public static class MoveValidity
     /// <para>The arms are the table read AS PRINTED (specs/ISO_COBOL_2023.md, Table 16); with them every cell over the
     /// nine headings is decided here (<c>Table16PrintedTableDriftTests</c> compares all 81). The classic '85 rows carry
     /// the same "No" cells, so the table is version-invariant.</para></summary>
-    public static string? Table16Refusal(Table16Category sender, Table16Category receiver) =>
-        Table16Refusal(sender, receiver, MoveCitations.Iso2023);
-
-    /// <summary><see cref="Table16Refusal(Table16Category, Table16Category)"/> citing the rules as <paramref name="cites"/> numbers
-    /// them — the form the compiler asks, with the citations of the edition it compiles under; the run time has no edition to
-    /// cite and asks the two-argument form.</summary>
+    /// <param name="cites">The citations of the edition in force (<c>MoveTable16.CitationsOf</c> in the compiler); the run time,
+    /// which has no edition, passes <see cref="MoveCitations.Iso2023"/>.</param>
     public static string? Table16Refusal(Table16Category sender, Table16Category receiver, MoveCitations cites)
     {
         if (sender is Table16Category.None || receiver is Table16Category.None) return null;
@@ -186,10 +182,7 @@ public static class MoveValidity
     /// table's, which SR10 does not reach for a case SR8 describes.</summary>
     /// <param name="binaryWidthSender">The sending data item is described with one of the four usages.</param>
     /// <param name="receiver">The receiving operand's heading.</param>
-    public static string? BinaryWidthRefusal(bool binaryWidthSender, Table16Category receiver) =>
-        BinaryWidthRefusal(binaryWidthSender, receiver, MoveCitations.Iso2023);
-
-    /// <summary><see cref="BinaryWidthRefusal(bool, Table16Category)"/> citing the rule as <paramref name="cites"/> numbers it.</summary>
+    /// <param name="cites">The citations of the edition in force; the run time passes <see cref="MoveCitations.Iso2023"/>.</param>
     public static string? BinaryWidthRefusal(bool binaryWidthSender, Table16Category receiver, MoveCitations cites) =>
         binaryWidthSender && !IsNumericColumn(receiver)
             ? "a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending operand shall reference only a numeric or "
@@ -217,10 +210,7 @@ public static class MoveValidity
     /// PB3101).</summary>
     /// <param name="sender">Which of the figurative senders the rules tell apart.</param>
     /// <param name="receiver">The receiving operand's heading.</param>
-    public static string? FigurativeRefusal(FigurativeSender sender, Table16Category receiver) =>
-        FigurativeRefusal(sender, receiver, MoveCitations.Iso2023);
-
-    /// <summary><see cref="FigurativeRefusal(FigurativeSender, Table16Category)"/> citing the rules as <paramref name="cites"/> numbers them.</summary>
+    /// <param name="cites">The citations of the edition in force; the run time passes <see cref="MoveCitations.Iso2023"/>.</param>
     public static string? FigurativeRefusal(FigurativeSender sender, Table16Category receiver, MoveCitations cites) => receiver switch
     {
         _ when sender is FigurativeSender.Space && IsNumericColumn(receiver) =>

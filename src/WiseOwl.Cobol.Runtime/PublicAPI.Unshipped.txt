@@ -1286,7 +1286,6 @@ static WiseOwl.Cobol.Runtime.MessageWait.operator ==(WiseOwl.Cobol.Runtime.Messa
 static WiseOwl.Cobol.Runtime.MoveCitations.operator !=(WiseOwl.Cobol.Runtime.MoveCitations? left, WiseOwl.Cobol.Runtime.MoveCitations? right) -> bool
 static WiseOwl.Cobol.Runtime.MoveCitations.operator ==(WiseOwl.Cobol.Runtime.MoveCitations? left, WiseOwl.Cobol.Runtime.MoveCitations? right) -> bool
 static WiseOwl.Cobol.Runtime.MoveValidity.BinaryWidthRefusal(bool binaryWidthSender, WiseOwl.Cobol.Runtime.Table16Category receiver, WiseOwl.Cobol.Runtime.MoveCitations! cites) -> string?
-static WiseOwl.Cobol.Runtime.MoveValidity.FigurativeRefusal(WiseOwl.Cobol.Runtime.FigurativeSender sender, WiseOwl.Cobol.Runtime.Table16Category receiver) -> string?
 static WiseOwl.Cobol.Runtime.MoveValidity.FigurativeRefusal(WiseOwl.Cobol.Runtime.FigurativeSender sender, WiseOwl.Cobol.Runtime.Table16Category receiver, WiseOwl.Cobol.Runtime.MoveCitations! cites) -> string?
 static WiseOwl.Cobol.Runtime.MoveValidity.Table16Refusal(WiseOwl.Cobol.Runtime.Table16Category sender, WiseOwl.Cobol.Runtime.Table16Category receiver, WiseOwl.Cobol.Runtime.MoveCitations! cites) -> string?
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator !=(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
