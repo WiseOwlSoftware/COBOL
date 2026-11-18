@@ -25,15 +25,26 @@ public sealed class ListingDiagnosticsTests : IDisposable
 
     public void Dispose() => ScratchDirectory.Remove(_dir);
 
+    /// <summary>A directory under <see cref="_dir"/> that makes the path of a file in it longer than the default page, whatever
+    /// the host's temporary directory is (kb/Work PB5931): the source path in a summary row then cannot fit the row, on any host.</summary>
+    private string LongDirectory()
+    {
+        int padding = Math.Max(1, ListingRequest.DefaultPageWidth + 28 - _dir.Length - 1);
+        string dir = Path.Combine(_dir, new string('d', padding));
+        Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     private (CompilerDriver.Result Result, string Source) Compile(string name, string[] lines, int edition = 2023,
         ListingFormats formats = ListingFormats.Text | ListingFormats.Json, bool flagExtensions = false,
-        IReadOnlyDictionary<string, string>? copybooks = null)
+        IReadOnlyDictionary<string, string>? copybooks = null, string? within = null)
     {
-        string source = Path.Combine(_dir, name + ".cob");
+        string dir = within ?? _dir;
+        string source = Path.Combine(dir, name + ".cob");
         File.WriteAllText(source, string.Join("\n", lines));
-        foreach (var (book, text) in copybooks ?? new Dictionary<string, string>()) File.WriteAllText(Path.Combine(_dir, book), text);
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, name + ".dll"),
-            DialectLevel: edition, CopyPaths: [_dir], FlagExtensions: flagExtensions, Listing: new ListingRequest(Formats: formats)));
+        foreach (var (book, text) in copybooks ?? new Dictionary<string, string>()) File.WriteAllText(Path.Combine(dir, book), text);
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(dir, name + ".dll"),
+            DialectLevel: edition, CopyPaths: [dir], FlagExtensions: flagExtensions, Listing: new ListingRequest(Formats: formats)));
         if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
         return (result, source);
     }
@@ -44,9 +55,15 @@ public sealed class ListingDiagnosticsTests : IDisposable
     /// line at the column its record names (the entry's level-number, where the binder's cursor stands for an entry), printed under
     /// that line with a caret and in the summary, and its citation is the rule as data.
     /// </summary>
-    [Fact]
-    public void ABindError_IsPlacedOnItsLine_InlineAndInTheSummary_WithTheRuleItCites()
+    /// <remarks>Run in a short directory and in one whose path is longer than the page (kb/Work PB5931): the renderer wraps a summary
+    /// row at the page width (<see cref="TextListingRenderer.Indented"/>), so what the test asserts of it is the whole entry,
+    /// however it wraps, and never a substring of one unwrapped row, whose fit depends on the length of the host's path.</remarks>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ABindError_IsPlacedOnItsLine_InlineAndInTheSummary_WithTheRuleItCites(bool longPath)
     {
+        string work = longPath ? LongDirectory() : _dir;
         string[] lines =
         [
             "       IDENTIFICATION DIVISION.",
@@ -57,7 +74,7 @@ public sealed class ListingDiagnosticsTests : IDisposable
             "       PROCEDURE DIVISION.",
             "           STOP RUN.",
         ];
-        var (result, source) = Compile("diag1", lines);
+        var (result, source) = Compile("diag1", lines, within: work);
         Assert.Equal(CompilerDriver.Outcome.BindError, result.Status);
         var listing = Assert.IsType<ListingDocument>(result.Listing);
         int entry = Array.FindIndex(lines, l => l.Contains("9(32)", StringComparison.Ordinal)) + 1;
@@ -73,17 +90,29 @@ public sealed class ListingDiagnosticsTests : IDisposable
         Assert.Equal(record.Message, d.Message);
 
         // The text listing: under the entry's row a caret at its column, then the arrow row; the summary on a page of its own.
-        string text = File.ReadAllText(Path.Combine(_dir, "diag1.lst"));
+        string text = File.ReadAllText(Path.Combine(work, "diag1.lst"));
         string[] rows = ListingPages.Of(text, ListingSection.Source)[0].Split('\n');
         int row = Array.FindIndex(rows, r => r.EndsWith(lines[entry - 1], StringComparison.Ordinal));
         Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + d.Column!.Value - 1) + "^", rows[row + 1]);
         Assert.StartsWith(new string(' ', TextListingRenderer.TextColumn - 1) + $"==> error {d.Code} (col {d.Column}): ", rows[row + 2], StringComparison.Ordinal);
         string summary = Assert.Single(ListingPages.Of(text, ListingSection.Diagnostics));
         Assert.Contains("Errors: 1   Warnings: 0   Information: 0", summary, StringComparison.Ordinal);
-        Assert.Contains($"{line.Number,6}  error {d.Code} {source}({entry},{d.Column}): ", summary, StringComparison.Ordinal);
+        // The summary entry (DESIGN-listing.md section 6.3): "line  severity CODE file(line,col): message", wrapped at the page width
+        // with its further rows indented 8. The entry is the row that opens it and the rows indented under it. They hold exactly
+        // the entry's words in order (a break is at a space, or cuts a word no space lets fit, as a long path is), none is wider
+        // than the page, and they are the rows the renderer's wrap makes of the entry.
+        string entryText = $"{line.Number,6}  error {d.Code} {source}({entry},{d.Column}): {d.Message}";
+        string[] summaryRows = summary.Split('\n');
+        int first = Array.FindIndex(summaryRows, r => r.StartsWith($"{line.Number,6}  error {d.Code}", StringComparison.Ordinal));
+        Assert.True(first >= 0, "no summary row opens the diagnostic's entry");
+        string[] entryRows = [summaryRows[first], .. summaryRows.Skip(first + 1).TakeWhile(r => r.StartsWith("        ", StringComparison.Ordinal))];
+        Assert.All(entryRows, r => Assert.True(r.Length <= ListingRequest.DefaultPageWidth, $"a summary row is wider than the page: {r}"));
+        Assert.Equal(entryText.Replace(" ", "", StringComparison.Ordinal), string.Concat(entryRows).Replace(" ", "", StringComparison.Ordinal));
+        Assert.Equal(TextListingRenderer.Indented(entryText, 0, 8, ListingRequest.DefaultPageWidth), entryRows);
+        if (longPath) Assert.True(entryRows.Length > 1, "the source path was to be longer than the page, so the entry wraps");
 
         // The JSON carries the citation as a field.
-        var json = JsonNode.Parse(File.ReadAllText(Path.Combine(_dir, "diag1.lst.json")))!;
+        var json = JsonNode.Parse(File.ReadAllText(Path.Combine(work, "diag1.lst.json")))!;
         var cited = json["diagnostics"]!.AsArray().Single(x => (string?)x!["code"] == d.Code)!["citations"]!.AsArray().Single()!;
         Assert.Equal((2023, "13.18.40.3", "SR14"), ((int)cited["edition"]!, (string)cited["locator"]!, (string)cited["rule"]!));
     }
