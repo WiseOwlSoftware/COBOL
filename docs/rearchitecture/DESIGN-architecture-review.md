@@ -642,7 +642,7 @@ the assemblies contain that the file does not place fails the test. The file's c
     ["frontend.pipeline", "frontend.preprocessor"], ["frontend.pipeline", "frontend.parse"], ["frontend.pipeline", "frontend.diagnostics"], ["frontend.pipeline", "frontend.common"], ["frontend.pipeline", "editions"],
     ["compiler.model", "frontend.common"], ["compiler.model", "editions"], ["compiler.model", "runtime"],
     ["compiler.bound", "compiler.model"], ["compiler.bound", "frontend.common"], ["compiler.bound", "editions"], ["compiler.bound", "runtime"],
-    ["compiler.binding", "compiler.bound"], ["compiler.binding", "compiler.model"], ["compiler.binding", "frontend.preprocessor"], ["compiler.binding", "frontend.parse"], ["compiler.binding", "frontend.common"], ["compiler.binding", "editions"], ["compiler.binding", "runtime"],
+    ["compiler.binding", "compiler.bound"], ["compiler.binding", "compiler.model"], ["compiler.binding", "frontend.preprocessor"], ["compiler.binding", "frontend.parse"], ["compiler.binding", "frontend.diagnostics"], ["compiler.binding", "frontend.common"], ["compiler.binding", "editions"], ["compiler.binding", "runtime"],
     ["compiler.validation", "compiler.binding"], ["compiler.validation", "compiler.bound"], ["compiler.validation", "compiler.model"], ["compiler.validation", "frontend.preprocessor"], ["compiler.validation", "frontend.parse"], ["compiler.validation", "frontend.common"], ["compiler.validation", "editions"], ["compiler.validation", "runtime"],
     ["compiler.codegen", "compiler.bound"], ["compiler.codegen", "compiler.model"], ["compiler.codegen", "frontend.diagnostics"], ["compiler.codegen", "frontend.common"], ["compiler.codegen", "editions"], ["compiler.codegen", "runtime"],
     ["compiler.pipeline", "compiler.codegen"], ["compiler.pipeline", "compiler.validation"], ["compiler.pipeline", "compiler.binding"], ["compiler.pipeline", "compiler.bound"], ["compiler.pipeline", "compiler.model"], ["compiler.pipeline", "frontend.pipeline"], ["compiler.pipeline", "frontend.preprocessor"], ["compiler.pipeline", "frontend.parse"], ["compiler.pipeline", "frontend.diagnostics"], ["compiler.pipeline", "frontend.common"], ["compiler.pipeline", "editions"], ["compiler.pipeline", "runtime"],
@@ -765,10 +765,12 @@ carrier from the CLI to the driver; the driver hands `BoundCompilation` to the v
 allowed pair is measured, and one that falls to zero is deleted (`frontend.pipeline → runtime`, at the census of kb/Work
 PB2398's landing, `762a06a33`). Draft 1's three unmeasured non-root pairs (`compiler.binding → frontend.diagnostics`,
 `compiler.binding → frontend.pipeline`, `compiler.validation → frontend.diagnostics`) had no such reason and are
-dropped: a binder that needs one adds it to this file in a reviewed change. `compiler.codegen → frontend.diagnostics`
-was added that way (kb/Work PB4272): the seam's `BackendDiagnostic` carries the compiler's one severity
-(`DiagnosticSeverity`) and renders through the one diagnostic line (`Diagnostic.Render`), so no Roslyn type crosses
-`ICodeGenBackend` and no third severity or line format is written.
+dropped: a binder that needs one adds it to this file in a reviewed change. `compiler.binding → frontend.diagnostics` and
+`compiler.listing → frontend.diagnostics` were added that way by listing step 3 (DESIGN-listing.md section 6.3: the binder keeps
+each diagnostic as the front end's `Diagnostic` record, and the listing's builder places those records). `compiler.codegen →
+frontend.diagnostics` was added that way too (kb/Work PB4272): the seam reports the front end's `Diagnostic` (the compiler's one severity, `DiagnosticSeverity`, and the one
+diagnostic line, `Diagnostic.Render`; its own `BackendDiagnostic` was folded into it by listing step 3), so no Roslyn type
+crosses `ICodeGenBackend` and no third severity or line format is written.
 
 Two measured cycles are dissolved by placement rather than by refusal: `WiseOwl.Cobol.Compiler.Oo ↔ WiseOwl.Cobol.Binding` (34
 and 40 uses) is one layer, and `WiseOwl.Cobol.Frontend.Generated ↔ WiseOwl.Cobol.Frontend.Parsing` (2 and 40) is one layer, for

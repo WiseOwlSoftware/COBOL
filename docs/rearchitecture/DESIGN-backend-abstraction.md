@@ -156,13 +156,13 @@ public sealed record BackendOptions(           // what EVERY backend reads; noth
     string OutputPath, string AssemblyName, EditionInfo Edition,
     bool EmitPdb = true, CompilationInputs? Inputs = null, IReadOnlyList<string>? RepositoryReferences = null);
 
-public sealed record BackendDiagnostic(       // the seam's own diagnostic: no Roslyn type crosses it (kb/Work PB4272)
-    string Code, DiagnosticSeverity Severity, string Message,
-    SourceLocation? Location);                 // null: names no position; renders through Diagnostic.Render
+// A backend diagnostic is the front end's Diagnostic(Code, Severity, Message, SourceLocation? Location, Span): no Roslyn
+// type crosses the seam (kb/Work PB4272); null Location names no position; it renders through Diagnostic.Render. One record
+// serves every phase (DESIGN-listing.md section 6.3; the seam's former BackendDiagnostic was deleted by listing step 3).
 
 public sealed record BackendArtifact(
     bool Success,
-    IReadOnlyList<BackendDiagnostic> Diagnostics,
+    IReadOnlyList<Diagnostic> Diagnostics,
     string? GeneratedSourcePath,               // .g.cs for Roslyn (always written); null for Cil
     string? AssemblyPath, IReadOnlyList<string> OutputFiles, bool Library);
 
@@ -179,7 +179,7 @@ public static class BackendFactory
 ```
 
 - **The seam is Roslyn-free (kb/Work PB4272).** Nothing the contract names is a Roslyn type or a C#-only choice:
-  each backend translates its own diagnostics into `BackendDiagnostic` (`RoslynBackend.Neutral`, which renders the
+  each backend translates its own diagnostics into the front end's `Diagnostic` (`RoslynBackend.Neutral`, which renders the
   line Roslyn's own formatter renders), the driver reads only those, and the `.g.cs` is the Roslyn backend's own
   artifact rather than a seam option. The seam file, the model, the binders and the driver reference no
   `Microsoft.CodeAnalysis` type; the facts the model used to ask Roslyn (the identifier characters,
