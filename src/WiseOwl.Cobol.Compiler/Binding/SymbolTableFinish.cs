@@ -17,7 +17,9 @@ internal static class SymbolTableFinish
     /// <paramref name="classes"/>: each source element's names (<see cref="Declarations"/>), a program unit's own entry first, the
     /// elements in the order they are written. An attribute that names another entry (a contained program's reference to its
     /// container's GLOBAL item) is read once every element has declared (<see cref="SymbolTableWriter.Snapshot"/>).</summary>
-    public static SymbolTableSnapshot Of(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes, ElementBinders binders)
+    /// <param name="names">Declare every name; false declares the program entries alone (all the program map reads).</param>
+    public static SymbolTableSnapshot Of(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes, ElementBinders binders,
+        bool names)
     {
         var into = new SymbolTableWriter();
         var elements = new List<List<(SymbolPosition At, Action Declare)>>();
@@ -26,9 +28,9 @@ internal static class SymbolTableFinish
             var u = unit;
             elements.Add([(PositionOf(u.DeclaredAt), () => into.Declare(u, NameClass.Program, u.Name, PositionOf(u.DeclaredAt),
                     _ => new ProgramAttributes(u.IsFunction, u.Common, u.Initial, u.Recursive, u.IsPrototype, u.ExternalizedName, u.ClassName))),
-                .. Declarations(into, u.Data, binders.Of(u).Data.Constants)]);
+                .. names ? Declarations(into, u.Data, binders.Of(u).Data.Constants) : []]);
         }
-        foreach (var cls in classes)
+        foreach (var cls in names ? classes : [])
         {
             elements.Add(Declarations(into, cls.Data, binders.ObjectOf(cls).Data.Constants));
             elements.Add(Declarations(into, cls.FactoryData, binders.FactoryOf(cls).Data.Constants));

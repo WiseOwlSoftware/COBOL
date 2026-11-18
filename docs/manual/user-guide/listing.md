@@ -107,11 +107,14 @@ access mode and record descriptions.
 
 ```text
     ID   LINE  LVL KIND   NAME                           OFFSET LENGTH  BYTES  USAGE           PICTURE
-     3     13  01  data   REC                                 0     19     19
-     4     14  05  data     A                                 0      3      3  DISPLAY         X(3)
-                                .NET A : string
-     5     15  05  data     T                                 3      4     12
-                                OCCURS 3  INDEXED BY #6  .NET T : _T_9[]
+     1      5      const  K                                   -      -      -
+                            AS 5
+     2      6  01  data   REC                                 0     19     19
+                            .NET REC : _T_0
+     3      7  05  data     A                                 0      3      3  DISPLAY         X(3)
+                              .NET A : string
+     4      8  05  data     T                                 3      4     12
+                              OCCURS 3  INDEXED BY #5  .NET T : _T_2[]
 ```
 
 With the data map, the source section prints the same offset, length and usage in the margin of each line that declares a

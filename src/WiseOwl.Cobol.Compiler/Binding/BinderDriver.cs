@@ -285,7 +285,7 @@ internal sealed class BinderDriver
         // everything below reads the bound model, and the binders stay with the session.
         var interfaceData = session.Binders.Freeze(units, classes);
         // The finished symbol table, before the file connectors are renamed for the run unit (DESIGN-listing.md section 6.7.1).
-        if (edition.RecordsSymbols) Symbols = SymbolTableFinish.Of(units, classes, session.Binders);
+        if (edition.RecordsSymbols) Symbols = SymbolTableFinish.Of(units, classes, session.Binders, edition.RecordsNames);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a

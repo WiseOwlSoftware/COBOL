@@ -305,6 +305,7 @@ public static class CompilerDriver
             ClientWritten = options.ClientWritten,
             // DESIGN-listing.md section 9: the bind finishes the symbol table only for a listing that reads it.
             RecordsSymbols = listing is not null && WiseOwl.Cobol.Listing.Building.ListingFacts.ReadsSymbols(listing.Request),
+            RecordsNames = listing is not null && WiseOwl.Cobol.Listing.Building.ListingFacts.ReadsNames(listing.Request),
         };
         // ⛔ The >>COBOL-WORDS directive's SR3/SR4 verdict (COBOL1623, ISO §2023:7.3.10.3) is judged HERE, on the directive stage's map
         // and before the frontend gate: it needs no parse tree, so a program that also fails to parse reports it beside the parse

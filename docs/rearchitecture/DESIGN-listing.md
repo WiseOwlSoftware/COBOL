@@ -804,6 +804,11 @@ the connector's native field.
   entry; a file on its SELECT entry (`FileModel.EntryAt`).
 - **The program a name belongs to is placed, not carried.** A data map entry's `Program` is the innermost program of the listing
   line its declaration stands on (`ListingLine.Program`), so the snapshot carries no unit and no name is compared.
+- **What is finished, and when.** `EditionContext.RecordsSymbols` (the driver sets it through `ListingFacts.ReadsSymbols`: the
+  program map or the data map asked for) finishes the program entries; `EditionContext.RecordsNames` (`ListingFacts.ReadsNames`:
+  the data map) every other name. The standard listing holds the program map and not the data map, so it finishes only the
+  program entries: the first benchmark run, which finished every name for it, put the standard listing of SM201A at +12.6 %
+  over no listing on a full compile, over its 10 % budget (section 9).
 - **Text.** `DataMapText.Rows`: a row per entry (id, line, level, kind, the name indented under its owner, offset, length, bytes,
   usage, picture), the rest on a row under it (`DataMapText.Details`), then the file map. The margin (section 6.2) is
   `ListingMargin(Item, Offset, Length, Usage)`, made once by `LineAnnotationBuilder.MarkMargins` for each line that declares a

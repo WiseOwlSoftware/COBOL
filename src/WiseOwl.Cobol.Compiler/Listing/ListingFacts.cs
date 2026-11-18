@@ -72,6 +72,10 @@ internal sealed class ListingFacts(ListingRequest request, CompilationInputs inp
     public static bool ReadsSymbols(ListingRequest request) =>
         request.Sections.Contains(ListingSection.DataMap) || request.Sections.Contains(ListingSection.Programs);
 
+    /// <summary>Whether a section the listing holds reads every declared name of the symbol table, not only its program entries:
+    /// the data map (DESIGN-listing.md section 9).</summary>
+    public static bool ReadsNames(ListingRequest request) => request.Sections.Contains(ListingSection.DataMap);
+
     /// <summary>The front end's listed pass, or null while no source text has been read.</summary>
     public FrontendFacts? Frontend { get; private set; }
 
