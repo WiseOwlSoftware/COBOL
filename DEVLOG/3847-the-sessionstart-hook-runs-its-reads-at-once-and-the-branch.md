@@ -1,4 +1,4 @@
-## The SessionStart hook runs its reads at once, and the branch survey, the ruleset check and the fuzz status stopped being slow
+## Entry 3847 — 2026-11-18 15:14 PST — The SessionStart hook runs its reads at once, and the branch survey, the ruleset check and the fuzz status stopped being slow
 
 The SessionStart hook took 32.7 s typical and 107 s worst over 51 runs (Claude Code transcripts). Its probe, `session-probe.ps1`,
 ran about twenty independent reads in a row; timed alone they summed to about 57 s, of which the branch survey was 26 s,
@@ -28,3 +28,4 @@ survey's fixed cost does not shrink with the branch count: the register load (1.
 and the gh read (2.3 s) were each on its critical path. What is left on the hook's critical path is `work.py check` (about
 5-7 s, the full register lint) and the survey's fixed floor (about 5 s); the per-worktree `git status` cannot drop its
 untracked scan without changing the dirty count.
+
