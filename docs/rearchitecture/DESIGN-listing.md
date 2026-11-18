@@ -3,6 +3,8 @@
 > **Status: DESIGN, APPROVED BY THE CODEBASE OWNER (Claude, CLAUDE.md "Ownership"; decision kb/Work PB5925). NOT YET BUILT.**
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
+> Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `WrittenNames.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
+> the owner's order of 2026-11-18 (build the full listing support) in section 11.
 > Work register: kb/Work PB5923 (the 1985 requirement, closed by step 1 of section 11), PB5925 (the decision this design
 > carries out), PB5924 (the 1985 catalog rows the listing makes testable).
 > Inputs: `E:/COBOL-coord/scratch/my-20261115/listing-survey/listing-requirements.md` (every listing rule of every
@@ -51,7 +53,7 @@ The bar is IBM Enterprise COBOL's listing in every section, plus what no competi
 
 | # | Rule | 2002 | 2014 | 2023 | How this design meets it |
 |---|---|---|---|---|---|
-| L-1 | Listings outside the standard's scope: "The form and content of listings produced during compilation, if any"; so are (2023) "The form or content of error, flagging, or warning messages" | §2002:1 | §2014:1 | §2023:1 | The form is ours; this document is its definition |
+| L-1 | Listings outside the standard's scope: "The form and content of listings produced during compilation, if any"; so are "The form or content of error, flagging, or warning messages" (the same text in all three editions) | §2002:1 | §2014:1 | §2023:1 | The form is ours; this document is its definition |
 | L-2 | "Whether the compiler produces a source listing is implementor defined" | §2002:7.2.15.2 GR1 | §2014:7.3.16.2 GR1 | §2023:7.3.18.3 GR1 | Produced on request (`--listing`); documented in DOC-A.1-117 |
 | L-3 | Annex item: "Listings (whether and when produced by the compiler, effect of logical conversion). This item is required" (2002 item 90, 2014 item 106, 2023 item 117) | §2002:B.1 | §2014:A.1 | §2023:A.1 | DOC-A.1-117 rewritten (section 12) |
 | L-4 | Logical conversion: "The implementor shall define the effect on the source listing, if any, of logical conversion" | §2002:6.4 | §2014:6.5 | §2023:6.5 | The listing shows the physical lines (before conversion); continuation lines are listed as written; DOC-A.1-117 says so |
@@ -61,7 +63,7 @@ The bar is IBM Enterprise COBOL's listing in every section, plus what no competi
 | L-8 | After COPY, "the LISTING directive that is in effect for the COPY statement itself is considered to be in effect" | §2002:7.1.2.3 GR5 | §2014:7.2.2.3 GR5 | §2023:7.2.3.4 GR5 | The visibility pass restores the state at the end of each inclusion |
 | L-9 | The NOTE: "It is recommended that the implementor provide a listing of the original compilation group" (2023: "The implementor can provide a listing of the original compilation group") | §2002:7.2.15 | §2014:7.3.16 | §2023:7.3.18.1 | The source section IS the original compilation group; the manipulated text is shown as annotations |
 | L-10 | "The default LISTING directive is '>>LISTING ON'" | §2002:7.2.15.2 GR2 | §2014:7.3.16.2 GR2 | §2023:7.3.18.3 GR2 | Visibility starts ON |
-| L-11 | "Each LISTING directive shall be listed, even if the listing is being suppressed" (2023 adds "by a LISTING directive") | §2002:7.2.15.2 GR3 | §2014:7.3.16.2 GR3 | §2023:7.3.18.3 GR3 | A LISTING directive line is always listed |
+| L-11 | "Each LISTING directive shall be listed, even if the listing is being suppressed by a LISTING directive" (the same text in all three editions) | §2002:7.2.15.2 GR3 | §2014:7.3.16.2 GR3 | §2023:7.3.18.3 GR3 | A LISTING directive line is always listed |
 | L-12 | OFF: "source lines shall not be listed until a LISTING directive specifying or implying the ON phrase is encountered"; ON: "source lines shall be listed until either a LISTING OFF directive is encountered" or the end | §2002:7.2.15.2 GR4, GR5 | §2014:7.3.16.2 GR4, GR5 | §2023:7.3.18.3 GR4, GR5 | The visibility pass |
 | L-13 | "a PAGE directive shall cause page ejection followed by listing of the PAGE directive" | §2002:7.2.16.3 GR2 | §2014:7.3.17.3 GR2 | §2023:7.3.19.4 GR2 | `PageBreakBefore` on a listed PAGE line |
 | L-14 | "If a source listing is not being produced, a PAGE directive shall have no effect" | §2002:7.2.16.3 GR3 | §2014:7.3.17.3 GR3 | §2023:7.3.19.4 GR3 | No listing: the PAGE event is recorded only into `TextStageTrace.None`, which drops it |
@@ -74,8 +76,8 @@ at GAP: `2002-FMT-7.2.15.1`, `2002-FMT-7.2.16.1` (the LISTING and PAGE formats),
 `2002-GR-7.2.15.2-2`, `-3`, `-4`, `-5`, `2002-GR-7.2.16.3-2`, `2002-RV-15.80.2-3`, `2002-DOC-B.1-90` and
 `2002-DOC-B.1-165` (`2002-GR-7.2.15.2-1` and `2002-GR-7.2.16.3-1`, `-3` are OK). Step 4b (section 11) builds the
 behaviour they need and adjudicates all twelve. 2014 has no inventory (no rule catalog), so its rules are met by the
-same code and witnessed by `Listing2014Tests`, with no rows to close. **2002 work is frozen until 1985 completes (owner
-order, 2026-11-15)**: steps 4a and 4b are planned here and start only after it.
+same code and witnessed by `Listing2014Tests`, with no rows to close. Steps 4a and 4b are built in order with the rest
+(section 11; owner order 2026-11-18).
 
 2002 removed DATE-COMPILED ("AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, and SECURITY paragraphs", §2002:F.1), so
 its replacement happens at `--std 85` only; at a later edition the paragraph is already refused (COBOL0902) unless
@@ -114,7 +116,7 @@ The design names the structures each part reads. Every claim is from the tree at
 | Program units | `BoundUnit.Name`, `ExternalizedName`, `ClassName`, `Parent`, `Children`, `Initial`, `Common`, `Recursive`, `IsFunction`, `IsPrototype`, `SourcePosition` (src/WiseOwl.Cobol.Compiler/Binding/Model/BoundUnit.cs); only after a successful bind |
 | Data items | `DataItem.Level`, `CobolName`, `ClrName`, `StructName`, `Pic`, `PictureText`, `Occurs`, `OccursSpec`, `RedefinesTarget`, `Renames`, `Storage` (`StorageForm`: `NativeInt`, `NativeFloat`, `CharImage`, ...), `DeclaredAt`, `Indexes`, `Own88s`; roots in `DataBindResult.Forest` (`ForestSlice.Roots`) |
 | Offsets and lengths | `RecordLayout.OffsetInRootWithEveryIndexOne`, `RecordLayout.FirstOccurrenceOffsetOf`, `RecordLayout.OccupiedBytes`, `ItemLength.Positions` |
-| Data references of a statement | `BoundReferences.Of` returns `Reach` (the `Place`s a bound statement references, in source order) and a `Place` carries NO source position; `BoundStores.StoreKindOf(BoundStatement, DataItem)` answers per ITEM per statement (`StoreKind.Write`, `ReadWrite`, `WriteInPart`), not per occurrence; the one funnel every data reference passes, `ReferenceResolver.ResolveImpl`, already positions the diagnostic cursor at the reference's first token (`data.Edition.At(dref)`, kb/Work PB4383) and records nothing |
+| Data references of a statement | `BoundReferences.Of` returns `Reach` (the `Place`s a bound statement references, in source order) and a `Place` carries NO source position; `BoundStores.StoreKindOf(BoundStatement, DataItem)` answers per ITEM per statement (`StoreKind.Write`, `ReadWrite`, `WriteInPart`), not per occurrence; a written name reaches its symbol along many paths (section 6.7.2), none of which records the use: `ReferenceResolver.ResolveImpl` is one of them, not a funnel every reference passes |
 | Statement position | `BoundStatement.At` (a resultant `DiagnosticCursor`, stamped by `StatementBinder.BindStatement`) |
 | Emitted C# | `CodeWriter.Line` (src/WiseOwl.Cobol.Compiler/CodeGen/CodeWriter.cs) writes it; `StatementEmitter.EmitStatement` is the one statement funnel; no `#line` directive and no PDB is emitted; the text is written to `<out>.g.cs` by `RoslynBackend.Emit` |
 | The compile timestamp | `IntrinsicBinder.CompileClock` (the clock seam), read through `CompilationInputs.ReadCompilationTime`, captured lazily once per emit in `ProgramEmitter._whenCompiledStamp` and baked as WHEN-COMPILED's constant (`IntrinsicRenderer`); `CompilationInputs.ReadsCompilationTime` records that the output depends on it. CURRENT-DATE reads the run-time clock (`WiseOwl.Cobol.Runtime.IO.Clock`), not the compile timestamp |
@@ -496,29 +498,101 @@ internal sealed record ReferenceOccurrence(
     DiagnosticCursor Statement);     // the BoundStatement.At of the statement it is written in
 ```
 
-- **Data references.** `ReferenceResolver.ResolveImpl`, the one funnel every data reference passes (it already
-  positions the cursor at `dref`'s first token, kb/Work PB4383), appends an occurrence for each non-probe resolution to
-  the statement's `ReferenceLedger` (on `ProcedureBindState`), with `At` and `Length` from `dref`. The ledger keys the
-  occurrence on the `Place` INSTANCE the resolver returns; to make that instance unique by construction,
-  `ResolveImpl` returns `place with { }` when the instance is already in the ledger. A record copy is a new reference
-  and EQUAL by value, so every value comparison of places elsewhere is unchanged.
+- **ONE recording point: the identification of a written name, `WrittenNames.Identify` (round 2, R2-1).** A reference
+  has many resolve paths (section 6.7.2 lists every one at 3834a948b3), so the occurrence is NOT recorded on any of
+  them. It is recorded at the one step every path must take before it has a symbol: turning a name the programmer wrote
+  into the data item, condition-name, index-name, procedure or file it denotes. Today that step is spread over
+  `ReferenceResolver.Identify`, `NameResolution.FindItem`, `FindReportedItem`, `ResolveQualified`, `ResolveUnqualified`,
+  `ResolveIndexName`, `SymbolTable.TryResolve`, `TryResolveUnqualified`, `TryResolveCondition`,
+  `ConditionBinder.ConditionOf`, `ProcedureTableBuilder.ResolveProcedureWord` and `StatementValidation.ResolveFileWord`.
+  Step 7 converges it:
+  - A new class `src/WiseOwl.Cobol.Compiler/Binding/WrittenNames.cs` owns the one public entry,
+    `WrittenNames.Identify(ParserRuleContext written, NameClass wanted, bool report) -> IdentifiedName`, where
+    `written` is the reference as the parser read it (a `dataReference`, `procedureName`, `fileName` or index-name
+    token) and `NameClass` says which classes the position admits.
+  - The §2023:8.4.2.2 lookups move INTO it and become `private`: the `NameResolution` lookups above, the `SymbolTable`
+    queries (which only `WrittenNames` and the data division's declaration checks may call: `SymbolTable` becomes a
+    member of `WrittenNames` and the declaration checks reach it through `WrittenNames.Declarations`, a lookup that
+    records nothing because a declaration is not a use), `ConditionOf`'s lookup, `ResolveProcedureWord` and
+    `ResolveFileWord`. No code outside `WrittenNames` can then look up a written name; a new resolve path has no way to a
+    symbol except `Identify`, so it is recorded by construction (rule 5). That is a compile-time property, not a
+    convention.
+  - `Identify` appends the `ReferenceOccurrence` (position and length from `written`, the symbol) to the statement's
+    `ReferenceLedger` when `report` is true and the name identified one symbol; a probe (`ReferenceResolver.Probe`,
+    `ProbeDeclaration`, `DescribesOwnItem`) passes `report: false` and records nothing, as it reports nothing today.
+  - `IdentifiedName` is a sealed record whose constructor is private to `WrittenNames`; it carries the occurrence id.
+    Every builder of a place for a written reference takes it: `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` and
+    `PlaceBuilder.WholeTable(IdentifiedName, ...)`, which link the place INSTANCE they return to the occurrence
+    (returning `place with { }` when the instance is already linked: a new reference, equal by value, so value
+    comparisons of places elsewhere are unchanged). The overloads that take a bare `DataItem` stay for places nobody
+    wrote (compiler temporaries, implicit operands, connector stores) and link nothing.
 - **Store kind.** `BoundStores`' exhaustive visitor gains one query, `BoundStores.StorePositionsOf(BoundStatement)`,
-  that returns `(Place, StoreKind)` for each store position, the place being the instance the bound node holds (the
-  visitor's `TargetHit`, `IntoHit`, `ReceiversHit` and `ConnectorHit` already see it). `StatementBinder.BindStatement`,
-  the one statement funnel, classifies the statement's ledger when the statement is bound: an occurrence whose instance
-  stands at a store position (found by walking from the stored place inward through the places it wraps, to the first
-  instance the ledger holds) takes that position's kind; every other occurrence is `Read`. A subscript or
-  reference-modifier operand is its own `ResolveImpl` call, so it is its own occurrence and is `Read`.
-- **Procedure and file references.** `ProcedureTableBuilder.ResolveProcedureOperand` and `StatementValidation.ResolveFile`
-  append occurrences with the operand context's position and the transfer kind or verb.
+  that returns `(Place, StoreKind)` for each store position the statement's WRITTEN operands occupy, the place being the
+  instance the bound node holds: `TargetHit`, `IntoHit` and `ReceiversHit` see those. `ConnectorHit` does not
+  contribute: the places it sees are built by a file connector's callback from a `FileModel` (the record area, FILE
+  STATUS, RELATIVE KEY, DEPENDING ON), not references written at the statement, so they belong to no occurrence. A
+  statement that stores into a whole table with no place (`BoundTableSort.Storage`) reports the table item as
+  `ReadWrite`, matched to the statement's occurrence of that table. `StatementBinder.BindStatement`, the one statement
+  funnel, classifies the statement's ledger when the statement is bound: an occurrence whose linked place instance stands
+  at a store position (found by walking from the stored place inward through the places it wraps, to the first instance
+  linked to an occurrence) takes that position's kind; every other occurrence is `Read`. A subscript or
+  reference-modifier operand is its own `Identify`, so it is its own occurrence and is `Read`.
+- **Procedure, file and index references** are recorded by the same `Identify` (classes `Procedure`, `File`, `Index`);
+  the occurrence carries the transfer kind (PERFORM, GO TO, ALTER, USE, SORT procedure) or the verb, which the statement
+  funnel sets from the bound statement as it classifies data uses.
 - **Where the result lives.** The classified occurrences of a unit are `BoundUnit.References`, read by
   `CrossReferenceBuilder` (the cross-reference section and the JSON), and by `LineAnnotationBuilder` (`ListingLine.Names`
   for the HTML links, `ListingLine.Margin` for the text margin). Nothing else derives a reference's position or use.
 - **Cost.** Recorded only when the listing asks for the cross-reference: `EditionContext.RecordsReferences` gates the
   ledger and the `with { }` copy, so a compilation without it allocates nothing more.
-- **Guards.** `ReferenceOccurrenceDriftTests`: every store position of every statement of a corpus (the conformance
-  programs) pairs with exactly one occurrence, which fails the day a binder rebuilds a resolved place by value; the
-  two examples above, with expected lines, columns and uses written from the source text.
+- **Guards (`tests/WiseOwl.Cobol.Tests.Conformance/Listing/ReferenceOccurrenceDriftTests.cs`).**
+  - *Completeness, independent of path:* `EveryWrittenReferenceIsRecorded` binds every conformance-suite program that
+    binds clean, enumerates from the PARSE TREE every `dataReference`, `procedureName`, `fileName` and index-name operand
+    of every procedure-division statement, and asserts EXACTLY one occurrence at each one's first-token position. A resolve path
+    that reaches a symbol without `Identify` (impossible by construction, so this guards the construction) or a
+    position recorded wrongly is red here whatever the path.
+  - *One planted program per path of section 6.7.2*, each with its expected line, column, symbol and use written from
+    the source text: `MOVE`/`ADD` through `Resolve`; `SET COND-88 TO TRUE` and a condition-name in an IF through
+    `ResolveForItem`; `SET P TO ADDRESS OF X` through `ResolveForAddressOf`; `SORT TBL`, `SEARCH TBL`, `INITIALIZE TBL`
+    and a SORT key through `ResolveTableOperand` and `PlaceBuilder.WholeTable`; `FUNCTION MAX(T(ALL))` through the
+    intrinsic table argument and the former `ResolveByName`; an index-name in `SET IX UP BY 1`; a `PERFORM P THRU Q`;
+    a `READ F`.
+  - *Pairing:* every store position `StorePositionsOf` reports for a written operand pairs with exactly one occurrence
+    (fails the day a binder rebuilds a linked place by value); `ADD WS-A` / `TO WS-B` on two lines and
+    `MOVE WS-X (WS-X) TO WS-X` give the lines, columns and uses written from the source.
+
+#### 6.7.2 Every resolve path today, and where each converges
+
+Found at 3834a948b3 by a Roslyn `SymbolFinder` sweep (the roslyn-analysis skill's `sweep-symbol.cs` over
+`WiseOwl.Cobol.sln`: every reference to each member, bound by the semantic model). The LSP server had not indexed the
+worktree, and the sweep's workspace could not load `WiseOwl.Cobol.Runtime` (no restore in the worktree), which no
+binder member is declared in; every caller below is in `WiseOwl.Cobol.Compiler`. Grep was used only to choose the
+members to sweep. "Converges" says what step 7 makes of each caller.
+
+| Lookup or entry (today) | Its callers | Converges |
+|---|---|---|
+| `ReferenceResolver.Resolve` / `ResolveImpl` -> `ResolveImplCore` -> `ReferenceResolver.Identify` | `ExpressionBinder.FieldOperand`, `RefExpr`, `ResolveSending`, `ResolveReceiving`; `ObjectPropertyResolver.ResolveObjectProperty`, `ViewOfQualifiedItem`; `ProcedureTableBuilder.ReportUnresolvedDebugOperand`; `ReferenceResolver.CapacityRegisterFor` | `Identify` moves into `WrittenNames`; `ResolveImplCore` calls it |
+| `ReferenceResolver.ResolveForItem` (a condition-name's conditional variable) | `ConditionBinder.AnalyzeBareOperand`, `SetBinder.BindSetCondition` | the condition-name was identified by `ConditionBinder.ConditionOf` (next row), which records the use; `ResolveForItem` takes its `IdentifiedName` |
+| `ConditionBinder.ConditionOf` | `ConditionBinder.AnalyzeBareOperand`, `ReportMisqualifiedCondition`; `SetBinder.BindSetCondition`; `SetAlterBinder.SwitchCondOf`; `SearchAllFormat2Rules.CheckConditionNameSide` | becomes `WrittenNames.Identify(dref, NameClass.Condition, ...)` |
+| `ReferenceResolver.ResolveForAddressOf` -> `Identify` | `PtrBinder.PtrBindAddressOf` | through `Identify` already; keeps it |
+| `ReferenceResolver.ResolveTableOperand` -> `NameResolution.FindReportedItem` | `SortBinder.SortBindTable`, `SortBinder.SortAddFileKeys`, `StatementValidation.ResolveSearchTable` | `Identify(dref, NameClass.TableOperand, ...)`; `FindReportedItem` is deleted |
+| `PlaceBuilder.WholeTable` (place of a whole table, after the table operand was identified) | `InitializeBinder.BindInitializeTarget`, `SearchBinder.WrittenTable`, `SortBinder.SortBindTable` | takes the `IdentifiedName` (links the place) |
+| `NameResolution.FindReportedItem` | `IntrinsicBinder.TryBindAllArgument`, `ReferenceResolver.ResolveTableOperand` | deleted; both through `Identify` |
+| `ReferenceResolver.ResolveByName` -> `NameResolution.FindItem` | `IntrinsicBinder.TryBindAllArgument` | replaced by `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` on the name `TryBindAllArgument` already identified |
+| `NameResolution.FindItem` | `ConstantEntryBinder.LengthOperandItem`, `ReportLengthOperand`; `DataBinder.ReportEntryLocation`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `ReferenceResolver.ProbeDeclaration`, `ResolveByName`; `NameResolution.FindReportedItem` | private to `WrittenNames`; the data-division callers (a CONSTANT LENGTH OF operand, a BASED claim) call `Identify` and record a data-division use |
+| `NameResolution.ResolveQualified` / `ResolveUnqualified` | `ReferenceResolver.Identify`; `NameResolution.FindItem`, `DeclarationOf`; `SubscriptBinder.ResolveSubscriptName`, `CannotBeSubscripted`; `ObjectPropertyResolver.ViewSubjectChain`, `IsObjectPropertyReference`; `CounterResolver.SumCounterFamilyFor` | private to `WrittenNames`; `ResolveSubscriptName` (a subscript naming a data item) and `SumCounterFamilyFor` call `Identify`; the two object-property predicates and `CannotBeSubscripted` are probes (`report: false`) |
+| `NameResolution.ResolveIndexName` | `ExpressionBinder.IndexFieldOf`; `SubscriptBinder.SubscriptNamesIndex`, `ResolveSubscriptName`; `SearchAllFormat2Rules.CheckKeySubscript` | `Identify(..., NameClass.Index, ...)` |
+| `SymbolTable.TryResolve` | `DataBinder.ResolveClauseOperand`, `QualifiedCandidates`, `NonDataDeclarationOf`; `InspectBinder.BindPhraseOperands`; `IntrinsicBinder.TypeNameArgument`, `KeywordWordOf`, `KeywordOmittedFunction`; `PtrBinder.PtrResolveBased`; `SortBinder.SortBindTable`; `SubscriptBinder.IsFunctionBearing`; `StatementValidation.RejectProcedureName`; `NameResolution.ReportUnidentified`, `DeclarationOf`; `SymbolTable.TryResolveUnqualified`, `TryResolveCondition` | a member of `WrittenNames`: `DataBinder.ResolveClauseOperand` (a clause operand such as DEPENDING ON) and `InspectBinder.BindPhraseOperands` call `Identify`; the declaration-uniqueness checks (`NonDataDeclarationOf`, `QualifiedCandidates`) call `WrittenNames.Declarations`, which records nothing; the word-class probes (`KeywordWordOf`, `KeywordOmittedFunction`, `TypeNameArgument`, `IsFunctionBearing`, `RejectProcedureName`) pass `report: false` |
+| `SymbolTable.TryResolveUnqualified` | `NameResolution.ResolveUnqualified`; `InitializeBinder.BindInitializeTarget`; `IntrinsicBinder.FunctionPointerItemNamed`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `SymbolTable.NearestDeclaringData` | as above: the two binders call `Identify` |
+| `SymbolTable.TryResolveCondition` | `DataBinder.QualifiedConditionCandidates`, `ConditionsUnderQualifiers`; `ConditionBinder.ReportMisqualifiedCondition`; `SearchAllFormat2Rules.CheckKeySide`, `CheckConditionNameSide` | through `Identify(..., NameClass.Condition, ...)`, or `Declarations` for the data-division checks |
+| `SymbolTable.IndexCandidates` | `NameResolution.ResolveIndexName`; `DataBinder.NonConditionDeclarationsOf`; `IndexNameRegistry.Candidates`; `FlagConformancePass.FlagIndexSet` | `ResolveIndexName`'s lookup inside `Identify`; `FlagIndexSet` reads the occurrences instead of looking up again |
+| `ProcedureTableBuilder.ResolveProcedureWord` | `ProcedureTableBuilder.Resolve`, `ResolveDebugProcedure`, `ReportUnresolvedDebugOperand` | `Identify(..., NameClass.Procedure, ...)` |
+| `StatementValidation.ResolveFileWord` | `StatementValidation.ResolveFile` | `Identify(..., NameClass.File, ...)` |
+| Probes: `ReferenceResolver.Probe`, `ProbeDeclaration`, `DescribesOwnItem` | 39 references outside `ReferenceResolver` (31 to `Probe`, 8 to `ProbeDeclaration`), in `ArithmeticBinder`, `CallBinder`, `ConditionBinder`, `EvaluateBinder`, `OoBinder`, `SetBinder`, `SetFormatSelection`, `UdfBinder`, `ParameterConformance`, `SearchAllFormat2Rules`, `StatementValidation`, `StatementBinder`, `ProcedureTableBuilder`, `MessagingBinder`, `SubscriptBinder`, `FlagConformancePass` | through `Identify` with `report: false`: they classify before the real resolution, and the real resolution records |
+
+The probes are why the recording is gated on `report`, not on reaching `Identify`: a statement that probes an operand
+and then resolves it would otherwise record it twice. The completeness guard of section 6.7.1 counts occurrences per
+written position, so a double record is red as surely as a missing one.
 
 ### 6.8 Statistics and verb counts
 
@@ -679,9 +753,10 @@ section 2.2) take these tests as witnesses in the records change of each step.
 
 ## 11. Implementation plan
 
-Each step lands on its own and leaves the compiler correct. Step 1 is the 1985 minimum, so PB5923 closes first. **Steps 2
-to 9 start only after the 1985 work is complete (owner order, 2026-11-15: 1985 first, every other body of work frozen);
-step 4b is 2002 and 2014 work and is planned here for that reason, not started.**
+**The owner ordered, 2026-11-18 (about 00:30 PST): "build the full listing support".** Every step below, 4b included, is
+built now, in the order written, and each step lands on main before the next one branches, so each builds on the
+landed model and none merges against a sibling. Each step lands on its own and leaves the compiler correct. Step 1 is
+the 1985 minimum, so PB5923 closes first.
 
 **Step 1 - the 1985 standard minimum (closes PB5923).**
 - Create `src/WiseOwl.Cobol.Listing/` (`WiseOwl.Cobol.Listing.csproj`, `ListingDocument.cs` with the header, files,
@@ -739,7 +814,7 @@ the records; `Diagnostic` gains the resultant line; `ListingDiagnostic`, inline 
 derivations that rest on "no listing" (`DRV-GR-7.3.18.3-2..5`, `DRV-GR-7.3.19.4-2`, `DRV-GR-7.2.3.4-4/-5`) are retired and
 witnessed by `Listing2023Tests`. The code is edition-neutral: the same trace and visibility rules serve 2002 and 2014.
 
-**Step 4b - 2002 and 2014 (2002 work: after 1985 completes).** `tests/WiseOwl.Cobol.Tests.Conformance/Listing/Listing2002Tests.cs`
+**Step 4b - 2002 and 2014.** `tests/WiseOwl.Cobol.Tests.Conformance/Listing/Listing2002Tests.cs`
 and `Listing2014Tests.cs` (section 10 item 2), each citing its own edition's rules (memory rule: each edition stands on
 its own text); the records change adjudicates the twelve 2002 rows of section 2.2 (`2002-FMT-7.2.15.1`,
 `2002-FMT-7.2.16.1`, `2002-GR-7.1.2.3-4`, `-5`, `2002-GR-7.2.15.2-2` to `-5`, `2002-GR-7.2.16.3-2`, `2002-RV-15.80.2-3`,
@@ -754,8 +829,10 @@ emitter's type-name function; `LineAnnotationBuilder` with `ListingLine.Margin` 
 benchmark row.
 
 **Step 7 - cross-reference and the reference occurrences.** The missing fact first (section 6.7.1):
-`ReferenceOccurrence`, the `ReferenceLedger` on `ProcedureBindState`, recorded in `ReferenceResolver.ResolveImpl`,
-`ProcedureTableBuilder.ResolveProcedureOperand` and `StatementValidation.ResolveFile`, classified by
+first the convergence: `src/WiseOwl.Cobol.Compiler/Binding/WrittenNames.cs` with `WrittenNames.Identify`, the lookups of
+section 6.7.2's paths moved into it and made private, each path rerouted through it, and `PlaceBuilder.PlaceForItem` /
+`PlaceBuilder.WholeTable` taking `IdentifiedName`. Then `ReferenceOccurrence` and the `ReferenceLedger` on `ProcedureBindState`,
+recorded only in `WrittenNames.Identify`, classified by
 `StatementBinder.BindStatement` through the new `BoundStores.StorePositionsOf`, kept on `BoundUnit.References`, gated by
 `EditionContext.RecordsReferences`, guarded by `ReferenceOccurrenceDriftTests`. Then `CrossReferenceBuilder`, the
 PERFORM and CALL graphs, and `LineAnnotationBuilder`'s `ListingLine.Names` and statement-line `Margin`; the `All` row.

@@ -45,3 +45,11 @@ Fourth, the 2002 and 2014 rules were missing. They are now in the table, every q
 2002 rows planned in step 4b, after 1985. The leads: the driver's listing hook no longer depends on its ten return
 points; a failed parse lists the pass whose diagnostics it reports; the margin and the links are computed once, into
 the model; step 1 now enters the new assembly in the architecture census and the R2 subsystem table.
+**Round 2, and the owner's order.** The second review found that `ReferenceResolver.ResolveImpl` is one of many resolve
+paths, not the one funnel. The ruling was to stop listing record sites. The design now records each occurrence at the
+one step every path must take: identifying a written name. That step moves into `WrittenNames.Identify` and every
+lookup becomes private to it, so a new resolve path has no way to reach a symbol without being recorded. A test that
+enumerates the written references from the parse tree proves it, and one planted program per path backs the test up.
+A Roslyn `SymbolFinder` sweep listed the paths, because the LSP server had not indexed this worktree. Rows L-1 and L-11
+cite all three editions, which share the same text. On 2026-11-18 the owner ordered "build the full listing support",
+so every step, 4b included, is built now, in order, each landed before the next branches.
