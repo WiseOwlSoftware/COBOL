@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 7a - every name slot of the grammar carries a classifying label
+## Entry 3846 — 2026-11-18 14:41 PST — PB5925: the source listing, step 7a - every name slot of the grammar carries a classifying label
 
 Step 7 of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5925; the owner's order of 2026-11-18 to build the full listing)
 is the cross-reference: every use of every name, classified defined, read, written or modified. Its occurrences are recorded by
@@ -34,3 +34,4 @@ are 452 slots. DESIGN-frontend-grammar.md section 3.17 states the convention for
 **Leads filed.** kb/Work PB5925's `2026-11-18-grammar-text-readers` (about fifty other tests read the grammar's text with
 readers of their own) and `2026-11-18-resolution-dependent-slots` (four slot kinds, such as `FUNCTION f`, whose class step 7b's
 oracle must decide by what the word resolved to).
+
