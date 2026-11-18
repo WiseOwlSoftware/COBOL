@@ -79,7 +79,7 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(start =>
         {
             var state = new State(start.Compilation.GetTypeByMetadataName(EditionInfoName),
-                InternalsReachAnotherProduct(start.Compilation.Assembly));
+                InternalsReachAnotherProduct(start.Compilation.Assembly), OursIn(start.Compilation));
             start.RegisterSemanticModelAction(sm => state.Collect(sm.SemanticModel, sm.CancellationToken));
             start.RegisterCompilationEndAction(state.Report);
         });
@@ -92,9 +92,15 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         (symbol is IMethodSymbol { ReducedFrom: { } reduced } ? reduced : symbol).OriginalDefinition;
 
     /// <summary>The members a member stands for in a read through a base: the members it overrides and the interface members it
-    /// implements (kb/Work PB4950 round 11, R10-4). A read of <c>IRule.Old</c> or of an abstract <c>Old</c> runs whatever implements it,
-    /// so it is derived when an implementation in the compilation is.</summary>
-    private static IEnumerable<ISymbol> Bases(ISymbol member)
+    /// implements (kb/Work PB4950 round 11, R10-4), each declared in one of OUR assemblies (<paramref name="ours"/>). A read of
+    /// <c>IRule.Old</c> or of an abstract <c>Old</c> runs whatever implements it, so it is derived when an implementation in the
+    /// compilation is. ⛔ Never a member of the framework or of a third party (round 12, R11-1): one edition-derived override of
+    /// <c>object.GetHashCode</c>, or one implementation of <c>IReadOnlyCollection&lt;T&gt;.Count</c>, would make every unrelated read
+    /// of that member in the compilation an edition question.</summary>
+    private static IEnumerable<ISymbol> Bases(ISymbol member, Func<IAssemblySymbol?, bool> ours) =>
+        AllBases(member).Where(b => ours(b.ContainingAssembly));
+
+    private static IEnumerable<ISymbol> AllBases(ISymbol member)
     {
         for (ISymbol? s = member switch { IMethodSymbol m => m.OverriddenMethod, IPropertySymbol p => p.OverriddenProperty, _ => null };
              s is not null; s = s switch { IMethodSymbol m => m.OverriddenMethod, IPropertySymbol p => p.OverriddenProperty, _ => null })
@@ -111,6 +117,21 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
             if (type.FindImplementationForInterfaceMember(contract) is { } implementation
                 && SymbolEqualityComparer.Default.Equals(Normalize(implementation), member))
                 yield return Normalize(contract);
+    }
+
+    /// <summary>OUR assemblies, the ones a derivation may climb into (kb/Work PB4950 round 12, R11-1): this compilation's, and every
+    /// referenced assembly that can carry the cross-assembly mark, because it declares <c>EditionDerivedAttribute</c> or references an
+    /// assembly that does. Derivation crosses an assembly only by that mark, so an assembly that cannot name it (the framework, a
+    /// third-party package) holds nothing to derive. It is read from the compilation's references, never from a list of names.</summary>
+    private static Func<IAssemblySymbol?, bool> OursIn(Compilation compilation)
+    {
+        var marking = new HashSet<IAssemblySymbol>(SymbolEqualityComparer.Default);
+        foreach (var assembly in compilation.SourceModule.ReferencedAssemblySymbols.Append(compilation.Assembly))
+            if (assembly.TypeNames.Contains(AttributeName))
+                marking.Add(assembly);
+        return assembly => assembly is not null
+            && (SymbolEqualityComparer.Default.Equals(assembly, compilation.Assembly) || marking.Contains(assembly)
+                || assembly.Modules.Any(m => m.ReferencedAssemblySymbols.Any(marking.Contains)));
     }
 
     /// <summary>A declaration that can carry an edition-derived value: what it declares, what its bodies read, and whether they compare
@@ -133,7 +154,7 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         public bool DerivedOnly { get; } = derivedOnly;
     }
 
-    private sealed class State(INamedTypeSymbol? editionInfo, bool internalsReachAnotherProduct)
+    private sealed class State(INamedTypeSymbol? editionInfo, bool internalsReachAnotherProduct, Func<IAssemblySymbol?, bool> ours)
     {
         private readonly HashSet<string> _seedNames = SeedNames(editionInfo);
         private readonly ConcurrentBag<Declaration> _declarations = [];
@@ -287,7 +308,7 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
             bool Add(ISymbol s)
             {
                 bool added = derived.Add(s);
-                foreach (var b in Bases(s))   // a read through the base member is a read of this one
+                foreach (var b in Bases(s, ours))   // a read through the base member is a read of this one
                     added |= derived.Add(b);
                 return added;
             }

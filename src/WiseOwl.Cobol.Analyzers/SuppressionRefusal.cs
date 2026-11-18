@@ -14,8 +14,10 @@ namespace WiseOwl.Cobol.Analyzers;
 /// assembly-level suppression (two planted tests proved both). So the refusal is not a diagnostic of the analyzer. This generator
 /// writes a <c>#error</c> into the compilation for each such attribute, and a <c>#error</c> is a compiler ERROR (CS1029), which no
 /// suppression, pragma or NoWarn can reach.
-/// <para>The attribute is bound, so its spelling (the full name, a <c>using</c> alias, the short name) does not matter, and each argument
-/// is read as the compiler folds it, so an id held in a constant or built by concatenation is seen.</para></summary>
+/// <para>The attribute is bound, so its spelling (the full name, a <c>using</c> alias, the short name) does not matter, and its checkId (the second
+/// positional argument, or the one named checkId, the only argument that names what a suppression silences) is read as the compiler
+/// folds it, so an id held in a constant or built by concatenation is seen. An id in a Justification, Scope, Target or MessageId silences
+/// nothing and is not refused.</para></summary>
 [Generator(LanguageNames.CSharp)]
 public sealed class SuppressionRefusal : IIncrementalGenerator
 {
@@ -50,14 +52,19 @@ public sealed class SuppressionRefusal : IIncrementalGenerator
             || !SuppressionAttributes.Contains(constructor.ContainingType.ToDisplayString())
             || attribute.ArgumentList is null)
             return null;
-        foreach (var argument in attribute.ArgumentList.Arguments)
-            if (model.GetConstantValue(argument.Expression, cancel) is { HasValue: true, Value: string text } && RuleIdIn(text) is { } rule)
-            {
-                var at = attribute.GetLocation().GetLineSpan();
-                return $"{Id}: the {constructor.ContainingType.Name} at {at.Path.Replace('\\', '/')}:{at.StartLinePosition.Line + 1} names "
-                    + $"'{rule}', a rule of the one-decider analyzer, which takes no exception; write the message through EditionInfo.Cite "
-                    + "(kb/Work PB4950, docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a)";
-            }
+        // The checkId alone names the rule a suppression silences (round 12, R11-2): the second positional argument, or the one named
+        // checkId; a Justification, Scope, Target or MessageId that mentions an id silences nothing.
+        var positional = attribute.ArgumentList.Arguments.Where(a => a.NameEquals is null).ToList();
+        var checkId = positional.FirstOrDefault(a => a.NameColon?.Name.Identifier.ValueText == "checkId")
+            ?? (positional.Count > 1 && positional[1].NameColon is null ? positional[1] : null);
+        if (checkId is not null
+            && model.GetConstantValue(checkId.Expression, cancel) is { HasValue: true, Value: string text } && RuleIdIn(text) is { } rule)
+        {
+            var at = attribute.GetLocation().GetLineSpan();
+            return $"{Id}: the {constructor.ContainingType.Name} at {at.Path.Replace('\\', '/')}:{at.StartLinePosition.Line + 1} names "
+                + $"'{rule}', a rule of the one-decider analyzer, which takes no exception; write the message through EditionInfo.Cite "
+                + "(kb/Work PB4950, docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a)";
+        }
         return null;
     }
 

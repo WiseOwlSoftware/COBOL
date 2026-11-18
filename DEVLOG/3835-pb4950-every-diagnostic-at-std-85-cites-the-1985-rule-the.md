@@ -23,11 +23,12 @@ asks it, `EditionCitationNet`, was laid as a ratchet of 298 codes and 1638 diagn
 - **The analyzer misses no tree, no project, no alias and no build, and cannot be silenced.**
   - It reads generated files (the ANTLR parser, the `*.Table.cs` files) like any other.
   - It compares every symbol as the member it stands for, an extension method or a member of a generic type included. A read
-    through an interface, abstract or virtual member is derived from its implementations.
+    through an interface, abstract or virtual member is derived from its implementations, but only up to members of our own
+    assemblies, never a framework member such as `object.GetHashCode` or `IReadOnlyCollection<T>.Count`.
   - `AnalyzerWiringDriftTests` has MSBuild evaluate every src project in Debug and Release. Every project but the analyzer
     itself, which is named by its path, must load the analyzer and must leave analyzers on.
   - Both rules are `NotConfigurable`, so NoWarn, a lowered severity, `.editorconfig`, `.globalconfig` and `#pragma` cannot turn
-    them off. A `[SuppressMessage]` naming a rule fails the build with a `#error` (WOCA0003) that the analyzers' generator writes.
+    them off. A `[SuppressMessage]` whose checkId names a rule fails the build with a `#error` (WOCA0003) that the analyzers' generator writes.
     A compiler error is the one refusal no suppression attribute can reach: an analyzer diagnostic refusing the attribute was
     silenced by a suppression of its own id.
   - The analyzer is built under one configuration per build. Every reference names its configuration, and a nested build such

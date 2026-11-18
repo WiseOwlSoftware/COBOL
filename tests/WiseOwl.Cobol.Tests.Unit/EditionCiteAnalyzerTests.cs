@@ -164,6 +164,18 @@ public sealed class EditionCiteAnalyzerTests
             Refusals(source).Select(r => r.Split(" names ")[0].Split(" at ")[1]).Order(StringComparer.Ordinal));
     }
 
+    /// <summary>Only the checkId names what a suppression silences (kb/Work PB4950 round 12, R11-2): a WOCA id that a Justification, a
+    /// MessageId, a Scope or a Target mentions, on a suppression of another rule, is not refused.</summary>
+    [Fact]
+    public void AnIdOutsideTheCheckId_IsNotRefused()
+    {
+        Assert.Empty(Refusals("using System.Diagnostics.CodeAnalysis;\nclass C\n{\n"
+            + "    [SuppressMessage(\"Style\", \"IDE0001\", Justification = \"not WOCA0001, which still applies\", MessageId = \"WOCA0002\")]\n"
+            + "    int A() => 1;\n}\n"));
+        Assert.Single(Refusals("using System.Diagnostics.CodeAnalysis;\nclass C\n{\n"
+            + "    [SuppressMessage(checkId: \"WOCA0001\", category: \"WiseOwl.Editions\")]\n    int A() => 1;\n}\n"));
+    }
+
     /// <summary>A suppression that names no rule of the analyzer is no concern of it.</summary>
     [Fact]
     public void ASuppressionOfAnotherRule_IsNotRefused() =>
@@ -206,6 +218,34 @@ public sealed class EditionCiteAnalyzerTests
             "planted.cs:6: WOCA0001 conditional expression", "planted.cs:7: WOCA0001 conditional expression",
             "planted.cs:8: WOCA0001 conditional expression", "planted.cs:9: WOCA0001 conditional expression",
         ], Analyze([], ("EditionInfo.cs", Decider), ("planted.cs", planted)));
+    }
+
+    /// <summary>⛔ NEVER UP INTO THE FRAMEWORK (kb/Work PB4950 round 12, R11-1): an edition-derived override of <c>object.GetHashCode</c>
+    /// and an edition-derived implementation of <c>IReadOnlyCollection&lt;T&gt;.Count</c> do not make those framework members edition
+    /// questions, so an unrelated read of them chooses nothing by edition.</summary>
+    [Fact]
+    public void ADerivedOverrideOfAFrameworkMember_LeavesTheFrameworkMemberAlone()
+    {
+        const string planted = """
+            using System.Collections;
+            using System.Collections.Generic;
+            using WiseOwl.Cobol.Editions;
+            sealed class Keyed { EditionInfo E = EditionInfo.Of(85); public override int GetHashCode() => E.Year < 2002 ? 1 : 2; public override bool Equals(object? o) => false; }
+            sealed class Rows : IReadOnlyCollection<string>
+            {
+                EditionInfo E = EditionInfo.Of(85);
+                public int Count => E.Year < 2002 ? 1 : 2;
+                public IEnumerator<string> GetEnumerator() => new List<string>().GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class C
+            {
+                string Names(IReadOnlyCollection<string> names) => names.Count == 1 ? "name" : "names";
+                string List(List<string> names) => names.Count == 1 ? "name" : "names";
+                string Hash(object o) => o.GetHashCode() == 1 ? "one" : "other";
+            }
+            """;
+        Assert.Empty(Analyze([], ("EditionInfo.cs", Decider), ("planted.cs", planted)));
     }
 
     /// <summary>⛔ A READ THROUGH A BASE MEMBER (kb/Work PB4950 round 11, R10-4): an interface member, or an abstract or virtual one, is

@@ -3,7 +3,7 @@
   <!--
     WiseOwl.Cobol.Analyzers — the repository's own Roslyn DIAGNOSTIC ANALYZERS, run by the C# compiler over the REAL
     compilation of every src/ product project at build time (src/Directory.Build.props references this project as an
-    analyzer from each src project that is not itself a Roslyn component). A rule that judges the product's C# belongs
+    analyzer from every src project but this one, which is named by its path, never by a property a project can set on itself). A rule that judges the product's C# belongs
     here, not in a test that rebuilds the compilation by hand: a hand-built copy drifts from the build each time the build
     changes (kb/Work PB4950 round 7: project paths, then a new project, then the SDK's System.Text.Json generator).
 
