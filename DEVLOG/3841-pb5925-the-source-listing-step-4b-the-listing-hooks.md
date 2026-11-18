@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 4b - the listing hooks witnessed at 2002 and 2014, each by its own text
+## Entry 3841 — 2026-11-18 07:46 PST — PB5925: the source listing, step 4b - the listing hooks witnessed at 2002 and 2014, each by its own text
 
 Step 4b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5925; the owner's order of 2026-11-18 to build the full
 listing). The 2002 and 2014 texts were read in their own transcriptions, and every rule they hold for the listing is the
@@ -30,3 +30,4 @@ PB5930, holding the two. Their determinations are written anyway: DOC-A.1-117 an
 
 Docs: DESIGN-listing.md (status, section 2.2, section 9, section 10 item 2, section 11, each "(step 4b)"), the user guide's
 listing chapter (the 2002 and 2014 sections, WHEN-COMPILED at every edition), DOC_INDEX and DESIGN.md section 0.5.
+
