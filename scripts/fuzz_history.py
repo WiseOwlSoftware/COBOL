@@ -759,8 +759,47 @@ def extract_main(dest: pathlib.Path, paths: tuple[str, ...] = MAIN_EXTRACT, repo
         archive.extractall(dest, filter="data")
 
 
-def main_verdict(repo: pathlib.Path = REPO) -> dict:
-    """`verify` run by origin/main's own fuzz_history.py over origin/main's own content."""
+#: The verdict, kept by what it is a function of, in the clone's git directory (never the tree): `status` runs at every
+#: session start and, unkept, spent 4-6 s of it re-extracting a main that had not moved (kb/Work PB5939).
+VERDICT_CACHE = "fuzz-ledger-verdict.json"
+
+
+def main_state(repo: pathlib.Path = REPO) -> tuple[str, pathlib.Path] | None:
+    """(the key, the file) the verdict is kept under: the object ids of everything MAIN_EXTRACT holds on origin/main, and
+    the interpreter that runs the verify. None when git cannot name them (no origin/main yet): then nothing is kept."""
+    ids = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-common-dir", *(f"{MAIN_REF}:{p}" for p in MAIN_EXTRACT)],
+                         capture_output=True, text=True, encoding="utf-8")
+    lines = ids.stdout.split()
+    if ids.returncode or len(lines) != len(MAIN_EXTRACT) + 1:
+        return None
+    git_dir = pathlib.Path(lines[0])
+    return " ".join([sys.version, *lines[1:]]), (git_dir if git_dir.is_absolute() else pathlib.Path(repo) / git_dir) / VERDICT_CACHE
+
+
+def main_verdict(repo: pathlib.Path = REPO, compute=None) -> dict:
+    """The verdict of `compute` (default extract_verdict), kept while origin/main's content and the interpreter are the
+    same: the verdict is a pure function of them. An unreadable or stale file is recomputed; an error verdict is kept nowhere."""
+    compute = compute or extract_verdict
+    state = main_state(repo)
+    if state:
+        key, file = state
+        try:
+            kept = json.loads(file.read_text(encoding="utf-8"))
+            if kept.get("key") == key and isinstance(kept.get("verdict"), dict):
+                return kept["verdict"]
+        except (OSError, ValueError):
+            pass
+    verdict = compute(repo)
+    if state and "error" not in verdict:
+        try:
+            file.write_text(json.dumps({"key": key, "verdict": verdict}), encoding="utf-8", newline="\n")
+        except OSError:
+            pass
+    return verdict
+
+
+def extract_verdict(repo: pathlib.Path = REPO) -> dict:
+    """`verify` run by origin/main's own fuzz_history.py over origin/main's own content (an extract of it, ~4 s)."""
     with tempfile.TemporaryDirectory(prefix="fuzz-ledger-main-") as tmp:
         extract_main(pathlib.Path(tmp), repo=repo)
         script = pathlib.Path(tmp) / "scripts" / "fuzz_history.py"

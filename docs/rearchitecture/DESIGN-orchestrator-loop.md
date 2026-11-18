@@ -103,7 +103,7 @@ every coordination tool, never an assumption:
   is in the turn-1 request of every agent and re-read on every turn of every session, so it holds only the anchors, the
   START HERE lines (`start-session.ps1` restarts read them) and the standing rules, under 6,000 chars; each dated
   decision, resume note and lane handoff is one line in `project_history_index.md`. `account.py --memory-index` prints
-  the size (exit 1 over the cap) and `session-probe.ps1` shows it at every start, because a cap nobody sees drifts back.
+  the size (exit 1 over the cap) and `session_probe.py` shows it at every start, because a cap nobody sees drifts back.
 - **Telemetry is per MACHINE.** Every account's user settings export to the one sink (`otlp_sink.py`, 127.0.0.1:4318,
   `~\.claude\telemetry`), and each `api_request` event names its account in `user.account_uuid`. A consumer that needs
   one account's spend filters on it (`budget.py`, `usage_report.py --account-uuid`).
@@ -898,7 +898,7 @@ and the repository.
   - `code`: the ceiling of BOTH scans: every whole-word `COBOL\d{4}` in `src/**/*.cs` (outside `bin`/`obj`; the
     parser's series COBOL0001-COBOL0313 shares the prefix and sits below every other code, kb/Work PB3575) and every
     quoted `"COBOL\d{4}"` in `src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs`. This is the rule
-    `session-probe.ps1` used to compute itself; it now calls `alloc.py peek code --probe` and prints that line, so
+    `session_probe.py` used to compute itself; it now calls `alloc.py peek code --probe` and prints that line, so
     the rule exists once;
   - `wave`: the highest wave OR train number in use (`alloc.wave_top`): in a report's name in the reports directory
     (`coord.REPORT_NAME`; a hand dispatch's report included), in the dispatch ledger (`coord.ledger_groups`) or in the
@@ -1574,7 +1574,7 @@ backspace; `operator-session.json` was invalid JSON with unescaped backslashes).
   messages (count, oldest, any question, approval, task or needs_owner), and whether a `mailbox.py watch --inbox <lane>`
   process is descended from THIS session's Claude Code process (`coord.process_table`, one kernel snapshot on Windows,
   about 0.1 s; a watcher another session armed wakes that session, so it does not count). With none, the line is a ⛔
-  that names the command to arm. The line is printed by `session-probe.ps1`, which the SessionStart hook runs at every
+  that names the command to arm. The line is printed by `session_probe.py`, which the SessionStart hook runs at every
   start, resume, clear and compaction; by `list`; and by `done` whenever no watcher is armed. A firing `watch` prints
   the re-arm command as it exits.
 - **A turn does not end without the watcher (kb/Work PB3387).** A watcher exits each time it fires, so a session that
@@ -2086,7 +2086,7 @@ command), `.claude/skills/workstream/references/landing.md` and `units/enqueue.m
 | `land_lane.py` (stays, the lane) | The tick: survey, decide, launch, reap; the runner; `main` | `HERE`, `tick`, `launch`, `reap`, `run_attempt`, `LaneError`, `main` |
 
 Importers re-pointed: `next_unit.py` and `orchestrate.ps1`'s `land_lane.py status`/`tick`/`rearm` calls (the CLI is
-unchanged), `session-probe.ps1` and `enqueue.py` (`view` → `lane_status`), `progress.py`, `self_test_arms.py`'s
+unchanged), `session_probe.py` and `enqueue.py` (`view` → `lane_status`), `progress.py`, `self_test_arms.py`'s
 `DECLARED` and `WIRING` entries for the lane (case names after PB5434; the supervisor's `'land_lane.py'` start it reads is
 unchanged), `landing_rules.py` (`merge_conflicts(`, `outcome_files(` → `conflict_brief.py`), and `review_lane.py`
 (section 4.9.1), which uses `update`, `attempt_order`, `attempts`, `by_branch`, `view`, `finished`, `loop_stop`,
@@ -2347,7 +2347,7 @@ until they are re-keyed), and its BARE check reads a source file's own sections 
 `cloud-adjudicate-brief.md` with the render command, the issue template, `DOC_INDEX.md`, the plan's section 15 exit
 criterion and `DESIGN-test-build-ci.md` section 3.17.4); README.md's three links and its tree listing name the directory.
 The imperative sweep's other hits are citations of the statement (`documented in docs/CONFORMANCE.md §7`), which do not
-move; `wf_lane3_adjudicate.js` names the statement only to be read, and `session-probe.ps1` renders the view at every
+move; `wf_lane3_adjudicate.js` names the statement only to be read, and `session_probe.py` renders the view at every
 session start. The conformance arm is `audit_code_citations.conformance_findings` (kind `CONFORMANCE`, over PHANTOM's
 population, against `conformance_sections` and `Conformance.keys`), GREEN with no baseline. Two decisions the burn-down
 left to it: an anchor followed at once by `<` or `{` is a TEMPLATE (`#DOC-A.1-<n>`), never a citation (the anchor is

@@ -181,7 +181,7 @@ import re
 import subprocess
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import TYPE_CHECKING, Callable, Iterable
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
@@ -402,6 +402,9 @@ def replay_view(ranked: dict[str, int], unlanded: Iterable[str], abandoned: set[
                    lambda b: ranked.get(b, -1), graph)
 
 
+#: The threads the survey's subprocess reads share (a `git status` per worktree, merge-tree and diff-tree per branch):
+#: the machine's cores, since each thread waits on a git process.
+SURVEY_WORKERS = min(32, os.cpu_count() or 8)
 #: The remote-tracking refs of origin's branches (`git fetch` keeps them current).
 ORIGIN_REFS = 'refs/remotes/origin/'
 #: The branches of origin that are no one's work: its default branch, and the merge queue's own merge-group branches.
@@ -934,7 +937,7 @@ def in_flight_slugs(coord_dir: pathlib.Path | None, terminal: Callable[[str], bo
 def live_survey(repo=REPO, *, coord_dir: pathlib.Path | None = None, reports_dir: pathlib.Path | None = None,
                 terminal: Callable[[str], bool] | None = None, min_age: int = 180, stale_hours: float = 24,
                 live: Callable[[str | None], bool] = live_lock, gh=None,
-                prs: dict[str, PullRequest] | None | object = UNREAD) -> list[Row]:
+                prs: dict[str, PullRequest] | None | object = UNREAD, fetching: Future | None = None) -> list[Row]:
     """THE lifecycle as every production reader takes it: this module's main, the landing lane (land_lane.survey) and
     the planner's file-set partition (plan_wave.main) all call this, never `survey` with arguments of their own, so
     each reads the fix-lane reports, the dispatch ledger's in-flight slugs and the OPEN PULL REQUESTS the same way. A
@@ -944,24 +947,37 @@ def live_survey(repo=REPO, *, coord_dir: pathlib.Path | None = None, reports_dir
     queue_facts.read on this pass (the landing lane's tick, whose queue watch reads the same facts; None when that read
     was not observed), else (UNREAD) read here. The caller fetches origin first when it needs a current main.
     A note's landed-or-retired status is read from `repo`'s own register (kb/Work PB5227): the landing lane's tick of
-    another checkout (`land_lane.py tick --repo`) read THIS script's checkout's register instead."""
-    terminal = terminal or note_terminal(pathlib.Path(repo) / 'kb' / 'Work')
-    rdir = reports_dir or coord.reports_dir(str(coord_dir) if coord_dir else None)
-    return survey(repo, reports=report_index(rdir, terminal), slugs=in_flight_slugs(coord_dir, terminal, rdir),
-                  chains=chain_records(coord_dir, terminal),
-                  min_age=min_age, stale_hours=stale_hours, live=live, coord_dir=coord_dir,
-                  prs=queue_facts.read(gh) if prs is UNREAD else prs)
+    another checkout (`land_lane.py tick --repo`) read THIS script's checkout's register instead.
+    `fetching`: the caller's `git fetch` of origin still running (main starts it first): the register, the reports and the
+    ledger are read while it runs, and it is awaited before the survey reads a ref (kb/Work PB5939)."""
+    with ThreadPoolExecutor(max_workers=1) as reader:   # the `gh` round trip (~2 s) starts first and overlaps everything below
+        pulls = reader.submit(queue_facts.read, gh) if prs is UNREAD else prs
+        terminal = terminal or note_terminal(pathlib.Path(repo) / 'kb' / 'Work')
+        rdir = reports_dir or coord.reports_dir(str(coord_dir) if coord_dir else None)
+        reports = report_index(rdir, terminal)
+        slugs, chains = in_flight_slugs(coord_dir, terminal, rdir), chain_records(coord_dir, terminal)
+        if fetching:
+            fetching.result()
+        return survey(repo, reports=reports, slugs=slugs, chains=chains,
+                      min_age=min_age, stale_hours=stale_hours, live=live, coord_dir=coord_dir, prs=pulls)
 
 
-def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[IndexedReport] = (),
+def survey(repo=REPO, *, prs: dict[str, PullRequest] | None | Future, reports: list[IndexedReport] = (),
            slugs: set[str] = frozenset(), min_age: int = 180, stale_hours: float = 24,
            live: Callable[[str | None], bool] = live_lock, coord_dir: pathlib.Path | None = None,
            chains: Iterable[ChainRecord] = ()) -> list[Row]:
     """Every local branch but main, every branch of origin (Row.origin, kb/Work PB3413) and every detached worktree, measured and given its lifecycle state. `prs`:
     {branch: its open pull request into main} (queue_facts.read), or None when GitHub was not observed (the git-only
     lifecycle); REQUIRED so no caller reads a git-only lifecycle by omission; production readers call live_survey, and
-    a self-test passes its own (None is an explicit offline, {} an observed "no pull request is open")."""
-    names = main_names(repo)
+    a self-test passes its own (None is an explicit offline, {} an observed "no pull request is open"). A `prs` that is a
+    Future (live_survey's read, running beside this survey's git work) is awaited where the lifecycle first needs it.
+
+    THE SLOW READS RUN CONCURRENTLY (the SessionStart hook runs this survey, kb/Work PB5939): every worktree's `git status`
+    (~1 s each on a 48,000-file tree, 80 trees), the `git grep` of main's names and the pull-request read start at once
+    on one pool of SURVEY_WORKERS threads, each result is taken where a row first needs it, and the per-row coverage
+    checks (merge-tree, diff-tree) run on the pool too instead of one after another."""
+    pool = ThreadPoolExecutor(max_workers=SURVEY_WORKERS)
+    names_read = pool.submit(main_names, repo)
     trees = worktrees(repo)
     by_branch = {t.branch: t for t in trees if t.branch}
     common = pathlib.Path(git('rev-parse', '--git-common-dir', cwd=repo).stdout.strip())
@@ -992,6 +1008,8 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
             remote_rows[f'origin/{b}'] = (b, tip, last, when)   # origin moved on past (or away from) the local tip
     reports = list(reports)
     detached = [t for t in trees if not t.branch]
+    dirty_read = {t.path: pool.submit(uncommitted, t.path) for t in trees if t.branch in refs or not t.branch}
+    names = names_read.result()
     # every other name a row asks the graph about, resolved in the same single process as a batch
     graph.names(*{x for r in reports for x in (r.head, r.review.sha if r.review else None) if x},
                 *{t.head for t in detached if t.head})
@@ -1004,7 +1022,7 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
         dirty = 0
         if t:
             stamps += [worktree_git_dir(t.path) / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md']
-            dirty = uncommitted(t.path)
+            dirty = dirty_read[t.path].result()
         return Row(b, kind, absent, lost, len(graph.beyond(tip)), t.path if t else None, t.lock if t else None, dirty,
                    age_minutes(*stamps), last, newest_report(reports, b, t.path if t else None), how=how, tip=tip,
                    on_main_line=kind == 'MERGED' and graph.on_base_line(tip))
@@ -1017,7 +1035,7 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
             shown[sha] = rest
 
     def measure_detached(t: Tree) -> Row:
-        dirty = uncommitted(t.path)
+        dirty = dirty_read[t.path].result()
         last = shown.get(graph.sha(t.head) or '', '') if t.head else '?'
         return Row(f'(detached) {pathlib.PurePath(t.path).name}', 'DETACHED', [], [], 0, t.path, t.lock, dirty,
                    age_minutes(worktree_git_dir(t.path) / 'logs' / 'HEAD', pathlib.Path(t.path) / 'STATUS.md'), last)
@@ -1033,18 +1051,29 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Index
         return Row(name, kind, absent, lost, len(graph.beyond(tip)), None, None, 0, max(0.0, (time.time() - when) / 60),
                    last, None, how=how, tip=tip, on_main_line=kind == 'MERGED' and graph.on_base_line(tip), origin=ref)
 
-    with ThreadPoolExecutor(max_workers=16) as pool:   # subprocess-bound: ~1-3 s a branch, 35 s for 29 one by one
-        rows = (list(pool.map(measure, refs)) + list(pool.map(measure_detached, detached))
-                + list(pool.map(measure_origin, remote_rows)))
+    # subprocess-bound (~1-3 s a branch, 35 s for 29 one by one): measured on the pool the statuses already run on
+    rows = (list(pool.map(measure, refs)) + list(pool.map(measure_detached, detached))
+            + list(pool.map(measure_origin, remote_rows)))
     import land_lane  # noqa: PLC0415  (scripts/orchestrator: it imports this module back; its attempt reader, never its text)
     lane = land_lane.view(pathlib.Path(coord_dir) if coord_dir else coord.coord_path())
+    prs = prs.result() if isinstance(prs, Future) else prs
     queue_foreseen = foresee_queued(prs, repo)
-    for r in rows:
+
+    def coverage(r: Row) -> None:
+        """The two coverages lifecycle() reads of a row NOT on main (stamp_held, findings_open and the report arm all
+        sit below the LANDED_CONTENT return): a LANDED row's `review_holds` stays False, and its merge-tree and diff-tree
+        reads are never made, which was most of the survey for a repository holding a hundred landed branches."""
+        if r.content in LANDED_CONTENT:
+            return
         rv = r.report.review if r.report else None
         if rv:
             r.review_holds = review_holds(rv, r.tip, repo=repo, graph=graph)
-        if r.content not in LANDED_CONTENT and r.report and r.report.finished and r.report.head and r.tip:
+        if r.report and r.report.finished and r.report.head and r.tip:
             r.report_since = report_since(r.report.head, r.tip, repo=repo, graph=graph)
+
+    list(pool.map(coverage, rows))
+    pool.shutdown()
+    for r in rows:
         r.state, r.why = lifecycle(r, in_flight_slugs=set(slugs), min_age=min_age, stale_hours=stale_hours, live=live,
                                    prs=prs, lane=lane, foreseen=queue_foreseen)
         if r.state == 'BOUNCED' and r.name in queue_foreseen and prs and r.name in prs and prs[r.name].in_queue:
@@ -1599,10 +1628,13 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.self_test:
         return self_test()
-    if not a.no_fetch:
-        fetch_origin()
-    rows = live_survey(reports_dir=a.reports, min_age=a.min_age, stale_hours=a.stale_hours)
-    order = landing_order(rows, note_rank())
+    # The origin fetch (~2.5 s of network) and the landing order's register read (~1.5 s) run beside the survey's own reads
+    # (kb/Work PB5939); nothing in the survey reads a ref until the fetch is done.
+    with ThreadPoolExecutor(max_workers=2) as side:
+        fetching = None if a.no_fetch else side.submit(fetch_origin)
+        ranking = side.submit(note_rank)
+        rows = live_survey(reports_dir=a.reports, min_age=a.min_age, stale_hours=a.stale_hours, fetching=fetching)
+        order = landing_order(rows, ranking.result())
     if a.json:
         print(survey_json(rows, order))
         return 0

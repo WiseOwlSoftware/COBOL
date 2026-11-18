@@ -34,7 +34,7 @@ a PARAMETER of every coordination tool, never an assumption.
   agent turn and every main-thread turn carries (about 4.9K tokens at 19.5K chars). It holds the anchors, the START HERE
   pointers and the standing rules, and stays under `MEMORY_INDEX_CAP_CHARS`: every dated decision, resume note and lane
   handoff is one line in `project_history_index.md` instead. `--memory-index` prints its size and exits 1 over the cap,
-  and `session-probe.ps1` prints that line at every session start, so the drift is seen when it starts.
+  and `session_probe.py` prints that line at every session start, so the drift is seen when it starts.
 - TELEMETRY is per MACHINE, not per account: every account's settings export to the one sink on 127.0.0.1:4318, which
   writes `~/.claude/telemetry/<UTC day>.jsonl` (`otlp_sink.OUT_DIR`). Each `api_request` event carries the account id
   (`usage_report.ACCOUNT_ATTR`, `user.account_uuid`), and a consumer that needs one account's spend filters on it.
