@@ -62,3 +62,21 @@ labels on the grammar. A second drift test counts the ATN's transitions into nam
 A semantic sweep that applies the first test's rules to today's tree found 65 name-keyed tables (31 non-private),
 including the three round 3 named. It also found 194 string-taking members that return binder types. The sweep is
 committed as evidence, not as the guarantee.
+**Round 4.** Three loopholes were closed. First, `WrittenNames.Declarations` returns only `DeclarationFact` values: a
+place in the source, never a symbol, so it cannot stand in for `Identify`. Every use position (RECORD KEY, ASSIGN
+USING, the KEY phrases) resolves through `Identify`. Second, comparing names is now private to `WrittenNames`. A search
+that compares names is a lookup without a table. A sweep by symbol found 124 `CobolNames.Same` calls in the binder, and
+I classified each one by reading it: 68 resolutions, 13 declaration comparisons, and 43 that resolve nothing (fixed
+words, symbol against symbol, externalized names, message wording). Third, the grammar test counts slots per element
+and requires labels to be unique within a rule, so a label reused across alternatives shows up as a missing field. A
+fixture grammar with a reused label, an unlabelled word and an unlabelled `INTEGERLIT` shows the test fails on each.
+**Two owner directions folded into round 4 (2026-11-18).** The first: "It also makes no sense to link to C# code when we
+switch to the IL generation." The listing is now backend-neutral. The COBOL-to-C# map became a map from each COBOL
+statement to its object code, read from the produced assembly and its portable PDB with `System.Reflection.Metadata`.
+Both backends emit sequence points at COBOL statements, which also makes source-level debugging of COBOL a consequence,
+not an open question. The IL listing is an option that is off by default. A drift test keeps Roslyn and C#-emitter types
+out of the listing. The second: "Listing should I think be created from symbol tables plus source code." The design now
+has two primary inputs: the source with its provenance, and `SymbolTable`, grown from today's scope resolver into the one
+store of names. Each entry holds the attributes the listing needs and every occurrence; there is no ledger beside it.
+Every section is a view of the two inputs. The guarantees of rounds 2 to 4 are now the table's invariants, and their
+drift tests are its proofs. The table and its attributes land in step 6 and its occurrences in step 7.

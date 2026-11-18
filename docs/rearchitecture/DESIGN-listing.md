@@ -3,9 +3,12 @@
 > **Status: DESIGN, APPROVED BY THE CODEBASE OWNER (Claude, CLAUDE.md "Ownership"; decision kb/Work PB5925). NOT YET BUILT.**
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
-> Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `WrittenNames.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
+> Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
 > the owner's order of 2026-11-18 (build the full listing support) in section 11.
 > Round 3 (same record): R3-1 and R3-2 in sections 6.7.1 (both halves structural) and 6.7.2 (mechanism, then evidence).
+> Round 4: R4-1 (`DeclarationFact`), R4-2 (name equality private, classified) and R4-3 (per-element slot count, planted fixture) in 6.7.1 and 6.7.2.
+> Owner directions of 2026-11-18, folded into round 4: the listing is backend-neutral (no C#: section 6.9 reads the assembly and its PDB),
+> and it is built from the source plus the symbol table (section 4.1; `SymbolTable` is the one store of names, section 6.7.1).
 > Work register: kb/Work PB5923 (the 1985 requirement, closed by step 1 of section 11), PB5925 (the decision this design
 > carries out), PB5924 (the 1985 catalog rows the listing makes testable).
 > Inputs: `E:/COBOL-coord/scratch/my-20261115/listing-survey/listing-requirements.md` (every listing rule of every
@@ -29,7 +32,7 @@ The bar is IBM Enterprise COBOL's listing in every section, plus what no competi
 | Data map | MAP: offsets, lengths, nested-program map | Every item including INDEXED BY indexes, constants and condition-names: level, offset, length, usage, picture, OCCURS/ODO, REDEFINES/RENAMES, and the .NET field or type the item became |
 | Cross-reference | XREF: defined and referenced lines | Every use classified defined / read / written / modified, for data, procedures, files, programs and copy members; the PERFORM and CALL graph |
 | Verb counts and statistics | VBREF, statistics | Verb counts with every line, lines by kind and by file, diagnostics by severity |
-| Object code | LIST / OFFSET (assembler) | The COBOL statement to emitted C# line map, both directions |
+| Object code | LIST / OFFSET (assembler) | Each COBOL statement's method and IL offset range, read from the produced assembly and its portable PDB, and (on request) its IL: the same for any backend |
 | Machine-readable | SYSADATA (binary records; the text listing "is not a programming interface") | Versioned JSON with a generated schema: the stable programming interface |
 | Standard hooks | EJECT, SKIP, TITLE; others not found | '/' and '*', DATE-COMPILED, `>>LISTING`, `>>PAGE`, `>>DISPLAY` UPON LISTING, COPY SUPPRESS, the effect of logical conversion: all of them |
 
@@ -119,7 +122,7 @@ The design names the structures each part reads. Every claim is from the tree at
 | Offsets and lengths | `RecordLayout.OffsetInRootWithEveryIndexOne`, `RecordLayout.FirstOccurrenceOffsetOf`, `RecordLayout.OccupiedBytes`, `ItemLength.Positions` |
 | Data references of a statement | `BoundReferences.Of` returns `Reach` (the `Place`s a bound statement references, in source order) and a `Place` carries NO source position; `BoundStores.StoreKindOf(BoundStatement, DataItem)` answers per ITEM per statement (`StoreKind.Write`, `ReadWrite`, `WriteInPart`), not per occurrence; a written name reaches its symbol along many paths (section 6.7.2), none of which records the use: `ReferenceResolver.ResolveImpl` is one of them, not a funnel every reference passes |
 | Statement position | `BoundStatement.At` (a resultant `DiagnosticCursor`, stamped by `StatementBinder.BindStatement`) |
-| Emitted C# | `CodeWriter.Line` (src/WiseOwl.Cobol.Compiler/CodeGen/CodeWriter.cs) writes it; `StatementEmitter.EmitStatement` is the one statement funnel; no `#line` directive and no PDB is emitted; the text is written to `<out>.g.cs` by `RoslynBackend.Emit` |
+| The object code | The backend behind the `ICodeGenBackend` seam writes the assembly; today's Roslyn backend (`RoslynBackend.Emit`, `RoslynBackend.Compile`) emits no PDB and no `#line` directive, and DESIGN.md plans a CIL backend behind the same seam. The listing reads neither backend's internals: it reads the produced assembly and its portable PDB (section 6.9) |
 | The compile timestamp | `IntrinsicBinder.CompileClock` (the clock seam), read through `CompilationInputs.ReadCompilationTime`, captured lazily once per emit in `ProgramEmitter._whenCompiledStamp` and baked as WHEN-COMPILED's constant (`IntrinsicRenderer`); `CompilationInputs.ReadsCompilationTime` records that the output depends on it. CURRENT-DATE reads the run-time clock (`WiseOwl.Cobol.Runtime.IO.Clock`), not the compile timestamp |
 | The CLI | `Program.BuildParser` (System.CommandLine options), `CliOptions`, `Program.RunCompile`; the library entry `CompilerDriver.Compile(CompilerDriver.Options)` returns `CompilerDriver.Result` on every outcome |
 
@@ -129,36 +132,65 @@ Four facts the listing needs are missing today and are added by this design:
 2. which INCLUSION a resultant line belongs to: a copybook copied twice has two inclusions whose lines share one file
    and line number (section 4.4; step 1);
 3. structured bind diagnostics (section 6.3; step 3);
-4. the POSITION and STORE KIND of each data, procedure and file reference, per occurrence (section 6.7.1; step 7).
+4. ONE symbol table holding every name with its attributes and its occurrences (position, length, use), which today
+   is spread over dozens of tables and recorded nowhere (section 6.7.1: the store and its attributes in step 6, the
+   occurrences in step 7).
 
 ## 4. The ONE listing model
 
-### 4.1 Shape: every fact is placed by one index
+### 4.1 Shape: the listing is the SOURCE plus the SYMBOL TABLE
 
-Every compiler fact that has a position already has it in RESULTANT space: a token's line, `BoundStatement.At`,
-`DataItem.DeclaredAt`, `EditionContext.Cursor`. The listing turns a resultant position into a listing line through ONE
-index, `ListingLineIndex`, built once from the line map and the inclusion trace. A section is then a list of facts keyed
-by resultant position; the index places each. A new section (or a new fact in an old one) is placed by construction,
-never by a second mapping (rule 5). The model itself never stores a resultant position: it stores listing line numbers
-and physical `(file, line, column)` coordinates, which are what readers and tools use.
+The owner, 2026-11-18: "Listing should I think be created from symbol tables plus source code." The listing model has
+TWO primary inputs, and every section is a view of them:
+
+1. **The source, with its provenance**: every physical line of every file read, each line's kind
+   (`ReferenceFormatMap.KindAt`, section 4.4.1), and the text stages' trace of COPY, REPLACE, conditional compilation,
+   LISTING and PAGE (`TextStageTrace`, section 4.4). It exists as soon as the source is read.
+2. **The symbol table**: the ONE store of the program's names (`SymbolTable`, section 6.7.1). Each entry is one
+   declared name with the attributes the listing needs (for a data item: level, picture, usage, offset, length,
+   OCCURS/ODO, REDEFINES, the native field and its .NET type; for a program: its attributes and its .NET type; ...)
+   and every OCCURRENCE of the name (position, length, use: defined, read, written or modified, and its statement).
+   The binder writes it as it declares and resolves; the listing reads only the FINISHED table, never a binder,
+   emitter or Roslyn type.
+
+Two kinds of fact are PLACED on the source by their source position, not inputs of their own: the diagnostics of every
+phase, and the object-code map read from the assembly's PDB (section 6.9). The options and the compilation timestamp
+are the header.
+
+| Section | View of |
+|---|---|
+| Source (with inline diagnostics, DISPLAY lines) | the source; diagnostics placed by position |
+| Data map, file map | the symbol table's data, index, condition, constant and file entries (attributes) |
+| Cross-reference | the symbol table's entries and their occurrences |
+| Program map | the symbol table's program entries, joined to the source's program ranges |
+| Statistics and verb counts | the source (lines, verbs) and the symbol table (counts of names and uses) |
+| Object-code map | the PDB's sequence points, placed by source position |
+| Options, header | the compilation's options and timestamp |
 
 ```
-Frontend (text stages)            Binder / emitter                     Driver
-  ReferenceFormatMap per file       BoundCompilation (if reached)         CompilerDriver.Options
-  SourceLineMap (resultant->phys)   structured diagnostics                the compilation timestamp
-  TextStageTrace (inclusions,       EmitMap (if reached)
-    replacements, directives)
-  SourceUnitFacts (programs,
-    DATE-COMPILED, verbs)
-            \__________________________|________________________________/
-                                       v
-                         ListingBuilder (WiseOwl.Cobol.Compiler/Listing)
-                           ListingLineIndex  ->  ListingVisibility  ->  sections
-                                       v
-                         ListingDocument (WiseOwl.Cobol.Listing, immutable)
-                            /                 |                  \
-              TextListingRenderer    HtmlListingRenderer    JsonListingWriter
+ SOURCE (text stages, Phase 0-1)                 SYMBOL TABLE (Bind)                 PLACED BY POSITION
+   ReferenceFormatMap per file: text, kinds        SymbolTable entries                  diagnostics (every phase)
+   SourceLineMap: resultant -> physical              attributes (written where the       object-code map (assembly +
+   TextStageTrace: inclusions, replacements,          binder decides them)                 PDB, after the backend)
+     LISTING, PAGE, DISPLAY                          occurrences (written by Identify)
+   SourceUnitFacts: program ranges, verbs,
+     DATE-COMPILED
+                \______________________________________|_____________________________________/
+                                                      v
+                       ListingBuilder (WiseOwl.Cobol.Compiler/Listing): ListingLineIndex places every position,
+                       ListingVisibility decides printed lines and page breaks, one builder per section (a view)
+                                                      v
+                                ListingDocument (WiseOwl.Cobol.Listing, immutable)
+                                 /                    |                    \
+                     TextListingRenderer     HtmlListingRenderer     JsonListingWriter
 ```
+
+**One index places every position.** Every fact that has a position has it in RESULTANT space: a token's line, a
+symbol-table occurrence's position, `BoundStatement.At`, `EditionContext.Cursor`. The listing turns a resultant
+position into a listing line through ONE index, `ListingLineIndex`, built once from the line map and the inclusion
+trace; a sequence point's physical position goes through the same index. A new section is placed by construction,
+never by a second mapping (rule 5). The model itself stores listing line numbers and physical `(file, line, column)`
+coordinates, never a resultant position.
 
 ### 4.2 The assembly: `WiseOwl.Cobol.Listing`
 
@@ -185,7 +217,7 @@ public sealed record ListingDocument(
     ListingStatistics Statistics,
     ListingDataMap? DataMap,                      // null when not requested or not producible
     ListingCrossReference? CrossReference,
-    ListingEmitMap? EmitMap,
+    ListingObjectCodeMap? ObjectCode,             // from the assembly and its PDB (section 6.9)
     IReadOnlyList<ListingSectionStatus> Sections); // each requested section: produced, or why not
 
 public sealed record ListingLine(
@@ -218,7 +250,7 @@ references nothing, so the model declares its own `ListingLineKind` with the sam
 the other in one `switch` that a drift test holds total (a member added to either enum without the other is red).
 
 Every other record (`ListingInclusion`, `ListingProgram`, `ListingDiagnostic`, `ListingDataItem`, `ListingSymbol`,
-`ListingReference`, `ListingEmitRange`, ...) refers to lines by `Number` and to files by id. Section 6 defines each.
+`ListingReference`, `ListingObjectRange`, ...) refers to lines by `Number` and to files by id. Section 6 defines each.
 
 `ListingRequest` (also in this assembly) is the input: `Formats` (flags: Text, Html, Json), `OutputBase` (a path without
 extension, or null for the default), `Sections` (flags), `PageLength`, `PageWidth`. `CompilerDriver.Options.Listing` is a
@@ -234,12 +266,12 @@ extension, or null for the default), `Sections` (flags), `PageLength`, `PageWidt
 | `Line.Replaced` (REPLACE) | `TextStageTrace` replacement events | Text stages | The source was read |
 | `Line.Listed`, `PageBreakBefore` | `ListingVisibility` over the directive events and inclusions | Listing build | Always |
 | `Programs` (names, nesting, ranges), DATE-COMPILED, verb counts | `SourceUnitFacts`, read off the parse tree the parser built, recovered or not | Parse (Phase 1) | The text stages finished |
-| `Programs` (C# class, attributes) | `BoundUnit` | Bind | The bind finished |
+| `Programs` (attributes, the .NET type) | the symbol table's program entries | Bind | The bind finished |
 | `Diagnostics` | Front-end `Diagnostic`s, the binder's structured diagnostics, backend `BackendDiagnostic`s | Every phase | Always (what was reported) |
 | `Displays` | `CompileOutputLine` with destination Listing and its origin | Text stages | The source was read |
-| `DataMap` | `DataBindResult.Forest`, `RecordLayout`, `ItemLength`, `StorageForm` | Bind | The bind finished |
-| `CrossReference`, `Line.Names`, `Line.Margin` | The reference occurrences (section 6.7.1), declarations, the data map | Bind | The bind finished |
-| `EmitMap` | `EmitMap` recorded by `StatementEmitter.EmitStatement` | Emit | The emit ran |
+| `DataMap` | the symbol table snapshot's entries and their attributes (section 6.6) | Bind | The bind finished |
+| `CrossReference`, `Line.Names`, `Line.Margin` | the symbol table snapshot's entries and occurrences (section 6.7.1) | Bind | The bind finished |
+| `ObjectCode` | the produced assembly and its portable PDB, read with `System.Reflection.Metadata` (section 6.9) | After the backend | An assembly was written |
 | `Options`, `Header` | `CompilerDriver.Options`, the compilation timestamp | Driver | Always |
 
 A listing is produced on EVERY outcome once the source text was read: frontend error, bind error, backend error and
@@ -339,9 +371,9 @@ whether a page starts before it. Renderers never re-decide it.
 
 `ListingBuilder.Build(ListingFacts facts, ListingRequest request)` in `src/WiseOwl.Cobol.Compiler/Listing/` is the one
 constructor of a `ListingDocument`. `ListingFacts` is what the driver gathered at the outcome reached (the frontend's
-maps, trace and unit facts; the diagnostics; the bound compilation or null; the emit map or null; the options; the
-timestamp). Each section has one builder class (`SourceSectionBuilder`, `DataMapBuilder`, `CrossReferenceBuilder`,
-`EmitMapBuilder`, ...) that reads only `ListingFacts` and `ListingLineIndex`; no builder class is a god class and no two
+maps, trace and unit facts; the diagnostics; the finished symbol table or null; the path of the produced assembly and
+its PDB or null; the options; the timestamp). Each section has one builder class (`SourceSectionBuilder`, `DataMapBuilder`, `CrossReferenceBuilder`,
+`ObjectCodeMapBuilder`, ...) that reads only `ListingFacts` and `ListingLineIndex`; no builder class is a god class and no two
 build one fact.
 
 The driver gets ONE exit for the listing. `CompilerDriver.Compile` has ten return points today (`CompilerDriver.cs`
@@ -349,7 +381,7 @@ lines 169, 175, 251, 271, 275, 284, 306, 312, 316 and 321 at 16cf618813), and th
 `Compile` becomes a thin wrapper over the existing body (`CompileCore`, the current method with every return point
 unchanged). The body takes a `ListingFacts` collector and DEPOSITS each fact as its phase finishes: the front end's
 listed pass (after `Frontend.Parse`), the diagnostics (as each phase reports), the bound compilation (after
-`BinderDriver.Bind`), the emit map (after `backend.Emit`). The wrapper, when `Options.Listing` is set, builds and writes
+`BinderDriver.Bind`, which hands over the finished symbol table), the assembly and PDB paths (after `backend.Emit`). The wrapper, when `Options.Listing` is set, builds and writes
 the listing from whatever the collector holds and returns the result with `Result.Listing` set and the listing files
 added to `Result.OutputFiles`.
 
@@ -358,8 +390,8 @@ What is listed is decided by the collector's STATE, never by which return was ta
   a path with no directory): no listing;
 - source deposited: a listing, each section present or `NotProducible` with the phase that stopped it. So a front-end
   error lists source and diagnostics; a bind error adds the program names from the parse; `CheckOnly` (a library caller
-  may ask for both) has no emit map ("check-only compile: no code generated"); an expansion's failure (return 306) and a
-  backend error have the bound sections and no emit map; a host that refuses the assembly write (return 321) gets the
+  may ask for both) has no object-code map ("check-only compile: no code generated"); an expansion's failure (return 306) and a
+  backend error have the symbol-table sections and no object-code map; a host that refuses the assembly write (return 321) gets the
   listing written if its own path is writable, and a listing write that fails adds one error to `Result.Errors` without
   changing the outcome.
 
@@ -427,8 +459,10 @@ To do this the binder's diagnostics become structured (step 3): `EditionContext`
 `EditionContext.Diagnostics` / `Warnings` and `CompilerDriver.Result.Errors` / `Warnings` become views rendered from those
 records by the one `Diagnostic.Render`. Front-end diagnostics gain the resultant line where the reporter knows it (the
 parser's token line), so a diagnostic in a twice-copied copybook is anchored in the right inclusion. A backend diagnostic
-(a position in the `.g.cs`) is placed at the COBOL statement the emit map gives for that C# line, or in the summary when
-none does.
+is placed by its COBOL source position like every other (ruling of 2026-11-18: never by a position in generated
+code). The Roslyn backend's `#line` directives (section 6.9) make Roslyn report its own diagnostics at COBOL
+positions, which `RoslynBackend.Neutral` already reads through the mapped span; the CIL backend reports at COBOL
+positions natively. A backend diagnostic with no COBOL position goes to the summary.
 
 ### 6.4 Options
 
@@ -440,30 +474,31 @@ in `OptionsSectionBuilder`; a drift test holds it to every public property of `C
 ### 6.5 Program map (nested programs)
 
 Every program, function, class, factory, object and method: its name, kind, nesting depth, containing program, COMMON /
-INITIAL / RECURSIVE / IS PROTOTYPE, first and last listing line, and, once bound, the C# class it became
-(`BoundUnit.ClassName`) and its externalized name. Names and ranges come from `SourceUnitFacts` (the parse tree, so they
-exist on a failed bind); attributes from the bound units.
+INITIAL / RECURSIVE / IS PROTOTYPE, first and last listing line, and, once bound, its externalized name and the .NET
+type it became. A view of the symbol table's program entries (whose attributes the binder writes from `BoundUnit` when
+it creates them) joined to the source's program ranges (`SourceUnitFacts`, from the parse tree, so names and ranges
+exist on a failed bind).
 
-### 6.6 Data map
+### 6.6 Data map: a view of the symbol table
 
 Every data item of every program, in definition order, including those GnuCOBOL omits (INDEXED BY indexes, level-78 and
-CONSTANT entries, condition-names, level-66 entries, compiler-implicit items marked as such):
+CONSTANT entries, condition-names, level-66 entries, compiler-implicit items marked as such). The data map is a VIEW of
+the symbol table's data, index, condition and constant entries (section 4.1); it does not walk `DataBindResult.Forest`
+or any binder type. Each attribute is written into the entry by the binder at the point it decides it:
 
-| Column | Source |
+| Column | Written into the entry by |
 |---|---|
-| level, name, definition line | `DataItem.Level`, `CobolName`, `DeclaredAt` through the index |
-| section | `DataItem.Section` (`EntrySection`) |
-| offset in its record (first occurrence) | `RecordLayout.OffsetInRootWithEveryIndexOne`; blank for an item with no fixed offset |
-| length (character positions and bytes) | `ItemLength.Positions`, `RecordLayout.OccupiedBytes` |
-| usage, picture, category | `PicInfo`, `DataItem.PictureText` |
-| OCCURS / DEPENDING ON / INDEXED BY | `DataItem.Occurs`, `OccursSpec`, `Indexes` |
-| REDEFINES / RENAMES | `DataItem.RedefinesTarget`, `Renames` |
-| GLOBAL / EXTERNAL / BASED | `HasGlobalClause`, `HasExternalClause`, `IsBased` |
-| the .NET field and its type | `DataItem.ClrName`, `StructName` (the record struct a group became), and `StorageForm` (`NativeInt` -> `long`/`Int128` of n digits, `CharImage` -> character image of width n, `NativeFloat`, `DynamicTable`, `ObjectRef`, `PointerRef`, `TierBWindow` -> a window of a redefinition class) |
+| level, name, definition position | the data division binder when it declares the item (`DataBinder.BindEntry`, from `DataItem.Level`, `CobolName`, `DeclaredAt`) |
+| section | the same (`DataItem.Section`, `EntrySection`) |
+| usage, picture, category | the same, once the picture is settled (`PicInfo`, `DataItem.PictureText`) |
+| OCCURS / DEPENDING ON / INDEXED BY | the same (`DataItem.Occurs`, `OccursSpec`, `Indexes`); the DEPENDING ON object and each index are entries of their own, linked by entry id |
+| REDEFINES / RENAMES | the redefinition and renames passes (`DataItem.RedefinesTarget`, `Renames`), as entry ids |
+| GLOBAL / EXTERNAL / BASED | the declaring binder (`HasGlobalClause`, `HasExternalClause`, `IsBased`) |
+| offset in its record (first occurrence), length in character positions and bytes | the layout step that computes them (`RecordLayout.OffsetInRootWithEveryIndexOne`, `ItemLength.Positions`, `RecordLayout.OccupiedBytes`), once the sizes are final |
+| the native field and its .NET type | the storage-form decision (`StorageForm`, taken in Bind): the field's name (`DataItem.ClrName`, `StructName` for a group's record struct) and the .NET type the decision requires (`NativeInt` -> `long` or `Int128` of n digits, `CharImage` -> a character image of width n, `NativeFloat`, `DynamicTable`, `ObjectRef`, `PointerRef`, `TierBWindow` -> a window of a redefinition class), spelled by ONE function on `StorageForm` that both backends implement against. It is the binder's decision behind the backend-neutral seam, so it names no emitted source and is the same for the Roslyn and the CIL backend |
 
-The rendering of `StorageForm` to a C# type name is one function the emitter and the map share (the emitter's own),
-never a second spelling. Files get a file map: the file-name, organization, access, record keys, the record area and
-the connector's C# field.
+Files get a file map, a view of the file entries: the file-name, organization, access, record keys, the record area and
+the connector's native field.
 
 ### 6.7 Cross-reference
 
@@ -481,61 +516,125 @@ Procedure references carry the transfer kind (PERFORM, GO TO, ALTER, USE, SORT I
 PERFORM graph; CALL references build the call graph; a file reference carries its verb. Sorted by name (Annex C fold of
 the name, `CobolNames.UpperFold`), then by line. A symbol defined and never referenced is flagged.
 
-#### 6.7.1 The missing fact: each reference's position and store kind, per occurrence (step 7)
+#### 6.7.1 The symbol table: the one store of names, its entries, its occurrences, its invariants (steps 6 and 7)
 
 The bound tree cannot answer "where, and how": a `Place` carries no position, `BoundReferences.Of` yields places, and
 `BoundStores.StoreKindOf(BoundStatement, DataItem)` answers once per item. For `ADD WS-A` / `TO WS-B` written on two
 lines both uses would get the statement's line, and in `MOVE WS-X (WS-X) TO WS-X` the three uses of one item would get
-one kind. The fact is recorded where the binder already creates each reference, as ONE structure:
+one kind. And the names themselves live in dozens of tables (section 6.7.2). The design gives the binder ONE symbol
+table, `SymbolTable` (`src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs`: today's scope-aware resolver of that
+name grows into the whole table, and every other name table moves into it), and the listing reads only it:
 
 ```csharp
-// src/WiseOwl.Cobol.Compiler/Binding/Model/ReferenceOccurrence.cs (new)
-internal sealed record ReferenceOccurrence(
-    int Id,
-    ReferenceTarget Target,          // the symbol, one case per NameClass: data item, condition, index, procedure, file,
-                                     //   report, report group, sum counter, CD, configuration name, register, program
+// src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolEntry.cs (new)
+internal sealed class SymbolEntry
+{
+    public required int Id { get; init; }
+    public required NameClass Class { get; init; }   // data, condition, index, procedure, file, report, report group,
+                                                     //   sum counter, CD, configuration name, register, program, ...
+    public required CobolName Name { get; init; }
+    public required DiagnosticCursor DeclaredAt { get; init; }     // resultant position of the declaration
+    public SymbolAttributes Attributes { get; internal set; }      // one record type per class (DataAttributes:
+                                                     //   level, picture, usage, category, section, OCCURS/ODO, REDEFINES,
+                                                     //   RENAMES, GLOBAL/EXTERNAL/BASED, offset, lengths, NativeField),
+                                                     //   written by the binder where it decides each (section 6.6)
+    public IReadOnlyList<SymbolOccurrence> Occurrences { get; }    // appended by Identify only
+}
+
+internal readonly record struct SymbolOccurrence(
     DiagnosticCursor At,             // resultant line and column of the reference's first token
     int Length,                      // characters of the reference as written (qualifiers, subscripts, ref-mod included)
-    ReferenceUse Use,                // Read | Written | Modified for data; the transfer kind or verb otherwise
+    SymbolUse Use,                   // Defined | Read | Written | Modified for data; the transfer kind or verb otherwise
     DiagnosticCursor Statement);     // the BoundStatement.At of the statement it is written in
 ```
 
+The table is the only store of references: there is no ledger beside it. Occurrences go into their entry when
+`Identify` resolves a name; the table also keeps the global append order (an index into the entries' occurrence lists,
+not a copy), so `StatementBinder.BindStatement` holds a MARK where its statement began and classifies exactly the
+occurrences appended since (the store kind, below). When the bind finishes, `BinderDriver.Bind` hands the finished
+table to the listing collector as an immutable snapshot (`SymbolTable.Finish()` -> `SymbolTableSnapshot`, entries and
+occurrences only, no binder type), the one thing the listing's symbol-table views read.
+
+**The table's invariants, and their proofs.** The table is complete, and the listing can trust it, because of the
+guarantees of review rounds 2 to 4. Each is an invariant of the table; each drift test below is its proof:
+
+| Invariant | Proof |
+|---|---|
+| Every name table is the symbol table: no table keyed by a COBOL name exists outside it | `NameTableOwnershipDriftTests` rule (1) |
+| `Identify` is the only way from a written name to a symbol | rules (2) and (3) |
+| A declaration question cannot answer a reference (`DeclarationFact`) | rule (4) |
+| Name equality is the table's alone | rule (5) |
+| Every name the programmer wrote to USE something is one occurrence | `GrammarNameSlotDriftTests` (the slots, from the grammar) and `EveryWrittenReferenceIsRecorded` (each slot, one occurrence) |
+| Each occurrence carries its true store kind | the pairing test (`StorePositionsOf`) |
+
 - **ONE recording point, made structural in both halves (rounds 2 and 3, R2-1, R3-1, R3-2).** A list of resolve paths
   was incomplete twice, so no list is the guarantee. The occurrence is recorded where a written name becomes a symbol,
-  `WrittenNames.Identify`, and two mechanisms, each checked by a drift test that needs no list, make that the only way:
-  - **(a) Every name table is private to `WrittenNames`.** A new class `src/WiseOwl.Cobol.Compiler/Binding/WrittenNames.cs`
+  `SymbolTable.Identify`, and two mechanisms, each checked by a drift test that needs no list, make that the only way:
+  - **(a) Every name table is private to `SymbolTable`.** `src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs`
     OWNS every table keyed by a COBOL name whose value is a symbol, of every name class: data, condition, index,
     procedure (`ProcedureNameMap<T>`), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
     report, report group, report VARYING, sum counter, CD (`CommunicationSlice`), screen, the CONFIGURATION SECTION names
     (alphabet, class, symbolic-character, mnemonic, locale, through `ConfigurationNames<T>`), type and constant names,
     the special registers that are implicitly defined names (CAPACITY, DEBUG-ITEM), the REPOSITORY specifiers and the
-    OO class, interface and method tables. Its one public entry is
-    `WrittenNames.Identify(ParserRuleContext written, NameClass wanted, bool report) -> IdentifiedName`, where `written`
-    is the name as the parser read it and `NameClass` says which classes the position admits; the data division's
-    declaration checks (uniqueness, one type per word) use `WrittenNames.Declarations`, which records nothing because a
-    declaration is not a use. Every other lookup the tables serve today becomes a private member of `WrittenNames`.
+    OO class, interface and method tables. Its one public LOOKUP is
+    `SymbolTable.Identify(ParserRuleContext written, NameClass wanted, bool report) -> IdentifiedName`, where `written`
+    is the name as the parser read it and `NameClass` says which classes the position admits. Every other lookup the
+    tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
+    (`SymbolTable.Declare`, which records the `Defined` occurrence and returns a `SymbolId`, an opaque number, never an
+    entry or a symbol) and write each entry's attributes where they decide them (`SymbolTable.SetAttributes(SymbolId,
+    ...)`, section 6.6); those two and `Identify` are the table's only writers.
+  - **Declarations cannot answer a reference (R4-1).** The data division's declaration questions (does this name exist
+    in this scope, does it conflict with another declaration, where was it declared, is its description still open) go
+    to `SymbolTable.Declarations`, a nested class whose members return only `DeclarationFact` values: a
+    `readonly record struct DeclarationFact(bool Exists, DeclarationConflict Conflict, NameClass Class,
+    SourceLocation DeclaredAt)`. The fact names a place in the source, never a `DataItem`, `FileModel`, `Condition88`
+    or any other symbol, so no caller can turn it into an operand: a reference needs a symbol, and only
+    `Identify` hands one out (inside an `IdentifiedName`). Every position the programmer wrote a name in to USE it
+    goes through `Identify` and records, whatever division it is in: a RECORD KEY or ALTERNATE RECORD KEY name
+    (`FileModel.RecordKeyNameCandidates` today), an ASSIGN USING data-name, a KEY phrase of SORT, MERGE or READ, an
+    OCCURS DEPENDING ON or INDEXED BY operand, a REDEFINES or RENAMES object, a CONSTANT FROM or LENGTH OF operand, and
+    every caller of today's `DataBinder.QualifiedCandidates` (which asks for symbols, so it is a resolution).
+    `NameTableOwnershipDriftTests` rule (4) holds this: every non-private member of `SymbolTable.Declarations` returns
+    `DeclarationFact`, `bool` or a collection of `DeclarationFact`, and takes no `out` parameter of another type; a
+    member that would leak a symbol from it is red.
   - **The name key is a type.** A table is keyed by `CobolName` (a `readonly record struct` holding the Annex C fold of
-    the word, `CobolNames.UpperFold`), made only by `WrittenNames` from a parser token. So "a member that takes a name"
+    the word, `CobolNames.UpperFold`), made only by `SymbolTable` from a parser token. So "a member that takes a name"
     has a type a test can see.
   - **`NameTableOwnershipDriftTests` (Unit, Roslyn over the compiled `WiseOwl.Cobol.Compiler`).** Red on: (1) any
-    field or property OUTSIDE `WrittenNames`, of any accessibility, whose type is or implements a dictionary or lookup
+    field or property OUTSIDE `SymbolTable`, of any accessibility, whose type is or implements a dictionary or lookup
     keyed by `CobolName` or `string` whose value (or element, or an open type parameter) is a binder type: a new table
-    anywhere is caught by its type; (2) any non-private member outside `WrittenNames` that takes a `CobolName` and
-    returns, or gives through an `out` parameter, a binder type; (3) any non-private member outside `WrittenNames` that
+    anywhere is caught by its type; (2) any non-private member outside `SymbolTable` that takes a `CobolName` and
+    returns, or gives through an `out` parameter, a binder type; (3) any non-private member outside `SymbolTable` that
     takes a `string` and returns a binder type and is not in the committed classification
     `tests/WiseOwl.Cobol.Tests.Unit/Listing/string-parameter-members.json`, where each entry says why its string is no
     COBOL name (a C# identifier, a message, a clause keyword) and which may only shrink. A new lookup by string is red
-    until it is converted or classified with a reason; there is no allowlist of tables.
+    until it is converted or classified with a reason; there is no allowlist of tables. Rule (4) is the
+    `Declarations` rule above.
+  - **Equality of COBOL names is private too (R4-2).** Two spellings are the same name by the Annex C fold
+    (`CobolNames.Same`, `CobolNames.Comparer`, both in `WiseOwl.Cobol.Runtime`). A search that compares a symbol's name
+    with a written name is a lookup without a table, so it is as much a resolution path as a dictionary. `SymbolTable`
+    therefore holds the binder's only comparison of names, and `NameTableOwnershipDriftTests` rule (5), through the
+    `SemanticModel` (by symbol, not by text), is red on every invocation of `CobolNames.Same`, every use of
+    `CobolNames.Comparer`, and every `==`, `!=` or `string.Equals` of which one operand is a binder symbol's `string`
+    name property or a `CobolNames.Fold` or `UpperFold` call, anywhere in `WiseOwl.Cobol.Compiler` outside `SymbolTable`,
+    unless the site is in the shrink-only `tests/WiseOwl.Cobol.Tests.Unit/Listing/name-comparisons.json` with one of the
+    non-resolution classes below and its reason. A resolution (class RESOLVE) moves into `Identify`; a declaration
+    comparison (class DECLARE) moves into `Declarations`; the other classes stay where they are, classified:
+    KEYWORD (a written word against a fixed word of the standard or the implementor: FILLER, ZERO, ALL, LINE-COUNTER,
+    an intrinsic, exception or implementor-name), SAMESYMBOL (two already-resolved symbols compared: type equivalence,
+    OO conformance), EXTERNAL (an externalized or repository-record name from compiled metadata) and MESSAGE (the
+    wording of a diagnostic). The runtime's own uses (CALL by name at run time, ASSIGN resolution) are outside the
+    binder and outside the rule. Today's classification of every site is evidence in section 6.7.2.
   - **Identify's arms all record.** The arms of today's `ReferenceResolver.Identify` that answer before the data-name
     lookup (a CAPACITY register, EXCEPTION-OBJECT, DEBUG-ITEM and its members, a REPORT SECTION sum counter, the
     LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER registers) are references the programmer wrote, so each records an
     occurrence like every other arm, with the register or counter as its symbol (`ReferenceTarget.Register`,
     `ReferenceTarget.SumCounter`). No arm is exempt.
-  - **Recording.** `Identify` appends the `ReferenceOccurrence` (position and length from `written`, the symbol) to the
-    statement's `ReferenceLedger` when `report` is true and the name identified one symbol; a probe
+  - **Recording.** `Identify` appends the `SymbolOccurrence` (position and length from `written`) to the identified
+    entry when `report` is true and the name identified one symbol; a probe
     (`ReferenceResolver.Probe`, `ProbeDeclaration`, `DescribesOwnItem`, and every classifying predicate) passes
     `report: false` and records nothing, as it reports nothing today.
-  - `IdentifiedName` is a sealed record whose constructor is private to `WrittenNames`; it carries the occurrence id.
+  - `IdentifiedName` is a sealed record whose constructor is private to `SymbolTable`; it carries the occurrence id.
     Every builder of a place for a written reference takes it: `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` and
     `PlaceBuilder.WholeTable(IdentifiedName, ...)`, which link the place INSTANCE they return to the occurrence
     (returning `place with { }` when the instance is already linked: a new reference, equal by value, so value
@@ -549,33 +648,53 @@ internal sealed record ReferenceOccurrence(
   STATUS, RELATIVE KEY, DEPENDING ON), not references written at the statement, so they belong to no occurrence. A
   statement that stores into a whole table with no place (`BoundTableSort.Storage`) reports the table item as
   `ReadWrite`, matched to the statement's occurrence of that table. `StatementBinder.BindStatement`, the one statement
-  funnel, classifies the statement's ledger when the statement is bound: an occurrence whose linked place instance stands
+  funnel, classifies the occurrences appended since its mark when the statement is bound: an occurrence whose linked place instance stands
   at a store position (found by walking from the stored place inward through the places it wraps, to the first instance
   linked to an occurrence) takes that position's kind; every other occurrence is `Read`. A subscript or
   reference-modifier operand is its own `Identify`, so it is its own occurrence and is `Read`.
 - **Procedure, file and index references** are recorded by the same `Identify` (classes `Procedure`, `File`, `Index`);
   the occurrence carries the transfer kind (PERFORM, GO TO, ALTER, USE, SORT procedure) or the verb, which the statement
   funnel sets from the bound statement as it classifies data uses.
-- **Where the result lives.** The classified occurrences of a unit are `BoundUnit.References`, read by
+- **Where the result lives.** The classified occurrences are the entries' own, in the finished snapshot, read by
   `CrossReferenceBuilder` (the cross-reference section and the JSON), and by `LineAnnotationBuilder` (`ListingLine.Names`
   for the HTML links, `ListingLine.Margin` for the text margin). Nothing else derives a reference's position or use.
-- **Cost.** Recorded only when the listing asks for the cross-reference: `EditionContext.RecordsReferences` gates the
-  ledger and the `with { }` copy, so a compilation without it allocates nothing more.
+- **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
+  listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
+  records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
+  other than `Defined` and the `with { }` copy, so a compilation without a listing allocates nothing more.
 - **Guards (`tests/WiseOwl.Cobol.Tests.Conformance/Listing/ReferenceOccurrenceDriftTests.cs`).**
-  - *Name slots come from the grammar, the one source of truth (R3-2).* Every occurrence of `cobolWord`, and of every
-    NAME RULE (a rule each of whose alternatives is one name slot: `fileName`, `className`, `reportName`, `cdName`,
-    `procedureName`'s words, ...), carries an ANTLR element label whose prefix classifies it: `ref` (a reference: one
+  - *Name slots come from the grammar, the one source of truth (R3-2, R4-3).* A SLOT is an element where the
+    programmer writes a name: a reference to `cobolWord` or `reservedGatedWord`, a reference to a NAME RULE, or a
+    token that is an alternative of such an element in the same block (the `INTEGERLIT` of `procedureName`: a
+    paragraph-name or section-name may be written as digits). A NAME RULE is a rule each of whose
+    paths through it crosses exactly one slot and nothing else: `fileName`, `className`, `reportName`, `cdName`, ...
+    The set of name rules is the CLOSURE computed from the ATN, starting from `cobolWord` and `reservedGatedWord`:
+    a rule joins it when every path from its start state to its stop state crosses exactly one transition into the set
+    (or one alternative-of-a-slot token). A rule that holds slots and other elements is a REFERENCE RULE, classified
+    inside: `procedureName` is one (`(refHead1=cobolWord | refHead2=INTEGERLIT | refHead3=reservedGatedWord)
+    ((OF | IN) (qualSec1=cobolWord | qualSec2=INTEGERLIT | qualSec3=reservedGatedWord))?`), and so is
+    `dataReference`. Every slot carries an ANTLR element label whose PREFIX classifies it: `ref` (a reference: one
     occurrence), `qual` (a qualifier, part of the enclosing reference's occurrence), `def` (a definition: one `Defined`
-    entry) or `nn` (a word in a position that names nothing the program declares: an implementor-name, a
-    function-name, a compiler-directive word). Inside a name rule's own body the slot is labelled `name` (`fileName :
-    name=cobolWord ;`), which says the class is decided where the rule is USED: `READ refFile=fileName`, and the
-    `FD` entry's `defFile=fileName`. The labels add context fields and change no parse. Step 7 labels the 257 `cobolWord`
-    occurrences of the 13 grammar files and every use of a name rule.
-  - *`GrammarNameSlotDriftTests` (Unit)*: deserializes the generated parser's ATN (`CobolParserCore._serializedATN`
-    through the ANTLR runtime's `ATNDeserializer`), counts per parser rule the rule transitions into `cobolWord` and
-    into each name rule (the name rules are computed from the ATN as the closure above, not listed), and compares the
-    count with the labelled fields of a classifying prefix on that rule's generated context class. A slot added to the
-    grammar without a classification is red, naming its rule. Nothing lists the slots.
+    entry), `nn` (a word that names nothing the program declares: an implementor-name, a function-name, a
+    compiler-directive word), or `name` inside a name rule's own body (`fileName : name1=cobolWord ;`), which defers the
+    class to each USE of the rule (`READ refFile1=fileName`, the FD's `defFile1=fileName`). **Every label is unique
+    within its rule**: the prefix is followed by a name and an ordinal, so no two elements share one. The labels add
+    context fields and change no parse. Step 7 labels the 257 `cobolWord` occurrences of the grammar files and every
+    other slot.
+  - *`GrammarNameSlotDriftTests` (Unit) counts per ELEMENT OCCURRENCE, so a reused label cannot hide a slot.* It
+    deserializes the generated parser's ATN (`CobolParserCore._serializedATN` through the ANTLR runtime's
+    `ATNDeserializer`), computes the name-rule closure above, and walks each rule's ATN alternative by alternative,
+    counting every slot transition (rule or token) it crosses: N slots in rule R. It then reads R's generated context
+    class and counts the DISTINCT label fields with a classifying prefix: M. ANTLR generates ONE field for a label name
+    however many elements carry it (`ref1=cobolWord | ref1=cobolWord` is one field), so a label reused across two
+    alternatives, or a slot with no label, makes M < N, and the test is red naming the rule and the slot's ATN state.
+    The test also refuses a classified field that holds no slot (M > N). Nothing lists a slot or a name rule.
+  - *The planted failure.* `tests/WiseOwl.Cobol.Tests.Unit/Listing/Fixtures/NameSlotFixture.g4` is a small grammar
+    generated by the same ANTLR step that generates `CobolParserCore` (`src/WiseOwl.Cobol.Frontend/Invoke-Antlr4CSharp.ps1`)
+    with four rules: one fully labelled (expected clean), one with a label REUSED across two alternatives, one with an
+    unlabelled `cobolWord`, and one name rule with an unlabelled `INTEGERLIT` alternative. The self-test runs the same
+    counter over the fixture's ATN and context classes and asserts it reports exactly the last three rules, each at the
+    right slot: the check is shown able to fail on each way a slot can hide.
   - *Completeness, independent of path:* `EveryWrittenReferenceIsRecorded` binds every conformance-suite program that
     binds clean, walks its parse tree, and for every name-slot node reads its class from the label that holds it: each
     `ref` node has EXACTLY one occurrence at its first-token position, each `def` node exactly one `Defined` entry,
@@ -595,7 +714,7 @@ internal sealed record ReferenceOccurrence(
 
 #### 6.7.2 The mechanism, and today's inventory as evidence
 
-The GUARANTEE is section 6.7.1's two structural halves: every name table lives privately behind `WrittenNames` (held by
+The GUARANTEE is section 6.7.1's two structural halves: every name table lives privately behind `SymbolTable` (held by
 `NameTableOwnershipDriftTests`), and the oracle's slots come from the grammar (held by `GrammarNameSlotDriftTests`). The
 inventory below is EVIDENCE of what step 7 converts at 522468b9c8, not a list anything depends on: a path missing from
 it is still caught by the tests. Rounds 1 and 2 relied on lists and both were incomplete (round 3 found the report,
@@ -607,7 +726,7 @@ the key since `CobolName` does not exist yet) finds 65 string-keyed tables whose
 parameter, 31 of them non-private, and 194 non-private members that take a `string` and return a binder type (a
 superset: many take a C# identifier or a message, and step 7 classifies each). Its output is committed as
 `docs/rearchitecture/evidence/listing-name-tables-522468b9c8.txt`. The tables, by name class, all moving into
-`WrittenNames`:
+`SymbolTable`:
 
 | Name class | Tables found (owner.member) |
 |---|---|
@@ -625,6 +744,24 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 | OO class, interface, method | `OoClassTable._byName`, `_ifaceByName`, `_imported`, `_importedInterfaces`; `OoClassSymbol._methods`, `_factoryMethods`; `OoInterfaceSymbol._protos`, `_conformingChoice` |
 | Keyed by something that is not a COBOL user word (re-keyed by a type of their own, so rule (1) no longer sees a `string` key) | `IntrinsicCatalog.Table`, `IntrinsicArgumentRules.Verified` (intrinsic function names, a standard catalog); `ImplementorNameRegistry.ByName` (implementor-names); `FileModel.FdClauses`, `ScreenFacility.ClauseFacts` (clause keywords); `ExpansionPlacements.ByName` (CLR type names); `Polynomial._terms` (C# expression text) |
 
+**The name comparisons (R4-2).** A second Roslyn sweep (by symbol through the `SemanticModel`, over every document of
+`WiseOwl.Cobol.Compiler` at 7bc7e33469) finds 124 invocations of `CobolNames.Same`, 130 uses of `CobolNames.Comparer`
+and 40 `==`, `!=` or `string.Equals` comparisons on a binder symbol's name property. Each of the 124 `Same` calls is
+classified by reading its site; the result is committed, one row per site, as
+`docs/rearchitecture/evidence/listing-name-equality-7bc7e33469.txt`:
+
+| Class | `Same` calls | Where they go in step 7 |
+|---|---|---|
+| RESOLVE | 68 | into `Identify`: e.g. `ReportScope.Named`, `FileModel.RecordKeyNameCandidates`, `DataBinder.QualifierWalk`, `LinkageBinder.FindLinkageRoot`, `EndMarkerPass.ScreenProgram` (an END PROGRAM name names its program), `TurnState.Fold` (a `>>TURN` file operand) |
+| DECLARE | 13 | into `Declarations`: e.g. `BinderDriver.CheckDefinitionNameUniqueness`, `DataBinder.NonDataDeclarationOf`, `ReportScope.Inherit` |
+| KEYWORD | 19 | stay, classified: e.g. `DataBinder.BindEntry` (FILLER), `ReportWriterBinder.RawNumber` (ZERO), `OoBinder.IsStandardNew` (NEW) |
+| SAMESYMBOL | 16 | stay, classified: e.g. `StrongTypeModel.EquivalentDeclarations`, `OoConformance.RaisingMismatches` |
+| EXTERNAL | 6 | stay, classified: e.g. `OoClassTable.FindByExternalizedName`, `RepositoryCodec.Decoder.Root` |
+| MESSAGE | 2 | stay, classified: `NonDataDeclaration.DeclaredAs` |
+
+The 130 `Comparer` uses key name collections and move with their tables (or, for a set of fixed words, are re-keyed);
+the 40 name-property comparisons are classified site by site in step 7 into the same classes. The KEYWORD, SAMESYMBOL,
+EXTERNAL and MESSAGE rows seed `name-comparisons.json`, which may then only shrink.
 Screen names (`ForestSlice.ScreenNames`) are a set, not a table, and resolve through the data tables. The front end's
 own name tables (compilation variables of `>>DEFINE`, the `>>COBOL-WORDS` map) are text-stage names, not program
 symbols, and are outside the cross-reference.
@@ -634,18 +771,18 @@ semantic model; the LSP server had not indexed the worktree; `WiseOwl.Cobol.Runt
 restore and declares no binder member) gives the paths into those tables today:
 | Lookup or entry (today) | Its callers | Converges |
 |---|---|---|
-| `ReferenceResolver.Resolve` / `ResolveImpl` -> `ResolveImplCore` -> `ReferenceResolver.Identify` | `ExpressionBinder.FieldOperand`, `RefExpr`, `ResolveSending`, `ResolveReceiving`; `ObjectPropertyResolver.ResolveObjectProperty`, `ViewOfQualifiedItem`; `ProcedureTableBuilder.ReportUnresolvedDebugOperand`; `ReferenceResolver.CapacityRegisterFor` | `Identify` moves into `WrittenNames`; `ResolveImplCore` calls it |
+| `ReferenceResolver.Resolve` / `ResolveImpl` -> `ResolveImplCore` -> `ReferenceResolver.Identify` | `ExpressionBinder.FieldOperand`, `RefExpr`, `ResolveSending`, `ResolveReceiving`; `ObjectPropertyResolver.ResolveObjectProperty`, `ViewOfQualifiedItem`; `ProcedureTableBuilder.ReportUnresolvedDebugOperand`; `ReferenceResolver.CapacityRegisterFor` | `Identify` moves into `SymbolTable`; `ResolveImplCore` calls it |
 | `ReferenceResolver.ResolveForItem` (a condition-name's conditional variable) | `ConditionBinder.AnalyzeBareOperand`, `SetBinder.BindSetCondition` | the condition-name was identified by `ConditionBinder.ConditionOf` (next row), which records the use; `ResolveForItem` takes its `IdentifiedName` |
-| `ConditionBinder.ConditionOf` | `ConditionBinder.AnalyzeBareOperand`, `ReportMisqualifiedCondition`; `SetBinder.BindSetCondition`; `SetAlterBinder.SwitchCondOf`; `SearchAllFormat2Rules.CheckConditionNameSide` | becomes `WrittenNames.Identify(dref, NameClass.Condition, ...)` |
+| `ConditionBinder.ConditionOf` | `ConditionBinder.AnalyzeBareOperand`, `ReportMisqualifiedCondition`; `SetBinder.BindSetCondition`; `SetAlterBinder.SwitchCondOf`; `SearchAllFormat2Rules.CheckConditionNameSide` | becomes `SymbolTable.Identify(dref, NameClass.Condition, ...)` |
 | `ReferenceResolver.ResolveForAddressOf` -> `Identify` | `PtrBinder.PtrBindAddressOf` | through `Identify` already; keeps it |
 | `ReferenceResolver.ResolveTableOperand` -> `NameResolution.FindReportedItem` | `SortBinder.SortBindTable`, `SortBinder.SortAddFileKeys`, `StatementValidation.ResolveSearchTable` | `Identify(dref, NameClass.TableOperand, ...)`; `FindReportedItem` is deleted |
 | `PlaceBuilder.WholeTable` (place of a whole table, after the table operand was identified) | `InitializeBinder.BindInitializeTarget`, `SearchBinder.WrittenTable`, `SortBinder.SortBindTable` | takes the `IdentifiedName` (links the place) |
 | `NameResolution.FindReportedItem` | `IntrinsicBinder.TryBindAllArgument`, `ReferenceResolver.ResolveTableOperand` | deleted; both through `Identify` |
 | `ReferenceResolver.ResolveByName` -> `NameResolution.FindItem` | `IntrinsicBinder.TryBindAllArgument` | replaced by `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` on the name `TryBindAllArgument` already identified |
-| `NameResolution.FindItem` | `ConstantEntryBinder.LengthOperandItem`, `ReportLengthOperand`; `DataBinder.ReportEntryLocation`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `ReferenceResolver.ProbeDeclaration`, `ResolveByName`; `NameResolution.FindReportedItem` | private to `WrittenNames`; the data-division callers (a CONSTANT LENGTH OF operand, a BASED claim) call `Identify` and record a data-division use |
-| `NameResolution.ResolveQualified` / `ResolveUnqualified` | `ReferenceResolver.Identify`; `NameResolution.FindItem`, `DeclarationOf`; `SubscriptBinder.ResolveSubscriptName`, `CannotBeSubscripted`; `ObjectPropertyResolver.ViewSubjectChain`, `IsObjectPropertyReference`; `CounterResolver.SumCounterFamilyFor` | private to `WrittenNames`; `ResolveSubscriptName` (a subscript naming a data item) and `SumCounterFamilyFor` call `Identify`; the two object-property predicates and `CannotBeSubscripted` are probes (`report: false`) |
+| `NameResolution.FindItem` | `ConstantEntryBinder.LengthOperandItem`, `ReportLengthOperand`; `DataBinder.ReportEntryLocation`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `ReferenceResolver.ProbeDeclaration`, `ResolveByName`; `NameResolution.FindReportedItem` | private to `SymbolTable`; the data-division callers (a CONSTANT LENGTH OF operand, a BASED claim) call `Identify` and record a data-division use |
+| `NameResolution.ResolveQualified` / `ResolveUnqualified` | `ReferenceResolver.Identify`; `NameResolution.FindItem`, `DeclarationOf`; `SubscriptBinder.ResolveSubscriptName`, `CannotBeSubscripted`; `ObjectPropertyResolver.ViewSubjectChain`, `IsObjectPropertyReference`; `CounterResolver.SumCounterFamilyFor` | private to `SymbolTable`; `ResolveSubscriptName` (a subscript naming a data item) and `SumCounterFamilyFor` call `Identify`; the two object-property predicates and `CannotBeSubscripted` are probes (`report: false`) |
 | `NameResolution.ResolveIndexName` | `ExpressionBinder.IndexFieldOf`; `SubscriptBinder.SubscriptNamesIndex`, `ResolveSubscriptName`; `SearchAllFormat2Rules.CheckKeySubscript` | `Identify(..., NameClass.Index, ...)` |
-| `SymbolTable.TryResolve` | `DataBinder.ResolveClauseOperand`, `QualifiedCandidates`, `NonDataDeclarationOf`; `InspectBinder.BindPhraseOperands`; `IntrinsicBinder.TypeNameArgument`, `KeywordWordOf`, `KeywordOmittedFunction`; `PtrBinder.PtrResolveBased`; `SortBinder.SortBindTable`; `SubscriptBinder.IsFunctionBearing`; `StatementValidation.RejectProcedureName`; `NameResolution.ReportUnidentified`, `DeclarationOf`; `SymbolTable.TryResolveUnqualified`, `TryResolveCondition` | a member of `WrittenNames`: `DataBinder.ResolveClauseOperand` (a clause operand such as DEPENDING ON) and `InspectBinder.BindPhraseOperands` call `Identify`; the declaration-uniqueness checks (`NonDataDeclarationOf`, `QualifiedCandidates`) call `WrittenNames.Declarations`, which records nothing; the word-class probes (`KeywordWordOf`, `KeywordOmittedFunction`, `TypeNameArgument`, `IsFunctionBearing`, `RejectProcedureName`) pass `report: false` |
+| `SymbolTable.TryResolve` | `DataBinder.ResolveClauseOperand`, `QualifiedCandidates`, `NonDataDeclarationOf`; `InspectBinder.BindPhraseOperands`; `IntrinsicBinder.TypeNameArgument`, `KeywordWordOf`, `KeywordOmittedFunction`; `PtrBinder.PtrResolveBased`; `SortBinder.SortBindTable`; `SubscriptBinder.IsFunctionBearing`; `StatementValidation.RejectProcedureName`; `NameResolution.ReportUnidentified`, `DeclarationOf`; `SymbolTable.TryResolveUnqualified`, `TryResolveCondition` | becomes private inside the grown `SymbolTable`: `DataBinder.ResolveClauseOperand` (a clause operand such as DEPENDING ON) and `InspectBinder.BindPhraseOperands` call `Identify`; `QualifiedCandidates` asks for symbols, so its callers (RECORD KEY, ASSIGN USING, the KEY phrases) call `Identify` and record; only `NonDataDeclarationOf`, a declaration question, calls `SymbolTable.Declarations` and gets a `DeclarationFact`; the word-class probes (`KeywordWordOf`, `KeywordOmittedFunction`, `TypeNameArgument`, `IsFunctionBearing`, `RejectProcedureName`) pass `report: false` |
 | `SymbolTable.TryResolveUnqualified` | `NameResolution.ResolveUnqualified`; `InitializeBinder.BindInitializeTarget`; `IntrinsicBinder.FunctionPointerItemNamed`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `SymbolTable.NearestDeclaringData` | as above: the two binders call `Identify` |
 | `SymbolTable.TryResolveCondition` | `DataBinder.QualifiedConditionCandidates`, `ConditionsUnderQualifiers`; `ConditionBinder.ReportMisqualifiedCondition`; `SearchAllFormat2Rules.CheckKeySide`, `CheckConditionNameSide` | through `Identify(..., NameClass.Condition, ...)`, or `Declarations` for the data-division checks |
 | `SymbolTable.IndexCandidates` | `NameResolution.ResolveIndexName`; `DataBinder.NonConditionDeclarationsOf`; `IndexNameRegistry.Candidates`; `FlagConformancePass.FlagIndexSet` | `ResolveIndexName`'s lookup inside `Identify`; `FlagIndexSet` reads the occurrences instead of looking up again |
@@ -666,13 +803,38 @@ severity, and VBREF: each verb as written, its count and every listing line. Ver
 (`SourceUnitFacts`), so they are counted as the programmer wrote them (not as the binder desugared them) and exist on a
 failed bind. No timings: they make two listings of one source differ for no reader's benefit.
 
-### 6.9 COBOL to C# map
+### 6.9 COBOL to object-code map (backend-neutral; owner 2026-11-18)
 
-`CodeWriter` gains a running line number; `StatementEmitter.EmitStatement` (the one statement funnel) records, when the
-listing asks for the map, the resultant position of `BoundStatement.At` and the first and last C# line it wrote into an
-`EmitMap`. Text captured by `CodeWriter.CaptureText` (an expression-position statement) belongs to the enclosing
-statement. The section lists each COBOL statement's listing line beside its `.g.cs` line range; the HTML shows the two
-side by side. The same map is the one input a later `#line` or portable-PDB feature would read (open question 4).
+The owner, 2026-11-18: "It also makes no sense to link to C# code when we switch to the IL generation." No section,
+renderer, link or schema field names, reads or points into generated source (`.g.cs`) or any Roslyn type. The map is
+read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
+
+- **Source of truth.** `ObjectCodeMapReader` (Compiler, `Listing/`) opens the produced assembly and its PDB with
+  `System.Reflection.Metadata` (`MetadataReader`, `MethodDebugInformation.GetSequencePoints`, `MethodBodyBlock`). For
+  each method it reads the sequence points: a document (a COBOL source or library text), a start and end line and
+  column, and an IL offset. Each COBOL statement's listing line is placed through its source position by the one line
+  index (section 4.1); its object code is the method (its metadata token and name) and the IL offset range from its
+  sequence point to the next. A copybook copied twice into one method gives two statements at one file position; they
+  pair with that position's sequence points in IL order, which is statement order.
+- **Both backends emit sequence points at COBOL statement granularity.** This decides open question 4. The Roslyn
+  backend writes, inside the backend and nowhere else, a `#line (startLine, startColumn) - (endLine, endColumn) "file"`
+  directive before each COBOL statement's C# and `#line hidden` before scaffolding, from `BoundStatement.At` through the
+  source map, and emits a portable PDB beside the assembly (`<out>.pdb`, `DebugInformationFormat.PortablePdb`,
+  deterministic like the assembly). The CIL backend emits the same sequence points natively. A .NET debugger then steps
+  through COBOL source under either backend.
+- **`SequencePointCoverageDriftTests`** (Conformance): for every executable statement of every conformance-suite program
+  that compiles, the PDB holds a sequence point at the statement's COBOL position; run against every backend the
+  backend factory offers.
+- **The IL listing (IBM's LIST), decided: provided, off by default.** With `--listing-sections object-code` the listing
+  prints, under each statement, its IL instructions decoded from the method body with `System.Reflection.Metadata` (one
+  decoder, `IlDisassembler`, opcodes and resolved member and type operands). It is the true object code under both
+  backends, and like IBM's LIST it is long, so it is on request only. Recommendation recorded: keep it off in
+  `standard` and on in `all`.
+- **Backend neutrality is a test.** `ListingBackendNeutralityDriftTests` (RepoDrift): the built `WiseOwl.Cobol.Listing`
+  assembly references no `Microsoft.CodeAnalysis*` assembly, and the documents of the `WiseOwl.Cobol.Listing` namespace
+  in the Compiler (the builder) reference no type from `Microsoft.CodeAnalysis*` or `WiseOwl.Cobol.CodeGen*` (a Roslyn
+  semantic check of every referenced symbol) and contain no `.g.cs` path. The Roslyn backend's `#line` writing lives in
+  `WiseOwl.Cobol.CodeGen`, behind the seam; the listing never sees it.
 
 ### 6.10 DISPLAY directive output (2023)
 
@@ -695,7 +857,7 @@ UTF-8, LF line ends, a form feed (U+000C) before every page after the first. `Pa
 the heading; 0 = no pagination, so only '/' and `>>PAGE` produce form feeds) and `PageWidth` (default 132, range 100 to
 255; below 132 the margin columns are not printed). `PageComposer` turns rows into pages: a page break before a row with
 `PageBreakBefore`, or when the page is full. A row wider than the page wraps onto `+` rows. Sections in order: options,
-source with inline diagnostics, program map, data map, cross-reference, statistics and verbs, C# map, diagnostic
+source with inline diagnostics, program map, data map, cross-reference, statistics and verbs, object-code map, diagnostic
 summary; each starts a page.
 
 ### 7.2 HTML (`HtmlListingRenderer`)
@@ -703,7 +865,8 @@ summary; each starts a page.
 One self-contained file (inline CSS, a small inline script for collapse and filter, no external resource). Every name on
 a source line links to its definition, and every definition lists its references as links; each diagnostic is anchored
 on its line and listed in a summary panel that links to it; each inclusion is a collapsible block; suppressed and
-omitted lines are present but collapsed and greyed; the C# map opens the statement's C# lines beside it. Links come from
+omitted lines are present but collapsed and greyed; each statement opens its method, IL offset range and (when requested) IL
+instructions beside it. Links come from
 each line's `ListingLine.Names` (built once from the reference occurrences, section 6.7.1) and the definitions' reference
 lists from `ListingCrossReference`; the renderer joins nothing and computes nothing.
 
@@ -731,8 +894,8 @@ the repository for reference. The schema file name carries the major (`listing-v
 |---|---|---|
 | `--listing [on\|off]` | Produce a listing (bare `--listing` is on) | on at `--std 85`, off at 2002, 2014, 2023 |
 | `--listing-format text\|html\|json` | A format to write; repeatable; implies `--listing on` | text |
-| `--listing-output BASE` | Where: `BASE.lst`, `BASE.lst.html`, `BASE.lst.json`; `-` writes the text listing to standard output | the output assembly's path without extension (beside `<out>.g.cs`) |
-| `--listing-sections LIST` | Comma list of `source, diagnostics, options, programs, statistics, data-map, xref, csharp-map`, or `standard` or `all` | `standard` = source, diagnostics, options, programs, statistics |
+| `--listing-output BASE` | Where: `BASE.lst`, `BASE.lst.html`, `BASE.lst.json`; `-` writes the text listing to standard output | the output assembly's path without extension |
+| `--listing-sections LIST` | Comma list of `source, diagnostics, options, programs, statistics, data-map, xref, object-map, object-code`, or `standard` or `all` | `standard` = source, diagnostics, options, programs, statistics |
 | `--listing-page-length N` | Lines per page; 0 = unpaginated | 60 |
 | `--listing-page-width N` | Columns, 100 to 255 | 132 |
 
@@ -746,13 +909,13 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
 ## 9. Performance budget
 
 - **No listing requested: no listing work, by structure.** The front end passes `TextStageTrace.None`;
-  `SourceUnitFacts` is not collected; `EditionContext.RecordsReferences` is false, so no reference ledger and no place
-  copy; `EmitMap` is not recorded (`StatementEmitter` tests a null map once per statement); the driver passes a null
+  `SourceUnitFacts` is not collected; `EditionContext.RecordsSymbols` and `RecordsReferences` are false, so the
+  symbol table holds no listing attributes, no use occurrences and no place copy; the PDB is read only when the object-code map is requested; the driver passes a null
   collector and the wrapper returns the body's result. The one fact recorded for every compilation is the line-kind
   array of section 4.4.1, one byte per physical line, written where the converter already decides the kind. The guard
   is structural, never a wall-clock limit: `ListingOffDoesNoWorkDriftTests` compiles with `Options.Listing = null` and
   asserts `Frontend.ListingTrace` is the `TextStageTrace.None` instance, `Frontend.UnitFacts` is null, no
-  `BoundUnit.References` was recorded and no `ListingFacts` was built.
+  occurrence was recorded and no `ListingFacts` was built.
 - **Budgets, measured.** No listing: compile time within the run-to-run noise of the parent commit, and allocated bytes
   per compile no more than the parent's plus the line-kind arrays (one byte per physical line read). Standard text
   listing: at most 10 % over the no-listing compile. Every section in every format: at most 25 %.
@@ -799,8 +962,8 @@ captured listing.
    write, one modify (ADD TO) and one definition of the same name yields exactly those four uses at those lines and
    columns, `ADD WS-A` / `TO WS-B` on two lines puts each use on its own line, and `MOVE WS-X (WS-X) TO WS-X` yields two
    reads and one write (section 6.7.1); a line's `Margin` and `Names` equal what the data map and cross-reference say of
-   that line, and the text margin and the HTML links render exactly them; C# map:
-   every C# range named lies inside the `.g.cs` and starts at a line the emitter wrote for that statement.
+   that line, and the text margin and the HTML links render exactly them; object-code map: each statement's method and IL
+   range equal what the PDB's sequence points say, read independently in the test with `System.Reflection.Metadata`.
 5. **Schema.** The generated schema equals the committed file (a preflight class, since a red one means a stale derived
    file); every document the tests produce round-trips through `ListingJsonContext` with no unknown property.
 6. **Drift tests that keep the shape.** `WiseOwl.Cobol.Listing` references no solution project (architecture edges);
@@ -886,27 +1049,38 @@ its own text); the records change adjudicates the twelve 2002 rows of section 2.
 `2002-DOC-B.1-90`, `2002-DOC-B.1-165`) with those tests as witnesses; DOC-A.1-117's 2002 and 2014 annex items (B.1 item
 90, A.1 item 106) and the stage items (B.1 item 165, A.1 item 182) are documented.
 
-**Step 5 - options, program map, statistics and verbs.** `OptionsSectionBuilder` with its drift test; program attributes
-from `BoundUnit`; `SourceUnitFacts` verbs; `--listing-sections`.
+**Step 5 - options, program map, statistics and verbs.** `OptionsSectionBuilder` with its drift test; the program map's
+names, nesting and ranges and the verb counts from `SourceUnitFacts` (the source); `--listing-sections`. The program
+attributes and .NET types, and the statistics' counts of names and uses, join in steps 6 and 7 as views of the symbol
+table when it exists.
 
-**Step 6 - data map.** `DataMapBuilder` over `DataBindResult.Forest`, `RecordLayout`, `ItemLength`, `StorageForm`, the
-emitter's type-name function; `LineAnnotationBuilder` with `ListingLine.Margin` for definition lines; the `All`
-benchmark row.
+**Step 6 - the symbol table and the data map.** The ONE store first: `NameTableOwnershipDriftTests` is written first on
+the step's branch and runs red, its failures matching the evidence of section 6.7.2 (a check that could fail); then
+`src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs` grows into the table (`SymbolEntry`, `CobolName`,
+`SymbolTable.Declare`, `SymbolTable.SetAttributes`, `SymbolTable.Identify` as the only lookup, `SymbolTable.Declarations`
+returning only `DeclarationFact`), every name table moved into it and made private, every lookup converted to `Identify`
+or classified in `string-parameter-members.json` with its reason, every `CobolNames.Same` / `Comparer` / name comparison
+moved in or classified in `name-comparisons.json` (seeded from section 6.7.2's evidence), and each attribute of section
+6.6 written into its entry where the binder decides it (the declaring binders, the redefinition pass, the layout step,
+the storage-form decision with its one .NET-type spelling); `SymbolTable.Finish()` and the snapshot handed to the
+collector. The step lands only with `NameTableOwnershipDriftTests` green. Then the data map and file map as views of the
+snapshot (`DataMapBuilder`), `LineAnnotationBuilder` with `ListingLine.Margin` for definition lines, and the `All`
+benchmark row. `Identify` records nothing yet; the table's entries and attributes are complete.
 
-**Step 7 - cross-reference and the reference occurrences.** The missing fact first (section 6.7.1):
-first the convergence, in this order: `NameTableOwnershipDriftTests` and `GrammarNameSlotDriftTests` are written first on the
-step's branch and run red, their failures matching the evidence of section 6.7.2 (a check that could fail); then `src/WiseOwl.Cobol.Compiler/Binding/WrittenNames.cs`,
-`CobolName`, every name table moved into it and made private, every lookup converted to `WrittenNames.Identify` or
-classified in `string-parameter-members.json` with its reason, Identify's register arms recording, the grammar labels
-on every name slot (`CobolParserCore.g4` and the `Core/*.g4` fragments, regenerated), and `PlaceBuilder.PlaceForItem` /
-`PlaceBuilder.WholeTable` taking `IdentifiedName`; the step lands only with both tests green. Then `ReferenceOccurrence` and the `ReferenceLedger` on `ProcedureBindState`,
-recorded only in `WrittenNames.Identify`, classified by
-`StatementBinder.BindStatement` through the new `BoundStores.StorePositionsOf`, kept on `BoundUnit.References`, gated by
-`EditionContext.RecordsReferences`, guarded by `ReferenceOccurrenceDriftTests`. Then `CrossReferenceBuilder`, the
-PERFORM and CALL graphs, and `LineAnnotationBuilder`'s `ListingLine.Names` and statement-line `Margin`; the `All` row.
+**Step 7 - occurrences and the cross-reference.** The table's second half: `GrammarNameSlotDriftTests` written first
+and red (with the `NameSlotFixture.g4` self-test), then the grammar labels on every name slot (`CobolParserCore.g4` and
+the `Core/*.g4` fragments, regenerated) and `ReferenceOccurrenceDriftTests`; `Identify` appends each `SymbolOccurrence`
+to its entry (Identify's register arms included), `PlaceBuilder.PlaceForItem` / `PlaceBuilder.WholeTable` take
+`IdentifiedName`, `StatementBinder.BindStatement` classifies the occurrences since its mark through the new
+`BoundStores.StorePositionsOf`, all gated by `EditionContext.RecordsReferences`. The step lands with the grammar test,
+the completeness oracle and the pairing test green. Then `CrossReferenceBuilder` (a view of the entries and their
+occurrences), the PERFORM and CALL graphs, `LineAnnotationBuilder`'s `ListingLine.Names` and statement-line `Margin`;
+the `All` row.
 
-**Step 8 - COBOL to C# map.** `CodeWriter` line count, `StatementEmitter.EmitStatement` records into `EmitMap`;
-`EmitMapBuilder`; backend diagnostics placed through it; the `All` row.
+**Step 8 - COBOL to object-code map.** Inside the Roslyn backend, behind the seam: the `#line` directives written by
+`StatementEmitter.EmitStatement` and the portable PDB (`RoslynBackend.Compile`'s `EmitOptions`). In the listing:
+`ObjectCodeMapReader`, `IlDisassembler`, `ObjectCodeMapBuilder`; `SequencePointCoverageDriftTests`,
+`ListingBackendNeutralityDriftTests`; backend diagnostics placed through their COBOL positions; the `All` row.
 
 **Step 9 - HTML.** `HtmlListingRenderer`, reading `ListingLine.Names` and the cross-reference only; the `All` row with HTML.
 
@@ -928,8 +1102,9 @@ and derivations PB5923 and section 10 name; `docs/manual/user-guide/command-line
    JSON's `citation` field is parsed back out of the text. Recommendation: in step 3, make `EditionInfo.Cite` return a
    structured value (edition, locator, rule) whose `ToString` is today's text, and carry it on the diagnostic; the parser
    is then needed only for messages built elsewhere, and a drift test counts those to zero.
-4. **`#line` directives or a portable PDB from the emit map.** That would let a .NET debugger step through COBOL source.
-   Recommendation: a separate decision after step 8; the emit map is designed to be its one input.
+4. **COBOL source-level debugging (`#line` and a portable PDB).** DECIDED by the owner's ruling of 2026-11-18: both
+   backends emit sequence points at COBOL statement granularity and a portable PDB, because the object-code map reads
+   them (section 6.9). A .NET debugger steps through COBOL source as a consequence.
 5. **Omitted lines shown or hidden.** Recommendation: shown and marked 'X' (IBM's default NOSKIPSRC); add
    `--listing-omitted hide` only if a user asks.
 6. **Publishing the schema at a URL.** Publishing is the owner's (CLAUDE.md, "Still the owner's"). Recommendation: the URN
