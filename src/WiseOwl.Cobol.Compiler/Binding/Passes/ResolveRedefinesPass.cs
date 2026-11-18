@@ -199,7 +199,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 // ONE recursive storage function (a redefiner sits at its target's offset, §2023:13.18.44), the parts are
                 // the record's NON-redefining leaves that intersect the window, and a boundary inside a leaf (a FROM /
                 // THRU that partially redefines it) is a partial part.
-                int Width(DataItem d) => d.ByteWidth * (d.Occurs ?? 1);   // STORAGE bytes: a national position is two (D-N1; kb/Work PB1665)
+                int Width(DataItem d) => RecordLayout.OccupiedBytes(d);   // STORAGE bytes: a national position is two (D-N1; kb/Work PB1665)
                 int Offset(DataItem d)
                 {
                     if (d.RedefinesTarget is { } tgt) return Offset(tgt);          // an overlay starts where its target does
@@ -208,7 +208,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     foreach (var sib in par.Children)
                     {
                         if (ReferenceEquals(sib, d)) break;
-                        if (sib.RedefinesTargetName is null) off += Width(sib);       // a redefining sibling adds no storage
+                        if (sib.RedefinesTargetName is null) off = RecordLayout.ItemSize(RecordLayout.Plus(off, Width(sib)));   // a redefining sibling adds no storage
                     }
                     return off;
                 }
@@ -263,7 +263,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     {
                         int off = Offset(leaf) + delta, total = Width(leaf);
                         if (off + total - 1 >= startOff && off <= endOff)
-                            leaves.Add((leaf, off, leaf.ByteWidth, leaf.Occurs ?? 1, [.. outer]));
+                            leaves.Add((leaf, off, leaf.ByteWidth, RecordLayout.Occurrences(leaf), [.. outer]));
                         return;
                     }
                     var table = tables[level];
@@ -273,7 +273,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     for (int k = first; k <= last; k++)
                     {
                         outer.Add(k);
-                        AddRuns(leaf, tables, level + 1, delta + (k - 1) * stride, outer);
+                        AddRuns(leaf, tables, level + 1, RecordLayout.OccurrenceAt(delta, k - 1, stride), outer);
                         outer.RemoveAt(outer.Count - 1);
                     }
                 }
@@ -303,13 +303,13 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     RenamesSpanPart? best = null;
                     foreach (var (leaf, off, w, occ, outer) in leaves)
                     {
-                        int total = w * occ;
+                        int total = RecordLayout.ItemSize(RecordLayout.Product(w, occ));
                         if (pos < off || pos > off + total - 1) continue;          // the leaf does not contain pos
                         // the whole leaf (every occurrence) starting exactly here and fitting the window
                         if (off == pos && off + total - 1 <= endOff)
                             Consider(new RenamesSpanPart(leaf, null, 1, total, outer));
                         int k = (pos - off) / w + 1;                                // the occurrence containing pos
-                        int cellLo = off + (k - 1) * w, cellHi = cellLo + w - 1;
+                        int cellLo = RecordLayout.OccurrenceAt(off, k - 1, w), cellHi = cellLo + w - 1;
                         if (cellLo == pos && cellHi <= endOff)                      // a whole cell (or the whole 1-occurrence leaf)
                             Consider(new RenamesSpanPart(leaf, occ == 1 ? null : k, 1, w, outer));
                         else                                                        // a partial slice of the containing cell
@@ -494,7 +494,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
     /// exactly (<see cref="BitLayout.RunBits"/>, occurrences included), anything else its byte width times eight.</summary>
     private static long StorageBitsOf(DataItem d) =>
         BitLayout.IsBitItem(d) ? BitLayout.RunBits(d)
-        : (long)d.ByteWidth * (d.Occurs ?? 1) * BitLayout.BitsPerCharacter;
+        : RecordLayout.OccupiedBits(d);
 
     /// <summary>The bit offset of <paramref name="target"/> within its record (§2023:8.5.1.6.3 placement), or -1 when an
     /// overlay chain below it cannot be resolved — the callers must not reject on -1.</summary>

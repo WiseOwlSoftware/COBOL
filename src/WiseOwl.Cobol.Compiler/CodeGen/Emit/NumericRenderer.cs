@@ -400,7 +400,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
                 n.FixedWidth, n.ElemWidth, n.TrailingWidth, n.PositionsPerCharacter);
         // A BASED entry not associated with actual data answers GR8b's maximum (§2023:15.50.4 r4a / §2023:15.14.4 r2a —
         // kb/Work PB80); the null test comes FIRST, before data-name-1 (possibly inside the entry) is read.
-        long maximum = (n.FixedWidth + (long)n.MaxOccurs * n.ElemWidth - n.TrailingWidth + n.PositionsPerCharacter - 1) / n.PositionsPerCharacter;
+        long maximum = (RecordLayout.Plus(n.FixedWidth, RecordLayout.Product(n.MaxOccurs, n.ElemWidth)) - n.TrailingWidth + n.PositionsPerCharacter - 1) / n.PositionsPerCharacter;
         return new(n.BasedAddress is { } addr
             ? $"({RuntimeApi.PtrIsNull(addr)} ? (long){maximum} : {extent})"
             : extent, 0);

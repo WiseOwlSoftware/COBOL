@@ -32,7 +32,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' without cell storage");
         // A SUBSCRIPTED operand addresses the OCCURRENCE (§2023:8.4.3.11 GR1): the class offset plus the binder's
         // occurrence displacement — the occurrences lie end-to-end in the ONE cell image.
-        string off = PositionRenderer.Render(new PositionOffset(new PositionConstant(item.ClassOffset), a.OccursDisplacement ?? []));
+        string offsetText = PositionRenderer.Render(new PositionOffset(new PositionConstant(item.ClassOffset), a.OccursDisplacement ?? []));
         // A REFERENCE-MODIFIED operand's address is its leftmost position's (§2023:8.4.3.11.4 GR1 over §2023:8.4.3.3.4 GR5): the
         // checked zero-based position, times the storage width of a position (RefModPlace.PositionBits — a bit
         // position is a bit, so a bit item's byte displacement divides by eight; its SR4 b) alignment proof makes
@@ -46,7 +46,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 : RuntimeApi.UnknownRefModSize;
             string pos = RuntimeApi.StrRefModStartOffset(RuntimeApi.RefModStart(rm.Spec.Start),
                 RuntimeApi.RefModLength(rm.Spec.Length), size, rm.Spec.AllowZeroLength);
-            off += rm is { UnitBits: 8, LeadBits: 0 }
+            offsetText += rm is { UnitBits: 8, LeadBits: 0 }
                 ? $" + (long){pos}"
                 : $" + (({rm.LeadBits}L + (long){pos} * {rm.UnitBits}) / 8)";
         }
@@ -57,14 +57,14 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             // child of an unallocated based record has no address to take.
             return item.ClassOffset == 0 && ReferenceEquals(item, root) && a.OccursDisplacement is null && a.RefMod is null
                 ? addr
-                : RuntimeApi.PtrUpBy(addr, off);
+                : RuntimeApi.PtrUpBy(addr, offsetText);
         // Every other cell-backed class — ADDRESS-OF-forced or EXTERNAL — addresses the cell member the class
         // NAMES (RedefinesClass.BackingCellClrName): the unit's own per-instance cell, the EXTERNAL cell property
         // over ExternalStore (whose one seed composer the property already calls), or — in a contained program —
         // the ref-bridge to the container's cell (kb/Work PB1009). This used to look the class up in THIS unit's
         // tables, which a contained program's ADDRESS OF a GLOBAL name could never satisfy.
         if (cls.IsCellBacked)
-            return $"ManagedPointer.At({cls.BackingCellClrName}, {off})";
+            return $"ManagedPointer.At({cls.BackingCellClrName}, {offsetText})";
         return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' — unrecognized cell backing");
     }
 

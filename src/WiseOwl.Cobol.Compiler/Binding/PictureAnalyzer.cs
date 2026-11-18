@@ -812,14 +812,6 @@ public static class PictureAnalyzer
         MaxStringLength(dialectLevel) == MaxPictureStringLength ? ""
             : $" at COBOL-{dialectLevel} ({MaxPictureStringLength} from COBOL-{ConstructRegistry.Find(Constructs.PictureString632014)!.IntroducedIn})";
 
-    /// <summary>⚠ THE IMPLEMENTOR-DEFINED MAXIMUM number of character positions in one elementary item. The
-    /// standard sets none: §2023:13.18.40.3 SR4 bounds only the WRITTEN character-string, SR14 bounds only a numeric
-    /// or fixed-point numeric-edited item's DIGIT positions (1 through 31), and Annex A.1 carries no
-    /// maximum-item-size item, so an alphanumeric, alphabetic, national or boolean string is unbounded by the
-    /// standard. 2^27 is the largest power of two whose UTF-16 image — two bytes per character position, for
-    /// alphanumeric and national alike — stays inside .NET's single-object ceiling; past it the expansion used
-    /// to die with an OutOfMemoryException instead of naming the source line (kb/Work PB531).</summary>
-    internal const int MaxCharacterPositions = 1 << 27;
 
     /// <summary>
     /// Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased), VALIDATING every factor
@@ -844,7 +836,7 @@ public static class PictureAnalyzer
     /// violation it is instead of being handed on as ordinary text.</para>
     /// </summary>
     /// <returns><see langword="false"/> when a factor violates SR6 or the expansion would exceed
-    /// <see cref="MaxCharacterPositions"/>; the diagnostic has been reported and the caller recovers.</returns>
+    /// <see cref="RecordLayout.MaxCharacterPositions"/>; the diagnostic has been reported and the caller recovers.</returns>
     internal static bool TryExpandRepeats(string picture, EditionContext edition, string where, Func<char, bool> isCurrencySymbol,
         bool decimalPointIsComma, out string expanded)
     {
@@ -874,7 +866,7 @@ public static class PictureAnalyzer
                         + "(ISO §1985:VI.5.9.4 GR7)");
                     return false;
                 }
-                if ((long)sb.Length + n > MaxCharacterPositions)
+                if ((long)sb.Length + n > RecordLayout.MaxCharacterPositions)
                 {
                     ReportTooLarge(edition, where, picture, (long)sb.Length + n);
                     return false;
@@ -883,7 +875,7 @@ public static class PictureAnalyzer
                 i = close;
                 continue;
             }
-            if (sb.Length + 1 > MaxCharacterPositions) { ReportTooLarge(edition, where, picture, sb.Length + 1L); return false; }
+            if (sb.Length + 1 > RecordLayout.MaxCharacterPositions) { ReportTooLarge(edition, where, picture, sb.Length + 1L); return false; }
             sb.Append(c);
         }
         expanded = sb.ToString();
@@ -945,7 +937,7 @@ public static class PictureAnalyzer
             // Int64. One past the cap is all the caller needs to report the limit, and it keeps an
             // arbitrarily long run of digits from wrapping back INSIDE the cap (the failure shape kb/Work
             // PB639 named on the arithmetic side).
-            if (value > MaxCharacterPositions) value = MaxCharacterPositions + 1L;
+            if (value > RecordLayout.MaxCharacterPositions) value = RecordLayout.MaxCharacterPositions + 1L;
         }
         if (value == 0) return false;                             // "an unsigned NONZERO integer"
         n = (int)value;
@@ -976,8 +968,8 @@ public static class PictureAnalyzer
 
     private static void ReportTooLarge(EditionContext edition, string where, string picture, long positions)
         => edition.Error(DiagnosticCatalog.PictureItemTooLarge, $"{where}: PICTURE {picture} describes "
-            + $"{(positions > MaxCharacterPositions ? "more than " : "")}{Math.Min(positions, (long)MaxCharacterPositions)} "
-            + $"character positions — WiseOwl COBOL's maximum for one elementary item is {MaxCharacterPositions} "
+            + $"{(positions > RecordLayout.MaxCharacterPositions ? "more than " : "")}{Math.Min(positions, (long)RecordLayout.MaxCharacterPositions)} "
+            + $"character positions — WiseOwl COBOL's maximum for one elementary item is {RecordLayout.MaxCharacterPositions} "
             + "(⚠ implementor-defined: ISO "
             + edition.Edition.Cite("§1985:VI.5.9.3 SR4 bounds only the WRITTEN character-string",
                 "§2023:13.18.40.3 SR4 bounds only the WRITTEN character-string and SR14 "
@@ -1476,7 +1468,7 @@ public static class PictureAnalyzer
         // specified by integer-1" — so format 2's SIZE is a character-position count exactly like format 1's
         // expansion, and `SIZE IS 2000000000` used to bind an item whose emitted initializer allocates two
         // billion characters at run time.
-        if (locale2.Size > MaxCharacterPositions)
+        if (locale2.Size > RecordLayout.MaxCharacterPositions)
         {
             ReportTooLarge(edition, where, picture, locale2.Size);
             return PicInfo.Recovery(1);

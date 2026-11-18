@@ -181,7 +181,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
             // the whole fixed-size area; NC252A's RENAME-7 over TABLE-ITEM-2 OCCURS 5). A leaf under an OCCURS GROUP is
             // one part per occurrence of the group (RenamesSpanPart.Outer, kb/Work PB986), so its cell is addressed by
             // those subscripts first.
-            int occ = leaf.Occurs ?? 1;
+            int occ = RecordLayout.Occurrences(leaf);
             for (int k = 1; k <= occ; k++)
             {
                 if (SpanLeafPlace(leaf, part.SubscriptsFor(leaf.Occurs is null ? null : new PositionConstant(k)), out gap) is not { } lp) return null;

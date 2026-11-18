@@ -48,7 +48,7 @@ internal static class RecordPlans
     /// <summary>The plan of one record description entry, whose image is <see cref="RecordLayout.PhysicalWidth"/> bytes.</summary>
     public static RecordPlanModel Of(DataItem record)
     {
-        var windows = new List<(int StartBit, int Bits, DataItem Leaf)>();
+        var windows = new List<(long StartBit, long Bits, DataItem Leaf)>();
         Collect(record, record, 0, windows);
         // Memory order, then the order written (a stable sort over the depth-first walk).
         var ordered = windows.Select((w, i) => (w, i)).OrderBy(p => p.w.StartBit).ThenBy(p => p.i).Select(p => p.w).ToList();
@@ -59,19 +59,19 @@ internal static class RecordPlans
         for (int i = 0; i < ordered.Count; i++)
         {
             var (startBit, bits, leaf) = ordered[i];
-            int first = startBit / 8;
+            int first = RecordLayout.ItemSize(startBit / 8);
             if (first < at) continue;   // overlaps an item already placed: its bytes are converted once
             if (BitLayout.IsBitLeaf(leaf))
             {
                 // A run: every following bit item that starts in a byte the run already reaches.
-                var run = new List<int> { startBit, bits };
-                int end = (startBit + bits - 1) / 8;
+                var run = new List<int> { RecordLayout.ItemSize(startBit), RecordLayout.ItemSize(bits) };
+                int end = RecordLayout.ItemSize((startBit + bits - 1) / 8);
                 while (i + 1 < ordered.Count && BitLayout.IsBitLeaf(ordered[i + 1].Leaf) && ordered[i + 1].StartBit / 8 <= end)
                 {
                     i++;
-                    run.Add(ordered[i].StartBit);
-                    run.Add(ordered[i].Bits);
-                    end = Math.Max(end, (ordered[i].StartBit + ordered[i].Bits - 1) / 8);
+                    run.Add(RecordLayout.ItemSize(ordered[i].StartBit));
+                    run.Add(RecordLayout.ItemSize(ordered[i].Bits));
+                    end = Math.Max(end, RecordLayout.ItemSize((ordered[i].StartBit + ordered[i].Bits - 1) / 8));
                 }
                 if (first > at) steps.Add(new PlanStep(RecordStepKind.Raw, at, first - at));
                 steps.Add(new PlanStep(RecordStepKind.BitRun, first, end - first + 1, Bits: [.. run]));
@@ -101,28 +101,28 @@ internal static class RecordPlans
 
     /// <summary>The elementary items beneath <paramref name="item"/>, with the bit each starts at in the record — every occurrence of
     /// a table.</summary>
-    private static void Collect(DataItem record, DataItem item, int bitDelta, List<(int, int, DataItem)> windows)
+    private static void Collect(DataItem record, DataItem item, long bitDelta, List<(long, long, DataItem)> windows)
     {
         if (item.Occurs is { } occurs)
         {
-            int stride = item.HasBitDescendant ? BitLayout.StrideBits(item) : RecordLayout.PhysicalOccurrenceWidth(item) * 8;
-            for (int k = 0; k < occurs; k++) CollectOne(record, item, bitDelta + k * stride, windows);
+            long stride = item.HasBitDescendant ? BitLayout.StrideBits(item) : RecordLayout.Product(RecordLayout.PhysicalOccurrenceWidth(item), BitLayout.BitsPerCharacter);
+            for (int k = 0; k < occurs; k++) CollectOne(record, item, RecordLayout.Plus(bitDelta, RecordLayout.Product(k, stride)), windows);
         }
         else CollectOne(record, item, bitDelta, windows);
     }
 
-    private static void CollectOne(DataItem record, DataItem item, int bitDelta, List<(int, int, DataItem)> windows)
+    private static void CollectOne(DataItem record, DataItem item, long bitDelta, List<(long, long, DataItem)> windows)
     {
         if (item.IsElementary)
         {
             bool bit = BitLayout.IsBitLeaf(item);
             // A record holding usage bit items is laid out by the bit walk (§2023:8.5.1.6.3), which places every item of it, the characters after
             // a run of bits included; any other record by the byte walk (an overlay the bit walk cannot place falls back to it).
-            int start = record.HasBitDescendant ? BitLayout.StartBitOf(record, item) : -1;
+            long start = record.HasBitDescendant ? BitLayout.StartBitOf(record, item) : -1;
             if (start < 0 && bit) return;   // a bit item the layout walk cannot place (reported where the layout is)
-            if (start < 0) start = (RecordLayout.OffsetInRootWithEveryIndexOne(item) ?? 0) * 8;
+            if (start < 0) start = RecordLayout.Product(RecordLayout.OffsetInRootWithEveryIndexOne(item) ?? 0, BitLayout.BitsPerCharacter);
             // Both walks answer the FIRST occurrence's place, so a table's later occurrences are all in the delta.
-            windows.Add((start + bitDelta, bit ? item.Pic!.Length : item.ByteWidth * 8, item));
+            windows.Add((RecordLayout.Plus(start, bitDelta), bit ? item.Pic!.Length : RecordLayout.Product(item.ByteWidth, BitLayout.BitsPerCharacter), item));
             return;
         }
         foreach (var child in item.Children) Collect(record, child, bitDelta, windows);

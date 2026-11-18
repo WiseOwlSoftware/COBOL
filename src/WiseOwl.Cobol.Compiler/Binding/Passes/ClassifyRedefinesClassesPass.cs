@@ -262,7 +262,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
             // a NATIONAL member, whose §2023:13.18.60.4 GR8 size is two bytes per position under D-N1, and a
             // character-position maximum would under-size the shared backing by half of it.
             // ONE verdict application (P5.11d).
-            cls.Classify(tier, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)), reject);
+            cls.Classify(tier, cls.Members.Max(RecordLayout.OccupiedBytes), reject);
             // Each top-level member overlays the area from its start (a REDEFINES begins at the target's first
             // position, SR10); a subordinate accumulates its window offset within the member. Subordinates of any
             // member are themselves views (suppressed field, SR9).

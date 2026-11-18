@@ -540,7 +540,7 @@ internal static class PlaceRenderer
         {
             int w = n.Widths[i];
             sb.Append(' ').Append(Write(n.Leaves[i], $"__ren.Substring({off}, {w})"));
-            off += w;
+            off = RecordLayout.Advance(off, w);
         }
         return sb.Append(" }").ToString();
     }
@@ -904,7 +904,7 @@ internal static class PlaceRenderer
         : OdoModel.TableUnder(group.Item) is { } table
             // A place the resolver did not wrap (a LINKAGE formal's own root, a method's root group): the MAXIMUM
             // is a fact of the declaration, so a boundary needs no data-name-1; a current count has no source.
-            ? (group, maximum ? (table.Occurs ?? 1).ToString() : null)
+            ? (group, maximum ? RecordLayout.Occurrences(table).ToString() : null)
             : (group, "");
 
     /// <summary>Can a CELL-BACKED variable-length group window compose the operand's image (kb/Work PB244)? Its

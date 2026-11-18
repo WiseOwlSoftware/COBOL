@@ -96,7 +96,8 @@ internal static class VariableLengthCompatibility
     /// element is a group — the element's own atoms, which §2023:8.5.1.12.3's "their elements are compatible" recurses
     /// into.</summary>
     private static GroupAtom TableAtom(DataItem c, GroupAtomKind kind, int occurrences, Sink sink) =>
-        new(kind, c.ByteWidth * occurrences, c.ImageWidth * occurrences, c.ByteWidth, c.ImageWidth,
+        new(kind, RecordLayout.ItemSize(RecordLayout.Product(c.ByteWidth, occurrences)), RecordLayout.ItemSize(RecordLayout.Product(c.ImageWidth, occurrences)),
+            c.ByteWidth, c.ImageWidth,
             c.IsGroup ? sink.Element(c) : null);
 
     /// <summary>The accumulator of one <see cref="AtomsOf"/> walk: the atoms and their items.</summary>

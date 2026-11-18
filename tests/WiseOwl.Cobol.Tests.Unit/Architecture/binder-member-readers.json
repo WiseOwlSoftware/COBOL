@@ -111,6 +111,7 @@
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::AllTypeDecls": [
+      "WiseOwl.Cobol.Binding.Passes.CheckStorageLimitsPass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
       "WiseOwl.Cobol.Binding.Passes.InheritSignClausesPass",
       "WiseOwl.Cobol.Binding.Passes.UsageInheritancePass"
@@ -338,6 +339,7 @@
       "WiseOwl.Cobol.Binding.Passes.CheckGroupValueDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckPictureRequiredPass",
       "WiseOwl.Cobol.Binding.Passes.CheckSignClausesPass",
+      "WiseOwl.Cobol.Binding.Passes.CheckStorageLimitsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckStrongTypeDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckUsageDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckValueLiteralClassesPass",
@@ -774,6 +776,7 @@
       "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckConditionNameAssociationsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckSignClausesPass",
+      "WiseOwl.Cobol.Binding.Passes.CheckStorageLimitsPass",
       "WiseOwl.Cobol.Binding.Passes.ClassifyRedefinesClassesPass",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",

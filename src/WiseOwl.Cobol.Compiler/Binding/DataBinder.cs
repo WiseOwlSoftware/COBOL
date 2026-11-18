@@ -1258,7 +1258,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         var levels = item.SubscriptLevels();
         for (int i = 0; i < levels.Count; i++)
         {
-            int max = levels[i].Occurs ?? 0;
+            int max = RecordLayout.DeclaredOccurrences(levels[i]);
             if (subscripts[i] >= 1 && subscripts[i] <= max) continue;
             edition.Error(DiagnosticCatalog.ClauseOperandSubscriptOutOfRange,
                 $"{face} '{written}': subscript {subscripts[i]} selects no occurrence of '{levels[i].CobolName ?? levels[i].ClrName}', "
