@@ -10,25 +10,31 @@ using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
-/// <summary>⛔ ONE DECIDER OF A MESSAGE'S WORDS BY EDITION (kb/Work PB4950 review rounds 1 to 3; docs/VERSION_TEST_MATRIX_DESIGN.md
+/// <summary>⛔ ONE DECIDER OF A MESSAGE'S WORDS BY EDITION (kb/Work PB4950 review rounds 1 to 5; docs/VERSION_TEST_MATRIX_DESIGN.md
 /// P2.3a). <c>EditionInfo.Cite(y1985, later, y2002, y2014)</c> is the one choice of a citation, or of the words a message quotes,
 /// by edition. A site that spells its own choice is a second decider the next edition's text has to be threaded through by hand.
-/// <para>This test compiles every <c>src/**/*.cs</c> as ONE compilation and asks its SEMANTIC MODEL which values are
-/// EDITION-DERIVED, as a fixed point. The seeds are the members of <see cref="EditionInfo"/> that answer which edition or a number
-/// of it (each public instance <c>int</c> property, each <c>bool</c> method of an <c>int</c>: <c>Has</c>), found by reflection, plus
-/// the compiler's mirror <c>DialectLevel</c> and the CLI's <c>Std</c>. A local or field whose initializer, or a parameter-free
-/// property or method whose return expression, reads an edition-derived symbol (or compares a name that says edition, level or
-/// year with an edition of <see cref="EditionInfo.All"/>) is edition-derived too, when it is a <c>bool</c> or an <c>int</c> as the seeds
-/// are (a string or record computed from one carries data, not the edition question); the derivation repeats until nothing changes, across
-/// files and projects. So an alias (<c>bool is1985 = Edition.DialectLevel &lt; 2002</c>, <c>Prints2002</c>, a chain of them) is
-/// seen wherever it is read. <see cref="EditionInfo"/>'s own <c>bool</c> properties are named rule facts
-/// (<c>SubscriptedClauseOperands</c>) and are neither seeds nor derived: a choice on one is a verdict about the program.</para>
-/// <para>It then refuses, outside <c>EditionInfo.cs</c>, generated code and the code generator (whose strings are emitted C#, not
-/// messages), every conditional expression, switch expression or
-/// if/else that chooses between two strings (a literal, an interpolated string, a concatenation holding one, or any expression of
-/// type string that is not a call: a call computes, and Cite would run both arms) on a condition
-/// that reads an edition-derived value. A program question beside it stays a ternary: <c>x &amp;&amp; is1985 ? a : b</c> is
-/// written <c>x ? Cite(a, b) : b</c>.</para></summary>
+/// <para>THE COMPILATIONS ARE THE BUILD'S. Each <c>src/</c> project is compiled as MSBuild compiles it: its own sources, the compile
+/// items MSBuild generated for it in <c>obj/</c> (its global usings from <c>ImplicitUsings</c>, its assembly attributes), the language
+/// version and nullable context of <c>Directory.Build.props</c>, its project references (resolved through
+/// <see cref="TestRepo.MsBuildPath"/>, closed transitively) as compilation references, the framework and packages of the test host's
+/// trusted-platform list less the WiseOwl assemblies, and the compiler's source generator. Each compilation is ASSERTED to bind with
+/// no error: a guard over a compilation that does not bind could miss silently.</para>
+/// <para>EDITION-DERIVED VALUES, AS A FIXED POINT OF THE SEMANTIC MODEL. The seeds are the members of <see cref="EditionInfo"/> that
+/// answer which edition or a number of it (each public instance <c>int</c> property, each <c>bool</c> method of an <c>int</c>:
+/// <c>Has</c>), found by reflection, plus <c>DialectLevel</c> and <c>Std</c>. A <c>bool</c> or <c>int</c> local or field whose
+/// initializer, or property, method or local function whose return expression, reads a derived value (or compares a name that says
+/// edition, level or year with an edition of <see cref="EditionInfo.All"/>) is derived too: a method only when every parameter
+/// carries an edition (<c>Is85(EditionInfo e)</c>, <c>Printed(int edition)</c>), since one that also takes the program's data answers
+/// a question about the program. The derivation repeats until nothing changes, across files and projects, so an alias
+/// (<c>bool is1985 = ...</c>, <c>Prints2002</c>, a chain) is seen wherever it is read. <see cref="EditionInfo"/>'s own <c>bool</c>
+/// properties are named rule facts (<c>SubscriptedClauseOperands</c>) and are neither seeds nor derived.</para>
+/// <para>THE CHOICES REFUSED, outside <c>EditionInfo.cs</c>, generated code and the code generator (whose strings are emitted C#): a
+/// conditional expression, a switch expression or statement, an if/else, or an if that returns with the next statement returning,
+/// that chooses between two strings (written, or of type string and not a call: Cite would run both arms) on a condition that reads
+/// an edition-derived value; and an interpolation hole whose own value a derived member computes, a string or a number spliced into
+/// a citation (<c>§{Printed(edition)}:8.12</c>). A choice that can answer null is a verdict (whether a rule fires), and a hole that
+/// prints the compile edition (<c>COBOL-{DialectLevel}</c>) names it. A program question beside the edition stays a ternary:
+/// <c>x &amp;&amp; is1985 ? a : b</c> is written <c>x ? Cite(a, b) : b</c>.</para></summary>
 [Trait("Sweep", "tree")]
 public sealed class EditionCiteOneDeciderDriftTests
 {
@@ -78,24 +84,27 @@ public sealed class EditionCiteOneDeciderDriftTests
     {
         // Directory.Build.props sets LangVersion 14; the Roslyn this test links (4.14) names C# 14 Preview.
         var parse = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+        // Projects are keyed by their project file's full path, the identity MSBuild gives them (a ProjectReference resolves to it).
+        static string ProjectFile(string project) => Path.GetFullPath(TestRepo.Src(project, project + ".csproj"));
         var built = new Dictionary<string, CSharpCompilation>(StringComparer.Ordinal);
         var closure = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
         foreach (string project in Projects)   // in dependency order
         {
             string dir = TestRepo.Src(project);
             string obj = TestRepo.Src(project, "obj", TestRepo.Configuration, TestRepo.TargetFramework);
+            string file = ProjectFile(project);
             var sources = Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories)
                 .Where(f => !Path.GetRelativePath(dir, f).Split(Path.DirectorySeparatorChar).Any(seg => seg is "bin" or "obj"))
                 .Concat(Directory.EnumerateFiles(obj, "*.cs", SearchOption.TopDirectoryOnly))
                 .Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f), parse, path: f));
             // MSBuild flows project references transitively, so a project sees every project below its own references.
-            var direct = System.Xml.Linq.XDocument.Load(TestRepo.Src(project, project + ".csproj"))
+            var direct = System.Xml.Linq.XDocument.Load(file)
                 .Descendants("ProjectReference")
                 .Where(r => (string?)r.Attribute("ReferenceOutputAssembly") != "false")
-                .Select(r => Path.GetFileNameWithoutExtension((string)r.Attribute("Include")!))
+                .Select(r => TestRepo.MsBuildPath(Path.GetDirectoryName(file)!, (string)r.Attribute("Include")!))
                 .ToList();
-            closure[project] = [.. direct.Concat(direct.SelectMany(d => closure[d])).Distinct(StringComparer.Ordinal)];
-            var references = closure[project].Select(name => built[name].ToMetadataReference());
+            closure[file] = [.. direct.Concat(direct.SelectMany(d => closure[d])).Distinct(StringComparer.Ordinal)];
+            var references = closure[file].Select(reference => built[reference].ToMetadataReference());
             var compilation = CSharpCompilation.Create(project, sources, [.. FrameworkAndPackages, .. references],
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
             if (project == "WiseOwl.Cobol.Compiler")
@@ -103,9 +112,9 @@ public sealed class EditionCiteOneDeciderDriftTests
             var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
             Assert.True(errors.Count == 0, $"{project} does not bind as the build binds it: {errors.Count} error(s); the first 20:\n"
                 + string.Join("\n", errors.Take(20)));
-            built[project] = compilation;
+            built[file] = compilation;
         }
-        return [.. Projects.Select(p => built[p])];
+        return [.. Projects.Select(p => built[ProjectFile(p)])];
     }
 
     /// <summary>The compiler's bound-tree visitor generator (<c>WiseOwl.Cobol.Compiler.SourceGen</c>, an analyzer the compiler project
@@ -205,6 +214,14 @@ public sealed class EditionCiteOneDeciderDriftTests
                         "switch statement",
                     _ => null,
                 };
+                // An interpolation hole whose OWN value an edition-derived member computes (§{Printed(edition)}) chooses the text as surely
+                // as a ternary does: a string, or a number spliced into a citation (right after "§" or right before its ":"). A hole
+                // that prints the compile edition itself (COBOL-{DialectLevel}) names it, and one that hands the edition to a helper as an
+                // argument (Format(DialectLevel, "SR1")) leaves the choice to the helper, which this test reads where it is written.
+                kind ??= node is InterpolationSyntax h && !PrintsTheEdition(h.Expression) && HeadOf(h.Expression, model) is { } head
+                    && derived.Contains(head)
+                    && (model.GetTypeInfo(h.Expression).Type?.SpecialType == SpecialType.System_String || SplicedIntoCitation(h))
+                    ? "interpolation" : null;
                 if (kind is not null)
                     found.Add($"{tree.FilePath}:{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: {kind}");
             }
@@ -288,6 +305,33 @@ public sealed class EditionCiteOneDeciderDriftTests
     private static bool IsEditionParameter(ParameterSyntax p) =>
         p.Type?.ToString() is "EditionInfo" or "EditionContext" or "WiseOwl.Cobol.Binding.EditionContext"
         || (p.Type?.ToString() == "int" && NamesEdition(SyntaxFactory.IdentifierName(p.Identifier.ValueText)));
+
+    /// <summary>The symbol whose value a hole is: the method a call invokes, or the member or local it reads.</summary>
+    private static ISymbol? HeadOf(ExpressionSyntax e, SemanticModel model) => e switch
+    {
+        ParenthesizedExpressionSyntax p => HeadOf(p.Expression, model),
+        InvocationExpressionSyntax or MemberAccessExpressionSyntax or IdentifierNameSyntax =>
+            model.GetSymbolInfo(e) is var info && info.Symbol is { } s ? s : info.CandidateSymbols.FirstOrDefault(),
+        _ => null,
+    };
+
+    /// <summary>A hole spliced into a citation: the text before it ends in "§", or the text after it begins with ":".</summary>
+    private static bool SplicedIntoCitation(InterpolationSyntax h)
+    {
+        var contents = ((InterpolatedStringExpressionSyntax)h.Parent!).Contents;
+        int at = contents.IndexOf(h);
+        return (at > 0 && contents[at - 1] is InterpolatedStringTextSyntax before && before.TextToken.ValueText.EndsWith('§'))
+            || (at + 1 < contents.Count && contents[at + 1] is InterpolatedStringTextSyntax after && after.TextToken.ValueText.StartsWith(':'));
+    }
+
+    /// <summary>A hole that is the compile edition's number itself (<c>Year</c>, <c>DialectLevel</c>, an edition-named int): it names
+    /// the edition, as the edition gate's "(targeting COBOL-85)" does, and chooses no text.</summary>
+    private static bool PrintsTheEdition(ExpressionSyntax e) => e switch
+    {
+        IdentifierNameSyntax id => NamesEdition(id),
+        MemberAccessExpressionSyntax m => m.Name.Identifier.ValueText is "Year" or "DialectLevel",
+        _ => false,
+    };
 
     private static bool Returns(StatementSyntax s, Func<ExpressionSyntax, bool> str) => s switch
     {
@@ -387,6 +431,9 @@ public sealed class EditionCiteOneDeciderDriftTests
                     if (e.Year < 2002) return "a";
                     return "b";
                 }
+                static int Printed(int edition) => edition >= 2014 ? 2014 : 2002;
+                string Hole(int edition) => $"§{Printed(edition)}:8.12";
+                string Named(EditionInfo e) => $"targeting COBOL-{e.Year}";
             }
             """;
         var editions = SourceCompilations.Single(c => c.AssemblyName == "WiseOwl.Cobol.Editions");
@@ -401,6 +448,7 @@ public sealed class EditionCiteOneDeciderDriftTests
             "planted.cs:25: conditional expression", "planted.cs:26: conditional expression", "planted.cs:27: conditional expression",
             "planted.cs:28: conditional expression", "planted.cs:33: conditional expression", "planted.cs:34: conditional expression",
             "planted.cs:36: conditional expression", "planted.cs:39: switch statement", "planted.cs:47: if/return",
+            "planted.cs:51: interpolation",
         ], Find([editions, compilation], t => t.FilePath == "planted.cs", _ => true));
     }
 }

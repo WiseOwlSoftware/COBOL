@@ -52,6 +52,13 @@ internal static class TestRepo
                 $"'{repoRelative}' does not lie under '{directory}', the directory the call declares it reads",
                 nameof(repoRelative));
 
+    /// <summary>⛔ THE ONE RESOLUTION OF A PATH WRITTEN IN AN MSBUILD FILE (a <c>ProjectReference</c>'s or <c>Compile</c>'s
+    /// <c>Include</c>, a <c>HintPath</c>): MSBuild accepts either separator on every OS and resolves the path against the directory
+    /// of the file that writes it, so a test reads it the same way, both separators normalized, as a full path (kb/Work PB1957:
+    /// a csproj's <c>..\WiseOwl.Cobol.Runtime\WiseOwl.Cobol.Runtime.csproj</c> is one file name on Linux unless normalized).</summary>
+    public static string MsBuildPath(string fileDirectory, string written) =>
+        Path.GetFullPath(Path.Combine(fileDirectory, written.Replace('\\', '/').Replace('/', Path.DirectorySeparatorChar)));
+
     /// <summary><c>src/</c> — the five product assemblies.</summary>
     public static string Src(params string[] segments) => At(["src", .. segments]);
 

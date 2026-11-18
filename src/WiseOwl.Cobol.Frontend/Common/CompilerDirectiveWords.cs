@@ -109,7 +109,11 @@ public static class CompilerDirectiveWords
 
     /// <summary>The citation of the edition's clause-8.12 table that <see cref="IsReserved"/> asked, e.g. <c>§2002:8.12</c>
     /// (no word is reserved below 2002, so no site asks there; 2002 answers as the first edition).</summary>
-    public static string TableCitation(int edition) => $"§{Printed(edition)}:8.12";
+    public static string TableCitation(int edition)
+    {
+        const string y2002 = "§2002:8.12";   // no word is reserved below 2002, so a COBOL-85 site reads 2002's table
+        return WiseOwl.Cobol.Editions.EditionInfo.Of(edition).Cite(y2002, "§2023:8.12", y2002, "§2014:8.12");
+    }
 
     /// <summary>The citation of the syntax rule that forbids a compiler-directive word at <paramref name="site"/>, in the
     /// edition's own text: the DEFINE name rule is SR1 of §2002:7.2.9.2 / §2014:7.3.9.2 / §2023:7.3.11.3, the defined
@@ -117,7 +121,7 @@ public static class CompilerDirectiveWords
     /// §2002:7.2.19.2 / §2014:7.3.20.2 / §2023:7.3.25.3 (kb/Work PB5599).</summary>
     public static string Citation(int edition, Site site)
     {
-        // No directive word is reserved below 2002 (Printed), so a COBOL-85 site reads 2002's text; each text is written once.
+        // No directive word is reserved below 2002, so a COBOL-85 site reads 2002's text; each text is written once.
         var (y2002, y2014, y2023) = site switch
         {
             Site.Define => ("§2002:7.2.9.2 SR1", "§2014:7.3.9.2 SR1", "§2023:7.3.11.3 SR1"),
@@ -128,5 +132,4 @@ public static class CompilerDirectiveWords
         return WiseOwl.Cobol.Editions.EditionInfo.Of(edition).Cite(y2002, y2023, y2002, y2014);
     }
 
-    private static int Printed(int edition) => edition >= 2023 ? 2023 : edition >= 2014 ? 2014 : 2002;
 }
