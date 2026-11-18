@@ -149,9 +149,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         FromPhraseRules rules, out FileModel file, out Place record)
     {
         record = null!;
-        string statementRule = verb == "WRITE"
+        string statementRule2002 = verb == "WRITE"
             ? "ISO §2023:14.9.51.3 SR12 (§2002:14.8.47.2 SR12)"
             : "ISO §2023:14.9.35.3 SR11 (§2002:14.8.33.2 SR11)";
+        string statementRule = ctx.Edition.Edition.Cite("", statementRule2002, statementRule2002);
         if (!ctx.Validation.ResolveFile(fileName, verb, out file!, statementRule: statementRule)) return false;
         if (host.Move.BindFilePhraseRecord(rules, file, from) is not { } implicitRecord) return false;
         record = implicitRecord;
@@ -201,8 +202,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     {
         if (ResolveWriteRecord(w, out var file, out var record, out var bindFrom) is { } refused) return refused;
         // §2023:14.9.51.3 SR12's REPORT half (its sort-merge half is UnsupportedOrg's) — kb/Work PB1171.
-        if (!ctx.Validation.ScreenReportFileReference(file, "WRITE", "ISO §2023:14.9.51.3 SR12 — \"The file description "
-                + "entry associated with the write file shall not contain the REPORT clause\""))
+        if (!ctx.Validation.ScreenReportFileReference(file, "WRITE", ctx.Edition.Edition.Cite("", "ISO §2023:14.9.51.3 SR12 — \"The file description "
+                + "entry associated with the write file shall not contain the REPORT clause\"", "ISO §2023:14.9.51.3 SR12 — \"The file description "
+                + "entry associated with the write file shall not contain the REPORT clause\"")))
             return BoundRejected.Reported(ctx.Edition);
         // The WRITE lock/RETRY phrases (§2023:14.9.51 Format 1/2 — [retry-phrase] [WITH LOCK | WITH NO LOCK]) bind
         // for EVERY organization; the emitter routes a lock-relevant statement through the governed runtime entry.
@@ -388,8 +390,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     {
         if (ResolveRewriteRecord(rw, out var file, out var record, out var bindFrom) is { } refused) return refused;
         // §2023:14.9.35.3 SR11's REPORT half, asked of the record's file (the FILE format asks it in ResolveFile) — kb/Work PB1171.
-        if (!ctx.Validation.ScreenReportFileReference(file, "REWRITE", "ISO §2023:14.9.35.3 SR11 — \"File-name-1 shall "
-                + "not reference a report file or a sort-merge file description entry\""))
+        if (!ctx.Validation.ScreenReportFileReference(file, "REWRITE", ctx.Edition.Edition.Cite("", "ISO §2023:14.9.35.3 SR11 — \"File-name-1 shall "
+                + "not reference a report file or a sort-merge file description entry\"", "ISO §2023:14.9.35.3 SR11 — \"File-name-1 shall "
+                + "not reference a report file or a sort-merge file description entry\"")))
             return BoundRejected.Reported(ctx.Edition);
         BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.retryLockPhrases()?.recordLockPhrase(), "REWRITE");   // §2023:14.9.35 SR4 → COBOL1512
         RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryLockPhrases()?.retryPhrase());                                      // §2023:14.7.9 / §2023:14.9.35 GR11
@@ -598,9 +601,16 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         if (system.Kind != SystemNameKind.Feature)
             ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingMnemonicNotFeature, $"WRITE ADVANCING '{mnemonic}': "
                 + $"'{mnemonic}' is the mnemonic-name of the {ImplementorNames.KindWord(system.Kind)} '{system.Name}' — "
-                + "\"When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the "
-                + "implementor\" (ISO §2023:14.9.51.3 SR16), and a mnemonic-name that is not a feature-name's may not be "
-                + "specified in WRITE (§2023:12.3.7.3 SR5, SR7)");
+                + ctx.Edition.Edition.Cite(
+                    "\"When mnemonic-name-1 is specified, the name is associated with a particular feature specified by the "
+                    + "implementor\" (ISO §1985:VII.4.7.3 SR6), and a mnemonic-name that is not a feature's may not be "
+                    + "specified in WRITE (§1985:VI.4.5.3 SR1, SR2)",
+                    "\"When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the "
+                    + "implementor\" (ISO §2023:14.9.51.3 SR16), and a mnemonic-name that is not a feature-name's may not be "
+                    + "specified in WRITE (§2023:12.3.7.3 SR5, SR7)",
+                    "\"When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the "
+                    + "implementor\" (ISO §2023:14.9.51.3 SR16), and a mnemonic-name that is not a feature-name's may not be "
+                    + "specified in WRITE (§2023:12.3.7.3 SR5, SR7)"));
         return system.Advance == FeatureAdvance.TopOfPage
             ? new BoundAdvancing(before, true, null)
             : new BoundAdvancing(before, false, new BoundNumericLiteral("0"));

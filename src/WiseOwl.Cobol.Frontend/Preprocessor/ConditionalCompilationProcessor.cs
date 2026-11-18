@@ -1052,7 +1052,7 @@ public static partial class ConditionalCompilationProcessor
         {
             // A literal the directive line ends inside (§2023:6.4.2; kb/Work PB3245) has no value either.
             bool closed = LiteralScreen.ReportUnterminated(fragment, edition, (_, descriptor, message) => Emit(descriptor.Code, message));
-            foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, fragment)) Emit(v.Descriptor.Code, v.Message);
+            foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, fragment, edition)) Emit(v.Descriptor.Code, v.Message);
             return LiteralScreen.Run(fragment, edition, new BagSink(bag ?? new DiagnosticBag(), At), compiled) && closed;
         }
 

@@ -1337,19 +1337,21 @@ public sealed class CopyProcessor(
     /// <see cref="ScreenOperandPair"/> (kb/Work PB1353); a row holds one statement's rule numbers.</summary>
     private sealed record OperandRules(string Statement, string Clause, int PseudoText1, int PartialWord1,
         int PartialWord2, int Literal, int Length, int DirectiveLines, ResultRule Result, string LengthQuote,
-        string Length2002, string LengthQuote2002);
+        string Length2002, string LengthQuote2002, string PseudoText1Rule1985);
 
     /// <summary>§2023:7.2.3.3 SR6, SR11, SR12, SR13, SR9, SR10; the length rule of 2002 is §2002:7.1.2.2 SR11.</summary>
     private static readonly OperandRules CopyOperandRules = new("COPY", "§2023:7.2.3.3", 6, 11, 12, 13, 9, 10, CopyResultRule,
         "The length of a text-word within pseudo-text and within library text shall be from 1 through 65,535 character positions",
         "§2002:7.1.2.2 SR11",
-        "The length of a text-word within pseudo-text and within library text shall be from 1 through 322 character positions");
+        "The length of a text-word within pseudo-text and within library text shall be from 1 through 322 character positions",
+        "§1985:XII.2.3 SR3");
 
     /// <summary>§2023:7.2.4.3 SR3, SR5, SR6, SR7, SR9, SR10; the length rule of 2002 is §2002:7.1.3.2 SR9.</summary>
     private static readonly OperandRules ReplaceOperandRules = new("REPLACE", "§2023:7.2.4.3", 3, 5, 6, 7, 9, 10, ReplaceResultRule,
         "The length of a text-word within pseudo-text shall be from 1 through 65,535 characters",
         "§2002:7.1.3.2 SR9",
-        "The length of a text-word within pseudo-text shall be from 1 through 322 characters");
+        "The length of a text-word within pseudo-text shall be from 1 through 322 characters",
+        "§1985:XII.3.3 SR3");
 
     /// <summary>Where a REPLACING phrase reports: its statement's operand rules and the statement's diagnostics, at
     /// SOURCE origins (kb/Work PB82). One instance per statement, so the edition gate of the LEADING / TRAILING phrases
@@ -1416,7 +1418,9 @@ public sealed class CopyProcessor(
         }
 
         /// <summary>COBOL2572 — an operand whose content breaks one of <see cref="Rules"/>.</summary>
-        public void Content(int at, int rule, string quoted, string what) => Content(at, $"{Rules.Clause} SR{rule}", quoted, what);
+        public void Content(int at, int rule, string quoted, string what, string? rule1985 = null, string? quoted1985 = null)
+            => Content(at, edition.Cite(rule1985 ?? $"{Rules.Clause} SR{rule}", $"{Rules.Clause} SR{rule}", $"{Rules.Clause} SR{rule}"),
+                edition.Cite(quoted1985 ?? quoted, quoted, quoted), what);
 
         private void Content(int at, string citation, string quoted, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.ReplacingOperandContent.Code,
@@ -1541,7 +1545,8 @@ public sealed class CopyProcessor(
             if (from.IsPseudoText && from.MatchWords.Count == 0)
                 screen.Content(from.Start, r.PseudoText1, "Pseudo-text-1 shall contain one or more text-words, at least "
                     + "one of which shall be neither a separator comma nor a separator semicolon",
-                    "pseudo-text-1 holds no text-word to match");
+                    "pseudo-text-1 holds no text-word to match", r.PseudoText1Rule1985,
+                    "Pseudo-text-1 must contain one or more text words");
             return;
         }
         if (from.IsPseudoText && from.MatchWords.Count != 1)

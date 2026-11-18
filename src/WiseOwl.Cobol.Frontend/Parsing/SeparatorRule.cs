@@ -186,13 +186,13 @@ public static class SeparatorRule
     /// rules refuse <c>-A</c> there as no literal, COBOL1902).</para>
     /// <para>Tokens are judged by their own source indices, so the tree may come from the unit's text or from a
     /// directive operand lexed apart (kb/Work PB1616) — each caller passes the text its tree was lexed from.</para></summary>
-    public static IReadOnlyList<Violation> ArithmeticOperatorViolations(string text, IParseTree tree)
+    public static IReadOnlyList<Violation> ArithmeticOperatorViolations(string text, IParseTree tree, EditionInfo edition)
     {
         List<Violation>? found = null;
         void Judge(IToken? op, string name, bool unary)
         {
             if (op is null || op.StartIndex < 0) return;   // a missing token of an error-recovered parse has no characters
-            if (OperatorSpacingMessage(text, op, name, "§2023:8.7.1", parenthesisAdmitted: unary) is { } message)
+            if (OperatorSpacingMessage(text, op, name, edition.Cite("§1985:VI.6.2.2", "§2023:8.7.1", "§2023:8.7.1"), parenthesisAdmitted: unary) is { } message)
                 (found ??= []).Add(new(op, DiagnosticCatalog.SeparatorOperatorSpacing, message));
         }
 

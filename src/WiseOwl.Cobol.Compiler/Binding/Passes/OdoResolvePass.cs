@@ -286,22 +286,23 @@ internal sealed class OdoResolvePass : IBindPass
         // A sum counter (kb/Work PB5310) is a global name when its report is (§2023:13.18.27.4 GR1), whatever its register's root.
         bool globalDep = binder.SumCounterReportOf(dep) is ({ } counterReport, _) ? counterReport.IsGlobal : binder.IsGlobalRecord(dep.Root);
         bool tableGlobal = binder.IsGlobalRecord(table.Root), tableExternal = table.Root.HasExternalClause || table.Root.ExternalFromType;
+        var ed = binder.Edition.Edition;
         // "Described in the same data division" (§1985:VI.5.8.3 SR8/SR9; §2023:13.18.38.3 SR18/SR21): a counter this unit inherited
         // from a containing program (DataBinder.InheritContainerGlobalData) is described in that program's data division.
         if ((tableGlobal || tableExternal) && binder.IsDescribedInContainer(dep))
             return $"the table's record '{table.Root.CobolName}' is {(tableGlobal ? "global" : "EXTERNAL")} and data-name-1 "
                 + $"'{dep.CobolName}' is described in the data division of a containing program — \"shall reference a "
-                + (tableGlobal ? "data item that is described in the same data division\" (ISO §2023:13.18.38.3 SR18; §1985:VI.5.8.3 SR9)"
+                + (tableGlobal ? $"data item that is described in the same data division\" (ISO {ed.Cite("§1985:VI.5.8.3 SR9", "§2023:13.18.38.3 SR18", "§2023:13.18.38.3 SR18")})"
                                : "data item possessing the external attribute that is described in the same data division\" "
-                                 + "(ISO §2023:13.18.38.3 SR21; §1985:VI.5.8.3 SR8)");
+                                 + $"(ISO {ed.Cite("§1985:VI.5.8.3 SR8", "§2023:13.18.38.3 SR21", "§2023:13.18.38.3 SR21")})");
         if (tableGlobal && !globalDep)
             return $"the table's record '{table.Root.CobolName}' is global and data-name-1 is not a global name — \"If "
                 + "the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause, "
-                + "data-name-1, if specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)";
+                + $"data-name-1, if specified, {ed.Cite("must", "shall", "shall")} be a global name\" (ISO {ed.Cite("§1985:VI.5.8.3 SR9", "§2023:13.18.38.3 SR18", "§2023:13.18.38.3 SR18")})";
         if (tableExternal && !DataBinder.IsInExternalRecord(dep.Root, binder.State.Files))
             return $"the table's record '{table.Root.CobolName}' is EXTERNAL and data-name-1 does not possess the "
                 + "external attribute — \"data-name-1 shall reference a data item possessing the external attribute "
-                + "that is described in the same data division\" (ISO §2023:13.18.38.3 SR21)";
+                + $"that is described in the same data division\" (ISO {ed.Cite("§1985:VI.5.8.3 SR8", "§2023:13.18.38.3 SR21", "§2023:13.18.38.3 SR21")})";
         return null;
     }
 }

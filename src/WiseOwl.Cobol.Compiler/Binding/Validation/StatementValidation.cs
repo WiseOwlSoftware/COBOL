@@ -181,7 +181,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// INPUT / I-O half is <see cref="CheckOpenModeForFile"/>'s). Every other statement resolving a file-name is
     /// refused a report file by <see cref="ScreenReportFileReference"/>, so a new statement is screened by
     /// construction (kb/Work PB1171).</param>
-    /// <param name="statementRule">The statement's own restatement of the report-file rule, quoted with its
+    /// <param name="statementRule">The statement's own restatement of the report-file rule (empty where the edition's standard
+    /// states none beside §1985:XIII.3.3.3 SR3), quoted with its
     /// citation, when it has one (SORT §2023:14.9.40.3 SR8, MERGE §2023:14.9.24.3 SR9).</param>
     /// <returns>true when the name identifies a file connector the statement may reference; false after
     /// reporting.</returns>
@@ -271,10 +272,18 @@ internal sealed class StatementValidation(DataBinder data)
         if (!file.IsReportFile) return true;
         data.Edition.Error(DiagnosticCatalog.ReportFileReference,
             $"{verb} '{file.CobolName}' — '{file.CobolName}' is a report file (its file description entry specifies "
-            + "a REPORT clause), and ISO §2023:13.4.5.3 SR9: \"The subject of a file description entry that specifies a "
-            + "REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase "
-            + "of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\""
-            + (statementRule is null ? "" : $"; {statementRule}")
+            + "a REPORT clause), and ISO "
+            + data.Edition.Edition.Cite(
+                "§1985:XIII.3.3.3 SR3: \"The subject of a file description entry that specifies a REPORT clause may be "
+                + "referenced in the Procedure Division only by the USE statement, the CLOSE statement, or the OPEN statement "
+                + "with the OUTPUT or EXTEND phrase\"",
+                "§2023:13.4.5.3 SR9: \"The subject of a file description entry that specifies a "
+                + "REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase "
+                + "of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\"",
+                "§2023:13.4.5.3 SR9: \"The subject of a file description entry that specifies a "
+                + "REPORT clause may be referenced in the procedure division only by the USE statement, the WHEN phrase "
+                + "of a PERFORM statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\"")
+            + (string.IsNullOrEmpty(statementRule) ? "" : $"; {statementRule}")
             + ". A report file is written only through INITIATE, GENERATE and TERMINATE.");
         return false;
     }
@@ -1228,7 +1237,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (IsInspectElementaryCharacterItem(p)) return true;
         data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT operand '{refText}' shall reference an elementary item "
-            + "described implicitly or explicitly as usage display or national (ISO §2023:14.9.22.3 SR2)");
+            + "described implicitly or explicitly as usage display or national " + InspectOperandUsageCitation);
         return false;
     }
 
@@ -1241,9 +1250,14 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!IntrinsicArgumentRules.FunctionIsNotDisplayOrNational(function, out var category)) return true;
         data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT operand '{refText}' is {IntrinsicArgumentRules.FunctionUsageReason(category)}, "
-            + "so it is not an elementary item described implicitly or explicitly as usage display or national (ISO §2023:14.9.22.3 SR2)");
+            + "so it is not an elementary item described implicitly or explicitly as usage display or national " + InspectOperandUsageCitation);
         return false;
     }
+
+    /// <summary>The citation of the rule that an INSPECT operand reference an elementary item of usage display (or, from 2002,
+    /// national): §1985:VI.6.18.3 SR2 ("must reference an elementary item described, implicitly or explicitly, as USAGE IS
+    /// DISPLAY") at --std 85, §2023:14.9.22.3 SR2 from 2002 (kb/Work PB4950).</summary>
+    private string InspectOperandUsageCitation => "(ISO " + data.Edition.Edition.Cite("§1985:VI.6.18.3 SR2", "§2023:14.9.22.3 SR2", "§2023:14.9.22.3 SR2") + ")";
 
     /// <summary>SR1's function-identifier half (kb/Work PB3665): identifier-1 "shall reference either an alphanumeric or
     /// national group item or an elementary item described implicitly or explicitly as usage display or national", and
@@ -1474,8 +1488,12 @@ internal sealed class StatementValidation(DataBinder data)
         if (!namedSoFar.Contains(cat)) return true;
         data.Edition.Error(DiagnosticCatalog.InitializeCategoryRepeated,
             $"INITIALIZE REPLACING repeats the category-name {InitializeCategories.Spelling(cat)} "
-            + "(ISO §2023:14.9.20.3 SR6 — each category at most once in the phrase; §2023:5.2.6.4 — each alternative at "
-            + "most once within one category-name)");
+            + data.Edition.Edition.Cite(
+                "(ISO §1985:VI.6.17.3 SR3 — \"The same category cannot be repeated in a REPLACING phrase\")",
+                "(ISO §2023:14.9.20.3 SR6 — each category at most once in the phrase; §2023:5.2.6.4 — each alternative at "
+                + "most once within one category-name)",
+                "(ISO §2023:14.9.20.3 SR6 — each category at most once in the phrase; §2023:5.2.6.4 — each alternative at "
+                + "most once within one category-name)"));
         return false;
     }
 
@@ -2100,7 +2118,8 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!(file.Linage is not null && advancingNamesMnemonic)) return true;
         data.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"WRITE ADVANCING mnemonic-name on file '{file.CobolName}', whose "
-            + "file description entry contains a LINAGE clause (ISO §2023:14.9.51.3 SR13)");
+            + "file description entry contains a LINAGE clause (ISO "
+            + data.Edition.Edition.Cite("§1985:VII.4.7.3 SR3", "§2023:14.9.51.3 SR13", "§2023:14.9.51.3 SR13") + ")");
         return false;
     }
 

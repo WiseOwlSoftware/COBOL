@@ -64,8 +64,11 @@ public sealed partial class FileControlBinder
                 // cascade of undefined names (kb/Work PB1237; it used to compile clean and run I-O against an
                 // empty assignment).
                 Edition.Error(DiagnosticCatalog.FileDescriptionWithoutSelect, $"file description entry '{name}' names "
-                    + "a file that no file control entry specifies; ISO §2023:13.4.5.3 SR1: \"File-name-1 shall be "
-                    + "specified in a file control entry.\"");
+                    + "a file that no file control entry specifies; ISO " + Edition.Edition.Cite(
+                        "§1985:VII.2.3.3 SR2 (§1985:VIII.2.3.3 SR2, §1985:IX.2.3.3 SR2): \"Each file-name in the Data Division must be "
+                        + "specified only once in the FILE-CONTROL paragraph.\"",
+                        "§2023:13.4.5.3 SR1: \"File-name-1 shall be specified in a file control entry.\"",
+                        "§2023:13.4.5.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
                 file = new FileModel { CobolName = name, SelectName = name };
                 _host.State.Files.Declare(name, file);
             }
@@ -166,8 +169,11 @@ public sealed partial class FileControlBinder
             {
                 // ISO §2023:13.4.6.3 SR1 — the SD twin of the FD arm above (kb/Work PB1290).
                 Edition.Error(DiagnosticCatalog.FileDescriptionWithoutSelect, $"sort-merge file description entry "
-                    + $"'{sdName}' names a file that no file control entry specifies; ISO §2023:13.4.6.3 SR1: \"File-name-1 "
-                    + "shall be specified in a file control entry.\"");
+                    + $"'{sdName}' names a file that no file control entry specifies; ISO " + Edition.Edition.Cite(
+                        "§1985:XI.2.3.3 SR1: \"Each sort or merge file described in the Data Division must be specified only once in "
+                        + "the FILE-CONTROL paragraph.\"",
+                        "§2023:13.4.6.3 SR1: \"File-name-1 shall be specified in a file control entry.\"",
+                        "§2023:13.4.6.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
                 sdFile = new FileModel { CobolName = sdName, SelectName = sdName };
                 _host.State.Files.Declare(sdName, sdFile);
             }
@@ -183,8 +189,13 @@ public sealed partial class FileControlBinder
             if (sdRecords.Count == 0)
                 Edition.Error(DiagnosticCatalog.FileDescriptionRecordRequired, $"sort-merge file description entry "
                     + $"'{sdName}': one or more record description entries shall be associated with the sort-merge "
-                    + "file description entry (ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
-                    + "record of this file (§2023:14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name.");
+                    + "file description entry " + Edition.Edition.Cite(
+                        "(ISO §1985:XI.3.2.3 SR3) — a SORT or MERGE key is a data item within a record of this file, so there is "
+                        + "nothing for the KEY phrase to name.",
+                        "(ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
+                        + "record of this file (§2023:14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name.",
+                        "(ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
+                        + "record of this file (§2023:14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name."));
             sdFile.Records.AddRange(sdRecords);
             LinkImplicitRecordArea(sdFile);   // §2023:13.18.33.4 GR3 — the SD twin of the FD arm (kb/Work PB836)
             foreach (var clause in sd.sortMergeDescriptionClauses()?.sortMergeDescriptionClause() ?? [])

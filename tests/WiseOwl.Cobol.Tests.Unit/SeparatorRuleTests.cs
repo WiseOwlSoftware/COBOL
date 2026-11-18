@@ -104,7 +104,7 @@ public sealed class SeparatorRuleTests
     {
         var tree = DirectiveExpressionFragment.ParseOperand(expression);
         Assert.NotNull(tree);
-        return [.. SeparatorRule.ArithmeticOperatorViolations(expression, tree).Select(v => v.Token.Text)];
+        return [.. SeparatorRule.ArithmeticOperatorViolations(expression, tree, EditionInfo.Of(2023, false)).Select(v => v.Token.Text)];
     }
 
     [Theory] // §2023:8.7.1: a space on each side of a binary operator; a unary one may touch a left parenthesis instead
@@ -155,7 +155,7 @@ public sealed class SeparatorRuleTests
     public void ArithmeticOperatorSpacing_NamesTheClauseTheKindAndTheSide(string expression, string what, string fix)
     {
         var tree = DirectiveExpressionFragment.ParseOperand(expression);
-        var v = Assert.Single(SeparatorRule.ArithmeticOperatorViolations(expression, tree!));
+        var v = Assert.Single(SeparatorRule.ArithmeticOperatorViolations(expression, tree!, EditionInfo.Of(2023, false)));
         Assert.Equal("COBOL2993", v.Descriptor.Code);
         Assert.Contains("§2023:8.7.1", v.Message);
         Assert.Contains(what, v.Message);

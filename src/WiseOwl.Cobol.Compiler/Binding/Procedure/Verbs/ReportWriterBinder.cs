@@ -405,7 +405,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
-                    + "clause in the report description entry (ISO §2023:14.9.16.3 SR2)");
+                    + "clause in the report description entry (ISO "
+                    + ctx.Edition.Edition.Cite("§1985:XIII.4.3.3 SR2", "§2023:14.9.16.3 SR2", "§2023:14.9.16.3 SR2") + ")");
             // §1985:XIII.3.20.3 SR6 — the report-name form needs a report description with no more than one detail report
             // group; COBOL-2002 and later keep only the CONTROL-clause condition above.
             if (ctx.Edition.DialectLevel < 2002 && summary.Groups.Count(g => g.Kind == ReportGroupKindModel.Detail) is > 1 and var details)

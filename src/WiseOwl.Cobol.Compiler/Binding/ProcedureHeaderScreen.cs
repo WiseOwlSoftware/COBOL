@@ -29,8 +29,9 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
 {
     private readonly HashSet<DataItem> _formals = new(ReferenceEqualityComparer.Instance);
 
-    private void Refuse(string requirement, string rule) =>
-        edition.Error(DiagnosticCatalog.ProcedureHeaderParameter, $"{where}: {requirement} (ISO §2023:14.2.2 {rule})");
+    private void Refuse(string requirement, string rule, string? rule1985 = null) =>
+        edition.Error(DiagnosticCatalog.ProcedureHeaderParameter,
+            $"{where}: {requirement} (ISO {edition.Edition.Cite(rule1985 ?? $"§2023:14.2.2 {rule}", $"§2023:14.2.2 {rule}", $"§2023:14.2.2 {rule}")})");
 
     /// <summary>Screen one formal parameter (data-name-1) against SR1. Returns false when the parameter shall not be
     /// admitted as a formal — a repeated one, whose second occurrence would be a second formal of the same item.
@@ -40,11 +41,15 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
     {
         bool admitted = _formals.Add(item);
         if (!admitted)
-            Refuse($"data-name-1 '{written}' appears more than once in the USING phrase — \"A particular user-defined "
-                + "word shall not appear more than once as data-name-1\"", "SR1");
+            Refuse($"data-name-1 '{written}' appears more than once in the USING phrase — "
+                + edition.Edition.Cite("\"A particular user-defined word may not appear more than once as data-name-1\"",
+                    "\"A particular user-defined word shall not appear more than once as data-name-1\"",
+                    "\"A particular user-defined word shall not appear more than once as data-name-1\""), "SR1", "§1985:X.5.1");
         if (item.RedefinesTargetName is not null)
-            Refuse($"formal parameter '{written}' shall not contain a REDEFINES clause — \"The data description entry "
-                + "for data-name-1 shall not contain a BASED clause or a REDEFINES clause\"", "SR1");
+            Refuse($"formal parameter '{written}' shall not contain a REDEFINES clause — "
+                + edition.Edition.Cite("\"The data description entry for data-name-1 must not contain a REDEFINES clause\"",
+                    "\"The data description entry for data-name-1 shall not contain a BASED clause or a REDEFINES clause\"",
+                    "\"The data description entry for data-name-1 shall not contain a BASED clause or a REDEFINES clause\""), "SR1", "§1985:X.5.1");
         if (item.IsBased)
         {
             Refuse($"formal parameter '{written}' shall not contain a BASED clause — \"The data description entry for "

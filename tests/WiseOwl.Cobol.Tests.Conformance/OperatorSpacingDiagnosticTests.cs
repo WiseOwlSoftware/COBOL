@@ -29,7 +29,7 @@ public sealed class OperatorSpacingDiagnosticTests
         + $"           {statement}\n"
         + "           STOP RUN.\n";
 
-    [Theory] // every edition: §2023:8.7.1 carries no edition qualifier
+    [Theory] // every edition: the rule is §2023:8.7.1, and at COBOL-85 §1985:VI.6.2.2 (kb/Work PB4950)
     [InlineData(85)]
     [InlineData(2002)]
     [InlineData(2014)]
@@ -40,7 +40,7 @@ public sealed class OperatorSpacingDiagnosticTests
         Assert.False(ok);
         string error = Assert.Single(errors);
         Assert.Contains("COBOL2993", error);
-        Assert.Contains("§2023:8.7.1", error);
+        Assert.Contains(edition == 85 ? "§1985:VI.6.2.2" : "§2023:8.7.1", error);
         Assert.Contains("(11,", error);  // sited at the operator's own line
     }
 

@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// (<see cref="NoteMarginRCut"/>, kb/Work PB2555).
 /// </summary>
 public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourcePath, SourceLineMap? lineMap = null,
-    IMarginRCutLocator? cuts = null)
+    IMarginRCutLocator? cuts = null, EditionInfo? edition = null)
     : BaseErrorListener
 {
     /// <summary>
@@ -217,7 +217,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
     {
         if (!_cutNoted.Add((cut.At.FileName, cut.At.Line))) return;
         diagnostics.ReportWarning(DiagnosticCatalog.ProgramTextPastMarginR.Code,
-            $"{cut.Cut.Account} The syntax error at {errorAt} may be this: {consequence}. {cut.Cut.Remedy}", cut.CutLocation,
+            $"{cut.Cut.AccountAt(edition ?? throw new InvalidOperationException("a listener that names a margin-R cut is given the edition whose rule it cites"))} The syntax error at {errorAt} may be this: {consequence}. {cut.Cut.Remedy}", cut.CutLocation,
             TextSpan.Empty);
     }
 }

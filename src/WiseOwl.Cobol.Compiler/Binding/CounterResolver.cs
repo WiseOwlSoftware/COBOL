@@ -119,9 +119,12 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             if (refs.Names.ResolveQualified(name, qualifiers) is not null) return null;
             if (report && refs.Diagnosed.Add(dref))
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': '{name}' is a sum counter "
-                    + $"(ISO §2023:13.18.54.4 GR5), but none is subordinate to the qualifiers written — a sum counter is "
+                    + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5", "§2023:13.18.54.4 GR5")}), "
+                    + "but none is subordinate to the qualifiers written — a sum counter is "
                     + "qualified by the data-names of the report group description entries above it, innermost "
-                    + "first, and by the report-name last (ISO §2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1).");
+                    + "first, and by the report-name last (ISO "
+                    + data.Edition.Edition.Cite("§1985:XIII.3.19.3 SR5", "§2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1",
+                        "§2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1") + ").");
             return null;
         }
         // §2023:8.4.6.2.1 3) b) ACROSS NAME CLASSES (kb/Work PB3154 review R3-1): a counter of a container's GLOBAL report
@@ -153,12 +156,16 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
                 int ordinary = sameSpelling - matches.Count;
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': the reference is ambiguous — "
                     + (ordinary == 0
-                        ? $"{matches.Count} entries establish a sum counter named '{name}' (ISO §2023:13.18.54.4 GR1 gives each entry its own counter)."
+                        ? $"{matches.Count} entries establish a sum counter named '{name}' (ISO "
+                          + data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR1", "§2023:13.18.54.4 GR1", "§2023:13.18.54.4 GR1")
+                          + " gives each entry its own counter)."
                         : $"'{name}' is the name of {(matches.Count == 1 ? "a sum counter" : $"{matches.Count} sum counters")} "
-                          + $"(ISO §2023:13.18.54.4 GR5) and of {(ordinary == 1 ? "a data item" : $"{ordinary} data items")} "
+                          + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5", "§2023:13.18.54.4 GR5")}) "
+                          + $"and of {(ordinary == 1 ? "a data item" : $"{ordinary} data items")} "
                           + "the written qualifiers also reach.")
-                    + " A reference shall uniquely identify one resource (ISO §2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1); qualify it by "
-                    + "report group entry, group or report-name, or give the entries distinct data-names.");
+                    + " A reference shall uniquely identify one resource (ISO "
+                    + data.Edition.Edition.Cite("§1985:IV.4.3.8.1 SR3", "§2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1", "§2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1")
+                    + "); qualify it by report group entry, group or report-name, or give the entries distinct data-names.");
             }
             return null;
         }
