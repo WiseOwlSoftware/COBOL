@@ -50,7 +50,7 @@ public sealed class TextListingRendererTests
     private const string InstantText = "2026-11-18 09:30:15 -08:00";
 
     private static ListingHeader Header(string version = ReleaseVersion, string source = "/src/p.cob") =>
-        new(version, 85, "ANSI X3.23-1985", Instant, source, ListingOutcome.Success);
+        new(version, 85, "ANSI X3.23-1985", Instant, source, ListingOutcome.Success, ListingParse.Parsed);
 
     /// <summary>DESIGN-listing.md section 6.1: the compilation instant (§1985:VI.3.4.1, §1989:A.2.46.3 RV3), the program-name
     /// (§1985:VI.3.3.4 GR1) and the page number never yield to the compiler's version; the version yields first, at its end.

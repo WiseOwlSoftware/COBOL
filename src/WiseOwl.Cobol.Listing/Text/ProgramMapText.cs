@@ -10,8 +10,9 @@ public static class ProgramMapText
 {
     /// <summary>The program map's rows (DESIGN-listing.md section 6.5): each source unit in text order, its id, kind, first and
     /// last listing line, and its name indented two columns per level of nesting, so a contained unit stands under the unit
-    /// that contains it.</summary>
-    public static IEnumerable<string> Rows(IReadOnlyList<ListingProgram> programs, int width)
+    /// that contains it. After a parse that recovered from a syntax error (<paramref name="parse"/>) a last row says the map holds
+    /// only the units the recovery kept.</summary>
+    public static IEnumerable<string> Rows(IReadOnlyList<ListingProgram> programs, ListingParse parse, int width)
     {
         yield return string.Create(CultureInfo.InvariantCulture, $"{"ID",6}  {"KIND",-9} {"FIRST",6}  {"LAST",6}  NAME");
         foreach (var p in programs)
@@ -19,6 +20,10 @@ public static class ProgramMapText
                          $"{p.Id,6}  {KindWord(p.Kind),-9} {p.FirstLine,6}  {p.LastLine,6}  {new string(' ', 2 * p.Depth)}{p.Name}"),
                          0, NameColumn + 2 * p.Depth, width))
                 yield return row;
+        if (parse is not ListingParse.Recovered) yield break;
+        yield return "";
+        foreach (string row in TextListingRenderer.Indented(TextListingRenderer.RecoveredNote("the source units"), 0, 2, width))
+            yield return row;
     }
 
     /// <summary>The 0-based column a program row's name starts at, before its nesting indent.</summary>

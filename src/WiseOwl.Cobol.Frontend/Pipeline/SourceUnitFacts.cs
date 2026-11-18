@@ -53,15 +53,24 @@ public sealed class SourceUnitFacts
     /// <summary>Every statement the parse read, in text order, a statement nested in another included.</summary>
     public required IReadOnlyList<SourceStatement> Statements { get; init; }
 
-    /// <summary>Read the facts off <paramref name="tree"/>.</summary>
-    public static SourceUnitFacts Read(CobolParserCore.CompilationUnitContext tree)
+    /// <summary>Whether the parse recovered from a syntax error (the front end's own verdict on the pass the tree is of): the
+    /// recovery may have skipped source, so a unit or statement the source holds may be missing from these facts
+    /// (DESIGN-listing.md section 6.8).</summary>
+    public required bool Recovered { get; init; }
+
+    /// <summary>Read the facts off <paramref name="tree"/>, which the parse built with recovery when <paramref name="recovered"/>.</summary>
+    public static SourceUnitFacts Read(CobolParserCore.CompilationUnitContext tree, bool recovered)
     {
         var units = new List<SourceUnit>();
         var dateCompiled = new List<ResultantPoint>();
         var commentEntries = new List<ResultantPoint>();
         var statements = new List<SourceStatement>();
         Walk(tree, parent: null, units, dateCompiled, commentEntries, statements);
-        return new SourceUnitFacts { Units = units, DateCompiled = dateCompiled, CommentEntryParagraphs = commentEntries, Statements = statements };
+        return new SourceUnitFacts
+        {
+            Units = units, DateCompiled = dateCompiled, CommentEntryParagraphs = commentEntries, Statements = statements,
+            Recovered = recovered,
+        };
     }
 
     private static void Walk(IParseTree node, int? parent, List<SourceUnit> units, List<ResultantPoint> dateCompiled,

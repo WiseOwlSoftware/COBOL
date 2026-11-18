@@ -10,8 +10,9 @@ public static class StatisticsText
 {
     /// <summary>The statistics section's rows (DESIGN-listing.md section 6.8): the lines by kind, then each file's lines, then
     /// the programs, statements and diagnostics by severity, then each verb with its count and its listing lines (IBM's
-    /// VBREF). A count shows only the line kinds that have lines; the model holds every kind.</summary>
-    public static IEnumerable<string> Rows(ListingStatistics statistics, IReadOnlyList<ListingFile> files, int width)
+    /// VBREF). A count shows only the line kinds that have lines; the model holds every kind. After a parse that recovered from a
+    /// syntax error (<paramref name="parseOutcome"/>) the statement count says it holds only the statements the recovery kept.</summary>
+    public static IEnumerable<string> Rows(ListingStatistics statistics, IReadOnlyList<ListingFile> files, ListingParse parseOutcome, int width)
     {
         yield return TextListingRenderer.Columns(("LINES", StatisticNameWidth)) + CountText(statistics.Lines.Lines);
         foreach (var (name, count) in CountsOf(statistics.Lines)) yield return TextListingRenderer.Columns(("  " + name, StatisticNameWidth)) + CountText(count);
@@ -29,10 +30,13 @@ public static class StatisticsText
                 yield return row;
         }
         yield return "";
-        if (statistics.Parse is { } parse)
+        if (statistics.Parse is { } parseCounts)
         {
-            yield return TextListingRenderer.Columns(("PROGRAMS", StatisticNameWidth)) + CountText(parse.Programs);
-            yield return TextListingRenderer.Columns(("STATEMENTS", StatisticNameWidth)) + CountText(parse.Statements);
+            yield return TextListingRenderer.Columns(("PROGRAMS", StatisticNameWidth)) + CountText(parseCounts.Programs);
+            yield return TextListingRenderer.Columns(("STATEMENTS", StatisticNameWidth)) + CountText(parseCounts.Statements);
+            if (parseOutcome is ListingParse.Recovered)
+                foreach (string row in TextListingRenderer.Indented(TextListingRenderer.RecoveredNote("the programs, statements and verbs"), 2, 2, width))
+                    yield return row;
         }
         else yield return "PROGRAMS AND STATEMENTS: not counted, the source was not parsed";
         yield return TextListingRenderer.Columns(("DIAGNOSTICS", StatisticNameWidth)) + string.Join("   ", statistics.Diagnostics.Select(d =>

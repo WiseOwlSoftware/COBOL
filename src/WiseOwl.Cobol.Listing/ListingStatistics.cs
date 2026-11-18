@@ -27,7 +27,8 @@ public sealed record ListingOption(string Name, string Value, ListingOptionOrigi
 /// <param name="Files">The lines of each file read, counted, in the order of the files: a library text copied twice counts
 /// each copy.</param>
 /// <param name="Diagnostics">The diagnostics the compilation reported, counted by severity, every severity once.</param>
-/// <param name="Parse">The programs, statements and verbs the parse read, or null when the source was not parsed.</param>
+/// <param name="Parse">The programs, statements and verbs the parse read, or null when the source was not parsed. After a parse
+/// that recovered from a syntax error (the header's parse is Recovered) they are only those the recovery kept.</param>
 public sealed record ListingStatistics(ListingLineCounts Lines, IReadOnlyList<ListingFileStatistics> Files,
     IReadOnlyList<ListingSeverityCount> Diagnostics, ListingParseStatistics? Parse);
 

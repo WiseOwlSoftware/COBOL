@@ -41,3 +41,8 @@ when not asked for, and unlisted lines miscounted. The page tests of earlier ste
 **Measured** (tests/WiseOwl.Cobol.Benchmarks/README.md, step 5): the standard text listing is +0.2 to +5.4 % over no listing on
 a full compile, inside the 10 % budget; step 5 adds +0.38 to +0.65 MB per program to the front end and bind with a listing;
 the no-listing rows are within 0.23 MB of step 4a's.
+
+**Review round 1.** After a syntax error the parser recovers and may skip source, so the program map and the statistics hold
+only what it kept: the front end's own verdict now reaches the listing header (`ListingHeader.Parse`, `Recovered`), and both
+sections print a note saying so. The compiler and runtime versions are spelled by one function (`ListingBuilder.VersionOf`),
+and two comments that named the wrong test are corrected (kb/Work/PB5925/2026-11-18-listing-step-5-review-r1.md).

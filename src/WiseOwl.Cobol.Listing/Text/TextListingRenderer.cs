@@ -40,7 +40,7 @@ public static class TextListingRenderer
 
     /// <summary>The order the sections are printed in (DESIGN-listing.md section 7.1): options, source with inline diagnostics,
     /// program map, statistics and verbs, diagnostic summary. Every member of <see cref="ListingSection"/> once (the Unit
-    /// assembly's <c>TextListingRendererTests</c> holds it so).</summary>
+    /// assembly's <c>ListingSectionsTests.EverySection_HasOneSpelling_OneTitle_AndOnePlaceInTheTextOrder</c> holds it so).</summary>
     public static readonly IReadOnlyList<ListingSection> SectionOrder =
         [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.Statistics, ListingSection.Diagnostics];
 
@@ -86,8 +86,8 @@ public static class TextListingRenderer
     private static IEnumerable<string> RowsOf(ListingSection section, ListingDocument document, int width) => section switch
     {
         ListingSection.Options => OptionsText.Rows(document.Options, width),
-        ListingSection.Programs => ProgramMapText.Rows(document.Programs, width),
-        ListingSection.Statistics => document.Statistics is { } statistics ? StatisticsText.Rows(statistics, document.Files, width)
+        ListingSection.Programs => ProgramMapText.Rows(document.Programs, document.Header.Parse, width),
+        ListingSection.Statistics => document.Statistics is { } statistics ? StatisticsText.Rows(statistics, document.Files, document.Header.Parse, width)
             : throw new InvalidOperationException("the statistics section is produced but the document holds no statistics"),
         ListingSection.Diagnostics => SummaryRows(document, width),
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section the text listing cannot print"),
@@ -238,6 +238,11 @@ public static class TextListingRenderer
         ListingSeverity.Info => "info",
         _ => throw new ArgumentOutOfRangeException(nameof(severity), severity, "a severity with no word"),
     };
+
+    /// <summary>The note each part read off a parse that recovered from a syntax error prints (DESIGN-listing.md sections 6.5
+    /// and 6.8; <see cref="ListingParse.Recovered"/>): <paramref name="what"/> holds only what the recovery kept.</summary>
+    public static string RecoveredNote(string what) =>
+        $"the parse recovered from a syntax error: {what} are only those it kept, none from source it skipped";
 
     /// <summary><paramref name="text"/> as rows of at most <paramref name="width"/> positions: the first indented by
     /// <paramref name="first"/> spaces, the rest by <paramref name="rest"/>, broken at a space where one is, else cut.</summary>

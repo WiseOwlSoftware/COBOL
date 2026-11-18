@@ -229,7 +229,7 @@ The model's root (all types are immutable `sealed record`s with `IReadOnlyList` 
 namespace WiseOwl.Cobol.Listing;
 
 public sealed record ListingDocument(
-    ListingHeader Header,                         // compiler version, edition, timestamp, main source, outcome
+    ListingHeader Header,                         // compiler version, edition, timestamp, main source, outcome, parse
     IReadOnlyList<ListingFile> Files,             // every file read: id, path, role (source | library), SHA-256
     IReadOnlyList<ListingInclusion> Inclusions,   // every COPY, in text order, with parent, depth, outcome, SUPPRESS
     IReadOnlyList<ListingLine> Lines,             // the source section, in listing order
@@ -588,6 +588,13 @@ width; only a longer name (a literal program-name of a later edition) on a narro
 yielded. One function composes the line (`TextListingRenderer.IdentificationLine`, the page number included). Line 2 keeps
 the END of a source path that does not fit (the file's name), behind `...`.
 
+(Step 5, review R1-1:) the header also carries `Parse` (`ListingParse`: `NotParsed`, `Parsed`, `Recovered`), what the parse
+made of the source. The front end decides it once, on the pass the listing is of: `Recovered` is its own verdict that the parse
+did not read the source cleanly (`LexAndParse`'s `parsed` is false: a syntax error or an embedded block), carried as
+`SourceUnitFacts.Recovered`; `ListingBuilder.ParseOf` only maps it. Everything read off the parse tree (the program map,
+section 6.5, and the statistics' programs, statements and verbs, section 6.8) is read off a recovered tree too, and the
+recovery may skip source, so after a recovery those parts hold only what it kept; each says so (below), from this one fact.
+
 ### 6.2 Source
 
 One row per listed line, at the default width 132:
@@ -692,7 +699,9 @@ positions natively. A backend diagnostic with no COBOL position goes to the summ
 Every option of the compilation with its value and whether it is the default: each public property of
 `CompilerDriver.Options`, the edition, `--permissive`, the listing request itself, the compiler version (the assembly's
 informational version), the runtime version, the .NET runtime version and the host operating system. Built from one table
-in `OptionsSectionBuilder`; a drift test holds it to every public property of `CompilerDriver.Options`.
+in `OptionsSectionBuilder`; a drift test holds it to every public property of `CompilerDriver.Options`. The compiler and
+runtime versions, and the page heading's, are spelled by one function, `ListingBuilder.VersionOf` (an assembly's
+informational version, else its assembly version), so the rows of one listing spell their versions alike (review R1-2).
 
 **As built (step 5), with the corrections the code proved:**
 
@@ -731,7 +740,8 @@ exist on a failed bind).
 as the `PROGRAMS` section (`ProgramMapText.Rows`): one row per unit in text order, its id, kind, first and last
 listing line, and its name indented two columns per level of nesting, so a contained unit stands under its container. COMMON,
 INITIAL, RECURSIVE, IS PROTOTYPE, the externalized name and the .NET type are the symbol table's program attributes and join
-in step 6.
+in step 6. After a parse that recovered (`ListingHeader.Parse` is `Recovered`, section 6.1) the map ends with a blank row and
+the note `TextListingRenderer.RecoveredNote` composes: the source units are only those the recovery kept (review R1-1).
 
 ### 6.6 Data map: a view of the symbol table
 
@@ -1072,7 +1082,11 @@ finished lines and the diagnostics the compilation reported:
   `ListingVisibility` did not list (a LISTING directive or COPY SUPPRESS).
 - `Diagnostics`: every `ListingSeverity`, counted from every diagnostic reported, whether or not the diagnostics section is
   asked for.
-- `Parse` (`ListingParseStatistics(Programs, Statements, Verbs)`), null when the source was not parsed. The verbs and
+- `Parse` (`ListingParseStatistics(Programs, Statements, Verbs)`), null when the source was not parsed. It is read off the
+  tree the parse built, recovered or not; after a recovery (`ListingHeader.Parse` is `Recovered`, section 6.1) the recovery
+  may have skipped statements, even every statement after the error, so the counts are of what it kept, and the text says so
+  under `STATEMENTS` (review R1-1; the step-5 design said only that the counts "exist on a failed bind", which is true of a
+  failed bind but not complete after a failed parse). The verbs and
   statements are `SourceUnitFacts.Statements`: each node of the grammar's `statement` rule the parse built, a statement nested
   in another included (the MOVE of `IF A MOVE B TO C END-IF` is a statement of its own); a recovered node that consumed no
   token is none. A statement's verb is its first word in upper case (`GO` of GO TO, `NEXT` of NEXT SENTENCE): the verb as

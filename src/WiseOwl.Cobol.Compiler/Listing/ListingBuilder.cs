@@ -61,7 +61,8 @@ internal static class ListingBuilder
         List<ListingLine> lines = [.. drafts.Select(d => d.ToLine())];
 
         var edition = facts.Edition;
-        var header = new ListingHeader(CompilerVersion, edition.Year, edition.StandardName, instant, frontend.SourcePath, outcome);
+        var header = new ListingHeader(CompilerVersion, edition.Year, edition.StandardName, instant, frontend.SourcePath, outcome,
+            ParseOf(units));
         var copyLines = inclusions.Select(i => new ListingInclusion(i.Id, i.Parent, i.Depth,
             CopyLine(index, i, i.CopyFirst.Line), CopyLine(index, i, i.CopyLast.Line), i.TextName,
             i.LibraryName, i.File is { } f ? fileIds[f] : null, i.Outcome switch
@@ -108,9 +109,19 @@ internal static class ListingBuilder
                 yield return (line, map.ExpandedIndexAt(point.Origin.Line, point.Column));
     }
 
-    /// <summary>The compiler's informational version, which the page heading and the options section print.</summary>
-    internal static readonly string CompilerVersion =
-        typeof(ListingBuilder).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-        ?? typeof(ListingBuilder).Assembly.GetName().Version?.ToString()
-        ?? throw new InvalidOperationException("the compiler assembly carries no version");
+    /// <summary>The compiler's version as the listing spells it (<see cref="VersionOf"/>), which the page heading and the
+    /// options section print.</summary>
+    internal static readonly string CompilerVersion = VersionOf(typeof(ListingBuilder).Assembly);
+
+    /// <summary>⛔ THE ONE SPELLING OF A VERSION IN THE LISTING: <paramref name="assembly"/>'s informational version, else its
+    /// assembly version. The page heading's compiler and the options section's compiler and runtime rows all read it, so the rows
+    /// of one listing spell their versions alike (kb/Work PB5925 review R1-2).</summary>
+    internal static string VersionOf(Assembly assembly) =>
+        assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? assembly.GetName().Version?.ToString()
+        ?? throw new InvalidOperationException($"the assembly {assembly.GetName().Name} carries no version");
+
+    /// <summary>What the parse made of the source: the front end's own verdict, carried on <see cref="Frontend.SourceUnitFacts"/>.</summary>
+    private static ListingParse ParseOf(Frontend.SourceUnitFacts? units) =>
+        units is null ? ListingParse.NotParsed : units.Recovered ? ListingParse.Recovered : ListingParse.Parsed;
 }

@@ -86,8 +86,23 @@ public enum ListingOutcome
 /// DATE-COMPILED's replacement denote.</param>
 /// <param name="MainSource">The path of the source file compiled.</param>
 /// <param name="Outcome">How far the compilation got.</param>
+/// <param name="Parse">Whether the source was parsed, and whether the parse had to recover from a syntax error: the program
+/// map and the statistics' programs, statements and verbs are read off the parse, so after a recovery they hold only what the
+/// recovery kept.</param>
 public sealed record ListingHeader(string CompilerVersion, int Edition, string EditionName, DateTimeOffset CompiledAt,
-    string MainSource, ListingOutcome Outcome);
+    string MainSource, ListingOutcome Outcome, ListingParse Parse);
+
+/// <summary>What the parse made of the source (DESIGN-listing.md section 6.8).</summary>
+public enum ListingParse
+{
+    /// <summary>The source was not parsed: the text stages refused it.</summary>
+    NotParsed,
+    /// <summary>The parse read the whole source with no syntax error.</summary>
+    Parsed,
+    /// <summary>The parse recovered from a syntax error and may have skipped source: a program, statement or verb the
+    /// recovery skipped is missing from the program map and the statistics.</summary>
+    Recovered,
+}
 
 /// <summary>Whether a file is the compilation's source or a library text a COPY statement read.</summary>
 public enum ListingFileRole

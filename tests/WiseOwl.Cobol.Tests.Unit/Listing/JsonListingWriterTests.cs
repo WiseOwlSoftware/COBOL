@@ -23,7 +23,7 @@ public sealed class JsonListingWriterTests
     /// <summary>A document holding every member of every record, each nullable member once present and once absent, so a
     /// property the writer or the reader mishandles has a value here to be lost.</summary>
     internal static ListingDocument EveryMember() => new(
-        new ListingHeader("30.0.0", 85, "COBOL-85", Instant, "main.cob", ListingOutcome.BindError),
+        new ListingHeader("30.0.0", 85, "COBOL-85", Instant, "main.cob", ListingOutcome.BindError, ListingParse.Parsed),
         [new ListingFile(1, "main.cob", ListingFileRole.Source, new string('a', 64)),
          new ListingFile(2, "lib/REC.cpy", ListingFileRole.Library, new string('b', 64))],
         [new ListingInclusion(1, null, 1, 2, 2, "REC", "LIB", 2, ListingInclusionOutcome.Found, false),

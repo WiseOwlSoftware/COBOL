@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using WiseOwl.Cobol.Listing;
 
@@ -93,7 +92,7 @@ internal static class OptionsSectionBuilder
                     value == row.Value(RequestDefaults) ? ListingOptionOrigin.Default : ListingOptionOrigin.Specified));
             }
         rows.Add(new ListingOption("compiler", Listing.Building.ListingBuilder.CompilerVersion, ListingOptionOrigin.Host));
-        rows.Add(new ListingOption("runtime", VersionOf(typeof(Runtime.SignEncoding).Assembly), ListingOptionOrigin.Host));
+        rows.Add(new ListingOption("runtime", Listing.Building.ListingBuilder.VersionOf(typeof(Runtime.SignEncoding).Assembly), ListingOptionOrigin.Host));
         rows.Add(new ListingOption(".NET", RuntimeInformation.FrameworkDescription, ListingOptionOrigin.Host));
         rows.Add(new ListingOption("operating system",
             $"{RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})", ListingOptionOrigin.Host));
@@ -105,9 +104,4 @@ internal static class OptionsSectionBuilder
     /// <summary>A list of paths, in order, joined by the platform's path-list separator (as PATH joins them).</summary>
     private static string List(IReadOnlyList<string>? items) =>
         items is { Count: > 0 } ? string.Join(Path.PathSeparator, items) : "none";
-
-    private static string VersionOf(Assembly assembly) =>
-        assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-        ?? assembly.GetName().Version?.ToString()
-        ?? throw new InvalidOperationException($"the assembly {assembly.GetName().Name} carries no version");
 }

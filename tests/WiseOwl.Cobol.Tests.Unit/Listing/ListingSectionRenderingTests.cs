@@ -50,7 +50,7 @@ public sealed class ListingSectionRenderingTests
 
     private static ListingDocument Document(IReadOnlyList<ListingSectionStatus> sections, ListingStatistics? statistics = null,
         IReadOnlyList<ListingOption>? options = null) => new(
-        new ListingHeader("30.0.0", 2023, "ISO/IEC 1989:2023", Instant, "/src/p.cob", ListingOutcome.Success),
+        new ListingHeader("30.0.0", 2023, "ISO/IEC 1989:2023", Instant, "/src/p.cob", ListingOutcome.Success, ListingParse.Parsed),
         [new ListingFile(1, "/src/p.cob", ListingFileRole.Source, "00"), new ListingFile(2, "/src/lib/REC.cpy", ListingFileRole.Library, "00")],
         [new ListingInclusion(1, null, 1, 3, 3, "REC", null, 2, ListingInclusionOutcome.Found, false)],
         Lines,
@@ -108,7 +108,7 @@ public sealed class ListingSectionRenderingTests
             "    ID  KIND       FIRST    LAST  NAME",
             "     0  program        1       6  OUTER",
             "     1  program        4       5    INNER",
-        ], ProgramMapText.Rows(document.Programs, 132));
+        ], ProgramMapText.Rows(document.Programs, ListingParse.Parsed, 132));
         Assert.Equal(ProgramMapText.NameColumn, "     0  program        1       6  ".Length);
     }
 
@@ -136,7 +136,7 @@ public sealed class ListingSectionRenderingTests
     {
         var statistics = Statistics(new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [1, 6]), new ListingVerb("STOP", 1, [6])]));
         var document = Document([Produced(ListingSection.Statistics)], statistics);
-        var rows = StatisticsText.Rows(statistics, document.Files, 132).ToList();
+        var rows = StatisticsText.Rows(statistics, document.Files, ListingParse.Parsed, 132).ToList();
         Assert.Equal(
         [
             "LINES                         6",
@@ -168,9 +168,35 @@ public sealed class ListingSectionRenderingTests
     public void Statistics_OfASourceNotParsed_SaySo()
     {
         var statistics = Statistics(parse: null);
-        var rows = StatisticsText.Rows(statistics, Document([]).Files, 132).ToList();
+        var rows = StatisticsText.Rows(statistics, Document([]).Files, ListingParse.NotParsed, 132).ToList();
         Assert.Contains("PROGRAMS AND STATEMENTS: not counted, the source was not parsed", rows);
         Assert.DoesNotContain(rows, r => r.StartsWith("VERB", StringComparison.Ordinal));
+    }
+
+    /// <summary>Sections 6.5 and 6.8 (kb/Work PB5925 review R1-1): after a parse that recovered from a syntax error, the program
+    /// map and the statement count each say they hold only what the recovery kept, the note wrapped to the page; a complete parse
+    /// prints no note.</summary>
+    [Fact]
+    public void TheProgramMap_AndTheStatistics_OfARecoveredParse_SaySo()
+    {
+        const int Width = ListingRequest.MinimumPageWidth;
+        string note = TextListingRenderer.RecoveredNote("the programs, statements and verbs");
+        var statistics = Statistics(new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 3, [1, 6, 6])]));
+        var document = Document([Produced(ListingSection.Statistics)], statistics);
+        var rows = StatisticsText.Rows(statistics, document.Files, ListingParse.Recovered, Width).ToList();
+        int statements = rows.IndexOf("STATEMENTS                    3");
+        int diagnostics = rows.FindIndex(r => r.StartsWith("DIAGNOSTICS", StringComparison.Ordinal));
+        Assert.Equal(note, string.Join(" ", rows[(statements + 1)..diagnostics].Select(r => r.Trim())));
+        Assert.All(rows[(statements + 1)..diagnostics], r => Assert.StartsWith("  ", r, StringComparison.Ordinal));
+        Assert.All(rows, r => Assert.True(r.Length <= Width, r));
+        Assert.DoesNotContain(StatisticsText.Rows(statistics, document.Files, ListingParse.Parsed, Width), r => r.Contains("recovered", StringComparison.Ordinal));
+
+        var map = ProgramMapText.Rows(document.Programs, ListingParse.Recovered, Width).ToList();
+        int blank = map.IndexOf("");
+        Assert.Equal(1 + document.Programs.Count, blank);   // the heading and each unit, then the note
+        Assert.Equal(TextListingRenderer.RecoveredNote("the source units"), string.Join(" ", map[(blank + 1)..].Select(r => r.Trim())));
+        Assert.All(map, r => Assert.True(r.Length <= Width, r));
+        Assert.DoesNotContain(ProgramMapText.Rows(document.Programs, ListingParse.Parsed, Width), r => r.Contains("recovered", StringComparison.Ordinal));
     }
 
     /// <summary>DESIGN-listing.md section 4.3: a section is never left out silently; one the listing could not produce prints its

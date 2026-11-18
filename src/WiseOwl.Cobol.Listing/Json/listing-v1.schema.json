@@ -47,6 +47,14 @@
             "BackendError",
             "OutputNotWritable"
           ]
+        },
+        "parse": {
+          "description": "Whether the source was parsed, and whether the parse had to recover from a syntax error: the program map and the statistics' programs, statements and verbs are read off the parse, so after a recovery they hold only what the recovery kept. NotParsed: The source was not parsed: the text stages refused it. Parsed: The parse read the whole source with no syntax error. Recovered: The parse recovered from a syntax error and may have skipped source: a program, statement or verb the recovery skipped is missing from the program map and the statistics.",
+          "enum": [
+            "NotParsed",
+            "Parsed",
+            "Recovered"
+          ]
         }
       },
       "required": [
@@ -55,7 +63,8 @@
         "editionName",
         "compiledAt",
         "mainSource",
-        "outcome"
+        "outcome",
+        "parse"
       ]
     },
     "files": {
@@ -631,7 +640,7 @@
           }
         },
         "parse": {
-          "description": "The programs, statements and verbs the parse read, or null when the source was not parsed.",
+          "description": "The programs, statements and verbs the parse read, or null when the source was not parsed. After a parse that recovered from a syntax error (the header's parse is Recovered) they are only those the recovery kept.",
           "type": [
             "object",
             "null"

@@ -143,10 +143,32 @@ public sealed class ListingSectionsOfACompilationTests : IDisposable
     {
         var result = Compile(new ListingRequest(), Main.Select(l => l.Replace("CALL \"INNER85\"", "DISPLAY NO-SUCH-NAME", StringComparison.Ordinal)));
         Assert.Equal(CompilerDriver.Outcome.BindError, result.Status);
-        var verbs = result.Listing!.Statistics!.Parse!.Verbs;
+        Assert.Equal(ListingParse.Parsed, result.Listing!.Header.Parse);   // the bind failed, the parse read the whole source
+        var verbs = result.Listing.Statistics!.Parse!.Verbs;
         Assert.Equal([ListingOf(13)], verbs.Single(v => v.Verb == "DISPLAY").Lines);
         Assert.DoesNotContain(verbs, v => v.Verb == "CALL");
         Assert.True(result.Listing.Statistics.Diagnostics.Single(d => d.Severity == ListingSeverity.Error).Count > 0);
+    }
+
+    /// <summary>Sections 6.5 and 6.8 (kb/Work PB5925 review R1-1): a syntax error makes the parse recover, and the recovery may
+    /// skip source, so the program map and the statistics hold only what it kept. The header says the parse recovered, in the
+    /// model and in the JSON, and the program map's and the statistics' pages each say so.</summary>
+    [Fact]
+    public void TheProgramMap_AndTheStatistics_SaySo_WhenTheParseRecovered()
+    {
+        var result = Compile(new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json),
+            Main.Select(l => l.Replace("CALL \"INNER85\"", "MOVEE 2 TO A", StringComparison.Ordinal)));
+        Assert.Equal(CompilerDriver.Outcome.FrontendError, result.Status);
+        var listing = result.Listing!;
+        Assert.Equal(ListingParse.Recovered, listing.Header.Parse);
+        Assert.NotNull(listing.Statistics!.Parse);   // counted still: what the recovery kept
+        string text = File.ReadAllText(Path.Combine(_dir, "stats85.lst"));
+        string Flat(ListingSection section) =>
+            string.Join(" ", Assert.Single(ListingPages.Of(text, section)).Split('\n').Select(r => r.Trim()));
+        Assert.Contains(TextListingRenderer.RecoveredNote("the programs, statements and verbs"), Flat(ListingSection.Statistics), StringComparison.Ordinal);
+        Assert.Contains(TextListingRenderer.RecoveredNote("the source units"), Flat(ListingSection.Programs), StringComparison.Ordinal);
+        var json = JsonNode.Parse(File.ReadAllText(Path.Combine(_dir, "stats85.lst.json")))!.AsObject();
+        Assert.Equal(nameof(ListingParse.Recovered), json["header"]!["parse"]!.GetValue<string>());
     }
 
     /// <summary>Section 6.4: each option as given, Specified, beside the options left at their defaults; the listing request's

@@ -86,8 +86,12 @@ ADD                           2  11 15
 MOVE                          2  9 13
 ```
 
-The counts are read from the source as the compiler parsed it, so they are there even when the program has errors. The
-statistics hold no timings, so two listings of one source differ only where the compilations did.
+The counts are read from the source as the compiler parsed it, so they are there even when the program has errors. A syntax
+error is the exception to their being complete: the parser recovers from it and goes on, but it may skip source to do so, even
+every statement after the error. The statistics then count only what the parser kept, and say so under `STATEMENTS`; the
+program map says the same under its last program, and the JSON header's `parse` is `Recovered` (`Parsed` when the parse had
+no error, `NotParsed` when the source was not parsed). The statistics hold no timings, so two listings of one source differ
+only where the compilations did.
 
 ## What a page holds
 
