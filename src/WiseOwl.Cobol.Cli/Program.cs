@@ -19,7 +19,8 @@ namespace WiseOwl.Cobol.Cli;
 /// <remarks>
 /// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
 /// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions] [--repository-update on|off]
-/// [--repository DIR] [--reference FILE.dll] [--repository-check on|off]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
+/// [--repository DIR] [--reference FILE.dll] [--repository-check on|off] [--listing [on|off]] [--listing-output BASE]
+/// [--listing-page-length N] [--listing-page-width N]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
 /// option can swallow a following flag. The generated C# is written next to the output assembly
 /// (<c>&lt;name&gt;.g.cs</c>) so the translation is directly inspectable.
 /// </remarks>
@@ -206,6 +207,44 @@ internal static class Program
         };
         repositoryCheckOption.Validators.Add(result => ValidateOnOff(result, "--repository-check"));
 
+        // kb/Work PB5923 (DESIGN-listing.md section 8): the source listing. §1985:IV.7.1 requires "an output listing of the source
+        // program in reference format" of each compiler, so it is ON by default at --std 85; the later editions leave it to the
+        // implementor (§2023:7.3.18.3 GR1), so it is produced there on request. Every value is checked here, an argument error.
+        var listingOption = new Option<string?>("--listing")
+        {
+            Description = "Produce a source listing (BASE.lst): on (bare --listing) or off. Default: on at --std 85, off at 2002, "
+                + "2014 and 2023.",
+            Arity = ArgumentArity.ZeroOrOne,   // a bare `--listing` is on
+            HelpName = string.Join("|", OnOffSpellings),
+        };
+        listingOption.Validators.Add(result => ValidateOnOff(result, "--listing"));
+        var listingOutputOption = new Option<string?>("--listing-output")
+        {
+            Description = "Where the listing goes: BASE.lst; - writes the text listing to standard output (default: the output "
+                + "assembly's path without its extension). Implies --listing on.",
+            HelpName = "BASE",
+        };
+        var listingPageLengthOption = new Option<int?>("--listing-page-length")
+        {
+            Description = $"Listing lines per page, the heading included; 0 = unpaginated (default {WiseOwl.Cobol.Listing.ListingRequest.DefaultPageLength}). Implies --listing on.",
+            HelpName = "N",
+        };
+        listingPageLengthOption.Validators.Add(result =>
+        {
+            if (result.GetValueOrDefault<int?>() is { } n && WiseOwl.Cobol.Listing.ListingRequest.PageLengthProblem(n) is { } problem)
+                result.AddError($"--listing-page-length: {problem}.");
+        });
+        var listingPageWidthOption = new Option<int?>("--listing-page-width")
+        {
+            Description = $"Listing columns, {WiseOwl.Cobol.Listing.ListingRequest.MinimumPageWidth} to {WiseOwl.Cobol.Listing.ListingRequest.MaximumPageWidth} (default {WiseOwl.Cobol.Listing.ListingRequest.DefaultPageWidth}). Implies --listing on.",
+            HelpName = "N",
+        };
+        listingPageWidthOption.Validators.Add(result =>
+        {
+            if (result.GetValueOrDefault<int?>() is { } n && WiseOwl.Cobol.Listing.ListingRequest.PageWidthProblem(n) is { } problem)
+                result.AddError($"--listing-page-width: {problem}.");
+        });
+
         // The batch check is a separate tree (Parse), so this description is where the compile's help names it.
         var root = new RootCommand("cobol — translate a COBOL source unit to typed-native .NET (the Roslyn backend). "
             + $"`cobol {CheckBatchName} <manifest>` checks many sources without emitting (`cobol {CheckBatchName} --help`).")
@@ -213,6 +252,7 @@ internal static class Program
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
             signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, repositoryUpdateOption,
             repositoryOption, referenceOption, repositoryCheckOption,
+            listingOption, listingOutputOption, listingPageLengthOption, listingPageWidthOption,
         };
 
         CliOptions Resolve(ParseResult parse)
@@ -242,11 +282,24 @@ internal static class Program
             // No --repository is the output directory (null), never an empty search space.
             string[]? repositories = parse.GetValue(repositoryOption) is { Length: > 0 } named ? named : null;
 
+            // The listing (DESIGN-listing.md section 8): --listing off wins; a bare --listing, --listing on, or any other listing
+            // option asks for one; otherwise the edition decides (on at 85, §1985:IV.7.1).
+            string? output = parse.GetValue(listingOutputOption);
+            int? pageLength = parse.GetValue(listingPageLengthOption), pageWidth = parse.GetValue(listingPageWidthOption);
+            bool listingNamed = parse.GetResult(listingOption) is not null;
+            bool listingOn = listingNamed ? TryParseOnOff(parse.GetValue(listingOption), out bool on) ? on : true
+                : output is not null || pageLength is not null || pageWidth is not null || std == 85;
+            var listing = listingOn
+                ? new WiseOwl.Cobol.Listing.ListingRequest(output,
+                    pageLength ?? WiseOwl.Cobol.Listing.ListingRequest.DefaultPageLength,
+                    pageWidth ?? WiseOwl.Cobol.Listing.ListingRequest.DefaultPageWidth)
+                : null;
+
             return new CliOptions(
                 source, parse.GetValue(outputOption), nistName, std,
                 parse.GetValue(copyOption) ?? [], parse.GetValue(runOption), parse.GetValue(permissiveOption),
                 signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay, repositoryUpdate,
-                repositories, parse.GetValue(referenceOption) ?? [], repositoryCheck);
+                repositories, parse.GetValue(referenceOption) ?? [], repositoryCheck, listing);
         }
 
         // The root's OWN action: a bare `cobol <source>` compiles.
@@ -359,7 +412,11 @@ internal static class Program
             options.Permissive, SignEncoding: options.SignEncoding, SourceFormat: options.SourceFormat,
             FlagExtensions: options.FlagExtensions, NumericDisplay: options.NumericDisplay,
             RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths,
-            ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck));
+            ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck, Listing: options.Listing));
+
+        // `--listing-output -`: the text listing goes to standard output (DESIGN-listing.md section 8), before the diagnostics.
+        if (options.Listing is { WritesFiles: false } request && result.Listing is { } document)
+            Console.Out.Write(WiseOwl.Cobol.Listing.Text.TextListingRenderer.Render(document, request));
 
         // What the compilation itself transferred — the lines of its DISPLAY directives (ISO §2023:7.3.12.4 GR1, DOC-A.1-53,
         // kb/Work PB1538) — each to the compiler stream it names, in the order the directives were met.

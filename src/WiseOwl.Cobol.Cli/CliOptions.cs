@@ -34,6 +34,9 @@ namespace WiseOwl.Cobol.Cli;
 /// <param name="ReferencePaths">The assemblies searched after them (<c>--reference</c>, in order).</param>
 /// <param name="RepositoryCheck">Whether a signature differing from the repository's is flagged (<c>--repository-check
 /// on|off</c>; ISO §2023:8.13, DESIGN-external-repository §9.2). Defaults to on.</param>
+/// <param name="Listing">The source listing (<c>--listing</c>, <c>--listing-output</c>, <c>--listing-page-length</c>,
+/// <c>--listing-page-width</c>; DESIGN-listing.md section 8), or null for none. On by default at <c>--std 85</c>, which requires
+/// one (§1985:IV.7.1); off by default at the later editions, which leave it to the implementor (§2023:7.3.18.3 GR1).</param>
 internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,
@@ -50,4 +53,5 @@ internal sealed record CliOptions(
     bool RepositoryUpdate = true,
     IReadOnlyList<string>? RepositoryPaths = null,
     IReadOnlyList<string>? ReferencePaths = null,
-    bool RepositoryCheck = true);
+    bool RepositoryCheck = true,
+    WiseOwl.Cobol.Listing.ListingRequest? Listing = null);

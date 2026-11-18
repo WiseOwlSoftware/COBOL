@@ -431,7 +431,7 @@
   },
   {
    "key": "DOC-A.1-117",
-   "lead": "The compiler NEVER produces a source listing**, in any edition a"
+   "lead": "The compiler produces a source listing on request at 2002, 2014 "
   },
   {
    "key": "DOC-A.1-118",

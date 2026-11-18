@@ -304,8 +304,8 @@ public sealed class ExceptionPerformSourceFormatScopeTests
         origins[14] = new LineOrigin(new SourceOrigin("lib.cpy", 3));   // resultant line 15 is library text
         var formats = new Dictionary<string, ReferenceFormatMap>
         {
-            ["main.cob"] = ReferenceFormatMap.Create(true, false, [], [7], []),
-            ["lib.cpy"] = ReferenceFormatMap.Create(true, false, [], [], []),
+            ["main.cob"] = ReferenceFormatMap.Create(true, false, [], [7], [], []),
+            ["lib.cpy"] = ReferenceFormatMap.Create(true, false, [], [], [], []),
         };
         DirectiveStackOp Push(int l) => new(l, DirectiveStackKind.Push, null);
         DirectiveStackOp Pop(int l) => new(l, DirectiveStackKind.Pop, null);

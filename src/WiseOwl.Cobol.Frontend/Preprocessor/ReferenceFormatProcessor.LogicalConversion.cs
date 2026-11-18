@@ -30,9 +30,10 @@ public static partial class ReferenceFormatProcessor
     /// </list>
     /// </summary>
     private sealed class FixedFormConverter(ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators,
-        bool? startsInIdentificationDivision, CommentEntryPins? pins, int inclusion, Func<string, string>? asReplaced)
+        bool? startsInIdentificationDivision, CommentEntryPins? pins, int inclusion, Func<string, string>? asReplaced,
+        PhysicalLineKind[]? kinds)
     {
-        private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: true);
+        private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: true, kinds);
 
         /// <summary>True while inside an obsolete IDENTIFICATION comment-entry paragraph (AUTHOR/INSTALLATION/etc.):
         /// its free-text body is commentary until the next Area-A header. See <see cref="CommentEntryParagraphs"/>.</summary>
@@ -67,19 +68,20 @@ public static partial class ReferenceFormatProcessor
         }
 
         /// <summary>The kind of line an indicator-area character marks (§2023:6.3.3 "The indicator area identifies the type
-        /// of a source line in accordance with the indicators specified in 6.2.2"). The NIST CCVS conventions — letters
-        /// §2023:6.2.2 does not list — are a dialect, honored only under <c>--nist</c> (kb/Work PB1494).</summary>
-        private enum LineKind { Source, Comment, Continuation, Debugging, CcvsExcluded, NotAnIndicator }
-
-        private LineKind KindOf(int indicator) => indicator switch
+        /// of a source line in accordance with the indicators specified in 6.2.2"), as the ONE
+        /// <see cref="PhysicalLineKind"/> the conversion records for the line (DESIGN-listing.md section 4.4.1): the slant is
+        /// a comment line that ejects a page in the listing (§1985:IV.7.2.4), the asterisk one that does not. The NIST CCVS
+        /// conventions — letters §2023:6.2.2 does not list — are a dialect, honored only under <c>--nist</c> (kb/Work PB1494).</summary>
+        private PhysicalLineKind KindOf(int indicator) => indicator switch
         {
-            ' ' => LineKind.Source,
-            '*' or '/' => LineKind.Comment,
-            FixedFormLine.ContinuationIndicator => LineKind.Continuation,
-            'D' or 'd' => LineKind.Debugging,                   // COBOL-85's debugging line
-            _ when !ccvsIndicators => LineKind.NotAnIndicator,
-            'S' or 's' or 'Y' or 'y' or 'P' or 'p' or 'J' or 'j' or 'H' or 'h' or 'E' or 'e' or 'U' or 'u' or 'B' or 'b' => LineKind.CcvsExcluded,
-            _ => LineKind.Source,                               // CCVS: a primary-configuration line
+            ' ' => PhysicalLineKind.Source,
+            '*' => PhysicalLineKind.Comment,
+            '/' => PhysicalLineKind.PageEjectComment,
+            FixedFormLine.ContinuationIndicator => PhysicalLineKind.Continuation,
+            'D' or 'd' => PhysicalLineKind.DebuggingLine,       // COBOL-85's debugging line
+            _ when !ccvsIndicators => PhysicalLineKind.NotAnIndicator,
+            'S' or 's' or 'Y' or 'y' or 'P' or 'p' or 'J' or 'j' or 'H' or 'h' or 'E' or 'e' or 'U' or 'u' or 'B' or 'b' => PhysicalLineKind.CcvsExcluded,
+            _ => PhysicalLineKind.Source,                       // CCVS: a primary-configuration line
         };
 
         private void ConvertLine(PhysicalLine line)
@@ -91,14 +93,17 @@ public static partial class ReferenceFormatProcessor
             // The program-text area is resultant text from its first character, which is position 8 (kb/Work PB1801).
             var site = new TextSite(lineNo, fixedLine.ProgramTextIndex, line.Columns);
             var kind = KindOf(indicator.Value);
+            _builder.Classify(site, kind);   // the indicator's answer; the builder refines a source line (blank, comment, directive)
             switch (CommentEntryOf(kind, fixedLine, area, lineNo))
             {
                 // The division is not known here (DivisionCursor), so the line is CARRIED for CommentEntryResolver to decide
                 // on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
                 case CommentEntryText.CandidateHeader:
+                    _builder.Classify(site, PhysicalLineKind.CommentEntryCandidate);
                     _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: true, ccvsIndicators, inclusion, line), site);
                     return;
                 case CommentEntryText.CandidateBody:
+                    _builder.Classify(site, PhysicalLineKind.CommentEntryCandidate);
                     _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators, inclusion, line), site);
                     return;
                 case CommentEntryText.Header:
@@ -110,17 +115,18 @@ public static partial class ReferenceFormatProcessor
                     _builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: true), site);
                     return;
                 case CommentEntryText.Body:
+                    _builder.Classify(site, PhysicalLineKind.CommentEntry);
                     _builder.Discard(site);
                     return;
             }
 
             switch (kind)
             {
-                case LineKind.Comment:   // a comment line (§2023:6.2.2 fixed comment indicators; §2023:6.5 2))
+                case PhysicalLineKind.Comment or PhysicalLineKind.PageEjectComment:   // a comment line (§2023:6.2.2 fixed comment indicators; §2023:6.5 2))
                     _builder.Discard(site);
                     break;
 
-                case LineKind.Debugging:
+                case PhysicalLineKind.DebuggingLine:
                     // §2023:6.2.2 lists no debugging indicator at COBOL-2023: the facility is obsolete at 2002 and removed at
                     // 2014 (kb/Work R61, row debugging-line-removed-2014). Whether the line is SOURCE or COMMENT is the
                     // program's SOURCE-COMPUTER ... WITH DEBUGGING MODE clause's to say, and the clause is further down the
@@ -168,16 +174,16 @@ public static partial class ReferenceFormatProcessor
                 // configuration (kept as ordinary code) and 'B' the excluded alternate: kept, NC211A's B level-88s and
                 // its SPECIAL-NAMES switch names are one condition-name declared twice, which §2023:8.4.2.2.1 refuses on an
                 // unqualified reference (kb/Work PB3347).
-                case LineKind.CcvsExcluded:
+                case PhysicalLineKind.CcvsExcluded:
                     _builder.Discard(site);
                     break;
 
-                case LineKind.Continuation:
+                case PhysicalLineKind.Continuation:
                     _builder.CheckNoFloatingDebuggingOnFixedIndicator(area, site);   // 2002 clause 6.1.2.1 SR8
                     _builder.Add(area, site, fixedContinuation: true);
                     break;
 
-                case LineKind.NotAnIndicator:
+                case PhysicalLineKind.NotAnIndicator:
                     gates?.OnInvalidIndicator(file, lineNo, indicator);   // COBOL2616, then read as a source line
                     AddSourceLine(area, site);
                     break;
@@ -192,16 +198,16 @@ public static partial class ReferenceFormatProcessor
         /// <c>&gt;&gt;D</c> (2002 clause 6.1.2; the area is space-filled to margin R), otherwise program text.</summary>
         private void AddSourceLine(string area, TextSite site)
         {
-            if (!_builder.TryEmitFloatingDebugging(area, site, spaceFilled: true))
-                _builder.Add(area, site, fixedContinuation: false);
+            if (_builder.TryEmitFloatingDebugging(area, site, spaceFilled: true)) _builder.Classify(site, PhysicalLineKind.DebuggingLine);
+            else _builder.Add(area, site, fixedContinuation: false);
         }
 
         /// <summary>Classify a line against the comment-entry paragraph in progress. A comment, debugging or
         /// excluded-alternate line is processed by its own arm; a continuation line inside the paragraph continues
         /// its commentary.</summary>
-        private CommentEntryText CommentEntryOf(LineKind kind, FixedFormLine line, string area, int lineNumber)
+        private CommentEntryText CommentEntryOf(PhysicalLineKind kind, FixedFormLine line, string area, int lineNumber)
         {
-            if (kind == LineKind.Continuation)
+            if (kind == PhysicalLineKind.Continuation)
             {
                 if (!_inCommentEntry) return CommentEntryText.None;
                 // A candidate's body is decided later, by CommentEntryResolver, which reports this where the candidate proves
@@ -209,7 +215,7 @@ public static partial class ReferenceFormatProcessor
                 if (!_carryingCommentEntry) gates?.OnCommentEntryContinued(file, lineNumber);
                 return BodyOfParagraph();
             }
-            if (kind is not (LineKind.Source or LineKind.NotAnIndicator)) return CommentEntryText.None;
+            if (kind is not (PhysicalLineKind.Source or PhysicalLineKind.NotAnIndicator)) return CommentEntryText.None;
             // The latest logical line awaits a floating-indicator continuation (§2023:6.5 8)): this line is its continuation
             // line, whatever it spells, and neither opens nor ends a comment-entry.
             if (_builder.AwaitsFloatingContinuation) return CommentEntryText.None;
@@ -250,16 +256,16 @@ public static partial class ReferenceFormatProcessor
     /// candidate (<see cref="ConvertCommentEntryCandidate"/>), which the conversion that carried them has gated already.</summary>
     private static (List<string> Lines, List<LineOrigin> Origins) ConvertSegment(ReadOnlySpan<PhysicalLine> lines, bool isFixed,
         ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, int inclusion, bool gatesLineLength,
-        Func<string, string>? asReplaced, ref bool? inIdentificationDivision)
+        Func<string, string>? asReplaced, PhysicalLineKind[]? kinds, ref bool? inIdentificationDivision)
     {
         if (isFixed)
         {
-            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision, pins, inclusion, asReplaced);
+            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision, pins, inclusion, asReplaced, kinds);
             var converted = fixedForm.Convert(lines);
             inIdentificationDivision = fixedForm.InIdentificationDivision;
             return converted;
         }
-        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, inclusion, gatesLineLength, asReplaced);
+        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, inclusion, gatesLineLength, asReplaced, kinds);
         var result = freeForm.Convert(lines);
         inIdentificationDivision = freeForm.InIdentificationDivision;
         return result;
@@ -289,9 +295,9 @@ public static partial class ReferenceFormatProcessor
     /// reading: the paragraph word first on its line, the entry the rest of that line, the next line program text.</para>
     /// </summary>
     private sealed class FreeFormConverter(ReferenceFormatDiagnostics? gates, string file, bool? startsInIdentificationDivision,
-        CommentEntryPins? pins, int inclusion, bool gatesLineLength, Func<string, string>? asReplaced)
+        CommentEntryPins? pins, int inclusion, bool gatesLineLength, Func<string, string>? asReplaced, PhysicalLineKind[]? kinds)
     {
-        private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: false);
+        private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: false, kinds);
 
         /// <summary>Which division the text read so far is in: the ONE rule (<see cref="DivisionCursor"/>), as in the
         /// fixed-form converter, because a comment-entry paragraph exists only in an IDENTIFICATION DIVISION.</summary>
@@ -308,6 +314,7 @@ public static partial class ReferenceFormatProcessor
             foreach (var line in physicalLines)
             {
                 var site = new TextSite(line.Number, Index: 0, line.Columns);
+                _builder.Classify(site, PhysicalLineKind.Source);   // the builder refines it (blank, comment, directive)
                 // A comment line (§2023:6.5 2)) is neither a header nor words of a division, as in fixed form.
                 var entry = _builder.TryFirstText(line.Text, out int first) ? BeginsCommentEntry(line.Text, first, line.Number) : CommentEntryText.None;
                 // The 255-position gate is asked of EVERY physical line, here and once: this conversion runs before conditional
@@ -320,11 +327,19 @@ public static partial class ReferenceFormatProcessor
                     // The division is not known (DivisionCursor) for a candidate: the line is CARRIED for CommentEntryResolver
                     // to decide on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
                     if (entry == CommentEntryText.Header) _builder.Emit(CommentEntryHeader(line.Text, site, file, gates, periodRequired: false), site);
-                    else _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, inclusion, line), site);
+                    else
+                    {
+                        _builder.Classify(site, PhysicalLineKind.CommentEntryCandidate);
+                        _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, inclusion, line), site);
+                    }
                     continue;
                 }
                 // The floating debugging indicator >>D heads a debugging line in free form too (2002 clause 6.1.2).
-                if (_builder.TryEmitFloatingDebugging(line.Text, site, spaceFilled: false)) continue;
+                if (_builder.TryEmitFloatingDebugging(line.Text, site, spaceFilled: false))
+                {
+                    _builder.Classify(site, PhysicalLineKind.DebuggingLine);
+                    continue;
+                }
                 _builder.Add(line.Text, site, fixedContinuation: false);
             }
             _builder.ReadInto(_division);   // the division the text ENDS in is the next segment's start

@@ -21,8 +21,13 @@ public sealed class CopyProcessor(
     bool ccvsIndicators = false,   // the --nist column-7 conventions for library text too (kb/Work PB1494)
     ImplicitFormatOps? implicitFormatOps = null,   // §2023:14.9.28.4 GR14's implicit PUSH/POP ALL written in library text (kb/Work PB1066)
     ReferenceFormatDiagnostics? referenceFormatGates = null,   // the compilation's ONE reference-format diagnostics, shared with the main source (kb/Work PB1640)
-    CommentEntryPins? commentEntryPins = null)   // the comment-entry candidates a previous run of the text stages proved to be program text (kb/Work PB4281)
+    CommentEntryPins? commentEntryPins = null,   // the comment-entry candidates a previous run of the text stages proved to be program text (kb/Work PB4281)
+    TextStageTrace? trace = null)   // the run's trace for the source listing, or none (DESIGN-listing.md section 4.4)
 {
+    /// <summary>The trace this run's COPY statements are recorded into (DESIGN-listing.md section 4.4):
+    /// <see cref="TextStageTrace.None"/> unless the compilation asked for a listing.</summary>
+    public TextStageTrace Trace { get; } = trace ?? TextStageTrace.None;
+
     /// <summary>The compilation's ambient-input gateway (kb/Work PB985): every copybook probe and read below goes
     /// through it, so the record names each library text the group incorporated AND each candidate that was not
     /// there. A caller that passes none (a unit test) gets a private one.</summary>
@@ -678,7 +683,10 @@ public sealed class CopyProcessor(
     /// comment fallback (NotFound/Circular).</summary>
     /// <param name="Mapped">The incorporated library text with its origins (the copybook's path and physical lines,
     /// after normalization and COPY … REPLACING — kb/Work PB82); null for the not-found / circular comment lines.</param>
-    internal readonly record struct OneCopyResult(CopyOutcome Outcome, string Text, string? CopybookPath, MappedText? Mapped = null);
+    /// <param name="TextName">The text-name or literal the statement names, or null when the statement could not be parsed.</param>
+    /// <param name="LibraryName">The library-name or literal of the statement's OF / IN phrase, or null.</param>
+    internal readonly record struct OneCopyResult(CopyOutcome Outcome, string Text, string? CopybookPath, MappedText? Mapped = null,
+        string? TextName = null, string? LibraryName = null);
 
     /// <summary>Parse and resolve ONE COPY statement whose keyword is at <paramref name="copyIdx"/> — parse it
     /// (<see cref="ParseCopyStatement"/>, advancing <paramref name="afterCopy"/> past its separator period), find the
@@ -729,14 +737,14 @@ public sealed class CopyProcessor(
             // every path — never a silently omitted COPY (kb/Work PB1355).
             string named = statement.LibraryName is { } lib ? $"{libraryName} OF {lib}" : libraryName;
             Report(DiagnosticDescriptors.CBL3620, at, named, string.Join("; ", LibraryPlaces()));
-            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{named} — library text not found", null);
+            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{named} — library text not found", null, TextName: libraryName, LibraryName: statement.LibraryName);
         }
         if (!alreadyIncluded.Add(copybookPath))
         {
             // ISO §2023:7.2.3.4 GR12: "The library text being copied shall not cause the processing of a COPY statement
             // that directly or indirectly copies itself."
             Report(DiagnosticDescriptors.CBL3621, at, libraryName);
-            return new OneCopyResult(CopyOutcome.Circular, $"{NotePrefix}{libraryName} — circular include skipped", null);
+            return new OneCopyResult(CopyOutcome.Circular, $"{NotePrefix}{libraryName} — circular include skipped", null, TextName: libraryName, LibraryName: statement.LibraryName);
         }
 
         // Library text goes through the same §2023:6.5 logical conversion as the source text, starting in the format in
@@ -749,7 +757,7 @@ public sealed class CopyProcessor(
         if (_inputs.ReadSourceText(copybookPath, _diagnostics) is not { } libraryText)
         {
             alreadyIncluded.Remove(copybookPath);   // nothing was included, so a later COPY of it is no circular include
-            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{libraryName} — library text malformed for its byte-order mark", null);
+            return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{libraryName} — library text malformed for its byte-order mark", null, TextName: libraryName, LibraryName: statement.LibraryName);
         }
 
         var edition = EditionInfo.Of(dialectLevel, permissive);
@@ -798,7 +806,7 @@ public sealed class CopyProcessor(
                 at, default);
         var copybookMapped = ApplyReplacements(normalizedMapped, statement.Replacements, CopyResultRule, edition,
             IsDebuggingLineAt(normalized, 0), _diagnostics, _referenceFormats);
-        return new OneCopyResult(CopyOutcome.Found, copybookMapped.Text, copybookPath, copybookMapped);
+        return new OneCopyResult(CopyOutcome.Found, copybookMapped.Text, copybookPath, copybookMapped, libraryName, statement.LibraryName);
     }
 
     /// <summary>The spelling the REPLACING phrase of a COPY statement gives a word of its library text, for the reader of that text to
@@ -1091,6 +1099,19 @@ public sealed class CopyProcessor(
 
             bool? standsInIdentification = division.InIdentificationDivisionAt(text, copyIdx);
             var one = ResolveOneCopy(mapped, copyIdx, alreadyIncluded, inLibraryText: depth > 0, standsInIdentification, out int afterCopy);
+            // The source listing's record of the statement (DESIGN-listing.md section 4.4): the library text, placed by the
+            // merged driver as it renders it, lies between Begin and End, so a COPY met inside it is its child. Asked only of a
+            // trace that records: the arguments cost a LineOrigin per statement, which a compilation without a listing must not
+            // pay (DESIGN-listing.md section 9; kb/Work PB5923 review R1-3).
+            bool traced = Trace.Records && one.TextName is not null;
+            if (traced)
+                Trace.BeginInclusion(depth + 1, copyLine.Origin, mapped.PointAt(Math.Max(afterCopy - 1, copyIdx)).Origin, one.TextName!,
+                    one.LibraryName, one.CopybookPath, one.Outcome switch
+                    {
+                        CopyOutcome.Found => TextInclusionOutcome.Found,
+                        CopyOutcome.Circular => TextInclusionOutcome.Circular,
+                        _ => TextInclusionOutcome.NotFound,
+                    });
             if (one.Outcome == CopyOutcome.Found)
             {
                 w.NewLine(copyLine);
@@ -1114,6 +1135,7 @@ public sealed class CopyProcessor(
                 w.Append(one.Text.AsSpan(), copyLine);
                 w.NewLine(copyLine);
             }
+            if (traced) Trace.EndInclusion();
             pos = afterCopy;
         }
         division.Finish(text);

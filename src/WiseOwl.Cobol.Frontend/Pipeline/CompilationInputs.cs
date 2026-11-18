@@ -53,6 +53,17 @@ public sealed class CompilationInputs : IRepositoryInputs
     /// <summary>Record that the compilation consulted the external repository (<see cref="ReadsRepository"/>).</summary>
     public void RecordRepositoryRead() => ReadsRepository = true;
 
+    /// <summary>Whether <see cref="ReadSourceText"/> records the SHA-256 digest of every file it reads
+    /// (<see cref="FileDigests"/>): set by a compilation that writes a listing, which names each file it lists by its digest
+    /// (DESIGN-listing.md section 4.2); no other compilation pays for the hash.</summary>
+    public bool DigestsFiles { get; init; }
+
+    private readonly Dictionary<string, string> _digests = new(StringComparer.Ordinal);
+
+    /// <summary>The lowercase hexadecimal SHA-256 digest of the bytes of every file read, by full path, when
+    /// <see cref="DigestsFiles"/> is set; empty otherwise.</summary>
+    public IReadOnlyDictionary<string, string> FileDigests => _digests;
+
     /// <summary>Read the text of a source or library text file, recording its full path. The bytes become characters in
     /// <see cref="SourceTextDecoder"/> and nowhere else (docs/CONFORMANCE.md §7, Annex A.1 items 25 and 26; kb/Work
     /// PB1397): a file read as ISO/IEC 8859-1 draws the warning COBOL5435 and a marked file that is not well-formed in its
@@ -60,8 +71,10 @@ public sealed class CompilationInputs : IRepositoryInputs
     /// at the start of that file. Returns null for the malformed file (its error is reported) and the text otherwise.</summary>
     public string? ReadSourceText(string path, DiagnosticBag? diagnostics)
     {
-        var decoded = SourceTextDecoder.Decode(File.ReadAllBytes(path));
+        byte[] bytes = File.ReadAllBytes(path);
+        var decoded = SourceTextDecoder.Decode(bytes);
         _filesRead.Add(Path.GetFullPath(path));
+        if (DigestsFiles) _digests[Path.GetFullPath(path)] = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes));
         // The location names the file; the finding is once per file per bag, so a library text copied many times is one
         // finding and not one per COPY.
         var at = new SourceLocation(path, 0, 0, 0);
@@ -158,12 +171,19 @@ public sealed class CompilationInputs : IRepositoryInputs
         return value;
     }
 
-    /// <summary>Read the compilation time through <paramref name="clock"/> (the injectable compile-clock seam),
-    /// recording that the output now depends on it.</summary>
+    /// <summary>THE compilation's one instant (DESIGN-listing.md section 5), once something has read it
+    /// (<see cref="ReadCompilationTime"/>): the WHEN-COMPILED constant, the listing heading and DATE-COMPILED's replacement
+    /// denote it (§1989:A.2.46.3 RV3, §2023:15.99.3 RV3). Null while nothing has read the clock.</summary>
+    public DateTimeOffset? CompilationTime { get; private set; }
+
+    /// <summary>Read the compilation time through <paramref name="clock"/> (the injectable compile-clock seam), recording
+    /// that the output now depends on it. The FIRST call of a compilation reads the clock and every later call answers the
+    /// same instant (<see cref="CompilationTime"/>), so whichever reader comes first (the emitter's WHEN-COMPILED, the
+    /// listing) captures it and the others agree with it.</summary>
     public DateTimeOffset ReadCompilationTime(Func<DateTimeOffset> clock)
     {
         ReadsCompilationTime = true;
-        return clock();
+        return CompilationTime ??= clock();
     }
 }
 

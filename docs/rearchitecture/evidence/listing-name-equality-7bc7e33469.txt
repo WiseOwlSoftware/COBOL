@@ -1,8 +1,8 @@
 # COBOL name-equality sites in WiseOwl.Cobol.Compiler at 7bc7e33469, by symbol (Roslyn SemanticModel), classified.
 # Evidence for docs/rearchitecture/DESIGN-listing.md section 6.7.2. Columns: kind, class, location, enclosing member.
 # SAME = CobolNames.Same; CMP = CobolNames.Comparer; NAMEEQ = ==, != or string.Equals on a binder symbol's *Name.
-# RESOLVE: a written name is matched to find the symbol it denotes: moves into WrittenNames.Identify and records
-# DECLARE: declarations compared with each other (uniqueness, conflict, open description): moves into WrittenNames.Declarations, which answers facts, never a symbol
+# RESOLVE: a written name is matched to find the symbol it denotes: moves into SymbolTable.Identify and records
+# DECLARE: declarations compared with each other (uniqueness, conflict, open description): moves into SymbolTable.Declarations, which answers facts, never a symbol
 # KEYWORD: a written word compared with a fixed word of the standard or of the implementor (FILLER, ZERO, ALL, LINE-COUNTER, an intrinsic, exception or implementor-name): no user name is resolved
 # SAMESYMBOL: two already-resolved symbols compared by name (type equivalence, conformance, control identity): no written name is resolved
 # EXTERNAL: an externalized name or a repository record's name from compiled metadata: identity across compilations, not a written reference

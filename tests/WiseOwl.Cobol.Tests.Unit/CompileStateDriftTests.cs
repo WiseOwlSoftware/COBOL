@@ -44,6 +44,7 @@ public sealed class CompileStateDriftTests
         [nameof(CompilerDriver.Options.RepositoryPaths)] = "where the build reads the repository, not what the source means",
         [nameof(CompilerDriver.Options.ReferencePaths)] = "where the build reads the repository, not what the source means",
         [nameof(CompilerDriver.Options.RepositoryCheck)] = "whether the build flags differences, not what the source means",
+        [nameof(CompilerDriver.Options.Listing)] = "an output selection: which listing the build writes, not what the source means (DESIGN-listing.md section 8)",
         ["ClientWritten"] = "which words of an expansion's text the group already screened, so the expansion's own compilation does not report them again; it decides what is reported, not what the source means (kb/Work PB4721)",
         ["PublishAs"] ="the identity an expansion's own compilation publishes under; the expansion's key already states what it means",
     };

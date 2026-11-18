@@ -256,7 +256,7 @@ public sealed class PhysicalLinesTests
     public void ProgramTextOffsetAt_CountsATabAsTheStopItFillsTo(string line, int offset)
     {
         var lines = PhysicalLines.Read(line + "\n");
-        var map = ReferenceFormatMap.Create(initialFixed: true, detected: false, [], [], lines.Lines);
+        var map = ReferenceFormatMap.Create(initialFixed: true, detected: false, [], [], lines.Lines, new PhysicalLineKind[lines.Lines.Length]);
         Assert.Equal(offset, map.ProgramTextOffsetAt(1, line.IndexOf('"')));
     }
 

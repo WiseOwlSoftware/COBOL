@@ -31,6 +31,10 @@ the form `--output=out.dll`.
 | `--repository <DIR>` | a directory of compiled assemblies searched for a program or function the REPOSITORY paragraph names and the compilation group does not define (repeatable; default: the output directory) — see [Separately compiled units](../../separately-compiled-units/) |
 | `--reference <FILE.dll>` | a compiled assembly searched after the `--repository` directories (repeatable) |
 | `--repository-check <on\|off>` | whether a unit whose signature differs from the repository's information is flagged with a warning (default `on`) |
+| `--listing [on\|off]` | writes the source listing `<out>.lst` (a bare `--listing` is `on`); default `on` at `--std 85`, `off` at the later editions — see [The source listing](../listing/) |
+| `--listing-output <BASE>` | writes the listing to `BASE.lst`, or with `-` to standard output (implies a listing) |
+| `--listing-page-length <N>` | listing lines per page, the heading included (default 60; `0` paginates only at page-eject lines and new programs) |
+| `--listing-page-width <N>` | listing columns per page, 100 to 255 (default 132) |
 | `--nist <NAME>` | the placeholder preprocessing the NIST CCVS test programs need; for running that suite, not for application code |
 | `--version` | prints the compiler's version |
 | `-?`, `-h`, `--help` | prints the options |
@@ -56,7 +60,7 @@ instead.
 ## Output files
 
 For `cobol hello.cob -o out/hello.dll` the files `hello.dll`, `hello.runtimeconfig.json`, `WiseOwl.Cobol.Runtime.dll`
-and `hello.g.cs` are written to `out/`. A compilation group with no main program (for instance, one that holds only
+and `hello.g.cs` are written to `out/`, and with a listing (the default at `--std 85`) `hello.lst` too. A compilation group with no main program (for instance, one that holds only
 subprograms or a function) is a library: it writes no `.runtimeconfig.json`, `--run` does not apply to it (exit status
 64), and a .NET host calls its programs; see
 [.NET interoperability](../../dotnet-interop/).

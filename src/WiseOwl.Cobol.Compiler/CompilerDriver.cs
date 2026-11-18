@@ -68,6 +68,9 @@ public static class CompilerDriver
     /// external repository holds for it (CLI <c>--repository-check on|off</c>, default on; ISO §2023:8.13: "The implementor shall
     /// provide a mechanism that allows the user to specify whether to flag differences in prototypes and definitions in the
     /// compilation group from the information in the external repository"; REPO-9, DESIGN-external-repository §9.2).</param>
+    /// <param name="Listing">The source listing to produce (DESIGN-listing.md sections 4.2 and 8; kb/Work PB5923), or null for
+    /// none and no listing work at all. An OUTPUT selection: it decides what the build writes, never what a source means. The
+    /// per-edition default (on at <c>--std 85</c>, §1985:IV.7.1) is the command line's; the library default is no listing.</param>
     public sealed record Options(
         string SourcePath,
         string? OutputPath = null,
@@ -83,7 +86,8 @@ public static class CompilerDriver
         bool RepositoryUpdate = true,
         IReadOnlyList<string>? RepositoryPaths = null,
         IReadOnlyList<string>? ReferencePaths = null,
-        bool RepositoryCheck = true)
+        bool RepositoryCheck = true,
+        WiseOwl.Cobol.Listing.ListingRequest? Listing = null)
     {
         /// <summary>The identity this compilation's one class or interface PUBLISHES as an expansion of a parameterized definition: set by
         /// the compilation of an expansion's own assembly (<see cref="ExpansionAssemblies"/>, DESIGN-external-repository §10.5), whose source
@@ -156,15 +160,83 @@ public static class CompilerDriver
         /// it processed (ISO §2023:7.3.12.4 GR1, kb/Work PB1538), each with the compiler stream it is written to. Present on
         /// every outcome the front end ran for; the CLI writes them before the diagnostics.</summary>
         public IReadOnlyList<Frontend.Diagnostics.CompileOutputLine> CompileOutput { get; init; } = [];
+
+        /// <summary>The source listing (DESIGN-listing.md section 4.6), when <see cref="Options.Listing"/> asked for one and the
+        /// source text was read; null otherwise. Present on every outcome that read the source, failures included.</summary>
+        public WiseOwl.Cobol.Listing.ListingDocument? Listing { get; init; }
     }
 
     /// <summary>Compile <paramref name="options"/> to a runnable console assembly.</summary>
+    /// <remarks>⛔ THE LISTING'S ONE EXIT (DESIGN-listing.md section 4.6): the body (<see cref="CompileCore"/>, every return point
+    /// of the compilation) deposits each fact into a collector as its phase finishes, and the listing is built from whatever the
+    /// collector holds, whichever return was taken. Without <see cref="Options.Listing"/> there is no collector and no listing
+    /// work: the body alone.</remarks>
     public static Result Compile(Options options)
     {
         // kb/Work PB985 — the ONE ambient-input record of this compilation: every read below that is not the
         // options themselves (the source-existence probe, the default-library probe, the front end's source and
-        // copybook reads, a directive's environment read, the emitter's WHEN-COMPILED clock) goes through it.
-        var inputs = new Frontend.CompilationInputs();
+        // copybook reads, a directive's environment read, the emitter's WHEN-COMPILED clock) goes through it. A listing names
+        // each file it lists by its digest, so only a compilation that writes one hashes what it reads.
+        if (options.Listing is not { } request) return CompileCore(options, new Frontend.CompilationInputs(), listing: null);
+        var inputs = new Frontend.CompilationInputs { DigestsFiles = true };
+        var facts = new WiseOwl.Cobol.Listing.Building.ListingFacts(request, inputs, options.SourcePath, options.OutputDll(),
+            Editions.EditionInfo.Of(options.DialectLevel, options.Permissive), Binding.Procedure.IntrinsicBinder.CompileClock);
+        var result = CompileCore(options, inputs, facts);
+        if (facts.Frontend is null) return result;   // no source text was read: nothing to list (DESIGN-listing.md section 4.6)
+        if (WiseOwl.Cobol.Listing.Building.ListingWriter.Write(facts, ListingOutcomeOf(result.Status)) is not { } written) return result;
+        return result with
+        {
+            Listing = written.Document,
+            OutputFiles = written.File is { } file ? [.. result.OutputFiles, file] : result.OutputFiles,
+            Errors = written.Error is { } error ? [.. result.Errors, error] : result.Errors,
+        };
+    }
+
+    /// <summary>The outcome as the listing names it: every outcome that read the source, by its own name (the Unit assembly's
+    /// <c>ListingOutcomeMapTests</c> holds it total).</summary>
+    internal static WiseOwl.Cobol.Listing.ListingOutcome ListingOutcomeOf(Outcome outcome) => outcome switch
+    {
+        Outcome.Success => WiseOwl.Cobol.Listing.ListingOutcome.Success,
+        Outcome.FrontendError => WiseOwl.Cobol.Listing.ListingOutcome.FrontendError,
+        Outcome.BindError => WiseOwl.Cobol.Listing.ListingOutcome.BindError,
+        Outcome.BackendError => WiseOwl.Cobol.Listing.ListingOutcome.BackendError,
+        Outcome.OutputNotWritable => WiseOwl.Cobol.Listing.ListingOutcome.OutputNotWritable,
+        _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, "an outcome that read no source has no listing"),
+    };
+
+    /// <summary>The front end the compilation of <paramref name="options"/> runs (the one construction, which the listing's
+    /// no-work drift test reads): it records listing facts only when <paramref name="recordsListing"/>.</summary>
+    internal static Frontend.Frontend NewFrontend(Options options, Frontend.CompilationInputs inputs, bool recordsListing)
+    {
+        var frontend = new Frontend.Frontend
+        {
+            Inputs = inputs,
+            NistTestName = options.NistTestName,
+            DialectLevel = options.DialectLevel,
+            // The preprocessor-level removal gates (VCR 2/4, W3 — DEVLOG 598) honor the same severity axis.
+            Permissive = options.Permissive,
+            InitialFormat = options.SourceFormat,   // kb/Work PB1362 — §2023:7.3.24.3 2) fixed by default
+            RecordsListing = recordsListing,   // DESIGN-listing.md section 9: no listing, no listing work
+        };
+        foreach (string dir in options.CopyPaths ?? [])
+            frontend.AddCopySearchPath(dir);
+        // The implementor-defined DEFAULT COBOL LIBRARY (ISO §2023:7.2.3.4 GR3 — "the implementor defines the
+        // mechanism for identifying the default COBOL library"): in NIST mode it is the `copylib/` directory
+        // sibling to the source's directory, so the SM COPY suite resolves its K*/KP*/ALTLB texts.
+        // Appended AFTER caller-supplied paths so an explicit --copy outranks the convention.
+        if (options.NistTestName is not null
+            && Path.GetDirectoryName(Path.GetFullPath(options.SourcePath)) is { } srcDir
+            && Path.GetFullPath(Path.Combine(srcDir, "..", "copylib")) is { } copylib
+            && inputs.DirectoryExists(copylib))
+            frontend.AddCopySearchPath(copylib);
+        return frontend;
+    }
+
+    /// <summary>The compilation itself, every return point of it; <paramref name="listing"/> collects the listing's facts, or is
+    /// null when none is asked for.</summary>
+    private static Result CompileCore(Options options, Frontend.CompilationInputs inputs,
+        WiseOwl.Cobol.Listing.Building.ListingFacts? listing)
+    {
         if (!inputs.FileExists(options.SourcePath))
             return new Result(Outcome.SourceNotFound, "", null, [$"source file not found: {options.SourcePath}"], [])
                 { Inputs = inputs };
@@ -179,28 +251,9 @@ public static class CompilerDriver
 
         // Phase 1 — front-end: preprocess + parse.
         var diagnostics = new DiagnosticBag();
-        var frontend = new Frontend.Frontend
-        {
-            Inputs = inputs,
-            NistTestName = options.NistTestName,
-            DialectLevel = options.DialectLevel,
-            // The preprocessor-level removal gates (VCR 2/4, W3 — DEVLOG 598) honor the same severity axis.
-            Permissive = options.Permissive,
-            InitialFormat = options.SourceFormat,   // kb/Work PB1362 — §2023:7.3.24.3 2) fixed by default
-        };
-        foreach (string dir in options.CopyPaths ?? [])
-            frontend.AddCopySearchPath(dir);
-        // The implementor-defined DEFAULT COBOL LIBRARY (ISO §2023:7.2.3.4 GR3 — "the implementor defines the
-        // mechanism for identifying the default COBOL library"): in NIST mode it is the `copylib/` directory
-        // sibling to the source's directory, so the SM COPY suite resolves its K*/KP*/ALTLB texts.
-        // Appended AFTER caller-supplied paths so an explicit --copy outranks the convention.
-        if (options.NistTestName is not null
-            && Path.GetDirectoryName(Path.GetFullPath(options.SourcePath)) is { } srcDir
-            && Path.GetFullPath(Path.Combine(srcDir, "..", "copylib")) is { } copylib
-            && inputs.DirectoryExists(copylib))
-            frontend.AddCopySearchPath(copylib);
-
+        var frontend = NewFrontend(options, inputs, recordsListing: listing is not null);
         var tree = frontend.Parse(options.SourcePath, diagnostics);
+        listing?.DepositFrontend(frontend);   // the listed pass (DESIGN-listing.md section 4.4)
         // Frontend WARNINGS (the preprocessor 0902-permissive/0903 gates) ride Result.Warnings on every
         // outcome, merged ahead of the edition channel's — same contract as edition warnings.
         var feWarnings = diagnostics.Diagnostics.Where(d => !d.IsError).Select(d => d.ToString()!).ToList();
