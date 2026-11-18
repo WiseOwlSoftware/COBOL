@@ -83,7 +83,7 @@ public sealed class ProcessObservationDriftTests
             string body = File.ReadAllText(file);
             if (!RunsDotnet.IsMatch(body)) continue;
             foreach (System.Text.RegularExpressions.Match call in ObserveCall.Matches(body))
-                if (!call.Value.Contains("runDirectory:", StringComparison.Ordinal))
+                if (!call.Value.Contains("runDirectory:", StringComparison.Ordinal) && !RunsATool(body, call))
                     offenders.Add($"{Path.GetRelativePath(TestRepo.Root, file)}:  {call.Value}");
         }
         Assert.True(offenders.Count == 0,
@@ -96,7 +96,22 @@ public sealed class ProcessObservationDriftTests
         Assert.Matches(ObserveCall, "ProcessObserver.ObserveOrThrow(psi, stdin);");
         Assert.DoesNotContain("runDirectory:", ObserveCall.Match("ProcessObserver.ObserveOrThrow(psi, stdin);").Value, StringComparison.Ordinal);
         Assert.Contains("runDirectory:", ObserveCall.Match("ProcessObserver.ObserveOrThrow(psi, stdin, runDirectory: dir);").Value, StringComparison.Ordinal);
+        const string tool = "var run = ProcessObserver.ObserveOrThrow(psi);   " + ToolMark + " dotnet msbuild evaluating a project\n";
+        Assert.True(RunsATool(tool, ObserveCall.Match(tool)));
+        const string program = "var run = ProcessObserver.ObserveOrThrow(psi);\n" + ToolMark + " on the next line, not this one\n";
+        Assert.False(RunsATool(program, ObserveCall.Match(program)));
     }
+
+    /// <summary>A call whose line says it runs a TOOL of the SDK (<c>dotnet msbuild</c> evaluating a project, which reads the repository
+    /// and writes nothing): it has no run directory of its own to restore, as <see cref="ProcessObserver.ObserveOrThrow"/> says of
+    /// git or python run in the repository. The line carries <c>// a tool, not a compiled program: &lt;what&gt;</c>.</summary>
+    private static bool RunsATool(string body, System.Text.RegularExpressions.Match call)
+    {
+        int end = body.IndexOf('\n', call.Index + call.Length);
+        return body[call.Index..(end < 0 ? body.Length : end)].Contains(ToolMark, StringComparison.Ordinal);
+    }
+
+    private const string ToolMark = "// a tool, not a compiled program:";
 
     private static readonly System.Text.RegularExpressions.Regex RunsDotnet =
         new(@"new ProcessStartInfo\(\s*""dotnet""", System.Text.RegularExpressions.RegexOptions.Compiled);

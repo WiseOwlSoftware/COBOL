@@ -98,7 +98,7 @@ public sealed class AnalyzerWiringDriftTests
                      "-getProperty:IsRoslynComponent", "-getProperty:RunAnalyzers", "-getProperty:RunAnalyzersDuringBuild",
                      "-getItem:ProjectReference"])
             psi.ArgumentList.Add(arg);
-        var run = ProcessObserver.ObserveOrThrow(psi);
+        var run = ProcessObserver.ObserveOrThrow(psi);   // a tool, not a compiled program: dotnet msbuild evaluating a project
         Assert.True(run.ExitCode == 0, $"MSBuild could not evaluate {project} ({configuration}): exit {run.ExitCode}\n{run.Stdout}\n{run.Stderr}");
         using var json = JsonDocument.Parse(run.Stdout);
         var properties = json.RootElement.GetProperty("Properties");
