@@ -98,7 +98,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S2B", "STRING ALL ZEROS DELIMITED BY SIZE INTO OUT1.")]
     [InlineData("S2C", "STRING \"A B\" DELIMITED BY ALL SPACES INTO OUT1.")]
     public void String_FigurativeBeginningWithAll_IsSR2(string pid, string statement) =>
-        Refuses("PB1181" + pid, "", statement, "COBOL1757", "ISO §2023:14.9.43.3 SR2", fromEdition: 85);
+        Refuses("PB1181" + pid, "", statement, "COBOL1757", "begins with the word ALL", fromEdition: 85);
 
     /// <summary>§2023:14.9.48.3 SR1 — "Literal-1 and literal-2 shall be literals of the category alphanumeric or national
     /// and shall be neither a figurative constant that begins with the word ALL nor a zero-length literal." Its

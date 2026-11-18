@@ -84,23 +84,27 @@ internal readonly record struct OpenTapePhraseRule(
 }
 
 internal readonly record struct CorrespondingOperandRule(
-    string Verb, string Clause, GroupKinds Admitted, bool ExcludesLevel66)
+    string Verb, string Clause, string Clause1985, GroupKinds Admitted, bool ExcludesLevel66)
 {
+    /// <summary>The syntax rule of the edition in force that makes the CORRESPONDING operands group items, without the "ISO " lead-in:
+    /// §1985:VI.6.19.3 SR3 (MOVE), §1985:VI.6.6.3 SR1 (ADD) and §1985:VI.6.26.3 SR1 (SUBTRACT) at COBOL-85 (kb/Work PB4950).</summary>
+    public string ClauseAt(EditionInfo edition) => edition.Cite(Clause1985, Clause, Clause);
+
     /// <summary>ISO §2023:14.9.25.3 SR12 — "Identifier-3 and identifier-4 shall specify group data items and shall
     /// not be reference-modified." Every group kind is a group data item, and NOTE 5 under §2023:14.9.25.4 GR11 puts
     /// it beyond doubt for the two the other verbs exclude: "For purposes of MOVE CORRESPONDING, bit group items
     /// and national group items are processed as group items, rather than as elementary items."</summary>
     public static readonly CorrespondingOperandRule Move =
-        new("MOVE", "§2023:14.9.25.3 SR12", GroupKinds.Any, ExcludesLevel66: false);
+        new("MOVE", "§2023:14.9.25.3 SR12", "§1985:VI.6.19.3 SR3", GroupKinds.Any, ExcludesLevel66: false);
 
     /// <summary>ISO §2023:14.9.2.3 SR6 — "Identifier-4 and identifier-5 shall be alphanumeric group items, national
     /// group items, variable-length groups, or strongly-typed group items and shall not be described with
     /// level-number 66."</summary>
-    public static readonly CorrespondingOperandRule Add = new("ADD", "§2023:14.9.2.3 SR6", ArithmeticKinds, true);
+    public static readonly CorrespondingOperandRule Add = new("ADD", "§2023:14.9.2.3 SR6", "§1985:VI.6.6.3 SR1", ArithmeticKinds, true);
 
     /// <summary>ISO §2023:14.9.44.3 SR6 — word for word ADD's SR6, with identifier-4 the subtrahend group.</summary>
     public static readonly CorrespondingOperandRule Subtract =
-        new("SUBTRACT", "§2023:14.9.44.3 SR6", ArithmeticKinds, true);
+        new("SUBTRACT", "§2023:14.9.44.3 SR6", "§1985:VI.6.26.3 SR1", ArithmeticKinds, true);
 
     /// <summary>SR6's four admitted kinds, written ONCE because the two rules are the same sentence: a bit group
     /// is the one kind left out, and §2023:14.7.6 rule 3 is why — "In an ADD or SUBTRACT statement, both of the data
@@ -518,9 +522,13 @@ internal sealed class StatementValidation(DataBinder data)
         else if (switchName is not null)
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"{set} — '{refText}' IS a condition-name, but the SPECIAL-NAMES kind: it "
-                + $"names the status of external switch {switchName} (ISO §2023:12.3.7), and §2023:8.4.4.1 distinguishes "
-                + "that kind from the level-88 kind, which is the one associated with a conditional variable. "
-                + "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), "
+                + $"names the status of external switch {switchName} ("
+                + data.Edition.Edition.Cite("ISO §1985:VI.4.5.4 GR2", "ISO §2023:12.3.7, and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated with a conditional variable",
+                    "ISO §2023:12.3.7, and §2023:8.4.4.1 distinguishes that kind from the level-88 kind, which is the one associated with a conditional variable")
+                + "). "
+                + (data.Edition.DialectLevel < 2002
+                    ? "\"Condition-name-1 must be associated with a conditional variable\" (ISO §1985:VI.6.23.3 SR6), "
+                    : "\"Condition-name-1 shall be associated with a conditional variable\" (ISO §2023:14.9.39.3 SR6), ")
                 + "so this operand is not admitted in Format 4. Set the switch through Format 3 — "
                 + "SET <mnemonic-name> TO ON or OFF (SR5).");
         else
@@ -590,8 +598,13 @@ internal sealed class StatementValidation(DataBinder data)
                 data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                     $"{rule.Verb} CORRESPONDING operand '{refText}' is reference-modified — the operands of a "
                     + "CORRESPONDING statement are group items, and reference modification yields an "
-                    + "elementary data item (ISO §2023:8.4.3.3.4 GR6: \"The unique data item is considered to be an "
-                    + $"elementary data item without the JUSTIFIED clause\"), so it is not one (ISO {rule.Clause}). "
+                    + "elementary data item ("
+                    + data.Edition.Edition.Cite(
+                        "ISO §1985:IV.4.3.8.4.4 GR2: the item \"is operated upon for purposes of reference modification as if it were "
+                        + "redefined as an alphanumeric data item\"",
+                        "ISO §2023:8.4.3.3.4 GR6: \"The unique data item is considered to be an elementary data item without the JUSTIFIED clause\"",
+                        "ISO §2023:8.4.3.3.4 GR6: \"The unique data item is considered to be an elementary data item without the JUSTIFIED clause\"")
+                    + $"), so it is not one (ISO {rule.ClauseAt(data.Edition.Edition)}). "
                     + "Name the group itself, or MOVE the modified reference to a matching item.");
                 return false;
             }
@@ -618,7 +631,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                 $"{rule.Verb} CORRESPONDING operand '{refText}' is described with level-number 66 — the "
-                + $"operands \"shall not be described with level-number 66\" (ISO {rule.Clause})");
+                + $"operands \"shall not be described with level-number 66\" (ISO {rule.ClauseAt(data.Edition.Edition)})");
             return false;
         }
         // ⛔ AND WHERE THE RULE DOES NOT NAME LEVEL 66, A LEVEL-66 ENTRY IS JUDGED BY WHAT IT IS (kb/Work PB966).
@@ -632,11 +645,11 @@ internal sealed class StatementValidation(DataBinder data)
         if ((kinds & rule.Admitted) != GroupKinds.None) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule, kinds is GroupKinds.None
             ? $"{rule.Verb} CORRESPONDING operand '{refText}' is an elementary item — both operands shall be "
-              + $"group items (ISO {rule.Clause})"
+              + $"group items (ISO {rule.ClauseAt(data.Edition.Edition)})"
             // The kind IS a group kind, and the rule names a narrower set: say which kind it is and which the
             // rule admits, because "shall be group items" would be a false explanation of a group's refusal.
             : $"{rule.Verb} CORRESPONDING operand '{refText}' is {ItemCategory.Face(item)} — the operands shall "
-              + $"be {ItemCategory.Spell(rule.Admitted)} (ISO {rule.Clause})");
+              + $"be {ItemCategory.Spell(rule.Admitted)} (ISO {rule.ClauseAt(data.Edition.Edition)})");
         return false;
     }
 
@@ -709,10 +722,17 @@ internal sealed class StatementValidation(DataBinder data)
             {
                 data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
                     $"{verb} '{refText}' — record-name-1 is a record-name, not an identifier, so it shall not "
-                    + "be reference-modified: ISO §2023:5.2.4 gives a \"User-defined word, including qualification "
-                    + "and subscripting if needed\" those two decorations and no other, and §2023:8.4.3.3.3 SR5 "
-                    + "permits reference modification only \"anywhere an identifier referencing a data item of "
-                    + $"class alphanumeric, boolean, or national is permitted\". {rule}. Write the record-name "
+                    + "be reference-modified: "
+                    + data.Edition.Edition.Cite(
+                        "ISO §1985:IV.4.3.8.4.2 prints the reference modifier after a data-name or a function-identifier, and a record-name "
+                        + "\"may be qualified\" and no more",
+                        "ISO §2023:5.2.4 gives a \"User-defined word, including qualification and subscripting if needed\" those two "
+                        + "decorations and no other, and §2023:8.4.3.3.3 SR5 permits reference modification only \"anywhere an identifier "
+                        + "referencing a data item of class alphanumeric, boolean, or national is permitted\"",
+                        "ISO §2023:5.2.4 gives a \"User-defined word, including qualification and subscripting if needed\" those two "
+                        + "decorations and no other, and §2023:8.4.3.3.3 SR5 permits reference modification only \"anywhere an identifier "
+                        + "referencing a data item of class alphanumeric, boolean, or national is permitted\"")
+                    + $". {rule}. Write the record-name "
                     + "alone; to send part of a record, use the FROM phrase or a MOVE.");
                 return false;
             }
@@ -771,7 +791,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (file.IsSortMerge) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
             $"RELEASE '{refText}' — record-name-1 shall be the name of a logical record in a sort-merge (SD) "
-            + $"file description entry (ISO §2023:14.9.32.3 SR1); '{refText}' is a record of '{file.CobolName}', "
+            + $"file description entry (ISO {data.Edition.Edition.Cite("§1985:XI.4.2.3 SR1", "§2023:14.9.32.3 SR1", "§2023:14.9.32.3 SR1")}); '{refText}' is a record of '{file.CobolName}', "
             + "which is described by an FD");
         return false;
     }
@@ -786,7 +806,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (file.IsSortMerge) return true;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
             $"RETURN '{file.CobolName}' — file-name-1 shall be described by a sort-merge (SD) file description "
-            + "entry in the data division (ISO §2023:14.9.34.3 SR1); this file is described by an FD");
+            + $"entry in the data division (ISO {data.Edition.Edition.Cite("§1985:XI.4.3.3 SR2", "§2023:14.9.34.3 SR1", "§2023:14.9.34.3 SR1")}); this file is described by an FD");
         return false;
     }
 

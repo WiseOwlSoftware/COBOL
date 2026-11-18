@@ -375,10 +375,17 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     private BoundOperand ScreenZeroLength(BoundOperand literal, Core.SendingOperandContext c) =>
         literal is BoundStringLiteral { Value.Length: 0 }
             ? BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
-                $"INSPECT operand '{c.GetText()}' is a zero-length literal, which literal-1 through literal-5 shall "
-                + "not be (ISO §2023:14.9.22.3 SR3)",
-                $"INSPECT operand '{c.GetText()}' (ISO §2023:14.9.22.3 SR3)")
+                $"INSPECT operand '{c.GetText()}' is a zero-length literal, which "
+                + ctx.Edition.Edition.Cite(
+                    "a nonnumeric literal is not: it is 1 through 160 characters in length (ISO §1985:IV.4.2.2.2.1)",
+                    "literal-1 through literal-5 shall not be (ISO §2023:14.9.22.3 SR3)",
+                    "literal-1 through literal-5 shall not be (ISO §2023:14.9.22.3 SR3)"),
+                $"INSPECT operand '{c.GetText()}' (ISO {InspectLiteralRule})")
             : literal;
+
+    /// <summary>The syntax rule that bars a numeric literal and a figurative constant beginning with ALL from an INSPECT literal position, in
+    /// the edition in force (kb/Work PB4950): §1985:VI.6.18.3 SR3 or §2023:14.9.22.3 SR3.</summary>
+    private string InspectLiteralRule => ctx.Edition.Edition.Cite("§1985:VI.6.18.3 SR3", "§2023:14.9.22.3 SR3", "§2023:14.9.22.3 SR3");
 
     private (BoundOperand Op, bool Figurative) InspectCharOperandOf(Core.SendingOperandContext c, bool literal5)
     {
@@ -395,8 +402,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 if (!literal5)
                     return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                         $"INSPECT operand '{ConcatFolder.Spelling(fig)}' is a figurative constant that begins with the "
-                        + "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be (ISO §2023:14.9.22.3 SR3)",
-                        "INSPECT operand ALL figurative (ISO §2023:14.9.22.3 SR3)"), false);
+                        + (ctx.Edition.DialectLevel < 2002 ? "word ALL, which each literal must not be" : "word ALL, which literal-1, literal-2, literal-3 and literal-4 shall not be")
+                        + $" (ISO {InspectLiteralRule})",
+                        $"INSPECT operand ALL figurative (ISO {InspectLiteralRule})"), false);
                 // Literal-5's ALL literal-1 / ALL symbolic-character-1, through THE ONE figurative binder (it folds a
                 // concatenated or constant-name literal-1 and reports §2023:8.3.3.6.3 SR2/SR4): a BoundAllLiteral whose
                 // value the runtime repeats to identifier-6's / literal-4's size (GR22), exactly as §2023:8.3.3.6.4 GR2
@@ -470,8 +478,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         }
         // The grammar admits a numeric literal here; SR3 does not (alphanumeric/boolean/national literals only).
         return (BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
-            $"INSPECT operand '{c.GetText()}' is a numeric literal; each INSPECT literal shall be an alphanumeric, "
-            + "boolean, or national literal (ISO §2023:14.9.22.3 SR3)",
-            $"INSPECT operand '{c.GetText()}' (ISO §2023:14.9.22.3 SR3)"), false);
+            $"INSPECT operand '{c.GetText()}' is a numeric literal; each INSPECT literal "
+            + (ctx.Edition.DialectLevel < 2002 ? "must be a nonnumeric literal" : "shall be an alphanumeric, boolean, or national literal")
+            + $" (ISO {InspectLiteralRule})",
+            $"INSPECT operand '{c.GetText()}' (ISO {InspectLiteralRule})"), false);
     }
 }
