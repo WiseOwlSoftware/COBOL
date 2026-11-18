@@ -5,6 +5,7 @@
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `WrittenNames.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
 > the owner's order of 2026-11-18 (build the full listing support) in section 11.
+> Round 3 (same record): R3-1 and R3-2 in sections 6.7.1 (both halves structural) and 6.7.2 (mechanism, then evidence).
 > Work register: kb/Work PB5923 (the 1985 requirement, closed by step 1 of section 11), PB5925 (the decision this design
 > carries out), PB5924 (the 1985 catalog rows the listing makes testable).
 > Inputs: `E:/COBOL-coord/scratch/my-20261115/listing-survey/listing-requirements.md` (every listing rule of every
@@ -491,41 +492,56 @@ one kind. The fact is recorded where the binder already creates each reference, 
 // src/WiseOwl.Cobol.Compiler/Binding/Model/ReferenceOccurrence.cs (new)
 internal sealed record ReferenceOccurrence(
     int Id,
-    ReferenceTarget Target,          // DataItem | procedure (PcRange + name) | FileModel | program unit
+    ReferenceTarget Target,          // the symbol, one case per NameClass: data item, condition, index, procedure, file,
+                                     //   report, report group, sum counter, CD, configuration name, register, program
     DiagnosticCursor At,             // resultant line and column of the reference's first token
     int Length,                      // characters of the reference as written (qualifiers, subscripts, ref-mod included)
     ReferenceUse Use,                // Read | Written | Modified for data; the transfer kind or verb otherwise
     DiagnosticCursor Statement);     // the BoundStatement.At of the statement it is written in
 ```
 
-- **ONE recording point: the identification of a written name, `WrittenNames.Identify` (round 2, R2-1).** A reference
-  has many resolve paths (section 6.7.2 lists every one at 3834a948b3), so the occurrence is NOT recorded on any of
-  them. It is recorded at the one step every path must take before it has a symbol: turning a name the programmer wrote
-  into the data item, condition-name, index-name, procedure or file it denotes. Today that step is spread over
-  `ReferenceResolver.Identify`, `NameResolution.FindItem`, `FindReportedItem`, `ResolveQualified`, `ResolveUnqualified`,
-  `ResolveIndexName`, `SymbolTable.TryResolve`, `TryResolveUnqualified`, `TryResolveCondition`,
-  `ConditionBinder.ConditionOf`, `ProcedureTableBuilder.ResolveProcedureWord` and `StatementValidation.ResolveFileWord`.
-  Step 7 converges it:
-  - A new class `src/WiseOwl.Cobol.Compiler/Binding/WrittenNames.cs` owns the one public entry,
-    `WrittenNames.Identify(ParserRuleContext written, NameClass wanted, bool report) -> IdentifiedName`, where
-    `written` is the reference as the parser read it (a `dataReference`, `procedureName`, `fileName` or index-name
-    token) and `NameClass` says which classes the position admits.
-  - The §2023:8.4.2.2 lookups move INTO it and become `private`: the `NameResolution` lookups above, the `SymbolTable`
-    queries (which only `WrittenNames` and the data division's declaration checks may call: `SymbolTable` becomes a
-    member of `WrittenNames` and the declaration checks reach it through `WrittenNames.Declarations`, a lookup that
-    records nothing because a declaration is not a use), `ConditionOf`'s lookup, `ResolveProcedureWord` and
-    `ResolveFileWord`. No code outside `WrittenNames` can then look up a written name; a new resolve path has no way to a
-    symbol except `Identify`, so it is recorded by construction (rule 5). That is a compile-time property, not a
-    convention.
-  - `Identify` appends the `ReferenceOccurrence` (position and length from `written`, the symbol) to the statement's
-    `ReferenceLedger` when `report` is true and the name identified one symbol; a probe (`ReferenceResolver.Probe`,
-    `ProbeDeclaration`, `DescribesOwnItem`) passes `report: false` and records nothing, as it reports nothing today.
+- **ONE recording point, made structural in both halves (rounds 2 and 3, R2-1, R3-1, R3-2).** A list of resolve paths
+  was incomplete twice, so no list is the guarantee. The occurrence is recorded where a written name becomes a symbol,
+  `WrittenNames.Identify`, and two mechanisms, each checked by a drift test that needs no list, make that the only way:
+  - **(a) Every name table is private to `WrittenNames`.** A new class `src/WiseOwl.Cobol.Compiler/Binding/WrittenNames.cs`
+    OWNS every table keyed by a COBOL name whose value is a symbol, of every name class: data, condition, index,
+    procedure (`ProcedureNameMap<T>`), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
+    report, report group, report VARYING, sum counter, CD (`CommunicationSlice`), screen, the CONFIGURATION SECTION names
+    (alphabet, class, symbolic-character, mnemonic, locale, through `ConfigurationNames<T>`), type and constant names,
+    the special registers that are implicitly defined names (CAPACITY, DEBUG-ITEM), the REPOSITORY specifiers and the
+    OO class, interface and method tables. Its one public entry is
+    `WrittenNames.Identify(ParserRuleContext written, NameClass wanted, bool report) -> IdentifiedName`, where `written`
+    is the name as the parser read it and `NameClass` says which classes the position admits; the data division's
+    declaration checks (uniqueness, one type per word) use `WrittenNames.Declarations`, which records nothing because a
+    declaration is not a use. Every other lookup the tables serve today becomes a private member of `WrittenNames`.
+  - **The name key is a type.** A table is keyed by `CobolName` (a `readonly record struct` holding the Annex C fold of
+    the word, `CobolNames.UpperFold`), made only by `WrittenNames` from a parser token. So "a member that takes a name"
+    has a type a test can see.
+  - **`NameTableOwnershipDriftTests` (Unit, Roslyn over the compiled `WiseOwl.Cobol.Compiler`).** Red on: (1) any
+    field or property OUTSIDE `WrittenNames`, of any accessibility, whose type is or implements a dictionary or lookup
+    keyed by `CobolName` or `string` whose value (or element, or an open type parameter) is a binder type: a new table
+    anywhere is caught by its type; (2) any non-private member outside `WrittenNames` that takes a `CobolName` and
+    returns, or gives through an `out` parameter, a binder type; (3) any non-private member outside `WrittenNames` that
+    takes a `string` and returns a binder type and is not in the committed classification
+    `tests/WiseOwl.Cobol.Tests.Unit/Listing/string-parameter-members.json`, where each entry says why its string is no
+    COBOL name (a C# identifier, a message, a clause keyword) and which may only shrink. A new lookup by string is red
+    until it is converted or classified with a reason; there is no allowlist of tables.
+  - **Identify's arms all record.** The arms of today's `ReferenceResolver.Identify` that answer before the data-name
+    lookup (a CAPACITY register, EXCEPTION-OBJECT, DEBUG-ITEM and its members, a REPORT SECTION sum counter, the
+    LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER registers) are references the programmer wrote, so each records an
+    occurrence like every other arm, with the register or counter as its symbol (`ReferenceTarget.Register`,
+    `ReferenceTarget.SumCounter`). No arm is exempt.
+  - **Recording.** `Identify` appends the `ReferenceOccurrence` (position and length from `written`, the symbol) to the
+    statement's `ReferenceLedger` when `report` is true and the name identified one symbol; a probe
+    (`ReferenceResolver.Probe`, `ProbeDeclaration`, `DescribesOwnItem`, and every classifying predicate) passes
+    `report: false` and records nothing, as it reports nothing today.
   - `IdentifiedName` is a sealed record whose constructor is private to `WrittenNames`; it carries the occurrence id.
     Every builder of a place for a written reference takes it: `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` and
     `PlaceBuilder.WholeTable(IdentifiedName, ...)`, which link the place INSTANCE they return to the occurrence
     (returning `place with { }` when the instance is already linked: a new reference, equal by value, so value
     comparisons of places elsewhere are unchanged). The overloads that take a bare `DataItem` stay for places nobody
     wrote (compiler temporaries, implicit operands, connector stores) and link nothing.
+  - **(b) The completeness oracle reads its name slots from the grammar** (below, Guards): nothing lists a slot by hand.
 - **Store kind.** `BoundStores`' exhaustive visitor gains one query, `BoundStores.StorePositionsOf(BoundStatement)`,
   that returns `(Place, StoreKind)` for each store position the statement's WRITTEN operands occupy, the place being the
   instance the bound node holds: `TargetHit`, `IntoHit` and `ReceiversHit` see those. `ConnectorHit` does not
@@ -546,29 +562,76 @@ internal sealed record ReferenceOccurrence(
 - **Cost.** Recorded only when the listing asks for the cross-reference: `EditionContext.RecordsReferences` gates the
   ledger and the `with { }` copy, so a compilation without it allocates nothing more.
 - **Guards (`tests/WiseOwl.Cobol.Tests.Conformance/Listing/ReferenceOccurrenceDriftTests.cs`).**
+  - *Name slots come from the grammar, the one source of truth (R3-2).* Every occurrence of `cobolWord`, and of every
+    NAME RULE (a rule each of whose alternatives is one name slot: `fileName`, `className`, `reportName`, `cdName`,
+    `procedureName`'s words, ...), carries an ANTLR element label whose prefix classifies it: `ref` (a reference: one
+    occurrence), `qual` (a qualifier, part of the enclosing reference's occurrence), `def` (a definition: one `Defined`
+    entry) or `nn` (a word in a position that names nothing the program declares: an implementor-name, a
+    function-name, a compiler-directive word). Inside a name rule's own body the slot is labelled `name` (`fileName :
+    name=cobolWord ;`), which says the class is decided where the rule is USED: `READ refFile=fileName`, and the
+    `FD` entry's `defFile=fileName`. The labels add context fields and change no parse. Step 7 labels the 257 `cobolWord`
+    occurrences of the 13 grammar files and every use of a name rule.
+  - *`GrammarNameSlotDriftTests` (Unit)*: deserializes the generated parser's ATN (`CobolParserCore._serializedATN`
+    through the ANTLR runtime's `ATNDeserializer`), counts per parser rule the rule transitions into `cobolWord` and
+    into each name rule (the name rules are computed from the ATN as the closure above, not listed), and compares the
+    count with the labelled fields of a classifying prefix on that rule's generated context class. A slot added to the
+    grammar without a classification is red, naming its rule. Nothing lists the slots.
   - *Completeness, independent of path:* `EveryWrittenReferenceIsRecorded` binds every conformance-suite program that
-    binds clean, enumerates from the PARSE TREE every `dataReference`, `procedureName`, `fileName` and index-name operand
-    of every procedure-division statement, and asserts EXACTLY one occurrence at each one's first-token position. A resolve path
-    that reaches a symbol without `Identify` (impossible by construction, so this guards the construction) or a
-    position recorded wrongly is red here whatever the path.
-  - *One planted program per path of section 6.7.2*, each with its expected line, column, symbol and use written from
-    the source text: `MOVE`/`ADD` through `Resolve`; `SET COND-88 TO TRUE` and a condition-name in an IF through
-    `ResolveForItem`; `SET P TO ADDRESS OF X` through `ResolveForAddressOf`; `SORT TBL`, `SEARCH TBL`, `INITIALIZE TBL`
-    and a SORT key through `ResolveTableOperand` and `PlaceBuilder.WholeTable`; `FUNCTION MAX(T(ALL))` through the
-    intrinsic table argument and the former `ResolveByName`; an index-name in `SET IX UP BY 1`; a `PERFORM P THRU Q`;
-    a `READ F`.
+    binds clean, walks its parse tree, and for every name-slot node reads its class from the label that holds it: each
+    `ref` node has EXACTLY one occurrence at its first-token position, each `def` node exactly one `Defined` entry,
+    each `qual` and `nn` node none of its own. A resolve path that reaches a symbol without `Identify` (impossible by
+    construction, so this guards the construction), a double record, or a position recorded wrongly is red whatever
+    the path.
+  - *Planted programs*, one per name class and per shape the inventory of section 6.7.2 found, each with its expected
+    line, column, symbol and use written from the source text: `MOVE`/`ADD`; `SET COND-88 TO TRUE` and a condition-name
+    in an IF; `SET P TO ADDRESS OF X`; `SORT TBL`, `SEARCH TBL`, `INITIALIZE TBL` and a SORT key; `FUNCTION MAX(T(ALL))`;
+    `SET IX UP BY 1`; `PERFORM P THRU Q`; `READ F`; `GENERATE RPT-GROUP` and `INITIATE RPT`; a SUM counter; a CD in
+    `RECEIVE`; a screen in `DISPLAY`; an alphabet-name in `SORT ... COLLATING SEQUENCE`; a mnemonic-name in
+    `DISPLAY ... UPON`; `LINAGE-COUNTER OF F`; `DEBUG-ITEM`. They are examples, not the guarantee; the two tests above
+    are.
   - *Pairing:* every store position `StorePositionsOf` reports for a written operand pairs with exactly one occurrence
     (fails the day a binder rebuilds a linked place by value); `ADD WS-A` / `TO WS-B` on two lines and
     `MOVE WS-X (WS-X) TO WS-X` give the lines, columns and uses written from the source.
 
-#### 6.7.2 Every resolve path today, and where each converges
+#### 6.7.2 The mechanism, and today's inventory as evidence
 
-Found at 3834a948b3 by a Roslyn `SymbolFinder` sweep (the roslyn-analysis skill's `sweep-symbol.cs` over
-`WiseOwl.Cobol.sln`: every reference to each member, bound by the semantic model). The LSP server had not indexed the
-worktree, and the sweep's workspace could not load `WiseOwl.Cobol.Runtime` (no restore in the worktree), which no
-binder member is declared in; every caller below is in `WiseOwl.Cobol.Compiler`. Grep was used only to choose the
-members to sweep. "Converges" says what step 7 makes of each caller.
+The GUARANTEE is section 6.7.1's two structural halves: every name table lives privately behind `WrittenNames` (held by
+`NameTableOwnershipDriftTests`), and the oracle's slots come from the grammar (held by `GrammarNameSlotDriftTests`). The
+inventory below is EVIDENCE of what step 7 converts at 522468b9c8, not a list anything depends on: a path missing from
+it is still caught by the tests. Rounds 1 and 2 relied on lists and both were incomplete (round 3 found the report,
+CD and file tables and Identify's register arms missing).
 
+**The tables.** A Roslyn semantic sweep over the compiled `WiseOwl.Cobol.Compiler` (MSBuildWorkspace over
+`WiseOwl.Cobol.sln`; it applies rules (1) and (3) of `NameTableOwnershipDriftTests` to today's tree, with `string` as
+the key since `CobolName` does not exist yet) finds 65 string-keyed tables whose value is a binder type or an open type
+parameter, 31 of them non-private, and 194 non-private members that take a `string` and return a binder type (a
+superset: many take a C# identifier or a message, and step 7 classifies each). Its output is committed as
+`docs/rearchitecture/evidence/listing-name-tables-522468b9c8.txt`. The tables, by name class, all moving into
+`WrittenNames`:
+
+| Name class | Tables found (owner.member) |
+|---|---|
+| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` |
+| Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` |
+| Index | `IndexNameRegistry._byName` |
+| Procedure | `ProcedureNameMap<T>._first`, `_duplicated` |
+| File | `FileSlice._filesByName` (`FilesByName`); `FileNameScope._own`, `_inherited` (and its public `TryGetValue`, reached as `DataBindState.VisibleFiles`); `InheritedGlobals._files` (`Files`); `FileControlBinder.SelectedFiles` |
+| Report, report group, VARYING, sum counter | `ReportScope.Named(string)` (a search, not a table: caught by rule (3)); `DataBinder._reportEntryLocations`; `ReferenceResolver.VaryingScope`; `ReportScope._sumCounters` (`SumCounters`), `DataBindState.SumCounters` |
+| CD | `CommunicationSlice._byName` (`ByName`) |
+| Constant | `ConstantEntryBinder.ConstantScope.Bound`, `Declared`; `InheritedGlobals._constants` (`Constants`) |
+| CONFIGURATION SECTION names (alphabet, class, symbolic character, mnemonic, locale) | `ConfigurationNames<T>._entries`; `SpecialNamesBinder.RangeCollations`, `DataBindResult.RangeCollations` |
+| Implicit registers | `ImplicitRegisters._debugRegisters` (`DebugRegisters`) |
+| Program, function, prototype, repository | `StatementBinder.ProgramPrototypes`, `NestedCallables`, `UserFunctions`; `ConfigurationSlice.ProgramSpecifiers`, `FunctionSpecifiers`; `DataBinder._repositorySpecified`; `GroupRepositoryProvider.NoFunctions` |
+| OO class, interface, method | `OoClassTable._byName`, `_ifaceByName`, `_imported`, `_importedInterfaces`; `OoClassSymbol._methods`, `_factoryMethods`; `OoInterfaceSymbol._protos`, `_conformingChoice` |
+| Keyed by something that is not a COBOL user word (re-keyed by a type of their own, so rule (1) no longer sees a `string` key) | `IntrinsicCatalog.Table`, `IntrinsicArgumentRules.Verified` (intrinsic function names, a standard catalog); `ImplementorNameRegistry.ByName` (implementor-names); `FileModel.FdClauses`, `ScreenFacility.ClauseFacts` (clause keywords); `ExpansionPlacements.ByName` (CLR type names); `Polynomial._terms` (C# expression text) |
+
+Screen names (`ForestSlice.ScreenNames`) are a set, not a table, and resolve through the data tables. The front end's
+own name tables (compilation variables of `>>DEFINE`, the `>>COBOL-WORDS` map) are text-stage names, not program
+symbols, and are outside the cross-reference.
+
+**The resolve paths.** The Roslyn reference sweep of rounds 2 and 3 (`sweep-symbol.cs`, every reference bound by the
+semantic model; the LSP server had not indexed the worktree; `WiseOwl.Cobol.Runtime` did not load for want of a
+restore and declares no binder member) gives the paths into those tables today:
 | Lookup or entry (today) | Its callers | Converges |
 |---|---|---|
 | `ReferenceResolver.Resolve` / `ResolveImpl` -> `ResolveImplCore` -> `ReferenceResolver.Identify` | `ExpressionBinder.FieldOperand`, `RefExpr`, `ResolveSending`, `ResolveReceiving`; `ObjectPropertyResolver.ResolveObjectProperty`, `ViewOfQualifiedItem`; `ProcedureTableBuilder.ReportUnresolvedDebugOperand`; `ReferenceResolver.CapacityRegisterFor` | `Identify` moves into `WrittenNames`; `ResolveImplCore` calls it |
@@ -588,6 +651,8 @@ members to sweep. "Converges" says what step 7 makes of each caller.
 | `SymbolTable.IndexCandidates` | `NameResolution.ResolveIndexName`; `DataBinder.NonConditionDeclarationsOf`; `IndexNameRegistry.Candidates`; `FlagConformancePass.FlagIndexSet` | `ResolveIndexName`'s lookup inside `Identify`; `FlagIndexSet` reads the occurrences instead of looking up again |
 | `ProcedureTableBuilder.ResolveProcedureWord` | `ProcedureTableBuilder.Resolve`, `ResolveDebugProcedure`, `ReportUnresolvedDebugOperand` | `Identify(..., NameClass.Procedure, ...)` |
 | `StatementValidation.ResolveFileWord` | `StatementValidation.ResolveFile` | `Identify(..., NameClass.File, ...)` |
+| `DataBindState.VisibleFiles` (`FileNameScope.TryGetValue`), `ReportScope.Named`, `CommunicationSlice.ByName` (round 3) | the file, report and CD binders (`CounterResolver.ReportOf`, `ReportWriterBinder`, `CommunicationBinder`, `ProcedureTableBuilder`, `CheckCodeSetRecordItemsPass`, ...) | `Identify(..., NameClass.File / Report / Cd, ...)` |
+| `ReferenceResolver.Identify`'s register arms (CAPACITY, EXCEPTION-OBJECT, DEBUG-ITEM, sum counters, LINAGE-/LINE-/PAGE-COUNTER) (round 3) | every `Resolve` | record like every arm (section 6.7.1) |
 | Probes: `ReferenceResolver.Probe`, `ProbeDeclaration`, `DescribesOwnItem` | 39 references outside `ReferenceResolver` (31 to `Probe`, 8 to `ProbeDeclaration`), in `ArithmeticBinder`, `CallBinder`, `ConditionBinder`, `EvaluateBinder`, `OoBinder`, `SetBinder`, `SetFormatSelection`, `UdfBinder`, `ParameterConformance`, `SearchAllFormat2Rules`, `StatementValidation`, `StatementBinder`, `ProcedureTableBuilder`, `MessagingBinder`, `SubscriptBinder`, `FlagConformancePass` | through `Identify` with `report: false`: they classify before the real resolution, and the real resolution records |
 
 The probes are why the recording is gated on `report`, not on reaching `Identify`: a statement that probes an operand
@@ -829,9 +894,12 @@ emitter's type-name function; `LineAnnotationBuilder` with `ListingLine.Margin` 
 benchmark row.
 
 **Step 7 - cross-reference and the reference occurrences.** The missing fact first (section 6.7.1):
-first the convergence: `src/WiseOwl.Cobol.Compiler/Binding/WrittenNames.cs` with `WrittenNames.Identify`, the lookups of
-section 6.7.2's paths moved into it and made private, each path rerouted through it, and `PlaceBuilder.PlaceForItem` /
-`PlaceBuilder.WholeTable` taking `IdentifiedName`. Then `ReferenceOccurrence` and the `ReferenceLedger` on `ProcedureBindState`,
+first the convergence, in this order: `NameTableOwnershipDriftTests` and `GrammarNameSlotDriftTests` are written first on the
+step's branch and run red, their failures matching the evidence of section 6.7.2 (a check that could fail); then `src/WiseOwl.Cobol.Compiler/Binding/WrittenNames.cs`,
+`CobolName`, every name table moved into it and made private, every lookup converted to `WrittenNames.Identify` or
+classified in `string-parameter-members.json` with its reason, Identify's register arms recording, the grammar labels
+on every name slot (`CobolParserCore.g4` and the `Core/*.g4` fragments, regenerated), and `PlaceBuilder.PlaceForItem` /
+`PlaceBuilder.WholeTable` taking `IdentifiedName`; the step lands only with both tests green. Then `ReferenceOccurrence` and the `ReferenceLedger` on `ProcedureBindState`,
 recorded only in `WrittenNames.Identify`, classified by
 `StatementBinder.BindStatement` through the new `BoundStores.StorePositionsOf`, kept on `BoundUnit.References`, gated by
 `EditionContext.RecordsReferences`, guarded by `ReferenceOccurrenceDriftTests`. Then `CrossReferenceBuilder`, the

@@ -53,3 +53,12 @@ enumerates the written references from the parse tree proves it, and one planted
 A Roslyn `SymbolFinder` sweep listed the paths, because the LSP server had not indexed this worktree. Rows L-1 and L-11
 cite all three editions, which share the same text. On 2026-11-18 the owner ordered "build the full listing support",
 so every step, 4b included, is built now, in order, each landed before the next branches.
+**Round 3: no more lists.** The round-2 list of paths was incomplete again. It missed the file, report and CD tables
+and the register arms of `Identify`. The ruling was to make both halves structural, and the design now does. First,
+every table keyed by a COBOL name is private to `WrittenNames` and keyed by a `CobolName` type. A Roslyn drift test is
+red on any name-keyed table outside `WrittenNames`, on any lookup by `CobolName`, and on any new string-taking member
+that returns a symbol unless the member is classified. Second, the completeness oracle reads its name slots from ANTLR
+labels on the grammar. A second drift test counts the ATN's transitions into name rules and checks each one is labelled.
+A semantic sweep that applies the first test's rules to today's tree found 65 name-keyed tables (31 non-private),
+including the three round 3 named. It also found 194 string-taking members that return binder types. The sweep is
+committed as evidence, not as the guarantee.
