@@ -14,6 +14,11 @@ namespace WiseOwl.Cobol.Listing.Text;
 /// at 0, 1-9, '+' beyond), column 9 the marker (<see cref="MarkerOf"/>), columns 11-16 the physical line number in its
 /// file, columns 18-97 the line as written (a fixed-form line's 80 positions; anything longer wraps onto rows marked '+').
 /// Columns 100-132 are the embedded margin of later steps.</para>
+/// <para>Under a printed line, each diagnostic placed on it (DESIGN-listing.md section 6.3): a caret row under its column when the
+/// line is printed whole as written (<see cref="CaretRow"/>), then <c>==&gt; severity CODE (col n): message</c> from the source
+/// text's column, wrapped at the page width (<see cref="DiagnosticRows"/>). After the source section, on a page of its own, the
+/// summary: the counts by severity, then every diagnostic in listing order with its listing line, file, line and column
+/// (<see cref="SummaryRows"/>).</para>
 /// </summary>
 public static class TextListingRenderer
 {
@@ -37,6 +42,7 @@ public static class TextListingRenderer
             if (line.Inclusion is { } inclusion) firstLineOf.TryAdd(inclusion, line.Number);
         var banners = document.Inclusions.Where(i => firstLineOf.ContainsKey(i.Id)).ToDictionary(i => firstLineOf[i.Id]);
         var files = document.Files.ToDictionary(f => f.Id, f => f.Path);
+        var diagnostics = document.Diagnostics.ToDictionary(d => d.Id);
 
         var rows = new List<ListingRow>();
         foreach (var line in document.Lines)
@@ -57,21 +63,128 @@ public static class TextListingRenderer
                 breakBefore = false;
             }
             string text = line.Replacement == ListingReplacement.DateCompiled ? line.Replaced ?? line.Text : line.Text;
-            bool first = true;
+            int pieces = 0;
             foreach (string piece in Wrap(text))
             {
-                rows.Add(new ListingRow(first ? SourceRow(line, piece) : ContinuationRow(piece), first && breakBefore, ProgramOf(line)));
-                first = false;
+                rows.Add(new ListingRow(pieces == 0 ? SourceRow(line, piece) : ContinuationRow(piece), pieces == 0 && breakBefore, ProgramOf(line)));
+                pieces++;
             }
+            // The caret stands under the column only where the row shows the line whole and as written.
+            bool whole = pieces == 1 && line.Replacement == ListingReplacement.None;
+            foreach (int id in line.Diagnostics)
+                foreach (string row in DiagnosticRows(diagnostics[id], whole ? line.Text : null, request.PageWidth))
+                    rows.Add(new ListingRow(row, false, ProgramOf(line)));
         }
         var header = document.Header;
-        return PageComposer.Compose(rows, request.PageLength, (page, program) =>
+        string source = PageComposer.Compose(rows, request.PageLength, (page, program) =>
         [
             IdentificationLine(header, program, page, request.PageWidth),
             KeepEnd("SOURCE  ", header.MainSource, request.PageWidth),
             "",
             Ruler,
-        ]);
+        ], firstPage: 1, out int sourcePages);
+        // The summary starts a page (DESIGN-listing.md section 7.1); outside the source section a heading names the first outermost
+        // program (section 6.1).
+        string? firstProgram = document.Programs.FirstOrDefault(p => p.Depth == 0)?.Name;
+        string summary = PageComposer.Compose(
+            [.. SummaryRows(document, request.PageWidth).Select(row => new ListingRow(row, false, firstProgram))], request.PageLength,
+            (page, program) => [IdentificationLine(header, program, page, request.PageWidth), "DIAGNOSTICS", ""],
+            firstPage: sourcePages + 1);
+        return source + PageComposer.FormFeed + summary;
+    }
+
+    /// <summary>The rows of one diagnostic under its line (DESIGN-listing.md section 6.3): a caret under its column when
+    /// <paramref name="wholeText"/> (the line's text, printed whole as written) is given, then <c>==&gt; severity CODE (col n):
+    /// message</c> from the source text's column, its further rows indented under the message, none wider than
+    /// <paramref name="width"/>.</summary>
+    public static IEnumerable<string> DiagnosticRows(ListingDiagnostic diagnostic, string? wholeText, int width)
+    {
+        if (wholeText is not null && diagnostic.Column is { } column && CaretRow(wholeText, column) is { } caret) yield return caret;
+        string place = diagnostic.Column is { } col ? string.Create(CultureInfo.InvariantCulture, $" (col {col})") : "";
+        string text = $"{Arrow}{SeverityWord(diagnostic.Severity)} {diagnostic.Code}{place}: {diagnostic.Message}";
+        foreach (string row in Indented(text, TextColumn - 1, TextColumn - 1 + Arrow.Length, width)) yield return row;
+    }
+
+    /// <summary>The caret row of 1-based <paramref name="column"/> of <paramref name="text"/> (a character position of the line's
+    /// text, tabs expanded): a '^' under that position of the source columns, a supplementary-plane character being one position;
+    /// null when the column lies past the text's end plus one.</summary>
+    public static string? CaretRow(string text, int column)
+    {
+        if (column < 1 || column - 1 > text.Length) return null;
+        return new string(' ', TextColumn - 1 + Positions(text.AsSpan(0, column - 1))) + "^";
+    }
+
+    /// <summary>The marker that opens a diagnostic row.</summary>
+    public const string Arrow = "==> ";
+
+    /// <summary>The summary of every diagnostic (DESIGN-listing.md section 6.3): the counts by severity, then each diagnostic in listing
+    /// order, its listing line (or '-') and its file, line and column ahead of its words.</summary>
+    public static IEnumerable<string> SummaryRows(ListingDocument document, int width)
+    {
+        int Count(ListingSeverity severity) => document.Diagnostics.Count(d => d.Severity == severity);
+        yield return string.Create(CultureInfo.InvariantCulture,
+            $"Errors: {Count(ListingSeverity.Error)}   Warnings: {Count(ListingSeverity.Warning)}   Information: {Count(ListingSeverity.Info)}");
+        yield return "";
+        var files = document.Files.ToDictionary(f => f.Id, f => f.Path);
+        foreach (var d in document.Diagnostics)
+        {
+            string place = d is { File: { } file, FileLine: { } fileLine, Column: { } column }
+                ? string.Create(CultureInfo.InvariantCulture, $" {files[file]}({fileLine},{column})") : "";
+            string lead = d.Line is { } line ? line.ToString(CultureInfo.InvariantCulture).PadLeft(6) : "     -";
+            foreach (string row in Indented($"{lead}  {SeverityWord(d.Severity)} {d.Code}{place}: {d.Message}", 0, 8, width))
+                yield return row;
+        }
+    }
+
+    /// <summary>The word a severity is printed as, the word every diagnostic line of the compiler uses.</summary>
+    public static string SeverityWord(ListingSeverity severity) => severity switch
+    {
+        ListingSeverity.Error => "error",
+        ListingSeverity.Warning => "warning",
+        ListingSeverity.Info => "info",
+        _ => throw new ArgumentOutOfRangeException(nameof(severity), severity, "a severity with no word"),
+    };
+
+    /// <summary><paramref name="text"/> as rows of at most <paramref name="width"/> positions: the first indented by
+    /// <paramref name="first"/> spaces, the rest by <paramref name="rest"/>, broken at a space where one is, else cut.</summary>
+    public static IEnumerable<string> Indented(string text, int first, int rest, int width)
+    {
+        int indent = first;
+        int at = 0;
+        do
+        {
+            int room = Math.Max(width - indent, 1);
+            int end = IndexAfterPositions(text, at, room);
+            if (end < text.Length)
+            {
+                int space = text.LastIndexOf(' ', end, end - at);
+                if (space > at) end = space;
+            }
+            yield return new string(' ', indent) + text[at..end].TrimEnd(' ');
+            at = end;
+            while (at < text.Length && text[at] == ' ') at++;
+            indent = rest;
+        }
+        while (at < text.Length);
+    }
+
+    /// <summary>The index in <paramref name="text"/> after <paramref name="positions"/> positions from <paramref name="start"/>
+    /// (a supplementary-plane character is one position), or its length.</summary>
+    private static int IndexAfterPositions(string text, int start, int positions)
+    {
+        int at = start;
+        for (int n = 0; n < positions && at < text.Length; n++)
+            at += char.IsHighSurrogate(text[at]) && at + 1 < text.Length && char.IsLowSurrogate(text[at + 1]) ? 2 : 1;
+        return at;
+    }
+
+    /// <summary>The positions <paramref name="text"/> takes: a supplementary-plane character is one.</summary>
+    private static int Positions(ReadOnlySpan<char> text)
+    {
+        int positions = 0;
+        for (int at = 0; at < text.Length; positions++)
+            at += char.IsHighSurrogate(text[at]) && at + 1 < text.Length && char.IsLowSurrogate(text[at + 1]) ? 2 : 1;
+        return positions;
     }
 
     /// <summary>The first heading line (DESIGN-listing.md section 6.1), <paramref name="width"/> columns at most: the compiler,

@@ -24,9 +24,12 @@ internal sealed class LineDraft
     public ListingReplacement Replacement { get; set; }
     public string? Replaced { get; set; }
 
+    /// <summary>The ids of the diagnostics placed on the line (<see cref="DiagnosticSectionBuilder"/>), in listing order.</summary>
+    public List<int> Diagnostics { get; } = [];
+
     /// <summary>The finished model line.</summary>
     public ListingLine ToLine() => new(Number, File, FileLine, Inclusion, Depth, Form, ListingLineKinds.Of(Kind), Text, Omitted,
-        Listed, PageBreakBefore, Program, Replacement, Replaced);
+        Listed, PageBreakBefore, Program, Replacement, Replaced, [.. Diagnostics]);
 }
 
 /// <summary>

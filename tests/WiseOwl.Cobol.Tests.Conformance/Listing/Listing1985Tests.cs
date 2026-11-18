@@ -215,7 +215,12 @@ public sealed class Listing1985Tests : IDisposable
         foreach (var line in listing.Lines.Where(l => l.Inclusion is null))
             Assert.Equal(ProgramOfSourceLine(line.FileLine), listing.Programs.Single(p => p.Id == line.Program).Name);
 
-        string[] pages = File.ReadAllText(Path.Combine(_dir, "outer85.lst")).Split(PageComposer.FormFeed);
+        string[] all = File.ReadAllText(Path.Combine(_dir, "outer85.lst")).Split(PageComposer.FormFeed);
+        // The diagnostics summary ends the listing on a page of its own, naming the first outermost program (section 6.1); the
+        // pages before it are the source section's.
+        Assert.Equal("DIAGNOSTICS", all[^1].Split('\n')[1]);
+        Assert.Contains("(--std 85)  OUTER85  ", all[^1].Split('\n')[0], StringComparison.Ordinal);
+        string[] pages = all[..^1];
         Assert.True(pages.Length > 4, $"only {pages.Length} pages");
         int checkedPages = 0;
         foreach (string page in pages)
@@ -245,7 +250,7 @@ public sealed class Listing1985Tests : IDisposable
         Assert.Equal(LinesOf(source).Length + 2 * LinesOf(Path.Combine(_dir, "REC85.cpy")).Length, frontend.Listing.Lines.Count);
         Assert.Contains(frontend.Listing.Programs, p => p.Name == "OUTER85");
         // DESIGN-listing.md section 4.3: the programs are read off the tree the parser built, recovered or not.
-        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null)],
+        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null), (ListingSection.Diagnostics, true, null)],
             frontend.Listing.Sections.Select(s => (s.Section, s.Produced, s.Reason)));
         Assert.True(File.Exists(Path.Combine(_dir, "outer85.lst")));
 
@@ -253,7 +258,7 @@ public sealed class Listing1985Tests : IDisposable
         var (bind, _, _) = Compile(new ListingRequest(), Main.Replace("DISPLAY WC.", "DISPLAY NO-SUCH-NAME.", StringComparison.Ordinal));
         Assert.Equal(CompilerDriver.Outcome.BindError, bind.Status);
         Assert.Equal(ListingOutcome.BindError, bind.Listing!.Header.Outcome);
-        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null)],
+        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null), (ListingSection.Diagnostics, true, null)],
             bind.Listing.Sections.Select(s => (s.Section, s.Produced, s.Reason)));
 
         // No source: nothing was read, so nothing is listed.

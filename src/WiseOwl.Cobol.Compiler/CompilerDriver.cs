@@ -190,6 +190,7 @@ public static class CompilerDriver
             Editions.EditionInfo.Of(options.DialectLevel, options.Permissive), Binding.Procedure.IntrinsicBinder.CompileClock);
         var result = CompileCore(options, inputs, facts);
         if (facts.Frontend is null) return result;   // no source text was read: nothing to list (DESIGN-listing.md section 4.6)
+        facts.DepositDiagnostics(result.Diagnostics);   // every return carries them (DESIGN-listing.md section 6.3)
         if (WiseOwl.Cobol.Listing.Building.ListingWriter.Write(facts, ListingOutcomeOf(result.Status)) is not { } written) return result;
         return result with
         {

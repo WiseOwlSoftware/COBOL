@@ -8,7 +8,8 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// <summary>
 /// ⛔ THE ONE CONSTRUCTOR OF A <see cref="ListingDocument"/> (DESIGN-listing.md section 4.6). It reads only the collector
 /// (<see cref="ListingFacts"/>) and places every position through the one index (<see cref="ListingLineIndex"/>); each part
-/// has its own builder (<see cref="SourceSectionBuilder"/>, <see cref="ProgramRangeBuilder"/>, <see cref="ListingVisibility"/>).
+/// has its own builder (<see cref="SourceSectionBuilder"/>, <see cref="ProgramRangeBuilder"/>, <see cref="ListingVisibility"/>,
+/// <see cref="DiagnosticSectionBuilder"/>).
 /// </summary>
 internal static class ListingBuilder
 {
@@ -44,6 +45,7 @@ internal static class ListingBuilder
         }
         else SourceSectionBuilder.SettleCandidates(drafts, new HashSet<int>());
         ListingVisibility.Apply(drafts, programs.Where(p => p.Depth == 0).Select(p => p.FirstLine));
+        var diagnostics = DiagnosticSectionBuilder.Build(facts.Diagnostics, frontend, index, fileIds, drafts);
 
         var edition = facts.Edition;
         var header = new ListingHeader(CompilerVersion, edition.Year, edition.StandardName, instant, frontend.SourcePath, outcome);
@@ -59,8 +61,9 @@ internal static class ListingBuilder
         [
             new(ListingSection.Source, true, null),
             units is null ? new(ListingSection.Programs, false, "the source was not parsed") : new(ListingSection.Programs, true, null),
+            new(ListingSection.Diagnostics, true, null),
         ];
-        return new ListingDocument(header, files, copyLines, [.. drafts.Select(d => d.ToLine())], programs, sections);
+        return new ListingDocument(header, files, copyLines, [.. drafts.Select(d => d.ToLine())], programs, diagnostics, sections);
     }
 
     /// <summary>The listing line of physical <paramref name="fileLine"/> of the text that holds the COPY statement of

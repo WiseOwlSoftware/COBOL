@@ -249,6 +249,13 @@
               "string",
               "null"
             ]
+          },
+          "diagnostics": {
+            "description": "The Id of each diagnostic placed on the line, in listing order.",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
           }
         },
         "required": [
@@ -262,7 +269,8 @@
           "omitted",
           "listed",
           "pageBreakBefore",
-          "replacement"
+          "replacement",
+          "diagnostics"
         ]
       }
     },
@@ -323,6 +331,100 @@
         ]
       }
     },
+    "diagnostics": {
+      "description": "Every diagnostic the compilation reported of its source, in listing order: those placed on a line by line and column, then those placed on none in the order they were reported.",
+      "type": "array",
+      "items": {
+        "description": "One diagnostic of the compilation (DESIGN-listing.md section 6.3), placed on the listing line it names.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "1-based, in listing order.",
+            "type": "integer"
+          },
+          "code": {
+            "description": "The diagnostic's code (COBOL0001).",
+            "type": "string"
+          },
+          "severity": {
+            "description": "Error, warning or information. Error: An error: the compilation fails. Warning: A warning: the compilation does not fail. Info: Information.",
+            "enum": [
+              "Error",
+              "Warning",
+              "Info"
+            ]
+          },
+          "message": {
+            "description": "The diagnostic's text, which names the rule of the edition in force where it cites one.",
+            "type": "string"
+          },
+          "line": {
+            "description": "The listing line the diagnostic is placed on, or null when it names no place in a file the listing lists (a diagnostic about the compilation as a whole, or about text the compiler generated).",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "file": {
+            "description": "The Id of the file it names, or null when Line is.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "fileLine": {
+            "description": "The 1-based physical line of that file, or null when Line is.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "column": {
+            "description": "The 1-based character position in that line's text (Text, tabs expanded), or null when Line is.",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "citations": {
+            "description": "Each citation of the standard the message makes, in the order written.",
+            "type": "array",
+            "items": {
+              "description": "One citation of a COBOL standard a diagnostic's message makes, in the repository's citation format §<edition>:<locator>[ <rule>] (§2023:13.18.40.3 SR14, §1985:VI.5.3.4 GR3).",
+              "type": "object",
+              "properties": {
+                "edition": {
+                  "description": "The edition's year as the format writes it: 2023, 2014, 2002 or 1985 for the standards, 1989 and 1993 for the two amendments of the 1985 standard.",
+                  "type": "integer"
+                },
+                "locator": {
+                  "description": "The clause, or for 1985 the Roman section and paragraph (VI.5.3.4) or printed page (p.VI-20).",
+                  "type": "string"
+                },
+                "rule": {
+                  "description": "The rule within the clause (GR1, SR14, RV3, Format 10), or null when none is named.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "edition",
+                "locator"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "severity",
+          "message",
+          "citations"
+        ]
+      }
+    },
     "sections": {
       "description": "Each section of the listing: produced, or why not (DESIGN-listing.md section 4.3).",
       "type": "array",
@@ -331,10 +433,11 @@
         "type": "object",
         "properties": {
           "section": {
-            "description": "The section. Source: The source section: every physical line of every file read. Programs: The program map: every source unit, its nesting and its listing lines.",
+            "description": "The section. Source: The source section: every physical line of every file read. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end.",
             "enum": [
               "Source",
-              "Programs"
+              "Programs",
+              "Diagnostics"
             ]
           },
           "produced": {
@@ -364,6 +467,7 @@
     "inclusions",
     "lines",
     "programs",
+    "diagnostics",
     "sections"
   ]
 }

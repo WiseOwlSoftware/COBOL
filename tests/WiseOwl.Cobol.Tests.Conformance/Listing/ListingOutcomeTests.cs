@@ -47,10 +47,10 @@ public sealed class ListingOutcomeTests : IDisposable
         return result;
     }
 
-    /// <summary>Both sections of step 1 (DESIGN-listing.md section 4.3): the source (the source text was read) and the programs
-    /// (the parser built a tree).</summary>
+    /// <summary>Every section (DESIGN-listing.md section 4.3): the source (the source text was read), the programs (the parser built a
+    /// tree) and the diagnostics (always: what was reported).</summary>
     private static void AssertEverySectionProduced(ListingDocument listing) =>
-        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null)],
+        Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null), (ListingSection.Diagnostics, true, null)],
             listing.Sections.Select(s => (s.Section, s.Produced, s.Reason)));
 
     /// <summary>Check-only (a library caller's parse and bind, no code generated) is a success that still lists.</summary>
@@ -161,6 +161,19 @@ public sealed class ListingOutcomeTests : IDisposable
             Assert.Equal(line.FileLine > directive ? ListingLineForm.Free : ListingLineForm.Fixed, line.Form);
         int foo = Array.FindIndex(lines, l => l.Contains("FOO", StringComparison.Ordinal)) + 1;
         Assert.Contains(result.Errors, e => e.Contains($"outcome.cob({foo},", StringComparison.Ordinal) && e.Contains("'FOO'", StringComparison.Ordinal));
-        Assert.Contains("FOO", listing.Lines.Single(l => l.FileLine == foo).Text, StringComparison.Ordinal);
+        var fooLine = listing.Lines.Single(l => l.FileLine == foo);
+        Assert.Contains("FOO", fooLine.Text, StringComparison.Ordinal);
+        // Step 3's anchoring (section 4.4): each reported syntax error is placed on the line, and at the column, its record names in
+        // the listed pass; the one naming FOO on FOO's line, at FOO (column 12 of the line as written).
+        var error = Assert.Single(listing.Diagnostics, d => d.Message.Contains("'FOO'", StringComparison.Ordinal));
+        Assert.Equal((fooLine.Number, 1, foo, lines[foo - 1].IndexOf("FOO", StringComparison.Ordinal) + 1),
+            (error.Line, error.File, error.FileLine, error.Column));
+        Assert.Contains(error.Id, fooLine.Diagnostics);
+        foreach (var record in result.Diagnostics.Where(d => d.IsError))
+        {
+            var at = Assert.NotNull(record.Location);
+            var placed = Assert.Single(listing.Diagnostics, d => d.Message == record.Message && d.Code == record.Code);
+            Assert.Equal((at.Line + 1, at.Column + 1), (placed.FileLine, placed.Column));
+        }
     }
 }

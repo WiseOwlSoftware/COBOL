@@ -47,6 +47,13 @@ internal sealed class ListingFacts(ListingRequest request, CompilationInputs inp
     /// <summary>The compilation's ambient-input record: its file digests and its one instant (DESIGN-listing.md section 5).</summary>
     public CompilationInputs Inputs { get; } = inputs;
 
+    /// <summary>Every diagnostic the compilation reported of its source (<c>CompilerDriver.Result.Diagnostics</c>): deposited by
+    /// the one exit once the body has returned, since every return carries them (DESIGN-listing.md section 6.3).</summary>
+    public IReadOnlyList<Frontend.Diagnostics.Diagnostic> Diagnostics { get; private set; } = [];
+
+    /// <summary>Deposit the compilation's diagnostics.</summary>
+    public void DepositDiagnostics(IReadOnlyList<Frontend.Diagnostics.Diagnostic> diagnostics) => Diagnostics = diagnostics;
+
     /// <summary>The front end's listed pass, or null while no source text has been read.</summary>
     public FrontendFacts? Frontend { get; private set; }
 

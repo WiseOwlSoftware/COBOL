@@ -36,7 +36,9 @@ public sealed class ListingLineIndexTests
         new(id, parent, depth, new SourceOrigin(copyFile, copyLine), new SourceOrigin(copyFile, copyLine), text, null, file,
             TextInclusionOutcome.Found, first, last);
 
-    private static ListingLineIndex Index(int omitted = 0)
+    private static ListingLineIndex Index(int omitted = 0) => IndexAndMap(omitted).Index;
+
+    private static (ListingLineIndex Index, SourceLineMap Map) IndexAndMap(int omitted = 0)
     {
         List<LineDraft> drafts =
         [
@@ -60,7 +62,8 @@ public sealed class ListingLineIndexTests
             var origin = new LineOrigin(new SourceOrigin(o.File, o.Line));
             return i + 1 == omitted ? origin.AsOmitted() : origin;
         }).ToArray();
-        return new ListingLineIndex(drafts, inclusions, S, new SourceLineMap(origins));
+        var map = new SourceLineMap(origins);
+        return (new ListingLineIndex(drafts, inclusions, S, map), map);
     }
 
     /// <summary>Each resultant line lands on the listing line of its own block: the second copy of A (inside B) on lines 9-10,
@@ -114,5 +117,26 @@ public sealed class ListingLineIndexTests
     {
         var index = Index(omitted: 10);
         Assert.Equal([10], Enumerable.Range(1, 16).Where(index.IsOmitted));
+    }
+
+    /// <summary>A diagnostic's location is placed by the one index (DESIGN-listing.md section 6.3): one located from a resultant line
+    /// of the index's own frame in the block that line belongs to (A's line 1 from r10 in the copy inside B, listing line 9; from r3
+    /// in the first copy, line 3); the same physical place with no resultant line, or located through another map's numbering (a
+    /// text stage's own frame), in the first text that lists it; a line no listed text has, nowhere.</summary>
+    [Fact]
+    public void ALocation_IsPlacedInTheBlockOfItsResultantLine_OnlyInTheIndexsFrame()
+    {
+        var (index, map) = IndexAndMap();
+        Assert.Equal(9, index.Place(map.Locate(10, 0, S)));
+        Assert.Equal(3, index.Place(map.Locate(3, 0, S)));
+        Assert.Equal(10, index.Place(map.Locate(11, 0, S)));
+        Assert.Equal(3, index.Place(new SourceLocation(A, 0, 0, 0)));
+        var anotherFrame = new SourceLineMap([.. Enumerable.Range(1, 16).Select(r => new LineOrigin(map.Origin(r)!.Value))]);
+        Assert.NotEqual(map.Frame, anotherFrame.Frame);
+        Assert.Equal(3, index.Place(anotherFrame.Locate(10, 0, S)));
+        Assert.Equal(12, index.Place(new SourceLocation(S, 0, 4, 0)));
+        Assert.Equal(7, index.Place(new SourceLocation(B, 0, 0, 0)));
+        Assert.Null(index.Place(new SourceLocation("other.cpy", 0, 0, 0)));
+        Assert.Null(index.Place(new SourceLocation(A, 0, 6, 0)));
     }
 }
