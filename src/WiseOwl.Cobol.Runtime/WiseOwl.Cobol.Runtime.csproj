@@ -63,6 +63,8 @@
       configuration, so a Debug gate certifies the optimized runtime it ships. The images carry no source-control
       stamp (as Debug, Directory.Build.props): an image is a function of its sources alone, so a commit that does not
       touch the runtime leaves it byte-identical and the compiled-program cache keyed on it (PB985) keeps hitting.
+    * A publish builds no references (BuildProjectReferences=false): this outer build has built them, and a publish that
+      built them again would build the build's analyzer as another configuration (src/Directory.Build.props, kb/Work PB4950).
     * It is incremental through the SDK's own Inputs/Outputs: the compile and crossgen rerun exactly when the
       runtime's sources or build files change; an unchanged runtime costs two up-to-date checks.
     * Each image is a content item copied to ReadyToRun/<rid>/WiseOwl.Cobol.Runtime.dll in the output of every project
@@ -93,7 +95,7 @@
           Condition="'$(RuntimeIdentifier)' == '' and '$(CobolRuntimeReadyToRun)' == 'true'">
     <ItemGroup>
       <_CobolReadyToRunPublish Include="$(MSBuildProjectFullPath)">
-        <AdditionalProperties>Configuration=Release;RuntimeIdentifier=%(_CobolReadyToRunPlatform.Identity);PublishDir=$(CobolRuntimeReadyToRunDir)%(_CobolReadyToRunPlatform.Identity)$([System.IO.Path]::DirectorySeparatorChar);EnableSourceControlManagerQueries=false;IncludeSourceRevisionInInformationalVersion=false</AdditionalProperties>
+        <AdditionalProperties>Configuration=Release;RuntimeIdentifier=%(_CobolReadyToRunPlatform.Identity);PublishDir=$(CobolRuntimeReadyToRunDir)%(_CobolReadyToRunPlatform.Identity)$([System.IO.Path]::DirectorySeparatorChar);EnableSourceControlManagerQueries=false;IncludeSourceRevisionInInformationalVersion=false;BuildProjectReferences=false</AdditionalProperties>
       </_CobolReadyToRunPublish>
     </ItemGroup>
     <MSBuild Projects="@(_CobolReadyToRunPublish)" Targets="Publish" BuildInParallel="$(BuildInParallel)" />

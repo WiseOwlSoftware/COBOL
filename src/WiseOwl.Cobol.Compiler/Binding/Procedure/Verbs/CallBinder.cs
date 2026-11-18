@@ -156,7 +156,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         {
             // The name is read and FORMED by the ONE program-name-literal reader, exactly as the target below is,
             // so the bind-time scope table and the run-time resolver match the same string (kb/Work PB1539).
-            if (ProgramName(asLit, "CALL AS NESTED", "§2023:14.9.4.3 SR2") is not { } nestedName)
+            if (ProgramName(asLit, "CALL AS NESTED", "§2023:14.9.4.3 SR2", "§1985:X.5.2.3 SR1") is not { } nestedName)
                 return BoundRejected.Reported(ctx.Edition);
             if (host.NestedCallables is { } nc && nc.TryGetValue(nestedName, out var sig))
                 (callee, calleeCompiledHere) = (sig, true);
@@ -178,7 +178,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // national literals (a hexadecimal literal IS §2023:8.3.3.2 Format 2 of an alphanumeric one), and the
             // old STRINGLIT-only read sent N"P" / X".." to a run-time loud on legal source. A constant-name is
             // literal-1 too (kb/Work PB780), so `CALL K` is a static call of the program K's literal names.
-            if (ProgramName(lit, "CALL", "§2023:14.9.4.3 SR2") is not { } pn) return BoundRejected.Reported(ctx.Edition);
+            if (ProgramName(lit, "CALL", "§2023:14.9.4.3 SR2", "§1985:X.5.2.3 SR1") is not { } pn) return BoundRejected.Reported(ctx.Edition);
             literalName = pn;
         }
         else if (target?.dataReference() is { } dref)
@@ -1127,8 +1127,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // screen asks the category reader).
         return OperandTargetRefusal(name) is { } face
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
-                $"CALL target '{written}' is {face}; ISO §2023:14.9.4.3 SR1 admits an alphanumeric, national, or "
-                + "program-pointer data item")
+                $"CALL target '{written}' is {face}; ISO "
+                + ctx.Edition.Edition.Cite("§1985:X.5.2.3 SR2 admits an alphanumeric data item whose value can be a program-name",
+                    "§2023:14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item"))
             : null;
     }
 
@@ -1178,16 +1179,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// kb/Work PB130) — §2023:14.9.4.3 SR2 / §2023:14.9.5.3 SR2 admit an alphanumeric OR national literal whose length is not
     /// zero. Reports the SR violation itself and returns null — a boolean literal, a numeric literal, a figurative
     /// constant and a zero-length name each draw the cited diagnostic instead of a run-time loud.</summary>
-    private string? ProgramName(ProgramNameOperand literal1, string verb, string clause)
+    private string? ProgramName(ProgramNameOperand literal1, string verb, string clause, string clause1985)
     {
         var (name, fault) = literal1.Form(ctx.Edition.Edition.Year);
+        string rule = ctx.Edition.Edition.Cite(clause1985, clause);
         if (fault == ProgramNameFault.ZeroLength)
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
-                $"{verb} with a zero-length literal program name (ISO {clause})");
+                $"{verb} with a zero-length literal program name (ISO {rule})");
         else if (fault == ProgramNameFault.NotAlphanumericOrNational)
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
-                $"{verb} '{literal1.Spelling}': the literal program name shall be an alphanumeric or national literal "
-                + $"(ISO {clause})");
+                $"{verb} '{literal1.Spelling}': the literal program name "
+                + ctx.Edition.Edition.Cite("must be a nonnumeric literal", "shall be an alphanumeric or national literal")
+                + $" (ISO {rule})");
         return name;
     }
 
@@ -1259,7 +1262,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // rejection also miscited §2023:14.9.5.2 SR1); a bad target reports and the LOOP CONTINUES, so a
                 // statement with one illegal target no longer discards its legal ones. A constant-name is
                 // literal-1 too (§2023:13.10.3 SR2, kb/Work PB780).
-                if (ProgramName(lit, "CANCEL", "§2023:14.9.5.3 SR2") is { } pn)
+                if (ProgramName(lit, "CANCEL", "§2023:14.9.5.3 SR2", "§1985:X.5.3.3 SR1") is { } pn)
                     targets.Add((pn, null));
             }
             else if (t.dataReference() is { } dref)
@@ -1306,7 +1309,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     {
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
                             $"CANCEL target '{DataBinder.WrittenText(dref)}' is {targetFace}; "
-                            + "ISO §2023:14.9.5.3 SR1 admits an alphanumeric or national data item");
+                            + "ISO " + ctx.Edition.Edition.Cite("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1")
+                            + ctx.Edition.Edition.Cite(" admits an alphanumeric data item", " admits an alphanumeric or national data item"));
                         continue;
                     }
                     targets.Add((null, new BoundFieldOperand(p)));
@@ -1323,7 +1327,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     using (ctx.Edition.At(t))
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
                             $"CANCEL target '{DataBinder.WrittenText(t)}' is {computedFace}; "
-                            + "ISO §2023:14.9.5.3 SR1 admits an alphanumeric or national data item");
+                            + "ISO " + ctx.Edition.Edition.Cite("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1")
+                            + ctx.Edition.Edition.Cite(" admits an alphanumeric data item", " admits an alphanumeric or national data item"));
                     continue;
                 }
                 if (computed is not BoundOperandError) targets.Add((null, computed));

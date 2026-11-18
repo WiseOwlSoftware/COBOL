@@ -137,6 +137,7 @@ src/
   WiseOwl.Cobol.Frontend/            reference format, COPY and REPLACE, directives, the ANTLR grammars and parser
   WiseOwl.Cobol.Compiler/            binder, bound tree, C# emitter, Roslyn backend
   WiseOwl.Cobol.Compiler.SourceGen/  the source generator for the bound-tree visitor
+  WiseOwl.Cobol.Analyzers/           the build's own Roslyn analyzers, run over every src project (one decider of a message's words by edition)
   WiseOwl.Cobol.Editions/            the construct registry and per-edition gating
   WiseOwl.Cobol.Runtime/             the library every compiled program runs on
 tests/                               the populations above

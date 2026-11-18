@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Common;
 
@@ -30,6 +31,7 @@ namespace WiseOwl.Cobol.Frontend.Common;
 public static class CobolWordRule
 {
     /// <summary>The §2023:8.3.2.1 maximum COBOL-word length for a targeted edition.</summary>
+    [EditionDerived]
     public static int MaxLength(int dialectLevel) =>
         dialectLevel >= 2023 ? 63 : dialectLevel >= 2002 ? 31 : 30;
 
@@ -43,7 +45,9 @@ public static class CobolWordRule
         return length > MaxLength(dialectLevel)
             ? $"the COBOL word '{word}' is {length} characters, exceeding the "
               + $"{MaxLength(dialectLevel)}-character maximum for COBOL-{dialectLevel} "
-              + "(ISO §2023:8.3.2.1 — COBOL-2023 raised the limit to 63)"
+              + new EditionInfo(dialectLevel).Cite(
+                  "(ISO §1985:IV.4.2.2.1 — \"a character-string of not more than 30 characters\")",
+                  "(ISO §2023:8.3.2.1 — COBOL-2023 raised the limit to 63)")
             : null;
     }
 
@@ -57,10 +61,10 @@ public static class CobolWordRule
     /// sign), which is no extended letter, so it is COBOL2773 at every target
     /// (<see cref="CobolCharacterRepertoire.ViolationAtEveryEdition"/>, kb/Work PB4130).</summary>
     public static string? CharacterViolation(string word, int dialectLevel) =>
-        CobolCharacterRepertoire.SeparatorPositionViolation(word)
+        CobolCharacterRepertoire.SeparatorPositionViolation(word, dialectLevel)
         ?? (dialectLevel >= 2002
             ? CobolCharacterRepertoire.Violation(word, dialectLevel)
-            : CobolCharacterRepertoire.ViolationAtEveryEdition(word));
+            : CobolCharacterRepertoire.ViolationAtEveryEdition(word, dialectLevel));
 
     /// <summary>True when <paramref name="word"/>'s character violation at <paramref name="dialectLevel"/> is one the
     /// COBOL 2002/2014 Annex B did not have — Annex E.2 item 4 deleted U+037A and made U+30FB medial at 2023 — so the

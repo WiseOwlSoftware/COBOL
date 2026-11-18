@@ -134,14 +134,15 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     };
 
     /// <summary>⛔ THE ONE CHOICE OF A RULE'S CITATION BY EDITION (kb/Work PB4950, the owner's decision of 2026-11-07: "a
-    /// diagnostic cite the rule of the edition the program was compiled under"): <paramref name="y1985"/> at COBOL-85,
-    /// <paramref name="y2002"/> at COBOL-2002, <paramref name="y2014"/> at COBOL-2014 (the 2002 citation where a caller gives
-    /// none) and <paramref name="y2023"/> at COBOL-2023, so a message sends the reader to the text of the edition they compile
-    /// at. Every per-edition message asks it; no site spells its own <c>Year &lt; 2002 ? ... : ...</c> between citations.
-    /// Each argument is a citation in the edition form of kb/Work PB4887 (<c>§1985:VI.6.22.3 SR1</c>), checked by
-    /// <c>scripts/spec/audit_code_citations.py</c>.</summary>
-    public string Cite(string y1985, string y2002, string y2023, string? y2014 = null) =>
-        Year < 2002 ? y1985 : Year < 2014 ? y2002 : Year < 2023 ? y2014 ?? y2002 : y2023;
+    /// diagnostic cite the rule of the edition the program was compiled under"): <paramref name="y1985"/> at COBOL-85 and
+    /// <paramref name="later"/> from COBOL-2002 on, each text written once. Where an edition's own text differs it overrides:
+    /// <paramref name="y2002"/> at COBOL-2002 (and at COBOL-2014 unless <paramref name="y2014"/> is given), <paramref name="y2014"/>
+    /// at COBOL-2014; <paramref name="later"/> is always COBOL-2023's. So a message sends the reader to the text of the edition they
+    /// compile at. Every per-edition message asks it; no site spells its own <c>Year &lt; 2002 ? ... : ...</c> between texts
+    /// (the build refuses one: EditionCiteAnalyzer in <c>src/WiseOwl.Cobol.Analyzers</c>, WOCA0001). Each citation is in the
+    /// edition form of kb/Work PB4887 (<c>§1985:VI.6.22.3 SR1</c>), checked by <c>scripts/spec/audit_code_citations.py</c>.</summary>
+    public string Cite(string y1985, string later, string? y2002 = null, string? y2014 = null) =>
+        Year < 2002 ? y1985 : Year < 2014 ? y2002 ?? later : Year < 2023 ? y2014 ?? y2002 ?? later : later;
 
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one
     /// predicate behind the grammar's <c>{isXXXX()}?</c> introduction gates and every version-varying bind

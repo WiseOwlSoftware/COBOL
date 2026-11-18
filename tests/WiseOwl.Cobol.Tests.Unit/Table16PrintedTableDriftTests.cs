@@ -78,7 +78,7 @@ public sealed class Table16PrintedTableDriftTests
                 {
                     bool printedYes = cells[c] == "Yes";
                     Assert.True(printedYes || cells[c] == "No", $"cell {row}/{receiver} reads '{cells[c]}'");
-                    if ((MoveValidity.Table16Refusal(row, receiver) is null) != printedYes)
+                    if ((MoveValidity.Table16Refusal(row, receiver, MoveCitations.Iso2023) is null) != printedYes)
                         wrong.Add($"{row} -> {receiver}: printed {cells[c]}");
                 }
         }
@@ -91,8 +91,8 @@ public sealed class Table16PrintedTableDriftTests
     {
         foreach (var c in Enum.GetValues<Table16Category>())
         {
-            Assert.Null(MoveValidity.Table16Refusal(Table16Category.None, c));
-            Assert.Null(MoveValidity.Table16Refusal(c, Table16Category.None));
+            Assert.Null(MoveValidity.Table16Refusal(Table16Category.None, c, MoveCitations.Iso2023));
+            Assert.Null(MoveValidity.Table16Refusal(c, Table16Category.None, MoveCitations.Iso2023));
         }
     }
 

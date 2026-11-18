@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using Xunit;
@@ -28,7 +29,7 @@ public sealed class SeparatorRuleTests
     {
         var tokens = new CommonTokenStream(new CobolLexer(new AntlrInputStream(text)));
         tokens.Fill();
-        return [.. SeparatorRule.Violations(text, tokens.GetTokens()).Select(v => v.Descriptor.Code)];
+        return [.. SeparatorRule.Violations(text, tokens.GetTokens(), EditionInfo.Of(2023, false)).Select(v => v.Descriptor.Code)];
     }
 
     [Theory]
@@ -91,7 +92,7 @@ public sealed class SeparatorRuleTests
     {
         var tokens = new CommonTokenStream(new CobolLexer(new AntlrInputStream(text)));
         tokens.Fill();
-        var v = Assert.Single(SeparatorRule.Violations(text, tokens.GetTokens()));
+        var v = Assert.Single(SeparatorRule.Violations(text, tokens.GetTokens(), EditionInfo.Of(2023, false)));
         Assert.Contains(clause, v.Message);
         Assert.EndsWith(fix, v.Message);
     }
@@ -103,7 +104,7 @@ public sealed class SeparatorRuleTests
     {
         var tree = DirectiveExpressionFragment.ParseOperand(expression);
         Assert.NotNull(tree);
-        return [.. SeparatorRule.ArithmeticOperatorViolations(expression, tree).Select(v => v.Token.Text)];
+        return [.. SeparatorRule.ArithmeticOperatorViolations(expression, tree, EditionInfo.Of(2023, false)).Select(v => v.Token.Text)];
     }
 
     [Theory] // §2023:8.7.1: a space on each side of a binary operator; a unary one may touch a left parenthesis instead
@@ -154,7 +155,7 @@ public sealed class SeparatorRuleTests
     public void ArithmeticOperatorSpacing_NamesTheClauseTheKindAndTheSide(string expression, string what, string fix)
     {
         var tree = DirectiveExpressionFragment.ParseOperand(expression);
-        var v = Assert.Single(SeparatorRule.ArithmeticOperatorViolations(expression, tree!));
+        var v = Assert.Single(SeparatorRule.ArithmeticOperatorViolations(expression, tree!, EditionInfo.Of(2023, false)));
         Assert.Equal("COBOL2993", v.Descriptor.Code);
         Assert.Contains("§2023:8.7.1", v.Message);
         Assert.Contains(what, v.Message);

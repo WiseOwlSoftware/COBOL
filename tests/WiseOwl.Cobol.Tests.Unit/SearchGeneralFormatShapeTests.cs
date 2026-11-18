@@ -51,8 +51,8 @@ MAIN.
         "COBOL2269", "SEARCH ALL NOT AT END")]
     [InlineData("F", "    SEARCH E AT END NEXT SENTENCE WHEN K (IX) = 9 DISPLAY \"H\".", "COBOL2269", "NEXT SENTENCE:")]
     [InlineData("G", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE DISPLAY \"T\".", "COBOL2269", "NEXT SENTENCE:")]
-    [InlineData("H", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "§2023:14.9.37.3 SR4")]
-    [InlineData("I", "    SEARCH ALL E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "§2023:14.9.37.3 SR4")]
+    [InlineData("H", "    SEARCH E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "WHEN phrase's body is NEXT SENTENCE")]
+    [InlineData("I", "    SEARCH ALL E WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.", "COBOL2409", "WHEN phrase's body is NEXT SENTENCE")]
     [InlineData("J", "    SEARCH E WHEN K (IX) = 9 DISPLAY \"N\" WHEN K (IX) = 3 NEXT SENTENCE END-SEARCH.",
         "COBOL2409", "SEARCH: the END-SEARCH phrase")]
     public void ShapeNoFormatPrints_IsRefusedAtCompileTime(string id, string body, string code, string text)

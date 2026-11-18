@@ -40,11 +40,15 @@ using Core = CobolParserCore;
 /// outside every section is refused.</item>
 /// </list>
 /// </summary>
-internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
+internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edition) : CursorFollowingVisitor(sink)
 {
     /// <summary>Screen every procedure division in the group's raw parse tree.</summary>
-    internal static void Run(Core.CompilationUnitContext tree, IDiagnosticSink sink) =>
-        new ProcedureFormatPass(sink).VisitPositioned(tree);
+    internal static void Run(Core.CompilationUnitContext tree, IDiagnosticSink sink, EditionInfo edition) =>
+        new ProcedureFormatPass(sink, edition).VisitPositioned(tree);
+
+    /// <summary>The procedure division's two body formats, in the edition in force (kb/Work PB4950): §2023:14.2.1 prints
+    /// the with-sections and the without-sections formats; §1985:IV.6.4.1.4.2 prints the same two as Format 1 and Format 2.</summary>
+    private string Formats => edition.Cite("§1985:IV.6.4.1.4.2", "§2023:14.2.1");
 
     // No statement and no procedure division header lives in these divisions; a nested program's or a method's
     // procedure division is a sibling of them, never inside one.
@@ -72,20 +76,53 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
         // ERROR …` meant it for the outer statement: when the inner statement's phrase is one the outer statement's
         // format also prints, the message says which statement the rule gave it to (kb/Work PB3830).
         string association = InnerPhraseTheOwnerPrints(block, s) is { } inner
-            ? $" The {inner} phrase is this {name} statement's, not the {owner} statement's — ISO §2023:14.5.3.3: \"Any "
-              + "phrase encountered is the next phrase of the most-recently preceding unterminated statement with which "
-              + "that phrase may be syntactically associated\"."
+            ? $" The {inner} phrase is this {name} statement's, not the {owner} statement's — ISO "
+              + edition.Cite(
+                  "§1985:IV.6.4.3: \"any optional conditional phrase encountered is considered to be the next phrase of the nearest "
+                  + "preceding unterminated statement with which that phrase is permitted to be associated\".",
+                  AssociationRule2023)
             : "";
         using var _ = Sink.At(s);
         Sink.Report(new EditionDiagnostic(DiagnosticCatalog.ConditionalStatementAsImperative.Code,
             EditionSeverity.Error, DiagnosticCatalog.ConditionalStatementAsImperative.Id,
             $"{owner} {phrase}: this {name} statement is written without its explicit scope terminator END-{name}, "
             + "so it is a conditional statement, and the operand of this phrase is an imperative-statement — ISO "
-            + "§2023:14.5.1: \"Any statement with a conditional phrase that is not terminated by its explicit scope terminator "
-            + "is a conditional statement\"; an imperative statement \"is a conditional statement that is delimited by its "
-            + $"explicit scope terminator\".{association} Write END-{name} to close it.",
+            + edition.Cite(
+                $"§1985:IV.6.4.2.1.1 {ConditionalStatementRule1985(name)}: a {name} statement is one of the conditional statements; an "
+                + "imperative statement \"specifies an unconditional action to be taken by the object program or is a conditional "
+                + "statement that is delimited by its explicit scope terminator\" (§1985:IV.6.4.2.3.1)",
+                ConditionalOperandRule2023)
+            + $".{association} Write END-{name} to close it.",
             name, DiagnosticCatalog.ConditionalStatementAsImperative.IsoSection));
     }
+
+    /// <summary>§2023:14.5.3.3, quoted: whose phrase a conditional phrase is.</summary>
+    private const string AssociationRule2023 =
+        "§2023:14.5.3.3: \"Any phrase encountered is the next phrase of the most-recently preceding unterminated statement with "
+        + "which that phrase may be syntactically associated\".";
+
+    /// <summary>§2023:14.5.1, quoted, as the 2002 and later editions state the operand rule.</summary>
+    private const string ConditionalOperandRule2023 =
+        "§2023:14.5.1: \"Any statement with a conditional phrase that is not terminated by its explicit scope terminator "
+        + "is a conditional statement\"; an imperative statement \"is a conditional statement that is delimited by its "
+        + "explicit scope terminator\"";
+
+    /// <summary>The rule of §1985:IV.6.4.2.1.1 that lists the statement <paramref name="name"/> among the conditional statements (its
+    /// eight numbered rules group them: 1 EVALUATE, IF, SEARCH, RETURN; 2 READ; 3 WRITE; 4 DELETE, REWRITE, START; 5 the arithmetic
+    /// statements; 6 RECEIVE; 7 STRING, UNSTRING; 8 CALL). A statement the list does not hold (one of the later editions') names the
+    /// clause alone.</summary>
+    private static string ConditionalStatementRule1985(string name) => name switch
+    {
+        "EVALUATE" or "IF" or "SEARCH" or "RETURN" => "GR1",
+        "READ" => "GR2",
+        "WRITE" => "GR3",
+        "DELETE" or "REWRITE" or "START" => "GR4",
+        "ADD" or "COMPUTE" or "DIVIDE" or "MULTIPLY" or "SUBTRACT" => "GR5",
+        "RECEIVE" => "GR6",
+        "STRING" or "UNSTRING" => "GR7",
+        "CALL" => "GR8",
+        _ => "",
+    };
 
     /// <summary>The words of the inner statement's first conditional phrase that the OWNING statement's general formats
     /// also print (so §2023:14.5.3.3, not the writer's layout, decided it is the inner statement's), or null.</summary>
@@ -148,15 +185,15 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
         var declaratives = ctx.declarativePart();
         if (declaratives.Length > 1)
             ReportFormat(declaratives[1],
-                "a second DECLARATIVES portion — §2023:14.2.1 Format 1 prints ONE bracketed DECLARATIVES … END DECLARATIVES "
+                $"a second DECLARATIVES portion — {Formats} Format 1 prints ONE bracketed DECLARATIVES … END DECLARATIVES "
                 + "portion, immediately after the procedure division header");
 
         bool hasSectionDefinitions = ctx.sectionDefinition().Length > 0;
         if (hasSectionDefinitions || declaratives.Length > 0)
         {
             string why = hasSectionDefinitions
-                ? "the procedure division has sections, so it is §2023:14.2.1 Format 1 (with-sections)"
-                : "the procedure division has DECLARATIVES, which only §2023:14.2.1 Format 1 (with-sections) admits";
+                ? $"the procedure division has sections, so it is {Formats} Format 1 (with-sections)"
+                : $"the procedure division has DECLARATIVES, which only {Formats} Format 1 (with-sections) admits";
             var sentences = ctx.sentence();
             if (sentences.Length > 0)
                 ReportFormat(sentences[0],
@@ -167,7 +204,9 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
                 ReportFormat(paragraphs[0],
                     $"paragraph {ProcedureNameShape.Head(paragraphs[0].paragraphName().procedureName()).ToUpperInvariant()} is not in a section"
                     + (paragraphs.Length > 1 ? $" (nor are {paragraphs.Length - 1} more paragraphs after it)" : "")
-                    + $" — {why}, and §2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\"");
+                    + $" — {why}, and "
+                    + edition.Cite("§1985:IV.6.4.1.2: \"If one paragraph is in a section, all paragraphs must be in sections\"",
+                        "§2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\""));
         }
         return base.VisitChildren(ctx);
     }

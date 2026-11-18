@@ -3,6 +3,7 @@
 using System.Collections.Frozen;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
@@ -18,7 +19,23 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// <param name="Printed">What the format prints, completing "the general format prints …" in the diagnostic.</param>
 /// <param name="OwnSentence">The one clause the format prints as a SENTENCE OF ITS OWN, closed by its own period
 /// (§2023:12.4.6.2's APPLY COMMIT clause), or null where the paragraph is a single sentence.</param>
-public sealed record ParagraphPeriod(string Clause, string Subject, string Printed, Type? OwnSentence);
+/// <param name="Clause1985">The same general format's subclause in ANSI X3.23-1985 (<c>VI.4.5.2</c>), or null where COBOL-85 has no
+/// such paragraph (REPOSITORY); a diagnostic at <c>--std 85</c> cites it (kb/Work PB4950).</param>
+/// <param name="Printed1985">What the 1985 format prints where it differs from <paramref name="Printed"/>, or null.</param>
+public sealed record ParagraphPeriod(string Clause, string Subject, string Printed, Type? OwnSentence,
+    string? Clause1985 = null, string? Printed1985 = null)
+{
+    /// <summary>The general format's citation in the edition in force, <c>§1985:VI.4.5.2</c> or <c>§2023:12.3.7.2</c>.</summary>
+    public string FormatCitation(EditionInfo edition) =>
+        edition.Cite(Clause1985 is null ? $"§2023:{Clause}" : $"§1985:{Clause1985}", $"§2023:{Clause}");
+
+    /// <summary>What the format prints, completing "the general format prints …", in the edition in force.</summary>
+    public string PrintedIn(EditionInfo edition) => edition.Cite(Printed1985 ?? Printed, Printed);
+
+    /// <summary>The rule that binds the punctuation a format prints, in the edition in force: §2023:5.2.1, and at COBOL-85
+    /// §1985:IV.4.2.1 SR3 (the separator period "must be used only to indicate the end of a sentence, or as shown in formats").</summary>
+    public static string PunctuationRule(EditionInfo edition) => edition.Cite("§1985:IV.4.2.1 SR3", "§2023:5.2.1");
+}
 
 /// <summary>One sentence of a paragraph: its entries and the separator period that closes it (null when the
 /// paragraph ends without one).</summary>
@@ -52,10 +69,12 @@ public static class ParagraphPeriods
             // §2023:12.4.6.2, rendered (PDF p363 / folio 333): `I-O-CONTROL. [[apply-commit-clause].] [[{same-clause}…].]`.
             [typeof(Core.IoControlParagraphContext)] = new("12.4.6.2", "I-O-CONTROL",
                 "one separator period after the run of SAME clauses, and one after the APPLY COMMIT clause, which is "
-                + "a sentence of its own", typeof(Core.ApplyCommitClauseContext)),
+                + "a sentence of its own", typeof(Core.ApplyCommitClauseContext),
+                Clause1985: "VII.2.10.2",
+                Printed1985: "one separator period, closing the paragraph after its last clause"),
             // §2023:12.3.7.2: `SPECIAL-NAMES. [clauses] … .` — §2023:12.3.7.3 SR31 lets one period go only when no clause is written.
             [typeof(Core.SpecialNamesParagraphContext)] = new("12.3.7.2", "SPECIAL-NAMES",
-                "one separator period, after the last clause", null),
+                "one separator period, after the last clause", null, Clause1985: "VI.4.5.2"),
             // §2023:12.3.8.2: `REPOSITORY. [ { specifier } … . ]` — the period printed inside the bracket, once.
             [typeof(Core.RepositoryParagraphContext)] = new("12.3.8.2", "REPOSITORY",
                 "one separator period, after the last specifier", null),
@@ -64,12 +83,18 @@ public static class ParagraphPeriods
             // PB5609). Superset-parsed so the name's prediction commits (kb/Work PB3370).
             [typeof(Core.SourceComputerParagraphContext)] = new("12.3.5.2", "SOURCE-COMPUTER",
                 "a second separator period after computer-name-1 and the WITH DEBUGGING MODE clause, which only a "
-                + "paragraph with neither may omit (§2023:12.3.5.3 SR1, §2002:12.2.4.2 SR1)", null),
+                + "paragraph with neither may omit (§2023:12.3.5.3 SR1, §2002:12.2.4.2 SR1)", null,
+                Clause1985: "VI.4.3.2",
+                Printed1985: "its entries and the one separator period that closes them inside a single bracket, so the period comes "
+                    + "only with an entry"),
             // §2023:12.3.6.2: `OBJECT-COMPUTER. [ computer-name-1 ] [ clauses ] .` — §2023:12.3.6.3 SR4 lets the second period go
             // only when neither the name nor a clause is written (kb/Work PB3370, SOURCE-COMPUTER's twin).
             [typeof(Core.ObjectComputerParagraphContext)] = new("12.3.6.2", "OBJECT-COMPUTER",
                 "a second separator period after computer-name-1 and the clauses, which only a paragraph with neither "
-                + "may omit (§2023:12.3.6.3 SR4)", null),
+                + "may omit (§2023:12.3.6.3 SR4)", null,
+                Clause1985: "VI.4.4.2",
+                Printed1985: "its entries and the one separator period that closes them inside a single bracket, so the period comes "
+                    + "only with an entry"),
         }.ToFrozenDictionary();
 
     /// <summary>The paragraph's sentences in source order: the entries between its header's period and each later

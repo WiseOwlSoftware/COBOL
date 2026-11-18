@@ -84,7 +84,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         if (nonData is { Kind: NonDataDeclarationKind.IndexName })
         {
             data.Edition.Error(DiagnosticCatalog.IndexNameContext,
-                $"'{text}' is an index-name, which is not an identifier (ISO §2023:8.4.3.1.2): §2023:13.18.38.3 SR7 admits an "
+                $"'{text}' is an index-name, which is not an identifier (ISO {data.Edition.Edition.NotAnIdentifier()}): {data.Edition.Edition.Contexts()} admits an "
                 + "index-name only as a subscript, in PERFORM/SEARCH VARYING, in SET, or in a relation condition, and "
                 + $"this position needs an identifier. SET a data item to the index first (SET data-item TO {text}) "
                 + "and reference the data item");
@@ -113,21 +113,19 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             : $" (counting {(count == 1 ? "a REPORT SECTION entry" : $"{count} REPORT SECTION entries")} of that spelling)";
         string msg;
         // The uniqueness rule is the edition's own (kb/Work PB5627): §1985:IV.4.3.8.1 SRL2.1 below COBOL-2002.
-        string rule = data.Edition.DialectLevel < 2002 ? "ISO §1985:IV.4.3.8.1 SRL2.1" : "ISO §2023:8.4.2.2";
+        string rule = data.Edition.Edition.Cite("ISO §1985:IV.4.3.8.1 SRL2.1", "ISO §2023:8.4.2.2");
         // ⛔ A DECLARED CONDITION-NAME (kb/Work PB567): one qualified by a data-name it is NOT subordinate to (`IS-A OF
         // H1`, H1 an unrelated record; `IS-A OF G1 OF S`, real ancestors in reversed order) is worded by the one
         // misqualified-condition text. Every other kind — an alphabet-name (kb/Work R38: GnuCOBOL's INSPECT CONVERTING
         // alphabet is an extension no edition admits), a constant-name (kb/Work PB3287: `ADDRESS OF C`), a type-name or
         // a type declaration's member (kb/Work PB1906, §2023:13.18.58.4 GR1/GR2) — identifies no data item (§2023:8.4.2.1).
         if (nonData is { Kind: NonDataDeclarationKind.ConditionName })
-            msg = MisqualifiedConditionText(text, name, qualifiers);
+            msg = MisqualifiedConditionText(text, name, qualifiers, data.Edition.Edition);
         else if (nonData is { } declared)
-            msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item (ISO "
-                + "§2023:8.4.2.1: \"a statement shall contain a reference that uniquely identifies that resource\").";
+            msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item ({data.Edition.Edition.Quoted()}).";
         else if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
             msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
-                + "the statement's reference identifies no resource (ISO §2023:8.4.2.1: \"a statement shall contain a "
-                + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item.";
+                + $"the statement's reference identifies no resource ({data.Edition.Edition.Quoted()}). Check the spelling, or declare the item.";
         else if (qualifiers.Count == 0)
             msg = $"'{text}' does not uniquely identify a data item — {candidates.Count + reportEntries} declarations share the "
                 + $"name{ReportEntriesWording(reportEntries)} and no qualification distinguishes them ({rule} — "
@@ -157,16 +155,16 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// conditional variable may be qualified" — in SR4's order of successively more inclusive levels. So a
     /// qualifier the conditional variable is not subordinate to, or ancestors written in reversed order, identify
     /// NO condition-name. Unqualified, the word is a condition-name written where a data item is required.</summary>
-    internal static string MisqualifiedConditionText(string text, string name, IReadOnlyList<string> qualifiers) =>
+    internal static string MisqualifiedConditionText(string text, string name, IReadOnlyList<string> qualifiers, EditionInfo edition) =>
         qualifiers.Count == 0
             ? $"'{text}' is a condition-name (a level-88 entry), which identifies no data item, and this "
-              + "reference requires one (ISO §2023:8.4.2.1: \"a statement shall contain a reference that uniquely "
-              + "identifies that resource\")."
+              + $"reference requires one ({edition.Quoted()})."
             : $"'{text}' does not identify a condition-name — '{name}' is declared as a condition-name, but none "
               + $"is subordinate to the given qualifier{(qualifiers.Count > 1 ? "s" : "")} "
               + $"({string.Join(" OF ", qualifiers)}): a condition-name is qualified only by its conditional "
-              + "variable and that variable's containing groups, innermost first (ISO §2023:13.16.3 SR23; "
-              + "§2023:8.4.2.2.3 SR4, SR5).";
+              + "variable and that variable's containing groups, innermost first (ISO "
+              + edition.Cite("§1985:IV.4.3.8.1 SRL2.4", "§2023:13.16.3 SR23; §2023:8.4.2.2.3 SR4, SR5")
+              + ").";
 
     /// <summary>What a named CAPACITY register is, as the noun phrase <see cref="HiddenConditionText"/> says (the register
     /// is no data item of the name table, so <see cref="NonDataDeclaration.ClassPhrase"/> does not cover it).</summary>
@@ -179,11 +177,13 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// the reference names that item, so it is neither a misqualified condition-name nor an undeclared word, and saying
     /// either states the opposite of the facts. <paramref name="nearer"/> is what the nearer declaration is ("a data
     /// item", <see cref="NonDataDeclaration.ClassPhrase"/>, <see cref="CapacityRegisterClassPhrase"/>).</summary>
-    internal static string HiddenConditionText(string text, string name, string nearer) =>
+    internal static string HiddenConditionText(string text, string name, string nearer, EditionInfo edition) =>
         $"'{text}' names {nearer}, not a condition-name, and this position requires a condition-name: '{name}' is "
         + "declared in a source element nearer than the containing program whose GLOBAL condition-name "
-        + $"'{name}' it hides (ISO §2023:8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source "
-        + "element B is the referenced item\").";
+        + $"'{name}' it hides (ISO "
+        + edition.Cite("§1985:X.1.3.8.2 GR3a: \"If the name is declared in program B, the object in program B is the referenced object\"",
+            "§2023:8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source element B is the referenced item\"")
+        + ").";
 
     /// <summary>⛔ ISO §2023:13.7.3 SR4 FOR A DATA-NAME REFERENCE (kb/Work PB1249): the procedure division may reference a
     /// linkage item "if, and only if" it is a header operand, under one, a redefinition or renaming of one, or BASED
@@ -233,16 +233,16 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
                 + $"object (which fixes its length or its number of occurrences), and '{depending.Item.CobolName}' belongs to LINKAGE SECTION record '{record.CobolName}': the "
                 + "procedure division may not reference it ("
                 + data.Edition.Edition.Cite(
-                    y1985: "ISO §1985:X.5.1 GR4; §1985:IV.4.4.1: an implicit reference \"occurs if and only if the data item "
+                    "ISO §1985:X.5.1 GR4; §1985:IV.4.4.1: an implicit reference \"occurs if and only if the data item "
                         + "contributes to the execution of the statement\"",
+                    "ISO §2023:13.7.3 SR4; §2023:8.4.5: an implicit reference occurs when \"it contributes to, or is "
+                        + "affected by, the execution of the statement\"",
                     y2002: "ISO §2002:13.6.2 SR4; §2002:8.4.4: an implicit reference \"occurs if and only if the data item "
                         + "contributes to the execution of the statement\"",
                     y2014: "ISO §2014:13.7.2 SR4; §2014:8.4.4: an implicit reference occurs when \"it contributes to, or is "
-                        + "affected by, the execution of the statement\"",
-                    y2023: "ISO §2023:13.7.3 SR4; §2023:8.4.5: an implicit reference occurs when \"it contributes to, or is "
                         + "affected by, the execution of the statement\"")
                 + $"). Name '{record.CobolName}' in the procedure division header"
-                + (data.Edition.DialectLevel < 2002 ? "." : ", or describe it BASED."));
+                + data.Edition.Edition.Cite(".", ", or describe it BASED."));
             return;
         }
     }
@@ -256,14 +256,14 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     internal void ReportUnreferenceableLinkage(string written, DataItem record) =>
         data.Edition.Error(DiagnosticCatalog.LinkageItemNotReferenceable,
             $"'{written}' belongs to LINKAGE SECTION record '{record.CobolName}', which the procedure division may not "
-            + (data.Edition.DialectLevel < 2002
-                ? "reference (ISO §1985:X.5.1 GR4): the record is not an operand of the USING phrase of the Procedure "
-                    + "Division header, nor a redefinition or renaming of one. Name it in the header."
-                : "reference (ISO " + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
-                        y2023: "§2023:13.7.3 SR4")
+            + (data.Edition.Edition.Cite(
+                "reference (ISO §1985:X.5.1 GR4): the record is not an operand of the USING phrase of the Procedure "
+                    + "Division header, nor a redefinition or renaming of one. Name it in the header.",
+                "reference (ISO " + data.Edition.Edition.Cite("", "§2023:13.7.3 SR4", y2002: "§2002:13.6.2 SR4",
+                        y2014: "§2014:13.7.2 SR4")
                     + "): the record is not an operand of the USING or RETURNING phrase of the procedure division header, "
                     + "not a redefinition or renaming of one, and not BASED. Name it in the header, or describe it BASED ("
-                    + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ")."));
+                    + data.Edition.Edition.Cite("", "§2023:13.18.5", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5") + ").")));
 
     /// <summary>COBOL2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
     /// view; a SCREEN SECTION name, the section being declined as COBOL1560; a constant-name whose entry yielded no

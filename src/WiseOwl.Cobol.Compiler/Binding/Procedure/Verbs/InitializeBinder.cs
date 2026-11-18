@@ -17,6 +17,12 @@ using Core = CobolParserCore;
 /// the 0830–0833 2002-surface gate block moved VERBATIM (Exec Step E folds it).</summary>
 internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>COBOL2030's text from COBOL-2002 on: §2023:14.9.20.3 SR1's class list (kb/Work PB4950; at COBOL-85 the rule is
+    /// §1985:VI.6.17.3 SR5).</summary>
+    private const string Initialize2023 = "of class index, the one class ISO §2023:14.9.20.3 SR1's list excludes (it admits a "
+        + "strongly-typed item and classes alphabetic, alphanumeric, boolean, message-tag, national, numeric, object and pointer); "
+        + "only SET, SEARCH, a relation condition and the argument positions of §2023:13.18.60.3 SR10 may reference an index data item";
+
     private int _initializeLoopVar;   // program-unique loop-counter ordinal (NextLoopVar)
 
     /// <summary>The next per-occurrence loop counter of the unit, by its identity (kb/Work PB4321): the backend names it.</summary>
@@ -256,11 +262,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeTargetClass,
-                $"INITIALIZE '{DataBinder.WrittenText(dref)}' — identifier-1 is of class index, the one class ISO "
-                + "§2023:14.9.20.3 SR1's list excludes (it admits a strongly-typed item and classes alphabetic, "
-                + "alphanumeric, boolean, message-tag, national, numeric, object and pointer); only SET, SEARCH, "
-                + "a relation condition and the argument positions of §2023:13.18.60.3 SR10 may reference an index "
-                + "data item");
+                $"INITIALIZE '{DataBinder.WrittenText(dref)}' — identifier-1 is " + ctx.Edition.Edition.Cite(
+                    "an index data item, and \"An index data item may not appear as an operand of an INITIALIZE statement\" "
+                    + "(ISO §1985:VI.6.17.3 SR5); only a SEARCH or SET statement, a relation condition and the USING phrase of a "
+                    + "Procedure Division header or CALL statement may reference one (§1985:VI.5.14.3 SR5)",
+                    Initialize2023));
             return;
         }
         if (place is RefModPlace)
@@ -940,10 +946,10 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         bool anyMoveFormCategory = false;
         foreach (var cat in InitializeCategories.All)
             if (cats.Contains(cat) && !InitializeCategories.IsSetForm(cat)) { anyMoveFormCategory = true; break; }
-        if (anyMoveFormCategory && MoveTable16.SenderClassRefusal(value) is { } classRefusal)
+        if (anyMoveFormCategory && MoveTable16.SenderClassRefusal(value, ctx.Edition.Edition) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING BY {senderText}: ISO §2023:14.9.20.3 SR4 requires the implicit MOVE to be "
+                $"INITIALIZE REPLACING BY {senderText}: ISO {ctx.Edition.Edition.Cite("§1985:VI.6.17.3 SR2", "§2023:14.9.20.3 SR4")} requires the implicit MOVE to be "
                 + $"valid, and {classRefusal}");
             return;
         }
@@ -955,9 +961,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // clean and aborted the run unit. The receiving operand of SR4's MOVE is "an item of the specified
             // category" — an ELEMENTARY item with a Table-16 position and no data item, which SR9's reader
             // reads (null receiver) as "not a group", i.e. a violation when the sender is a variable-length group.
-            if (MoveTable16.Validity(value, recvPos, receiverItem: null)?.Reason is not { } refusal) continue;
+            if (MoveTable16.Validity(value, recvPos, receiverItem: null, MoveTable16.CitationsOf(ctx.Edition.Edition))?.Reason is not { } refusal) continue;
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
-                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO §2023:14.9.20.3 SR4 "
+                $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO {ctx.Edition.Edition.Cite("§1985:VI.6.17.3 SR2", "§2023:14.9.20.3 SR4")} "
                 + $"requires that `MOVE {senderText} TO <an item of category "
                 + $"{InitializeCategories.Spelling(cat)}>` be valid, and {refusal}");
             return;   // one message per REPLACING item, naming the first offending category

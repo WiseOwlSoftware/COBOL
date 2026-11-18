@@ -52,7 +52,7 @@ internal static class TestRepo
                 $"'{repoRelative}' does not lie under '{directory}', the directory the call declares it reads",
                 nameof(repoRelative));
 
-    /// <summary><c>src/</c> — the five product assemblies.</summary>
+    /// <summary><c>src/</c> — the product projects and the build's own Roslyn components.</summary>
     public static string Src(params string[] segments) => At(["src", .. segments]);
 
     /// <summary>

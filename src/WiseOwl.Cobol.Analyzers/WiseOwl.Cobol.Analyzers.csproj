@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WiseOwl.Cobol.Analyzers — the repository's own Roslyn DIAGNOSTIC ANALYZERS, run by the C# compiler over the REAL
+    compilation of every src/ product project at build time (src/Directory.Build.props references this project as an
+    analyzer from every src project but this one, which is named by its path, never by a property a project can set on itself). A rule that judges the product's C# belongs
+    here, not in a test that rebuilds the compilation by hand: a hand-built copy drifts from the build each time the build
+    changes (kb/Work PB4950 round 7: project paths, then a new project, then the SDK's System.Text.Json generator).
+
+    Analyzers load as netstandard2.0 (the compiler host's contract), so this project overrides the repo-wide net10.0.
+    It is never a runtime dependency (ReferenceOutputAssembly="false"); the Unit tests reference it as a library to run
+    each analyzer over planted source (CompilationWithAnalyzers) and prove that it fires.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsPackable>false</IsPackable>
+    <!-- Roslyn's own DLLs are provided by the host compiler at analysis time; never ship or reference them. -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <!-- The release-tracking record of every rule id (RS2008): one row per rule, its category and severity. -->
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+</Project>

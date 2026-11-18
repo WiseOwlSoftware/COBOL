@@ -52,9 +52,11 @@ internal sealed class CheckPictureRequiredPass : IBindPass
                 int n = item.Children.Count;
                 using var _ = binder.Edition.At(item);
                 binder.Edition.Error(rule.Code, $"data item '{item.CobolName ?? "FILLER"}': the {DataClauseKinds.Name(present)} "
-                    + $"clause may be specified only at the elementary level (ISO {rule.Rule}) — this entry has {n} "
-                    + $"subordinate {(n == 1 ? "entry" : "entries")}, so it is not an elementary item (§2023:8.5.1.3.1: the "
-                    + "elementary items are the subdivisions \"not further subdivided\"). Remove "
+                    + $"clause may be specified only at the elementary level (ISO {rule.RuleIn(binder.Edition.Edition)}) — this entry has {n} "
+                    + $"subordinate {(n == 1 ? "entry" : "entries")}, so it is not an elementary item ("
+                    + binder.Edition.Edition.Cite("§1985:III.2: an elementary item is a data item \"described as not being further logically subdivided\"",
+                        "§2023:8.5.1.3.1: the elementary items are the subdivisions \"not further subdivided\"")
+                    + "). Remove "
                     + (present == DataClauseKind.Picture && item.PictureText is { } pt
                         ? $"PICTURE {pt}" : $"the {DataClauseKinds.Name(present)} clause")
                     + " from this entry, or remove the subordinate entries");
@@ -106,11 +108,14 @@ internal sealed class CheckPictureRequiredPass : IBindPass
             using var _ = binder.Edition.At(item);
             binder.Edition.Error(DiagnosticCatalog.UsageClauseCompatibility,
                 $"data item '{item.CobolName ?? "FILLER"}': a PICTURE clause shall be specified for an elementary "
-                + "item (ISO §2023:13.16.3 SR8) — it may be omitted only for an item whose usage is "
-                + "binary-char, binary-short, binary-long, binary-double, float-short, float-long, "
-                + "float-extended, index, message-tag, object reference, pointer, function-pointer or "
-                + "program-pointer, or when a VALUE clause supplies an alphanumeric, boolean or national "
-                + "literal (SR9)");
+                + "item (ISO " + binder.Edition.Edition.Cite("§1985:VI.5.3.3 SR3", "§2023:13.16.3 SR8")
+                + ") — it may be omitted only for "
+                + binder.Edition.Edition.Cite("an index data item or the subject of the RENAMES clause",
+                    "an item whose usage is "
+                    + "binary-char, binary-short, binary-long, binary-double, float-short, float-long, "
+                    + "float-extended, index, message-tag, object reference, pointer, function-pointer or "
+                    + "program-pointer, or when a VALUE clause supplies an alphanumeric, boolean or national "
+                    + "literal (SR9)"));
         }
 
         // The recovery shape, over the COMPOSED forest so a TYPE/SAME AS clone of a defective template cannot

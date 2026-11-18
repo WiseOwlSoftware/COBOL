@@ -38,13 +38,20 @@ internal static class ChoiceIndicators
     /// <param name="alternative">The alternative as the figure names it ("the RAISING phrase").</param>
     /// <param name="clause">The clause whose general format this is ("14.9.18.2"), so the message cites the
     /// FIGURE as well as §2023:5.2.6.4.</param>
+    /// <param name="clause1985">The 1985 locator of the same general format ("X.3.1.2"), when COBOL-85 has one; null for an
+    /// alternative that begins later, whose refusal at COBOL-85 is the edition gate's and cites the later clause.</param>
     public static T? AtMostOnce<T>(EditionContext edition, T[] occurrences,
-                                   string statement, string alternative, string clause)
+                                   string statement, string alternative, string clause, string? clause1985 = null)
         where T : ParserRuleContext
     {
-        AtMostOnce(edition, occurrences.Length, statement, alternative, $"ISO §2023:{clause}");
+        AtMostOnce(edition, occurrences.Length, statement, alternative,
+            $"ISO {edition.Edition.Cite($"§1985:{clause1985 ?? clause}", $"§2023:{clause}")}");
         return occurrences.Length > 0 ? occurrences[0] : null;
     }
+
+    /// <summary>The sentence the "only once" message ends with at COBOL-2002 and later.</summary>
+    private const string ChoiceOnceSentence =
+        "format encloses it in choice indicators, and §2023:5.2.6.4 admits any single alternative only once (in any order, but once)";
 
     /// <summary>⛔ THE ONE DIAGNOSTIC OF §2023:5.2.6.4's "only once" half (COBOL2104), for a reader that has already
     /// COUNTED the alternative: <see cref="AtMostOnce{T}"/> counts a parsed array and calls this, and
@@ -62,8 +69,9 @@ internal static class ChoiceIndicators
         if (count > 1)
             edition.Error(DiagnosticCatalog.ChoiceAlternativeRepeated,
                 $"{statement}: {alternative} is specified {count} times; {format}'s general "
-                + "format encloses it in choice indicators, and §2023:5.2.6.4 admits any single alternative only "
-                + "once (in any order, but once)");
+                + edition.Edition.Cite(
+                    "format admits one option of its braces, and §1985:IV.2.1.4 admits a single option only once",
+                    ChoiceOnceSentence));
     }
 
     /// <summary>⛔ THE ONE READER of the FOR ALPHANUMERIC / FOR NATIONAL choice pair (kb/Work PB1075). Five general

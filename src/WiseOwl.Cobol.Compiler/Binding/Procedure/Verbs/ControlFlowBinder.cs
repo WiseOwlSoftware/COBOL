@@ -500,9 +500,14 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// <summary>PERFORM's own procedure-name rule, quoted, for the operand diagnostic — ONE sentence with the
     /// operand and rule number substituted, because §2023:14.9.28.3 SR12 and SR13 ARE one sentence written twice
     /// (kb/Work PB390).</summary>
-    private static string PerformNameRule(string operand, string rule) =>
-        $"\"{operand} shall be the name of either a paragraph or a section in the same source element as that "
-        + $"in which the PERFORM statement is specified\" (ISO §2023:14.9.28.3 {rule})";
+    private string PerformNameRule(string operand, string rule)
+    {
+        string later = $"\"{operand} shall be the name of either a paragraph or a section in the same source element as that "
+            + $"in which the PERFORM statement is specified\" (ISO §2023:14.9.28.3 {rule})";
+        return ctx.Edition.Edition.Cite(
+            "\"Procedure-name-1 and procedure-name-2 must not name sections or paragraphs in any other program in the run unit\" "
+            + "(ISO §1985:VI.6.21.4 GR13)", later);
+    }
 
     public BoundStatement BindPerform(Core.PerformStatementContext p)
     {
@@ -683,7 +688,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))
             ctx.Edition.Error(DiagnosticCatalog.PerformTimesCountNotInteger,
                 $"PERFORM TIMES count '{(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference())?.GetText()}' "
-                + "shall be an integer (ISO §2023:14.9.28.3 SR2) — an integer data item, an integer literal, or an "
+                + $"shall be an integer (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.3 SR4", "§2023:14.9.28.3 SR2")}) — an integer data item, an integer literal, or an "
                 + "integer-type function-identifier (§2023:15.2 type 5)");
         return op;
     }

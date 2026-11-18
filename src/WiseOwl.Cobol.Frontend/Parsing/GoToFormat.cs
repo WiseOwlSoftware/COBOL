@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
@@ -60,15 +61,16 @@ public static class GoToFormats
     /// procedure-names with no DEPENDING phrase (only Format 2 prints the list, and its DEPENDING is required),
     /// and a DEPENDING phrase with no procedure-name (Format 2's <c>{ procedure-name-1 } …</c> is a brace group,
     /// so §2023:5.2.6.3 requires one).</para></summary>
-    public static string? DiagnoseWrittenShape(int procedureNames, bool hasDepending) => (procedureNames, hasDepending) switch
+    public static string? DiagnoseWrittenShape(int procedureNames, bool hasDepending, EditionInfo edition) => (procedureNames, hasDepending) switch
     {
-        ( >= 2, false) => "A GO TO statement with more than one procedure-name is §2023:14.9.17.2 Format 2, whose "
+        ( >= 2, false) => $"A GO TO statement with more than one procedure-name is {edition.Cite("§1985:VI.6.15.2", "§2023:14.9.17.2")} Format 2, whose "
             + "DEPENDING phrase is required: Format 1 prints one unbracketed procedure-name and no DEPENDING "
-            + "phrase (§2023:5.2.6.2 — only a bracketed portion may be omitted), and Format 2 prints "
-            + "'{ procedure-name-1 } … DEPENDING ON identifier-1' with DEPENDING underlined (§2023:5.2.2).",
-        (0, true) => "A GO TO statement with a DEPENDING phrase is §2023:14.9.17.2 Format 2, which prints "
+            + $"phrase ({edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2")} — only a bracketed portion may be omitted), and Format 2 prints "
+            + "'{ procedure-name-1 } … DEPENDING ON identifier-1' with DEPENDING underlined"
+            + $" ({edition.Cite("§1985:IV.2.1.2", "§2023:5.2.2")}).",
+        (0, true) => $"A GO TO statement with a DEPENDING phrase is {edition.Cite("§1985:VI.6.15.2", "§2023:14.9.17.2")} Format 2, which prints "
             + "'{ procedure-name-1 } …' ahead of it: one alternative of a brace group shall be explicitly "
-            + "specified (§2023:5.2.6.3), so at least one procedure-name is required.",
+            + $"specified ({edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.3")}), so at least one procedure-name is required.",
         _ => null,
     };
 }

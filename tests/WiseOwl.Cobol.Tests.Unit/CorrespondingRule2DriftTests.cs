@@ -136,7 +136,7 @@ public sealed class CorrespondingRule2DriftTests
         foreach (string receiver in AllPositions)
         {
             DataItem d = At(receiver);
-            bool moveRules = MoveTable16.DataItemRefusal(s, d) is null;
+            bool moveRules = MoveTable16.DataItemRefusal(s, d, MoveCitations.Iso2023) is null;
             Assert.True(moveRules == CorrRule2MoveValid(s, d),
                 $"ISO §2023:14.7.6 rule 2 and the §2023:14.9.25.3 MOVE rules disagree for {sender} -> {receiver}: the MOVE "
                 + $"rules say {(moveRules ? "Yes" : "No")} and the CORRESPONDING filter says "
@@ -161,8 +161,8 @@ public sealed class CorrespondingRule2DriftTests
         foreach (string receiver in AllPositions)
         {
             DataItem d = At(receiver);
-            Assert.Equal(MoveTable16.DataItemRefusal(s, d),
-                         MoveTable16.Validity(bound, new MemberPlace(new AccessPath([]), d))?.Reason);
+            Assert.Equal(MoveTable16.DataItemRefusal(s, d, MoveCitations.Iso2023),
+                         MoveTable16.Validity(bound, new MemberPlace(new AccessPath([]), d), MoveCitations.Iso2023)?.Reason);
         }
     }
 

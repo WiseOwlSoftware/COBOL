@@ -29,16 +29,20 @@ public sealed partial class DataBinder
             + (associatedRecord is null
                 ? "no record description entry it can belong to (none precedes it in this section, or a constant entry ended it)"
                 : "a level-77 item, which is not a record description entry")
-            + " (ISO §2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall "
-            + "immediately follow the last data description entry of the associated record description entry.\")");
+            + " " + Edition.Edition.Cite(
+                "(ISO §1985:VI.5.11.3 SR2: \"All RENAMES entries referring to data items within a given logical record must immediately follow the last data description entry of the associated record description entry.\")",
+                "(ISO §2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall "
+                + "immediately follow the last data description entry of the associated record description entry.\")"));
     }
 
     /// <summary>SR2's other half: an entry that continues a record whose RENAMES entries have already begun.</summary>
     private void ScreenEntryAfterRenames(string? entryName)
     {
         Edition.Error(DiagnosticCatalog.RenamesEntryRule,
-            $"'{entryName ?? "FILLER"}': a data description entry follows the RENAMES entries of its record (ISO "
-            + "§2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall immediately "
-            + "follow the last data description entry of the associated record description entry.\")");
+            $"'{entryName ?? "FILLER"}': a data description entry follows the RENAMES entries of its record "
+            + Edition.Edition.Cite(
+                "(ISO §1985:VI.5.11.3 SR2: \"All RENAMES entries referring to data items within a given logical record must immediately follow the last data description entry of the associated record description entry.\")",
+                "(ISO §2023:13.18.45.3 SR2: \"All RENAMES entries referring to data items within a given record shall immediately "
+                + "follow the last data description entry of the associated record description entry.\")"));
     }
 }

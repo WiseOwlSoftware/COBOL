@@ -213,7 +213,7 @@ internal static partial class PlacementRules
         if (!ctx.Enclosing.InGlobalDeclarative) return false;
         ctx.Edition.Error(DiagnosticCatalog.ReturnInGlobalDeclarative,
             $"{site.Verb} shall not be specified in a declarative procedure whose USE statement carries the "
-            + $"GLOBAL phrase ({site.Cite(site.GlobalDeclarativeRule)})");
+            + $"GLOBAL phrase ({site.GlobalDeclarativeCite(ctx.Edition.Edition)})");
         return true;
     }
 

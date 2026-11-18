@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -47,20 +48,28 @@ internal static class SortKeyAdmission
     /// ("ISO §2023:14.9.40.3 SR6"; the lettered sub-rule follows) — the ONE place the statement-to-clause map is written,
     /// read by this predicate and by <c>SortBinder.SortAddFileKeys</c>'s own key screens (record membership, OCCURS
     /// position), so a MERGE key refusal never quotes SORT's clause (kb/Work PB2512).</summary>
-    public static string Clause(SortKeyRules rules) => rules switch
+    public static string Clause(SortKeyRules rules, EditionInfo edition) => rules switch
     {
-        SortKeyRules.FileSort => "ISO §2023:14.9.40.3 SR6",
+        SortKeyRules.FileSort => edition.Cite("ISO §1985:XI.4.4.3 SR4", "ISO §2023:14.9.40.3 SR6"),
         SortKeyRules.TableSort => "ISO §2023:14.9.40.3 SR14",
-        _ => "ISO §2023:14.9.24.3 SR4",
+        _ => edition.Cite("ISO §1985:XI.4.1.3 SR4", "ISO §2023:14.9.24.3 SR4"),
     };
+
+    /// <summary>The lettered sub-rule of the key rule that is the same obligation in both printings, in the edition in force
+    /// (kb/Work PB4950): COBOL-85 letters the record-membership rule a), the group-with-ODO rule c), the OCCURS rule e) and the
+    /// minimum-record-size rule f); 2023 letters them a), d), b) and f), and g).</summary>
+    public static string Occurs(EditionInfo edition) => edition.Cite("e)", "b) and f)");
+
+    /// <summary>The 1985 and 2023 letter of the minimum-record-size sub-rule.</summary>
+    public static string MinimumSize(EditionInfo edition) => edition.Cite("f)", "g)");
 
     /// <summary>The refusal text for <paramref name="key"/> under <paramref name="rules"/> — the violated rule quoted
     /// with its clause — or <see langword="null"/> when the key is admissible. The first violation in the order the
     /// rules are printed (b/f, c, d); one is enough to refuse, and naming the others would only restate it.</summary>
-    public static string? Violation(DataItem key, SortKeyRules rules)
+    public static string? Violation(DataItem key, SortKeyRules rules, EditionInfo edition)
     {
         string name = key.CobolName ?? key.ClrName;
-        string clause = Clause(rules);
+        string clause = Clause(rules, edition);
         string verb = rules == SortKeyRules.Merge ? "MERGE" : "SORT";
 
         // SR6 b) / f): subject to OCCURS — its own entry or any entry above it. The file verbs only (see the type).
@@ -71,9 +80,14 @@ internal static class SortKeyAdmission
             return $"{verb} key '{name}' is "
                 + (ReferenceEquals(n, key) ? "described with an OCCURS clause" : $"subordinate to '{n.CobolName ?? n.ClrName}', "
                     + "which carries an OCCURS clause")
-                + ": \"Key data names shall not be subject to any OCCURS clauses\" and \"None of the data items "
-                + "identified by key data-names may be described by an entry that either contains an OCCURS clause "
-                + $"or is subordinate to an entry that contains an OCCURS clause\" ({clause} b) and f))";
+                + edition.Cite(
+                    // SORT's SR4 e words it with "which" (§1985:XI.4.4.3), MERGE's with "that" (§1985:XI.4.1.3).
+                    $": \"None of the data items identified by key data-names can be described by an entry {Relative1985(verb)} either "
+                    + $"contains an OCCURS clause or is subordinate to an entry {Relative1985(verb)} contains an OCCURS clause\"",
+                    ": \"Key data names shall not be subject to any OCCURS clauses\" and \"None of the data items "
+                    + "identified by key data-names may be described by an entry that either contains an OCCURS clause "
+                    + "or is subordinate to an entry that contains an OCCURS clause\"")
+                + $" ({clause} {Occurs(edition)})";
         }
 
         // SR6 c) / SR14 c): the key's CLASS.
@@ -100,10 +114,14 @@ internal static class SortKeyAdmission
         // An index data item: a KEY phrase references its key explicitly, and no edition's list of the contexts an index
         // data item may be referenced in names a sort or merge key (§2023:13.18.60.3 SR10; §1985:VI.5.14.3 SR5; kb/Work PB5188).
         if (!key.IsGroup && IntrinsicArgumentRules.ClassOfItem(key) == CobolClass.Index)
-            return $"{verb} key '{name}' is an index data item: \"An index data item may be referenced explicitly only in "
-                + "a SEARCH or SET statement, a relation condition, an intrinsic function argument, an inline method "
-                + "invocation argument, the USING phrase of a procedure division header, or the USING phrase of a CALL or "
-                + "INVOKE statement\" (ISO §2023:13.18.60.3 SR10; " + clause + ")";
+            return $"{verb} key '{name}' is an index data item: "
+                + edition.Cite(
+                    "\"An index data item can be referenced explicitly only in a SEARCH or SET statement, a relation condition, "
+                    + "the USING phrase of a Procedure Division header, or the USING phrase of a CALL statement\" (ISO §1985:VI.5.14.3 SR5; ",
+                    "\"An index data item may be referenced explicitly only in a SEARCH or SET statement, a relation condition, an "
+                    + "intrinsic function argument, an inline method invocation argument, the USING phrase of a procedure division "
+                    + "header, or the USING phrase of a CALL or INVOKE statement\" (ISO §2023:13.18.60.3 SR10; ")
+                + clause + ")";
 
         // SR6 d) / SR14 d): the key's SHAPE — its length must not vary.
         string? shape = null;
@@ -112,7 +130,13 @@ internal static class SortKeyAdmission
         else if (key.IsGroup && DataItem.HasVariableLengthSubordinate(key))
             shape = "a variable-length group (ISO §2023:8.5.1.12.1)";
         else if (key.IsGroup && DataItem.DescendantsOf(key).Any(d => d.OccursSpec is { Depending: not null }))
-            shape = "an occurs-depending group item (ISO §2023:13.18.38.4 GR8)";
+            shape = edition.Cite("an occurs-depending group item (a group item that contains a variable occurrence data item)",
+                "an occurs-depending group item (ISO §2023:13.18.38.4 GR8)");
+        // COBOL-85's rule is one sentence about that one shape (§1985:XI.4.4.3 SR4 c), §1985:XI.4.1.3 SR4 c)); the shapes a variable-length
+        // group and a dynamic-length item are COBOL-2002's.
+        if (shape is not null && edition.Year < 2002)
+            return $"{verb} key '{name}' is {shape}: \"The data items identified by key data-names must not be group items that "
+                + $"contain variable occurrence data items\" ({clause} c))";
         if (shape is not null)
             return $"{verb} key '{name}' is {shape}: \"A key data item shall not "
                 + (rules switch
@@ -128,4 +152,8 @@ internal static class SortKeyAdmission
                 + $"\" ({clause} d))";
         return null;
     }
+
+    /// <summary>The relative pronoun COBOL-85's key rule prints: "which" in the SORT statement's SR4 e (§1985:XI.4.4.3), "that" in the
+    /// MERGE statement's (§1985:XI.4.1.3).</summary>
+    private static string Relative1985(string verb) => verb == "SORT" ? "which" : "that";
 }

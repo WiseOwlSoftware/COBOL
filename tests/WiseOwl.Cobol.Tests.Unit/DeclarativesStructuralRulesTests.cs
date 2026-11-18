@@ -195,7 +195,7 @@ public sealed class DeclarativesStructuralRulesTests
                    NONDECL-P.
                        ADD 1 TO N.
             """), level);
-        Assert.Equal(2, d.Count(x => x.Contains("COBOL2375") && x.Contains("§2023:14.9.49.3 SR3")));
+        Assert.Equal(2, d.Count(x => x.Contains("COBOL2375") && x.Contains("nondeclarative procedures")));
         Assert.DoesNotContain(d, x => x.Contains("COBOL2376"));
     }
 

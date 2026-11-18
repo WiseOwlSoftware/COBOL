@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
+
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
@@ -18,11 +20,19 @@ public sealed record EditionCite(string Iso2023, string? Sequential1985 = null, 
 {
     /// <summary>The citation of the rule in force at <paramref name="dialectLevel"/> for a file of <paramref name="organization"/>.</summary>
     public string At(int dialectLevel, FileOrganization organization) =>
-        dialectLevel >= 2002 || Sequential1985 is not { } sequential ? Iso2023
-        : organization switch
+        Sequential1985 is not { } sequential ? Iso2023
+        : EditionInfo.Of(dialectLevel).Cite(organization switch
         {
             FileOrganization.Relative => Relative1985 ?? sequential,
             FileOrganization.Indexed => Indexed1985 ?? sequential,
             _ => sequential,
-        };
+        }, Iso2023);
+
+    /// <summary>The citation for a rule asked of procedure-names that no one file organization owns (a USE procedure of any file
+    /// statement): the 2023 number, or at COBOL-85 each module's own clause that states it, joined, the rule being restated once
+    /// per organization (the sequential clause alone where the others print none).</summary>
+    public string AtEveryOrganization(int dialectLevel) =>
+        Sequential1985 is not { } sequential ? Iso2023
+        : EditionInfo.Of(dialectLevel).Cite(
+            string.Join("; ", new[] { sequential, Relative1985 ?? sequential, Indexed1985 ?? sequential }.Distinct()), Iso2023);
 }

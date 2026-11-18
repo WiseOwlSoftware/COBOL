@@ -59,12 +59,12 @@ internal sealed class CheckClauseSubjectsPass : IBindPass
             // clause's subject question has no answer there and its error would name a category the item does not have
             // (kb/Work PB5191: `PIC S999 BLANK WHEN ZERO` at 2002+ drew COBOL1934 and then "this item is of category
             // alphanumeric"). The composition pass below still clears the clause.
-            if (item.BlankWhenZero && !pic.IsRecovery && DataBinder.BlankWhenZeroViolation(pic) is { } bwz)
+            if (item.BlankWhenZero && !pic.IsRecovery && DataBinder.BlankWhenZeroViolation(pic, binder.Edition.Edition) is { } bwz)
             {
                 using var _ = binder.Edition.At(item);
                 binder.Edition.Error(DiagnosticCatalog.ClauseSubjectCategory, $"data item '{name}': {bwz}");
             }
-            if (item.Justified && DataBinder.JustifiedViolation(pic) is { } jus)
+            if (item.Justified && DataBinder.JustifiedViolation(pic, binder.Edition.Edition) is { } jus)
             {
                 using var _ = binder.Edition.At(item);
                 binder.Edition.Error(DiagnosticCatalog.ClauseSubjectCategory, $"data item '{name}': {jus}");
@@ -80,8 +80,8 @@ internal sealed class CheckClauseSubjectsPass : IBindPass
         foreach (var item in binder.CompositionForest())
         {
             if (item.Pic is not { } pic) continue;
-            if (item.BlankWhenZero && DataBinder.BlankWhenZeroViolation(pic) is not null) item.BlankWhenZero = false;
-            if (item.Justified && DataBinder.JustifiedViolation(pic) is not null) item.Justified = false;
+            if (item.BlankWhenZero && DataBinder.BlankWhenZeroViolation(pic, binder.Edition.Edition) is not null) item.BlankWhenZero = false;
+            if (item.Justified && DataBinder.JustifiedViolation(pic, binder.Edition.Edition) is not null) item.Justified = false;
             if (item.Synchronized is not null && DataBinder.SynchronizedViolation(pic, binder.Edition.DialectLevel) is not null)
                 item.Synchronized = null;
         }

@@ -100,7 +100,7 @@ public static class LiteralScreen
                     GateFloatingPoint(t, edition, sink);
                 continue;
             }
-            if (SignedSlot(node) is ({ } sign, { } first)) clean &= ScreenSign(node, sign, first, sink);
+            if (SignedSlot(node) is ({ } sign, { } first)) clean &= ScreenSign(node, sign, first, edition, sink);
             if (gateFormats && node is ParserRuleContext rule && NumericLiteralOf(rule) is { } numeric && !clientWritten.Contains(rule.Start))
                 clean &= ScreenDigitCapacity(rule, numeric, edition, sink);
             for (int i = node.ChildCount - 1; i >= 0; i--) pending.Push(node.GetChild(i));
@@ -152,8 +152,10 @@ public static class LiteralScreen
         using var _ = sink.At(ExpansionToken.CursorOf(node.Start));
         string written = WrittenSource.Of(node);
         Error(sink, excess, excess == DiagnosticCatalog.DigitCapacityOver31
-            ? $"the numeric literal '{written}' has {digits} digits; this compiler limits a fixed-point numeric literal to the 31 "
-              + "digits §2023:8.3.3.3.2 requires an implementor to allow"
+            ? $"the numeric literal '{written}' has {digits} digits; " + edition.Cite(
+                "COBOL-85 requires an implementor to allow numeric literals of 1 through 18 digits, and this compiler allows no more "
+                + "(§1985:IV.4.2.2.2.2)",
+                "this compiler limits a fixed-point numeric literal to the 31 digits §2023:8.3.3.3.2 requires an implementor to allow")
             : $"the numeric literal '{written}' has {digits} digits; COBOL-85 limits fixed-point items and literals to 18 "
               + $"digits — 19–31 digits require --std 2002 or later (targeting COBOL-{edition.Year})");
         return false;
@@ -164,14 +166,14 @@ public static class LiteralScreen
     /// <see cref="ArithmeticFormationRules.SignAbuts"/>. A separated sign makes two things of one: <c>MOVE - 5 TO A</c>
     /// is refused, where <c>-5</c> is the literal. (<c>IF A = - 5</c> never reaches here: a relation operand is an
     /// arithmetic expression, whose unary-operator alternative the parser takes first.)</summary>
-    private static bool ScreenSign(IParseTree node, IToken sign, IToken first, IDiagnosticSink sink)
+    private static bool ScreenSign(IParseTree node, IToken sign, IToken first, EditionInfo edition, IDiagnosticSink sink)
     {
         if (ArithmeticFormationRules.SignAbuts(sign, first)) return true;
         using var _ = sink.At(ExpansionToken.CursorOf(sign));
         string written = WrittenSource.Of((ParserRuleContext)node);
         Error(sink, DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"the numeric literal `{written}` has its sign "
-            + $"separated from its digits — {ArithmeticFormationRules.SignRuleQuote}, and a space or line break is a "
-            + $"separator (ISO §2023:8.3.5). Write `{sign.Text}{first.Text}` if the sign belongs to the literal.");
+            + $"separated from its digits — {ArithmeticFormationRules.SignRuleQuote(edition)}, and a space or line break is a "
+            + $"separator (ISO {edition.Cite("§1985:IV.4.2.1 SR1", "§2023:8.3.5")}). Write `{sign.Text}{first.Text}` if the sign belongs to the literal.");
         return false;
     }
 
@@ -216,20 +218,20 @@ public static class LiteralScreen
     /// the parse fails, and a unit whose parse fails is never bound, so the bind-time walk would not see the one literal
     /// that explains the failure. <c>Frontend</c> asks it of the unit's token stream beside the other post-lex rules
     /// (<c>SeparatorRule</c>, <c>PictureSeparatorPeriodRule</c>), and the conditional-compilation stage of each directive
-    /// fragment's tree (<see cref="ReportUnterminated(IParseTree, Action{IToken, DiagnosticDescriptor, string})"/>), whose
+    /// fragment's tree (<see cref="ReportUnterminated(IParseTree, EditionInfo, Action{IToken, DiagnosticDescriptor, string})"/>), whose
     /// lexing is apart from the unit's. <see cref="CobolLiteral.SyntaxViolation"/> never sees one: an open literal is no
     /// well-formed literal, so it has no content for the §2023:8.3.3 rules to judge and no format to gate.</para>
     /// <para>A token on the <c>ABSENT_DEBUG_LINE</c> channel belongs to a debugging line that is a comment (kb/Work
     /// PB1705), and one of an embedded precompiler block's text is another language (kb/Work PB4341), so neither is a
     /// literal (<see cref="ProgramText"/>).</para></summary>
-    public static bool ReportUnterminated(IEnumerable<IToken> tokens, Action<IToken, DiagnosticDescriptor, string> report)
+    public static bool ReportUnterminated(IEnumerable<IToken> tokens, EditionInfo edition, Action<IToken, DiagnosticDescriptor, string> report)
     {
         bool clean = true;
         foreach (var t in tokens)
         {
             if (!ProgramText.Holds(t) || !LiteralTokens.Types.Contains(t.Type)
                 || !CobolLiteral.IsUnterminated(t.Text)) continue;
-            report(t, DiagnosticCatalog.LiteralUnterminated, UnterminatedMessage(t.Text));
+            report(t, DiagnosticCatalog.LiteralUnterminated, UnterminatedMessage(t.Text, edition));
             clean = false;
         }
         return clean;
@@ -239,30 +241,37 @@ public static class LiteralScreen
     /// text-manipulation stage reads those statements before the lexer runs, and its scanner makes an open literal run
     /// to the end of its line exactly as the lexer does. <paramref name="report"/> is called once, under COBOL5563, when
     /// <paramref name="literal"/> is open; true when it is closed.</summary>
-    public static bool ReportUnterminated(string literal, Action<DiagnosticDescriptor, string> report)
+    public static bool ReportUnterminated(string literal, EditionInfo edition, Action<DiagnosticDescriptor, string> report)
     {
         if (!CobolLiteral.IsUnterminated(literal)) return true;
-        report(DiagnosticCatalog.LiteralUnterminated, UnterminatedMessage(literal));
+        report(DiagnosticCatalog.LiteralUnterminated, UnterminatedMessage(literal, edition));
         return false;
     }
 
     /// <summary>The COBOL5563 message for <paramref name="literal"/>, a literal its line ends inside — the one wording,
     /// for a literal token and for a literal text-word of a COPY or REPLACE statement.</summary>
-    private static string UnterminatedMessage(string literal)
+    private static string UnterminatedMessage(string literal, EditionInfo edition)
     {
         // The opening delimiter is the first quotation symbol: a prefix letter is never one.
         string closing = literal[literal.IndexOfAny(Quotes)] == '"' ? "quotation mark (\")" : "apostrophe (')";
         // Shown without the spaces it runs on to its line's end (a fixed-form line's program-text area is space-filled).
         return $"the literal {CobolLiteral.Abbreviated(literal.TrimEnd(' '))} is not closed — its line ends before the closing "
-               + $"{closing}, and no continuation line continues it. ISO §2023:6.4.2: \"When such a literal is incomplete at "
-               + "the end of a line, the incomplete portion of the literal shall be terminated by a floating continuation "
-               + "indicator\" (in fixed form, §2023:6.3.5 1) also admits a hyphen in the indicator area of the next line)";
+               + $"{closing}, and no continuation line continues it. "
+               + edition.Cite(
+                   "ISO §1985:IV.7.2.2: \"if the continued line contains a nonnumeric literal without closing quotation mark, the "
+                   + "first nonblank character in area B of the continuation line must be a quotation mark\"",
+                   UnterminatedRule2002);
     }
 
-    /// <summary><see cref="ReportUnterminated(IEnumerable{IToken}, Action{IToken, DiagnosticDescriptor, string})"/> over
+    private const string UnterminatedRule2002 =
+        "ISO §2023:6.4.2: \"When such a literal is incomplete at the end of a line, the incomplete portion of the literal shall be "
+        + "terminated by a floating continuation indicator\" (in fixed form, §2023:6.3.5 1) also admits a hyphen in the indicator "
+        + "area of the next line)";
+
+    /// <summary><see cref="ReportUnterminated(IEnumerable{IToken}, EditionInfo, Action{IToken, DiagnosticDescriptor, string})"/> over
     /// every token of a parsed compiler-directive fragment — the tokens the fragment's own lexing produced.</summary>
-    public static bool ReportUnterminated(IParseTree tree, Action<IToken, DiagnosticDescriptor, string> report) =>
-        ReportUnterminated(Tokens(tree), report);
+    public static bool ReportUnterminated(IParseTree tree, EditionInfo edition, Action<IToken, DiagnosticDescriptor, string> report) =>
+        ReportUnterminated(Tokens(tree), edition, report);
 
     private static readonly char[] Quotes = ['"', '\''];
 

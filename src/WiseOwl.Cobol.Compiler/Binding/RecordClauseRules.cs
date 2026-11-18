@@ -177,7 +177,7 @@ internal static class RecordClauseRules
     /// is shipped by SR4's two.</summary>
     private static string Sr6Sentence(EditionContext edition) =>
         "data-name-1 shall describe an elementary unsigned integer in the "
-        + (edition.DialectLevel < 2002 ? "working-storage or linkage section" : "working-storage, local-storage, or linkage section");
+        + edition.Edition.Cite("working-storage or linkage section", "working-storage, local-storage, or linkage section");
 
     private static readonly RecordClauseRule[] Rules =
     [

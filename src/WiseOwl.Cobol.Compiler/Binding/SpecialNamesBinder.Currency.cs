@@ -25,14 +25,22 @@ public sealed partial class SpecialNamesBinder
     /// characters by <see cref="SwitchBindCurrency"/>; everything here is about what the operand IS as written).</summary>
     /// <param name="Name">The standard's name for the operand.</param>
     /// <param name="Rule">The syntax rule, "SR18" / "SR26".</param>
+    /// <param name="Rule1985">The COBOL-85 rule that states the same requirement (§1985:VI.4.5.3 SR12 for literal-6, the one
+    /// literal the 1985 clause has), or null for an operand the 1985 clause does not have: literal-8 is COBOL-2002's PICTURE
+    /// SYMBOL phrase, so below 2002 it is an edition gate and cites where it begins (kb/Work PB4950).</param>
     /// <param name="Requirement">The rule's own words, for the diagnostic.</param>
     /// <param name="RefusesHexadecimal">True when a literal in hexadecimal format is refused outright (SR26, from the 2014 text). A
     /// hexadecimal literal-7 is the opposite: SR19 REQUIRES the PICTURE SYMBOL phrase for it and NOTE 1 exempts its
     /// content from the compile-time currency-string limitations.</param>
-    private sealed record CurrencyOperand(string Name, string Rule, string Requirement, bool RefusesHexadecimal)
+    private sealed record CurrencyOperand(string Name, string Rule, string Requirement, bool RefusesHexadecimal, string? Rule1985 = null)
     {
+        /// <summary>The rule's citation in the edition in force, without the "ISO " lead-in.</summary>
+        public string CitationAt(EditionInfo edition) =>
+            edition.Cite(Rule1985 ?? $"§2023:12.3.7.3 {Rule}", $"§2023:12.3.7.3 {Rule}");
+
         public static CurrencyOperand Literal7 { get; } = new("literal-7", "SR18",
-            "an alphanumeric or national literal that is not a figurative constant", RefusesHexadecimal: false);
+            "an alphanumeric or national literal that is not a figurative constant", RefusesHexadecimal: false,
+            Rule1985: "§1985:VI.4.5.3 SR12");
 
         public static CurrencyOperand Literal8 { get; } = new("literal-8", "SR26",
             "an alphanumeric or national literal that is neither a figurative constant nor a hexadecimal literal",
@@ -68,7 +76,7 @@ public sealed partial class SpecialNamesBinder
             if (nn?.predefinedNull() is not null)
             {
                 PredefinedNullRule.Report(Edition, $"the {op.Name} of a CURRENCY SIGN clause — {op.Requirement} "
-                    + $"(ISO §2023:12.3.7.3 {op.Rule})");
+                    + $"(ISO {op.CitationAt(Edition.Edition)})");
                 return null;
             }
             // The literal's CLASS is the grammar's answer (§2023:8.3.3.3.1: "Numeric literals are of the class and category
@@ -111,7 +119,7 @@ public sealed partial class SpecialNamesBinder
                 value = new(k.Text, hex, k.Category is PicCategory.National ? LiteralClass.National : LiteralClass.Alphanumeric);
         }
         if (value is not null) return value;
-        Report($"CURRENCY SIGN {spelling}: {op.Name} shall be {op.Requirement} — this is {what} (ISO §2023:12.3.7.3 {op.Rule})");
+        Report($"CURRENCY SIGN {spelling}: {op.Name} shall be {op.Requirement} — this is {what} (ISO {op.CitationAt(Edition.Edition)})");
         return null;
 
         // The clause's one report: the pre-catalog COBOL0892 band of CURRENCY SIGN operand rules.
@@ -175,7 +183,7 @@ public sealed partial class SpecialNamesBinder
         // literal's own introduction gate refuses it.
         if (bare.Hexadecimal && Edition.DialectLevel >= 2014)
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
-                + "SYMBOL phrase (ISO " + (Edition.DialectLevel < 2023 ? "§2014:12.3.6.2 SR19" : "§2023:12.3.7.3 SR19") + ")");
+                + "SYMBOL phrase (ISO " + HexadecimalCurrencyRule + ")");
         if (bare.Text.Length != 1)
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
@@ -207,7 +215,7 @@ public sealed partial class SpecialNamesBinder
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "
                 + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO "
-                + (Edition.DialectLevel < 2014 ? "§2002:12.2.6.2 SR20b" : "§2023:12.3.7.3 r23b") + ")");
+                + CurrencyStringRule + ")");
             return false;
         }
         return true;
@@ -257,6 +265,27 @@ public sealed partial class SpecialNamesBinder
         if (exclusion.Excludes(c))
             Edition.Error(DiagnosticCatalog.CurrencySymbolRule, $"{what} '{c}': not a valid currency symbol — digits, "
                 + $"{exclusion.LetterText}, space, and + - , . * / ; ( ) \" = are excluded ({exclusion.Citation})");
+    }
+
+    /// <summary>The PICTURE SYMBOL rule for a hexadecimal currency literal: §2014:12.3.6.2 SR19 below 2023 (asked from 2014 only),
+    /// §2023:12.3.7.3 SR19 at 2023 (kb/Work PB4950).</summary>
+    private string HexadecimalCurrencyRule
+    {
+        get
+        {
+            const string y2014 = "§2014:12.3.6.2 SR19";
+            return Edition.Edition.Cite(y2014, "§2023:12.3.7.3 SR19", y2014);
+        }
+    }
+
+    /// <summary>The rule of the characters a currency string may not contain: 2002's SR20b (read at 85 too), 2014's and 2023's r23b.</summary>
+    private string CurrencyStringRule
+    {
+        get
+        {
+            const string y2002 = "§2002:12.2.6.2 SR20b", from2014 = "§2023:12.3.7.3 r23b";
+            return Edition.Edition.Cite(y2002, from2014, y2002, from2014);
+        }
     }
 }
 

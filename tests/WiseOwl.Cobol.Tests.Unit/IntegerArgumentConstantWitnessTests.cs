@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit;
@@ -85,7 +86,7 @@ public sealed class IntegerArgumentConstantWitnessTests
     [MemberData(nameof(Cases))]
     public void TheIntegerScreen_JudgesTheLiteralConstantByValue(string shape, BoundExpr expr, bool refused)
     {
-        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), ArithmeticMode.Native);
+        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), ArithmeticMode.Native, EditionInfo.Latest);
         if (refused)
             Assert.True(why is not null,
                 $"'{shape}' is not shown to be an integer for every valuation, so ISO §2023:15.3 type 6 does not admit it — but "
@@ -130,7 +131,7 @@ public sealed class IntegerArgumentConstantWitnessTests
     [MemberData(nameof(ArithmeticCases))]
     public void TheIntegerScreen_AsksTheArithmeticInForce(string shape, ArithmeticMode arithmetic, BoundExpr expr, bool refused)
     {
-        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), arithmetic);
+        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), arithmetic, EditionInfo.Latest);
         Assert.True(refused == why is not null,
             $"'{shape}': expected {(refused ? "refused" : "admitted")} under {arithmetic} arithmetic, whose intermediates keep "
             + $"{ArithmeticModes.IntermediateSignificantDigits(arithmetic)?.ToString() ?? "every integer"} digits (kb/Work PB5886 R3-1); got {why ?? "admitted"}");

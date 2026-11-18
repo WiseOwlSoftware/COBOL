@@ -297,9 +297,33 @@ The owner's decision of 2026-11-07: "a diagnostic cite the rule of the edition t
 directions: a construct valid in 1985 and 2023 cites the 2023 rule under `--std 2023` and the 1985 rule under `--std 85`. Where
 the edition in force has no such rule, the message cites the edition where the rule begins.
 
-- **One decider.** `EditionInfo.Cite(y1985, y2002, y2023, y2014)` (`src/WiseOwl.Cobol.Editions/EditionInfo.cs`) is the one choice
-  of a citation, or of the words a message quotes, by edition. A site never spells its own `DialectLevel < 2002 ? …` between two
-  citations. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
+- **One decider.** `EditionInfo.Cite(y1985, later, y2002, y2014)` (`src/WiseOwl.Cobol.Editions/EditionInfo.cs`) is the one choice
+  of a citation, or of the words a message quotes, by edition: `y1985` at COBOL-85 and `later` from COBOL-2002 on, each text written
+  once, with `y2002` and `y2014` overriding only where that edition's own text differs. A text two editions share is written once
+  at a site (a local or constant passed twice), never twice. A site never spells its own `DialectLevel < 2002 ? …` between two
+  texts. THE BUILD REFUSES IT: `EditionCiteAnalyzer` (`src/WiseOwl.Cobol.Analyzers`, a Roslyn analyzer every `src/` project but the
+  analyzer project itself loads through `src/Directory.Build.props`, that one named by its path) runs over the REAL compilation MSBuild builds (its sources,
+  every generator's output, the SDK's included, its references), and its finding is a build error, `WOCA0001`. (Until PB4950 round 7
+  a Unit test rebuilt each compilation by hand, and every change to how main builds broke the copy: project paths, a new project,
+  the System.Text.Json generator.) With the semantic model it computes the EDITION-DERIVED values as a fixed point across the
+  compilation's files: the seeds are `EditionInfo`'s public instance `int` properties and `bool`-of-`int` methods (read from its
+  symbol), `DialectLevel` and `Std`; a `bool` or `int` local, field, property, method or local function whose initializer or return
+  expression reads one is derived, a method only when every parameter carries an edition (one that also takes the program's data
+  answers a question about the program). ACROSS ASSEMBLIES the derivation travels by attribute: an analyzer sees one compilation and
+  a referenced assembly has no bodies, so a derived member another assembly can read (public, or protected in a public type; the
+  products grant `InternalsVisibleTo` only to tests) must carry `[EditionDerived]` (`WiseOwl.Cobol.Runtime.EditionDerivedAttribute`,
+  in the runtime because every product project that reads an edition references it), `WOCA0002` where it is declared, and a marked
+  member read from metadata is derived in the reading compilation. The rule that requires the mark computes the need for it, so the
+  marked set cannot drift (a seed list beside the code could). It refuses a conditional, a switch
+  expression or statement, an if/else, or an if that returns before a second return, choosing between two strings (written, or of
+  type string and not a call) on a condition that reads a derived value, and an interpolation hole whose own value a derived member
+  computes (a string, or a number spliced into a citation such as `§{Printed(edition)}:8.12`). Exempt: `EditionInfo`'s own file (the
+  decider), generated
+  code and the code generator (whose strings are emitted C#). `EditionInfo`'s `bool` properties are named rule facts, a choice that
+  can answer null (a message or none) is a verdict, and a hole that prints the compile edition names it. `EditionCiteAnalyzerTests`
+  (Unit) runs the analyzer over planted source through `CompilationWithAnalyzers`, each shape, each alias and the cross-assembly mark,
+  and pins its edition list to `EditionInfo.All`; a src file planted with a violation fails `dotnet build` with `WOCA0001`. Generated trees (an auto-generated header: the ANTLR parser, the `*.Table.cs` files) are analyzed like any other, so a member derived there is derived where it is read; which trees hold no message is the analyzer's own path rule. `AnalyzerWiringDriftTests` (RepoDrift) has MSBuild evaluate every committed `src/**/*.csproj` in Debug and Release and requires each but the analyzer project itself (named by its path, never by a property a project can set on itself) to hold the analyzer reference and leave `RunAnalyzers` and `RunAnalyzersDuringBuild` on, so a clean build stays evidence. Both rules carry `NotConfigurable`, so NoWarn, a lowered severity, an `.editorconfig` or `.globalconfig` entry and `#pragma` cannot silence them (`EditionCiteAnalyzerTests` plants each form). A `[SuppressMessage]` or `[UnconditionalSuppressMessage]` naming a rule silences it after the tag is read, and so would silence any analyzer diagnostic refusing it, the refusal's own id included. So the refusal is WOCA0003, a `#error` (a compiler error, CS1029) that the analyzers' generator `SuppressionRefusal` writes for each such attribute. The attribute is bound and its checkId folded, so no spelling or constant evades it; an id mentioned in a Justification, Scope, Target or MessageId silences nothing and is not refused. `AnalyzerWiringDriftTests` refuses a NoWarn or WarningsNotAsErrors entry naming a rule. Symbols are compared as the member they stand for: a reduced extension method or a member of a constructed generic type is taken through `ReducedFrom` and `OriginalDefinition`. A read through an interface, abstract or virtual member is derived when a member that implements or overrides it is. The climb stops at our assemblies: this compilation's, and every referenced assembly that declares the mark's type or references one that does. A framework or third-party member (`object.GetHashCode`, `IReadOnlyCollection<T>.Count`) is never derived, so an unrelated read of it chooses nothing. An internal member counts as readable from another assembly when its assembly grants `InternalsVisibleTo` to an assembly that is not a test. Every src project but the analyzer project itself loads the analyzer, the exemption named by path, never by a property a project sets. The analyzer is built under one configuration per build: every reference names its configuration (Release on its own; a solution build's configuration mapping overrides the metadata, and the solution's configuration then holds), and a nested build in src (an MSBuild task, or an Exec of dotnet build, publish, pack, test or msbuild) builds no references. `AnalyzerWiringDriftTests` refuses one that does. MSBuild can drop only a named list of inherited global properties, never all of them. `AnalyzerBuildsOnceDriftTests` (RepoDrift, whose key moves with every src project and build file, so the code lane's gate runs it) builds the runtime in Release twice and requires one configuration and no rebuild. Every quotation a COBOL-85
+  message carries is the 1985 text of the rule it cites, checked with `cite.py` over the rendered diagnostics of every refusal at 85. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
   `SearchAllFormat2Rules.Rule`, which maps 2023's SR6 to SR13 of SEARCH to each edition's rule).
 - **Declines.** A descriptor whose `Title` is its message (a decline, composed by `EditionContext.Declined`) carries
   `Title1985`, the message at 85 citing the 1985 ground; `Declined` renders it through `Cite`.
@@ -309,12 +333,55 @@ the edition in force has no such rule, the message cites the edition where the r
 - **The net.** `EditionCitationNet` (Conformance) asks every diagnostic of every refusal the wiseowl manifest compiles at 85:
   one that cites a rule of 2002, 2014 or 2023 (in the edition form, or the prose "ISO/IEC 1989:2002") and no rule of the 1985
   standard or its 1989 amendment fails, unless it is
-  an edition gate, its code's descriptors record `No1985Rule`, or its code is on
-  `conformance-suite/wiseowl/edition-citation-pending-1985.json`. That file is a RATCHET owned by kb/Work PB4950: code → refusal
-  id → the exact number of offending lines. A count that grows fails (a new site, under a listed code too); one that shrinks
-  fails until it is lowered; one at 0 fails until its entry is removed; an entry whose refusal is not compiled at 85 fails
-  `EditionCitationNetDriftTests`. It was laid at 301 codes (1656 lines of the 2459 refusals at 85); 298 codes, 1482 entries and
-  1638 lines remain after the first fixes.
+  an edition gate (its words include "(targeting COBOL-85)", which a rule of a construct COBOL-2002 introduced that still fires
+  at 85 says too) or its code's descriptors record `No1985Rule`. It is a plain rule with no allowance list: it was laid as a
+  ratchet of 301 codes (1656 lines of the 2459 refusals at 85), and the PB4950 sweep emptied it, so the ratchet file and its
+  grow/shrink arithmetic do not exist. `EditionCitationNetDriftTests` plants an offending line and each of the three ways out.
+- **Where a family of sites shares one rule, the 1985 arm lives with the rule, not at the sites** (kb/Work PB4950 slice 1):
+  `UniqueReferenceRule` (Compiler/Binding) writes the §1985:IV.4.3.8 / §2023:8.4.2.1 "a reference identifies one resource"
+  citation and quotation once, through `Cite`, for every undefined-name, wrong-kind-of-name and unidentified-procedure message;
+  a table row carries its 1985 text as data (`ClausePlacementRule.Rule1985`/`Sentence1985`, `OperandPosition.Rule1985`,
+  `PlacementRules.SequenceRule.Cite1985`/`Shall1985`, `LiteralPosition`'s `Cite1985`), so the next row of a table is cited by
+  adding its 1985 fields. A refusal's `expect` in `conformance-suite/wiseowl/diagnostics` names a phrase every edition's
+  message holds, never a citation of one edition.
+- **A rule with no numbered 1985 counterpart is cited by the 1985 general format it is read from** (kb/Work PB4950 slice 2): the
+  file control entry of each organization prints the clauses it takes, so `FileControlKeyRules.Rules1985` carries rows whose id is
+  `1985-FMT-<clause>-<key>` (a clause WRITTEN where the 1985 format of its organization does not print it; an ACCESS RANDOM or
+  DYNAMIC relative file without the RELATIVE KEY its format prints), re-derived by `FileControlKeyRuleDriftTests` from the clause's
+  "General Format" subsection. A 1985 row REPLACES the 2023 rows of the id it names in `Supersedes` that report under the same
+  diagnostic (`FileControlKeyRule.Replaces`): one 2023 id can hold two arms under two codes (SR11's sort-merge sentence, COBOL1900,
+  and its organization sentence, COBOL2912, whose 1985 row is the sequential entry's format, §1985:VII.2.3.2). A clause COBOL-2002
+  introduced, written under `--std 85` past its edition gate, says "requires COBOL-2002 (targeting COBOL-85)" (the net's own
+  edition-gate phrase) beside the 2023 rule (the report writer's PRESENT WHEN and VARYING). `SortKeyAdmission` and
+  `CorrespondingOperandRule` take the edition: the sort-merge key rule is `§1985:XI.4.4.3 SR4` / `§1985:XI.4.1.3 SR4` with its own
+  letters (a, c, e, f), CORRESPONDING's group rule is `§1985:VI.6.19.3 SR3` (MOVE), `VI.6.6.3 SR1` (ADD), `VI.6.26.3 SR1` (SUBTRACT).
+- **A rule whose words live in the runtime takes its citations as data** (kb/Work PB4950 slice 3): `MoveValidity` (Runtime, which has no
+  edition) states Table 16's reasons once, and each of its checks (`Table16Refusal`, `BinaryWidthRefusal`, `FigurativeRefusal`) takes
+  a `MoveCitations` and has no other form: the compiler passes `MoveTable16.CitationsOf(edition)` (the 2023 numbers, or §1985:VI.6.19.4
+  GR3a/b/c at 85, and the edition gate's phrase for a cell COBOL-85 lacks), and the run time, which has no edition, passes
+  `MoveCitations.Iso2023` explicitly (`ActivationRelations.MoveViolation`). The functions' argument rules have one place, `IntrinsicCitations.Clause`: at 85 the
+  paragraph of the 1989 Intrinsic Function module (`IntrinsicCatalog.Paragraph1989`, derived from the catalog and pinned to the
+  transcription's headings by `Intrinsic1989ModuleDriftTests`), and for a function a later edition introduced the 2023 clause with
+  the gate's "(targeting COBOL-85)". A construct COBOL-2002 introduced whose rule still fires at 85 (a page width, a multiple COLUMN
+  clause, the national category) says so the same way (`NotInCobol85`, `MoveCitations`).
+- **A shared screen takes its rule as data with the 1985 arm beside it** (kb/Work PB4950 slice 4): `EditionRule(In1985, InLater)` for the
+  receiver-category screen of the arithmetic statements, `IndexNameRule` for every index-name-is-no-identifier message,
+  `OpenTapePhraseRule.OrganizationClause1985`, `LevelNumberRules.Arm.Citation1985`, `ClauseList.Format1985` and `ClosedFormat.Clause1985`
+  for the general-format tables. The next row of such a table is cited by writing its 1985 field.
+- **The parser's error strategy reads the edition through ONE member**, `CobolParserCoreBase.EditionInForce` (a diagnosis-only read
+  recorded in `EditionReadDriftTests`), asked by the strategy's one `EditionOf`, which refuses a recognizer that is no COBOL parser
+  as an internal error rather than default to a later edition's text: the strategy's one `CiteAt`, `AdmittedKinds`, `GoToFormats`, the empty-block message, the
+  extension-reserved-word sentence (§1985:I.1.5.2.5.2) and a closed format's `Refusal(word, owner, edition)` all take it. No other parser member answers an edition question for a message.
+- **A rule that differs by I-O module is chosen by the file** (kb/Work PB4950 slice 6): COBOL-85 states a READ, REWRITE, DELETE,
+  WRITE or SAME rule once per module (sequential VII, relative VIII, indexed IX, sort-merge XI), so `StatementValidation.IoRule`
+  picks the module's text by the file's organization and every later edition's single text by `Cite`. The parse-stage messages
+  (statement shape, phrase association, mnemonic-name suffix, SEARCH shape) and `MnemonicNameSlot.SuffixMessage` receive the
+  strategy's `CiteAt` as a delegate.
+- **Slice 7 seams** (kb/Work PB4950): `ArithmeticOperandRule` writes the arithmetic-operand rule once (§1985:VI.6.2.1 / §2023:8.8.1.1) for
+  the expression and subscript binders; a closed general format's row carries its 1985 locator (`ClosedFormat.Clause1985`) and renders
+  through `Refusal(word, owner, edition)`; `StartRule` and
+  `OpenTapePhraseRule.OrganizationClause1985` pick the 1985 module by the file's organization; `MarginRCut.AccountAt`, `SeparatorRule.
+  ArithmeticOperatorViolations` and `ReceivingOperandForms.Rule.Message` take the edition.
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.

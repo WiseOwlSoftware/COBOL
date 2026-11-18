@@ -74,8 +74,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         {
             data.Edition.Error(DiagnosticCatalog.SearchAllTableNoKeyPhrase,
                 $"SEARCH ALL '{table.CobolName}': "
-                + Words("the OCCURS clause associated with identifier-1 shall contain the KEY phrase",
-                        "\"The description of identifier-1 in format 2 must also contain the KEY IS phrase in its OCCURS clause\"")
+                + data.Edition.Edition.Cite("\"The description of identifier-1 in format 2 must also contain the KEY IS phrase in its OCCURS clause\"",
+                        "the OCCURS clause associated with identifier-1 shall contain the KEY phrase")
                 + $" (ISO {Rule("SR7")}). Declare ASCENDING/DESCENDING KEY on the OCCURS clause, or "
                 + $"use the serial SEARCH (Format 1), whose WHEN admits any conditional expression ({Rule("SR6")}).");
             return false;
@@ -220,10 +220,10 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     {
         if (SoleDataReference(operand) is not { } dref)
             return Key(table, $"the WHEN phrase's receiving operand '{DataBinder.WrittenText(operand)}' is not a data-name; "
-                + Words("data-name-1 and all repetitions of data-name-2 \"shall be … referenced in the KEY phrase in "
-                        + "the OCCURS clause associated with identifier-1\"",
-                        "each data-name-1, data-name-2 \"must be referenced in the KEY IS phrase in the OCCURS clause "
-                        + "referenced by identifier-1\"")
+                + data.Edition.Edition.Cite("each data-name-1, data-name-2 \"must be referenced in the KEY IS phrase in the OCCURS clause "
+                        + "referenced by identifier-1\"",
+                        "data-name-1 and all repetitions of data-name-2 \"shall be … referenced in the KEY phrase in "
+                        + "the OCCURS clause associated with identifier-1\"")
                 + $" (ISO {Rule("SR8")})");
 
         var item = refs.Probe(dref)?.Item;
@@ -253,9 +253,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (pos < 0)
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not referenced in the KEY phrase of the OCCURS clause "
                 + $"associated with '{table.CobolName}' — "
-                + Words("data-name-1 and all repetitions of data-name-2 \"shall be referenced in the KEY phrase\"",
-                        "each data-name-1, data-name-2 \"must be referenced in the KEY IS phrase in the OCCURS clause "
-                        + "referenced by identifier-1\"")
+                + data.Edition.Edition.Cite("each data-name-1, data-name-2 \"must be referenced in the KEY IS phrase in the OCCURS clause "
+                        + "referenced by identifier-1\"",
+                        "data-name-1 and all repetitions of data-name-2 \"shall be referenced in the KEY phrase\"")
                 + $" (ISO {Rule("SR8")}). The KEY phrase declares {KeyList(keys)}.");
         referenced[pos] = true;
 
@@ -332,7 +332,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             ok &= Key(table, $"the condition-name '{name}' is defined with "
                 + (cond.Values.Count != 1 ? $"{cond.Values.Count} values" : "a THRU range")
                 + "; all referenced condition-names "
-                + Words("\"shall be defined as having only a single value\"", "\"must be defined as having only a single value\"")
+                + data.Edition.Edition.Cite("\"must be defined as having only a single value\"", "\"shall be defined as having only a single value\"")
                 + $" (ISO {Rule("SR9")})");
 
         // SR9 third clause — "The data-name associated with each condition-name shall be specified in the KEY
@@ -342,9 +342,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         {
             Key(table, $"the condition-name '{name}' is defined on '{cond.Parent.CobolName}', which is not "
                 + $"specified in the KEY phrase of the OCCURS clause associated with '{table.CobolName}' — "
-                + Words("\"the data-name associated with each condition-name shall be specified in the KEY phrase\"",
-                        "\"The data-name associated with a condition-name must appear in the KEY IS phrase in the OCCURS "
-                        + "clause referenced by identifier-1\"")
+                + data.Edition.Edition.Cite("\"The data-name associated with a condition-name must appear in the KEY IS phrase in the OCCURS "
+                        + "clause referenced by identifier-1\"",
+                        "\"the data-name associated with each condition-name shall be specified in the KEY phrase\"")
                 + $" (ISO {Rule("SR9")}). The KEY phrase declares {KeyList(keys)}.");
             return false;
         }
@@ -366,8 +366,10 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // asked of the diagnostic-free fold so ConcatFolder's own reporting does not run a second time here.
         if (operand.valueOperand()?.nonNumericLiteral() is { } nn)
             return !IsZeroLengthLiteral(nn) || Sending(table,
-                $"the sending operand {nn.GetText()} is a zero-length literal; \"neither literal-1 nor literal-2 "
-                + $"shall be zero-length literals\" (ISO {Rule("SR13")})");
+                $"the sending operand {nn.GetText()} is a zero-length literal; "
+                + data.Edition.Edition.Cite(
+                    "a nonnumeric literal has \"1 through 160 characters in length\", so none is zero-length (ISO §1985:IV.4.2.2.2.1)",
+                    $"\"neither literal-1 nor literal-2 shall be zero-length literals\" (ISO {Rule("SR13")})"));
 
         if (operand.valueOperand()?.arithmeticExpression() is not { } ae) return true;
         if (SoleDataReference(ae) is { } sole)
@@ -425,10 +427,10 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             if (!referenced[i])
                 ok &= Key(table, $"the WHEN phrase references the key '{keys[last].Written}' but not the more "
                     + $"significant key '{keys[i].Written}' that precedes it in the KEY phrase; when a key is referenced, "
-                    + Words("\"all preceding data-names in that KEY phrase or their associated condition-names shall also "
-                            + "be referenced\"",
-                            "\"all preceding data-names in the KEY IS phrase in the OCCURS clause referenced by identifier-1 "
-                            + "or their associated condition-names must also be referenced\"")
+                    + data.Edition.Edition.Cite("\"all preceding data-names in the KEY IS phrase in the OCCURS clause referenced by identifier-1 "
+                            + "or their associated condition-names must also be referenced\"",
+                            "\"all preceding data-names in that KEY phrase or their associated condition-names shall also "
+                            + "be referenced\"")
                     + $" (ISO {Rule("SR11")}). The KEY phrase declares {KeyList(keys)}, in descending order of "
                     + $"significance ({KeyOrderRule}).");
         return ok;
@@ -457,29 +459,25 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         int n = int.Parse(sr2023.AsSpan(2), System.Globalization.CultureInfo.InvariantCulture);
         string y2014 = $"§2014:14.9.34.2 SR{n - 2}";
         return data.Edition.Edition.Cite(
-            y1985: n switch { 6 => "§1985:VI.6.22.3 SR3", 7 => "§1985:VI.6.22.3 SR1", >= 12 => y2014, _ => "§1985:VI.6.22.3 SR4" },
+            n switch { 6 => "§1985:VI.6.22.3 SR3", 7 => "§1985:VI.6.22.3 SR1", >= 12 => y2014, _ => "§1985:VI.6.22.3 SR4" },
+            $"§2023:14.9.37.3 {sr2023}",
             y2002: n >= 12 ? y2014 : $"§2002:14.8.34.2 SR{n - 2}",
-            y2023: $"§2023:14.9.37.3 {sr2023}",
             y2014: y2014);
     }
 
     /// <summary>Format 2's general format in the edition in force.</summary>
     private string Format2 => data.Edition.Edition.Cite(
-        "§1985:VI.6.22.2 Format 2", "§2002:14.8.34.1 Format 2", "§2023:14.9.37.2 Format 2", "§2014:14.9.34.1 Format 2");
+        "§1985:VI.6.22.2 Format 2", "§2023:14.9.37.2 Format 2", y2002: "§2002:14.8.34.1 Format 2", y2014: "§2014:14.9.34.1 Format 2");
 
     /// <summary>The rule that makes a KEY phrase's order its order of significance, in the edition in force.</summary>
     private string KeyOrderRule => data.Edition.Edition.Cite(
-        "§1985:VI.5.8.4 GR4", "§2002:13.16.36.3 GR3", "§2023:13.18.38.4 GR3", "§2014:13.18.38.3 GR3");
-
-    /// <summary>The words a message quotes from the rule it cites: the 1985 text's at COBOL-85, the later editions'
-    /// (which share them) otherwise.</summary>
-    private string Words(string later, string y1985) => data.Edition.Edition.Cite(y1985, later, later);
+        "§1985:VI.5.8.4 GR4", "§2023:13.18.38.4 GR3", y2002: "§2002:13.16.36.3 GR3", y2014: "§2014:13.18.38.3 GR3");
 
     /// <summary>SR10's words (§1985:VI.6.22.3 SR4's at 85).</summary>
-    private string Sr10Words => Words(
-        "\"shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted "
-        + "by the first index-name associated with identifier-1\"",
+    private string Sr10Words => data.Edition.Edition.Cite(
         "\"must not be referenced in the KEY IS phrase in the OCCURS clause referenced by identifier-1 or be subscripted "
+        + "by the first index-name associated with identifier-1\"",
+        "\"shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted "
         + "by the first index-name associated with identifier-1\"");
 
     /// <summary>SR8's and SR9's shared subscript requirement, asked of the subscript AS WRITTEN: the position that

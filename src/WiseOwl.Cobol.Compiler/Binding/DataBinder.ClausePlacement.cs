@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 
@@ -54,8 +55,15 @@ internal sealed record ClausePlacementRule(
     DataClauseKind Clauses, ClausePlacementKind Kind, string Rule, string Sentence, DiagnosticDescriptor Code,
     DataClauseKind Excluded = DataClauseKind.None, EntrySections Sections = EntrySections.None,
     bool TypeDeclarationInAnySection = false, IReadOnlyList<int>? Levels = null,
-    IReadOnlyList<int>? ResidenceLevels = null)
+    IReadOnlyList<int>? ResidenceLevels = null, string? Rule1985 = null, string? Sentence1985 = null)
 {
+    /// <summary>⛔ The rule's citation in the edition in force (kb/Work PB4950): <see cref="Rule1985"/> at COBOL-85 where
+    /// ANSI X3.23-1985 states the rule, else <see cref="Rule"/>.</summary>
+    public string RuleIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Cite(Rule1985 ?? Rule, Rule);
+
+    /// <summary>The rule's own words in the edition in force: the 1985 sentence at COBOL-85 where the row carries one.</summary>
+    public string SentenceIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Cite(Sentence1985 ?? Sentence, Sentence);
+
     /// <summary>Why an entry at <paramref name="level"/> in <paramref name="section"/> breaks this
     /// <see cref="ClausePlacementKind.Residence"/> row, in words for the diagnostic — or null when it does not.
     /// ⛔ THE ONE residence test: <c>DataBinder.ScreenClausePlacement</c> asks it of a WRITTEN clause and
@@ -113,7 +121,8 @@ internal static class ClausePlacementRules
         // §2023:13.18.40.3 SR1 — the PICTURE row predates the table (kb/Work PB527) and keeps its own code.
         new(DataClauseKind.Picture, ClausePlacementKind.ElementaryOnly, "§2023:13.18.40.3 SR1",
             "The PICTURE clause may be specified only at the elementary level.",
-            DiagnosticCatalog.PictureAtElementaryLevel),
+            DiagnosticCatalog.PictureAtElementaryLevel,
+            Rule1985: "§1985:VI.5.9.3 SR1", Sentence1985: "A PICTURE clause can be specified only at the elementary item level."),
         // §2023:13.16.3 SR11 (restated for JUSTIFIED by §2023:13.18.32.3 SR1) — kb/Work PB512.
         new(DataClauseKind.Justified | DataClauseKind.BlankWhenZero, ClausePlacementKind.ElementaryOnly,
             "§2023:13.16.3 SR11",
@@ -123,19 +132,25 @@ internal static class ClausePlacementRules
         new(DataClauseKind.External, ClausePlacementKind.NotWith, "§2023:13.16.3 SR5",
             "The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES or "
             + "BASED clause.",
-            DiagnosticCatalog.DataClausePlacement, Excluded: DataClauseKind.Redefines | DataClauseKind.Based),
+            DiagnosticCatalog.DataClausePlacement, Excluded: DataClauseKind.Redefines | DataClauseKind.Based,
+            // BASED is not in 1985, so its half of the sentence has no 1985 counterpart; the REDEFINES half is IPC SR3.
+            Rule1985: "§1985:X.4.3.3 SR3",
+            Sentence1985: "The EXTERNAL clause and the REDEFINES clause must not be specified in the same data description entry."),
         // §2023:13.16.3 SR6 with §2023:13.18.27.3 SR1 b) — kb/Work PB518.
         new(DataClauseKind.Global, ClausePlacementKind.Residence, "§2023:13.16.3 SR6 / §2023:13.18.27.3 SR1 b)",
             "A data description entry whose level-number is 1 that is specified in the file, working-storage, "
             + "local-storage, or linkage section.",
             DiagnosticCatalog.DataClausePlacement,
-            Sections: EntrySections.File | EntrySections.WorkingStorage | EntrySections.LocalStorage | EntrySections.Linkage),
+            Sections: EntrySections.File | EntrySections.WorkingStorage | EntrySections.LocalStorage | EntrySections.Linkage,
+            Rule1985: "§1985:X.4.3.3 SR4",
+            Sentence1985: "The GLOBAL clause may be specified only in data description entries whose level-number is 01."),
         // §2023:13.18.22.3 SR1 — PB518's sibling: the registration scan's `externalLegal` filter was its only site.
         new(DataClauseKind.External, ClausePlacementKind.Residence, "§2023:13.18.22.3 SR1",
             "The EXTERNAL clause may be specified only in file description entries, in level 1 data description "
             + "entries in the working-storage section, and in level 1 type declarations.",
             DiagnosticCatalog.DataClausePlacement, Sections: EntrySections.WorkingStorage,
-            TypeDeclarationInAnySection: true),
+            TypeDeclarationInAnySection: true, Rule1985: "§1985:X.4.3.3 SR2",
+            Sentence1985: "The EXTERNAL clause may be specified only in data description entries in the Working-Storage Section whose level-number is 01."),
         // §2023:13.16.3 SR16 — kb/Work PB516. Both sentences in one row: the level half used to be a private arm of the
         // BASED block and the SECTION half was asked by nothing, so `FD F. 01 R BASED PIC X(10).` compiled — a
         // record area the file subsystem fills, described at once as an unallocated template. The TYPE / SAME AS
@@ -169,13 +184,16 @@ internal static class ClausePlacementRules
         new(DataClauseKind.Occurs, ClausePlacementKind.NotAtLevel, "§2023:13.18.38.3 SR1 a)",
             "The OCCURS clause shall not be specified in a data description entry that: a) Has a level-number of 01, "
             + "66, 77, or 88",
-            DiagnosticCatalog.DataClausePlacement, Levels: [1, 66, 77, 88]),
+            DiagnosticCatalog.DataClausePlacement, Levels: [1, 66, 77, 88],
+            Rule1985: "§1985:VI.5.8.3 SR1",   // the quotation is SR1's lead-in with its item a
+            Sentence1985: "The OCCURS clause must not be specified in a data description entry that: a. Has a level-number of 01, 66, 77, or 88"),
         // §2023:13.16.3 SR7 — kb/Work PB518. The FD-record half is ScreenFileRecordEntryNames.
         new(DataClauseKind.External | DataClauseKind.Global, ClausePlacementKind.DataNameRequired, "§2023:13.16.3 SR7",
             "The data-name format of the entry-name clause shall be specified for any entry containing the GLOBAL "
             + "or EXTERNAL clause, or for record descriptions associated with a file description entry that "
             + "contains the EXTERNAL or GLOBAL clause.",
-            DiagnosticCatalog.DataClausePlacement),
+            DiagnosticCatalog.DataClausePlacement, Rule1985: "§1985:X.4.3.3 SR5",
+            Sentence1985: "Data-name-1 must be specified for any entry containing the GLOBAL or EXTERNAL clause, or for record descriptions associated with a file description entry which contains the EXTERNAL or GLOBAL clause."),
     ];
 
     /// <summary>Every clause kind with NO row above, and where its placement is answered. ⛔ Not a work list:
@@ -234,7 +252,7 @@ public sealed partial class DataBinder
             if (why is null) continue;
             bool one = (subject & (subject - 1)) == 0;
             Edition.Error(rule.Code, $"{entryWhere}: the {DataClauseKinds.Name(subject)} clause{(one ? " is" : "s are")} "
-                + $"not admitted here — {why}. \"{rule.Sentence}\" (ISO {rule.Rule})");
+                + $"not admitted here — {why}. \"{rule.SentenceIn(Edition.Edition)}\" (ISO {rule.RuleIn(Edition.Edition)})");
             refused |= subject;
         }
         return refused;
@@ -292,10 +310,11 @@ public sealed partial class DataBinder
     /// §2023:13.18.44.3 SR1 (restated by §2023:13.16.3 SR4); the TYPEDEF row is §2023:13.16.3 SR4 alone, which nothing asked until
     /// kb/Work PB486, so `01 T PIC X(4) IS TYPEDEF.` compiled. §2023:13.16.3 SR4 ends "The remaining clauses may be
     /// written in any order", so this set is closed.</summary>
-    private static readonly (DataClauseKind Kind, string Rule, DiagnosticDescriptor Code)[] LeadingClauses =
+    private static readonly (DataClauseKind Kind, string Rule, string Rule1985, DiagnosticDescriptor Code)[] LeadingClauses =
     [
-        (DataClauseKind.Redefines, "§2023:13.18.44.3 SR1", DiagnosticCatalog.RedefinesEntryRule),
-        (DataClauseKind.Typedef, "§2023:13.16.3 SR4", DiagnosticCatalog.DataClausePlacement),
+        (DataClauseKind.Redefines, "§2023:13.18.44.3 SR1", "§1985:VI.5.10.3 SR1", DiagnosticCatalog.RedefinesEntryRule),
+        // TYPEDEF is no 1985 clause: its refusal at 85 is the edition gate's, so the rule is the same text at every edition.
+        (DataClauseKind.Typedef, "§2023:13.16.3 SR4", "§2023:13.16.3 SR4", DiagnosticCatalog.DataClausePlacement),
     ];
 
     /// <summary>§2023:13.16.3 SR4's positional sentences: "The REDEFINES clause, if specified, shall immediately follow
@@ -309,13 +328,13 @@ public sealed partial class DataBinder
     {
         var clauses = entry.Clauses;
         for (int i = 1; i < clauses.Count; i++)
-            foreach (var (kind, rule, code) in LeadingClauses)
+            foreach (var (kind, rule, rule1985, code) in LeadingClauses)
                 if (clauses[i].Kind == kind)
                     Edition.Error(code, $"'{cobolName ?? "FILLER"}': the {DataClauseKinds.Name(kind)} clause follows "
                         + $"{DataClauseKinds.Name(clauses[0].Kind)} but shall immediately follow the entry-name clause"
                         + (kind == DataClauseKind.Redefines
                             ? ", or the level-number when the entry-name clause is not specified" : "")
-                        + $" (ISO {rule})");
+                        + $" (ISO {Edition.Edition.Cite(rule1985, rule)})");
     }
 
     internal static string SectionWords(EntrySection section) => section switch
@@ -328,15 +347,22 @@ public sealed partial class DataBinder
         _ => section.ToString(),
     };
 
-    internal static string? BlankWhenZeroViolation(PicInfo pic)
+    internal static string? BlankWhenZeroViolation(PicInfo pic, EditionInfo edition)
     {
         if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
-            return "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
-                + "character-string as category numeric-edited or as numeric without the picture symbol 'S' "
-                + $"(ISO §2023:13.18.8.3 SR1) — this item is of category {ItemCategory.CategoryName(pic)}";
+            return edition.Cite(
+                    "the BLANK WHEN ZERO clause can be specified only for an elementary item whose PICTURE is specified as numeric or "
+                    + "numeric edited (ISO §1985:VI.5.4.3 SR1)",
+                    "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
+                    + "character-string as category numeric-edited or as numeric without the picture symbol 'S' (ISO §2023:13.18.8.3 SR1)")
+                + $" — this item is of category {ItemCategory.CategoryName(pic)}";
         if (!UsageFamilies.IsDisplayOrNational(pic.Usage))
-            return "the subject of a BLANK WHEN ZERO clause shall be implicitly or explicitly described as usage "
-                + $"display or usage national (ISO §2023:13.18.8.3 SR2) — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
+            return edition.Cite(
+                    "the numeric or numeric edited data description entry to which the BLANK WHEN ZERO clause applies must be described, "
+                    + "either implicitly or explicitly, as USAGE IS DISPLAY (ISO §1985:VI.5.4.3 SR2)",
+                    "the subject of a BLANK WHEN ZERO clause shall be implicitly or explicitly described as usage display or usage "
+                    + "national (ISO §2023:13.18.8.3 SR2)")
+                + $" — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
         return null;
     }
 
@@ -353,12 +379,12 @@ public sealed partial class DataBinder
                 + "whose usage is INDEX\")"
             : null;
 
-    internal static string? JustifiedViolation(PicInfo pic)
+    internal static string? JustifiedViolation(PicInfo pic, EditionInfo edition)
     {
         if (pic.Category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             || pic.EditMask is not null)
             return "the JUSTIFIED clause may be specified only for a data item whose category is alphabetic, "
-                + $"alphanumeric, boolean, or national (ISO §2023:13.18.32.3 SR3) — this item is of category "
+                + $"alphanumeric, boolean, or national (ISO {edition.Cite("§1985:VI.5.6.3 SR3", "§2023:13.18.32.3 SR3")}) — this item is of category "
                 + ItemCategory.CategoryName(pic);
         return null;
     }

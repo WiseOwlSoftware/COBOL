@@ -37,6 +37,15 @@ public sealed class FileControlKeyRuleSpecTests
         ["§2023:12.4.5.13.3 SR1"] = "§1985:IV.4.3.8.2.3 SR4",
         ["§2023:12.4.5.13.3 SR2"] = "§1985:VIII.2.4.3 SR2",
         ["§2023:12.4.5.13.3 SR3"] = "§1985:VIII.2.4.3 SR3",
+        // kb/Work PB4950: the alternate key's leftmost position is §1985:IX.2.5.3 SR4. The format-level rules have no numbered 1985
+        // rule: a RECORD KEY or ALTERNATE RECORD KEY clause is printed by the indexed entry alone (§1985:IX.2.3.2), a RELATIVE KEY by the
+        // relative entry (§1985:VIII.2.3.2), and RANDOM or DYNAMIC access prints it in the ACCESS MODE format (§1985:VIII.2.4.2).
+        ["§2023:12.4.5.6.3 SR4"] = "§1985:IX.2.5.3 SR4",
+        ["§2023:12.4.5.2 SR8"] = "§1985:IX.2.3.2",
+        ["§2023:12.4.5.2 SR9"] = "§1985:VIII.2.3.2",
+        ["§2023:12.4.5.2 SR10"] = "§1985:VIII.2.4.2",
+        // kb/Work PB4950: the required-clause rule cites the general format of the 1985 module that holds the file.
+        ["ISO §2023:12.4.5.1 Format 1"] = "ISO §1985:IX.2.3.2",
         ["category alphanumeric or category national"] = "the category alphanumeric (ANSI §1985:IX.2.7.3 SR2)",
         ["category alphanumeric or national"] = "the category alphanumeric (ANSI §1985:IX.2.5.3 SR2)",
     };
@@ -209,9 +218,10 @@ public sealed class FileControlKeyRuleSpecTests
             "WORKING-STORAGE SECTION.\n01 W-RK PIC 9(4).", EntryOnlyBody);
         foreach (int edition in AllEditions)
         {
-            int hits = Diagnostics(source, edition).Count(e => e.Contains(citation, StringComparison.Ordinal));
+            string cited = CitationAt(citation, edition);
+            int hits = Diagnostics(source, edition).Count(e => e.Contains(cited, StringComparison.Ordinal));
             Assert.True(hits == (expectRefusal ? 1 : 0),
-                $"[{organization.Trim()} + {clauses.Trim()}] @ {edition}: {citation} reported {hits}×, expected "
+                $"[{organization.Trim()} + {clauses.Trim()}] @ {edition}: {cited} reported {hits}×, expected "
                 + (expectRefusal ? 1 : 0));
         }
     }
@@ -225,10 +235,11 @@ public sealed class FileControlKeyRuleSpecTests
         string record = "01 F-REC.\n   05 F-KEY PIC X(3).\n   05 F-D PIC X(4).";
         foreach (int edition in AllEditions)
         {
+            string cited = CitationAt("§2023:12.4.5.2 SR8", edition);
             int entryOnly = Diagnostics(Organized("", "        RECORD KEY IS F-KEY.", record, "", EntryOnlyBody), edition)
-                .Count(e => e.Contains("§2023:12.4.5.2 SR8", StringComparison.Ordinal));
+                .Count(e => e.Contains(cited, StringComparison.Ordinal));
             int withVerb = Diagnostics(Organized("", "        RECORD KEY IS F-KEY.", record, "", WithKeyedVerbBody), edition)
-                .Count(e => e.Contains("§2023:12.4.5.2 SR8", StringComparison.Ordinal));
+                .Count(e => e.Contains(cited, StringComparison.Ordinal));
             Assert.Equal(1, entryOnly);
             Assert.Equal(1, withVerb);
         }
@@ -269,7 +280,7 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions)
         {
             var entryOnly = Diagnostics(Relative(access, "        .", "01 F-REC PIC X(8).", "", EntryOnlyBody), edition);
-            Assert.Contains(entryOnly, e => e.Contains("§2023:12.4.5.2 SR10", StringComparison.Ordinal));
+            Assert.Contains(entryOnly, e => e.Contains(CitationAt("§2023:12.4.5.2 SR10", edition), StringComparison.Ordinal));
             Assert.DoesNotContain(entryOnly, e => e.Contains("§2023:12.4.5.13 —", StringComparison.Ordinal));
         }
     }
@@ -420,7 +431,9 @@ public sealed class FileControlKeyRuleSpecTests
             Assert.All(hits, hit =>
             {
                 Assert.Contains("file 'F' has no ASSIGN clause", hit, StringComparison.Ordinal);
-                Assert.Contains("ISO §2023:12.4.5.1", hit, StringComparison.Ordinal);
+                // At COBOL-85 the general format of the entry's module: §1985:VII.2.3.2, VIII.2.3.2, IX.2.3.2 or XI.2.3.2 (kb/Work PB4950).
+                if (edition < 2002) Assert.Matches(@"ISO §1985:(VII|VIII|IX|XI)\.2\.3\.2", hit);
+                else Assert.Contains("ISO §2023:12.4.5.1", hit, StringComparison.Ordinal);
             });
         }
     }
@@ -544,7 +557,7 @@ public sealed class FileControlKeyRuleSpecTests
             foreach (string body in new[] { EntryOnlyBody, WithKeyedVerbBody })
             {
                 int hits = Diagnostics(Indexed(keyClauses, record, "", body), edition)
-                    .Count(e => e.Contains("§2023:12.4.5.6.3 SR4", StringComparison.Ordinal));
+                    .Count(e => e.Contains(CitationAt("§2023:12.4.5.6.3 SR4", edition), StringComparison.Ordinal));
                 Assert.True(hits == expected,
                     $"[{keyClauses.Replace('\n', ' ').Trim()}] @ {edition}: SR4 reported {hits}×, expected {expected}");
             }

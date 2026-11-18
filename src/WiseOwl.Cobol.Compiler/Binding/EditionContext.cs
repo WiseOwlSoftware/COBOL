@@ -90,6 +90,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
     /// §2023:8.3.3.3.2 fixed-point literals 1–31 digits; the §2023:14.7 composite-of-operands rules; PICTURE digit
     /// positions) — delegated to <see cref="Edition"/>.</summary>
+    [EditionDerived]
     public int MaxDigits => Edition.MaxDigits;
 
     // ── The diagnostic cursor and the source-line map (kb/Work PB82) ──────────────────────────────────────────
@@ -521,7 +522,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     public void Declined(DiagnosticDescriptor descriptor, string? seen = null)
     {
         // The descriptor's words in the edition in force: at 85 its 1985 ground when it has one (kb/Work PB4950, PB5875).
-        string title = Edition.Cite(descriptor.Title1985 ?? descriptor.Title, descriptor.Title, descriptor.Title);
+        string title = Edition.Cite(descriptor.Title1985 ?? descriptor.Title, descriptor.Title);
         string message = seen is null ? title : $"{seen}: {title}";
         if (Refuses(descriptor)) Error(descriptor.Code, message);
         else Warning(descriptor.Code, message);
@@ -565,14 +566,15 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         if (digits < 1)
         {
             Error(DiagnosticCatalog.DigitCapacityUnder1, $"{what} has {digits} digit positions; the number of digit "
-                + "positions of a numeric or fixed-point numeric-edited item shall range from 1 through 31 "
-                + "(ISO §2023:13.18.40.3 SR14)");
+                + "positions of a numeric or fixed-point numeric-edited item shall range from 1 through "
+                + Edition.Cite("18 (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)", "31 (ISO §2023:13.18.40.3 SR14)"));
             return;
         }
         if (Edition.DigitCapacityExcess(digits) is not { } excess) return;
         if (excess == DiagnosticCatalog.DigitCapacityOver31)
-            Error(excess, $"{what} has {digits} digit positions; ISO/IEC 1989 limits a numeric item to 31 "
-                + "digit positions (ISO §2023:13.18.40.3 SR14)");
+            Error(excess, $"{what} has {digits} digit positions; " + Edition.Cite(
+                "ANSI X3.23-1985 limits a numeric item to 18 digit positions (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)",
+                "ISO/IEC 1989 limits a numeric item to 31 digit positions (ISO §2023:13.18.40.3 SR14)"));
         else
             Error(excess, $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
                 + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})");

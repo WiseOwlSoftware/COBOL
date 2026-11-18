@@ -130,8 +130,8 @@ internal sealed class CheckGroupValueDeclarationsPass : IBindPass
                 using var _ = binder.Edition.At(item);
                 var subjectPic = GroupSubjectPic(item);
                 var groupSubject = ValueSubject.ForGroup(subjectPic.Length);
-                string groupWhere = $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item, "
-                    + "ISO §2023:13.18.63.3 SR13)";
+                string groupWhere = $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item, ISO "
+                    + binder.Edition.Edition.Cite("§1985:VI.5.15.6 GR3", "§2023:13.18.63.3 SR13") + ")";
                 if (item.RawValue is { } literal)
                     item.RawValue = binder.ValidateValueCategory(subjectPic, literal, groupWhere, groupSubject);
                 if (item.TableValues is { Count: > 0 } tableSpecs)
@@ -184,7 +184,7 @@ internal sealed class CheckGroupValueDeclarationsPass : IBindPass
                         + $"'{subject}', which specifies a group-level VALUE clause, and is described with a "
                         + $"{(sub.Justified ? "JUSTIFIED" : "SYNCHRONIZED")} clause — subordinate items within that "
                         + "group shall not be described with a JUSTIFIED or SYNCHRONIZED clause "
-                        + "(ISO §2023:13.18.63.3 SR14)");
+                        + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.15.6 GR4", "§2023:13.18.63.3 SR14")})");
 
                 // SR13 sentence 2 — no VALUE clause at subordinate levels within this group. GR5 initializes
                 // the AREA "without consideration for the individual elementary or group items contained
@@ -194,7 +194,7 @@ internal sealed class CheckGroupValueDeclarationsPass : IBindPass
                     binder.Edition.Error(DiagnosticCatalog.GroupValueSubordinate, $"data item '{name}' specifies a VALUE "
                         + $"clause and is subordinate to '{subject}', which specifies a group-level VALUE clause — "
                         + "the VALUE clause shall not be specified at subordinate levels within this group "
-                        + "(ISO §2023:13.18.63.3 SR13)");
+                        + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.15.6 GR3", "§2023:13.18.63.3 SR13")})");
 
                 // SR14 conjunct 2 — every data item subordinate to an ALPHANUMERIC group item carrying a VALUE
                 // shall be explicitly or implicitly usage DISPLAY. "Implicitly" is why this pass runs after
@@ -209,7 +209,7 @@ internal sealed class CheckGroupValueDeclarationsPass : IBindPass
                     + $"'{subject}', an alphanumeric group item specifying a group-level VALUE clause, and is "
                     + $"described with usage {UsageFamilies.UsageWord(usage)} — all data items subordinate to an alphanumeric "
                     + "group item shall be explicitly or implicitly described with usage DISPLAY "
-                    + "(ISO §2023:13.18.63.3 SR14)");
+                    + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.15.6 GR4", "§2023:13.18.63.3 SR14")})");
             }
         }
     }

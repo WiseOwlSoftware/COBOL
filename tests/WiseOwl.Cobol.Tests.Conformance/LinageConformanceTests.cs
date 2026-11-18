@@ -672,7 +672,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "SR19");
+        EditionHarness.AssertHasDiagnostic(diags, "§1985:VII.4.7.3 SR8");   // at --std 85 the rule is the 1985 sequential WRITE's (kb/Work PB4950)
     }
 
     [Fact]   // SR18: ADVANCING PAGE and END-OF-PAGE shall not both appear in one WRITE.
@@ -685,7 +685,8 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """), 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "SR18");
+        // Compiled at 85, so the 1985 rule: §1985:VII.4.7.3 SR7, the same sentence as §2023's SR18 (kb/Work PB4950).
+        EditionHarness.AssertHasDiagnostic(diags, "§1985:VII.4.7.3 SR7");
     }
 
     [Fact]   // SR18 names the END-OF-PAGE phrase (GR27 b)'s imperative-statement-1); SR19 and GR28 name the NOT
@@ -749,7 +750,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """, 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "SR13");
+        EditionHarness.AssertHasDiagnostic(diags, "§1985:VII.4.7.3 SR3");   // the 1985 rule at --std 85 (kb/Work PB4950), not 2023's SR13
     }
 
     [Fact]   // §1985:IV.4.3.8.1 SRL2.8: an UNQUALIFIED LINAGE-COUNTER is ambiguous when the program has two files with

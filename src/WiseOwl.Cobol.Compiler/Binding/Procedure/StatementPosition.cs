@@ -143,7 +143,15 @@ internal static partial class PlacementRules
     /// where the row is not available the edition gate (COBOL0902) is the whole answer and the rule is not asked.</summary>
     private sealed record SequenceRule(
         DiagnosticDescriptor Descriptor, string Cite, string Shall, Func<StatementPosition, string?> Violation,
-        string? Construct = null);
+        string? Construct = null, string? Cite1985 = null, string? Shall1985 = null)
+    {
+        /// <summary>The rule's citation and words in the edition in force: the 1985 ones at COBOL-85 where the row carries them
+        /// (kb/Work PB4950).</summary>
+        public string CiteIn(EditionInfo edition) => edition.Cite(Cite1985 ?? Cite, Cite);
+
+        /// <summary>The rule's own words in the edition in force.</summary>
+        public string ShallIn(EditionInfo edition) => edition.Cite(Shall1985 ?? Shall, Shall);
+    }
 
     /// <summary>§2023:14.9.14.3 SR1 — Format 1 only: a sentence by itself AND the only sentence of its paragraph.</summary>
     private static readonly SequenceRule ExitAlone = new(
@@ -156,20 +164,26 @@ internal static partial class PlacementRules
                 ? $"shares its sentence with {p.Count - 1} other statement{(p.Count == 2 ? "" : "s")}"
             : p.SentencesInParagraph != 1
                 ? $"is one of {p.SentencesInParagraph} sentences in its paragraph"
-            : null);
+            : null,
+        Cite1985: "ISO §1985:VI.6.14.3 SR1",
+        Shall1985: "The EXIT statement must appear only in a sentence by itself and comprise the only sentence in the paragraph");
 
     /// <summary>§2023:14.9.17.3 SR2 — a Format 1 GO TO ends its consecutive sequence of imperative statements.</summary>
     private static readonly SequenceRule GoToLast = new(
         DiagnosticCatalog.GoToNotLast, "ISO §2023:14.9.17.3 SR2",
         "A Format 1 GO TO that appears in a consecutive sequence of imperative statements shall be the last "
         + "statement in that sequence",
-        FollowedByAnImperative);
+        FollowedByAnImperative,
+        Cite1985: "ISO §1985:VI.6.15.3 SR4",
+        Shall1985: "If a GO TO statement represented by format 1 appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence");
 
     /// <summary>§2023:14.9.42.3 SR1 — STOP ends its block of code (read as the same imperative run; D-SEQ).</summary>
     private static readonly SequenceRule StopLast = new(
         DiagnosticCatalog.StopNotLast, "ISO §2023:14.9.42.3 SR1",
         "The STOP statement shall be specified only as the last statement in any discreet block of code",
-        FollowedByAnImperative);
+        FollowedByAnImperative,
+        Cite1985: "ISO §1985:VI.6.24.3 SR2",
+        Shall1985: "If a STOP RUN statement appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence");
 
     /// <summary>§1985:VI.6.15.3 SR3 — the X3.23-1985 target-less GO TO is the whole of its paragraph (kb/Work PB5087). The
     /// statement exists at 85 only (row <c>bare-goto-removed-2002</c>), so the rule is asked there.</summary>
@@ -220,7 +234,7 @@ internal static partial class PlacementRules
         if (SequenceRuleOf(s) is not { } rule
             || (rule.Construct is { } construct && !ConstructRegistry.IsAvailable(ctx.Edition.Edition, construct))
             || rule.Violation(StatementPosition.Of(s)) is not { } why) return false;
-        ctx.Edition.Error(rule.Descriptor, $"{rule.Shall} ({rule.Cite}); this one {why}");
+        ctx.Edition.Error(rule.Descriptor, $"{rule.ShallIn(ctx.Edition.Edition)} ({rule.CiteIn(ctx.Edition.Edition)}); this one {why}");
         return true;
     }
 }

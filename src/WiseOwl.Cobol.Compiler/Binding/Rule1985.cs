@@ -22,5 +22,5 @@ internal readonly record struct Rule1985(string Clause, int Ordinal, string Rule
     /// <summary>The citation at <paramref name="edition"/>: this rule's below COBOL-2002, and <paramref name="citation2023"/>
     /// (the same obligation as the 2023 text prints it, which 2002 and 2014 share) from COBOL-2002 on.</summary>
     public string CitationAt(EditionContext edition, string citation2023) =>
-        edition.DialectLevel < 2002 ? Citation : citation2023;
+        edition.Edition.Cite(Citation, citation2023);
 }

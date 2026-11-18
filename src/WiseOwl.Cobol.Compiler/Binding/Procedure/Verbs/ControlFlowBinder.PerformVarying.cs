@@ -63,9 +63,12 @@ internal sealed partial class ControlFlowBinder
         if (options.Length > 1)
             ctx.Edition.Error(DiagnosticCatalog.PerformInlineHeadMultipleControlPhrases,
                 $"an inline PERFORM carries {options.Length} loop-control phrases "
-                + $"({string.Join(", ", options.Select(PhraseName))}), and ISO §2023:14.9.28.2 Format 2 prints ONE "
-                + "bracket over the three stacked alternatives times-phrase / until-phrase / varying-phrase, so "
-                + "at most one may be specified. A VARYING phrase already carries its own UNTIL");
+                + $"({string.Join(", ", options.Select(PhraseName))}), and "
+                + ctx.Edition.Edition.Cite(
+                    "ISO §1985:VI.6.21.2 prints the TIMES, UNTIL and VARYING phrases in three formats of their own (Formats 2, 3 and 4), so "
+                    + "at most one may be specified. A VARYING phrase already carries its own UNTIL",
+                    "ISO §2023:14.9.28.2 Format 2 prints ONE bracket over the three stacked alternatives times-phrase / until-phrase / "
+                    + "varying-phrase, so at most one may be specified. A VARYING phrase already carries its own UNTIL"));
     }
 
     /// <summary>The phrase's own name as the general format prints it, for the cardinality diagnostic.</summary>
@@ -211,7 +214,8 @@ internal sealed partial class ControlFlowBinder
         // rather than to §2023:8.8.1.1 alone. PERFORM VARYING is a §2023:13.18.38.3 r7 index-name window (kb/Work R29) but
         // not on §2023:13.18.60.3 SR10's index-data-item list, and §2023:14.9.28.3 SR2 wants a numeric item (kb/Work PB215).
         BoundExpr e = host.Expr.BindIndexNameWindowOperandExpr(op,
-            "\"Each literal shall be numeric\" (ISO §2023:14.9.28.3 SR3)");
+            ctx.Edition.Edition.Cite("\"Each literal represents a numeric literal\" (ISO §1985:VI.6.21.3 SR5)",
+                "\"Each literal shall be numeric\" (ISO §2023:14.9.28.3 SR3)"));
         // GR12's window, applied before anything else can read the operand: an operand whose setting/augmenting
         // operation repeats carries its function activations to that operation (kb/Work PB437).
         if (IsPerEvaluationWindow(slot)) e = host.Udf.UdfAttachPerEvaluation(e, mark);
@@ -245,7 +249,7 @@ internal sealed partial class ControlFlowBinder
         if (!Admits(slot, kind) && e is not BoundExprError)
         {
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandShape,
-                $"'{text}' is not one of the operands ISO §2023:14.9.28.2's varying-phrase prints in this slot — "
+                $"'{text}' is not one of the operands ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.2", "§2023:14.9.28.2")}'s varying-phrase prints in this slot — "
                 + (slot is VaryingSlot.By
                     ? "the BY phrase's brace group is { identifier-4 | literal-2 }"
                     : "the FROM phrase's brace group is { identifier-3 | index-name-2 | literal-1 }")
@@ -312,12 +316,15 @@ internal sealed partial class ControlFlowBinder
         {
             // a) "The identifier in the associated FROM and BY phrases shall reference an integer data item."
             if (from.Kind is VaryingOperandKind.Identifier && !from.IsInteger) Sr(from.Text, "FROM", "SR4 a)",
-                "The identifier in the associated FROM and BY phrases shall reference an integer data item");
+                "The identifier in the associated FROM and BY phrases shall reference an integer data item",
+                "SR7a", "The identifier in the associated FROM and BY phrases must reference an integer data item");
             if (by.Present && by.Kind is VaryingOperandKind.Identifier && !by.IsInteger) Sr(by.Text, "BY", "SR4 a)",
-                "The identifier in the associated FROM and BY phrases shall reference an integer data item");
+                "The identifier in the associated FROM and BY phrases shall reference an integer data item",
+                "SR7a", "The identifier in the associated FROM and BY phrases must reference an integer data item");
             // b) "The literal in the associated FROM phrase shall be a positive integer."
             if (from.Kind is VaryingOperandKind.Literal && !(from.IsInteger && from.Literal is > 0m))
-                Sr(from.Text, "FROM", "SR4 b)", "The literal in the associated FROM phrase shall be a positive integer");
+                Sr(from.Text, "FROM", "SR4 b)", "The literal in the associated FROM phrase shall be a positive integer",
+                    "SR7b", "The literal in the associated FROM phrase must be a positive integer");
         }
         if (fromIsIndexName)
         {
@@ -337,16 +344,24 @@ internal sealed partial class ControlFlowBinder
             // same defect. §2023:14.9.28.4 GR12 makes the consequence concrete: the augment value would be 0, so no
             // induction variable ever changes and the UNTIL condition can never become true through the phrase.
             if (by.Literal is 0m)
-                Sr(by.Text, "BY", "SR6", "The literal in the BY phrase shall not be zero");
+                Sr(by.Text, "BY", "SR6", "The literal in the BY phrase shall not be zero",
+                    "SR9", "Literal in the BY phrase must not be zero");
             // c) of SR4 ("a nonzero integer") and of SR5 ("an integer") — the residue once zero is out.
             else if (varIsIndexName && !by.IsInteger)
-                Sr(by.Text, "BY", "SR4 c)", "The literal in the associated BY phrase shall be a nonzero integer");
+                Sr(by.Text, "BY", "SR4 c)", "The literal in the associated BY phrase shall be a nonzero integer",
+                    "SR7c", "The literal in the associated BY phrase must be a nonzero integer");
             else if (fromIsIndexName && !by.IsInteger)
                 Sr(by.Text, "BY", "SR5 c)", "The literal in the associated BY phrase shall be an integer");
         }
 
-        void Sr(string operand, string phrase, string rule, string quoted) =>
+        // The 1985 text states each of these rules in SR4 (the numeric elementary item), SR7 (an index-name in the VARYING or AFTER
+        // phrase) and SR9 (the BY literal), in its own words: a rule it does not have (SR5, an index-name FROM) cites the 2023 one.
+        void Sr(string operand, string phrase, string rule, string quoted, string? rule1985 = null, string? quoted1985 = null)
+        {
+            string later = $"§2023:14.9.28.3 {rule}: \"{quoted}\"";
             ctx.Edition.Error(DiagnosticCatalog.PerformVaryingOperandRule,
-                $"the PERFORM VARYING {phrase} operand '{operand}' violates ISO §2023:14.9.28.3 {rule}: \"{quoted}\"");
+                $"the PERFORM VARYING {phrase} operand '{operand}' violates ISO "
+                + ctx.Edition.Edition.Cite(rule1985 is null ? later : $"§1985:VI.6.21.3 {rule1985}: \"{quoted1985}\"", later));
+        }
     }
 }

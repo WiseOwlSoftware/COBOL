@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 using System.Text.RegularExpressions;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -57,7 +58,7 @@ public sealed class ReceivingOperandFormDriftTests
             Assert.True(ReceivingOperandForms.Rules.TryGetValue(form, out var rule),
                 $"NonReceivableForm.{form} has no row in ReceivingOperandForms.Rules — decide the rule that forbids it as a "
                 + "receiving operand before adding the form");
-            string message = rule.Message("X");
+            string message = rule.Message("X", EditionInfo.Latest);
             Assert.Matches(@"ISO §2023:8\.4\.3\.\d+\.3 SR\d", message);
             Assert.StartsWith("ISO §2023:8.4.3.", rule.Descriptor.IsoSection, StringComparison.Ordinal);
         }
