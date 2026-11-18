@@ -85,6 +85,34 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         });
     }
 
+    /// <summary>⛔ ONE SYMBOL FOR ONE MEMBER (kb/Work PB4950 round 11, R10-2). A reduced extension method (<c>e.IsOld()</c>) and a member
+    /// of a constructed generic type (<c>Rules&lt;int&gt;.Old</c>) are other symbols than the one declared: every symbol the analyzer
+    /// compares is taken through <c>ReducedFrom</c> and then <c>OriginalDefinition</c>, here and nowhere else.</summary>
+    private static ISymbol Normalize(ISymbol symbol) =>
+        (symbol is IMethodSymbol { ReducedFrom: { } reduced } ? reduced : symbol).OriginalDefinition;
+
+    /// <summary>The members a member stands for in a read through a base: the members it overrides and the interface members it
+    /// implements (kb/Work PB4950 round 11, R10-4). A read of <c>IRule.Old</c> or of an abstract <c>Old</c> runs whatever implements it,
+    /// so it is derived when an implementation in the compilation is.</summary>
+    private static IEnumerable<ISymbol> Bases(ISymbol member)
+    {
+        for (ISymbol? s = member switch { IMethodSymbol m => m.OverriddenMethod, IPropertySymbol p => p.OverriddenProperty, _ => null };
+             s is not null; s = s switch { IMethodSymbol m => m.OverriddenMethod, IPropertySymbol p => p.OverriddenProperty, _ => null })
+            yield return Normalize(s);
+        foreach (var explicitly in member switch
+                 {
+                     IMethodSymbol m => m.ExplicitInterfaceImplementations.Cast<ISymbol>(),
+                     IPropertySymbol p => p.ExplicitInterfaceImplementations.Cast<ISymbol>(),
+                     _ => [],
+                 })
+            yield return Normalize(explicitly);
+        if (member.ContainingType is not { } type) yield break;
+        foreach (var contract in type.AllInterfaces.SelectMany(i => i.GetMembers(member.Name)))
+            if (type.FindImplementationForInterfaceMember(contract) is { } implementation
+                && SymbolEqualityComparer.Default.Equals(Normalize(implementation), member))
+                yield return Normalize(contract);
+    }
+
     /// <summary>A declaration that can carry an edition-derived value: what it declares, what its bodies read, and whether they compare
     /// an edition-named value with an edition.</summary>
     private sealed class Declaration(ISymbol declared, ImmutableArray<ISymbol> reads, bool comparesEdition)
@@ -126,12 +154,12 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
             return names;
         }
 
-        private bool IsSeed(ISymbol s) =>
-            (s.ContainingType is { } ct && SymbolEqualityComparer.Default.Equals(ct.OriginalDefinition, editionInfo) && _seedNames.Contains(s.Name))
-            || (s is IPropertySymbol && s.Name is "DialectLevel" or "Std");
+        private bool IsSeed(ISymbol symbol) => Normalize(symbol) is var s &&
+            ((s.ContainingType is { } ct && SymbolEqualityComparer.Default.Equals(ct.OriginalDefinition, editionInfo) && _seedNames.Contains(s.Name))
+            || (s is IPropertySymbol && s.Name is "DialectLevel" or "Std"));
 
         private static bool IsMarked(ISymbol s) =>
-            s.OriginalDefinition.GetAttributes().Any(a => a.AttributeClass?.Name == AttributeName);
+            Normalize(s).GetAttributes().Any(a => a.AttributeClass?.Name == AttributeName);
 
         private bool NamesEdition(ExpressionSyntax e)
         {
@@ -200,7 +228,7 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
                 if (declared is null || TypeOf(declared) is not { SpecialType: SpecialType.System_Boolean or SpecialType.System_Int32 }) continue;
                 var list = bodies.ToList();
                 if (list.Count == 0) continue;
-                _declarations.Add(new Declaration(declared, [.. list.SelectMany(b => SymbolsIn(b, model, cancel))], list.Any(ComparesEditionName)));
+                _declarations.Add(new Declaration(Normalize(declared), [.. list.SelectMany(b => SymbolsIn(b, model, cancel))], list.Any(ComparesEditionName)));
             }
 
             // ── The candidate choices ──
@@ -255,21 +283,30 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         {
             var declarations = _declarations.ToList();
             var derived = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
-            bool Derived(ISymbol s) => derived.Contains(s) || IsMarked(s);
+            bool Derived(ISymbol s) => derived.Contains(Normalize(s)) || IsMarked(s);
+            bool Add(ISymbol s)
+            {
+                bool added = derived.Add(s);
+                foreach (var b in Bases(s))   // a read through the base member is a read of this one
+                    added |= derived.Add(b);
+                return added;
+            }
             for (bool grew = true; grew;)
             {
                 grew = false;
                 foreach (var d in declarations)
                     if (!derived.Contains(d.Declared) && (d.ComparesEdition || d.Reads.Any(s => IsSeed(s) || Derived(s))))
-                        grew |= derived.Add(d.Declared);
+                        grew |= Add(d.Declared);
             }
             foreach (var c in _candidates)
                 if (c.DerivedOnly ? c.Reads.Any(Derived) : c.Fires || c.Reads.Any(s => IsSeed(s) || Derived(s)))
                     end.ReportDiagnostic(Diagnostic.Create(Choice, c.Location, c.Kind));
-            foreach (var d in declarations)
-                if (derived.Contains(d.Declared) && !IsSeed(d.Declared) && VisibleToAnotherAssembly(d.Declared, internalsReachAnotherProduct)
-                    && !IsMarked(d.Declared))
-                    end.ReportDiagnostic(Diagnostic.Create(Unmarked, d.Declared.Locations.FirstOrDefault(), d.Declared.ToDisplayString()));
+            // Every derived member this compilation declares, a base member included (an interface or abstract member has no body of
+            // its own to be a declaration), that another assembly can read carries the mark.
+            foreach (var s in derived.Where(s => SymbolEqualityComparer.Default.Equals(s.ContainingAssembly, end.Compilation.Assembly)
+                         && s.Locations.Any(l => l.IsInSource)).OrderBy(s => s.Locations[0].SourceSpan.Start))
+                if (!IsSeed(s) && VisibleToAnotherAssembly(s, internalsReachAnotherProduct) && !IsMarked(s))
+                    end.ReportDiagnostic(Diagnostic.Create(Unmarked, s.Locations.First(l => l.IsInSource), s.ToDisplayString()));
         }
     }
 
@@ -337,9 +374,9 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         };
 
     private static IEnumerable<ISymbol> SymbolsIn(SyntaxNode node, SemanticModel model, CancellationToken cancel) =>
-        node.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>()
+        node.DescendantNodesAndSelf().OfType<SimpleNameSyntax>()
             .Select(id => model.GetSymbolInfo(id, cancel) is var info && info.Symbol is { } s ? s : info.CandidateSymbols.FirstOrDefault())
-            .OfType<ISymbol>();
+            .OfType<ISymbol>().Select(Normalize);
 
     private static bool IsEditionValue(ExpressionSyntax e) =>
         e is LiteralExpressionSyntax { Token.Value: int v } && EditionValues.Contains(v);
@@ -359,7 +396,7 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
     {
         ParenthesizedExpressionSyntax p => HeadOf(p.Expression, model, cancel),
         InvocationExpressionSyntax or MemberAccessExpressionSyntax or IdentifierNameSyntax =>
-            model.GetSymbolInfo(e, cancel) is var info && info.Symbol is { } s ? s : info.CandidateSymbols.FirstOrDefault(),
+            model.GetSymbolInfo(e, cancel) is var info && (info.Symbol ?? info.CandidateSymbols.FirstOrDefault()) is { } s ? Normalize(s) : null,
         _ => null,
     };
 

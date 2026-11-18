@@ -128,16 +128,115 @@ public sealed class EditionCiteAnalyzerTests
         Assert.Equal(["WOCA0001 Error"], Surviving(source, configure));
     }
 
-    /// <summary>The one form <see cref="WellKnownDiagnosticTags.NotConfigurable"/> does not stop: <c>[SuppressMessage]</c> is applied by
-    /// the analyzer driver, after the tag is read. So it is refused where it is written (AnalyzerWiringDriftTests'
-    /// <c>NoSourceOrConfiguration_NamesARuleToSilenceIt</c> scans every product source). This test pins the premise of that scan:
-    /// if a later Roslyn honors the tag here too, it goes red, and the scan can go.</summary>
-    [Fact]
-    public void SuppressMessage_IsTheOneFormTheTagDoesNotStop_SoTheTreeRefusesIt()
+    /// <summary>⛔ A SUPPRESSION ATTRIBUTE THAT NAMES A RULE FAILS THE BUILD (WOCA0003; kb/Work PB4950 round 11). <c>[SuppressMessage]</c>
+    /// and <c>[UnconditionalSuppressMessage]</c> are applied by the analyzer driver after <see cref="WellKnownDiagnosticTags.NotConfigurable"/>
+    /// is read, so they silence the rule they name, and any analyzer diagnostic refusing them could be silenced the same way. So the
+    /// refusal is <see cref="SuppressionRefusal"/>, a generator that writes a <c>#error</c> (a compiler error, CS1029) for each such
+    /// attribute, whatever its spelling: the full name, a <c>using</c> alias, the short name, an id held in a constant, the unconditional
+    /// form.</summary>
+    [Theory]
+    [InlineData("""[System.Diagnostics.CodeAnalysis.SuppressMessage("WiseOwl.Editions", "WOCA0001")]""", "", "SuppressMessageAttribute")]
+    [InlineData("""[Quiet("WiseOwl.Editions", "WOCA0001:A string chosen by edition")]""",
+        "using Quiet = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;", "SuppressMessageAttribute")]
+    [InlineData("""[SuppressMessage("WiseOwl.Editions", Ids.Rule)]""", "using System.Diagnostics.CodeAnalysis;", "SuppressMessageAttribute")]
+    [InlineData("""[UnconditionalSuppressMessage("WiseOwl.Editions", "WOCA" + "0001")]""", "using System.Diagnostics.CodeAnalysis;",
+        "UnconditionalSuppressMessageAttribute")]
+    public void ASuppressionThatNamesARule_FailsTheBuild(string attribute, string usings, string kind)
     {
-        const string source = "using WiseOwl.Cobol.Editions;\nclass C\n{\n    [System.Diagnostics.CodeAnalysis.SuppressMessage(\"WiseOwl.Editions\", "
-            + "\"WOCA0001\")]\n    string A(EditionInfo e) => e.Year < 2002 ? \"ISO §1985:VI\" : \"ISO §2023:8\";\n}\n";
-        Assert.Empty(Surviving(source, o => o));
+        string source = usings + "\nusing WiseOwl.Cobol.Editions;\nstatic class Ids { public const string Rule = \"WOCA\" + \"0001\"; }\nclass C\n{\n    "
+            + attribute + "\n    string A(EditionInfo e) => e.Year < 2002 ? \"ISO §1985:VI\" : \"ISO §2023:8\";\n}\n";
+        Assert.Empty(Surviving(source, o => o));   // the premise: the attribute silences the rule it names
+        var refusals = Refusals(source);
+        Assert.Equal($"WOCA0003: the {kind} at planted.cs:6 names 'WOCA0001', a rule of the one-decider analyzer", Assert.Single(refusals)
+            [..$"WOCA0003: the {kind} at planted.cs:6 names 'WOCA0001', a rule of the one-decider analyzer".Length]);
+    }
+
+    /// <summary>A suppression that names WOCA0003 itself, on the member or as a target-less assembly-level suppression (each silenced a
+    /// refusal reported as an analyzer diagnostic), reaches no compiler error: every attribute is refused.</summary>
+    [Fact]
+    public void ASuppressionOfTheRefusalItself_IsRefusedToo()
+    {
+        const string source = "using System.Diagnostics.CodeAnalysis;\nusing WiseOwl.Cobol.Editions;\n"
+            + "[assembly: SuppressMessage(\"x\", \"WOCA0003\")]\n[assembly: SuppressMessage(\"x\", \"CS1029\")]\nclass C\n{\n"
+            + "    [SuppressMessage(\"WiseOwl.Editions\", \"WOCA0001\")]\n    [SuppressMessage(\"WiseOwl.Editions\", \"WOCA0003\")]\n"
+            + "    string A(EditionInfo e) => e.Year < 2002 ? \"ISO §1985:VI\" : \"ISO §2023:8\";\n}\n";
+        Assert.Equal(["planted.cs:3", "planted.cs:7", "planted.cs:8"],
+            Refusals(source).Select(r => r.Split(" names ")[0].Split(" at ")[1]).Order(StringComparer.Ordinal));
+    }
+
+    /// <summary>A suppression that names no rule of the analyzer is no concern of it.</summary>
+    [Fact]
+    public void ASuppressionOfAnotherRule_IsNotRefused() =>
+        Assert.Empty(Refusals("using System.Diagnostics.CodeAnalysis;\nclass C\n{\n    [SuppressMessage(\"Style\", \"IDE0001\")]\n    int A() => 1;\n}\n"));
+
+    /// <summary>The compiler errors <see cref="SuppressionRefusal"/> puts into a planted compilation (CS1029, a <c>#error</c>), each as its
+    /// message, after asserting the planted source binds without them.</summary>
+    private static IReadOnlyList<string> Refusals(string source)
+    {
+        var compilation = CSharpCompilation.Create("planted",
+            [CSharpSyntaxTree.ParseText(Decider, Parse, path: "EditionInfo.cs"), CSharpSyntaxTree.ParseText(source, Parse, path: "planted.cs")],
+            Framework, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
+        var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+        Assert.True(errors.Count == 0, "the planted source does not bind:\n" + string.Join("\n", errors.Take(20)));
+        CSharpGeneratorDriver.Create([new SuppressionRefusal().AsSourceGenerator()], parseOptions: Parse)
+            .RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
+        return [.. output.GetDiagnostics().Where(d => d.Id == "CS1029" && d.Severity == DiagnosticSeverity.Error)
+            .Select(d => d.GetMessage(System.Globalization.CultureInfo.InvariantCulture))
+            .Select(m => m.StartsWith("#error: '", StringComparison.Ordinal) ? m["#error: '".Length..^1] : m)];
+    }
+
+    /// <summary>⛔ AN ALIAS THROUGH ANOTHER SYMBOL OF THE SAME MEMBER (kb/Work PB4950 round 11, R10-2): an extension method read as an
+    /// extension (a reduced symbol) and as a static call, and a member of a constructed generic type, are each the declared member.</summary>
+    [Fact]
+    public void AReducedOrConstructedSymbol_IsTheMemberItStandsFor()
+    {
+        const string planted = """
+            using WiseOwl.Cobol.Editions;
+            static class Ext { public static bool IsOld(this EditionInfo e) => e.Year < 2002; }
+            static class Rules<T> { public static bool Old(EditionInfo e) => e.Year < 2002; public static bool Generic<U>(EditionInfo e) => e.Year < 2002; }
+            class C
+            {
+                string AsExtension(EditionInfo e) => e.IsOld() ? "ISO §1985:VI" : "ISO §2023:8";
+                string AsStatic(EditionInfo e) => Ext.IsOld(e) ? "ISO §1985:VI" : "ISO §2023:8";
+                string ThroughAConstructedType(EditionInfo e) => Rules<int>.Old(e) ? "ISO §1985:VI" : "ISO §2023:8";
+                string ThroughAGenericMethod(EditionInfo e) => Rules<string>.Generic<int>(e) ? "ISO §1985:VI" : "ISO §2023:8";
+            }
+            """;
+        Assert.Equal([
+            "planted.cs:6: WOCA0001 conditional expression", "planted.cs:7: WOCA0001 conditional expression",
+            "planted.cs:8: WOCA0001 conditional expression", "planted.cs:9: WOCA0001 conditional expression",
+        ], Analyze([], ("EditionInfo.cs", Decider), ("planted.cs", planted)));
+    }
+
+    /// <summary>⛔ A READ THROUGH A BASE MEMBER (kb/Work PB4950 round 11, R10-4): an interface member, or an abstract or virtual one, is
+    /// derived when a member that implements or overrides it is, and one another assembly can read carries the mark.</summary>
+    [Fact]
+    public void AnInterfaceOrAbstractMember_IsDerived_WhenItsImplementationIs()
+    {
+        const string planted = """
+            using WiseOwl.Cobol.Editions;
+            public interface IRule { bool Old(EditionInfo e); }
+            public abstract class Rule { public abstract bool Old(EditionInfo e); public virtual bool Older(EditionInfo e) => false; }
+            sealed class Impl : Rule, IRule
+            {
+                public override bool Old(EditionInfo e) => e.Year < 2002;
+                public override bool Older(EditionInfo e) => e.Year < 2002;
+                bool IRule.Old(EditionInfo e) => e.Year < 2002;
+            }
+            class C
+            {
+                string ThroughTheInterface(IRule r, EditionInfo e) => r.Old(e) ? "ISO §1985:VI" : "ISO §2023:8";
+                string ThroughTheAbstract(Rule r, EditionInfo e) => r.Old(e) ? "ISO §1985:VI" : "ISO §2023:8";
+                string ThroughTheVirtual(Rule r, EditionInfo e) => r.Older(e) ? "ISO §1985:VI" : "ISO §2023:8";
+            }
+            """;
+        Assert.Equal([
+            "planted.cs:2: WOCA0002 IRule.Old(WiseOwl.Cobol.Editions.EditionInfo)",
+            "planted.cs:3: WOCA0002 Rule.Old(WiseOwl.Cobol.Editions.EditionInfo)",
+            "planted.cs:3: WOCA0002 Rule.Older(WiseOwl.Cobol.Editions.EditionInfo)",
+            "planted.cs:12: WOCA0001 conditional expression", "planted.cs:13: WOCA0001 conditional expression",
+            "planted.cs:14: WOCA0001 conditional expression",
+        ], Analyze([], ("EditionInfo.cs", Decider), ("planted.cs", planted)));
     }
 
     /// <summary>A WOCA0001 message names the shape ("This conditional expression chooses ..."); a WOCA0002 one names the member.</summary>
