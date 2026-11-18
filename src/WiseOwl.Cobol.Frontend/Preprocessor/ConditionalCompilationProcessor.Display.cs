@@ -20,9 +20,15 @@ public static partial class ConditionalCompilationProcessor
     /// <summary>Process one <c>&gt;&gt;DISPLAY</c> line's operand text: parse it (§2023:7.3.12.2), evaluate each operand in
     /// order (§2023:7.3.12.4 GR4), resolve the destinations (GR5, GR6), and — when nothing is wrong and every PARAMETER value
     /// is available (GR3) — transfer ONE line per destination. A violation is reported and nothing is transferred: a
-    /// half-evaluated line is not what the author wrote.</summary>
+    /// half-evaluated line is not what the author wrote.
+    /// <para>⛔ WHERE THE LISTING DESTINATION GOES is decided here, once: with a listing (<paramref name="trace"/> records),
+    /// "data is transferred to the same device as that used for source listings" (GR5 a) — the listing itself, at the
+    /// directive at <paramref name="at"/> (DESIGN-listing.md section 6.10), "irrespective of whether it is suppressed by the
+    /// LISTING directive" (GR2); with none, "the result of the DISPLAY directive is defined by the implementor" (GR2): the line
+    /// is a <see cref="CompileOutputStream.Listing"/> transfer, which the command line writes to standard output (DOC-A.1-53,
+    /// DOC-A.1-54).</para></summary>
     private static void ApplyDisplay(string rest, CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag,
-        CompilationInputs inputs, DiagnosticBag? bag)
+        CompilationInputs inputs, DiagnosticBag? bag, TextStageTrace trace, Common.SourceOrigin at)
     {
         if (rest.Length == 0) return;   // §2023:7.3.12.2 writes at least one operand: that PRESENCE is the central check's (COBOL1911)
         if (ParseDisplayFragment(rest, diag, ">>DISPLAY", compiled: true) is not { } fragment) return;
@@ -50,7 +56,9 @@ public static partial class ConditionalCompilationProcessor
 
         // GR1 / GR4: the operands, in the order written, as one line; DOC-A.1-53 joins the images with one space.
         string line = string.Join(' ', images);
-        foreach (var destination in destinations) bag.Transfer(destination, line);
+        foreach (var destination in destinations)
+            if (destination == CompileOutputStream.Listing && trace.Records) trace.Display(at, line);
+            else bag.Transfer(destination, line);
     }
 
     /// <summary>The value of the PARAMETER phrase's compilation-variable-name from the operating environment (§2023:7.3.11.4
@@ -66,7 +74,8 @@ public static partial class ConditionalCompilationProcessor
 
     /// <summary>The streams an UPON phrase names, in the order written, or null (reported) when it breaks its format.
     /// §2023:7.3.12.4 GR6: no UPON phrase is as if UPON LISTING; GR5 a): LISTING is "the same device as that used for source
-    /// listings" — none is produced (DOC-A.1-117), so it is the compiler's standard output; GR5 b): compile-time-device-1
+    /// listings", <see cref="CompileOutputStream.Listing"/> (<see cref="ApplyDisplay"/> sends it into the listing when one is
+    /// produced); GR5 b): compile-time-device-1
     /// is "the device defined by the implementor" — an OUTPUT-capable device-name of the ONE implementor-name table
     /// (<see cref="ImplementorNames"/>, DOC-A.1-54), so the directive and a SPECIAL-NAMES entry cannot disagree about
     /// what a device-name means. §2023:7.3.12.2's braces carry §2023:5.2.6.4 CHOICE INDICATORS: one or more of the device group
@@ -74,7 +83,7 @@ public static partial class ConditionalCompilationProcessor
     /// twice, or two separate runs of devices, is refused.</summary>
     private static List<CompileOutputStream>? DisplayDestinations(CobolParserCore.DisplayUponPhraseContext? upon, DirectiveDiag diag)
     {
-        if (upon is null) return [CompileOutputStream.Standard];
+        if (upon is null) return [CompileOutputStream.Listing];
         var destinations = new List<CompileOutputStream>();
         bool listing = false, devices = false, inDeviceRun = false, valid = true;
         foreach (var wordNode in upon.cobolWord())
@@ -85,7 +94,7 @@ public static partial class ConditionalCompilationProcessor
                 if (listing) { diag.DisplayUpon("LISTING is written twice — the choice indicators of §2023:5.2.6.4 admit each alternative at most once"); valid = false; }
                 listing = true;
                 inDeviceRun = false;
-                destinations.Add(CompileOutputStream.Standard);
+                destinations.Add(CompileOutputStream.Listing);
                 continue;
             }
             if (ImplementorNames.Lookup(word) is not { Kind: SystemNameKind.Device } row || !row.Device.HasFlag(DeviceCapability.Output))

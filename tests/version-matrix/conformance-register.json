@@ -755,7 +755,7 @@
   },
   {
    "key": "DOC-A.1-200",
-   "lead": "Condition absent.** The compiler never produces a source listing"
+   "lead": "Provided: the text-manipulation stage records them, and the list"
   },
   {
    "key": "DOC-A.1-201",
@@ -1229,20 +1229,6 @@
    "refuter": "—"
   },
   {
-   "key": "DRV-GR-7.2.3.4-4",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08",
-   "refuter": "—"
-  },
-  {
-   "key": "DRV-GR-7.2.3.4-5",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08",
-   "refuter": "—"
-  },
-  {
    "key": "DRV-GR-7.3.4-4",
    "arm": "unpopulatable-antecedent",
    "names": "the set of implementor-defined IMP directives is empty: CompilerDirectiveCatalog has no IMP row (§7's A.1 item 30, condition absent), and a >>IMP line is refused at every edition",
@@ -1253,41 +1239,6 @@
    "key": "DRV-GR-7.3.9.3-3",
    "arm": "unpopulatable-antecedent",
    "names": "the call-convention set is closed at one member, COBOL: CompilerDirectiveCatalog admits only >>CALL-CONVENTION COBOL, and any call-convention-name-1 is refused (COBOL1911; owner 2026-10-03, kb/Work PB1383/PB1945), so the directive has no second value whose other details could differ from the default's",
-   "signature": "owner: 2026-10-08",
-   "refuter": "—"
-  },
-  {
-   "key": "DRV-GR-7.3.18.3-2",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08",
-   "refuter": "—"
-  },
-  {
-   "key": "DRV-GR-7.3.18.3-3",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08",
-   "refuter": "—"
-  },
-  {
-   "key": "DRV-GR-7.3.18.3-4",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08",
-   "refuter": "—"
-  },
-  {
-   "key": "DRV-GR-7.3.18.3-5",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
-   "signature": "owner: 2026-10-08",
-   "refuter": "—"
-  },
-  {
-   "key": "DRV-GR-7.3.19.4-2",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of source listings this compiler produces is empty: §7's A.1 item 117 (the cobol command has no listing option, and a compilation writes only the assembly, its .runtimeconfig.json and the generated .g.cs)",
    "signature": "owner: 2026-10-08",
    "refuter": "—"
   },

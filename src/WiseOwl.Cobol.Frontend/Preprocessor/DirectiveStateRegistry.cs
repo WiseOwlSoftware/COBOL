@@ -69,9 +69,13 @@ public static class DirectiveStateRegistry
             "NONE HELD: WiseOwl COBOL defines no call-convention-name (DOC-A.1-68), so COBOL — the §2023:7.3.9.3 GR1 "
             + "default — is the only operand the directive's row admits (any other word is COBOL1911, kb/Work "
             + "PB1383), every name is processed under GR2 a), and no call-convention state exists for a PUSH to save."),
-        new(Constructs.ListingDirective2002, [], [],
-            "NONE HELD: §2023:7.3.18.3 GR1 — \"If the compiler does not produce a source listing, the LISTING directive "
-            + "shall be ignored\", and this compiler produces none."),
+        new(Constructs.ListingDirective2002, [nameof(ConditionalCompilationProcessor)], [],
+            "The ON/OFF state of the source listing (§2023:7.3.18.3 GR2, GR4, GR5), held by the conditional-compilation driver, "
+            + "which meets the directive and restores the state at the end of each library text (§2023:7.2.3.4 GR5). It "
+            + "reaches the listing as the trace's state changes (TextStageTrace.ListingSwitches, DESIGN-listing.md section "
+            + "4.4), not through DirectiveResults: the binder never reads it. With no listing, §2023:7.3.18.3 GR1 (\"If the "
+            + "compiler does not produce a source listing, the LISTING directive shall be ignored\") holds because nothing "
+            + "reads the state."),
         new(Constructs.DisplayDirective2023, [], [],
             "NONE HELD: the DISPLAY directive has no state — §2023:7.3.12.4 GR1 transfers its operands when it is "
             + "processed, and nothing persists past its own line."),

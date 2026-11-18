@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// <summary>
 /// ⛔ THE ONE CONSTRUCTOR OF A <see cref="ListingDocument"/> (DESIGN-listing.md section 4.6). It reads only the collector
 /// (<see cref="ListingFacts"/>) and places every position through the one index (<see cref="ListingLineIndex"/>); each part
-/// has its own builder (<see cref="SourceSectionBuilder"/>, <see cref="ProgramRangeBuilder"/>, <see cref="ListingVisibility"/>,
-/// <see cref="DiagnosticSectionBuilder"/>).
+/// has its own builder (<see cref="SourceSectionBuilder"/>, <see cref="ProgramRangeBuilder"/>, <see cref="DirectiveEffectsBuilder"/>,
+/// <see cref="ListingVisibility"/>, <see cref="DiagnosticSectionBuilder"/>).
 /// </summary>
 internal static class ListingBuilder
 {
@@ -44,7 +44,10 @@ internal static class ListingBuilder
             programs = ProgramRangeBuilder.Build(units, index, drafts);
         }
         else SourceSectionBuilder.SettleCandidates(drafts, new HashSet<int>());
-        ListingVisibility.Apply(drafts, programs.Where(p => p.Depth == 0).Select(p => p.FirstLine));
+        DirectiveEffectsBuilder.MarkReplaced(frontend.Trace, index, drafts, frontend.ResultantText);
+        ListingVisibility.Apply(drafts, programs.Where(p => p.Depth == 0).Select(p => p.FirstLine),
+            DirectiveEffectsBuilder.Build(frontend.Trace, inclusions, index, drafts));
+        var displays = DirectiveEffectsBuilder.Displays(frontend.Trace, index);
         var diagnostics = DiagnosticSectionBuilder.Build(facts.Diagnostics, frontend, index, fileIds, drafts);
 
         var edition = facts.Edition;
@@ -56,14 +59,15 @@ internal static class ListingBuilder
                 TextInclusionOutcome.Found => ListingInclusionOutcome.Found,
                 TextInclusionOutcome.Circular => ListingInclusionOutcome.Circular,
                 _ => ListingInclusionOutcome.NotFound,
-            })).ToList();
+            }, i.Suppress)).ToList();
         ListingSectionStatus[] sections =
         [
             new(ListingSection.Source, true, null),
             units is null ? new(ListingSection.Programs, false, "the source was not parsed") : new(ListingSection.Programs, true, null),
             new(ListingSection.Diagnostics, true, null),
         ];
-        return new ListingDocument(header, files, copyLines, [.. drafts.Select(d => d.ToLine())], programs, diagnostics, sections);
+        return new ListingDocument(header, files, copyLines, [.. drafts.Select(d => d.ToLine())], programs, diagnostics, displays,
+            sections);
     }
 
     /// <summary>The listing line of physical <paramref name="fileLine"/> of the text that holds the COPY statement of

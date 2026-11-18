@@ -4,11 +4,13 @@
   (§2023:7.3.9) — CALL uses the single .NET managed calling convention, so only `>>CALL-CONVENTION COBOL` is accepted and
   any other call-convention-name is an error, COBOL1911 (A.1 item 68 in §7; kb/Work PB1383). GnuCOBOL 3.1.2 and 3.2.0 additionally accept EXTERN, STDCALL and STATIC (measured on both, kb/Work PB1945); owner decision 2026-10-03: keep COBOL only, and revisit only if a .NET mapping is added, which may not be required at all; **>>LEAP-SECOND** (§2023:7.3.17) — the REPORTED side only: the .NET clock never reports a 60th second (A.1 item
   111 in §7); the directive's ARGUMENT side (a 60 in a seconds subfield, a time form to 86,400.99 under ON) is honoured —
-  `LeapSecondDirectiveProcessor`, kb/Work PB65; **>>LISTING** / **>>PAGE** (§2023:7.3.18 / §2023:7.3.19) — no source listing
-  is produced, so listing on/off and page ejects are inert. The **>>DISPLAY** directive (§2023:7.3.12) is NOT in this set:
-  §2023:7.3.12.4 GR2 leaves the no-listing result to the implementor, and GnuCOBOL — the precedent CLAUDE.md rule 1 names for
-  implementor latitude — writes the operands to its standard output at compile time, so WiseOwl COBOL parses and evaluates
-  the operands and writes them at compile time (kb/Work PB807, PB1538; A.1 items 53–55 in §7 state the determination). The **>>FLAG-02 / >>FLAG-14**
+  `LeapSecondDirectiveProcessor`, kb/Work PB65. **>>LISTING** / **>>PAGE** (§2023:7.3.18 / §2023:7.3.19) are NOT in this set: when
+  a source listing is produced (A.1 item 117) they turn its lines off and on and eject its pages (A.1 item 200), and when none
+  is, §2023:7.3.18.3 GR1 and §2023:7.3.19.4 GR3 leave them without effect. The **>>DISPLAY** directive (§2023:7.3.12) is NOT in
+  this set either: it transfers its operands into the listing when one is produced, and with none §2023:7.3.12.4 GR2 leaves
+  the result to the implementor, and GnuCOBOL — the precedent CLAUDE.md rule 1 names for implementor latitude — writes the
+  operands to its standard output at compile time, so WiseOwl COBOL does (kb/Work PB807, PB1538, PB5925; A.1 items 53–55 in §7
+  state the determination). The **>>FLAG-02 / >>FLAG-14**
   flagging directives (§2023:7.3.14 / §2023:7.3.15) are NOT in this set: they emit the warnings they request (COBOL1620 /
   COBOL1621 — A.1 items 79 and 80 in §7). The **>>FLAG-85 / >>FLAG-NATIVE-ARITHMETIC** directives (§2002:7.2.11 / §2002:7.2.12, COBOL-2002 and COBOL-2014 only)
   are NOT in this set either, and are no longer parsed-and-ignored (kb/Work PB5600): `>>FLAG-85 { ALL | option… } { ON | OFF }`

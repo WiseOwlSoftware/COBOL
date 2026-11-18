@@ -12,7 +12,9 @@ namespace WiseOwl.Cobol.Listing;
 /// the compiler's <c>ListingBuilder</c> from the source and the compiler's own data, and read by every renderer. Every type is
 /// an immutable record. The summaries are the JSON schema's descriptions (<see cref="Json.ListingJsonSchema"/>), so they state
 /// what a reader of the listing needs; step notes go in remarks. Step 1 of the design's section 11 built the header, files,
-/// inclusions, lines and programs; step 2 the JSON form; step 3 the diagnostics; later steps add their sections beside them.</remarks>
+/// inclusions, lines and programs; step 2 the JSON form; step 3 the diagnostics; step 4a the directive hooks (the LISTING and
+/// PAGE directives, COPY SUPPRESS, the DISPLAY directive's transfers, the lines REPLACE changed); later steps add their
+/// sections beside them.</remarks>
 /// <param name="Header">The compiler, the edition, the compilation timestamp, the main source and the outcome.</param>
 /// <param name="Files">Every file read: the source and each library text.</param>
 /// <param name="Inclusions">Every COPY statement processed, in text order.</param>
@@ -21,6 +23,7 @@ namespace WiseOwl.Cobol.Listing;
 /// <param name="Programs">Every source unit, in text order, with its nesting and listing line range.</param>
 /// <param name="Diagnostics">Every diagnostic the compilation reported of its source, in listing order: those placed on a line by
 /// line and column, then those placed on none in the order they were reported.</param>
+/// <param name="Displays">Every transfer of a DISPLAY directive to the listing, in the order the directives were processed.</param>
 /// <param name="Sections">Each section of the listing: produced, or why not (DESIGN-listing.md section 4.3).</param>
 public sealed record ListingDocument(
     ListingHeader Header,
@@ -29,6 +32,7 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingLine> Lines,
     IReadOnlyList<ListingProgram> Programs,
     IReadOnlyList<ListingDiagnostic> Diagnostics,
+    IReadOnlyList<ListingDisplay> Displays,
     IReadOnlyList<ListingSectionStatus> Sections)
 {
     /// <summary>The identifier of the JSON schema's major version 1 (DESIGN-listing.md section 7.3): every JSON listing of this
@@ -113,8 +117,10 @@ public enum ListingInclusionOutcome
 /// <param name="LibraryName">The library-name or literal of its OF / IN phrase, or null.</param>
 /// <param name="File">The <see cref="ListingFile.Id"/> of the library text read, or null when none was.</param>
 /// <param name="Outcome">Found, not found or circular.</param>
+/// <param name="Suppress">The statement writes the SUPPRESS phrase: the library text it incorporates is not listed, and the
+/// statement itself is (§2023:7.2.3.4 GR4).</param>
 public sealed record ListingInclusion(int Id, int? Parent, int Depth, int CopyLine, int CopyLastLine, string TextName,
-    string? LibraryName, int? File, ListingInclusionOutcome Outcome);
+    string? LibraryName, int? File, ListingInclusionOutcome Outcome, bool Suppress);
 
 /// <summary>The reference format a physical line was read in.</summary>
 public enum ListingLineForm
@@ -162,6 +168,10 @@ public enum ListingReplacement
     /// <summary>A further line of the comment-entry of a replaced DATE-COMPILED paragraph: replaced with the paragraph, so
     /// the text listing does not print it (the model keeps the written text).</summary>
     DateCompiledEntry,
+    /// <summary>A replacing action of a REPLACE statement or of a COPY statement's REPLACING phrase matched text that begins
+    /// on the line, so what was compiled is not what was written: the text listing prints the line as written, marked 'R',
+    /// and under it the compiled text.</summary>
+    Replacing,
 }
 
 /// <summary>One physical line of the source section (DESIGN-listing.md section 4.2).</summary>
@@ -178,7 +188,9 @@ public enum ListingReplacement
 /// <param name="PageBreakBefore">The visibility pass's answer: a page starts before it.</param>
 /// <param name="Program">The <see cref="ListingProgram.Id"/> of the innermost program containing the line.</param>
 /// <param name="Replacement">Which replacement the compiler made of the line, if any.</param>
-/// <param name="Replaced">What the compiler compiled in place of <paramref name="Text"/>, when it is printed in its place.</param>
+/// <param name="Replaced">What the compiler compiled in place of <paramref name="Text"/>: DATE-COMPILED's replacement, printed in
+/// its place; or, for a line a replacing action changed, the resultant text compiled from it (one line of text per resultant
+/// line, joined by line feeds; empty when the replacement removed everything the line held), printed under it.</param>
 /// <param name="Diagnostics">The <see cref="ListingDiagnostic.Id"/> of each diagnostic placed on the line, in listing order.</param>
 public sealed record ListingLine(int Number, int File, int FileLine, int? Inclusion, int Depth, ListingLineForm Form,
     ListingLineKind Kind, string Text, bool Omitted, bool Listed, bool PageBreakBefore, int? Program,
@@ -249,6 +261,12 @@ public enum ListingSeverity
 /// <param name="Citations">Each citation of the standard the message makes, in the order written.</param>
 public sealed record ListingDiagnostic(int Id, string Code, ListingSeverity Severity, string Message, int? Line, int? File,
     int? FileLine, int? Column, IReadOnlyList<ListingCitation> Citations);
+
+/// <summary>One transfer of a DISPLAY directive to the listing (§2023:7.3.12.4 GR1, GR5 a), GR6; DESIGN-listing.md section
+/// 6.10): printed at its directive's place whether or not a LISTING directive suppresses that line (GR2).</summary>
+/// <param name="Line">The listing line of the DISPLAY directive.</param>
+/// <param name="Text">The data transferred: each operand's image, in the order written, separated by one space.</param>
+public sealed record ListingDisplay(int Line, string Text);
 
 /// <summary>Whether a section was produced and, when not, why (DESIGN-listing.md section 4.3): a section is never left out
 /// silently.</summary>

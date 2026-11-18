@@ -663,8 +663,14 @@ public sealed class DerivedVerdictDriftTests
         // the single character set and encoding, the hex-digit mapping, the lock status and the listing controls. All
         // twelve were BLANK when the selector landed.
         foreach (string id in (string[])["DOC-A.1-13", "DOC-A.1-15", "DOC-A.1-30", "DOC-A.1-34", "DOC-A.1-37",
-                     "DOC-A.1-88", "DOC-A.1-96", "DOC-A.1-98", "DOC-A.1-142", "DOC-A.1-200"])
+                     "DOC-A.1-88", "DOC-A.1-96", "DOC-A.1-98", "DOC-A.1-142"])
             Assert.Contains(id, ids);
+
+        // ⛔ DOC-A.1-200 (the stage of the listing controls) LEFT on 2026-11-18 (kb/Work PB5925 step 4a): its condition, the
+        // implementor producing listings, now holds (item 117), so its cell opens "Provided" and the row carries CONFORMS.
+        Assert.DoesNotContain("DOC-A.1-200", ids);
+        Assert.StartsWith("Provided", ConformanceRegister.Plain(ConformanceRegister.Determinations["DOC-A.1-200"]),
+            StringComparison.Ordinal);
 
         // ⛔ DOC-A.1-149 (the RECORD DELIMITER feature-name consistency rules) LEFT on 2026-11-16 (kb/Work PB5844): its
         // condition, feature-name-1 existing, now holds, so its cell opens "Provided" and the row carries CONFORMS.

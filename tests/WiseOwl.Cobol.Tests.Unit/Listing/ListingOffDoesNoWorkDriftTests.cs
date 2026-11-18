@@ -78,4 +78,63 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
         Assert.False(result.Inputs.ReadsCompilationTime);
         Assert.Empty(result.Inputs.FileDigests);
     }
+
+    /// <summary>A 2023 program that reaches EVERY recording point of step 4a (DESIGN-listing.md section 4.4): a LISTING directive,
+    /// PUSH and POP of its state, a LISTING OFF in library text (the end-of-inclusion restore), a PAGE directive, a DISPLAY
+    /// directive with no UPON phrase, COPY ... SUPPRESS REPLACING and a REPLACE statement.</summary>
+    private (CompilerDriver.Options Options, string Source) WriteHooks(WiseOwl.Cobol.Listing.ListingRequest? listing)
+    {
+        string src = Path.Combine(TempDir, "hooks.cob");
+        File.WriteAllText(src, string.Join("\n",
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. HOOKS.",
+            "       REPLACE ==:V:== BY ==VALUE 1==.",
+            "       DATA DIVISION.",
+            "       WORKING-STORAGE SECTION.",
+            "       >>PUSH LISTING",
+            "       >>LISTING OFF",
+            "       01 A PIC 9 :V:.",
+            "       >>POP LISTING",
+            "       >>PAGE",
+            "       >>DISPLAY \"HOOKS\"",
+            "       COPY HOOKBOOK SUPPRESS REPLACING ==:N:== BY ==B==.",
+            "       PROCEDURE DIVISION.",
+            "           STOP RUN."));
+        File.WriteAllText(Path.Combine(TempDir, "HOOKBOOK.cpy"), "       >>LISTING OFF\n       01 :N: PIC X.\n");
+        return (new CompilerDriver.Options(src, DialectLevel: 2023, CopyPaths: [TempDir], CheckOnly: true, Listing: listing), src);
+    }
+
+    /// <summary>Without a listing, a program that reaches every step-4a recording point compiles with the front end recording
+    /// into <see cref="TextStageTrace.None"/>, whose recording methods throw: so each recording call asks
+    /// <see cref="TextStageTrace.Records"/> first (DESIGN-listing.md section 9), and the DISPLAY directive's LISTING destination is
+    /// a <see cref="CompileOutputStream.Listing"/> transfer for the command line to write.</summary>
+    [Fact]
+    public void WithoutAListing_TheDirectiveHooksRecordNothing()
+    {
+        var (options, src) = WriteHooks(listing: null);
+        var frontend = CompilerDriver.NewFrontend(options, new CompilationInputs(), recordsListing: false);
+        var bag = new DiagnosticBag();
+        Assert.NotNull(frontend.Parse(src, bag));
+        Assert.DoesNotContain(bag.Diagnostics, d => d.IsError);
+        Assert.Same(TextStageTrace.None, frontend.ListingTrace);
+        Assert.Equal([new CompileOutputLine(CompileOutputStream.Listing, "HOOKS")], bag.CompileOutput);
+    }
+
+    /// <summary>The control: with a listing, the same program records each fact, and transfers no line to an output stream.</summary>
+    [Fact]
+    public void WithAListing_TheDirectiveHooksRecord()
+    {
+        var (options, src) = WriteHooks(new WiseOwl.Cobol.Listing.ListingRequest());
+        var frontend = CompilerDriver.NewFrontend(options, new CompilationInputs { DigestsFiles = true }, recordsListing: true);
+        var bag = new DiagnosticBag();
+        Assert.NotNull(frontend.Parse(src, bag));
+        var trace = frontend.ListingTrace;
+        Assert.Equal([TextListingSwitchCause.Directive, TextListingSwitchCause.Pop, TextListingSwitchCause.Directive,
+            TextListingSwitchCause.InclusionEnd], trace.ListingSwitches.Select(s => s.Cause));
+        Assert.Single(trace.PageDirectives);
+        Assert.Equal("HOOKS", Assert.Single(trace.Displays).Text);
+        Assert.True(Assert.Single(trace.Inclusions).Suppress);
+        Assert.Equal(2, trace.ReplacedLines.Count);   // the REPLACE match on A's line, the REPLACING match in the library text
+        Assert.Empty(bag.CompileOutput);
+    }
 }

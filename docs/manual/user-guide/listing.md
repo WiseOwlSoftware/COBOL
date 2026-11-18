@@ -52,7 +52,7 @@ Each source line is one row:
 |---|---|
 | 1-6 | the listing line number, unique in the listing |
 | 8 | the COPY depth: blank for the source file, `1` to `9` for library text, `+` deeper |
-| 9 | a marker: `/` page-eject comment line, `*` comment line, `D` debugging line, `-` continuation line, `>` compiler directive, `E` the DATE-COMPILED paragraph's replacement, `X` a line a false `>>IF` branch omitted |
+| 9 | a marker: `/` page-eject comment line, `*` comment line, `D` debugging line, `-` continuation line, `>` compiler directive, `E` the DATE-COMPILED paragraph's replacement, `R` a line REPLACE or COPY REPLACING changed, `X` a line a false `>>IF` branch omitted |
 | 11-16 | the line's number in its own file |
 | 18-97 | the line as the file holds it (tabs expanded), all 80 positions of a fixed-form line; a longer line continues on rows marked `+` in column 9 |
 
@@ -62,10 +62,47 @@ under a row that names it (`COPY PAYREC OF LIB1 -> lib/PAYREC.cpy (depth 1)`); a
 once at each COPY statement. A file that ends with a line terminator has an empty last line, which is listed (the
 compiler's line rule, Annex A.1 item 156).
 
+A line where a REPLACE statement or a COPY statement's REPLACING phrase replaced text is printed as written, marked `R`,
+and under it, in rows marked `R`, the text the compiler compiled from it. A library text copied twice with different
+REPLACING operands shows each copy's own replacement:
+
+```text
+     5         5        COPY REPBOOK REPLACING ==:N:== BY ==FIRST-ITEM==.
+                 COPY REPBOOK -> lib/REPBOOK.cpy (depth 1)
+     6 1R      1        01 :N: PIC X.
+        R        01 FIRST-ITEM PIC X.
+```
+
+The compiled text is the text after the reference format is read (section 6.5 of ISO/IEC 1989:2023), so a fixed-form line's
+sequence and indicator areas are not part of it.
+
+## What is listed (2002 and later)
+
+The compiler directives and the COPY statement of COBOL-2002 and later control the listing (ISO/IEC 1989:2023 sections
+7.3.18, 7.3.19 and 7.2.3.4). The lines they turn off are still in the JSON listing, with `listed` false.
+
+- `>>LISTING OFF` stops the listing of the lines after it until `>>LISTING ON` (or `>>LISTING` with no operand, which
+  means ON). Every LISTING directive line is listed, the OFF ones included: "Each LISTING directive shall be listed, even
+  if the listing is being suppressed by a LISTING directive" (section 7.3.18.3 general rule 3). The listing starts ON.
+- `>>PUSH LISTING` (or `>>PUSH ALL`) saves the ON or OFF state and `>>POP LISTING` (or `>>POP ALL`) restores it for the
+  lines after the POP. The implicit PUSH ALL and POP ALL of an exception-checking PERFORM (section 14.9.28.4 general rule
+  14) do the same, so a `>>LISTING OFF` written in a WHEN phrase ends at the END-PERFORM.
+- A `>>LISTING` directive in library text does not outlive it: after the library text, the state of the COPY statement
+  is in effect again (section 7.2.3.4 general rule 5).
+- `COPY name SUPPRESS.` lists the COPY statement but not the library text it copies (section 7.2.3.4 general rule 4); the
+  library text is compiled in full.
+- `>>DISPLAY` with `UPON LISTING`, or with no UPON phrase, prints its data in the listing where the directive stands, as
+  `DISPLAY: <data>` in the source columns, in the order the directives are processed, even where `>>LISTING OFF` hides the
+  directive's own line (section 7.3.12.4 general rules 2, 5 and 6). Without a listing the same data goes to the compiler's
+  standard output; `UPON SYSERR` goes to standard error and `UPON CONSOLE` or `SYSOUT` to standard output either way.
+
 ## Where a page starts
 
 - Before a comment line with `/` in the indicator area: "The slant in the indicator area causes page ejection prior to
   printing the comment line in the listing" (section IV.7.2.4). A `*` comment line prints on the next line.
+- Before a listed `>>PAGE` directive line: "a PAGE directive shall cause page ejection followed by listing of the PAGE
+  directive" (section 7.3.19.4 general rule 2). A `>>PAGE` line under `>>LISTING OFF` is not listed and starts no page,
+  and neither does a `/` line there.
 - Before each separately compiled program of the source after the first, so each program starts a page.
 - When the page is full (`--listing-page-length`).
 
@@ -121,7 +158,8 @@ edition being compiled, as on standard error.
 where the text listing is for people. It holds everything the text listing is made from, and more: every file read with
 its SHA-256 digest, every COPY statement with its outcome and nesting, every line with its kind (source, comment,
 directive, ...), whether it was listed and whether a page starts before it, the text as written and, for the
-DATE-COMPILED paragraph, what the compiler compiled in its place, every program with its listing lines, and every
+DATE-COMPILED paragraph and a line REPLACE changed, what the compiler compiled in its place, every COPY statement's
+SUPPRESS phrase, every `>>DISPLAY` transfer to the listing (`displays`), every program with its listing lines, and every
 diagnostic with its code, severity, message, listing line, file, line and column. Each diagnostic also carries the
 citations its message makes as data, `citations`: for the example above
 `[{ "edition": 2023, "locator": "13.18.40.3", "rule": "SR14" }]`. A line lists the ids of the diagnostics placed on it. The text and
@@ -160,11 +198,11 @@ know. A new major is announced in the release notes of the
 release that ships it.
 
 With `--listing-output -` the one format requested goes to standard output, before the diagnostics (which go to standard
-error). The lines of a `>>DISPLAY` directive that go to standard output follow the listing there.
+error). A `>>DISPLAY ... UPON LISTING` is in the listing itself; one `UPON CONSOLE` or `SYSOUT` follows the listing on
+standard output.
 
 ## Later additions
 
 The listing grows section by section: the options
 section, the program map, the data map, the cross-reference, the statistics and verb counts, the map from each COBOL
-statement to its object code, and a hyperlinked HTML form. The `>>LISTING` and `>>PAGE` directives of 2002 and later
-are accepted today and do not yet change the listing.
+statement to its object code, and a hyperlinked HTML form.
