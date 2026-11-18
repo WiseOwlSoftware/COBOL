@@ -196,8 +196,8 @@ internal sealed class PhysicalModel(EmitContext ctx)
             // byte-identical for national-free programs. The CARRIER face of a national group is AsNat()
             // (§2023:13.18.29.4 GR2b), exactly as a bit group's carrier face is AsBits().
             int elemWidth = c.IsGroup ? PhysicalImageWidth(c) : c.ByteWidth;
-            int occurs = c.Occurs ?? 0;
-            int width = occurs > 0 ? elemWidth * occurs : elemWidth;
+            int occurs = RecordLayout.DeclaredOccurrences(c);
+            int width = RecordLayout.ItemSize(RecordLayout.Times(elemWidth, c));
             // A NATIVE fixed-point numeric field (the ElementType test excludes the string-stored shapes —
             // StoreAsImage leaves, edited items — and floats): its slice of the group image is its BYTE FORM
             // (zoned digits, radix-2, BCD — PicInfo.HasImageByteForm, THE ONE image predicate; kb/Work PB164
@@ -260,6 +260,6 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// <summary>The emitted character-image width of an item: a leaf's own width; a group's = the sum of its physical
     /// fields (a contained REDEFINES class contributes its single backing width once, its views nothing).</summary>
     private int PhysicalImageWidth(DataItem item) =>
-        item.IsGroup ? PhysicalChildrenOf(item).Sum(f => f.Width) : item.ByteWidth;
+        item.IsGroup ? RecordLayout.ItemSize(PhysicalChildrenOf(item).Aggregate(0L, (sum, f) => RecordLayout.Plus(sum, f.Width))) : item.ByteWidth;
 
 }

@@ -169,15 +169,27 @@ internal static class ExternalFileConnectorRules
 
     /// <summary>The X3.23-1985 agreement rules of the file DESCRIPTION entries (<see cref="FileDescriptionIdentity"/>, kb/Work PB5300), asked in the same pass
     /// as the file control entries' and reported the same way (COBOL6847), at the clause the entry writes. Each rule compares the clauses the entries WRITE:
-    /// an entry is compared with the first entry of the run unit that writes the clause.</summary>
+    /// an entry is compared with the first entry of the run unit that writes the clause. A rule whose entries must all write the clause once one does
+    /// (<see cref="FileDescriptionIdentity.Rule.AbsentCite"/>: LINAGE, REPORT) also reports, at its file description entry, every entry that writes none
+    /// while another writes one, wherever the two stand in the group (kb/Work PB5638).</summary>
     private static void CheckFileDescriptions(EditionContext edition, string externalName, List<FileModel> conns)
     {
         foreach (var rule in FileDescriptionIdentity.Rules)
         {
             FdClauseValue? reference = null;
+            var writer = rule.AbsentCite is null ? null : conns.Select(f => FileDescriptionIdentity.Of(f, rule)).FirstOrDefault(v => v is not null);
             foreach (var f in conns)
             {
-                if (FileDescriptionIdentity.Of(f, rule) is not { } mine) continue;
+                if (FileDescriptionIdentity.Of(f, rule) is not { } mine)
+                {
+                    if (writer is { } w)
+                        using (edition.At(f.EntryAt))
+                            edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
+                                $"external file '{externalName}': this file description entry does not write {rule.Clause}, and another entry in the run unit "
+                                + $"that describes the file connector writes it (\"{w.Written}\") — every entry of an external file connector writes it if any does "
+                                + $"(ISO {rule.AbsentCite})");
+                    continue;
+                }
                 if (reference is not { } first)
                 {
                     reference = mine;

@@ -531,7 +531,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
             if (tabled && subs.Count > 0)
             {
                 if (subs.Dequeue().ConstantValue is not { } k) return new BitStart(null, BitStartFault.NonLiteralSubscript);
-                bit += (k - 1) * (long)BitLayout.StrideBits(chain[i]);   // a SUBSCRIPT stride — ALIGNED strides whole bytes (§2023:13.18.1.4 GR2)
+                bit = RecordLayout.Plus(bit, RecordLayout.Product(k - 1, BitLayout.StrideBits(chain[i])));   // a SUBSCRIPT stride — ALIGNED strides whole bytes (§2023:13.18.1.4 GR2)
             }
         }
         return new BitStart(bit + extra, BitStartFault.None);

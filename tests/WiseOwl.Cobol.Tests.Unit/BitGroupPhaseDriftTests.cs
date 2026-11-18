@@ -40,7 +40,8 @@ public sealed class BitGroupPhaseDriftTests
     public void EveryPublicReader_AsksPhaseOfAndDelegatesToTheExplicitPhaseForm(string publicName, string explicitName)
     {
         var delegation = new Regex(
-            $@"public static int {publicName}\([^)]*\)\s*=>\s*{explicitName}\([^;]*PhaseOf\(", RegexOptions.CultureInvariant);
+            // The public reader narrows the explicit form's 64-bit answer through the one narrowing of an item's own size (kb/Work PB5695).
+            $@"public static int {publicName}\([^)]*\)\s*=>\s*RecordLayout\.ItemSize\({explicitName}\([^;]*PhaseOf\(", RegexOptions.CultureInvariant);
         Assert.True(delegation.IsMatch(BitLayoutText()),
             $"BitLayout.{publicName} no longer reads {explicitName} at PhaseOf(item): a bit group that begins mid-byte would "
             + "count its byte boundaries from its own start again (kb/Work PB3158).");
@@ -50,7 +51,7 @@ public sealed class BitGroupPhaseDriftTests
     public void TheWalk_PassesItsPhaseDown_AndNeverAsksPhaseOfPerChild()
     {
         string text = BitLayoutText();
-        int start = text.IndexOf("private static int Walk(", StringComparison.Ordinal);
+        int start = text.IndexOf("private static long Walk(", StringComparison.Ordinal);
         Assert.True(start >= 0, "BitLayout.Walk was renamed; update this guard with it.");
         int open = text.IndexOf('{', start);
         int depth = 0, end = open;
@@ -62,7 +63,7 @@ public sealed class BitGroupPhaseDriftTests
         string body = text[open..end];
         // The body's REDEFINES chase and the per-child placement read starts and the explicit forms, never PhaseOf.
         Assert.DoesNotMatch(@"\bPhaseOf\(", body);
-        Assert.Matches(@"RunBitsAt\(c,\s*cursor", body);
+        Assert.Matches(@"RunBitsAt\(c,\s*\(int\)\(cursor", body);
     }
 
     /// <summary>kb/Work PB3167: laying every occurrence of a table out as the first is exact only because a table
@@ -74,7 +75,7 @@ public sealed class BitGroupPhaseDriftTests
     public void TheStride_AsksWhetherTheLayoutDependsOnThePhase_AndAGroupBeginsWithItsFirstItem()
     {
         string text = BitLayoutText();
-        Assert.Matches(@"private static int StrideBitsAt\(DataItem item, int phase\) =>\s*HoldsByteStart\(item\)", text);
+        Assert.Matches(@"private static long StrideBitsAt\(DataItem item, int phase\) =>\s*HoldsByteStart\(item\)", text);
         Assert.Matches(@"KeepsPosition\(c\.Children\[0\]\)", text);
         // One placement dispatch: the walk, PhaseOf and HoldsByteStart ask Continues, never spell its two arms again.
         Assert.Single(Regex.Matches(text, @"prev is null \? !?KeepsPosition"));

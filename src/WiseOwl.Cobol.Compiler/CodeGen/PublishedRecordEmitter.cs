@@ -66,8 +66,8 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// components: those of the storage children before it, each times its occurrences — the order
     /// <see cref="CellComponents.Of"/> numbers them in.</summary>
     private static int OrdinalWithin(DataItem group, DataItem member) =>
-        group.Children.TakeWhile(c => !ReferenceEquals(c, member)).Where(c => c.RedefinesTargetName is null)
-            .Sum(c => CellComponents.PerOccurrence(c) * (c.Occurs ?? 1));
+        RecordLayout.ItemSize(group.Children.TakeWhile(c => !ReferenceEquals(c, member)).Where(c => c.RedefinesTargetName is null)
+            .Aggregate(0L, (sum, c) => RecordLayout.Plus(sum, RecordLayout.Times(CellComponents.PerOccurrence(c), c))));
 
     /// <summary>The minimum capacity of a dynamic-capacity table, integer-4 of its FROM phrase ("If integer-4 is absent,
     /// a value of zero is assumed for it", ISO §2023:13.18.38.4 16)).</summary>
@@ -123,7 +123,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// (<see cref="OrdinalWithin"/>).</summary>
     private sealed record Member(DataItem Item, string Name, HostType Type, string? Record, DataItem? Depending, int Ordinal)
     {
-        public int Occurs => Item.Occurs ?? 0;
+        public int Occurs => RecordLayout.DeclaredOccurrences(Item);
         public int Minimum => Depending is null ? Occurs : Item.OccursSpec!.Min;
         public string Element => Record ?? Type.CsType!;
         public bool IsTable => Occurs > 0 || Item.IsDynamicTable;

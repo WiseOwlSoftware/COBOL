@@ -817,7 +817,9 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         // one FUNCTION LENGTH takes (kb/Work PB1213; it used to read DataItem.ImageWidth, a drifted second copy).
         // §2023:13.10.4 GR5 — "determined as specified in the BYTE-LENGTH intrinsic function": DataItem.ByteWidth, the one
         // FUNCTION BYTE-LENGTH folds a fixed item to (IntrinsicBinder.BindByteLengthFold).
-        int width = bytes ? item.ByteWidth : ItemLength.Positions(item);
+        // In 64 bits: a constant entry binds while the data division does, before the size limit screens the item it measures, so
+        // an item past the limit has its true length here and is refused by CheckStorageLimitsPass (kb/Work PB5695).
+        long width = bytes ? RecordLayout.ExactByteWidth(item) : ItemLength.ExactPositions(item);
         if (width <= 0)
         {
             // The description is complete (CompleteDescriptionAhead), so a zero width is an operand whose own

@@ -40,6 +40,8 @@ internal static class BindPipeline
         new CheckClauseSubjectsPass(),
         new CheckSignClausesPass(),
         new InheritSignClausesPass(),
+        // The limit on the size of one data item (kb/Work PB5695), once every size is final and before any later pass reads one.
+        new CheckStorageLimitsPass(),
         new CheckCodeSetRecordItemsPass(),
         new ResolveRedefinesPass(),
         new ClassifyRedefinesClassesPass(),
