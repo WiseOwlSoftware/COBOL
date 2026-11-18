@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 4a - the directive hooks, witnessed at 2023
+## Entry 3840 — 2026-11-18 06:43 PST — PB5925: the source listing, step 4a - the directive hooks, witnessed at 2023
 
 Step 4a of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5925's decision): the standard's listing controls of 2002 and
 later now act on the listing. `>>LISTING OFF` stops the listing of the lines after it until ON, and every LISTING directive
@@ -50,3 +50,4 @@ point, with its control. Mutations showed the checks can fail: with the trailing
 measured against the parent (14fc6f26ac) back to back: the front end and bind allocate within 0.21 MB of the parent on all
 four programs, and the full-compile `None` rows are at or under it; the budget holds. Time rows are noise again (StdDev
 20-40 %, kb/Work PB5927).
+
