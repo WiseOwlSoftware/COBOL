@@ -58,3 +58,8 @@
     there, and no project file defines it.
   - `scripts/test_held_analyzer_output.py` stages src's props and targets beside the copied project and is GREEN: a real process
     held the output while it was rebuilt.
+- **Census growth admitted by hand.** The census was re-recorded at ad187e16d6 for the new project. It measured
+  `Binding.Bound -> Frontend.Generated` at 27 uses against 26. The extra use is this branch's: StatementBinder's USE placement
+  refusal reads `USE BEFORE` at 85 to cite the 1985 rule of its module (XIII.4.9.3 SR1 or VII.4.6.3 SR1). It was admitted in
+  `architecture-edges.json`, in the change that recorded the census. Its remover is unchanged: PB2347 moves StatementBinder out
+  of `Bound/`. The edges file was then ratcheted to the new census key.

@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "rule": "DESIGN-architecture-review.md §8.1: a cross-layer dependency is allowed iff its (from, to) layer pair is listed; intra-layer edges are free; every product namespace is placed; a tolerated row lists every type pair it holds, each with the kb/Work notes that remove it (removedBy, the row's is their union); uses (the census record named by census) and walkUses (the drift test's metadata walk) only ever fall; plan is R1's account of the removal",
-  "census": "ac83984ddba93fb2f4cb73ec3a351340366d9cb1",
+  "census": "ad187e16d6e7f9bf5b39ac075272783f23a54f19",
   "layers": [
     {
       "id": "listing",
@@ -1345,12 +1345,12 @@
     {
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Frontend.Generated",
-      "uses": 26,
+      "uses": 27,
       "walkUses": 1,
       "removedBy": [
         "PB2347"
       ],
-      "plan": "PB2347 (StatementBinder, the parse-context reader, out of Bound/) and PB2398 (BoundOo.cs's parse-context use becomes a bound-node fact); the census at ac83984ddba9 (recorded by kb/Work PB5923's listing step 1, the first since 2a581b75c6) measured 26 against 20: growth that landed on main between the two records, admitted by hand in the change that recorded the census (no listing type is in it); the removers are unchanged (kb/Work PB5923 lead 2026-11-18-census-growth)",
+      "plan": "PB2347 (StatementBinder, the parse-context reader, out of Bound/) and PB2398 (BoundOo.cs's parse-context use becomes a bound-node fact); the census at ac83984ddba9 (recorded by kb/Work PB5923's listing step 1, the first since 2a581b75c6) measured 26 against 20: growth that landed on main between the two records, admitted by hand in the change that recorded the census (no listing type is in it); the removers are unchanged (kb/Work PB5923 lead 2026-11-18-census-growth). The census at ad187e16d6 (pb4950-sweep, recording the new WiseOwl.Cobol.Analyzers project) measured 27: kb/Work PB4950 added one use, StatementBinder's USE placement refusal reading USE BEFORE at 85 to cite the 1985 rule of its module (XIII.4.9.3 SR1 or VII.4.6.3 SR1), admitted by hand in the change that recorded that census; the remover, PB2347's move of StatementBinder out of Bound/, is unchanged (kb/Work PB4950 lead 2026-11-18-the-check-is-a-build-analyzer)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
