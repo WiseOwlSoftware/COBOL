@@ -1421,7 +1421,10 @@ public static class DiagnosticCatalog
         + "shall exceed the page width.\" The page width is integer-2 of the PAGE clause (§2023:13.18.39.2, \"COLUMNS\") "
         + "or, when that is omitted, 999 (§2023:13.18.39.4 GR5). Lower the column, or widen the page with "
         + "`PAGE … integer-2 COLUMNS`.",
-        "ISO §2023:13.18.14.3 SR6");
+        "ISO §2023:13.18.14.3 SR6",
+        No1985Rule: "ANSI X3.23-1985 gives a report no page width: its PAGE clause (§1985:XIII.3.8) states the page's length in lines "
+            + "and its COLUMN NUMBER clause (§1985:XIII.3.11) bounds no column, so there is no 1985 rule to cite; the width "
+            + "begins in COBOL-2002 (kb/Work PB4950).");
 
     /// <summary>COBOL2711 — a COLUMN clause that writes LEFT, CENTER or RIGHT and also a relative operand. ISO
     /// §2023:13.18.14.3 SR9: "If LEFT, CENTER, or RIGHT is specified, all the operands shall be absolute." (kb/Work
@@ -1942,7 +1945,10 @@ public static class DiagnosticCatalog
         + "types of entries exist for which there is no true concept of level\". The group form is reached "
         + "through §2023:13.18.60.4 GR1, which applies a group's usage \"only to each elementary item in the "
         + "group\" — at that item's own level.)",
-        "ISO §2023:13.18.60.3 SR14");
+        "ISO §2023:13.18.60.3 SR14",
+        No1985Rule: "The MESSAGE-TAG, OBJECT REFERENCE, POINTER, FUNCTION-POINTER and PROGRAM-POINTER usages are not in ANSI "
+            + "X3.23-1985, whose USAGE clause has BINARY, COMPUTATIONAL, COMP, DISPLAY, INDEX and PACKED-DECIMAL only "
+            + "(§1985:VI.5.14.2), so it states no rule about where one may be written (kb/Work PB4950).");
     public static readonly DiagnosticDescriptor UsageObjectReferenceFileSection = new(
         "COBOL1725", "usage-object-reference-file-section", EditionSeverity.Error,
         "ISO §2023:13.18.60.3 syntax rule 15: \"The USAGE OBJECT REFERENCE clause shall not be specified in the "
@@ -5321,7 +5327,10 @@ public static class DiagnosticCatalog
         + "excludes an index item CONTAINED IN identifier-1 from the receiver set and leaves it silently "
         + "unchanged; applying that exclusion to identifier-1 itself is what turned this syntax error into a "
         + "no-op, so a subordinate index item is still skipped without a word and only the target is diagnosed.",
-        "ISO §2023:14.9.20.3 / §2023:8.5.2.1 / §2023:8.5.2.8");
+        "ISO §2023:14.9.20.3 / §2023:8.5.2.1 / §2023:8.5.2.8",
+        No1985Rule: "The INITIALIZE statement is not in ANSI X3.23-1985, whose Procedure Division verbs have no INITIALIZE, and "
+            + "its classes of data item are not defined there (the facility begins in COBOL-2002), so there is no 1985 rule to "
+            + "cite (kb/Work PB4950).");
 
     /// <summary>COBOL2031 — §2023:14.9.20.3 SR4's MOVE half: the implicit MOVE the REPLACING phrase names would not
     /// be a valid MOVE statement.</summary>
@@ -8197,7 +8206,10 @@ public static class DiagnosticCatalog
         + "components outside the COBOL implementation, such as precompilers\". This implementation has no precompiler, "
         + "so the block is reported once, at its EXEC, and the parse resumes after its END-EXEC. Run the source through "
         + "the precompiler first and compile the COBOL it writes.",
-        "ISO §2023:4.2.14");
+        "ISO §2023:4.2.14",
+        No1985Rule: "ANSI X3.23-1985 defines no EXEC construct and says nothing about embedded precompiler blocks; it lets an "
+            + "implementation add nonstandard language elements (§1985:I.1.5.2.5.2), which is no rule that a block be refused, "
+            + "so there is no 1985 rule to cite (kb/Work PB4950).");
 
     // kb/Work PB4381: an EXEC language-name block whose sentence ends before any END-EXEC. EmbeddedBlockReading used to read
     // EXEC as a COBOL word at the first such EXEC and give up the whole source, so every well-formed block drew

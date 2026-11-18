@@ -526,9 +526,6 @@
    "write-invalid-key-sequential-org": 1,
    "write-not-invalid-key-sequential-org": 1
   },
-  "COBOL1724": {
-   "pb916-message-tag-inherited-picture": 2
-  },
   "COBOL1740": {
    "pb206-group-value-oversize": 1,
    "pb206-value-oversize-elementary": 1,
@@ -628,11 +625,7 @@
    "pb692-access-random-organization-sequential": 1
   },
   "COBOL1906": {
-   "g85_f07_01": 1,
-   "pb770-alphabet-duplicate-character": 1,
-   "pb770-alphabet-multichar-thru-operand": 1,
-   "pb770-alphabet-noninteger-literal": 1,
-   "pb770-alphabet-ordinal-out-of-range": 1
+   "pb770-alphabet-duplicate-character": 1
   },
   "COBOL1927": {
    "pb495-sr2-contradicting-group-usage": 1,
@@ -736,9 +729,6 @@
   },
   "COBOL2026": {
    "pb489-linage-counter-receiving": 1
-  },
-  "COBOL2030": {
-   "pb416-initialize-target-class-index": 1
   },
   "COBOL2031": {
    "pb3605-initialize-replacing-numeric-by-space": 1,
@@ -918,10 +908,6 @@
    "pb4456_expansion_literals_refused_at_85": 1,
    "pb4650_unused_actual_expansion_refused_at_85": 1
   },
-  "COBOL2241": {
-   "1985-SR-VI_4_5_3-2": 1,
-   "pb862-unavailable-device-name": 1
-  },
   "COBOL2242": {
    "pb790-alphabet-through-with-also": 1
   },
@@ -939,9 +925,6 @@
    "pb1288-report-type-below-level1": 1,
    "pb485-level-66-report-group": 1,
    "pb853-report-group-entry-picture": 1
-  },
-  "COBOL2256": {
-   "pb829-assign-target-list": 1
   },
   "COBOL2269": {
    "1985-FMT-VII_4_7_2": 1,
@@ -1067,10 +1050,6 @@
   "COBOL2406": {
    "pb550-value-in-redefining-entry": 1
   },
-  "COBOL2409": {
-   "pb444-search-all-end-search-next-sentence": 1,
-   "pb444-search-end-search-next-sentence": 1
-  },
   "COBOL2418": {
    "pb510-blank-when-zeros": 1,
    "pb510-options-initialize-binary-zero": 1,
@@ -1114,9 +1093,6 @@
    "1985-SR-XII_2_3-2": 1,
    "pb1354_copy_header_syntax": 1,
    "pb1358-replace-not-preceded-by-space": 1
-  },
-  "COBOL2451": {
-   "1985-SR-XII_2_3-7": 1
   },
   "COBOL2495": {
    "pb1493-floating-comment-not-separated": 1,
@@ -1195,9 +1171,6 @@
   "COBOL2636": {
    "w73b-pb1237-fd-sd-without-select": 2
   },
-  "COBOL2645": {
-   "pb1078-assign-literal-shape": 2
-  },
   "COBOL2648": {
    "pb1145-procedure-header-formal-repeated": 1
   },
@@ -1242,11 +1215,6 @@
   },
   "COBOL2709": {
    "pb1059-page-phrase-without-limit": 1
-  },
-  "COBOL2710": {
-   "pb1058-integer-operand-beyond-limit": 1,
-   "pb1059-column-beyond-assumed-page-width": 1,
-   "pb1059-column-beyond-page-width": 1
   },
   "COBOL2713": {
    "pb1129-code-literal-numeric": 1,
@@ -1359,23 +1327,6 @@
    "pb1293-source-numeric-to-alphabetic": 1,
    "pb5188-source-index-data-item": 1
   },
-  "COBOL2773": {
-   "1985-SR-VI_3_3_3-1": 1,
-   "1985-SR-X_3_1_3-1": 1,
-   "pb1402-not-an-annex-b-character": 1,
-   "pb1660-nbsp-only-line-is-not-blank": 1,
-   "pb3845-nbsp-word-unparseable": 1,
-   "pb4130-no-break-space-in-a-word": 1,
-   "pb4156-extended-letter-beside-euro-sign": 1,
-   "pb4234-leading-underscore-in-a-word": 1,
-   "pb4234-trailing-underscore-in-a-word": 1,
-   "pb4278-leading-hyphen-in-a-word": 1,
-   "pb4278-trailing-hyphen-in-a-word": 1,
-   "pb4279-copy-text-name-edge-hyphen": 1,
-   "pb4279-copy-text-name-edge-underscore": 1,
-   "pb5608-copy-replacing-identifier-non-cobol-character-refused-85": 1,
-   "pb5608-copy-replacing-word-non-cobol-character-refused-85": 1
-  },
   "COBOL2776": {
    "pb1455-subscript-before-qualifier": 3
   },
@@ -1475,9 +1426,6 @@
    "pb5565-padding-on-relative-85": 1,
    "pb773-record-delimiter-on-indexed-file": 1
   },
-  "COBOL2915": {
-   "pb1281-redefines-qualified": 1
-  },
   "COBOL2961": {
    "1985-GR-VI_5_15_5-2": 1,
    "pb5181-through-all-literal-descending": 1,
@@ -1532,16 +1480,6 @@
   "COBOL3983": {
    "pb694-read-no-into-relative": 1,
    "pb694-read-no-into-sequential": 1
-  },
-  "COBOL4250": {
-   "pb5307-cd-name-declared-twice-1985": 1,
-   "pb5307-report-name-declared-twice-1985": 1,
-   "pb5541-fd-declared-twice": 1,
-   "pb5631-case-fd-then-sd": 1,
-   "pb5631-case-sd-then-fd": 1,
-   "pb5631-fd-then-sd": 1,
-   "pb5631-sd-then-fd": 1,
-   "pb5631-sd-then-sd": 1
   },
   "COBOL4733": {
    "pb3517-sign-phrase-on-non-binary-usage": 3,
@@ -1621,12 +1559,6 @@
    "pb2555-word-cut-by-margin-r": 1,
    "pb4372-statement-only-past-margin-r": 1,
    "pb4412-vanished-statement-beside-debugging-line": 1
-  },
-  "COBOL5818": {
-   "pb4341-exec-sql-block-in-branches": 6,
-   "pb4341-exec-sql-block-refused": 4,
-   "pb4381-exec-sql-block-unterminated": 2,
-   "pb4384-exec-sql-semicolon-in-block": 1
   },
   "COBOL5842": {
    "pb4381-exec-sql-block-unterminated": 1

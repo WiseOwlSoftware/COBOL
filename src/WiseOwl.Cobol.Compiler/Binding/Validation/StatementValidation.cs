@@ -975,8 +975,10 @@ internal sealed class StatementValidation(DataBinder data)
         if (endSearch is null || !whenArms.Any(StatementBinder.IsNextSentenceArm)) return true;
         data.Edition.Error(DiagnosticCatalog.SearchEndSearchNextSentence,
             $"{verb}: the END-SEARCH phrase is specified and a WHEN phrase's body is NEXT SENTENCE — \"If the "
-            + "END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" (ISO §2023:14.9.37.3 "
-            + "SR4). Write CONTINUE in that WHEN phrase, or remove END-SEARCH and end the sentence with a period.");
+            + data.Edition.Edition.Cite("END-SEARCH phrase is specified, the NEXT SENTENCE phrase must not be specified\" (ISO §1985:VI.6.22.3 SR5",
+                "END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" (ISO §2023:14.9.37.3 SR4",
+                "END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified\" (ISO §2023:14.9.37.3 SR4")
+            + "). Write CONTINUE in that WHEN phrase, or remove END-SEARCH and end the sentence with a period.");
         return false;
     }
 

@@ -269,7 +269,10 @@ internal static class LevelNumberRules
 /// goldens assert all four editions reject). And <c>--permissive</c> softens exactly one verdict,
 /// <c>ConstructAvailability.Removed</c> → Warning, the migration mode for constructs an edition REMOVED; a level
 /// number ISO never defined is not a removed construct, so there is no permissive arm to write. Same reasoning,
-/// measured the same way, as <see cref="ExpressionFormationPass"/>.</para>
+/// measured the same way, as <see cref="ExpressionFormationPass"/>.
+/// What the edition changes is the CITATION: the format-axis messages name the rule of the edition in force
+/// (§1985:VI.5.3.2 and VI.5.3.3 SR1 at COBOL-85, §2023:13.16 and §2023:13.18.33.4 from 2002; kb/Work PB4950), which is why the pass is
+/// handed the <see cref="EditionInfo"/>.</para>
 /// </summary>
 internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition) : CursorFollowingVisitor(sink)
 {

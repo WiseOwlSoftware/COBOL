@@ -875,13 +875,12 @@ public sealed class CopyProcessor(
                 new OperandScreen(CopyOperandRules, _diagnostics, mapped, EditionInfo.Of(dialectLevel, permissive)),
                 nonPseudoText: p => OnNonPseudoTextOperand(mapped, p),
                 nestedCopy: p => ReportPlacement(mapped.LocateAt(p), "a COPY statement is written inside the "
-                    + "REPLACING phrase of another COPY statement — §2023:7.2.3.3 SR1: \"a COPY statement shall not "
-                    + "appear within a COPY statement\""));
+                    + "REPLACING phrase of another COPY statement — " + NestedCopyRule));
         }
         if (!c.HasError && c.TryPeek(out w) && w.IsWord("COPY"))
         {
             ReportPlacement(mapped.LocateAt(w.Start), "a COPY statement begins inside another COPY statement — "
-                + "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
+                + NestedCopyRule);
             c.MarkError();
         }
         c.ExpectSeparatorPeriod();
@@ -954,7 +953,7 @@ public sealed class CopyProcessor(
         if (w.IsWord("COPY"))
         {
             ReportPlacement(mapped.LocateAt(w.Start), "a COPY statement begins inside another COPY statement — "
-                + "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
+                + NestedCopyRule);
             c.MarkError();
             return null;
         }
@@ -1012,6 +1011,13 @@ public sealed class CopyProcessor(
         }
         return name;
     }
+
+    /// <summary>The rule that a COPY statement does not stand within a COPY statement, in the edition in force (kb/Work PB4950):
+    /// §1985:XII.2.3 SR7 at COBOL-85, §2023:7.2.3.3 SR1 from 2002.</summary>
+    private string NestedCopyRule => EditionInfo.Of(dialectLevel, permissive).Cite(
+        "§1985:XII.2.3 SR7: \"a COPY statement must not occur within a COPY statement\"",
+        "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"",
+        "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
 
     /// <summary>Report a §2023:7.2.3.3 SR1 / SR2 placement violation (COBOL2451) at a SOURCE position.</summary>
     private void ReportPlacement(SourceLocation at, string message)

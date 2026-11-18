@@ -280,7 +280,7 @@ public sealed partial class SpecialNamesBinder
                     _host.CheckUnqualifiableDeclaration(conditionName, UserWordKind.ConditionName);
                 }
         }
-        if (e.Unavailable is { } why)
+        if (e.Unavailable(Edition.Edition) is { } why)
         {
             Edition.Error(DiagnosticCatalog.UnavailableImplementorName, why);
             return;

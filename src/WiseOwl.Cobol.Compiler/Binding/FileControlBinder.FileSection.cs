@@ -206,7 +206,7 @@ public sealed partial class FileControlBinder
         if (firstDescription[name] == entryStart.StartIndex) return false;
         Edition.Error(DiagnosticCatalog.SpecialNameDeclaredTwice,
             $"the file-name '{name}' is described a second time by this {entry} — no qualifier can tell the two descriptions "
-            + "apart, so no reference to the file could uniquely identify one (ISO §2023:8.4.2.1); the first stands");
+            + $"apart, so no reference to the file could uniquely identify one (ISO {Edition.Edition.Citation()}); the first stands");
         return true;
     }
 
