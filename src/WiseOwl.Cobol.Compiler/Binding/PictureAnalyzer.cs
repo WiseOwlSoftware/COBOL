@@ -122,7 +122,7 @@ public static class PictureAnalyzer
         if (picture.Length == 0)
         {
             edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE character-string — {where} "
-                + "(ISO §2023:13.18.40.3 SR2: empty after separating the trailing ';' separator)");
+                + $"(ISO {edition.Edition.Cite("§1985:VI.5.9.3 SR2", "§2023:13.18.40.3 SR2", "§2023:13.18.40.3 SR2")}: empty after separating the trailing ';' separator)");
             return PicInfo.Recovery();
         }
 
@@ -143,7 +143,7 @@ public static class PictureAnalyzer
         {
             edition.Error(DiagnosticCatalog.PictureStringTooLong, $"{where}: character-string-1 is {written} "
                 + $"characters long — the maximum is {maxLength}{BoundProvenance(edition.DialectLevel)} "
-                + "(ISO §2023:13.18.40.3 SR4; the count is over character-string-1 as WRITTEN, so a repetition factor "
+                + $"(ISO {edition.Edition.Cite("§1985:VI.5.9.3 SR4", "§2023:13.18.40.3 SR4", "§2023:13.18.40.3 SR4")}; the count is over character-string-1 as WRITTEN, so a repetition factor "
                 + "counts as its own digits, not as the symbols it expands to)");
             return PicInfo.Recovery();
         }
@@ -262,7 +262,7 @@ public static class PictureAnalyzer
             // (`PIC 99.99.99`, `PIC 9ZZ`, `PIC N9`, `PIC NE`) — is PictureComposition, just below, and reports
             // COBOL1934 / COBOL1935 (kb/Work PB528; data-model design D24).
             edition.Error(DiagnosticCatalog.PictureStringInvalid, $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
-                + "(ISO §2023:13.18.40.3 SR2: not an allowable picture symbol)");
+                + $"(ISO {edition.Edition.Cite("§1985:VI.5.9.3 SR2", "§2023:13.18.40.3 SR2", "§2023:13.18.40.3 SR2")}: not an allowable picture symbol)");
             // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
             // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes).
             return PicInfo.Recovery(expanded.Length);

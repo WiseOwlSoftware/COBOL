@@ -198,6 +198,10 @@ public sealed class EditionReadDriftTests
         // A closed format's refusal cites the general format of the compile edition: §1985:VI.5.3.2 for the data description
         // entry, §2023:13.16.2 later (kb/Work PB4950). Worded by the parser because only it holds the edition. It refuses nothing itself.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ResidueRefusal | EditionInForce"] = (1, Verdict.DiagnosisOnly),
+        // The COBOL0313 sentence about a word this implementation reserves for a nonstandard extension cites the rule that lets an
+        // implementation do so in the edition in force (kb/Work PB4950): §1985:I.1.5.2.5.2 at COBOL-85, §2023:4.2.10 from 2002. It
+        // chooses a citation and nothing else; the word is refused whatever it says.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ExtensionReservationSentence | EditionInForce"] = (1, Verdict.DiagnosisOnly),
         // The same sentence names a user-defined word where an operand is due only where the compile edition has one to write
         // (kb/Work PB4435, PrintsConstantName): where every word the position takes stands for a literal (§2023:13.10.3 SR2), the
         // word is a constant-name, and the constant entry is COBOL-2002's, so a COBOL-85 sentence names the literal alone.

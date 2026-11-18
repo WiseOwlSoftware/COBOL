@@ -1638,7 +1638,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         bool isSynonym = !CobolKeywords.Same(written, reserved);
         var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
             ? words.SynonymBy(written) : null;
-        return $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO §2023:4.2.10; docs/CONFORMANCE.md D-RW1)"
+        string rule = recognizer is CobolParserCoreBase core ? core.EditionInForce.Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10", "§2023:4.2.10") : "§2023:4.2.10";
+        return $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO {rule}; docs/CONFORMANCE.md D-RW1)"
             + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
                 ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §2023:7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word"
                 : isSynonym ? $" and '{Truncate(written, 40)}' is its synonym here (ISO §2023:7.3.10.4 GR2), so neither is a user-defined word"

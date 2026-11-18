@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Binding;               // EditionContext
 using WiseOwl.Cobol.Editions;               // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
@@ -201,7 +202,7 @@ internal static class LevelNumberRules
     /// SR24, "Format 3 or 4 is used for each condition-name"), and FILLER is never a condition-name in
     /// either.</item>
     /// </list></summary>
-    internal static string? EntryNameObligation(CobolParserCore.DataDescriptionEntryContext entry, int level)
+    internal static string? EntryNameObligation(CobolParserCore.DataDescriptionEntryContext entry, int level, EditionInfo edition)
     {
         var name = entry.dataName();
         bool isFiller = name is not null && name.FILLER() is not null;
@@ -213,18 +214,18 @@ internal static class LevelNumberRules
             66 when name is null || isFiller =>
                 "the renames format of the data description entry is written `66 data-name-1 RENAMES …` and "
                 + "names data-name-1 unconditionally; it carries no entry-name clause, so the entry can be "
-                + "neither unnamed nor FILLER (ISO §2023:13.16.2 format 2, §2023:13.18.45.2, §2023:13.18.33.4 GR2b)",
+                + $"neither unnamed nor FILLER (ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.16.2 format 2, §2023:13.18.45.2, §2023:13.18.33.4 GR2b", "§2023:13.16.2 format 2, §2023:13.18.45.2, §2023:13.18.33.4 GR2b")})",
             88 when isFiller =>
                 "a condition-name entry names a condition-name — `88 condition-name-1 value-clause .` or "
                 + "`88 [condition-name-2] value-clause .` — and carries no entry-name clause, so FILLER, the "
                 + "entry-name clause's filler format, is not a name either format admits "
-                + "(ISO §2023:13.16.2 formats 3 and 4, §2023:13.18.20.2 format 3, §2023:13.16.3 SR24)",
+                + $"(ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.16.2 formats 3 and 4, §2023:13.18.20.2 format 3, §2023:13.16.3 SR24", "§2023:13.16.2 formats 3 and 4, §2023:13.18.20.2 format 3, §2023:13.16.3 SR24")})",
             88 when name is null && !HasContentValidationPhrase(entry) =>
                 "the condition-name format of the data description entry is written `88 condition-name-1 "
                 + "value-clause .` and names condition-name-1 unconditionally; only the validation format, "
                 + "`88 [condition-name-2] value-clause .`, may omit it, and its value clause requires the "
                 + "INVALID or VALID phrase, which this entry has not got — so this entry is neither format "
-                + "(ISO §2023:13.16.2 formats 3 and 4, §2023:13.18.63.2 format 5, §2023:13.16.3 SR24)",
+                + $"(ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.16.2 formats 3 and 4, §2023:13.18.63.2 format 5, §2023:13.16.3 SR24", "§2023:13.16.2 formats 3 and 4, §2023:13.18.63.2 format 5, §2023:13.16.3 SR24")})",
             _ => null,
         };
     }
@@ -285,7 +286,10 @@ internal static class LevelNumberRules
 /// goldens assert all four editions reject). And <c>--permissive</c> softens exactly one verdict,
 /// <c>ConstructAvailability.Removed</c> → Warning, the migration mode for constructs an edition REMOVED; a level
 /// number ISO never defined is not a removed construct, so there is no permissive arm to write. Same reasoning,
-/// measured the same way, as <see cref="ExpressionFormationPass"/>.</para>
+/// measured the same way, as <see cref="ExpressionFormationPass"/>.
+/// What the edition changes is the CITATION: the format-axis messages name the rule of the edition in force
+/// (§1985:VI.5.3.2 and VI.5.3.3 SR1 at COBOL-85, §2023:13.16 and §2023:13.18.33.4 from 2002; kb/Work PB4950), which is why the pass is
+/// handed the <see cref="EditionInfo"/>.</para>
 /// </summary>
 internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition) : CursorFollowingVisitor(sink)
 {
@@ -354,7 +358,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
                 Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text,
                     "level-number 66 is assigned to identify RENAMES entries and may be used only as described "
                     + "by the renames format of the data description entry, which is written `66 data-name-1 "
-                    + "RENAMES …` (ISO §2023:13.18.33.4 GR2b, §2023:13.16.2 format 2)");
+                    + $"RENAMES …` (ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.18.33.4 GR2b, §2023:13.16.2 format 2", "§2023:13.18.33.4 GR2b, §2023:13.16.2 format 2")})");
                 break;
 
             // §2023:13.18.33.4 GR2b again, the other direction: a level-66 entry that is not a renames entry is a
@@ -364,7 +368,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
                     "level-number 66 is assigned to identify RENAMES entries and may be used only as described "
                     + "by the renames format of the data description entry; this entry has no RENAMES clause, so "
                     + "it is a format-1 entry, whose level-number may be 77 or 1 through 49 "
-                    + "(ISO §2023:13.18.33.4 GR2b, §2023:13.16.3 SR1)");
+                    + $"(ISO {edition.Cite("§1985:VI.5.3.3 SR1", "§2023:13.18.33.4 GR2b, §2023:13.16.3 SR1", "§2023:13.18.33.4 GR2b, §2023:13.16.3 SR1")})");
                 break;
 
             // §2023:13.18.33.4 GR2c: "Level-number 88 … may be used only as described by the condition-name format or
@@ -376,7 +380,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
                     + "validation format of the data description entry, and both are written `88 "
                     + "[condition-name] value-clause .`; this entry's body is not a value clause alone, so it is "
                     + "a format-1 entry, whose level-number may be 77 or 1 through 49 "
-                    + "(ISO §2023:13.18.33.4 GR2c, §2023:13.16.2 formats 3 and 4, §2023:13.16.3 SR1)");
+                    + $"(ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.18.33.4 GR2c, §2023:13.16.2 formats 3 and 4, §2023:13.16.3 SR1", "§2023:13.18.33.4 GR2c, §2023:13.16.2 formats 3 and 4, §2023:13.16.3 SR1")})");
                 break;
 
             // §2023:13.16.2 Format 3, THE OTHER HALF OF THE ARM ABOVE (kb/Work PB501). That arm asks whether the body
@@ -402,7 +406,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
             // printed unbracketed, renames, had NONE: `66 RENAMES A THRU B.` and `66 FILLER RENAMES A THRU B.`
             // compiled silently and the entry evaporated, and so did `88 FILLER VALUE "A".` (FILLER is the
             // entry-name clause's filler format, which only format 1 carries).
-            case (_, 66 or 77 or 88) when LevelNumberRules.EntryNameObligation(entry, level) is { } requirement:
+            case (_, 66 or 77 or 88) when LevelNumberRules.EntryNameObligation(entry, level, edition) is { } requirement:
                 Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text, requirement);
                 break;
         }

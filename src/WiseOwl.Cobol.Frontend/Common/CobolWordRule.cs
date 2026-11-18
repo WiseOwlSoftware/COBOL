@@ -60,10 +60,10 @@ public static class CobolWordRule
     /// sign), which is no extended letter, so it is COBOL2773 at every target
     /// (<see cref="CobolCharacterRepertoire.ViolationAtEveryEdition"/>, kb/Work PB4130).</summary>
     public static string? CharacterViolation(string word, int dialectLevel) =>
-        CobolCharacterRepertoire.SeparatorPositionViolation(word)
+        CobolCharacterRepertoire.SeparatorPositionViolation(word, dialectLevel)
         ?? (dialectLevel >= 2002
             ? CobolCharacterRepertoire.Violation(word, dialectLevel)
-            : CobolCharacterRepertoire.ViolationAtEveryEdition(word));
+            : CobolCharacterRepertoire.ViolationAtEveryEdition(word, dialectLevel));
 
     /// <summary>True when <paramref name="word"/>'s character violation at <paramref name="dialectLevel"/> is one the
     /// COBOL 2002/2014 Annex B did not have — Annex E.2 item 4 deleted U+037A and made U+30FB medial at 2023 — so the

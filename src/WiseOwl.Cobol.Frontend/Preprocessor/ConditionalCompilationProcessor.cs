@@ -677,7 +677,7 @@ public static partial class ConditionalCompilationProcessor
         if (!IsCompilationVariableNameShape(name))
         {
             // A word that breaks the position rule is named by it (kb/Work PB4234), not by "no word at all".
-            complaint = (CobolCharacterRepertoire.SeparatorPositionViolation(name) ?? $"'{name}' is not a COBOL word")
+            complaint = (CobolCharacterRepertoire.SeparatorPositionViolation(name, 2023) ?? $"'{name}' is not a COBOL word")
                 + ", so it cannot be compilation-variable-name-1";
             return false;
         }

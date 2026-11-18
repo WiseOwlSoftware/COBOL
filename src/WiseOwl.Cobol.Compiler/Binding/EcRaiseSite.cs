@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
+
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
@@ -43,7 +45,7 @@ namespace WiseOwl.Cobol.Binding;
 /// mapping this value exists to keep honest (kb/Work PB404, PB409), and a bare EXIT PROGRAM / GOBACK with no
 /// RAISING phrase asks it too.</param>
 internal readonly record struct EcRaiseSite(string Verb, string Clause, int Level3Rule, int ObjectRule,
-                                            int LastRule, int GlobalDeclarativeRule = 0)
+                                            int LastRule, int GlobalDeclarativeRule = 0, string? GlobalDeclarativeRule1985 = null)
 {
     /// <summary>RAISE (ISO §2023:14.9.29.3). It has no RAISING phrase and therefore no EC-USER/LAST rules, and it does
     /// not return from the source element, so §2023:14.9.29.3 states no GLOBAL-declarative prohibition either.</summary>
@@ -56,11 +58,18 @@ internal readonly record struct EcRaiseSite(string Verb, string Clause, int Leve
     /// <summary>An EXIT statement's RAISING phrase (ISO §2023:14.9.14.3): EXIT PROGRAM, EXIT FUNCTION, EXIT METHOD.
     /// One clause, one set of ordinals — the format differs, the syntax rules do not.</summary>
     public static EcRaiseSite Exit(string verb) =>
-        new(verb, "14.9.14.3", Level3Rule: 3, ObjectRule: 5, LastRule: 6, GlobalDeclarativeRule: 2);
+        new(verb, "14.9.14.3", Level3Rule: 3, ObjectRule: 5, LastRule: 6, GlobalDeclarativeRule: 2,
+            GlobalDeclarativeRule1985: verb == "EXIT PROGRAM" ? "ISO §1985:X.5.4.3 SR2" : null);
 
     /// <summary>The statement named as a message's subject: "RAISE", or "GOBACK RAISING" / "EXIT PROGRAM
     /// RAISING" for the phrase forms.</summary>
     public string Context => this == Raise ? Verb : $"{Verb} RAISING";
+
+    /// <summary>This site's GLOBAL-declarative prohibition in the edition in force (kb/Work PB4950): at COBOL-85 the EXIT PROGRAM
+    /// statement's own rule, §1985:X.5.4.3 SR2 (the other statements it names are not in that edition), else
+    /// <see cref="Cite"/> of <see cref="GlobalDeclarativeRule"/>.</summary>
+    public string GlobalDeclarativeCite(EditionInfo edition) =>
+        edition.Cite(GlobalDeclarativeRule1985 ?? Cite(GlobalDeclarativeRule), Cite(GlobalDeclarativeRule), Cite(GlobalDeclarativeRule));
 
     /// <summary>This site's citation of one of its own rules — <c>Cite(Level3Rule)</c> → "ISO §2023:14.9.14.3 SR3".
     /// <paramref name="sub"/> spells a sub-item ("a", "d").</summary>

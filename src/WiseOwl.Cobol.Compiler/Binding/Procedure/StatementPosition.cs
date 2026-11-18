@@ -164,7 +164,9 @@ internal static partial class PlacementRules
                 ? $"shares its sentence with {p.Count - 1} other statement{(p.Count == 2 ? "" : "s")}"
             : p.SentencesInParagraph != 1
                 ? $"is one of {p.SentencesInParagraph} sentences in its paragraph"
-            : null);
+            : null,
+        Cite1985: "ISO §1985:VI.6.14.3 SR1",
+        Shall1985: "The EXIT statement must appear only in a sentence by itself and comprise the only sentence in the paragraph");
 
     /// <summary>§2023:14.9.17.3 SR2 — a Format 1 GO TO ends its consecutive sequence of imperative statements.</summary>
     private static readonly SequenceRule GoToLast = new(

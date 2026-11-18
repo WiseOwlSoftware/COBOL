@@ -514,8 +514,9 @@ public sealed partial class SpecialNamesBinder
                     // is ONE character: the specification defines no run that begins at, or ends at, a group.
                     Edition.Error(r.Code, $"{r.What}: the ordinal {op.Spelling} names {op.Members} characters of the "
                         + "character set referenced by the IN alphabet (an ALSO group shares one ordinal position, "
-                        + "ISO §2023:12.3.7.4 GR7 k6), so it is no single character to begin or end the run of native "
-                        + "characters a THROUGH phrase expands (ISO §2023:12.3.7.4 GR12)");
+                        + $"ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR4b", "§2023:12.3.7.4 GR7 k6", "§2023:12.3.7.4 GR7 k6")}), "
+                        + "so it is no single character to begin or end the run of native "
+                        + $"characters a THROUGH phrase expands (ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR11b", "§2023:12.3.7.4 GR12", "§2023:12.3.7.4 GR12")})");
                     ok = false;
                     continue;
                 }

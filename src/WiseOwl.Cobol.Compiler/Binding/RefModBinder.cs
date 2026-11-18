@@ -37,7 +37,7 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
         if (!refs.Probing && refs.Diagnosed.Add(dref))   // R30 purity: a probe never diagnoses (kb/Work PB157)
             data.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                 $"'{name}' carries {written.RefModCount} reference modifications; a reference-modified item cannot itself "
-                + "be reference-modified (ISO §2023:8.4.3.3.3 SR3). Compose the positions into one modifier instead.");
+                + $"be reference-modified (ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier instead.");
         return false;
     }
 

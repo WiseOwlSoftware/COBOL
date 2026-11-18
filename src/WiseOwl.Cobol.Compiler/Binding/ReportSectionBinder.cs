@@ -1310,14 +1310,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     if (iAbsolute && jAbsolute && lj.Value < li.Value)
                         Violation(lj, $"the absolute lines {LineWords(li)} and {LineWords(lj)} of one report group are not in "
                             + "increasing numerical order and are not each subject to a different PRESENT WHEN clause "
-                            + "(ISO §2023:13.18.35.3 SR6 a))");
+                            + $"(ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR4", "§2023:13.18.35.3 SR6 a)", "§2023:13.18.35.3 SR6 a)")})");
                     else if (iAbsolute && jAbsolute && lj.Value == li.Value)
                         Violation(lj, $"the lines {LineWords(li)} and {LineWords(lj)} of one report group overlap and are not "
-                            + "each subject to a different PRESENT WHEN clause (ISO §2023:13.18.35.3 SR6 b))");
+                            + $"each subject to a different PRESENT WHEN clause (ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR4", "§2023:13.18.35.3 SR6 b)", "§2023:13.18.35.3 SR6 b)")})");
                     else if (!iAbsolute && jAbsolute)
                         Violation(lj, $"the absolute line {LineWords(lj)} is described after the relative line {LineWords(li)} "
                             + "of one report group, and they are not each subject to a different PRESENT WHEN clause "
-                            + "(ISO §2023:13.18.35.3 SR6 e))");
+                            + $"(ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR3", "§2023:13.18.35.3 SR6 e)", "§2023:13.18.35.3 SR6 e)")})");
                 }
 
             if (!model.Paged) continue;
@@ -1331,8 +1331,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Violation(l, $"the absolute line {LineWords(l)} of {ReportGroupTypeWords(g.Kind).ToLowerInvariant()} report group "
                     + $"'{g.Name ?? "FILLER"}' lies "
                     + (l.Value < upper ? $"above the upper limit {upper}" : $"below the lower limit {lower}")
-                    + " the report group may occupy (ISO §2023:13.18.35.3 SR6 c); limits per §2023:13.18.57.4 GR7/GR8 from the PAGE "
-                    + "clause, §2023:13.18.39.4)");
+                    + $" the report group may occupy (ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR1", "§2023:13.18.35.3 SR6 c", "§2023:13.18.35.3 SR6 c")}); limits per "
+                    + Edition.Edition.Cite("§1985:XIII.3.8.3 SR8 from the PAGE clause)", "§2023:13.18.57.4 GR7/GR8 from the PAGE clause, §2023:13.18.39.4)",
+                        "§2023:13.18.57.4 GR7/GR8 from the PAGE clause, §2023:13.18.39.4)"));
             }
 
             // §2023:13.18.39.4 GR1/GR2 — a heading or footing group is confined to its region. A group of RELATIVE lines
@@ -1380,12 +1381,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         bool heading = g.Kind is ReportGroupKindModel.ReportHeading or ReportGroupKindModel.PageHeading;
                         Violation(l, $"the relative {LineWords(l)} can be the first line of "
                             + $"{ReportGroupTypeWords(g.Kind).ToLowerInvariant()} report group '{g.Name ?? "FILLER"}', and "
-                            + $"§2023:13.18.35.4 GR5 b) prints it on line {first}, "
+                            + $"{Edition.Edition.Cite("§1985:XIII.3.15.4 GR4", "§2023:13.18.35.4 GR5 b)", "§2023:13.18.35.4 GR5 b)")} prints it on line {first}, "
                             + (heading ? $"above the HEADING integer {model.Heading}, the first line position on which a heading "
-                                + "may be printed (ISO §2023:13.18.39.4 GR2 c))"
+                                + $"may be printed (ISO {Edition.Edition.Cite("§1985:XIII.3.8.3 SR8)", "§2023:13.18.39.4 GR2 c))", "§2023:13.18.39.4 GR2 c))")}"
                                 : $"not after the FOOTING integer {model.Footing}, after which a footing shall begin (ISO "
-                                + "§2023:13.18.39.4 GR2 g))")
-                            + "; limits per §2023:13.18.57.4 GR7)");
+                                + $"{Edition.Edition.Cite("§1985:XIII.3.8.3 SR8)", "§2023:13.18.39.4 GR2 g))", "§2023:13.18.39.4 GR2 g))")}")
+                            + Edition.Edition.Cite("", "; limits per §2023:13.18.57.4 GR7)", "; limits per §2023:13.18.57.4 GR7)"));
                     }
                     if (l.PresentWhenCtxs.Count == 0 && l.RepetitionGuards.Count == 0) break;
                 }
@@ -1429,7 +1430,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     using var at = Edition.At(tail[^1].Entry);
                     Violation(tail[^1], $"the relative lines at the end of {ReportGroupTypeWords(g.Kind).ToLowerInvariant()} "
                         + $"report group '{g.Name ?? "FILLER"}' carry its last line to line {last}, past the group's lower limit "
-                        + $"{lower}, and are not each subject to a different PRESENT WHEN clause (ISO §2023:13.18.35.3 SR6 d))");
+                        + $"{lower}, and are not each subject to a different PRESENT WHEN clause (ISO {Edition.Edition.Cite("§1985:XIII.3.8.3 SR9", "§2023:13.18.35.3 SR6 d)", "§2023:13.18.35.3 SR6 d)")})");
                 }
             }
         }
@@ -1483,7 +1484,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         if (value > model.VerticalLimit)
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
-                                + "is not divided into pages (ISO §2023:13.18.35.3 SR3)");
+                                + $"is not divided into pages (ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR1", "§2023:13.18.35.3 SR3", "§2023:13.18.35.3 SR3")})");
                         else if (ExceedsThreeSignificantDigits85(value))
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} has more than three significant "
                                 + "digits; integer-1 and integer-2 must not exceed three significant digits in length "
@@ -1493,7 +1494,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         Violation($"the report is not divided into pages, so all its LINE clauses shall be relative — "
                             + (absolute ? $"LINE {op.integerOperand()!.GetText()}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
                                         : "the ON NEXT PAGE operand is not the relative form {PLUS|+} integer-2")
-                            + " (ISO §2023:13.18.35.3 SR5)");
+                            + $" (ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR5", "§2023:13.18.35.3 SR5", "§2023:13.18.35.3 SR5")})");
                     // SR9 — "If the current report group is a control heading with the OR PAGE phrase, all the LINE
                     // clauses in the report group description shall be relative." A bare NEXT PAGE operand is no
                     // relative form either, exactly as SR5 reads it (kb/Work PB1248).
@@ -1513,11 +1514,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     if (op.NEXT() is null) continue;
                     if (k == 0 && !firstLineClause)
                         Violation("a NEXT PAGE phrase, if present, shall be specified only in the first LINE clause of "
-                            + "the report group description (ISO §2023:13.18.35.3 SR7)");
+                            + $"the report group description (ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR6", "§2023:13.18.35.3 SR7", "§2023:13.18.35.3 SR7")})");
                     if (kind is not (ReportGroupKindModel.ControlHeading or ReportGroupKindModel.Detail
                         or ReportGroupKindModel.ControlFooting or ReportGroupKindModel.ReportFooting))
                         Violation($"the NEXT PAGE phrase may appear only in the description of a body group or a report "
-                            + $"footing, not a {ReportGroupTypeWords(kind)} (ISO §2023:13.18.35.3 SR8)");
+                            + $"footing, not a {ReportGroupTypeWords(kind)} (ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR7", "§2023:13.18.35.3 SR8", "§2023:13.18.35.3 SR8")})");
                 }
                 firstLineClause = false;
             }
@@ -1573,8 +1574,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (!entries[k].reportGroupBody().reportGroupClause().Any(c => c.reportLineClause() is not null)) continue;
                 using var _ = Edition.At(entries[k]);
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': an entry that contains a LINE "
-                    + "clause shall not have a subordinate entry that also contains a LINE clause (ISO "
-                    + "§2023:13.18.35.3 SR4)");
+                    + $"clause shall not have a subordinate entry that also contains a LINE clause (ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR2", "§2023:13.18.35.3 SR4", "§2023:13.18.35.3 SR4")})");
                 break;
             }
         }
@@ -2133,7 +2133,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // a) "The NEXT PAGE phrase, if specified, shall appear only with the first operand."
             if (k > 0 && ops[k].NEXT() is not null)
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
-                    + "NEXT PAGE phrase shall appear only with the first operand (ISO §2023:13.18.35.3 SR10a)");
+                    + $"NEXT PAGE phrase shall appear only with the first operand (ISO {Edition.Edition.Cite("§1985:XIII.3.15.3 SR6", "§2023:13.18.35.3 SR10a", "§2023:13.18.35.3 SR10a")})");
             if (ops[k].integerOperand() is not { } lit) continue;   // a bare `ON NEXT PAGE` operand
             if (ops[k].reportRelativeSign() is not null) { relativeSeen = true; continue; }
             // b) "All absolute operands, if present, shall precede all relative operands, if present."
@@ -3622,9 +3622,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (sfx.RefMods > 0)
         {
             Edition.Error(DiagnosticCatalog.ReportSumAddendNotNumeric, $"RD '{model.Name}': SUM addend '{written}' is reference-modified. "
-                + "The addend shall specify a numeric data item (ISO §2023:13.18.54.3 SR5), and reference "
+                + $"The addend shall specify a numeric data item (ISO {Edition.Edition.Cite("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR5", "§2023:13.18.54.3 SR5")}), and reference "
                 + "modification creates a data item of class and category alphanumeric unless the usage is "
-                + "national (§2023:8.4.3.3.4 GR6 c), so a reference-modified addend is never numeric.");
+                + $"national ({Edition.Edition.Cite("§1985:IV.4.3.8.4.4 GR5", "§2023:8.4.3.3.4 GR6 c", "§2023:8.4.3.3.4 GR6 c")}), so a reference-modified addend is never numeric.");
             addend.Rejected = true;
         }
         return addend;
@@ -4232,8 +4232,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Edition.Error(DiagnosticCatalog.ReportSumAddendNotNumeric, $"RD '{model.Name}': SUM addend '{addend.Written}' is "
                 + $"{(item.IsGroup ? "a group item" : $"of category {item.Pic?.Category.ToString().ToLowerInvariant() ?? "unknown"}")}; "
-                + "the addend shall specify a numeric data item (ISO §2023:13.18.54.3 SR5) — its content is added "
-                + "into the sum counter by an implicit ADD (§2023:13.18.54.4 GR3).");
+                + $"the addend shall specify a numeric data item (ISO {Edition.Edition.Cite("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR5", "§2023:13.18.54.3 SR5")}) — its content is added "
+                + $"into the sum counter by an implicit ADD ({Edition.Edition.Cite("§1985:XIII.3.19.4 GR2", "§2023:13.18.54.4 GR3", "§2023:13.18.54.4 GR3")}).");
             return;
         }
         addend.Item = item;

@@ -843,7 +843,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             if (DeclaredInHierarchy(item, decl)) continue;
             data.Edition.Error(DiagnosticCatalog.IndexNameNotInTable,
                 $"'{item.CobolName}' subscripted by the index-name '{t.Text}', which is not in the INDEXED BY "
-                + "phrase of any OCCURS clause in this item's hierarchy (ISO §2023:8.4.2.3.3 SR4)");
+                + $"phrase of any OCCURS clause in this item's hierarchy (ISO {data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR3", "§2023:8.4.2.3.3 SR4", "§2023:8.4.2.3.3 SR4")})");
         }
     }
 

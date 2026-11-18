@@ -33,14 +33,26 @@ public readonly record struct ImplementorNameEntry(string Written, ImplementorNa
     /// <summary>Null when the entry names an available system-name in an arm that name may be written in; otherwise
     /// the COBOL2241 message (ISO §2023:12.3.7.3 SR8). An available device-name or feature-name written with ON/OFF
     /// STATUS is refused too: only the switch-name-1 arm prints the status phrases (§2023:12.3.7.2), and a name belongs
-    /// to exactly one system-name type (§2023:8.3.2.3.1), so the name — not the spelling — decides the arm.</summary>
-    public string? Unavailable => Row is null
+    /// to exactly one system-name type (§2023:8.3.2.3.1), so the name — not the spelling — decides the arm.
+    /// <para>The rule is cited by the edition in force (kb/Work PB4950): at COBOL-85 an implementor-name "is a system-name; thus the
+    /// formation of an implementor-name is defined by the implementor" (§1985:p.XVII-87, item 12 of the Implementor-Defined Language
+    /// Element List) and "A condition-name cannot be associated with such an implementor-name" (§1985:VI.4.5.3 SR2).</para></summary>
+    public string? Unavailable(EditionInfo edition) => Row is null
         ? $"SPECIAL-NAMES: '{Written}' is not a switch-name, feature-name or device-name this implementation makes "
-          + "available — \"The implementor shall specify the names that are available for switch-name-1, "
-          + "feature-name-1, and device-name-1\" (ISO §2023:12.3.7.3 SR8). Available: " + ImplementorNames.Describe()
+          + "available — "
+          + edition.Cite("\"Implementor-name is a system-name; thus the formation of an implementor-name is defined by the "
+                + "implementor\" (ISO §1985:p.XVII-87)",
+              "\"The implementor shall specify the names that are available for switch-name-1, feature-name-1, and "
+                + "device-name-1\" (ISO §2023:12.3.7.3 SR8)",
+              "\"The implementor shall specify the names that are available for switch-name-1, feature-name-1, and "
+                + "device-name-1\" (ISO §2023:12.3.7.3 SR8)")
+          + ". Available: " + ImplementorNames.Describe()
         : HasStatus && Row.Kind != SystemNameKind.Switch
             ? $"SPECIAL-NAMES: '{Written}' is a {ImplementorNames.KindWord(Row.Kind)}, and only a switch-name-1 entry "
-              + "may carry ON STATUS / OFF STATUS condition-names (ISO §2023:12.3.7.2; §2023:12.3.7.3 SR8; a system-name belongs "
-              + "to one type only, §2023:8.3.2.3.1)"
+              + "may carry ON STATUS / OFF STATUS condition-names ("
+              + edition.Cite("ISO §1985:VI.4.5.3 SR2",
+                  "ISO §2023:12.3.7.2; §2023:12.3.7.3 SR8; a system-name belongs to one type only, §2023:8.3.2.3.1",
+                  "ISO §2023:12.3.7.2; §2023:12.3.7.3 SR8; a system-name belongs to one type only, §2023:8.3.2.3.1")
+              + ")"
             : null;
 }

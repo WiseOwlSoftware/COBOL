@@ -2122,7 +2122,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (WordCensus.DeclareUnqualified(word, kind) < 2) return;
         Edition.Error(DiagnosticCatalog.SpecialNameDeclaredTwice,
             $"the {kind.Spelling()} '{word}' is declared a second time in this source element — no qualifier can tell the "
-            + "two declarations apart, so no reference to it could uniquely identify one (ISO §2023:8.4.2.1)");
+            + $"two declarations apart, so no reference to it could uniquely identify one (ISO {Edition.Edition.Citation()})");
     }
 
     /// <summary>⛔ THE ONE RECORDER of a reference to a name a configuration section declares (kb/Work PB3153): every
@@ -5736,9 +5736,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             using var _ = Edition.At(dref);
             Edition.Error(DiagnosticCatalog.RedefinesDataName2Qualified,
-                $"{face} '{WrittenText(dref)}': \"Data-name-2 shall not be qualified\" (ISO §2023:13.18.44.3 SR6); "
-                + "\"no ambiguity of reference exists because of the required placement of the REDEFINES clause\" "
-                + "(NOTE 1)");
+                $"{face} '{WrittenText(dref)}': "
+                + Edition.Edition.Cite(
+                    "\"Data-name-2 must not be qualified even if it is not unique since no ambiguity of reference exists in this "
+                    + "case because of the required placement of the REDEFINES clause\" (ISO §1985:VI.5.10.3 SR7)",
+                    "\"Data-name-2 shall not be qualified\" (ISO §2023:13.18.44.3 SR6); \"no ambiguity of reference exists because "
+                    + "of the required placement of the REDEFINES clause\" (NOTE 1)",
+                    "\"Data-name-2 shall not be qualified\" (ISO §2023:13.18.44.3 SR6); \"no ambiguity of reference exists because "
+                    + "of the required placement of the REDEFINES clause\" (NOTE 1)"));
         }
         return dref.cobolWord()?.Name();
     }

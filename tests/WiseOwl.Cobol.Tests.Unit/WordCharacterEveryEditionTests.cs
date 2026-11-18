@@ -60,7 +60,8 @@ public sealed class WordCharacterEveryEditionTests
             string? message = CobolWordRule.CharacterViolation(word, level);
             Assert.NotNull(message);
             Assert.Contains($"as its {position} character", message);
-            Assert.Contains("§2023:8.3.2.1", message);
+            // The rule is the edition's own (kb/Work PB4950): COBOL-85's word clause names no underscore at all.
+            Assert.Contains(level < 2002 ? "§1985:IV.4.2.2.1" : "§2023:8.3.2.1", message);
             Assert.False(CobolWordRule.RemovedAt2023(word, level));
         }
         Assert.False(CobolCharacterRepertoire.IsWordShape(word));
@@ -74,7 +75,7 @@ public sealed class WordCharacterEveryEditionTests
     [InlineData("CAFÉ_X")]
     public void AnInnerHyphenOrUnderscore_IsNoPositionViolation(string word)
     {
-        Assert.Null(CobolCharacterRepertoire.SeparatorPositionViolation(word));
+        Assert.Null(CobolCharacterRepertoire.SeparatorPositionViolation(word, 2023));
         Assert.Null(CobolWordRule.CharacterViolation(word, 2023));
         Assert.True(CobolCharacterRepertoire.IsWordShape(word));
     }

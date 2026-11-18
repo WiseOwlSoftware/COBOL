@@ -1063,7 +1063,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 ? $"constant-name '{alias.Word}' shall not be specified as a receiving operand — it substitutes a literal "
                     + "(ISO §2023:13.10.4 GR1)"
                 : $"symbolic-character '{alias.Word}' shall not be specified as a receiving operand — it is a figurative "
-                    + "constant (ISO §2023:12.3.7.4 GR11 a)), and a literal is never a receiving operand");
+                    + $"constant (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.2.2.2.3", "§2023:12.3.7.4 GR11 a)", "§2023:12.3.7.4 GR11 a)")}), and a literal is never a receiving operand");
         return null;
     }
 
