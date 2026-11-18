@@ -9,11 +9,12 @@ namespace WiseOwl.Cobol.Runtime;
 /// — which only the run unit that rendered it can do, so the table lives on <see cref="RunUnit"/> and a token another
 /// run unit rendered is not in it. Both token spaces start at a random per-process epoch (<see cref="PointerImage.Epoch"/>),
 /// so a token another PROCESS wrote collides with one of this run unit's only by a chance of about n/2^30 (review R1-1).
-/// <para>The table must not keep storage alive that the program has let go: an entry for a cell life that has ENDED (FREE, CANCEL)
-/// is dropped by a sweep that runs each time the table has doubled, and an addressless pointer's identity is held weakly, so
-/// a long batch that images a million ALLOCATEd and FREEd cells retains none of them (review R1-2). Every other entry is a
-/// <see cref="PointerImage.ImagedEntry"/> made for the table and held strongly until it ends: held weakly, as a far pointer's was,
-/// a collection between the WRITE and the READ dropped it while its storage was alive (kb/Work PB5928).</para>
+/// <para>⛔ EVERY ENTRY IS HELD STRONGLY UNTIL THE STORAGE IT NAMES ENDS (kb/Work PB5928). A token on a file is the program still holding the
+/// reference: READ must restore it for as long as the thing it names lives, so no entry is ever weak. Each is a <see cref="PointerImage.ImagedEntry"/>,
+/// and one whose life has ENDED (a cell life at FREE or CANCEL) is dropped by a sweep that runs each time the table has doubled, so a long batch that
+/// images a million ALLOCATEd and FREEd cells retains none of them (review R1-2). An entry that names no storage life (a program name, an addressless
+/// identity such as a saved-locale handle) lives as long as the run unit, which owns it. Held weakly, as a far pointer's and an identity's once were,
+/// a collection between the WRITE and the READ dropped the entry while the thing it named was alive, and the token read back foreign.</para>
 /// </summary>
 internal sealed class SlotImageTable
 {
@@ -23,46 +24,34 @@ internal sealed class SlotImageTable
     private static long s_lastTagBlock;   // PROCESS-wide, like the pointer bases: two run units of one process never issue the same tag block (review R2-1)
 
     private readonly object _gate = new();
-    private readonly Dictionary<long, object> _bases = [];   // a PointerImage.ImagedEntry held strongly, an identity as a WeakReference
+    private readonly Dictionary<long, PointerImage.ImagedEntry> _bases = [];
     private readonly Dictionary<(string? Mcs, MessageParty Party, string? Name, long High), long> _blockIds = [];   // (party, serial >> SerialBits) -> block token
     private readonly Dictionary<long, (string? Mcs, MessageParty Party, string? Name, long High)> _blocks = [];
     private int _sweepAt = FirstSweepAt;
 
-    /// <summary>Record that <paramref name="entry"/> was imaged at <paramref name="baseAddress"/>, held STRONGLY until the storage it names ends: the entry is
-    /// a record made for this table, which nothing else references (kb/Work PB5928).</summary>
-    internal void Note(long baseAddress, PointerImage.ImagedEntry entry) => Hold(baseAddress, entry);
-
-    /// <summary>Record that the addressless pointer <paramref name="identity"/> was imaged at <paramref name="baseAddress"/>, held WEAKLY: the pointer IS the
-    /// program's value, so once the program has let it go the table must not keep it alive (review R1-2).</summary>
-    internal void NoteIdentity(long baseAddress, ManagedPointer identity) => Hold(baseAddress, new WeakReference(identity));
-
-    private void Hold(long baseAddress, object held)
+    /// <summary>Record that <paramref name="entry"/> was imaged at <paramref name="baseAddress"/>, held until the storage it names ends.</summary>
+    internal void Note(long baseAddress, PointerImage.ImagedEntry entry)
     {
         lock (_gate)
         {
-            if (_bases.TryGetValue(baseAddress, out var current) && (current is not WeakReference { IsAlive: false })) return;
+            if (_bases.ContainsKey(baseAddress)) return;
             if (_bases.Count >= _sweepAt) Sweep();
-            _bases[baseAddress] = held;
+            _bases[baseAddress] = entry;
         }
     }
 
-    /// <summary>The entry imaged at <paramref name="baseAddress"/>, or null when this run unit never imaged one (or it has ended).</summary>
-    internal object? Entry(long baseAddress)
+    /// <summary>The entry imaged at <paramref name="baseAddress"/>, or null when this run unit never imaged one (or it has ended and been swept).</summary>
+    internal PointerImage.ImagedEntry? Entry(long baseAddress)
     {
-        lock (_gate)
-        {
-            object? entry = _bases.GetValueOrDefault(baseAddress);
-            return entry is WeakReference weak ? weak.Target : entry;
-        }
+        lock (_gate) return _bases.GetValueOrDefault(baseAddress);
     }
 
-    /// <summary>Drop the entries whose storage life ended or whose identity was collected, then set the next sweep at twice what is left.</summary>
+    /// <summary>Drop the entries whose storage life ended, then set the next sweep at twice what is left.</summary>
     private void Sweep()
     {
         foreach (var (key, entry) in _bases.ToArray())
         {
-            if (entry is PointerImage.ImagedEntry { Ended: true } or WeakReference { IsAlive: false })
-                _bases.Remove(key);
+            if (entry.Ended) _bases.Remove(key);
         }
         _sweepAt = Math.Max(FirstSweepAt, _bases.Count * 2);
     }

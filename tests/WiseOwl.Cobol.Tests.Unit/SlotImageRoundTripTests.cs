@@ -86,6 +86,86 @@ public sealed class SlotImageRoundTripTests
     private static string ImageOf(StorageCell cell, long offset) => PointerImage.Of(ManagedPointer.At(cell, offset));
 
     [Fact]
+    public void DataPointerOf_ASavedLocaleHandle_WhoseOnlyHolderIsItsToken_ReadsBackAsItself_AfterACollection()
+    {
+        // kb/Work PB5928 review R1-1 (probe locptr5d.cob): SET P TO LOCALE LC_ALL, WRITE P, SET P TO NULL, READ, SET LOCALE LC_ALL TO P. The handle's only
+        // holder between the WRITE and the READ is the token on the file, so the table held it weakly and a collection dropped it: the READ restored a
+        // ForeignAddress and SET LOCALE ended the run fatally (EC-LOCALE-INVALID-PTR). The token is the program still holding the handle.
+        RunUnit.Run(unit =>
+        {
+            string image = ImageOfSavedLocale(unit);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            var read = PointerImage.DataPointerOf(image);
+            Assert.IsType<SavedLocalePointer>(read);
+            Assert.True(unit.Locale.IsSavedLocale(read));
+            Assert.Equal(image, PointerImage.Of(read));
+        });
+    }
+
+    [Fact]
+    public void DataPointerOf_AnAddresslessCarrier_WhoseOnlyHolderIsItsToken_ReadsBackAsItself_AfterACollection()
+    {
+        // kb/Work PB5928 review R1-1: every addressless identity, not only a saved-locale handle, can leave the program's hold for a file.
+        RunUnit.Run(unit =>
+        {
+            string image = ImageOfCarrier();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            var read = Assert.IsType<ManagedPointer<string>>(PointerImage.DataPointerOf(image));
+            Assert.Equal("carried", read.Value);
+        });
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static string ImageOfSavedLocale(RunUnit unit) => PointerImage.Of(unit.Locale.Save(userDefault: false));
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static string ImageOfCarrier() => PointerImage.Of(ManagedPointer<string>.Cell("carried"));
+
+    [Fact]
+    public void ACellOfManyLives_HoldsTheBasesOfItsCurrentLifeOnly()
+    {
+        // kb/Work PB5928 review R1-2: a static cell re-seeded at every CANCEL lives one life per CALL, and the process-wide memo kept a base (and a far
+        // base) for every life it was imaged in. Structural, never timed: after 100000 lives the memo holds the current life's bases and no more.
+        var cell = new StorageCell { Ref = "WXYZ" };
+        RunUnit.Run(unit =>
+        {
+            for (int life = 0; life < 100_000; life++)
+            {
+                _ = PointerImage.Of(ManagedPointer.At(cell, 1));
+                _ = PointerImage.Of(ManagedPointer.At(cell, 1L << 32));
+                cell.End(StorageEnd.Cancelled);
+            }
+            var near = ManagedPointer.At(cell, 2);
+            var far = ManagedPointer.At(cell, (1L << 32) + 2);
+            string nearImage = PointerImage.Of(near), farImage = PointerImage.Of(far);
+            Assert.Equal((1, 1), PointerImage.BasesHeldFor(cell));
+            Assert.True(ManagedPointer.SameTarget(near, PointerImage.DataPointerOf(nearImage)));    // the current life still round-trips
+            Assert.True(ManagedPointer.SameTarget(far, PointerImage.DataPointerOf(farImage)));
+        });
+    }
+
+    [Fact]
+    public void APointerIntoAnEndedLife_ImagesEqual_UntilTheCellIsImagedInALaterLife()
+    {
+        // kb/Work PB5928 review R1-2: an ended life's base is dropped when the cell is next imaged in a later life; until then equal pointers image equal.
+        var cell = new StorageCell { Ref = "ABCD" };
+        RunUnit.Run(unit =>
+        {
+            var stale = Assert.IsType<CellPointer>(ManagedPointer.At(cell, 1));
+            string before = PointerImage.Of(stale);
+            cell.End(StorageEnd.Cancelled);
+            Assert.Equal(before, PointerImage.Of(new CellPointer(cell, 1, stale.Generation)));
+            _ = PointerImage.Of(ManagedPointer.At(cell, 1));                                  // the cell's next life: the ended life's base goes
+            Assert.Equal((1, 0), PointerImage.BasesHeldFor(cell));
+            Assert.Equal("EC-BOUND-PTR", Assert.Throws<CobolFatalException>(() => CobolPtr.Deref(PointerImage.DataPointerOf(before), 1)).EcName);   // §2023:13.18.5.4 GR4
+        });
+    }
+
+    [Fact]
     public void DataPointerOf_AnAddresslessPointer_ReadsBackAsItself()
     {
         var carrier = ManagedPointer<string>.Cell("x");

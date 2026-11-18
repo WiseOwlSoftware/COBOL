@@ -77,12 +77,58 @@ public static class PointerImage
 
     /// <summary>The bases one storage cell has been given, one per LIFE of the cell (<see cref="StorageCell.Generation"/>): a
     /// pointer taken before the cell's storage ended and one taken after it image apart, so the pointer a token decodes to
-    /// carries the life the image was taken in and a dereference of a freed cell still trips (§2023:13.18.5.4 GR4).</summary>
+    /// carries the life the image was taken in and a dereference of a freed cell still trips (§2023:13.18.5.4 GR4).
+    /// <para>⛔ BOUNDED (kb/Work PB5928 review R1-2): a static cell re-seeded at every CANCEL lives as many lives as a batch makes CALLs, so the bases of
+    /// ENDED lives are dropped the first time the cell is imaged in its current life, and both lookups are hashed. A pointer into an ended life is not a
+    /// valid address of storage (§2023:13.18.5.4 GR4), and the run unit's table drops that life's entry too, so its token no longer decodes to it; a
+    /// dangling pointer imaged again after the drop takes a fresh base, which the next life's drop removes in turn.</para>
+    /// Every member runs under <see cref="s_lock"/>.</summary>
     private sealed class CellLives
     {
-        public readonly List<(int Generation, long Base)> Bases = [];
+        private int _prunedFor = -1;   // the cell generation the ended lives were last dropped for
+        private readonly Dictionary<int, long> _bases = [];
         /// <summary>The base each FAR pointer into the cell was given (<see cref="FarBase"/>), by its life and displacement.</summary>
-        public readonly Dictionary<(int Generation, long Offset), long> Far = [];
+        private readonly Dictionary<(int Generation, long Offset), long> _far = [];
+
+        /// <summary>The base of <paramref name="pointer"/>'s life.</summary>
+        public long BaseOf(CellPointer pointer)
+        {
+            DropEndedLives(pointer);
+            if (!_bases.TryGetValue(pointer.Generation, out long b)) _bases[pointer.Generation] = b = NextBase();
+            return b;
+        }
+
+        /// <summary>The base of the far <paramref name="pointer"/>, one per (life, displacement).</summary>
+        public long FarBaseOf(CellPointer pointer)
+        {
+            DropEndedLives(pointer);
+            var key = (pointer.Generation, pointer.Offset);
+            if (!_far.TryGetValue(key, out long b)) _far[key] = b = NextBase();
+            return b;
+        }
+
+        /// <summary>How many life bases and far bases the cell holds; a test reads it to pin that a cell of many lives stays bounded.</summary>
+        public (int Bases, int Far) Count => (_bases.Count, _far.Count);
+
+        /// <summary>Drop the bases of every ended life the first time <paramref name="pointer"/>'s cell is imaged in its CURRENT life; imaging a pointer into
+        /// an ended life drops nothing, so equal dangling pointers image equal until the cell's next life is imaged.</summary>
+        private void DropEndedLives(CellPointer pointer)
+        {
+            int current = pointer.Cell.Generation;
+            if (pointer.Generation != current || _prunedFor == current) return;
+            _prunedFor = current;
+            foreach (int generation in _bases.Keys.Where(g => g != current).ToList()) _bases.Remove(generation);
+            foreach (var key in _far.Keys.Where(k => k.Generation != current).ToList()) _far.Remove(key);
+        }
+    }
+
+    /// <summary>The next base, (E + k) &lt;&lt; 32; the caller holds <see cref="s_lock"/>.</summary>
+    private static long NextBase() => ++s_nextBase << BaseShift;
+
+    /// <summary>The life and far bases <paramref name="cell"/> holds (kb/Work PB5928 review R1-2).</summary>
+    internal static (int Bases, int Far) BasesHeldFor(StorageCell cell)
+    {
+        lock (s_lock) return s_cellBases.TryGetValue(cell, out var lives) ? lives.Count : (0, 0);
     }
 
     /// <summary>A data-pointer whose displacement from its cell lies outside the ±2^31 the shape base + displacement can state (kb/Work PB4925): the entry
@@ -93,10 +139,10 @@ public static class PointerImage
     }
 
     /// <summary>⛔ AN ENTRY THE RUN UNIT'S TABLE HOLDS STRONGLY (kb/Work PB5928). Every token this codec renders names one of these or the identity of an
-    /// addressless pointer (<see cref="SlotImageTable.NoteIdentity"/>, held weakly). An entry is a record made for the table, so nothing else references it:
-    /// held weakly it would be collected at the next GC while the storage it names is alive, and the token would read back as a <see cref="ForeignAddress"/>.
-    /// The table drops it only when <see cref="Ended"/> says the storage it names has ended. A new kind of entry derives from this type, so the type
-    /// system, not a list in the table, decides how it is held.</summary>
+    /// addressless pointer (<see cref="Identity"/>). A token on a file is the program still holding the reference, so the table must resolve it for as long
+    /// as the thing it names lives: held weakly, an entry was collected at the next GC while that thing was alive (nothing else references a record made for
+    /// the table, and a saved-locale handle whose only holder is a file token is referenced by nothing at all), and the token read back as a
+    /// <see cref="ForeignAddress"/>. The table drops an entry only when <see cref="Ended"/> says the storage it names has ended.</summary>
     internal abstract record ImagedEntry
     {
         /// <summary>Whether the storage life this entry names has ended (FREE, CANCEL), so the table may drop it.</summary>
@@ -117,6 +163,10 @@ public static class PointerImage
 
     /// <summary>A program- or function-pointer's category and name, the entry a decoded token names.</summary>
     internal sealed record NamedAddress(char Category, string Name) : ImagedEntry;
+
+    /// <summary>An addressless data-pointer VALUE (a saved-locale handle, a typed carrier, the predefined NULL argument), the entry a decoded token names:
+    /// it names no storage life, so it lives as long as the run unit that owns the table.</summary>
+    internal sealed record Identity(ManagedPointer Pointer) : ImagedEntry;
 
     /// <summary>The storage image of a data-pointer VALUE (null or NULL → <see cref="NullImage"/>).</summary>
     public static string Of(ManagedPointer? p) => p switch
@@ -154,8 +204,8 @@ public static class PointerImage
                     return new CellPointer(life.Cell, offset, life.Generation);
                 case FarDisplacement far when offset == 0:
                     return new CellPointer(far.Cell, far.Offset, far.Generation);
-                case ManagedPointer identity when offset == 0:
-                    return identity;
+                case Identity identity when offset == 0:
+                    return identity.Pointer;
             }
         }
         return new ForeignAddress(image);
@@ -216,8 +266,8 @@ public static class PointerImage
     {
         long b;
         lock (s_lock)
-            b = s_areaBases.GetValue(area, static _ => new StrongBox<long>(++s_nextBase << BaseShift)).Value;
-        RunUnit.Current.SlotImages.NoteIdentity(b, area);
+            b = s_areaBases.GetValue(area, static _ => new StrongBox<long>(NextBase())).Value;
+        RunUnit.Current.SlotImages.Note(b, new Identity(area));
         return b;
     }
 
@@ -225,16 +275,7 @@ public static class PointerImage
     {
         long b;
         lock (s_lock)
-        {
-            var lives = s_cellBases.GetOrCreateValue(pointer.Cell);
-            int at = lives.Bases.FindIndex(l => l.Generation == pointer.Generation);
-            if (at < 0)
-            {
-                lives.Bases.Add((pointer.Generation, ++s_nextBase << BaseShift));
-                at = lives.Bases.Count - 1;
-            }
-            b = lives.Bases[at].Base;
-        }
+            b = s_cellBases.GetOrCreateValue(pointer.Cell).BaseOf(pointer);
         RunUnit.Current.SlotImages.Note(b, new CellLife(pointer.Cell, pointer.Generation));
         return b;
     }
@@ -247,11 +288,7 @@ public static class PointerImage
     {
         long b;
         lock (s_lock)
-        {
-            var far = s_cellBases.GetOrCreateValue(pointer.Cell).Far;
-            if (!far.TryGetValue((pointer.Generation, pointer.Offset), out b))
-                far[(pointer.Generation, pointer.Offset)] = b = ++s_nextBase << BaseShift;
-        }
+            b = s_cellBases.GetOrCreateValue(pointer.Cell).FarBaseOf(pointer);
         RunUnit.Current.SlotImages.Note(b, new FarDisplacement(pointer.Cell, pointer.Generation, pointer.Offset));
         return b;
     }
@@ -266,7 +303,7 @@ public static class PointerImage
         lock (s_lock)
         {
             if (!s_nameBases.TryGetValue(key, out b))
-                s_nameBases[key] = b = ++s_nextBase << BaseShift;
+                s_nameBases[key] = b = NextBase();
         }
         RunUnit.Current.SlotImages.Note(b, new NamedAddress(category, name));
         return b;

@@ -1,15 +1,24 @@
-## PB5928: a far pointer's slot-image entry is held strongly, so a garbage collection no longer turns its token foreign
+## PB5928: every slot-image entry is held until what it names ends, so a garbage collection no longer turns a token foreign
 
 A full Unit gate failed `SlotImageRoundTripTests.DataPointerOf_APointerDisplacedBeyondTheWindow_ReadsBackAsItself_NeverAsAnotherArea` with
-"Expected CellPointer, Actual ForeignAddress"; the class passed alone. The suspected cause, process-wide pointer-image bases shared by parallel tests,
-is the documented determination (DOC-A.1-216, §2023:13.18.60.4 GR23 leaves the representation to the implementor) and could only weaken the test's
-aliasing check, not change the decoded type. The real cause was in the runtime: `SlotImageTable.Note` held every entry other than a `CellLife` or a
-`NamedAddress` as a `WeakReference`, and PB4925's `FarDisplacement`, a record nothing else references, fell into that arm. Any garbage collection
-between WRITE and READ dropped it, and a far pointer read back from a file as a foreign address. The parallel test that calls `GC.Collect` made the
-gate hit it.
+"Expected CellPointer, Actual ForeignAddress", though the class passed alone. The suspected cause was the process-wide pointer-image bases shared by
+parallel tests. Those bases are the documented determination: DOC-A.1-216 records it, and §2023:13.18.60.4 GR23 leaves the representation to the
+implementor. They could only weaken the test's aliasing check; they could not change the decoded type.
 
-The fix is structural. Every entry the codec makes derives from `PointerImage.ImagedEntry`, held strongly and swept when its `Ended` says its storage
-life has ended. The weak hold is its own method, `NoteIdentity`, for an addressless pointer's identity. A new test images a far pointer, collects, and
-decodes: before the fix it failed alone with the gate's exact message, and after the fix it passes. The original test now reads B's displacement from
-the two images instead of assuming B's base is A's next. The sibling sweep found no other weak hold and no other test that depends on a process-wide
-counter's next value (kb/Work PB5928).
+The real cause was in the runtime. `SlotImageTable.Note` held every entry other than a `CellLife` or a `NamedAddress` as a `WeakReference`.
+PB4925's `FarDisplacement` is a record that nothing else references, so it fell into that arm. A garbage collection between WRITE and READ dropped it,
+and the far pointer read back as a foreign address.
+
+Review round 1 found the same mechanism in the arm the first fix kept weak. That arm held an addressless identity, such as a saved-locale handle. The
+reviewer's probe runs `SET P TO LOCALE LC_ALL`, `WRITE`, `SET P TO NULL`, then a collection, then `READ` and `SET LOCALE LC_ALL TO P`, and it ended the
+run fatally with EC-LOCALE-INVALID-PTR. A token on a file means the program is still holding the reference. So the table now has no weak path:
+- Every entry is a `PointerImage.ImagedEntry`.
+- An addressless value is an `Identity` that lives as long as its run unit.
+- A cell life or far displacement is swept when its life ends.
+
+The same round bounded the process-wide per-cell base memo, which kept one base per life of a cell and scanned that list linearly. It is now hashed,
+and it drops ended lives the first time the cell is imaged in its current life.
+
+Five new tests cover the two collection cases (far pointer, saved-locale handle, addressless carrier) and the bounded growth (100000 lives hold one
+base). Each failed against the code it replaces and passes now. The far-pointer test now reads B's displacement from the two images instead of
+assuming adjacent bases (kb/Work PB5928).
