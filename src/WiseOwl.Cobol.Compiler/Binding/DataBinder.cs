@@ -204,7 +204,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// ARE EVERY NAME CLASS A DATA DESCRIPTION ENTRY DECLARES, and <c>GlobalNameClassDriftTests</c> keeps the list
     /// total: a name index this binder gains is inherited here or excluded there with its reason. Each item carries its depth, so
     /// a nearer declaration of the same spelling wins by §2023:8.4.6.2.1 3) at REFERENCE time
-    /// (<see cref="Model.SymbolTable.NearestDeclaring{T}"/>), not by being left out here. Called nearest container
+    /// (<see cref="SymbolTable.NearestDeclaring{T}"/>), not by being left out here. Called nearest container
     /// first, after this unit's own names are declared (the end of <see cref="BindDeclarations"/>), so each
     /// ByName list stays in nearest-first order. The cells stay the container's: this unit reaches them through the GLOBAL bridge
     /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and never emits them.</summary>
@@ -353,12 +353,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal CsNameScope RootNames => _rootNames;
 
 
-    /// <summary>THE scope-aware name resolver of this binder's forest (P6 Step 7 — <see cref="Model.SymbolTable"/>
+    /// <summary>THE scope-aware name resolver of this binder's forest (P6 Step 7 — <see cref="SymbolTable"/>
     /// collapses the former LookupData/LookupDataInScopeOf/TryGetVisibleIndexField/IndexFieldFor quadruple). One
     /// table per binder: COBOL name scopes are per-unit. A 7a wrapper over the live maps; builder-owned storage
     /// is P7.</summary>
-    public Model.SymbolTable Symbols => _symbols ??= new Model.SymbolTable(this);
-    private Model.SymbolTable? _symbols;
+    public SymbolTable Symbols => _symbols ??= new SymbolTable(this);
+    private SymbolTable? _symbols;
 
     /// <summary>The ACTIVE lookup scope — the method a reference is made in (<see cref="OoDataBinder.CurrentMethodScope"/>: its
     /// statements or its data division), else program scope.</summary>
@@ -1359,7 +1359,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
         // it is, the same the procedure division's unidentified reference asks. A refused declaration was reported.
-        var nonData = NonDataDeclarationOf(name, quals, Model.Scope.Program);
+        var nonData = Symbols.Declared.OtherThanData(name, quals, Model.Scope.Program);
         if (nonData is { DeclarationRefused: true }) return null;
         Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{clauseFace} '{written}': the clause's data-name references no data item — "

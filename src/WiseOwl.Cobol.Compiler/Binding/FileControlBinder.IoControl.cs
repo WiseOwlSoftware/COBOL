@@ -456,8 +456,8 @@ public sealed partial class FileControlBinder
         // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§2023:8.4.6.2.1 3)), and
         // the operand resolves as written to its own refusal; a farther one does not hide the file (kb/Work PB4219: a
         // container's GLOBAL table's INDEXED BY RELF used to beat a nearer container's GLOBAL file RELF).
-        if (_host.NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
-            && declared.Kind != NonDataDeclarationKind.FileName && declared.Depth <= fileDepth) return false;
+        if (_host.Symbols.Declared.OtherThanData(name, quals, Model.Scope.Program) is { } declared
+            && declared.Kind != DeclarationKind.FileName && declared.Depth <= fileDepth) return false;
         string written = DataBinder.WrittenQualified(name, quals);
         using var reportAt = Edition.At(at);
         if (_host.State.Reports.EntriesNamed(name, quals) is [var (report, _), ..] && _host.State.Reports.Depth(report) < fileDepth

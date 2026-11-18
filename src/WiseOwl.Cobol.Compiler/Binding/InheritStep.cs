@@ -103,7 +103,7 @@ internal static class InheritStep
     /// <para>Every tier a name can be declared at is asked by <c>DataBinder.DeclaredNearerThan</c>; a METHOD's own names
     /// are the one tier nearer still, asked at reference time (<c>OoDataBinder.ActiveMethodDeclares</c>).</para></summary>
     internal static void DropShadowed(DataBinder data) =>
-        data.State.Inherited.DropShadowed(data.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
+        data.State.Inherited.DropShadowed(data.Symbols.Declared.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
 
     /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
     /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out it

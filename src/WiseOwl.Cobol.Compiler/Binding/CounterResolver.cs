@@ -135,7 +135,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         int counterDepth = data.State.Reports.Depth(matches[0].Report);
         if (counterDepth > 0
             && (qualifiers.Count == 0
-                ? data.DeclaredNearerThan(name, counterDepth)
+                ? data.Symbols.Declared.DeclaredNearerThan(name, counterDepth)
                 : refs.Names.ResolveQualified(name, qualifiers) is { } nearer && data.State.Forest.DeclaringDepth(nearer) < counterDepth))
             return null;
         // ⛔ THE COUNTER IS ONE CANDIDATE AMONG ALL THE DATA-NAMES OF ITS SPELLING (kb/Work PB3232). §2023:13.18.54.4 GR5 makes a

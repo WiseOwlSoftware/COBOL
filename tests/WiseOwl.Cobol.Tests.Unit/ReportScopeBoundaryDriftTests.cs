@@ -66,7 +66,7 @@ public sealed class ReportScopeBoundaryDriftTests
     {
         // DataBindState.SumCounters carries the P6 Step-6 watermark (Require(FilesResolved)); ReportScope.SumCounters is the
         // ungated map behind it, internal so no other assembly reaches it, and read in the two files that own the gate
-        // (DataBindState) and the name-scope test (DataBinder.NonDataNames.cs, DeclaredNearerThan) only - any other
+        // (DataBindState) and the name-scope test (SymbolTable.Declarations.cs, DeclaredNearerThan) only - any other
         // reader asks data.State.SumCounters.
         var offenders = new List<string>();
         int found = 0;
@@ -75,7 +75,7 @@ public sealed class ReportScopeBoundaryDriftTests
             {
                 found++;
                 if (!file.EndsWith("/Binding/DataBindState.cs", StringComparison.Ordinal)
-                    && !file.EndsWith("/Binding/DataBinder.NonDataNames.cs", StringComparison.Ordinal))
+                    && !file.EndsWith("/Binding/SymbolTable/SymbolTable.Declarations.cs", StringComparison.Ordinal))
                     offenders.Add($"{file}: {m.Value}");
             }
         Assert.True(found >= 2, $"the scan found only {found} reads of Reports.SumCounters - the pattern no longer matches the code");

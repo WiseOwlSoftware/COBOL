@@ -35,7 +35,7 @@ public sealed class CapacityRegisterReferenceDriftTests
     private static readonly string OdoBinderPath =
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.Odo.cs");
     private static readonly string SymbolTablePath =
-        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "SymbolTable.cs");
+        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.cs");
 
     /// <summary>⛔ ONE lookup path. The register name tables are <c>ForestSlice.CapacityRegisters</c> (the unit's) and
     /// <c>OoMethodDataScope.CapacityRegisters</c> (a method's own, kb/Work PB3165). Only
@@ -61,11 +61,11 @@ public sealed class CapacityRegisterReferenceDriftTests
     /// <summary>The two SHADOWING predicates (kb/Work PB3154 review R2-1): a named register is a data-name
     /// (§2023:13.18.38.3 SR30), so it hides an inherited constant-name or symbolic-character of its spelling (§2023:8.4.6.1), and
     /// each predicate asks whether a register of the word is DECLARED at its tier — the unit's
-    /// (<c>DataBinder.DeclaredNearerThan</c>) and a method's own (<c>OoMethodDataScope.IndexesDeclare</c>). Neither answers a
+    /// (<c>SymbolTable.Declarations.DeclaredNearerThan</c>) and a method's own (<c>OoMethodDataScope.IndexesDeclare</c>). Neither answers a
     /// reference. Their files may read a register map only inside them.</summary>
     private static readonly (string File, string Method, string Path)[] ShadowingPredicates =
     [
-        ("DataBinder.NonDataNames.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs")),
+        ("SymbolTable.Declarations.cs", "DeclaredNearerThan", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs")),
         ("OoMethodDataScope.cs", "IndexesDeclare", TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "OoMethodDataScope.cs")),
     ];
 

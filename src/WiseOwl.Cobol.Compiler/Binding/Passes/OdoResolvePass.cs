@@ -140,7 +140,7 @@ internal sealed class OdoResolvePass : IBindPass
                 if (declaration) continue;   // placed, and so checked, by each clone (above)
                 // Nor is a name declared as something other than a data item (kb/Work PB1906): the one query of what it is.
                 // A refused declaration was reported at its entry.
-                var nonData = binder.NonDataDeclarationOf(depName, spec.DependingQualifiers, binder.ScopeOf(item.Root));
+                var nonData = binder.Symbols.Declared.OtherThanData(depName, spec.DependingQualifiers, binder.ScopeOf(item.Root));
                 if (nonData is { DeclarationRefused: true }) continue;
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectUndefined, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (nonData is { } declared

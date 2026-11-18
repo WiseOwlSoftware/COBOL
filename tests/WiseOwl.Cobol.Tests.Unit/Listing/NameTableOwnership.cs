@@ -24,11 +24,11 @@ internal sealed record NameTableShape(
 {
     public static NameTableShape Product { get; } = new(
         ["WiseOwl.Cobol.Binding", "WiseOwl.Cobol.Compiler.Oo"],
-        "WiseOwl.Cobol.Binding.Model.SymbolTable",
-        "WiseOwl.Cobol.Binding.Model.CobolName",
-        "WiseOwl.Cobol.Binding.Model.DeclarationFact",
+        "WiseOwl.Cobol.Binding.SymbolTable",
+        "WiseOwl.Cobol.Binding.CobolName",
+        "WiseOwl.Cobol.Binding.DeclarationFact",
         "WiseOwl.Cobol.Runtime.CobolNames",
-        ["WiseOwl.Cobol.Binding.Model.SymbolId"]);
+        ["WiseOwl.Cobol.Binding.SymbolId"]);
 }
 
 /// <summary>One violation of a rule. <see cref="Key"/> is the line-independent identity the committed classifications
@@ -91,16 +91,16 @@ internal static class NameTableOwnership
         }
 
         string here = AppContext.BaseDirectory;
-        var references = Directory.EnumerateFiles(Path.Combine(here, "reference-assemblies"), "*.dll")
+        var references = FrameworkReferences()
             .Concat(Directory.EnumerateFiles(here, "*.dll").Where(p =>
             {
                 string name = Path.GetFileName(p);
                 return name is not "WiseOwl.Cobol.Compiler.dll"
                     && (name.StartsWith("WiseOwl.Cobol.", StringComparison.Ordinal) || name.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal)
                         || name.StartsWith("Antlr4", StringComparison.Ordinal) || name.StartsWith("System.", StringComparison.Ordinal));
-            }))
+            })
             .Where(p => !Path.GetFileName(p).StartsWith("WiseOwl.Cobol.Tests", StringComparison.Ordinal))
-            .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p));
+            .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p)));
         var compilation = CSharpCompilation.Create("WiseOwl.Cobol.Compiler", trees, references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable,
                 allowUnsafe: true));
@@ -109,7 +109,7 @@ internal static class NameTableOwnership
         // members the sources call are bound too.
         string generatorDll = TestRepo.Src("WiseOwl.Cobol.Compiler.SourceGen", "bin", TestRepo.Configuration, "netstandard2.0",
             "WiseOwl.Cobol.Compiler.SourceGen.dll");
-        ISourceGenerator[] generators = [.. System.Reflection.Assembly.LoadFrom(generatorDll).GetTypes()
+        ISourceGenerator[] generators = [.. ScratchDirectory.LoadAssembly(generatorDll).GetTypes()
             .Where(t => !t.IsAbstract && typeof(IIncrementalGenerator).IsAssignableFrom(t))
             .Select(t => ((IIncrementalGenerator)Activator.CreateInstance(t)!).AsSourceGenerator())];
         if (generators.Length == 0)
@@ -118,6 +118,13 @@ internal static class NameTableOwnership
             .RunGeneratorsAndUpdateCompilation(compilation, out Compilation generated, out _);
         return (CSharpCompilation)generated;
     }
+
+    /// <summary>The framework's reference set, as the compiler's build lays it beside every referencing project
+    /// (<c>reference-assemblies/</c>).</summary>
+    public static IEnumerable<MetadataReference> FrameworkReferences() =>
+        Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "reference-assemblies"), "*.dll")
+            .Order(StringComparer.Ordinal)
+            .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p));
 
     /// <summary>Every rule's findings, in rule order and then source order.</summary>
     public static IReadOnlyList<NameFinding> Findings(Compilation compilation, NameTableShape shape)
@@ -375,6 +382,8 @@ internal static class NameTableOwnership
     private static bool IsFactAnswer(Context c, ITypeSymbol type) =>
         type.SpecialType == SpecialType.System_Boolean
         || SymbolEqualityComparer.Default.Equals(type, c.DeclarationFact)
+        || (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable
+            && SymbolEqualityComparer.Default.Equals(nullable.TypeArguments[0], c.DeclarationFact))
         || type.AllInterfaces.Concat(type is INamedTypeSymbol n ? [n] : []).Any(i =>
             i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T
             && SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], c.DeclarationFact));
@@ -395,7 +404,8 @@ internal static class NameTableOwnership
                 if (kind is null)
                     continue;
                 ISymbol? enclosing = Outermost(model.GetEnclosingSymbol(node.SpanStart));
-                if (c.InsideSymbolTable(enclosing))
+                // The name key's own equality is the one definition of name equality the table's keys use.
+                if (c.InsideSymbolTable(enclosing) || SymbolEqualityComparer.Default.Equals(enclosing?.ContainingType, c.CobolName))
                     continue;
                 string owner = enclosing is null ? "" : $"{enclosing.ContainingType?.ToDisplayString() ?? ""}.{enclosing.Name}";
                 string baseKey = $"{kind} {tree.FilePath} {owner} {Normalize(node.ToString())}";

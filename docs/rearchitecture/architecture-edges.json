@@ -1421,7 +1421,7 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 20,
-      "walkUses": 21,
+      "walkUses": 18,
       "removedBy": [
         "PB2399",
         "PB2420"
@@ -1552,27 +1552,6 @@
           "to": "WiseOwl.Cobol.Binding.PrototypeSignatures",
           "removedBy": [
             "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
-          "to": "WiseOwl.Cobol.Binding.DataBindState",
-          "removedBy": [
-            "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
-          "to": "WiseOwl.Cobol.Binding.DataBinder",
-          "removedBy": [
-            "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.SymbolTable",
-          "to": "WiseOwl.Cobol.Binding.ReportScope",
-          "removedBy": [
-            "PB2420"
           ]
         }
       ]

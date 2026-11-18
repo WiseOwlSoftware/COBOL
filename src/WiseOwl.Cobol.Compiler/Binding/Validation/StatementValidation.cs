@@ -572,9 +572,9 @@ internal sealed class StatementValidation(DataBinder data)
         // A level-88 entry of a type declaration DOES declare the word (kb/Work PB1906), so "no level-88 entry declares
         // it" would be false: the one query says what it is.
         var declared = switchName is null && name is not null
-            ? data.NonDataDeclarationOf(name, qualifiers, data.ActiveScope) : null;
-        if (name is not null && declared is { Kind: NonDataDeclarationKind.TypeDeclarationCondition
-                or NonDataDeclarationKind.TypeName or NonDataDeclarationKind.TypeDeclarationMember })
+            ? data.Symbols.Declared.OtherThanData(name, qualifiers, data.ActiveScope) : null;
+        if (name is not null && declared is { Kind: DeclarationKind.TypeDeclarationCondition
+                or DeclarationKind.TypeName or DeclarationKind.TypeDeclarationMember })
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
                 $"{set} — '{refText}' {declared.Value.DeclaredAs(refText, name)}, so the reference "
                 + $"identifies no resource (ISO {data.Edition.Edition.Citation()}), and {SetConditionRule(data.Edition.Edition)} requires a condition-name associated with "

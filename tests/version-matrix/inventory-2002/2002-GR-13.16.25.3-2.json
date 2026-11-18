@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-13.16.25.3-2",
  "rule-digest": "e3f40d0c4abb",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#NearestDeclaring",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaring",
  "test-ref": "conformance:cases/13.16.25@2002-GLOBAL-CLAUSE/g2-global-cd-constant-nested; conformance:cases/13.18.27-GLOBAL/pb4302-address-of-global-from-grandcontained; conformance:cases/13.18.27-GLOBAL/pb4199-contained-file-clauses-name-global-data-items",
  "notes": "§2002:13.16.25.3 GR2: global constants of the communication section referenced undeclared from a directly and an indirectly contained program (g2-global-cd-constant, 'OUTER GLOBALK / INNER GLOBALK 07 / INNER2 GLOBALK 07' at --std 2002), and global data items (pb4302, pb4199) at --std 2002."
 }

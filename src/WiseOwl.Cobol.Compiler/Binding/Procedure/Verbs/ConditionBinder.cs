@@ -2062,7 +2062,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         string name = WrittenWord(dref);
         var qualifiers = QualifiersOf(dref);
-        if (ctx.Data.ConditionNameHiddenByNearerNonDataName(name, qualifiers, ctx.ActiveScope) is { } hider) return hider.ClassPhrase;
+        if (ctx.Data.Symbols.Declared.ConditionNameHiddenByNearerNonDataName(name, qualifiers, ctx.ActiveScope) is { } hider) return hider.ClassPhrase;
         return CapacityRegisterHides(dref, ctx.Data.ConditionTier(name, qualifiers, ctx.ActiveScope))
             ? NameResolution.CapacityRegisterClassPhrase
             : null;

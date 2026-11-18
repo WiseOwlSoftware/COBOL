@@ -168,10 +168,7 @@ public sealed class NameTableOwnershipDriftTests
             """;
         var compilation = CSharpCompilation.Create("Planted",
             [CSharpSyntaxTree.ParseText(Source, path: "Planted.cs")],
-            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-             MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-             MetadataReference.CreateFromFile(Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location)!, "System.Runtime.dll")),
-             MetadataReference.CreateFromFile(Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location)!, "System.Collections.dll"))],
+            NameTableOwnership.FrameworkReferences(),
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
         Assert.Empty(compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
         var shape = new NameTableShape(["P.Binding"], "P.Binding.SymbolTable", "P.Binding.CobolName", "P.Binding.DeclarationFact", "P.Runtime.CobolNames", []);
