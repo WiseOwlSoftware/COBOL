@@ -661,7 +661,8 @@ positions natively. A backend diagnostic with no COBOL position goes to the summ
 - **Witnesses.** `DiagnosticRecordsTests` (Unit: the records and their views, the resultant line and frame, the severity map),
   `ListingLineIndexTests.ALocation_IsPlacedInTheBlockOfItsResultantLine_OnlyInTheIndexsFrame`, `TextListingRendererTests`
   (caret, wrap, summary), `ListingCitationTests`; `ListingDiagnosticsTests` (Conformance: a bind error placed, printed and
-  cited; the second copy of a copybook copied twice; one record per printed diagnostic) and the anchoring assertion of
+  cited, run in a directory whose path is shorter than the page and in one longer, so the summary entry wraps on every host and is
+  asserted whole, never as a substring of one row; the second copy of a copybook copied twice; one record per printed diagnostic) and the anchoring assertion of
   `ListingOutcomeTests.AFailedParse_ListsThePassWhoseDiagnosticsAreReported` (section 4.4).
 ### 6.4 Options
 
