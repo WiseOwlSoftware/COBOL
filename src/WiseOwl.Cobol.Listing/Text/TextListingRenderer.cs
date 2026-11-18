@@ -110,20 +110,25 @@ public static class TextListingRenderer
     /// Basic Multilingual Plane is one position); an empty text is one empty piece.</summary>
     public static IEnumerable<string> Wrap(string text)
     {
-        var piece = new StringBuilder();
-        int positions = 0;
-        foreach (var rune in text.EnumerateRunes())
+        // Nearly every line fits: a text of at most 80 UTF-16 units holds at most 80 positions, and is its own one piece.
+        if (text.Length <= TextWidth)
+        {
+            yield return text;
+            yield break;
+        }
+        int start = 0, at = 0, positions = 0;
+        while (at < text.Length)
         {
             if (positions == TextWidth)
             {
-                yield return piece.ToString();
-                piece.Clear();
+                yield return text[start..at];
+                start = at;
                 positions = 0;
             }
-            piece.Append(rune.ToString());
+            at += char.IsHighSurrogate(text[at]) && at + 1 < text.Length && char.IsLowSurrogate(text[at + 1]) ? 2 : 1;
             positions++;
         }
-        yield return piece.ToString();
+        yield return text[start..];
     }
 
     /// <summary><paramref name="left"/>, then <paramref name="right"/> ending at column <paramref name="width"/>; the left
