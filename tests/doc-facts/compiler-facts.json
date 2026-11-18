@@ -1050,6 +1050,7 @@
     "--flag-extensions",
     "--help",
     "--listing",
+    "--listing-format",
     "--listing-output",
     "--listing-page-length",
     "--listing-page-width",

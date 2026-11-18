@@ -1,14 +1,18 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text.Json.Serialization;
+
 namespace WiseOwl.Cobol.Listing;
 
 /// <summary>
-/// ⛔ THE ONE LISTING MODEL (docs/rearchitecture/DESIGN-listing.md section 4; kb/Work PB5923, PB5925): built once by the
-/// compiler's <c>ListingBuilder</c> from the source and the compiler's own data, and read by every renderer. Every type is
-/// an immutable record; lines are referred to by <see cref="ListingLine.Number"/> and files by <see cref="ListingFile.Id"/>.
-/// <para>Step 1 of the design's section 11 (the 1985 standard minimum) builds the header, the files, the inclusions, the
-/// source lines and the programs; later steps add their sections beside them.</para>
+/// The source listing of one compilation: the source as read, with its COPY inclusions and programs. Lines are referred to by
+/// their listing line number and files by their id. Every format (text, JSON) renders this one document.
 /// </summary>
+/// <remarks>⛔ THE ONE LISTING MODEL (docs/rearchitecture/DESIGN-listing.md section 4; kb/Work PB5923, PB5925): built once by
+/// the compiler's <c>ListingBuilder</c> from the source and the compiler's own data, and read by every renderer. Every type is
+/// an immutable record. The summaries are the JSON schema's descriptions (<see cref="Json.ListingJsonSchema"/>), so they state
+/// what a reader of the listing needs; step notes go in remarks. Step 1 of the design's section 11 built the header, files,
+/// inclusions, lines and programs; step 2 the JSON form; later steps add their sections beside them.</remarks>
 /// <param name="Header">The compiler, the edition, the compilation timestamp, the main source and the outcome.</param>
 /// <param name="Files">Every file read: the source and each library text.</param>
 /// <param name="Inclusions">Every COPY statement processed, in text order.</param>
@@ -22,10 +26,41 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingInclusion> Inclusions,
     IReadOnlyList<ListingLine> Lines,
     IReadOnlyList<ListingProgram> Programs,
-    IReadOnlyList<ListingSectionStatus> Sections);
+    IReadOnlyList<ListingSectionStatus> Sections)
+{
+    /// <summary>The identifier of the JSON schema's major version 1 (DESIGN-listing.md section 7.3): every JSON listing of this
+    /// major carries it as <c>$schema</c>.</summary>
+    public const string SchemaUrn = "urn:wiseowl:cobol:listing:v1";
+
+    /// <summary>The schema version this compiler writes, <c>1.&lt;minor&gt;</c>: the minor grows when a property or an enum
+    /// value is added, the major only when one is removed, renamed or changes meaning (DESIGN-listing.md section 7.3).</summary>
+    public const string CurrentSchemaVersion = "1.0";
+
+    /// <summary>The identifier of the schema the document follows: <c>urn:wiseowl:cobol:listing:v1</c> for every version of
+    /// major 1.</summary>
+    [JsonPropertyName("$schema"), JsonPropertyOrder(-2)]
+    public string Schema { get; init; } = SchemaUrn;
+
+    /// <summary>The schema version the document was written at, <c>&lt;major&gt;.&lt;minor&gt;</c>. A reader of major 1
+    /// reads every 1.x document and ignores the properties it does not know.</summary>
+    [JsonPropertyOrder(-1)]
+    public string SchemaVersion { get; init; } = CurrentSchemaVersion;
+}
 
 /// <summary>How far the compilation got (the compiler's outcome, in the listing's own terms).</summary>
-public enum ListingOutcome { Success, FrontendError, BindError, BackendError, OutputNotWritable }
+public enum ListingOutcome
+{
+    /// <summary>The assembly was written.</summary>
+    Success,
+    /// <summary>The text stages or the parser refused the source.</summary>
+    FrontendError,
+    /// <summary>The binder refused the program.</summary>
+    BindError,
+    /// <summary>The backend could not produce the assembly.</summary>
+    BackendError,
+    /// <summary>The source compiled, but the host refused to write the assembly.</summary>
+    OutputNotWritable,
+}
 
 /// <summary>The listing's identification (DESIGN-listing.md section 6.1).</summary>
 /// <param name="CompilerVersion">The compiler's informational version.</param>
@@ -39,7 +74,13 @@ public sealed record ListingHeader(string CompilerVersion, int Edition, string E
     string MainSource, ListingOutcome Outcome);
 
 /// <summary>Whether a file is the compilation's source or a library text a COPY statement read.</summary>
-public enum ListingFileRole { Source, Library }
+public enum ListingFileRole
+{
+    /// <summary>The source file the compilation was asked to compile.</summary>
+    Source,
+    /// <summary>A library text a COPY statement read.</summary>
+    Library,
+}
 
 /// <summary>One file the compilation read.</summary>
 /// <param name="Id">1-based; the source is 1.</param>
@@ -49,7 +90,15 @@ public enum ListingFileRole { Source, Library }
 public sealed record ListingFile(int Id, string Path, ListingFileRole Role, string Sha256);
 
 /// <summary>What became of a COPY statement.</summary>
-public enum ListingInclusionOutcome { Found, NotFound, Circular }
+public enum ListingInclusionOutcome
+{
+    /// <summary>The library text was found and copied.</summary>
+    Found,
+    /// <summary>No library text of that name was found; nothing was copied.</summary>
+    NotFound,
+    /// <summary>The library text copies itself, directly or through others; it was not copied again.</summary>
+    Circular,
+}
 
 /// <summary>One COPY statement and the library text it brought in.</summary>
 /// <param name="Id">1-based, in text order.</param>
@@ -65,13 +114,38 @@ public sealed record ListingInclusion(int Id, int? Parent, int Depth, int CopyLi
     string? LibraryName, int? File, ListingInclusionOutcome Outcome);
 
 /// <summary>The reference format a physical line was read in.</summary>
-public enum ListingLineForm { Fixed, Free }
+public enum ListingLineForm
+{
+    /// <summary>Fixed-form reference format: sequence area, indicator area, areas A and B, identification area.</summary>
+    Fixed,
+    /// <summary>Free-form reference format.</summary>
+    Free,
+}
 
 /// <summary>What a physical line is: the front end's <c>PhysicalLineKind</c>, with a comment-entry candidate settled by the
 /// parse (DESIGN-listing.md section 4.4.1). The compiler maps one to the other in ONE switch a drift test holds total.</summary>
 public enum ListingLineKind
 {
-    Source, Comment, PageEjectComment, DebuggingLine, Continuation, Directive, CommentEntry, CcvsExcluded, NotAnIndicator, Blank,
+    /// <summary>A line of program text.</summary>
+    Source,
+    /// <summary>A comment line: the fixed-form <c>*</c> indicator, or the floating comment indicator.</summary>
+    Comment,
+    /// <summary>A comment line with the fixed-form slant (<c>/</c>) indicator, which ejects a page before it is listed.</summary>
+    PageEjectComment,
+    /// <summary>A debugging line: the fixed-form <c>D</c> indicator, or the floating <c>&gt;&gt;D</c> indicator.</summary>
+    DebuggingLine,
+    /// <summary>A fixed-form continuation line (the hyphen indicator).</summary>
+    Continuation,
+    /// <summary>A compiler directive line, where the edition has compiler directives.</summary>
+    Directive,
+    /// <summary>A line of the comment-entry of an IDENTIFICATION DIVISION paragraph such as AUTHOR or DATE-COMPILED.</summary>
+    CommentEntry,
+    /// <summary>A line the NIST CCVS column-7 conventions exclude (the <c>--nist</c> dialect only).</summary>
+    CcvsExcluded,
+    /// <summary>A line whose indicator area holds a character that is no indicator, read as program text.</summary>
+    NotAnIndicator,
+    /// <summary>A blank line: nothing but spaces in its program text.</summary>
+    Blank,
 }
 
 /// <summary>Which replacement, if any, the compiler made of a line's text (<see cref="ListingLine.Replaced"/>).</summary>
@@ -107,7 +181,23 @@ public sealed record ListingLine(int Number, int File, int FileLine, int? Inclus
     ListingReplacement Replacement, string? Replaced);
 
 /// <summary>The kind of source unit a <see cref="ListingProgram"/> is.</summary>
-public enum ListingProgramKind { Program, Function, Class, Interface, Factory, Object, Method }
+public enum ListingProgramKind
+{
+    /// <summary>A program.</summary>
+    Program,
+    /// <summary>A user-defined function.</summary>
+    Function,
+    /// <summary>A class definition.</summary>
+    Class,
+    /// <summary>An interface definition.</summary>
+    Interface,
+    /// <summary>The factory definition of a class.</summary>
+    Factory,
+    /// <summary>The object (instance) definition of a class.</summary>
+    Object,
+    /// <summary>A method definition.</summary>
+    Method,
+}
 
 /// <summary>One source unit of the compilation group (DESIGN-listing.md section 6.5).</summary>
 /// <param name="Id">0-based, in text order.</param>
@@ -120,8 +210,17 @@ public enum ListingProgramKind { Program, Function, Class, Interface, Factory, O
 public sealed record ListingProgram(int Id, string Name, ListingProgramKind Kind, int? Parent, int Depth, int FirstLine, int LastLine);
 
 /// <summary>The sections of a listing.</summary>
-public enum ListingSection { Source, Programs }
+public enum ListingSection
+{
+    /// <summary>The source section: every physical line of every file read.</summary>
+    Source,
+    /// <summary>The program map: every source unit, its nesting and its listing lines.</summary>
+    Programs,
+}
 
 /// <summary>Whether a section was produced and, when not, why (DESIGN-listing.md section 4.3): a section is never left out
 /// silently.</summary>
+/// <param name="Section">The section.</param>
+/// <param name="Produced">Whether the listing holds the section.</param>
+/// <param name="Reason">Why the section was not produced (the phase that stopped it), or null when it was.</param>
 public sealed record ListingSectionStatus(ListingSection Section, bool Produced, string? Reason);
