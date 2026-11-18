@@ -1,4 +1,4 @@
-## PB5923: the source listing, step 1 - the 1985 standard minimum
+## Entry 3836 — 2026-11-18 01:52 PST — PB5923: the source listing, step 1 - the 1985 standard minimum
 
 COBOL-85 requires each compiler to produce "an output listing of the source program in reference format" (§1985:IV.7.1),
 and two Nucleus elements have no function anywhere else: the '/' comment line, which "causes page ejection prior to
@@ -44,3 +44,4 @@ parse. A test also holds the outcome map total, and the line index is tested on 
 listing no longer evaluates the trace's arguments: each recording call checks `TextStageTrace.Records` first, and
 `TextStageTrace.None` throws if called. kb/Work/PB5923/2026-11-18-listing-step-1-review-r1.md says how each finding was
 fixed.
+
