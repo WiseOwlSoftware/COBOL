@@ -84,7 +84,7 @@ internal static class EndMarkerPass
         // marker this positional rule can require; the other three formats print it unconditionally and
         // SourceUnitShape asks that. A contained program always has one (`nestedProgram` requires it).
         if (unit.End is null && pid is not null && !isPrototype && (unit.Nested.Length > 0 || precedesAnother))
-            Report(pid, "SR1",
+            Report(pid, "SR1", unit.Nested.Length > 0 ? "§1985:X.2.5.4 GR1" : "§1985:VI.2.3.3 GR2",
                 $"PROGRAM-ID '{name}' {(unit.Nested.Length > 0 ? "contains" : "precedes")} another source unit, so "
                 + $"its end marker END PROGRAM {name} shall be present — an end marker shall be present in every "
                 + "source unit that contains, is contained in, or precedes another source unit", edition);
@@ -101,7 +101,7 @@ internal static class EndMarkerPass
         // in the wrong order (SR3); any other name is the plain name rule of the unit's kind.
         if (containers.Any(c => CobolNames.Same(c, endName.GetText()))
             || ContainedNames(unit.Nested).Any(c => CobolNames.Same(c, endName.GetText())))
-            Report(endName, "SR3",
+            Report(endName, "SR3", "§1985:X.2.5.3 SR3",
                 $"END {(pid is not null ? "PROGRAM" : "FUNCTION")} {endName.GetText()} stands where the end marker "
                 + $"of {paragraph} '{name}' belongs — the end markers of nested programs are out of order: an END "
                 + "PROGRAM marker referencing a program whose PROGRAM-ID paragraph is stated inside another program "
@@ -115,7 +115,7 @@ internal static class EndMarkerPass
                 (false, false) => ("SR7", "user-function-name"),
                 (false, true) => ("SR9", "function-prototype-name"),
             };
-            Report(endName, rule,
+            Report(endName, rule, "§1985:X.2.5.3 SR2",
                 $"the end marker names '{endName.GetText()}', but the {noun} declared in the {paragraph} paragraph it "
                 + $"ends is '{name}' — the name in the end marker shall be identical to it", edition);
         }
@@ -136,7 +136,7 @@ internal static class EndMarkerPass
         var declared = c.classIdParagraph()?.className(0);
         var endName = c.endClassHeader()?.className();
         if (declared is not null && endName is not null && !CobolNames.Same(endName.GetText(), declared.GetText()))
-            Report(endName, "SR4",
+            Report(endName, "SR4", null,
                 $"END CLASS {endName.GetText()} ends CLASS-ID '{declared.GetText()}' — object-class-name-1 shall be "
                 + "identical to the object-class-name declared in the corresponding CLASS-ID paragraph", edition);
         foreach (var m in (c.factoryParagraph()?.methodDefinition() ?? []).Concat(c.objectParagraph()?.methodDefinition() ?? []))
@@ -148,7 +148,7 @@ internal static class EndMarkerPass
         // `interfaceName()` lists the INTERFACE-ID name, then the INHERITS names, then the END INTERFACE name.
         var names = f.interfaceName();
         if (names.Length > 1 && f.END() is not null && !CobolNames.Same(names[^1].GetText(), names[0].GetText()))
-            Report(names[^1], "SR6",
+            Report(names[^1], "SR6", null,
                 $"END INTERFACE {names[^1].GetText()} ends INTERFACE-ID '{names[0].GetText()}' — interface-name-1 shall "
                 + "be identical to the interface-name declared in the corresponding INTERFACE-ID paragraph", edition);
         foreach (var m in f.methodDefinition())
@@ -164,20 +164,24 @@ internal static class EndMarkerPass
         if (m.methodPropertySelector() is { } sel)
         {
             if (names.Length > 0)
-                Report(names[0], "SR5",
+                Report(names[0], "SR5", null,
                     $"END METHOD {names[0].GetText()} names a {sel.GetChild(0).GetText().ToUpperInvariant()} PROPERTY "
                     + $"method (property '{sel.propertyName().GetText()}') — if the PROPERTY phrase is specified in "
                     + "the METHOD-ID paragraph, method-name-1 shall be omitted (write END METHOD.)", edition);
         }
         else if (names.Length > 1 && !CobolNames.Same(names[1].GetText(), names[0].GetText()))
-            Report(names[1], "SR5",
+            Report(names[1], "SR5", null,
                 $"END METHOD {names[1].GetText()} ends METHOD-ID '{names[0].GetText()}' — method-name-1 shall be "
                 + "identical to the method-name declared in the corresponding METHOD-ID paragraph", edition);
     }
 
-    private static void Report(ParserRuleContext at, string rule, string message, EditionContext edition)
+    /// <summary>Report one end-marker rule. <paramref name="rule1985"/> is where COBOL-85 states it (kb/Work PB4950); null for a
+    /// rule COBOL-85 has no counterpart of (the class, interface, method and function markers, which COBOL-2002 introduced),
+    /// whose message then cites the 2023 rule at every edition.</summary>
+    private static void Report(ParserRuleContext at, string rule, string? rule1985, string message, EditionContext edition)
     {
         using var _ = edition.At(at);
-        edition.Error(DiagnosticCatalog.EndMarkerRule, $"{message} (ISO §2023:10.7.3 {rule})");
+        string later = $"§2023:10.7.3 {rule}";
+        edition.Error(DiagnosticCatalog.EndMarkerRule, $"{message} (ISO {edition.Edition.Cite(rule1985 ?? later, later, later)})");
     }
 }

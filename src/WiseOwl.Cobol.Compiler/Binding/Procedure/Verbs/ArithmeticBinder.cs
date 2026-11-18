@@ -24,6 +24,10 @@ using Core = CobolParserCore;
 /// </summary>
 internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>The citation of the arithmetic statement's general format (or rule) in the edition in force (kb/Work PB4950):
+    /// <paramref name="y1985"/> at COBOL-85, <paramref name="y2023"/> at every later edition.</summary>
+    private string Rule(string y1985, string y2023) => ctx.Edition.Edition.Cite(y1985, y2023, y2023);
+
     public BoundStatement BindAdd(Core.AddStatementContext add)
     {
         if (add.sendingOperand() is not { Length: > 0 } operands) return host.Corr.BindAddCorresponding(add);   // Format 3 (§2023:14.9.2.2)
@@ -34,14 +38,15 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §2023:14.9.2.2 Format 2: the TO operand is an addend,
             // NOT a receiver — ONE `{identifier-2 | literal-2}` with no ROUNDED).
-            if (to is not null) addends.Add(GivingSendingOperand("ADD", "TO", "§2023:14.9.2.2 Format 2", to));
+            if (to is not null) addends.Add(GivingSendingOperand("ADD", "TO", Rule("§1985:VI.6.6.2 Format 2", "§2023:14.9.2.2 Format 2"), to));
             // The braces after the optional word TO make `{identifier-2 | literal-2}` required (§2023:5.2.6.3), so
             // Format 2 prints two addends at least: `ADD A GIVING D` is no ADD format, never D = A (kb/Work PB5203).
             if (addends.Count < 2)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
                     $"ADD with GIVING writes one operand, '{DataBinder.WrittenText(operands[0])}', before GIVING: Format 2 "
-                    + "prints identifier-1 or literal-1 and then identifier-2 or literal-2, the second after the optional "
-                    + "word TO (ISO §2023:14.9.2.2 Format 2)");
+                    + "prints identifier-1 or literal-1 and then identifier-2 or literal-2, the second after the "
+                    + ctx.Edition.Edition.Cite("word", "optional word", "optional word") + " TO (ISO "
+                    + Rule("§1985:VI.6.6.2 Format 2", "§2023:14.9.2.2 Format 2") + ")");
             var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.6.3 SR1", "§2023:14.9.2.3 SR4"));
             // §2023:14.9.2.3 SR1b: the ADD Format-2 composite is "all of the operands ... excluding the data items that
             // follow the word GIVING" — the resultant identifiers are NOT superimposed into the composite (§2023:14.7.7
@@ -52,7 +57,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         }
         if (to is not null)
         {
-            if (!Format1Receivers("ADD", "§2023:14.9.2.2", to))
+            if (!Format1Receivers("ADD", Rule("§1985:VI.6.6.2 Format 1", "§2023:14.9.2.2"), to))
                 return BoundRejected.Reported(ctx.Edition);
             var recv = host.Expr.Receivers(to, editedOk: false, new("§1985:VI.6.6.3 SR1", "§2023:14.9.2.3 SR2"));
             ctx.Validation.CheckComposite("ADD", addends, recv);
@@ -61,7 +66,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // §2023:14.9.2.2 (kb/Work PB134): no ADD format prints operands with BOTH phrases absent — `ADD A B.` is
         // illegal source, and the old BoundUnsupported staged it to a RUNTIME loud.
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-            "ADD without a TO or GIVING phrase: no ADD format prints operands alone (ISO §2023:14.9.2.2)");
+            "ADD without a TO or GIVING phrase: no ADD format prints operands alone (ISO "
+            + Rule("§1985:VI.6.6.2", "§2023:14.9.2.2") + ")");
     }
 
     public BoundStatement BindSubtract(Core.SubtractStatementContext sub)
@@ -72,17 +78,18 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (sub.subtractFromPhrase()?.arithmeticPhraseOperand() is not { } from)
             // §2023:14.9.44.2 (kb/Work PB134): every SUBTRACT format prints FROM.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-                "SUBTRACT without a FROM phrase: no SUBTRACT format prints operands alone (ISO §2023:14.9.44.2)");
+                "SUBTRACT without a FROM phrase: no SUBTRACT format prints operands alone (ISO "
+                + Rule("§1985:VI.6.26.2", "§2023:14.9.44.2") + ")");
         if (sub.arithmeticGivingPhrase() is { } giving)
         {
-            var fromX = GivingSendingOperand("SUBTRACT", "FROM", "§2023:14.9.44.2 Format 2", from);
+            var fromX = GivingSendingOperand("SUBTRACT", "FROM", Rule("§1985:VI.6.26.2 Format 2", "§2023:14.9.44.2 Format 2"), from);
             var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.26.3 SR1", "§2023:14.9.44.3 SR4"));
             // §2023:14.9.44.3 SR1b: the SUBTRACT Format-2 composite excludes the data items following GIVING (§2023:14.7.7
             // rule 2) — the resultants are not superimposed. Pass no receivers (see the ADD GIVING note above).
             ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], []);
             return new BoundSubtractGiving(minuends, fromX, recv, sizeErr);
         }
-        if (!Format1Receivers("SUBTRACT", "§2023:14.9.44.2", from))
+        if (!Format1Receivers("SUBTRACT", Rule("§1985:VI.6.26.2 Format 1", "§2023:14.9.44.2"), from))
             return BoundRejected.Reported(ctx.Edition);
         var targets = host.Expr.Receivers(from, editedOk: false, new("§1985:VI.6.26.3 SR1", "§2023:14.9.44.3 SR2"));
         ctx.Validation.CheckComposite("SUBTRACT", minuends, targets);
@@ -99,13 +106,13 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         var sizeErr = host.BindSizeError(mul.conditionalPhrases());
         if (mul.arithmeticGivingPhrase() is { } giving)
         {
-            var b = GivingSendingOperand("MULTIPLY", "BY", "§2023:14.9.26.2 Format 2", byOps);
+            var b = GivingSendingOperand("MULTIPLY", "BY", Rule("§1985:VI.6.20.2 Format 2", "§2023:14.9.26.2 Format 2"), byOps);
             var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.20.3 SR1", "§2023:14.9.26.3 SR2"));
             ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv, CompositeMembers.ReceivingItems85);
             return new BoundMultiplyGiving(a, b, recv, sizeErr);
         }
         // In-place: each BY operand is itself the receiver (target ← target × a).
-        if (!Format1Receivers("MULTIPLY", "§2023:14.9.26.2", byOps))
+        if (!Format1Receivers("MULTIPLY", Rule("§1985:VI.6.20.2 Format 1", "§2023:14.9.26.2"), byOps))
             return BoundRejected.Reported(ctx.Edition);
         var byRecv = host.Expr.Receivers(byOps, editedOk: false, new("§1985:VI.6.20.3 SR1", "§2023:14.9.26.3 SR1"));
         ctx.Validation.CheckComposite("MULTIPLY", [a], byRecv, CompositeMembers.ReceivingItems85);
@@ -128,14 +135,14 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 // §2023:14.9.12.2 Formats 4–5 print GIVING before REMAINDER — no format has REMAINDER without it.
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
                     "DIVIDE REMAINDER without GIVING: Formats 4–5 print GIVING identifier-3 before "
-                    + "REMAINDER (ISO §2023:14.9.12.2)");
+                    + "REMAINDER (ISO " + Rule("§1985:VI.6.11.2", "§2023:14.9.12.2") + ")");
             }
             // Format 4 prints ONE sending `INTO {identifier-2 | literal-2}` and Format 5 ONE `BY {identifier-1 |
             // literal-1}`, neither with ROUNDED: the same discipline as every GIVING form (kb/Work PB2144 — this
             // arm used to bind the phrase whole, so `INTO B C` or `INTO B ROUNDED` compiled clean).
             BoundExpr dividend, divisor;
-            if (into is not null) (dividend, divisor) = (GivingSendingOperand("DIVIDE", "INTO", "§2023:14.9.12.2 Format 4", into), a);
-            else if (by is not null) (dividend, divisor) = (a, GivingSendingOperand("DIVIDE", "BY", "§2023:14.9.12.2 Format 5", by));
+            if (into is not null) (dividend, divisor) = (GivingSendingOperand("DIVIDE", "INTO", Rule("§1985:VI.6.11.2 Format 4", "§2023:14.9.12.2 Format 4"), into), a);
+            else if (by is not null) (dividend, divisor) = (a, GivingSendingOperand("DIVIDE", "BY", Rule("§1985:VI.6.11.2 Format 5", "§2023:14.9.12.2 Format 5"), by));
             else return DivideShape();
             var quotients = host.Expr.Receivers(g.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2"));
             if (quotients.Count != 1)
@@ -144,7 +151,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 // there is no syntax rule to pair with it — §2023:14.9.12.3 has four (kb/Work PB388).
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
                     $"DIVIDE REMAINDER with {quotients.Count} GIVING receivers: Formats 4–5 print exactly one quotient receiver "
-                    + "(ISO §2023:14.9.12.2)");
+                    + "(ISO " + Rule("§1985:VI.6.11.2", "§2023:14.9.12.2") + ")");
             }
             // kb/Work PB128: identifier-4 rides the ONE receiving chokepoint like every other resultant —
             // the direct Refs.Resolve bypass skipped the CONSTANT RECORD / CAPACITY-register / constant-name
@@ -162,12 +169,12 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             if (div.arithmeticGivingPhrase() is { } giving)
             {
-                var dividendX = GivingSendingOperand("DIVIDE", "INTO", "§2023:14.9.12.2 Format 2", into);
+                var dividendX = GivingSendingOperand("DIVIDE", "INTO", Rule("§1985:VI.6.11.2 Format 2", "§2023:14.9.12.2 Format 2"), into);
                 var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2"));
                 ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv, CompositeMembers.ReceivingItems85);
                 return new BoundDivideGiving(dividendX, a, recv, sizeErr);
             }
-            if (!Format1Receivers("DIVIDE", "§2023:14.9.12.2", into))
+            if (!Format1Receivers("DIVIDE", Rule("§1985:VI.6.11.2 Format 1", "§2023:14.9.12.2"), into))
                 return BoundRejected.Reported(ctx.Edition);   // a receiver-less BoundDivideInto crashed the emitter (targets.Max on empty)
             var intoRecv = host.Expr.Receivers(into, editedOk: false, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR1"));
             ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv, CompositeMembers.ReceivingItems85);
@@ -175,7 +182,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         }
         if (by is not null && div.arithmeticGivingPhrase() is { } gv)
         {
-            var divisorX = GivingSendingOperand("DIVIDE", "BY", "§2023:14.9.12.2 Format 3", by);
+            var divisorX = GivingSendingOperand("DIVIDE", "BY", Rule("§1985:VI.6.11.2 Format 3", "§2023:14.9.12.2 Format 3"), by);
             var recv = host.Expr.Receivers(gv.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2"));
             ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv, CompositeMembers.ReceivingItems85);
             return new BoundDivideGiving(a, divisorX, recv, sizeErr);
@@ -185,7 +192,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // §2023:14.9.12.2: every BY format (3–5) prints GIVING — `DIVIDE A BY B.` exists in no format.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
                 "DIVIDE BY without GIVING: every BY format of DIVIDE prints the GIVING phrase "
-                + "(ISO §2023:14.9.12.2 Formats 3–5)");
+                + "(ISO " + Rule("§1985:VI.6.11.2 Formats 3–5", "§2023:14.9.12.2 Formats 3–5") + ")");
         }
         return DivideShape();
     }

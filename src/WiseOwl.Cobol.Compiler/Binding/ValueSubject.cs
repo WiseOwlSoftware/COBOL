@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -61,9 +62,9 @@ internal readonly record struct ValueSubject(ValueSubjectKind Kind, int? SizePos
     /// §1985:VI.5.15.3 SR3, "Nonnumeric literals in a VALUE clause of an item must not exceed the size indicated by the
     /// PICTURE clause"; SR4 of 2023 bounds only "an elementary item" and "an alphanumeric group item", so citing it on
     /// an 88 would send the reader to a rule that does not reach the entry refused (kb/Work PB5190, review R1-2).</summary>
-    public string CharacterSizeRule => Kind is ValueSubjectKind.ConditionName
+    public string CharacterSizeRule(EditionInfo edition) => Kind is ValueSubjectKind.ConditionName
         ? "§1985:VI.5.15.3 SR3, the conditional variable's PICTURE"
-        : "ISO §2023:13.18.63.3 SR4";
+        : "ISO " + edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR4", "§2023:13.18.63.3 SR4");
 
     /// <summary>An ELEMENTARY item's VALUE clause (§2023:13.18.63 formats 1, 2 and 4). Its size is "the size indicated
     /// by an explicit PICTURE clause" (§2023:13.18.63.3 SR4/SR5/SR10 sentence 2).

@@ -396,7 +396,8 @@ public sealed partial class SpecialNamesBinder
                 // to recover to — k5 and k6 place operands by incompatible rules — so the entry contributes nothing.
                 Edition.Error(DiagnosticCatalog.AlphabetThroughWithAlso, $"{what}: the entry for {entry.GetChild(0).GetText()} "
                     + "specifies both a THROUGH phrase and an ALSO phrase — the literal-phrase general format offers "
-                    + "them as alternatives within one pair of brackets (ISO §2023:12.3.7.2; §2023:5.2.6.2)");
+                    + "them as alternatives within one pair of brackets (ISO "
+                    + Edition.Edition.Cite("§1985:VI.4.5.2; §1985:IV.2.1.4", "§2023:12.3.7.2; §2023:5.2.6.2", "§2023:12.3.7.2; §2023:5.2.6.2") + ")");
                 continue;
             }
             var operands = AlphabetOperands(entry, rules);

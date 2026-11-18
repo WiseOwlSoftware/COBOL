@@ -1791,7 +1791,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // SIZE ERROR, a CALL's NOT ON OVERFLOW, a READ's INVALID KEY beside its AT END — ends every statement and
         // arrives here; ConditionalPhraseAssociation reads the parser state and names the statement and the reason.
         // Added after 0e, so SEARCH's own NOT AT END wording (its WHEN-branch advice) wins the shared code.
-        if (ConditionalPhraseAssociation.UnownedPhraseMessage(recognizer.Context, stream, token) is { } phraseMsg)
+        if (ConditionalPhraseAssociation.UnownedPhraseMessage(recognizer.Context, stream, token,
+                (y1985, later) => CiteAt(recognizer, y1985, later)) is { } phraseMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269, phraseMsg, 0));
         // ⛔ 0f. AN INLINE METHOD INVOCATION'S EMPTY PARENTHESIS PAIR (kb/Work PB1430). `inlineInvocationSegment`
         // requires its argumentList inside the optional parentheses, so `O :: "M" ( )` arrives here, at the '(' or
@@ -1852,9 +1853,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && !at.APeriodLetsTheSentenceFollow() && at.StatementThatEndedBefore() is { } endedStatement)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269,
                 $"The {endedStatement} statement ends before this token: no general format of {endedStatement} "
-                + "prints it after what is written, and no missing period would let it begin the next sentence. The "
-                + "words, phrases, clauses, punctuation, and operands in each general format shall be written in the "
-                + "compilation group in the sequence given in the general format (ISO §2023:5.2.1).", 0));
+                + "prints it after what is written, and no missing period would let it begin the next sentence. "
+                + CiteAt(recognizer,
+                    "Clauses must be written in the sequence given in the general formats (ISO §1985:IV.2.1).",
+                    "The words, phrases, clauses, punctuation, and operands in each general format shall be written in the "
+                    + "compilation group in the sequence given in the general format (ISO §2023:5.2.1)."), 0));
 
         // ⛔ 0i. THE KIND WRITTEN IS NOT A KIND THE POSITION EXPECTS (kb/Work PB3428, PB3861). Read from the parse AT the
         // token with every predicate on the way evaluated (OffendingPosition.Admitted), so a context word a text
@@ -2824,12 +2827,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// </list></summary>
     private static string? SearchFormatShapeMessage(Parser recognizer, IToken token, ITokenStream stream)
     {
-        const string formats = " ISO §2023:14.9.37.2 prints two SEARCH formats and ";
+        string formats = " ISO " + CiteAt(recognizer, "§1985:VI.6.22.2", "§2023:14.9.37.2") + " prints two SEARCH formats and ";
         var ctx = recognizer.Context;
         if (token.Type == CobolLexer.KEY && NearestSearchBeforeWhen(ctx) is { } keyed)
             return (keyed is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
                 + " KEY:" + formats + "neither has a KEY phrase — the key of a SEARCH ALL is declared by the "
-                + "ASCENDING/DESCENDING KEY phrase of identifier-1's OCCURS clause (§2023:14.9.37.3 SR7), and the "
+                + "ASCENDING/DESCENDING KEY phrase of identifier-1's OCCURS clause ("
+                + CiteAt(recognizer, "§1985:VI.6.22.3 SR1", "§2023:14.9.37.3 SR7") + "), and the "
                 + "Format-2 WHEN phrase names it. Remove the phrase.";
 
         bool notAtEnd = token.Type == CobolLexer.NOT ? IsAtEndAhead(stream, token.TokenIndex + 1)
@@ -2851,8 +2855,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     if (d is CobolParserCore.SearchAllStatementContext sa && sa.Stop is { } stop
                         && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
                         return "SEARCH ALL with a second WHEN phrase: Format 2 prints exactly ONE WHEN phrase — its "
-                            + "ellipsis sits on the [ AND … ] bracket, not on the WHEN brace (ISO §2023:14.9.37.2, with "
-                            + "§2023:5.2.7), so a further key condition is written as an AND phrase of the one WHEN.";
+                            + "ellipsis sits on the [ AND … ] bracket, not on the WHEN brace (ISO "
+                            + CiteAt(recognizer, "§1985:VI.6.22.2, with §1985:IV.2.1.5", "§2023:14.9.37.2, with §2023:5.2.7")
+                            + "), so a further key condition is written as an AND phrase of the one WHEN.";
         return null;
     }
 
@@ -2892,12 +2897,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 {
                     var (slot, format, word) = d switch
                     {
-                        CobolParserCore.AcceptSourceContext a => ("ACCEPT … FROM", "§2023:14.9.1.2 Format 1", a.cobolWord()),
-                        CobolParserCore.DisplayUponContext u => ("DISPLAY … UPON", "§2023:14.9.11.2 Format 1", u.cobolWord()),
-                        _ => (null, null, null),
+                        CobolParserCore.AcceptSourceContext a => ("ACCEPT … FROM", ("§1985:VI.6.5.2 Format 1", "§2023:14.9.1.2 Format 1"), a.cobolWord()),
+                        CobolParserCore.DisplayUponContext u => ("DISPLAY … UPON", ("§1985:VI.6.10.2", "§2023:14.9.11.2 Format 1"), u.cobolWord()),
+                        _ => (null, default, null),
                     };
                     if (word?.Stop is { } stop && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
-                        return MnemonicNameSlot.SuffixMessage(slot!, WrittenSource.Of(word), format!);
+                        return MnemonicNameSlot.SuffixMessage(slot!, WrittenSource.Of(word), format.Item1, format.Item2,
+                            (y1985, later) => CiteAt(recognizer, y1985, later));
                 }
 
         for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
@@ -2910,7 +2916,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     if (t.Type is CobolLexer.DOT or TokenConstants.EOF) return null;
                     if (t.Type == CobolLexer.TO)
                         return suffixed is not null && NextDefault(stream, t.TokenIndex)?.Type is CobolLexer.ON or CobolLexer.OFF
-                            ? MnemonicNameSlot.SuffixMessage("SET … TO ON/OFF", WrittenSource.Of(suffixed), "§2023:14.9.39.2 Format 3")
+                            ? MnemonicNameSlot.SuffixMessage("SET … TO ON/OFF", WrittenSource.Of(suffixed), "§1985:VI.6.23.2 Format 3",
+                                "§2023:14.9.39.2 Format 3", (y1985, later) => CiteAt(recognizer, y1985, later))
                             : null;
                     if (suffixed is null && IsMnemonicSuffixStart(t.Type))
                         suffixed = PreviousDefault(stream, t.TokenIndex);

@@ -3771,9 +3771,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     // §2023:8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
                     // it is read through the ONE exclusion test so the two paths cannot drift (kb/Work PB205).
                     else if (op.RefModStart is not null && ctl.Item is not null
-                             && RefModBinder.RefModExclusion(ctl.Item) is { } why)
+                             && RefModBinder.RefModExclusion(ctl.Item, Edition.Edition) is { } why)
                         Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted, $"RD '{model.Name}': CONTROL operand '{op}': reference "
-                            + $"modification of {why} is not permitted (ISO §2023:8.4.3.3.3 SR1)");
+                            + $"modification of {why} is not permitted (ISO {RefModBinder.RefModIdentifierRule(Edition.Edition)})");
                     // The literal BOUNDS are screened by the same one screen the procedure division uses (kb/Work
                     // PB1707 part 1): a CONTROL operand's positions are integer literals by SR4 and no statement
                     // exists here for an EC-BOUND-REF-MOD checking directive to govern, so a violation is the
@@ -3781,7 +3781,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     // clause cannot be folded against); the run-time test still owns it.
                     else if (op.RefModStart is { } ctlStart && ctl.Item is { } ctlRmItem
                              && RefModBinder.LiteralRefModRangeViolation(ctlRmItem, ctlStart, op.RefModLength,
-                                 omittedLength: op.RefModLength is null, allowZeroLength: true) is { } outOfRange)
+                                 omittedLength: op.RefModLength is null, allowZeroLength: true, Edition.Edition) is { } outOfRange)
                         Edition.Error(DiagnosticCatalog.RefModLiteralOutOfRange,
                             $"RD '{model.Name}': CONTROL operand '{op}': {outOfRange}");
                 }
@@ -3824,7 +3824,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                         + $"'{rs.Written}' names the report section item '{badRef}', which is neither a "
                                         + "report counter nor a sum counter of this report. If identifier-1 specifies a "
                                         + "report section item, it shall be a report counter identifier or a sum counter "
-                                        + "defined in the current report (ISO §2023:13.18.53.3 SR4).");
+                                        + "defined in the current report (ISO "
+                                        + Edition.Edition.Cite("§1985:XIII.3.18.3 SR1", "§2023:13.18.53.3 SR4", "§2023:13.18.53.3 SR4") + ").");
                                     rs.Rejected = true;
                                     break;
                                 // §2023:13.18.53.3 SR4, last sentence — "This same Syntax rule applies to any
@@ -3838,7 +3839,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                         + "is neither a report counter nor a sum counter of this report. An "
                                         + "identifier of a SOURCE clause — including any identifier inside "
                                         + "arithmetic-expression-1 — may name a report section item only in those "
-                                        + "two shapes (ISO §2023:13.18.53.3 SR4).");
+                                        + "two shapes (ISO "
+                                        + Edition.Edition.Cite("§1985:XIII.3.18.3 SR1", "§2023:13.18.53.3 SR4", "§2023:13.18.53.3 SR4") + ").");
                                     cs.Rejected = true;
                                     break;
                             }
@@ -4180,7 +4182,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Edition.Error(DiagnosticCatalog.ReportExpressionOperandSection, $"RD '{model.Name}': SUM addend "
                     + $"'{addend.Written}' contains '{rsName}', which names a report section item. If the addend "
                     + "is arithmetic-expression-1, any identifiers it contains may reference entries in any "
-                    + "section of the data division OTHER THAN the report section (ISO §2023:13.18.54.3 SR6).");
+                    + "section of the data division OTHER THAN the report section (ISO "
+                    + Edition.Edition.Cite("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR6", "§2023:13.18.54.3 SR6") + ").");
                 return;
             }
             addend.Rejected = false;
@@ -4314,9 +4317,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // outside the one funnel, `ReportGroupResolution` — kb/Work PB365.)
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names no entry of the report section that carries "
                 + "a value (a report group is not an elementary item, and an entry with no SUM, SOURCE or VALUE clause has "
-                + "nothing to add): data-name-1 shall be the name of a numeric data item in the report section (ISO §2023:13.18.54.3 SR4), and "
-                + "§2023:13.18.54.4 GR6 adds the sum counter of an entry containing a SUM clause or the operand of its SOURCE or "
-                + "VALUE clause — an entry with none of them has no value to add.");
+                + "nothing to add): " + Edition.Edition.Cite(
+                    "identifier-1 must reference a numeric data item and, defined in the Report Section, a sum counter (ISO §1985:XIII.3.19.3 SR1), "
+                    + "and no entry that is no sum counter has a value to add.",
+                    "data-name-1 shall be the name of a numeric data item in the report section (ISO §2023:13.18.54.3 SR4), and "
+                    + "§2023:13.18.54.4 GR6 adds the sum counter of an entry containing a SUM clause or the operand of its SOURCE or "
+                    + "VALUE clause — an entry with none of them has no value to add.",
+                    "data-name-1 shall be the name of a numeric data item in the report section (ISO §2023:13.18.54.3 SR4), and "
+                    + "§2023:13.18.54.4 GR6 adds the sum counter of an entry containing a SUM clause or the operand of its SOURCE or "
+                    + "VALUE clause — an entry with none of them has no value to add."));
             return null;
         }
         var data = candidates[0];
@@ -4326,7 +4335,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names the entry '{data.Name}', whose PICTURE is "
                 + $"{(source.Category is { } cat ? $"of category {cat.ToString().ToLowerInvariant()}" : "absent")}: "
-                + "data-name-1 shall be the name of a numeric data item in the report section (ISO §2023:13.18.54.3 SR4).");
+                + "data-name-1 shall be the name of a numeric data item in the report section (ISO "
+                + Edition.Edition.Cite("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR4", "§2023:13.18.54.3 SR4") + ").");
             return null;
         }
         // §1985:XIII.3.19.3 SR1 — "If identifier-1 is defined in the Report Section, identifier-1 must reference a sum

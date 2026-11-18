@@ -130,8 +130,8 @@ internal sealed class CheckGroupValueDeclarationsPass : IBindPass
                 using var _ = binder.Edition.At(item);
                 var subjectPic = GroupSubjectPic(item);
                 var groupSubject = ValueSubject.ForGroup(subjectPic.Length);
-                string groupWhere = $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item, "
-                    + "ISO §2023:13.18.63.3 SR13)";
+                string groupWhere = $"data item '{subject}' ({GroupCategoryWord(subjectPic.Category)} group item, ISO "
+                    + binder.Edition.Edition.Cite("§1985:VI.5.15.6 GR3", "§2023:13.18.63.3 SR13", "§2023:13.18.63.3 SR13") + ")";
                 if (item.RawValue is { } literal)
                     item.RawValue = binder.ValidateValueCategory(subjectPic, literal, groupWhere, groupSubject);
                 if (item.TableValues is { Count: > 0 } tableSpecs)

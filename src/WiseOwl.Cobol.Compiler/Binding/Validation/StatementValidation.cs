@@ -931,8 +931,7 @@ internal sealed class StatementValidation(DataBinder data)
             // the rule it violates is SR2's first sentence.
             if (!refs.WasDiagnosed(dref))
                 Identifier1(verb, written, "identifier-1 is a special register, which has no data description "
-                    + "entry: \"the data description of identifier-1 shall contain an OCCURS clause with an "
-                    + "INDEXED phrase\" (ISO §2023:14.9.37.3 SR2)");
+                    + $"entry: {SearchOccursQuote} ({SearchIdentifier1Rule("SR2")})");
             return null;
         }
         var table = operand.Item;
@@ -942,23 +941,24 @@ internal sealed class StatementValidation(DataBinder data)
         // not got, so screening them against one would name a level that does not exist.
         if (!table.IsTable)
         {
-            Identifier1(verb, written, $"'{table.CobolName}' is not a table — \"the data description of "
-                + "identifier-1 shall contain an OCCURS clause with an INDEXED phrase\" (ISO §2023:14.9.37.3 SR2)");
+            Identifier1(verb, written, $"'{table.CobolName}' is not a table — {SearchOccursQuote} "
+                + $"({SearchIdentifier1Rule("SR2")})");
             return null;
         }
         if (table.IndexNames.Count == 0)
         {
-            Identifier1(verb, written, $"the OCCURS clause of '{table.CobolName}' has no INDEXED phrase — \"the "
-                + "data description of identifier-1 shall contain an OCCURS clause with an INDEXED phrase\" (ISO "
-                + "§2023:14.9.37.3 SR2). The search varies the first index associated with identifier-1 (§2023:14.9.37.4 "
-                + "GR1), so a table with no index cannot be searched; add INDEXED BY to the OCCURS clause.");
+            Identifier1(verb, written, $"the OCCURS clause of '{table.CobolName}' has no INDEXED phrase — {SearchOccursQuote} "
+                + $"({SearchIdentifier1Rule("SR2")}). The search varies the first index associated with identifier-1 "
+                + $"({SearchVariesIndexRule}), so a table with no index cannot be searched; add INDEXED BY to the OCCURS clause.");
             return null;
         }
 
         // SR1 — the reference modifier. Not a shape this backend has not got round to: identifier-1 names a
         // TABLE, and a character slice of one is not a table.
         if (operand.IsReferenceModified)
-            Identifier1(verb, written, "\"Identifier-1 shall not be reference-modified\" (ISO §2023:14.9.37.3 SR1)");
+            Identifier1(verb, written, data.Edition.Edition.Cite("\"identifier-1 must not be subscripted or reference modified\"",
+                "\"Identifier-1 shall not be reference-modified\"", "\"Identifier-1 shall not be reference-modified\"")
+                + $" ({SearchIdentifier1Rule("SR1")})");
 
         // SR2's second sentence — the ONLY written-form rule the subscript count can decide, and it is an UPPER
         // bound: a reference to a table item normally takes one subscript per OCCURS level (§2023:8.4.2.3), SR2
@@ -992,9 +992,11 @@ internal sealed class StatementValidation(DataBinder data)
                 + $"{(operand.SubscriptCount == 1 ? "" : "s")} and '{table.CobolName}' has "
                 + (superordinate == 0 ? "no enclosing table"
                     : superordinate == 1 ? "1 enclosing table" : $"{superordinate} enclosing tables")
-                + " — \"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\" "
-                + "(ISO §2023:14.9.37.3 SR2). The search supplies that occurrence itself by varying the table's first "
-                + "index (§2023:14.9.37.4 GR1); "
+                + " — " + data.Edition.Edition.Cite("\"identifier-1 must not be subscripted or reference modified\"",
+                    "\"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\"",
+                    "\"identifier-1 shall not be subscripted at the level for which the SEARCH is applicable\"")
+                + $" ({SearchIdentifier1Rule("SR2")}). The search supplies that occurrence itself by varying the table's first "
+                + $"index ({SearchVariesIndexRule}); "
                 + (IdentifierOneMayWriteEnclosingSubscripts
                     ? "an enclosing table's occurrence may be written here or left to the WHEN phrases, which is where GR1 puts it."
                     : "an enclosing table's occurrence is left to the WHEN phrases, which is where GR1 puts it "
@@ -1032,6 +1034,21 @@ internal sealed class StatementValidation(DataBinder data)
     /// VersionConformancePass gates on, so the advice in the SR2 and PB3365 messages can never name an edge the gate does not.</summary>
     private bool IdentifierOneMayWriteEnclosingSubscripts =>
         ConstructRegistry.IsAvailable(data.Edition.Edition, Constructs.SearchIdentifier1EnclosingSubscript2023);
+
+    /// <summary>The citation of SEARCH's identifier-1 rule in the edition in force (kb/Work PB4950): COBOL-85 states all of it, the
+    /// OCCURS clause with an INDEXED BY phrase and the absence of a subscript and a reference modifier, in one syntax rule
+    /// (§1985:VI.6.22.3 SR1); COBOL-2002 and later split it over SR1 to SR3.</summary>
+    private string SearchIdentifier1Rule(string sr2023) =>
+        "ISO " + data.Edition.Edition.Cite("§1985:VI.6.22.3 SR1", "§2023:14.9.37.3 " + sr2023, "§2023:14.9.37.3 " + sr2023);
+
+    /// <summary>The words of the OCCURS-with-INDEXED requirement of identifier-1, in the edition's own text.</summary>
+    private string SearchOccursQuote => data.Edition.Edition.Cite(
+        "\"its description must contain an OCCURS clause including an INDEXED BY phrase\"",
+        "\"the data description of identifier-1 shall contain an OCCURS clause with an INDEXED phrase\"",
+        "\"the data description of identifier-1 shall contain an OCCURS clause with an INDEXED phrase\"");
+
+    /// <summary>The rule that a SEARCH varies the first index of identifier-1's table, in the edition's own text.</summary>
+    private string SearchVariesIndexRule => data.Edition.Edition.Cite("§1985:VI.6.22.4 GR2", "§2023:14.9.37.4 GR1", "§2023:14.9.37.4 GR1");
 
     /// <summary>The identifier-1 sink (ISO §2023:14.9.37.3 SR1–SR3) — one code for one operand position, the same way
     /// COBOL1964–1966 group SR7–SR13 by the operand each is about.</summary>
@@ -1622,6 +1639,21 @@ internal sealed class StatementValidation(DataBinder data)
         _ => "ISO §2002:13.3.5.2 SR4",
     };
 
+    /// <summary>The citation of an input-output statement's rule in the edition in force (kb/Work PB4950): COBOL-85 states each
+    /// statement once per I-O module, so its rule is the sequential (chapter VII), relative (VIII) or indexed (IX) module's
+    /// according to the file's organization; every later edition states it once.</summary>
+    /// <param name="sequential">The 1985 rule in the sequential I-O module (also a line-sequential file's).</param>
+    /// <param name="relative">The 1985 rule in the relative I-O module.</param>
+    /// <param name="indexed">The 1985 rule in the indexed I-O module.</param>
+    /// <param name="later">The 2002, 2014 and 2023 rule.</param>
+    public string IoRule(FileModel file, string sequential, string relative, string indexed, string later) =>
+        data.Edition.Edition.Cite(file.Organization switch
+        {
+            FileOrganization.Relative => relative,
+            FileOrganization.Indexed => indexed,
+            _ => sequential,
+        }, later, later);
+
     /// <summary>⛔ THE ONE SCREEN for the L1–L3 "phrase written where this statement's syntax rules forbid it"
     /// leniency family (kb/Work PB144). Three syntax rules across READ/REWRITE/DELETE say a phrase "shall not be
     /// specified" in a particular access mode or organization, and all three were TOLERATED unconditionally with
@@ -1669,7 +1701,8 @@ internal sealed class StatementValidation(DataBinder data)
         if (WrittenSequentialReadPhrases(advancing, atEnd, notAtEnd, next, previous) is not { Length: > 0 } present)
             return true;
         ScreenForbiddenPhrase(true, present, "READ",
-            "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §2023:14.9.30.3 SR6");
+            "a file whose file control entry specifies ACCESS MODE RANDOM",
+            "ISO " + IoRule(file, "§1985:VII.4.4.2", "§1985:VIII.4.5.3 SR4", "§1985:IX.4.5.3 SR6", "§2023:14.9.30.3 SR6"));
         return false;
     }
 
@@ -2041,7 +2074,8 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (!advancingPageWithAtEop) return true;
         data.Edition.Error(DiagnosticCatalog.WriteAdvancingPageWithEndOfPage, "WRITE ADVANCING PAGE with an END-OF-PAGE phrase: the two "
-            + "shall not both be specified in a single WRITE statement (ISO §2023:14.9.51.3 SR18)");
+            + "shall not both be specified in a single WRITE statement (ISO "
+            + data.Edition.Edition.Cite("§1985:VII.4.7.3 SR7", "§2023:14.9.51.3 SR18", "§2023:14.9.51.3 SR18") + ")");
         return false;
     }
 
@@ -2275,7 +2309,8 @@ internal sealed class StatementValidation(DataBinder data)
         {
             case RelationComparabilityBreach.IndexPair:
                 data.Edition.Error(DiagnosticCatalog.RelationIndexPair, "an index-name or index data item is compared "
-                    + "with an operand ISO §2023:8.8.4.2.13 does not pair it with — \"Relation tests may be made only "
+                    + "with an operand ISO " + data.Edition.Edition.Cite("§1985:VI.6.3.1.1.3", "§2023:8.8.4.2.13", "§2023:8.8.4.2.13")
+                    + " does not pair it with — \"Relation tests may be made only "
                     + "between\" two index-names, an index-name and a numeric data item or numeric literal, or an index "
                     + "data item and an index-name or another index data item");
                 break;

@@ -537,7 +537,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 + "§2023:14.9.35.3 SR12)");
             return null;
         }
-        if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
+        if (MoveTable16.SenderClassRefusal(source, ctx.Edition.Edition) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed,
                 $"{classRefusal} — {rules.Statement}: identifier-1 shall be valid as a sending operand in a MOVE statement");
@@ -642,13 +642,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // three usages LIVE, and the measurement agreed: `MOVE P TO Y` over a USAGE POINTER sender printed
         // Y=[WiseOwl.Cobol] (the CLR carrier's type name) into an alphanumeric item, and `MOVE NULL TO P` reached
         // Roslyn and surfaced CS0029 about generated C#. One rule, one core, asked of both positions.
-        if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
+        if (MoveTable16.SenderClassRefusal(source, ctx.Edition.Edition) is { } classRefusal)
             ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed, classRefusal
                 + (source is BoundFieldOperand sIdx
                     ? $" — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}"
                     : ImplicitMovePhrase.Via(implicitOf)));
         foreach (var t in targets)
-            if (MoveTable16.ReceiverClassRefusal(t) is { } recvRefusal)
+            if (MoveTable16.ReceiverClassRefusal(t, ctx.Edition.Edition) is { } recvRefusal)
                 ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed,
                     $"{recvRefusal} — {ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName)}");
 

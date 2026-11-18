@@ -345,6 +345,12 @@ the edition in force has no such rule, the message cites the edition where the r
   `OpenTapePhraseRule.OrganizationClause1985`, `LevelNumberRules.Arm.Citation1985`, `ClauseList.Format1985` and `ClosedFormat.Clause1985`
   for the general-format tables, and the parse layer reads the edition through `CobolParserCoreBase.EditionInForce` (`AdmittedKinds`,
   `GoToFormats`, the empty-block message). The next row of such a table is cited by writing its 1985 field.
+- **A rule that differs by I-O module is chosen by the file** (kb/Work PB4950 slice 6): COBOL-85 states a READ, REWRITE, DELETE,
+  WRITE or SAME rule once per module (sequential VII, relative VIII, indexed IX, sort-merge XI), so `StatementValidation.IoRule`
+  picks the module's text by the file's organization and every later edition's single text by `Cite`. **The parser's error
+  strategy cites through one read**: `CobolParserCoreBase.DiagnosticCitation` is a diagnosis-only edition read (recorded in
+  `EditionReadDriftTests`, read by the strategy's one `CiteAt`); the parse-stage messages (statement shape, phrase association,
+  mnemonic-name suffix, SEARCH shape) and `MnemonicNameSlot.SuffixMessage` receive it as a delegate.
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.

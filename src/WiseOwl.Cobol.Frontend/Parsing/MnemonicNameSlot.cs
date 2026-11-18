@@ -26,10 +26,17 @@ public static class MnemonicNameSlot
     /// <c>§2023:14.9.1.2 Format 1</c>). Worded by POSITION ("stands in the mnemonic-name-1 position"), not by the
     /// word's declaration, because the parse layer cannot know what the word was declared as — only that a
     /// mnemonic-name is what the slot takes.</summary>
-    public static string SuffixMessage(string statement, string name, string format)
-        => $"'{name}' stands in the mnemonic-name-1 position of {statement}, and a mnemonic-name \"identifies an "
-           + "implementor-defined device-name, feature-name, or switch-name\" (ISO §2023:8.3.2.2.16) — a word with no data "
-           + "description, so it takes no subscript or reference modification, and no qualified format of §2023:8.4.2.2.2 "
-           + "names one. "
-           + $"ISO {format} writes mnemonic-name-1 alone; write '{name}'.";
+    /// <param name="format1985">The statement's general format at COBOL-85 (<c>§1985:VI.6.5.2 Format 1</c>).</param>
+    /// <param name="format2023">The statement's general format from COBOL-2002 (<c>§2023:14.9.1.2 Format 1</c>).</param>
+    /// <param name="cite">Chooses a citation or its words by the edition in force (kb/Work PB4950): the first argument at
+    /// COBOL-85, the second at every later edition. Each caller binds it to the one decider, <c>EditionInfo.Cite</c>.</param>
+    public static string SuffixMessage(string statement, string name, string format1985, string format2023,
+        Func<string, string, string> cite)
+        => $"'{name}' stands in the mnemonic-name-1 position of {statement}, and a mnemonic-name "
+           + cite("is associated with an implementor-name in the SPECIAL-NAMES paragraph (ISO §1985:VI.4.5.3 SR2)",
+                "\"identifies an implementor-defined device-name, feature-name, or switch-name\" (ISO §2023:8.3.2.2.16)")
+           + " — a word with no data "
+           + "description, so it takes no subscript or reference modification, and no qualified format of "
+           + cite("§1985:IV.4.3.8.1", "§2023:8.4.2.2.2") + " names one. "
+           + $"ISO {cite(format1985, format2023)} writes mnemonic-name-1 alone; write '{name}'.";
 }

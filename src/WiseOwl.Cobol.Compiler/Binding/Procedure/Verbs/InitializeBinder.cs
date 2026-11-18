@@ -940,7 +940,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         bool anyMoveFormCategory = false;
         foreach (var cat in InitializeCategories.All)
             if (cats.Contains(cat) && !InitializeCategories.IsSetForm(cat)) { anyMoveFormCategory = true; break; }
-        if (anyMoveFormCategory && MoveTable16.SenderClassRefusal(value) is { } classRefusal)
+        if (anyMoveFormCategory && MoveTable16.SenderClassRefusal(value, ctx.Edition.Edition) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
                 $"INITIALIZE REPLACING BY {senderText}: ISO {ctx.Edition.Edition.Cite("§1985:VI.6.17.3 SR2", "§2023:14.9.20.3 SR4", "§2023:14.9.20.3 SR4")} requires the implicit MOVE to be "

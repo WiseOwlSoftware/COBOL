@@ -270,9 +270,12 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     /// (kb/Work PB1494). Every such line is reported; it is then read as a source line.</summary>
     public void OnInvalidIndicator(string file, int line, Rune indicator)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FixedIndicatorInvalid.Code,
-            $"the indicator area (column 7) holds '{indicator}', which is not a fixed indicator: ISO §2023:6.2.2 lists "
-            + "*, / (comment line), - (continuation line) and space (source line); a NIST CCVS program's column-7 "
-            + "conventions are honored under --nist", At(file, line, FixedFormLine.IndicatorColumn), default);
+            $"the indicator area (column 7) holds '{indicator}', which is not a fixed indicator: ISO "
+            + Edition.Cite("§1985:IV.7.2.2 and §1985:IV.7.2.4 list * and / (comment line), - (continuation line) and space (source line), "
+                    + "and the Debug module's D (debugging line)",
+                "§2023:6.2.2 lists *, / (comment line), - (continuation line) and space (source line)",
+                "§2023:6.2.2 lists *, / (comment line), - (continuation line) and space (source line)")
+            + "; a NIST CCVS program's column-7 conventions are honored under --nist", At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>Any col-7 '-' continuation — OBSOLETE at 2023 (Annex F.2 item 4; VCR row 94).</summary>
     public void OnContinuation(string file, int line)

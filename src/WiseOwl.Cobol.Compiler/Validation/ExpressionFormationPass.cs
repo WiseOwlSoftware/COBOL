@@ -109,8 +109,10 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink, EditionInfo 
         DiagnosticCatalog.SuffixBeforeQualifier.Code, EditionSeverity.Error,
         DiagnosticCatalog.SuffixBeforeQualifier.Id,
         $"'{qualifier}' follows a subscript or reference modifier{(head is null ? "" : $" of '{head}'")}; the "
-        + "subscripts follow the WHOLE qualified name (ISO §2023:8.4.2.3.2) and a reference modifier the whole "
-        + "identifier (§2023:8.4.3.1.2 Format 3) — write the qualifiers first",
+        + "subscripts follow the WHOLE qualified name (ISO "
+        + edition.Cite("§1985:IV.4.3.8.2.2", "§2023:8.4.2.3.2", "§2023:8.4.2.3.2") + ") and a reference modifier the whole "
+        + "identifier (" + edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.1.2 Format 3", "§2023:8.4.3.1.2 Format 3")
+        + ") — write the qualifiers first",
         "an identifier", DiagnosticCatalog.SuffixBeforeQualifier.IsoSection));
 
     /// <summary>The first qualifier written after a subscript or reference modifier of the same reference, or null.

@@ -274,7 +274,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // §2023:14.9.25.3 SR1's sending half is part of "a MOVE statement is valid": an index, message-tag, object or
         // pointer identifier-1 is refused, printable entry or not — no edition's list of the contexts an index data item
         // may be referenced in names a SOURCE clause (§2023:13.18.60.3 SR10; §1985:VI.5.14.3 SR5; kb/Work PB5188).
-        if (MoveTable16.SenderClassRefusal(operand) is { } classRefusal)
+        if (MoveTable16.SenderClassRefusal(operand, ctx.Edition.Edition) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of {ImplicitMoveRule()} "
                 + $"from identifier-1 is invalid — {classRefusal} (ISO {SourceMoveRule()})");
@@ -529,7 +529,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.UseBeforeReportingRestriction,
                 $"{verb}: this statement is in USE BEFORE REPORTING declarative section "
                 + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"The GENERATE, INITIATE, or TERMINATE statements "
-                + "shall not appear in a paragraph within a USE BEFORE REPORTING procedure\" (ISO §2023:14.9.49.3 SR10)")
+                + ctx.Edition.Edition.Cite("must", "shall", "shall") + " not appear in a paragraph within a USE BEFORE REPORTING procedure\" (ISO "
+                + ctx.Edition.Edition.Cite("§1985:XIII.4.9.3 SR3", "§2023:14.9.49.3 SR10", "§2023:14.9.49.3 SR10") + ")")
             : null;
 
     /// <summary>ISO §2023:14.9.49.3 SR11 (kb/Work PB363): "A USE BEFORE REPORTING procedure shall not alter the value of
