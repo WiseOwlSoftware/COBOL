@@ -332,8 +332,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             $"the WHEN phrase '{DataBinder.WrittenText(phrase)}' writes {objects} selection "
             + (objects == 1 ? "object" : "objects") + $" but the EVALUATE statement has {subjects} selection "
             + (subjects == 1 ? "subject" : "subjects")
-            + "; ISO §2023:14.9.13.3 SR2 requires the two counts to be equal (write ANY for a position the phrase "
-            + "does not test — SR7 c)");
+            + $"; ISO {ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR5", "§2023:14.9.13.3 SR2", "§2023:14.9.13.3 SR2")} requires the two counts to be equal (write ANY for a position the phrase "
+            + "does not test — " + ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR6c", "SR7 c", "SR7 c") + ")");
     }
 
     /// <summary>⛔ THE ONE ADMISSIBILITY SCREEN OVER A RANGE-EXPRESSION'S PAIR OF OPERANDS (kb/Work PB399) —

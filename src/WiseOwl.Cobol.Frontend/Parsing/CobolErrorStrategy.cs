@@ -1743,7 +1743,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                         "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase: the "
                         + "general format brackets it as a single phrase FOLLOWING the repeated WHEN group, and an "
                         + "ellipsis applies only to the portion between the delimiters immediately to its left "
-                        + "(ISO §2023:14.9.13.2 / §2023:14.9.28.2 Format 3, with ISO §2023:5.2.7).", 0)
+                        + CiteAt(recognizer, "(ISO §1985:VI.6.13.2, with ISO §1985:IV.2.1.5).",
+                            "(ISO §2023:14.9.13.2 / §2023:14.9.28.2 Format 3, with ISO §2023:5.2.7)."), 0)
                     : new(Diagnostics.DiagnosticDescriptors.COBOL2072,
                         "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
                         + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
@@ -3164,6 +3165,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 CobolParserCore.RULE_lowValueWord, CobolParserCore.RULE_quoteWord,
             }.Select(r => recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[r]))];
 
+    /// <summary>The words of the edition in force: <paramref name="y1985"/> at COBOL-85, <paramref name="later"/> from 2002 (kb/Work PB4950,
+    /// <see cref="EditionInfo.Cite"/>), so a syntax diagnostic cites the rule of the edition the program is compiled under. A recognizer
+    /// that is no COBOL parser has no edition and takes the later text.</summary>
+    private static string CiteAt(Parser recognizer, string y1985, string later) =>
+        recognizer is CobolParserCoreBase parser ? parser.EditionCitation(y1985, later, later) : later;
+
     /// <summary>The COBOL2418 message when the parser failed ON one spelling of a figurative family at a
     /// position whose general format names a DIFFERENT spelling of that family as its keyword; null otherwise.
     /// A position that admits the figurative constant admits every spelling, so the test cannot fire there.</summary>
@@ -3179,9 +3186,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         string Spell(int t) => recognizer.Vocabulary.GetLiteralName(t)?.Trim('\'') ?? recognizer.Vocabulary.GetDisplayName(t);
         string required = string.Join(" or ", wanted.Select(Spell));
         return $"The general format requires the keyword {required} here, and {WrittenSource.Of(token).ToUpperInvariant()} is a "
-            + "different reserved word (ISO §2023:8.9): the spellings of a figurative constant are interchangeable only "
-            + "where the figurative constant itself is written (ISO §2023:8.3.3.6.2), and a keyword underlined in a "
-            + "general format is required as printed (ISO §2023:5.2.2).";
+            + CiteAt(recognizer,
+                "different reserved word (ISO §1985:IV.4.2.2.2.3): the singular and plural forms of a figurative constant are "
+                + "interchangeable only where the figurative constant itself is written, and a keyword underlined in a general "
+                + "format is required as printed (ISO §1985:IV.2.1.2).",
+                "different reserved word (ISO §2023:8.9): the spellings of a figurative constant are interchangeable only "
+                + "where the figurative constant itself is written (ISO §2023:8.3.3.6.2), and a keyword underlined in a "
+                + "general format is required as printed (ISO §2023:5.2.2).");
     }
 
     /// <summary>The one keyword position the expected-set test above cannot see: the SIGN CONDITION
@@ -3213,10 +3224,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
         if (next is null || next.Type == CobolLexer.ZERO || !zeroFamily.Contains(next.Type)) return null;
         return $"The sign condition's general format requires the keyword ZERO here, and "
-            + $"{WrittenSource.Of(next).ToUpperInvariant()} is a different reserved word (ISO §2023:8.9): its format is "
-            + "'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §2023:8.8.4.7.2), and the spellings of a figurative "
-            + "constant are interchangeable only where the figurative constant itself is written (ISO §2023:8.3.3.6.2). "
-            + "To compare against the figurative constant, write a relation condition: '= ZEROS'.";
+            + $"{WrittenSource.Of(next).ToUpperInvariant()} is a different reserved word "
+            + CiteAt(recognizer,
+                "(ISO §1985:IV.4.2.2.2.3): its format is 'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §1985:VI.6.3.1.5), and the "
+                + "singular and plural forms of a figurative constant are interchangeable only where the figurative constant itself is written.",
+                "(ISO §2023:8.9): its format is 'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §2023:8.8.4.7.2), and the spellings of a "
+                + "figurative constant are interchangeable only where the figurative constant itself is written (ISO §2023:8.3.3.6.2).")
+            + " To compare against the figurative constant, write a relation condition: '= ZEROS'.";
     }
 
     private static IToken? PreviousDefault(ITokenStream stream, ref int index)

@@ -1127,8 +1127,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // screen asks the category reader).
         return OperandTargetRefusal(name) is { } face
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
-                $"CALL target '{written}' is {face}; ISO §2023:14.9.4.3 SR1 admits an alphanumeric, national, or "
-                + "program-pointer data item")
+                $"CALL target '{written}' is {face}; ISO "
+                + ctx.Edition.Edition.Cite("§1985:X.5.2.3 SR2 admits an alphanumeric data item whose value can be a program-name",
+                    "§2023:14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item",
+                    "§2023:14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item"))
             : null;
     }
 

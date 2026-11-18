@@ -398,6 +398,11 @@ public abstract class CobolParserCoreBase : Parser
         => Canonical(keyword) is { } w
            && (ReservedWords.AdmitsAsKeyword(w, Edition.Year) || CobolLexer.IsKeywordWhereFree(w));
 
+    /// <summary>The citation or quoted words of the edition in force (<see cref="EditionInfo.Cite"/>, kb/Work PB4950): a syntax
+    /// diagnostic cites the rule of the edition the program is compiled under. Diagnosis only (<c>CobolErrorStrategy.CiteAt</c>);
+    /// never called while parsing.</summary>
+    internal string EditionCitation(string y1985, string y2002, string y2023) => Edition.Cite(y1985, y2002, y2023);
+
     /// <summary>⛔ WHETHER THIS EDITION HAS A USER-DEFINED WORD TO PRINT WHERE A FORMAT SPECIFIES A LITERAL (kb/Work PB4435).
     /// The word there is a constant-name: ISO §2023:13.10.3 SR2, "Except in a compiler directive, constant-name-1 may be used
     /// anywhere that a format specifies a literal of the class and category of constant-name-1". The parse writes such a

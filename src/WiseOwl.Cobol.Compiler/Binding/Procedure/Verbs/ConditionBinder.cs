@@ -976,7 +976,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         ctx.Edition.Error(DiagnosticCatalog.AbbreviatedRelationWithoutSubject,
             $"'{DataBinder.WrittenText(ar)}' omits the subject of its relation, but no subject precedes it to insert: the "
             + "insertion of an omitted subject terminates at a complete simple condition that is not a relation, and "
-            + "does not cross a parenthesis (ISO §2023:8.8.4.12.1; §2023:8.8.4.12.4 GR1)");
+            + "does not cross a parenthesis (ISO "
+            + ctx.Edition.Edition.Cite("§1985:VI.6.3.3", "§2023:8.8.4.12.1; §2023:8.8.4.12.4 GR1", "§2023:8.8.4.12.1; §2023:8.8.4.12.4 GR1") + ")");
 
     /// <summary>⛔ ISO §2023:8.8.4.12.3 SR1 — a succeeding relation that omits its subject (or its subject and operator)
     /// after a BOOLEAN relation condition (<see cref="AbbrevCarry.BooleanRelation"/>). Both consumers of the carry —

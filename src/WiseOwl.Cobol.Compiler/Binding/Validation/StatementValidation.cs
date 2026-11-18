@@ -1442,7 +1442,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (place.NamedItem.Renames is null) return true;   // the entry the name denotes, under any decoration (Place.NamedItem)
         data.Edition.Error(DiagnosticCatalog.InitializeRenamesItem,
             $"INITIALIZE '{refText}' — the data description entry for identifier-1 shall not contain a RENAMES "
-            + "clause (ISO §2023:14.9.20.3 SR5)");
+            + "clause (ISO " + data.Edition.Edition.Cite("§1985:VI.6.17.3 SR6", "§2023:14.9.20.3 SR5", "§2023:14.9.20.3 SR5") + ")");
         return false;
     }
 
@@ -1715,8 +1715,13 @@ internal sealed class StatementValidation(DataBinder data)
         if (intoWritten || !file.HasNoRecordDescriptionEntries) return true;
         data.Edition.Error(DiagnosticCatalog.RecordLessFdReadWithoutInto, $"READ {file.CobolName}: the file "
             + "description entry specifies no record description entries, so an INTO phrase shall be specified on "
-            + "all READ statements associated with the file (ISO §2023:13.4.5.3 SR3 c)) — its record area is the implied "
-            + "record of §2023:14.9.30.4 GR6, which has no name, and only READ … INTO can deliver the record. Write "
+            + "all READ statements associated with the file ("
+            + data.Edition.Edition.Cite("ISO §1985:VII.3.1: \"Each file is defined by a file description entry and one or more record description entries\"",
+                "ISO §2023:13.4.5.3 SR3 c)", "ISO §2023:13.4.5.3 SR3 c)")
+            + ") — its record area is the implied record of "
+            + data.Edition.Edition.Cite("a file without record description entries, which has no name", "§2023:14.9.30.4 GR6, which has no name",
+                "§2023:14.9.30.4 GR6, which has no name")
+            + ", and only READ … INTO can deliver the record. Write "
             + $"READ {file.CobolName} INTO identifier, or describe the record under the FD.");
         return false;
     }
@@ -1873,7 +1878,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             data.Edition.Error(DiagnosticCatalog.OpenReportFileMode,
                 $"OPEN {OpenModeFace(mode)} '{file.CobolName}' — a report file shall not be opened INPUT or I-O "
-                + "(ISO §2023:14.9.27.3 SR1; §2023:13.18.46.3 SR3)");
+                + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.4.5.3 SR1", "§2023:14.9.27.3 SR1; §2023:13.18.46.3 SR3", "§2023:14.9.27.3 SR1; §2023:13.18.46.3 SR3")})");
             ok = false;
         }
         if (file.Format is not null && mode is BoundOpenMode.IO)
@@ -1888,14 +1893,14 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
                 $"OPEN EXTEND '{file.CobolName}' — the file's access mode is "
                 + $"{file.AccessMode.ToString().ToUpperInvariant()}; EXTEND requires sequential access "
-                + "(ISO §2023:14.9.27.3 SR2)");
+                + $"(ISO {data.Edition.Edition.Cite(file.Organization is FileOrganization.Indexed ? "§1985:IX.4.4.3 SR1" : "§1985:VIII.4.4.3 SR1", "§2023:14.9.27.3 SR2", "§2023:14.9.27.3 SR2")})");
             ok = false;
         }
         if (mode is BoundOpenMode.Extend && file.Linage is not null)
         {
             data.Edition.Error(DiagnosticCatalog.OpenExtendAccessLinage,
                 $"OPEN EXTEND '{file.CobolName}' — the file description entry specifies a LINAGE clause, which "
-                + "EXTEND does not admit (ISO §2023:14.9.27.3 SR2)");
+                + $"EXTEND does not admit (ISO {data.Edition.Edition.Cite("§1985:VII.4.3.3 SR3", "§2023:14.9.27.3 SR2", "§2023:14.9.27.3 SR2")})");
             ok = false;
         }
         // The X3.23-1985 multiple file reel rules (kb/Work PB5086): the MULTIPLE FILE TAPE clause is the program's statement
@@ -2192,16 +2197,23 @@ internal sealed class StatementValidation(DataBinder data)
             case RelationComparabilityBreach.NumericAgainstCharacter when data.Edition.Permissive:
                 data.Edition.Warning(DiagnosticCatalog.RelationNumericNotInteger, "a numeric operand that is not an "
                     + "integer literal or an integer numeric data item of usage display or national is compared with a "
-                    + "character operand (ISO §2023:8.8.4.2.5) — accepted under --permissive as the character comparison of "
+                    + $"character operand (ISO {data.Edition.Edition.Cite("§1985:VI.6.3.1.1.2", "§2023:8.8.4.2.5", "§2023:8.8.4.2.5")}) — accepted under --permissive as the character comparison of "
                     + "its value's text");
                 break;
             case RelationComparabilityBreach.NumericAgainstCharacter:
                 data.Edition.Error(DiagnosticCatalog.RelationNumericNotInteger, "a numeric operand compared with an "
                     + "operand of class alphanumeric, alphabetic or national shall be \"an integer literal or an integer "
-                    + "numeric data item of usage display or national\" (ISO §2023:8.8.4.2.5; §2023:8.8.4.2.1 item 6 is the only "
-                    + "such pair the standard defines) — a non-integer, COMPUTATIONAL, packed, floating-point, "
-                    + "arithmetic-expression or numeric, integer or index function-identifier operand (§2023:15.2 states no "
-                    + "usage for the item such a function returns) has no defined comparison with it");
+                    + "numeric data item of usage display or national\" ("
+                    + data.Edition.Edition.Cite(
+                        "ISO §1985:VI.6.3.1.1.2: \"If one of the operands is specified as numeric, it must be an integer data item or an integer literal\", "
+                        + "and \"Numeric and nonnumeric operands may be compared only when their usage is the same\") — a non-integer, "
+                        + "COMPUTATIONAL, packed or floating-point operand has no defined comparison with it",
+                        "ISO §2023:8.8.4.2.5; §2023:8.8.4.2.1 item 6 is the only such pair the standard defines) — a non-integer, "
+                        + "COMPUTATIONAL, packed, floating-point, arithmetic-expression or numeric, integer or index function-identifier "
+                        + "operand (§2023:15.2 states no usage for the item such a function returns) has no defined comparison with it",
+                        "ISO §2023:8.8.4.2.5; §2023:8.8.4.2.1 item 6 is the only such pair the standard defines) — a non-integer, "
+                        + "COMPUTATIONAL, packed, floating-point, arithmetic-expression or numeric, integer or index function-identifier "
+                        + "operand (§2023:15.2 states no usage for the item such a function returns) has no defined comparison with it"));
                 break;
         }
     }

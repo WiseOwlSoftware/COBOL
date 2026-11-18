@@ -320,7 +320,8 @@ internal sealed class RefModBinder(ReferenceResolver refs, DataBinder data)
             if (!refs.Probing && refs.Diagnosed.Add(rmp))
                 data.Edition.Error(DiagnosticCatalog.RefModLeftmostPositionOmitted,
                     $"'{DataBinder.WrittenText(rmp).Trim()}': a reference modifier is written ( leftmost-position : "
-                    + "[ length ] ) and only the length may be omitted, so the colon cannot lead (ISO §2023:8.4.3.3.2). Write "
+                    + "[ length ] ) and only the length may be omitted, so the colon cannot lead (ISO "
+                    + data.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.2", "§2023:8.4.3.3.2") + "). Write "
                     + "the leftmost position explicitly, for example (1:2).");
             return null;
         }

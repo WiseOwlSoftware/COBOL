@@ -1445,9 +1445,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             case SetOperandKind.OtherDataItem
                 when ctx.Refs.Probe(senderDref) is { } sp && !IntrinsicArgumentRules.IsArithmeticOperandClass(sp.Item):
                 ctx.Edition.Error(DiagnosticCatalog.SetIndexAssignmentOperand,
-                    $"SET {SetFormatSelection.Written(recvs)} TO '{senderText}': the sender is neither identifier-2 — ISO §2023:14.9.39.3 SR2: \"Identifier-2 "
-                    + "shall reference a data item of class index\" — nor a numeric operand of "
-                    + "arithmetic-expression-1 (ISO §2023:8.8.1.1)");
+                    $"SET {SetFormatSelection.Written(recvs)} TO '{senderText}': the sender is "
+                    + ctx.Edition.Edition.Cite(
+                        "not identifier-2 — ISO §1985:VI.6.23.3 SR2: \"Identifier-1 and identifier-2 must each reference an index data item or an "
+                        + "elementary item described as an integer\" — nor integer-1",
+                        "neither identifier-2 — ISO §2023:14.9.39.3 SR2: \"Identifier-2 shall reference a data item of class index\" — nor a numeric "
+                        + "operand of arithmetic-expression-1 (ISO §2023:8.8.1.1)",
+                        "neither identifier-2 — ISO §2023:14.9.39.3 SR2: \"Identifier-2 shall reference a data item of class index\" — nor a numeric "
+                        + "operand of arithmetic-expression-1 (ISO §2023:8.8.1.1)"));
                 return null;
             default: return IndexAssignmentSender.ArithmeticExpression;
         }
@@ -1484,7 +1489,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         };
         if (rule is null) return true;
         ctx.Edition.Removed(DiagnosticCatalog.SetIndexAssignmentOperand.Code,
-            $"SET '{text}' TO '{senderText}' violates ISO §2023:14.9.39.3 {rule}");
+            $"SET '{text}' TO '{senderText}' violates ISO "
+            + ctx.Edition.Edition.Cite("§1985:VI.6.23.3 SR2 — \"Identifier-1 and identifier-2 must each reference an index data item or an elementary item described as an integer\", and the format sends only index-name-2, identifier-2 or integer-1",
+                $"§2023:14.9.39.3 {rule}", $"§2023:14.9.39.3 {rule}"));
         return ctx.Edition.Permissive;
     }
 

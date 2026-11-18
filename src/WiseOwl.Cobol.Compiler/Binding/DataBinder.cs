@@ -1729,18 +1729,18 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 {
                     Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal "
                         + $"{raw} is alphanumeric but the item is numeric — all literals in the VALUE clause of a "
-                        + "numeric item shall be numeric (ISO §2023:13.18.63.3 SR2); under --permissive it is stored as "
+                        + $"numeric item shall be numeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")}); under --permissive it is stored as "
                         + $"the number {content.Trim()}");
                     return Edition.Permissive ? content.Trim() : raw;
                 }
                 Edition.Error(DiagnosticCatalog.ValueLiteralClass, $"{where}: the VALUE literal {raw} is not a "
-                    + "numeric literal and the item is numeric (ISO §2023:13.18.63.3 SR2)");
+                    + $"numeric literal and the item is numeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")})");
                 return raw;
             }
             case PicCategory.Numeric when isNationalFigurative && !isZeroWord:
                 Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the figurative constant "
                     + $"{raw} is not a numeric literal — the VALUE of a numeric item shall be numeric or ZERO (ISO "
-                    + "§2023:13.18.63.3 SR2); under --permissive the item is initialized to ZERO (a native numeric item "
+                    + $"{Edition.Edition.Cite("§1985:VI.5.15.4 GR1a", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")}); under --permissive the item is initialized to ZERO (a native numeric item "
                     + "holds no character fill)");
                 return Edition.Permissive ? "0" : raw;
             // ── SR4 sentence 1: an alphabetic / alphanumeric / alphanumeric-edited subject takes alphanumeric
@@ -1754,13 +1754,16 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 Edition.Error(DiagnosticCatalog.ValueLiteralClass, $"{where}: the VALUE literal {raw} is numeric "
                     + "but the subject is an alphanumeric group item — a group-level VALUE literal shall be of the "
                     + "same category as the group item, or a figurative constant permitted in a MOVE statement to "
-                    + "a receiving item of that category (ISO §2023:13.18.63.3 SR13; §2023:8.5.2.1 — an alphanumeric group "
-                    + "item has class and category alphanumeric)");
+                    + "a receiving item of that category (ISO "
+                    + Edition.Edition.Cite("§1985:VI.5.15.6 GR3",
+                        "§2023:13.18.63.3 SR13; §2023:8.5.2.1 — an alphanumeric group item has class and category alphanumeric",
+                        "§2023:13.18.63.3 SR13; §2023:8.5.2.1 — an alphanumeric group item has class and category alphanumeric")
+                    + ")");
                 break;
             case PicCategory.Alphanumeric when isNumeric && IsNumericLiteralForm(raw):
                 Edition.Removed(DiagnosticCatalog.ValueLiteralClass.Code, $"{where}: the VALUE literal {raw} is "
                     + "numeric but the item is alphabetic / alphanumeric / alphanumeric-edited — its VALUE literals "
-                    + "shall be alphanumeric (ISO §2023:13.18.63.3 SR4); under --permissive the literal's characters are "
+                    + $"shall be alphanumeric (ISO {Edition.Edition.Cite("§1985:VI.5.15.4 GR1b", "§2023:13.18.63.3 SR4", "§2023:13.18.63.3 SR4")}); under --permissive the literal's characters are "
                     + "stored as MOVE would store them");
                 break;
             // ── SR4 sentences 2 and 3 — THE THIRD ARM of the size rule, which had no implementation at all while
@@ -2094,7 +2097,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private void CheckOneTypePerWord(string word, UserWordKind kind)
     {
         if (WordCensus.Record(word, kind) is not { } first) return;
-        Edition.Error(DiagnosticCatalog.UserWordTypeConflict, UserWordCensus.ConflictMessage(word, first, kind));
+        Edition.Error(DiagnosticCatalog.UserWordTypeConflict, UserWordCensus.ConflictMessage(word, first, kind, Edition.Edition));
     }
 
     /// <summary>⛔ THE ONE REFUSAL OF A SECOND UNQUALIFIABLE DECLARATION (ISO §2023:8.4.2.1; kb/Work PB3216): "In order to use a
@@ -3689,9 +3692,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             + $"'{written}', which no general format of the clause prints — "
             + (pairedConnective
                 ? "the leading braces are a required choice between 'VALUE IS' and 'VALUES ARE', so VALUE pairs "
-                  + "with IS and VALUES with ARE (ISO §2023:13.18.63.2 formats 2/3/4, §2023:5.2.6.3)"
-                : "format 1 (data-item) prints 'VALUE IS literal-1', and §2023:13.18.63.3 SR17's VALUE/VALUES "
-                  + "equivalence is a format 2 rule that format 1 does not apply (ISO §2023:13.18.63.2 format 1)"));
+                  + "with IS and VALUES with ARE (ISO "
+                  + Edition.Edition.Cite("§1985:VI.5.15.2 format 2", "§2023:13.18.63.2 formats 2/3/4, §2023:5.2.6.3",
+                      "§2023:13.18.63.2 formats 2/3/4, §2023:5.2.6.3") + ")"
+                : "format 1 (data-item) prints 'VALUE IS literal-1', and "
+                  + Edition.Edition.Cite("the VALUE/VALUES choice is a format 2 matter (ISO §1985:VI.5.15.2)",
+                      "§2023:13.18.63.3 SR17's VALUE/VALUES equivalence is a format 2 rule that format 1 does not apply (ISO §2023:13.18.63.2 format 1)",
+                      "§2023:13.18.63.3 SR17's VALUE/VALUES equivalence is a format 2 rule that format 1 does not apply (ISO §2023:13.18.63.2 format 1)")));
     }
 
     /// <summary>The compile-time CHARACTER value of a VALUE-clause operand, or null when the operand is not a

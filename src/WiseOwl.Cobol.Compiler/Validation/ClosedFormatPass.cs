@@ -193,7 +193,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             $"{list.Subject}{OwnerSuffix(container)}: '{WrittenOpening(clause)}' is written after "
             + $"'{WrittenOpening(printedLater)}', but {list.Format}'s general format prints it before — no rule "
             + "of that format frees the order, so the elements shall be written in the sequence the format gives "
-            + "(§2023:5.2.1)");
+            + $"({_edition.Edition.Cite("§1985:IV.2.1", "§2023:5.2.1", "§2023:5.2.1")})");
     }
 
     private static string OwnerSuffix(ParserRuleContext container)

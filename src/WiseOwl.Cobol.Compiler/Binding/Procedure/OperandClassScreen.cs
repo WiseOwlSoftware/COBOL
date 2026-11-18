@@ -77,7 +77,8 @@ internal static class OperandPositions
     public static readonly OperandPosition SetIndexAssignmentReceiver = new(
         "SET TO (Format 1, index-assignment)", "identifier-1", "§2023:14.9.39.3 SR1",
         "a data item of class index or an integer data item",
-        OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SetIndexAssignmentOperand);
+        OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SetIndexAssignmentOperand,
+        Rule1985: "§1985:VI.6.23.3 SR2");
 
     /// <summary>ISO §2023:14.9.28.3 SR2 first sentence over the varied identifier of the VARYING / AFTER phrase — "Each
     /// identifier shall reference a numeric elementary item described in the data division" (found by the
