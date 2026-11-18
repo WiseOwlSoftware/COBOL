@@ -198,6 +198,11 @@ public sealed class EditionReadDriftTests
         // A closed format's refusal cites the general format of the compile edition: §1985:VI.5.3.2 for the data description
         // entry, §2023:13.16.2 later (kb/Work PB4950). Worded by the parser because only it holds the edition. It refuses nothing itself.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ResidueRefusal | EditionInForce"] = (1, Verdict.DiagnosisOnly),
+        // The error strategy's own sentences cite the rule of the edition in force (kb/Work PB4950): the MOVE CORRESPONDING position, the
+        // empty block, the conditional-phrase and sentence-kind messages, and the GO TO complement each word their citation through
+        // EditionInForce (§1985:VI.6.19.2 for MOVE, §2023:14.9.25.2 later, and the like). Wording only; each refuses nothing itself.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | EditionInForce"] = (6, Verdict.DiagnosisOnly),
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GoToComplementMessage | EditionInForce"] = (1, Verdict.DiagnosisOnly),
         // The COBOL0313 sentence about a word this implementation reserves for a nonstandard extension cites the rule that lets an
         // implementation do so in the edition in force (kb/Work PB4950): §1985:I.1.5.2.5.2 at COBOL-85, §2023:4.2.10 from 2002. It
         // chooses a citation and nothing else; the word is refused whatever it says.

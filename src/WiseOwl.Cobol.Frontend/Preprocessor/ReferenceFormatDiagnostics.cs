@@ -197,11 +197,15 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>§2023:6.3.5 2) — COBOL2688: a continuation line completes a multiple-character separator or invocation
-    /// operator (<c>==</c>, <c>::</c>) begun at the end of the latest logical line.</summary>
+    /// operator (<c>==</c>, <c>::</c>) begun at the end of the latest logical line. COBOL-85 states it of the one such
+    /// separator it has, the pseudo-text delimiter, in §1985:IV.7.2.2 (kb/Work PB4950).</summary>
     public void OnSplitSeparator(string file, int line, string token)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.MultipleCharacterTokenSplit.Code,
-            $"{token} is split across a continued line and its continuation line; all the characters of a "
-            + "multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))",
+            $"{token} is split across a continued line and its continuation line; "
+            + Edition.Cite(
+                "both characters composing the separator '==' must be on the same line (ISO §1985:IV.7.2.2)",
+                "all the characters of a multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))",
+                "all the characters of a multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))"),
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>§2023:6.2.3.2 SR6 / §2023:6.3.5 2) / §2023:6.4.2 — COBOL2684: the first nonblank character of a literal's

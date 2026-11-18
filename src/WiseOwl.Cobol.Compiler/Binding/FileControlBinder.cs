@@ -277,7 +277,9 @@ public sealed partial class FileControlBinder
                     $"file '{name}': ACCESS MODE IS {file.AccessMode.ToString().ToUpperInvariant()} may not be "
                     + $"specified for a sequential file — this entry's organization is "
                     + file.OrganizationFace
-                    + " (ISO " + Edition.Edition.Cite("§1985:VII.2.4.3 GR2", "§2023:12.4.5.5.2 SR2", "§2023:12.4.5.5.2 SR2") + ")");
+                    + " (ISO " + Edition.Edition.Cite(
+                        "§1985:VII.2.4.2, whose ACCESS MODE clause for a sequential file prints SEQUENTIAL alone",
+                        "§2023:12.4.5.5.2 SR2", "§2023:12.4.5.5.2 SR2") + ")");
             }
             // §2023:12.4.5.2 SR12 — "If the LINE SEQUENTIAL phrase of the ORGANIZATION clause is specified, the RESERVE
             // clause shall not be specified" (kb/Work PB781). A clause-pair exclusion decidable from the entry alone,

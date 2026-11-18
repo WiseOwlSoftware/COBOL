@@ -431,7 +431,9 @@ public sealed class FileControlKeyRuleSpecTests
             Assert.All(hits, hit =>
             {
                 Assert.Contains("file 'F' has no ASSIGN clause", hit, StringComparison.Ordinal);
-                Assert.Contains(edition < 2002 ? "ISO §1985:" : "ISO §2023:12.4.5.1", hit, StringComparison.Ordinal);
+                // At COBOL-85 the general format of the entry's module: §1985:VII.2.3.2, VIII.2.3.2, IX.2.3.2 or XI.2.3.2 (kb/Work PB4950).
+                if (edition < 2002) Assert.Matches(@"ISO §1985:(VII|VIII|IX|XI)\.2\.3\.2", hit);
+                else Assert.Contains("ISO §2023:12.4.5.1", hit, StringComparison.Ordinal);
             });
         }
     }

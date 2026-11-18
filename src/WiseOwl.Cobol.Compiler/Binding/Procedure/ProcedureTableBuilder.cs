@@ -1105,8 +1105,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             }
             if (file.IsSortMerge)
             {
-                ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE may not name the "
-                    + $"sort/merge file '{fname}' (ISO §2023:14.9.49.3 SR2)");
+                ReportUseNamesSortMergeFile(sectionName, fname);
                 continue;
             }
             // SR8: "The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within
@@ -1178,8 +1177,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 }
                 if (file.IsSortMerge)
                 {
-                    ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE may not name "
-                        + $"the sort/merge file '{fname}' (ISO §2023:14.9.49.3 SR2)");
+                    ReportUseNamesSortMergeFile(sectionName, fname);
                     continue;
                 }
                 AddPair(info.Name, file);
@@ -1220,4 +1218,14 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     // ends the section only at the next section header or END DECLARATIVES, §2023:14.6.3 rule 1 puts the implied
     // transfer back to the controlling USE at "the last statement" of "the last procedure in the range", and
     // §2023:14.9.14.4 GR7's NOTE names USE among the return mechanisms that sit AFTER the section's last paragraph.
+
+    /// <summary>⛔ THE ONE REFUSAL OF A USE STATEMENT THAT NAMES A SORT OR MERGE FILE (both USE formats that name files), citing the rule of
+    /// the edition in force (kb/Work PB4950): §2023:14.9.49.3 SR2 from 2002; COBOL-85's USE statements state no such syntax rule, and
+    /// its ground is the sort-merge concept, "The sort file itself is referred to and accessed only by the SORT statement"
+    /// (§1985:II.2.2.2.1.1; the merge file by the MERGE statement, §1985:II.2.2.2.1.2).</summary>
+    private void ReportUseNamesSortMergeFile(string sectionName, string fname) =>
+        ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE may not name the "
+            + $"sort/merge file '{fname}' (ISO " + ctx.Edition.Edition.Cite(
+                "§1985:II.2.2.2.1.1 and §1985:II.2.2.2.1.2: a sort or merge file is referred to and accessed only by the SORT or MERGE statement",
+                "§2023:14.9.49.3 SR2", "§2023:14.9.49.3 SR2") + ")");
 }

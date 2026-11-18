@@ -241,8 +241,11 @@ public sealed class SequentialFileIoSpecTests
     {
         var (stdout, warnings) = RunAt(SeqWriteInvalidKeyProgram, edition, permissive: true);
         Assert.Equal("W-NIK\nW=00", stdout);
+        // The rule of the edition in force (kb/Work PB4950): §2023:14.9.51.3 SR2, and at COBOL-85 the sequential WRITE general format,
+        // which prints no INVALID KEY phrase (§1985:VII.4.7.2).
+        string rule = edition == 85 ? "§1985:VII.4.7.2" : "14.9.51.3 SR2";
         Assert.Contains(warnings, x => x.Contains("COBOL1720") && x.Contains("INVALID KEY")
-            && x.Contains("WRITE") && x.Contains("14.9.51.3 SR2"));
+            && x.Contains("WRITE") && x.Contains(rule));
     }
 
     /// <summary>The REWRITE twin, one method away in the same binder (§2023:14.9.35.3 SR2 first arm). PB144 landed

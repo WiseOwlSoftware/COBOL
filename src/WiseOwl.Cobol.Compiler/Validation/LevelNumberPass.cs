@@ -208,9 +208,16 @@ internal static class LevelNumberRules
         bool isFiller = name is not null && name.FILLER() is not null;
         return level switch
         {
-            77 when name is null || isFiller =>
+            // COBOL-85 states the 77 obligation in the sections that hold the noncontiguous items, not in the data description
+            // entry's syntax rules: "The following data clauses are required in each data description entry: 1. level-number 77
+            // 2. data-name ..." (§1985:VI.5.2.1 for working storage, §1985:X.4.1.1 for the linkage section).
+            77 when name is null || isFiller => edition.Cite(
+                "a data-name is one of the data clauses required in each level-77 data description entry — a noncontiguous "
+                + "item cannot be FILLER, explicitly or by omission (ISO §1985:VI.5.2.1; §1985:X.4.1.1 in the Linkage Section)",
                 "the data-name format of the entry-name clause shall be specified if level-number is 77 — a "
                 + "noncontiguous item cannot be FILLER, explicitly or by omission (ISO §2023:13.16.3 SR2, SR4)",
+                "the data-name format of the entry-name clause shall be specified if level-number is 77 — a "
+                + "noncontiguous item cannot be FILLER, explicitly or by omission (ISO §2023:13.16.3 SR2, SR4)"),
             66 when name is null || isFiller =>
                 "the renames format of the data description entry is written `66 data-name-1 RENAMES …` and "
                 + "names data-name-1 unconditionally; it carries no entry-name clause, so the entry can be "

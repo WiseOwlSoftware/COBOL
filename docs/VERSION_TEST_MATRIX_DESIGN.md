@@ -309,12 +309,10 @@ the edition in force has no such rule, the message cites the edition where the r
 - **The net.** `EditionCitationNet` (Conformance) asks every diagnostic of every refusal the wiseowl manifest compiles at 85:
   one that cites a rule of 2002, 2014 or 2023 (in the edition form, or the prose "ISO/IEC 1989:2002") and no rule of the 1985
   standard or its 1989 amendment fails, unless it is
-  an edition gate, its code's descriptors record `No1985Rule`, or its code is on
-  `conformance-suite/wiseowl/edition-citation-pending-1985.json`. That file is a RATCHET owned by kb/Work PB4950: code → refusal
-  id → the exact number of offending lines. A count that grows fails (a new site, under a listed code too); one that shrinks
-  fails until it is lowered; one at 0 fails until its entry is removed; an entry whose refusal is not compiled at 85 fails
-  `EditionCitationNetDriftTests`. It was laid at 301 codes (1656 lines of the 2459 refusals at 85); 298 codes, 1482 entries and
-  1638 lines remain after the first fixes.
+  an edition gate (its words include "(targeting COBOL-85)", which a rule of a construct COBOL-2002 introduced that still fires
+  at 85 says too) or its code's descriptors record `No1985Rule`. It is a plain rule with no allowance list: it was laid as a
+  ratchet of 301 codes (1656 lines of the 2459 refusals at 85), and the PB4950 sweep emptied it, so the ratchet file and its
+  grow/shrink arithmetic do not exist. `EditionCitationNetDriftTests` plants an offending line and each of the three ways out.
 - **Where a family of sites shares one rule, the 1985 arm lives with the rule, not at the sites** (kb/Work PB4950 slice 1):
   `UniqueReferenceRule` (Compiler/Binding) writes the §1985:IV.4.3.8 / §2023:8.4.2.1 "a reference identifies one resource"
   citation and quotation once, through `Cite`, for every undefined-name, wrong-kind-of-name and unidentified-procedure message;
@@ -326,8 +324,9 @@ the edition in force has no such rule, the message cites the edition where the r
   file control entry of each organization prints the clauses it takes, so `FileControlKeyRules.Rules1985` carries rows whose id is
   `1985-FMT-<clause>-<key>` (a clause WRITTEN where the 1985 format of its organization does not print it; an ACCESS RANDOM or
   DYNAMIC relative file without the RELATIVE KEY its format prints), re-derived by `FileControlKeyRuleDriftTests` from the clause's
-  "General Format" subsection. The syntax-error strategy (`CobolErrorStrategy`) reads the edition only through
-  `CobolParserCoreBase.EditionCitation` (a diagnosis-only member recorded in `EditionReadDriftTests`). A clause COBOL-2002
+  "General Format" subsection. A 1985 row REPLACES the 2023 rows of the id it names in `Supersedes` that report under the same
+  diagnostic (`FileControlKeyRule.Replaces`): one 2023 id can hold two arms under two codes (SR11's sort-merge sentence, COBOL1900,
+  and its organization sentence, COBOL2912, whose 1985 row is the sequential entry's format, §1985:VII.2.3.2). A clause COBOL-2002
   introduced, written under `--std 85` past its edition gate, says "requires COBOL-2002 (targeting COBOL-85)" (the net's own
   edition-gate phrase) beside the 2023 rule (the report writer's PRESENT WHEN and VARYING). `SortKeyAdmission` and
   `CorrespondingOperandRule` take the edition: the sort-merge key rule is `§1985:XI.4.4.3 SR4` / `§1985:XI.4.1.3 SR4` with its own
@@ -343,17 +342,18 @@ the edition in force has no such rule, the message cites the edition where the r
 - **A shared screen takes its rule as data with the 1985 arm beside it** (kb/Work PB4950 slice 4): `EditionRule(In1985, InLater)` for the
   receiver-category screen of the arithmetic statements, `IndexNameRule` for every index-name-is-no-identifier message,
   `OpenTapePhraseRule.OrganizationClause1985`, `LevelNumberRules.Arm.Citation1985`, `ClauseList.Format1985` and `ClosedFormat.Clause1985`
-  for the general-format tables, and the parse layer reads the edition through `CobolParserCoreBase.EditionInForce` (`AdmittedKinds`,
-  `GoToFormats`, the empty-block message). The next row of such a table is cited by writing its 1985 field.
+  for the general-format tables. The next row of such a table is cited by writing its 1985 field.
+- **The parser's error strategy reads the edition through ONE member**, `CobolParserCoreBase.EditionInForce` (a diagnosis-only read
+  recorded in `EditionReadDriftTests`): the strategy's one `CiteAt`, `AdmittedKinds`, `GoToFormats`, the empty-block message, the
+  extension-reserved-word sentence (§1985:I.1.5.2.5.2) and a closed format's `Refusal(word, owner, edition)` all take it. No other parser member answers an edition question for a message.
 - **A rule that differs by I-O module is chosen by the file** (kb/Work PB4950 slice 6): COBOL-85 states a READ, REWRITE, DELETE,
   WRITE or SAME rule once per module (sequential VII, relative VIII, indexed IX, sort-merge XI), so `StatementValidation.IoRule`
-  picks the module's text by the file's organization and every later edition's single text by `Cite`. **The parser's error
-  strategy cites through one read**: `CobolParserCoreBase.DiagnosticCitation` is a diagnosis-only edition read (recorded in
-  `EditionReadDriftTests`, read by the strategy's one `CiteAt`); the parse-stage messages (statement shape, phrase association,
-  mnemonic-name suffix, SEARCH shape) and `MnemonicNameSlot.SuffixMessage` receive it as a delegate.
+  picks the module's text by the file's organization and every later edition's single text by `Cite`. The parse-stage messages
+  (statement shape, phrase association, mnemonic-name suffix, SEARCH shape) and `MnemonicNameSlot.SuffixMessage` receive the
+  strategy's `CiteAt` as a delegate.
 - **Slice 7 seams** (kb/Work PB4950): `ArithmeticOperandRule` writes the arithmetic-operand rule once (§1985:VI.6.2.1 / §2023:8.8.1.1) for
   the expression and subscript binders; a closed general format's row carries its 1985 locator (`ClosedFormat.Clause1985`) and renders
-  through `Refusal(word, owner, edition)`, the parser asking `CobolParserCoreBase.ClosedFormatRefusal`; `StartRule` and
+  through `Refusal(word, owner, edition)`; `StartRule` and
   `OpenTapePhraseRule.OrganizationClause1985` pick the 1985 module by the file's organization; `MarginRCut.AccountAt`, `SeparatorRule.
   ArithmeticOperatorViolations` and `ReceivingOperandForms.Rule.Message` take the edition.
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the

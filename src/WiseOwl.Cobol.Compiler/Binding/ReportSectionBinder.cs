@@ -1502,7 +1502,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         Violation("a control heading with the OR PAGE phrase shall have only relative LINE clauses — "
                             + (absolute ? $"LINE {op.integerOperand()!.GetText()}{(op.NEXT() is not null ? " ON NEXT PAGE" : "")} is absolute"
                                         : "the ON NEXT PAGE operand is not the relative form {PLUS|+} integer-2")
-                            + " (ISO §2023:13.18.35.3 SR9)");
+                            + " (ISO §2023:13.18.35.3 SR9" + NotInCobol85("the OR PAGE phrase") + ")");
                     // §1985:XIII.3.15.3 SR9 — "The first LINE NUMBER clause specified within a PAGE FOOTING report group must be
                     // an absolute LINE NUMBER clause." COBOL-2002 and later place a relative first line of a page footing from
                     // the FOOTING integer instead (§2023:13.18.35.4 GR5 b) 4.).

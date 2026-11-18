@@ -40,6 +40,9 @@ public sealed class ValueClauseScreenTests
     /// PB3600): at 2002 it is COBOL0900, so a rule about its content does not apply there.</summary>
     private static readonly int[] WithConstantRecord = [2014, 2023];
 
+    /// <summary>The sign rule's phrase, every edition's (§2023:13.18.63.3 SR3; at COBOL-85 §1985:VI.5.15.3 SR2, kb/Work PB4950).</summary>
+    private const string SignRule = "requires a signed numeric or sign-bearing numeric-edited subject";
+
     private static void Rejects(string source, string code, params int[] editions)
     {
         foreach (int ed in editions.Length == 0 ? EditionHarness.Editions : editions)
@@ -130,7 +133,7 @@ public sealed class ValueClauseScreenTests
     {
         Rejects(Prog("VCS586A", "01 W PIC 9(2).\n   88 C-BIG VALUE 12345."), "COBOL1625");
         Rejects(Prog("VCS586B", "01 W PIC 9(2).\n   88 C-R VALUE 1 THRU 12345."), "COBOL1625");
-        Rejects(Prog("VCS586C", "01 W PIC 9(2).\n   88 C-N VALUE -1."), "SR3");
+        Rejects(Prog("VCS586C", "01 W PIC 9(2).\n   88 C-N VALUE -1."), SignRule);
         Rejects(Prog("VCS586D", "01 W PIC 9(2)V9.\n   88 C-F VALUE 1.25."), "COBOL1625");
         Rejects(Prog("VCS586E", "01 W PIC 9(2).\n   88 C-T VALUE 1 WHEN SET TO FALSE 500."), "COBOL1625", Post85);
     }
@@ -170,7 +173,7 @@ public sealed class ValueClauseScreenTests
     public void ReportLiteral_OutsideThePrintableItemsRange_IsRejected()
     {
         Rejects(Report("VCSR1", "        03  COLUMN 1 PIC 9(2) VALUE 12345."), "COBOL1625");
-        Rejects(Report("VCSR2", "        03  COLUMN 1 PIC 9(2) VALUE -3."), "SR3");
+        Rejects(Report("VCSR2", "        03  COLUMN 1 PIC 9(2) VALUE -3."), SignRule);
         // SR2's class half: before the funnel this leaked Roslyn CS0103 against the generated C#.
         Rejects(Report("VCSR3", "        03  COLUMN 1 PIC 9(2) VALUE \"AB\"."), "COBOL1657");
     }
