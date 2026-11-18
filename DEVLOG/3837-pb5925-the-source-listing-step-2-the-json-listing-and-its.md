@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 2 - the JSON listing and its generated schema
+## Entry 3837 — 2026-11-18 03:16 PST — PB5925: the source listing, step 2 - the JSON listing and its generated schema
 
 Step 2 of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5925's decision): the listing model built in step 1 gains a
 versioned JSON form with a published schema, the stable programming interface no competitor's listing offers (IBM states
@@ -69,3 +69,4 @@ a request the listing then failed on; every property now validates in its `init`
 length and width rules unchecked by the record at all, now checked the same way. R1-4: DESIGN-listing.md section 4.6 still
 described `ListingWritten(Document, File, Error)`; it now states the per-format exit and its witness. The committed schema
 is unchanged byte for byte.
+
