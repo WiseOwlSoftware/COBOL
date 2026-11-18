@@ -109,7 +109,7 @@ TABLE = [
     {"key": "runtime-io", "area": "runtime/io", "name": "runtime I/O", "include": [R + "/IO/**", R + "/Communication/**", R + "/Messaging/**", R + "/Mcs/**"]},
     {"key": "runtime-control", "area": "runtime/control", "name": "runtime control and exceptions", "include": [R + "/{Control,Exceptions,Repository}/**"]},
     {"key": "editions-diagnostics", "area": "editions", "name": "editions and diagnostics",
-     "include": ["src/WiseOwl.Cobol.Editions/**", F + "/Diagnostics/**"]},
+     "include": ["src/WiseOwl.Cobol.Editions/**", F + "/Diagnostics/**", "src/WiseOwl.Cobol.Analyzers/**"]},
     {"key": "listing", "area": "listing", "name": "the source listing",
      "include": ["src/WiseOwl.Cobol.Listing/**", C + "/Listing/**"]},
     {"key": "cli", "area": "cli", "name": "CLI", "include": ["src/WiseOwl.Cobol.Cli/**"]},

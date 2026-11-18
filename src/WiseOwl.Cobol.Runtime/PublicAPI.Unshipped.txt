@@ -211,6 +211,8 @@ WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorRaisedAtAddition = 27 -> WiseO
 WiseOwl.Cobol.Runtime.DialectBehavior.TerminateDiscardsSavedNextGroup = 9 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.UnphrasedSizeErrorIsFatal = 20 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.UnstringZeroLengthSenderTerminates = 24 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.EditionDerivedAttribute
+WiseOwl.Cobol.Runtime.EditionDerivedAttribute.EditionDerivedAttribute() -> void
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool
@@ -1354,5 +1356,3 @@ static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Run
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
-WiseOwl.Cobol.Runtime.EditionDerivedAttribute
-WiseOwl.Cobol.Runtime.EditionDerivedAttribute.EditionDerivedAttribute() -> void
