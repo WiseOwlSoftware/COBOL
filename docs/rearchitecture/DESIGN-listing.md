@@ -1,9 +1,9 @@
 # DESIGN - the source listing
 
 > **Status: DESIGN, APPROVED BY THE CODEBASE OWNER (Claude, CLAUDE.md "Ownership"; decision kb/Work PB5925). STEP 1 BUILT
-> (the 1985 standard minimum, kb/Work PB5923, branch `listing-step-1`); steps 2 to 9 not yet built.** Where building step 1
-> proved this document wrong it was corrected in the same change; each correction is marked "(step 1)" in the section it
-> changed.
+> (the 1985 standard minimum, kb/Work PB5923, branch `listing-step-1`); STEP 2 BUILT (the JSON listing and its schema, branch
+> `listing-step-2`); steps 3 to 9 not yet built.** Where building a step proved this document wrong it was corrected in the
+> same change; each correction is marked "(step 1)" or "(step 2)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -275,7 +275,17 @@ Every other record (`ListingInclusion`, `ListingProgram`, `ListingDiagnostic`, `
 `ListingRequest` (also in this assembly) is the input: `Formats` (flags: Text, Html, Json), `OutputBase` (a path without
 extension, or null for the default), `Sections` (flags), `PageLength`, `PageWidth`. (Step 1 builds `OutputBase`,
 `PageLength` and `PageWidth`, with the one validation of each, `ListingRequest.PageLengthProblem` and `PageWidthProblem`,
-that the command line calls; `OutputBase` `-` writes no file. `Formats` arrives with JSON in step 2 and `Sections` in step 5.) `CompilerDriver.Options.Listing` is a
+that the command line calls; `OutputBase` `-` writes no file. `Formats` arrives with JSON in step 2 and `Sections` in step 5.)
+(Step 2:) `ListingFormats` has `Text` and `Json` only: a format joins the enum WITH its renderer, so `Html` is added by
+step 9, and no request can name a format the compiler cannot write. ONE table, `ListingOutput`, holds each format's
+command-line spelling, file extension and renderer (`Spelling`, `Extension`, `Render`, `TryParse`, `Each`); the listing's
+exit writes files through it and the command line prints `-` through it, and `ListingOutputTests` calls every switch for
+every member. `ListingRequest.FormatsProblem` is the one rule for formats (at least one; exactly one when `OutputBase` is
+`-`, since two would interleave in one stream), asked by the command line and by the request's own constructor, which
+refuses a request it would fail. `ListingRequest.TextExtension` is deleted: the extension is `ListingOutput.Extension`.
+The document's schema identity is two properties of `ListingDocument` itself, `Schema` (JSON `$schema`, the constant
+`ListingDocument.SchemaUrn`) and `SchemaVersion` (the constant `ListingDocument.CurrentSchemaVersion`), init properties
+beside the positional ones so a reader sees the version the file was WRITTEN at, not this compiler's. `CompilerDriver.Options.Listing` is a
 `ListingRequest?`; null means no listing and no listing work (section 9).
 
 ### 4.3 Who fills what, at which stage
@@ -943,10 +953,26 @@ lists from `ListingCrossReference`; the renderer joins nothing and computes noth
 ### 7.3 JSON (`JsonListingWriter`) and its schema
 
 - Serialized with a `System.Text.Json` source-generation context (`ListingJsonContext`): camelCase, enums as strings,
-  nulls omitted, no reflection at run time.
+  nulls omitted, no reflection at run time. (Step 2:) also `RespectNullableAnnotations` (a null where the model has none is
+  refused on reading), indented with LF line ends; enum values are the member names (`"PageEjectComment"`).
+  `JsonListingWriter.Write` writes the document; `JsonListingWriter.Read` is the policy's reader: it ignores a property it
+  does not know, and refuses a document whose `$schema` is not `ListingDocument.SchemaUrn` or whose `schemaVersion` is not of
+  major 1 (both are `[JsonRequired]`, so a document that names no schema is refused too).
 - The schema is GENERATED from the model types by `JsonSchemaExporter` (.NET 10) with the descriptions taken from the
   model's XML comments, and committed as `src/WiseOwl.Cobol.Listing/Json/listing-v1.schema.json`, an embedded resource.
   A preflight drift test regenerates it and fails on a difference: the schema cannot drift from the writer.
+  (Step 2:) `ListingJsonSchema.Generate(XDocument)` takes the XML documentation file the Listing project now builds
+  (`GenerateDocumentationFile`; with `TreatWarningsAsErrors` an undocumented public member, every enum member included, is
+  a build error there), and refuses a property, type or enum value the file does not describe. A positional record's
+  property is described by its `<param>` (the C# compiler writes no `P:` entry for it); an enum's description lists each
+  value's meaning after the type's own. The exporter lists every constructor parameter as `required`; the generator keeps
+  only the properties that are never null, because the writer leaves a null out. So a property ADDED in a later minor must
+  be nullable (absent from older documents), which keeps it out of `required` and keeps every older document valid.
+  `ListingJsonSchema.Committed()` returns the embedded file. The drift test is
+  `tests/WiseOwl.Cobol.Tests.Unit/Listing/ListingJsonSchemaDriftTests.cs` (`WISEOWL_COBOL_UPDATE_LISTING_SCHEMA=1` writes the
+  file). It is NOT yet declared a preflight class: `scripts/buildgraph.py`'s preflight rule admits only a class the merge
+  group has MEASURED in `tests/_shared/test-weights.json`, and a new class has no measurement, so it runs in the population
+  until the weights carry it; declaring it then is kb/Work PB5925's lead `2026-11-18-schema-drift-preflight`.
 - The document carries `"$schema": "urn:wiseowl:cobol:listing:v1"` and `"schemaVersion": "1.<minor>"`.
 - Diagnostics carry `citation` as a field: the edition and locator parsed from the message by the one C# reader of the
   citation format `§<edition>:<locator>[ <rule>]` (scripts/spec/citation.py's grammar, pinned by a shared vectors file),
@@ -964,12 +990,18 @@ the repository for reference. The schema file name carries the major (`listing-v
 |---|---|---|
 | `--listing [on\|off]` | Produce a listing (bare `--listing` is on) | on at `--std 85`, off at 2002, 2014, 2023 |
 | `--listing-format text\|html\|json` | A format to write; repeatable; implies `--listing on` | text |
-| `--listing-output BASE` | Where: `BASE.lst`, `BASE.lst.html`, `BASE.lst.json`; `-` writes the text listing to standard output | the output assembly's path without extension |
+| `--listing-output BASE` | Where: `BASE.lst`, `BASE.lst.html`, `BASE.lst.json`; `-` writes the one format requested to standard output | the output assembly's path without extension |
 | `--listing-sections LIST` | Comma list of `source, diagnostics, options, programs, statistics, data-map, xref, object-map, object-code`, or `standard` or `all` | `standard` = source, diagnostics, options, programs, statistics |
 | `--listing-page-length N` | Lines per page; 0 = unpaginated | 60 |
 | `--listing-page-width N` | Columns, 100 to 255 | 132 |
 
 Every value is validated in `Program.BuildParser` the way `--std` is (an argument error, never a COBOL diagnostic).
+(Step 2:) `--listing-format` takes one format per occurrence (`AllowMultipleArgumentsPerToken` off, so a following source
+path is never taken for a format) and accepts `text` and `json`; `html` is refused until step 9 builds its renderer. A
+validator on the root command applies `ListingRequest.FormatsProblem` to the two options together (`-` with two formats is
+an argument error). With `-`, `RunCompile` prints `ListingOutput.Render` of the one format before the diagnostics; the
+`>>DISPLAY` lines that go to standard output follow it there, so a JSON listing on standard output is followed by them
+(step 4a sends DISPLAY UPON LISTING into the listing itself).
 `Resolve` builds a `ListingRequest` on `CliOptions`; `RunCompile` passes it as `CompilerDriver.Options.Listing`. The
 library default is null (no listing), so every caller that builds `Options` itself (the test suites, `check-batch`, an
 expansion's own compilation in `ExpansionAssemblies`) does no listing work; the per-edition default is a CLI decision.
@@ -1010,6 +1042,8 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
   parent commit, and `Text`), step 2 (`Text` with JSON), step 6, step 7 and step 8 (`All`, each with the section it
   adds), step 9 (`All` with HTML). A row over its budget is a kb/Work defect filed before the step lands, never a
   number left in a README. Open question 1 is decided from steps 6 to 9's rows.
+  (Step 2:) the parameter gains `TextAndJson`; on a full compile it allocates 3.7-8.3 % over `None` and 0.1-3.2 % over
+  `Text` (the README's step-2 table); the host's noise (StdDev 25-40 %) decided no time row, as at step 1 (kb/Work PB5927).
 
 ## 10. Test plan
 
@@ -1052,6 +1086,17 @@ captured listing.
    range equal what the PDB's sequence points say, read independently in the test with `System.Reflection.Metadata`.
 5. **Schema.** The generated schema equals the committed file (a preflight class, since a red one means a stale derived
    file); every document the tests produce round-trips through `ListingJsonContext` with no unknown property.
+   (Step 2:) `ListingJsonSchemaDriftTests` (Unit: the schema equals the committed file and the embedded resource, every
+   property at every depth is described, an undocumented member is refused); `JsonListingWriterTests` (Unit: names, enums,
+   left-out nulls, the reader's policy) over a hand-built document holding every member; `ListingJsonTests` (Conformance:
+   text and JSON written together, the JSON equal to the document built, each line's text and each file's digest from the
+   input files, the DATE-COMPILED replacement at the header's instant, a failed compilation's JSON, a refused JSON file).
+   The compile helpers of `Listing1985Tests`, `ListingOutcomeTests` and `ListingJsonTests` hold EVERY document they produce
+   to `ListingJsonContract.AssertHolds`: valid against the committed schema and a strict round trip
+   (`JsonUnmappedMemberHandling.Disallow`). Validity is checked by `tests/_shared/JsonSchemaSubset.cs`, a validator of the
+   keywords the exporter writes (`type`, `properties`, `required`, `items`, `enum`, `format`, the annotations) that treats
+   any other keyword as an error, so a schema it does not fully understand cannot pass a document by default; the
+   repository takes no JSON Schema package for it.
 6. **Drift tests that keep the shape.** `WiseOwl.Cobol.Listing` references no solution project (architecture edges);
    every section has a method in `IListingSectionVisitor<T>` (compile-time); the options section names every public
    property of `CompilerDriver.Options`; the no-listing path does no work (section 9); the manual's command-line page
@@ -1117,9 +1162,11 @@ the 1985 minimum, so PB5923 closes first.
   the effect of logical conversion), DESIGN.md section 0.5's row moves to "step 1 built". The 1985 records (the GAP and
   PARTIAL re-adjudications PB5923 names, PB5924's rows) take the step's tests as witnesses.
 
-**Step 2 - JSON and its schema.** `src/WiseOwl.Cobol.Listing/Json/JsonListingWriter.cs`, `ListingJsonContext.cs`,
-`listing-v1.schema.json` (generated), the schema drift test (preflight), `--listing-format`; the `Text` benchmark row
-re-measured with JSON.
+**Step 2 - JSON and its schema. BUILT (branch `listing-step-2`; the corrections above marked "step 2").**
+`src/WiseOwl.Cobol.Listing/Json/JsonListingWriter.cs`, `ListingJsonContext.cs`, `ListingJsonSchema.cs`,
+`listing-v1.schema.json` (generated), `src/WiseOwl.Cobol.Listing/ListingOutput.cs` (the one table of formats), the schema
+drift test (a population class until the merge group measures it, then preflight: section 7.3), `--listing-format`; the
+`Text` benchmark row re-measured with JSON (`CompileBenchmarks.ListingMode.TextAndJson`, section 9).
 
 **Step 3 - diagnostics.** Structured bind diagnostics: `EditionContext.Error`, `EditionContext.Warning`, `EditionContext.Render`,
 `EditionContext.Diagnostics`, `EditionContext.Warnings` become records plus rendered views; `CompilerDriver.Result` carries

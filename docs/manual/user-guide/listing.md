@@ -1,12 +1,13 @@
 ---
 title: The source listing
-description: When the compiler writes a source listing, what it holds, how it is paginated, and the options that control it.
+description: When the compiler writes a source listing, what it holds, how it is paginated, its JSON form and schema, and the options that control it.
 sidebar:
   order: 10
 ---
 
 The compiler writes a **source listing**: every physical line of the source file and of each COPY library text, in the
-order the compiler read them, paginated for reading or printing.
+order the compiler read them, paginated for reading or printing, and on request the same listing as a JSON document for
+programs to read.
 
 - At `--std 85` the listing is written by default. COBOL-85 requires each compiler to produce "an output listing of the
   source program in reference format" (ANSI X3.23-1985 section IV.7.1). `--listing off` turns it off.
@@ -22,7 +23,8 @@ compile is often the one most worth reading. A source file that does not exist h
 | Option | Effect |
 |---|---|
 | `--listing [on\|off]` | write a listing (a bare `--listing` is `on`); default `on` at `--std 85`, `off` at the later editions |
-| `--listing-output <BASE>` | write the listing to `BASE.lst`; `-` writes it to standard output instead of a file. Default: the output assembly's path without its extension |
+| `--listing-output <BASE>` | write the listing to `BASE.lst` (and `BASE.lst.json`); `-` writes it to standard output instead of a file, in the one format requested. Default: the output assembly's path without its extension |
+| `--listing-format text\|json` | a format to write: `text` is the paginated listing `BASE.lst`, `json` the JSON listing `BASE.lst.json` (below). Repeat it for both (`--listing-format text --listing-format json`); default `text`. With `--listing-output -` exactly one format may be named |
 | `--listing-page-length <N>` | lines per page, the four heading lines included (default 60); `0` paginates only where a page must start (below). At least 5 otherwise |
 | `--listing-page-width <N>` | columns per page, 100 to 255 (default 132) |
 
@@ -82,9 +84,48 @@ if provided in the listing of the source program", the WHEN-COMPILED function, r
 At `--std 2002` and later the DATE-COMPILED paragraph is a removed construct (COBOL0902); under `--permissive` it is
 accepted with a warning and replaced in the listing as at `--std 85`.
 
+## The JSON listing
+
+`--listing-format json` writes the listing as one JSON document, `BASE.lst.json`: the stable form for a program to read,
+where the text listing is for people. It holds everything the text listing is made from, and more: every file read with
+its SHA-256 digest, every COPY statement with its outcome and nesting, every line with its kind (source, comment,
+directive, ...), whether it was listed and whether a page starts before it, the text as written and, for the
+DATE-COMPILED paragraph, what the compiler compiled in its place, and every program with its listing lines. The text and
+the JSON listing of one compilation are renderings of one document, so they always agree.
+
+The document opens with the schema it follows:
+
+```json
+{
+  "$schema": "urn:wiseowl:cobol:listing:v1",
+  "schemaVersion": "1.0",
+  "header": { "compilerVersion": "30.0.0", "edition": 85, "editionName": "ANSI X3.23-1985", ... },
+  "files": [ { "id": 1, "path": "prog.cob", "role": "Source", "sha256": "..." } ],
+  "lines": [ { "number": 1, "file": 1, "fileLine": 1, "depth": 0, "form": "Fixed", "kind": "Source", "text": "...", ... } ],
+  ...
+}
+```
+
+Property names are camelCase, enumerated values are their names (`"Source"`, `"PageEjectComment"`), and a property with
+no value is left out rather than written as `null`. The schema is JSON Schema (draft 2020-12), `listing-v1.schema.json`:
+it is embedded in the compiler's `WiseOwl.Cobol.Listing` assembly (`ListingJsonSchema.Committed()` returns it) and kept in
+the source repository at `src/WiseOwl.Cobol.Listing/Json/listing-v1.schema.json`; every property in it carries a
+description of its meaning. A
+.NET program can read a JSON listing into the same types the compiler builds by referencing `WiseOwl.Cobol.Listing` and
+calling `JsonListingWriter.Read`.
+
+**Versions.** `schemaVersion` is `major.minor`. The minor grows when a property or an enumerated value is added; the major
+changes only when one is removed, renamed or changes meaning, and the `$schema` identifier and the schema's file name
+carry the major (`v1`). Within a major every addition is optional, so a reader of version 1 must ignore a property it does
+not know, and a reader written for 1.0 reads every 1.x document. A new major is announced in the release notes of the
+release that ships it.
+
+With `--listing-output -` the one format requested goes to standard output, before the diagnostics (which go to standard
+error). The lines of a `>>DISPLAY` directive that go to standard output follow the listing there.
+
 ## Later additions
 
-The listing grows section by section: a machine-readable JSON form, diagnostics placed on their lines, the options
+The listing grows section by section: diagnostics placed on their lines, the options
 section, the program map, the data map, the cross-reference, the statistics and verb counts, the map from each COBOL
 statement to its object code, and a hyperlinked HTML form. The `>>LISTING` and `>>PAGE` directives of 2002 and later
 are accepted today and do not yet change the listing.
