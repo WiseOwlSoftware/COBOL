@@ -194,9 +194,16 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     private static readonly CobolClass[] DisplayExcludedClasses =
         [CobolClass.Pointer, CobolClass.MessageTag, CobolClass.Object, CobolClass.Index];
 
-    private const string DisplayClassCite =
+    private const string DisplayClassCite2002 =
         "ISO §2023:14.9.11.3 SR1 (class message-tag/object/pointer); §2023:13.18.60.3 SR10 (an index data item may be referenced "
         + "only in SEARCH/SET, a relation condition, an intrinsic/method argument, or a USING phrase)";
+
+    /// <summary>The rule DISPLAY's operand-class screen cites: COBOL-85's index data item rule is the USAGE clause's, which has
+    /// no class message-tag, object or pointer to name.</summary>
+    private string DisplayClassCite() => ctx.Edition.Edition.Cite(
+        "ISO §1985:VI.5.14.3 SR5 (an index data item can be referenced explicitly only in a SEARCH or SET statement, a relation "
+        + "condition, the USING phrase of a Procedure Division header, or the USING phrase of a CALL statement)",
+        DisplayClassCite2002, DisplayClassCite2002);
 
     /// <summary>Is this ACCEPT / DISPLAY the SCREEN format (ISO §2023:14.9.1.2 format 3 / §2023:14.9.11.2 format 2 —
     /// Annex A.4.2 items 1 and 9)? Returns the REASON it was recognized, or null for the device/temporal formats.
@@ -298,7 +305,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             }
             // The operand-class gate (kb/Work PB148) — every operand shape, literals and intrinsic results
             // included (FUNCTION MAX(IX1 IX2) is class index per §2023:15.2 item 6).
-            if (host.Expr.ScreenOperandClass(op, DisplayExcludedClasses, text, "DISPLAY", DisplayClassCite))
+            if (host.Expr.ScreenOperandClass(op, DisplayExcludedClasses, text, "DISPLAY", DisplayClassCite()))
             {
                 ops.Add(BoundOperandError.Refused(ctx.Edition, $"DISPLAY operand '{text}' of an excluded class"));
                 continue;

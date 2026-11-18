@@ -485,7 +485,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (ctx.Enclosing.Declarative?.ReportGroup is not { } group)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReportSuppressContext,
-                "SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO §2023:14.9.45.3 SR1)");
+                $"SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.6.3 SR1", "§2023:14.9.45.3 SR1", "§2023:14.9.45.3 SR1")})");
         }
         var report = ctx.Data.State.Reports.Visible.First(r => r.Groups.Contains(group));
         return new BoundSuppress(report, group);

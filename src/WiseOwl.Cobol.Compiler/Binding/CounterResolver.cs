@@ -257,8 +257,10 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             if (data.State.Reports.Named(q.GetText()) is { } named) return named;
             data.Edition.Error(DiagnosticCatalog.ReportCounterQualification, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + $"description entry — a counter of a DIFFERENT report is referenced \"qualified explicitly by the report-name "
-                + $"associated with the different report\" (ISO {CounterQualificationRule(reg)}; the qualification requirements "
-                + "for the counters are those of §2023:8.4.2.2, §2023:8.4.3.15.3 SR2)");
+                + $"associated with the different report\" (ISO {CounterQualificationRule(reg)}"
+                + data.Edition.Edition.Cite("", "; the qualification requirements for the counters are those of §2023:8.4.2.2, §2023:8.4.3.15.3 SR2",
+                    "; the qualification requirements for the counters are those of §2023:8.4.2.2, §2023:8.4.3.15.3 SR2")
+                + ")");
             return null;
         }
         // §2023:8.4.2.2.3 SR9/SR10 — "In the report section, an unqualified reference to the [LINE-COUNTER | PAGE-COUNTER] is
@@ -279,7 +281,8 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     }
 
     /// <summary>The syntax rule that qualifies the register <paramref name="reg"/> — one rule per counter, written as
-    /// the standard writes it (§2023:8.4.2.2.3 SR9 for LINE-COUNTER, SR10 for PAGE-COUNTER).</summary>
-    private static string CounterQualificationRule(string reg) =>
-        reg == "PAGE-COUNTER" ? "§2023:8.4.2.2.3 SR10" : "§2023:8.4.2.2.3 SR9";
+    /// the standard writes it (§2023:8.4.2.2.3 SR9 for LINE-COUNTER, SR10 for PAGE-COUNTER; §1985:IV.4.3.8.1 SRL2.9 and SRL2.10).</summary>
+    private string CounterQualificationRule(string reg) => reg == "PAGE-COUNTER"
+        ? data.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.10", "§2023:8.4.2.2.3 SR10", "§2023:8.4.2.2.3 SR10")
+        : data.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.9", "§2023:8.4.2.2.3 SR9", "§2023:8.4.2.2.3 SR9");
 }

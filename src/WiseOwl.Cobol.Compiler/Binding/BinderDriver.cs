@@ -444,10 +444,10 @@ internal sealed class BinderDriver
         using var attributePosition = edition.At(pid);   // the PROGRAM-ID paragraph, for the repeat / 0886 / 0887 messages
         var initialAttr = ChoiceIndicators.AtMostOnce(edition,
             attributes.Where(a => a.commonProgramAttribute().INITIAL_() is not null).ToArray(),
-            group, "the INITIAL attribute", "11.10.2");
+            group, "the INITIAL attribute", "11.10.2", clause1985: "X.3.1.2");
         var commonAttr = ChoiceIndicators.AtMostOnce(edition,
             attributes.Where(a => a.commonProgramAttribute().COMMON() is not null).ToArray(),
-            group, "the COMMON attribute", "11.10.2");
+            group, "the COMMON attribute", "11.10.2", clause1985: "X.3.1.2");
         var recursiveAttr = ChoiceIndicators.AtMostOnce(edition,
             attributes.Where(a => a.commonProgramAttribute().RECURSIVE() is not null).ToArray(),
             group, "the RECURSIVE attribute", "11.10.2");

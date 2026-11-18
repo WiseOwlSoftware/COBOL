@@ -3380,7 +3380,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.AllSubscriptNotRepeatable,
                 $"FUNCTION {sig.Name} argument '{name}(… ALL …)': the ALL subscript is permitted only when the "
-                + "function's definition permits an argument to be repeated a variable number of times (ISO §2023:15.3), and "
+                + "function's definition permits an argument to be repeated a variable number of times (ISO "
+                + ctx.Edition.Edition.Cite("§1989:A.2.2", "§2023:15.3", "§2023:15.3") + "), and "
                 + $"FUNCTION {sig.Name}'s general format repeats none — write the occurrence you mean, or use a function "
                 + "whose format is `{ argument } …` (MAX, MIN, SUM, MEAN, …).");
             args.Add(BoundOperandError.Refused(ctx.Edition, $"FUNCTION {sig.Name} table(ALL) argument"));

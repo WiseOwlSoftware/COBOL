@@ -123,7 +123,7 @@ public sealed partial class SpecialNamesBinder
             if (distinct > inSet.OrdinalCount)
                 Edition.Error(DiagnosticCatalog.ClassClauseViolation, $"{rules.What} IN {cd.cobolWord(1).GetText()}: "
                     + $"{distinct} characters are specified — more than the {inSet.OrdinalCount} characters of the "
-                    + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO §2023:12.3.7.3 {rules.Rule('5')})");
+                    + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO {rules.Cite(Edition.Edition, '5')})");
         }
         Cfg.UserClasses.TryAdd(name, new UserClassDef(set, national));
     }

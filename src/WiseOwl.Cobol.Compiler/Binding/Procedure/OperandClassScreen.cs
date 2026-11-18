@@ -85,13 +85,13 @@ internal static class OperandPositions
     public static readonly OperandPosition PerformVaryingIdentifier = new(
         "PERFORM VARYING / AFTER", "the varied identifier", "§2023:14.9.28.3 SR2",
         "a numeric elementary item described in the data division",
-        OperandClasses.NumericElementaryItem, DiagnosticCatalog.PerformVaryingOperandRule);
+        OperandClasses.NumericElementaryItem, DiagnosticCatalog.PerformVaryingOperandRule, Rule1985: "§1985:VI.6.21.3 SR4");
 
     /// <summary>ISO §2023:14.9.28.3 SR5 a) — the varied identifier when an index-name is in the FROM phrase.</summary>
     public static readonly OperandPosition PerformVaryingIdentifierFromIndex = new(
         "PERFORM VARYING / AFTER with an index-name FROM", "the varied identifier", "§2023:14.9.28.3 SR5 a)",
         "an integer data item",
-        OperandClasses.IntegerItem, DiagnosticCatalog.PerformVaryingOperandRule);
+        OperandClasses.IntegerItem, DiagnosticCatalog.PerformVaryingOperandRule, Rule1985: "§1985:VI.6.21.3 SR7a");
 
     /// <summary>ISO §2023:14.9.51.3 SR14 — WRITE … ADVANCING identifier-2 (kb/Work PB1023). The brace's OTHER
     /// alternative, integer-1 (SR15 — "positive or zero"), is a literal and is screened beside this row by

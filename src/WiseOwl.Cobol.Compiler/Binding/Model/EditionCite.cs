@@ -25,4 +25,11 @@ public sealed record EditionCite(string Iso2023, string? Sequential1985 = null, 
             FileOrganization.Indexed => Indexed1985 ?? sequential,
             _ => sequential,
         };
+
+    /// <summary>The citation for a rule asked of procedure-names that no one file organization owns (a USE procedure of any file
+    /// statement): the 2023 number, or at COBOL-85 each module's own clause that states it, joined, the rule being restated once
+    /// per organization (the sequential clause alone where the others print none).</summary>
+    public string AtEveryOrganization(int dialectLevel) =>
+        dialectLevel >= 2002 || Sequential1985 is not { } sequential ? Iso2023
+        : string.Join("; ", new[] { sequential, Relative1985 ?? sequential, Indexed1985 ?? sequential }.Distinct());
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;
@@ -85,13 +86,13 @@ public sealed class UnterminatedLiteralTokenTests
     {
         var reported = new List<(IToken Token, string Code, string Message)>();
         bool clean = LiteralScreen.ReportUnterminated(Tokens("DISPLAY \"OK\" 'IT''S\nDISPLAY N\"AB.\nDISPLAY \"DONE\"."),
-            (t, d, m) => reported.Add((t, d.Code, m)));
+            EditionInfo.Latest, (t, d, m) => reported.Add((t, d.Code, m)));
         Assert.False(clean);
         Assert.Equal([(1, 13), (2, 8)], reported.Select(r => (r.Token.Line, r.Token.Column)));
         Assert.All(reported, r => Assert.Equal("COBOL5563", r.Code));
         Assert.Contains("closing apostrophe (')", reported[0].Message);
         Assert.Contains("closing quotation mark (\")", reported[1].Message);
-        Assert.True(LiteralScreen.ReportUnterminated(Tokens("DISPLAY \"OK\"."), (_, _, _) => Assert.Fail("reported")));
+        Assert.True(LiteralScreen.ReportUnterminated(Tokens("DISPLAY \"OK\"."), EditionInfo.Latest, (_, _, _) => Assert.Fail("reported")));
     }
 
     /// <summary>A fixed-form debugging line is a COMMENT unless its unit declares WITH DEBUGGING MODE (kb/Work PB1705):
@@ -106,7 +107,7 @@ public sealed class UnterminatedLiteralTokenTests
         var stream = new CommonTokenStream(new CobolLexer(new AntlrInputStream(text)));
         DebuggingLineRewriter.Rewrite(stream);
         int count = 0;
-        LiteralScreen.ReportUnterminated(stream.GetTokens(), (_, _, _) => count++);
+        LiteralScreen.ReportUnterminated(stream.GetTokens(), EditionInfo.Latest, (_, _, _) => count++);
         Assert.Equal(expected, count);
     }
 }

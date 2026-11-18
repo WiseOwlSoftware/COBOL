@@ -141,7 +141,8 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             if (_debuggingLinesBetweenLiteralParts.TryGetValue(origin, out int indicatorColumn))
                 diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.DebuggingLineBetweenLiteralParts.Code,
                     "a debugging line (indicator D or >>D) is source under WITH DEBUGGING MODE, and a source line shall not stand "
-                    + "between the parts of a continued literal: only comment lines and blank lines may (ISO §2023:6.3.5 2))",
+                    + "between the parts of a continued literal: only comment lines and blank lines may (ISO "
+                    + Edition.Cite("§1985:IV.7.2.2", "§2023:6.3.5 2)", "§2023:6.3.5 2)") + ")",
                     At(origin.File, origin.Line, indicatorColumn), default);
     }
 

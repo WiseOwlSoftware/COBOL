@@ -125,6 +125,18 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
 {
     private EditionContext Edition => host.Edition;
 
+    /// <summary>The general format of the CD entry as the edition in force cites it: A.1.2.1 of ISO/IEC 1989:2002 (the later editions
+    /// moved the communication facility to an annex of obsolete elements and keep that text), §1985:XIV.2.2.2 at COBOL-85.</summary>
+    private string FormatCitation() => Edition.Edition.Cite("ISO §1985:XIV.2.2.2", "ISO/IEC 1989:2002 A.1.2.1", "ISO/IEC 1989:2002 A.1.2.1");
+
+    /// <summary>The syntax rules of the CD entry, as a prefix to a rule number ("SR2"): A.1.2.2 of ISO/IEC 1989:2002, §1985:XIV.2.2.3.</summary>
+    private string SeriesRuleCitation() => Edition.Edition.Cite("ISO §1985:XIV.2.2.3", "ISO/IEC 1989:2002 A.1.2.2", "ISO/IEC 1989:2002 A.1.2.2");
+
+    private static string NoClauseRule2002(CommunicationFormat format) => "ISO/IEC 1989:2002 A.1.2.2 "
+        + (format is CommunicationFormat.Output
+            ? "SR8: \"If none of the optional clauses of the CD entry is specified, a level 01 data description entry shall follow the CD entry.\""
+            : "SR4: \"If neither option for specifying the interface area is used, a level 01 data description entry shall follow the CD entry.\"");
+
     /// <summary>Bind the section's entries, in source order, and then the rule over all of them, SR2's INITIAL clause.</summary>
     internal void BindSection(Core.ProgramUnitContext program, CsNameScope rootNames)
     {
@@ -156,10 +168,12 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         // output twin SR8 ("If none of the optional clauses of the CD entry is specified"). Nothing else would give the program a name for the area.
         if (!anyClause && written.Count == 0)
             Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{name}' specifies none of its clauses and no level 01 data description entry "
-                + "follows it; ISO/IEC 1989:2002 A.1.2.2 "
-                + (format is CommunicationFormat.Output
-                    ? "SR8: \"If none of the optional clauses of the CD entry is specified, a level 01 data description entry shall follow the CD entry.\""
-                    : "SR4: \"If neither option for specifying the interface area is used, a level 01 data description entry shall follow the CD entry.\""));
+                + "follows it; "
+                + Edition.Edition.Cite(
+                    format is CommunicationFormat.Output
+                        ? "ISO §1985:XIV.2.2.3 SR8: \"If none of the optional clauses of the CD entry is specified, a level 01 data description entry must follow the CD entry.\""
+                        : "ISO §1985:XIV.2.2.3 SR4: \"If neither option for specifying the interface area is used, a level 01 data description entry must follow the CD entry.\"",
+                    NoClauseRule2002(format), NoClauseRule2002(format)));
         var area = BuildArea(name, format, names, destinationTable, indexNames, rootNames);
         host.State.Forest.AddWorkingStorageRoots([area]);
         // The records and the interface area share one area (§2002:A.1.2.2 SR9). A record with no character window, a pointer-class item or a
@@ -191,19 +205,19 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
             if (!inFormat)
             {
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}': the {CommunicationFormats.ClauseWords(field)} clause is not a clause of "
-                    + $"{CommunicationFormats.FormatWords(format)}; ISO/IEC 1989:2002 A.1.2.1 prints it in another format.");
+                    + $"{CommunicationFormats.FormatWords(format)}; {FormatCitation()} prints it in another format.");
                 continue;
             }
             if (!seen.Add(field))
             {
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}': the {CommunicationFormats.ClauseWords(field)} clause is written twice; "
-                    + "ISO/IEC 1989:2002 A.1.2.1 prints each clause in brackets, once.");
+                    + $"{FormatCitation()} prints each clause in brackets, once.");
                 continue;
             }
             if (field is { } named)
             {
                 if (clause.dataName().FILLER() is not null)
-                    Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}': the {CommunicationFormats.ClauseWords(field)} clause names FILLER; ISO/IEC 1989:2002 A.1.2.2 "
+                    Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}': the {CommunicationFormats.ClauseWords(field)} clause names FILLER; {SeriesRuleCitation()} "
                         + "SR6 and SR15 let a data-name be replaced by the reserved word FILLER \"within this series\", the option of the series of data-names, and a clause prints a data-name.");
                 else
                     Record(named, clause.dataName().GetText());
@@ -224,10 +238,14 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         {
             if (format is CommunicationFormat.Output)
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}': a series of data-names is not a part of {CommunicationFormats.FormatWords(format)}; "
-                    + "ISO/IEC 1989:2002 A.1.2.1 prints that option in Formats 1 and 3.");
+                    + $"{FormatCitation()} prints that option in Formats 1 and 3.");
             else if (series.Length != header.Count)
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}': the series names {series.Length} data-names and "
-                    + $"{CommunicationFormats.FormatWords(format)} prints {header.Count}; ISO/IEC 1989:2002 A.1.2.3: the series, \"taken in order\", corresponds to the clauses.");
+                    + $"{CommunicationFormats.FormatWords(format)} prints {header.Count}; "
+                    + Edition.Edition.Cite(
+                        $"ISO §1985:XIV.2.2.4 {(format is CommunicationFormat.Input ? "GR2k" : "GR24")}: the series, \"taken in order\", corresponds to the clauses.",
+                        "ISO/IEC 1989:2002 A.1.2.3: the series, \"taken in order\", corresponds to the clauses.",
+                        "ISO/IEC 1989:2002 A.1.2.3: the series, \"taken in order\", corresponds to the clauses."));
             else
                 for (int i = 0; i < series.Length; i++)
                     if (series[i].dataName().FILLER() is null)
@@ -332,11 +350,14 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         foreach (var second in initial.Skip(1))
             using (Edition.At(second))
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{second.cdName().GetText()}' specifies the INITIAL clause, and so does "
-                    + $"'{initial[0].cdName().GetText()}'; ISO/IEC 1989:2002 A.1.2.2 SR2: \"Within a single program, the INITIAL clause may be specified in only one CD entry.\"");
+                    + $"'{initial[0].cdName().GetText()}'; {SeriesRuleCitation()} SR2: \"Within a single program, the INITIAL clause may be specified in only one CD entry.\"");
         if (initial.Count > 0 && program.procedureDivision()?.usingClause() is { } usingPhrase)
             using (Edition.At(usingPhrase))
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"the procedure division header specifies the USING phrase and CD '{initial[0].cdName().GetText()}' the INITIAL "
-                    + "clause; ISO/IEC 1989:2002 A.1.2.2 SR2: \"The INITIAL clause shall not be used in a program that specifies the USING phrase of the procedure division header.\"");
+                    + $"clause; {SeriesRuleCitation()} SR2: \"" + Edition.Edition.Cite(
+                        "The INITIAL clause must not be used in a program that specifies the USING phrase of the Procedure Division header.",
+                        "The INITIAL clause shall not be used in a program that specifies the USING phrase of the procedure division header.",
+                        "The INITIAL clause shall not be used in a program that specifies the USING phrase of the procedure division header.") + "\"");
     }
 
     /// <summary>The rules that need the entries' sizes and VALUE clauses, asked once the forest is complete: A.1.2.2 SR5 and SR14, a record of an input or input-output

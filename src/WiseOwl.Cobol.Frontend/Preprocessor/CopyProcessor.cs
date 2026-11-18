@@ -151,8 +151,7 @@ public sealed class CopyProcessor(
             int replaceIdx = FindStatementKeyword(text, pos, "REPLACE", edition, glued => diagnostics?.ReportError(
                 Editions.Diagnostics.DiagnosticCatalog.TextManipulationStatementSyntax.Code,
                 "REPLACE is glued to the character-string before it (no space follows the period, comma or semicolon), "
-                + "so it forms no REPLACE statement — §2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space "
-                + "except when it is the first statement in a compilation group\"", mapped.LocateAt(glued), default));
+                + "so it forms no REPLACE statement — " + ReplacePrecedingRule(edition), mapped.LocateAt(glued), default));
             if (replaceIdx < 0)
             {
                 ApplyActive(pos, text.Length);
@@ -163,14 +162,13 @@ public sealed class CopyProcessor(
 
             // The statement is parsed over text-words (§2023:7.2.4.2 general format) through its separator period — a
             // period INSIDE pseudo-text is a text-word of the operand, never the statement's end (kb/Work PB1354).
-            var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE", "§2023:7.2.4.2",
-                formats, edition);
+            var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE",
+                edition.Cite("§1985:XII.3.2", "§2023:7.2.4.2", "§2023:7.2.4.2"), formats, edition);
             // §2023:7.2.4.3 SR2: "A REPLACE statement shall be preceded by a space except when it is the first statement in
             // a compilation group" — REPLACE directly after a parenthesis, a colon, a literal or a pseudo-text delimiter.
             if (replaceIdx > 0 && !CobolSpace.IsSeparator(text[replaceIdx - 1]))
                 statement.Error(replaceIdx, $"REPLACE is not preceded by a space (it follows '{text[replaceIdx - 1]}') — "
-                    + "§2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space except when it is the first "
-                    + "statement in a compilation group\"");
+                    + ReplacePrecedingRule(edition));
 
             // §1985:XII.3.3 SR1: "It must be preceded by a separator period except when it is the first statement in a
             // separately compiled program" — the rule §2002:7.1.3.2 SR1 relaxed (the constructs row replace-anywhere-2002).
@@ -386,15 +384,35 @@ public sealed class CopyProcessor(
     /// GR9 for REPLACE, which differ only in that a COPY replacing action MAY produce a REPLACE statement (REPLACE
     /// statements "shall be syntactically correct after the action of the replacing phrase of the COPY statement",
     /// §2023:7.2.1). Which lines of the produced text are debugging lines is the same for both (<see cref="IntroducedText"/>).</summary>
-    private sealed record ResultRule(string Statement, bool ForbidsReplaceStatement, string Rule, string Quoted);
+    private sealed record ResultRule(string Statement, bool ForbidsReplaceStatement, string Rule, string Quoted,
+        string Rule1985, string Quoted1985)
+    {
+        /// <summary>The rule and its words in the edition in force: COBOL-85 states what the processed text may not contain in
+        /// XII.2.4 GR12 (COPY) and XII.3.4 GR5 (REPLACE), which name the statements and no directive, comment or blank line.</summary>
+        public (string Rule, string Quoted) In(EditionInfo edition) =>
+            (edition.Cite(Rule1985, Rule, Rule), edition.Cite(Quoted1985, Quoted, Quoted));
+    }
 
     private static readonly ResultRule CopyResultRule = new("COPY", false, "§2023:7.2.3.4 GR13",
         "The replacing action of a COPY statement shall not introduce a COPY statement, a SOURCE FORMAT directive, a "
-        + "comment, or a blank line.");
+        + "comment, or a blank line.", "§1985:XII.2.4 GR12",
+        "The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.");
 
     private static readonly ResultRule ReplaceResultRule = new("REPLACE", true, "§2023:7.2.4.4 GR9",
         "The text produced as a result of processing a REPLACE statement shall not contain a COPY statement, a REPLACE "
-        + "statement, a SOURCE FORMAT directive, a comment, or a blank line.");
+        + "statement, a SOURCE FORMAT directive, a comment, or a blank line.", "§1985:XII.3.4 GR5",
+        "The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a "
+        + "REPLACE statement.");
+
+    /// <summary>The rule that says where a REPLACE statement may stand, with its words, in the edition in force: §2023:7.2.4.3 SR2
+    /// ("preceded by a space") from COBOL-2002, §1985:XII.3.3 SR1 ("preceded by a separator period") at COBOL-85.</summary>
+    private static string ReplacePrecedingRule(EditionInfo edition) => edition.Cite(
+        "§1985:XII.3.3 SR1: \"It must be preceded by a separator period except when it is the first statement in a separately "
+        + "compiled program\"",
+        ReplacePrecedingRule2002, ReplacePrecedingRule2002);
+
+    private const string ReplacePrecedingRule2002 =
+        "§2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space except when it is the first statement in a compilation group\"";
 
     /// <summary>Whether position <paramref name="pos"/> of <paramref name="text"/> lies on a debugging line: its line
     /// begins with <see cref="ReferenceFormatProcessor.DebugLineCarrier"/>, the form the §2023:6.5 conversion writes a
@@ -502,7 +520,7 @@ public sealed class CopyProcessor(
         {
             if (diagnostics is null || !(reported ??= []).Add(operand)) return;
             diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.ReplacingResultForbidden.Code,
-                $"the replacing action of a {rule.Statement} statement produces {what} — {rule.Rule}: \"{rule.Quoted}\"",
+                $"the replacing action of a {rule.Statement} statement produces {what} — {rule.In(edition).Rule}: \"{rule.In(edition).Quoted}\"",
                 mapped.LocateAt(at), default);
         }
 
@@ -846,8 +864,9 @@ public sealed class CopyProcessor(
     /// <see cref="GateCopyPhrase"/> (kb/Work PB1601).</summary>
     private CopyStatement ParseCopyStatement(MappedText mapped, int copyIdx)
     {
-        var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY", "§2023:7.2.3.2",
-            _referenceFormats, EditionInfo.Of(dialectLevel, permissive));
+        var edition = EditionInfo.Of(dialectLevel, permissive);
+        var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY",
+            edition.Cite("§1985:XII.2.2", "§2023:7.2.3.2", "§2023:7.2.3.2"), _referenceFormats, edition);
 
         string? textName = ReadCopyName(mapped, c, "text-name-1 or literal-1", out bool textNameIsWord);
         string? libraryName = null;
@@ -1272,7 +1291,7 @@ public sealed class CopyProcessor(
         {
             if (HasError || word.Kind != TextWordKind.Literal) return;
             int start = word.Start;
-            if (!Parsing.LiteralScreen.ReportUnterminated(word.Value,
+            if (!Parsing.LiteralScreen.ReportUnterminated(word.Value, edition,
                     (descriptor, message) => diagnostics?.ReportError(descriptor.Code, message, mapped.LocateAt(start), default)))
                 HasError = true;
         }
@@ -1486,9 +1505,14 @@ public sealed class CopyProcessor(
         /// <summary>COBOL2573 — a pseudo-text delimiter not separated as §2023:8.3.5 6) requires.</summary>
         public void Delimiter(int at, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.PseudoTextDelimiterPlacement.Code,
-                $"{Rules.Statement} statement: {what} — §2023:8.3.5 6): \"An opening pseudo-text delimiter shall be "
-                + "immediately preceded by a space; a closing pseudo-text delimiter shall be immediately followed by one "
-                + "of the separators space, comma, semicolon, or period\"", mapped.LocateAt(at), default);
+                $"{Rules.Statement} statement: {what} — " + Edition.Cite(
+                    "§1985:IV.4.2.1 SR6: \"An opening pseudo-text delimiter must be immediately preceded by a space; a closing "
+                    + "pseudo-text delimiter must be immediately followed by one of the separators space, comma, semicolon, or period\"",
+                    PseudoTextDelimiterRule2002, PseudoTextDelimiterRule2002), mapped.LocateAt(at), default);
+
+        private const string PseudoTextDelimiterRule2002 =
+            "§2023:8.3.5 6): \"An opening pseudo-text delimiter shall be immediately preceded by a space; a closing pseudo-text "
+            + "delimiter shall be immediately followed by one of the separators space, comma, semicolon, or period\"";
     }
 
     /// <summary>Screen one operand pair against its statement's content rules (kb/Work PB1353). The characters of EVERY

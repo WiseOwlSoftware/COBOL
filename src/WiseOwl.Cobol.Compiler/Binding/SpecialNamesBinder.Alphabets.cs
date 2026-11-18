@@ -373,7 +373,7 @@ public sealed partial class SpecialNamesBinder
                 // sequence stays well-formed and the rest of the source still binds.
                 Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: the character {DescribeChar(c)} is "
                     + "specified more than once — a given character shall not be specified more than once in that "
-                    + "ALPHABET clause (ISO §2023:12.3.7.3 SR14 a)");
+                    + $"ALPHABET clause (ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR3", "§2023:12.3.7.3 SR14 a", "§2023:12.3.7.3 SR14 a")})");
                 return;
             }
             pos[c] = next;

@@ -1887,7 +1887,10 @@ public static class DiagnosticCatalog
         + "OCCURS clause for the subject of the entry or superordinate to that entry, specified in the same order "
         + "as a subscripted reference to the subject of the entry would be specified.\"; syntax rule 21, sentence "
         + "1, states the same requirement for subscript-2 in a TO phrase.",
-        "ISO §2023:13.18.63.3 SR20/SR21");
+        "ISO §2023:13.18.63.3 SR20/SR21",
+        No1985Rule: "The VALUE clause that seeds table elements by subscript (Format 2 VALUE ... FROM, with its TO phrase) is not in "
+            + "ANSI X3.23-1985, whose VALUE clause has one literal for an entry and the condition-name values of Format 2 "
+            + "(§1985:VI.5.15.2), so no 1985 rule counts its subscripts (the clause begins in COBOL-2002, kb/Work PB4950).");
     public static readonly DiagnosticDescriptor TableValueDynamicSpanLevels = new(
         "COBOL1946", "table-value-dynamic-span-levels", EditionSeverity.Error,
         "ISO §2023:13.18.63.3 syntax rule 23: \"If the TO phrase is specified and an OCCURS clause with a DYNAMIC "
@@ -4925,7 +4928,10 @@ public static class DiagnosticCatalog
         + "twin, §2023:13.18.63.3 SR31, names class alphanumeric or national.) A NUMERIC range is ordered algebraically "
         + "by §2023:14.7.8 rule 1 — \"the range of values includes literal-1, literal-2, and all algebraic values between\" "
         + "— and a collating sequence has no part in it, so naming one here has no meaning. Remove the IN phrase.",
-        "ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31");
+        "ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31",
+        No1985Rule: "The IN alphabet-name-1 phrase after the THROUGH phrase of an EVALUATE WHEN range or of a condition-name VALUE "
+            + "range is not in ANSI X3.23-1985, whose THROUGH ranges (§1985:VI.6.13.2, §1985:VI.5.15.2) have no alphabet-name "
+            + "phrase, so no 1985 rule says what the phrase may range over (it begins in COBOL-2002, kb/Work PB4950).");
 
     /// <summary>COBOL1999 — §2023:14.9.13.3 SR3 sentence 2 / §2023:13.18.63.3 SR31 sentence 2: the CLASS of the alphabet
     /// shall match the class of the range's operands.</summary>
@@ -5035,7 +5041,10 @@ public static class DiagnosticCatalog
         "A report-section VALUE clause (format 4) with more than one operand requires the entry to be a "
         + "repeating entry or to be subordinate to a repeating entry, and its operand count shall equal the "
         + "entry's number of repetitions or that number multiplied by the repetitions of successive higher "
-        + "repeating entries.", "ISO §2023:13.18.63.3 SR35 / §2023:13.15.4 GR3");
+        + "repeating entries.", "ISO §2023:13.18.63.3 SR35 / §2023:13.15.4 GR3",
+        No1985Rule: "ANSI X3.23-1985 gives a report-section VALUE clause one literal (\"VALUE IS literal-1\", §1985:XIII.3.22.2) and "
+            + "has no repeating report entry (no multiple COLUMN clause, no OCCURS in a report group), so there is no operand "
+            + "count to match to repetitions (kb/Work PB4950).");
 
     /// <summary>COBOL2013 — the SOURCE clause twin of COBOL2012 (ISO §2023:13.18.53.3 SR6). The multi-operand
     /// SOURCE clause had no grammar surface at all before kb/Work PB506 (`SOURCES ARE A B C` was a raw parse
@@ -6731,7 +6740,9 @@ public static class DiagnosticCatalog
         + "(ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS …, ALPHABET alphabet-name-2 FOR NATIONAL IS …, CLASS "
         + "class-name-1 [FOR {ALPHANUMERIC | NATIONAL}] IS …) or, for SYMBOLIC CHARACTERS, before the first "
         + "symbolic-character-1. No edition and no dialect admits the trailing spelling; move the phrase.",
-        "ISO §2023:12.3.7.2");
+        "ISO §2023:12.3.7.2",
+        No1985Rule: "The FOR ALPHANUMERIC / FOR NATIONAL phrase is not in ANSI X3.23-1985, whose ALPHABET, CLASS and SYMBOLIC "
+            + "CHARACTERS clauses (§1985:VI.4.5.2) have no FOR phrase, so no 1985 rule places it (kb/Work PB4950).");
 
     /// <summary>A separator period inside an I-O-CONTROL, SPECIAL-NAMES or REPOSITORY paragraph ends a sentence the
     /// general format does not end (kb/Work PB2727) — refused by name in ClosedFormatPass through ParagraphPeriods.</summary>
@@ -8531,7 +8542,10 @@ public static class DiagnosticCatalog
         + "national or national-edited, literals in the VALUE clause "
         + "shall be national literals. National literals in the VALUE clause of an elementary item shall not exceed the "
         + "size indicated by an explicit PICTURE clause.\"",
-        "ISO §2023:13.18.63.3 SR5");
+        "ISO §2023:13.18.63.3 SR5",
+        No1985Rule: "The national category and the national literal (N\"...\") are not in ANSI X3.23-1985, whose literals are "
+            + "numeric or nonnumeric and whose categories are alphabetic, alphanumeric, numeric and the two edited ones "
+            + "(§1985:VI.5.9.4 GR1), so no 1985 rule says what a national literal may seed (kb/Work PB4950).");
 
     /// <summary>COBOL5982 — value boolean literal rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ValueBooleanLiteralRule = new(

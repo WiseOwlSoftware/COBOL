@@ -1029,13 +1029,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (op is { ExpressionAsWritten: true } or BoundStringLiteral or BoundNumericLiteral { FunctionValue: false } or BoundFigurative or BoundAllLiteral)
         {
             ctx.Edition.Error(DiagnosticCatalog.ClassConditionSubjectNotIdentifier,
-                "a class condition's subject shall be identifier-1, not an expression or a literal (ISO §2023:8.8.4.4.2)");
+                "a class condition's subject " + ctx.Edition.Edition.Cite(
+                    "must be identifier-1, not an expression or a literal (ISO §1985:VI.6.3.1.2)",
+                    "shall be identifier-1, not an expression or a literal (ISO §2023:8.8.4.4.2)",
+                    "shall be identifier-1, not an expression or a literal (ISO §2023:8.8.4.4.2)"));
             return;
         }
         if (ClassConditionModel.Sr1Refusal(op) is { } why)
         {
             ctx.Edition.Error(DiagnosticCatalog.ClassConditionOperandClass,
-                $"a class condition's identifier-1 shall not reference {why} (ISO §2023:8.8.4.4.3 SR1)");
+                "a class condition's identifier-1 " + ctx.Edition.Edition.Cite(
+                    $"must reference a data item whose usage is explicitly or implicitly DISPLAY, and shall not reference {why} (ISO §1985:VI.6.3.1.2)",
+                    $"shall not reference {why} (ISO §2023:8.8.4.4.3 SR1)", $"shall not reference {why} (ISO §2023:8.8.4.4.3 SR1)"));
             return;
         }
         if (ClassConditionModel.For(kind) is not { } alt) return;
