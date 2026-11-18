@@ -309,10 +309,16 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     {
         if (pair.Subject is not { } s || pair.Object is not { } o) return true;
         if (EvaluateOperandCombinations.IsPermitted(s, o, ctx.Edition.Edition.Year)) return true;
+        // §1985 has no Table 15: SR6 b asks that a condition, TRUE or FALSE selection object correspond to a conditional
+        // expression or TRUE or FALSE subject, and SR6 a that any other object be a valid operand for comparison to its subject.
+        string rule85 = o is EvaluateObjectOperand.Condition or EvaluateObjectOperand.TrueOrFalse
+            ? "§1985:VI.6.13.3 SR6b" : "§1985:VI.6.13.3 SR6a";
         ctx.Edition.Error(DiagnosticCatalog.EvaluateOperandCombinationInvalid,
             $"the selection subject is {EvaluateOperandCombinations.Label(s)} and the selection object "
-            + $"'{DataBinder.WrittenText(item)}' is {EvaluateOperandCombinations.Label(o)}; ISO §2023:14.9.13.3 SR10 Table 15 "
-            + "marks that combination invalid.");
+            + $"'{DataBinder.WrittenText(item)}' is {EvaluateOperandCombinations.Label(o)}; ISO "
+            + ctx.Edition.Edition.Cite($"{rule85} does not admit that combination.",
+                "§2023:14.9.13.3 SR10 Table 15 marks that combination invalid.",
+                "§2023:14.9.13.3 SR10 Table 15 marks that combination invalid."));
         return false;
     }
 

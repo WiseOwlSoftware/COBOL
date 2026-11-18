@@ -151,7 +151,10 @@ public static class LiteralScreen
         if (edition.DigitCapacityExcess(digits) is not { } excess) return true;
         using var _ = sink.At(ExpansionToken.CursorOf(node.Start));
         string written = WrittenSource.Of(node);
-        Error(sink, excess, excess == DiagnosticCatalog.DigitCapacityOver31
+        Error(sink, excess, excess == DiagnosticCatalog.DigitCapacityOver31 && edition.Year < 2002
+            ? $"the numeric literal '{written}' has {digits} digits; COBOL-85 requires an implementor to allow numeric literals "
+              + "of 1 through 18 digits, and this compiler allows no more (§1985:IV.4.2.2.2.2)"
+            : excess == DiagnosticCatalog.DigitCapacityOver31
             ? $"the numeric literal '{written}' has {digits} digits; this compiler limits a fixed-point numeric literal to the 31 "
               + "digits §2023:8.3.3.3.2 requires an implementor to allow"
             : $"the numeric literal '{written}' has {digits} digits; COBOL-85 limits fixed-point items and literals to 18 "

@@ -1198,6 +1198,10 @@ public abstract class CobolParserCoreBase : Parser
     internal bool ReservedAsAName(IToken token)
         => ReservedUserWordViolation(token, atAName: true) is not null || ExtensionReservedWord(token) is not null;
 
+    /// <summary>The rule that lets an implementation reserve a word for a nonstandard extension, by the edition in force
+    /// (kb/Work PB4950): §1985:I.1.5.2.5.2 at COBOL-85, §2023:4.2.10 from 2002.</summary>
+    internal string ExtensionReservationRule => Edition.Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10", "§2023:4.2.10");
+
     /// <summary>The canonical word of the keyword <paramref name="token"/> when this implementation reserves it for a
     /// nonstandard extension (§2023:4.2.10 3), else null.</summary>
     internal string? ExtensionReservedWord(IToken token)

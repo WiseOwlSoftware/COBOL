@@ -2,21 +2,6 @@
  "about": "THE 1985 CITATION RATCHET (kb/Work PB4950, read by EditionCitationNet in tests/WiseOwl.Cobol.Tests.Conformance): code -> refusal id -> the exact number of diagnostic lines that refusal draws at --std 85 under that code which cite only a later edition's rule. A count that grows fails (a new site); one that shrinks fails until it is lowered here; an entry at 0 is removed. Measured 2026-11-17; it only shrinks.",
  "owner": "kb/Work PB4950",
  "pending": {
-  "COBOL0313": {
-   "pb4604-entry-name-extension-word": 1
-  },
-  "COBOL0801": {
-   "numedit_digits_over31": 1,
-   "pb1687-report-entry-32-digits": 1,
-   "pb5529-value-over-31-digits": 1
-  },
-  "COBOL0808": {
-   "pb5173_currency_sign_lowercase_refused_at_85": 1,
-   "pb5174-lowercase-currency-letter-85": 1,
-   "pb5213-picture-is-written-twice": 1,
-   "pb5213-picture-is-written-twice-85": 1,
-   "pb5647-picture-long-s-no-currency": 1
-  },
   "COBOL0809": {
    "1985-SR-VI_5_14_3-5": 1,
    "l1c04-implicit-index-move-target": 1
@@ -54,9 +39,6 @@
   },
   "COBOL0823": {
    "pb353-invoke-unbindable-target-names-its-edition": 1
-  },
-  "COBOL0827": {
-   "pb988-function-definition-85": 1
   },
   "COBOL0834": {
    "l1-initialize-replacing-category-repeat": 1,
@@ -190,9 +172,6 @@
    "pb487-picture-required-elementary": 1,
    "pb916-message-tag-inherited-picture": 1
   },
-  "COBOL0887": {
-   "l1c21-common-outermost-program": 1
-  },
   "COBOL0892": {
    "pb791-currency-figurative-literal-7-bare": 1
   },
@@ -249,17 +228,6 @@
   "COBOL1501": {
    "pb4124_held_function_argument_below_2002": 1
   },
-  "COBOL1504": {
-   "1989-FMT-A_2_35_2": 1,
-   "g85_f38_03": 1,
-   "l1-integer-arity": 1,
-   "l1-integer-of-date-arity2": 1,
-   "l1-integer-part-arity": 1,
-   "l1-log10-two-arguments": 1,
-   "l1-sin-two-arguments": 1,
-   "l1-tan-two-arguments": 1,
-   "pb62-all-subscript-annuity": 1
-  },
   "COBOL1505": {
    "pb1100-class-repository-function-undefined": 1,
    "pb1419-udf-float-returning-at-85": 1,
@@ -288,17 +256,10 @@
    "1985-FMT-XIII_3_11_2": 1,
    "pb4435-occurs-bound-data-name-at-85": 1
   },
-  "COBOL1548": {
-   "pb1544-symbolic-character-as-receiver": 1
-  },
   "COBOL1559": {
    "pb1289-present-when-on-printless-group": 1,
    "pb1295-sum-reset-between-groups": 1,
    "pb1295-sum-rounded-between-groups": 1
-  },
-  "COBOL1565": {
-   "pb3517-no-sign-phrase-on-binary-usage": 1,
-   "pb3517-no-sign-phrase-on-report-item": 1
   },
   "COBOL1567": {
    "1985-SR-X_2_5_3-1": 1
@@ -406,24 +367,9 @@
    "stat-standard-deviation-arg-class-numeric": 1,
    "stat-variance-arg-class-numeric": 1
   },
-  "COBOL1630": {
-   "pb1943-sum-counter-ref-mod-of-ref-mod": 1,
-   "pb8-refmod-of-refmod-data": 1,
-   "pb8-refmod-of-refmod-function": 1
-  },
   "COBOL1633": {
    "pb11-offset-arg-local-format-datetime": 1,
    "pb11-offset-arg-local-format-time": 1
-  },
-  "COBOL1634": {
-   "1985-SR-VI_6_13_3-6": 1,
-   "pb398-evaluate-partial-condition-subject": 1,
-   "pb398-evaluate-partial-true-subject": 1,
-   "pb4446-evaluate-refused-pair-object-subscript": 1,
-   "pb4446-evaluate-refused-range-object-undefined-name": 1,
-   "pb4606-evaluate-refused-pair-bare-operand-undefined-name": 1,
-   "pb4627-evaluate-refused-pair-abbreviated-relation-after-class-condition": 1,
-   "pb4627-evaluate-refused-pair-value-after-condition-name": 1
   },
   "COBOL1637": {
    "display-index-name": 1,
@@ -487,9 +433,6 @@
    "pb93-redefines-later-sibling": 1,
    "pb93-redefines-undefined-target": 1
   },
-  "COBOL1655": {
-   "pb93-renames-undefined-operand": 1
-  },
   "COBOL1657": {
    "1985-GR-XIII_3_22_4-1": 1,
    "pb206-group-value-numeric-literal": 1,
@@ -506,12 +449,6 @@
    "pb110-symbolic-sr16": 1,
    "pb1557-symbolic-ordinal-too-long": 1,
    "pb4108-symbolic-trailing-name-without-ordinal": 1
-  },
-  "COBOL1671": {
-   "1985-SR-VI_4_5_3-11": 1,
-   "g85_f07_02": 1,
-   "pb1095-class-in-also-group-through": 1,
-   "pb110-class-ordinal-range": 1
   },
   "COBOL1675": {
    "compute-alphanumeric-receiver": 1,
@@ -611,16 +548,8 @@
    "pb558-condition-name-in-report-section": 1
   },
   "COBOL1747": {
-   "pb485-level-66-not-renames": 1,
    "pb485-level-77-filler": 1,
-   "pb485-level-77-renames": 1,
-   "pb485-level-77-unnamed": 1,
-   "pb485-level-88-not-condition-name": 1,
-   "pb485-renames-not-level-66": 1,
-   "pb488-usage-clause-on-level-88": 1,
-   "pb501-condition-name-entry-has-no-name": 1,
-   "pb849-condition-name-entry-filler": 1,
-   "pb849-renames-entry-has-no-name": 2
+   "pb485-level-77-unnamed": 1
   },
   "COBOL1757": {
    "1985-FMT-XI_4_1_2": 1,
@@ -709,14 +638,6 @@
    "pb495-sr2-contradicting-group-usage": 1,
    "pb5849_packed_under_binary_group_refused_85": 1
   },
-  "COBOL1934": {
-   "pb528-picture-composition": 16,
-   "pb528-picture-composition-decimal-comma": 3,
-   "pb529-picture-no-digit-position": 3,
-   "pb530-picture-floating-left-of-point": 7,
-   "pb535-picture-no-category": 4,
-   "pb960-invalid-picture-no-cascade": 1
-  },
   "COBOL1941": {
    "l1c08-entry-name-qualified": 1,
    "l1c27-report-group-in-working-storage": 1,
@@ -744,13 +665,6 @@
   "COBOL1946": {
    "pb1716-table-value-nested-dynamic-span": 1,
    "pb505-table-value-dynamic-span-levels": 1
-  },
-  "COBOL1961": {
-   "g85_bf11_02": 1,
-   "pb1472-all-subscript-index-name-other-table": 1,
-   "pb4219_search_all_relation_names_own_data_item_hiding_container_global_condition_name": 1,
-   "pb4219_search_all_when_names_own_data_item_hiding_container_global_condition_name": 1,
-   "pb459-index-name-not-in-table": 1
   },
   "COBOL1966": {
    "pb445-search-all-zero-length-literal": 1
@@ -832,11 +746,6 @@
    "pb416-initialize-replacing-numeric-to-alphabetic": 1,
    "pb416-initialize-replacing-zero-to-alphabetic": 1
   },
-  "COBOL2045": {
-   "pb1830-report-sum-addend-index-item": 1,
-   "pb482-sum-addend-not-numeric": 1,
-   "pb482-sum-addend-ref-modified": 1
-  },
   "COBOL2046": {
    "1985-SR-XIII_3_19_3-2": 1,
    "pb482-sum-upon-not-detail": 1,
@@ -885,10 +794,6 @@
   "COBOL2097": {
    "pb1029-table-all-subscript-count": 1,
    "pb877-subscript-count-mismatch": 1
-  },
-  "COBOL2102": {
-   "1985-SR-X_5_4_3-2": 1,
-   "pb404-exit-program-in-global-declarative": 1
   },
   "COBOL2104": {
    "pb1507-program-id-attribute-repeated": 1
@@ -942,12 +847,6 @@
    "pb3232-sum-counter-beside-data-item": 1,
    "pb882-sum-counter-ambiguous": 1
   },
-  "COBOL2146": {
-   "1985-SR-VI_5_9_3-4": 1,
-   "pb4304-picture-string-31-at-85": 1,
-   "pb4304-picture-string-51-below-2014": 1,
-   "pb532-picture-string-over-63": 1
-  },
   "COBOL2147": {
    "pb531-picture-repetition-factor-negative": 1,
    "pb531-picture-repetition-factor-signed": 1,
@@ -963,9 +862,6 @@
   },
   "COBOL2158": {
    "pb544-message-tag-usage-exclusive": 1
-  },
-  "COBOL2159": {
-   "1985-SR-X_4_5_3-2": 1
   },
   "COBOL2172": {
    "pb412-go-to-depending-without-names": 1,
@@ -997,42 +893,7 @@
    "pb541-report-usage-comp": 1
   },
   "COBOL2199": {
-   "1985-FMT-XIII_3_15_2": 1,
-   "1985-GR-XIII_3_10_6-2": 1,
-   "1985-SR-XIII_3_15_3-1": 1,
-   "1985-SR-XIII_3_15_3-3": 1,
-   "1985-SR-XIII_3_15_3-4": 1,
-   "1985-SR-XIII_3_8_3-8": 1,
-   "pb1001-next-page-in-page-heading": 2,
-   "pb1001-next-page-not-first-line": 1,
-   "pb1002-line-beyond-page-limit": 2,
-   "pb1002-unpaged-absolute-line": 1,
-   "pb1002-unpaged-next-page": 1,
-   "pb1222-absolute-line-after-relative": 1,
-   "pb1222-line-out-of-order": 1,
-   "pb1222-line-overlap": 1,
-   "pb1222-relative-tail-past-lower-limit": 1,
-   "pb1248-or-page-heading-absolute-line": 1,
-   "pb1270-detail-above-first-detail": 1,
-   "pb1270-detail-below-last-detail": 1,
-   "pb1270-page-footing-above-footing-plus-1": 1,
-   "pb1270-page-footing-relative-zero-on-footing": 1,
-   "pb1270-page-heading-below-first-detail": 1,
-   "pb1270-page-heading-relative-zero-above-heading": 1,
-   "pb1270-report-footing-relative-zero-on-footing": 1,
-   "pb1270-report-heading-above-heading": 1,
-   "pb1270-report-heading-after-page-heading": 1,
-   "pb1270-report-heading-relative-zero-above-heading": 1,
-   "pb2513-cf-absolute-above-or-page-limit": 1,
-   "pb2513-detail-absolute-below-two-or-page": 1,
-   "pb5244_report_footing_above_page_footing_next_group": 1,
-   "pb558-condition-name-in-report-section": 1,
-   "pb565-report-line-in-line": 1,
-   "pb732-value-report-word": 1,
-   "pb853-report-group-entry-picture": 1,
-   "pb853-report-value-without-column": 1,
-   "pb957-next-group-in-page-heading": 1,
-   "pb978-report-control-ambiguous": 1
+   "pb1248-or-page-heading-absolute-line": 1
   },
   "COBOL2200": {
    "pb571-class-condition-index-operand": 1
@@ -1622,10 +1483,6 @@
    "pb5181-through-all-literal-descending": 1,
    "pb5181-through-figurative-high-low": 1,
    "pb5181-through-figurative-space-equal": 1
-  },
-  "COBOL2966": {
-   "1985-SR-VI_6_14_3-1": 1,
-   "pb397-exit-not-alone": 1
   },
   "COBOL2972": {
    "pb2040-open-qualified-file-name": 1,

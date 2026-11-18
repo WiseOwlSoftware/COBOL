@@ -163,7 +163,8 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     string missing = info.From is null ? info.FromName : info.ThruName!;
                     binder.Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
                         $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn ? " THRU " + tn : "")}: "
-                        + $"'{missing}' does not name an item of the record (ISO §2023:13.18.45.3 SR4; §2023:8.4.2.1)");
+                        + $"'{missing}' does not name an item of the record (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR4", "§2023:13.18.45.3 SR4", "§2023:13.18.45.3 SR4")}; "
+                        + $"{binder.Edition.Edition.Citation()})");
                     continue;
                 }
                 // §2023:13.18.45.3 SR5 / SR3 / SR6 — WHAT THE OPERANDS MAY BE (kb/Work PB1283, DataBinder.RenamesEntry.cs): the

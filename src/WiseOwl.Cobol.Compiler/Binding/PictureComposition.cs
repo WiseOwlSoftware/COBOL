@@ -224,6 +224,13 @@ internal static class PictureComposition
             return false;
         }
 
+        // ⛔ THE CITATION OF EACH COMPOSITION RULE BY EDITION (kb/Work PB4950): the 2002/2014/2023 text names §2023:13.18.40.3's
+        // syntax rule, the 1985 text the general or editing rule of §1985:VI.5.9.4 / VI.5.9.5 that says the same thing.
+        string Rule(string sr, string rule1985) =>
+            edition.Edition.Cite(rule1985, $"§2023:13.18.40.3 {sr}", $"§2023:13.18.40.3 {sr}");
+        // SR13's role swap: at COBOL-85 it is the period symbol's own rule (§1985:VI.5.9.4 GR8, "the rules for the period apply to the comma").
+        string Swap() => edition.Edition.Cite("§1985:VI.5.9.4 GR8", "SR13", "SR13");
+
         int Count(string sym)
         {
             int k = 0;
@@ -255,28 +262,29 @@ internal static class PictureComposition
             if (once != cs.ToString() && Count(once) is var k and > 1)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     $"the symbol '{once}' appears {k} times — each of the symbols 'CR', 'DB', 'E', 'S', 'V', "
-                    + $"'{decimalSep}' may appear only once in character-string-1 (ISO §2023:13.18.40.3 SR12 b"
-                    + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma)" : ")"));
+                    + $"'{decimalSep}' may appear only once in character-string-1 (ISO {Rule("SR12 b", "§1985:VI.5.9.4 GR7")}"
+                    + (decimalPointIsComma ? $"; {Swap()} — the rules for the symbol period apply to the symbol comma)" : ")"));
 
         // SR20 "The symbol 'V' and the symbol '.' are mutually exclusive in character-string-1."
         if (Count("V") > 0 && Count(decimalSep.ToString()) > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the symbol 'V' and the symbol '{decimalSep}' are mutually exclusive in character-string-1 — both "
-                + "indicate the decimal point position (ISO §2023:13.18.40.3 SR20"
-                + (decimalPointIsComma ? "; SR13)" : ")"));
+                + $"indicate the decimal point position (ISO {Rule("SR20", "§1985:VI.5.9.5 GR5")}"
+                + (decimalPointIsComma ? $"; {Swap()})" : ")"));
 
         // SR17 "The symbol 'P' and the symbol '.' are mutually exclusive in character-string-1."
         if (Count("P") > 0 && Count(decimalSep.ToString()) > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the symbol 'P' and the symbol '{decimalSep}' are mutually exclusive in character-string-1 — 'P' "
-                + "already implies the assumed decimal point (ISO §2023:13.18.40.3 SR17"
-                + (decimalPointIsComma ? "; SR13)" : ")"));
+                + $"already implies the assumed decimal point (ISO {Rule("SR17", "§1985:VI.5.9.4 GR8")}"
+                + (decimalPointIsComma ? $"; {Swap()})" : ")"));
 
         // SR21 "The symbol 'Z' and the symbol '*' are mutually exclusive in character-string-1."
         if (Count("Z") > 0 && Count("*") > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
                 "the symbol 'Z' and the symbol '*' are mutually exclusive in character-string-1 — one item has one "
-                + "replacement character, space for 'Z' and asterisk for '*' (ISO §2023:13.18.40.3 SR21; §2023:13.18.40.5 rule 7)");
+                + $"replacement character, space for 'Z' and asterisk for '*' (ISO {Rule("SR21", "§1985:VI.5.9.5 GR3")}"
+                + edition.Edition.Cite("; §1985:VI.5.9.5 GR8", "; §2023:13.18.40.5 rule 7", "; §2023:13.18.40.5 rule 7") + ")");
 
         // SR23 "The editing sign control symbols '+', '-', 'CR', and 'DB' are mutually exclusive in
         // character-string-1 with the exception of a numeric-edited data item for a floating-point edited
@@ -287,12 +295,12 @@ internal static class PictureComposition
         if (signKinds.Count > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the editing sign control symbols '{signKinds[0]}' and '{signKinds[1]}' are mutually exclusive in "
-                + "character-string-1 (ISO §2023:13.18.40.3 SR23)");
+                + $"character-string-1 (ISO {Rule("SR23", "§1985:VI.5.9.4 GR8")})");
 
         // SR18 "The symbol 'S', if present, shall be the first symbol in character-string-1."
         if (Count("S") > 0 && syms[0].Kind != 'S')
             return Fail(DiagnosticCatalog.PictureComposition,
-                "the symbol 'S' shall be the FIRST symbol in character-string-1 (ISO §2023:13.18.40.3 SR18)");
+                $"the symbol 'S' shall be the FIRST symbol in character-string-1 (ISO {Rule("SR18", "§1985:VI.5.9.4 GR8")})");
 
         // SR16 "The symbol 'P' may appear only as a continuous string of 'P's in the leftmost or rightmost digit
         // positions in character-string-1." Both halves are measured: one contiguous run, and that run standing
@@ -307,13 +315,13 @@ internal static class PictureComposition
                 if (ps[i] != ps[i - 1] + 1)
                     return Fail(DiagnosticCatalog.PictureComposition,
                         "the symbols 'P' do not form a CONTINUOUS string — 'P' may appear only as a continuous "
-                        + "string of 'P's in the leftmost or rightmost digit positions (ISO §2023:13.18.40.3 SR16)");
+                        + $"string of 'P's in the leftmost or rightmost digit positions (ISO {Rule("SR16", "§1985:VI.5.9.4 GR8")})");
             leadingP = ps[0] == digitPositions[0];
             trailingP = ps[^1] == digitPositions[^1];
             if (!leadingP && !trailingP)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     "the string of 'P's stands at neither the leftmost nor the rightmost digit positions of "
-                    + "character-string-1 (ISO §2023:13.18.40.3 SR16)");
+                    + $"character-string-1 (ISO {Rule("SR16", "§1985:VI.5.9.4 GR8")})");
         }
 
         // SR19 "When the symbol 'V' and one or more symbols 'P' are used in character-string-1, the symbol 'V'
@@ -325,7 +333,7 @@ internal static class PictureComposition
             if (v != ps[0] - 1 && v != ps[^1] + 1)
                 return Fail(DiagnosticCatalog.PictureComposition,
                     "the symbol 'V' neither immediately precedes the first symbol 'P' nor immediately follows the "
-                    + "last (ISO §2023:13.18.40.3 SR19)");
+                    + $"last (ISO {Rule("SR19", "§1985:VI.5.9.4 GR8")})");
         }
 
         // SR22 "Neither the symbol 'S' nor the symbol '*' shall be specified in character-string-1 when the
@@ -364,12 +372,13 @@ internal static class PictureComposition
         if (fixedCurrency > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"character-string-1 uses {fixedCurrency} currency symbols as FIXED insertion — only one currency "
-                + "symbol may be used (ISO §2023:13.18.40.3 SR24). Two or more ADJACENT occurrences would be a floating "
-                + "insertion string (§2023:13.18.40.5 rule 6); these are separated by other symbols");
+                + $"symbol may be used (ISO {Rule("SR24", "§1985:VI.5.9.5 GR6")}). Two or more ADJACENT occurrences would be a floating "
+                + $"insertion string ({edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 rule 6", "§2023:13.18.40.5 rule 6")}); "
+                + "these are separated by other symbols");
         if (fixedSign > 1)
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"character-string-1 uses {fixedSign} editing sign control symbols as FIXED insertion — only one may "
-                + "be used (ISO §2023:13.18.40.3 SR24)");
+                + $"be used (ISO {Rule("SR24", "§1985:VI.5.9.5 GR6")})");
 
         // SR24, second sentence: "For extended editing sign control symbols, either one or two extended editing sign
         // control symbols may be used in character-string-1." A symbol is an OCCURRENCE — a FLOATING string of one
@@ -410,7 +419,7 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureComposition,
                 "character-string-1 describes no digit position and no character position — it shall contain at "
                 + "least one of the symbols 'A', 'N', 'X', 'Z', '1', '9', '*', or at least two occurrences of one "
-                + $"of character-1, 'X', '+', '-', '{cs}' (ISO §2023:13.18.40.3 SR12 a)");
+                + $"of character-1, 'X', '+', '-', '{cs}' (ISO {Rule("SR12 a", "§1985:VI.5.9.4 GR3a")})");
 
         // The DECIMAL POINT POSITION — derived ONCE, here, because two rules count from it: SR29 just below and
         // the Table-10 role assignment (which of the eight two-row symbols' halves an occurrence takes).
@@ -439,9 +448,10 @@ internal static class PictureComposition
             return Fail(DiagnosticCatalog.PictureComposition,
                 $"the floating insertion string of '{syms[firstFloat].Text}' lies wholly to the RIGHT of the "
                 + $"decimal point position ({point}) — for floating insertion, at least one insertion symbol "
-                + "shall be specified to the LEFT of the decimal point position (ISO §2023:13.18.40.3 SR29"
-                + (decimalPointIsComma ? "; SR13 — the rules for the symbol period apply to the symbol comma" : "")
-                + "). §2023:13.18.40.5 rule 6 defines the image only for a string that starts left of the point");
+                + $"shall be specified to the LEFT of the decimal point position (ISO {Rule("SR29", "§1985:VI.5.9.5 GR7")}"
+                + (decimalPointIsComma ? $"; {Swap()} — the rules for the symbol period apply to the symbol comma" : "")
+                + $"). {edition.Edition.Cite("§1985:VI.5.9.5 GR7", "§2023:13.18.40.5 rule 6", "§2023:13.18.40.5 rule 6")} "
+                + "defines the image only for a string that starts left of the point");
         }
 
         // ── §2023:13.18.40.6 Table 10 — the ORDER question SR2 delegates ("The allowable combinations of symbols for

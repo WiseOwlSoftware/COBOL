@@ -549,14 +549,17 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         if (digits < 1)
         {
             Error(DiagnosticCatalog.DigitCapacityUnder1, $"{what} has {digits} digit positions; the number of digit "
-                + "positions of a numeric or fixed-point numeric-edited item shall range from 1 through 31 "
-                + "(ISO §2023:13.18.40.3 SR14)");
+                + "positions of a numeric or fixed-point numeric-edited item shall range from 1 through "
+                + (DialectLevel < 2002 ? "18 (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)" : "31 (ISO §2023:13.18.40.3 SR14)"));
             return;
         }
         if (Edition.DigitCapacityExcess(digits) is not { } excess) return;
         if (excess == DiagnosticCatalog.DigitCapacityOver31)
-            Error(excess, $"{what} has {digits} digit positions; ISO/IEC 1989 limits a numeric item to 31 "
-                + "digit positions (ISO §2023:13.18.40.3 SR14)");
+            Error(excess, DialectLevel < 2002
+                ? $"{what} has {digits} digit positions; ANSI X3.23-1985 limits a numeric item to 18 "
+                  + "digit positions (ISO §1985:VI.5.9.4 GR3a; §1985:VI.5.9.4 GR6a1)"
+                : $"{what} has {digits} digit positions; ISO/IEC 1989 limits a numeric item to 31 "
+                  + "digit positions (ISO §2023:13.18.40.3 SR14)");
         else
             Error(excess, $"{what} has {digits} digit positions; COBOL-85 limits fixed-point items and "
                 + $"literals to 18 digits — 19–31 digits require --std 2002 or later (targeting COBOL-{DialectLevel})");

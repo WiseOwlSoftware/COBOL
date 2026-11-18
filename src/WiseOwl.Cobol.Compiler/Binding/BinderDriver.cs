@@ -512,7 +512,8 @@ internal sealed class BinderDriver
                 + "§2023:11.10.3 SR5–6, checked above against the container chain");
         if (common && parent is null)
             edition.Error(DiagnosticCatalog.CommonProgramNotContained,
-                $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO §2023:11.10.3 SR4)");
+                $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO "
+                + edition.Edition.Cite("§1985:X.3.1.3 SR3", "§2023:11.10.3 SR4", "§2023:11.10.3 SR4") + ")");
 
         // §2023:8.6.6 (:8821) "Functions and methods are always recursive" / §2023:9.4 (:12529) "a user defined
         // function always possesses the recursive attribute and may call itself" — implicit, never the

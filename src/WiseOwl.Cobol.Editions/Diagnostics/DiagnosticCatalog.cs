@@ -2015,7 +2015,9 @@ public static class DiagnosticCatalog
         + "figure, `PACKED-DECIMAL [ WITH NO SIGN ]`. §2023:13.18.60.4 general rule 11 gives it its meaning there "
         + "alone: \"If the WITH NO SIGN phrase is specified the representation of the data item in the storage of "
         + "the computer reserves no storage for representing any sign value.\"",
-        "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR11");
+        "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR11",
+        No1985Rule: "The WITH NO SIGN phrase of the USAGE clause is not in ANSI X3.23-1985, whose PACKED-DECIMAL (COMPUTATIONAL-3) has "
+            + "no such phrase, so there is no 1985 rule about the usages it may follow (kb/Work PB4950).");
     public static readonly DiagnosticDescriptor UsageEndiannessPhraseScope = new(
         "COBOL1716", "usage-endianness-phrase-scope", EditionSeverity.Error,
         "ISO §2023:13.18.60.2 general format: the endianness-phrase is written only with the standard floating-point "
@@ -8761,7 +8763,10 @@ public static class DiagnosticCatalog
         + "inline or exception-checking PERFORM statement.\" SR9: \"The EXIT statement with the SECTION phrase may be "
         + "specified only in a section.\" The method and function forms of the statement are likewise refused outside a "
         + "method definition and a function definition.",
-        "ISO §2023:14.9.14.3 SR7, SR8, SR9");
+        "ISO §2023:14.9.14.3 SR7, SR8, SR9",
+        No1985Rule: "ANSI X3.23-1985 has no function or method definition and no EXIT PERFORM or EXIT SECTION form: its EXIT statement "
+            + "is EXIT (§1985:VI.6.14) and EXIT PROGRAM (§1985:X.5.4), every Procedure Division is a program's, and it states no "
+            + "rule about where one of the 2002 forms may stand, so there is no 1985 rule to cite (kb/Work PB4950).");
 
     /// <summary>COBOL6002 — the placement of the predefined object references SELF and SUPER (kb/Work PB4463, review
     /// round 1 R1-1; split from COBOL0827, which is the EXIT statement's rule).</summary>

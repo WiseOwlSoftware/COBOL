@@ -164,7 +164,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.RefModOfRefMod,
                 $"'{display}' carries {refMods.Length} reference modifications; the result of a function cannot "
-                + "be reference-modified twice (ISO §2023:8.4.3.3.3 SR3). Compose the positions into one modifier.");
+                + $"be reference-modified twice (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.4.2", "§2023:8.4.3.3.3 SR3", "§2023:8.4.3.3.3 SR3")}). Compose the positions into one modifier.");
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         // §2023:8.4.3.2.3 SR6 was already decided by the caller, from the definition, before the call bound — the
@@ -811,7 +811,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, $"FUNCTION {sig.Name} takes "
                 + (sig.MinArgs == sig.MaxArgs ? $"{sig.MinArgs}" : sig.MaxArgs == int.MaxValue ? $"at least {sig.MinArgs}" : $"{sig.MinArgs}..{sig.MaxArgs}")
-                + $" argument(s); {given} given (ISO §2023:15.3)");
+                + $" argument(s); {given} given (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:15.3", "§2023:15.3")})");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} arity");
         }
 
