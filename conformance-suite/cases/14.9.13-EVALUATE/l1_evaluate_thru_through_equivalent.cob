@@ -10,9 +10,9 @@
       *> only in that one spelling of the range-expression word, so any
       *> difference between the two columns of a line is a violation.
       *> Range determination is NOT §2023:14.9.13.4's own: GR2 routes it to
-      *> §2023:14.7.8, THROUGH phrase.  §2023:14.7.8 1) fixes the NUMERIC range —
+      *> §2023:14.7.8, THROUGH phrase.  §2023:14.7.8 GR1 fixes the NUMERIC range —
       *> both endpoints and all algebraic values between — so 2 THRU 4
-      *> hits N=2,3,4 only, and THAT is a spec obligation.  §2023:14.7.8 2)
+      *> hits N=2,3,4 only, and THAT is a spec obligation.  §2023:14.7.8 GR2
       *> does not fix the alphanumeric one: with no IN alphabet-name
       *> phrase "the collating sequence is defined by the implementor".
       *> So "B" THRU "D" with W-A="C" is IMPLEMENTOR-DEFINED; this

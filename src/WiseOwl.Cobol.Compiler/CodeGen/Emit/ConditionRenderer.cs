@@ -179,7 +179,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// WHEN range (<see cref="Visit(BoundRangeMembership)"/>) and the level-88 VALUE … THRU range
     /// (<see cref="RenderMembershipTest"/>) are the same §2023:14.7.8 test, and §2023:8.8.4.5.3 GR2 compares a
     /// condition-name value by the relation-condition rules, so the two may not size a figurative end, or raise
-    /// rule 2's EC-RANGE-INVALID, by two different spellings (kb/Work PB1477: the 88 folded a figurative end to
+    /// §2023:14.7.8 GR2's EC-RANGE-INVALID, by two different spellings (kb/Work PB1477: the 88 folded a figurative end to
     /// the variable's DECLARED width while the EVALUATE range sized it at run time).
     /// <para><paramref name="checkInvalid"/> selects <c>ThruMember</c> / <c>ThruMemberFig</c>, which add exactly
     /// the §2023:14.7.8 GR2 EC-set; unchecked, the test is the inclusive bound pair the relation lowering produces

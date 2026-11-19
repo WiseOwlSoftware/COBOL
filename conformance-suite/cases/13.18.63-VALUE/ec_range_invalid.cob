@@ -6,7 +6,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-RANGE-INVALID (ISO §2023:14.7.8 THROUGH phrase rule 2, spec :24863; Table 13 Nonfatal): an alphanumeric or
+      *> EC-RANGE-INVALID (ISO §2023:14.7.8 GR2 (THROUGH phrase), spec :24863; Table 13 Nonfatal): an alphanumeric or
       *> national THRU range whose starting value collates AFTER its ending value (an inverted range) — in a level-88
       *> VALUE clause or an EVALUATE WHEN range — sets the nonfatal EC-RANGE-INVALID and the range is treated as EMPTY.
       *> A numeric descending range (rule 1) sets NO exception. Observed via FUNCTION EXCEPTION-STATUS under
