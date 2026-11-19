@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b data-name lane, first slice - the DEBUG-ITEM register names, the type-names, the CAPACITY register names and the index-names move into SymbolTable
+## Entry 3861 — 2026-11-19 12:36 PST — PB5932: the source listing, step 6b data-name lane, first slice - the DEBUG-ITEM register names, the type-names, the CAPACITY register names and the index-names move into SymbolTable
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands the first slice of
@@ -30,3 +30,4 @@ one host (IX113A 68.46 and 68.40 MB against 69.09 and 69.06; the benchmark READM
 **Also:** the inherited citation form `§2023:8.4.2.2.1 rule N`, which `cite.py` refuses, is `§2023:8.4.2.2.1 SRN` at 43 comment and
 document sites; the one in a diagnostic's text is filed as a lead. Every review lead of listing steps 2 to 7 was checked on this tree:
 each was fixed by slice 7 (#1888), which landed while this lane ran.
+
