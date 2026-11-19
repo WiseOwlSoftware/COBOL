@@ -184,6 +184,8 @@ internal static class BackendContract
             // the externalized names of a source element's REPOSITORY program-specifiers, which a CALL hands the program table
             // (ISO §2023:12.3.8.4 GR10; DataBindResult, kb/Work PB2361)
             "Model.ConfigurationFacts.ProgramSpecifierNames",
+            // the source file a statement is written in, where every backend places its sequence point (DESIGN-listing.md section 6.9)
+            "Bound.StatementSpan.File",
         ]),
         new(NeutralKind.DiagnosticText,
         [

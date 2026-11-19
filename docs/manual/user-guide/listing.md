@@ -25,7 +25,7 @@ compile is often the one most worth reading. A source file that does not exist h
 | `--listing [on\|off]` | write a listing (a bare `--listing` is `on`); default `on` at `--std 85`, `off` at the later editions |
 | `--listing-output <BASE>` | write the listing to `BASE.lst` (and `BASE.lst.json`); `-` writes it to standard output instead of a file, in the one format requested. Default: the output assembly's path without its extension |
 | `--listing-format text\|json` | a format to write: `text` is the paginated listing `BASE.lst`, `json` the JSON listing `BASE.lst.json` (below). Repeat it for both (`--listing-format text --listing-format json`); default `text`. With `--listing-output -` exactly one format may be named |
-| `--listing-sections <LIST>` | the sections to produce, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `data-map`, `standard` and `all` (below); default `standard`, which is every section but the data map |
+| `--listing-sections <LIST>` | the sections to produce, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `data-map`, `object-map`, `object-code`, `standard` and `all` (below); default `standard`, which is every section but the data map, the object-code map and the object code |
 | `--listing-page-length <N>` | lines per page, the four heading lines included (default 60); `0` paginates only where a page must start (below). At least 5 otherwise |
 | `--listing-page-width <N>` | columns per page, 100 to 255 (default 132) |
 
@@ -43,11 +43,14 @@ The listing is made of sections, each starting a page, in this order:
 | Program map | `programs` | every program, its kind, the listing lines it spans, and the programs nested in it; for each program the compiler bound, its COMMON, INITIAL, RECURSIVE and PROTOTYPE attributes, the name it is externalized as, and the .NET type it became |
 | Data map | `data-map` | every data item, condition-name, index-name, constant, report, CD and file of every program, class and method, in the order written, with its level, offset, length, usage, picture and the .NET field it became; and, in the source section, each data description line's offset, length and usage in the right margin |
 | Statistics | `statistics` | the lines by kind and by file, the programs, the statements, the diagnostics by severity, and each verb with its count and lines |
+| Object-code map | `object-map` | each COBOL statement's object code: the .NET method that holds it and its IL offset range, read from the assembly the compilation wrote and its PDB (below) |
+| Object code | `object-code` | under each COBOL statement, its IL instructions, decoded from the assembly (below) |
 | Diagnostics | `diagnostics` | the summary of every diagnostic; without this section no diagnostic is printed under its line either |
 
-`standard` names every section but the data map, and is the default; `all` names every section the compiler can produce, the
-data map included. Words combine: `--listing-sections source,statistics` writes those two. A section the compilation could not produce
-(the program map of a source that was not parsed, the data map of a program the compiler refused) prints its title and why. The JSON listing holds the same sections as the
+`standard` names every section but the data map, the object-code map and the object code, and is the default; `all` names every
+section the compiler can produce, those three included. Words combine: `--listing-sections source,statistics` writes those two. A
+section the compilation could not produce (the program map of a source that was not parsed, the data map of a program the compiler
+refused, the object code of a compilation that wrote no assembly) prints its title and why. The JSON listing holds the same sections as the
 text listing: a section not asked for is absent from both.
 
 The options section reads, for example:
@@ -321,8 +324,54 @@ With `--listing-output -` the one format requested goes to standard output, befo
 error). A `>>DISPLAY ... UPON LISTING` is in the listing itself; one `UPON CONSOLE` or `SYSOUT` follows the listing on
 standard output.
 
+## The object-code map and the object code
+
+Every compilation that writes an assembly also writes its debugging symbols beside it, as a portable PDB (`prog.pdb` beside
+`prog.dll`). The PDB holds one sequence point for each COBOL statement, at the line and column where the statement is written,
+in the source file or the library text that holds it (and one more at the verb for its code after a statement nested in it, such as
+an inline PERFORM's step and test); nothing else of the compiled program has one. So a .NET debugger stops once per COBOL statement
+and shows the COBOL source (twice, rarely, on a statement whose first code is a flag the compiler cannot show the optimizer keeps),
+and the listing reads each statement's object code back from the assembly and the
+PDB. Neither names generated source: the map is the same whichever back end compiled the program. The PDB names each file relative
+to the main source's directory (`prog.cob`, `lib/PAYREC.cpy`), so the same source compiles to the same assembly wherever it lies;
+point the debugger's source path at that directory if it does not find the files.
+
+The object-code map (`object-map`) lists the methods that hold the program's statements, each with its metadata token and IL size,
+then, in listing order, each statement's listing line and column, its method and its IL offset range:
+
+```text
+ASSEMBLY  out/prog.dll
+
+METHOD TOKEN        SIZE  NAME
+     1 0x06000005    321  Cobol.prog._PRG_PROG::__Dispatch
+
+  LINE  COL METHOD  IL RANGE
+     9   12      1  IL_0012-IL_0034
+    15   12      1  IL_0091-IL_00B1
+    15   12      1  IL_00E3-IL_011B
+    16   15      1  IL_00B1-IL_00E3
+```
+
+A statement's code runs from its sequence point to the next statement's. A statement with a statement nested in it has a second
+range for the code it runs after that statement: above, the inline `PERFORM VARYING` on line 15 has its initial setting before
+the `ADD` nested in it (line 16) and its step and test after it. A statement that compiles to no code (`CONTINUE`, a statement no
+execution reaches, a condition the compiler evaluated) has no range. A copybook copied twice holds each statement twice, and each
+copy's code is placed on its own block of lines.
+
+The object code (`object-code`) prints, for each range, the statement's line and then its IL instructions, ILDASM-style: each
+offset, the instruction and its operand (a number, a quoted string, a branch target, or the type, field or method a token names):
+
+```text
+     9   12  Cobol.prog._PRG_PROG::__Dispatch  IL_0012-IL_0034
+                        MOVE A TO B
+             IL_0012  ldarg.0
+             IL_0013  ldarg.0
+             IL_0014  ldfld        Cobol.prog._PRG_PROG::A
+```
+
+Both sections need an assembly: a check-only compilation, or one the compiler refused, prints why they are absent.
+
 ## Later additions
 
-The listing grows section by section: the data map, the cross-reference, the map from each COBOL statement to its object
-code, and a hyperlinked HTML form. Each joins `--listing-sections` with its builder, so `all` always names exactly the
-sections the compiler can produce.
+The listing grows section by section: the cross-reference and a hyperlinked HTML form. Each joins `--listing-sections` with its
+builder, so `all` always names exactly the sections the compiler can produce.

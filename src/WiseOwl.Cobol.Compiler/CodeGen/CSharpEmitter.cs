@@ -19,8 +19,10 @@ public sealed partial class CSharpEmitter
     /// half of the bind/emit split) — a fresh <see cref="ProgramEmitter"/> per call; the compilation carries
     /// everything emission needs (incl. the OO class table + interface forests), so the emit side reads NO
     /// bind-host state. Whether the module carries its units' signature attributes is the compilation's own fact
-    /// (<see cref="BoundCompilation.PublishesSignatures"/>, DESIGN-external-repository §9.1; kb/Work PB4319).</summary>
-    internal string EmitBound(BoundCompilation comp, string assemblySimpleName, WiseOwl.Cobol.Frontend.CompilationInputs? inputs = null)
-        => new ProgramEmitter(inputs).Emit(comp, assemblySimpleName);
+    /// (<see cref="BoundCompilation.PublishesSignatures"/>, DESIGN-external-repository §9.1; kb/Work PB4319). Each statement's line
+    /// directive names its file relative to <paramref name="documentRoot"/> (<see cref="BackendOptions.DocumentRoot"/>).</summary>
+    internal string EmitBound(BoundCompilation comp, string assemblySimpleName, WiseOwl.Cobol.Frontend.CompilationInputs? inputs = null,
+        string? documentRoot = null)
+        => new ProgramEmitter(inputs).Emit(comp, assemblySimpleName, documentRoot);
 
 }

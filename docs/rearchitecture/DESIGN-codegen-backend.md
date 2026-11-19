@@ -188,8 +188,10 @@ public enum BackendId { Roslyn, Cil }
 
 public sealed record BackendOptions(
     string OutputPath, string AssemblyName /* the output file's base name */, EditionInfo Edition,
-    bool EmitPdb = true, CompilationInputs? Inputs = null,
-    IReadOnlyList<string>? RepositoryReferences = null /* the external repository's assemblies the code names a type of */);
+    bool EmitPdb = true /* a portable PDB, one sequence point per COBOL statement (DESIGN-listing.md section 6.9) */,
+    CompilationInputs? Inputs = null,
+    IReadOnlyList<string>? RepositoryReferences = null /* the external repository's assemblies the code names a type of */,
+    string? DocumentRoot = null /* the directory the PDB names its documents relative to: the main source's */);
 
 /// A backend diagnostic is the front end's Diagnostic(Code, Severity, Message, SourceLocation? Location, Span): no Roslyn type
 /// crosses the seam (kb/Work PB4272, DESIGN-backend-abstraction §2.1), and one record serves every phase (DESIGN-listing.md

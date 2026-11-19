@@ -85,6 +85,8 @@ public static class ListingSections
         ListingSection.Options => "options",
         ListingSection.Statistics => "statistics",
         ListingSection.DataMap => "data-map",
+        ListingSection.ObjectMap => "object-map",
+        ListingSection.ObjectCode => "object-code",
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "not one listing section"),
     };
 

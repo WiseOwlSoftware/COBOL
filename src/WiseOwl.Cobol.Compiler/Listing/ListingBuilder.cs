@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Reflection;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Preprocessor;
 
 namespace WiseOwl.Cobol.Listing.Building;
@@ -9,7 +10,8 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// ⛔ THE ONE CONSTRUCTOR OF A <see cref="ListingDocument"/> (DESIGN-listing.md section 4.6). It reads only the collector
 /// (<see cref="ListingFacts"/>) and places every position through the one index (<see cref="ListingLineIndex"/>); each part
 /// has its own builder (<see cref="SourceSectionBuilder"/>, <see cref="ProgramRangeBuilder"/>, <see cref="DirectiveEffectsBuilder"/>,
-/// <see cref="ListingVisibility"/>, <see cref="DiagnosticSectionBuilder"/>, <see cref="StatisticsSectionBuilder"/>; the options
+/// <see cref="ListingVisibility"/>, <see cref="DiagnosticSectionBuilder"/>, <see cref="StatisticsSectionBuilder"/>,
+/// <see cref="DataMapBuilder"/>, <see cref="ObjectCodeMapBuilder"/>; the options
 /// rows come built, from the composition root's <c>OptionsSectionBuilder</c>).
 /// <para>The request's sections (<see cref="ListingRequest.Sections"/>) decide what the document HOLDS, never what is computed
 /// for the sections that are held: the lines are placed, decided and counted whether or not the source section is asked for,
@@ -33,6 +35,10 @@ internal static class ListingBuilder
         var files = fileIds.Select(f => new ListingFile(f.Value, f.Key, f.Value == 1 ? ListingFileRole.Source : ListingFileRole.Library,
             facts.Inputs.FileDigests.TryGetValue(Path.GetFullPath(f.Key), out var digest) ? digest
                 : throw new InvalidOperationException($"the compilation recorded no digest of '{f.Key}', which it read"))).ToList();
+        // Each listed file by its full path: what a PDB's document name and a backend diagnostic's file resolve to
+        // (SourceDocuments.PathOf; DESIGN-listing.md section 6.9). Two names of one file are one file, listed by the first.
+        var filesByFullPath = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (string file in fileIds.Keys) filesByFullPath.TryAdd(Path.GetFullPath(file), file);
 
         var drafts = SourceSectionBuilder.Build(frontend, inclusions, fileIds);
         var index = new ListingLineIndex(drafts, inclusions, frontend.SourcePath, frontend.LineMap);
@@ -53,7 +59,7 @@ internal static class ListingBuilder
         ListingVisibility.Apply(drafts, programs.Where(p => p.Depth == 0).Select(p => p.FirstLine),
             DirectiveEffectsBuilder.Build(frontend.Trace, inclusions, index, drafts));
         var displays = DirectiveEffectsBuilder.Displays(frontend.Trace, index);
-        var diagnostics = DiagnosticSectionBuilder.Build(facts.Diagnostics, frontend, index, fileIds, drafts);
+        var diagnostics = DiagnosticSectionBuilder.Build(facts.Diagnostics, frontend, index, fileIds, filesByFullPath, drafts);
         var wanted = facts.Request.Sections;
         // The symbol table's views (DESIGN-listing.md sections 6.5 and 6.6), when the bind finished it.
         var dataMap = wanted.Contains(ListingSection.DataMap) && facts.Symbols is { } symbols
@@ -64,6 +70,12 @@ internal static class ListingBuilder
             var attributes = DataMapBuilder.ProgramAttributesOf(table, index, frontend, drafts);
             programs = [.. programs.Select(p => attributes.TryGetValue(p.Id, out var a) ? p with { Attributes = a } : p)];
         }
+        // The object-code map (DESIGN-listing.md section 6.9), read from the assembly and its PDB only when a section asks for it.
+        var objectCode = ListingFacts.ReadsObjectCode(facts.Request) && facts.ObjectCode is (var assembly, string pdb)
+            ? ObjectCodeMapBuilder.Build(ObjectCodeMapReader.Read(assembly, pdb, wanted.Contains(ListingSection.ObjectCode),
+                    SourceDocuments.RootOf(frontend.SourcePath)), assembly,
+                index, frontend, filesByFullPath, inclusions)
+            : null;
         if (wanted.Contains(ListingSection.Diagnostics))
             foreach (var diagnostic in diagnostics)
                 if (diagnostic.Line is { } placed) drafts[placed - 1].AddDiagnostic(diagnostic.Id);
@@ -89,15 +101,28 @@ internal static class ListingBuilder
             wanted.Contains(ListingSection.Statistics)
                 ? StatisticsSectionBuilder.Build(lines, files, diagnostics, programs, units, index) : null,
             dataMap,
-            [.. wanted.Each().Select(section => StatusOf(section, units, facts.Symbols, outcome))]);
+            objectCode,
+            [.. wanted.Each().Select(section => StatusOf(section, units, facts.Symbols, facts.ObjectCode, outcome))]);
     }
 
     /// <summary>Whether <paramref name="section"/> could be produced (DESIGN-listing.md section 4.3): the source, diagnostics,
     /// options and statistics stand on the source text, which a listing always has; the program map stands on the parse, and the
-    /// data map on the finished symbol table, which only a bind that accepted the program makes.</summary>
+    /// data map on the finished symbol table, which only a bind that accepted the program makes; the object-code map and the object
+    /// code on the assembly and its PDB, which only a compilation that wrote them has.</summary>
     private static ListingSectionStatus StatusOf(ListingSection section, Frontend.SourceUnitFacts? units,
-        Symbols.SymbolTableSnapshot? symbols, ListingOutcome outcome) => section switch
+        Symbols.SymbolTableSnapshot? symbols, (string Assembly, string? Pdb)? objectCode, ListingOutcome outcome) => section switch
     {
+        ListingSection.ObjectMap or ListingSection.ObjectCode when objectCode is null => new(section, false, outcome switch
+        {
+            ListingOutcome.FrontendError => "the source was not parsed",
+            ListingOutcome.BindError => "the bind refused the program",
+            ListingOutcome.BackendError => "the backend produced no assembly",
+            ListingOutcome.OutputNotWritable => "the assembly was not written",
+            _ => "check-only compile: no code generated",
+        }),
+        ListingSection.ObjectMap or ListingSection.ObjectCode when objectCode is { Pdb: null } =>
+            new(section, false, "the backend wrote no PDB"),
+        ListingSection.ObjectMap or ListingSection.ObjectCode => new(section, true, null),
         ListingSection.Programs when units is null => new(section, false, "the source was not parsed"),
         ListingSection.DataMap when symbols is null => new(section, false, outcome switch
         {

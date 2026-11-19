@@ -76,6 +76,18 @@ internal sealed class ListingFacts(ListingRequest request, CompilationInputs inp
     /// the data map (DESIGN-listing.md section 9).</summary>
     public static bool ReadsNames(ListingRequest request) => request.Sections.Contains(ListingSection.DataMap);
 
+    /// <summary>The assembly the compilation wrote and its portable PDB (DESIGN-listing.md section 6.9), deposited once the backend wrote
+    /// them; null when no assembly was written (a failed compilation, a check-only compilation).</summary>
+    public (string Assembly, string? Pdb)? ObjectCode { get; private set; }
+
+    /// <summary>Deposit the assembly the backend wrote and its PDB, or null for an assembly written without one.</summary>
+    public void DepositObjectCode(string assembly, string? pdb) => ObjectCode = (assembly, pdb);
+
+    /// <summary>Whether a section the listing holds reads the assembly and its PDB: the object-code map and the object code
+    /// (DESIGN-listing.md section 9: the PDB is read only then).</summary>
+    public static bool ReadsObjectCode(ListingRequest request) =>
+        request.Sections.Contains(ListingSection.ObjectMap) || request.Sections.Contains(ListingSection.ObjectCode);
+
     /// <summary>The front end's listed pass, or null while no source text has been read.</summary>
     public FrontendFacts? Frontend { get; private set; }
 

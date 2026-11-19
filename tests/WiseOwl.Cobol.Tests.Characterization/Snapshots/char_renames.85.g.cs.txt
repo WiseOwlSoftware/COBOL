@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-RENAMES:CHAR-RENAMES" })]
 namespace Cobol.p;
 
@@ -56,9 +57,13 @@ internal sealed class _PRG_CHAR_RENAMES : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (12, 12) - (12, 34) 21 "char_renames.cob"
                     WS_REC.FromImage(CobolString.Store("PQRSTU", 6));
+#line (13, 12) - (13, 24) 21 "char_renames.cob"
                     global::System.Console.WriteLine((WS_REC.WS_A + WS_REC.WS_B));
+#line (14, 12) - (14, 19) 21 "char_renames.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

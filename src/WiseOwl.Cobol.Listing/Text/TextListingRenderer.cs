@@ -24,7 +24,8 @@ namespace WiseOwl.Cobol.Listing.Text;
 /// <c>DISPLAY: text</c> (<see cref="DisplayRows"/>; DESIGN-listing.md section 6.10).</para>
 /// <para>The sections are printed in <see cref="SectionOrder"/>, each starting a page (section 7.1). This class composes the pages
 /// and prints the source section and the diagnostics summary; each other section's rows are its own class's
-/// (<see cref="OptionsText"/>, <see cref="ProgramMapText"/>, <see cref="StatisticsText"/>), so a section added is a class added.</para>
+/// (<see cref="OptionsText"/>, <see cref="ProgramMapText"/>, <see cref="StatisticsText"/>, <see cref="DataMapText"/>,
+/// <see cref="ObjectCodeText"/>), so a section added is a class added.</para>
 /// </summary>
 public static class TextListingRenderer
 {
@@ -39,11 +40,11 @@ public static class TextListingRenderer
         + string.Concat(Enumerable.Range(1, TextWidth / 10).Select(n => "----+----" + (n % 10).ToString(CultureInfo.InvariantCulture)));
 
     /// <summary>The order the sections are printed in (DESIGN-listing.md section 7.1): options, source with inline diagnostics,
-    /// program map, data map, statistics and verbs, diagnostic summary. Every member of <see cref="ListingSection"/> once (the Unit
+    /// program map, data map, statistics and verbs, object-code map, object code, diagnostic summary. Every member of <see cref="ListingSection"/> once (the Unit
     /// assembly's <c>ListingSectionsTests.EverySection_HasOneSpelling_OneTitle_AndOnePlaceInTheTextOrder</c> holds it so).</summary>
     public static readonly IReadOnlyList<ListingSection> SectionOrder =
         [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.DataMap, ListingSection.Statistics,
-         ListingSection.Diagnostics];
+         ListingSection.ObjectMap, ListingSection.ObjectCode, ListingSection.Diagnostics];
 
     /// <summary>Render <paramref name="document"/> as the paginated text listing <paramref name="request"/> asks for: each section
     /// the document holds (<see cref="ListingDocument.Sections"/>), in <see cref="SectionOrder"/>, each starting a page; a section
@@ -81,6 +82,8 @@ public static class TextListingRenderer
         ListingSection.Options => "OPTIONS",
         ListingSection.Statistics => "STATISTICS",
         ListingSection.DataMap => "DATA MAP",
+        ListingSection.ObjectMap => "OBJECT MAP",
+        ListingSection.ObjectCode => "OBJECT CODE",
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no title"),
     };
 
@@ -94,6 +97,10 @@ public static class TextListingRenderer
         ListingSection.Diagnostics => SummaryRows(document, width),
         ListingSection.DataMap => document.DataMap is { } map ? DataMapText.Rows(map, width)
             : throw new InvalidOperationException("the data map section is produced but the document holds no data map"),
+        ListingSection.ObjectMap => document.ObjectCode is { } objectMap ? ObjectCodeText.MapRows(objectMap, width)
+            : throw new InvalidOperationException("the object-code map section is produced but the document holds no object-code map"),
+        ListingSection.ObjectCode => document.ObjectCode is { } objectCode ? ObjectCodeText.CodeRows(objectCode, document.Lines, width)
+            : throw new InvalidOperationException("the object-code section is produced but the document holds no object-code map"),
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section the text listing cannot print"),
     };
 

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 
 namespace WiseOwl.Cobol.Listing.Building;
@@ -9,9 +10,11 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// on the listing line it names through the one index (<see cref="ListingLineIndex.Place"/>), its column converted to a position
 /// of the line's listed text, and its citations read from its message by the one reader (<see cref="ListingCitation.Scan"/>).
 /// </summary>
-/// <remarks>A diagnostic whose location is no file the listing lists (a diagnostic about the compilation as a whole; before step 8
-/// of the design, a backend diagnostic of the generated C#) is placed on no line and names no file, so the listing never names
-/// generated source; the summary lists it. A diagnostic on a line the listing does not print (one suppressed by a LISTING
+/// <remarks>A diagnostic names its file as the compilation read it (a front-end or bind diagnostic) or by its full path (a backend's
+/// diagnostic on a line mapped to a COBOL statement, DESIGN-listing.md section 6.9); either finds its listed file, the second through
+/// the listing's files by full path (<c>ListingBuilder</c>). A diagnostic whose location is no file the listing lists (a diagnostic about
+/// the compilation as a whole; a backend diagnostic of code no statement owns) is placed on no line and names no file, so the listing
+/// never names generated source; the summary lists it. A diagnostic on a line the listing does not print (one suppressed by a LISTING
 /// directive) keeps its line: the summary names it, and the source section prints only the lines it prints.</remarks>
 internal static class DiagnosticSectionBuilder
 {
@@ -19,15 +22,16 @@ internal static class DiagnosticSectionBuilder
     /// report order), each id its 1-based place in that order. The builder writes each line's ids to its draft
     /// (<see cref="LineDraft.AddDiagnostic"/>) when the diagnostics section is asked for.</summary>
     public static List<ListingDiagnostic> Build(IReadOnlyList<Diagnostic> reported, FrontendFacts frontend, ListingLineIndex index,
-        IReadOnlyDictionary<string, int> fileIds, IReadOnlyList<LineDraft> drafts)
+        IReadOnlyDictionary<string, int> fileIds, IReadOnlyDictionary<string, string> filesByFullPath, IReadOnlyList<LineDraft> drafts)
     {
         var placed = new List<(int? Line, int Column, int Order, Diagnostic Diagnostic)>(reported.Count);
         for (int order = 0; order < reported.Count; order++)
         {
             var d = reported[order];
-            int? line = d.Location is { } at && fileIds.ContainsKey(at.FileName) ? index.Place(at) : null;
-            int column = line is not null && frontend.Formats.TryGetValue(d.Location!.Value.FileName, out var map)
-                ? map.ExpandedIndexAt(d.Location.Value.Line + 1, d.Location.Value.Column) + 1
+            var at = d.Location is { } location ? Listed(location, fileIds, filesByFullPath) : null;
+            int? line = at is { } listed ? index.Place(listed) : null;
+            int column = line is not null && frontend.Formats.TryGetValue(at!.Value.FileName, out var map)
+                ? map.ExpandedIndexAt(at.Value.Line + 1, at.Value.Column) + 1
                 : (d.Location?.Column ?? 0) + 1;
             placed.Add((line, column, order, d));
         }
@@ -41,6 +45,16 @@ internal static class DiagnosticSectionBuilder
                 draft is null ? null : column, ListingCitation.Scan(d.Message)));
         }
         return diagnostics;
+    }
+
+    /// <summary><paramref name="at"/> naming its file as the listing lists it: as it stands when the listing lists that name, else by its
+    /// full path; null when the listing lists no such file.</summary>
+    private static SourceLocation? Listed(SourceLocation at, IReadOnlyDictionary<string, int> fileIds,
+        IReadOnlyDictionary<string, string> filesByFullPath)
+    {
+        if (fileIds.ContainsKey(at.FileName)) return at;
+        if (at.FileName.Length == 0 || !filesByFullPath.TryGetValue(Path.GetFullPath(at.FileName), out string? listed)) return null;
+        return new SourceLocation(listed, at.Position, at.Line, at.Column);
     }
 
     /// <summary>The listing's severity of a compiler severity: every member by its own name (the Unit assembly's

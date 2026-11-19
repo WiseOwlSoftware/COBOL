@@ -6,10 +6,12 @@
 > branch `listing-step-4a`); STEP 4b BUILT (the hooks witnessed at 2002 and 2014, branch `listing-step-4b`); STEP 5 BUILT (the
 > options, the program map, the statistics and verbs, `--listing-sections`, branch `listing-step-5`); STEP 6 BUILT (the
 > finished symbol table, the data map and file map, the program attributes and the margin, branch `listing-step-6`); STEP 7a
-> BUILT (every name slot of the grammar labelled and held by `GrammarNameSlotDriftTests`, branch `listing-step-7`); steps 6b
-> (the one store of names, kb/Work PB5932), 7b (the occurrences and the cross-reference, which stand on 6b) and 8 to 9 not yet
-> built.** Where building a step proved this document wrong it was corrected in the same change; each correction is marked
-> "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)", "(step 6)" or "(step 7a)" in the section it changed.
+> BUILT (every name slot of the grammar labelled and held by `GrammarNameSlotDriftTests`, branch `listing-step-7`); STEP 8 BUILT
+> (one sequence point per COBOL statement and a portable PDB from the Roslyn backend, the object-code map and the object code read
+> from the assembly and its PDB, branch `listing-step-8`); steps 6b (the one store of names, kb/Work PB5932), 7b (the occurrences
+> and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
+> corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
+> "(step 6)", "(step 7a)" or "(step 8)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -142,7 +144,7 @@ The design names the structures each part reads. Every claim is from the tree at
 | Offsets and lengths | `RecordLayout.OffsetInRootWithEveryIndexOne`, `RecordLayout.FirstOccurrenceOffsetOf`, `RecordLayout.OccupiedBytes`, `ItemLength.Positions` |
 | Data references of a statement | `BoundReferences.Of` returns `Reach` (the `Place`s a bound statement references, in source order) and a `Place` carries NO source position; `BoundStores.StoreKindOf(BoundStatement, DataItem)` answers per ITEM per statement (`StoreKind.Write`, `ReadWrite`, `WriteInPart`), not per occurrence; a written name reaches its symbol along many paths (section 6.7.2), none of which records the use: `ReferenceResolver.ResolveImpl` is one of them, not a funnel every reference passes |
 | Statement position | `BoundStatement.At` (a resultant `DiagnosticCursor`, stamped by `StatementBinder.BindStatement`) |
-| The object code | The backend behind the `ICodeGenBackend` seam writes the assembly; today's Roslyn backend (`RoslynBackend.Emit`, `RoslynBackend.Compile`) emits no PDB and no `#line` directive, and DESIGN.md plans a CIL backend behind the same seam. The listing reads neither backend's internals: it reads the produced assembly and its portable PDB (section 6.9) |
+| The object code | The backend behind the `ICodeGenBackend` seam writes the assembly; (before step 8) today's Roslyn backend (`RoslynBackend.Emit`, `RoslynBackend.Compile`) emitted no PDB and no `#line` directive, and DESIGN.md plans a CIL backend behind the same seam. (Step 8:) it writes `<out>.pdb` with one sequence point per COBOL statement at `BoundStatement.Span`. The listing reads neither backend's internals: it reads the produced assembly and its portable PDB (section 6.9) |
 | The compile timestamp | `IntrinsicBinder.CompileClock` (the clock seam), read through `CompilationInputs.ReadCompilationTime`, captured lazily once per emit in `ProgramEmitter._whenCompiledStamp` and baked as WHEN-COMPILED's constant (`IntrinsicRenderer`); `CompilationInputs.ReadsCompilationTime` records that the output depends on it. CURRENT-DATE reads the run-time clock (`WiseOwl.Cobol.Runtime.IO.Clock`), not the compile timestamp |
 | The CLI | `Program.BuildParser` (System.CommandLine options), `CliOptions`, `Program.RunCompile`; the library entry `CompilerDriver.Compile(CompilerDriver.Options)` returns `CompilerDriver.Result` on every outcome |
 
@@ -247,8 +249,8 @@ public sealed record ListingDocument(
     ListingObjectCodeMap? ObjectCode,             // from the assembly and its PDB (section 6.9)
     IReadOnlyList<ListingSectionStatus> Sections); // each requested section: produced, or why not
 // (Step 1 builds Header, Files, Inclusions, Lines, Programs and Sections; step 3 Diagnostics and ListingLine.Diagnostics;
-// step 4a Displays, ListingInclusion.Suppress and ListingReplacement.Replacing; step 5 Options and Statistics; each later
-// step adds its members.)
+// step 4a Displays, ListingInclusion.Suppress and ListingReplacement.Replacing; step 5 Options and Statistics; step 6 DataMap;
+// step 8 ObjectCode; each later step adds its members.)
 
 public sealed record ListingLine(
     int Number,                 // the listing line number, 1-based, unique in the document
@@ -347,7 +349,7 @@ beside the positional ones so a reader sees the version the file was WRITTEN at,
 | `Displays` | `CompileOutputLine` with destination Listing and its origin | Text stages | The source was read |
 | `DataMap` | the symbol table snapshot's entries and their attributes (section 6.6); (step 6) `DataMapBuilder`, and the margin by `LineAnnotationBuilder` | Bind | (step 6) The bind finished with no error: a refused program's sizes are not a compiled program's, so the section says `the bind refused the program` (`the source was not parsed` after a front-end error) |
 | `CrossReference`, `Line.Names`, `Line.Margin` | the symbol table snapshot's entries and occurrences (section 6.7.1) | Bind | The bind finished |
-| `ObjectCode` | the produced assembly and its portable PDB, read with `System.Reflection.Metadata` (section 6.9) | After the backend | An assembly was written |
+| `ObjectCode` | the produced assembly and its portable PDB, read with `System.Reflection.Metadata` (section 6.9); (step 8) deposited by the driver as plain paths (`ListingFacts.DepositObjectCode`) once the backend wrote them, and read only when `object-map` or `object-code` is asked for (`ListingFacts.ReadsObjectCode`) | After the backend | An assembly was written: otherwise the section says `check-only compile: no code generated`, `the source was not parsed`, `the bind refused the program`, `the backend produced no assembly` or `the assembly was not written`, and `the backend wrote no PDB` for an assembly written without one |
 | `Options`, `Header` | `CompilerDriver.Options`, the compilation timestamp; (step 5) the options rows are built by `OptionsSectionBuilder` in the composition root and deposited as plain values (`ListingFacts.Options`, section 6.4) | Driver | Always |
 | `Statistics` (step 5) | the finished lines, the diagnostics, the programs and `SourceUnitFacts.Statements` (`StatisticsSectionBuilder`, section 6.8) | Listing build | The source was read; the verbs once it was parsed |
 
@@ -1276,6 +1278,107 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   builder as the front end's `Diagnostic`, which (step 3) is the seam's own diagnostic type (section 6.3). The Roslyn backend's `#line` writing lives in
   `WiseOwl.Cobol.CodeGen`, behind the seam; the listing never sees it.
 
+**As built (step 8), with the corrections the code proved:**
+
+- **Where a statement is written is a fact of the bound tree (correction).** "From `BoundStatement.At` through the source map"
+  inside the backend would hand the backend the front end's line map, which the seam keeps from it (`BoundCompilation` carries
+  no parse context, kb/Work PB2398), and the end of a statement is not in `At` at all. So `StatementBinder.BindStatement`, the one
+  funnel every statement passes through, stamps `BoundStatement.Span` (`StatementSpan`: the physical file, the 1-based line and
+  column of the first character, of the position after the last, and of the position after the verb) on the OUTERMOST node it
+  returns, from the statement's own first and last tokens through the one resultant-to-physical mapping. Read from `s.Start`, not
+  from the node's `At`: a wrapper the funnel adds after the verb binder (`BoundActivationSite`) has no `At`, and the first build,
+  which read it, left every MOVE with a sending-value temporary unmapped. A node the binder synthesised and a statement of a
+  skeleton read from the repository have no span; both backends read the same span.
+- **One sequence point per statement, and no other (correction of the granularity).** A `#line` before each statement's C# maps
+  every following line by line delta, so a statement compiled to several lines, two statements on one line and a lambda's body
+  gave points at columns no statement begins at, and a debugger stopped several times on one statement. `CodeWriter` therefore
+  writes `#line hidden` once after the file's header (`HideUnmappedLines`, called by `ProgramEmitter.Emit`) and, while a statement
+  is open (`MapStatement`, called by `StatementEmitter.EmitStatement`), writes the span form `#line (line, column) - (endLine,
+  endColumn) offset "file"` only before the statement's first line whose code Roslyn gives a sequence point in an optimized build
+  (`CodeWriter.FirstSequencePoint`, read with Roslyn's own parser: an expression statement, a jump, an if, while, switch, lock or
+  using header, a for statement's declaration, a declaration whose initializer is not a constant; a line that continues a
+  statement an earlier line began, `else if (...)`, `else x = y;`, a catch clause, `} while (...);`, a switch section, parsed inside
+  the head that makes it a statement and read as that clause, `CodeWriter.Continuation`), with `offset` the column that code
+  starts at; whatever follows that code on the line (a second statement, the body of a lambda, an arm of a switch
+  expression) is moved onto a hidden line of its own; every other line is hidden. A statement nested in another maps its own
+  first line; the enclosing statement's next code after it (an inline PERFORM's step and test after its body) takes ONE more
+  point at the same position, spanning only the verb, so that code is the PERFORM's and not the nested ADD's. (Correction, review
+  round 1:) that code is often on a line the line alone does not show to be code: an EVALUATE's second WHEN is an `else if (...)`
+  after the first WHEN's body, which the first reading took for no statement, so its test fell into the first WHEN's range; and
+  the brace that ends a try, catch, finally, lock or using block is a point of an optimized build (the leave, the release, the
+  dispose) that no reading of the line `}` can tell from an if's. The continuation reading takes the first; the writer keeps the
+  blocks its lines opened (`CodeWriter.ClosingPoint`) for the second. Both are held to what Roslyn writes, read back from a PDB
+  of its own compilation (`CodeWriterTests`), and the EVALUATE on a real compilation (`ListingObjectCodeTests`). (Correction,
+  review round 2:) the first reading also hid a line whose code is not certain, a local declared with a constant (an ADD ON SIZE
+  ERROR's `bool __sizeErr0 = false;`, a CALL ON EXCEPTION's `bool __callErr0 = false;`, a PERFORM n TIMES's count), because an
+  optimized build drops that store when nothing reads the local, and its point with it; but when the build keeps it, the store is
+  code before the statement's first point, and it fell into the range of the statement before (an EVALUATE's last WHEN, a STRING's
+  ON OVERFLOW DISPLAY). Roslyn keeps one sequence point per IL offset, the last one written, so the writer now gives such a line
+  (`CodeWriter.PointOf`, `LinePoint.Droppable`) the statement's span too, and again the statement's next line that certainly carries
+  a point: if the store was dropped, the second point stands alone at the same offset; if it was kept, both stand. At the statement's
+  end the writer settles the pair (`CodeWriter.Settle`): when it can show the store kept (`CodeWriter.Kept`: the local is read, and
+  used where the evaluation stack cannot carry it, inside a try, catch or finally block, a lambda or local function, an if's body or
+  a switch section, or a loop, or passed by reference; Roslyn drops a store only of a local nothing reads or one it keeps on the
+  stack), the second directive becomes `#line hidden` and a debugger stops once. When it cannot show it, both points stay and a
+  debugger stops twice on that statement, at its span, the price of never giving its first code to the statement before it; the
+  ON SIZE ERROR and ON EXCEPTION flags and an n TIMES count are shown kept whenever the code reads them. The writer's reading is held to Roslyn's PDB on each shape (kept
+  and shown, kept and not shown, dropped, after a nested statement), and the ADD and CALL on a real compilation
+  (`ListingObjectCodeTests.AStatementsFlagStore_IsInItsOwnRange_NotThePreviousStatements`). Text captured for
+  an expression (`CodeWriter.CaptureText`) carries no directive. The file in a directive is named by the one decider
+  `SourceDocuments.NameOf`, relative to the document root (next item); a path holding a quotation mark or a line end, which a
+  directive cannot spell, keeps its points under the name with each replaced by `_`.
+- **The PDB** is written by `RoslynBackend.Compile` in the same emit as the assembly, to a temporary of its own renamed after the
+  assembly (`OutputFileProtocol`), portable and deterministic, named in the assembly by its file name alone so the assembly's
+  bytes do not depend on its directory. (Correction:) it names each source document RELATIVE to the main source's directory with
+  '/' (`BackendOptions.DocumentRoot`, which the driver sets from `SourceDocuments.RootOf`; `SourceDocuments.NameOf`): the PE names its PDB by a hash of the
+  PDB's content, so full paths made identical source compiled in two directories two different assemblies, which the repository's
+  byte-identity tests refuse (`RepositoryReaderTests.TwoCompilesOfOneGroup_WriteByteIdenticalModules`, the expansion assembly's
+  determinism across groups and directories). Every reader resolves a name against the same root by the one decider
+  (`SourceDocuments.PathOf`): the listing's map reader, a backend diagnostic, the tests; a debugger finds the
+  files from the main source's directory (or its source search path). An expansion's own compilation writes its text under the
+  expansion's name in a folder of its own (`ExpansionAssemblies.Write`), so its document name is a function of the expansion too; `BackendOptions.EmitPdb` (true by default, no longer reserved) decides it, and it is in
+  `BackendArtifact.OutputFiles`, so the compiled-program cache keeps it beside the assembly. It is written for every compilation
+  (it is the debugger's), and read only for a listing that asks (section 9).
+- **What compiles to no code has no range.** CONTINUE, a plain EXIT, a USE statement, a NEXT SENTENCE at a sentence's end, a
+  statement the backend drops because no execution reaches it, a CORRESPONDING statement with no pair, and an IF, EVALUATE or
+  inline PERFORM whose condition the C# compiler folds to a constant (`if (4L == 4L)`) compile to no IL of their own, so they have
+  no point and no range. The map is the truth of the assembly.
+- **The model.** `ListingObjectCodeMap(Assembly, Methods, Ranges)`, `ListingMethod(Id, Token, Type, Name, CodeSize)`,
+  `ListingObjectRange(Line, Column, Method, Start, End, Instructions)`, `ListingInstruction(Offset, OpCode, Operand)`. Two
+  sections, as section 8's word list has them: `object-map` (`ListingSection.ObjectMap`, the ranges) and `object-code`
+  (`ListingSection.ObjectCode`, the ranges with their instructions); both in `all`, neither in `standard` (section 13 item 1).
+  `ObjectCodeMapReader` reads the methods and every visible sequence point with its stretch (to the method's next visible point:
+  a hidden point, the code the backend writes between statements, does not end one), `IlDisassembler` decodes the stretch (the
+  instruction set is the runtime's own table, `System.Reflection.Emit.OpCodes`; operands named by `MetadataNames`, ECMA-335's
+  `Type::Member`), and `ObjectCodeMapBuilder` places each point on its listing line. A copybook copied twice: the points of one
+  position are told apart by their span (a statement's first point spans the statement, its later ones only the verb), the first
+  points paired in compiled order with the listing lines of that position in listing order, each later point going with the first
+  point before it. (Correction, review round 2:) a statement can hold two first points (the previous item), and each copy compiles
+  to the same code, so when the first points divide evenly among the lines each line takes an equal share in order; when they do
+  not, the k-th first point goes to the k-th line and every later one to the last. The text
+  is `ObjectCodeText.MapRows` and `ObjectCodeText.CodeRows`.
+- **Backend diagnostics through COBOL positions.** A Roslyn diagnostic on a statement's mapped line carries the COBOL file, line
+  and column. (Correction, review round 1:) the mapped file is the directive's document name, relative to the document root, which
+  no file of the listing is called and which names a file relative to the source's directory rather than the user's; so
+  `RoslynBackend.Neutral` resolves it to the file's full path (`SourceDocuments.PathOf` against `BackendOptions.DocumentRoot`),
+  and `DiagnosticSectionBuilder` finds a diagnostic's file by the name the compilation read it by or, failing that, by its full
+  path (the listing's files by full path, which `ObjectCodeMapBuilder` reads too), so it is placed on its listing line
+  (`BackendDiagnosticPlacementTests`: a source by its full path, a copybook in a sibling directory). One on a hidden line carries
+  the generated file's position and is in the summary only (section 6.3).
+- **`SequencePointCoverageDriftTests` (correction: Unit, over the NIST corpus).** "Every conformance-suite program" would compile
+  ten thousand programs once more with a listing for the parse's statements, and a listing compilation is never stored by the
+  compiled-program cache (it reads the clock), so every gate would pay it again; and the backend factory is internal. The test
+  is in the Unit assembly, which builds the driver's front end (`CompilerDriver.NewFrontend`), and its corpus is every NIST program
+  the golden run compiles (the green and divergent rows of `tests/nist/corpus.tsv`, 374 programs, every verb of every 1985
+  module, about a minute): each statement the PARSE built has a visible point at its position, and every visible point is at a
+  statement's position, the points read from the PDB in the test. Exempt, and nothing else: the statements the standard gives no
+  code (CONTINUE, EXIT, USE, NEXT SENTENCE), a statement after a GO TO, STOP, EXIT, GOBACK or NEXT SENTENCE in its paragraph's
+  order, a statement after (or being) an IF or PERFORM whose condition the backend's source shows as a constant, and a
+  MOVE, ADD or SUBTRACT CORRESPONDING read by its own phrase, the word after its verb (correction, review round 1: the first test
+  exempted every statement whose text held CORR, every move to the NIST programs' CORRECT-A among them); each exemption is sound (it leaves a statement unasked, never asks a wrong one). It runs against the
+  backend the driver compiles with, the only one the factory offers. Shown able to fail: a span withheld from MOVE (431 statements
+  of NC101A without a point) and `HideUnmappedLines` removed are each red.
+
 ### 6.10 DISPLAY directive output (2023)
 
 Each `>>DISPLAY` transfer to the listing prints at its directive as `DISPLAY: <text>`, always listed (§2023:7.3.12.4
@@ -1406,8 +1509,8 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
 `CompileStateDriftTests` classifies it as an output selection.
 (Step 5:) `--listing-sections` takes one value, a comma list of section words, `standard` and `all` (each word trimmed, case
 ignored, the union of the words), read by `ListingSections.TryParse`; an empty or unknown word is an argument error. It
-accepts the sections built so far (`source`, `programs`, `diagnostics`, `options`, `statistics`, and (step 6) `data-map`); `xref`,
-`object-map` and `object-code` join with steps 6 to 8, each with its builder, as `html` joins `--listing-format` with its
+accepts the sections built so far (`source`, `programs`, `diagnostics`, `options`, `statistics`, (step 6) `data-map`, and (step 8)
+`object-map` and `object-code`); `xref` joins with step 7b, with its builder, as `html` joins `--listing-format` with its
 renderer. Naming it asks for a listing at any edition.
 
 ## 9. Performance budget
@@ -1428,8 +1531,9 @@ renderer. Naming it asks for a listing at any edition.
   and `TextStageTrace.None`'s recording methods THROW: a call site that forgets the question fails every compilation of a
   COPY statement without a listing, the no-work drift test's own program first.
 - **Budgets, measured.** No listing: compile time within the run-to-run noise of the parent commit, and allocated bytes
-  per compile no more than the parent's plus the line-kind arrays (one byte per physical line read) and (step 7a) the
-  name-slot label fields (one reference field per label in each parse-tree context of its rule, section 6.7.1). Standard text
+  per compile no more than the parent's plus the line-kind arrays (one byte per physical line read), (step 7a) the
+  name-slot label fields (one reference field per label in each parse-tree context of its rule, section 6.7.1) and (step 8) the
+  backend's sequence points: a line directive pair per statement and the portable PDB (section 6.9). Standard text
   listing: at most 10 % over the no-listing compile. Every section in every format: at most 25 %.
 - **The harness.** `tests/WiseOwl.Cobol.Benchmarks/Compile/CompileBenchmarks.cs` (BenchmarkDotNet, Release, run by
   `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*`) gains, in step 1,
@@ -1478,6 +1582,13 @@ renderer. Naming it asks for a listing at any edition.
   they are a fact the design records for every compilation so the listing can be exact (section 6.7.1's oracle reads each
   slot's class from its label), so the budget now names them. Labels are plain fields, never list labels, for this reason
   (section 6.7.1).
+  (Step 8:) step 8 changes every compilation: the Roslyn backend writes a line directive pair per statement and a portable PDB
+  (section 6.9), which the design decided for every compilation (a debugger needs them with no listing asked). Measured against the
+  parent on a full compile (the benchmark README's step-8 table): `None` allocates +3.4 to +18.4 MB (+8.9 to +17.1 %) more, most of
+  it Roslyn's handling of the directives and the rest the PDB (probe runs with each switched off); so the `None` budget now names
+  the sequence-point directives and the PDB beside the line-kind arrays and the label fields. The standard text listing is +0.8 to
+  +9.7 % over `None`, inside its 10 %. The `All` row, now holding the object code (every statement's IL), is +35.5 to +38.6 % over
+  `None`, over its 25 %: kb/Work PB5941, filed before the step lands.
 
 ## 10. Test plan
 
@@ -1523,7 +1634,10 @@ captured listing.
    columns, `ADD WS-A` / `TO WS-B` on two lines puts each use on its own line, and `MOVE WS-X (WS-X) TO WS-X` yields two
    reads and one write (section 6.7.1); a line's `Margin` and `Names` equal what the data map and cross-reference say of
    that line, and the text margin and the HTML links render exactly them; object-code map: each statement's method and IL
-   range equal what the PDB's sequence points say, read independently in the test with `System.Reflection.Metadata`.
+   range equal what the PDB's sequence points say, read independently in the test with `System.Reflection.Metadata` (step 8:
+   `ListingObjectCodeTests`, Conformance: each statement of the test's own source at its line and column, the PERFORM's second
+   range, a copybook copied twice placed per block, the instructions, the statuses without an assembly; `IlDisassemblerTests`,
+   Unit: every operand form against ECMA-335 partition III; `ListingSectionRenderingTests`' object-code rows).
 5. **Schema.** The generated schema equals the committed file (a preflight class, since a red one means a stale derived
    file); every document the tests produce round-trips through the contract (`ListingJson`) with no unknown property.
    (Step 2:) `ListingJsonSchemaDriftTests` (Unit: the schema equals the committed file and the embedded resource, every
@@ -1697,10 +1811,12 @@ the completeness oracle and the pairing test green. Then `CrossReferenceBuilder`
 occurrences), the PERFORM and CALL graphs, `LineAnnotationBuilder`'s `ListingLine.Names` and statement-line `Margin`;
 the `All` row.
 
-**Step 8 - COBOL to object-code map.** Inside the Roslyn backend, behind the seam: the `#line` directives written by
-`StatementEmitter.EmitStatement` and the portable PDB (`RoslynBackend.Compile`'s `EmitOptions`). In the listing:
-`ObjectCodeMapReader`, `IlDisassembler`, `ObjectCodeMapBuilder`; `SequencePointCoverageDriftTests`,
-`ListingBackendNeutralityDriftTests`; backend diagnostics placed through their COBOL positions; the `All` row.
+**Step 8 - COBOL to object-code map. BUILT (branch `listing-step-8`; the corrections above marked "step 8").** Inside the Roslyn
+backend, behind the seam: the `#line` directives written by `StatementEmitter.EmitStatement` through `CodeWriter.MapStatement` and the
+portable PDB (`RoslynBackend.Compile`'s `EmitOptions`), from `BoundStatement.Span`. In the listing:
+`ObjectCodeMapReader`, `IlDisassembler`, `MetadataNames`, `ObjectCodeMapBuilder`, `ObjectCodeText`, the sections `object-map` and
+`object-code`; `SequencePointCoverageDriftTests`, `ListingBackendNeutralityDriftTests`; backend diagnostics placed through their
+COBOL positions; the `All` row.
 
 **Step 9 - HTML.** `HtmlListingRenderer`, reading `ListingLine.Names` and the cross-reference only; the `All` row with HTML.
 
@@ -1728,7 +1844,7 @@ and derivations PB5923 and section 10 name; `docs/manual/user-guide/command-line
    a message is already checked by `audit_code_citations.py`, so the text the reader parses is a valid citation.
 4. **COBOL source-level debugging (`#line` and a portable PDB).** DECIDED by the owner's ruling of 2026-11-18: both
    backends emit sequence points at COBOL statement granularity and a portable PDB, because the object-code map reads
-   them (section 6.9). A .NET debugger steps through COBOL source as a consequence.
+   them (section 6.9). A .NET debugger steps through COBOL source as a consequence. (Step 8:) built for the Roslyn backend.
 5. **Omitted lines shown or hidden.** Recommendation: shown and marked 'X' (IBM's default NOSKIPSRC); add
    `--listing-omitted hide` only if a user asks.
 6. **Publishing the schema at a URL.** Publishing is the owner's (CLAUDE.md, "Still the owner's"). Recommendation: the URN

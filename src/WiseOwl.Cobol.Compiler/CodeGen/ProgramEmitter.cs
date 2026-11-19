@@ -75,7 +75,7 @@ internal sealed class ProgramEmitter
     /// <param name="assemblySimpleName">The emitted assembly's simple name: every emitted type lives in its
     /// one-segment namespace <c>Cobol.&lt;S&gt;</c> (<see cref="CsNames.ModuleNamespaceOf"/>; DESIGN-external-repository
     /// §2023:4.5).</param>
-    internal string Emit(BoundCompilation comp, string assemblySimpleName)
+    internal string Emit(BoundCompilation comp, string assemblySimpleName, string? documentRoot = null)
     {
         _ecState.Active = comp.EcActive;
         _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.InterfaceRecords, comp.OoAdapters,
@@ -90,6 +90,9 @@ internal sealed class ProgramEmitter
         w.Line("// </auto-generated>");
         w.Line("#nullable enable");
         w.Line("#pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to");
+        // DESIGN-listing.md section 6.9: every line but a statement's first line of code is hidden from a debugger and from the PDB, so
+        // the program's sequence points are its COBOL statements' (StatementEmitter.EmitStatement maps each).
+        w.HideUnmappedLines(documentRoot);
         // The module's namespace and its record (DESIGN-external-repository §4.5, §6.2; kb/Work PB2097). Every emitted
         // type lives in Cobol.<S>, and every name outside it is global::-rooted: the using directives sit INSIDE the
         // namespace and name their namespaces from global::, so a simple name such as CobolNum finds the runtime's type

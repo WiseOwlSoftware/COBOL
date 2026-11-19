@@ -49,7 +49,7 @@ public sealed class ListingSectionRenderingTests
     }
 
     private static ListingDocument Document(IReadOnlyList<ListingSectionStatus> sections, ListingStatistics? statistics = null,
-        IReadOnlyList<ListingOption>? options = null, ListingDataMap? dataMap = null) => new(
+        IReadOnlyList<ListingOption>? options = null, ListingDataMap? dataMap = null, ListingObjectCodeMap? objectCode = null) => new(
         new ListingHeader("30.0.0", 2023, "ISO/IEC 1989:2023", Instant, "/src/p.cob", ListingOutcome.Success, ListingParse.Parsed),
         [new ListingFile(1, "/src/p.cob", ListingFileRole.Source, "00"), new ListingFile(2, "/src/lib/REC.cpy", ListingFileRole.Library, "00")],
         [new ListingInclusion(1, null, 1, 3, 3, "REC", null, 2, ListingInclusionOutcome.Found, false)],
@@ -62,6 +62,7 @@ public sealed class ListingSectionRenderingTests
                     new ListingOption("compiler", "30.0.0", ListingOptionOrigin.Host)],
         statistics,
         dataMap,
+        objectCode,
         sections);
 
     private static ListingStatistics Statistics(ListingParseStatistics? parse) => new(
@@ -81,12 +82,50 @@ public sealed class ListingSectionRenderingTests
     {
         var document = Document([.. Enum.GetValues<ListingSection>().Select(Produced)],
             Statistics(new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [1, 6]), new ListingVerb("STOP", 1, [6])])),
-            dataMap: new ListingDataMap([], []));
+            dataMap: new ListingDataMap([], []), objectCode: new ListingObjectCodeMap("p.dll", [], []));
         string[] pages = TextListingRenderer.Render(document, new ListingRequest()).Split(PageComposer.FormFeed);
-        Assert.Equal(["OPTIONS", "SOURCE  /src/p.cob", "PROGRAMS", "DATA MAP", "STATISTICS", "DIAGNOSTICS"], pages.Select(p => p.Split('\n')[1]));
+        Assert.Equal(["OPTIONS", "SOURCE  /src/p.cob", "PROGRAMS", "DATA MAP", "STATISTICS", "OBJECT MAP", "OBJECT CODE", "DIAGNOSTICS"],
+            pages.Select(p => p.Split('\n')[1]));
         Assert.All(pages.Where(p => !p.Split('\n')[1].StartsWith("SOURCE", StringComparison.Ordinal)),
             p => Assert.Contains("  OUTER  ", p.Split('\n')[0], StringComparison.Ordinal));
-        Assert.Equal(["1", "2", "3", "4", "5", "6"], pages.Select(p => p.Split('\n')[0].Split(' ')[^1]));
+        Assert.Equal(["1", "2", "3", "4", "5", "6", "7", "8"], pages.Select(p => p.Split('\n')[0].Split(' ')[^1]));
+    }
+
+    /// <summary>Section 6.9: the object-code map's rows (the assembly, each method with its token and IL size, each statement's range
+    /// at its listing line and column) and the object code's (each range's heading, the line as written when the document holds it, each
+    /// instruction under it), every value read off the hand-built map.</summary>
+    [Fact]
+    public void TheObjectCodeMap_AndTheObjectCode_PrintWhatTheMapHolds()
+    {
+        var map = new ListingObjectCodeMap("out/p.dll",
+            [new ListingMethod(1, 0x06000003, "Cobol.p.OUTER", "__Dispatch", 40)],
+            [new ListingObjectRange(1, 12, 1, 0x12, 0x2A, [new ListingInstruction(0x12, "ldarg.0", null),
+                 new ListingInstruction(0x13, "ldstr", "\"A\""), new ListingInstruction(0x18, "br.s", "IL_002A")]),
+             new ListingObjectRange(6, 12, 1, 0x2A, 0x30, [])]);
+        Assert.Equal(
+        [
+            "ASSEMBLY  out/p.dll",
+            "",
+            "METHOD TOKEN        SIZE  NAME",
+            "     1 0x06000003     40  Cobol.p.OUTER::__Dispatch",
+            "",
+            "  LINE  COL METHOD  IL RANGE",
+            "     1   12      1  IL_0012-IL_002A",
+            "     6   12      1  IL_002A-IL_0030",
+        ], ObjectCodeText.MapRows(map, 132));
+        Assert.Equal(
+        [
+            "     1   12  Cobol.p.OUTER::__Dispatch  IL_0012-IL_002A",
+            "             " + Lines[0].Text.TrimEnd(),
+            "             IL_0012  ldarg.0",
+            "             IL_0013  ldstr        \"A\"",
+            "             IL_0018  br.s         IL_002A",
+            "",
+            "     6   12  Cobol.p.OUTER::__Dispatch  IL_002A-IL_0030",
+            "             " + Lines[5].Text.TrimEnd(),
+        ], ObjectCodeText.CodeRows(map, Lines, 132));
+        // Without the source section the document holds no lines, and the rows name the line by its number alone.
+        Assert.Equal("     6   12  Cobol.p.OUTER::__Dispatch  IL_002A-IL_0030", ObjectCodeText.CodeRows(map, [], 132).Last());
     }
 
     /// <summary>A document asked for one section prints that section alone, its pages numbered from 1.</summary>
