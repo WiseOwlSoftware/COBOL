@@ -22,6 +22,7 @@ public sealed class CodeWriter
     // DESIGN-listing.md section 6.9: the statements being emitted, innermost last, each with whether its sequence point is written.
     private readonly List<StatementMapping> _mappings = [];
     private bool _mapsStatements;   // HideUnmappedLines was called: every line is hidden but a statement's sequence point
+    private string? _documentRoot;   // the directory a directive names its file relative to; null: the full path
     private bool _hidden;      // the last line directive written is `#line hidden`
     private int _capturing;    // inside CaptureText: the text is spliced into one line, where no directive may stand
 
@@ -74,9 +75,11 @@ public sealed class CodeWriter
 
     /// <summary>⛔ THE ROSLYN BACKEND'S SEQUENCE POINTS (DESIGN-listing.md section 6.9; behind the backend seam): from here on, every line
     /// written outside a statement is hidden from a debugger (<c>#line hidden</c>), so the only sequence points of the program are the
-    /// statements' own. The program emitter calls it once, after the file's header.</summary>
-    public void HideUnmappedLines()
+    /// statements' own. The program emitter calls it once, after the file's header. Each directive names its file relative to
+    /// <paramref name="documentRoot"/> (<see cref="BackendOptions.DocumentRoot"/>), or by its full path when it is null.</summary>
+    public void HideUnmappedLines(string? documentRoot)
     {
+        _documentRoot = documentRoot is null ? null : Path.GetFullPath(documentRoot);
         _sb.Append("#line hidden\n");
         _hidden = true;
         _mapsStatements = true;
@@ -138,13 +141,15 @@ public sealed class CodeWriter
         return null;
     }
 
-    /// <summary>The file a line directive names: the full path, which a debugger opens. A directive's file name has no escapes, so a
-    /// path holding a quotation mark or a line end cannot be written; such a file is named with each of them replaced by an underscore,
-    /// keeping the sequence points at a name no file has.</summary>
-    private static string DirectiveFile(string file)
+    /// <summary>The file a line directive names: its path relative to the document root with '/' separators (so the PDB, and the
+    /// assembly that names the PDB by a hash of its content, are the same wherever the source tree lies), or its full path when there is
+    /// no root. A directive's file name has no escapes, so a path holding a quotation mark or a line end cannot be written; such a file
+    /// is named with each of them replaced by an underscore, keeping the sequence points at a name no file has.</summary>
+    private string DirectiveFile(string file)
     {
         string full = Path.GetFullPath(file);
-        return full.AsSpan().IndexOfAny("\"\r\n") < 0 ? full : full.Replace('"', '_').Replace('\r', '_').Replace('\n', '_');
+        string name = _documentRoot is null ? full : Path.GetRelativePath(_documentRoot, full).Replace(Path.DirectorySeparatorChar, '/');
+        return name.AsSpan().IndexOfAny("\"\r\n") < 0 ? name : name.Replace('"', '_').Replace('\r', '_').Replace('\n', '_');
     }
 
     /// <summary>Where in <paramref name="text"/> the first code Roslyn gives a sequence point in an optimized build begins and ends, read
@@ -156,8 +161,8 @@ public sealed class CodeWriter
     /// closing parenthesis; of a for statement its declaration or first initializer, else its condition. A block, a labeled, checked,
     /// unchecked, try, do or for statement with neither has none of its own: its first statement's is the line's.
     /// <para><c>End</c> is where the line stops being that sequence point's: its end, or, sooner, the first place inside it that takes a
-    /// sequence point of its own in another method (the body of a lambda or an anonymous method, an arm of a switch expression), whose
-    /// code must not be mapped to the statement's column.</para></summary>
+    /// sequence point of its own in another method (the first statement of a lambda's or an anonymous method's block, or its expression
+    /// body; an arm of a switch expression), whose code must not be mapped to the statement's column.</para></summary>
     internal static (int Start, int End)? FirstSequencePoint(string text)
     {
         var statement = SyntaxFactory.ParseStatement(text);
@@ -167,6 +172,7 @@ public sealed class CodeWriter
         {
             int nested = node switch
             {
+                AnonymousFunctionExpressionSyntax { Body: BlockSyntax block } => block.Statements.FirstOrDefault()?.SpanStart ?? int.MaxValue,
                 AnonymousFunctionExpressionSyntax function => function.Body.SpanStart,
                 SwitchExpressionArmSyntax arm => arm.SpanStart,
                 _ => int.MaxValue,
@@ -178,8 +184,9 @@ public sealed class CodeWriter
 
     private static (int Start, int End)? FirstSequencePoint(StatementSyntax? statement, int length)
     {
-        static (int, int)? Within((int Start, int End) point, int length) =>
-            point.Start < length && point.End <= length && point.End > point.Start ? point : null;
+        // A sequence point lies on the line and holds a character of it (from, to are its bounds in the line's text).
+        static (int, int)? Within((int From, int To) point, int length) =>
+            point.From < length && point.To <= length && point.To - point.From > 0 ? point : null;
         switch (statement)
         {
             case null:

@@ -72,7 +72,7 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
 
         var result = CompilerDriver.Compile(options);
         Assert.True(result.Success, string.Join("\n", result.Errors));
-        var points = SequencePoints(Path.ChangeExtension(options.OutputDll(), ".pdb"));
+        var points = SequencePoints(Path.ChangeExtension(options.OutputDll(), ".pdb"), Path.GetDirectoryName(Path.GetFullPath(options.SourcePath))!);
         var folded = Header.Matches(File.ReadAllText(result.GeneratedCsPath!)).Where(m => Folded(m.Groups[3].Value))
             .Select(m => (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value))).ToHashSet();
 
@@ -119,9 +119,9 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
         return [outside, .. paragraphs];
     }
 
-    /// <summary>The position of every visible sequence point of the PDB at <paramref name="pdb"/>: the document's full path, the 1-based
-    /// line and column.</summary>
-    internal static HashSet<(string File, int Line, int Column)> SequencePoints(string pdb)
+    /// <summary>The position of every visible sequence point of the PDB at <paramref name="pdb"/>: the document's full path (a name the PDB
+    /// gives relative to the main source's directory, <paramref name="root"/>, resolved against it), the 1-based line and column.</summary>
+    internal static HashSet<(string File, int Line, int Column)> SequencePoints(string pdb, string root)
     {
         using var stream = File.OpenRead(pdb);
         using var provider = MetadataReaderProvider.FromPortablePdbStream(stream);
@@ -130,7 +130,7 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
         foreach (var method in reader.MethodDebugInformation)
             foreach (var point in reader.GetMethodDebugInformation(method).GetSequencePoints())
                 if (!point.IsHidden)
-                    points.Add((Path.GetFullPath(reader.GetString(reader.GetDocument(point.Document).Name)), point.StartLine, point.StartColumn));
+                    points.Add((Path.GetFullPath(reader.GetString(reader.GetDocument(point.Document).Name), root), point.StartLine, point.StartColumn));
         return points;
     }
 

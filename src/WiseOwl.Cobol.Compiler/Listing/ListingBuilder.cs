@@ -67,7 +67,8 @@ internal static class ListingBuilder
         }
         // The object-code map (DESIGN-listing.md section 6.9), read from the assembly and its PDB only when a section asks for it.
         var objectCode = ListingFacts.ReadsObjectCode(facts.Request) && facts.ObjectCode is (var assembly, string pdb)
-            ? ObjectCodeMapBuilder.Build(ObjectCodeMapReader.Read(assembly, pdb, wanted.Contains(ListingSection.ObjectCode)), assembly,
+            ? ObjectCodeMapBuilder.Build(ObjectCodeMapReader.Read(assembly, pdb, wanted.Contains(ListingSection.ObjectCode),
+                    Path.GetDirectoryName(Path.GetFullPath(frontend.SourcePath))!), assembly,
                 index, frontend, fileIds, inclusions)
             : null;
         if (wanted.Contains(ListingSection.Diagnostics))

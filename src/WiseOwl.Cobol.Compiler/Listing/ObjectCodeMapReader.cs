@@ -17,7 +17,7 @@ internal sealed record ObjectMethod(int Token, string Type, string Name, int Cod
 /// <param name="Method">The <see cref="ObjectMethod"/> holding it, by its index in <see cref="ObjectCodeFacts.Methods"/>.</param>
 /// <param name="Start">Its IL offset.</param>
 /// <param name="End">The IL offset of the method's next visible sequence point, or the end of its body.</param>
-/// <param name="Document">The full path of the document it names.</param>
+/// <param name="Document">The full path of the document it names (a relative name resolved against the document root).</param>
 /// <param name="Line">Its 1-based start line.</param>
 /// <param name="Column">Its 1-based start column (a character of the line is one column).</param>
 /// <param name="EndLine">Its 1-based end line.</param>
@@ -39,8 +39,10 @@ internal static class ObjectCodeMapReader
 {
     /// <summary>Read <paramref name="assembly"/> and its PDB <paramref name="pdb"/>: each method with a visible sequence point, and each such
     /// point with the stretch of IL from it to the method's next visible point (a hidden point, the code a backend writes between two
-    /// statements, does not end a stretch), decoded when <paramref name="instructions"/>.</summary>
-    public static ObjectCodeFacts Read(string assembly, string pdb, bool instructions)
+    /// statements, does not end a stretch), decoded when <paramref name="instructions"/>. A document the PDB names relative to the
+    /// document root (<c>BackendOptions.DocumentRoot</c>: the main source's directory) is resolved against
+    /// <paramref name="documentRoot"/>.</summary>
+    public static ObjectCodeFacts Read(string assembly, string pdb, bool instructions, string documentRoot)
     {
         using var peStream = File.OpenRead(assembly);   // not a compilation input: the compilation's own output
         using var pe = new PEReader(peStream);
@@ -67,7 +69,7 @@ internal static class ObjectCodeMapReader
             {
                 var point = visible[i];
                 int end = i + 1 < visible.Count ? visible[i + 1].Offset : il.Length;
-                string document = Path.GetFullPath(debug.GetString(debug.GetDocument(point.Document).Name));
+                string document = Path.GetFullPath(debug.GetString(debug.GetDocument(point.Document).Name), documentRoot);
                 points.Add(new ObjectSequencePoint(method, point.Offset, end, document, point.StartLine, point.StartColumn,
                     point.EndLine, point.EndColumn, instructions ? IlDisassembler.Decode(metadata, il, point.Offset, end) : null));
             }

@@ -31,6 +31,10 @@ public enum BackendId
 /// <param name="EmitPdb">Write a portable PDB beside the assembly (<c>&lt;out&gt;.pdb</c>) holding one sequence point per COBOL
 /// statement at the place it is written (<c>BoundStatement.Span</c>; DESIGN-listing.md section 6.9): a .NET debugger steps through
 /// COBOL source, and the source listing's object-code map reads each statement's code back from it. Every backend honours it.</param>
+/// <param name="DocumentRoot">The directory the PDB names every source document relative to, with '/' separators: the main source's
+/// directory (DESIGN-listing.md section 6.9). A PDB that named documents by full path would make the assembly's bytes depend on where the
+/// source tree lies (the PE names its PDB by a hash of the PDB's content), and identical source must compile to an identical assembly in
+/// any directory. Null: full paths.</param>
 /// <param name="Inputs">The compilation's ambient-input record (kb/Work PB985) — a backend that reads anything
 /// outside the bound tree (the WHEN-COMPILED clock) reads it through this, so the record stays complete.</param>
 /// <param name="RepositoryReferences">The assemblies of the external repository the generated code names a type of — every one a
@@ -39,7 +43,7 @@ public enum BackendId
 /// which is the Roslyn backend's own. Null: none.</param>
 public sealed record BackendOptions(string OutputPath, string AssemblyName, EditionInfo Edition,
     bool EmitPdb = true, WiseOwl.Cobol.Frontend.CompilationInputs? Inputs = null,
-    IReadOnlyList<string>? RepositoryReferences = null);
+    IReadOnlyList<string>? RepositoryReferences = null, string? DocumentRoot = null);
 
 /// <summary>The outcome of one backend emission (DESIGN-codegen-backend §2.2).</summary>
 /// <param name="Success">True iff the assembly was produced.</param>

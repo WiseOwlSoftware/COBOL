@@ -65,8 +65,8 @@ public sealed class ListingObjectCodeTests : IDisposable
     }
 
     /// <summary>The assembly's own account: each visible sequence point (file, line, column), its method's token and the IL range to the
-    /// method's next visible point, and the body's bytes.</summary>
-    private static List<(string File, int Line, int Column, int Token, int Start, int End, byte[] Il)> Points(string dll)
+    /// method's next visible point, and the body's bytes. The PDB names each document relative to the main source's directory.</summary>
+    private List<(string File, int Line, int Column, int Token, int Start, int End, byte[] Il)> Points(string dll)
     {
         using var pe = new PEReader(File.OpenRead(dll));
         var metadata = pe.GetMetadataReader();
@@ -82,11 +82,19 @@ public sealed class ListingObjectCodeTests : IDisposable
             var visible = pdb.GetMethodDebugInformation(MetadataTokens.MethodDebugInformationHandle(MetadataTokens.GetRowNumber(handle)))
                 .GetSequencePoints().Where(p => !p.IsHidden).OrderBy(p => p.Offset).ToList();
             for (int i = 0; i < visible.Count; i++)
-                points.Add((Path.GetFullPath(pdb.GetString(pdb.GetDocument(visible[i].Document).Name)), visible[i].StartLine,
+                points.Add((Path.GetFullPath(pdb.GetString(pdb.GetDocument(visible[i].Document).Name), _dir), visible[i].StartLine,
                     visible[i].StartColumn, MetadataTokens.GetToken(handle), visible[i].Offset,
                     i + 1 < visible.Count ? visible[i + 1].Offset : il.Length, il));
         }
         return points;
+    }
+
+    private static List<string> DocumentNames(string dll)
+    {
+        using var pdbStream = File.OpenRead(Path.ChangeExtension(dll, ".pdb"));
+        using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+        var pdb = provider.GetMetadataReader();
+        return [.. pdb.Documents.Select(d => pdb.GetString(pdb.GetDocument(d).Name)).Order(StringComparer.Ordinal)];
     }
 
     [Fact]
@@ -119,6 +127,8 @@ public sealed class ListingObjectCodeTests : IDisposable
         Assert.Equal(2, perform.Count);
         var nestedAdd = Assert.Single(map.Ranges, r => r.Line == ListingLine(14));
         Assert.True(perform[0].End <= nestedAdd.Start && nestedAdd.End <= perform[1].Start);
+        // The PDB names the source relative to its own directory, so the assembly is the same wherever the tree lies.
+        Assert.Equal(["OBJCPY.cpy", "objmap.cob"], DocumentNames(map.Assembly));
         // Nothing else of the main source has a range: the listing places no point the PDB does not hold.
         Assert.Equal(points.Count(p => p.File == source), map.Ranges.Count(r => listing.Lines[r.Line - 1].File == 1));
     }

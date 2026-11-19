@@ -589,17 +589,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         var at = WiseOwl.Cobol.Frontend.Common.ExpansionToken.CursorOf(s.Start);   // the statement's own first token, as this funnel's cursor
         if (!at.IsSet || at.Region is { IsRepositoryText: true }) return null;
-        var start = data.Edition.LocationOf(at.Line, at.Column);
         var stopToken = s.Stop is { } stop && stop.TokenIndex >= s.Start.TokenIndex ? stop : s.Start;
         var last = WiseOwl.Cobol.Frontend.Common.ExpansionToken.CursorOf(stopToken);
-        var end = data.Edition.LocationOf(last.Line, last.Column + Math.Max(stopToken.Text?.Length ?? 1, 1) - 1);
-        var verb = data.Edition.LocationOf(at.Line, at.Column + Math.Max(s.Start.Text?.Length ?? 1, 1) - 1);
-        int verbEnd = verb.FileName == start.FileName && verb.Line == start.Line && verb.Column >= start.Column ? verb.Column + 2 : start.Column + 2;
-        bool endsInFile = end.FileName == start.FileName
-            && (end.Line > start.Line || (end.Line == start.Line && end.Column + 2 >= verbEnd));
-        return endsInFile
-            ? new StatementSpan(start.FileName, start.Line + 1, start.Column + 1, end.Line + 1, end.Column + 2, verbEnd)
-            : new StatementSpan(start.FileName, start.Line + 1, start.Column + 1, start.Line + 1, verbEnd, verbEnd);
+        return StatementSpan.Of(data.Edition.LocationOf(at.Line, at.Column),
+            data.Edition.LocationOf(at.Line, at.Column + Math.Max(s.Start.Text?.Length ?? 1, 1) - 1),
+            data.Edition.LocationOf(last.Line, last.Column + Math.Max(stopToken.Text?.Length ?? 1, 1) - 1));
     }
 
     /// <summary>Whether <paramref name="statement"/> itself references the DEBUG-ITEM register or a member, whole, reference-modified or as a

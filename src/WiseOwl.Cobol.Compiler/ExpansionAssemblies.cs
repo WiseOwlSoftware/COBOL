@@ -57,7 +57,12 @@ internal static class ExpansionAssemblies
         foreach (var (text, state, placement, requestedAt, region, clientWritten) in expansions.ToWrite)
         {
             string source = state.CobolWordsMap + state.DirectiveFolds + state.CompilationVariables + FreeForm(text) + "\n";
-            string temp = Path.Combine(Path.GetTempPath(), $"expansion-{Guid.NewGuid():N}.cob");
+            // The text is written to a folder of its own under a name that is the expansion's: the compilation's PDB names its document
+            // relative to the source's folder (BackendOptions.DocumentRoot; DESIGN-listing.md section 6.9), so the expansion assembly is
+            // the same whichever group made it and wherever.
+            string folder = Path.Combine(Path.GetTempPath(), $"expansion-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(folder);
+            string temp = Path.Combine(folder, Path.GetFileNameWithoutExtension(placement.HoldingFile!) + ".cob");
             File.WriteAllText(temp, source);
             try
             {
@@ -89,6 +94,7 @@ internal static class ExpansionAssemblies
             finally
             {
                 File.Delete(temp);
+                Directory.Delete(folder);
             }
         }
         return new(files, [], warnings, null, CompilerDriver.Outcome.Success, records);
