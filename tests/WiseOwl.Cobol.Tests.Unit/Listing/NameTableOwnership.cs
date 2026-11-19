@@ -24,7 +24,9 @@ internal sealed record NameTableShape(
     string CobolNames,
     IReadOnlyList<string> Opaque)
 {
-    /// <summary>The types only <c>SymbolTable</c> makes: the name key and the answer of its lookup.</summary>
+    /// <summary>The types only <c>SymbolTable</c> makes: the name key and the answer of each recording point (an element's
+    /// <c>Identify</c> and the compilation group tier's <c>ClassNames.Lookup</c>), so a symbol reached from a written name has
+    /// come through one of them.</summary>
     public IReadOnlyList<string> MadeOnlyByTable { get; init; } = [CobolName];
 
     public static NameTableShape Product { get; } = new(
@@ -35,7 +37,7 @@ internal sealed record NameTableShape(
         "WiseOwl.Cobol.Runtime.CobolNames",
         ["WiseOwl.Cobol.Binding.SymbolId"])
     {
-        MadeOnlyByTable = ["WiseOwl.Cobol.Binding.CobolName", "WiseOwl.Cobol.Binding.IdentifiedName"],
+        MadeOnlyByTable = ["WiseOwl.Cobol.Binding.CobolName", "WiseOwl.Cobol.Binding.IdentifiedName", "WiseOwl.Cobol.Compiler.Oo.OoNameResult"],
     };
 }
 

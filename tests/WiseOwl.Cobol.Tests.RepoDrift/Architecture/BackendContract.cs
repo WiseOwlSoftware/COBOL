@@ -82,7 +82,7 @@ internal static class BackendContract
             "Model.OoClassSymbol.Name", "Model.OoClassSymbol.ExternalizedName", "Model.OoClassSymbol.BaseName",
             "Model.OoClassSymbol.FormalBaseName", "Model.OoClassSymbol.Bases", "Model.OoClassSymbol._methods",
             "Model.OoClassSymbol._factoryMethods", "Model.OoInterfaceSymbol.Name", "Model.OoInterfaceSymbol.ExternalizedName",
-            "Model.OoInterfaceSymbol._protos", "Model.OoInterfaceSymbol._conformingChoice", "Model.OoMethodSymbol.Name",
+            "Model.OoInterfaceSymbol._protos", "Model.OoMethodSymbol.Name",
             "Model.OoMethodSymbol.ExternalizedName", "Model.OoMethodSymbol._externalizedName", "Model.OoMethodSymbol.PropertyName",
             "Model.OoMethodSymbol.SourceName", "Model.OoMethodDataScope.ByName", "Model.OoMethodDataScope.Conditions",
             // the standard class BASE and its two §2023:16.2 method-names, in compiler.model since kb/Work PB2403
@@ -167,6 +167,8 @@ internal static class BackendContract
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
             // the key of the AS NESTED callee table: an externalized program-name, the run-time program table's (kb/Work PB5932)
             "Model.ExternalizedProgramName._name",
+            // the key of every method roster: a method's externalized name (ISO §2023:11.7.4 GR1 b); kb/Work PB5932)
+            "Model.ExternalizedMethodName._name",
             "Bound.BoundDebugTarget.CdKey", "Model.BoundUnit.RegistryKey", "Model.CommunicationDescription.Key", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
             "Model.LocalePhrase.Tag", "Model.LocaleRef.Tag", "Model.LocaleSymbol.External", "Model.LocaleSymbol.Tag",
             "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",

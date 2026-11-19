@@ -379,10 +379,10 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                     + $"'{od.Name}' names in an expansion — it shall be specified there");
         if (od.Kind is ObjectRefKind.Interface)
         {
-            var mine = table?.FindInterface(od.Name!);
+            var mine = table?.Names.InterfaceOf(od);
             foreach (var t in raising)
                 if (t.Kind is RaisingTargetKind.Interface && mine is not null
-                    && table?.FindInterface(t.Name) is { } listed
+                    && table?.Names.InterfaceOf(t) is { } listed
                     && OoConformance.InterfaceConformsTo(table!, mine, listed))
                     return null;
             return ("b", $"its interface '{od.Name}' shall conform to an interface specified in the RAISING phrase "
@@ -395,7 +395,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         string what = od.Kind is ObjectRefKind.ActiveClass
             ? $"the class containing it ('{od.Name}', ACTIVE-CLASS)" : $"its declared class '{od.Name}'";
         RaisingTarget? factoryMismatch = null;
-        for (var c = table?.Find(od.Name!); c is not null; c = c.Base)
+        for (var c = table?.Names.ClassOf(od); c is not null; c = c.Base)
             foreach (var t in raising)
             {
                 if (t.Kind is not RaisingTargetKind.ObjectClass

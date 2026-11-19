@@ -44,6 +44,10 @@ public sealed record OoMethodSymbol
     public string ExternalizedName { get => _externalizedName ?? Name; init => _externalizedName = value; }
     private readonly string? _externalizedName;
 
+    /// <summary><see cref="ExternalizedName"/> as the ROSTER KEY every class and interface roster is keyed by
+    /// (<see cref="ExternalizedMethodName"/>).</summary>
+    public ExternalizedMethodName RosterKey => new(ExternalizedName);
+
     /// <summary>The key a UNIVERSAL dispatch selects this method by (kb/Work PB1405): §2023:8.3.2.2 1) treats a universal
     /// INVOKE's method-name "as a COBOL word that maps to the externalized name of the method to be invoked", so the
     /// key is <see cref="ExternalizedName"/> — the same roster key the typed path resolves by — under the ONE

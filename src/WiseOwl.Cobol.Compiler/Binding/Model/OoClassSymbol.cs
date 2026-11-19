@@ -110,7 +110,7 @@ public sealed class OoClassSymbol
     public List<OoInterfaceSymbol> FactoryImplements { get; } = [];
 
 
-    private readonly Dictionary<string, OoMethodSymbol> _methods = new(CobolNames.Comparer);
+    private readonly Dictionary<ExternalizedMethodName, OoMethodSymbol> _methods = [];
 
     /// <summary>The INSTANCE methods in declaration order (the emitter's roster).</summary>
     public IReadOnlyList<OoMethodSymbol> Methods => _methodList;
@@ -148,7 +148,7 @@ public sealed class OoClassSymbol
     /// narrow in <c>OoEmitter.EmitSetObjectRef</c> is instance-only for exactly that reason).</summary>
     public IReadOnlyList<string> FactoryOrInstanceClrNames => [ClrName, FactoryClrName];
 
-    private readonly Dictionary<string, OoMethodSymbol> _factoryMethods = new(CobolNames.Comparer);
+    private readonly Dictionary<ExternalizedMethodName, OoMethodSymbol> _factoryMethods = [];
 
     /// <summary>The FACTORY methods in declaration order (§2023:11.4 — a SEPARATE interface from the instance
     /// roster; the two may share names, §2023:9.3.6).</summary>
@@ -157,21 +157,21 @@ public sealed class OoClassSymbol
 
     internal bool TryAddMethod(OoMethodSymbol m)
     {
-        if (!_methods.TryAdd(m.ExternalizedName, m)) return false;   // the roster key (PB303)
+        if (!_methods.TryAdd(m.RosterKey, m)) return false;   // the roster key (PB303)
         _methodList.Add(m);
         return true;
     }
 
     internal bool TryAddFactoryMethod(OoMethodSymbol m)
     {
-        if (!_factoryMethods.TryAdd(m.ExternalizedName, m)) return false;   // the roster key (PB303)
+        if (!_factoryMethods.TryAdd(m.RosterKey, m)) return false;   // the roster key (PB303)
         _factoryMethodList.Add(m);
         return true;
     }
 
     /// <summary>Resolve a FACTORY method by name over THIS class and its base chain (§2023:9.3.6 — factory
     /// resolution walks INHERITS exactly like instance resolution, over the factory interface).</summary>
-    public OoMethodSymbol? FindFactoryMethod(string name)
+    public OoMethodSymbol? FindFactoryMethod(ExternalizedMethodName name)
     {
         var seen = new HashSet<OoClassSymbol>();
         for (OoClassSymbol? c = this; c is not null && seen.Add(c); c = c.Base)
@@ -182,7 +182,7 @@ public sealed class OoClassSymbol
 
     /// <summary>Resolve a method by name over THIS class and its base chain (§2023:9.3.6 method resolution; the
     /// walk is cycle-safe — pass-1 rejects unknown bases, and a cycle cannot outlast the seen-set).</summary>
-    public OoMethodSymbol? FindMethod(string name)
+    public OoMethodSymbol? FindMethod(ExternalizedMethodName name)
     {
         var seen = new HashSet<OoClassSymbol>();
         for (OoClassSymbol? c = this; c is not null && seen.Add(c); c = c.Base)

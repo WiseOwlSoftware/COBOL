@@ -310,7 +310,7 @@ objectReferenceUsage
 // mechanism, never a second (the dispatch's own words). §2023:8.4.3.4.4 GR1 DEFINES this construct as the INVOKE statement it is
 // equivalent to, so the two must not be able to disagree about what a receiver is: object-class-name-1 and
 // identifier-1 are both one `dataReference` syntactically (the binder partitions them by resolved symbol kind,
-// OoNameResolution.Lookup), and SELF/SUPER are §2023:8.4.3.1.2 Format 6 identifiers of class object and therefore
+// SymbolTable.ClassNames.Lookup), and SELF/SUPER are §2023:8.4.3.1.2 Format 6 identifiers of class object and therefore
 // legal identifier-1s. NULL rides in too and is rejected LOUDLY by the binder per §2023:8.4.3.4.3 SR2 ("neither the
 // predefined object reference NULL nor a universal object reference shall be specified") — the P3 superset
 // parse, never a general-format rejection dressed as a syntax error.

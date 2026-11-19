@@ -6,7 +6,7 @@
   other, by the §2023:9.3.8.2.3 rule set (`OoConformance.MethodConformanceMismatches`): identical prototypes inherited twice,
   and a covariant RETURNING pair (rule 5) through the more specific one. WiseOwl COBOL reads it that way, reports a
   violation on the INHERITING interface (COBOL2762) and records the conforming prototype as the interface's own
-  (`OoInterfaceSymbol.ChooseInheritedPrototype`), which the IMPLEMENTS pass, `InterfaceConformsTo` and the emitted C#
+  (`SymbolTable.ClassNames.ChooseInheritedPrototype`), which the IMPLEMENTS pass, `InterfaceConformsTo` and the emitted C#
   interface (a hiding `new` member, because C# member lookup over two base interfaces declaring one name is ambiguous)
   all read. Rejected reading: pairwise conformance in BOTH directions, which refuses the covariant pair that rule 5 makes
   legal. (2) **SR4 b).** A prototype whose roster key (the method-name; the v1 method resolution signature, kb/Work

@@ -69,7 +69,7 @@ internal static class ExpansionPlacementPass
         // What a class or interface a specifier or an actual names contributes to a key: its identity and its record.
         ExpansionKey.Named NamedBy(Core.RepositoryEntryContext specifier)
         {
-            var (cls, iface) = table.ResolveSpecifier(specifier);
+            var (cls, iface) = table.Names.ResolveSpecifier(specifier);
             return cls is not null ? NamedOf(cls)
                 : iface is not null ? NamedOfInterface(iface)
                 : new ExpansionKey.Named(WrittenIdentity(table, specifier), null);
@@ -114,11 +114,12 @@ internal static class ExpansionPlacementPass
             var resolutionEntries = origin.Skeleton.ResolutionEntries;
             var paragraph = ((Core.RepositoryParagraphContext)origin.Entry.Parent).repositoryEntry();
             var actualEntries = origin.ActualWords
-                .Select(w => paragraph.First(r => CobolNames.Same(r.className()?.GetText() ?? r.interfaceName()?.GetText(), w))).ToList();
+                .Select(w => SymbolTable.RepositoryScope.SpecifierDeclaring(paragraph, w)
+                    ?? throw new InvalidOperationException($"no specifier of the paragraph declares '{w}'")).ToList();
             bool namesGroup = false;
             foreach (var entry in resolutionEntries.Concat(actualEntries))
             {
-                var (c, i) = table.ResolveSpecifier(entry);
+                var (c, i) = table.Names.ResolveSpecifier(entry);
                 object? named = c is not null ? c : i;
                 if (named is OoClassSymbol { Origin: OoSymbolOrigin.Source } or OoInterfaceSymbol { Origin: OoSymbolOrigin.Source })
                     namesGroup |= Place(named) is not { Where: ExpansionWhere.Imported or ExpansionWhere.OwnAssembly };
@@ -132,7 +133,7 @@ internal static class ExpansionPlacementPass
             // homes (ISO §2023:9.3.12: the expansion is the class it would have been here; kb/Work PB4650).
             var homes = new RecordList<string>([.. resolutionEntries.Concat(actualEntries).Select(entry =>
             {
-                var (c, i) = table.ResolveSpecifier(entry);
+                var (c, i) = table.Names.ResolveSpecifier(entry);
                 return HomeOf(c, i, c is not null ? c : i) ?? "";
             })]);
             var identity = new ExpansionIdentity(origin.Skeleton.Identity, new RecordList<string>([.. actuals.Select(a => a.Identity)]), key,
@@ -148,7 +149,7 @@ internal static class ExpansionPlacementPass
             if (origin.Skeleton.From is { } definedIn) referenced.Add(definedIn.AssemblyFile);
             foreach (var entry in resolutionEntries.Concat(actualEntries))
             {
-                var (c, i) = table.ResolveSpecifier(entry);
+                var (c, i) = table.Names.ResolveSpecifier(entry);
                 if ((c?.Imported ?? i?.Imported) is { } importedFrom) referenced.Add(importedFrom.AssemblyFile);
                 object? named = c is not null ? c : i;
                 if (named is not null && placements.GetValueOrDefault(named) is { HoldingFile: { } held }) referenced.Add(held);

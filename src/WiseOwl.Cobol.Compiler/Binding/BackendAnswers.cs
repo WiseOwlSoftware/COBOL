@@ -63,9 +63,9 @@ internal static class BackendAnswers
         var resolved = new List<RaisingObject>();
         foreach (var target in raising)
         {
-            if (target.Kind is RaisingTargetKind.ObjectClass && table.Find(target.Name) is { } cls)
+            if (target.Kind is RaisingTargetKind.ObjectClass && table.Names.ClassOf(target) is { } cls)
                 resolved.Add(new RaisingObject(cls, target.Factory, null));
-            else if (target.Kind is RaisingTargetKind.Interface && table.FindInterface(target.Name) is { } iface)
+            else if (target.Kind is RaisingTargetKind.Interface && table.Names.InterfaceOf(target) is { } iface)
                 resolved.Add(new RaisingObject(null, false, iface));
         }
         return resolved;

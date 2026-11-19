@@ -312,7 +312,7 @@ internal sealed partial class OoBinder
         {
             if (roster is not { } r
                 || ProbedMethodName(seg.cobolWord() is { } word ? host.Expr.LiteralAliasOf(word) : null, seg.literal()) is not { } name
-                || r.Find(name) is not { } method)
+                || r.Find(new ExternalizedMethodName(name)) is not { } method)
                 break;
             methods.Add(method);
             roster = method.Binding?.Returning is { } returned ? ProbedRoster(returned) : null;
@@ -331,7 +331,7 @@ internal sealed partial class OoBinder
         var written = inv.invokeMethodName();
         return roster is { } r
                && ProbedMethodName(written.dataReference() is { } word ? host.Expr.LiteralAliasOf(word) : null, written.literal()) is { } name
-            ? r.Find(name)
+            ? r.Find(new ExternalizedMethodName(name))
             : null;
     }
 
@@ -361,7 +361,7 @@ internal sealed partial class OoBinder
         if (ctx.Refs.ObjectProperties.QualifiedSuperClass(dref) is { } qualifier)
             return ProbedPredefinedRoster(isSuper: true, dref.dataReferenceSuffix()[0].propertyObject().SUPER().Symbol, qualifier);
         if (ctx.Refs.Probe(dref) is { } probed) return ProbedRoster(probed.Item);
-        return Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, dref, dref.GetText(), Compiler.Oo.OoNameResolution.Want.Class).Class
+        return host.OoClasses?.Names.Lookup(dref, dref, Compiler.Oo.OoNameWant.Class).Class
             is { } cls ? MethodRoster.Of(cls, factory: true) : null;
     }
 
@@ -381,23 +381,30 @@ internal sealed partial class OoBinder
             return null;
         // Re-looks-up a name the data description entry already scope-checked (COBOL0813), as OoBindInstanceInvoke does.
         return described.Kind is ObjectRefKind.Interface
-            ? host.OoClasses?.FindInterface(name) is { } iface ? MethodRoster.Of(iface) : null
-            : host.OoClasses?.Find(name) is { } cls ? MethodRoster.Of(cls, described.Factory) : null;
+            ? host.OoClasses?.Names.InterfaceOf(described) is { } iface ? MethodRoster.Of(host.OoClasses.Names.AllPrototypes(iface)) : null
+            : host.OoClasses?.Names.ClassOf(described) is { } cls ? MethodRoster.Of(cls, described.Factory) : null;
     }
 
     /// <summary>The roster an object-view selects: its LAST AS phrase's description, because each phrase views the identifier
     /// on its left (§2023:8.4.3.1.4 GR1 c)) and the reference "is treated at compile-time as though it had the description
     /// specified by the AS phrase" (§2023:8.4.3.5.4 GR1). Null for AS UNIVERSAL and for a name no roster answers. Diagnostic-free:
     /// the invocation probe and the property-object probe (<see cref="OoBindPropertyObject"/>) both read it.</summary>
-    internal MethodRoster? ViewRoster(Core.ObjectViewContext view)
+    internal MethodRoster? ViewRoster(Core.ObjectViewContext view) =>
+        ViewTarget(view) is not { } target ? null
+        : target.Interface is { } iface ? MethodRoster.Of(host.OoClasses!.Names.AllPrototypes(iface))
+        : MethodRoster.Of(target.Class!, target.Factory);
+
+    /// <summary>The class (with its FACTORY phrase) or interface an object-view's LAST AS phrase names, read without a diagnostic
+    /// (<see cref="ViewRoster"/>'s receiver, which the property-object probe reads too); null for AS UNIVERSAL and for a name
+    /// nothing answers.</summary>
+    internal (OoClassSymbol? Class, OoInterfaceSymbol? Interface, bool Factory)? ViewTarget(Core.ObjectViewContext view)
     {
         var last = view.objectViewPhrase()[^1];
         if (last.UNIVERSAL() is not null) return null;
-        var found = Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, last, last.className().GetText(), Compiler.Oo.OoNameResolution.Want.Either);
+        var found = host.OoClasses?.Names.Lookup(last, last.className(), Compiler.Oo.OoNameWant.Either) ?? default;
         return !found.Ok ? null
-            : found.Interface is { } iface ? MethodRoster.Of(iface)
-            : found.Class is { } cls ? MethodRoster.Of(cls, last.FACTORY() is not null)
-            : null;
+            : found.Interface is { } iface ? (null, iface, false)
+            : (found.Class, null, last.FACTORY() is not null);
     }
 
     /// <summary>literal-1 of an invocation as the probe reads it — the written literal, or the constant-name spelling it

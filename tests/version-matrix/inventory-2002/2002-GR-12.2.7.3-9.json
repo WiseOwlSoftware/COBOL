@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-12.2.7.3-9",
  "rule-digest": "70b6c8456d0c",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Interface; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Find",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Interface; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Find",
  "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_interface_and_property",
- "notes": "§2002:12.2.7.3 GR9 with §2002:12.2.7.2 SR9a: INTERFACE SP AS \"P2104-Speaker\" is resolved from the external repository (another compilation group) and an imported object is used through it (01 IMPORTED WOOF); 2002 §9.3.13 opens no non-EXPANDS instance branch (actual parameters exist only in EXPANDS, §2002:12.2.7.3 GR4); the --std 2002 run matched."
+ "notes": "§2002:12.2.7.3 GR9 with §2002:12.2.7.2 SR9a: INTERFACE SP AS \"P2104-Speaker\" is resolved from the external repository (another compilation group) and an imported object is used through it (01 IMPORTED WOOF); 2002 §9.3.13 opens no non-EXPANDS instance branch (actual parameters exist only in EXPANDS, §2002:12.2.7.3 GR4); the --std 2002 run matched. retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Find (listing step 6b, the OO names, kb/Work PB5932, moved the object-class-names and interface-names, their resolution and the PROPERTY specifiers into the symbol table; the row cites src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Find)"
 }

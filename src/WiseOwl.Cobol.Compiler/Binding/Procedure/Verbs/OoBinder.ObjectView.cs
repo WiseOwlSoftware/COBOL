@@ -91,7 +91,7 @@ internal sealed partial class OoBinder
             string phraseText = DataBinder.WrittenText(phrase);
             ObjectRefDescriptor view = phrase.UNIVERSAL() is not null
                 ? ObjectRefDescriptor.Universal   // GR7
-                : ctx.Data.Oo.DescribeNamedReference(phrase, phrase.className().GetText(),
+                : ctx.Data.Oo.DescribeNamedReference(phrase, phrase.className(),
                     factory: phrase.FACTORY() is not null, only: phrase.ONLY() is not null,
                     $"the object-view '{written} {phraseText}'", "ISO §2023:8.4.3.5.2",
                     DiagnosticCatalog.ObjectViewInterfacePhrase, "ISO §2023:8.4.3.5.2; §2023:8.4.3.5.4 GR6");

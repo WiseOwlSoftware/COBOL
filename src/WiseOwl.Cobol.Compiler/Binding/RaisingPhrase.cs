@@ -24,7 +24,7 @@ using WiseOwl.Cobol.Runtime;
 /// same source (feedback_two_arm_dispatch); the extraction is the fix.</para>
 /// <para><b>Why the partition is a bind-time question.</b> The three alternatives are each one user-defined
 /// word; only the EC catalog (§2023:14.6.13.1) and the REPOSITORY scope of THIS source element (§2023:8.4.6.4 — through
-/// <see cref="OoNameResolution.Lookup"/>, the one class/interface funnel) can tell them apart. The grammar keeps
+/// <see cref="SymbolTable.ClassNames.Lookup"/>, the one class/interface funnel) can tell them apart. The grammar keeps
 /// the one axis it can see — the FACTORY phrase — on <c>raisingTarget</c>.</para>
 /// </summary>
 internal static class RaisingPhrase
@@ -65,13 +65,13 @@ internal static class RaisingPhrase
 
             // object-class-name-1 (SR8) or interface-name-1 (SR9) — both "specified in the REPOSITORY paragraph",
             // i.e. the §2023:8.4.6.4 scope of THIS source element, asked through the funnel's non-diagnosing half.
-            var found = OoNameResolution.Lookup(table, word, up, OoNameResolution.Want.Either);
+            var found = table?.Names.Lookup(word, word, OoNameWant.Either) ?? default;
             // A parameter-name of the parameterized definition bound as itself (§2023:11.3.4 GR6 / §2023:11.6.4 GR4 admit it
             // wherever a class-name or interface-name is; kb/Work PB2051): legal here, and each expansion names the
             // actual. Its kind is its REPOSITORY specifier's, so FACTORY OF an interface formal is still SR8's refusal.
             // An INTERFACE formal under FACTORY OF falls through to the interface arm's refusal below.
             if (found.IsFormal
-                && (!factory || OoNameResolution.Lookup(table, word, up, OoNameResolution.Want.Class).IsFormal))
+                && (!factory || (table?.Names.Lookup(word, word, OoNameWant.Class) ?? default).IsFormal))
                 continue;
             if (found.Class is not null)
             {

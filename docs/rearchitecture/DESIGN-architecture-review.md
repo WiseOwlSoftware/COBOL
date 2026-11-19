@@ -1228,7 +1228,8 @@ whole body, not only its LOCAL-STORAGE initializers. `MnemonicRegistry` reads th
 (`SymbolTable.Identify` with `NameClass.Mnemonic`: the unit's own mnemonic-names, then its container's, since listing step 6b slice 4,
 docs/rearchitecture/DESIGN-listing.md section 6.7.1; the device map is a configuration entry like the switch map), and its parse-tree
 ancestor walk is gone. `OoRepositoryScope.Build`
-(`Oo/OoNameResolution.cs`), the fourth reader with its own ancestor walk over the REPOSITORY paragraphs (the seventh
+(`Oo/OoNameResolution.cs` then; since listing step 6b, `SymbolTable.RepositoryScope.Build` in the symbol table's compilation-group
+tier, `SymbolTable.ClassNames`, DESIGN-listing.md section 6.7.1), the fourth reader with its own ancestor walk over the REPOSITORY paragraphs (the seventh
 refuter, J2), is NOT a reader of the binder-side slice, and the estimate above was wrong about it: the class table
 resolves names in pass 1 (`OoClassTable.RepositoryScopeFor`: base classes, INHERITS and IMPLEMENTS), before any binder
 exists, so its REPOSITORY class- and interface-specifiers (each word and its AS phrase) are a pre-bind product of the

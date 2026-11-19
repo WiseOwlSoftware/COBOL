@@ -8,7 +8,10 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>What <see cref="SymbolTable.Identify"/> found: the symbol a written name denotes, of the class the position
 /// admitted. Only the table makes one (<c>NameTableOwnershipDriftTests</c> refuses one made anywhere else), so a symbol
-/// reached from a written name has come through the one lookup (docs/rearchitecture/DESIGN-listing.md section 6.7.1).
+/// reached from a written name has come through a recording point: <see cref="SymbolTable.Identify(ParserRuleContext, NameClass,
+/// bool, NameReach, ProcedureSite?, ReportSite)"/>, or, for an object-class-name or interface-name, the compilation group tier's
+/// <see cref="SymbolTable.ClassNames.Lookup"/>, whose answer is a <see cref="Compiler.Oo.OoNameResult"/>
+/// (docs/rearchitecture/DESIGN-listing.md section 6.7.1).
 /// Listing step 7b adds the occurrence it records.</summary>
 internal sealed record IdentifiedName
 {
@@ -103,7 +106,9 @@ internal readonly record struct WrittenQualifiedName
 public sealed partial class SymbolTable
 {
     /// <summary>
-    /// THE lookup from a written name to a symbol (docs/rearchitecture/DESIGN-listing.md section 6.7.1): <paramref name="written"/>
+    /// THE lookup from a written name to a symbol of an element's tables (docs/rearchitecture/DESIGN-listing.md section 6.7.1; an
+    /// object-class-name or interface-name is the compilation group's, identified by its twin <see cref="ClassNames.Lookup"/>):
+    /// <paramref name="written"/>
     /// is the name as the parser read it, <paramref name="wanted"/> the class its position admits. Null when the name denotes
     /// no symbol of that class here. <paramref name="report"/> says whether this is the reference itself (true) or a probe
     /// that classifies a word before the reference is resolved (false); listing step 7b records an occurrence for a reference

@@ -2,8 +2,8 @@
  "rule-id": "SR-12.3.8.3-6",
  "rule-digest": "84b528d40dab",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#UnansweredClassSpecifier; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImportClass; src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Skeleton",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#UnansweredClassSpecifier; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#ImportClass; src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Skeleton",
  "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_class_under_another_word; conformance-test:ExternalRepositoryClassImportTests.AClassSpecifierNothingAnswers_IsRepo1_NamingThePlacesSearched; conformance-test:ExternalRepositoryClassImportTests.AClassOfAnotherGroup_IsFoundByIdentity_AndItsMethodsRun; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_expand_skeleton_from_repository; unit:ExternalRepositoryExpansionTests.ASkeletonNothingAnswers_IsRepo1",
  "editions": "2002,2014,2023",
- "notes": "a) and b): a class-specifier no definition of the group, no BASE, no parameterized definition and no entry of the external repository answers is REPO-1 (COBOL5962) at the specifier, used or not; a skeleton another group published is read from the repository (PB2104)."
+ "notes": "a) and b): a class-specifier no definition of the group, no BASE, no parameterized definition and no entry of the external repository answers is REPO-1 (COBOL5962) at the specifier, used or not; a skeleton another group published is read from the repository (PB2104). retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImportClass (listing step 6b, the OO names, kb/Work PB5932, moved the object-class-names and interface-names, their resolution and the PROPERTY specifiers into the symbol table; the row cites src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#ImportClass)"
 }

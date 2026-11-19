@@ -424,7 +424,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // too (§2023:8.3.2.1 rule 5), so `INVOKE E "NEW"` with `CLASS E` in the REPOSITORY names the class, never the intrinsic
         // E (kb/Work PB2937: it drew COBOL1543 for a class or a formal spelled like a zero-argument intrinsic).
         if (!repositoryIntrinsic && (ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _)
-            || Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, dref, name, Compiler.Oo.OoNameResolution.Want.Either)
+            || host.OoClasses?.Names.Lookup(dref, cw, Compiler.Oo.OoNameWant.Either)
                 is { Ok: true } or { IsFormal: true }))
             return null;
         if (!declaredFn)

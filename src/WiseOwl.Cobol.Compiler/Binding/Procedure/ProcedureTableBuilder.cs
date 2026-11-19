@@ -951,8 +951,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // through the §2023:8.4.6.4 funnel; before kb/Work PB365 this site called `OoClasses.Find` directly, so a
             // program with NO REPOSITORY compiled clean (SR16 unenforced) and the interface alternative had no
             // resolution path at all and died on SR16's diagnostic (SR17 unimplemented).
-            var r = Compiler.Oo.OoNameResolution.Resolve(ctx.Data.OoClasses, ctx.Edition, use, cname,
-                Compiler.Oo.OoNameResolution.Want.Either,
+            var r = ctx.Data.OoClasses!.Names.Resolve(ctx.Edition, use, use.cobolWord(),
+                Compiler.Oo.OoNameWant.Either,
                 $"declarative section '{sectionName}': USE AFTER EXCEPTION OBJECT",
                 DiagnosticCatalog.UseExceptionObjectName.Code, "ISO §2023:14.9.49.3 SR16/SR17");
             if (!r.Ok) return null;

@@ -71,7 +71,9 @@ public sealed class ConfigurationBindersBoundaryDriftTests
     {
         var binder = Signatures(typeof(SpecialNamesBinder)).ToHashSet();
         var slice = Signatures(typeof(ConfigurationSlice)).ToHashSet();
-        Assert.True(slice.Count >= 20, $"ConfigurationSlice reflects only {slice.Count} members — the scan lost them");
+        // The floor guards the scan, not the slice's size: listing step 6b moves the slice's name tables into the symbol table
+        // (19 members after its OO lane), so the floor sits below the count and above an empty or half-read reflection.
+        Assert.True(slice.Count >= 15, $"ConfigurationSlice reflects only {slice.Count} members — the scan lost them");
         var shared = binder.Intersect(slice).Order().ToList();
         Assert.True(shared.Count == 0,
             $"SpecialNamesBinder declares members the ConfigurationSlice declares ({string.Join(", ", shared)}): the fact has ONE home, "
