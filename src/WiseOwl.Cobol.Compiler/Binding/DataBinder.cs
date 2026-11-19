@@ -47,17 +47,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>BinderDriver.BindUnitData</c> from <c>BoundUnit.IsFunction</c>.</summary>
     public bool UnitIsFunction { get; init; }
 
-    /// <summary>The names of the definitions CONTAINING this source element — its own and, for a contained program,
-    /// every program containing it; all of the unit's own kind (<see cref="UnitIsFunction"/>) — the no-specifier leg
-    /// of the two prototype-name scope rules: ISO §2023:8.4.6.6 admits "the user-function-name of the containing function
-    /// definition" as a function-prototype-name and §2023:8.4.6.8 "the program-name of a containing program definition"
-    /// as a program-prototype-name, so a <c>USAGE {FUNCTION|PROGRAM}-POINTER TO</c> naming one is conforming without
-    /// a REPOSITORY entry. This is the DATA-phase copy of the ONE set the registries read
-    /// (<c>BinderDriver.ContainingDefinitions</c>, which seeds it from <c>BindUnitData</c>), so the TO-phrase screen
-    /// and the signature the restriction resolves to cannot disagree (kb/Work PB3121). Empty for a class, factory or
-    /// interface forest: a class is neither definition kind. kb/Work PB452/PB817.</summary>
-    public IReadOnlySet<string> ContainingDefinitionNames { get; init; } = EmptyNames;
-    private static readonly IReadOnlySet<string> EmptyNames = new HashSet<string>(CobolNames.Comparer);
 
     /// <summary>The targeted-edition context (digit caps, bind-time rejection diagnostics). Defaults to the
     /// latest edition for direct test construction; <c>CompilerDriver</c> always supplies the CLI's
@@ -539,14 +528,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is [var fn])
             {
                 specifierWords.Add((re, fn.GetText(), UserWordKind.FunctionPrototypeName));
-                State.Configuration.UserFunctionNames.Add(fn.GetText());
                 // A refused literal-5 registers NO specifier (the program specifier's posture, kb/Work PB237/PB4708): the word is
                 // declared, but resolving it by the word would answer REPO-1 about a name the source never gave (kb/Work PB4773).
                 if (BindSpecifierExternalizedName(re, "FUNCTION", fn.GetText(), "literal-5") is { } functionExternalized)
-                    State.Configuration.FunctionSpecifiers[fn.GetText()] = new FunctionSpecifier(fn.GetText(), functionExternalized, re);
+                    Symbols.DeclareFunctionSpecifier(fn.GetText(), new FunctionSpecifier(fn.GetText(), functionExternalized, re));
                 else
                 {
-                    State.Configuration.RefusedFunctionSpecifiers.Add(fn.GetText());
+                    Symbols.DeclareFunctionSpecifier(fn.GetText(), specifier: null);
                     Edition.NoteSpecifierRefusalReported(RefusedSpecifierKind.Function, fn.GetText());   // reported by BindSpecifierExternalizedName
                 }
             }
@@ -2028,7 +2016,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         if (re.ALL() is not null) State.Configuration.RepositoryAllIntrinsic = true;
         else foreach (var inf in re.functionName())
-            State.Configuration.RepositoryIntrinsics.Add(FunctionWord.OfToken(inf.Start, CobolWords).Name);
+            State.Configuration.RepositoryIntrinsics.Add(new StandardWord(FunctionWord.OfToken(inf.Start, CobolWords).Name));
     }
 
     /// <summary>Declare a PARAMETERIZED class or interface definition's parameter-names (§2023:11.3.2 / §2023:11.6.2
@@ -2214,7 +2202,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         if (!State.Configuration.RepositoryAllIntrinsic && State.Configuration.RepositoryIntrinsics.Count == 0) return null;   // no intrinsic specifier in scope
         if (!TryIntrinsicOfThisCompilation(word, out var sig)) return null;
-        if (State.Configuration.RepositoryIntrinsics.Contains(sig.Name)) return sig.Name;
+        if (State.Configuration.RepositoryIntrinsics.Contains(new StandardWord(sig.Name))) return sig.Name;
         return State.Configuration.RepositoryAllIntrinsic ? AllIntrinsics : null;
     }
 
@@ -2234,7 +2222,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>TO prototype-name-1</c> names (<see cref="DataItem.RestrictedPrototype"/>; kb/Work PB2495): its USAGE clause's TO
     /// phrase is that prototype's externalized name, and ISO §2023:13.18.60.4 GR25 / GR26 bound what it may contain by that
     /// prototype's SIGNATURE. The prototype tables exist only once the
-    /// group's REPOSITORY has resolved (<see cref="SymbolTable.ResolveProgramPrototypes"/> / <c>BinderDriver.UserFunctionsOf</c>, after
+    /// group's REPOSITORY has resolved (<see cref="SymbolTable.ResolveProgramPrototypes"/> / <see cref="SymbolTable.ResolveFunctionPrototypes"/>, after
     /// every unit's DATA has bound), so this is the prototype twin of <see cref="ExpandTypesPass.ResolveRestrictedTypes"/> run at the point
     /// those tables are built — <c>BinderDriver.ResolvePointerRestrictions</c>, over every forest that declares pointers
     /// (a method's LINKAGE roots are on its class's). A name the table does not hold resolves to nothing, and the pointer
@@ -2244,14 +2232,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// forests. Both passes walk <see cref="ClauseResolutionForest"/>, the TYPEDEF templates too: a data-pointer restricted
     /// to a type is compared through that type's TEMPLATE, whose own program-pointer members must name their prototype
     /// exactly as the TYPE subjects cloned from it do (kb/Work PB3120).</summary>
-    internal void ResolveRestrictedPrototypes(IReadOnlyDictionary<string, UserFunctionSignature> functions)
+    internal void ResolveRestrictedPrototypes()
     {
         foreach (var item in ClauseResolutionForest())
-            if (item.Pic is { RestrictedPrototypeName: { } name } pic)
+            if (item.Pic is { RestrictedPrototypeName: not null } pic)
                 item.RestrictedPrototype = pic.Category switch
                 {
                     PicCategory.ProgramPointer => Symbols.RestrictedProgramPrototypeOf(item),
-                    PicCategory.FunctionPointer when functions.TryGetValue(name, out var function) => RestrictedPrototype.Of(function),
+                    PicCategory.FunctionPointer => Symbols.RestrictedFunctionPrototypeOf(item),
                     _ => null,
                 };
     }
@@ -4249,12 +4237,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // paragraph") and §2023:8.4.6.8 for a program-prototype-name, which is the same sentence over the other
         // namespace. A name in neither leg names no signature, so the GR25/GR26 restriction would be
         // unverifiable — and a restriction nothing can check is the a_dead_lookup_is_also_unverified shape. The
-        // containing-definition leg is the set the registries read (ContainingDefinitionNames, kb/Work PB3121).
-        if (restrictedPrototypeName is not null
-            && !(UnitIsFunction == isFunctionPointer && ContainingDefinitionNames.Contains(restrictedPrototypeName))
-            && !(isFunctionPointer
-                 ? State.Configuration.UserFunctionNames.Contains(restrictedPrototypeName)
-                 : Symbols.DeclaresProgramSpecifier(restrictedPrototypeName)))
+        // containing-definition leg is the set the prototype tables read (SymbolTable.DeclaresPrototypeName, kb/Work PB3121).
+        if (restrictedPrototypeName is not null && !Symbols.DeclaresPrototypeName(restrictedPrototypeName, function: isFunctionPointer))
         {
             Edition.Error(DiagnosticCatalog.PrototypePointerRestriction, $"{entryWhere}: USAGE "
                 + $"{(isFunctionPointer ? "FUNCTION" : "PROGRAM")}-POINTER TO {restrictedPrototypeName} — "

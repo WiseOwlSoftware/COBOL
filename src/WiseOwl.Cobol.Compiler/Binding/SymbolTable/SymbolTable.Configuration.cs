@@ -188,6 +188,7 @@ public sealed partial class SymbolTable
         _dynamicLengthStructures.InheritFrom(container._dynamicLengthStructures);
         _locales.InheritFrom(container._locales);   // §2023:12.3.7.4 GR1 — locale-names reach contained units
         InheritProgramSpecifiers(container);         // §2023:12.3.8.4 GR10 — the REPOSITORY's program-specifiers too
+        InheritFunctionSpecifiers(container);        // §2023:12.3.4 GR1 — and its user-defined-function specifiers
         _configurationContainer = container;
     }
 

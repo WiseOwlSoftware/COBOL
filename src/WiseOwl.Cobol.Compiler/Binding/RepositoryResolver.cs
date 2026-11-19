@@ -84,7 +84,7 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
     private readonly IReadOnlyList<IRepositoryProvider> _providers = [group, external];
     private readonly HashSet<object> _reported = new(ReferenceEqualityComparer.Instance);
 
-    /// <summary>The group's provider, for what only the group holds (<see cref="GroupRepositoryProvider.FunctionsAt"/>).</summary>
+    /// <summary>The group's provider, for what only the group holds (<see cref="GroupRepositoryProvider.FunctionsVisibleAt"/>).</summary>
     public GroupRepositoryProvider Group { get; } = group;
 
     /// <summary>The external repository's provider, for the entries §2023:9.2's check compares against.</summary>
