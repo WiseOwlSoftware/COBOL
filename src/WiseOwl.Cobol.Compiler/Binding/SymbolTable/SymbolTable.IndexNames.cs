@@ -80,14 +80,15 @@ public sealed partial class SymbolTable
         var key = Key(name);
         if (scope.Method is { } m)
         {
-            if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
-            if (_methodNames.TryGetValue(m, out var own) && own.IndexNames.Declares(key))
+            _methodNames.TryGetValue(m, out var own);
+            if (own is not null && own.DataNames.TryGetValue(key, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
+            if (own is not null && own.IndexNames.Declares(key))
                 return WithLapsedTypeIndexes(key,
                     own.IndexNames.Candidates(key, d => _data.IndexQualifierChainMatches(d, qualifiers), out _),
                     d => _data.IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
             // A method condition-name, CAPACITY register or constant-name of the spelling hides the object's
             // index-name too (GR5 covers every name class; kb/Work PB3165 review R2-1, PB3153 review round 3).
-            if (_data.MethodDeclares(m, name)) return null;
+            if (MethodDeclaresWord(m, name)) return null;
         }
         if (!_indexNames.Declares(key)) return null;
         var indexes = _indexNames.Candidates(key, d => _data.IndexQualifierChainMatches(d, qualifiers), out int indexDepth);

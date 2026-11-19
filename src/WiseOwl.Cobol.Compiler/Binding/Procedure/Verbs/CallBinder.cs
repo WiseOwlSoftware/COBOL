@@ -1544,7 +1544,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// whose chokepoint (<see cref="ExpressionBinder.ResolveReceiving"/>) reports every null it returns.</param>
     private BoundStatement OperandUnresolved(Core.DataReferenceContext dref, string role, RefResolution? answer = null)
     {
-        if (dref.cobolWord() is { } screenWord && ctx.Data.State.Forest.ScreenNames.Contains(screenWord.GetText()))
+        if (dref.cobolWord() is { } screenWord && ctx.Data.Symbols.DeclaresScreenName(screenWord.GetText()))
         {
             string text = DataBinder.WrittenText(dref);
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallOperandSection,

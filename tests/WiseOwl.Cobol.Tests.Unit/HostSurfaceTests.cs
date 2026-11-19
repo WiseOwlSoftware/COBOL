@@ -86,7 +86,7 @@ public sealed class HostSurfaceTests
             01 REC.
                05 REC-ID     PIC 9(4).
             """);
-        HostType Of(string name) => HostSurface.TypeOf(d.Forest.ByName[name][0]);
+        HostType Of(string name) => HostSurface.TypeOf(d.Forest.ItemNamed(name));
         void Row(string name, HostTypeKind kind, string? cs) => Assert.Equal(new HostType(kind, cs), Of(name));
 
         Row("AMOUNT", HostTypeKind.Decimal, "decimal");

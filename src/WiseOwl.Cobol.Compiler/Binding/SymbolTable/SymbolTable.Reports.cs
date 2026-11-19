@@ -92,7 +92,7 @@ public sealed partial class SymbolTable
             // A sum counter is a data-name subordinate to the report (GR1). A LOCAL declaration of the same name hides it; a
             // same-named counter of this element's own reports is a homonym the report-name qualifier resolves, exactly as
             // between two reports of one program (kb/Work PB882).
-            if (family.Name is not { } sn || _data.State.Forest.ByName.ContainsKey(sn)) continue;
+            if (family.Name is not { } sn || _dataNames.ContainsKey(Key(sn))) continue;
             DeclareSumCounter(sn, report, family);
         }
         return true;
@@ -309,7 +309,7 @@ public sealed partial class SymbolTable
     {
         var names = new List<string>();
         foreach (var entry in model.NamedEntries)
-            if (!_data.State.Forest.DeclaresOwnDataName(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
+            if (!DeclaresOwnDataName(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
                 names.Add(entry.Name);
         return names;
     }

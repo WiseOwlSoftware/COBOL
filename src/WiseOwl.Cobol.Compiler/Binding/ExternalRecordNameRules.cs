@@ -28,7 +28,7 @@ internal static class ExternalRecordNameRules
 {
     /// <summary>One source element's data: the program it is when it is one (the containment relation is the programs'),
     /// null for a class's object or factory half, which has no container.</summary>
-    internal readonly record struct Element(BoundUnit? Unit, DataBindResult Data);
+    internal readonly record struct Element(BoundUnit? Unit, DataBindResult Data, SymbolTable Symbols);
 
     public static void Check(IReadOnlyList<Element> elements, EditionContext edition)
     {
@@ -46,7 +46,7 @@ internal static class ExternalRecordNameRules
 
         bool runUnit = edition.DialectLevel >= 2002;
         foreach (var e in elements)
-            foreach (var (name, items) in e.Data.Forest.ByName)
+            foreach (var (name, items) in e.Symbols.DataNameDeclarations())
             {
                 if (!records.TryGetValue(name, out var owners)) continue;
                 foreach (var item in items)

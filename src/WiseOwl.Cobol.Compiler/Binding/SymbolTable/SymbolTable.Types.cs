@@ -93,7 +93,7 @@ public sealed partial class SymbolTable
         if (scope.Method is { } m)
         {
             if (_methodNames.TryGetValue(m, out var own) && own.TypeNames.TryGetValue(key, out var declaration)) return declaration;
-            if (_data.MethodDeclares(m, key.Word)) return null;
+            if (MethodDeclaresWord(m, key.Word)) return null;
         }
         return _ownTypeNames.GetValueOrDefault(key) ?? _inheritedTypeNames.GetValueOrDefault(key);
     }

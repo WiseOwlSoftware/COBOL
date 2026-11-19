@@ -3891,7 +3891,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // item or constant is in ByName; a report group entry, printable item or sum counter is a report section
             // name of some report of the source element, all of which are described by now.
             foreach (var name in model.VaryingNames)
-                if (_d.State.Forest.DeclaresOwnDataName(name) || IsReportSectionOnlyName(name))
+                if (_d.Symbols.DeclaresOwnDataName(name) || IsReportSectionOnlyName(name))
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' VARYING '{name}': the counter "
                         + $"data-name shall not be defined elsewhere in the source element (ISO §2023:13.18.64.3 SR2{Since2002})");
 
@@ -4683,7 +4683,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// are not subscripts (§2023:8.4.3.2.3 SR2) — and a reference modification (<c>refModPart</c>) has none.</summary>
     private IEnumerable<string> SubscriptWordsOfReference(Core.DataReferenceContext dref)
     {
-        if (dref.cobolWord()?.GetText() is not { } baseWord || !(_d.State.Forest.DeclaresOwnDataName(baseWord) || IsReportSectionOnlyName(baseWord)))
+        if (dref.cobolWord()?.GetText() is not { } baseWord || !(_d.Symbols.DeclaresOwnDataName(baseWord) || IsReportSectionOnlyName(baseWord)))
             yield break;
         foreach (var suffix in dref.dataReferenceSuffix())
         {

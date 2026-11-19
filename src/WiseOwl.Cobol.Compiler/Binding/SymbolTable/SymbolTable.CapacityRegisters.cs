@@ -47,7 +47,7 @@ public sealed partial class SymbolTable
     internal bool DuplicatesCapacityRegister(OoMethodDataScope? method, string name, DataItem table)
     {
         var registers = method is null ? _capacityRegisters : _methodNames.GetValueOrDefault(method)?.CapacityRegisters;
-        return (method is null ? _data.State.Forest.DeclaresOwnDataName(name) : method.ByName.ContainsKey(name))
+        return (method is null ? DeclaresOwnDataName(name) : _methodNames.TryGetValue(method, out var own) && own.DataNames.ContainsKey(Key(name)))
             || (registers is not null && registers.TryGetValue(Key(name), out var sameName)
                 && !sameName.TrueForAll(t => _data.State.Forest.DeclaringDepth(t) != 0
                                              || ReferenceEquals(t.WrittenDefinition, table.WrittenDefinition)));
@@ -73,7 +73,7 @@ public sealed partial class SymbolTable
         if (scope.Method is { } m)
         {
             if (_methodNames.TryGetValue(m, out var own) && own.CapacityRegisters.TryGetValue(key, out var tables)) return new(tables);
-            if (_data.MethodDeclares(m, key.Word)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
+            if (MethodDeclaresWord(m, key.Word)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
         }
         _data.State.Require(Passes.PassPhase.OccursResolved, "CapacityRegisters");
         return _capacityRegisters.TryGetValue(key, out var registers) ? new(registers) : null;

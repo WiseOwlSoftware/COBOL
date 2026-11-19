@@ -42,7 +42,7 @@ public sealed partial class SymbolTable
         /// rank (APPLY COMMIT's GLOBAL file, <see cref="FileControlBinder.ScreenEnclosingFileOperand"/>) compares like with like.</para></summary>
         public DeclarationFact? OtherThanData(string name, IReadOnlyList<string> qualifiers, Scope scope)
         {
-            if (_data.State.Forest.ScreenNames.Contains(name)) return new(DeclarationKind.ScreenEntry);
+            if (_table.DeclaresScreenName(name)) return new(DeclarationKind.ScreenEntry);
             if (_data.SpecialNames.IsAlphabetName(name)) return new(DeclarationKind.AlphabetName);
             // An unqualified reference's data-name answer is the RANKED one (§2023:8.4.6.2.1 3)): a container's GLOBAL data item that
             // a nearer condition-name hides is no answer here, so the condition-name below is (kb/Work PB4219). A qualified
@@ -191,8 +191,8 @@ public sealed partial class SymbolTable
         /// added there is asked here too.</para></summary>
         public bool DeclaredNearerThan(string name, int depth)
         {
-            if (_data.State.Forest.ByName.TryGetValue(name, out var items) && items.Any(i => _data.State.Forest.DeclaringDepth(i) < depth)) return true;
-            if (_data.State.Forest.Conditions.TryGetValue(name, out var conds) && conds.Any(c => _data.State.Forest.DeclaringDepth(c.Parent) < depth)) return true;
+            if (_table._dataNames.TryGetValue(Key(name), out var items) && items.Any(i => _data.State.Forest.DeclaringDepth(i) < depth)) return true;
+            if (_table._conditionNames.TryGetValue(Key(name), out var conds) && conds.Any(c => _data.State.Forest.DeclaringDepth(c.Parent) < depth)) return true;
             if (_table.CapacityRegisterDeclaredNearerThan(name, depth)) return true;
             if (_table._sumCounters.TryGetValue(Key(name), out var counters) && counters.Any(c => _data.State.Reports.Depth(c.Report) < depth)) return true;
             if (_table.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
@@ -228,7 +228,7 @@ public sealed partial class SymbolTable
         public bool IsReportSubscriptCounter(string word) =>
             CobolNames.Same(word, "LINE-COUNTER")
             || CobolNames.Same(word, "PAGE-COUNTER")
-            || (!_data.State.Forest.DeclaresOwnDataName(word) && _data.State.Reports.Declared.Any(r => r.NamedEntries.Any(e =>
+            || (!_table.DeclaresOwnDataName(word) && _data.State.Reports.Declared.Any(r => r.NamedEntries.Any(e =>
                 e.IsSumCounter && CobolNames.Same(e.Name, word))));
 
         /// <summary>Whether <paramref name="word"/> is the name of a sum counter of <paramref name="report"/>: §2023:13.18.53.3 SR4's

@@ -230,11 +230,11 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
                 : "the AT / LINE / COLUMN positioning phrase appears only in the screen format";
         // The operand scan costs nothing in the overwhelmingly common case: no SCREEN SECTION, no names, and
         // DISPLAY is the binder's hottest statement — so the empty-set test comes before the per-operand work.
-        if (ctx.Data.State.Forest.ScreenNames.Count == 0) return null;
+        if (!ctx.Data.Symbols.HasScreenNames) return null;
         foreach (var dref in operands)
         {
             string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-            if (ctx.Data.State.Forest.ScreenNames.Contains(name))
+            if (ctx.Data.Symbols.DeclaresScreenName(name))
                 return ConditionalPhrases.HasFamily(phrases, ConditionalPhraseFamily.Exception)
                     ? $"'{DataBinder.WrittenText(dref)}' is declared in the SCREEN SECTION, and the ON EXCEPTION / NOT "
                       + "ON EXCEPTION phrase appears only in the screen format"

@@ -145,7 +145,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// source element B, the item in source element B is the referenced item"; §2023:8.4.6.1 "even when it is a different
     /// type of user-defined word"; kb/Work PB3154 review R1-1). Asked by the two literal-alias lookups,
     /// <c>SymbolTable.Identify</c>'s constant arm and <c>SpecialNamesBinder.SymbolicOf</c>; always false outside a method.</summary>
-    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope is { } method && data.MethodDeclares(method, word);
+    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope is { } method && data.Symbols.MethodDeclaresWord(method, word);
 
     /// <summary>Reserve the names the C# class this binder's data is emitted into already holds, BEFORE the data
     /// division binds: its own type name <paramref name="classClrName"/> (the instance class beside the object data,

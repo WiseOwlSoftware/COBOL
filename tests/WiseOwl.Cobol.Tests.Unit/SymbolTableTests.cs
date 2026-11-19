@@ -77,9 +77,9 @@ public sealed class SymbolTableTests
         var methodLocal = data.Symbols.TryResolve("WS-A", Scope.Program, out var g) ? g[0] : null;
         Assert.NotNull(methodLocal);
         var scope = new OoMethodDataScope();
-        // The method declares its OWN WS-SHARED — the overlay entry points at a DIFFERENT item (reuse WS-A's
+        // The method declares its OWN WS-SHARED (through the table's one insert) — the method's entry points at a DIFFERENT item (reuse WS-A's
         // item object as a stand-in; the resolver compares nothing but presence).
-        scope.ByName["WS-SHARED"] = [methodLocal!];
+        data.Symbols.DeclareDataName(methodLocal!, "WS-SHARED", scope);
         Assert.True(data.Symbols.TryResolve("WS-SHARED", new Scope(scope), out var items));
         Assert.Same(methodLocal, items[0]);                       // the method-local wins — REPLACES, not unions
         Assert.Single(items);
@@ -106,7 +106,7 @@ public sealed class SymbolTableTests
         var global = IndexNamed(data, "IX")?.Single;   // sanity: IX exists globally
         Assert.NotNull(global);
         var scope = new OoMethodDataScope();
-        scope.ByName["IX"] = [data.Symbols.TryResolve("WS-A", Scope.Program, out var g) ? g[0] : null!];
+        data.Symbols.DeclareDataName(data.Symbols.TryResolve("WS-A", Scope.Program, out var g) ? g[0] : null!, "IX", scope);
         Assert.Null(IndexNamed(data, "IX", scope));
     }
 

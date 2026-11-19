@@ -234,17 +234,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// repetition and the VALUE operand.</summary>
     internal ConstantEntryBinder Constants => field ??= new ConstantEntryBinder(this);
 
-    /// <summary>⛔ THE ONE ANSWER TO "DOES THE METHOD WHOSE NAME SCOPE IS <paramref name="method"/> DECLARE <paramref name="word"/>?"
-    /// (§2023:11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
-    /// data division of the containing object definition, the use of that word in this method refers to the declaration
-    /// in this method"; §2023:8.4.6.1 "even when it is a different type of user-defined word"): a data-name or condition-name in the method's model scope
-    /// (<see cref="OoMethodDataScope.IndexesDeclare"/>), or an index-name, CAPACITY register, type-name, constant-name or a word its
-    /// data division defines before any entry binds, which the symbol table keeps (<see cref="SymbolTable.MethodDeclaresWord"/>;
-    /// kb/Work PB3164, PB3192, PB2402, PB5932). Every method tier of a lookup
-    /// asks it before it falls through to the object's names (<c>GlobalNameClassDriftTests</c>).</summary>
-    internal bool MethodDeclares(OoMethodDataScope method, string word) =>
-        method.IndexesDeclare(word) || Symbols.MethodDeclaresWord(method, word);
-
     /// <summary><see cref="IPlaceFacts"/>: the BIND-TIME image-storage query (kb/Work PB2375): true when
     /// <paramref name="item"/> is already known - at THIS point of binding - to store its character image. It reads the
     /// ONE fact set, <see cref="DataBindState.ImageForcedItems"/>, through its mid-bind view (<see cref="IReadsEarly{T}"/>),
@@ -562,7 +551,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             var screenNames = new HashSet<string>(CobolNames.Comparer);
             ScreenFacility.ReportSection(Edition, scr, screenNames);
-            State.Forest.AddScreenNames(screenNames);
+            Symbols.DeclareScreenNames(screenNames);
             // The section is refused, but its screen-names are declared all the same (§2023:8.3.2.2; kb/Work PB1083).
             foreach (var sn in screenNames) DeclareUserWord(sn, UserWordKind.ScreenName);
             // A constant entry among the screen entries (§2023:13.9.2, kb/Work PB4306) is a constant of this source element
@@ -1936,7 +1925,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private DataItem? _lastRoot;
 
     /// <summary>Index a named item in the by-name multimap of the source element that owns its record
-    /// (<see cref="NameScopeOf"/>: a METHOD's own, else <see cref="ForestSlice.ByName"/>; kb/Work PB3192) — COBOL allows duplicate
+    /// (<see cref="NameScopeOf"/>: a METHOD's own, else the element's; the symbol table keys it, kb/Work PB3192, PB5932) — COBOL allows duplicate
     /// names disambiguated only by qualification.</summary>
     internal void RegisterImpliedName(DataItem item) => RegisterName(item);
 
@@ -1944,7 +1933,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         RegisterIndexes(item);   // before the name test: a FILLER table's index-names are referenceable (PB919)
         if (item.CobolName is not { } name) return;
-        State.Forest.DeclareName(item, name, NameScopeOf(item));
+        Symbols.DeclareDataName(item, name, NameScopeOf(item));
     }
 
     /// <summary>Index a level-88 condition-name in the condition multimap of the source element that owns its
@@ -1952,7 +1941,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// a TYPE copy alike.</summary>
     private void RegisterCondition(Condition88 cond)
     {
-        State.Forest.DeclareCondition(cond, NameScopeOf(cond.Parent));
+        Symbols.DeclareConditionName(cond, NameScopeOf(cond.Parent));
     }
 
     private readonly HashSet<string> _repositoryNameReported = new(CobolNames.Comparer);
@@ -4959,7 +4948,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // A POSITIVE hint only: ByName carries the data items bound SO FAR, so its silence is not evidence
             // that the name is undeclared (a later sibling is not registered yet) — the verdict above never
             // depends on it (feedback_verdict_evidence_invariant).
-            string hint = State.Forest.ByName.ContainsKey(word)
+            string hint = Symbols.HasBoundDataName(word)
                 ? $" ('{word}' is declared as a data item; a data item is not a literal.)" : "";
             Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: {position.Operand} '{word}' is not a "
                 + $"literal — {position.Format(Edition.Edition)}, and the only "
