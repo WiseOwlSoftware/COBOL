@@ -72,12 +72,15 @@ internal sealed record NameFinding(int Rule, string Key, string Where, string Wh
 /// </summary>
 internal static class NameTableOwnership
 {
-    /// <summary>The compiler's own sources under <paramref name="root"/>, compiled by Roslyn against the framework's reference
-    /// set and every assembly the compiler references (resolved through the ones this host has loaded), with the implicit
-    /// usings the SDK adds and the compiler's own source generator (<paramref name="generatorDll"/>) run over them, as the
-    /// build runs it.</summary>
-    public static CSharpCompilation CompileCompiler(string root, string generatorDll)
+    /// <summary>The compiler's own sources (<c>src/WiseOwl.Cobol.Compiler</c>), compiled by Roslyn against the framework's
+    /// reference set and every assembly the compiler references (resolved through the ones this host has loaded), with the
+    /// implicit usings the SDK adds and the compiler's own source generator run over them, as the build runs it. The source
+    /// root is named here, not passed in, so the tests tree's walk guard (<c>TrackedTreeScopeDriftTests</c>) follows the
+    /// recursive listing to its directory.</summary>
+    public static CSharpCompilation CompileCompiler()
     {
+        string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
+        string generatorDll = TestRepo.Src("WiseOwl.Cobol.Compiler.SourceGen", "bin", TestRepo.Configuration, "netstandard2.0", "WiseOwl.Cobol.Compiler.SourceGen.dll");
         var options = new CSharpParseOptions(LanguageVersion.Preview);
         var trees = new List<SyntaxTree>
         {
