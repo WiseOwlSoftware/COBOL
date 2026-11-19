@@ -4,7 +4,7 @@ Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `Symbo
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands the OO lane, from
 `listing-step-6b-oo`, run beside the data-name lane (controller 2026-11-19): the object-class-names, interface-names and method
 rosters, and the PROPERTY specifiers, each change shown behaviour-neutral by the architecture oracle; the lane lowers the baseline by
-46 (rule (1) 8 tables, rule (3) 7 lookups, rule (5) 31 sites), from 223 to 177 on its own branch.
+46 (rule (1) 8 tables, rule (3) 7 lookups, rule (5) 31 sites): 223 to 177 on its base, and 201 to 155 with slice 7, merged.
 
 **The method rosters.** An INVOKE names its method only by literal-1 or identifier-2 (§2023:14.9.23.2), resolved "as described in
 8.3.2.2, User-defined words" (§2023:14.9.23.4 GR2) against the method's externalized name (§2023:11.7.4 GR1 b)), so a class's instance
