@@ -46,29 +46,31 @@ internal static class ScreenFacility
     /// other site can produce.</summary>
     private readonly record struct Fact(string Phrase, string Iso);
 
-    /// <summary>Grammar rule name → the construct it recognizes. Keyed by the rule NAME (not the generated rule
-    /// INDEX) so the drift test can compare it against the <c>.g4</c> text directly.</summary>
-    private static readonly Dictionary<string, Fact> ClauseFacts = new(StringComparer.Ordinal)
+    /// <summary>Grammar rule → the construct it recognizes, keyed by the generated rule INDEX (<c>CobolParserCore.RULE_*</c>): a grammar
+    /// rule is no COBOL word, so the table is keyed by a value of its own (docs/rearchitecture/DESIGN-listing.md section 6.7.2's last
+    /// row), and a rule renamed in the grammar breaks the build here. The drift test compares the rule NAMES
+    /// (<see cref="CoveredClauseRules"/>) against the <c>.g4</c> text.</summary>
+    private static readonly Dictionary<int, Fact> ClauseFacts = new()
     {
         // The screen-only clauses (Annex A.4.2 items 2-7, 12-19, 23, 26, 27 — each optional WHOLE).
-        ["screenAutoClause"]            = new("the AUTO clause", "13.18.3"),
-        ["screenBackgroundColorClause"] = new("the BACKGROUND-COLOR clause", "13.18.4"),
-        ["screenBellClause"]            = new("the BELL clause", "13.18.6"),
-        ["screenBlankClause"]           = new("the BLANK clause", "13.18.7"),
-        ["screenBlinkClause"]           = new("the BLINK clause", "13.18.9"),
-        ["screenColumnClause"]          = new("the COLUMN clause, format 2 (screen item)", "13.18.14"),
-        ["screenEraseClause"]           = new("the ERASE clause", "13.18.21"),
-        ["screenForegroundColorClause"] = new("the FOREGROUND-COLOR clause", "13.18.23"),
-        ["screenFromClause"]            = new("the FROM clause", "13.18.25"),
-        ["screenFullClause"]            = new("the FULL clause", "13.18.26"),
-        ["screenHighlightClause"]       = new("the HIGHLIGHT clause", "13.18.30"),
-        ["screenLineClause"]            = new("the LINE clause, format 2 (screen item)", "13.18.35"),
-        ["screenLowlightClause"]        = new("the LOWLIGHT clause", "13.18.36"),
-        ["screenRequiredClause"]        = new("the REQUIRED clause", "13.18.47"),
-        ["screenReverseVideoClause"]    = new("the REVERSE-VIDEO clause", "13.18.48"),
-        ["screenSecureClause"]          = new("the SECURE clause", "13.18.50"),
-        ["screenToClause"]              = new("the TO clause", "13.18.56"),
-        ["screenUnderlineClause"]       = new("the UNDERLINE clause", "13.18.59"),
+        [Core.RULE_screenAutoClause]            = new("the AUTO clause", "13.18.3"),
+        [Core.RULE_screenBackgroundColorClause] = new("the BACKGROUND-COLOR clause", "13.18.4"),
+        [Core.RULE_screenBellClause]            = new("the BELL clause", "13.18.6"),
+        [Core.RULE_screenBlankClause]           = new("the BLANK clause", "13.18.7"),
+        [Core.RULE_screenBlinkClause]           = new("the BLINK clause", "13.18.9"),
+        [Core.RULE_screenColumnClause]          = new("the COLUMN clause, format 2 (screen item)", "13.18.14"),
+        [Core.RULE_screenEraseClause]           = new("the ERASE clause", "13.18.21"),
+        [Core.RULE_screenForegroundColorClause] = new("the FOREGROUND-COLOR clause", "13.18.23"),
+        [Core.RULE_screenFromClause]            = new("the FROM clause", "13.18.25"),
+        [Core.RULE_screenFullClause]            = new("the FULL clause", "13.18.26"),
+        [Core.RULE_screenHighlightClause]       = new("the HIGHLIGHT clause", "13.18.30"),
+        [Core.RULE_screenLineClause]            = new("the LINE clause, format 2 (screen item)", "13.18.35"),
+        [Core.RULE_screenLowlightClause]        = new("the LOWLIGHT clause", "13.18.36"),
+        [Core.RULE_screenRequiredClause]        = new("the REQUIRED clause", "13.18.47"),
+        [Core.RULE_screenReverseVideoClause]    = new("the REVERSE-VIDEO clause", "13.18.48"),
+        [Core.RULE_screenSecureClause]          = new("the SECURE clause", "13.18.50"),
+        [Core.RULE_screenToClause]              = new("the TO clause", "13.18.56"),
+        [Core.RULE_screenUnderlineClause]       = new("the UNDERLINE clause", "13.18.59"),
         // ⚠ A.4.2 OMITS THE USING CLAUSE, and that is a defect in the standard, not a licence gap. §2023:13.18.61.1:
         // "The USING clause identifies data to be used both as the destination in an ACCEPT screen statement and
         // the source for a DISPLAY screen statement" — it is purely screen and is reachable only from a screen
@@ -76,23 +78,23 @@ internal static class ScreenFacility
         // has no other syntactic context), NOT A.4.1 ¶2, whose "even if not explicitly listed" attaches to the
         // RULES hanging off a listed element and cannot make an unlisted CLAUSE optional. The LINE clause format
         // 2 is omitted from the printed list the same way and rides the same licence.
-        ["screenUsingClause"]           = new("the USING clause", "13.18.61"),
+        [Core.RULE_screenUsingClause]           = new("the USING clause", "13.18.61"),
         // The clauses a screen description entry SHARES with a data description entry. They are refused HERE
         // because the entry that contains them has no other syntactic context (§2023:13.17 — item 20), never because
         // the clause itself is optional: PICTURE, VALUE, OCCURS, USAGE, SIGN, JUSTIFIED, BLANK WHEN ZERO and
         // GLOBAL are all core language everywhere else, and nothing in this file may be read as declining them.
-        ["pictureClause"]               = new("the PICTURE clause of a screen description entry", "13.18.40"),
-        ["valueClause"]                 = new("the VALUE clause of a screen description entry", "13.18.63"),
-        ["occursClause"]                = new("the OCCURS clause of a screen description entry", "13.18.38"),
-        ["usageClause"]                 = new("the USAGE clause of a screen description entry", "13.18.60"),
-        ["signClause"]                  = new("the SIGN clause of a screen description entry", "13.18.52"),
-        ["justifiedClause"]             = new("the JUSTIFIED clause of a screen description entry", "13.18.32"),
-        ["blankWhenZeroClause"]         = new("the BLANK WHEN ZERO clause of a screen description entry", "13.18.8"),
-        ["globalClause"]                = new("the GLOBAL clause of a screen description entry", "13.18.27"),
+        [Core.RULE_pictureClause]               = new("the PICTURE clause of a screen description entry", "13.18.40"),
+        [Core.RULE_valueClause]                 = new("the VALUE clause of a screen description entry", "13.18.63"),
+        [Core.RULE_occursClause]                = new("the OCCURS clause of a screen description entry", "13.18.38"),
+        [Core.RULE_usageClause]                 = new("the USAGE clause of a screen description entry", "13.18.60"),
+        [Core.RULE_signClause]                  = new("the SIGN clause of a screen description entry", "13.18.52"),
+        [Core.RULE_justifiedClause]             = new("the JUSTIFIED clause of a screen description entry", "13.18.32"),
+        [Core.RULE_blankWhenZeroClause]         = new("the BLANK WHEN ZERO clause of a screen description entry", "13.18.8"),
+        [Core.RULE_globalClause]                = new("the GLOBAL clause of a screen description entry", "13.18.27"),
     };
 
     /// <summary>The rule names the drift test expects to find as <c>screenClause</c> alternatives.</summary>
-    internal static IReadOnlyCollection<string> CoveredClauseRules => ClauseFacts.Keys;
+    internal static IReadOnlyCollection<string> CoveredClauseRules => [.. ClauseFacts.Keys.Select(rule => Core.ruleNames[rule])];
 
     // ── The data / environment division surface — COBOL1560 ────────────────────────────────────────────────
 
@@ -110,7 +112,7 @@ internal static class ScreenFacility
             edition.Declined(DiagnosticCatalog.ScreenFacilityUnsupported,
                 "the SCREEN SECTION (ISO §2023:13.9; Annex A.4.2 items 8 and 22)");
 
-        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var seen = new HashSet<int>();
         foreach (var entry in scr.screenDescriptionEntry())
         {
             if (entry.dataName()?.cobolWord()?.GetText() is { } sn) screenNames.Add(sn);
@@ -121,11 +123,10 @@ internal static class ScreenFacility
 
     /// <summary>Name the ONE clause a <c>screenClause</c> node matched. The rule name is read off the matched
     /// child context, so the table above is the only place a clause's identity is written down.</summary>
-    private static void ReportClause(EditionContext edition, Core.ScreenClauseContext clause, HashSet<string> seen)
+    private static void ReportClause(EditionContext edition, Core.ScreenClauseContext clause, HashSet<int> seen)
     {
         if (clause.GetChild(0) is not ParserRuleContext inner) return;
-        string rule = Core.ruleNames[inner.RuleIndex];
-        if (!ClauseFacts.TryGetValue(rule, out var fact) || !seen.Add(rule)) return;
+        if (!ClauseFacts.TryGetValue(inner.RuleIndex, out var fact) || !seen.Add(inner.RuleIndex)) return;
         using var _ = edition.At(inner);
         edition.Declined(DiagnosticCatalog.ScreenFacilityUnsupported, $"{fact.Phrase} (ISO §2023:{fact.Iso})");
     }

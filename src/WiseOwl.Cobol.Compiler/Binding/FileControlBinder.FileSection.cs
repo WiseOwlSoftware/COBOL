@@ -472,7 +472,7 @@ public sealed partial class FileControlBinder
         if (values.All(v => v is not null))
         {
             string block = string.Join("..", values);
-            file.FdClauses[FileDescriptionIdentity.Block] = new(block, block, Edition.Cursor);
+            file.FdClauses[FdClause.Block] = new(block, block, Edition.Cursor);
         }
     }
 
@@ -641,7 +641,7 @@ public sealed partial class FileControlBinder
         if (alnumSet is not null || natSet is not null)
         {
             string sets = $"{alnumSet?.Phrase}/{natSet?.Phrase}";
-            file.FdClauses[FileDescriptionIdentity.CodeSet] = new(sets, sets, Edition.Cursor);
+            file.FdClauses[FdClause.CodeSet] = new(sets, sets, Edition.Cursor);
         }
     }
 

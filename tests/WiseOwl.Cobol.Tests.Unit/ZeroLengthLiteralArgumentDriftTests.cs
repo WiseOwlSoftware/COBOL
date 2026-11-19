@@ -111,7 +111,7 @@ public sealed class ZeroLengthLiteralArgumentDriftTests
         foreach (string name in SpecFunctionsProhibitingZeroLengthArguments())
         {
             if (Adjudicated.ContainsKey(name)) continue;
-            if (!IntrinsicArgumentRules.Verified.TryGetValue(name, out var schema)
+            if (!IntrinsicArgumentRules.Verified.TryGetValue(new(name), out var schema)
                 || !DeclaresZeroLengthRule(schema))
                 missing.Add(name);
         }

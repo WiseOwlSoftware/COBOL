@@ -45,7 +45,7 @@ public sealed partial class FileControlBinder
     private void CaptureValueOf(Core.ValueOfClauseContext clause, FileModel file)
     {
         using (Edition.At(clause))
-            file.FdClauses[FileDescriptionIdentity.ValueOf] = new(
+            file.FdClauses[FdClause.ValueOf] = new(
                 FileDescriptionIdentity.ValueOfValue(clause.valueOfEntry().Select(e => (e.cobolWord().GetText(), e.literal() is { } lit ? ValueOfLiteralValue(lit) : null))),
                 WiseOwl.Cobol.Frontend.Parsing.WrittenSource.Of(clause), Edition.Cursor);
         foreach (var entry in clause.valueOfEntry())
@@ -111,7 +111,7 @@ public sealed partial class FileControlBinder
         using (Edition.At(clause))
         {
             string label = clause.STANDARD() is not null ? "STANDARD" : "OMITTED";
-            file.FdClauses[FileDescriptionIdentity.Label] = new(label, label, Edition.Cursor);
+            file.FdClauses[FdClause.Label] = new(label, label, Edition.Cursor);
         }
     }
 

@@ -35,6 +35,9 @@ internal enum NameClass
     Report,
     /// <summary>A cd-name (a communication description entry).</summary>
     CommunicationDescription,
+    /// <summary>A paragraph-name or a section-name. <c>SymbolTable.Identify</c> resolves it; the finished table holds no procedure
+    /// entry yet (the cross-reference of listing step 7b adds them).</summary>
+    Procedure,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>

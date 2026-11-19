@@ -2085,7 +2085,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // which would screen LENGTH as numeric-only. Screening from it rejected 12 legal corpus programs.
         // A function absent from Verified is not screened, so this can only ever ADD rejections that a cited
         // §15 rule demands. sig.ArgKind(i) still supplies the POSITION when the rule is per-argument.
-        if (!IntrinsicArgumentRules.Verified.TryGetValue(sig.Name, out var schema)) return;
+        if (!IntrinsicArgumentRules.Verified.TryGetValue(new(sig.Name), out var schema)) return;
 
         // PER-POSITION (fix-queue PB12). `schema.At(i)` is null for a position the clause does not describe —
         // UNSCREENED, never screened by whatever the previous position declared, which is exactly the mistake a

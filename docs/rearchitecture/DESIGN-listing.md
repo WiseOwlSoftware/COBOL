@@ -10,7 +10,8 @@
 > (one sequence point per COBOL statement and a portable PDB from the Roslyn backend, the object-code map and the object code read
 > from the assembly and its PDB, branch `listing-step-8`); STEP 6b IN PROGRESS, LANDING BY NAME CLASS (the one store of names,
 > kb/Work PB5932; slice 1, branch `listing-step-6b`: the drift test, the table's place, `Identify`, `Declarations`, the cd-names
-> and the file-names, and the temporary shrink-only baseline of the classes not yet moved; sections 6.7.1 "Step 6b, as built so
+> and the file-names, and the temporary shrink-only baseline of the classes not yet moved; slice 2, branch `listing-step-6b-2`: the
+> tables keyed by no COBOL user word re-keyed by types of their own, and the procedure-names; sections 6.7.1 "Step 6b, as built so
 > far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)" or "(step 8)" in the section it changed.
@@ -1089,6 +1090,36 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     good or waiting for its slice). Rules (2) and (4) take no baseline. At slice 1 it holds 325 entries: 56 tables, 63 lookups,
     206 comparison sites. It is not a permanent ratchet: the LAST slice empties it and deletes the file and the code that reads
     it, and the test is again the five rules above, green with no exceptions.
+  - *(Step 6b, slice 2, branch `listing-step-6b-2`.)* Two classes moved, and the baseline holds 308 (47 tables, 61 lookups, 200
+    sites):
+    - **The tables keyed by no COBOL user word** (section 6.7.2's last row) are keyed by a type that says what the key is, so rule
+      (1) no longer reads them as name tables: `FileModel.FdClauses` by the enum `FdClause` (the 1985 agreement-rule clauses are a
+      fixed set); `ScreenFacility.ClauseFacts` by the generated grammar rule index; `Polynomial._terms` by a private `MonomialKey`
+      ordered as the string was; `ExpansionPlacements.ByName` by `ClrTypeName`; and `IntrinsicCatalog`'s table,
+      `IntrinsicArgumentRules.Verified` and `DeliberatelyUnscreened` and `ImplementorNameRegistry`'s rows by `StandardWord`, a word
+      the standard or the implementor defines, equal on the basic letters alone (`CobolKeywords`, §2023:8.1.3.2 GR3a). Three of
+      those compared with the user-word fold before; every key of theirs is basic letters and the fold maps no extended letter to a
+      basic one, so every lookup answers as before (the oracle is identical).
+    - **The procedure-names.** `ProcedureNameMap<T>` is the table's private `ProcedureNames<T>`, keyed by `CobolName`, and the
+      scopes it served are the table's: the program's, each method's (keyed by its `OoMethodScope`) and each section's own
+      paragraphs. `ProcedureTableBuilder` declares through `SymbolTable.DeclareParagraph` and `DeclareSection`, and every
+      procedure-name reference resolves through `Identify(written, NameClass.Procedure, report, site: ProcedureSite)`, whose body is
+      the §2023:8.4.2.2 algorithm `ResolveProcedureWord` was (`SymbolTable.ProcedureNamed`). `NameClass` gains `Procedure`.
+  - *`Identify` reads a REFERENCE RULE's words from its children (correction, slice 2).* "`Identify` keys one word" holds for a
+    name rule, but a procedure-name is a reference rule (`procedureName`: a head and an optional `OF`/`IN` qualifier), and so is a
+    USE FOR DEBUGGING operand, which the grammar spells as a `dataReference`. The table reads the head and the qualifier from the
+    context's children (`SymbolTable.ProcedureWords`), never its glued text, so the hazard the one-word rule closes stays closed;
+    any other context names a procedure only when it is one word. The data-name class will read `dataReference` the same way.
+  - *A reference's SITE is an input (correction, slice 2).* A procedure-name resolves from where it is written: its method (a
+    method's procedure-names are its own, §2023:8.4.6.1) and its containing section (§2023:8.4.2.2.1 rule 6). The ambient cursor
+    that held them is the procedure binder's (`BinderContext.CurrentMethodScope`, `CurrentSection`), not the table's, and a USE FOR
+    DEBUGGING subject is resolved after collection, when no cursor stands at it; so the caller states the site
+    (`ProcedureSite(Method, Section)`), `Identify` refuses a procedure-name without one, and no other class reads it.
+  - *A name several declarations carry (correction, slice 2).* `IdentifiedName.Symbol` is one symbol, except for a procedure-name
+    that several procedures carry: it is then `ProcedureCandidates` (the rule broken, the spelling, every candidate in declaration
+    order, and SR7's section), which the procedure table describes for COBOL2122 or the qualification message (kb/Work PB466). It
+    is no identification, so step 7b records no occurrence for it. The paragraph a name identified is `ParagraphDefinition(Pc)`,
+    and its owning section is read where the pc space is (`ProcedureTableBuilder.ParaSections`), never stored a second time.
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1649,7 +1680,8 @@ renderer. Naming it asks for a listing at any edition.
   (Step 6b:) step 6b changes every compilation's name resolution, so EACH slice measures the `None` row of the front end and
   bind against its parent, twice each, alternating, and the last slice measures the whole step against the parent of slice 1.
   Slice 1 (the cd-names and the file-names) is within the parent's run-to-run spread on all four programs, at most 0.23 MB
-  above it (the README's step-6b table).
+  above it (the README's step-6b table). Slice 2 (the tables keyed by no user word, the procedure-names) is
+  within the parent's run-to-run spread on all four programs, at most 0.07 MB above it (the README's step-6b table, slice 2).
 
 ## 10. Test plan
 
@@ -1872,7 +1904,10 @@ The estimate was wrong in size, not in shape (rule 5): each name class moves WIT
 be read only by the table's own members, so the data-name class (ForestSlice's maps, the method overlay, the index-name registry,
 the inherited type declarations and the lapsed type members, with `NameResolution`, `ReferenceResolver.Identify` and
 `DataBinder`'s candidate walks) moves as one unit; kb/Work PB5932's dated file `2026-11-18-step-6b-progress` holds the measured
-remainder by class.
+remainder by class. (Step 6b, slice 2, branch `listing-step-6b-2`:) the tables keyed by no COBOL user word took keys of their own
+and the procedure-names moved into the table with their resolution (section 6.7.1, "Step 6b, slice 2"), each change shown
+behaviour-neutral by `compare_oracle.py`; the baseline is 308, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-2` holds
+what remains by class.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had
