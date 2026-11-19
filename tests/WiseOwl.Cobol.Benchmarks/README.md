@@ -598,6 +598,26 @@ front end and bind, the two runs of each tree:
 Reading them: every slice-1 row lies within the parent's own spread or within 0.23 MB of it (NC218A's second run, where the
 parent's two runs differ by 0.35 MB), so slice 1 moves no measurable allocation; the `None` budget holds. Time rows are not
 shown (kb/Work PB5927). The later slices of step 6b each measure their own `None` row the same way.
+
+**Step 6b, slice 2 (kb/Work PB5932, the tables keyed by no COBOL user word re-keyed, the procedure-names resolved by
+`SymbolTable.Identify`): the `None` row against the parent.** Slice 2 changes how every compilation keys the intrinsic, implementor
+and clause tables and resolves every procedure-name, so it measures the no-listing path. Measured on 2026-11-19, Release, one
+Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FrontEndAndBind*'`
+twice on the `listing-step-6b-2` branch (commit 0dc23408fa) and twice on its parent `eac451c185`, alternating
+(parent, branch, parent, branch). Allocated bytes per front end and bind, the two runs of each tree:
+
+| Program | Listing | Parent | Slice 2 |
+|---|---|---|---|
+| IX113A | None | 69.18, 69.22 MB | 69.20, 69.13 MB |
+| NC105A | None | 35.12, 35.08 MB | 35.10, 35.10 MB |
+| NC218A | None | 31.05, 31.01 MB | 31.09, 31.06 MB |
+| SM201A | None | 15.39, 15.37 MB | 15.44, 15.26 MB |
+| IX113A | Text | 76.99, 77.02 MB | 76.97, 77.01 MB |
+| IX113A | All | 97.59, 97.64 MB | 97.62, 97.69 MB |
+
+Reading them: every slice-2 `None` row lies within the parent's own spread or within 0.07 MB of it (SM201A's first run, where
+the branch's own two runs differ by 0.18 MB), so slice 2 moves no measurable allocation; the `None` budget holds. Time rows are
+not shown (kb/Work PB5927).
 ---
 
 ## Not measured here
