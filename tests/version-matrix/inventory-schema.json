@@ -477,7 +477,7 @@
         "⛔ ITEM 2 IS NOT IN THIS SELECTOR BECAUSE THE COMPILER IMPLEMENTS IT, AND THAT IS NOW THE OWNER'S ROW AND",
         "NOT AN AGENT'S READING (kb/Work PB285). CobolOO.g4:77 parses `INHERITS FROM interfaceName+`;",
         "OoClassTable.cs carries the full base list, resolves every base and enforces §11.6.3 SR2 (unknown), SR3",
-        "(cycle) and SR6 (duplicate) with COBOL0840; OoInterfaceSymbol.AllPrototypes() walks the whole multi-base",
+        "(cycle) and SR6 (duplicate) with COBOL0840; SymbolTable.ClassNames.AllPrototypes walks the whole multi-base",
         "closure. So SR-11.6.3-6 is an IMPLEMENTED rule — its honest verdict is CONFORMS-but-untested — and the",
         "`interface-name` exclusion is what stops the pattern, which matches its text verbatim, from stamping it",
         "non-support. SR-11.6.3-5 is likewise ordinary work to adjudicate; the pattern never reached it anyway,",

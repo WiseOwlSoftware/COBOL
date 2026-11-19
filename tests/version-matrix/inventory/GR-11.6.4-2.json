@@ -2,8 +2,8 @@
  "rule-id": "GR-11.6.4-2",
  "rule-digest": "94bb97b2909c",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInterfaceUnit; src/WiseOwl.Cobol.Compiler/Binding/Model/OoInterfaceSymbol.cs#AllPrototypes",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitInterfaceUnit; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#AllPrototypes",
  "test-ref": "conformance:cases/11.6-INTERFACE-ID/l1p5_interface_inherits_multiple",
  "editions": "2002,2014,2023",
- "notes": "GR2 plus 9.3.10: two-base INHERITS and transitive inheritance; SR4e INVOKE through derived-typed reference (SPEAK/STEPS=42/JUMP) retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoInterfaceSymbol.cs#AllPrototypes (the file moved to Binding/Model with the OO symbols' closure (kb/Work PB2402); the same member, re-sited at its new path)"
+ "notes": "GR2 plus 9.3.10: two-base INHERITS and transitive inheritance; SR4e INVOKE through derived-typed reference (SPEAK/STEPS=42/JUMP) retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoInterfaceSymbol.cs#AllPrototypes (the file moved to Binding/Model with the OO symbols' closure (kb/Work PB2402); the same member, re-sited at its new path) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Model/OoInterfaceSymbol.cs#AllPrototypes (listing step 6b, the OO names, kb/Work PB5932, moved the object-class-names and interface-names, their resolution and the PROPERTY specifiers into the symbol table; the row cites src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#AllPrototypes)"
 }
