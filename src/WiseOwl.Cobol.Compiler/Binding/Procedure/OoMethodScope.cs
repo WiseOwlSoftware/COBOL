@@ -4,17 +4,13 @@ using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
-/// <summary>The paragraph scope of ONE method body (ISO §2023:11.7 — the legacy per-method scope algorithm,
-/// ported): paragraph and section names declare METHOD-LOCALLY; PERFORM/GO TO inside the method resolve
-/// against THESE maps only, so sibling methods may reuse names and a cross-method transfer fails loud
-/// (the legacy traps #4/#5/#10 are structural here, not checks).</summary>
+/// <summary>The scope of ONE method body (ISO §2023:11.7 — the legacy per-method scope algorithm, ported). Its paragraph-names and
+/// section-names declare METHOD-LOCALLY in the one store of names, keyed by this scope (<c>SymbolTable.DeclareParagraph</c>,
+/// <c>DeclareSection</c>; kb/Work PB5932), and PERFORM/GO TO inside the method resolve against them only
+/// (<c>SymbolTable.Identify</c> with the method as its <c>ProcedureSite</c>), so sibling methods may reuse names and a cross-method
+/// transfer fails loud (the legacy traps #4/#5/#10 are structural, not checks).</summary>
 internal sealed class OoMethodScope
 {
-    // ⛔ ProcedureNameMap, not Dictionary: a method's paragraph/section scope owes the SAME §2023:8.4.2.2.1
-    // uniqueness answer the program-level scope owes, one level down — the method scope had the identical
-    // TryAdd hole (kb/Work PB466).
-    public readonly ProcedureNameMap<int> Paras = new();
-    public readonly ProcedureNameMap<SectionInfo> Sections = new();
     /// <summary>The method's DATA name scope (§2023:11.7 GR5) — activated on <c>ProcedureBindState.ActiveMethodScope</c>
     /// while this method's statements bind (slice 2).</summary>
     public OoMethodDataScope? Data;

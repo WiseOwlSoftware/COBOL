@@ -38,9 +38,9 @@ public sealed class NameTableOwnershipDriftTests
     private static readonly int[] BaselinedRules = [1, 3, 5];
 
     /// <summary>The baseline only shrinks: each slice lowers this to the count it leaves (325 at slice 1: 56 tables, 63
-    /// lookups, 206 comparison sites; 314 at slice 2's first class, the tables keyed by no COBOL user word: 49 tables, 63
-    /// lookups, 202 sites).</summary>
-    private const int BaselineCeiling = 314;
+    /// lookups, 206 comparison sites; 308 at slice 2, which moved the tables keyed by no COBOL user word and the procedure-names:
+    /// 47 tables, 61 lookups, 200 sites).</summary>
+    private const int BaselineCeiling = 308;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <see cref="IntrinsicArgumentRules.Verified"/>, <see cref="ImplementorNameRegistry"/>), so those tables are keyed by a type of
 /// their own and never by a <c>string</c> that could hold a COBOL user word: the program's names are <see cref="SymbolTable"/>'s
 /// alone (docs/rearchitecture/DESIGN-listing.md sections 6.7.1 and 6.7.2's last row; kb/Work PB5932). Two spellings are the same
-/// word on the BASIC LETTERS ALONE (<see cref="CobolKeywords"/>, §2023:8.1.3.2 3) a)): such a word is written in basic letters,
+/// word on the BASIC LETTERS ALONE (<see cref="CobolKeywords"/>, §2023:8.1.3.2 GR3a): such a word is written in basic letters,
 /// so a spelling holding an extended letter is no such word.
 /// </summary>
 public readonly struct StandardWord : IEquatable<StandardWord>

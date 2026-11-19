@@ -17,9 +17,9 @@
   "rule-id": "1985-SR-IV.4.3.8.1-L2.6",
   "verdict": "CONFORMS",
   "requirement": "At --std 85 an explicitly referenced paragraph-name duplicated within its section must be refused, a paragraph qualified by section-name must not admit the word SECTION, an unqualified paragraph-name must resolve to its own section's paragraph when referenced from within that section, and a paragraph or section of another (containing or contained) program must not be referenceable.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureNameMap.cs#IsDuplicated; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Procedures.cs#ProcedureNamed; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Procedures.cs#ProcedureNames; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName",
   "edition-consulted": [],
-  "edition-search": "grep of ProcedureTableBuilder.cs, ProcedureNameMap.cs and StatementValidation.cs#RejectAmbiguousProcedureName for CobolVersion|DialectLevel|Edition.Edition|Year|ConstructRegistry: only Edition.At (diagnostic cursor). The grammar's procedureName admits reservedGatedWord (the per-edition reserved-word gate, not specific to this rule).",
+  "edition-search": "grep of ProcedureTableBuilder.cs, SymbolTable.Procedures.cs and StatementValidation.cs#RejectAmbiguousProcedureName for CobolVersion|DialectLevel|Edition.Edition|Year|ConstructRegistry: only Edition.At (diagnostic cursor). The grammar's procedureName admits reservedGatedWord (the per-edition reserved-word gate, not specific to this rule).",
   "behaviour-differs-by-edition": "no",
   "witnesses-cover": "part: witnesses exercise legal qualified and in-section unqualified references and an unreferenced duplicate; not exercised at 85: refusal of a referenced in-section duplicate, the SECTION word after the qualifier, and cross-program procedure references",
   "probes": [
@@ -54,7 +54,7 @@
     "check": "OK  §1985:IV.4.3.8.1 SRL2.6  (4.3.8.1 Qualification)  the text is in SRL2.6"
    }
   ],
-  "notes": "ResolveProcedureWord is the one resolution for every procedure-name operand: qualified looks in the named section's map, unqualified prefers the current section, and an in-section duplicate returns an ambiguity reported as COBOL2122; the maps are per source element so another program's names resolve to nothing. The grammar has no SECTION after the qualifier, so it is a parse refusal at every edition.",
+  "notes": "SymbolTable.ProcedureNamed is the one resolution for every procedure-name operand: qualified looks in the named section's map, unqualified prefers the current section, and an in-section duplicate returns an ambiguity reported as COBOL2122; the maps are per source element so another program's names resolve to nothing. The grammar has no SECTION after the qualifier, so it is a parse refusal at every edition.",
   "seeded": true,
   "harm": "",
   "cause": "",

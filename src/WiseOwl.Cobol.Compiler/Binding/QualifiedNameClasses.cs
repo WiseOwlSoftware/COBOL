@@ -40,7 +40,7 @@ internal static class QualifiedNameClasses
             "§2023:8.4.2.2.3 SR1 + SR5"),
         new("qualified-index-name", Disposition.Resolved, typeof(NameResolution), "ResolveIndexName",
             "§2023:8.4.2.2.3 SR1 + SR6 — counted by DataBinder.UniqueOrReportAmbiguous (kb/Work PB919)"),
-        new("qualified-procedure-name", Disposition.Resolved, typeof(ProcedureTableBuilder), "ResolveProcedureWord",
+        new("qualified-procedure-name", Disposition.Resolved, typeof(SymbolTable), "ProcedureNamed",
             "§2023:8.4.2.2.3 SR1 + SR7"),
         new("qualified-screen-name", Disposition.Declined, typeof(ScreenFacility), "ReportSection",
             "the SCREEN SECTION is the declined Annex A.4.2 module (COBOL1560) — no screen-name is declared"),

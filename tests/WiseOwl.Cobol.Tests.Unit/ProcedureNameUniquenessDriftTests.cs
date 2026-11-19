@@ -28,26 +28,28 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ProcedureNameUniquenessDriftTests
 {
-    /// <summary>The files that own a procedure-name SCOPE. A new one belongs in this list — the point is that
-    /// adding a scope is a deliberate act, not a silent one.</summary>
+    /// <summary>The files that own or fill a procedure-name SCOPE: the scopes are the one store of names'
+    /// (<c>SymbolTable.Procedures.cs</c>: the program's, each method's and each section's, kb/Work PB5932), filled by the procedure
+    /// table as it collects the headers. A new one belongs in this list — the point is that adding a scope is a deliberate act, not
+    /// a silent one (and <c>NameTableOwnershipDriftTests</c> refuses a name table anywhere outside <c>SymbolTable</c>).</summary>
     private static readonly string[] ScopeSources =
     [
+        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Procedures.cs"),
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "ProcedureTableBuilder.cs"),
-        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "SectionInfo.cs"),
-        TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "OoMethodScope.cs"),
         TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Bound", "StatementBinder.cs"),
     ];
 
     /// <summary>A registration into a paragraph/section name map that SWALLOWS a repeat. Matched on the
-    /// receiver, so it fires for any of the four maps and for one a later scope invents with the same
-    /// names — <c>…Paras.TryAdd(…)</c>, <c>…Sections.TryAdd(…)</c>, <c>_paraIndex.TryAdd(…)</c>,
-    /// <c>_sections.TryAdd(…)</c>, and the indexer form, which overwrites instead.</summary>
+    /// receiver, so it fires for any of the maps and for one a later scope invents with the same
+    /// names — <c>…Paragraphs.TryAdd(…)</c>, <c>…Sections.TryAdd(…)</c>, the earlier <c>…Paras</c>, <c>_paraIndex</c> and
+    /// <c>_sections</c>, and the indexer form, which overwrites instead. (<c>Paragraphs</c> takes the TryAdd form alone: the
+    /// procedure table's <c>Paragraphs</c> is the pc list, read by index, and the store's <c>ProcedureNames</c> has no indexer.)</summary>
     private static readonly Regex Swallowing = new(
-        @"(?<!\w)(_paraIndex|_sections|\w*\.\s*Paras|\w*\.\s*Sections)\s*(\.\s*TryAdd\s*\(|\[)",
+        @"(?<!\w)(_paraIndex|_sections|\w*\.\s*Paras|\w*\.\s*Sections)\s*(\.\s*TryAdd\s*\(|\[)|\w*\.\s*Paragraphs\s*\.\s*TryAdd\s*\(",
         RegexOptions.Compiled);
 
     /// <summary>⛔ NO PROCEDURE-NAME DECLARATION IS RECORDED WITH <c>TryAdd</c> (or an overwriting indexer).
-    /// Every one goes through <c>ProcedureNameMap.Declare</c>, which KEEPS the repeat.</summary>
+    /// Every one goes through <c>SymbolTable.ProcedureNames.Declare</c>, which KEEPS the repeat.</summary>
     [Fact]
     public void NoProcedureNameScopeSwallowsARedeclaration()
     {
@@ -66,7 +68,8 @@ public sealed class ProcedureNameUniquenessDriftTests
         Assert.True(found.Count == 0,
             "a procedure-name scope registers a declaration with TryAdd or an overwriting indexer, so a repeated "
             + "spelling is discarded and ISO §2023:8.4.2.2.1 can no longer be answered at the reference. Use "
-            + "ProcedureNameMap.Declare (kb/Work PB466):\n" + string.Join("\n", found));
+            + "SymbolTable.DeclareParagraph / DeclareSection, whose ProcedureNames.Declare keeps it (kb/Work PB466, PB5932):\n"
+            + string.Join("\n", found));
     }
 
     /// <summary>The scanner FAILS on the pre-fix source, verbatim from <c>AddParagraph</c> as it stood, and
@@ -83,6 +86,7 @@ public sealed class ProcedureNameUniquenessDriftTests
             "                _sections.TryAdd(info.Name, info);",
             "                        scope.Sections.TryAdd(info.Name, info);",
             "        _paraIndex[name] = _paras.Count;",   // the overwriting form, never written but forbidden too
+            "        ProceduresOf(method).Paragraphs.TryAdd(key, pc);",   // the same habit in the one store of names
         })
         {
             Assert.Matches(Swallowing, preFix);
@@ -90,9 +94,10 @@ public sealed class ProcedureNameUniquenessDriftTests
 
         foreach (string landed in new[]
         {
-            "            _paraIndex.Declare(name, _paras.Count);",
-            "        section?.Paras.Declare(name, _paras.Count);",
-            "            if (q.Paras.IsDuplicated(head))",
+            "        ProceduresOf(method).Paragraphs.Declare(key, pc);",
+            "        paragraphs.Declare(key, pc);",
+            "        ctx.Symbols.DeclareParagraph(name, _paras.Count, section, ctx.CurrentMethodScope);",
+            "            if (scope.Sections.IsDuplicated(q))",
         })
         {
             Assert.DoesNotMatch(Swallowing, landed);

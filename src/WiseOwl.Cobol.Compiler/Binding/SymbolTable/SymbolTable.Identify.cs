@@ -20,7 +20,10 @@ internal sealed record IdentifiedName
     /// <summary>The class of the symbol.</summary>
     public NameClass Class { get; }
 
-    /// <summary>The symbol: a <see cref="Model.CommunicationDescription"/> for a cd-name, ... (by <see cref="Class"/>).</summary>
+    /// <summary>The symbol: a <see cref="Model.CommunicationDescription"/> for a cd-name, a <see cref="Model.FileModel"/> for a
+    /// file-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, ... (by
+    /// <see cref="Class"/>). A procedure-name that several procedures carry identifies no one symbol: <see cref="Symbol"/> is then
+    /// the <see cref="ProcedureCandidates"/>, which the reference reports (kb/Work PB466) and which records no occurrence.</summary>
     public object Symbol { get; }
 }
 
@@ -32,20 +35,26 @@ public sealed partial class SymbolTable
     /// no symbol of that class here. <paramref name="report"/> says whether this is the reference itself (true) or a probe
     /// that classifies a word before the reference is resolved (false); listing step 7b records an occurrence for a reference
     /// and none for a probe, so a probe followed by its resolution is one occurrence. <paramref name="reach"/> narrows a
-    /// file-name position that names only this element's own entries (<see cref="NameReach.Own"/>).
+    /// file-name position that names only this element's own entries (<see cref="NameReach.Own"/>). <paramref name="site"/> is where a
+    /// procedure-name is written (its method and its containing section), which scopes its resolution; every procedure-name
+    /// reference states it, and no other class reads it.
     /// <para>A name is ONE word, and a COBOL word is one token (<c>cobolWord</c> in CobolWords.g4), so the key is that token's
     /// text. A context of several tokens is no name and denotes nothing: its <c>GetText()</c> glues the tokens, so
     /// <c>A - B</c> would read as the file-name <c>A-B</c> and <c>F OF G</c> as <c>FOFG</c> (kb/Work PB2040, PB5932 review
-    /// round 1). The rule lives here, once, so no caller can hand the table a glued text.</para>
+    /// round 1). The rule lives here, once, so no caller can hand the table a glued text. A REFERENCE RULE's context is the one
+    /// exception, and the table reads its words from its children: a procedure-name (<c>procedureName</c>, or a USE FOR DEBUGGING
+    /// operand) is a head word and its qualifier (<see cref="ProcedureWords"/>).</para>
     /// </summary>
-    internal IdentifiedName? Identify(ParserRuleContext written, NameClass wanted, bool report, NameReach reach = NameReach.Visible)
+    internal IdentifiedName? Identify(ParserRuleContext written, NameClass wanted, bool report, NameReach reach = NameReach.Visible,
+        ProcedureSite? site = null)
     {
         _ = report;   // the occurrence it gates is listing step 7b's
-        if (WordOf(written) is not { } word) return null;
         object? symbol = wanted switch
         {
-            NameClass.CommunicationDescription => _cds.GetValueOrDefault(word),
-            NameClass.File => FileNamed(word, reach),
+            NameClass.Procedure => ProcedureNamed(written,
+                site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written")),
+            NameClass.CommunicationDescription => WordOf(written) is { } cd ? _cds.GetValueOrDefault(cd) : null,
+            NameClass.File => WordOf(written) is { } file ? FileNamed(file, reach) : null,
             _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not yet a class SymbolTable.Identify resolves"),
         };
         return symbol is null ? null : new IdentifiedName(wanted, symbol);

@@ -56,7 +56,7 @@ internal static class ImplementorNameRegistry
     /// <summary>Every specified implementor-name, in position order and within a position in its table's order.</summary>
     public static IReadOnlyList<SpecifiedImplementorName> All { get; } = Build();
 
-    /// <summary>The rows keyed by name, on the basic letters alone (§2023:8.1.3.2 3) a); a system-name is written in COBOL basic
+    /// <summary>The rows keyed by name, on the basic letters alone (§2023:8.1.3.2 GR3a; a system-name is written in COBOL basic
     /// letters, so it is a <see cref="StandardWord"/>, a word the implementor defines, never a user word). A name specified at two
     /// positions keeps the first.</summary>
     private static readonly FrozenDictionary<StandardWord, SpecifiedImplementorName> ByName = All
