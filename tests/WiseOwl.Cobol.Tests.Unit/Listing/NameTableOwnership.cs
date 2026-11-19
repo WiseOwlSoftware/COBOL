@@ -72,15 +72,14 @@ internal sealed record NameFinding(int Rule, string Key, string Where, string Wh
 /// </summary>
 internal static class NameTableOwnership
 {
-    /// <summary>The compiler's own sources (<c>src/WiseOwl.Cobol.Compiler</c>), compiled by Roslyn against the framework's
-    /// reference set and every assembly the compiler references (resolved through the ones this host has loaded), with the
-    /// implicit usings the SDK adds and the compiler's own source generator run over them, as the build runs it. The source
-    /// root is named here, not passed in, so the tests tree's walk guard (<c>TrackedTreeScopeDriftTests</c>) follows the
-    /// recursive listing to its directory.</summary>
-    public static CSharpCompilation CompileCompiler()
+    /// <summary>The compiler's own sources (<paramref name="sources"/>: each file's path relative to the project and its
+    /// text, read by the caller), compiled by Roslyn against the framework's reference set and every assembly the compiler
+    /// references (resolved through the ones this host has loaded), with the implicit usings the SDK adds and the compiler's
+    /// own source generator (<paramref name="generatorDll"/>) run over them, as the build runs it. The caller lists the
+    /// files, so the test class names the tree it sweeps (the tests tree's walk guard, <c>TrackedTreeScopeDriftTests</c>,
+    /// and the <c>Sweep</c> trait's rule, <c>scripts/spec/drift_rules.py</c>, both read it there).</summary>
+    public static CSharpCompilation CompileCompiler(IEnumerable<(string Path, string Text)> sources, string generatorDll)
     {
-        string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
-        string generatorDll = TestRepo.Src("WiseOwl.Cobol.Compiler.SourceGen", "bin", TestRepo.Configuration, "netstandard2.0", "WiseOwl.Cobol.Compiler.SourceGen.dll");
         var options = new CSharpParseOptions(LanguageVersion.Preview);
         var trees = new List<SyntaxTree>
         {
@@ -94,13 +93,7 @@ internal static class NameTableOwnership
                 global using System.Threading.Tasks;
                 """, options, path: "GlobalUsings.g.cs"),
         };
-        foreach (string f in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
-        {
-            string rel = Path.GetRelativePath(root, f).Replace('\\', '/');
-            if (rel.StartsWith("obj/", StringComparison.Ordinal) || rel.StartsWith("bin/", StringComparison.Ordinal))
-                continue;
-            trees.Add(CSharpSyntaxTree.ParseText(File.ReadAllText(f), options, path: rel));
-        }
+        trees.AddRange(sources.Select(s => CSharpSyntaxTree.ParseText(s.Text, options, path: s.Path)));
 
         var compilation = CSharpCompilation.Create("WiseOwl.Cobol.Compiler", trees,
             FrameworkReferences().Concat(CompilerReferences()),

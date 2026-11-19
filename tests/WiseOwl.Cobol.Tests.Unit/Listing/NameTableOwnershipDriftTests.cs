@@ -56,7 +56,8 @@ public sealed class NameTableOwnershipDriftTests
     private static readonly Lazy<(IReadOnlyList<NameFinding> Findings, IReadOnlyList<Diagnostic> Errors)> Product = new(() =>
     {
         // The whole compiler's sources: this class is a tree-wide sweep of src/WiseOwl.Cobol.Compiler.
-        CSharpCompilation compilation = NameTableOwnership.CompileCompiler();
+        CSharpCompilation compilation = NameTableOwnership.CompileCompiler(CompilerSources(),
+            TestRepo.Src("WiseOwl.Cobol.Compiler.SourceGen", "bin", TestRepo.Configuration, "netstandard2.0", "WiseOwl.Cobol.Compiler.SourceGen.dll"));
         Diagnostic[] errors = [.. compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)];
         IReadOnlyList<NameFinding> findings = NameTableOwnership.Findings(compilation, NameTableShape.Product);
         // The whole measured picture beside the run's output, so a red is read in full, never from a truncated message.
@@ -64,6 +65,19 @@ public sealed class NameTableOwnershipDriftTests
         File.WriteAllLines(MeasuredFile, findings.Select(f => string.Join('\t', f.Rule, f.Key, f.Where, f.What)));
         return (findings, errors);
     });
+
+    /// <summary>Every C# source of src/WiseOwl.Cobol.Compiler but its build output, in ordinal order, each by its path
+    /// relative to the project.</summary>
+    private static IEnumerable<(string Path, string Text)> CompilerSources()
+    {
+        string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
+        foreach (string f in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+        {
+            string rel = Path.GetRelativePath(root, f).Replace('\\', '/');
+            if (!rel.StartsWith("obj/", StringComparison.Ordinal) && !rel.StartsWith("bin/", StringComparison.Ordinal))
+                yield return (rel, File.ReadAllText(f));
+        }
+    }
 
     private static readonly JsonSerializerOptions Json = new()
     {
