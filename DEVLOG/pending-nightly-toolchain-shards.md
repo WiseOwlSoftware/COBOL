@@ -9,3 +9,7 @@ This landing moves gh, uv and semgrep only. The owner's `winget upgrade Git.Git`
 code 1, and winget does not yet carry Git for Windows 2.56.1, so the host stays at git 2.56.0. GIT_WINDOWS_VERSION keeps
 2.56.0 so that every gate on this host can run (`toolchain.py check` is GREEN at this tree), and the nightly's `latest`
 stays BEHIND on git-windows alone until a later change moves it together with the host install.
+
+The same gate found a host dependence (kb/Work PB5942): .NET 11 preview and RC SDKs appeared on the dev box mid-gate, and
+PlatformAssumptionTests' child, run with `dotnet run` in a scratch directory outside the repository, was built by the newest
+SDK. The child directory now carries the repository's global.json.
