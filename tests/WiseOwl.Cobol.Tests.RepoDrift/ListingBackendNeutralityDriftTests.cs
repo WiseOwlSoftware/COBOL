@@ -24,6 +24,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// </list>
 /// Each rule is red on its planted counterexample (<see cref="TheChecks_SeeACounterexample"/>).
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ListingBackendNeutralityDriftTests
 {
     private const string BuilderNamespace = "WiseOwl.Cobol.Listing.Building";
