@@ -22,7 +22,7 @@ public sealed partial class SpecialNamesBinder
     /// twin of <c>ConstantOf</c> (one shape for "a word that stands for a literal"). A resolution: the word is
     /// recorded as used as a symbolic-character (§2023:8.3.2.2; kb/Work PB3153).</summary>
     internal (string Value, bool National)? SymbolicOf(Core.DataReferenceContext dref) =>
-        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w ? SymbolicOf(dref, w.GetText()) : null;
+        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w ? SymbolicOf(w) : null;
 
     /// <summary>Does a BARE data reference spell a symbolic character visible here? The predicate twin of
     /// <see cref="SymbolicOf(Core.DataReferenceContext)"/>, recording no use.</summary>
@@ -31,23 +31,26 @@ public sealed partial class SpecialNamesBinder
 
     /// <summary>Does the bare word <paramref name="word"/> name a symbolic character visible here (one
     /// <see cref="HidesSymbolic"/> does not hide)? The predicate twin of
-    /// <see cref="SymbolicOf(Antlr4.Runtime.RuleContext, string)"/>, recording no use.</summary>
-    internal bool NamesSymbolic(string word) => Cfg.SymbolicCharacters.Declares(word) && !HidesSymbolic(word);
+    /// <see cref="SymbolicOf(Antlr4.Runtime.ParserRuleContext)"/>, recording no use.</summary>
+    internal bool NamesSymbolic(string word) =>
+        _host.Symbols.DeclaresConfigurationName(NameClass.SymbolicCharacter, word) && !HidesSymbolic(word);
 
-    /// <summary>The symbolic character the word <paramref name="word"/> written at <paramref name="site"/> names, or
-    /// null (the FigurativeOperand ALL-form lookup, a concatenation operand). A resolution, recorded as a use
-    /// (§2023:8.3.2.2; kb/Work PB3153) — only when the symbolic-character is visible: one a nearer declaration of the
-    /// spelling hides (<see cref="HidesSymbolic"/>) is not what the word references, so it is neither resolved nor
-    /// recorded.</summary>
-    internal (string Value, bool National)? SymbolicOf(Antlr4.Runtime.RuleContext site, string word) =>
-        !HidesSymbolic(word) && Cfg.SymbolicCharacters.TryUse(site, word, out var def) ? def : null;
+    /// <summary>The symbolic character the written word <paramref name="word"/> names, or null (the FigurativeOperand ALL-form
+    /// lookup, a concatenation operand). A resolution through <see cref="SymbolTable.Identify(Antlr4.Runtime.ParserRuleContext,
+    /// NameClass, bool, NameReach, ProcedureSite?)"/>, recorded as a use (§2023:8.3.2.2; kb/Work PB3153) — only when the
+    /// symbolic-character is visible: one a nearer declaration of the spelling hides (<see cref="HidesSymbolic"/>) is not what
+    /// the word references, so it is neither resolved nor recorded.</summary>
+    internal (string Value, bool National)? SymbolicOf(Antlr4.Runtime.ParserRuleContext word) =>
+        !HidesSymbolic(word.GetText())
+        && _host.Symbols.Identify(word, NameClass.SymbolicCharacter, report: true)?.Symbol is SymbolicCharacterName s
+            ? (s.Value, s.National) : null;
 
     /// <summary>Whether a nearer declaration of <paramref name="word"/> hides the symbolic-character of that spelling
     /// (§2023:8.4.6.1, §2023:8.4.6.2.1 3); kb/Work PB3154 review R1-1): an inherited one a nearer source element's data-,
     /// condition- or index-name hides (<see cref="InheritStep.DropShadowed"/>), or any one the method being bound
     /// declares a name of (<see cref="OoDataBinder.ActiveMethodDeclares"/>). Asked by every symbolic lookup, the resolving and the
     /// predicate alike, so they cannot disagree.</summary>
-    private bool HidesSymbolic(string word) => _host.State.Inherited.HidesSymbolic(word) || _host.Oo.ActiveMethodDeclares(word);
+    private bool HidesSymbolic(string word) => _host.Symbols.HidesSymbolic(word) || _host.Oo.ActiveMethodDeclares(word);
 
     /// <summary>One <c>CLASS class-name-1 [FOR {ALPHANUMERIC | NATIONAL}] IS {literal-5 [THROUGH literal-6]}…
     /// [IN alphabet-name-4]</c> clause (ISO §2023:12.3.7.2): expand each value item to its member characters — a
@@ -78,7 +81,7 @@ public sealed partial class SpecialNamesBinder
         if (cd.cobolWord().Length > 1)
         {
             string inName = cd.cobolWord(1).GetText();
-            inSet = CodedCharacterSetOf(cd.cobolWord(1), inName, $"CLASS {name} IN {inName}",
+            inSet = CodedCharacterSetOf(cd.cobolWord(1), $"CLASS {name} IN {inName}",
                 "ISO §2023:12.3.7.3 SR17 d — alphabet-name-4 shall not reference an alphabet specified with the LOCALE phrase");
             if (inSet is null) return;
             // SR17 b1/c1 — "When the IN phrase is specified, alphabet-name-4 shall reference an alphabet that defines
@@ -126,7 +129,7 @@ public sealed partial class SpecialNamesBinder
                     + $"{distinct} characters are specified — more than the {inSet.OrdinalCount} characters of the "
                     + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO {rules.Cite(Edition.Edition, '5')})");
         }
-        Cfg.UserClasses.TryAdd(name, new UserClassDef(set, national));
+        _host.Symbols.Declare(name, new UserClassDef(set, national));
     }
 
     /// <summary>⛔ THE ONE READING OF A SPECIAL-NAMES FOR PHRASE, for all three clauses that print it (ALPHABET,
@@ -154,7 +157,7 @@ public sealed partial class SpecialNamesBinder
         CodedCharacterSet? inSet = null;
         if (sc.cobolWord() is { } inWord && inWord is not null)
         {
-            inSet = CodedCharacterSetOf(inWord, inWord.GetText(), $"SYMBOLIC CHARACTERS IN {inWord.GetText()}",
+            inSet = CodedCharacterSetOf(inWord, $"SYMBOLIC CHARACTERS IN {inWord.GetText()}",
                 "ISO §2023:12.3.7.3 SR16 g — alphabet-name-3 shall not reference an alphabet specified with the LOCALE phrase");
             if (inSet is null) return;
             if (inSet.National != national)
@@ -186,7 +189,7 @@ public sealed partial class SpecialNamesBinder
             foreach (var name in names)
             {
                 _host.DeclareUserWord(name.GetText(), UserWordKind.SymbolicCharacter);
-                Cfg.SymbolicCharacters.TryAdd(name.GetText(), ("\0", national));
+                _host.Symbols.DeclareSymbolicCharacter(name.GetText(), "\0", national);
             }
             return;
         }
@@ -220,10 +223,10 @@ public sealed partial class SpecialNamesBinder
                 // not defined") for a name the program did write. The placeholder value is never observed — the
                 // clause already failed, so the compilation produces no program (the posture LiteralPhraseOperand's
                 // class-rule recovery takes for an operand of the wrong class). kb/Work PB1091.
-                Cfg.SymbolicCharacters.TryAdd(symName, ("\0", national));
+                _host.Symbols.DeclareSymbolicCharacter(symName, "\0", national);
                 continue;
             }
-            if (!Cfg.SymbolicCharacters.TryAdd(symName, (value, national)))
+            if (!_host.Symbols.DeclareSymbolicCharacter(symName, value, national))
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: '{symName}' is "
                     + "already defined — a given symbolic-character-1 may be specified only once within the SYMBOLIC "
                     + "CHARACTER clauses of this SPECIAL-NAMES paragraph (ISO "

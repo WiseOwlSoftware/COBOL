@@ -400,7 +400,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // GR10's "one or more of the character" IS the fill semantics BoundAllLiteral carries in every context).
         if (fig.cobolWord() is { } symWord)
         {
-            if (ctx.Data.SpecialNames.SymbolicOf(symWord, symWord.GetText()) is { } sym)
+            if (ctx.Data.SpecialNames.SymbolicOf(symWord) is { } sym)
                 return SymbolicOperand(sym) is BoundAllLiteral al7
                     ? al7 with { BeginsWithAll = true }   // the EXPLICIT ALL form — the word is written
                     : SymbolicOperand(sym);
@@ -546,7 +546,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// symbolic-character.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>
         word.GetText() is var w && ctx.Symbols.Identify(word, NameClass.Constant, report: true)?.Symbol is ConstantDef k ? new(w, k, null)
-        : ctx.Data.SpecialNames.NamesSymbolic(w) && ctx.Data.SpecialNames.SymbolicOf(word, w) is { } s ? new(w, null, s)
+        : ctx.Data.SpecialNames.NamesSymbolic(w) && ctx.Data.SpecialNames.SymbolicOf(word) is { } s ? new(w, null, s)
         : null;
 
     /// <summary>The bound operand <paramref name="alias"/> stands for: the SAME shape the equivalent written literal

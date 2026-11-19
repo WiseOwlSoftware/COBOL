@@ -756,11 +756,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         var pcs = new SortCollation(ctx.Data.State.Configuration.Collating, ctx.Data.State.Configuration.NationalCollating);
         if (c is null) return (pcs, null);
 
-        var (alnumName, natName) = ChoiceIndicators.AlphabetPair(ctx.Edition, c.collatingForPhrase(),
-            f => f.NATIONAL() is not null, f => f.cobolWord().GetText(), c.cobolWord(),
+        var (alnumWord, natWord) = ChoiceIndicators.AlphabetPair(ctx.Edition, c.collatingForPhrase(),
+            f => f.NATIONAL() is not null, f => f.cobolWord(), c.cobolWord(),
             "SORT/MERGE COLLATING SEQUENCE", clauses.Format);
         // The written names are the phrase's §2023:8.3.2.2 uses (kb/Work PB3153); the screens below read the definitions.
-        foreach (var name in new[] { alnumName, natName }.OfType<string>()) ctx.Data.SpecialNames.UseAlphabetName(c, name);
+        foreach (var word in new[] { alnumWord, natWord }.OfType<Antlr4.Runtime.ParserRuleContext>()) ctx.Data.SpecialNames.UseAlphabetName(word);
 
         // Alphabet-name-2 (national keys, GR5a): resolve + class-validate, and CARRY the sequence (PB678). A name
         // that fails either check leaves the national half on the program collating sequence — the diagnostic is
@@ -769,26 +769,28 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // ask (SpecialNamesBinder.CollatingAlphabetFault, kb/Work PB1082) — SORT states the rules as SR1/SR2, MERGE as SR5/SR6,
         // and each message cites the bound verb's own rule (SortCollatingClauses).
         NationalAlphabetDef? nat = pcs.National;
-        if (natName is not null)
+        if (natWord is not null)
         {
-            if (ctx.Data.SpecialNames.CollatingAlphabetFault(natName, national: true) is { } natFault)
+            var natAlphabet = ctx.Data.SpecialNames.WrittenAlphabet(natWord);
+            if (SpecialNamesBinder.CollatingAlphabetFault(natAlphabet, national: true) is { } natFault)
                 ctx.Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, SpecialNamesBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
-                    natName, national: true, natFault, clauses.National));
-            else if (ctx.Data.State.Configuration.NationalAlphabets.TryPeek(natName, out var def))
+                    natAlphabet.Name, national: true, natFault, clauses.National));
+            else if (natAlphabet.National is { } def)
                 nat = def.IsIdentity ? null : def;   // GR5a — an identity national alphabet (NATIVE/UCS-4) ⇒ native
         }
 
         // Alphabet-name-1 (alphabetic/alphanumeric keys, GR5a); a FOR NATIONAL-only phrase leaves the
         // alphanumeric keys on the program collating sequence (GR5b per class).
-        if (alnumName is null) return (pcs with { National = nat }, null);
-        if (!ctx.Data.State.Configuration.Alphabets.TryPeek(alnumName, out var alnumDef))
+        if (alnumWord is null) return (pcs with { National = nat }, null);
+        var alnumAlphabet = ctx.Data.SpecialNames.WrittenAlphabet(alnumWord);
+        if (alnumAlphabet.Alphanumeric is not { } alnumDef)
         {
-            if (ctx.Data.SpecialNames.CollatingAlphabetFault(alnumName, national: false) is { } fault)
+            if (SpecialNamesBinder.CollatingAlphabetFault(alnumAlphabet, national: false) is { } fault)
                 ctx.Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, SpecialNamesBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
-                    alnumName, national: false, fault, clauses.Alphanumeric));
+                    alnumAlphabet.Name, national: false, fault, clauses.Alphanumeric));
             // A FOR NATIONAL alphabet in the slot leaves the statement bindable (the alphanumeric keys fall to the
             // native order); any other word is no alphabet at all and the statement is rejected (PB236).
-            if (ctx.Data.State.Configuration.NationalAlphabets.Declares(alnumName)) return (new SortCollation(null, nat), null);
+            if (alnumAlphabet.National is not null) return (new SortCollation(null, nat), null);
             return (SortCollation.Native, BoundRejected.Reported(ctx.Edition));
         }
         // GR5a — the statement's own sequences (an identity alphabet ⇒ native, no carrier emitted).

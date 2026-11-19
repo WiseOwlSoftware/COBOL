@@ -6,7 +6,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1594,
+ "count": 1589,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
@@ -70,13 +70,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4",
-   "line": 543,
+   "line": 542,
    "citation": "§2023:14.9.30 GR22",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4",
-   "line": 555,
+   "line": 554,
    "citation": "§2023:14.9.30 GR12",
    "kind": "no-rule-list"
   },
@@ -94,13 +94,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4",
-   "line": 794,
+   "line": 828,
    "citation": "§2023:13.18.14 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4",
-   "line": 796,
+   "line": 830,
    "citation": "§2023:13.18.14 SR1",
    "kind": "no-rule-list"
   },
@@ -610,151 +610,151 @@
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 1522,
+   "line": 1520,
    "citation": "§2023:13.7.1 SR6",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 1588,
+   "line": 1586,
    "citation": "§2023:14.9.20 GR10",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 1611,
+   "line": 1609,
    "citation": "§2023:13.7.1 SR6",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 1707,
+   "line": 1705,
    "citation": "§2023:13.16 SR14",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 1739,
+   "line": 1737,
    "citation": "§2023:13.18.49 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 1763,
+   "line": 1761,
    "citation": "§2023:13.18.22 GR2",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 1819,
+   "line": 1817,
    "citation": "§2023:13.18.22 GR2",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 2489,
+   "line": 2498,
    "citation": "§2023:13.18.60.4 SR13a",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DATA_MODEL_DESIGN.md",
-   "line": 2512,
+   "line": 2521,
    "citation": "§2023:13.18.38 GR8a",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 486,
+   "line": 487,
    "citation": "§2023:13.18.49 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 931,
+   "line": 932,
    "citation": "§2023:13.18.33 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 1064,
+   "line": 1065,
    "citation": "§2023:14.9.5 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 1174,
+   "line": 1175,
    "citation": "§2023:11.7 GR5",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 1184,
+   "line": 1185,
    "citation": "§2023:8.4.3.8 GR2",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 1803,
+   "line": 1804,
    "citation": "§2023:13.18.60 GR4",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 2112,
+   "line": 2113,
    "citation": "§2023:8.3.3.6 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 2113,
+   "line": 2114,
    "citation": "§2023:12.3.7 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 2147,
+   "line": 2148,
    "citation": "§2023:12.3.6 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 2152,
+   "line": 2153,
    "citation": "§2023:12.3.6 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 2154,
+   "line": 2155,
    "citation": "§2023:12.3.7 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/DESIGN.md",
-   "line": 2157,
+   "line": 2158,
    "citation": "§2023:12.3.7 GR7",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 557,
+   "line": 590,
    "citation": "§2023:9.1.15 Table 19",
    "kind": "no-table"
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 1313,
+   "line": 1349,
    "citation": "§2023:12.4.5.13 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 2686,
+   "line": 2772,
    "citation": "§2023:14.9.51 GR29a",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 2732,
+   "line": 2818,
    "citation": "§2023:14.9.41 GR5",
    "kind": "no-rule-list"
   },
@@ -1384,7 +1384,7 @@
   },
   {
    "file": "docs/rearchitecture/DESIGN-architecture-review.md",
-   "line": 1551,
+   "line": 1555,
    "citation": "§2023:8.4.3.2 SR2",
    "kind": "no-rule-list"
   },
@@ -1444,13 +1444,13 @@
   },
   {
    "file": "docs/rearchitecture/DESIGN-data-model.md",
-   "line": 281,
+   "line": 346,
    "citation": "§2023:13.18.44 SR5",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/rearchitecture/DESIGN-data-model.md",
-   "line": 700,
+   "line": 772,
    "citation": "§2023:13.18.49.3 GR3",
    "kind": "no-rule-list"
   },
@@ -1528,7 +1528,7 @@
   },
   {
    "file": "docs/rearchitecture/DESIGN-runtime-library.md",
-   "line": 3717,
+   "line": 3715,
    "citation": "§2023:12.3.7 GR4",
    "kind": "no-rule-list"
   },
@@ -2608,25 +2608,25 @@
   },
   {
    "file": "docs/VERSION_CHANGE_REFERENCE.md",
-   "line": 466,
+   "line": 467,
    "citation": "§2002:9.1.12.1 GR2a",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/VERSION_TEST_MATRIX_DESIGN.md",
-   "line": 379,
+   "line": 474,
    "citation": "§2023:14.9.25 GR5",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs",
-   "line": 563,
+   "line": 572,
    "citation": "§2023:13.18.27 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs",
-   "line": 625,
+   "line": 634,
    "citation": "§2023:13.18.27 GR2",
    "kind": "no-rule-list"
   },
@@ -2746,79 +2746,79 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 828,
+   "line": 856,
    "citation": "§2023:8.3.3.6.4 Format 6",
    "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1069,
+   "line": 1082,
    "citation": "§2023:8.8.4.7.3 Format 2",
    "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1107,
+   "line": 1120,
    "citation": "§2023:8.4.3.2.4 GR1",
    "kind": "text-not-in-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1878,
+   "line": 1898,
    "citation": "§2023:8.4.3.11 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 1883,
+   "line": 1903,
    "citation": "§2023:8.4.3.11 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2009,
+   "line": 2029,
    "citation": "§2023:14.9.39 GR2b",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2021,
+   "line": 2041,
    "citation": "§2023:14.9.39 GR29",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2251,
+   "line": 2271,
    "citation": "§2023:14.9.51 GR27b",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2263,
+   "line": 2283,
    "citation": "§2023:14.9.51 GR16",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2314,
+   "line": 2334,
    "citation": "§2023:14.9.30 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2316,
+   "line": 2336,
    "citation": "§2023:14.9.30 GR22",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2318,
+   "line": 2338,
    "citation": "§2023:14.9.30 GR12",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs",
-   "line": 2333,
+   "line": 2353,
    "citation": "§2023:14.9.35 GR11",
    "kind": "no-rule-list"
   },
@@ -2860,13 +2860,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs",
-   "line": 218,
+   "line": 234,
    "citation": "§2023:12.3.6 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs",
-   "line": 454,
+   "line": 470,
    "citation": "§2023:8.4.3.3 GR6",
    "kind": "no-rule-list"
   },
@@ -2884,235 +2884,205 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 71,
-   "citation": "§2023:12.3.7 GR2",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 90,
-   "citation": "§2023:12.3.7 GR7",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 96,
-   "citation": "§2023:12.3.6 SR1",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 96,
-   "citation": "§2023:14.9.40 GR5",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 100,
-   "citation": "§2023:12.3.7 GR7",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 153,
+   "line": 56,
    "citation": "§2023:12.3.6 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 156,
+   "line": 59,
    "citation": "§2023:8.3.3.6 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 159,
+   "line": 62,
    "citation": "§2023:12.3.6 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 163,
+   "line": 66,
    "citation": "§2023:12.3.7 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 163,
+   "line": 66,
    "citation": "§2023:14.9.40 GR5b",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 168,
+   "line": 71,
    "citation": "§2023:12.3.7 GR14",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 181,
+   "line": 84,
    "citation": "§2023:8.1.3 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 334,
+   "line": 237,
    "citation": "§2023:8.4.3.2 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs",
-   "line": 338,
+   "line": 241,
    "citation": "§2023:12.3.8 GR14",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs",
-   "line": 117,
+   "line": 112,
    "citation": "§2023:12.3.6 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs",
-   "line": 704,
+   "line": 506,
    "citation": "§2023:12.3.7 GR14a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs",
-   "line": 235,
+   "line": 252,
    "citation": "§2023:8.4.3.15 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 549,
+   "line": 553,
    "citation": "§2023:8.4.3.2 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 579,
+   "line": 583,
    "citation": "§2023:12.4.6.4 GR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 1626,
+   "line": 1671,
    "citation": "§2023:8.3.3.6 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2296,
+   "line": 2343,
    "citation": "§2023:13.16 SR14",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2357,
+   "line": 2404,
    "citation": "§2023:13.18.22 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2607,
+   "line": 2654,
    "citation": "§2023:13.18.49 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 2948,
+   "line": 2995,
    "citation": "§2023:13.18.60 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3008,
+   "line": 3055,
    "citation": "§2023:13.18.22 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3167,
+   "line": 3216,
    "citation": "§2023:12.3.7 GR14a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3176,
+   "line": 3225,
    "citation": "§2023:13.18.63 SR31",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3222,
+   "line": 3271,
    "citation": "§2023:13.18.63 SR4",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3237,
+   "line": 3286,
    "citation": "§2023:13.18.63 SR4",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 3667,
+   "line": 3718,
    "citation": "§2023:12.3.7 GR14a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4335,
+   "line": 4383,
    "citation": "§2023:13.18.22 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4337,
+   "line": 4385,
    "citation": "§2023:13.18.22 GR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4425,
+   "line": 4473,
    "citation": "§2023:13.18.22 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4426,
+   "line": 4474,
    "citation": "§2023:13.18.22 SR5",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4700,
+   "line": 4749,
    "citation": "§2023:12.3.7 GR14a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 4780,
+   "line": 4833,
    "citation": "§2023:12.3.7 GR14a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 5592,
+   "line": 5646,
    "citation": "§2023:13.18.49.3 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 5639,
+   "line": 5693,
    "citation": "§2023:13.18.52 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
-   "line": 5694,
+   "line": 5753,
    "citation": "§2023:13.18.44 GR1",
    "kind": "no-rule-list"
   },
@@ -3136,19 +3106,19 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs",
-   "line": 446,
+   "line": 473,
    "citation": "§2023:11.7 SR4a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs",
-   "line": 169,
+   "line": 182,
    "citation": "§2023:13.4.6 SR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs",
-   "line": 23,
+   "line": 24,
    "citation": "§2023:12.4.6.4 GR2",
    "kind": "no-rule-list"
   },
@@ -3172,7 +3142,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs",
-   "line": 256,
+   "line": 290,
    "citation": "§2023:13.18.60 GR4",
    "kind": "no-rule-list"
   },
@@ -3196,19 +3166,19 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs",
-   "line": 602,
+   "line": 606,
    "citation": "§2023:14.9.5 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs",
-   "line": 634,
+   "line": 638,
    "citation": "§2023:13.18.22 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs",
-   "line": 673,
+   "line": 677,
    "citation": "§2023:13.18.27 GR2",
    "kind": "no-rule-list"
   },
@@ -3220,7 +3190,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/BoundUnit.cs",
-   "line": 111,
+   "line": 114,
    "citation": "§2023:13.18.27 GR2",
    "kind": "no-rule-list"
   },
@@ -3262,61 +3232,61 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
-   "line": 674,
+   "line": 693,
    "citation": "§2023:13.18.49 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
-   "line": 681,
+   "line": 700,
    "citation": "§2023:13.18.49 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
-   "line": 695,
+   "line": 714,
    "citation": "§2023:13.18.49 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
-   "line": 1504,
+   "line": 1523,
    "citation": "§2023:13.18.38 SR16",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
-   "line": 1508,
+   "line": 1527,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
-   "line": 1515,
+   "line": 1534,
    "citation": "§2023:13.18.38 SR16",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs",
-   "line": 1596,
+   "line": 1615,
    "citation": "§2023:13.18.60 GR4",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs",
-   "line": 726,
+   "line": 759,
    "citation": "§2023:13.18.34 GR7a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs",
-   "line": 727,
+   "line": 760,
    "citation": "§2023:14.9.51 SR19",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs",
-   "line": 1315,
+   "line": 1343,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
@@ -3328,7 +3298,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs",
-   "line": 37,
+   "line": 41,
    "citation": "§2023:13.18.52 GR6a",
    "kind": "no-rule-list"
   },
@@ -3460,43 +3430,43 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs",
-   "line": 575,
+   "line": 576,
    "citation": "§2023:14.9.20 GR5c",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs",
-   "line": 808,
+   "line": 809,
    "citation": "§2023:13.18.60 GR4",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs",
-   "line": 821,
+   "line": 822,
    "citation": "§2023:13.18.60 GR24",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs",
-   "line": 927,
+   "line": 928,
    "citation": "§2023:13.18.60 GR24",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs",
-   "line": 984,
+   "line": 985,
    "citation": "§2023:8.4.3.10 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs",
-   "line": 1176,
+   "line": 1177,
    "citation": "§2023:13.18.52 GR5",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs",
-   "line": 1214,
+   "line": 1215,
    "citation": "§2023:14.9.39 GR2b",
    "kind": "no-rule-list"
   },
@@ -3520,31 +3490,31 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs",
-   "line": 99,
+   "line": 252,
    "citation": "§2023:13.18.38 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs",
-   "line": 150,
+   "line": 308,
    "citation": "§2023:13.18.44 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs",
-   "line": 153,
+   "line": 311,
    "citation": "§2023:12.4.5.12 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs",
-   "line": 230,
+   "line": 388,
    "citation": "§2023:13.18.44 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs",
-   "line": 525,
+   "line": 692,
    "citation": "§2023:8.4.3.3.3 GR6",
    "kind": "no-rule-list"
   },
@@ -3562,7 +3532,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs",
-   "line": 253,
+   "line": 309,
    "citation": "§2023:11.7 GR5",
    "kind": "no-rule-list"
   },
@@ -3592,13 +3562,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs",
-   "line": 187,
+   "line": 190,
    "citation": "§2023:13.18.45 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageCollectionPass.cs",
-   "line": 214,
+   "line": 217,
    "citation": "§2023:14.9.32 GR4",
    "kind": "no-rule-list"
   },
@@ -3640,43 +3610,43 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 376,
+   "line": 378,
    "citation": "§2023:8.3.3.6.4 Format 6",
    "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 445,
+   "line": 447,
    "citation": "§2023:8.4.3.2 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 572,
+   "line": 574,
    "citation": "§2023:8.4.3.14 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 799,
+   "line": 808,
    "citation": "§2023:8.4.3.15 SR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 853,
+   "line": 862,
    "citation": "§2023:8.4.3.15 SR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs",
-   "line": 1064,
+   "line": 1073,
    "citation": "§2023:13.18.38 SR30",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/OoMethodScope.cs",
-   "line": 18,
+   "line": 14,
    "citation": "§2023:11.7 GR5",
    "kind": "no-rule-list"
   },
@@ -3688,13 +3658,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs",
-   "line": 346,
+   "line": 349,
    "citation": "§2023:14.9.8.3 Format 2",
    "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs",
-   "line": 386,
+   "line": 389,
    "citation": "§2023:14.9.8.3 Format 2",
    "kind": "no-format"
   },
@@ -3706,61 +3676,61 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs",
-   "line": 1356,
+   "line": 1361,
    "citation": "§2023:14.9.18 GR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 296,
+   "line": 297,
    "citation": "§2023:8.8.4.3 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 330,
+   "line": 331,
    "citation": "§2023:8.8.4.3 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 595,
+   "line": 596,
    "citation": "§2023:8.8.4.7.3 Format 2",
    "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 1501,
+   "line": 1515,
    "citation": "§2023:8.8.4.3 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs",
-   "line": 1928,
+   "line": 1942,
    "citation": "§2023:11.7 GR5",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-   "line": 333,
+   "line": 336,
    "citation": "§2023:14.9.17 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-   "line": 446,
+   "line": 449,
    "citation": "§2023:14.9.14 GR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-   "line": 630,
+   "line": 638,
    "citation": "§2023:14.9.28 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
-   "line": 651,
+   "line": 659,
    "citation": "§2023:14.9.28 GR6",
    "kind": "no-rule-list"
   },
@@ -3790,13 +3760,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs",
-   "line": 291,
+   "line": 294,
    "citation": "§2023:8.8.4.3 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs",
-   "line": 700,
+   "line": 711,
    "citation": "§2023:14.9.13 GR5b",
    "kind": "no-rule-list"
   },
@@ -3832,127 +3802,127 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
-   "line": 26,
+   "line": 32,
    "citation": "§2023:14.9.20 GR5c",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
-   "line": 174,
+   "line": 180,
    "citation": "§2023:14.9.3 GR7",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
-   "line": 192,
+   "line": 198,
    "citation": "§2023:14.9.20 GR5",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
-   "line": 203,
+   "line": 209,
    "citation": "§2023:14.9.20 GR10",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
-   "line": 383,
+   "line": 389,
    "citation": "§2023:14.9.20 GR5",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
-   "line": 696,
+   "line": 702,
    "citation": "§2023:14.6.2.3.2 GR7",
    "kind": "no-ordinal"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
-   "line": 852,
+   "line": 858,
    "citation": "§2023:14.9.39 GR2b",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 20,
+   "line": 21,
    "citation": "§2023:8.4.3.2 SR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 23,
+   "line": 24,
    "citation": "§2023:8.4.3.2 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 321,
+   "line": 322,
    "citation": "§2023:8.4.3.2 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 673,
+   "line": 674,
    "citation": "§2023:12.3.8 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1592,
+   "line": 1595,
    "citation": "§2023:15.19.3 SR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1596,
+   "line": 1599,
    "citation": "§2023:15.19.3 SR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1600,
+   "line": 1603,
    "citation": "§2023:15.19.3 SR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1606,
+   "line": 1609,
    "citation": "§2023:15.19.3 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 1686,
+   "line": 1689,
    "citation": "§2023:8.5.1.8 GR7",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 2209,
+   "line": 2217,
    "citation": "§2023:9.3.6 SR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 2293,
+   "line": 2301,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 2571,
+   "line": 2579,
    "citation": "§2023:13.18.38 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 3086,
+   "line": 3098,
    "citation": "§2023:8.4.3.2 SR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs",
-   "line": 3092,
+   "line": 3104,
    "citation": "§2023:8.4.3.2 SR7",
    "kind": "no-rule-list"
   },
@@ -3964,25 +3934,25 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
-   "line": 202,
+   "line": 213,
    "citation": "§2023:14.9.35 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
-   "line": 262,
+   "line": 275,
    "citation": "§2023:14.9.10 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
-   "line": 291,
+   "line": 304,
    "citation": "§2023:14.9.10 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
-   "line": 356,
+   "line": 369,
    "citation": "§2023:14.9.41 GR13",
    "kind": "no-rule-list"
   },
@@ -4006,7 +3976,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs",
-   "line": 439,
+   "line": 447,
    "citation": "§2023:14.9.46 SR1",
    "kind": "no-rule-list"
   },
@@ -4024,109 +3994,109 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs",
-   "line": 210,
+   "line": 212,
    "citation": "§2023:14.9.51 GR16",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs",
-   "line": 238,
+   "line": 241,
    "citation": "§2023:14.9.51 GR27b",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs",
-   "line": 347,
+   "line": 350,
    "citation": "§2023:14.9.30 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs",
-   "line": 348,
+   "line": 351,
    "citation": "§2023:14.9.30 GR22",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs",
-   "line": 349,
+   "line": 352,
    "citation": "§2023:14.9.30 GR12",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs",
-   "line": 391,
+   "line": 395,
    "citation": "§2023:14.9.35 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs",
-   "line": 119,
+   "line": 120,
    "citation": "§2023:14.9.17 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
-   "line": 613,
+   "line": 621,
    "citation": "§2023:14.9.39.3 Format 9",
    "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
-   "line": 641,
+   "line": 649,
    "citation": "§2023:14.9.39.3 Format 9",
    "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs",
-   "line": 1686,
+   "line": 1699,
    "citation": "§2023:14.9.39.3 Format 16",
    "kind": "no-format"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs",
-   "line": 264,
+   "line": 261,
    "citation": "§2023:13.18.38 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 17,
+   "line": 18,
    "citation": "§2023:14.9.40 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 133,
+   "line": 142,
    "citation": "§2023:14.9.40 GR9a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 171,
+   "line": 180,
    "citation": "§2023:14.9.40 GR18",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 627,
+   "line": 644,
    "citation": "§2023:14.9.40 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 704,
+   "line": 721,
    "citation": "§2023:14.9.40 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 1004,
+   "line": 1029,
    "citation": "§2023:14.9.40 GR10",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
-   "line": 1024,
+   "line": 1049,
    "citation": "§2023:13.18.43 GR13",
    "kind": "no-rule-list"
   },
@@ -4138,61 +4108,61 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs",
-   "line": 364,
+   "line": 366,
    "citation": "§2023:13.18.38 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs",
-   "line": 162,
+   "line": 163,
    "citation": "§2023:8.4.3.3 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs",
-   "line": 315,
+   "line": 331,
    "citation": "§2023:14.9.16 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
-   "line": 2908,
+   "line": 2998,
    "citation": "§2023:13.18.38.3 SR25d",
    "kind": "no-sub-item"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs",
-   "line": 191,
+   "line": 199,
    "citation": "§2023:12.3.7 GR7",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs",
-   "line": 484,
+   "line": 493,
    "citation": "§2023:12.3.7 GR7",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs",
-   "line": 244,
+   "line": 247,
    "citation": "§2023:12.3.6 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 1931,
+   "line": 2063,
    "citation": "§2023:14.9.51 SR19",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 1941,
+   "line": 2073,
    "citation": "§2023:14.9.51 SR18",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 1968,
+   "line": 2101,
    "citation": "§2023:14.9.51 SR13",
    "kind": "no-rule-list"
   },
@@ -4276,13 +4246,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
-   "line": 430,
+   "line": 435,
    "citation": "§2023:12.3.6 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs",
-   "line": 1027,
+   "line": 1032,
    "citation": "§2023:8.8.4.5 GR2",
    "kind": "no-rule-list"
   },
@@ -4300,25 +4270,25 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs",
-   "line": 340,
+   "line": 370,
    "citation": "§2023:8.4.3.14 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs",
-   "line": 341,
+   "line": 371,
    "citation": "§2023:13.18.34 GR7b",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs",
-   "line": 360,
+   "line": 390,
    "citation": "§2023:13.18.38 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs",
-   "line": 1488,
+   "line": 1578,
    "citation": "§2023:14.9.42 SR3",
    "kind": "no-rule-list"
   },
@@ -4342,19 +4312,19 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
-   "line": 176,
+   "line": 179,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
-   "line": 419,
+   "line": 422,
    "citation": "§2023:14.6.2.3.2 GR7",
    "kind": "no-ordinal"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
-   "line": 641,
+   "line": 644,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
@@ -4426,79 +4396,79 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1327,
+   "line": 1317,
    "citation": "§2023:14.9.11 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1719,
+   "line": 1709,
    "citation": "§2023:13.18.38 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1772,
+   "line": 1762,
    "citation": "§2023:13.18.43 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1932,
+   "line": 1922,
    "citation": "§2023:14.9.51 GR10",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1934,
+   "line": 1924,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1942,
+   "line": 1932,
    "citation": "§2023:14.9.35 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1947,
+   "line": 1937,
    "citation": "§2023:14.9.10 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1952,
+   "line": 1942,
    "citation": "§2023:14.9.10 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1968,
+   "line": 1958,
    "citation": "§2023:14.9.41 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 1972,
+   "line": 1962,
    "citation": "§2023:14.9.41 GR17",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 2032,
+   "line": 2022,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 2038,
+   "line": 2028,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs",
-   "line": 2386,
+   "line": 2376,
    "citation": "§2023:13.18.43 GR15",
    "kind": "no-rule-list"
   },
@@ -4690,67 +4660,67 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 248,
+   "line": 250,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 404,
+   "line": 408,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 496,
+   "line": 500,
    "citation": "§2023:13.18.38 GR8a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 794,
+   "line": 817,
    "citation": "§2023:13.18.32 GR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 838,
+   "line": 861,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 879,
+   "line": 902,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 896,
+   "line": 920,
    "citation": "§2023:8.3.3.6 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 899,
+   "line": 923,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs",
-   "line": 921,
+   "line": 945,
    "citation": "§2023:8.3.3.6 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 135,
+   "line": 134,
    "citation": "§2023:13.18.63 GR4a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 253,
+   "line": 252,
    "citation": "§2023:13.18.22 GR6",
    "kind": "no-rule-list"
   },
@@ -4762,37 +4732,37 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 318,
+   "line": 328,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 858,
+   "line": 868,
    "citation": "§2023:14.9.39 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1018,
+   "line": 1028,
    "citation": "§2023:13.18.42 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1836,
+   "line": 1846,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 1998,
+   "line": 2008,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
-   "line": 2137,
+   "line": 2147,
    "citation": "§2023:13.18.2 GR1",
    "kind": "no-rule-list"
   },
@@ -5026,13 +4996,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 2202,
+   "line": 2280,
    "citation": "§2023:12.4.5.9 SR2",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3670,
+   "line": 3773,
    "citation": "§2023:8.4.3.2 SR8",
    "kind": "no-rule-list"
   },
@@ -5062,25 +5032,25 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 1485,
+   "line": 1489,
    "citation": "§2023:13.18.63 SR31",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 4236,
+   "line": 4316,
    "citation": "§2023:13.18.34 GR7",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 4624,
+   "line": 4704,
    "citation": "§2023:13.18.60.4 SR13a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs",
-   "line": 9008,
+   "line": 9173,
    "citation": "§2023:14.9.8.3 Format 2",
    "kind": "no-format"
   },
@@ -5194,19 +5164,19 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs",
-   "line": 55,
+   "line": 74,
    "citation": "§2023:14.9.5 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs",
-   "line": 55,
+   "line": 74,
    "citation": "§2023:13.18.22 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs",
-   "line": 68,
+   "line": 87,
    "citation": "§2023:14.9.5 GR8",
    "kind": "no-rule-list"
   },
@@ -5308,97 +5278,97 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 68,
+   "line": 65,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 123,
+   "line": 120,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 128,
+   "line": 125,
    "citation": "§2023:13.18.43 GR13a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 154,
+   "line": 151,
    "citation": "§2023:13.18.34 GR7",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 157,
+   "line": 154,
    "citation": "§2023:14.9.51 GR26a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 160,
+   "line": 157,
    "citation": "§2023:13.18.43 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 247,
+   "line": 235,
    "citation": "§2023:14.9.30 GR25",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 247,
+   "line": 235,
    "citation": "§2023:14.9.51 GR29a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 269,
+   "line": 241,
    "citation": "§2023:14.9.41 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 272,
+   "line": 244,
    "citation": "§2023:14.9.41 GR13",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 278,
+   "line": 250,
    "citation": "§2023:14.9.41 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 389,
+   "line": 361,
    "citation": "§2023:14.9.51 GR10",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 400,
+   "line": 372,
    "citation": "§2023:14.9.35 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 407,
+   "line": 379,
    "citation": "§2023:14.9.10 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 412,
+   "line": 384,
    "citation": "§2023:14.9.10 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs",
-   "line": 417,
+   "line": 389,
    "citation": "§2023:14.9.47 GR1",
    "kind": "no-rule-list"
   },
@@ -5488,115 +5458,115 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 250,
+   "line": 260,
    "citation": "§2023:14.9.27 GR13",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 690,
+   "line": 702,
    "citation": "§2023:14.9.27 GR13",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 693,
+   "line": 705,
    "citation": "§2023:14.9.30 GR21",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 693,
+   "line": 705,
    "citation": "§2023:14.9.35 GR5",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 708,
+   "line": 720,
    "citation": "§2023:14.9.30 GR21",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 878,
+   "line": 890,
    "citation": "§2023:13.18.43 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 937,
+   "line": 949,
    "citation": "§2023:14.9.30 GR7",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 937,
+   "line": 949,
    "citation": "§2023:14.9.35 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 937,
+   "line": 949,
    "citation": "§2023:14.9.51 GR10",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 937,
+   "line": 949,
    "citation": "§2023:14.9.10 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 943,
+   "line": 955,
    "citation": "§2023:14.9.30 GR11c",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 970,
+   "line": 982,
    "citation": "§2023:14.9.35 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 971,
+   "line": 983,
    "citation": "§2023:14.9.10 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 972,
+   "line": 984,
    "citation": "§2023:14.9.35 GR23",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 972,
+   "line": 984,
    "citation": "§2023:14.9.10 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 1007,
+   "line": 1019,
    "citation": "§2023:14.9.51 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 1425,
+   "line": 1450,
    "citation": "§2023:13.18.43 GR9",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 1727,
+   "line": 1752,
    "citation": "§2023:13.18.43 GR13",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs",
-   "line": 1728,
+   "line": 1753,
    "citation": "§2023:14.9.35 GR20",
    "kind": "no-rule-list"
   },
@@ -5620,85 +5590,85 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 768,
+   "line": 761,
    "citation": "§2023:13.18.43 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 822,
+   "line": 815,
    "citation": "§2023:14.9.30 GR25",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 822,
+   "line": 815,
    "citation": "§2023:14.9.51 GR29a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 946,
+   "line": 925,
    "citation": "§2023:14.9.41 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 954,
+   "line": 933,
    "citation": "§2023:14.9.41 GR13",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 996,
+   "line": 975,
    "citation": "§2023:14.9.10 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2100,
+   "line": 2079,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2103,
+   "line": 2082,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2723,
+   "line": 2702,
    "citation": "§2023:14.9.51 GR10",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2757,
+   "line": 2736,
    "citation": "§2023:14.9.51 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2791,
+   "line": 2770,
    "citation": "§2023:14.9.35 GR11",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2823,
+   "line": 2802,
    "citation": "§2023:14.9.35 GR14",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2844,
+   "line": 2823,
    "citation": "§2023:14.9.10 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
-   "line": 2920,
+   "line": 2899,
    "citation": "§2023:14.9.47 GR1",
    "kind": "no-rule-list"
   },
@@ -6028,19 +5998,19 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs",
-   "line": 1058,
+   "line": 1063,
    "citation": "§2023:13.18.57.4 GR6f",
    "kind": "text-not-in-rule"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs",
-   "line": 1450,
+   "line": 1443,
    "citation": "§2023:14.9.49 GR8",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs",
-   "line": 1576,
+   "line": 1569,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
@@ -6148,73 +6118,73 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1275,
+   "line": 1297,
    "citation": "§2023:14.9.35 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1280,
+   "line": 1302,
    "citation": "§2023:14.9.27 GR17",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1282,
+   "line": 1304,
    "citation": "§2023:14.9.30 GR21",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1296,
+   "line": 1318,
    "citation": "§2023:13.18.34 GR6",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1509,
+   "line": 1533,
    "citation": "§2023:13.18.43 GR13a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1725,
+   "line": 1750,
    "citation": "§2023:13.18.34 GR7c",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1872,
+   "line": 1897,
    "citation": "§2023:14.9.30 GR14",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1880,
+   "line": 1906,
    "citation": "§2023:14.9.30 GR15",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 1890,
+   "line": 1916,
    "citation": "§2023:14.9.35 GR17a",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 2010,
+   "line": 2052,
    "citation": "§2023:14.9.35 GR17",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 2252,
+   "line": 2294,
    "citation": "§2023:14.9.35 GR3",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs",
-   "line": 2350,
+   "line": 2392,
    "citation": "§2023:14.9.30 GR15",
    "kind": "no-rule-list"
   },
@@ -6358,7 +6328,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolDynTable.cs",
-   "line": 416,
+   "line": 412,
    "citation": "§2023:14.9.39 GR31",
    "kind": "no-rule-list"
   },
@@ -6598,7 +6568,7 @@
   },
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/FileControlKeyRuleSpecTests.cs",
-   "line": 291,
+   "line": 302,
    "citation": "§2023:12.4.5.13 SR2",
    "kind": "no-rule-list"
   },
@@ -9508,31 +9478,31 @@
   },
   {
    "file": "scripts/spec/cite.py",
-   "line": 707,
+   "line": 712,
    "citation": "§2023:14.9.39 SR17",
    "kind": "no-rule-list"
   },
   {
    "file": "scripts/spec/cite.py",
-   "line": 708,
+   "line": 713,
    "citation": "§2023:13.18.40.2 SR13",
    "kind": "no-rule-list"
   },
   {
    "file": "scripts/spec/cite.py",
-   "line": 1000,
+   "line": 1009,
    "citation": "§2023:14.9.8.4 SR1",
    "kind": "no-rule-list"
   },
   {
    "file": "scripts/spec/cite.py",
-   "line": 1002,
+   "line": 1011,
    "citation": "§2023:14.9.8 GR1",
    "kind": "no-rule-list"
   },
   {
    "file": "scripts/spec/cite.py",
-   "line": 1004,
+   "line": 1013,
    "citation": "§2023:13.18.40.2 SR13",
    "kind": "no-rule-list"
   },

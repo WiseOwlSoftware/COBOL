@@ -105,7 +105,7 @@ internal static class InheritStep
     internal static void DropShadowed(DataBinder data)
     {
         data.Symbols.DropShadowedConstants(data.Symbols.Declared.DeclaredNearerThan);
-        data.State.Inherited.HideShadowedSymbolics(data.Symbols.Declared.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
+        data.Symbols.HideShadowedSymbolics(data.Symbols.Declared.DeclaredNearerThan);
         // An inherited GLOBAL file-name is hidden the same way (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786): a
         // data-name, condition-name or index-name of its spelling declared in a nearer source element is the referenced item.
         data.Symbols.HideShadowedFiles(data.Symbols.Declared.DeclaredNearerThan);

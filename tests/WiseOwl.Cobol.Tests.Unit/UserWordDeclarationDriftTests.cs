@@ -131,9 +131,10 @@ public sealed class UserWordDeclarationDriftTests
     /// method's reference to an object-class-name, interface-name or parameter-name its class declares, kb/Work PB3132),
     /// and the reference funnel is reached from two resolvers only: the one class-name resolver,
     /// <c>OoNameResolution.Lookup</c>, and the one recorder of a reference to a name a CONFIGURATION SECTION declares,
-    /// <c>DataBinder.RecordConfigurationNameUse</c> (kb/Work PB3153), which every <c>ConfigurationNames.TryUse</c> and
-    /// <c>MnemonicRegistry.TryUse</c> calls. A third recorder, or a resolution that bypassed them, would let a contained
-    /// program or a method use a word as two types unseen.</summary>
+    /// <c>DataBinder.RecordConfigurationNameUse</c> (kb/Work PB3153), which only <c>SymbolTable.Identify</c> calls, for a
+    /// configuration-section name it identifies with <c>report: true</c> (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step
+    /// 6b, slice 4"). A third recorder, or a resolution that bypassed them, would let a contained program or a method use a word
+    /// as two types unseen.</summary>
     [Fact]
     public void TheCensus_IsRecordedOnlyByTheDeclarationAndReferenceFunnels()
     {
@@ -142,16 +143,17 @@ public sealed class UserWordDeclarationDriftTests
             sources.Where(s => Regex.IsMatch(s.Text, @"(?:WordCensus|Words)\.Record\(")).Select(s => s.Name).Order());
         Assert.Equal(["DataBinder.cs", "OoNameResolution.cs"],
             sources.Where(s => Regex.IsMatch(s.Text, @"\.RecordReferenceUse\(")).Select(s => s.Name).Order());
-        Assert.Equal(["ConfigurationNames.cs", "MnemonicRegistry.cs"],
-            sources.Where(s => Regex.IsMatch(s.Text, @"\b(?:recordUse|data\.RecordConfigurationNameUse)\(")).Select(s => s.Name).Order());
+        Assert.Equal(["SymbolTable.Identify.cs"],
+            sources.Where(s => Regex.IsMatch(s.Text, @"\.RecordConfigurationNameUse\(")).Select(s => s.Name).Order());
     }
 
     /// <summary>⛔ EVERY TYPE §2023:8.4.6.1 SAYS A CONFIGURATION SECTION DECLARES HAS A TABLE WHOSE RESOLUTIONS ARE USES
     /// (kb/Work PB3153). §2023:8.4.6.1 lists the types that, "<i>when they are declared within a configuration section, may be
     /// referenced only by statements and entries either in that source element that contains a configuration section or
     /// in any source element contained within that source element</i>": a contained program and a method resolve names
-    /// no declaration of their own announced, so each type's registry is a <c>ConfigurationNames</c> table built with
-    /// the recorder (or, for the mnemonic-name, the <c>MnemonicRegistry</c>, whose <c>TryUse</c> records), and the
+    /// no declaration of their own announced, so each type's table in the symbol table is a <c>ConfigurationNames</c> built with
+    /// the type a reference uses the word as (the mnemonic-names are the table's <c>_mnemonics</c>, answered as
+    /// <c>UserWordKind.MnemonicName</c>), <c>SymbolTable.Identify</c> records every reference it resolves in one of them, and the
     /// referring element's §2023:8.3.2.2 census sees the use. The list is parsed from <c>specs/ISO_COBOL_2023.md</c>; a type it
     /// gains, or a table that stops recording, is red here.</summary>
     [Fact]
@@ -169,10 +171,12 @@ public sealed class UserWordDeclarationDriftTests
 
         var sources = CompilerSources();
         var tabled = sources.SelectMany(s => Regex.Matches(s.Text,
-                @"ConfigurationNames<[^>]+>\s+\w+\s*=>\s*field\s*\?\?=\s*new\(UserWordKind\.(\w+),\s*(?:_host\.)?recordUse\)")
+                @"ConfigurationNames<[^>]+>\s+\w+\s*=\s*new\(UserWordKind\.(\w+)\);")
             .Select(m => Enum.Parse<UserWordKind>(m.Groups[1].Value)));
-        string registry = sources.Single(s => s.Name == "MnemonicRegistry.cs").Text;
-        Assert.Contains("data.RecordConfigurationNameUse(at, name, UserWordKind.MnemonicName)", registry);
+        string table = sources.Single(s => s.Name == "SymbolTable.Configuration.cs").Text;
+        Assert.Contains("NameClass.Mnemonic => (MnemonicNamed(key), UserWordKind.MnemonicName)", table);
+        string identify = sources.Single(s => s.Name == "SymbolTable.Identify.cs").Text;
+        Assert.Contains("if (symbol is not null && report) _data.RecordConfigurationNameUse(written, key.Word, kind);", identify);
         Assert.Equal(listed, tabled.Append(UserWordKind.MnemonicName).Distinct().Order().ToArray());
     }
 
@@ -184,17 +188,17 @@ public sealed class UserWordDeclarationDriftTests
     /// claimed an own constant-name as the inherited ordering-name, mnemonic-name or class-name and refused legal source
     /// COBOL2692. So no expression pairs a configuration-section-name lookup with a raw probe: it asks
     /// <c>ReferenceResolver.DescribesOwnItem</c>, and the next two-reading position gets both halves.
-    /// <para>The table names are read off the <c>ConfigurationNames</c> declarations, never listed by hand: a
+    /// <para>The name classes are read off the symbol table's own list of configuration-section classes, never listed by hand: a
     /// hand-written list once named a <c>Symbolics</c> table that does not exist and missed <c>SwitchConditions</c>
     /// (kb/Work PB3153 review w1085d R1-1).</para></summary>
     [Fact]
     public void AConfigurationNameLookup_AsksTheOneOwnItemTest_NeverARawProbe()
     {
         var sources = CompilerSources();
-        string tables = string.Join("|", ConfigurationTableNames(sources));
+        string classes = string.Join("|", ConfigurationNameClasses(sources));
         var raw = sources.SelectMany(s => Regex.Matches(s.Text,
-                @"(?:IsClassConditionWord|IsAlphabetName|NamesSymbolic|Mnemonics\.TryPeek|Mnemonics\.TryUse"
-                + $@"|\b(?:{tables})\.(?:Declares|TryUse|TryPeek))\([^;{{}}]*?Refs\.Probe\(")
+                @"(?:IsClassConditionWord|IsAlphabetName|NamesSymbolic|Mnemonics\.TryPeek|Mnemonics\.TryUse|DeclaresConfigurationName"
+                + $@"|Identify\([^;{{}}]*?NameClass\.(?:{classes})\b)\([^;{{}}]*?Refs\.Probe\(")
             .Select(m => $"{s.Name}:{LineOf(s.Text, m.Index)}")).ToList();
         Assert.True(raw.Count == 0, "a configuration-section-name lookup is paired with a raw Refs.Probe, which misses an "
             + "own constant-name (" + string.Join(", ", raw) + "): ask ReferenceResolver.DescribesOwnItem (§2023:8.4.6.1, kb/Work PB3153)");
@@ -210,7 +214,8 @@ public sealed class UserWordDeclarationDriftTests
     /// switch-status arm (<c>SetAlterBinder.SwitchCondOf</c>) resolved <c>IF SWON</c> through
     /// <c>SwitchConditions.TryUse</c> over a contained program's own <c>01 SWON PIC 1</c> and refused legal source
     /// COBOL2692. So every member under <c>Binding/Procedure</c> that resolves a configuration-section name
-    /// (<c>TryUse</c> on a <c>ConfigurationNames</c> table or the mnemonic registry) and handles a data reference
+    /// (<c>SymbolTable.Identify</c> of a configuration-section class with <c>report: true</c>, or the mnemonic registry's
+    /// <c>TryUse</c>) and handles a data reference
     /// (a <c>DataReferenceContext</c>, <c>dataReference()</c> or <c>SoleDataRef…</c>) asks
     /// <c>DescribesOwnItem</c>. A member whose word arrives as a dedicated name token (ACCEPT FROM, the class
     /// condition's class-name, SET Format 3) handles no data reference, so the rule does not reach it.</summary>
@@ -218,8 +223,8 @@ public sealed class UserWordDeclarationDriftTests
     public void AProcedureDataReferenceTakenAsAConfigurationName_AsksTheOwnItemTest()
     {
         var sources = CompilerSources(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure"));
-        string tables = string.Join("|", ConfigurationTableNames(CompilerSources()));
-        var lookup = new Regex($@"\b(?:(?:{tables})|Mnemonics)\.TryUse\(");
+        string classes = string.Join("|", ConfigurationNameClasses(CompilerSources()));
+        var lookup = new Regex($@"\bMnemonics\.TryUse\(|Identify\([^;]*?NameClass\.(?:{classes}), report: true");
         var member = new Regex(@"^    (?:public|private|internal|protected)\b", RegexOptions.Multiline);
         var dataReference = new Regex(@"DataReferenceContext\b|\.dataReference\(\)|\bSoleDataRef\w*\(");
         int lookups = 0;
@@ -242,12 +247,17 @@ public sealed class UserWordDeclarationDriftTests
             + "item of that spelling is the referent (§2023:8.4.6.1, kb/Work PB3153)");
     }
 
-    /// <summary>The <c>ConfigurationNames</c> tables the compiler declares, read off their declarations.</summary>
-    private static string[] ConfigurationTableNames(List<(string Name, string Text)> sources)
+    /// <summary>The configuration-section name classes the symbol table resolves, read off its one list of them
+    /// (<c>SymbolTable.IsConfigurationClass</c>).</summary>
+    private static string[] ConfigurationNameClasses(List<(string Name, string Text)> sources)
     {
-        var names = sources.SelectMany(s => Regex.Matches(s.Text, @"ConfigurationNames<[^>]+>\s+(\w+)\s*=>")
-            .Select(m => m.Groups[1].Value)).Distinct().Order(StringComparer.Ordinal).ToArray();
-        Assert.Contains("SwitchConditions", names);   // the scan found the declarations at all
+        string table = sources.Single(s => s.Name == "SymbolTable.Configuration.cs").Text;
+        int start = table.IndexOf("IsConfigurationClass(NameClass @class) =>", StringComparison.Ordinal);
+        Assert.True(start >= 0, "SymbolTable.IsConfigurationClass moved — re-derive this guard");
+        int end = table.IndexOf(';', start);
+        var names = Regex.Matches(table[start..end], @"NameClass\.(\w+)").Select(m => m.Groups[1].Value)
+            .Distinct().Order(StringComparer.Ordinal).ToArray();
+        Assert.Contains("SwitchCondition", names);   // the scan found the list at all
         return names;
     }
 

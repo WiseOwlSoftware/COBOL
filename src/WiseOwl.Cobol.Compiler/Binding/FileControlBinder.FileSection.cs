@@ -582,12 +582,13 @@ public sealed partial class FileControlBinder
     private void BindCodeSetClause(Core.CodeSetClauseContext cs, FileModel file)
     {
         using var _ = Edition.At(cs);
-        var (alnumName, natName) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
-            f => f.NATIONAL() is not null, f => f.cobolWord().GetText(), cs.cobolWord(),
+        var (alnumWord, natWord) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
+            f => f.NATIONAL() is not null, f => f.cobolWord(), cs.cobolWord(),
             $"file '{file.CobolName}' CODE-SET", "13.18.13.2");
-        var alnumSet = alnumName is null ? null : _host.SpecialNames.CodedCharacterSetOf(cs, alnumName, $"CODE-SET {alnumName}",
+        string? alnumName = alnumWord?.GetText(), natName = natWord?.GetText();
+        var alnumSet = alnumWord is null ? null : _host.SpecialNames.CodedCharacterSetOf(alnumWord, $"CODE-SET {alnumName}",
             "ISO §2023:13.18.13.3 SR1 — alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set");
-        var natSet = natName is null ? null : _host.SpecialNames.CodedCharacterSetOf(cs, natName, $"CODE-SET {natName}",
+        var natSet = natWord is null ? null : _host.SpecialNames.CodedCharacterSetOf(natWord, $"CODE-SET {natName}",
             "ISO §2023:13.18.13.3 SR2 — alphabet-name-2 shall reference an alphabet that defines a national coded character set");
         if (alnumName is not null && alnumSet is null || natName is not null && natSet is null) return;
         if (alnumSet is { National: true })

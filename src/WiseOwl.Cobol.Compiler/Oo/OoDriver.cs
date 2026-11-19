@@ -71,7 +71,7 @@ internal sealed class OoDriver(BindSession session)
         // processor-dependence screens live, an interface could select a declined arithmetic mode in silence
         // (kb/Work PB197: the second hollow arm, found by sweeping all six optionsParagraph-bearing productions
         // rather than only the METHOD one the finding named). BindDeclarations binds it (kb/Work PB780).
-        ConfigurationStep.Produce(new ConfigurationSource.Own(definition.optionsParagraph()), data.State.Configuration);
+        ConfigurationStep.Produce(new ConfigurationSource.Own(definition.optionsParagraph()), data);
         OoEnvironmentRules.Screen(OoDefinition.Interface, $"interface '{iface.Name}'",
             definition.environmentDivision(), session.Edition);
         var synthetic = OoReparent(definition.environmentDivision(), dataDivision: null);
@@ -123,19 +123,19 @@ internal sealed class OoDriver(BindSession session)
         // definitions' baseline (ConfigurationStep carries the class OPTIONS model to them); the OBJECT and FACTORY
         // paragraphs' own override it clause by clause. Each binds in its binder's BindDeclarations, after the
         // definition's constant entries are declared (kb/Work PB780).
-        ConfigurationStep.Produce(new ConfigurationSource.Own(classCtx.optionsParagraph()), classData.State.Configuration);
+        ConfigurationStep.Produce(new ConfigurationSource.Own(classCtx.optionsParagraph()), classData);
         var classSynthetic = OoReparent(classCtx.environmentDivision(), dataDivision: null);
         classData.BindDeclarations(classSynthetic);
         using (edition.At(classCtx)) classData.DeclareUserWord(cls.Name, UserWordKind.ObjectClassName);
         classData.BindResolve(classSynthetic);
-        var classConfiguration = ConfigurationStep.ForClass(classData.State.Configuration);   // what both halves inherit
+        var classConfiguration = ConfigurationStep.ForClass(classData);   // what both halves inherit
 
         // The INSTANCE half: the OBJECT paragraph's own source element.
         var obj = classCtx.objectParagraph();
         var data = ElementBinder(obj, classCtx, cls.Name);
         data.CallSeedUids(session.TakeUidBand());
         // The class's configuration and OPTIONS model (the §2023:11.9.4 GR1 baseline), then the half's own OPTIONS paragraph.
-        ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, obj?.optionsParagraph()), data.State.Configuration);
+        ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, obj?.optionsParagraph()), data);
         var synthetic = OoReparent(obj?.environmentDivision(), obj?.dataDivision());
         data.Oo.ReserveClassMemberNames(cls.Symbol.ClrName, cls.Symbol.Methods);   // one C# class holds the object data AND the methods
         data.BindDeclarations(synthetic);
@@ -154,7 +154,7 @@ internal sealed class OoDriver(BindSession session)
         var fac = classCtx.factoryParagraph();
         var fdata = ElementBinder(fac, classCtx, cls.Name);
         fdata.CallSeedUids(session.TakeUidBand());
-        ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, fac?.optionsParagraph()), fdata.State.Configuration);   // §2023:11.9.4 GR1 (kb/Work PB135)
+        ConfigurationStep.Produce(new ConfigurationSource.ClassHalf(classConfiguration, fac?.optionsParagraph()), fdata);   // §2023:11.9.4 GR1 (kb/Work PB135)
         var fsynthetic = OoReparent(fac?.environmentDivision(), fac?.dataDivision());
         fdata.Oo.ReserveClassMemberNames(cls.Symbol.FactoryClrName, cls.Symbol.FactoryMethods);   // the factory class holds both, likewise
         fdata.BindDeclarations(fsynthetic);

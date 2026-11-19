@@ -1224,9 +1224,10 @@ overlaid by the unit's own OPTIONS paragraph clause by clause (§2023:11.9.4 GR1
 `ConfigurationSlice.OptionsParagraph`, carried by the `Own` and `ClassHalf` arms), so `BindDeclarations`' overlay of the
 unit's own paragraph (one bind point for every unit since kb/Work PB780) is the slice's single write of `Options`; a
 method's own OPTIONS stay the procedure-bind scoped override below, and the emitter's scoped override covers the method's
-whole body, not only its LOCAL-STORAGE initializers. `MnemonicRegistry` is a reader of the slice
-(`ConfigurationSlice.TryGetMnemonic`: the unit's own mnemonic-names, then its container's; the device map is a
-configuration entry like the switch map), and its parse-tree ancestor walk is gone. `OoRepositoryScope.Build`
+whole body, not only its LOCAL-STORAGE initializers. `MnemonicRegistry` reads the mnemonic-names from the symbol table
+(`SymbolTable.Identify` with `NameClass.Mnemonic`: the unit's own mnemonic-names, then its container's, since listing step 6b slice 4,
+docs/rearchitecture/DESIGN-listing.md section 6.7.1; the device map is a configuration entry like the switch map), and its parse-tree
+ancestor walk is gone. `OoRepositoryScope.Build`
 (`Oo/OoNameResolution.cs`), the fourth reader with its own ancestor walk over the REPOSITORY paragraphs (the seventh
 refuter, J2), is NOT a reader of the binder-side slice, and the estimate above was wrong about it: the class table
 resolves names in pass 1 (`OoClassTable.RepositoryScopeFor`: base classes, INHERITS and IMPLEMENTS), before any binder
@@ -1302,12 +1303,15 @@ configuration section), `ReportSectionBinder` (`Reports`), `ConstantEntryBinder`
 *`SpecialNamesBinder` as built (PB2355).* One sealed class per unit, `DataBinder.SpecialNames` (made with the data binder, from the
 binder and its `EditionContext`), over six partial files by clause family (the switches, ORDER TABLE and DYNAMIC LENGTH STRUCTURE and the
 `Bind` walk in `SpecialNamesBinder.cs`; `.Alphabets`, `.Literals`, `.Classes` for CLASS and SYMBOLIC CHARACTERS, `.Currency`, `.Locales`). It
-declares the facts into the unit's `ConfigurationSlice` (`DataBindState.Configuration`: the `ConfigurationNames` tables, the program
-collating sequences and classification, the decimal point, the currency set, the mnemonic-names) and holds none of them, and it asks the data
+declares the NAMES into the unit's symbol table (`SymbolTable.Configuration.cs`: the alphabet-, class-, symbolic-character-, ordering-,
+dynamic-length-structure-, locale- and mnemonic-names and the switch-status condition-names, since listing step 6b slice 4,
+docs/rearchitecture/DESIGN-listing.md section 6.7.1) and the other facts into its `ConfigurationSlice` (`DataBindState.Configuration`: the
+program collating sequences and classification, the decimal point, the currency set), and holds none of them, and it asks the data
 binder only for what is not SPECIAL-NAMES: the §2023:8.3.2.2 declaration funnel, the constant-name readings, the method tier of a name lookup.
 Every reader of those facts (picture analysis, the literal binders, the procedure binders and the emitters) reads
-`Data.State.Configuration`; a contained unit's slice is seeded from its container's by `ConfigurationStep` (the one producer, step 5 of the
-extract, PB2296 M5), so the binder carries no `InheritFrom` and the data binder no `InheritConfiguration`. The REPOSITORY specifier
+`Data.State.Configuration`, or identifies a name through the symbol table; a contained unit's slice is seeded from its container's by
+`ConfigurationStep` (the one producer, step 5 of the extract, PB2296 M5), which also hands the container's names down
+(`SymbolTable.InheritConfigurationNames`), so the binder carries no `InheritFrom` and the data binder no `InheritConfiguration`. The REPOSITORY specifier
 screens and the configuration-literal readings are `DataBinder.Configuration.cs`. The emitters read no slice: they read
 `ConfigurationFacts`, the value the slice makes for `DataBindResult` (`ConfigurationSlice.Facts`; PB2361 removed the
 emitters' pairs onto `ConfigurationSlice`).

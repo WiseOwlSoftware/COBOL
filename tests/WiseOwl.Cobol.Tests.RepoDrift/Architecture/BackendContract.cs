@@ -18,7 +18,7 @@ internal static class BackendContract
         [
             "Bound.BoundAlterEntry.NewName", "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDebugTarget.Name", "Bound.BoundDeclarative.SectionName", "Bound.BoundExceptionMatch.OpenMode",
             "Bound.BoundMethod.CobolName", "Bound.BoundNumLiteral.FoldedFunction", "Bound.BoundNumericLiteral.FoldedFunction",
-            "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundRangeMembership.Alphabet", "Bound.BoundSendToServer.ServerName",
+            "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundSendToServer.ServerName",
             "Bound.BoundSetSwitches.Switches", "Bound.BoundSwitchCondition.ImplementorName",
             "Bound.InitializeCategories.Spelling()", "Bound.SetCapacityKinds.Text()",
             // intrinsic-function-names as their catalog rows spell them (kb/Work PB4370)
@@ -34,7 +34,8 @@ internal static class BackendContract
             "Model.AlternateKeyClause.Name", "Model.AlternateKeyClause.Qualifiers",
             "Model.BoundUnit.ExternalizedName", "Model.BoundUnit.Name",
             "Model.CollatingKeyOperand.Name", "Model.CollatingKeyOperand.Qualifiers",
-            "Model.Condition88.Alphabet", "Model.Condition88.Name",
+            "Model.Condition88.Name",
+            "Model.RangeCollationId.Name",   // alphabet-name-1 as written, for the carrier's comment (kb/Work PB5932)
             "Model.CommunicationDescription.Name",
             "Model.DataItem.CobolName", "Model.DataItem.ExternalizedAs", "Model.DataItem.IndexNames",
             "Model.DataItem.RedefinesTargetName", "Model.DataItem.SameAsName", "Model.DataItem.SameAsQualifiers",

@@ -582,8 +582,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     private (Core.DataReferenceContext Ref, string Name, ImplementorName System)? MnemonicOperand(
         Core.WriteBeforeAfterContext? wba)
         => wba?.dataReference() is { } m && m.cobolWord() is { } word
-           && ctx.Mnemonics.TryPeek(word.GetText(), out _) && !ctx.Refs.DescribesOwnItem(m)
-           && ctx.Mnemonics.TryUse(wba, word.GetText(), out var system)
+           && ctx.Mnemonics.TryPeek(word, out _) && !ctx.Refs.DescribesOwnItem(m)
+           && ctx.Mnemonics.TryUse(word, out var system)
             ? (m, word.GetText(), system)
             : null;
 

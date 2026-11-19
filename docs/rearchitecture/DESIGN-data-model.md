@@ -161,7 +161,8 @@ the largest integer the PREFIXED length field of its dynamic-length-structure-na
 maximum (`docs/CONFORMANCE.md` §7 DOC-A.1-62) — computed by the ONE producer `CobolDynString.MaxSizeOf` and carried
 as `DataItem.DynMaxSize` to every store, SET SIZE and argument adapter. The structure the DYNAMIC LENGTH clause names
 is a SPECIAL-NAMES declaration (§2023:12.3.7.2 dynamic-length-structure-clause; kb/Work PB829), bound into
-`ConfigurationSlice.DynamicLengthStructures` (inherited by contained source elements, §2023:8.4.6.1) as a
+the symbol table's dynamic-length-structure-names (`SymbolTable.Configuration.cs`; inherited by contained source elements,
+§2023:8.4.6.1) as a
 `Model/DynamicLengthStructure` and linked from the item as `DataItem.DynStructure`: it decides the PREFIXED candidate
 (§2023:12.3.7.4 GR18 — SHORT PREFIXED 65535, SIGNED SHORT PREFIXED 32767, the 32-bit fields past the implementor
 maximum), §2023:13.18.19.3 SR4's bound on the LIMIT phrase, and — as part of the DYNAMIC LENGTH clause — §2023:8.5.3.1's

@@ -578,7 +578,7 @@
       "WiseOwl.Cobol.Binding.LiteralEnvironment"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::RecordConfigurationNameUse": [
-      "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry"
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::RefModZeroLength": [
       "WiseOwl.Cobol.Binding.BinderDriver",
@@ -717,6 +717,7 @@
       "WiseOwl.Cobol.Binding.Bound.StatementBinder",
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.CompilerTemps",
+      "WiseOwl.Cobol.Binding.ConfigurationStep",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.ElementBinders",
@@ -753,12 +754,10 @@
       "WiseOwl.Cobol.Binding.Procedure.EcBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
-      "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry",
       "WiseOwl.Cobol.Binding.Procedure.MoveBinder",
       "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
       "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder",
       "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp",
-      "WiseOwl.Cobol.Binding.Procedure.SetAlterBinder",
       "WiseOwl.Cobol.Binding.Procedure.SetBinder",
       "WiseOwl.Cobol.Binding.Procedure.SortBinder",
       "WiseOwl.Cobol.Binding.Procedure.UdfBinder",
@@ -770,7 +769,6 @@
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
-      "WiseOwl.Cobol.Compiler.Oo.OoDriver",
       "WiseOwl.Cobol.Validation.FlagConformancePass",
       "WiseOwl.Cobol.Validation.VersionConformancePass"
     ],
@@ -790,7 +788,9 @@
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::Symbols": [
+      "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
+      "WiseOwl.Cobol.Binding.ConfigurationStep",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.FileControlBinder",
@@ -803,6 +803,7 @@
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
+      "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
@@ -1188,7 +1189,6 @@
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::IsAlphabetName": [
       "WiseOwl.Cobol.Binding.DataBinder",
-      "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder",
       "WiseOwl.Cobol.Binding.Procedure.InspectBinder",
@@ -1220,6 +1220,12 @@
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::OperandLiteralClass": [
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
+    "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollation": [
+      "WiseOwl.Cobol.Binding.DataBinder"
+    ],
+    "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollationIds": [
+      "WiseOwl.Cobol.Binding.DataBinder"
+    ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollations": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
@@ -1238,6 +1244,10 @@
       "WiseOwl.Cobol.Binding.Procedure.EvaluateBinder"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::UseAlphabetName": [
+      "WiseOwl.Cobol.Binding.FileControlBinder",
+      "WiseOwl.Cobol.Binding.Procedure.SortBinder"
+    ],
+    "WiseOwl.Cobol.Binding.SpecialNamesBinder::WrittenAlphabet": [
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.Procedure.SortBinder"
     ]

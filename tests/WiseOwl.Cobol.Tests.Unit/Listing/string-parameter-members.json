@@ -278,14 +278,6 @@
       "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
     },
     {
-      "member": "WiseOwl.Cobol.Binding.Procedure.BareOperandAnalysis.OfClassName(string)",
-      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
-    },
-    {
-      "member": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder.CheckedRangeMembership(WiseOwl.Cobol.Binding.Bound.BoundOperand, WiseOwl.Cobol.Binding.Bound.BoundOperand, WiseOwl.Cobol.Binding.Bound.BoundOperand, bool, string?)",
-      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
-    },
-    {
       "member": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder.CheckedRelational(WiseOwl.Cobol.Binding.Bound.BoundOperand, string, WiseOwl.Cobol.Binding.Bound.BoundOperand)",
       "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
     },
@@ -436,6 +428,18 @@
     {
       "member": "WiseOwl.Cobol.Binding.RepositoryResolver.ResolveProgram(string, int)",
       "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SpecialNamesBinder.CodedCharacterSetOf(Antlr4.Runtime.ParserRuleContext, string, string)",
+      "reason": "its name operand is the parser context, identified through SymbolTable.Identify (step 6b, slice 4 converted it from a string); its strings word a diagnostic (a site, a rule citation)"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SpecialNamesBinder.ResolveLocaleName(Antlr4.Runtime.ParserRuleContext, string, string, string)",
+      "reason": "its name operand is the parser context, identified through SymbolTable.Identify (step 6b, slice 4 converted it from a string); its strings word a diagnostic (a site, a rule citation); the first string is the name as the diagnostic prints it, read off the same word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SpecialNamesBinder.TryResolveRangeAlphabet(Antlr4.Runtime.ParserRuleContext, WiseOwl.Cobol.Binding.CollatingClass, string)",
+      "reason": "its name operand is the parser context, identified through SymbolTable.Identify (step 6b, slice 4 converted it from a string); its strings word a diagnostic (a site, a rule citation)"
     },
     {
       "member": "WiseOwl.Cobol.Binding.Validation.StatementValidation.ResolveFile(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext, string, out WiseOwl.Cobol.Binding.Model.FileModel?, bool, string?)",

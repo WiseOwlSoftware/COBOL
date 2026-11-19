@@ -1151,6 +1151,49 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       indexes by reflection over the binder, its state slices and `ConstantEntryBinder`; it now walks `SymbolTable` in its place and
       counts a table keyed by `CobolName` as well as by `string`, so a class moved into the table stays under the test (shown red on a
       planted `Dictionary<CobolName, DataItem>` in the table).
+  - *(Step 6b, slice 4, branch `listing-step-6b-4`.)* The CONFIGURATION SECTION names moved, and the baseline holds 279 (40 tables,
+    51 lookups, 188 sites). `SymbolTable.Configuration.cs` owns what the binding layer's `ConfigurationNames<T>` (deleted) and `ConfigurationSlice` held:
+    the switch-status condition-names, class-names, alphanumeric and national alphabet-names, symbolic-characters, ordering-names,
+    dynamic-length-structure-names and locale-names (§2023:8.4.6.1's list), each a private `ConfigurationNames<T>` keyed by `CobolName`
+    with its containment depths, the mnemonic-names, the symbolic-characters a SPECIAL-NAMES paragraph declares ahead of its
+    clauses and the inherited symbolic-characters a nearer declaration hides. `NameClass` gains one member per class
+    (`SwitchCondition`, `ClassName`, `Alphabet`, `NationalAlphabet`, `SymbolicCharacter`, `OrderingName`, `DynamicLengthStructure`,
+    `Locale`, `Mnemonic`), and every reference is `Identify(written, class, report)`. The corrections the code proved:
+    - *`report` is also the §2023:8.3.2.2 USE (correction, slice 4).* A reference to a configuration-section name is a use of the
+      word in the element it is written in (kb/Work PB3153): `ConfigurationNames.TryUse` recorded it in that element's census and
+      `TryPeek` did not. That is exactly the reference/probe split `report` already draws, so `Identify` records the census use when
+      `report` is true and the name identified a configuration-section symbol; `DataBinder.RecordConfigurationNameUse` has one caller,
+      `Identify`. Step 7b records the occurrence under the same flag.
+    - *A container's names reach the contained table (correction, slice 4).* A contained program, and a class's OBJECT and FACTORY
+      halves, inherit the names (§2023:12.3.4 GR1), so `ConfigurationStep.Produce` takes the unit's binder and calls
+      `SymbolTable.InheritConfigurationNames(container)`: each class copies the container's entries one level farther out, and the
+      mnemonic-names are read from the container's table after the element's own. `ClassConfiguration` carries the class's table.
+    - *The written word travels, never its text (correction, slice 4).* `ChoiceIndicators.AlphabetPair` answers the alphabet-name
+      WORDS; the class condition's word, a bare EVALUATE class-name, the IN phrase of a THROUGH range and a STANDARD-COMPARE or locale
+      argument travel as their contexts; `SymbolicOf`, `CodedCharacterSetOf`, `ResolveLocaleName`, `TryResolveRangeAlphabet` and the
+      mnemonic registry take the word. A COLLATING SEQUENCE clause's alphabet-name is read where it is written into a
+      `CollatingAlphabet` (the name and what it names in each class), which the one class test, `CollatingAlphabetFault`, and the
+      file's key resolution read after the bind; the model keeps the names as written for the external-file identity, and the
+      binder keeps what they name (`FileControlBinder`), so no model type depends on the binder layer.
+    - *A range carries its carrier's identity (correction, slice 4; corrected again by review round 1).* The THROUGH range's
+      `IN alphabet-name-1` phrase rode the bound node and `Condition88` as the alphabet-NAME, which the renderer looked up in a name
+      table of the data binding (`DataBindResult.RangeCollations`, keyed by the name): a lookup by name in the backend.
+      `TryResolveRangeAlphabet` now answers a `RangeCollationId` (model layer), an IDENTITY the unit's binder makes once per alphabet
+      it names (keyed by the alphabet's definition) and the carrier holds; `DataBindResult.RangeCollations` is the unit's carriers in
+      the order first named, and the field names are their ordinals. The slice first carried the carrier's POSITION in that list, and
+      review round 1 measured why a position is wrong: a level-88 node crosses units. A container's GLOBAL condition-name is rendered
+      in every contained program that references it (§2023:13.18.27.4 GR2), and a clone of a GLOBAL TYPEDEF's condition-name keeps
+      the template's phrase, so the container's position read against the contained program's list named another alphabet's carrier
+      (a silent wrong answer) or none (the compiler failed); the name-keyed table before it found nothing in a contained program that
+      named no range of its own, so that program weighed the range natively. The backend's one reader, `CodeGen.Emit.RangeCollationFields`,
+      finds the identity in the rendering unit's own carriers and then in each container's, outward, and reaches a container's static
+      field through the container's type, which encloses the contained program's (`_PRG_OUTER.__COLLATE_R0`); an identity no unit of
+      the chain made fails loudly. `conformance:cases/13.18.63-VALUE/pb5932_global_condition_range_in_alphabet` pins a contained, a
+      doubly contained and a TYPEDEF-clone reference.
+    - *A converted member keeps its diagnostic strings.* `CodedCharacterSetOf`, `ResolveLocaleName` and `TryResolveRangeAlphabet` take
+      the word as its context and still take a site and a rule citation, so rule (3) sees a string; they are classified in
+      `string-parameter-members.json` with that reason, and its ceiling rose 122 -> 123 (+3, less the two entries whose string was a
+      name now carried as its context), in review's sight as the test's ceiling comment asks.
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1716,6 +1759,9 @@ renderer. Naming it asks for a listing at any edition.
   Slice 3 (the constant-names) moves no measurable allocation: over four runs each, alternating, NC105A's `None` row is 34.90
   to 35.64 MB on the branch and 35.15 to 35.78 MB on the parent, IX113A's is 0.2 to 0.4 MB below the parent's on every run, NC218A's
   straddles it and SM201A's equals it (the README's step-6b table, slice 3).
+  Slice 4 (the CONFIGURATION SECTION names) moves no measurable allocation: every branch row of the front end and bind lies inside
+  the parent's two runs or within 0.04 MB of them (IX113A `None` 68.92 and 68.88 MB against 68.94 and 68.84; the README's step-6b
+  table, slice 4).
 
 ## 10. Test plan
 
@@ -1944,7 +1990,9 @@ behaviour-neutral by `compare_oracle.py`; the baseline is 308, and kb/Work PB593
 what remains by class. (Step 6b, slice 3, branch `listing-step-6b-3`:) the constant-names moved into the table with their
 resolution, the pre-bind reading included (section 6.7.1, "Step 6b, slice 3"), each change shown behaviour-neutral by
 `compare_oracle.py`; the baseline is 294, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-3` holds what remains by
-class.
+class. (Step 6b, slice 4, branch `listing-step-6b-4`:) the CONFIGURATION SECTION names moved into the table with their resolution
+(section 6.7.1, "Step 6b, slice 4"), `compare_oracle.py` IDENTICAL after the move; the baseline is 279, and kb/Work PB5932's dated
+file `2026-11-19-step-6b-slice-4` holds what remains by class.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had

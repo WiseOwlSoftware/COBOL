@@ -51,7 +51,7 @@ public sealed class LiteralAliasResolutionDriftTests
         Assert.True(wordResolution >= 0, "ExpressionBinder.LiteralAliasOf(CobolWordContext) is gone");
         string wordBody = src[wordResolution..src.IndexOf(';', wordResolution)];
         Assert.Contains("ctx.Symbols.Identify(word, NameClass.Constant, report: true)", wordBody);
-        Assert.Contains("ctx.Data.SpecialNames.SymbolicOf(word, w)", wordBody);
+        Assert.Contains("ctx.Data.SpecialNames.SymbolicOf(word)", wordBody);
         int resolution = src.IndexOf("internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>", StringComparison.Ordinal);
         Assert.True(resolution >= 0, "ExpressionBinder.LiteralAliasOf is gone");
         string body = src[resolution..src.IndexOf(';', resolution)];

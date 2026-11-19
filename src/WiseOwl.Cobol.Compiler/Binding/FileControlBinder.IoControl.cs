@@ -260,7 +260,7 @@ public sealed partial class FileControlBinder
                         $"the RERUN clause's condition-name-1 phrase '{condition.GetText()}' has no ON phrase: the two forms of "
                         + "the clause that write condition-name-1 name implementor-name-1 or file-name-1 in the ON phrase "
                         + "(§1985:VII.2.12.4 GR2 f, g)");
-                if (!_host.State.Configuration.SwitchConditions.TryUse(condition, condition.GetText(), out var _))
+                if (_host.Symbols.Identify(condition, NameClass.SwitchCondition, report: true) is null)
                     using (Edition.At(condition))
                         Edition.Error(DiagnosticCatalog.UndefinedReference,
                             $"the RERUN clause names '{condition.GetText()}', which is not a condition-name of a switch status: "

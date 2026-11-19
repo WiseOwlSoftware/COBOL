@@ -1102,8 +1102,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             bool mustBeName = at == 2 && argCtxs.Count == 4;
             // An argument-4 position: the element's own item of the word's spelling is the referent (§2023:8.4.6.1).
             bool ownItem = !mustBeName && SoleDataReference(a) is { } own && ctx.Refs.DescribesOwnItem(own);
-            if (at == 2 && !ownItem && KeywordWordOf(a) is { } word
-                && ctx.Data.State.Configuration.OrderTables.TryUse(a, word, out string? literal9))
+            if (at == 2 && !ownItem && KeywordWordOf(a) is not null && KeywordWordContext(a) is { } written
+                && ctx.Symbols.Identify(written, NameClass.OrderingName, report: true)?.Symbol is string literal9)
             {
                 orderingTable = literal9;
                 continue;
@@ -1113,12 +1113,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
                     + "§2023:15.85.2 general format's third position IS ordering-name-1 (ISO §2023:15.85.3 r5; §2023:15.3 "
                     + "argument type 12)"
-                    + (ctx.Data.State.Configuration.OrderTables.Count == 0
+                    + (ctx.Symbols.OrderingNames is not { Count: > 0 } declared
                         ? "; this compilation unit declares no ORDER TABLE clause"
-                        : $"; declared: {string.Join(", ", ctx.Data.State.Configuration.OrderTables.Names)}"));
+                        : $"; declared: {string.Join(", ", declared.Names)}"));
             // A SECOND ordering-name where argument-4 belongs. Reachable, and worth its own message: the operand
             // path would otherwise report it as an unresolved data-name, which is true and useless.
-            if (!ownItem && KeywordWordOf(a) is { } second && ctx.Data.State.Configuration.OrderTables.Declares(second))
+            if (!ownItem && KeywordWordOf(a) is { } second && ctx.Symbols.DeclaresConfigurationName(NameClass.OrderingName, second))
                 return Malformed($"is given the ordering-name '{second}' in the argument-4 position — the "
                     + "§2023:15.85.2 general format admits ONE [ ordering-name-1 ], and the fourth position is "
                     + "argument-4, the ordering level (ISO §2023:15.85.3 r6)");
@@ -1178,7 +1178,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             string site = $"FUNCTION {sig.Name}'s locale-name-1 '{a.GetText().Trim()}'";
             if (KeywordWordOf(a) is { } word)
             {
-                var sym = ctx.Data.SpecialNames.ResolveLocaleName(a, word, site, rule);
+                var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(a)!, word, site, rule);
                 if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                 locale = new LocaleRef(sym);
             }
@@ -1222,7 +1222,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         LocaleRef locale;
         if (KeywordWordOf(argCtxs[2]) is { } word)
         {
-            var sym = ctx.Data.SpecialNames.ResolveLocaleName(argCtxs[2], word, $"FUNCTION {sig.Name}'s LOCALE phrase '{word}'", rule);
+            var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(argCtxs[2])!, word, $"FUNCTION {sig.Name}'s LOCALE phrase '{word}'", rule);
             if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
             locale = new LocaleRef(sym);
         }
@@ -1973,7 +1973,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     $"the LOCALE keyword of FUNCTION {sig.Name}");
                 if (at + 1 < argCtxs.Count && KeywordWordOf(argCtxs[at + 1]) is { } lname && lname != "ANYCASE")
                 {
-                    var sym = ctx.Data.SpecialNames.ResolveLocaleName(argCtxs[at + 1], lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
+                    var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(argCtxs[at + 1])!, lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
                         "ISO §2023:15.68.3 r5a — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph");
                     if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                     locale = new LocaleRef(sym);
@@ -2043,8 +2043,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         { Arithmetic = ctx.Options.Arithmetic, Anycase = anycase, Locale = locale, LocaleWritten = localeWritten, CurrencyContentUnrestricted = !contentRules };
     }
 
-    /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
-    /// literal, an alphanumeric/edited/group item, or a nested alphanumeric-result intrinsic.</summary>
     /// <summary>
     /// Screen every argument's CLASS against the catalog row's declared <c>ArgKinds</c> (ISO §2023:15.3 argument
     /// types; fix-queue PB1).
@@ -2228,6 +2226,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
     }
 
+    /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
+    /// literal, an alphanumeric/edited/group item, or a nested alphanumeric-result intrinsic.</summary>
     private static bool IsStringOperand(BoundOperand op) => op switch
     {
         BoundStringLiteral => true,
@@ -2554,22 +2554,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         g.Children.Any(c => c.RedefinesTargetName is null
                             && (c.IsDynamicTable || (c.IsGroup && HasDynamicCapacityTable(c))));
 
-    /// <summary>Is this group's length a RUNTIME value — an OCCURS DEPENDING table (§2023:15.50.4 r4b / §2023:15.14.4 r2b),
-    /// or a dynamic-length elementary item or dynamic-capacity table (r7 / r6 — the §2023:8.5.1.12.1 variable-length
-    /// group) anywhere beneath it? The ONE predicate behind the folds' group arm and <see cref="KnownWidth"/>.</summary>
     /// <summary>THE §2023:8.5.1.12.1 DEFINITION, verbatim: "A variable-length group is a group item whose data
     /// description has at least one dynamic-length elementary item or dynamic-capacity table as a subordinate
     /// item. All other group items are referred to as fixed-length groups." — an OCCURS DEPENDING group is a
     /// FIXED-length group (its maximum is fixed), so the §2023:15.3 prohibitions do NOT reach it; using
     /// <see cref="HasRuntimeLength"/> here over-rejected pb61's §2023:15.50.4 r4a typedef leg, and the gate caught
-    /// it (kb/Work PB124 wave 4).</summary>
-    /// <summary>Delegates to THE one predicate (kb/Work PB132 — this was a second copy; §2023:13.18.44.3 SR17
+    /// it (kb/Work PB124 wave 4).
+    /// <para>Delegates to THE one predicate (kb/Work PB132 — this was a second copy; §2023:13.18.44.3 SR17
     /// bars a dynamic item under REDEFINES, so the old redefines-skip changed nothing on legal source).
     /// <see cref="HasDynamicLengthLeaf"/>/<see cref="HasDynamicCapacityTable"/> stay: they serve
-    /// <see cref="HasRuntimeLength"/>, which answers a LAYOUT question, not the §2023:8.5.1.12.1 classification.</summary>
+    /// <see cref="HasRuntimeLength"/>, which answers a LAYOUT question, not the §2023:8.5.1.12.1 classification.</para></summary>
     private static bool IsVariableLengthGroup(DataItem g) =>
         DataItem.HasVariableLengthSubordinate(g);
 
+    /// <summary>Is this group's length a RUNTIME value — an OCCURS DEPENDING table (§2023:15.50.4 r4b / §2023:15.14.4 r2b),
+    /// or a dynamic-length elementary item or dynamic-capacity table (r7 / r6 — the §2023:8.5.1.12.1 variable-length
+    /// group) anywhere beneath it? The ONE predicate behind the folds' group arm and <see cref="KnownWidth"/>.</summary>
     private static bool HasRuntimeLength(DataItem g) =>
         DataItem.HasOdoBeneath(g) || HasDynamicLengthLeaf(g) || HasDynamicCapacityTable(g);
 
@@ -2778,14 +2778,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return runtime is null ? sum : new BoundBinary(sum, '+', runtime);
     }
 
-    /// <summary>FUNCTION BYTE-LENGTH (§2023:15.14.4 r1): the argument's length in BYTES — the compile-time twin of the
-    /// LENGTH fold, counting bytes instead of character positions (D7). §2023:15.14.3 r1 restricts a LITERAL argument
-    /// to an ALPHANUMERIC or NATIONAL literal (unlike LENGTH, a boolean/numeric literal is NOT valid): an
-    /// alphanumeric literal is 1 byte/char, a national literal 2 bytes/char (D-N1). A fixed data item folds to
-    /// <see cref="DataItem.ByteWidth"/> (the pinned per-usage widths). Runtime-length shapes — a reference-modified
-    /// view, a variable-length (OCCURS DEPENDING) group, or an ANY LENGTH item (§2023:15.14.4 r2/r5) — have a byte
-    /// length known only at runtime; with no runtime BYTE-LENGTH body (the §2023:15.14 CONSTANT-entry path aside) they
-    /// stage LOUD by name, the LENGTH discipline (§1.4).</summary>
     /// <summary>The clause that states <paramref name="sig"/>'s argument rule in the edition in force: <paramref name="clause2023"/>, or at
     /// COBOL-85 the "Arguments" subclause of the function's paragraph of the 1989 module (<see cref="IntrinsicCitations.Clause"/>).</summary>
     private string ArgumentClause(IntrinsicSig sig, string clause2023) => IntrinsicCitations.Clause(ctx.Edition.Edition, sig.Name, clause2023);
@@ -2814,6 +2806,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument ({why}, ISO {clause})");
     }
 
+    /// <summary>FUNCTION BYTE-LENGTH (§2023:15.14.4 r1): the argument's length in BYTES — the compile-time twin of the
+    /// LENGTH fold, counting bytes instead of character positions (D7). §2023:15.14.3 r1 restricts a LITERAL argument
+    /// to an ALPHANUMERIC or NATIONAL literal (unlike LENGTH, a boolean/numeric literal is NOT valid): an
+    /// alphanumeric literal is 1 byte/char, a national literal 2 bytes/char (D-N1). A fixed data item folds to
+    /// <see cref="DataItem.ByteWidth"/> (the pinned per-usage widths). Runtime-length shapes — a reference-modified
+    /// view, a variable-length (OCCURS DEPENDING) group, or an ANY LENGTH item (§2023:15.14.4 r2/r5) — have a byte
+    /// length known only at runtime; with no runtime BYTE-LENGTH body (the §2023:15.14 CONSTANT-entry path aside) they
+    /// stage LOUD by name, the LENGTH discipline (§1.4).</summary>
     private BoundExpr BindByteLengthFold(IntrinsicSig sig, List<BoundOperand> args) => args[0] switch
     {
         // A zero-length literal is ZERO bytes (§2023:8.5.4; §2023:15.14.4 r1) — the Max(1, …) clamp is gone (kb/Work PB61 / RV-15.14.4-1).
@@ -2880,6 +2880,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ArgumentClause(sig, "§2023:15.14.3 r1")),
     };
 
+    /// <summary>A compile-time fold keeps its function's §2023:15.2 type (§15.x.1 through the ONE resolver), because the
+    /// folded literal's text cannot say whether an integer or a numeric function produced it and the ONE integer
+    /// classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/>) answers from the type
+    /// (kb/Work PB1421: `GO TO … DEPENDING ON FUNCTION HIGHEST-ALGEBRAIC(E)`, E PIC ZZ9, compiled).</summary>
+    private BoundExpr Folded(IntrinsicSig sig, List<BoundOperand> args, BoundExpr fold) =>
+        fold is BoundNumLiteral l ? l with { FunctionType = IntrinsicResultType.Resolve(sig, args, ctx.Options.Arithmetic), FoldedFunction = sig.Name } : fold;
+
     /// <summary>SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§2023:15.83 / §2023:15.43 / §2023:15.58) — a compile-time PICTURE fold, like
     /// LENGTH. Argument-1 must be a category-numeric DATA ITEM (SMALLEST §2023:15.83.3 r1) or numeric/numeric-edited
     /// DATA ITEM (HIGHEST/LOWEST §2023:15.43.3/§2023:15.58.3 r1) — never a literal, expression, group, ref-mod, or function.
@@ -2888,13 +2895,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// BinaryCapacity item (COMP-5 / BINARY-CHAR family), the mask capacity for a numeric-edited item; LOWEST is the
     /// negated magnitude for a sign-representable item, else 0 (Annex D.32). The value returns as a numeric literal
     /// at the correct scale (BoundNumLiteral — the LENGTH-fold precedent).</summary>
-    /// <summary>A compile-time fold keeps its function's §2023:15.2 type (§15.x.1 through the ONE resolver), because the
-    /// folded literal's text cannot say whether an integer or a numeric function produced it and the ONE integer
-    /// classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/>) answers from the type
-    /// (kb/Work PB1421: `GO TO … DEPENDING ON FUNCTION HIGHEST-ALGEBRAIC(E)`, E PIC ZZ9, compiled).</summary>
-    private BoundExpr Folded(IntrinsicSig sig, List<BoundOperand> args, BoundExpr fold) =>
-        fold is BoundNumLiteral l ? l with { FunctionType = IntrinsicResultType.Resolve(sig, args, ctx.Options.Arithmetic), FoldedFunction = sig.Name } : fold;
-
     private BoundExpr BindAlgebraicFold(IntrinsicSig sig, List<BoundOperand> args)
     {
         // §2023:8.5.2.12 items 3/4/5 make the LINAGE-/LINE-/PAGE-COUNTER registers category-numeric DATA ITEMS, so
@@ -3273,6 +3273,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return BoundOperandError.Refused(ctx.Edition, $"literal argument '{nn.GetText()}'");
     }
 
+    /// <summary>The word <see cref="KeywordWordOf"/> reads, as written: the argument's phrase word or its sole unqualified data
+    /// reference's word, or null. A name read there is identified through the symbol table from this context.</summary>
+    private static Antlr4.Runtime.ParserRuleContext? KeywordWordContext(Core.FunctionArgumentContext a) =>
+        a.fnArgPhraseWord() is { } kw ? kw
+        : SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0 ? d.cobolWord() : null;
+
     /// <summary>The bare-word view of an argument for the §15 phrase-keyword functions: a reserved phrase word
     /// (<c>fnArgPhraseWord</c>) or a bare unqualified, unsubscripted name (the IDENTIFIER-shaped phrase words —
     /// ANYCASE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL). Uppercase; null when the
@@ -3291,9 +3297,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private string? KeywordWordOf(Core.FunctionArgumentContext a)
     {
         bool bareName = a.fnArgPhraseWord() is null;
-        var tok = a.fnArgPhraseWord() is { } kw ? kw.Start
-            : SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0
-                && d.cobolWord() is { } cw ? cw.Start : null;
+        var tok = KeywordWordContext(a)?.Start;   // the ONE choice of the word, which the symbol-table identification reads too
         var word = WiseOwl.Cobol.Frontend.Parsing.CobolWordsRewriter.CanonicalWordOf(tok, ctx.CobolWords);
         // ⛔ A WORD INTRODUCED AFTER THIS EDITION IS A USER-DEFINED WORD EXACTLY WHEN THE PROGRAM DECLARES IT
         // (the parser's IsKeywordReadingHere determination, one layer down; kb/Work PB4359). ANYCASE and LOCALE are

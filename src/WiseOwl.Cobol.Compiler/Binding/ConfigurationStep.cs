@@ -9,10 +9,13 @@ namespace WiseOwl.Cobol.Binding;
 /// GR1: "The entries explicitly or implicitly specified in the configuration section of a source unit that contains other
 /// source units apply to each directly or indirectly contained source unit"; §2023:11.9.4 GR1 for the OPTIONS paragraph; a half
 /// is a source unit the class definition contains, §2023:3.165). Produced once per class by <see cref="ConfigurationStep"/>'s
-/// <c>Own</c> arm and handed to both halves' <c>ClassHalf</c> arms; the halves hold the VALUE, never the class's binder.
+/// <c>Own</c> arm and handed to both halves' <c>ClassHalf</c> arms; the halves read the class's slice and its symbol table
+/// (whose configuration-section names they inherit), never the class's binder.
 /// </summary>
 /// <param name="Slice">The class definition's frozen configuration slice.</param>
-internal sealed record ClassConfiguration(ConfigurationSlice Slice);
+/// <param name="Names">The class definition's symbol table, whose configuration-section names the halves inherit
+/// (<see cref="SymbolTable.InheritConfigurationNames"/>; docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 4").</param>
+internal sealed record ClassConfiguration(ConfigurationSlice Slice, SymbolTable Names);
 
 /// <summary>
 /// Where a unit's configuration slice comes from — a closed union with one arm per kind of unit the standard gives a
@@ -32,7 +35,7 @@ internal abstract record ConfigurationSource
     /// <summary>A contained program: "The configuration section shall not be specified in a program that is contained
     /// within another program" (§2023:12.3.3 SR1), so it takes its container's slice whole (§2023:12.3.4 GR1), and its OPTIONS start
     /// from the container's model (§2023:11.9.4 GR1).</summary>
-    internal sealed record Contained(ConfigurationSlice Container) : ConfigurationSource;
+    internal sealed record Contained(ConfigurationSlice Container, SymbolTable ContainerNames) : ConfigurationSource;
 
     /// <summary>An OBJECT or FACTORY half: its class definition's configuration (§2023:12.3.4 GR1 — the class contains the half)
     /// overlaid clause by clause by the half's own SPECIAL-NAMES, the one configuration paragraph §2023:12.3.3 SR3 leaves it
@@ -54,10 +57,11 @@ internal abstract record ConfigurationSource
 /// </summary>
 internal static class ConfigurationStep
 {
-    /// <summary>Seed <paramref name="slice"/>, the unit's own, from <paramref name="source"/>. Called once per unit, before
-    /// the unit binds.</summary>
-    public static void Produce(ConfigurationSource source, ConfigurationSlice slice)
+    /// <summary>Seed <paramref name="unit"/>'s own slice and configuration-section names from <paramref name="source"/>. Called
+    /// once per unit, before the unit binds.</summary>
+    public static void Produce(ConfigurationSource source, DataBinder unit)
     {
+        var slice = unit.State.Configuration;
         switch (source)
         {
             case ConfigurationSource.Own own:
@@ -65,9 +69,11 @@ internal static class ConfigurationStep
                 break;
             case ConfigurationSource.Contained contained:
                 Inherit(contained.Container, slice);
+                unit.Symbols.InheritConfigurationNames(contained.ContainerNames);
                 break;
             case ConfigurationSource.ClassHalf half:
                 Inherit(half.Class.Slice, slice);
+                unit.Symbols.InheritConfigurationNames(half.Class.Names);
                 slice.OptionsParagraph = half.HalfOptions;
                 break;
             default:
@@ -76,8 +82,8 @@ internal static class ConfigurationStep
     }
 
     /// <summary>The class definition's product for its halves, taken after the class's own section and OPTIONS paragraph
-    /// have bound into <paramref name="slice"/>.</summary>
-    public static ClassConfiguration ForClass(ConfigurationSlice slice) => new(slice);
+    /// have bound into <paramref name="classUnit"/>.</summary>
+    public static ClassConfiguration ForClass(DataBinder classUnit) => new(classUnit.State.Configuration, classUnit.Symbols);
 
     /// <summary>
     /// ⛔ ISO §2023:12.3.4 GR1 — "The entries explicitly or implicitly specified in the configuration section of a source unit
@@ -90,8 +96,9 @@ internal static class ConfigurationStep
     /// unit NUMVAL("123,45") valued 0 while NUMVAL("123.45") valued 123.45 — the exact inversion of §2023:15.67.3 r5, with no
     /// diagnostic (AR-15.67.3-5). The SYMBOLIC CHARACTERS figurative constants (§2023:12.3.7.4 GR11 a; §2023:8.4.6.1 lists
     /// symbolic-character among the names a configuration section declares for "any source element contained within that
-    /// source element") carry their containment distance (<see cref="ConfigurationNames{T}.InheritedDepths"/>), so a nearer
-    /// declaration of the spelling hides them (<c>InheritStep.DropShadowed</c>; kb/Work PB3154 review R1-1).
+    /// source element") carry their containment distance (<see cref="SymbolTable.InheritedSymbolicDepths"/>), so a nearer
+    /// declaration of the spelling hides them (<c>InheritStep.DropShadowed</c>; kb/Work PB3154 review R1-1). The names a
+    /// configuration section declares are the symbol table's, inherited beside this call (<see cref="SymbolTable.InheritConfigurationNames"/>).
     /// §2023:11.9.4 GR1's OPTIONS inheritance rides the same call: the container's model is the baseline the unit's own OPTIONS
     /// paragraph overrides clause by clause.
     /// </summary>
@@ -102,18 +109,6 @@ internal static class ConfigurationStep
         foreach (var (k, v) in from.DeclaredCurrencySigns) into.DeclaredCurrencySigns.TryAdd(k, v);
         into.ExplicitCurrencyStrings.UnionWith(from.ExplicitCurrencyStrings);
         into.DollarSpecified = from.DollarSpecified;
-        // The names it declares (§2023:8.4.6.1's configuration-section list), each a ConfigurationNames table whose every
-        // resolution records a §2023:8.3.2.2 use in the referring element's census (kb/Work PB3153).
-        into.SwitchConditions.InheritFrom(from.SwitchConditions);
-        into.UserClasses.InheritFrom(from.UserClasses);
-        into.Alphabets.InheritFrom(from.Alphabets);
-        into.NationalAlphabets.InheritFrom(from.NationalAlphabets);
-        into.SymbolicCharacters.InheritFrom(from.SymbolicCharacters);
-        into.OrderTables.InheritFrom(from.OrderTables);
-        into.DynamicLengthStructures.InheritFrom(from.DynamicLengthStructures);
-        into.Locales.InheritFrom(from.Locales);   // §2023:12.3.7.4 GR1 — locale-names reach contained units
-        // The mnemonic-names (§2023:12.3.7.2): read after the unit's own entries, so the nearest declaration wins.
-        into.InheritMnemonicsFrom(from);
         // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (§2023:12.3.6 GR9–GR11) and CHARACTER CLASSIFICATION (GR1 — every
         // OBJECT-COMPUTER clause applies to the contained units)
         into.Collating = from.Collating;

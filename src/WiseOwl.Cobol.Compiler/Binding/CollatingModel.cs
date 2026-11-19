@@ -159,6 +159,22 @@ public sealed record LocaleCollatingSpec(LocaleRef Locale)
     public static LocaleCollatingSpec CurrentLocale { get; } = new(LocaleRef.Current);
 }
 
+/// <summary>An alphabet-name a COLLATING SEQUENCE clause or phrase wrote (the file control entry's, the OBJECT-COMPUTER's PROGRAM
+/// COLLATING SEQUENCE, a SORT or MERGE statement's),
+/// with what it names in each of the two disjoint alphabet classes, read where it is written
+/// (<c>SpecialNamesBinder.WrittenAlphabet</c>): the one value the class test <c>SpecialNamesBinder.CollatingAlphabetFault</c> and
+/// the key resolutions read, so none looks the name up again.</summary>
+/// <param name="Name">The alphabet-name as written, for the diagnostics.</param>
+/// <param name="Alphanumeric">The alphanumeric alphabet the name declares, or null.</param>
+/// <param name="National">The national alphabet the name declares, or null.</param>
+/// <param name="DeclarationRefused">The word names no alphabet because the ALPHABET clause that declared it failed its own
+/// screens (that clause reported; a second "not declared" would be false about the source).</param>
+public sealed record CollatingAlphabet(string Name, AlphabetDef? Alphanumeric, NationalAlphabetDef? National, bool DeclarationRefused)
+{
+    /// <summary>The name declares an alphabet of either class.</summary>
+    public bool IsAlphabetName => Alphanumeric is not null || National is not null;
+}
+
 /// <summary>
 /// One SPECIAL-NAMES ALPHANUMERIC alphabet (an <c>ALPHABET</c> clause without FOR NATIONAL, ISO §2023:12.3.7): what the
 /// name references — the compile-time twin of the runtime's ONE <c>CobolCollation</c> carrier. Exactly one of the
@@ -605,21 +621,23 @@ public sealed record SortCollation(AlphabetDef? Alphanumeric, NationalAlphabetDe
 
 /// <summary>
 /// One per-runtime-module carrier for a collating sequence a THROUGH range's <c>IN alphabet-name-1</c> phrase names
-/// (ISO §2023:14.7.8 rule 2). The <see cref="Field"/> is allocated by <c>SpecialNamesBinder.RegisterRangeCollation</c> and
-/// declared by <c>ObjectComputerEmit</c>; the bound tree carries the COBOL alphabet-NAME and the renderer maps it
-/// through <c>SpecialNamesBinder.RangeCollations</c>, so no C# identifier ever travels in a bound node.
+/// (ISO §2023:14.7.8 rule 2). It is made by <c>SpecialNamesBinder.TryResolveRangeAlphabet</c> when the phrase resolves, and
+/// the range's node carries its identity (<see cref="Id"/>: <c>BoundRangeMembership.Collation</c>,
+/// <c>Condition88.Collation</c>); its field is declared by <c>ObjectComputerEmit</c> in the type of the unit that
+/// made it, and a contained program that renders the node reaches it through that type (<c>CodeGen.Emit.RangeCollationFields</c>;
+/// docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 4": the renderer used to look the alphabet-NAME up in a
+/// table of its own, a lookup by name outside the symbol table).
 /// </summary>
-/// <param name="Field">The <c>CobolCollation</c> field to pass, or NULL when the alphabet is the native order —
-/// an identity sequence has no carrier and the native two-argument comparison IS it (§2023:14.7.8 rule 2's "the
-/// collating sequence defined by that alphabet", where that sequence is the native one).</param>
-/// <param name="Name">alphabet-name-1 as written, for the declaration's comment.</param>
+/// <param name="Id">The identity the range's node carries; its name is alphabet-name-1 as first written.</param>
 /// <param name="Table">The non-identity collating table, or null for the LOCALE arm / an identity alphabet.</param>
 /// <param name="Locale">The LOCALE arm, or null for a table / an identity alphabet.</param>
 /// <param name="National">True when the alphabet is an <c>ALPHABET … FOR NATIONAL</c> one — it becomes a
 /// <c>NationalCollation</c> rather than an <c>AlphanumericCollation</c>.</param>
-/// <param name="Declare">True when THIS entry owns the field's declaration. False for an identity alphabet (no
-/// field) and for one that IS the program collating sequence, whose <c>__COLLATE</c> / <c>__COLLATE_NAT</c> is
-/// already declared — the entry still exists so the renderer finds a field for the name, which is the whole point
-/// of keying the map on the NAME rather than on the definition.</param>
-public sealed record RangeCollationCarrier(string? Field, string Name, CollatingTable? Table,
-    LocaleCollatingSpec? Locale, bool National, bool Declare);
+public sealed record RangeCollationCarrier(RangeCollationId Id, CollatingTable? Table,
+    LocaleCollatingSpec? Locale, bool National)
+{
+    /// <summary>True when THIS carrier owns its field's declaration (<see cref="RangeCollationSequence.Own"/>). False for an identity
+    /// alphabet (no field) and for one that IS the program collating sequence, whose field is already declared: the carrier still
+    /// exists so the range's node names the sequence its phrase chose.</summary>
+    public bool Declare => Id.Sequence is RangeCollationSequence.Own;
+}

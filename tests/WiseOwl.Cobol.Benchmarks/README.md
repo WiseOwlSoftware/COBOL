@@ -643,6 +643,25 @@ two ranges that overlap, so the first pair's difference was the harness's run-to
 by 0.59 MB at slice 1), not the slice. IX113A's `None`, `Text` and `All` rows are 0.2 to 0.4 MB below the parent's on every run,
 NC218A's straddle the parent's and SM201A's equal it, so slice 3 moves no measurable allocation; the `None` budget holds. Time rows
 are not shown (kb/Work PB5927).
+
+**Step 6b, slice 4 (kb/Work PB5932, the CONFIGURATION SECTION names resolved by `SymbolTable.Identify`): the `None` row against the
+parent.** Slice 4 changes how every compilation reads a configuration-section name (every bare word a literal position or a class
+condition admits asks whether it is a symbolic-character, an alphabet-name or a class-name), so it measures the no-listing path.
+Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FrontEndAndBind*'` twice on the `listing-step-6b-4` branch (commit 6397b7eac5) and twice on its parent
+`c7088a17b9`, alternating (parent, branch, branch, parent). Allocated bytes per front end and bind, the two runs of each tree:
+
+| Program | Listing | Parent | Slice 4 |
+|---|---|---|---|
+| IX113A | None | 68.94, 68.84 MB | 68.92, 68.88 MB |
+| NC105A | None | 35.58, 34.92 MB | 35.09, 34.97 MB |
+| NC218A | None | 30.88, 30.87 MB | 30.87, 30.87 MB |
+| SM201A | None | 15.38, 15.66 MB | 15.39, 15.33 MB |
+| IX113A | Text | 76.72, 76.66 MB | 76.70, 76.69 MB |
+| IX113A | All | 97.33, 97.30 MB | 97.34, 97.31 MB |
+
+Every branch row lies inside the parent's two runs or within 0.04 MB of them, so slice 4 moves no measurable allocation; the `None`
+budget holds. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

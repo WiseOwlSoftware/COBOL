@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-12.2.3-1",
  "rule-digest": "c23ba71ea89c",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic; src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Configuration.cs#MnemonicNamed; src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite",
  "test-ref": "conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2cfg02_contained_inherit",
- "notes": "§2002:12.2.3 GR1: a container's configuration entries apply to every directly or indirectly contained source unit, at 2002 including SOURCE-COMPUTER WITH DEBUGGING MODE (§2002:12.2.4.3 GR1). The --std 2002 run showed the inherited debugging mode, DECIMAL-POINT IS COMMA, program collating sequence and FUNCTION ALL INTRINSIC in a direct and an indirect containee, matching the derived 11 lines."
+ "notes": "§2002:12.2.3 GR1: a container's configuration entries apply to every directly or indirectly contained source unit, at 2002 including SOURCE-COMPUTER WITH DEBUGGING MODE (§2002:12.2.4.3 GR1). The --std 2002 run showed the inherited debugging mode, DECIMAL-POINT IS COMMA, program collating sequence and FUNCTION ALL INTRINSIC in a direct and an indirect containee, matching the derived 11 lines. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic (listing step 6b slice 4, kb/Work PB5932: the mnemonic-names moved into SymbolTable, resolved through SymbolTable.Identify; now src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Configuration.cs#MnemonicNamed)"
 }

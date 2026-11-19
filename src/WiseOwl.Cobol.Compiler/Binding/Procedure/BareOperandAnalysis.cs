@@ -45,18 +45,18 @@ public enum BareOperandForm
 /// <param name="BooleanLength">The §2023:8.8.2 rules 9/10 RESULT length in boolean positions, or null when the
 /// operand is positionless (figurative ZERO / <c>ALL B"…"</c>) or its length is a run-time value. This is the
 /// length §2023:14.9.13.3 SR6's "results in one boolean character" turns on.</param>
-/// <param name="ClassWord">The class-name / alphabet-name as written, for <see cref="BareOperandForm.ClassName"/>;
+/// <param name="ClassWord">The class-name / alphabet-name word as written, for <see cref="BareOperandForm.ClassName"/>;
 /// null otherwise.</param>
 public readonly record struct BareOperandAnalysis(
     BareOperandForm Form,
     BoundCondition? Condition,
     BoundBoolExpr? Boolean,
     int? BooleanLength,
-    string? ClassWord = null)
+    WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext? ClassWord = null)
 {
     /// <summary>An operand that is a class-name / alphabet-name (<see cref="BareOperandForm.ClassName"/>), carrying
     /// the word as written.</summary>
-    public static BareOperandAnalysis OfClassName(string word) =>
+    public static BareOperandAnalysis OfClassName(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext word) =>
         new(BareOperandForm.ClassName, null, null, null, word);
 
     /// <summary>An operand that IS a condition outright (a level-88 or switch-status condition-name).</summary>

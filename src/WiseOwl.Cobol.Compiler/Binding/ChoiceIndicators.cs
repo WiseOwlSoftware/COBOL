@@ -103,17 +103,18 @@ internal static class ChoiceIndicators
     /// <param name="edition">The one diagnostic sink.</param>
     /// <param name="forPhrases">The FOR phrases as parsed, in written order.</param>
     /// <param name="isNational">Whether a FOR phrase is the FOR NATIONAL alternative.</param>
-    /// <param name="alphabetOf">The alphabet-name a FOR phrase names.</param>
+    /// <param name="alphabetOf">The alphabet-name word a FOR phrase writes.</param>
     /// <param name="isForm">The IS form's alphabet-name words (alphabet-name-1, then alphabet-name-2), read when no FOR
     /// phrase is written.</param>
     /// <param name="statement">The clause as the user wrote it, for the message.</param>
     /// <param name="clause">The subclause whose general format prints the pair.</param>
-    public static (string? Alphanumeric, string? National) AlphabetPair<T>(EditionContext edition, T[] forPhrases,
-        Func<T, bool> isNational, Func<T, string> alphabetOf, IReadOnlyList<ParserRuleContext> isForm,
+    /// <returns>The alphabet-name WORDS as written, so each is identified through the symbol table where it stands.</returns>
+    public static (ParserRuleContext? Alphanumeric, ParserRuleContext? National) AlphabetPair<T>(EditionContext edition, T[] forPhrases,
+        Func<T, bool> isNational, Func<T, ParserRuleContext> alphabetOf, IReadOnlyList<ParserRuleContext> isForm,
         string statement, string clause) where T : ParserRuleContext
     {
         if (forPhrases.Length == 0)
-            return (isForm.Count > 0 ? isForm[0].GetText() : null, isForm.Count > 1 ? isForm[1].GetText() : null);
+            return (isForm.Count > 0 ? isForm[0] : null, isForm.Count > 1 ? isForm[1] : null);
         var (alnum, nat) = ForPhrasePair(edition, forPhrases, isNational, statement, clause);
         return (alnum is null ? null : alphabetOf(alnum), nat is null ? null : alphabetOf(nat));
     }

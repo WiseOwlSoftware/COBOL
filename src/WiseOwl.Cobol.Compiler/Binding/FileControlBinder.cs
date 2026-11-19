@@ -28,6 +28,18 @@ public sealed partial class FileControlBinder
 {
     private readonly DataBinder _host;
 
+    /// <summary>The alphabet-names of each file's COLLATING SEQUENCE clauses, read where they are written
+    /// (<see cref="SpecialNamesBinder.WrittenAlphabet"/>) and screened post-build (<see cref="ResolveFileCollating"/>): the
+    /// file-level pair by file, alphabet-name-3 by its key-level clause. The model keeps the names as written
+    /// (<see cref="FileModel.FileLevelCollating"/>, <see cref="KeyLevelCollatingClause.Alphabet"/>) for the external-file
+    /// identity; what they name is the binder's, so no name is looked up again after the clause (docs/rearchitecture/DESIGN-listing.md
+    /// section 6.7.1, "Step 6b, slice 4").</summary>
+    private readonly Dictionary<FileModel, (CollatingAlphabet? Alnum, CollatingAlphabet? Nat)> _fileLevelAlphabets =
+        new(ReferenceEqualityComparer.Instance);
+
+    /// <inheritdoc cref="_fileLevelAlphabets"/>
+    private readonly Dictionary<KeyLevelCollatingClause, CollatingAlphabet> _keyLevelAlphabets = new(ReferenceEqualityComparer.Instance);
+
     private EditionContext Edition { get; }
 
     internal FileControlBinder(DataBinder host, EditionContext edition)
@@ -410,17 +422,22 @@ public sealed partial class FileControlBinder
                 .Select(d => _host.ClauseDataNameSubscripted(d, "COLLATING SEQUENCE OF"))
                 .Select(k => new CollatingKeyOperand { Name = k.Base, Qualifiers = k.Quals, Subscripts = k.Subscripts })
                 .ToList();
-            file.KeyLevelCollating.Add(new KeyLevelCollatingClause(keys, ctx.cobolWord(0).GetText(), Edition.Cursor));
-            _host.SpecialNames.UseAlphabetName(ctx, ctx.cobolWord(0).GetText());   // the clause's §2023:8.3.2.2 use (kb/Work PB3153)
+            var clause = new KeyLevelCollatingClause(keys, ctx.cobolWord(0).GetText(), Edition.Cursor);
+            file.KeyLevelCollating.Add(clause);
+            _keyLevelAlphabets[clause] = _host.SpecialNames.WrittenAlphabet(ctx.cobolWord(0));
+            _host.SpecialNames.UseAlphabetName(ctx.cobolWord(0));   // the clause's §2023:8.3.2.2 use (kb/Work PB3153)
             return;
         }
         if (file.FileLevelCollatingCount++ == 0) file.FileLevelCollatingAt = Edition.Cursor;   // §2023:12.4.5.7.3 SR3 — at most one file-level clause
-        file.FileLevelCollating = ChoiceIndicators.AlphabetPair(Edition, ctx.collatingForPhrase(),
-            f => f.NATIONAL() is not null, f => f.cobolWord().GetText(), ctx.cobolWord(),
+        var (alnumWord, natWord) = ChoiceIndicators.AlphabetPair(Edition, ctx.collatingForPhrase(),
+            f => f.NATIONAL() is not null, f => f.cobolWord(), ctx.cobolWord(),
             $"file '{file.CobolName}' COLLATING SEQUENCE", "12.4.5.7.2 Format 1");
-        // The written names are this clause's §2023:8.3.2.2 uses (kb/Work PB3153); SR1/SR2 screen them post-build.
-        if (file.FileLevelCollating is var (alnum, nat))
-            foreach (var name in new[] { alnum, nat }.OfType<string>()) _host.SpecialNames.UseAlphabetName(ctx, name);
+        file.FileLevelCollating = (alnumWord?.GetText(), natWord?.GetText());
+        // Each written name is read where it stands (SpecialNamesBinder.WrittenAlphabet); SR1/SR2 screen them post-build.
+        _fileLevelAlphabets[file] = (alnumWord is null ? null : _host.SpecialNames.WrittenAlphabet(alnumWord),
+            natWord is null ? null : _host.SpecialNames.WrittenAlphabet(natWord));
+        // The written names are this clause's §2023:8.3.2.2 uses (kb/Work PB3153).
+        foreach (var word in new[] { alnumWord, natWord }.OfType<Antlr4.Runtime.ParserRuleContext>()) _host.SpecialNames.UseAlphabetName(word);
     }
 
     /// <summary>Resolve each INDEXED key's collating-weight table from the file's §2023:12.4.5.7 COLLATING SEQUENCE
@@ -477,8 +494,10 @@ public sealed partial class FileControlBinder
         // GR6 is unaffected by the repeat: ResolveKeyCollating takes the FIRST clause naming the key, and a key
         // listed twice in one clause is named by that one clause, so it resolves to that clause's alphabet-name-3.
         var namedIn = new ConstructOperandRegister<RecordKey>(ReferenceEqualityComparer.Instance);
-        foreach (var (keys, alphabet3, at) in file.KeyLevelCollating)
+        foreach (var clause in file.KeyLevelCollating)
         {
+            var (keys, _, at) = clause;
+            var alphabet3 = _keyLevelAlphabets[clause];
             using var _ = Edition.At(at);
             foreach (var k in keys)
             {
@@ -495,18 +514,18 @@ public sealed partial class FileControlBinder
             // or record-key-name-1 is national, alphabet-name-3 shall reference an alphabet that defines a national
             // collating sequence; otherwise, alphabet-name-3 shall reference an alphabet that defines an
             // alphanumeric collating sequence." An undeclared alphabet breaks both halves and is said once.
-            if (!_host.SpecialNames.IsAlphabetName(alphabet3))
+            if (!alphabet3.IsAlphabetName)
             {
                 Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
-                    + $"OF {string.Join(' ', keys.Select(k => DataBinder.WrittenQualified(k.Name, k.Qualifiers)))} IS '{alphabet3}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
+                    + $"OF {string.Join(' ', keys.Select(k => DataBinder.WrittenQualified(k.Name, k.Qualifiers)))} IS '{alphabet3.Name}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
                     + "(ISO §2023:12.4.5.7.3 SR7)");
                 continue;
             }
             foreach (var k in keys.Where(k => k.Key is not null).DistinctBy(k => k.Key!, ReferenceEqualityComparer.Instance))
                 if (k.Key is { } key && ItemCategory.IsAlphanumericOrNational(key.CategorySource)
-                    && _host.SpecialNames.CollatingAlphabetFault(alphabet3, IsNationalKey(key)) is { } fault)
+                    && SpecialNamesBinder.CollatingAlphabetFault(alphabet3, IsNationalKey(key)) is { } fault)
                     Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING "
-                        + $"SEQUENCE OF '{DataBinder.WrittenQualified(k.Name, k.Qualifiers)}' IS '{alphabet3}' — "
+                        + $"SEQUENCE OF '{DataBinder.WrittenQualified(k.Name, k.Qualifiers)}' IS '{alphabet3.Name}' — "
                         + $"'{DataBinder.WrittenQualified(k.Name, k.Qualifiers)}' is of class "
                         + $"{(IsNationalKey(key) ? "national" : "alphanumeric")}, so alphabet-name-3 shall reference an "
                         + $"alphabet that defines {(IsNationalKey(key) ? "a national" : "an alphanumeric")} collating "
@@ -514,16 +533,16 @@ public sealed partial class FileControlBinder
         }
 
         // SR1/SR2 — the Format-1 alphabet names, screened as WRITTEN, whatever keys they end up reaching.
-        if (file.FileLevelCollating is var (alnum, nat))
+        if (_fileLevelAlphabets.TryGetValue(file, out var fileLevel) && fileLevel is var (alnum, nat))
         {
             using var _ = Edition.At(file.FileLevelCollatingAt);
-            if (alnum is not null && _host.SpecialNames.CollatingAlphabetFault(alnum, national: false) is { } f1)
+            if (alnum is not null && SpecialNamesBinder.CollatingAlphabetFault(alnum, national: false) is { } f1)
                 Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
-                    + $"'{alnum}' — alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating "
+                    + $"'{alnum.Name}' — alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating "
                     + $"sequence; {f1} (ISO §2023:12.4.5.7.3 SR1)");
-            if (nat is not null && _host.SpecialNames.CollatingAlphabetFault(nat, national: true) is { } f2)
+            if (nat is not null && SpecialNamesBinder.CollatingAlphabetFault(nat, national: true) is { } f2)
                 Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
-                    + $"'{nat}' — alphabet-name-2 shall reference an alphabet that defines a national collating "
+                    + $"'{nat.Name}' — alphabet-name-2 shall reference an alphabet that defines a national collating "
                     + $"sequence; {f2} (ISO §2023:12.4.5.7.3 SR2)");
         }
 
@@ -591,21 +610,22 @@ public sealed partial class FileControlBinder
     {
         if (key is null || !ItemCategory.IsAlphanumericOrNational(key.CategorySource)) return null;   // SR2 has refused it
         bool national = IsNationalKey(key);
-        string? alphabet = null;
+        CollatingAlphabet? alphabet = null;
         var where = file.FileLevelCollatingAt;
         // GR6 — the FIRST key-level clause naming this key ITEM (operands resolved in ResolveFileCollating, kb/Work
         // PB1075; they were compared by spelling, so a qualified operand could not name its key).
         foreach (var clause in file.KeyLevelCollating)
-            if (clause.Keys.Any(k => ReferenceEquals(k.Key, key))) { alphabet = clause.Alphabet; where = clause.At; break; }
-        alphabet ??= national ? file.FileLevelCollating?.Nat : file.FileLevelCollating?.Alnum;   // GR3 / GR2
+            if (clause.Keys.Any(k => ReferenceEquals(k.Key, key))) { alphabet = _keyLevelAlphabets[clause]; where = clause.At; break; }
+        if (alphabet is null && _fileLevelAlphabets.TryGetValue(file, out var fileLevel))
+            alphabet = national ? fileLevel.Nat : fileLevel.Alnum;   // GR3 / GR2
         if (alphabet is null) return null;                                                       // GR5 / GR4
 
         if (!national)
-            return _host.State.Configuration.Alphabets.TryPeek(alphabet, out var def) && !def.IsIdentity ? def : null;   // used at capture
+            return alphabet.Alphanumeric is { IsIdentity: false } def ? def : null;   // used at capture
         using var _ = Edition.At(where);
-        if (_host.State.Configuration.NationalAlphabets.TryPeek(alphabet, out var nd) && nd.HasCollatingSequence && !nd.IsIdentity)
+        if (alphabet.National is { HasCollatingSequence: true, IsIdentity: false } nd)
             Edition.Declined(DiagnosticCatalog.FileCollatingNationalUnsupported, $"file '{file.CobolName}': national "
-                + $"record key '{key.Face}' under COLLATING SEQUENCE '{alphabet}' ({nd.Phrase})");
+                + $"record key '{key.Face}' under COLLATING SEQUENCE '{alphabet.Name}' ({nd.Phrase})");
         return null;
     }
 

@@ -325,7 +325,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     private bool BindDisplayUpon(Core.DisplayUponContext upon)
     {
         string name = upon.cobolWord().GetText();
-        return MnemonicDevice(upon, name, "DISPLAY UPON", "14.9.11.3", "§1985:VI.6.10.3 SR1", DeviceCapability.Output,
+        return MnemonicDevice(upon.cobolWord(), name, "DISPLAY UPON", "14.9.11.3", "§1985:VI.6.10.3 SR1", DeviceCapability.Output,
                    "capable of receiving data") is { } device
                && device.Device.HasFlag(DeviceCapability.StandardError);
     }
@@ -336,10 +336,10 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     /// the ACCEPT and DISPLAY statements", and only mnemonic-name-3 is a device's), and the device shall have
     /// <paramref name="need"/> (SR7's "additional restrictions", read off the ONE table, <see cref="ImplementorNames"/>).
     /// Returns the device row, or null after reporting COBOL0817.</summary>
-    private ImplementorName? MnemonicDevice(Antlr4.Runtime.RuleContext at, string name, string verb, string sr2, string rule1985, DeviceCapability need,
+    private ImplementorName? MnemonicDevice(Antlr4.Runtime.ParserRuleContext at, string name, string verb, string sr2, string rule1985, DeviceCapability need,
         string capable)
     {
-        if (!ctx.Mnemonics.TryUse(at, name, out var row))
+        if (!ctx.Mnemonics.TryUse(at, out var row))
         {
             ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
                 + "(ISO " + ctx.Edition.Edition.Cite(
