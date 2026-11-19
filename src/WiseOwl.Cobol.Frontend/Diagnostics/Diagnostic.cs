@@ -31,13 +31,18 @@ public sealed record Diagnostic(
     /// for a diagnostic that names no source position.</summary>
     public static string Render(SourceLocation? location, DiagnosticSeverity severity, string code, string message)
     {
-        var sev = severity switch
-        {
-            DiagnosticSeverity.Error => "error",
-            DiagnosticSeverity.Warning => "warning",
-            DiagnosticSeverity.Info => "info",
-            _ => "unknown"
-        };
+        string sev = SeverityWord(severity);
         return location is { } at ? $"{at}: {sev} {code}: {message}" : $"{sev} {code}: {message}";
     }
+
+    /// <summary>⛔ THE ONE WORD a severity is printed as on a diagnostic line. The source listing, which references no compiler
+    /// assembly, prints the same words (<c>TextListingRenderer.SeverityWord</c>), and <c>DiagnosticRecordsTests</c> holds the two
+    /// equal for every severity (listing step 3 review lead R1-2).</summary>
+    public static string SeverityWord(DiagnosticSeverity severity) => severity switch
+    {
+        DiagnosticSeverity.Error => "error",
+        DiagnosticSeverity.Warning => "warning",
+        DiagnosticSeverity.Info => "info",
+        _ => throw new ArgumentOutOfRangeException(nameof(severity), severity, "a severity with no word"),
+    };
 }

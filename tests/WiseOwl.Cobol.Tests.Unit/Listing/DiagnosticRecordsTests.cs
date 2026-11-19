@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Building;
+using WiseOwl.Cobol.Listing.Text;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -70,5 +71,17 @@ public sealed class DiagnosticRecordsTests
         foreach (var severity in Enum.GetValues<DiagnosticSeverity>())
             Assert.Equal(severity.ToString(), DiagnosticSectionBuilder.SeverityOf(severity).ToString());
         Assert.Equal(Enum.GetValues<DiagnosticSeverity>().Length, Enum.GetValues<ListingSeverity>().Length);
+    }
+
+    /// <summary>The listing prints each diagnostic's severity in the word the compiler's own diagnostic line prints it in (DESIGN-listing.md
+    /// section 6.3: the inline row and the summary repeat the record the compiler printed), so a word changed in one place and not the
+    /// other is red here (listing step 3 review lead R1-2). The words are the ones the compiler's diagnostic line is documented with.</summary>
+    [Fact]
+    public void TheSeverityWords_AreTheCompilersWords()
+    {
+        Assert.Equal(["error", "warning", "info"],
+            new[] { DiagnosticSeverity.Error, DiagnosticSeverity.Warning, DiagnosticSeverity.Info }.Select(Diagnostic.SeverityWord));
+        foreach (var severity in Enum.GetValues<DiagnosticSeverity>())
+            Assert.Equal(Diagnostic.SeverityWord(severity), TextListingRenderer.SeverityWord(DiagnosticSectionBuilder.SeverityOf(severity)));
     }
 }

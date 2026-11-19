@@ -49,7 +49,9 @@ internal sealed class ListingHookCases(string dir, int edition)
 
     private string ProgramId => "L" + edition.ToString(CultureInfo.InvariantCulture);
 
-    private string[] Prologue =>
+    /// <summary>The program shell's head every case of this edition writes (and an edition's own cases, through this one body: listing
+    /// step 4b review lead R1-2).</summary>
+    public string[] Prologue =>
     [
         "       IDENTIFICATION DIVISION.",
         "       PROGRAM-ID. " + ProgramId + ".",
@@ -57,7 +59,8 @@ internal sealed class ListingHookCases(string dir, int edition)
         "       WORKING-STORAGE SECTION.",
     ];
 
-    private static readonly string[] Epilogue =
+    /// <summary>The program shell's tail every case writes.</summary>
+    public static readonly string[] Epilogue =
     [
         "       PROCEDURE DIVISION.",
         "           STOP RUN.",

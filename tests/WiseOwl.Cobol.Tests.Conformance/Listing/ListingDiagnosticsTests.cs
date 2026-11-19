@@ -118,6 +118,42 @@ public sealed class ListingDiagnosticsTests : IDisposable
     }
 
     /// <summary>
+    /// A diagnosed entry after a supplementary-plane character on its line (listing step 3 review lead R1-1): the record's column is
+    /// a CHARACTER position of the line's text (DESIGN-listing.md section 6.3; the schema's "1-based character position"), so the
+    /// character, two UTF-16 units, counts one. Expected from the line as written: the level-number of the 32-digit entry, which is
+    /// where the binder's cursor stands for an entry (§2023:13.18.40.3 SR14 is the rule it breaks), counted in characters. The caret
+    /// row and the inline row read the same column.
+    /// </summary>
+    [Fact]
+    public void AColumn_CountsASupplementaryPlaneCharacter_AsOneCharacter()
+    {
+        string[] lines =
+        [
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. DIAG2.",
+            "       DATA DIVISION.",
+            "       WORKING-STORAGE SECTION.",
+            "       01 A PIC X(8) VALUE \"\U0001D11E\". 01 BIG PIC 9(32).",
+            "       PROCEDURE DIVISION.",
+            "           STOP RUN.",
+        ];
+        var (result, _) = Compile("diag2", lines);
+        var listing = Assert.IsType<ListingDocument>(result.Listing);
+        var d = Assert.Single(listing.Diagnostics, d => d.Code == DiagnosticCatalog.DigitCapacityOver31.Code);
+        string text = lines[4];
+        int units = text.IndexOf("01 BIG", StringComparison.Ordinal);
+        int characters = text[..units].EnumerateRunes().Count();
+        Assert.Equal(units - 1, characters);   // the one supplementary-plane character before it is two units
+        Assert.Equal(characters + 1, d.Column);
+
+        string[] rows = ListingPages.Of(File.ReadAllText(Path.Combine(_dir, "diag2.lst")), ListingSection.Source)[0].Split('\n');
+        int row = Array.FindIndex(rows, r => r.EndsWith(text, StringComparison.Ordinal));
+        Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + characters) + "^", rows[row + 1]);
+        Assert.StartsWith(new string(' ', TextListingRenderer.TextColumn - 1) + $"==> error {d.Code} (col {characters + 1}): ", rows[row + 2],
+            StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// A copybook copied twice (DESIGN-listing.md section 4.4): the second copy's REPLACING makes its item 32 digits, the first's 5,
     /// so only the second copy is in error, at the copybook's line 1. The listing places the diagnostic in the SECOND block, by the
     /// resultant line its record was located from, although both blocks list that physical line.

@@ -12,9 +12,9 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// token's symbolic name).</summary>
 internal sealed record NameSlot(int State, string Target);
 
-/// <summary>A rule whose classified label fields do not equal its name slots one for one: <see cref="Slots"/> are the
-/// slot transitions its ATN crosses, <see cref="Fields"/> the distinct label fields with a classifying prefix its
-/// generated context classes hold.</summary>
+/// <summary>A rule whose classified label fields do not equal its name slots one for one, element by element: <see cref="Slots"/>
+/// are the slot transitions its ATN crosses, <see cref="Fields"/> the distinct label fields with a classifying prefix its generated
+/// context classes hold, each with the element it labels (<see cref="GrammarNameSlots.Analysis.LabelledElementsOf"/>).</summary>
 internal sealed record NameSlotFinding(string Rule, IReadOnlyList<NameSlot> Slots, IReadOnlyList<string> Fields)
 {
     public override string ToString() =>
@@ -42,6 +42,11 @@ internal sealed record NameSlotFinding(string Rule, IReadOnlyList<NameSlot> Slot
 ///     class (and the classes of its labelled alternatives) whose name has a classifying prefix (<see cref="Prefixes"/>).
 ///     ANTLR generates one field per label NAME, so a label reused on two slots, or a slot with no label, makes
 ///     M &lt; N; a classified label on an element that is no slot makes M &gt; N.</item>
+///   <item>The comparison is ELEMENT BY ELEMENT, not of the two counts (listing step 7 review lead R1-1): each slot is keyed by
+///     the element it crosses into (the rule, or "a token" for an alternative-of-a-slot token) and each classified field by the
+///     element its generated type holds (the rule whose context it is, or "a token" for an <c>IToken</c>), and the two multisets
+///     must be equal. A classified label left on an element that is no slot can then never hide an unlabelled slot of the same
+///     rule, which equal counts would.</item>
 /// </list>
 /// </summary>
 internal static class GrammarNameSlots
@@ -144,7 +149,38 @@ internal static class GrammarNameSlots
                 .Order(StringComparer.Ordinal)];
         }
 
-        /// <summary>Every rule whose slots and classified fields are not one for one.</summary>
+        /// <summary>The element each distinct classified label field of rule <paramref name="rule"/> labels, read off its generated
+        /// type: the rule whose context class the field holds (a list label's element type for <c>+=</c>), or
+        /// <see cref="TokenElement"/> for a token label.</summary>
+        public IReadOnlyList<string> LabelledElementsOf(string rule)
+        {
+            Type context = ContextOf(rule);
+            return [.. _parser.GetNestedTypes(BindingFlags.Public)
+                .Where(t => t == context || t.IsSubclassOf(context))
+                .SelectMany(t => t.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                .Where(f => IsClassified(f.Name))
+                .Select(f => ElementOf(f.FieldType))
+                .Order(StringComparer.Ordinal)];
+        }
+
+        /// <summary>What a slot is keyed by in the element-by-element comparison: the rule it crosses into, or
+        /// <see cref="TokenElement"/> for an alternative-of-a-slot token.</summary>
+        private string ElementOf(NameSlot slot) => Array.IndexOf(_ruleNames, slot.Target) >= 0 ? slot.Target : TokenElement;
+
+        /// <summary>What a token slot and a token label are both keyed by: ANTLR types every token label <c>IToken</c>.</summary>
+        internal const string TokenElement = "(token)";
+
+        private static string ElementOf(Type fieldType)
+        {
+            Type element = fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(IList<>)
+                ? fieldType.GetGenericArguments()[0]
+                : fieldType;
+            if (typeof(IToken).IsAssignableFrom(element)) return TokenElement;
+            string name = element.Name.EndsWith("Context", StringComparison.Ordinal) ? element.Name[..^"Context".Length] : element.Name;
+            return char.ToLowerInvariant(name[0]) + name[1..];
+        }
+
+        /// <summary>Every rule whose slots and classified fields are not one for one, element by element.</summary>
         public IReadOnlyList<NameSlotFinding> Findings()
         {
             var findings = new List<NameSlotFinding>();
@@ -153,7 +189,9 @@ internal static class GrammarNameSlots
                 if (_base.Contains(RuleIndex(rule))) continue;
                 IReadOnlyList<NameSlot> slots = SlotsOf(rule);
                 IReadOnlyList<string> fields = FieldsOf(rule);
-                if (slots.Count != fields.Count) findings.Add(new NameSlotFinding(rule, slots, fields));
+                IEnumerable<string> slotElements = slots.Select(ElementOf).Order(StringComparer.Ordinal);
+                if (!slotElements.SequenceEqual(LabelledElementsOf(rule), StringComparer.Ordinal))
+                    findings.Add(new NameSlotFinding(rule, slots, fields));
             }
             return findings;
         }
