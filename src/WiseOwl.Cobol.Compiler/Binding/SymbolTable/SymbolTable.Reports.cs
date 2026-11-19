@@ -184,11 +184,14 @@ public sealed partial class SymbolTable
     /// (§2023:8.4.6.2.1 rule 3; §1985:X.1.3.8.2 GR3a at COBOL-85), so a counter of this element's own report hides a same-named counter
     /// of a container's GLOBAL report. Null when the name is no eligible counter's at all; empty when it is, but the qualifiers reach
     /// none (<c>CounterResolver.SumCounterFamilyFor</c> words each). The register alternatives (LINAGE-COUNTER, LINE-COUNTER,
-    /// PAGE-COUNTER), whose <c>cobolWord</c> is a qualifier, name no counter.</summary>
+    /// PAGE-COUNTER), whose <c>cobolWord</c> is a qualifier, name no counter.
+    /// <para>Every data-name reference asks it first (a sum counter resolves before the ordinary lookup), so a word no counter carries
+    /// costs no allocation: the reference's qualifiers are read only for a name the table holds (DESIGN-listing.md section 9's `None`
+    /// row, measured by step 6b slice 5).</para></summary>
     private ReportCandidates<(ReportModel Report, ReportSumFamily Family)>? SumCountersReached(Core.DataReferenceContext dref, ReportModel? within)
     {
-        if (ReferenceResolver.WrittenWordOf(dref) is not { } name) return null;
         _data.State.Require(PassPhase.FilesResolved, "SumCounters");
+        if (_sumCounters.Count == 0 || ReferenceResolver.WrittenWordOf(dref) is not { } name || !_sumCounters.ContainsKey(Key(name))) return null;
         return SumCountersNamed(name, ReferenceResolver.ReadWritten(dref).Qualifiers, within) is { } hits ? new(hits) : null;
     }
 
