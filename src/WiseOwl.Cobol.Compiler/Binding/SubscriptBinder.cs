@@ -399,8 +399,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             {
                 var t = seg[i];
                 if (!IsNameToken(t) || !CobolNames.Same(t.Text, index.Name)) continue;
-                var quals = QualifiersAfter(seg, i, out _);
-                if (refs.Names.ResolveIndexName(t.Text, quals, t) is { Outcome: IndexRefOutcome.Resolved } ix
+                if (refs.Names.ResolveIndexName(WrittenQualifiedName.Of(seg, i, IsNameToken, out _), t) is { Outcome: IndexRefOutcome.Resolved } ix
                     && ReferenceEquals(ix.Decl, index)) return true;
             }
         return false;
@@ -499,20 +498,6 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// constant (the lexer's own data-name word set, <c>CobolLexer.SubscriptTriggerTokens</c> — IDENTIFIER plus every
     /// context-sensitive word that can be user-defined). Whether it names one HERE is the resolver's question.</summary>
     internal static bool IsNameToken(IToken t) => CobolLexer.SubscriptTriggerTokens.Contains(t.Type);
-
-    /// <summary>The OF/IN qualifiers written after the name at <paramref name="at"/> in <paramref name="tokens"/>
-    /// (ISO §2023:8.4.2.2.2), in written order; <paramref name="last"/> is the index of the last token they cover.</summary>
-    private static List<string> QualifiersAfter(List<IToken> tokens, int at, out int last)
-    {
-        var qualifiers = new List<string>();
-        last = at;
-        while (last + 2 < tokens.Count && tokens[last + 1].Type is Core.OF or Core.IN && IsNameToken(tokens[last + 2]))
-        {
-            qualifiers.Add(tokens[last + 2].Text);
-            last += 2;
-        }
-        return qualifiers;
-    }
 
     /// <summary>⛔ THE WRITTEN SUBSCRIPT LIST AS SEGMENTS, ONE PER SUBSCRIPT, read off the PARSE (kb/Work PB2113).
     /// The grammar already split the list — each <c>subscriptItem</c> is one operand, separated by §2023:8.3.5's space or
@@ -978,7 +963,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // already existed (ExpressionBinder.ScreenIndexNameOperand); it simply was not applied here.
         // The name may be QUALIFIED (§2023:8.4.2.2.2 Format 3 / §2023:8.4.2.2.3 SR6 — `E(IX OF T)`), and a duplicated one
         // must be (SR1): the ONE resolution decides both (kb/Work PB919).
-        if (refs.Names.ResolveIndexName(name, qualifiers, nameToken.Token) is { Outcome: not IndexRefOutcome.NotAnIndexName } ix)
+        if (refs.Names.ResolveIndexName(WrittenQualifiedName.Of(dref), nameToken.Token) is { Outcome: not IndexRefOutcome.NotAnIndexName } ix)
         {
             if (position == SegmentPosition.Subscript)
             {

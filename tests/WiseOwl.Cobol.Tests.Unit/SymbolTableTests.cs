@@ -87,18 +87,28 @@ public sealed class SymbolTableTests
         Assert.NotSame(methodLocal, globals[0]);                  // program scope still sees the global item
     }
 
+    /// <summary>The index-name a written <paramref name="name"/> identifies in <paramref name="method"/>'s scope (the program's when
+    /// null): <c>SymbolTable.Identify</c>, the table's one lookup (listing step 6b, kb/Work PB5932), with the method entered as
+    /// the active scope a reference is made in.</summary>
+    private static NameCandidates<IndexDeclaration>? IndexNamed(DataBinder data, string name, OoMethodDataScope? method = null)
+    {
+        using var _ = data.Procedure.ActiveMethodScope.Enter(method);
+        return data.Symbols.Identify(new WrittenQualifiedName(new Antlr4.Runtime.CommonToken(1, name), []),
+            WiseOwl.Cobol.Symbols.NameClass.Index, report: false)?.Symbol is NameCandidates<IndexDeclaration> candidates ? candidates : null;
+    }
+
     // (c) §2023:8.4.6.2.3: a method-local DATA-name shadows an object-level INDEX-name of the same spelling —
-    // IndexCandidates must return NULL (the data-name wins; binding it to the object's cell would be a torn
+    // the index-name lookup must answer NULL (the data-name wins; binding it to the object's cell would be a torn
     // read/write of the wrong storage).
     [Fact]
     public void MethodScope_DataName_ShadowsIndexName()
     {
         var data = BindFixture();
-        var global = data.Symbols.IndexCandidates("IX", [], Scope.Program)?.Single;   // sanity: IX exists globally
+        var global = IndexNamed(data, "IX")?.Single;   // sanity: IX exists globally
         Assert.NotNull(global);
         var scope = new OoMethodDataScope();
         scope.ByName["IX"] = [data.Symbols.TryResolve("WS-A", Scope.Program, out var g) ? g[0] : null!];
-        Assert.Null(data.Symbols.IndexCandidates("IX", [], new Scope(scope)));
+        Assert.Null(IndexNamed(data, "IX", scope));
     }
 
     // (d) §2023:11.7.4 GR5 index privacy: a method-local index-name has its OWN cell, never the shared global one.
@@ -108,9 +118,9 @@ public sealed class SymbolTableTests
         var data = BindFixture();
         var scope = new OoMethodDataScope();
         var tab = data.Symbols.TryResolve("TAB", Scope.Program, out var t) ? t[0] : null!;
-        scope.IndexNames.Declare(new IndexDeclaration("IX", tab, "_IX_42"));
-        Assert.Equal("_IX_42", data.Symbols.IndexCandidates("IX", [], new Scope(scope))?.Single?.Cell);   // the method's cell
-        var global = data.Symbols.IndexCandidates("IX", [], Scope.Program)?.Single;
+        data.Symbols.DeclareIndex(new IndexDeclaration("IX", tab, "_IX_42"), scope);
+        Assert.Equal("_IX_42", IndexNamed(data, "IX", scope)?.Single?.Cell);   // the method's cell
+        var global = IndexNamed(data, "IX")?.Single;
         Assert.NotNull(global);
         Assert.NotEqual("_IX_42", global!.Cell);
     }
@@ -124,8 +134,8 @@ public sealed class SymbolTableTests
         Assert.True(data.Symbols.TryResolve("WS-A", new Scope(scope), out var items));
         Assert.Equal("WS-A", items[0].CobolName);
         // And the index-name resolution falls through to the global declaration too.
-        var viaMethod = data.Symbols.IndexCandidates("IX", [], new Scope(scope))?.Single;
+        var viaMethod = IndexNamed(data, "IX", scope)?.Single;
         Assert.NotNull(viaMethod);
-        Assert.Same(data.Symbols.IndexCandidates("IX", [], Scope.Program)?.Single, viaMethod);
+        Assert.Same(IndexNamed(data, "IX")?.Single, viaMethod);
     }
 }

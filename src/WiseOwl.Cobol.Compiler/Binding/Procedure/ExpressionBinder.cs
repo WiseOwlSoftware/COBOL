@@ -206,16 +206,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// re-resolving the word as a data-name (kb/Work PB919).</summary>
     public string? IndexFieldOf(Core.DataReferenceContext dref)
     {
-        if (dref.cobolWord()?.GetText() is not { } w) return null;
-        List<string>? quals = null;
+        if (dref.cobolWord() is null) return null;
         foreach (var suffix in dref.dataReferenceSuffix())
         {
             // Only qualification: an index-name is never subscripted or reference-modified (§2023:8.4.2.2.2 Format 3
             // has neither), so such a reference is not an index-name reference.
             if (suffix.qualification() is not { } q || q.ChildCount != 2) return null;
-            (quals ??= []).Add(q.cobolWord().GetText());
         }
-        var ix = ctx.Refs.Names.ResolveIndexName(w, (IReadOnlyList<string>?)quals ?? [], dref);
+        var ix = ctx.Refs.Names.ResolveIndexName(WrittenQualifiedName.Of(dref), dref);
         return ix.Outcome is IndexRefOutcome.NotAnIndexName ? null : ix.Cell;
     }
 

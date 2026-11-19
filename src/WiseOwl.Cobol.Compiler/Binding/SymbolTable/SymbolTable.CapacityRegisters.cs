@@ -86,11 +86,12 @@ public sealed partial class SymbolTable
 
     /// <summary>Makes ONE container GLOBAL item (no recursion: <c>DataBinder.InheritGlobalSubtree</c> walks the subtree) visible here,
     /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2, "may reference that name without describing it
-    /// again"): its data-name, the condition-names associated with it and its index-names (<see cref="ForestSlice.Inherit"/>), and
+    /// again"): its data-name and the condition-names associated with it (<see cref="ForestSlice.Inherit"/>), its index-names and
     /// its CAPACITY register. A register the container refused (SR30's COBOL1523) failed that compile and has none to inherit.</summary>
     internal void InheritGlobalItem(DataItem item, int depth)
     {
         _data.State.Forest.Inherit(item, depth);
+        foreach (var index in item.Indexes) _indexNames.Add(Key(index.Name), index, depth);
         if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) DeclareCapacityRegister(null, cap, item);
     }
 }

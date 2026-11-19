@@ -38,7 +38,7 @@ public sealed class GlobalNameClassDriftTests
     {
         ["ForestSlice._byName"] = "_byName",                    // data-names and RENAMES (§2023:8.4.6.2.2)
         ["ForestSlice._conditions"] = "_conditions",            // condition-names (§2023:8.4.6.2.2)
-        ["ForestSlice.IndexNames"] = "IndexNames.Inherit(",     // index-names (§2023:8.4.6.2.3)
+        ["SymbolTable._indexNames"] = "_indexNames.Add(",       // index-names (§2023:8.4.6.2.3)
         ["SymbolTable._capacityRegisters"] = "DeclareCapacityRegister(",   // CAPACITY registers (§2023:13.18.38.3 SR30, PB1674)
     };
 
@@ -76,6 +76,12 @@ public sealed class GlobalNameClassDriftTests
         typeof(SymbolTable).GetNestedType("ConstantNames", BindingFlags.NonPublic)
         ?? throw new InvalidOperationException("SymbolTable declares no nested ConstantNames: the registry was renamed or moved");
 
+    /// <summary>The symbol table's index-name namespace of one scope (listing step 6b, kb/Work PB5932): a registry type that is itself
+    /// a name index.</summary>
+    private static readonly Type IndexNameTable =
+        typeof(SymbolTable).GetNestedType("IndexNameTable", BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("SymbolTable declares no nested IndexNameTable: the index-name namespace was renamed or moved");
+
     private static IEnumerable<string> NameIndexFields(Type owner)
     {
         foreach (var f in owner.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
@@ -83,7 +89,7 @@ public sealed class GlobalNameClassDriftTests
             // A registry type that is itself a name index: the index-names, and an element's constant entries (a
             // constant-name is a user-defined word its element declares, so it hides a same-spelled word of a
             // containing element; kb/Work PB3164, PB3153 review round 3).
-            if (f.FieldType == typeof(IndexNameRegistry) || f.FieldType == ConstantScope)
+            if (f.FieldType == IndexNameTable || f.FieldType == ConstantScope)
             {
                 yield return MemberName(f);
                 continue;
@@ -149,7 +155,7 @@ public sealed class GlobalNameClassDriftTests
     {
         ["ForestSlice._byName"] = "Forest.ByName.TryGetValue(",
         ["ForestSlice._conditions"] = "Forest.Conditions.TryGetValue(",
-        ["ForestSlice.IndexNames"] = "Forest.IndexNames.Declares(",
+        ["SymbolTable._indexNames"] = "_table.IndexNameDeclaredNearerThan(",
         ["SymbolTable._capacityRegisters"] = "_table.CapacityRegisterDeclaredNearerThan(",
     };
 
@@ -183,7 +189,6 @@ public sealed class GlobalNameClassDriftTests
     {
         ["ByName"] = "ByName.ContainsKey(",
         ["Conditions"] = "Conditions.ContainsKey(",
-        ["IndexNames"] = "IndexNames.Declares(",
     };
 
     /// <summary>A METHOD's name table the SYMBOL TABLE holds (<c>SymbolTable.MethodNames</c>, listing step 6b, kb/Work PB5932) → the
@@ -192,6 +197,7 @@ public sealed class GlobalNameClassDriftTests
     {
         ["TypeNames"] = "TypeNames.ContainsKey(",              // a method's type-names are its own (kb/Work PB3192)
         ["CapacityRegisters"] = "CapacityRegisters.ContainsKey(",   // a method's CAPACITY registers are its own (kb/Work PB3165)
+        ["IndexNames"] = "IndexNames.Declares(",                     // a method's index-names are its own (§2023:11.7.4 GR5)
     };
 
     /// <summary>The method's words the BINDER keeps (kb/Work PB2402: binder working state, never on the model scope) → the
@@ -319,7 +325,8 @@ public sealed class GlobalNameClassDriftTests
         Assert.True(either.Success && either.Value.Contains("NearerDataNameHides(", StringComparison.Ordinal)
                     && either.Value.Contains("NearerConditionNameHides(", StringComparison.Ordinal),
             "NearerDataOrConditionNameHides no longer asks both NearerDataNameHides and NearerConditionNameHides.");
-        AssertBodyAsks(table, @"public NameCandidates<IndexDeclaration>\? IndexCandidates\(", "NearerDataOrConditionNameHides(");
+        string indexNames = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.IndexNames.cs"));
+        AssertBodyAsks(indexNames, @"private NameCandidates<IndexDeclaration>\? IndexCandidates\(", "NearerDataOrConditionNameHides(");
         string resolver = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ReferenceResolver.cs"));
         AssertBodyAsks(resolver, @"internal CapacityRef\? CapacityRegisterFor\(", "NearerDataOrConditionNameHides(");
         // ... and the non-data declarations of one spelling are RANKED by depth (SymbolTable.Declarations.OtherThanData), never returned from

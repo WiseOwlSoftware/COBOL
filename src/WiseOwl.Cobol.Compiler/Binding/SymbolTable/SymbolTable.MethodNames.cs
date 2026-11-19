@@ -26,8 +26,13 @@ public sealed partial class SymbolTable
         /// object-level name of the spelling. A list per name, as the element's (a TYPE / SAME AS copy reproduces it, kb/Work PB2988).</summary>
         public Dictionary<CobolName, List<DataItem>> CapacityRegisters { get; } = [];
 
+        /// <summary>The method's own INDEX-NAME declarations (§2023:11.7.4 GR5: index-names are method-private, so two methods each
+        /// with <c>INDEXED BY IX</c> get distinct cells, and a method IX shadows an object IX with its own cell).</summary>
+        public IndexNameTable IndexNames { get; } = new();
+
         /// <summary>Whether one of the method's tables declares <paramref name="word"/>.</summary>
-        public bool Declares(CobolName word) => TypeNames.ContainsKey(word) || CapacityRegisters.ContainsKey(word);
+        public bool Declares(CobolName word) =>
+            TypeNames.ContainsKey(word) || CapacityRegisters.ContainsKey(word) || IndexNames.Declares(word);
     }
 
     /// <summary>Each METHOD's own name tables, by its name scope.</summary>

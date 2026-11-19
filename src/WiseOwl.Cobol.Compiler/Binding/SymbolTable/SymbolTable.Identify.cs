@@ -44,6 +44,39 @@ internal readonly record struct WrittenWord(IToken Token, int Start, int Length)
     public string Text => Token.Text.Substring(Start, Length);
 }
 
+/// <summary>A qualified name written where no parse rule holds it with its qualifiers: <see cref="Head"/>, the name, and
+/// <see cref="Qualifiers"/>, the words of its <c>OF</c>/<c>IN</c> phrases innermost first (§2023:8.4.2.2.3 SR4), each a token of a
+/// subscript's token list or of a <c>dataReference</c>'s qualifications. <see cref="SymbolTable.Identify(WrittenQualifiedName, NameClass, bool)"/>
+/// keys their texts, and listing step 7b records the occurrence at <see cref="Head"/>.</summary>
+internal readonly record struct WrittenQualifiedName(IToken Head, IReadOnlyList<IToken> Qualifiers)
+{
+    /// <summary>A <c>dataReference</c>'s name and the words of its qualifications (its subscripts and reference modifiers are not
+    /// read).</summary>
+    public static WrittenQualifiedName Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref) =>
+        new(dref.cobolWord().Start, [.. dref.dataReferenceSuffix().Select(s => s.qualification()?.cobolWord().Start).OfType<IToken>()]);
+
+    /// <summary>The name at <paramref name="at"/> of a token list and the qualifiers written after it (<c>OF</c> or <c>IN</c>, then a
+    /// word <paramref name="isWord"/> admits), and the index of the last token read.</summary>
+    public static WrittenQualifiedName Of(IReadOnlyList<IToken> tokens, int at, Func<IToken, bool> isWord, out int last)
+    {
+        List<IToken> qualifiers = [];
+        last = at;
+        while (last + 2 < tokens.Count && tokens[last + 1].Type is Frontend.Generated.CobolParserCore.OF or Frontend.Generated.CobolParserCore.IN
+               && isWord(tokens[last + 2]))
+        {
+            qualifiers.Add(tokens[last + 2]);
+            last += 2;
+        }
+        return new(tokens[at], qualifiers);
+    }
+
+    /// <summary>The name as written.</summary>
+    public string Name => Head.Text;
+
+    /// <summary>The qualifiers' words as written, innermost first.</summary>
+    public IReadOnlyList<string> QualifierWords => [.. Qualifiers.Select(static q => q.Text)];
+}
+
 public sealed partial class SymbolTable
 {
     /// <summary>
@@ -105,6 +138,23 @@ public sealed partial class SymbolTable
         if (IsReportClass(wanted))
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a report-section name is written in a context: identify it");
         return SymbolNamed(Key(written.Text), wanted, reach) is { } symbol ? new IdentifiedName(wanted, symbol) : null;
+    }
+
+    /// <summary>
+    /// The same lookup for a QUALIFIED name no parse rule holds with its qualifiers (an index-name in a subscript's token list,
+    /// §2023:8.4.2.2.2 Format 3, or read off a <c>dataReference</c>): the name and its qualifier words, keyed as written. An
+    /// index-name answers its §2023:8.4.2.2 candidate set (<see cref="NameCandidates{T}"/> of <see cref="Model.IndexDeclaration"/>),
+    /// whose count is the caller's verdict, or null when the spelling names no index-name visible here.
+    /// </summary>
+    internal IdentifiedName? Identify(WrittenQualifiedName written, NameClass wanted, bool report)
+    {
+        _ = report;   // the occurrence it gates is listing step 7b's
+        object? symbol = wanted switch
+        {
+            NameClass.Index => IndexCandidates(written.Name, written.QualifierWords, _data.ActiveScope),
+            _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not a class a qualified written name is identified as"),
+        };
+        return symbol is null ? null : new IdentifiedName(wanted, symbol);
     }
 
     /// <summary>The symbol of class <paramref name="wanted"/> one word names here, or null.</summary>

@@ -162,7 +162,7 @@ public sealed class DataBindStateBoundaryDriftTests
         var slices = new (string Name, Regex Mutator, string[] Writers)[]
         {
             ("ForestSlice (the type forest and its name tables)",
-                new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|AddScreenNames|Inherit|AddTypeDeclaration)\("),
+                new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|AddOwnIndex|AddScreenNames|Inherit|AddTypeDeclaration)\("),
                 // The symbol table writes the declarations whose names it keys (listing step 6b, kb/Work PB5932).
                 ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CommunicationSectionBinder.cs",
                  "/Binding/SymbolTable/SymbolTable*.cs"]),

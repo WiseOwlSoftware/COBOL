@@ -63,7 +63,8 @@ public sealed class QualifiedNameClassDriftTests
     [Fact]
     public void IndexNameResolution_ReturnsTheCountedCandidateSet()
     {
-        var m = typeof(SymbolTable).GetMethod(nameof(SymbolTable.IndexCandidates));
+        // Private to the one store since listing step 6b (kb/Work PB5932): Identify answers the set it returns.
+        var m = typeof(SymbolTable).GetMethod("IndexCandidates", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(m);
         Assert.Equal(typeof(NameCandidates<IndexDeclaration>?), m!.ReturnType);
     }

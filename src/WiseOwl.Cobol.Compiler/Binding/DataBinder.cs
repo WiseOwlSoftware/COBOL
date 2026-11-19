@@ -174,7 +174,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             var decl = new IndexDeclaration(item.IndexNames[k], item, $"_IX_{item.Uid}" + (k == 0 ? "" : $"_{k}"));
             item.Indexes.Add(decl);
-            State.Forest.DeclareIndex(decl, NameScopeOf(item));
+            Symbols.DeclareIndex(decl, NameScopeOf(item));
         }
     }
 

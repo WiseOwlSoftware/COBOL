@@ -34,7 +34,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
         // DataItem.ResidentCarrier). An inherited GLOBAL table's index cell
         // is never among the unit's OWN declarations — the container emits it and a ref-bridge reaches it
         // (§2023:13.18.27 GR2; kb/Work PB919).
-        foreach (var idx in ctx.Data.Forest.IndexNames.Own)
+        foreach (var idx in ctx.Data.Forest.OwnIndexes)
             if (!ctx.Data.Linkage.SuppressedRootFields.Contains(idx.Cell))
                 // A RECURSIVE unit's WS table cell rides its table's static storage (RouteStaticUnitStorage —
                 // a last-used table with per-activation indexes would silently lose SET positions).

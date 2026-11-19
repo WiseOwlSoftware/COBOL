@@ -61,12 +61,13 @@ public sealed class ForestSlice
     /// <summary>Level-88 condition-names (case-insensitive) → the conditions with that name (a list, since names may be
     /// duplicated under different parents and disambiguated by qualification).</summary>
     public IReadOnlyDictionary<string, List<Condition88>> Conditions => _conditions;
-    /// <summary>THE UNIT'S INDEX-NAME NAMESPACE (kb/Work PB919): every INDEXED BY declaration of this unit's own data division
-    /// (<see cref="IndexNameRegistry.Own"/> — the <c>long</c> cells it emits, 1-based occurrence numbers, DESIGN §3.5), plus
-    /// the GLOBAL tables' declarations of every containing program (§2023:8.4.6.2.3), registered beside their tables' data-names
-    /// by <see cref="Inherit"/>. A reference resolves through <see cref="SymbolTable.IndexCandidates"/> — counted,
-    /// never keyed by spelling alone. Declared into only by <c>DataBinder.RegisterIndexes</c> and <see cref="Inherit"/>.</summary>
-    public IndexNameRegistry IndexNames { get; } = new();
+    /// <summary>THE INDEX-NAME DECLARATIONS THIS SOURCE ELEMENT MAKES, in declaration order (kb/Work PB919): every INDEXED BY of
+    /// its own data division, each with its own <c>long</c> cell (1-based occurrence numbers, DESIGN §3.5), the cells it emits.
+    /// The index-names, its own and the GLOBAL tables' of every containing program (§2023:8.4.6.2.3), are the symbol table's
+    /// (<c>SymbolTable.DeclareIndex</c>, which adds each own declaration here); a reference resolves through it, counted, never
+    /// keyed by spelling alone.</summary>
+    public IReadOnlyList<IndexDeclaration> OwnIndexes => _ownIndexes;
+    private readonly List<IndexDeclaration> _ownIndexes = [];
 
 
     /// <summary>THIS source element's own TYPEDEF type declarations, in source order (ISO §2023:13.18.58; data-model D17): each the
@@ -154,9 +155,9 @@ public sealed class ForestSlice
         list.Add(cond);
     }
 
-    /// <summary>Declare one INDEXED BY index-name of this unit's own data division, or of the method that owns its table.</summary>
-    internal void DeclareIndex(IndexDeclaration decl, OoMethodDataScope? method) =>
-        (method?.IndexNames ?? IndexNames).Declare(decl);
+    /// <summary>Append one INDEXED BY declaration of this element's own data division, in declaration order:
+    /// <c>SymbolTable.DeclareIndex</c>'s, once it has keyed the index-name.</summary>
+    internal void AddOwnIndex(IndexDeclaration decl) => _ownIndexes.Add(decl);
 
     /// <summary>Append a TYPEDEF template of this element, in source order: <c>SymbolTable.DeclareType</c>'s, once it has keyed the
     /// type-name.</summary>
@@ -170,7 +171,8 @@ public sealed class ForestSlice
 
     /// <summary>Make ONE container GLOBAL item (no recursion: the caller walks the subtree) visible here,
     /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2 — "may reference that name without describing it
-    /// again"): its data-name, the condition-names associated with it, its index-names and its CAPACITY register.</summary>
+    /// again"): its data-name and the condition-names associated with it (<c>SymbolTable.InheritGlobalItem</c> keys its index-names
+    /// and its CAPACITY register).</summary>
     internal void Inherit(DataItem item, int depth)
     {
         _inheritedGlobalDepth[item] = depth;
@@ -184,7 +186,6 @@ public sealed class ForestSlice
             if (!_conditions.TryGetValue(cond.Name, out var conds)) _conditions[cond.Name] = conds = [];
             conds.Add(cond);
         }
-        foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
     }
 
 }

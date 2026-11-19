@@ -212,43 +212,6 @@ public sealed partial class SymbolTable
         return false;
     }
 
-    /// <summary>⛔ THE ONE INDEX-NAME RESOLUTION (kb/Work PB919) — the §2023:8.4.2.2 candidate set of a WRITTEN
-    /// index-name reference <c>name [OF|IN q] …</c> (§2023:8.4.2.2.2 Format 3), or <see langword="null"/> when the
-    /// spelling names no index-name visible in <paramref name="scope"/> (the reference is then a data-name one).
-    /// Visibility is the data-name's (§2023:8.4.6.2.3): a method-local DATA-name, condition-name, CAPACITY register or constant-name of the
-    /// spelling shadows every index-name (§2023:11.7.4 GR5 — the caller must not treat the reference as an index); else the method's own
-    /// declarations (§2023:11.7.4 GR5 privacy); else the unit's, where a nearer source element's declaration wins
-    /// (§2023:8.4.6.2.1 3), <see cref="IndexNameRegistry.Candidates"/>). The qualifiers are matched from the TABLE
-    /// upward (§2023:8.4.2.2.3 SR6). The COUNT is the caller's verdict — <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>
-    /// — so two tables' <c>INDEXED BY IX</c> referenced as a bare <c>IX</c> is §2023:8.4.2.2.3 SR1's ambiguity, never a
-    /// silently shared cell.
-    /// <para>A table's OWN declared index (SEARCH's first index-name, the SET/PERFORM of a known table) is read off
-    /// <see cref="DataItem.Indexes"/> directly — it is a declaration, not a reference, so it needs no
-    /// resolution.</para></summary>
-    public NameCandidates<IndexDeclaration>? IndexCandidates(string name, IReadOnlyList<string> qualifiers, Scope scope)
-    {
-        if (scope.Method is { } m)
-        {
-            if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
-            if (m.IndexNames.Declares(name))
-                return WithLapsedTypeIndexes(Key(name),
-                    m.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers)),
-                    d => _data.IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
-            // A method condition-name, CAPACITY register or constant-name of the spelling hides the object's
-            // index-name too (GR5 covers every name class; kb/Work PB3165 review R2-1, PB3153 review round 3).
-            if (_data.MethodDeclares(m, name)) return null;
-        }
-        if (!_data.State.Forest.IndexNames.Declares(name)) return null;
-        var indexes = _data.State.Forest.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers),
-            out int indexDepth);
-        // §2023:8.4.6.2.1 3) across the name classes (kb/Work PB1047): a DATA-name or a CONDITION-name of the spelling that the
-        // written qualifiers reach, declared in a NEARER source element than every such index-name, is the referenced
-        // item — a contained program's `01 IX` or its `88 IX` hides its container's GLOBAL table's `INDEXED BY IX`,
-        // exactly as its `01 X` hides the container's global `X` (kb/Work PB4432). At EQUAL depth the index-name keeps
-        // the reference, as before.
-        if (indexes.Count > 0 && NearerDataOrConditionNameHides(name, qualifiers, indexDepth)) return null;
-        return WithLapsedTypeIndexes(Key(name), indexes, d => _data.IndexQualifierChainMatches(d, qualifiers), null);
-    }
 
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) ACROSS NAME CLASSES — the ONE answer to "does an ordinary DATA-name of this spelling,

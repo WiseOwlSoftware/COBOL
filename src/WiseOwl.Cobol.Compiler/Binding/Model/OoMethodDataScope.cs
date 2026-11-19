@@ -14,10 +14,6 @@ public sealed class OoMethodDataScope
     public Dictionary<string, List<DataItem>> ByName { get; } = new(CobolNames.Comparer);
     public Dictionary<string, List<Condition88>> Conditions { get; } = new(CobolNames.Comparer);
 
-    /// <summary>The method's own INDEX-NAME declarations (M2-OO-1h step 4; §2023:11.7.4 GR5 — index-names are
-    /// method-private: two methods each with <c>INDEXED BY IX</c> get DISTINCT cells, and a method IX shadows an
-    /// object IX with its OWN cell — never one of the unit's <see cref="ForestSlice.IndexNames"/>).</summary>
-    public IndexNameRegistry IndexNames { get; } = new();
 
 
     /// <summary>The method's own TYPE DECLARATIONS, in source order (kb/Work PB3192). A type-name declared in a method definition
@@ -34,7 +30,7 @@ public sealed class OoMethodDataScope
     internal void AddTypeDeclaration(DataItem template) => _typeDeclarations.Add(template);
 
     /// <summary>Whether this method declares <paramref name="word"/> in one of THIS SCOPE'S name indexes: a data-name, a
-    /// condition-name or an index-name. The method's named CAPACITY registers (§2023:13.18.38.3 SR30 makes the register a
+    /// condition-name. The method's index-names, named CAPACITY registers (§2023:13.18.38.3 SR30 makes the register a
     /// data-name of the method that declares its table), type-names, constant-names, and the words its data division defines
     /// before any entry binds are the symbol table's (<c>SymbolTable.MethodDeclaresWord</c>; kb/Work PB2402, PB3192), and THE question
     /// "does this method declare the word" (§2023:11.7.4 GR5: "the use of that word in this method refers to the declaration in
@@ -45,6 +41,6 @@ public sealed class OoMethodDataScope
     /// finds this scope's name indexes by reflection and holds this predicate to every one.</summary>
     internal bool IndexesDeclare(string word)
     {
-        return ByName.ContainsKey(word) || Conditions.ContainsKey(word) || IndexNames.Declares(word);
+        return ByName.ContainsKey(word) || Conditions.ContainsKey(word);
     }
 }

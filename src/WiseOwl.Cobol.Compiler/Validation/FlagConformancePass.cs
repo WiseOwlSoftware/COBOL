@@ -670,7 +670,8 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
             // An index-name VISIBLE where the statement stands: the method's own (§2023:11.7.4 GR5) or the unit's, through
             // the one scope-aware lookup the binder resolves the same SET with (kb/Work PB1952).
             if (r.Register != SpecialRegister.None || r.BaseName is not { } name
-                || _currentData.Symbols.IndexCandidates(name, [], _currentData.ActiveScope) is not { Count: > 0 }) continue;
+                || _currentData.Symbols.Identify(new WrittenQualifiedName(recv.cobolWord().Start, []), NameClass.Index, report: false)
+                    is not { Symbol: NameCandidates<IndexDeclaration> { Count: > 0 } }) continue;
             if (_turn.Enabled("EC-RANGE-INDEX", null, line))
                 Flag(FlagOption.Flag02RangeExceptionForIndex, line,
                     "the SET of an index-name while EC-RANGE-INDEX checking is enabled");

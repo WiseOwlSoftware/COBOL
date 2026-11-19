@@ -196,9 +196,7 @@ public sealed partial class SymbolTable
             if (_table.CapacityRegisterDeclaredNearerThan(name, depth)) return true;
             if (_table._sumCounters.TryGetValue(Key(name), out var counters) && counters.Any(c => _data.State.Reports.Depth(c.Report) < depth)) return true;
             if (_table.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
-            if (!_data.State.Forest.IndexNames.Declares(name)) return false;
-            _data.State.Forest.IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
-            return indexDepth < depth;
+            return _table.IndexNameDeclaredNearerThan(name, depth);
         }
 
         // ── The REPORT SECTION's declarations (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 5") ──────────
