@@ -1713,7 +1713,9 @@ renderer. Naming it asks for a listing at any edition.
   Slice 1 (the cd-names and the file-names) is within the parent's run-to-run spread on all four programs, at most 0.23 MB
   above it (the README's step-6b table). Slice 2 (the tables keyed by no user word, the procedure-names) is
   within the parent's run-to-run spread on all four programs, at most 0.07 MB above it (the README's step-6b table, slice 2).
-  SLICE3-MEASUREMENT
+  Slice 3 (the constant-names) moves no measurable allocation: over four runs each, alternating, NC105A's `None` row is 34.90
+  to 35.64 MB on the branch and 35.15 to 35.78 MB on the parent, IX113A's is 0.2 to 0.4 MB below the parent's on every run, NC218A's
+  straddles it and SM201A's equals it (the README's step-6b table, slice 3).
 
 ## 10. Test plan
 

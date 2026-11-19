@@ -618,6 +618,31 @@ twice on the `listing-step-6b-2` branch (commit 0dc23408fa) and twice on its par
 Reading them: every slice-2 `None` row lies within the parent's own spread or within 0.07 MB of it (SM201A's first run, where
 the branch's own two runs differ by 0.18 MB), so slice 2 moves no measurable allocation; the `None` budget holds. Time rows are
 not shown (kb/Work PB5927).
+
+**Step 6b, slice 3 (kb/Work PB5932, the constant-names resolved by `SymbolTable.Identify`): the `None` row against the parent.**
+Slice 3 changes how every compilation reads a constant-name (every bare data reference asks whether it is one), so it measures the
+no-listing path. Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks --
+--filter '*CompileBenchmarks.FrontEndAndBind*'` twice on the `listing-step-6b-3` branch (commit 43b05feca4) and twice on its parent
+`9654bb00ec`, alternating (parent, branch, branch, parent: the parent's second run was refused by a locked build file and run again
+after the branch's second). Allocated bytes per front end and bind, the two runs of each tree:
+
+| Program | Listing | Parent | Slice 3 |
+|---|---|---|---|
+| IX113A | None | 69.28, 69.20 MB | 68.91, 68.98 MB |
+| NC105A | None | 35.22, 35.15 MB | 35.64, 35.59 MB |
+| NC218A | None | 31.08, 31.19 MB | 31.50, 30.91 MB |
+| SM201A | None | 15.43, 15.38 MB | 15.38, 15.39 MB |
+| IX113A | Text | 77.05, 77.04 MB | 76.68, 76.68 MB |
+| IX113A | All | 97.66, 97.58 MB | 97.33, 97.29 MB |
+
+NC105A's `None` rows sat 0.37 to 0.49 MB above the parent's, so its row alone was run twice more, alternating (`--filter
+'*FrontEndAndBind*NC105A*None*'`, branch first): branch 34.90 and 34.95 MB, parent 35.78 and 35.22 MB.
+
+Reading them: across its four runs each, NC105A's `None` row is 34.90 to 35.64 MB on the branch and 35.15 to 35.78 MB on the parent,
+two ranges that overlap, so the first pair's difference was the harness's run-to-run spread (the same program's parent runs differed
+by 0.59 MB at slice 1), not the slice. IX113A's `None`, `Text` and `All` rows are 0.2 to 0.4 MB below the parent's on every run,
+NC218A's straddle the parent's and SM201A's equal it, so slice 3 moves no measurable allocation; the `None` budget holds. Time rows
+are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here
