@@ -165,7 +165,7 @@ public sealed class AnnexBCDriftTests
     {
         var intrinsics = ((System.Collections.IDictionary)typeof(IntrinsicCatalog)
             .GetField("Table", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!.GetValue(null)!)
-            .Keys.Cast<string>();
+            .Keys.Cast<StandardWord>().Select(k => k.Word);
         var populations = new (string Name, IEnumerable<string> Words)[]
         {
             ("reserved words (§2023:8.9)", ReservedWords.Entries.Select(e => e.Word)),

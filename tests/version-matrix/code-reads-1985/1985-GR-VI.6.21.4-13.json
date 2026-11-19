@@ -17,7 +17,7 @@
   "rule-id": "1985-GR-VI.6.21.4-13",
   "verdict": "CONFORMS",
   "requirement": "At --std 85 a PERFORM's procedure-name-1 and procedure-name-2 must resolve only to sections or paragraphs of the program that contains the PERFORM (never of a containing, contained or separately written program in the run unit), and statements of another program may be reached from a PERFORM range only through CALL / EXIT PROGRAM in that range.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Procedures.cs#ProcedureNamed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/BinderContext.cs#Table; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectProcedureName",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/BinderContext.cs#Table; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectProcedureName",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures",

@@ -17,7 +17,7 @@
   "rule-id": "1985-GR-VI.6.21.4-4",
   "verdict": "CONFORMS",
   "requirement": "At --std 85 the specified set of statements is the range from the first statement of procedure-name-1 through the end of procedure-name-2 (or procedure-name-1 alone; a section meaning all its paragraphs, an empty section an empty set) for out-of-line, and the contained statements for in-line.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Procedures.cs#ProcedureNamed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectNondeclaratives; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectNondeclaratives; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectNondeclaratives",

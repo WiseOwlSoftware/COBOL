@@ -100,6 +100,7 @@ internal static class BackendContract
             // where an expansion's types live and what this module calls them (kb/Work PB2104)
             "Model.ExpansionPlacement.ClrNamespace", "Model.ExpansionPlacement.FactoryTypeName", "Model.ExpansionPlacement.LocalFactoryName",
             "Model.ExpansionPlacement.LocalName", "Model.ExpansionPlacement.TypeName", "Model.ExpansionPlacements.ByName",
+            "Model.ClrTypeName.Name",   // the key of ExpansionPlacements.ByName (kb/Work PB5932)
             "Model.BoundUnit.ClassName", "Model.DataItem.StructName", "Model.DataItem.ProfileName",
             // the factory type a published class record names, as metadata names it (kb/Work PB4319)
             "Model.ClassRecord.FactoryType",
