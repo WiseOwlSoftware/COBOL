@@ -1305,7 +1305,13 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   quotation mark or a line end, which a directive cannot spell, keeps its points under the path with each replaced by `_`.
 - **The PDB** is written by `RoslynBackend.Compile` in the same emit as the assembly, to a temporary of its own renamed after the
   assembly (`OutputFileProtocol`), portable and deterministic, named in the assembly by its file name alone so the assembly's
-  bytes do not depend on its directory; `BackendOptions.EmitPdb` (true by default, no longer reserved) decides it, and it is in
+  bytes do not depend on its directory. (Correction:) it names each source document RELATIVE to the main source's directory with
+  '/' (`BackendOptions.DocumentRoot`, which the driver sets; `CodeWriter.DirectiveFile`): the PE names its PDB by a hash of the
+  PDB's content, so full paths made identical source compiled in two directories two different assemblies, which the repository's
+  byte-identity tests refuse (`RepositoryReaderTests.TwoCompilesOfOneGroup_WriteByteIdenticalModules`, the expansion assembly's
+  determinism across groups and directories). The listing's reader resolves a name against the same root; a debugger finds the
+  files from the main source's directory (or its source search path). An expansion's own compilation writes its text under the
+  expansion's name in a folder of its own (`ExpansionAssemblies.Write`), so its document name is a function of the expansion too; `BackendOptions.EmitPdb` (true by default, no longer reserved) decides it, and it is in
   `BackendArtifact.OutputFiles`, so the compiled-program cache keeps it beside the assembly. It is written for every compilation
   (it is the debugger's), and read only for a listing that asks (section 9).
 - **What compiles to no code has no range.** CONTINUE, a plain EXIT, a USE statement, a NEXT SENTENCE at a sentence's end, a

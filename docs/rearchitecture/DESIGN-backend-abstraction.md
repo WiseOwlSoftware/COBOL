@@ -154,7 +154,11 @@ public enum BackendId { Roslyn, Cil }
 
 public sealed record BackendOptions(           // what EVERY backend reads; nothing one target's (kb/Work PB4272)
     string OutputPath, string AssemblyName, EditionInfo Edition,
-    bool EmitPdb = true, CompilationInputs? Inputs = null, IReadOnlyList<string>? RepositoryReferences = null);
+    bool EmitPdb = true, CompilationInputs? Inputs = null, IReadOnlyList<string>? RepositoryReferences = null,
+    string? DocumentRoot = null);
+// EmitPdb: a portable PDB beside the assembly with one sequence point per COBOL statement at BoundStatement.Span, every
+// other code hidden; DocumentRoot: the directory the PDB names each document relative to, with '/' (the main source's), so
+// the assembly is the same wherever the source tree lies (DESIGN-listing.md section 6.9, listing step 8).
 
 // A backend diagnostic is the front end's Diagnostic(Code, Severity, Message, SourceLocation? Location, Span): no Roslyn
 // type crosses the seam (kb/Work PB4272); null Location names no position; it renders through Diagnostic.Render. One record
@@ -489,7 +493,9 @@ repository-drift assembly since kb/Work PB5230: it reads the architecture edges 
    throughout, so a partial CIL backend never blocks a release.
 2. **Debug-symbol strategy for the CIL backend.** Recommendation: **portable PDB via Cecil**, sequence points mapped
    to the COBOL source lines (the frontend already carries line info the binder can thread onto bound nodes as an
-   optional neutral `SourceSpan`). Confirm whether COBOL-source-level debugging of the emitted assembly is a v1 goal
+   optional neutral `SourceSpan`). (Listing step 8:) the neutral span exists, `BoundStatement.Span` (`StatementSpan`,
+   stamped by `StatementBinder.BindStatement`), and the Roslyn backend writes its sequence points and PDB from it; the CIL
+   backend writes the same points from the same span, and the listing's `SequencePointCoverageDriftTests` holds both. Confirm whether COBOL-source-level debugging of the emitted assembly is a v1 goal
    or a follow-on (it does not affect the seam or neutrality — only the CIL backend's PDB writer).
 3. **Separate `WiseOwl.Cobol.Backend.Cil` assembly vs a `CodeGen/Cil/` folder in Compiler.** Recommendation: **separate
    assembly** (isolates the Cecil dependency from the default Roslyn path; answers topology Open Q4 affirmatively).

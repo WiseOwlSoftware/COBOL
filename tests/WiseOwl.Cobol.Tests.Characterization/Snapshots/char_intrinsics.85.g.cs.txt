@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-INTRINSICS:CHAR-INTRINSICS" })]
 namespace Cobol.p;
 
@@ -57,34 +58,45 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
                     {
                         try
                         {
+#line (13, 12) - (13, 49) 29 "char_intrinsics.cob"
                             WS_R = (long)(CobolNum.Store(CobolIntrinsics.MaxAt(0, true, new Int128[] { WS_A, WS_B }, new int[] { 0, 0 }), 0, _P_2, CobolRounding.Truncation));
+#line hidden
                         }
                         catch (CobolSizeError) { __sizeErr0 = true; }
                         catch (global::System.OverflowException) { __sizeErr0 = true; }
                     }
                     catch (CobolSizeError) { __sizeErr0 = true; }
                     catch (global::System.OverflowException) { __sizeErr0 = true; }
+#line (14, 12) - (14, 49) 21 "char_intrinsics.cob"
                     __sendval6_MOVE = CobolDynString.Store(CobolIntrinsics.UpperCase(WS_T), 32767);
+#line hidden
                     if (__sendval6_MOVE.Length == 0) {
                     WS_U = new string(' ', 5);
                     } else {
                     WS_U = CobolString.Store(__sendval6_MOVE, 5);
                     }
+#line (15, 12) - (15, 28) 21 "char_intrinsics.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_R, _P_2, false) + WS_U);
+#line hidden
                     bool __sizeErr1 = false;
                     try
                     {
                         try
                         {
+#line (16, 12) - (16, 47) 29 "char_intrinsics.cob"
                             WS_L = (long)(CobolNum.Store(5L, 0, _P_5, CobolRounding.Truncation));
+#line hidden
                         }
                         catch (CobolSizeError) { __sizeErr1 = true; }
                         catch (global::System.OverflowException) { __sizeErr1 = true; }
                     }
                     catch (CobolSizeError) { __sizeErr1 = true; }
                     catch (global::System.OverflowException) { __sizeErr1 = true; }
+#line (17, 12) - (17, 23) 21 "char_intrinsics.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_L, _P_5, false));
+#line (18, 12) - (18, 19) 21 "char_intrinsics.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

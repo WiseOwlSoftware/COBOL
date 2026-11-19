@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-SEQ-FILE:CHAR-SEQ-FILE" })]
 namespace Cobol.p;
 
@@ -62,7 +63,9 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (16, 12) - (16, 31) 21 "char_seq_file.cob"
                     CobolFile.BeginOpen("CHAR-SEQ-FILE::OUT-FILE", FileOpenMode.Output);
+#line hidden
                     try
                     {
                         CobolFile.OpenOutput("CHAR-SEQ-FILE::OUT-FILE", "char-seq.dat", false, null);
@@ -72,10 +75,15 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
                     {
                         CobolFile.EndModeScope("CHAR-SEQ-FILE::OUT-FILE");
                     }
+#line (17, 12) - (17, 37) 21 "char_seq_file.cob"
                     OUT_REC = CobolString.Store("LINE-ONE", 10);
+#line (18, 12) - (18, 24) 21 "char_seq_file.cob"
                     CobolFile.WriteShared("CHAR-SEQ-FILE::OUT-FILE", OUT_REC, -1, FileRecordLock.None, FileRetryKind.None, 0, null, WriteAdvance.None);
+#line hidden
                     if (global::WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog.IsFatalIoStatus(CobolFile.Status("CHAR-SEQ-FILE::OUT-FILE"))) CobolFile.TerminateOnUncoveredFatalStatus("CHAR-SEQ-FILE::OUT-FILE", "WRITE");
+#line (19, 12) - (19, 25) 21 "char_seq_file.cob"
                     CobolFile.BeginClose("CHAR-SEQ-FILE::OUT-FILE");
+#line hidden
                     try
                     {
                         CobolFile.Close("CHAR-SEQ-FILE::OUT-FILE");
@@ -85,7 +93,9 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
                     {
                         CobolFile.EndModeScope("CHAR-SEQ-FILE::OUT-FILE");
                     }
+#line (20, 12) - (20, 19) 21 "char_seq_file.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

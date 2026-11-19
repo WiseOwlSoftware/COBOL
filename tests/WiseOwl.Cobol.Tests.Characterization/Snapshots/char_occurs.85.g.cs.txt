@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-OCCURS:CHAR-OCCURS" })]
 namespace Cobol.p;
 
@@ -59,29 +60,43 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (10, 12) - (12, 22) 21 "char_occurs.cob"
                     J = (long)(CobolNum.Store(1L, 0, _P_2, CobolRounding.Truncation));
+#line hidden
                     while (!(J > 5L))
                     {
+#line (11, 16) - (11, 36) 25 "char_occurs.cob"
                         CobolTable.At(WS_TBL.WS_ELEM, CobolTable.Occ(J, _P_2)) = (long)(CobolNum.Store(J, 0, _P_1, CobolRounding.Truncation));
+#line hidden
                         __pcont0: ;
+#line (10, 12) - (10, 18) 25 "char_occurs.cob"
                         J = (long)(CobolNum.Store(((Int128)(J) + (1L)), 0, _P_2, CobolRounding.Truncation));
+#line hidden
                     }
                     __pexit0: ;
+#line (13, 12) - (13, 22) 21 "char_occurs.cob"
                     Int128 __amt0 = (Int128)(3L);
+#line hidden
                     if (CobolIndex.TryAmount(__amt0, 0, SetAmountRule.IndexTo, "SET index-name TO", out long __set0))
                     {
                         _IX_1 = __set0;
                     }
+#line (14, 12) - (14, 31) 21 "char_occurs.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(CobolTable.At(WS_TBL.WS_ELEM, _IX_1), _P_1, false));
+#line (15, 12) - (18, 21) 21 "char_occurs.cob"
                     if (_IX_1 > 5L)
+#line hidden
                     {
                         goto __searchAtEnd0;
                     }
                     __search0:
                     if (CobolTable.At(WS_TBL.WS_ELEM, _IX_1) == 4L)
                     {
+#line (17, 20) - (17, 35) 25 "char_occurs.cob"
                         global::System.Console.WriteLine("FOUND4");
+#line (15, 12) - (15, 17) 25 "char_occurs.cob"
                         goto __searchEnd0;
+#line hidden
                     }
                     _IX_1 += 1;
                     if (_IX_1 < 1 || _IX_1 > 5L)
@@ -92,7 +107,9 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                     __searchAtEnd0: ;
                     goto __searchEnd0;
                     __searchEnd0: ;
+#line (19, 12) - (19, 19) 21 "char_occurs.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

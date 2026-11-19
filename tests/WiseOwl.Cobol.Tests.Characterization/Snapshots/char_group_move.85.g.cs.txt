@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-GROUP-MOVE:CHAR-GROUP-MOVE" })]
 namespace Cobol.p;
 
@@ -69,11 +70,17 @@ internal sealed class _PRG_CHAR_GROUP_MOVE : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (13, 12) - (13, 32) 21 "char_group_move.cob"
                     WS_SRC.S_NAME = CobolString.Store("BOLT", 4);
+#line (14, 12) - (14, 26) 21 "char_group_move.cob"
                     WS_SRC.S_QTY = CobolNum.FormatImage((long)(CobolNum.Store(7L, 0, _P_2, CobolRounding.Truncation)), _P_2);
+#line (15, 12) - (15, 32) 21 "char_group_move.cob"
                     WS_DST.FromImage(CobolString.Store(WS_SRC.AsImage(), 7));
+#line (16, 12) - (16, 25) 21 "char_group_move.cob"
                     global::System.Console.WriteLine(WS_DST.AsImage());
+#line (17, 12) - (17, 19) 21 "char_group_move.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

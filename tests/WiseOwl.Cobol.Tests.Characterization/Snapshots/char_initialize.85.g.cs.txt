@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-INITIALIZE:CHAR-INITIALIZE" })]
 namespace Cobol.p;
 
@@ -55,10 +56,15 @@ internal sealed class _PRG_CHAR_INITIALIZE : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (10, 12) - (10, 28) 21 "char_initialize.cob"
                     WS_REC.WS_N = (long)(CobolNum.Store(0L, 0, _P_1, CobolRounding.Truncation));
+#line hidden
                     WS_REC.WS_A = new string(' ', 4);
+#line (11, 12) - (11, 28) 21 "char_initialize.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_REC.WS_N, _P_1, false) + WS_REC.WS_A);
+#line (12, 12) - (12, 19) 21 "char_initialize.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

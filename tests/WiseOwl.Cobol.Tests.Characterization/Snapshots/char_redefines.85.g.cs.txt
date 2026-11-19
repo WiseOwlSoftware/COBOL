@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-REDEFINES:CHAR-REDEFINES" })]
 namespace Cobol.p;
 
@@ -45,11 +46,17 @@ internal sealed class _PRG_CHAR_REDEFINES : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (13, 12) - (13, 28) 21 "char_redefines.cob"
                     WS_A = (long)(CobolNum.Store(1234L, 0, _P_0, CobolRounding.Truncation));
+#line (14, 12) - (14, 25) 21 "char_redefines.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_A, _P_1, false));
+#line (15, 12) - (15, 32) 21 "char_redefines.cob"
                     _redef_WS_G = CobolString.WindowInto(_redef_WS_G, (int)(0 + 1), 4, CobolString.Store("WXYZ", 4));
+#line (16, 12) - (16, 30) 21 "char_redefines.cob"
                     global::System.Console.WriteLine(CobolString.Window(_redef_WS_G, (int)(0 + 1), 2) + CobolString.Window(_redef_WS_G, (int)(2 + 1), 2));
+#line (17, 12) - (17, 19) 21 "char_redefines.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

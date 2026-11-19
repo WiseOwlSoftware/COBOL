@@ -47,6 +47,7 @@ public sealed class CodeWriter
             WriteIndentIfNeeded();
             _sb.Append(text, 0, rest).Append('\n').Append("#line hidden\n");
             _hidden = true;
+            _atLineStart = true;   // the rest keeps the line's indentation
             text = text[rest..].TrimStart();
         }
         WriteIndentIfNeeded();

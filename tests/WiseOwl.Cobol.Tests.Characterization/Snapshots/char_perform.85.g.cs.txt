@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-PERFORM:CHAR-PERFORM" })]
 namespace Cobol.p;
 
@@ -46,14 +47,19 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                 case 0:   // MAIN-PARA
                 {
                     long __n1 = 3L;
-                    for (long __i1 = 0; __i1 < __n1; __i1++)
+#line (9, 12) - (11, 22) 26 "char_perform.cob"
+                    for (long __i1 = 0
+#line hidden
+                    ; __i1 < __n1; __i1++)
                     {
                         bool __sizeErr0 = false;
                         try
                         {
                             try
                             {
+#line (10, 16) - (10, 25) 33 "char_perform.cob"
                                 T = (long)(CobolNum.Store(((Int128)(T) + (1L)), 0, _P_1, CobolRounding.Truncation));
+#line hidden
                             }
                             catch (CobolSizeError) { __sizeErr0 = true; }
                             catch (global::System.OverflowException) { __sizeErr0 = true; }
@@ -63,7 +69,9 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                         __pcont0: ;
                     }
                     __pexit0: ;
+#line (12, 12) - (14, 22) 21 "char_perform.cob"
                     I = (long)(CobolNum.Store(1L, 0, _P_0, CobolRounding.Truncation));
+#line hidden
                     while (!(I > 5L))
                     {
                         bool __sizeErr1 = false;
@@ -71,7 +79,9 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                         {
                             try
                             {
+#line (13, 16) - (13, 25) 33 "char_perform.cob"
                                 T = (long)(CobolNum.Store(((Int128)(T) + (I)), 0, _P_1, CobolRounding.Truncation));
+#line hidden
                             }
                             catch (CobolSizeError) { __sizeErr1 = true; }
                             catch (global::System.OverflowException) { __sizeErr1 = true; }
@@ -79,12 +89,18 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                         catch (CobolSizeError) { __sizeErr1 = true; }
                         catch (global::System.OverflowException) { __sizeErr1 = true; }
                         __pcont2: ;
+#line (12, 12) - (12, 18) 25 "char_perform.cob"
                         I = (long)(CobolNum.Store(((Int128)(I) + (1L)), 0, _P_0, CobolRounding.Truncation));
+#line hidden
                     }
                     __pexit2: ;
+#line (15, 12) - (15, 27) 21 "char_perform.cob"
                     __Dispatch(1, 1);
+#line (16, 12) - (16, 20) 21 "char_perform.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(T, _P_1, false));
+#line (17, 12) - (17, 19) 21 "char_perform.cob"
                     throw new StopRun();
+#line hidden
                 }
                 case 1:   // SUB-PARA
                 {
@@ -93,7 +109,9 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                     {
                         try
                         {
+#line (19, 12) - (19, 23) 29 "char_perform.cob"
                             T = (long)(CobolNum.Store(((Int128)(T) + (100L)), 0, _P_1, CobolRounding.Truncation));
+#line hidden
                         }
                         catch (CobolSizeError) { __sizeErr2 = true; }
                         catch (global::System.OverflowException) { __sizeErr2 = true; }

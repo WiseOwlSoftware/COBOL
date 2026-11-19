@@ -330,7 +330,9 @@ Every compilation that writes an assembly also writes its debugging symbols besi
 `prog.dll`). The PDB holds one sequence point for each COBOL statement, at the line and column where the statement is written,
 in the source file or the library text that holds it; nothing else of the compiled program has one. So a .NET debugger stops once
 per COBOL statement and shows the COBOL source, and the listing reads each statement's object code back from the assembly and the
-PDB. Neither names generated source: the map is the same whichever back end compiled the program.
+PDB. Neither names generated source: the map is the same whichever back end compiled the program. The PDB names each file relative
+to the main source's directory (`prog.cob`, `lib/PAYREC.cpy`), so the same source compiles to the same assembly wherever it lies;
+point the debugger's source path at that directory if it does not find the files.
 
 The object-code map (`object-map`) lists the methods that hold the program's statements, each with its metadata token and IL size,
 then, in listing order, each statement's listing line and column, its method and its IL offset range:
