@@ -30,8 +30,12 @@ the caller states (`ProcedureSite`), since the ambient cursor is the procedure b
 collection; and a name several procedures carry answers `ProcedureCandidates` in `IdentifiedName.Symbol`, which records no occurrence.
 `NameClass` gains `Procedure`.
 
-**Records that followed the move.** `QualifiedNameClasses`' qualified-procedure-name row names `SymbolTable.ProcedureNamed`; seven
-version-matrix records' code-locations and notes name the moved members; `ProcedureNameUniquenessDriftTests` scans
+**Records that followed the move.** `QualifiedNameClasses`' qualified-procedure-name row names `SymbolTable.ProcedureNamed`; the
+four inventory rows that named the moved members name them in the table, each old code-location kept as a retired-witness mark
+with its reason (`audit_witness_loss.py`: 0 unexcused, 4 retired), while the three 1985 code-read records stay as imported, being
+reads pinned at their own commit (`code_reads.py --check` refuses an edited one); `AnnexBCDriftTests` reads the catalog's
+`StandardWord` keys and `BackendContract.Table` classifies `ClrTypeName.Name` as a CLR name, both found by the full runs;
+`ProcedureNameUniquenessDriftTests` scans
 `SymbolTable.Procedures.cs`, takes the `Paragraphs.TryAdd` form, and plants the same habit in the store among its pre-fix lines;
 CONTROL_FLOW_DESIGN.md D13a, DESIGN.md section 0.5 and DOC_INDEX name the store. No user-visible behaviour changed, so the user guide
 does not.
@@ -41,6 +45,8 @@ does not.
   eac451c185f2-dirty) ===` (the keyword tables) and `... new 8b75f594cac5-dirty) ===` (the procedure-names).
 - `NameTableOwnershipDriftTests` named exactly the moved entries STALE after each move (7 tables and 4 sites; 2 tables, 2 lookups and
   2 sites) and no new finding; with the baseline lowered it is green, 9 of 9.
+- Full runs at the branch head, built with 0 warnings: Unit 42140 of 42140, Conformance 28182 of 28182, RepoDrift 187 of 187,
+  Characterization 37 of 37; every gate audit GREEN (33 of 33).
 - Section 9: the `None` row of the front end and bind, twice on the branch and twice on the parent eac451c185, alternating, is
   within the parent's spread on all four programs, at most 0.07 MB above it (IX113A 69.20, 69.13 MB against 69.18, 69.22 MB;
   tests/WiseOwl.Cobol.Benchmarks/README.md, step 6b slice 2).
