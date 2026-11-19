@@ -14,7 +14,7 @@ internal enum TypeNameCarried
     /// (<see cref="DataItem.TypeName"/>).</summary>
     Typed,
     /// <summary>A restricted pointer's <c>USAGE POINTER TO type-name</c> (<see cref="PicInfo.RestrictedTypeName"/>,
-    /// §2023:13.18.60.3 SR11).</summary>
+    /// the restricted data-pointer of §2023:D.9.2.2).</summary>
     RestrictedPointer,
 }
 
@@ -32,7 +32,7 @@ public sealed partial class SymbolTable
     /// must neither collide with an inherited one (§2023:8.4.6.2.1 3) a)) nor be walked, emitted or re-validated as this unit's.</summary>
     private readonly Dictionary<CobolName, DataItem> _inheritedTypeNames = [];
 
-    /// <summary>The members of every type declaration of this element a TYPE clause references, by name: §2023:8.4.2.2.1 rule 4's
+    /// <summary>The members of every type declaration of this element a TYPE clause references, by name: §2023:8.4.2.2.1 SR4's
     /// "other definitions" (<see cref="WithLapsedTypeMembers"/>). Built once, when <see cref="Passes.ExpandTypesPass.Run"/> has
     /// completed every declaration (<see cref="IndexLapsedTypeMembers"/>); null until then, when they are walked live (a SAME AS
     /// operand resolved while the declarations are being completed, whose copies are still arriving).</summary>
@@ -61,8 +61,8 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>The type declaration the type-name <paramref name="carrier"/> holds as text names (<paramref name="which"/>), in the
-    /// scope of the element whose entry writes it, or null when it names none (§2023:13.18.57.3 SR1: type-name-1 "shall be the
-    /// name of a type declaration"). A name a SYMBOL carries is resolved by the table from the symbol
+    /// scope of the element whose entry writes it, or null when it names none (the caller states the
+    /// rule its position breaks). A name a SYMBOL carries is resolved by the table from the symbol
     /// (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 6").</summary>
     internal DataItem? TypeDeclarationOf(DataItem carrier, TypeNameCarried which) =>
         (which switch
@@ -150,7 +150,7 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>The INDEX-NAME arm of <see cref="WithLapsedTypeMembers"/>: an INDEXED BY name written on a member of a referenced
-    /// type declaration is "another definition of the name" (§2023:8.4.2.2.1 rule 4) exactly as the member's data-name is, so it
+    /// type declaration is "another definition of the name" (§2023:8.4.2.2.1 SR4) exactly as the member's data-name is, so it
     /// COUNTS against <paramref name="declared"/> (the reference's qualified index survivors) when <paramref name="qualifies"/>
     /// reaches it, and only while at least one declared survivor exists (such a member declares no index cell to resolve to). A
     /// member a survivor's table is a copy of is that survivor's own definition (kb/Work PB1476).</summary>
@@ -189,7 +189,7 @@ public sealed partial class SymbolTable
             .SelectMany(DataItem.DescendantsOf).Where(m => m.CobolName is { } n && Key(n) == name);
     }
 
-    /// <summary>The CONDITION-NAME arm of <see cref="WithLapsedTypeMembers"/>: §2023:8.4.2.2.1 rule 4 is about "the name" of any
+    /// <summary>The CONDITION-NAME arm of <see cref="WithLapsedTypeMembers"/>: §2023:8.4.2.2.1 SR4 is about "the name" of any
     /// user-defined word, and a type declaration's level-88 entries are "part of the type declaration of that type"
     /// (§2023:13.18.58.4 GR1), off the condition-name index exactly as its data members are off the data-name index. Once the type
     /// is referenced by a TYPE clause they COUNT against <paramref name="registered"/> (never empty), except one a registered

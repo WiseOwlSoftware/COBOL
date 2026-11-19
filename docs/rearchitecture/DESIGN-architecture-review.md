@@ -1403,7 +1403,7 @@ public or internal collection of its own and when a slice's mutator is called fr
   tail (`ElementBinders.Freeze`), so the two doors are shut when the forest roots and the cell backings are frozen into it.
 - `ClauseFacts` (`State.Clauses`): the entries that WROTE a SIGN or a VALUE clause (§2023:13.18.52.3 SR1/SR2, §2023:13.16.3 SR10), the
   clause operands the capture already refused, the written level-88s in source order (§2023:13.16.3 SR24) and `LapsedTypeMembers`
-  (§2023:8.4.2.2.1 rule 4, written once by `ExpandTypesPass`).
+  (§2023:8.4.2.2.1 SR4, written once by `ExpandTypesPass`).
 - `ImplicitRegisters` (`State.Implicit`): the X3.23-1985 DEBUG-ITEM family and `EXCEPTION-OBJECT` (§2023:8.4.3.6.3 SR2).
 And `DataBindState` now holds `Reports` (the `ReportScope` of step 7), `SumCounters` (the `FilesResolved`-gated view of it) and the
 pass-completion watermark (`Watermark`, `MarkProduced`, `Require`, the P6 Step-6 gate), which the gated reads of the slices

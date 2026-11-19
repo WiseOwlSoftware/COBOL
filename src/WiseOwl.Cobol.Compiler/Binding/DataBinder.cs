@@ -2719,7 +2719,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // are part of the type") / §2023:13.18.49.4 GR2a ("the same names, DESCRIPTIONS, and hierarchy").
         CopyClauseDescription(src, clone, DescriptionCopyScope.Entry);
         clone.RedefinesTargetName = src.RedefinesTargetName;   // a member's REDEFINES is part of the type
-        clone.ClonedFrom = src;                                // §2023:8.4.2.2.1 rule 4: the definition this copy reproduces
+        clone.ClonedFrom = src;                                // §2023:8.4.2.2.1 SR4: the definition this copy reproduces
         clone.Uid = _uidCounter++;
         clone.Parent = newParent;
         // The member's INDEXED BY names are part of the type (§2023:13.18.58.4 GR1). RegisterName re-declares them on
@@ -2831,7 +2831,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // ⛔ Through the ONE §2023:8.4.2.2 resolver and the ONE ambiguity verdict (kb/Work PB978): the private
         // qualifier matcher this used knew nothing of the file-name qualifier (§2023:8.4.2.2.2 Format 1's
         // file-report-qualifier), and its ambiguity sentence cited §2023:8.4.3.2, a clause about something else.
-        // §2023:8.4.2.2.1 rule 5's implicit qualifiers apply: SAME AS is a data description entry clause.
+        // §2023:8.4.2.2.1 SR5's implicit qualifiers apply: SAME AS is a data description entry clause.
         // A subject expanded AHEAD of the pipeline (CompleteDescriptionAhead, kb/Work PB2465) may name an entry the
         // section walk has not reached: it is bound now, out of source order, as a length phrase's operand is. After
         // the walk nothing is described later and this is a no-op.
@@ -3153,7 +3153,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 ThruQualifiers = info.ThruQualifiers,
             },
         };
-        clone.ClonedFrom = src;   // a copy like every other member of the type (§2023:8.4.2.2.1 rule 4; DataItem.ReferenceSite)
+        clone.ClonedFrom = src;   // a copy like every other member of the type (§2023:8.4.2.2.1 SR4; DataItem.ReferenceSite)
         clone.Uid = _uidCounter++;
         clone.Parent = target;
         target.Renames66.Add(clone);
@@ -6044,7 +6044,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return new NameCandidates<DataItem>(tier, reportEntries);
     }
 
-    /// <summary>Whether a candidate condition-name is a TYPE DECLARATION's own member — one that §2023:8.4.2.2.1 rule 4
+    /// <summary>Whether a candidate condition-name is a TYPE DECLARATION's own member — one that §2023:8.4.2.2.1 SR4
     /// lets count against a reference but that names no storage to test (§2023:13.18.58.4 GR2).</summary>
     internal static bool IsTypeDeclarationCondition(Condition88 condition) => InTypeDeclaration(condition.Parent);
 
@@ -6072,13 +6072,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <see cref="EntryClauseCandidates"/> (OCCURS … DEPENDING ON) and <see cref="RegionClauseCandidates"/> (OCCURS KEY,
     /// RENAMES). It is ISO/IEC 1989:2002's change (§2002:F.2, item 67: "Data-names referenced in a data description entry
     /// need not be qualified when they are defined in the same group as the subject of the entry"), carried on by
-    /// §2023:8.4.2.2.1 rule 5. §1985:IV.4.3.8.1 SR3 has only the exception "in the case of redefinition": every other
+    /// §2023:8.4.2.2.1 SR5. §1985:IV.4.3.8.1 SR3 has only the exception "in the case of redefinition": every other
     /// explicitly referenced name must be made unique by qualification, so below 2002 the whole scope's candidates
     /// are counted (§1985:VI.5.8.3 SR2 and §1985:VI.5.11.3 SR5 give these clauses the qualifier to say it with).</summary>
     private bool ClauseOperandsTakeImplicitQualifiers => Edition.DialectLevel >= 2002;
 
     /// <summary>The candidate set of a data-name referenced in a DATA DESCRIPTION ENTRY CLAUSE of
-    /// <paramref name="subject"/> (OCCURS … DEPENDING ON, SAME AS), with ISO §2023:8.4.2.2.1 rule 5's implicit
+    /// <paramref name="subject"/> (OCCURS … DEPENDING ON, SAME AS), with ISO §2023:8.4.2.2.1 SR5's implicit
     /// qualification applied (from 2002, <see cref="ClauseOperandsTakeImplicitQualifiers"/>): "The name is a data-name referenced in a data description entry clause whose subject
     /// is subordinate to the same group item as that data-name. In this case, the names of any group items
     /// superordinate to both the data-name and the subject of the data description entry clause are used as
@@ -6196,7 +6196,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// survivors is the §2023:8.4.2.2.1 uniqueness verdict, which the caller reports (<c>ConditionBinder.ConditionOf</c>)
     /// or ignores (a pass that only reads which condition a bare operand names: <c>FlagConformancePass</c>, kb/Work
     /// PB3288). EMPTY when the spelling names no condition-name, when the qualifiers reach none, or when every
-    /// survivor is a lapsed type-declaration condition (§2023:8.4.2.2.1 rule 4 — alone it names nothing to test). Pure:
+    /// survivor is a lapsed type-declaration condition (§2023:8.4.2.2.1 SR4 — alone it names nothing to test). Pure:
     /// it reports nothing.</summary>
     internal List<Condition88> QualifiedConditionCandidates(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {

@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// (kb/Work PB466).</summary>
 internal enum ProcedureAmbiguityRule
 {
-    /// <summary>ISO §2023:8.4.2.2.1 rule 1 is false and no rule 2-6 excuse applies, so §2023:8.4.2.2.3 SR1 requires
+    /// <summary>ISO §2023:8.4.2.2.1 SR1 is false and no rule 2-6 excuse applies, so §2023:8.4.2.2.3 SR1 requires
     /// qualification: more than one procedure in the source element carries the spelling, and the reference
     /// wrote no qualifier (or wrote one that is itself duplicated).</summary>
     Qualification,

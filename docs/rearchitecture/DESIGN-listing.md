@@ -1112,7 +1112,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     context's children (`SymbolTable.ProcedureWords`), never its glued text, so the hazard the one-word rule closes stays closed;
     any other context names a procedure only when it is one word. The data-name class will read `dataReference` the same way.
   - *A reference's SITE is an input (correction, slice 2).* A procedure-name resolves from where it is written: its method (a
-    method's procedure-names are its own, §2023:8.4.6.1) and its containing section (§2023:8.4.2.2.1 rule 6). The ambient cursor
+    method's procedure-names are its own, §2023:8.4.6.1) and its containing section (§2023:8.4.2.2.1 SR6). The ambient cursor
     that held them is the procedure binder's (`BinderContext.CurrentMethodScope`, `CurrentSection`), not the table's, and a USE FOR
     DEBUGGING subject is resolved after collection, when no cursor stands at it; so the caller states the site
     (`ProcedureSite(Method, Section)`), `Identify` refuses a procedure-name without one, and no other class reads it.
@@ -1286,6 +1286,40 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       compares it (`ExternalizedNames`, DOC-A.1-68), never a word the program writes. Like slice 2's tables keyed by no COBOL user word,
       it is keyed by a type that says so, `ExternalizedProgramName` (in the model layer, which the bound layer's `StatementBinder` may
       name), and stays the procedure binder's.
+  - *(Step 6b, data-name lane, first slice, branch `listing-step-6b-data`.)* The DEBUG-ITEM register names, the type-names, the named
+    CAPACITY registers and the index-names moved, each with its resolution, and the baseline fell by 33 (rule (1) 13 tables, rule (3)
+    9 lookups, rule (5) 11 sites). `SymbolTable.DebugRegisters.cs` keys the X3.23-1985 DEBUG-ITEM family (§1985:XV.3.2.4 GR10)
+    where `ActivateDebugRegisters` makes it; `SymbolTable.Types.cs` owns the element's, the containers' GLOBAL and each method's
+    type-names with the §2023:8.4.2.2.1 SR4 lapsed members (`WithLapsedTypeMembers`, `WithLapsedTypeConditions`,
+    `WithLapsedTypeIndexes`, private now); `SymbolTable.CapacityRegisters.cs` owns the registers (§2023:13.18.38.3 SR30), their one
+    insert, SR30's duplicate test and the one lookup behind the `OccursResolved` watermark; `SymbolTable.IndexNames.cs` owns the
+    index-name namespaces (`IndexNameTable`, which was the model's `IndexNameRegistry`). `NameClass` gains `DebugRegister`, `TypeName`
+    and `CapacityRegister`, and every written name of the four classes is `Identify`. The corrections the code proved:
+    - *The progress table's first row is several classes (correction).* It moved the data, condition, index, capacity, type and
+      debug-register names "as one unit, because they resolve together". §2023:8.3.2.2 lists data-name, condition-name, index-name and
+      type-name as separate user-defined words, and the two registers are names the standard or SR30 defines implicitly; what ties
+      them is §2023:8.4.6.2.1 3)'s ranking ACROSS the classes, and those questions (`NearerDataOrConditionNameHides`,
+      `Declarations.DeclaredNearerThan`, `NonConditionDeclarationsOf`) were already the table's members reading each class through
+      a question. So each class moved alone, the oracle IDENTICAL after each. The data-names and the condition-names stay one unit
+      (each ranks the other both ways, and one qualifier walk serves both) and are the lane's next slice.
+    - *A method's tables are the table's (correction).* The method overlay (`OoMethodDataScope`) held a method's name indexes as model
+      dictionaries. They are `SymbolTable.MethodNames`, one per method, and `MethodNames.Declares` asks every table of it, so a
+      method's declaration of a spelling in any class hides the object's (§2023:11.7.4 GR5); `MethodDeclaresWord` asks it, and
+      `GlobalNameClassDriftTests` finds the tables by reflection and holds `Declares` to each, as it held `OoMethodDataScope.IndexesDeclare`.
+    - *A type-name an entry carries is resolved from the entry.* A TYPE clause, a typed entry's type and a restricted pointer's
+      `USAGE POINTER TO type-name` are held as text by the `DataItem` (slice 6's pattern): `SymbolTable.TypeDeclarationOf(DataItem,
+      TypeNameCarried)` reads the text the entry carries, in the scope of the element whose entry writes it.
+    - *A qualified name no parse rule holds with its qualifiers.* An index-name in a subscript is a token of the subscript's token list,
+      its `OF`/`IN` qualifiers the tokens after it (§2023:8.4.2.2.2 Format 3). `WrittenQualifiedName(Head, Qualifiers)` carries the
+      tokens (made from a token list by the one qualifier walk, which replaced `SubscriptBinder.QualifiersAfter` and its copy in
+      `SearchAllFormat2Rules`, or from a `dataReference`'s qualifications), and `Identify(WrittenQualifiedName, NameClass.Index,
+      report)` answers the §2023:8.4.2.2 candidate set, whose count stays `NameResolution.ResolveIndexName`'s verdict.
+    - *The forest keeps the declarations, in order.* The element's own index declarations (the cells it emits, `ForestSlice.OwnIndexes`)
+      and type declarations (`ForestSlice.TypeDeclarations`, and a method's `OoMethodDataScope.TypeDeclarations`) stay model lists, added
+      by the table's `DeclareIndex` and `DeclareType` once they have keyed the name: an enumeration is no lookup (slice 1's files).
+    - *For step 7b.* `NameResolution.ResolveIndexName` identifies with `report: !Probing`, but SET classifies its operand and then binds
+      it, both committing, so the occurrence needs the once-per-written-reference gate the resolver already applies to its diagnostics;
+      `ReferenceResolver.CapacityRegisterFor` takes `report` (the reference arm's own, false for the classifying probes).
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences

@@ -333,7 +333,7 @@ public sealed class DataItem
     public bool DeclaresStrongType => IsTypedef && (TypedefStrong || StrongType);
 
     /// <summary>True once any TYPE clause in the source unit — on a storage item or on a member of another type
-    /// declaration — references this TYPE DECLARATION: the antecedent of ISO §2023:8.4.2.2.1 rule 4's exemption ("Any
+    /// declaration — references this TYPE DECLARATION: the antecedent of ISO §2023:8.4.2.2.1 SR4's exemption ("Any
     /// other definition of the name is subordinate to a type declaration entry for which the type-name is not
     /// referenced in any TYPE clause in the source unit"). Written by <c>DataBinder.ExpandType</c>, which every TYPE
     /// clause passes through (kb/Work PB1476).</summary>
@@ -343,14 +343,14 @@ public sealed class DataItem
 
     /// <summary>The entry a TYPE / SAME AS copy reproduced this subordinate from (<c>DataBinder.CloneItem</c>, and
     /// <c>DataBinder.CloneRenamesOnto</c> for a level-66 entry of the type), or null for a written entry. Followed to its end it names the WRITTEN definition the copy stands for — the
-    /// identity ISO §2023:8.4.2.2.1 rule 4 asks about ("any other definition of the name"), so a reference to the one
+    /// identity ISO §2023:8.4.2.2.1 SR4 asks about ("any other definition of the name"), so a reference to the one
     /// copy of a type member is not made ambiguous by the member's own declaration (kb/Work PB1476).</summary>
     [DescriptionCopy(DescriptionCopyKind.None, "the copy's provenance — identity, written by CloneItem itself")]
     public DataItem? ClonedFrom { get; set; }
 
     /// <summary>The WRITTEN entry this item stands for: <see cref="ClonedFrom"/> followed to its end, or the item itself
     /// when it is no copy. Two TYPE / SAME AS expansions of one written entry share it — one definition reproduced
-    /// twice, never two definitions (ISO §2023:8.4.2.2.1 rule 4; kb/Work PB2988).</summary>
+    /// twice, never two definitions (ISO §2023:8.4.2.2.1 SR4; kb/Work PB2988).</summary>
     public DataItem WrittenDefinition
     {
         get
@@ -501,7 +501,7 @@ public sealed class DataItem
     public string? TypeRefName { get; set; }
 
     /// <summary>The type-name the entry's OWN TYPE clause wrote (ISO §2023:13.18.57), or null — the source fact, which
-    /// expansion never clears (<see cref="TypeRefName"/> is the pending-expansion mark it clears). §2023:8.4.2.2.1 rule 4's
+    /// expansion never clears (<see cref="TypeRefName"/> is the pending-expansion mark it clears). §2023:8.4.2.2.1 SR4's
     /// "type declaration … not referenced in any TYPE clause" asks it, so the answer does not depend on whether a
     /// constant's length phrase expanded the entry ahead of the pipeline (<c>DataBinder.CompleteDescriptionAhead</c>,
     /// kb/Work PB2465).</summary>

@@ -345,7 +345,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// this answers "which one?", and the two are separate diagnostics because a user sent to look for a
     /// missing paragraph will not find the second one they wrote.
     /// <para>Which rule broke decides which code and which repair the message can honestly offer.
-    /// §2023:8.4.2.2.1 rule 1 — "No other name has the identical spelling" — false with no rule-2-through-6 excuse
+    /// §2023:8.4.2.2.1 SR1 — "No other name has the identical spelling" — false with no rule-2-through-6 excuse
     /// means §2023:8.4.2.2.3 SR1's "sequence of qualifiers that precludes any ambiguity of reference" was owed and
     /// not written, which the user CAN supply (§2023:8.4.2.2.2 format 4, <c>paragraph-name IN section-name</c>) —
     /// unless the duplicated word is the section-name itself, which takes no qualifier at all. §2023:8.4.2.2.3 SR7 —

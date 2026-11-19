@@ -1946,7 +1946,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // the ONE resolution this and FlagConformancePass read (kb/Work PB3288): one namespace tier, narrowed by the
         // written qualifiers, then by §2023:8.4.6.2.1 3) after qualification (a condition-name of this source element hides
         // a container's global one, a nearer container's a farther one, kb/Work PB1047), and EMPTY for a lapsed
-        // type-declaration condition-name alone (§2023:8.4.2.2.1 rule 4 — it only COUNTS against a condition-name the
+        // type-declaration condition-name alone (§2023:8.4.2.2.1 SR4 — it only COUNTS against a condition-name the
         // reference also reaches). A plural SURVIVOR set — unqualified with duplicate 88 names, or qualifiers matching
         // more than one — is genuine ambiguity, previously resolved silently to the first declaration. Strict: report
         // and bind the first anyway (the compile already fails; no caller fallback runs a different reading).

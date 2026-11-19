@@ -10,7 +10,7 @@ using Core = CobolParserCore;
 
 /// <summary>Where a procedure-name reference is written: the METHOD whose body holds it (null outside every method) and the SECTION
 /// that contains it (null for a reference in no section). The two scope the §2023:8.4.2.2 resolution: a method's procedure-names are
-/// its own (§2023:8.4.6.1 over the method's own source element), and the containing section is what §2023:8.4.2.2.1 rule 6 is
+/// its own (§2023:8.4.6.1 over the method's own source element), and the containing section is what §2023:8.4.2.2.1 SR6 is
 /// measured against. The caller states it because the debug subjects of USE FOR DEBUGGING are resolved after collection, when no
 /// ambient cursor stands where the reference was written.</summary>
 internal readonly record struct ProcedureSite(OoMethodScope? Method, SectionInfo? Section);
@@ -54,7 +54,7 @@ public sealed partial class SymbolTable
         /// <summary>The FIRST declaration of <paramref name="name"/>; says nothing about uniqueness (ask <see cref="IsDuplicated"/>).</summary>
         public bool TryResolve(CobolName name, out T definition) => _first.TryGetValue(name, out definition!);
 
-        /// <summary>Whether this scope declares <paramref name="name"/> more than once (§2023:8.4.2.2.1 rule 1 is then false for it).</summary>
+        /// <summary>Whether this scope declares <paramref name="name"/> more than once (§2023:8.4.2.2.1 SR1 is then false for it).</summary>
         public bool IsDuplicated(CobolName name) => _duplicated.Count != 0 && _duplicated.ContainsKey(name);
 
         /// <summary>How many times this scope declares <paramref name="name"/>: rule 1's candidate count is a SUM over the scopes a
@@ -117,7 +117,7 @@ public sealed partial class SymbolTable
     /// ⛔ THE ONE §2023:8.4.2.2 procedure-name resolution, one body for every scope (kb/Work PB390, PB466): an explicit
     /// <c>IN/OF section-name</c> qualifier resolves against that section's own paragraphs (§2023:8.4.2.2.2 format 4), and the
     /// qualifier must itself identify one section, since a section-name takes no qualifier of its own. Unqualified: first a
-    /// paragraph of the CONTAINING section (§2023:8.4.2.2.1 rule 6, valid while that section declares it once: §2023:8.4.2.2.3 SR7,
+    /// paragraph of the CONTAINING section (§2023:8.4.2.2.1 SR6, valid while that section declares it once: §2023:8.4.2.2.3 SR7,
     /// "If explicitly referenced, a paragraph-name shall not be duplicated within a section", tested here at the reference because
     /// an unreferenced duplicate is legal), then the whole source element, where rule 1 decides over paragraphs and sections
     /// together, because §2023:14.4.1 makes a procedure-name "a word used to refer to a paragraph or section".</summary>

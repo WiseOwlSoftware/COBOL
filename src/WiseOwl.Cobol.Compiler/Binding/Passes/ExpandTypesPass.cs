@@ -41,7 +41,7 @@ internal sealed class ExpandTypesPass : IBindPass
         // SR6's placement of a member typed by a STRONG declaration — whether or not anything references it.
         // They used to be side effects of per-REFERENCE expansion, so a recursive type declaration that no
         // storage item expanded compiled clean, and the answer for one that was depended on declaration order.
-        // §2023:8.4.2.2.1 rule 4's antecedent, recorded BEFORE anything is expanded or resolved (kb/Work PB1476): "a type
+        // §2023:8.4.2.2.1 SR4's antecedent, recorded BEFORE anything is expanded or resolved (kb/Work PB1476): "a type
         // declaration entry for which the type-name is not referenced in any TYPE clause in the source unit". EVERY
         // written TYPE clause counts — a storage item's, a linkage item's, and a member's of another type
         // declaration, which nothing may ever copy — so the exemption's lapse is a property of the source, never
@@ -89,7 +89,7 @@ internal sealed class ExpandTypesPass : IBindPass
                 item.Pic = item.Pic with { RestrictedTypeDecl = decl };
     }
 
-    /// <summary>Index the lapsed type-declaration members (§2023:8.4.2.2.1 rule 4) in the symbol table, now that every declaration
+    /// <summary>Index the lapsed type-declaration members (§2023:8.4.2.2.1 SR4) in the symbol table, now that every declaration
     /// is complete: the tail of <see cref="Run"/>.</summary>
     private static void IndexLapsedTypeMembers(DataBinder binder) => binder.Symbols.IndexLapsedTypeMembers();
 }

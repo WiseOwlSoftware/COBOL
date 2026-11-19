@@ -319,7 +319,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// section is its <see cref="ParaSections"/> entry, the one structure that says which section a pc belongs to; and the
     /// candidates of an ambiguous name are described, each at its source line, for the message (kb/Work PB466, PB5091).</summary>
     /// <param name="written">The procedure-name as written: a <c>procedureName</c>, a USE FOR DEBUGGING operand, or one word.</param>
-    /// <param name="referencingSection">The section CONTAINING the reference, which §2023:8.4.2.2.1 rule 6 is measured against.
+    /// <param name="referencingSection">The section CONTAINING the reference, which §2023:8.4.2.2.1 SR6 is measured against.
     /// Passed in rather than read from the ambient cursor, because the debug subject is resolved after collection, when the cursor
     /// no longer stands where the reference was written.</param>
     /// <param name="report">The reference itself (true), or a prescan or probe that classifies it first (false).</param>
@@ -617,7 +617,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     // ⛔ THE SAME §2023:8.4.2.2 RESOLUTION AS EVERY OTHER PROCEDURE-NAME REFERENCE, through the same
                     // method (kb/Work PB466) — USE FOR DEBUGGING ON procedure-name is an explicit reference, so
                     // an ambiguous spelling owes the same diagnostic here as it does at GO TO. The referencing
-                    // section is THIS declarative section, which is what §2023:8.4.2.2.1 rule 6 is measured against.
+                    // section is THIS declarative section, which is what §2023:8.4.2.2.1 SR6 is measured against.
                     // ⛔ ONE PROCEDURE-NAME IS ONE TRIGGER POINT (§1985:XV.3.2.4 GR3 a: "Immediately before each execution
                     // of the named procedure"): a paragraph is its own pc, and a SECTION is executed when control
                     // reaches its FIRST paragraph, so it is one trigger there, named by the section. Treating the section

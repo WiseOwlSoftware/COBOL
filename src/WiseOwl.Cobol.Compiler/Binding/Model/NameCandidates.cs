@@ -63,7 +63,7 @@ public readonly struct NameCandidates<T> where T : class
     internal bool Any(Func<T, bool> predicate) => _items is not null && _items.Exists(i => predicate(i));
 
     /// <summary>The survivors followed by <paramref name="more"/> — further declarations that COUNT for the
-    /// uniqueness verdict (ISO §2023:8.4.2.2.1 rule 4's lapsed type-declaration members); the existing survivors keep
+    /// uniqueness verdict (ISO §2023:8.4.2.2.1 SR4's lapsed type-declaration members); the existing survivors keep
     /// their places, so <see cref="FirstDeclaredForPermissive"/> is unchanged.</summary>
     internal NameCandidates<T> Including(IReadOnlyCollection<T> more) =>
         more.Count == 0 ? this : new([.. _items ?? [], .. more], _reportEntries);

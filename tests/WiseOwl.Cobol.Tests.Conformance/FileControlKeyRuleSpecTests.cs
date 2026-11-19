@@ -771,7 +771,7 @@ public sealed class FileControlKeyRuleSpecTests
     /// declared by two clauses of ONE entry (no Format 6 qualifier can separate them — the reference bound silently
     /// to the prime key), by two FILES (unqualified), or also declared as a data-name (§2023:8.3.2.2 rule 3 allows it).
     /// Each is refused naming SR1 and counting every declaration that matches; the complement — qualification that
-    /// leaves one reading — compiles. DATA2 is the review R2-1 shape: TWO same-spelled data items (§2023:8.4.2.2.1 rule 1,
+    /// leaves one reading — compiles. DATA2 is the review R2-1 shape: TWO same-spelled data items (§2023:8.4.2.2.1 SR1,
     /// "No other name has the identical spelling") must make the reference MORE ambiguous, never resolve it — the
     /// data-name readings used to be probed (unique only), so a second data item dropped both out of the count and
     /// the READ bound silently to the record key.</summary>

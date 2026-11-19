@@ -100,7 +100,7 @@ public sealed partial class DataBinder
     /// position that takes "identifier or literal", which a constant-name may stand in (§2023:13.10.3 SR2). A constant-name and a
     /// data-name may have one spelling in a source element — "the same name may be used as any of the following types of
     /// user-defined words: constant-name, data-name, property-name, record-key-name, record-name" (§2023:8.3.2.2 exception 3;
-    /// §2002:8.3.1.1.1) — and the name is then not unique: §2023:8.4.2.2.1 rule 1 lets it be written unqualified only when "No other
+    /// §2002:8.3.1.1.1) — and the name is then not unique: §2023:8.4.2.2.1 SR1 lets it be written unqualified only when "No other
     /// name has the identical spelling", a constant-name takes no qualifier, and §2023:8.4.2.2.3 SR1 refuses the reference
     /// that does not uniquely identify its item. So the constant is ONE CANDIDATE AMONG THE DATA ITEMS OF ITS SPELLING, counted
     /// with them as <c>CounterResolver</c> counts a sum counter (kb/Work PB3232): COBOL1639 at the reference, once per node,
