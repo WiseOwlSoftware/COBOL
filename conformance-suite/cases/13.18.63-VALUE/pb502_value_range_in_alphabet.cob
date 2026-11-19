@@ -8,7 +8,7 @@
 *>---
       *> ISO 13.18.63.2 format 3's trailing `[ IN alphabet-name-1 ]` over a level-88 condition-name VALUE
       *> range. 13.18.63.4 GR18 defers the whole question: "The manner of determining the range of values
-      *> specified by the THROUGH phrase is described in 14.7.8, THROUGH phrase." 14.7.8 rule 2: with no
+      *> specified by the THROUGH phrase is described in 14.7.8, THROUGH phrase." 14.7.8 GR2: with no
       *> phrase "the collating sequence is defined by the implementor" (this compiler's default is the
       *> PROGRAM COLLATING SEQUENCE); "when the IN alphabet-name phrase is specified, the collating sequence
       *> used for range evaluation is the collating sequence defined by that alphabet"; "the range of values

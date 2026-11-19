@@ -731,7 +731,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     $"EVALUATE range-expression '{DataBinder.WrittenText(range)}'");
             var (lo, hi, rangeClass, collation) = bound;
             bool check = ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line);
-            // §2023:14.7.8 rule 2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID, and
+            // §2023:14.7.8 GR2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID, and
             // then "execution proceeds as if the range of values were empty". The EC is a property of the RANGE's
             // CLASS, exactly as the collating sequence one sentence above it is — never of the written FORM of its
             // ends.
@@ -801,7 +801,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// exception; rule 2 (alphanumeric or national) has the sequence, the IN alphabet-name-1 phrase AND the EC. Two
     /// separately-written tests of one antecedent is how the two halves of rule 2 came to disagree about the same
     /// range (kb/Work PB401).</para>
-    /// <para>§2023:14.9.13.2's range-expression ends `[ IN alphabet-name-1 ]`, and §2023:14.7.8 rule 2 makes that alphabet THE
+    /// <para>§2023:14.9.13.2's range-expression ends `[ IN alphabet-name-1 ]`, and §2023:14.7.8 GR2 makes that alphabet THE
     /// collating sequence the range is evaluated in — overriding the no-phrase arm's "defined by the implementor"
     /// default, which for this compiler is the PROGRAM COLLATING SEQUENCE. The SR3 screens and the carrier registration
     /// are the ONE resolver §2023:14.7.8's opening sentence asks for ("This specification applies to THROUGH phrases
@@ -818,7 +818,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §2023:14.9.13.2's range-expression), screened by
     /// §2023:14.9.13.3 SR3 and registered as a runtime carrier — or null when the phrase is absent or was refused, in
-    /// which case §2023:14.7.8 rule 2's no-phrase arm applies and the sequence stays the implementor's.
+    /// which case §2023:14.7.8 GR2's no-phrase arm applies and the sequence stays the implementor's.
     /// <para>The range's CLASS is asked of the ONE comparison-class rule over BOTH bounds, never of one of them:
     /// SR3's two sentences are a test on the pair ("the literals or identifiers specified in the THROUGH phrase",
     /// then "if literal-3 or identifier-3 is of class national"), and §2023:14.9.13.3 SR4 already requires the two to be

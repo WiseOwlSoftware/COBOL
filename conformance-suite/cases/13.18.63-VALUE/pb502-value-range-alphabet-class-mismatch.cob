@@ -10,7 +10,7 @@
       *> THROUGH range may not name an alphabet declared FOR NATIONAL either. That is the direction the
       *> sibling negative pb398-range-alphabet-class-mismatch does NOT cover: it puts a NATIONAL range under
       *> an alphanumeric alphabet, on the EVALUATE arm. Here an ALPHANUMERIC range names NREV, which
-      *> 12.3.7 declares FOR NATIONAL, so it defines no alphanumeric collating sequence for 14.7.8 rule 2 to
+      *> 12.3.7 declares FOR NATIONAL, so it defines no alphanumeric collating sequence for 14.7.8 GR2 to
       *> use (kb/Work PB502).
       *> AT 85 THE PROGRAM IS REFUSED TWICE OVER, WHICH IS WHY 85 IS OFF THE reject-at LINE. The
       *> ALPHABET ... FOR NATIONAL clause is itself a COBOL-2002 introduction (the national class; the

@@ -116,6 +116,23 @@ public sealed class ReferenceFormatMap
     public int ExpandedIndexAt(int line, int column)
         => line >= 1 && line <= _columns.Length ? _columns[line - 1]?.ToExpanded(column) ?? column : column;
 
+    /// <summary>⛔ THE ONE COLUMN A LISTING RECORD NAMES (DESIGN-listing.md sections 6.3, 6.6 and 6.9): the 1-based CHARACTER position
+    /// in the expanded text of 1-based physical <paramref name="line"/> (<see cref="PhysicalText"/>, tabs expanded) of the character at
+    /// 0-based physical <paramref name="column"/>. <see cref="ExpandedIndexAt"/> counts UTF-16 code units, so a supplementary-plane
+    /// character before the column (an emoji in a literal) is one character but two units; this counts it once, as the text listing's
+    /// caret and every reader of a JSON column do (listing step 3 review lead R1-1). A line that is not one of this text's reads the
+    /// column as it is.</summary>
+    public int CharacterPositionAt(int line, int column)
+    {
+        int index = ExpandedIndexAt(line, column);
+        if (line < 1 || line > PhysicalText.Count) return index + 1;
+        string text = PhysicalText[line - 1];
+        int pairs = 0;
+        for (int at = 1; at < Math.Min(index, text.Length); at++)
+            if (char.IsLowSurrogate(text[at]) && char.IsHighSurrogate(text[at - 1])) pairs++;
+        return index - pairs + 1;
+    }
+
     /// <summary>The COBOL-85 area the text at 0-based physical <paramref name="column"/> of 1-based physical
     /// <paramref name="line"/> stands in (kb/Work PB3147, PB5313): area A (positions 8–11) or area B (position 12 to
     /// margin R), tabs expanded (<see cref="ProgramTextOffsetAt"/>); <see cref="FixedFormArea.None"/> when the line was

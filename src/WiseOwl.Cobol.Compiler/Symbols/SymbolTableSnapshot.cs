@@ -73,6 +73,10 @@ internal enum NameClass
     /// <summary>A program-prototype-name (ISO §2023:8.4.6.8): a REPOSITORY program-specifier's name, or the program-name of a containing
     /// program definition. <c>SymbolTable.Identify</c> resolves it; the finished table holds no entry for it yet (listing step 7b).</summary>
     ProgramPrototype,
+    /// <summary>A function-prototype-name (ISO §2023:8.4.6.6): a REPOSITORY user-defined-function specifier's name, or the
+    /// user-function-name of the containing function definition. <c>SymbolTable.Identify</c> resolves it; the finished table holds no
+    /// entry for it yet (listing step 7b).</summary>
+    FunctionPrototype,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>

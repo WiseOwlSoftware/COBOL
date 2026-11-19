@@ -26,7 +26,7 @@ internal static class CollationEmit
     /// <summary>⛔ THE carrier constructor, over the two components EVERY alphabet definition reduces to — the
     /// §2023:12.3.7.4 GR7 k table or the LOCALE arm — and the ONE bit that chooses the runtime class. The two overloads
     /// above differed by exactly that bit and were otherwise identical text; a third caller
-    /// (<c>RangeCollationCarrier</c>, which holds the components rather than either def record — §2023:14.7.8 rule 2's
+    /// (<c>RangeCollationCarrier</c>, which holds the components rather than either def record — §2023:14.7.8 GR2's
     /// <c>IN alphabet-name-1</c> phrase) is what made the duplication a drift hazard instead of a curiosity.
     /// <para>⚠ ITS IN-PROCESS TWIN IS <c>CollatingTable.Collation(national)</c>, which constructs the SAME carrier
     /// as an object rather than as text, for the compile-time orderings a syntax rule needs (§2023:13.18.63.3 SR27 —

@@ -36,7 +36,26 @@ public sealed partial class SymbolTable
     /// and the externalized name it gave.</summary>
     private readonly Dictionary<CobolName, (RepositorySpecification Spec, string Externalized)> _repositorySpecified = [];
 
+    /// <summary>The names of the definitions CONTAINING this source element (<see cref="BinderDriver.ContainingDefinitions"/>): its own
+    /// and, for a contained program, every program containing it, all of the unit's own kind (<see cref="_containingAreFunctions"/>).
+    /// They are the no-specifier leg of the two prototype-name scope rules: ISO §2023:8.4.6.6 admits "the user-function-name of the
+    /// containing function definition" as a function-prototype-name and §2023:8.4.6.8 "the program-name of a containing program
+    /// definition" as a program-prototype-name (kb/Work PB452, PB817, PB3121). Empty for a class, factory or interface forest: a class
+    /// is neither definition kind. Declared before the element's data binds, so its USAGE TO screen reads them.</summary>
+    private readonly HashSet<CobolName> _containingDefinitions = [];
+
+    /// <summary>Whether <see cref="_containingDefinitions"/> are function definitions (the element is one) or program definitions.</summary>
+    private bool _containingAreFunctions;
+
     // ---- declaration -----------------------------------------------------------------------------------------------------
+
+    /// <summary>Declare the definitions containing this source element (<paramref name="unit"/>, null for a class forest), once, by
+    /// <c>BinderDriver.BindUnitData</c> before the element's data binds.</summary>
+    internal void DeclareContainingDefinitions(BoundUnit? unit)
+    {
+        _containingAreFunctions = unit?.IsFunction == true;
+        foreach (var u in BinderDriver.ContainingDefinitions(unit)) _containingDefinitions.Add(Key(u.Name));
+    }
 
     /// <summary>Declare a program-specifier as written (<c>DataBinder.BindProgramSpecifier</c>); a repeat of a name keeps the first.</summary>
     internal void DeclareProgramSpecifier(ProgramSpecifier specifier) => _programSpecifiers.TryAdd(Key(specifier.Name), specifier);
@@ -176,10 +195,20 @@ public sealed partial class SymbolTable
     internal bool DeclaresProgramSpecifier(string name) =>
         _programSpecifiers.ContainsKey(Key(name)) || _refusedProgramSpecifiers.ContainsKey(Key(name));
 
+    /// <summary>Whether a restricted pointer's <c>USAGE {FUNCTION|PROGRAM}-POINTER TO</c> phrase names a prototype in this element's
+    /// scope (§2023:8.4.6.6 for a function-pointer, <paramref name="function"/>, §2023:8.4.6.8 for a program-pointer, the same
+    /// sentence over the other namespace): the user-function-name or program-name of a containing definition of that kind, or a name
+    /// a REPOSITORY specifier of that kind declares. The data binder's screen of the TO phrase asks it as the entry is declared, so
+    /// the screen and the signature the restriction resolves to read one scope (kb/Work PB3121).</summary>
+    internal bool DeclaresPrototypeName(string name, bool function) =>
+        function
+            ? DeclaresFunction(Key(name))
+            : (!_containingAreFunctions && _containingDefinitions.Contains(Key(name))) || DeclaresProgramSpecifier(name);
+
     /// <summary>Whether a reference to <paramref name="name"/> is the cascade of a PROGRAM specifier whose <c>AS literal-3</c> was
     /// refused (§2023:12.3.8.3 SR2) and reported where it is written (kb/Work PB4936): then the reference adds no diagnostic and
     /// <see cref="EditionContext.NoteCauseReportedEarlier"/> answers for the refusal it builds. The twin of
-    /// <see cref="ConfigurationSlice.IsRefusedFunctionReference"/>.</summary>
+    /// <see cref="IsRefusedFunctionReference"/>.</summary>
     internal bool IsRefusedProgramReference(string name, EditionContext edition) =>
         _refusedProgramSpecifiers.TryGetValue(Key(name), out var refusal) && refusal == ProgramSpecifierRefusal.Literal3
         && edition.NoteCauseReportedEarlier(RefusedSpecifierKind.Program, name);

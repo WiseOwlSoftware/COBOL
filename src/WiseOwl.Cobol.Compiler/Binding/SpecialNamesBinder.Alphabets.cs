@@ -19,7 +19,7 @@ using WiseOwl.Cobol.Runtime;
 public sealed partial class SpecialNamesBinder
 {
     /// <summary>⛔ THE per-TYPE runtime carriers a THROUGH range's <c>IN alphabet-name-1</c> phrase needs (ISO
-    /// §2023:14.7.8 rule 2 — "the collating sequence used for range evaluation is the collating sequence defined by that
+    /// §2023:14.7.8 GR2 — "the collating sequence used for range evaluation is the collating sequence defined by that
     /// alphabet"), one per ALPHABET the phrase resolves to, in the order first named. Each is declared beside
     /// <c>__COLLATE</c> by <c>ObjectComputerEmit</c>, and the node of each range carries its identity
     /// (<see cref="RangeCollationId"/>: <see cref="Bound.BoundRangeMembership.Collation"/>, <see cref="Condition88.Collation"/>),
@@ -55,7 +55,7 @@ public sealed partial class SpecialNamesBinder
         : throw new InvalidOperationException($"range collation '{id.Name}' was not made by this unit's SPECIAL-NAMES binder");
 
     /// <summary>The carrier of an ALPHANUMERIC alphabet as a range collating sequence — with no field when the alphabet is
-    /// the native order (an identity sequence needs none: §2023:14.7.8 rule 2's "the collating sequence defined by that
+    /// the native order (an identity sequence needs none: §2023:14.7.8 GR2's "the collating sequence defined by that
     /// alphabet" IS the native one, and the two-argument <c>CobolString.Compare</c> overload is it).</summary>
     /// <para>⛔ EVERY ACCEPTED ALPHABET GETS A CARRIER, the two that need no declaration of their own included — an
     /// identity sequence (a NULL field: the native comparison IS "the collating sequence defined by that alphabet") and
@@ -88,7 +88,7 @@ public sealed partial class SpecialNamesBinder
     /// ONE sentence governing both, so one resolver. It enforces both halves of §2023:14.9.13.3 SR3 (§2023:13.18.63.3 SR31 is
     /// the same rule for the VALUE clause) and makes the runtime carrier.
     /// <para>Returns the carrier's identity when the phrase is accepted, which the bound node carries; null when it was refused, and
-    /// the range then keeps the implementor default sequence (§2023:14.7.8 rule 2's no-phrase arm) rather than acquiring a
+    /// the range then keeps the implementor default sequence (§2023:14.7.8 GR2's no-phrase arm) rather than acquiring a
     /// second, invented error mode.</para></summary>
     /// <param name="written">alphabet-name-1 as written, identified through the symbol table.</param>
     /// <param name="rangeClass">The comparison class of the range's operands, from the ONE comparison-class rule

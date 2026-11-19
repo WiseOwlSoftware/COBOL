@@ -36,7 +36,7 @@ public sealed class Condition88
     /// <summary>The collating sequence alphabet-name-1 of the clause's <c>IN</c> phrase names, the identity of the carrier the one
     /// resolver made (<see cref="DataBindResult.RangeCollations"/>)
     /// (ISO §2023:13.18.63.2 formats 3 and 5 — <c>[ IN alphabet-name-1 ]</c> stands OUTSIDE the repeated literal group, so one
-    /// alphabet governs the whole VALUE set), or null when the phrase is absent or was refused. §2023:14.7.8 rule 2 makes it the collating sequence every THRU
+    /// alphabet governs the whole VALUE set), or null when the phrase is absent or was refused. §2023:14.7.8 GR2 makes it the collating sequence every THRU
     /// range in the set is evaluated in, overriding the no-phrase arm's implementor default — which for this
     /// compiler is the PROGRAM COLLATING SEQUENCE.
     /// <para>⛔ IT WAS PARSED AND DROPPED (kb/Work PB398), which is a silent wrong answer rather than a missing
@@ -70,7 +70,7 @@ public sealed class Condition88
     /// a list of fields that silently stops being exhaustive.
     /// <para>⛔ IT WAS EXACTLY THAT (kb/Work PB555 sibling sweep). <c>DataBinder.CloneConditionOnto</c> copied
     /// <see cref="Values"/> and nothing else, so a clone lost the IN phrase's alphabet (<see cref="Collation"/>) — a SILENT WRONG ANSWER,
-    /// since §2023:14.7.8 rule 2's sequence reverting to the program default re-answers every THRU range the clone
+    /// since §2023:14.7.8 GR2's sequence reverting to the program default re-answers every THRU range the clone
     /// tests — and would have lost <see cref="FalseValue"/> the moment it existed. Every constituent
     /// §2023:13.18.63.2 Format 3 prints is carried here; <c>Condition88CloneDriftTests</c> fails if a field is added
     /// to this class and not to this method.</para>

@@ -10,7 +10,7 @@
       *> figures is IN underlined (PDF p649 / folio 619 and p546 / folio 516). 5.2.3: optional words "are
       *> shown in uppercase and not underlined in general formats. They may be written to add clarity". So
       *> `WHEN "P" THRU "D" AL` and `88 X VALUE "P" THRU "D" AL` are the IN phrase, with the
-      *> meaning 14.7.8 rule 2 gives it: "When the IN alphabet-name phrase is specified, the collating
+      *> meaning 14.7.8 GR2 gives it: "When the IN alphabet-name phrase is specified, the collating
       *> sequence used for range evaluation is the collating sequence defined by that alphabet". kb/Work
       *> PB983: the EVALUATE spelling died COBOL2072 and the VALUE spelling COBOL1639.
       *>
@@ -24,7 +24,7 @@
       *>   E1 `WHEN "P" THRU "D" AL`           11 <= 14 <= 23                     -> E1=T (native: "P">"D", empty)
       *>   E2 `WHEN WS-LO THRU WS-HI AL`       the same bounds as identifiers     -> E2=T
       *>   E3 `WHEN "P" THROUGH "D" AL ALSO "Q" THRU "M" AL` - both ranges hold 14 (10..14 includes its end
-      *>      value, 14.7.8 rule 2 "up to and including")                        -> E3=T (native: both empty)
+      *>      value, 14.7.8 GR2 "up to and including")                        -> E3=T (native: both empty)
       *>   E4 `WHEN "D" THRU "P"`, no phrase - the implementor arm (the native sequence here); the CONTROL
       *>                                                                          -> E4=T
       *>   V1 `88 VALUE "P" THRU "D" AL`                                          -> V1=T

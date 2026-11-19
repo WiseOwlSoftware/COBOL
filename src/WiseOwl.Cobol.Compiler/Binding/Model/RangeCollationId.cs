@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// Which range-collation carrier a THROUGH range's <c>IN alphabet-name-1</c> phrase named (ISO §2023:14.7.8 rule 2). The unit
+/// Which range-collation carrier a THROUGH range's <c>IN alphabet-name-1</c> phrase named (ISO §2023:14.7.8 GR2). The unit
 /// whose binder resolved the phrase makes one per alphabet it names (its <see cref="DataBindResult.RangeCollations"/>), and the
 /// range's node carries it (<see cref="Bound.BoundRangeMembership.Collation"/>, <see cref="Condition88.Collation"/>), so the
 /// backend looks no alphabet-name up (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 4": a name table is the
@@ -38,7 +38,7 @@ public sealed class RangeCollationId(string name, RangeCollationSequence sequenc
     public override string ToString() => Name;
 }
 
-/// <summary>What a range-collation carrier is to the unit that made it (ISO §2023:14.7.8 rule 2: "the collating sequence used for
+/// <summary>What a range-collation carrier is to the unit that made it (ISO §2023:14.7.8 GR2: "the collating sequence used for
 /// range evaluation is the collating sequence defined by that alphabet").</summary>
 public enum RangeCollationSequence
 {

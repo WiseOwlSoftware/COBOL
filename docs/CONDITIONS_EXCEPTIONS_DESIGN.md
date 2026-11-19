@@ -714,7 +714,7 @@ the numeric-edited image has exactly two readers, and the recipe reads `OperandP
 a latched ON OVERFLOW-less STRING, ALLOCATE/FREE, CONTINUE AFTER, SEARCH's range conditions. Four conditions have
 no such site: an untranslatable code unit inside an arbitrary expression (EC-DATA-CONVERSION, §2023:15.19.4 r3), a
 dynamic-capacity table grown under a receiving subscript (EC-BOUND-OVERFLOW, §2023:8.5.1.9.6 GR1), an inverted THROUGH
-range inside a condition (EC-RANGE-INVALID, §2023:14.7.8 rule 2) and a dynamic-length resize (EC-STORAGE-NOT-AVAIL,
+range inside a condition (EC-RANGE-INVALID, §2023:14.7.8 GR2) and a dynamic-length resize (EC-STORAGE-NOT-AVAIL,
 §2023:14.9.39 Format 16 GR37/GR38). They are detected by `ExceptionEngine`'s own raise helpers, which is why the
 §2023:14.6.13.1.1 rule already lives there per (ambient flag, exception-name) pair — and why the §2023:14.6.13.1.4 #3
 selection now lives there too: `NonfatalIfEnabled` sets the last exception status AND asks
@@ -1033,7 +1033,7 @@ Expand at BIND time into ordinary full BoundRelational nodes (G4: the expansion 
 
 **Editions.** No introduction gate fires: the traceability inventory records these rows 2002+, but that edge is INFERRED from the feature history — `specs/ISO_COBOL_2023.md` holds only the 2023 text and its Annex E records no EVALUATE change — and gating on an unproven edge would REJECT LEGAL SOURCE if the inference is wrong, whereas not gating under-rejects at worst. The surveyed implementations accept the construct in every dialect. Overturnable in one line (kb/Work PB398).
 
-### A THROUGH range's `IN alphabet-name-1` phrase names the sequence the range is evaluated in — for BOTH clauses that print it (ISO §2023:14.7.8 rule 2; §2023:14.9.13.2's range-expression; §2023:13.18.63.2 formats 3 and 5).
+### A THROUGH range's `IN alphabet-name-1` phrase names the sequence the range is evaluated in — for BOTH clauses that print it (ISO §2023:14.7.8 GR2; §2023:14.9.13.2's range-expression; §2023:13.18.63.2 formats 3 and 5).
 
 **One rule, therefore one resolver.** §2023:14.7.8 opens "This specification applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement", so `SpecialNamesBinder.TryResolveRangeAlphabet` is the single site: it enforces both sentences of §2023:14.9.13.3 SR3 (= §2023:13.18.63.3 SR31 for the VALUE clause) — the operand-class restriction, and the national-vs-alphanumeric class match, the two alphabet domains being disjoint per §2023:12.3.6 SR1/SR2 — and registers the runtime carrier. Diagnostics: **COBOL1997** (the word declares no alphabet), **COBOL1998** (SR3 sentence 1 — the range is not of a class a collating sequence orders), **COBOL1999** (SR3 sentence 2 — the alphabet is of the other class, or names a coded character set only, §2023:12.3.7.4 Table 6's empty collating column for UTF-8/UTF-16).
 

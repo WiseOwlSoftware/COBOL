@@ -10,7 +10,7 @@
       *> kb/Work PB5932, review round 1 of listing step 6b slice 4. 13.18.27.4 GR1: "All condition-names
       *> associated with a global name are global names"; GR2: a statement in a program contained directly
       *> or indirectly within the program that describes a global name may reference that name without
-      *> describing it again. 14.7.8 rule 2: "when the IN alphabet-name phrase is specified, the collating
+      *> describing it again. 14.7.8 GR2: "when the IN alphabet-name phrase is specified, the collating
       *> sequence used for range evaluation is the collating sequence defined by that alphabet" - the
       *> alphabet the VALUE clause names, wherever the condition-name is tested.
       *> The carrier of OK's sequence is OUTER's. A contained program that tested OK read a carrier of its

@@ -38,7 +38,7 @@ public sealed class ThroughRangeExceptionTests
 {
     /// <summary>One program: a subject, a WHEN range, a WHEN OTHER, and <c>FUNCTION EXCEPTION-STATUS</c> printed
     /// AFTER the EVALUATE under <c>&gt;&gt;TURN EC-RANGE-INVALID CHECKING ON</c>. The two printed lines are the
-    /// two halves of §2023:14.7.8 rule 2 — the BRANCH (the range treated as empty) and the EXCEPTION — so a fix that
+    /// two halves of §2023:14.7.8 GR2 — the BRANCH (the range treated as empty) and the EXCEPTION — so a fix that
     /// produces the empty-range behaviour without the exception, which is exactly the state this test was written
     /// against, fails on the second line while passing on the first.</summary>
     private static string Prog(string pid, string env, string data, string range) => $"""
@@ -134,7 +134,7 @@ public sealed class ThroughRangeExceptionTests
     // Alphanumeric GROUP ends — §2023:8.8.4.2.1 "For comparison, an alphanumeric group item shall be treated as an
     // elementary alphanumeric data item", so "MM" THRU "AA" is an inverted class-alphanumeric range.
     [InlineData("PBR06", "", GroupData, "G-LO THRU G-HI", "OUT\nEC[EC-RANGE-INVALID               ]")]
-    // NATIONAL ends — §2023:14.7.8 rule 2's stem names the alphanumeric and the national range in one breath, and
+    // NATIONAL ends — §2023:14.7.8 GR2's stem names the alphanumeric and the national range in one breath, and
     // §2023:8.8.4.2.9 is the comparison it then orders.
     [InlineData("PBR07", "", NatData, "W-LO THRU W-HI", "OUT\nEC[EC-RANGE-INVALID               ]")]
     // ── rule 2, WELL-ORDERED: no exception, and "C" is inside "A" THRU "Z" ──
@@ -168,7 +168,7 @@ public sealed class ThroughRangeExceptionTests
     }
 
     /// <summary>§2023:14.9.13.4 GR4 a) 5. inverts a <c>NOT</c> range to "&lt; left-part OR &gt; right-part", and the
-    /// exception is a property of the RANGE, not of the phrase's polarity — §2023:14.7.8 rule 2 is reached through
+    /// exception is a property of the RANGE, not of the phrase's polarity — §2023:14.7.8 GR2 is reached through
     /// GR2's delegation before any negation is applied. So <c>WHEN NOT W-LO THRU W-HI</c> over an inverted range
     /// still sets EC-RANGE-INVALID, and the empty range makes the negated test TRUE.</summary>
     [Fact]
