@@ -23,23 +23,7 @@ public sealed class InheritedGlobals
     private readonly Dictionary<DataItem, FileModel> _recordAreas = new(ReferenceEqualityComparer.Instance);
     private readonly List<FileModel> _containerLocalFiles = [];
     private readonly Dictionary<string, DataItem> _typeDecls = new(CobolNames.Comparer);
-    private readonly Dictionary<string, InheritedConstant> _constants = new(CobolNames.Comparer);
     private readonly HashSet<string> _shadowedSymbolics = new(CobolNames.Comparer);
-
-    /// <summary>One inherited GLOBAL constant: its folded definition and the containment distance of the container that
-    /// declared it (1 = the direct container) — the tier <see cref="InheritStep.DropShadowed"/> weighs against a
-    /// same-spelled name's (kb/Work PB1047).</summary>
-    public readonly record struct InheritedConstant(ConstantDef Definition, int Depth);
-
-    /// <summary>The GLOBAL constant-names of every containing program, nearest container first (ISO §2023:13.18.27.4 GR1–GR2:
-    /// "A constant-name, data-name, file-name, report-name, or screen-name described using a GLOBAL clause is a global
-    /// name", and a contained program "may reference that name without describing it again"; kb/Work PB1009). A constant
-    /// occupies no storage, so it needs no bridge: the container's folded definition is read here, after the unit's own
-    /// constants (<c>ConstantEntryBinder.FindConstant</c>: a local constant entry of the spelling hides the inherited one, §2023:8.4.6), and
-    /// it leaves this table when a data-name declared NEARER hides it (<see cref="InheritStep.DropShadowed"/>; ISO
-    /// §2023:8.4.6.2.1 3) a)). Written before the unit's first data phase (definition precedes reference, the §2023:13.10.4 GR1
-    /// substitution model).</summary>
-    public IReadOnlyDictionary<string, InheritedConstant> Constants => _constants;
 
     /// <summary>Does a nearer declaration hide the inherited symbolic-character <paramref name="word"/> (§2023:8.4.6.1; kb/Work
     /// PB3154 review R1-1)? Such a one is HIDDEN, never removed from the configuration slice's table: a contained unit
@@ -120,24 +104,12 @@ public sealed class InheritedGlobals
                 _typeDecls.TryAdd(name, decl);
     }
 
-    /// <summary>Record one containing program's GLOBAL constants, <paramref name="depth"/> containment levels out, the
-    /// nearer container's kept. <paramref name="visible"/> is what the container's binder offers
-    /// (<c>ConstantEntryBinder.GlobalConstantsToInherit</c>). <see cref="InheritStep"/> only.</summary>
-    internal void AddContainerConstants(IEnumerable<KeyValuePair<string, ConstantDef>> visible, int depth)
+    /// <summary>Hide the inherited symbolic-characters (<paramref name="symbolicDepths"/>: each with its containment distance)
+    /// that a declaration in a source element NEARER than their containers' hides (<paramref name="declaredNearerThan"/>: the
+    /// name and the container's distance). <see cref="InheritStep"/> only; the inherited constants and file-names are the
+    /// symbol table's (<see cref="SymbolTable.DropShadowedConstants"/>, <see cref="SymbolTable.HideShadowedFiles"/>).</summary>
+    internal void HideShadowedSymbolics(Func<string, int, bool> declaredNearerThan, IEnumerable<KeyValuePair<string, int>> symbolicDepths)
     {
-        foreach (var (name, def) in visible)
-            if (def.IsGlobal)
-                _constants.TryAdd(name, new(def, depth));
-    }
-
-    /// <summary>Drop the inherited constants and the inherited GLOBAL files, and hide the inherited symbolic-characters (<paramref name="symbolicDepths"/>:
-    /// each with its containment distance), that a declaration in a source element NEARER than their containers' hides
-    /// (<paramref name="declaredNearerThan"/>: the name and the container's distance). <see cref="InheritStep"/> only.</summary>
-    internal void DropShadowed(Func<string, int, bool> declaredNearerThan, IEnumerable<KeyValuePair<string, int>> symbolicDepths)
-    {
-        foreach (var (name, constant) in _constants.ToList())
-            if (declaredNearerThan(name, constant.Depth))
-                _constants.Remove(name);
         foreach (var (name, depth) in symbolicDepths)
             if (declaredNearerThan(name, depth))
                 _shadowedSymbolics.Add(name);

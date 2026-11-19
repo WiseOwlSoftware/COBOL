@@ -144,7 +144,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// symbolic-character of the spelling the class's binder holds (ISO §2023:8.4.6.2.1 3) a) "If the name is declared in
     /// source element B, the item in source element B is the referenced item"; §2023:8.4.6.1 "even when it is a different
     /// type of user-defined word"; kb/Work PB3154 review R1-1). Asked by the two literal-alias lookups,
-    /// <see cref="ConstantEntryBinder.FindConstant"/> and <c>SpecialNamesBinder.SymbolicOf</c>; always false outside a method.</summary>
+    /// <c>SymbolTable.Identify</c>'s constant arm and <c>SpecialNamesBinder.SymbolicOf</c>; always false outside a method.</summary>
     internal bool ActiveMethodDeclares(string word) => CurrentMethodScope is { } method && data.MethodDeclares(method, word);
 
     /// <summary>Reserve the names the C# class this binder's data is emitted into already holds, BEFORE the data
@@ -331,7 +331,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
             // its constant-names, or one of its object's (§2023:13.10.3 SR2, §2023:8.4.6.2.2; kb/Work PB780).
             if (definition.optionsParagraph() is { } mo)
-                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, data.Constants.FindConstant);
+                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, data.Symbols);
             if (dd is not null)
             {
                 // The sections a method definition may not carry — FILE, WORKING-STORAGE, REPORT, SCREEN (§2023:13.4.3,

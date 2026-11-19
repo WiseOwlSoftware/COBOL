@@ -72,7 +72,7 @@ public sealed partial class DataBinder
                 // §2023:13.15.4 GR2 imports the PICTURE clause, and §2023:13.10.3 SR2 lets an integer constant-name specify
                 // repetition in a picture character-string: expanded before the analyzer reads it, exactly as BindEntry
                 // does for a data description entry (kb/Work PB1226's sibling sweep).
-                if (Constants.UnitHasConstants) picText = Constants.ExpandPicConstants(picText, where);
+                if (Symbols.UnitHasConstants) picText = Constants.ExpandPicConstants(pic.Symbol, where);
                 editing = BuildEditingSpecs(pc, $"report group entry '{entryName ?? "FILLER"}'");
                 // PICTURE format 2 in a REPORT GROUP entry (§2023:13.15.4 GR2 imports the PICTURE clause's own rules, so
                 // format 2 is LEGAL here; kb/Work PB113 — this arm used to ignore the phrase and analyze the picture as

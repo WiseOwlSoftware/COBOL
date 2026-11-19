@@ -5,7 +5,6 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Preprocessor;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -19,6 +18,10 @@ using Core = CobolParserCore;
 /// entry from the parse tree here; the readers inside the data bind ask <c>DataBinder.ReadConstant</c>, which binds the
 /// same entry. Both decode through the same two functions (<see cref="ConstantEntryBinder.LiteralTokenValue"/>,
 /// <see cref="ConstantEntryBinder.VariableStringValue"/>), so they agree on every constant they both can see.
+/// <para>It is the SYMBOL TABLE's (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 3"): a constant-name
+/// written in an AS phrase is a reference, and the table holds the binder's only comparison of names. It is static because
+/// no table exists yet: the unit's binder is made after these readers run. It takes the word as the parser read it, and,
+/// like <see cref="Identify(ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?)"/>, keys that one token.</para>
 /// <para>The SCOPE is the source element whose paragraph carries the word (§2023:13.10.3 SR2 names the constant-name the
 /// element declares): its own DATA DIVISION, and for a method definition the containing factory or object definition's
 /// too — §2023:11.7.4 GR5, "If a given user-defined word is defined in the data division of this method definition and in
@@ -31,31 +34,31 @@ using Core = CobolParserCore;
 /// never a constant.</para>
 /// <para>It REPORTS NOTHING: a constant entry's own faults are the data bind's to report, once, at the entry
 /// (<see cref="ConstantReadingKind.Refused"/>).</para></summary>
-internal static class PreBindConstants
+public sealed partial class SymbolTable
 {
-    /// <summary>The constant <paramref name="name"/> names at <paramref name="site"/> (a parse node inside the
-    /// paragraph that carries the word).</summary>
+    /// <summary>The constant the word <paramref name="written"/> names where it is written, before any data division binds.</summary>
     /// <param name="variables">The compilation group's &gt;&gt;DEFINE timeline, for a FROM constant (§2023:13.10.2).</param>
-    public static ConstantReading Read(RuleContext site, string name,
-        DirectiveTimeline<CompilationVariableEvent> variables) => Read(site, name, variables, hops: 0);
+    internal static ConstantReading IdentifyConstantBeforeBind(Core.CobolWordContext written,
+        DirectiveTimeline<CompilationVariableEvent> variables) => ConstantBeforeBind(written, variables, hops: 0);
 
     /// <summary>The longest chain of constant entries, each written AS the next one's name, that is read through; a
     /// longer chain is a circular dependence (ISO §2023:13.10.3 SR5), which the data bind reports at the entry.</summary>
     private const int MaxHops = 64;
 
-    private static ConstantReading Read(RuleContext site, string name,
+    private static ConstantReading ConstantBeforeBind(Core.CobolWordContext written,
         DirectiveTimeline<CompilationVariableEvent> variables, int hops)
     {
-        for (RuleContext? c = site; c is not null; c = c.Parent)
+        var name = Key(written.GetText());
+        for (RuleContext? c = written; c is not null; c = c.Parent)
         {
             if (DataDivisionOf(c) is { } dd)
             {
                 foreach (var (entryName, body, line) in Entries(dd))
                 {
-                    if (!CobolNames.Same(entryName, name)) continue;
+                    if (Key(entryName) != name) continue;
                     // A data-name declared in this element is the item the word names (§2023:11.7.4 GR5's nearer
                     // declaration; §2023:8.4.6) — never a constant of an enclosing element.
-                    return body is null ? ConstantReading.NotAConstant : ValueOf(body, line, name, variables, hops);
+                    return body is null ? ConstantReading.NotAConstant : ValueOf(body, line, written.GetText(), variables, hops);
                 }
             }
             // §2023:11.7.4 GR5: a method sees its factory / object definition's data; every other source element is the
@@ -122,7 +125,7 @@ internal static class PreBindConstants
             && word.dataReferenceSuffix().Length == 0 && word.cobolWord() is { } spelled)
         {
             if (hops >= MaxHops) return ConstantReading.Refused;
-            var named = Read(body, spelled.GetText(), variables, hops + 1);
+            var named = ConstantBeforeBind(spelled, variables, hops + 1);
             if (named.Kind != ConstantReadingKind.NotAConstant) return named;
         }
         if (body.constantValue()?.nonNumericLiteral() is not { } nn)

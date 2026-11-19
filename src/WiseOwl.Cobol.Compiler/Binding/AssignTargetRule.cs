@@ -156,7 +156,7 @@ internal static class AssignTargetRule
     private static string WordText(EditionContext edition, LiteralEnvironment env, Antlr4.Runtime.ParserRuleContext word,
         string spelling)
     {
-        var reading = env.ReadConstant(spelling);
+        var reading = env.ReadConstant(word);
         switch (reading.Kind)
         {
             case ConstantReadingKind.NotAConstant: return spelling;

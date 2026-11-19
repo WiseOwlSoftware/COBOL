@@ -21,10 +21,23 @@ internal sealed record IdentifiedName
     public NameClass Class { get; }
 
     /// <summary>The symbol: a <see cref="Model.CommunicationDescription"/> for a cd-name, a <see cref="Model.FileModel"/> for a
-    /// file-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, ... (by
+    /// file-name, a <see cref="ConstantDef"/> for a constant-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, ... (by
     /// <see cref="Class"/>). A procedure-name that several procedures carry identifies no one symbol: <see cref="Symbol"/> is then
     /// the <see cref="ProcedureCandidates"/>, which the reference reports (kb/Work PB466) and which records no occurrence.</summary>
     public object Symbol { get; }
+}
+
+/// <summary>Where a name is written when no parse rule holds it alone: <see cref="Token"/>, or the word of
+/// <see cref="Length"/> characters at <see cref="Start"/> inside it (a constant-name in a PICTURE character-string's repetition,
+/// §2023:13.10.3 SR2). <see cref="SymbolTable.Identify(WrittenWord, NameClass, bool, NameReach)"/> keys its <see cref="Text"/>,
+/// and listing step 7b records the occurrence at the token's position plus <see cref="Start"/>.</summary>
+internal readonly record struct WrittenWord(IToken Token, int Start, int Length)
+{
+    /// <summary>A whole token.</summary>
+    public static WrittenWord Of(IToken token) => new(token, 0, token.Text.Length);
+
+    /// <summary>The word as written.</summary>
+    public string Text => Token.Text.Substring(Start, Length);
 }
 
 public sealed partial class SymbolTable
@@ -49,16 +62,36 @@ public sealed partial class SymbolTable
         ProcedureSite? site = null)
     {
         _ = report;   // the occurrence it gates is listing step 7b's
-        object? symbol = wanted switch
-        {
-            NameClass.Procedure => ProcedureNamed(written,
-                site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written")),
-            NameClass.CommunicationDescription => WordOf(written) is { } cd ? _cds.GetValueOrDefault(cd) : null,
-            NameClass.File => WordOf(written) is { } file ? FileNamed(file, reach) : null,
-            _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not yet a class SymbolTable.Identify resolves"),
-        };
+        object? symbol = wanted == NameClass.Procedure
+            ? ProcedureNamed(written,
+                site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written"))
+            : WordOf(written) is { } key ? SymbolNamed(key, wanted, reach) : null;
         return symbol is null ? null : new IdentifiedName(wanted, symbol);
     }
+
+    /// <summary>
+    /// The same lookup for a name no parse rule holds alone (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice
+    /// 3"): a whole token the binder reads from a token list (a constant-name subscript of a LENGTH OF operand, §2023:13.10.3
+    /// SR3), or a word INSIDE one token (an integer constant-name in a PICTURE character-string's repetition, §2023:13.10.3 SR2,
+    /// which the scanner reads as part of the PICTURE string). <see cref="WrittenWord"/> carries the token and the word's span
+    /// in it, so the position listing step 7b records is exact. A procedure-name is a reference rule and is never written so.
+    /// </summary>
+    internal IdentifiedName? Identify(WrittenWord written, NameClass wanted, bool report, NameReach reach = NameReach.Visible)
+    {
+        _ = report;   // the occurrence it gates is listing step 7b's
+        if (wanted == NameClass.Procedure)
+            throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a procedure-name is a reference rule: identify its context");
+        return SymbolNamed(Key(written.Text), wanted, reach) is { } symbol ? new IdentifiedName(wanted, symbol) : null;
+    }
+
+    /// <summary>The symbol of class <paramref name="wanted"/> one word names here, or null.</summary>
+    private object? SymbolNamed(CobolName key, NameClass wanted, NameReach reach) => wanted switch
+    {
+        NameClass.CommunicationDescription => _cds.GetValueOrDefault(key),
+        NameClass.File => FileNamed(key, reach),
+        NameClass.Constant => ConstantNamed(key),
+        _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not yet a class SymbolTable.Identify resolves"),
+    };
 
     /// <summary>The name key of a written word: the table's one maker of a <see cref="CobolName"/>.</summary>
     private static CobolName Key(string word) => new(word);

@@ -12,6 +12,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// The configuration-section services the data binder keeps for itself: the REPOSITORY paragraph's specifier screens
@@ -140,11 +141,6 @@ public sealed partial class DataBinder
     /// <summary>The literal environment of a position OUTSIDE the SPECIAL-NAMES paragraph (kb/Work PB1406).</summary>
     internal LiteralEnvironment LiteralEnv => LiteralEnvironment.Program(this);
 
-    /// <summary>Does <paramref name="word"/> name a constant here — one of this unit's constant entries (bound, bindable
-    /// or refused) or an inherited GLOBAL one? The question a position whose word alternative has a meaning of its own
-    /// (an ALPHABET code-name, an external-locale-name) asks before taking that meaning.</summary>
-    internal bool NamesConstant(string word) => Constants.IsDeclaredConstant(word) || Constants.FindConstant(word) is not null;
-
     /// <summary>⛔ THE CONSTANT A BARE REFERENCE NAMES WHERE THE FORMAT ADMITS A DATA-NAME TOO (kb/Work PB5301): an operand
     /// position that takes "identifier or literal", which a constant-name may stand in (§2023:13.10.3 SR2). A constant-name and a
     /// data-name may have one spelling in a source element — "the same name may be used as any of the following types of
@@ -168,7 +164,7 @@ public sealed partial class DataBinder
         // hidden by the constant, and one nearer has already removed an inherited constant (InheritStep.DropShadowed). The tier is
         // 0 for a constant of this element (or of the method being bound), else the container's distance (kb/Work PB5301,
         // reviews R1-1 of w20262006b and of its finisher).
-        int constantTier = Constants.IsDeclaredConstant(name) ? 0 : Constants.InheritedDepthOf(name);
+        int constantTier = Symbols.IsDeclaredConstant(name) ? 0 : Symbols.InheritedConstantDepthOf(name);
         int dataItems = QualifiedCandidates(name, [], ActiveScope)
             .Where(d => State.Forest.DeclaringDepth(d) == constantTier).Count;
         if (dataItems > 0 && _sharedSpellingReported.Add(dref))
@@ -195,7 +191,7 @@ public sealed partial class DataBinder
     /// that a format specifies a literal of the class and category of constant-name-1" — and §2023:13.10.4 GR1 — "the
     /// effect of specifying constant-name-1 in other than this entry is as if literal-1 … were written where
     /// constant-name-1 is written". The constant entry stands later, in the DATA DIVISION; it was declared before this
-    /// paragraph binds (DeclareDataEntries), so <see cref="FindConstant"/> binds it now, on demand. The caller holds the
+    /// paragraph binds (DeclareDataEntries), so <c>SymbolTable.Identify</c> binds it now, on demand. The caller holds the
     /// returned literal-1 to its own operand's rules (class, form, length), exactly as it holds a written literal.
     /// Null, reported through the caller's <paramref name="report"/>, when the word names no constant entry; null
     /// silently when it names one whose own entry was refused (that entry was reported).</summary>
@@ -205,19 +201,21 @@ public sealed partial class DataBinder
     internal ConstantDef? SpecialNamesConstant(Core.CobolWordContext word, Action<string> report, string what, string operand)
     {
         string name = word.GetText();
-        if (Constants.FindConstant(name) is { } constant) return constant;
-        if (!Constants.IsFailedConstant(name))
+        if (Symbols.Identify(word, NameClass.Constant, report: true)?.Symbol is ConstantDef constant) return constant;
+        if (!Symbols.IsFailedConstant(name))
             report($"{what}: {ConstantReading.NotAConstantMessage(operand, name)}");
         return null;
     }
 
-    /// <summary>What <paramref name="name"/> stands for at a literal position INSIDE the data bind (kb/Work PB2588) — the
-    /// AS phrase of a REPOSITORY specifier or of an EXTERNAL clause, read by <see cref="ExternalizedName.Screen"/>. The
-    /// same lookup as <see cref="SpecialNamesConstant"/> (<see cref="FindConstant"/> binds the entry on demand and sees
-    /// a container's GLOBAL constant), answered as a <see cref="ConstantReading"/>, the shape the pre-bind reader
-    /// (<see cref="PreBindConstants"/>) gives the AS phrases read before this bind.</summary>
-    internal ConstantReading ReadConstant(string name) =>
-        Constants.FindConstant(name) is { } k ? ConstantReading.Of(new ConcatFolder.Folded(k.Category, k.Text))
-        : Constants.IsFailedConstant(name) ? ConstantReading.Refused
+    /// <summary>What the word <paramref name="written"/> stands for at a literal position INSIDE the data bind (kb/Work
+    /// PB2588): the AS phrase of a REPOSITORY specifier or of an EXTERNAL clause, read by <see cref="ExternalizedName.Screen"/>,
+    /// ASSIGN's operand and the PADDING CHARACTER clause's. The same lookup as <see cref="SpecialNamesConstant"/>
+    /// (<c>SymbolTable.Identify</c> binds the entry on demand and sees a container's GLOBAL constant), answered as a
+    /// <see cref="ConstantReading"/>, the shape the pre-bind reader (<c>SymbolTable.IdentifyConstantBeforeBind</c>) gives the
+    /// AS phrases read before this bind. Only one word is a name: a reference of several tokens is no constant.</summary>
+    internal ConstantReading ReadConstant(Antlr4.Runtime.ParserRuleContext written) =>
+        Symbols.Identify(written, NameClass.Constant, report: true)?.Symbol is ConstantDef k
+            ? ConstantReading.Of(new ConcatFolder.Folded(k.Category, k.Text))
+        : Symbols.IsFailedConstant(written.GetText()) ? ConstantReading.Refused
         : ConstantReading.NotAConstant;
 }

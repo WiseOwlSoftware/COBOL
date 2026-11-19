@@ -41,7 +41,7 @@ public sealed class OoMethodDataScope
     /// condition-name, an index-name, a named CAPACITY register (§2023:13.18.38.3 SR30 makes the register a data-name of the
     /// method that declares its table) or a type-name (<see cref="TypeDecls"/>, kb/Work PB3192). The method's
     /// constant-names, and the words its data division defines before any entry binds, are the binder's working state, not
-    /// model facts, so the binder keeps them (<c>ConstantEntryBinder.MethodDeclares</c>; kb/Work PB2402), and THE question
+    /// model facts, so the binder keeps them (<c>SymbolTable.MethodDeclaresWord</c>; kb/Work PB2402), and THE question
     /// "does this method declare the word" (§2023:11.7.4 GR5: "the use of that word in this method refers to the declaration in
     /// this method") is <c>DataBinder.MethodDeclares</c>, which asks both. ⛔ EVERY NAME INDEX OF THIS SCOPE, asked here
     /// beside the indexes themselves: when the registers moved into the method's own scope (kb/Work PB3165), the

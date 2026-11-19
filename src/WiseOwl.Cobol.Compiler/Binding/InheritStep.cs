@@ -41,7 +41,7 @@ internal static class InheritStep
             // this unit binds, and a local data-name shadows them after (Merge). EVERY container, nearest first (the
             // nearest global declaration wins): an intermediate program's own NON-global declaration of the name hides
             // nothing from the programs it contains.
-            inherited.AddContainerConstants(binders.Of(anc).Data.Constants.GlobalConstantsToInherit(), ++depth);
+            data.Symbols.InheritConstants(binders.Of(anc).Data.Symbols, ++depth);
             // …its GLOBAL type declarations (§2023:13.18.58.4 GR3; §2023:8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
             // unit's first data phase, so a TYPE clause there already sees the container's type-name.
             inherited.AddContainerTypeDecls(binders.Of(anc).Data.State.Forest.TypeDecls);
@@ -94,7 +94,7 @@ internal static class InheritStep
     /// condition-name or index-name of the same spelling declared in a NEARER source element — this unit's own, or a nearer
     /// container's global one — by ISO §2023:8.4.6.2.1 3) ("a) If the name is declared in source element B, the item in source
     /// element B is the referenced item. b) … 1. The item in source element A if the name is declared in source element
-    /// A"), so a shadowed constant leaves <see cref="InheritedGlobals.Constants"/> before any procedure reference can
+    /// A"), so a shadowed constant leaves the table (<see cref="SymbolTable.DropShadowedConstants"/>) before any procedure reference can
     /// substitute it (kb/Work PB1009; the nearer-container half kb/Work PB1047 — an outer program's constant used to beat
     /// the middle program's global data-name) and a shadowed symbolic-character is hidden (kb/Work PB3154 review R1-1:
     /// <c>MOVE S1 TO Y</c> moved the container's figurative instead of the local <c>01 S1</c>, with no diagnostic). Run by
@@ -104,7 +104,8 @@ internal static class InheritStep
     /// are the one tier nearer still, asked at reference time (<c>OoDataBinder.ActiveMethodDeclares</c>).</para></summary>
     internal static void DropShadowed(DataBinder data)
     {
-        data.State.Inherited.DropShadowed(data.Symbols.Declared.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
+        data.Symbols.DropShadowedConstants(data.Symbols.Declared.DeclaredNearerThan);
+        data.State.Inherited.HideShadowedSymbolics(data.Symbols.Declared.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
         // An inherited GLOBAL file-name is hidden the same way (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786): a
         // data-name, condition-name or index-name of its spelling declared in a nearer source element is the referenced item.
         data.Symbols.HideShadowedFiles(data.Symbols.Declared.DeclaredNearerThan);

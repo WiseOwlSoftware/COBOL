@@ -37,7 +37,7 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(dref);
             // A constant-name stands where the format specifies literal-1 (§2023:13.10.3 SR2; constant entries begin at 2002):
             // the word is literal-1 when the program declares it a constant, data-name-1 otherwise.
-            var reading = _host.LiteralEnv.ReadConstant(dref.GetText());
+            var reading = _host.LiteralEnv.ReadConstant(dref);
             if (reading.Kind is ConstantReadingKind.Refused)
                 return new PaddingCharacterSpec { Literal = dref.GetText(), At = Edition.Cursor };
             if (reading.Kind is not ConstantReadingKind.NotAConstant)
@@ -89,7 +89,7 @@ public sealed partial class FileControlBinder
             // Format 6, ALL literal-1 or ALL constant-name (§2023:8.3.3.6.3 SR2), is read by its one reader and stands for one
             // character when its literal is one alphanumeric character.
             // A numeric constant-name is no literal-1 of ALL (§2023:8.3.3.6.3 SR2): FoldAllLiteral's best-effort value for it must not stand.
-            if (fig.ALL() is not null && fig.cobolWord()?.GetText() is { } k && env.Constant(k) is { Category: not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean) })
+            if (fig.ALL() is not null && fig.cobolWord() is { } k && env.Constant(k) is { Category: not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean) })
                 return null;
             if (ConcatFolder.FoldAllLiteral(fig, env, report: null) is { } folded)
                 return folded.Category is PicCategory.Alphanumeric && folded.Value.Length == 1 ? folded.Value : null;

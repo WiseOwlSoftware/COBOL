@@ -104,7 +104,7 @@ public sealed partial class SpecialNamesBinder
         // constant-name takes the constant reading (the program's own declaration of the word), any other word is
         // external-locale-name-1.
         Antlr4.Runtime.Tree.IParseTree? written4 = loc.literal() is { } lit4 ? lit4
-            : words.Length > 1 && _host.NamesConstant(words[1].GetText()) ? words[1]
+            : words.Length > 1 && _host.Symbols.NamesConstant(words[1].GetText()) ? words[1]
             : null;
         bool fromLiteral = written4 is not null;
         if (written4 is not null)

@@ -239,7 +239,7 @@ No clause of §2023:13.10 or §2023:8.4 makes a reference follow the constant en
 length or value that depends "directly or indirectly" on constant-name-1 — a rule that could not be broken if every
 reference had to follow its entry. So `ConstantEntryBinder.DeclareDataEntries` collects every constant entry (both hosts, the
 data description entry and the REPORT SECTION's `constantEntry`) and every data description entry's place in its
-section run BEFORE anything binds; `FindConstant` is the one lookup and binds a declared entry on demand; a re-entry
+section run BEFORE anything binds; the constant arm of `SymbolTable.Identify` (`SymbolTable.Constants.cs`, listing step 6b slice 3) is the one lookup and binds a declared entry on demand; a re-entry
 while it evaluates is the reported cycle (`ReportConstantCycle`, SR4 when a length phrase is on it, else SR5). A
 length phrase whose operand is described later waits when reached in order; when its value is DEMANDED, the operand's
 whole record (its 01/77 entry up to the next 01/77/constant entry, 66 and 88 entries included) is bound then through
@@ -309,7 +309,7 @@ meaning of its own (code-name, figurative synonym, external-locale-name-1) and k
 LATER operands are steered by `classOperandAhead()` (`CobolParserCoreBase`): a word continues the list only when the unit
 declares it a constant-name, read off the token stream (`{1|01} word CONSTANT`, never `CONSTANT RECORD`), so a switch or
 device entry written after the clause without a period keeps its reading. In the binder `DataBinder.SpecialNamesConstant`
-is the one constant reading of such a word (it binds the later entry on demand through `FindConstant`, kb/Work PB1231),
+is the one constant reading of such a word (it binds the later entry on demand through `SymbolTable.Identify`, kb/Work PB1231),
 and each clause holds the constant's literal-1 to the rules of the literal it stands for (§2023:13.10.4 GR1): `CurrencyOperandOf`
 (SR18/SR26/SR19 from the specification as written, SR28's class from the category), `TryClauseTextLiteral` (SR10/SR11)
 and `LiteralPhraseOperand` (an integer constant is an ORDINAL, SR14 b1 / SR17 b2). A word the unit declares as a

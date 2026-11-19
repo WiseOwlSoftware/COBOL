@@ -212,7 +212,7 @@ public static partial class ConditionalCompilationProcessor
             // frontend routes every formation diagnostic to COBOL1619; a directive operand is dot-decimal (§2023:5.3).
             _evaluator = new CompileTimeExpressionEvaluator(
                 edition: _edition,
-                resolveName: w => _defines.TryGetValue(w, out var v) ? v : null,
+                resolveName: w => _defines.TryGetValue(w.GetText(), out var v) ? v : null,
                 isRefusedName: _refusedDefines.Contains,
                 diag: _diag,
                 vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §2023:7.3.6.2 SR1b"),

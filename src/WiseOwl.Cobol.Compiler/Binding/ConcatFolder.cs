@@ -129,7 +129,8 @@ internal static class ConcatFolder
                 _ => PicCategory.Alphanumeric,   // X"…" is the alphanumeric literal's Format 2 (hexadecimal-alphanumeric, §2023:8.3.3.2.2)
             }, CobolLiteral.Decode(token));
         }
-        if (fig.ALL() is null || fig.cobolWord()?.GetText() is not { } word || env.Constant(word) is not { } k) return null;
+        if (fig.ALL() is null || fig.cobolWord() is not { } written || env.Constant(written) is not { } k) return null;
+        string word = written.GetText();
         if (k.Category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean))
         {
             report?.Error(DiagnosticCatalog.AllLiteralClass, $"'ALL {word}': constant-name {word} is a numeric literal "
@@ -172,7 +173,7 @@ internal static class ConcatFolder
     /// to nothing too, and is LiteralScreen's COBOL1635, not SR2. A constant-name is its literal (§2023:13.10.4
     /// GR1); a figurative constant is one character (§2023:8.3.3.6.4 GR3a).</summary>
     private static bool IsZeroLengthOperand(Core.ConcatOperandContext op, LiteralEnvironment env) =>
-        op.cobolWord()?.GetText() is { } word ? env.Constant(word) is { } k && CobolLiteral.IsZeroLength(k.RawText)
+        op.cobolWord() is { } word ? env.Constant(word) is { } k && CobolLiteral.IsZeroLength(k.RawText)
         : op.figurativeConstant() is null && CobolLiteral.IsZeroLength(op.GetText());
 
     /// <summary>§2023:8.3.3.6.3 SR2's second sentence — literal-1 "shall be neither a figurative constant nor a zero-length
@@ -310,7 +311,7 @@ internal static class ConcatFolder
         }
         string word = op.cobolWord().GetText();
         // §2023:13.10.3 SR2: a constant-name stands for its literal — "as if [the] literal were written" (§2023:13.10.4 GR1).
-        if (env.Constant(word) is { } k)
+        if (env.Constant(op.cobolWord()) is { } k)
         {
             if (k.Category is PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
                 return Term.Literal(k.Category, k.Text, $"constant-name {word} ({Name(k.Category)} literal {k.RawText})");

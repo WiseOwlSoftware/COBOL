@@ -97,9 +97,10 @@ public sealed class DataBindStateBoundaryDriftTests
     [Fact]
     public void TheInheritedGlobalsSlice_IsWrittenOnlyByInheritStep()
     {
-        // InheritFiles and HideShadowedFiles are SymbolTable's half (the inherited file-NAMES are the one store's), called by
-        // InheritStep alone; the table's file is where that half writes the slice (kb/Work PB5932).
-        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|AddContainerConstants|OfferContainerGlobals|SetFileDepth|InheritFiles|HideShadowedFiles)\(|Inherited\.DropShadowed\(");
+        // InheritFiles, HideShadowedFiles, InheritConstants and DropShadowedConstants are SymbolTable's half (the inherited
+        // file-NAMES and constant-names are the one store's, listing step 6b slices 1 and 3), called by InheritStep alone; the
+        // table's file is where that half writes the slice (kb/Work PB5932).
+        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|OfferContainerGlobals|SetFileDepth|InheritFiles|HideShadowedFiles|InheritConstants|DropShadowedConstants)\(|Inherited\.HideShadowedSymbolics\(");
         var offenders = new List<string>();
         int found = 0;
         foreach (var (file, text) in CompilerSources())

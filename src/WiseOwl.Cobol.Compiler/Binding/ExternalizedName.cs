@@ -40,7 +40,7 @@ using Core = CobolParserCore;
 /// that a format specifies a literal of the class and category of constant-name-1" — and §2023:13.10.4 GR1 — "as if
 /// literal-1 or the text represented by compilation-variable-name-1 were written where constant-name-1 is written".
 /// The caller hands the screen the constant reading of its own phase (<see cref="ConstantReading"/>: the data bind's
-/// <c>DataBinder.ReadConstant</c>, or <see cref="PreBindConstants.Read"/> before it), and the constant's literal is
+/// <c>DataBinder.ReadConstant</c>, or <c>SymbolTable.IdentifyConstantBeforeBind</c> before it), and the constant's literal is
 /// then held to the SAME rules as a written one — its class (alphanumeric or national), the zero-length exclusion and
 /// the formation rule — so a constant-name is never a second path with rules of its own.</para>
 /// </summary>
@@ -54,7 +54,7 @@ internal static class ExternalizedName
     /// but is not the phrase's screen (IdentityScope, kb/Work PB974). Null for any operand <see cref="Screen"/>
     /// would reject, so both agree on which names exist. <paramref name="dialectLevel"/> is the edition's year, whose
     /// spelling the name is formed in (kb/Work PB2840), as the screen forms it.</summary>
-    public static string? Peek(Core.ExternalizedNamePhraseContext phrase, Func<string, ConstantReading> constants,
+    public static string? Peek(Core.ExternalizedNamePhraseContext phrase, Func<Core.CobolWordContext, ConstantReading> constants,
         int dialectLevel) =>
         Screen(phrase, constants, new EditionContext(dialectLevel), DiagnosticCatalog.ExternalizedNameLiteral, "", "", "",
             LiteralEnvironment.Unscoped, rejectZeroLength: true);
@@ -73,7 +73,7 @@ internal static class ExternalizedName
     /// <param name="env">The literal environment a concatenation-expression literal folds in.</param>
     /// <param name="rejectZeroLength">False ONLY for §2023:11.3.3 SR1 (CLASS-ID), which omits the exclusion.</param>
     public static string? Screen(
-        Core.ExternalizedNamePhraseContext phrase, Func<string, ConstantReading> constants, EditionContext edition,
+        Core.ExternalizedNamePhraseContext phrase, Func<Core.CobolWordContext, ConstantReading> constants, EditionContext edition,
         DiagnosticDescriptor code, string where, string tag, string rule, LiteralEnvironment env,
         bool rejectZeroLength = true)
     {
@@ -82,7 +82,7 @@ internal static class ExternalizedName
         ConcatFolder.Folded? operand;
         if (phrase.cobolWord() is { } word)
         {
-            var reading = constants(word.GetText());
+            var reading = constants(word);
             switch (reading.Kind)
             {
                 case ConstantReadingKind.NotAConstant:

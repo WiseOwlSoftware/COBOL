@@ -10,6 +10,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// Builds the <see cref="OptionsModel"/> from a source unit's OPTIONS paragraph (ISO/IEC 1989:2023 §2023:11.9). The
@@ -35,11 +36,11 @@ internal static class OptionsBinder
     /// <param name="baseline">The model the element's clauses override — the CONTAINING element's model (ISO
     /// §2023:11.9.4 GR1: the container's clauses apply "unless overridden by a clause in an OPTIONS paragraph in a
     /// contained source element"), null for an outermost element (the all-defaults model).</param>
-    /// <param name="constants">The element's constant-name lookup (<c>ConstantEntryBinder.FindConstant</c>): the INITIALIZE
+    /// <param name="constants">The element's symbol table, whose <c>Identify</c> reads a constant-name: the INITIALIZE
     /// clause's literal-1 may be written as a constant-name (§2023:13.10.3 SR2; kb/Work PB780), so the caller binds the
     /// paragraph only after the element's constant entries are declared.</param>
     public static OptionsModel BindParagraph(Core.OptionsParagraphContext? options, EditionContext? edition, OptionsModel? baseline,
-        Func<string, ConstantDef?> constants)
+        SymbolTable constants)
     {
         var start = baseline ?? OptionsModel.Default;
         if (options is null) return start;
@@ -59,7 +60,7 @@ internal static class OptionsBinder
     }
 
     private static OptionsModel Apply(OptionsModel m, Core.OptionsClauseContext c, EditionContext? edition,
-        Func<string, ConstantDef?> constants)
+        SymbolTable constants)
     {
         if (c.arithmeticClause()?.arithmeticMethod() is { } am)
             return m with { Arithmetic = ArithmeticOf(am, edition) };
@@ -197,7 +198,7 @@ internal static class OptionsBinder
     }
 
     private static OptionsInitialize InitializeOf(Core.OptionsInitializeClauseContext init, EditionContext? edition,
-        Func<string, ConstantDef?> constants)
+        SymbolTable constants)
     {
         var target = init.optionsInitializeTarget();
         OptionsSections sections = target.ALL() is not null ? OptionsSections.All : SectionsOf(target, edition);
@@ -216,7 +217,7 @@ internal static class OptionsBinder
         if (fill.cobolWord() is { } word)
         {
             string name = word.GetText();
-            if (constants(name) is { } k)
+            if (constants.Identify(word, NameClass.Constant, report: true)?.Symbol is ConstantDef k)
                 return LiteralFill(sections, k.WrittenLiteral, $"constant-name {name}, standing for {k.StandsFor} "
                     + "(ISO §2023:13.10.4 GR1),", figurative: false, edition);
             edition?.Error(DiagnosticCatalog.OptionsInitializeFillLiteral, $"the INITIALIZE clause's fill {name} is "

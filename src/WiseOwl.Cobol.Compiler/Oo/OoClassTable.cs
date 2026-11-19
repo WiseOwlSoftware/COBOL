@@ -290,7 +290,7 @@ public sealed class OoClassTable
     }
 
     /// <summary>The compilation group's &gt;&gt;DEFINE timeline — what a FROM constant-name written as an AS phrase's
-    /// operand stands for before any DATA DIVISION binds (<see cref="PreBindConstants"/>; kb/Work PB2588).</summary>
+    /// operand stands for before any DATA DIVISION binds (<c>SymbolTable.IdentifyConstantBeforeBind</c>; kb/Work PB2588).</summary>
     private DirectiveTimeline<CompilationVariableEvent> _variables = null!;
 
     // Keyed by parse-tree node IDENTITY: a ParserRuleContext does not override Equals, so the default
@@ -580,7 +580,7 @@ public sealed class OoClassTable
             using var _ = edition.At(phrase);
             // No DATA DIVISION is bound yet, so a constant-name operand (§2023:13.10.3 SR2) is read off the parse tree
             // (kb/Work PB2588): a METHOD-ID's from its own and its object's or factory's entries (§2023:11.7.4 GR5).
-            return ExternalizedName.Screen(phrase, k => PreBindConstants.Read(phrase, k, variables), edition,
+            return ExternalizedName.Screen(phrase, k => SymbolTable.IdentifyConstantBeforeBind(k, variables), edition,
                        DiagnosticCatalog.ExternalizedNameLiteral,
                        $"{kind} '{declared}' AS {ExternalizedName.Written(phrase)}", "literal-1", rule,
                        LiteralEnvironment.Unscoped, rejectZeroLength)

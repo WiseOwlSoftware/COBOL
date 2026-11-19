@@ -504,7 +504,7 @@ internal sealed class BinderDriver
                     + "program that is contained within another program (ISO §2023:11.10.3 SR2)");
             // The unit's DATA DIVISION is not bound yet, so a constant-name operand (§2023:13.10.3 SR2) is read off the
             // parse tree (kb/Work PB2588).
-            else if (ExternalizedName.Screen(asPhrase, k => PreBindConstants.Read(asPhrase, k, variables), edition,
+            else if (ExternalizedName.Screen(asPhrase, k => SymbolTable.IdentifyConstantBeforeBind(k, variables), edition,
                          DiagnosticCatalog.ExternalizedNameLiteral,
                          $"{kind} '{name}' AS {ExternalizedName.Written(asPhrase)}", "literal-1", rule,
                          LiteralEnvironment.Unscoped) is { } lit1)

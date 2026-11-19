@@ -11,8 +11,8 @@
 > from the assembly and its PDB, branch `listing-step-8`); STEP 6b IN PROGRESS, LANDING BY NAME CLASS (the one store of names,
 > kb/Work PB5932; slice 1, branch `listing-step-6b`: the drift test, the table's place, `Identify`, `Declarations`, the cd-names
 > and the file-names, and the temporary shrink-only baseline of the classes not yet moved; slice 2, branch `listing-step-6b-2`: the
-> tables keyed by no COBOL user word re-keyed by types of their own, and the procedure-names; sections 6.7.1 "Step 6b, as built so
-> far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
+> tables keyed by no COBOL user word re-keyed by types of their own, and the procedure-names; slice 3, branch `listing-step-6b-3`:
+> the constant-names; sections 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)" or "(step 8)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
@@ -1120,6 +1120,37 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     order, and SR7's section), which the procedure table describes for COBOL2122 or the qualification message (kb/Work PB466). It
     is no identification, so step 7b records no occurrence for it. The paragraph a name identified is `ParagraphDefinition(Pc)`,
     and its owning section is read where the pc space is (`ProcedureTableBuilder.ParaSections`), never stored a second time.
+  - *(Step 6b, slice 3, branch `listing-step-6b-3`.)* The constant-names moved, and the baseline holds 294 (43 tables, 56 lookups,
+    195 sites). `SymbolTable.Constants.cs` owns what `ConstantEntryBinder.ConstantScope` and `InheritedGlobals` held: each source
+    element's declared and bound constant entries (the binder's own element and each METHOD's, §2023:11.7.4 GR5), the words a
+    method's data division defines before its entries bind, and the containers' GLOBAL constants with their depths
+    (`InheritConstants`, `DropShadowedConstants`), all keyed by `CobolName`. Every constant-name reference is
+    `Identify(written, NameClass.Constant, report)`, whose arm binds a declared entry on demand (§2023:13.10.3 SR4 and SR5 forbid
+    only a circular dependence); `ConstantEntryBinder` declares the entries (`SymbolTable.Declare`, `DeclareMethodWord`), binds them
+    in order or on the table's demand (`BindDeclaredConstant`) and joins each bound value through `SymbolTable.BindConstant`, which
+    answers §2023:13.10.3 SR9's earlier duplicate. The questions that answer no symbol (`IsDeclaredConstant`, `IsConstantName`,
+    `IsRefusedConstantName`, `IsFailedConstant`, `NamesConstant`, `InheritedConstantDepthOf`, `MethodDeclaresWord`,
+    `ClosesConstantCycle`, `UnitHasConstants`) are the table's too, so no caller compares a constant's name. The corrections the code
+    proved:
+    - *A name no parse rule holds alone (correction, slice 3).* Three constant-name positions have no context of their own: an
+      integer constant-name in a PICTURE character-string's repetition, `X(K)` (§2023:13.10.3 SR2: "it may also be used to specify
+      repetition in a picture character-string"), which the scanner reads as part of the one PICTURE token; a subscript of a LENGTH
+      OF operand, read from the operand's token list (§2023:13.10.3 SR3); and the word the compile-time evaluator substitutes. The
+      first two are `Identify(WrittenWord written, NameClass wanted, bool report)`, where `WrittenWord(IToken Token, int Start, int
+      Length)` is the token and the word's span in it, so step 7b records the occurrence at the word's own column; the evaluator's
+      name callback (`CompileTimeExpressionEvaluator`'s `resolveName`) takes the `cobolWord` context it already held instead of its
+      text. No string reaches the table from a written name.
+    - *Before the data bind there is no table (correction, slice 3).* The AS phrase of PROGRAM-ID, FUNCTION-ID, CLASS-ID,
+      INTERFACE-ID, METHOD-ID and a REPOSITORY class or interface specifier is read before the unit's binder exists, and its word may
+      be a constant-name (§2023:13.10.3 SR2; kb/Work PB2588). That reading (`PreBindConstants`, deleted) is a resolution, so it is
+      the table's: the static `SymbolTable.IdentifyConstantBeforeBind(CobolWordContext written, ...)`, which reads the entries off
+      the parse tree and compares with the table's one equality. It records nothing (there is no table to record in); kb/Work
+      PB5925's dated file `2026-11-19-as-phrase-constant-slot` carries what step 7b must decide for that word, which step 7a
+      labelled `nn`.
+    - *The name-index drift test sees the table (correction, slice 3).* `GlobalNameClassDriftTests` found a source element's name
+      indexes by reflection over the binder, its state slices and `ConstantEntryBinder`; it now walks `SymbolTable` in its place and
+      counts a table keyed by `CobolName` as well as by `string`, so a class moved into the table stays under the test (shown red on a
+      planted `Dictionary<CobolName, DataItem>` in the table).
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1682,6 +1713,7 @@ renderer. Naming it asks for a listing at any edition.
   Slice 1 (the cd-names and the file-names) is within the parent's run-to-run spread on all four programs, at most 0.23 MB
   above it (the README's step-6b table). Slice 2 (the tables keyed by no user word, the procedure-names) is
   within the parent's run-to-run spread on all four programs, at most 0.07 MB above it (the README's step-6b table, slice 2).
+  SLICE3-MEASUREMENT
 
 ## 10. Test plan
 
@@ -1907,7 +1939,10 @@ the inherited type declarations and the lapsed type members, with `NameResolutio
 remainder by class. (Step 6b, slice 2, branch `listing-step-6b-2`:) the tables keyed by no COBOL user word took keys of their own
 and the procedure-names moved into the table with their resolution (section 6.7.1, "Step 6b, slice 2"), each change shown
 behaviour-neutral by `compare_oracle.py`; the baseline is 308, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-2` holds
-what remains by class.
+what remains by class. (Step 6b, slice 3, branch `listing-step-6b-3`:) the constant-names moved into the table with their
+resolution, the pre-bind reading included (section 6.7.1, "Step 6b, slice 3"), each change shown behaviour-neutral by
+`compare_oracle.py`; the baseline is 294, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-3` holds what remains by
+class.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had
