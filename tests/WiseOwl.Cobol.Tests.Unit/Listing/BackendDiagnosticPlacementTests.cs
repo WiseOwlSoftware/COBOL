@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Frontend;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Building;

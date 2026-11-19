@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol;
+namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
 /// ⛔ THE ONE DECIDER OF HOW A COMPILATION'S DEBUG INFORMATION NAMES A SOURCE FILE (DESIGN-listing.md section 6.9). A backend names each
@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol;
 /// a test — resolves it back to the file's full path with <see cref="PathOf"/>, against the root <see cref="RootOf"/> gives. One function
 /// each way, so the writer and its readers cannot disagree.
 /// </summary>
-internal static class SourceDocuments
+public static class SourceDocuments
 {
     /// <summary>The document root of the compilation whose main source is <paramref name="sourcePath"/>: that file's directory, as a full
     /// path.</summary>

@@ -5,6 +5,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.CodeGen;
 

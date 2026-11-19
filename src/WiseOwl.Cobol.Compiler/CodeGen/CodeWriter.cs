@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.CodeGen;
 

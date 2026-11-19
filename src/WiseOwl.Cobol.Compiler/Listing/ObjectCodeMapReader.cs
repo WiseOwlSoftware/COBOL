@@ -3,6 +3,7 @@
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.Listing.Building;
 

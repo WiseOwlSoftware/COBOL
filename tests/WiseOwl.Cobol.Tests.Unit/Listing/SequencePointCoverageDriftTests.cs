@@ -6,6 +6,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Frontend;
+using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Tests.Shared;
