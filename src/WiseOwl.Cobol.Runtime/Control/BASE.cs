@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Runtime;
 // `CLASS-ID. C INHERITS FROM BASE`, `USAGE OBJECT REFERENCE BASE` and `FACTORY OF BASE` name these types with no
 // special case in the emitter. Emitted code lives in the global namespace and imports WiseOwl.Cobol.Runtime, so a
 // compilation group that DEFINES its own class BASE shadows these (a global-namespace type wins over a using-
-// imported one) — the same precedence OoClassTable.Find gives a group definition over the standard class.
+// imported one) — the same precedence the symbol table's class names (SymbolTable.ClassNames) give a group definition over the standard class.
 //
 // ⛔ BASE AND __FACTORY_BASE ARE CONCRETE, AND __FACTORY_BASE HAS THE SAME __Instance SINGLETON EVERY GENERATED
 // FACTORY HAS (kb/Work PB2489). §2023:16.2.1.2 GR1 makes New on BASE's own factory create "an object" — an instance of

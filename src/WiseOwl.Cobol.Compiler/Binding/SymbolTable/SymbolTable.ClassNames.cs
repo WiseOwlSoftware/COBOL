@@ -94,7 +94,7 @@ public sealed partial class SymbolTable
             return _table.Interfaces.FirstOrDefault(i => Key(i.ExternalizedName) == key) ?? _importedInterfaces.GetValueOrDefault(key);
         }
 
-        /// <summary>⛔ THE IMPORT (DESIGN-external-repository §8.4 step 3, §10.1): the class whose EXTERNALIZED name is
+        /// <summary>⛔ THE IMPORT (DESIGN-external-repository §8.4 step 3; DESIGN-external-repository §10.1): the class whose EXTERNALIZED name is
         /// <paramref name="identity"/> — the group's own definition, else the standard class BASE, else one already imported —
         /// and otherwise the one the external repository publishes, registered here by that identity so the whole group shares
         /// one symbol per identity. Null when nothing answers; the importer has reported a finding of its own when it refused

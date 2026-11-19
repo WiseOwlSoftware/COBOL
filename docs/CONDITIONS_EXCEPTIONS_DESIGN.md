@@ -38,7 +38,7 @@ OO mechanism (feedback_one_mechanism_per_job):
   exception object, silently (kb/Work PB366). GR14 b)'s "described with an IMPLEMENTS clause that references
   interface-name-1" is §2023:11.8.4 GR2 / §2023:11.4.4 GR2's IMPLEMENTS closure, which rides C#'s `is` over the single
   emitted interface (`OoInterfaceSymbol.ImplementedClrNames`) that both halves carry. "Or of a subclass" rides
-  `is` in EACH hierarchy, since both mirror INHERITS. Both operands resolve through `OoNameResolution` —
+  `is` in EACH hierarchy, since both mirror INHERITS. Both operands resolve through `SymbolTable.ClassNames` —
   §2023:14.9.49.3 SR16/SR17 scope them to the source element's REPOSITORY (§2023:8.4.6.4), not to the compilation group.
   `Format4UseObjectSelectorDriftTests` asserts, against the GENERATED C#, that each census equals what the
   backend actually emits and that the selector tests every member.

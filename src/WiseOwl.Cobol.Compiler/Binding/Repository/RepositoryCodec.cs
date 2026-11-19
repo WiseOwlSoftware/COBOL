@@ -143,7 +143,7 @@ internal static class RepositoryCodec
     /// <summary>⛔ THE NAMES THE IMPORTING GROUP GIVES THE CLASS AND INTERFACE IDENTITIES <paramref name="record"/> NAMES in its
     /// object-reference descriptions (§2023:6.4, §2023:8.7) — the ONE derivation the resolver's provider (REPO-11) and
     /// <c>--repository-check</c>'s comparison both read: each identity's class of the group, else the standard class BASE, else the class
-    /// the external repository publishes under it (<see cref="OoClassTable.ImportClass"/>, which imports it), by identity, because the
+    /// the external repository publishes under it (<see cref="SymbolTable.ClassNames.ImportClass"/>, which imports it), by identity, because the
     /// record keeps the PUBLISHING element's words and a word is per source element. <paramref name="unanswered"/> lists the
     /// identities no class or interface answers (an identity's name is then the written one, the difference a comparison reports).
     /// <paramref name="import"/> false asks only what the group has already imported or defines: a comparison of records

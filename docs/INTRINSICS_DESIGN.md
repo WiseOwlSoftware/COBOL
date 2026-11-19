@@ -895,7 +895,7 @@ declaration site inside a method runs under `OoDataBinder.EnterMethodDeclaration
 a program's, a class's, a factory's and an interface's are kept by parse node and passed to their binder as
 `DataBinder.OwnWords`), and it also records each object-class-name, interface-name and parameter-name the element
 REFERENCES, since another element often declares them (a method's class, a contained program's container, §2023:12.3.4 GR1):
-the one class-name resolver, `OoNameResolution.Lookup`, calls `OoClassTable.RecordReferenceUse` for every name it
+the one class-name resolver, `SymbolTable.ClassNames.Lookup`, calls `OoClassTable.RecordReferenceUse` for every name it
 resolves (kb/Work PB3132), so a METHOD-ID, a method paragraph or a contained program's paragraph spelled like a
 class-name the same element also references is refused. A parameter-name is recorded as the type its own REPOSITORY
 specifier declares it, as the skeleton's binder declares it. The names a CONFIGURATION SECTION declares reach a

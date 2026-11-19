@@ -24,7 +24,7 @@ using WiseOwl.Cobol.Runtime;
 /// same source (feedback_two_arm_dispatch); the extraction is the fix.</para>
 /// <para><b>Why the partition is a bind-time question.</b> The three alternatives are each one user-defined
 /// word; only the EC catalog (§2023:14.6.13.1) and the REPOSITORY scope of THIS source element (§2023:8.4.6.4 — through
-/// <see cref="OoNameResolution.Lookup"/>, the one class/interface funnel) can tell them apart. The grammar keeps
+/// <see cref="SymbolTable.ClassNames.Lookup"/>, the one class/interface funnel) can tell them apart. The grammar keeps
 /// the one axis it can see — the FACTORY phrase — on <c>raisingTarget</c>.</para>
 /// </summary>
 internal static class RaisingPhrase

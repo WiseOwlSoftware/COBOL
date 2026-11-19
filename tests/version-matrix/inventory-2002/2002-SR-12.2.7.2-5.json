@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-12.2.7.2-5",
  "rule-digest": "0c1b21b3f058",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Lookup",
  "test-ref": "conformance:cases/12.3.8-REPOSITORY/l1c24_repository_self_class_specifier",
- "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.8.3-5, witnessed at 2002 by the cases test-ref names. The read: Rename only (class-name-1 / object-class-name-1). Cited: §2002:12.2.7.2 SR5."
+ "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.8.3-5, witnessed at 2002 by the cases test-ref names. The read: Rename only (class-name-1 / object-class-name-1). Cited: §2002:12.2.7.2 SR5. retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup (listing step 6b, the OO names, kb/Work PB5932, moved the object-class-names and interface-names, their resolution and the PROPERTY specifiers into the symbol table; the row cites src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Lookup) retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Build (listing step 6b, the OO names, kb/Work PB5932, moved the object-class-names and interface-names, their resolution and the PROPERTY specifiers into the symbol table; the row cites src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Build)"
 }

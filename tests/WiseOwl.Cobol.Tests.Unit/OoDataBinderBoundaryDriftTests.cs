@@ -32,10 +32,9 @@ public sealed class OoDataBinderBoundaryDriftTests
                 && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"))
             .Select(f => (Path.GetRelativePath(TestRepo.Root, f).Replace('\\', '/'), File.ReadAllText(f)));
 
-    /// <summary>The <c>Oo…</c> members <see cref="DataBinder"/> keeps: the class table the group shares, the unit's REPOSITORY
-    /// PROPERTY specifiers (configuration of the configuration section, not OO data), the role the driver makes it with, and
-    /// the door to the OO half.</summary>
-    private static readonly string[] AllowedOoMembers = ["Oo", "OoClasses", "OoRepositoryProperties", "OoRole"];
+    /// <summary>The <c>Oo…</c> members <see cref="DataBinder"/> keeps: the class table the group shares, the role the driver makes it
+    /// with, and the door to the OO half. (The unit's REPOSITORY PROPERTY specifiers are the symbol table's since listing step 6b.)</summary>
+    private static readonly string[] AllowedOoMembers = ["Oo", "OoClasses", "OoRole"];
 
     [Fact]
     public void TheDataBinder_HasNoOoPartial_AndNoOoMemberBeyondItsDoor()

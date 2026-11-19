@@ -29,7 +29,7 @@ internal sealed class OoDriver(BindSession session)
     /// entry's level (§2023:13.16.3 SR16), a data-division section's placement (§2023:13.7.3 SR1), a duplicate METHOD-ID, a USAGE
     /// the targeted edition does not have — governs its text whether or not anything expands it, and until this bind
     /// those rules were asked of an expansion only, so an unexpanded definition compiled whatever its body held. Its
-    /// parameter-names resolve through the one funnel as formals (<c>OoNameResolution.Result.IsFormal</c>), and a
+    /// parameter-names resolve through the one funnel as formals (<c>OoNameResult.IsFormal</c>), and a
     /// reference typed by a formal takes the alternative its REPOSITORY specifier declares, marked
     /// <see cref="ObjectRefDescriptor.Formal"/>: what the formal names is known only in an expansion, where §2023:9.3.8.2.4
     /// asks every question that turns on it "as if the actual parameter classes or interfaces were substituted". The

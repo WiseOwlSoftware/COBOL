@@ -703,6 +703,28 @@ the two runs of each tree:
 
 Every branch `None` row lies inside the parent's two runs or within 0.06 MB of them (SM201A's first run), and IX113A's lies below
 both, so slice 6 moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, the OO lane (kb/Work PB5932, the object-class-names and interface-names resolved by the symbol table's compilation-group
+tier, the method rosters keyed by the externalized method name, the PROPERTY specifiers): the `None` row against the parent.** The lane
+changes how every class-name, interface-name and method roster is declared and looked up (a lookup keyed by `CobolName` or
+`ExternalizedMethodName` where it was keyed by a string under the name comparer), so it measures the no-listing path. Measured on
+2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FrontEndAndBind*'` twice on the `listing-step-6b-oo` branch (commit f6cd542052) and twice on its parent `84097a3e22`,
+alternating (parent, branch, branch, parent). Allocated bytes per front end and bind, the two runs of each tree:
+
+| Program | Listing | Parent | OO lane |
+|---|---|---|---|
+| IX113A | None | 69.05, 68.99 MB | 69.07, 69.02 MB |
+| NC105A | None | 35.11, 35.06 MB | 35.20, 35.04 MB |
+| NC218A | None | 30.96, 31.56 MB | 30.94, 31.08 MB |
+| SM201A | None | 15.35, 15.40 MB | 15.41, 15.21 MB |
+| IX113A | Text | 76.82, 76.82 MB | 76.89, 76.82 MB |
+| IX113A | All | 97.47, 97.47 MB | 97.51, 97.56 MB |
+
+Every branch `None` row lies inside the parent's two runs or within 0.09 MB of them (NC105A's first run), so the lane moves no
+measurable allocation; the `None` budget holds. None of the four programs declares a class, so the OO tables are empty in every row:
+the rows measure what the lane adds to a compilation with no OO (one empty tier per class table, the per-element PROPERTY table).
+Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

@@ -4140,7 +4140,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
         // The §2023:13.18.60.2 description, adjudicated ONCE: which alternative was written, whether the name
         // resolves to a class or an interface — in the REFERRING SOURCE ELEMENT's scope (§2023:8.4.6.4), through
-        // the one OoNameResolution funnel, kb/Work PB365 — whether FACTORY/ONLY are admissible on that
+        // the one funnel SymbolTable.ClassNames.Resolve, kb/Work PB365 — whether FACTORY/ONLY are admissible on that
         // alternative, and §2023:13.18.60.3 SR16's placement of ACTIVE-CLASS. Every consumer downstream ASKS this
         // descriptor.
         var objectRefDesc = entryUsage is Usage.ObjectReference

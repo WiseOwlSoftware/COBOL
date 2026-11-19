@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// information in the external repository for the class" / "the interface"; DESIGN-external-repository §8.4 step 3, §2023:10.1, §2023:10.6).
 /// The class table asks it for an IDENTITY — the externalized name a class- or interface-specifier states (<c>lit ?? word</c>,
 /// §2023:12.3.8.4 GR2) — after the group's own definitions and the standard class BASE have not claimed it, and registers what it
-/// answers (<see cref="OoClassTable.ImportClass"/>, <see cref="OoClassTable.ImportInterface"/>). The one implementation is
+/// answers (<see cref="SymbolTable.ClassNames.ImportClass"/>, <see cref="SymbolTable.ClassNames.ImportInterface"/>). The one implementation is
 /// <c>MetadataRepositoryProvider</c>, which reads the compiled assemblies of the search space; it is an interface because the table
 /// (<c>Compiler.Oo</c>) is built before the provider's binder-side collaborators exist and must not depend on them.
 /// </summary>

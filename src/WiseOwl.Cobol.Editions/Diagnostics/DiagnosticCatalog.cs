@@ -7823,7 +7823,7 @@ public static class DiagnosticCatalog
         "ISO §2023:8.4.6.4 / §2023:8.3.2.2");
 
     /// <summary>COBOL0821 — a CLASS-ID's INHERITS names no class the definition may reference (§2023:11.3.3 SR2, an
-    /// instance of §2023:8.4.6.4's scope rule; kb/Work PB365): reported by the <c>OoNameResolution.Resolve</c> funnel,
+    /// instance of §2023:8.4.6.4's scope rule; kb/Work PB365): reported by the <c>SymbolTable.ClassNames.Resolve</c> funnel,
     /// whose message says whether the class is defined in the group but undeclared, or defined nowhere.</summary>
     public static readonly DiagnosticDescriptor InheritedClassNotInScope = new(
         "COBOL0821", "inherited-class-not-in-scope", EditionSeverity.Error,
@@ -7833,7 +7833,7 @@ public static class DiagnosticCatalog
 
     /// <summary>COBOL0840 — an INTERFACE-ID's INHERITS, or a FACTORY or OBJECT paragraph's IMPLEMENTS, names no
     /// interface the definition may reference (§2023:11.6.3 SR2, §2023:11.4.3 SR1, §2023:11.8.3 SR1 — instances of §2023:8.4.6.4's scope
-    /// rule; kb/Work PB365): reported by the <c>OoNameResolution.Resolve</c> funnel. Before kb/Work PB1784 the code
+    /// rule; kb/Work PB365): reported by the <c>SymbolTable.ClassNames.Resolve</c> funnel. Before kb/Work PB1784 the code
     /// also carried seven unrelated rules, which now have descriptors of their own.</summary>
     public static readonly DiagnosticDescriptor InterfaceNameNotInScope = new(
         "COBOL0840", "interface-name-not-in-scope", EditionSeverity.Error,

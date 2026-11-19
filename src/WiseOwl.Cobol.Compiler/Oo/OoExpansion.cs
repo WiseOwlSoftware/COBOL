@@ -51,7 +51,7 @@ using WiseOwl.Cobol.Runtime;
 /// <para><b>The definition itself emits nothing.</b> It is a skeleton, and §2023:12.3.8.4 GR1 ("If object-class-name-1
 /// is a class described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY
 /// paragraph") leaves it no other use. It is kept out of the class table and recorded as parameterized, so
-/// <see cref="OoNameResolution.Resolve"/> can name GR1 when some other position writes it. It is still a class or
+/// <see cref="SymbolTable.ClassNames.Resolve"/> can name GR1 when some other position writes it. It is still a class or
 /// interface definition, so it BINDS as itself for its own rules — its data, environment and method headers, with each
 /// formal resolving as a formal (kb/Work PB2051; <c>OoDriver.BindParameterized</c>).</para>
 ///
