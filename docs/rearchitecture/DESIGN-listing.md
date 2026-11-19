@@ -1806,6 +1806,11 @@ renderer. Naming it asks for a listing at any edition.
   Slice 4 (the CONFIGURATION SECTION names) moves no measurable allocation: every branch row of the front end and bind lies inside
   the parent's two runs or within 0.04 MB of them (IX113A `None` 68.92 and 68.88 MB against 68.94 and 68.84; the README's step-6b
   table, slice 4).
+  Slice 5 (the REPORT SECTION names): the first build allocated 0.6 to 1.3 MB more on every program's `None` row (IX113A 69.98 and
+  69.95 MB against 68.92 and 68.95), because the moved sum-counter arm, which every data-name reference asks first, read the reference's
+  word and qualifiers before asking whether any counter carries the name. The arm now asks the table first; re-measured, every
+  branch `None` row lies within 0.13 MB of the parent's three runs but one NC218A run whose other rows lie inside the parent's (the
+  README's step-6b table, slice 5).
 
 ## 10. Test plan
 
