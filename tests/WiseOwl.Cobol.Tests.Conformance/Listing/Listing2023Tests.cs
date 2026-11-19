@@ -28,20 +28,6 @@ public sealed class Listing2023Tests : IDisposable
 
     public void Dispose() => ScratchDirectory.Remove(_dir);
 
-    private static readonly string[] Prologue =
-    [
-        "       IDENTIFICATION DIVISION.",
-        "       PROGRAM-ID. L2023.",
-        "       DATA DIVISION.",
-        "       WORKING-STORAGE SECTION.",
-    ];
-
-    private static readonly string[] Epilogue =
-    [
-        "       PROCEDURE DIVISION.",
-        "           STOP RUN.",
-    ];
-
     /// <summary>
     /// §2023:7.3.18.3 GR2: "The default LISTING directive is '>>LISTING ON'"; GR4: "If OFF is specified, source lines shall not be
     /// listed until a LISTING directive specifying or implying the ON phrase is encountered, with the exception that another
@@ -106,13 +92,13 @@ public sealed class Listing2023Tests : IDisposable
     {
         string[] lines =
         [
-            .. Prologue,
+            .. _cases.Prologue,
             "       >>PUSH LISTING",
             "       >>LISTING OFF",
             "       01 IN-PUSH PIC X.",
             "       >>POP LISTING",
             "       01 AFTER-POP PIC X.",
-            .. Epilogue,
+            .. ListingHookCases.Epilogue,
         ];
         var (_, listing, _) = _cases.Compile("lstpush", lines);
         Assert.False(Source(listing, LineOf(lines, "IN-PUSH")).Listed);
@@ -233,13 +219,13 @@ public sealed class Listing2023Tests : IDisposable
     {
         string[] lines =
         [
-            .. Prologue,
+            .. _cases.Prologue,
             "       >>DISPLAY \"FIRST\" 1",
             "       >>LISTING OFF",
             "       >>DISPLAY \"SECOND\" UPON LISTING",
             "       >>DISPLAY \"TO-ERR\" UPON SYSERR",
             "       >>LISTING ON",
-            .. Epilogue,
+            .. ListingHookCases.Epilogue,
         ];
         var (result, listing, text) = _cases.Compile("lstdisp", lines);
         var first = Source(listing, LineOf(lines, "\"FIRST\""));
@@ -267,7 +253,7 @@ public sealed class Listing2023Tests : IDisposable
     public void DisplayUponListing_WithNoListing_IsTheCompilersOutput()
     {
         string source = Path.Combine(_dir, "nolst.cob");
-        File.WriteAllText(source, string.Join("\n", (string[])[.. Prologue, "       >>DISPLAY \"FIRST\"", "       >>DISPLAY \"SECOND\" UPON LISTING", .. Epilogue]));
+        File.WriteAllText(source, string.Join("\n", (string[])[.. _cases.Prologue, "       >>DISPLAY \"FIRST\"", "       >>DISPLAY \"SECOND\" UPON LISTING", .. ListingHookCases.Epilogue]));
         var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "nolst.dll"),
             DialectLevel: 2023, CheckOnly: true));
         Assert.True(result.Success, string.Join("\n", result.Errors));
@@ -295,7 +281,7 @@ public sealed class Listing2023Tests : IDisposable
             "       01 NUM PIC 9 :V:.",
             "       COPY REPBOOK REPLACING ==:N:== BY ==FIRST-ITEM==.",
             "       COPY REPBOOK REPLACING ==:N:== BY ==SECOND-ITEM==.",
-            .. Epilogue,
+            .. ListingHookCases.Epilogue,
         ];
         var (_, listing, text) = _cases.Compile("lstrepl", lines, new Dictionary<string, string> { ["REPBOOK.cpy"] = "       01 :N: PIC X." });
         var replaced = Source(listing, LineOf(lines, ":V:."));

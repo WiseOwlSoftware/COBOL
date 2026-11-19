@@ -704,7 +704,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     : null;
             case PicCategory.FunctionPointer:
                 string? rp = receiver.Pic.RestrictedPrototypeName, sp = sender.Pic?.RestrictedPrototypeName;
-                return SameFunctionPrototypeSignature(rp, sp) ? null
+                return !StatementBinder.SignaturesDiffer(ctx.Symbols.FunctionSignatureOf(receiver), ctx.Symbols.FunctionSignatureOf(sender)) ? null
                     : $"the receiving function-pointer is restricted to function-prototype '{rp}' and the sender to "
                       + $"'{sp}', which do not have the same signature — the function-prototypes associated with "
                       + "identifier-12 and identifier-13 shall have the same signature (ISO §2023:14.9.39.3 SR20; §2023:13.18.60.4 GR26)";
@@ -843,7 +843,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // ⛔ SR20 IS ASKED OF EVERY RECEIVER, NEVER OF A REPRESENTATIVE ONE (kb/Work PB3224) — see the program twin.
         // SR20 applies to the receivers among themselves too — identifier-13 is ONE sender, so two receivers
         // restricted to differently-signed prototypes cannot both conform to it.
-        if (ReceiversDisagreeing(targets, pointer => FunctionSignatureOf(pointer.Pic?.RestrictedPrototypeName)) is { } clash)
+        if (ReceiversDisagreeing(targets, ctx.Symbols.FunctionSignatureOf) is { } clash)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
                 $"SET '{clash.A.Item.CobolName}' '{clash.B.Item.CobolName}' TO ADDRESS OF FUNCTION: the receiving "
@@ -854,8 +854,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // §2023:14.9.39.4 GR14's run-time screen compares the stored address with ONE signature. The receivers agree
         // (the pair test above), so any RESTRICTED receiver states it; with none (every receiver unrestricted), the screen
         // is suppressed (ExpectedFormalsOf).
-        int expectedFormals = ExpectedFormalsOf(
-            targets.Select(t => t.Item.Pic?.RestrictedPrototypeName).FirstOrDefault(n => FunctionSignatureOf(n) is not null));
+        int expectedFormals = ExpectedFormalsOf(targets.Select(t => ctx.Symbols.FunctionSignatureOf(t.Item)).FirstOrDefault(s => s is not null));
 
         // The receiving operands AS WRITTEN — every echo of the statement below names them (kb/Work PB388).
         string written = SetFormatSelection.Written(drefs);
@@ -873,17 +872,16 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var operand = fai.dataReference();
         string word = operand.GetText();
         // The PROTOTYPE arm (§2023:8.4.3.12.3 SR2 + §2023:8.4.6.6): a REPOSITORY function-specifier, or the containing
-        // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves.
-        bool isPrototypeName = ctx.Data.State.Configuration.UserFunctionNames.Contains(word)
-            || CobolNames.Same(host.UdfSelfName, word);
-        if (isPrototypeName)
+        // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves, through the
+        // symbol table's one lookup (a function-prototype-name is one word: a qualified or subscripted operand is no such name).
+        if (ctx.Symbols.Identify(operand, NameClass.FunctionPrototype, report: true)?.Symbol is FunctionPrototypeReference prototype)
         {
             // GR3 makes the sender a function-pointer restricted to this prototype, so SR20's compare is the
             // same one the pointer-to-pointer arm runs — one rule, one helper, asked of EVERY receiver.
             foreach (var t in targets)
             {
                 string? receiverProto = t.Item.Pic?.RestrictedPrototypeName;
-                if (SameFunctionPrototypeSignature(receiverProto, word)) continue;
+                if (!StatementBinder.SignaturesDiffer(ctx.Symbols.FunctionSignatureOf(t.Item), prototype.CalleeSignature)) continue;
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
                     $"SET '{t.Item.CobolName}' TO ADDRESS OF FUNCTION {word}: the receiving function-pointer "
                     + $"is restricted to function-prototype '{receiverProto}' and the function-address-identifier has "
@@ -894,7 +892,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             // the run-unit registry holds a unit under (§2023:11.5.4 GR1's AS literal-1 when one is written; the
             // word otherwise) — so the bound node carries the externalized spelling, never the source word
             // (kb/Work PB303, the same drift the CALL/ENTRY paths were fixed for).
-            string externalized = host.UserFunctions?.TryGetValue(word, out var proto) == true ? proto.Externalized : word;
+            string externalized = prototype.Signature?.Externalized ?? word;
             return new BoundSetFunctionAddress(targets, externalized, null, expectedFormals);
         }
         // The IDENTIFIER arm (§2023:8.4.3.12.3 SR1): "Identifier-1 shall be of category alphanumeric or national."
@@ -965,27 +963,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
-    /// <summary>ISO §2023:14.9.39.3 SR20's last sentence over two function-prototype NAMES: resolve each through the
-    /// compilation group's user-function table (the §2023:8.4.6.6 scope the declarations were already screened
-    /// against) and hand the pair to the ONE same-signature test <see cref="PrototypeSignatures.Same"/>, which
-    /// SR22 reads as well. A §2023:12.3.8.4 GR11 c) prototype has its external repository entry's signature; a name with no
-    /// table entry was refused where it was declared and raises no second fault (<see cref="StatementBinder.SignaturesDiffer"/>).</summary>
-    private bool SameFunctionPrototypeSignature(string? a, string? b) =>
-        !StatementBinder.SignaturesDiffer(FunctionSignatureOf(a), FunctionSignatureOf(b));
-
-    private CalleeSignature? FunctionSignatureOf(string? prototypeName) =>
-        prototypeName is not null && host.UserFunctions?.TryGetValue(prototypeName, out var s) == true
-            ? new CalleeSignature(s.Formals, s.Returning)
-            : null;
-
-    /// <summary>The run-time signature granularity of §2023:14.9.39.4 GR14 for a receiver restricted to
-    /// <paramref name="prototypeName"/> — the prototype's formal count, or −1 when no receiver is restricted (null) or
-    /// the name has no table entry (refused where it was declared). ⛔ −1 SUPPRESSES the emitted GR14 screen rather
+    /// <summary>The run-time signature granularity of §2023:14.9.39.4 GR14 for a receiver restricted to a prototype of
+    /// <paramref name="signature"/> (the symbol table's <see cref="SymbolTable.FunctionSignatureOf"/>, the ONE reader every
+    /// function-pointer signature comparison asks, §2023:14.9.39.3 SR20) — the prototype's formal count, or −1 when no receiver is
+    /// restricted or the name has no table entry (refused where it was declared; null either way). ⛔ −1 SUPPRESSES the emitted GR14 screen rather
     /// than defaulting it to zero: with no prototype there is nothing for "the same signature as the function referenced
     /// in the definition of identifier-13" to name. GR4's not-found screen still runs, because locating the function
     /// needs no signature.</summary>
-    private int ExpectedFormalsOf(string? prototypeName) =>
-        FunctionSignatureOf(prototypeName) is { } s ? s.Formals.Count : -1;
+    private static int ExpectedFormalsOf(CalleeSignature? signature) => signature is { } s ? s.Formals.Count : -1;
 
     /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> — ⛔ THE MICRO FOCUS / IBM VENDOR
     /// SPELLING, NOT AN ISO FORMAT. This doc comment used to call it "ISO §2023:14.9.39 Format 9 with the §2023:8.4.3.13

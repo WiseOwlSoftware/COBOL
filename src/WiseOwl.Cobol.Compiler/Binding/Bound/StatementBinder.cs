@@ -111,15 +111,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     public void ConfigureEc(TurnState turn, IReadOnlyList<Frontend.Preprocessor.DirectiveSite> sites,
         string programName) => Ec.ConfigureEc(turn, sites, programName);
 
-    /// <summary>The compilation group's user-function signature table (FUNCTION-ID name → RETURNING +
-    /// USING descriptions), built by the run-unit emitter between the DATA and PROCEDURE bind phases.
-    /// Null in unit-test direct construction and in class-unit binders — every user-function reference
-    /// there fails loud (COBOL1505).</summary>
-    public IReadOnlyDictionary<string, UserFunctionSignature>? UserFunctions { get; set; }
-
     /// <summary>The programs an AS NESTED call in THIS unit may name (§2023:14.9.4.3 SR15: directly contained in
     /// the caller, or a visible COMMON program), each with its bound PD-header formals — built per unit in
-    /// BinderDriver.BindUnitProcedure, after every unit's DATA has bound (the UserFunctions precedent), so
+    /// BinderDriver.BindUnitProcedure, after every unit's DATA has bound (as the symbol table's prototypes are), so
     /// GR9's the-formal-decides mode derivation is a bind-time lookup (kb/Work PB131). The key is the callee's externalized
     /// program-name (<see cref="ExternalizedProgramName"/>), which a CALL's literal-1 names.</summary>
     internal IReadOnlyDictionary<ExternalizedProgramName, CalleeSignature>? NestedCallables { get; set; }
@@ -135,16 +129,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// §2023:14.9.7.3 SR1 bans COMMIT/ROLLBACK in a recursive source element). Set by BinderDriver.</summary>
     public bool UnitRecursive { get; set; }
 
-    /// <summary>The containing FUNCTION-ID unit's own function name, when this binder binds a function
-    /// definition's body — §2023:8.4.6.6: a referenced function-prototype-name shall be "the user-function-name
-    /// of the containing function definition OR a function-prototype-name declared in the REPOSITORY
-    /// paragraph", so self-recursion needs NO repository entry (a present self-entry is ignored per
-    /// §2023:12.3.8 GR11 — same resolution either way). Null in program units.</summary>
-    public string? UdfSelfName { get; set; }
-
     /// <summary>The kind of source element this binder's PROCEDURE DIVISION belongs to (ISO §2023:14.2.2 SR10) — the
-    /// input every EXIT / GOBACK placement rule needs (kb/Work PB403). Set by <c>BinderDriver</c> from the same
-    /// unit facts as <see cref="UdfSelfName"/>; stored on the <see cref="BinderContext"/> so the ONE placement
+    /// input every EXIT / GOBACK placement rule needs (kb/Work PB403). Set by <c>BinderDriver</c> from the unit's
+    /// facts; stored on the <see cref="BinderContext"/> so the ONE placement
     /// probe (<c>ctx.Enclosing</c>) owns it rather than a second per-verb copy. A method body binds on a CLASS
     /// unit's binder and overrides this through the entered method scope.</summary>
     internal SourceElementKind UnitKind { get => Ctx.UnitKind; set => Ctx.UnitKind = value; }
@@ -643,7 +630,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 case Core.DataReferenceContext dref:
                     if (Ctx.Refs.Probe(dref) is { } probed
                         ? IsGatedMessageTag(probed.Item)
-                        : dref.cobolWord() is { } word && Intrinsic.SignatureOf(word.GetText()) is { } keywordOmitted && NamesGatedMessageTag(keywordOmitted))
+                        : dref.cobolWord() is { } word && Intrinsic.SignatureOf(word.Start) is { } keywordOmitted && NamesGatedMessageTag(keywordOmitted))
                         return true;
                     break;
                 case Core.FunctionCallContext call:
@@ -878,7 +865,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         string verb = isCommit ? "COMMIT" : "ROLLBACK";
         string cite = isCommit ? "§2023:14.9.7.3 SR1" : "§2023:14.9.36.3 SR1";
-        if (UnitRecursive || InMethod || UdfSelfName is not null)
+        if (UnitRecursive || InMethod || UnitKind is SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype)
         {
             return BoundRejected.Report(Ctx.Edition, DiagnosticCatalog.CommitRollbackContext,
                 $"{verb} shall not be specified in a recursive source element (ISO {cite}; a function or "

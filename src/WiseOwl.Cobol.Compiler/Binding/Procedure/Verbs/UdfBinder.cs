@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Compiler.Oo;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -47,8 +48,8 @@ using Core = CobolParserCore;
 /// program classes with the RETURNING carrier.
 /// P7 Step 10k: a real collaborator over <see cref="BinderContext"/>, landed TOGETHER with
 /// <see cref="IntrinsicBinder"/> (the argument bind reaches back into its <c>BindArgOperand</c>). The
-/// host.UserFunctions/host.UdfSelfName injection surface STAYS on the StatementBinder host (BinderDriver's
-/// object-initializer contract — re-homed at 10t); the statement-scoped <c>_udfPendingCalls</c> mark/drain
+/// user functions a reference names are the symbol table's (<c>SymbolTable.ResolveFunctionPrototypes</c>, docs/rearchitecture/
+/// DESIGN-listing.md section 6.7.1, step 6b slice 7), handed in as the reference's identified prototype; the statement-scoped <c>_udfPendingCalls</c> mark/drain
 /// suffix protocol is exposed through <see cref="Mark"/> for the host's BindStatement /
 /// BindFlatSequence chokepoints. The line-65 <c>ConstructRegistry.Check</c> stays THE documented bind-time
 /// gate exception (fires on RECOGNITION, pre-hoist), moved VERBATIM.</summary>
@@ -78,9 +79,11 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind one user-function reference (the <see cref="BindIntrinsicCore"/> dispatch target for a
     /// REPOSITORY-declared name, which per §2023:12.3.8.4 GR12 refers to the user function and never a same-named
     /// intrinsic): resolve the signature, bind the arguments in the §2023:8.4.3.2.4 GR5 manner, synthesize the
-    /// result temporary, register the hoisted activation, and return the temp-reading expression.</summary>
-    internal BoundExpr UdfBindCall(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    /// result temporary, register the hoisted activation, and return the temp-reading expression. <paramref name="function"/> is
+    /// what the reference's function-prototype-name identified (<c>SymbolTable.Identify</c>, <see cref="NameClass.FunctionPrototype"/>).</summary>
+    internal BoundExpr UdfBindCall(FunctionPrototypeReference function, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
+        string name = function.Word;
         // INTRODUCTION gate: user-defined functions are COBOL-2002+ (§2023:9.4 / §2023:12.3.8; 0900 below 2002). It fires on
         // RECOGNITION — a below-2002 UDF reference is an edition violation independent of whether the function is
         // DEFINED (a locate miss is 1505 / EC-FUNCTION-NOT-FOUND). A bound-arm gate on the hoisted BoundCallProgram
@@ -93,9 +96,9 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // A specifier whose AS literal-5 was refused (§2023:12.3.8.3 SR2) was reported where it is written and registers no
         // prototype; the reference is its cascade and adds no COBOL1505 (kb/Work PB4822). Asked BEFORE the table: a refused
         // specifier must not let the bare word resolve to a same-named function of the group.
-        if (ctx.Data.State.Configuration.IsRefusedFunctionReference(name, ctx.Edition))
+        if (SymbolTable.IsRefusedFunctionReference(function, ctx.Edition))
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(name, out var fn))
+        if (function.Signature is not { } fn)
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
                 $"FUNCTION {name.ToUpperInvariant()} is declared in the REPOSITORY paragraph but the compilation "
@@ -127,11 +130,12 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         // The mandatory `[TO] function-prototype-name-1` operand (§2023:13.18.60.2, unbracketed) is screened at the
         // declaration (COBOL1958); an item missing it has already been reported, so there is no prototype to
         // take GR4's characteristics from and nothing further to say here.
-        if (pointer.Item.Pic?.RestrictedPrototypeName is not { } proto)
+        if (ctx.Symbols.FunctionPrototypeOf(pointer.Item) is not { } prototype)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        if (ctx.Data.State.Configuration.IsRefusedFunctionReference(proto, ctx.Edition))   // the same cascade (kb/Work PB4822)
+        string proto = prototype.Word;
+        if (SymbolTable.IsRefusedFunctionReference(prototype, ctx.Edition))   // the same cascade (kb/Work PB4822)
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
-        if (host.UserFunctions is null || !host.UserFunctions.TryGetValue(proto, out var fn))
+        if (prototype.Signature is not { } fn)
         {
             ctx.Edition.Error(DiagnosticCatalog.UserFunctionPrototypeUnresolved,
                 $"FUNCTION {name.ToUpperInvariant()}: function-pointer '{name}' is restricted to function-prototype "

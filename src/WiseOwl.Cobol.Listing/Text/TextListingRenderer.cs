@@ -235,12 +235,13 @@ public static class TextListingRenderer
     }
 
     /// <summary>The caret row of 1-based <paramref name="column"/> of <paramref name="text"/> (a character position of the line's
-    /// text, tabs expanded): a '^' under that position of the source columns, a supplementary-plane character being one position;
-    /// null when the column lies past the text's end plus one.</summary>
+    /// text, tabs expanded, a supplementary-plane character being one position, as every listing record's column counts:
+    /// <c>ReferenceFormatMap.CharacterPositionAt</c>): a '^' under that position of the source columns; null when the column lies past
+    /// the text's end plus one.</summary>
     public static string? CaretRow(string text, int column)
     {
-        if (column < 1 || column - 1 > text.Length) return null;
-        return new string(' ', TextColumn - 1 + Positions(text.AsSpan(0, column - 1))) + "^";
+        if (column < 1 || column - 1 > Positions(text)) return null;
+        return new string(' ', TextColumn - 1 + column - 1) + "^";
     }
 
     /// <summary>The marker that opens a diagnostic row.</summary>
@@ -265,7 +266,8 @@ public static class TextListingRenderer
         }
     }
 
-    /// <summary>The word a severity is printed as, the word every diagnostic line of the compiler uses.</summary>
+    /// <summary>The word a severity is printed as: the word every diagnostic line of the compiler uses (<c>Diagnostic.SeverityWord</c>,
+    /// which this assembly cannot reference; <c>DiagnosticRecordsTests.TheSeverityWords_AreTheCompilersWords</c> holds the two equal).</summary>
     public static string SeverityWord(ListingSeverity severity) => severity switch
     {
         ListingSeverity.Error => "error",

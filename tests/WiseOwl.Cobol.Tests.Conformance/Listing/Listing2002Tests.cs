@@ -8,8 +8,8 @@ namespace WiseOwl.Cobol.Tests.Conformance.Listing;
 /// <summary>
 /// The standard's listing hooks at <c>--std 2002</c>, judged by the 2002 text (DESIGN-listing.md section 10 item 2; step 4b of
 /// section 11). §2002:7.2.15.2 GR1: "Whether the compiler produces a source listing is implementor defined"; this compiler
-/// produces one on request (DOC-A.1-117), so GR2 to GR5 apply. These cases are the witnesses of the twelve 2002 listing rows of
-/// section 2.2. 2002 has no PUSH, POP or DISPLAY directive and no exception-checking PERFORM, so those 2023 cases have no 2002
+/// produces one on request (DOC-A.1-117), so GR2 to GR5 apply. These cases are the witnesses of the 2002 listing rows of section
+/// 2.2 that closed, ten of its twelve: the two DOC rows (2002-DOC-B.1-90, -165) wait on kb/Work PB5930. 2002 has no PUSH, POP or DISPLAY directive and no exception-checking PERFORM, so those 2023 cases have no 2002
 /// counterpart; DATE-COMPILED is removed (§2002:F.1), so the paragraph's replacement is a 1985 case.
 /// </summary>
 public sealed class Listing2002Tests : IDisposable

@@ -80,13 +80,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // shapes, decided the same way, as KeywordOmittedFunction. §2023:8.4.3.2.3 SR6 is then applied exactly as for
             // the FUNCTION-keyword form, so `RANDOM (1:4)` is rejected as an argument list on both routes.
             var sp = fc.subscriptPart();
-            if (sp is null && fc.refModPart().Length > 0 && DefinitionPermitsArguments(fw)) return Sr6ArgumentListError(fn);
+            if (sp is null && fc.refModPart().Length > 0 && DefinitionPermitsArguments(fw, reservedToken)) return Sr6ArgumentListError(fn);
             var args = sp is null ? [] : ArgumentsOf(sp);
             return args is null
                 ? BoundExprError.Refused(ctx.Edition, $"FUNCTION {fn} arguments")
-                : FinishIntrinsic(fc, BindIntrinsicCore(fw, args), fn);
+                : FinishIntrinsic(fc, BindIntrinsicCore(fw, reservedToken, args), fn);
         }
-        var functionWord = FunctionWord.OfToken(fc.functionName().Start, ctx.CobolWords);
+        IToken nameToken = fc.functionName().Start;
+        var functionWord = FunctionWord.OfToken(nameToken, ctx.CobolWords);
         string name = functionWord.Written;
         string display = $"FUNCTION {name}";
         // §2023:8.4.3.2.3 SR6 is decided HERE, from the function's DEFINITION and BEFORE the arguments bind — never
@@ -94,7 +95,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // ref-mod's, not a direct child), so the argument list is EMPTY; binding first would report the §2023:15.3
         // arity error ("takes 1 argument(s); 0 given" — the PB61 SR-8.4.3.2.3-6 misroute) about an argument
         // list the user never wrote, and the SR6 arm inside the ref-mod applier would then never see the call.
-        if (fc.FNARG_LPAREN() is null && fc.refModPart().Length != 0 && DefinitionPermitsArguments(functionWord))
+        if (fc.FNARG_LPAREN() is null && fc.refModPart().Length != 0 && DefinitionPermitsArguments(functionWord, nameToken))
             return Sr6ArgumentListError(display);
         // §2023:8.4.3.2.3 SR5 — "If function-pointer-name-1 is specified, the parentheses shall be specified" — decided
         // from the parse like SR6 above, before any bind: `FUNCTION FP` and `FUNCTION FP (1:4)` write no argument
@@ -107,7 +108,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             return BoundExprError.Refused(ctx.Edition, display);
         }
         return ArgumentsOf(fc.functionArgList()?.functionArgument() ?? []) is { } written
-            ? FinishIntrinsic(fc, BindIntrinsicCore(functionWord, written), display)
+            ? FinishIntrinsic(fc, BindIntrinsicCore(functionWord, nameToken, written), display)
             : BoundExprError.Refused(ctx.Edition, $"{display} arguments");
     }
 
@@ -121,16 +122,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// every route a `NAME (start:length)` can arrive on — the FUNCTION-keyword form, the reserved-name
     /// keyword-omitted form and <see cref="KeywordOmittedFunction"/> — because once the group has been read as
     /// a ref-mod the bind reports an ARITY error about an empty argument list, and no later check can undo a
-    /// diagnostic already issued. False for a name that is neither: the ordinary paths report it.</summary>
-    private bool DefinitionPermitsArguments(FunctionWord word)
+    /// diagnostic already issued. False for a name that is neither: the ordinary paths report it. <paramref name="written"/> is the
+    /// token <paramref name="word"/> was read from; the user function is the symbol table's (a probe: it records nothing).</summary>
+    private bool DefinitionPermitsArguments(FunctionWord word, IToken written)
     {
         // >>COBOL-WORDS, already resolved ONCE in the FunctionWord (ISO §2023:7.3.10.4 GR2/GR3/GR4; kb/Work PB250,
         // PB1372). A name the directive REMOVED (UNDEFINE literal-3 / SUBSTITUTE literal-4) is no longer a function
         // name, so its definition permits nothing — the '(' that follows is a ref-mod, not an argument list.
         if (word.Canonical is not { } name) return false;
-        if (ctx.Data.State.Configuration.UserFunctionNames.Contains(name)
-            || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName))
-            return host.UserFunctions is { } fns && fns.TryGetValue(name, out var fn) && fn.Formals.Count > 0;
+        if (FunctionPrototypeWritten(written, report: false) is { } function)
+            return function.Signature is { } fn && fn.Formals.Count > 0;
         return IntrinsicCatalog.TryGet(name, out var sig) && sig.MaxArgs > 0;
     }
 
@@ -281,7 +282,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         FunctionPointerItemNamed(name) is { } only ? ctx.Refs.Places.ResolveItem(only) : null;
 
     /// <summary><see cref="FunctionPointerNamed"/>'s test, answering the declared item itself — for the readers that
-    /// need its description and no <see cref="Place"/> (<see cref="SignatureOf(string)"/>).</summary>
+    /// need its description and no <see cref="Place"/> (<see cref="SignatureOf(IToken)"/>).</summary>
     private DataItem? FunctionPointerItemNamed(string name)
     {
         if (!ctx.Symbols.TryResolveUnqualified(name, ctx.ActiveScope, out var candidates)) return null;
@@ -306,18 +307,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// (<c>StatementBinder.NamesGatedMessageTag</c>, kb/Work PB4893); the activation (<see cref="UdfBinder"/>) reads the same
     /// signature when it binds.</summary>
     internal UserFunctionSignature? SignatureOf(Core.FunctionCallContext fc) =>
-        fc.functionName() is { } written ? SignatureOf(FunctionWord.OfToken(written.Start, ctx.CobolWords).Name) : null;
+        fc.functionName() is { } written ? SignatureOf(written.Start) : null;
 
-    /// <summary><see cref="SignatureOf(Core.FunctionCallContext)"/> for a function name already resolved through
-    /// >>COBOL-WORDS (<see cref="FunctionWord.Name"/>), in <see cref="BindFunctionResult"/>'s dispatch order: the user
-    /// function first (§2023:12.3.8.4 GR12), the function-pointer second.</summary>
-    internal UserFunctionSignature? SignatureOf(string name)
+    /// <summary><see cref="SignatureOf(Core.FunctionCallContext)"/> for the function name <paramref name="written"/> holds (a
+    /// keyword-omitted reference's head word, too), in <see cref="BindFunctionResult"/>'s dispatch order: the user function
+    /// first (§2023:12.3.8.4 GR12), the function-pointer second. Both are the symbol table's, asked as probes.</summary>
+    internal UserFunctionSignature? SignatureOf(IToken written)
     {
-        string? prototype = ctx.Data.State.Configuration.UserFunctionNames.Contains(name) || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName)
-            ? name
-            : FunctionPointerItemNamed(name)?.Pic?.RestrictedPrototypeName;
-        return prototype is not null && host.UserFunctions is { } functions && functions.TryGetValue(prototype, out var fn) ? fn : null;
+        if (FunctionPrototypeWritten(written, report: false) is { } function) return function.Signature;
+        return FunctionPointerItemNamed(FunctionWord.OfToken(written, ctx.CobolWords).Name) is { } pointer
+            ? ctx.Symbols.FunctionPrototypeOf(pointer)?.Signature
+            : null;
     }
+
+    /// <summary>The function-prototype-name <paramref name="written"/> names in this element (ISO §2023:8.4.6.6), through the ONE
+    /// lookup (<see cref="SymbolTable.Identify(WrittenWord, NameClass, bool, NameReach)"/>, keyed by the word the
+    /// &gt;&gt;COBOL-WORDS directive made of the token), or null. <paramref name="report"/> is false for a probe that only
+    /// classifies the word and true for the reference itself (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
+    private FunctionPrototypeReference? FunctionPrototypeWritten(IToken written, bool report) =>
+        ctx.Symbols.Identify(WrittenWord.Of(written), NameClass.FunctionPrototype, report)?.Symbol as FunctionPrototypeReference;
 
     /// <summary>The §2023:8.4.3.2 SR2 FUNCTION-keyword-OMITTED reference form (M2-UDF-4): a data reference whose head
     /// is a REPOSITORY-declared user-function / function-prototype-name (or the containing function's own name),
@@ -402,9 +410,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the one membership the declaration screen asks too (kb/Work PB1083).
         bool catalogued = ctx.Data.TryIntrinsicOfThisCompilation(functionWord, out var sig);
         bool repositoryIntrinsic = ctx.Data.IsRepositoryIntrinsic(functionWord);
-        bool declaredFn = ctx.Data.State.Configuration.UserFunctionNames.Contains(name)
-            || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName)
-            || repositoryIntrinsic;
+        bool declaredFn = FunctionPrototypeWritten(cw.Start, report: false) is not null || repositoryIntrinsic;
         if (!declaredFn && !catalogued) return null;
         // A catalogued name the REPOSITORY does NOT identify may be a user-defined word (§2023:8.3.2.1 rule 5 — a
         // table named MOD or SQRT is legal): the declared item wins, never a mis-routed subscript. A name the
@@ -449,7 +455,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // MinArgs guard below to the data path and died as "'UPPER-CASE(1:4)' is not defined", while the
             // reserved-word RANDOM drew the SR6 message through the grammar's own arm — one rule, two verdicts.
             // Decided from the DEFINITION and before any bind, exactly as the FUNCTION-keyword form does.
-            if (capturedRefMod is not null && DefinitionPermitsArguments(functionWord)) return Sr6ArgumentListError(name);
+            if (capturedRefMod is not null && DefinitionPermitsArguments(functionWord, cw.Start)) return Sr6ArgumentListError(name);
             // A REPOSITORY-DECLARED USER function referenced bare is §2023:8.4.3.2.3 SR2's own case too (kb/Work
             // R35 — the two-arm-dispatch shape a SIXTH time: PB7 fixed the intrinsic arm of the bare-name
             // form and never asked the UDF arm, so `MOVE WITHOUTPAR TO X` over a declared zero-argument
@@ -457,10 +463,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // prototype machinery owns the zero-vs-N arity verdict — a bare reference to a declared
             // 2-argument function is an ARITY error about a function, never an undefined name: the user
             // DECLARED it a function, so there is no coincidental-collision reading to protect.
-            if (ctx.Data.State.Configuration.UserFunctionNames.Contains(name)
-                || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName))
+            if (FunctionPrototypeWritten(cw.Start, report: true) is { } declared)
             {
-                var udfBare = host.Udf.UdfBindCall(name, []);
+                var udfBare = host.Udf.UdfBindCall(declared, []);
                 return Activated(capturedRefMod is null
                     ? udfBare
                     : ResultRefMod(udfBare, ctx.Refs.RefMods.ReadRefMod(capturedRefMod), name));
@@ -471,7 +476,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // reference: for a name that merely COLLIDES with the catalog, the ordinary unresolved-name path
             // is the honest verdict, not an arity error about a function never intended.
             if (!catalogued || sig.MinArgs != 0) return null;
-            var bare = BindIntrinsicCore(functionWord, []);
+            var bare = BindIntrinsicCore(functionWord, cw.Start, []);
             // `CURRENT-DATE (1:8)` — the parenthesis carries a colon, so it is a reference modification of the
             // RESULT, not an argument list: SR6 was answered above (a zero-argument
             // definition permits none), so the group is applied to the result exactly as the FUNCTION-keyword
@@ -481,7 +486,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 : ResultRefMod(bare, ctx.Refs.RefMods.ReadRefMod(capturedRefMod), name));
         }
         var call = ArgumentsOf(sp) is { } args
-            ? BindIntrinsicCore(functionWord, args)
+            ? BindIntrinsicCore(functionWord, cw.Start, args)
             : BoundExprError.Refused(ctx.Edition, $"FUNCTION {name} arguments");
         return Activated(tailRefMod is null
             ? call
@@ -624,7 +629,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind one FUNCTION reference from its name + argument parse trees (shared by the FUNCTION-keyword
     /// entry, the keyword-omitted re-parse, and — through <c>BindExpr</c>'s <c>BindPrimary</c> — every nested
     /// FUNCTION recursion).</summary>
-    private BoundExpr BindIntrinsicCore(FunctionWord word, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    private BoundExpr BindIntrinsicCore(FunctionWord word, IToken written, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         // ⛔ THE ONE POINT EVERY BOUND FUNCTION RESULT PASSES (the FUNCTION-keyword entry, the reserved-name and the
         // keyword-omitted forms all call this): a result the binder FOLDED to a literal says so (kb/Work PB1398,
@@ -633,7 +638,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // records every argument operand bound while the call binds, and Settle freezes each one that a later
         // argument's function activation would otherwise overtake (ArgumentOrder).
         using var window = host.ArgOrder.Open();
-        var result = window.Settle(BindFunctionResult(word, argCtxs));
+        var result = window.Settle(BindFunctionResult(word, written, argCtxs));
         // A folded result's CHARACTER image is the literal form of the value, spelled with the unit's decimal separator
         // (§2023:12.3.7.4 GR14 a; kb/Work PB2507): HIGHEST-ALGEBRAIC of a PIC 9V99 item displays 9,99 under DECIMAL-POINT IS COMMA.
         return result is BoundNumLiteral folded
@@ -656,7 +661,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
               + $"function name; FUNCTION {op.New} now denotes it (ISO §2023:7.3.10.4 GR4)";
     }
 
-    private BoundExpr BindFunctionResult(FunctionWord word, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    private BoundExpr BindFunctionResult(FunctionWord word, IToken written, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         // >>COBOL-WORDS (ISO §2023:7.3.10.4 GR2/GR3/GR4) was applied ONCE, when the FunctionWord was made (kb/Work PB1372 —
         // this method used to resolve the name AGAIN, which read the canonical literal-4 of a SUBSTITUTE as removed): an
@@ -672,9 +677,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the same name" (the spec's own factorial-override example, :43651) — so the user-function
         // dispatch PRECEDES the catalog. §2023:8.4.6.6 adds the CONTAINING function definition's own name with
         // no repository declaration (self-recursion; a present self-entry is ignored, §2023:12.3.8 GR11).
-        if (ctx.Data.State.Configuration.UserFunctionNames.Contains(name)
-            || WiseOwl.Cobol.Runtime.CobolNames.Same(name, host.UdfSelfName))
-            return host.Udf.UdfBindCall(name, argCtxs);
+        if (FunctionPrototypeWritten(written, report: true) is { } function)
+            return host.Udf.UdfBindCall(function, argCtxs);
 
         // §2023:8.4.3.2.2 — the function-identifier's THIRD name form, function-pointer-name-1 (SR4: "shall be defined
         // as a function-pointer data item"). It used to have no arm, so `FUNCTION FP (3)` reached the catalog and
@@ -692,7 +696,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // at COBOL-85 the hint would send the reader to a construct the edition lacks (kb/Work PB4950).
             string hint = $"; the compilation group defines FUNCTION-ID {upper} — declare FUNCTION {upper} in this unit's "
                 + "REPOSITORY paragraph to reference it as a user-defined function (ISO §2023:12.3.8.4 GR12)";
-            string declareHint = host.UserFunctions?.ContainsKey(name) == true ? ctx.Edition.Edition.Cite("", hint) : "";
+            string declareHint = ctx.Symbols.GroupDefinesFunction(name) ? ctx.Edition.Edition.Cite("", hint) : "";
             // ⛔ The directive's SR3 lets it name a RESERVED word that never named a function (UNDEFINE "ACCEPT"); it
             // withdrew nothing the FUNCTION keyword could reach, so COBOL1501 is the true answer there. The cause is
             // told only for a word the catalog holds (review r1 R1-1).

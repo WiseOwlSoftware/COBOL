@@ -126,7 +126,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // CALL ones (the INVOKE arm of the same rule, kb/Work PB2087).
         // §2023:8.4.6.6: a REPOSITORY function-prototype-name or the containing FUNCTION definition's own name — a program's
         // own name is no user function (kb/Work PB3121: this test used to admit it whatever the unit's kind).
-        bool IsUserFunction(string fn) => binder.State.Configuration.UserFunctionNames.Contains(fn) || binder.UnitIsFunction && binder.ContainingDefinitionNames.Contains(fn);
+        bool IsUserFunction(string fn) => binder.Symbols.DeclaresFunctionPrototype(fn);
         var own = binder.Oo.IsClassUnit
             ? binder.Oo.BoundMethods.Select(m => (Method: m, Body: binder.Oo.BodyOf(m))).Where(b => b.Body is not null)
                 .SelectMany(b => binder.ClaimScans.ByReferenceOperands(b.Body!, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)b.Method)))

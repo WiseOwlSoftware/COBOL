@@ -154,7 +154,7 @@ valueClauseOperand
 
 // Range form for EVALUATE WHEN (full arithmetic) — §2023:14.9.13.2's range-expression, INCLUDING the trailing
 // `[ IN alphabet-name-1 ]` phrase, which is the only way a program can name the collating sequence that orders an
-// alphanumeric / national range (§2023:14.7.8 rule 2: "When the IN alphabet-name phrase is specified, the collating
+// alphanumeric / national range (§2023:14.7.8 GR2: "When the IN alphabet-name phrase is specified, the collating
 // sequence used for range evaluation is the collating sequence defined by that alphabet"; with no phrase the
 // ordering is "defined by the implementor"). MEASURED off the printed page (PDF p649 / folio 619): the bracket sits
 // AFTER the right-hand operand brace, `IN` is NOT underlined (an optional word, §2023:5.2.3) and alphabet-name-1 is a

@@ -128,7 +128,7 @@ public sealed class Frontend
         // BEFORE the parse that can place the two ops: the reference-format normalizer holds the SOURCE FORMAT in force,
         // the conditional-compilation driver the compilation-variable table and the frontend-inline FLAG options. A
         // >>DEFINE or >>SOURCE FORMAT written in a WHEN phrase would therefore outlive END-PERFORM. The stages re-run with
-        // the ops the previous parse placed — each keyed in ITS frame: to the driver's directive encounters
+        // the ops the previous parse placed — each keyed in ITS frame: to the driver's state encounters
         // (ConditionalCompilationResult.KeyImplicitOps) and to the physical lines of the file the normalizer reads
         // (ImplicitFormatOps.Place) — until the parse places the same program they were run with. Both keyings keep only
         // brackets that enclose a state change, so an ordinary source converges on the FIRST pass. Convergence: the ops of
@@ -336,7 +336,7 @@ public sealed class Frontend
     /// <summary>The text manipulation and directive stages after normalization — repeatable, because the
     /// §2023:14.9.28.4 GR14 implicit-op program (<paramref name="implicitOps"/>) comes from a parse of their own output
     /// (<see cref="Parse"/>). Returns the resultant text, the directive results (WITHOUT the implicit ops, which the
-    /// caller replays once the program has converged), and the driver's directive encounters.</summary>
+    /// caller replays once the program has converged), and the driver's state encounters.</summary>
     private (MappedText Text, DirectiveResults Directives, ConditionalCompilationResult Encounters,
         IReadOnlyDictionary<string, ReferenceFormatMap> Formats, CommentEntryPin? ProgramText,
         IReadOnlyList<CopyNameUse> CopyNames) Preprocess(

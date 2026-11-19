@@ -47,17 +47,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>BinderDriver.BindUnitData</c> from <c>BoundUnit.IsFunction</c>.</summary>
     public bool UnitIsFunction { get; init; }
 
-    /// <summary>The names of the definitions CONTAINING this source element — its own and, for a contained program,
-    /// every program containing it; all of the unit's own kind (<see cref="UnitIsFunction"/>) — the no-specifier leg
-    /// of the two prototype-name scope rules: ISO §2023:8.4.6.6 admits "the user-function-name of the containing function
-    /// definition" as a function-prototype-name and §2023:8.4.6.8 "the program-name of a containing program definition"
-    /// as a program-prototype-name, so a <c>USAGE {FUNCTION|PROGRAM}-POINTER TO</c> naming one is conforming without
-    /// a REPOSITORY entry. This is the DATA-phase copy of the ONE set the registries read
-    /// (<c>BinderDriver.ContainingDefinitions</c>, which seeds it from <c>BindUnitData</c>), so the TO-phrase screen
-    /// and the signature the restriction resolves to cannot disagree (kb/Work PB3121). Empty for a class, factory or
-    /// interface forest: a class is neither definition kind. kb/Work PB452/PB817.</summary>
-    public IReadOnlySet<string> ContainingDefinitionNames { get; init; } = EmptyNames;
-    private static readonly IReadOnlySet<string> EmptyNames = new HashSet<string>(CobolNames.Comparer);
 
     /// <summary>The targeted-edition context (digit caps, bind-time rejection diagnostics). Defaults to the
     /// latest edition for direct test construction; <c>CompilerDriver</c> always supplies the CLI's
@@ -539,14 +528,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is [var fn])
             {
                 specifierWords.Add((re, fn.GetText(), UserWordKind.FunctionPrototypeName));
-                State.Configuration.UserFunctionNames.Add(fn.GetText());
                 // A refused literal-5 registers NO specifier (the program specifier's posture, kb/Work PB237/PB4708): the word is
                 // declared, but resolving it by the word would answer REPO-1 about a name the source never gave (kb/Work PB4773).
                 if (BindSpecifierExternalizedName(re, "FUNCTION", fn.GetText(), "literal-5") is { } functionExternalized)
-                    State.Configuration.FunctionSpecifiers[fn.GetText()] = new FunctionSpecifier(fn.GetText(), functionExternalized, re);
+                    Symbols.DeclareFunctionSpecifier(fn.GetText(), new FunctionSpecifier(fn.GetText(), functionExternalized, re));
                 else
                 {
-                    State.Configuration.RefusedFunctionSpecifiers.Add(fn.GetText());
+                    Symbols.DeclareFunctionSpecifier(fn.GetText(), specifier: null);
                     Edition.NoteSpecifierRefusalReported(RefusedSpecifierKind.Function, fn.GetText());   // reported by BindSpecifierExternalizedName
                 }
             }
@@ -2028,7 +2016,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         if (re.ALL() is not null) State.Configuration.RepositoryAllIntrinsic = true;
         else foreach (var inf in re.functionName())
-            State.Configuration.RepositoryIntrinsics.Add(FunctionWord.OfToken(inf.Start, CobolWords).Name);
+            State.Configuration.RepositoryIntrinsics.Add(new StandardWord(FunctionWord.OfToken(inf.Start, CobolWords).Name));
     }
 
     /// <summary>Declare a PARAMETERIZED class or interface definition's parameter-names (§2023:11.3.2 / §2023:11.6.2
@@ -2214,7 +2202,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         if (!State.Configuration.RepositoryAllIntrinsic && State.Configuration.RepositoryIntrinsics.Count == 0) return null;   // no intrinsic specifier in scope
         if (!TryIntrinsicOfThisCompilation(word, out var sig)) return null;
-        if (State.Configuration.RepositoryIntrinsics.Contains(sig.Name)) return sig.Name;
+        if (State.Configuration.RepositoryIntrinsics.Contains(new StandardWord(sig.Name))) return sig.Name;
         return State.Configuration.RepositoryAllIntrinsic ? AllIntrinsics : null;
     }
 
@@ -2234,7 +2222,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>TO prototype-name-1</c> names (<see cref="DataItem.RestrictedPrototype"/>; kb/Work PB2495): its USAGE clause's TO
     /// phrase is that prototype's externalized name, and ISO §2023:13.18.60.4 GR25 / GR26 bound what it may contain by that
     /// prototype's SIGNATURE. The prototype tables exist only once the
-    /// group's REPOSITORY has resolved (<see cref="SymbolTable.ResolveProgramPrototypes"/> / <c>BinderDriver.UserFunctionsOf</c>, after
+    /// group's REPOSITORY has resolved (<see cref="SymbolTable.ResolveProgramPrototypes"/> / <see cref="SymbolTable.ResolveFunctionPrototypes"/>, after
     /// every unit's DATA has bound), so this is the prototype twin of <see cref="ExpandTypesPass.ResolveRestrictedTypes"/> run at the point
     /// those tables are built — <c>BinderDriver.ResolvePointerRestrictions</c>, over every forest that declares pointers
     /// (a method's LINKAGE roots are on its class's). A name the table does not hold resolves to nothing, and the pointer
@@ -2244,14 +2232,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// forests. Both passes walk <see cref="ClauseResolutionForest"/>, the TYPEDEF templates too: a data-pointer restricted
     /// to a type is compared through that type's TEMPLATE, whose own program-pointer members must name their prototype
     /// exactly as the TYPE subjects cloned from it do (kb/Work PB3120).</summary>
-    internal void ResolveRestrictedPrototypes(IReadOnlyDictionary<string, UserFunctionSignature> functions)
+    internal void ResolveRestrictedPrototypes()
     {
         foreach (var item in ClauseResolutionForest())
-            if (item.Pic is { RestrictedPrototypeName: { } name } pic)
+            if (item.Pic is { RestrictedPrototypeName: not null } pic)
                 item.RestrictedPrototype = pic.Category switch
                 {
                     PicCategory.ProgramPointer => Symbols.RestrictedProgramPrototypeOf(item),
-                    PicCategory.FunctionPointer when functions.TryGetValue(name, out var function) => RestrictedPrototype.Of(function),
+                    PicCategory.FunctionPointer => Symbols.RestrictedFunctionPrototypeOf(item),
                     _ => null,
                 };
     }
@@ -2765,7 +2753,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// Format-3 state is copied by <see cref="Condition88.CopyOnto"/>, and — unlike the template's copy — it IS
     /// registered in the global by-name index (a clone's condition-names ARE referenceable). D17 inc 3.
     /// <para>⛔ THE FIELD LIST LIVES ON THE MODEL, NOT HERE (kb/Work PB555). This method used to copy the VALUE set
-    /// and nothing else, so a clone silently lost the <c>IN alphabet-name-1</c> phrase — §2023:14.7.8 rule 2's sequence
+    /// and nothing else, so a clone silently lost the <c>IN alphabet-name-1</c> phrase — §2023:14.7.8 GR2's sequence
     /// fell back to the program default and every THRU range the clone tested could answer differently from the
     /// template's. One copier next to the state, with a drift test, is what stops the next added field from
     /// repeating it.</para></summary>
@@ -3219,7 +3207,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                             // "Alphabet-name-1 may be specified only when the literals specified in the THROUGH
                             // phrase are of class alphanumeric or national", which governs WHEN the
                             // IN alphabet-name-1 phrase may be written and never makes the range
-                            // unimplementable. §2023:14.7.8 rule 2 is the rule that actually governs the range —
+                            // unimplementable. §2023:14.7.8 GR2 is the rule that actually governs the range —
                             // "When the range of values is defined by alphanumeric or national literals, the
                             // range of values depends on the collating sequence used for evaluation of the
                             // range" — and ConditionRenderer has rendered exactly that since PB678 put
@@ -3297,7 +3285,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // `[ IN alphabet-name-1 ]` — printed AFTER the repeated literal group and BEFORE the
                     // `[ WHEN SET TO FALSE … ]` line, so it is resolved here, between the two. ONE alphabet
                     // governs the whole VALUE set (the bracket stands outside the group's ellipsis), and it is
-                    // §2023:14.7.8 rule 2's collating sequence for every THRU range in it.
+                    // §2023:14.7.8 GR2's collating sequence for every THRU range in it.
                     // ⛔ IT USED TO BE PARSED AND DROPPED — a SILENT WRONG ANSWER, measured: under
                     // `ALPHABET AL IS "ZYXW…A"`, `88 X VALUE "M" THRU "A" IN AL` answered NO for the value "C"
                     // that AL's ordering puts inside the range, because the range was weighed natively
@@ -3335,7 +3323,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // `[ WHEN SET TO FALSE IS literal-4 ]` on the line after the operand list), so the
                     // diagnostics a malformed entry produces come out in source order. It is bound AFTER the
                     // alphabet because §2023:13.18.63.3 SR27 b) weighs literal-4 against the ranges in the sequence
-                    // §2023:14.7.8 rule 2 gives them, which `cond.Collation` is what names.
+                    // §2023:14.7.8 GR2 gives them, which `cond.Collation` is what names.
                     BindFalsePhraseOperand(value, parent, cond);
                 }
 
@@ -3486,7 +3474,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// KNOWN, and SR26's NOTE says when it is not: "<i>The runtime collating sequence is unknown when the
     /// collating sequence is defined by a locale or the collating sequence is otherwise determined at runtime</i>".
     /// This processor fixes every other sequence at compile time — the <c>IN alphabet-name-1</c> phrase's alphabet
-    /// (§2023:14.7.8 rule 2) or, absent it, the PROGRAM COLLATING SEQUENCE — so a LOCALE alphabet is the only arm that
+    /// (§2023:14.7.8 GR2) or, absent it, the PROGRAM COLLATING SEQUENCE — so a LOCALE alphabet is the only arm that
     /// drops the screen, and it drops it rather than guessing. The ordering itself is the runtime's own
     /// <c>CobolCollation.Compare</c>, reached through <c>CollatingTable.Collation</c>: one §2023:8.8.4.2.7 comparison,
     /// not a compile-time paraphrase of it.</para>
@@ -3520,7 +3508,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             if (hi is null) continue;
             // a) / b) — RANGE membership. b) fires only where the runtime collating sequence is KNOWN (SR26's
             // NOTE: a LOCALE sequence is not); a) is §2023:14.7.8 rule 1's algebraic order and is always known. An
-            // INVERTED range is EMPTY (§2023:14.7.8 rule 2's last paragraph — it raises EC-RANGE-INVALID and
+            // INVERTED range is EMPTY (§2023:14.7.8 GR2's last paragraph — it raises EC-RANGE-INVALID and
             // "execution proceeds as if the range of values were empty"), so nothing can be inside it and the
             // test is skipped rather than inverted. SR26 refuses the inversion ITSELF (CheckRangesAscending,
             // COBOL2961, under the same Known), so an inverted pair reaches here only behind its error.
@@ -3605,7 +3593,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Order two operand VALUES: negative / zero / positive as the first is less than, equal to or
     /// greater than the second, and NULL when either names no value the compiler can weigh or the two are not
-    /// comparable at all. A character pair is ordered by §2023:14.7.8 rule 2's sequence
+    /// comparable at all. A character pair is ordered by §2023:14.7.8 GR2's sequence
     /// (<see cref="ConditionValueOrder"/>), an algebraic pair by rule 1's algebraic order.
     /// <para>A MIXED pair reaching here means the entry already violates the category funnel (§2023:13.18.63.3
     /// SR2/SR4/SR5/SR10, reported by <c>ValidateValueCategory</c>) on a subject whose two spellings have no common
@@ -3620,7 +3608,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return null;
     }
 
-    /// <summary>§2023:14.7.8 rule 2's collating sequence for one condition-name's VALUE set — the <c>IN
+    /// <summary>§2023:14.7.8 GR2's collating sequence for one condition-name's VALUE set — the <c>IN
     /// alphabet-name-1</c> phrase's alphabet, or the PROGRAM COLLATING SEQUENCE — resolved AT MOST ONCE and
     /// only when a character comparison actually asks for it, because building the carrier materializes a weight
     /// block and most VALUE sets never reach one. <see cref="Known"/> is SR26's NOTE ("<i>The runtime collating
@@ -3724,7 +3712,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             System.Globalization.CultureInfo.InvariantCulture, out decimal v) ? v : null;
     }
 
-    /// <summary>The ordering a level-88 THROUGH range is evaluated in (ISO §2023:14.7.8 rule 2) AS THE COMPILER KNOWS
+    /// <summary>The ordering a level-88 THROUGH range is evaluated in (ISO §2023:14.7.8 GR2) AS THE COMPILER KNOWS
     /// IT: the <c>IN alphabet-name-1</c> alphabet when the clause writes one, else the PROGRAM COLLATING SEQUENCE
     /// (§2023:12.3.6), else the native order. <c>Known</c> is false exactly for §2023:13.18.63.3 SR26 NOTE's unknowable arm
     /// — a LOCALE sequence, whose ordering is the locale current at each use (§2023:12.3.7.4 GR7e) — and its consumers
@@ -4249,12 +4237,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // paragraph") and §2023:8.4.6.8 for a program-prototype-name, which is the same sentence over the other
         // namespace. A name in neither leg names no signature, so the GR25/GR26 restriction would be
         // unverifiable — and a restriction nothing can check is the a_dead_lookup_is_also_unverified shape. The
-        // containing-definition leg is the set the registries read (ContainingDefinitionNames, kb/Work PB3121).
-        if (restrictedPrototypeName is not null
-            && !(UnitIsFunction == isFunctionPointer && ContainingDefinitionNames.Contains(restrictedPrototypeName))
-            && !(isFunctionPointer
-                 ? State.Configuration.UserFunctionNames.Contains(restrictedPrototypeName)
-                 : Symbols.DeclaresProgramSpecifier(restrictedPrototypeName)))
+        // containing-definition leg is the set the prototype tables read (SymbolTable.DeclaresPrototypeName, kb/Work PB3121).
+        if (restrictedPrototypeName is not null && !Symbols.DeclaresPrototypeName(restrictedPrototypeName, function: isFunctionPointer))
         {
             Edition.Error(DiagnosticCatalog.PrototypePointerRestriction, $"{entryWhere}: USAGE "
                 + $"{(isFunctionPointer ? "FUNCTION" : "PROGRAM")}-POINTER TO {restrictedPrototypeName} — "

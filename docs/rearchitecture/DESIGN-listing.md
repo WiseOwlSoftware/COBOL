@@ -689,8 +689,11 @@ positions natively. A backend diagnostic with no COBOL position goes to the summ
   of the index's frame goes to the inclusion its resultant line belongs to (`ListingLineIndex.Of(int, SourceOrigin)`, the
   innermost inclusion holding the line whose file is the location's), any other to the first text that lists that
   physical line; a location in no listed file (a generated `.g.cs`, an expansion's throw-away text) is placed on no line and
-  names no file, so no listing names generated source. The column is a 1-based position of the line's listed text
-  (`ReferenceFormatMap.ExpandedIndexAt`, tabs expanded). Listing order: placed diagnostics by line and column, then the
+  names no file, so no listing names generated source. The column is a 1-based CHARACTER position of the line's listed text
+  (`ReferenceFormatMap.CharacterPositionAt`, tabs expanded, a supplementary-plane character counted once), the one column every
+  listing record names (the data map's and the object-code map's too). (Correction, listing step 3 review lead R1-1, fixed in step
+  6b slice 7:) it was the UTF-16 index of `ExpandedIndexAt` plus 1, one greater per supplementary-plane character before it than the
+  schema's "character position" and the caret row. Listing order: placed diagnostics by line and column, then the
   rest in report order; ids are 1-based in that order; `ListingLine.Diagnostics` names the ids on each line.
 - **Text.** Under a printed line, per diagnostic: a caret row when the line is printed whole as written (one row, no
   replacement), at the column counted in positions (a supplementary-plane character is one); then
@@ -1286,9 +1289,55 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       compares it (`ExternalizedNames`, DOC-A.1-68), never a word the program writes. Like slice 2's tables keyed by no COBOL user word,
       it is keyed by a type that says so, `ExternalizedProgramName` (in the model layer, which the bound layer's `StatementBinder` may
       name), and stays the procedure binder's.
+  - *(Step 6b, slice 7, branch `listing-step-6b-7`.)* The function-prototype-names moved, and the baseline holds 201 (28 tables, 38
+    lookups, 135 sites). `SymbolTable.Functions.cs` owns what `ConfigurationSlice` (`UserFunctionNames`, `FunctionSpecifiers`,
+    `RefusedFunctionSpecifiers`), `StatementBinder` (`UserFunctions`, `UdfSelfName`) and `BinderDriver.UserFunctionsOf` held: the words
+    the REPOSITORY paragraph's user-defined-function specifiers declare (§2023:12.3.8.2), the specifiers in the order written (the
+    container's first, an element's own specifier of a name replacing it in place), the ones whose `AS literal-5` was refused
+    (§2023:12.3.8.3 SR2, kb/Work PB4822), inherited with the configuration-section names (`InheritConfigurationNames`, §2023:12.3.4 GR1),
+    and the user-defined functions the element may name (`ResolveFunctionPrototypes`, which was `UserFunctionsOf`: §2023:12.3.8.4 GR11
+    a) to c) with §2023:8.4.6.7's word, and §2023:8.4.6.6's containing function definition registered last, §2023:12.3.8.3 SR11).
+    `NameClass` gains `FunctionPrototype`, whose symbol is a `FunctionPrototypeReference` (the word, the function it resolved to or none,
+    whether its specifier's literal was refused); every function-prototype-name a statement writes is `Identify`: a FUNCTION-keyword
+    function-identifier and the reserved intrinsic words (`IntrinsicBinder.BindFunctionResult`, `report: true`), the keyword-omitted
+    form (its classifying probe `report: false`, its bare activation `report: true`), `SignatureOf` and `DefinitionPermitsArguments`
+    (probes), and SET ... TO ADDRESS OF FUNCTION's prototype arm. `UdfBinder.UdfBindCall` takes the identified prototype. The
+    corrections the code proved:
+    - *A function-prototype-name is keyed by the word the directive made of its token (correction, slice 7).* A function-name reaches
+      every function lookup as `FunctionWord.Name`, the word the >>COBOL-WORDS directive left (§2023:7.3.10.4 GR2 to GR4), resolved
+      once from the token (kb/Work PB1372), never its text. So `Identify` of `NameClass.FunctionPrototype` keys
+      `FunctionWord.OfToken(token).Name` (a written word no token holds alone, `FunctionWord.OfWrittenWord`), in both overloads, reading
+      the element's directive map (`DataBinder.CobolWords`, a reader `binder-member-readers.json` lists); the
+      keyword-omitted form and SET's prototype arm, which keyed the raw text, now key the same word as the FUNCTION-keyword form (one
+      rule; without a directive the two are equal, and `compare_oracle.py` is IDENTICAL). SET's operand is a `dataReference`, so the
+      one-word rule now holds there too: a qualified or subscripted operand is no function-prototype-name, where its glued text was
+      looked up before (kb/Work PB2040's shape).
+    - *The containing-definition set is the table's (correction, slice 6 review lead R1-1).* §2023:8.4.6.6's and §2023:8.4.6.8's
+      no-specifier leg, the names of the definitions containing the element, was `DataBinder.ContainingDefinitionNames`, a
+      `HashSet<string>` under the name comparer that the program class left outside the table. `SymbolTable.DeclareContainingDefinitions`
+      records it before the element's data binds; `DeclaresPrototypeName(name, function)` is the USAGE TO phrase's one scope screen
+      (§2023:13.18.60.4 GR25, GR26), and `DeclaresFunctionPrototype` the bool question of a word no token holds (a SUBSCRIPT-mode
+      capture, the ADDRESS OF FUNCTION claim scan). The function definition's own name is the same set's member, so `UdfSelfName` is
+      deleted: the procedure binders' "am I a function?" is `UnitKind` (COMMIT and ROLLBACK, §2023:14.9.7.3 SR1, §2023:14.9.36.3 SR1).
+    - *A function-prototype-name a SYMBOL carries is resolved from the symbol, as slice 6's program twin is.* A restricted
+      function-pointer's USAGE TO phrase is text the item holds; its readers hand the table the item (`FunctionPrototypeOf(DataItem)`,
+      `FunctionSignatureOf(DataItem)`, the one signature reader of the SET function-pointer pairs, §2023:14.9.39.3 SR20, and GR14's
+      run-time granularity; `RestrictedFunctionPrototypeOf(DataItem)`), so `DataBinder.ResolveRestrictedPrototypes` takes no table.
+    - *An intrinsic-function-name is a word of the standard, not a name of the table (correction, slice 7).* The REPOSITORY's
+      `FUNCTION name INTRINSIC` specifiers (`ConfigurationSlice.RepositoryIntrinsics`) are keyed by `StandardWord`, as slice 2 keyed
+      the intrinsic catalog: §2023:8.11's names are basic letters, and the lookup is by the catalog's canonical name.
+    - *The group's functions by word are a sequence the table keys (correction, slice 7).* `GroupRepositoryProvider.FunctionsAt`
+      answered a name-keyed table built under the name comparer; `FunctionsVisibleAt` answers every function unit that may supply
+      details as of the element in D-R3 step 2's order, and `ResolveFunctionPrototypes` keeps each word's first.
+    - *What stays: the compilation group's tier.* Three comparisons judge the group's FUNCTION-ID and program units against each other
+      or a REPOSITORY word, across source elements, not inside one element's table: `GroupRepositoryProvider.FunctionsByWord`
+      (§2023:8.4.6.7's search of the group by user-function-name), `BinderDriver.CheckFunctionUnits` (the same-word duplicate, COBOL1508)
+      and `CheckDefinitionNameUniqueness`. They wait in the baseline for the run-unit tier the OO class names need, which is the same
+      tier; `DataBinder._repositoryNameReported` (the once-per-word report of §2023:12.3.8.3 SR12 and SR13 in the user-word
+      declaration funnel) moves with the data-name class's declarations.
   - *(Step 6b, the OO names, branch `listing-step-6b-oo`, a lane beside the data-name lane.)* The object-class-names,
-    interface-names and method rosters moved, and the PROPERTY specifiers; the baseline holds 177 on the branch (the lane's own share:
-    rule (1) -8, rule (3) -7, rule (5) -31). `SymbolTable.ClassNames` (`SymbolTable.ClassNames.cs`) owns what `OoClassTable`,
+    interface-names and method rosters moved, and the PROPERTY specifiers; the lane lowers the baseline by 46 (rule (1) 8 tables,
+    rule (3) 7 lookups, rule (5) 31 sites): 155 with slice 7's. `SymbolTable.ClassNames` (`SymbolTable.ClassNames.cs`) owns what `OoClassTable`,
     `OoNameResolution` and `IdentityScope` (both deleted) and `OoInterfaceSymbol` held: the group's classes and interfaces by name, the
     imported ones by identity and the identities asked of the importer, the §2023:8.4.6.4 funnel (`Resolve`, and `Lookup`, its
     non-diagnosing half), each source element's REPOSITORY scope (`SymbolTable.RepositoryScope`, which was `IdentityScope`), an
@@ -1368,13 +1417,19 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     however many elements carry it (`ref1=cobolWord | ref1=cobolWord` is one field), so a label reused across two
     alternatives, or a slot with no label, makes M < N, and the test is red naming the rule and the slot's ATN state.
     The test also refuses a classified field that holds no slot (M > N). Nothing lists a slot or a name rule.
+    (Correction, listing step 7 review lead R1-1, made in step 6b slice 7:) comparing M with N alone let a classified label left
+    on an element that is no slot hide an unlabelled slot of the same rule (the counts agree). The test compares the two ELEMENT
+    BY ELEMENT: each slot keyed by what it crosses into (the rule, or a token), each classified field by what its generated type
+    holds (the rule whose context it is, or a token for `IToken`), and the two multisets must be equal; the planted grammar's
+    seventh rule, `misplaced`, is that case.
   - *The planted failure.* `tests/WiseOwl.Cobol.Tests.Unit/Listing/Fixtures/NameSlotFixture.g4` is a small grammar
     generated by the same ANTLR step that generates `CobolParserCore` (`src/WiseOwl.Cobol.Frontend/Invoke-Antlr4CSharp.ps1`)
-    with five rules: one fully labelled (expected clean), one with a label REUSED across two alternatives, one with an
-    unlabelled `cobolWord`, one name rule with an unlabelled `INTEGERLIT` alternative, and one header rule whose
-    transition into a reference rule carries no `def` label (R5-2). The self-test runs the same counter over the fixture's
-    ATN and context classes and asserts it reports exactly the last four rules, each at the right slot: the check is shown
-    able to fail on each way a slot can hide.
+    with seven rules: one fully labelled (expected clean), one with a label REUSED across two alternatives, one with an
+    unlabelled `cobolWord`, one name rule with an unlabelled `INTEGERLIT` alternative, one header rule whose
+    transition into a reference rule carries no `def` label (R5-2), one whose label is not of the label's form, and one with a
+    classified label on an element that is no slot beside an unlabelled slot (step 6b slice 7). The self-test runs the same
+    counter over the fixture's ATN and context classes and asserts it reports exactly the last six rules, each at the right slot:
+    the check is shown able to fail on each way a slot can hide.
   - *As built (step 7a), with the corrections the code proved.* `GrammarNameSlots` (Unit, `Listing/`) is the counter and
     `GrammarNameSlotDriftTests` its three facts: the COBOL parser clean, the closure and reference rules the ATN computes
     (`fileName` and `programName` name rules, `procedureName` and `dataReference` reference rules, the headers neither), and
@@ -1457,7 +1512,7 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 | Constant | `ConstantEntryBinder.ConstantScope.Bound`, `Declared`; `InheritedGlobals._constants` (`Constants`) |
 | CONFIGURATION SECTION names (alphabet, class, symbolic character, mnemonic, locale) | `ConfigurationNames<T>._entries`; `SpecialNamesBinder.RangeCollations`, `DataBindResult.RangeCollations` |
 | Implicit registers | `ImplicitRegisters._debugRegisters` (`DebugRegisters`) |
-| Program, function, prototype, repository | `StatementBinder.ProgramPrototypes`, `NestedCallables`, `UserFunctions`; `ConfigurationSlice.ProgramSpecifiers`, `FunctionSpecifiers`; `DataBinder._repositorySpecified`; `GroupRepositoryProvider.NoFunctions` |
+| Program, function, prototype, repository | `StatementBinder.ProgramPrototypes`, `NestedCallables`, `UserFunctions`; `ConfigurationSlice.ProgramSpecifiers`, `FunctionSpecifiers`; `DataBinder._repositorySpecified`; `GroupRepositoryProvider.NoFunctions` (since step 6b slice 6 the program-prototype tables are `SymbolTable`'s and `NestedCallables` is keyed by `ExternalizedProgramName`; since slice 7 the function tables are `SymbolTable`'s and `NoFunctions` is deleted) |
 | OO class, interface, method | `OoClassTable._byName`, `_ifaceByName`, `_imported`, `_importedInterfaces`; `OoClassSymbol._methods`, `_factoryMethods`; `OoInterfaceSymbol._protos`, `_conformingChoice` (since step 6b's OO lane the class and interface tables and the SR5 choice are `SymbolTable.ClassNames`', and the rosters are keyed by `ExternalizedMethodName`) |
 | Keyed by something that is not a COBOL user word (re-keyed by a type of their own, so rule (1) no longer sees a `string` key) | `IntrinsicCatalog.Table`, `IntrinsicArgumentRules.Verified` (intrinsic function names, a standard catalog); `ImplementorNameRegistry.ByName` (implementor-names); `FileModel.FdClauses`, `ScreenFacility.ClauseFacts` (clause keywords); `ExpansionPlacements.ByName` (CLR type names); `Polynomial._terms` (C# expression text) |
 
@@ -1935,7 +1990,7 @@ captured listing.
    OFF, in order, and on standard output when no listing is produced (§2023:7.3.12.4 GR1, GR2, GR5a, GR6).
    `Listing2002Tests.cs`: the same LISTING, PAGE and COPY cases against §2002:7.2.15.2 GR2-GR5, §2002:7.2.16.3 GR2, GR3
    and §2002:7.1.2.3 GR4, GR5, the '/' line (§2002:6.2.6.1) and WHEN-COMPILED (§2002:15.80.2 RV3); they are the witnesses
-   of the twelve 2002 rows of section 2.2. `Listing2014Tests.cs`: the same against §2014:7.3.16.2 GR2-GR5, §2014:7.3.17.3
+   of the ten 2002 rows of section 2.2 that closed (the two DOC rows wait on kb/Work PB5930, section 2.2). `Listing2014Tests.cs`: the same against §2014:7.3.16.2 GR2-GR5, §2014:7.3.17.3
    GR2, GR3, §2014:7.2.2.3 GR4, GR5 and §2014:15.92.2 RV3. No DISPLAY case at 2002 or 2014: the directive is new in 2023.
    (Step 4b:) a hook whose rule is the same sentence in the three editions is ONE body, `ListingHookCases` (Conformance,
    parameterized by edition), and each edition's class holds a fact per hook that cites its OWN edition's rule and calls
@@ -1999,8 +2054,8 @@ captured listing.
    case, and `ListingOutcomeMapTests` (Unit) for the backend error no source reaches (section 4.6).
 
 The inventory rows the listing makes testable (`1985-GR-VI.3.4.4-1`, `1985-GR-VI.3.3.4-1`, `1985-GR-X.3.1.4-1`,
-PB5924's IV.7 rows, the 2023 LISTING/PAGE/COPY rows whose derivations rest on "no listing", and the twelve 2002 rows of
-section 2.2) take these tests as witnesses in the records change of each step.
+PB5924's IV.7 rows, the 2023 LISTING/PAGE/COPY rows whose derivations rest on "no listing", and the 2002 rows of section 2.2
+that can close, ten of the twelve) take these tests as witnesses in the records change of each step.
 
 ## 11. Implementation plan
 
@@ -2076,10 +2131,12 @@ witnessed by `Listing2023Tests`. The code is edition-neutral: the same trace and
 
 **Step 4b - 2002 and 2014. BUILT (branch `listing-step-4b`; the corrections above marked "step 4b").** `tests/WiseOwl.Cobol.Tests.Conformance/Listing/Listing2002Tests.cs`
 and `Listing2014Tests.cs` (section 10 item 2), each citing its own edition's rules (memory rule: each edition stands on
-its own text); the records change adjudicates the twelve 2002 rows of section 2.2 (`2002-FMT-7.2.15.1`,
-`2002-FMT-7.2.16.1`, `2002-GR-7.1.2.3-4`, `-5`, `2002-GR-7.2.15.2-2` to `-5`, `2002-GR-7.2.16.3-2`, `2002-RV-15.80.2-3`,
-`2002-DOC-B.1-90`, `2002-DOC-B.1-165`) with those tests as witnesses; DOC-A.1-117's 2002 and 2014 annex items (B.1 item
-90, A.1 item 106) and the stage items (B.1 item 165, A.1 item 182) are documented.
+its own text); the records change adjudicates ten of the twelve 2002 rows of section 2.2 (`2002-FMT-7.2.15.1`,
+`2002-FMT-7.2.16.1`, `2002-GR-7.1.2.3-4`, `-5`, `2002-GR-7.2.15.2-2` to `-5`, `2002-GR-7.2.16.3-2`, `2002-RV-15.80.2-3`) with
+those tests as witnesses; DOC-A.1-117's 2002 and 2014 annex items (B.1 item 90, A.1 item 106) and the stage items (B.1 item
+165, A.1 item 182) are documented. (Correction, step 4b review lead R1-1, made in step 6b slice 7:) `2002-DOC-B.1-90` and
+`2002-DOC-B.1-165` are not adjudicated: a 2002 DOC row cannot close while kb/Work PB5930 is open (section 2.2), so both stay
+GAP, held by that note.
 
 **Step 5 - options, program map, statistics and verbs. BUILT (branch `listing-step-5`; the corrections above marked "step 5").**
 `OptionsSectionBuilder` with its drift test; the program map's
@@ -2143,7 +2200,12 @@ the baseline is 234, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-5
 6.7.1, "Step 6b, slice 6"), `compare_oracle.py` IDENTICAL after the move; the baseline is 223, and kb/Work PB5932's dated file
 `2026-11-19-step-6b-slice-6` holds what remains by class. The progress table's program, function and repository row proved to be two
 classes (§2023:8.3.2.2 lists program-prototype-name and function-prototype-name apart): what remains is the data-name class, the
-function-prototype-names and the OO names.
+function-prototype-names and the OO names. (Step 6b, slice 7, branch `listing-step-6b-7`:) the
+function-prototype-names moved into the table with their resolution and the containing-definition set (section 6.7.1, "Step 6b, slice
+7"), `compare_oracle.py` IDENTICAL after the move; the baseline is 201, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-7`
+holds what remains by class: the data-name class and the OO names with the compilation group's tier. Slice 7 also fixed the open
+review leads of listing steps 2 to 7 (kb/Work PB5932's dated file `2026-11-19-review-leads-slices-2-and-3` and the review findings of
+each step), whose corrections are marked "step 6b slice 7" in sections 6.3, 6.7.1 and 11.
 (Step 6b, the OO names, branch `listing-step-6b-oo`, a lane beside the data-name lane, controller 2026-11-19:) the object-class-names
 and interface-names moved into the symbol table's compilation-group tier, `SymbolTable.ClassNames`, with their resolution, the method
 rosters are keyed by the externalized method name, and the PROPERTY specifiers are the element tier's (section 6.7.1, "Step 6b, the

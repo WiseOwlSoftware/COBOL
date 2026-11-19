@@ -39,9 +39,6 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     private readonly List<BoundUnit> _programs = [];
     private readonly ElementBinders _binders;   // each unit's signature is its binder's linkage facts (kb/Work PB2361)
 
-    private static readonly IReadOnlyDictionary<string, UserFunctionSignature> NoFunctions =
-        new Dictionary<string, UserFunctionSignature>(CobolNames.Comparer);
-
     /// <summary>The group's FUNCTION-ID units (definitions and prototypes — §2023:9.4 puts them in the function namespace)
     /// and its OUTERMOST PROGRAM-ID units (a contained program is part of its container's definition and is reachable
     /// only through §2023:14.9.4.3 SR15's AS NESTED, which has its own table), in source order.</summary>
@@ -89,20 +86,14 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
             .Select(AnswerOf);
 
     /// <summary>The user-defined functions a source element at <paramref name="position"/> can see by WORD, without a
-    /// REPOSITORY entry resolving them: each word's definition specified before the element, else its prototype (D-R3
-    /// step 2's search, unspecified). The entries of the element's own specifiers replace these
-    /// (<c>BinderDriver.UserFunctionsOf</c>); the rest is what lets a reference to a function the element did not
-    /// declare say which function it could have meant. The group's alone: a later-compiled unit reaches a repository
-    /// function only through a REPOSITORY specifier (§2023:8.4.6.7), so no other provider has a counterpart.</summary>
-    public IReadOnlyDictionary<string, UserFunctionSignature> FunctionsAt(int position)
-    {
-        if (_functions.Count == 0) return NoFunctions;
-        var table = new Dictionary<string, UserFunctionSignature>(CobolNames.Comparer);
-        foreach (var u in _functions)
-            if (!table.ContainsKey(u.Name) && FunctionsByWord(u.Name, position, otherThan: null).FirstOrDefault() is { } details)
-                table[u.Name] = details.Signature;
-        return table;
-    }
+    /// REPOSITORY entry resolving them: every function unit that may supply details as of the element, in D-R3 step 2's order
+    /// (each definition specified before the element, then each prototype, in source order), so each word's FIRST answer is its
+    /// function. The symbol table keys them by word (<see cref="SymbolTable.ResolveFunctionPrototypes"/>), and the entries of the
+    /// element's own specifiers replace them; the rest is what lets a reference to a function the element did not declare say
+    /// which function it could have meant. The group's alone: a later-compiled unit reaches a repository function only through a
+    /// REPOSITORY specifier (§2023:8.4.6.7), so no other provider has a counterpart.</summary>
+    public IEnumerable<FunctionAnswer> FunctionsVisibleAt(int position) =>
+        Candidates(_functions, static _ => true, position).Select(AnswerOf);
 
     /// <summary>A function unit's answer: its signature under its own word (the resolver re-words it with the
     /// referencing entry's word) and its origin.</summary>

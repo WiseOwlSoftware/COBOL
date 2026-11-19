@@ -90,7 +90,8 @@ public static partial class ConditionalCompilationProcessor
     /// <c>&gt;&gt;</c> line the driver met and, with a listing, every library text's start and end, in encounter order — the
     /// resultant line it stands on and whether it changed the state this driver holds. <paramref name="implicitOps"/> is the §2023:14.9.28.4 GR14 implicit PUSH ALL /
     /// POP ALL program a PREVIOUS run's parse placed (<see cref="ConditionalCompilationResult.KeyImplicitOps"/>),
-    /// each applied immediately before the directive encounter it is keyed to; empty on the first run.</summary>
+    /// each applied immediately before the state encounter it is keyed to (a directive, or a library text's start or end);
+    /// empty on the first run.</summary>
     public static ConditionalCompilationResult Manipulate(MappedText text, CopyProcessor copyProcessor,
         IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel,
         bool permissive, CompilationInputs? inputs, IReadOnlyList<KeyedDirectiveOp> implicitOps)
@@ -152,7 +153,7 @@ public static partial class ConditionalCompilationProcessor
         private readonly CopyProcessor? _copy;
         private readonly HashSet<string> _alreadyIncluded = new(CobolNames.Comparer);
         private int _depth;
-        // kb/Work PB1066 — the §2023:14.9.28.4 GR14 implicit-op program, keyed to directive encounters, and the
+        // kb/Work PB1066 — the §2023:14.9.28.4 GR14 implicit-op program, keyed to state encounters, and the
         // encounters themselves (Line = 0-based line in THIS run's output frame). _renderBase is the output-frame line
         // at which the Render now running begins (0 for the source; a copybook's is its splice point), and
         // _flushBase the output-frame line at which the block now being COPY-expanded begins.

@@ -16,7 +16,7 @@
       *> implementability.  SR29 bans THROUGH for a BOOLEAN subject and
       *> for no other category.
       *>
-      *> What actually governs the range is 14.7.8 rule 2 — "When the
+      *> What actually governs the range is 14.7.8 GR2 — "When the
       *> range of values is defined by alphanumeric or national
       *> literals, the range of values depends on the collating sequence
       *> used for evaluation of the range" — reached from 8.8.4.5.3 GR2,

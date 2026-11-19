@@ -1487,7 +1487,7 @@ public static class DiagnosticCatalog
     // 18, and this comment stands where it was so it is not re-added. It staged a condition-name THROUGH range
     // over a national conditional variable as "recognized but not yet implemented (Phase 4a residue)" on the
     // citation §2023:13.18.63 SR31 — a clause that governs when the IN alphabet-name-1 phrase may be written and
-    // says nothing about implementability. §2023:14.7.8 rule 2 governs the range, ConditionRenderer has emitted it
+    // says nothing about implementability. §2023:14.7.8 GR2 governs the range, ConditionRenderer has emitted it
     // under __COLLATE_NAT since PB678, and it was MEASURED correct for the elementary and the group shape alike
     // (both flip with the national alphabet). The stage was refusing conforming source. The SR29 boolean ban
     // (COBOL0898) is the only THROUGH refusal a condition-name entry now draws.
@@ -4955,7 +4955,7 @@ public static class DiagnosticCatalog
         "COBOL1997", "range-alphabet-undeclared", EditionSeverity.Error,
         "The IN phrase of a THROUGH range (ISO §2023:14.9.13.2's range-expression, and the VALUE clause's condition-name "
         + "list, §2023:13.18.63.2 formats 3 and 5) names alphabet-name-1: an alphabet declared by an ALPHABET clause in "
-        + "SPECIAL-NAMES (§2023:12.3.7). The word written here declares no alphabet. §2023:14.7.8 rule 2 makes that alphabet "
+        + "SPECIAL-NAMES (§2023:12.3.7). The word written here declares no alphabet. §2023:14.7.8 GR2 makes that alphabet "
         + "the collating sequence the range is evaluated in, so an unresolved name has no ordering to give: declare "
         + "the alphabet, or drop the IN phrase and take the implementor's default sequence.",
         "ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31 / §2023:12.3.7",

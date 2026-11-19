@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.CodeGen.Emit;
 
 /// <summary>
-/// ⛔ THE ONE reader of a THROUGH range's <c>IN alphabet-name-1</c> carrier for the unit being emitted (ISO §2023:14.7.8 rule 2):
+/// ⛔ THE ONE reader of a THROUGH range's <c>IN alphabet-name-1</c> carrier for the unit being emitted (ISO §2023:14.7.8 GR2):
 /// the C# expression of the <c>CobolCollation</c> field a <see cref="RangeCollationId"/> names, as seen from this unit's type.
 /// <para>A carrier is declared in the type of the unit whose binder made it (<c>ObjectComputerEmit</c>), and the node that
 /// names it crosses units: a container's GLOBAL condition-name is rendered in every contained program that references it

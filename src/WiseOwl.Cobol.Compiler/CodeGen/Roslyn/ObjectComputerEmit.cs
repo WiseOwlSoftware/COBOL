@@ -43,16 +43,16 @@ internal static class ObjectComputerEmit
             // for an ALPHABET … FOR NATIONAL literal phrase (the runtime computes every unspecified character's
             // §2023:12.3.7.4 GR7 1.3 position arithmetically) or a LocaleCollation.
             w.Line($"private static readonly CobolCollation __COLLATE_NAT = {CollationEmit.New(nat)};");
-        // The collating sequences NAMED by a THROUGH range's `IN alphabet-name-1` phrase (ISO §2023:14.7.8 rule 2 —
+        // The collating sequences NAMED by a THROUGH range's `IN alphabet-name-1` phrase (ISO §2023:14.7.8 GR2 —
         // EVALUATE's range-expression and the VALUE clause's condition-name list). One carrier per named alphabet
         // per type, so the range test itself is a field read rather than a per-evaluation table allocation; the
         // registry already collapsed an alphabet that IS the program collating sequence onto __COLLATE.
         foreach (var c in data.RangeCollations.Where(c => c.Declare))
             w.Line($"private static readonly CobolCollation {RangeCollationField(c.Id)} = {CollationEmit.New(c.Table, c.Locale, c.National)};"
-                + $"   // ALPHABET {c.Id.Name} — a THROUGH range's IN phrase (ISO §2023:14.7.8 rule 2)");
+                + $"   // ALPHABET {c.Id.Name} — a THROUGH range's IN phrase (ISO §2023:14.7.8 GR2)");
     }
 
-    /// <summary>⛔ THE ONE SPELLING of a THROUGH range carrier's field in the type of the unit that made it (ISO §2023:14.7.8 rule 2):
+    /// <summary>⛔ THE ONE SPELLING of a THROUGH range carrier's field in the type of the unit that made it (ISO §2023:14.7.8 GR2):
     /// that unit's <c>__COLLATE</c> / <c>__COLLATE_NAT</c> when the alphabet IS its program collating sequence, a field of its own named by
     /// its ordinal, or null for the native order, whose two-argument comparison IS the sequence. The declaration above and the range
     /// reader (<c>RangeCollationFields</c>) both spell it here.</summary>

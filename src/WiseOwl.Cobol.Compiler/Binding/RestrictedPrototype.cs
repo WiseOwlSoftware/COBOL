@@ -5,7 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 namespace WiseOwl.Cobol.Binding;
 
 /// <summary>The prototype a restricted program- or function-pointer's <c>TO prototype-name-1</c> phrase resolves to
-/// through its unit's prototype tables (<c>SymbolTable.ResolveProgramPrototypes</c> / <c>BinderDriver.UserFunctionsOf</c>, ISO §2023:8.4.6.8 /
+/// through its unit's prototype tables (<c>SymbolTable.ResolveProgramPrototypes</c> / <c>SymbolTable.ResolveFunctionPrototypes</c>, ISO §2023:8.4.6.8 /
 /// §2023:8.4.6.6 and §2023:12.3.8.4 GR10 / GR11): its namespace, its externalized name, and its signature — the external repository
 /// entry's when GR10 c) / GR11 c) take the details from there (DESIGN-external-repository §8.2). Attached to the pointer as
 /// <see cref="DataItem.RestrictedPrototype"/> (kb/Work PB2495), it gives the pointer its two restrictions: the TO phrase's

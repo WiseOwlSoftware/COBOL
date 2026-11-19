@@ -704,6 +704,28 @@ the two runs of each tree:
 Every branch `None` row lies inside the parent's two runs or within 0.06 MB of them (SM201A's first run), and IX113A's lies below
 both, so slice 6 moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
 
+**Step 6b, slice 7 (kb/Work PB5932, the function-prototype-names resolved by `SymbolTable.Identify`): the `None` row against the
+parent.** Slice 7 changes where every element's user-defined functions are made and read (the symbol table, made twice per element as
+`BinderDriver.UserFunctionsOf` was, now always as the element's own table where a forest with no specifier shared the group's view), so
+it measures the no-listing path. Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project
+tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FrontEndAndBind*'` twice in a detached worktree of the slice's commit
+(4525d45aae) and twice in one of its parent `84097a3e22`, alternating (parent, slice, slice, parent). Allocated bytes per front end and
+bind, the two runs of each tree:
+
+| Program | Listing | Parent | Slice 7 |
+|---|---|---|---|
+| IX113A | None | 69.05, 68.98 MB | 69.06, 69.00 MB |
+| NC105A | None | 35.07, 34.99 MB | 35.66, 35.03 MB |
+| NC218A | None | 30.95, 30.98 MB | 31.12, 31.56 MB |
+| SM201A | None | 15.36, 15.21 MB | 15.35, 15.41 MB |
+| IX113A | Text | 76.81, 76.81 MB | 76.83, 76.94 MB |
+| IX113A | All | 97.51, 97.45 MB | 97.52, 97.55 MB |
+
+IX113A's and SM201A's branch rows lie inside the parent's two runs or within 0.05 MB of them, and one run of NC105A and of NC218A does
+too; the other two branch runs stand above this parent pair, NC105A's by 0.59 MB and NC218A's by 0.58 MB. Both are within the
+run-to-run spread these programs show on one tree (the slice's own two NC105A runs are 0.63 MB apart, and slice 6's parent measured NC218A at 31.56 and 30.99 MB, 0.57 MB apart), and none of
+the four programs declares a function, so the only new work on their path is two empty tables per element. Slice 7 moves no allocation
+this measurement can tell from its noise; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
 **Step 6b, the OO lane (kb/Work PB5932, the object-class-names and interface-names resolved by the symbol table's compilation-group
 tier, the method rosters keyed by the externalized method name, the PROPERTY specifiers): the `None` row against the parent.** The lane
 changes how every class-name, interface-name and method roster is declared and looked up (a lookup keyed by `CobolName` or

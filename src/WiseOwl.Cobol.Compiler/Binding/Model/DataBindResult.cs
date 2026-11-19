@@ -44,7 +44,7 @@ internal sealed class DataBindResult
     /// <summary>The LINKAGE / EXTERNAL facts the backend reads (<see cref="LinkageFacts"/>).</summary>
     public required LinkageFacts Linkage { get; init; }
 
-    /// <summary>The range-collation carriers of the ALPHABET clauses a THROUGH range's IN phrase names (ISO §2023:14.7.8 rule 2), in
+    /// <summary>The range-collation carriers of the ALPHABET clauses a THROUGH range's IN phrase names (ISO §2023:14.7.8 GR2), in
     /// the order first named: the fields the backend declares in THIS unit's type. Each range's node carries its carrier's identity
     /// (<see cref="RangeCollationId"/>), which a contained program rendering a GLOBAL condition-name finds among its containers'.</summary>
     public required IReadOnlyList<RangeCollationCarrier> RangeCollations { get; init; }

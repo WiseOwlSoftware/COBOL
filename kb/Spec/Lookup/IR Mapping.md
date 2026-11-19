@@ -78,7 +78,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | `BoundNot` | Logical negation | §2023:8.8.4 | binder invariant | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundBooleanCondition` | Length-1 boolean expr as condition | §2023:8.8.4.3 | GR1 true iff boolean 1 | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundCondition88` | Level-88 condition-name membership test | §2023:8.8.4.5 | over resolved conditional-variable place | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
-| `BoundRangeMembership` | THRU-range membership (EVALUATE / EC-RANGE) | §2023:14.7.8 | §2023:14.7.8 rule 2 EC-RANGE-INVALID; inclusive bounds | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
+| `BoundRangeMembership` | THRU-range membership (EVALUATE / EC-RANGE) | §2023:14.7.8 | §2023:14.7.8 GR2 EC-RANGE-INVALID; inclusive bounds | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundSignCondition` | Sign POSITIVE/NEGATIVE/ZERO | §2023:8.8.4.7 | Format-2 tests IEEE sign bit (GR2) | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundClassCondition` | Class NUMERIC/ALPHABETIC[-U/-L] | §2023:8.8.4.4 | ClassKind ∈ {N,A,U,L} | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
 | `BoundUserClassCondition` | User-defined class condition | §2023:8.8.4.4 / §2023:12.3.7 | members expanded at bind | Bind | [[kb/Diagrams/IR Node Hierarchy]] |

@@ -175,9 +175,9 @@ Each quotation was run through `cite.py --check`. **(group)** marks a row the in
 | §2023:12.3.8.3 SR6 | "If literal-1 is specified, there shall be information in the external repository for the class literal-1"; "If literal-1 is not specified, there shall be information in the external repository for the class object-class-name-1" | §8.4; REPO-1 |
 | §2023:12.3.8.3 SR9 | "If literal-2 is specified, there shall be information in the external repository for the interface literal-2" (and the twin) | §8.4; REPO-1 |
 | §2023:12.3.8.3 SR10 | the name shall be a prototype in the group, "the name of a function definition specified previously in this compilation group", or "the name of a function for which information exists in the external repository" | §8.3 (legality: all three alternatives honored), REPO-1 |
-| §2023:12.3.8.3 SR11 | self-naming function specifier ignored | (group) `BinderDriver.UserFunctionsOf` (the `ContainingDefinitions` function member) |
+| §2023:12.3.8.3 SR11 | self-naming function specifier ignored | (group) `SymbolTable.ResolveFunctionPrototypes` (the `ContainingDefinitions` function member) |
 | §2023:12.3.8.3 SR14 | the name shall be a prototype in the group, "the name of a program definition specified previously in this compilation group", or "the name of a program for which information exists in the external repository" | §8.2, REPO-1 |
-| §2023:12.3.8.3 SR15 | self/containing-program specifier ignored | (group) `ProgramPrototypesOf` |
+| §2023:12.3.8.3 SR15 | self/containing-program specifier ignored | (group) `SymbolTable.ResolveProgramPrototypes` |
 | §2023:12.3.8.3 SR16 | "there shall be information in the external repository for the property property-name-1 that is part of one of the classes or interfaces that are declared in this REPOSITORY paragraph" (and the literal twin; §19 T1) | §8.5; REPO-1 |
 | §2023:12.3.8.4 GR1/GR7 | "If object-class-name-1 is a class described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY paragraph" | (group) `SymbolTable.ClassNames`; an imported skeleton likewise (§10.5) |
 | §2023:12.3.8.4 GR2 ¶1 | "The implementor shall specify when the AS phrase is required" | §8.1 D-R2 |
@@ -1369,7 +1369,7 @@ internal sealed class RepositoryResolver(GroupRepositoryProvider group, Metadata
 {
     public ProgramAnswer? ResolveProgram(string externalizedName, int position);                      // §8.2 steps 1–4
     public FunctionResolution? ResolveFunction(string word, string externalizedName, int position);  // D-R3 steps 1–3 (§8.3)
-    public GroupRepositoryProvider Group { get; }                                                     // FunctionsAt, below
+    public GroupRepositoryProvider Group { get; }                                                     // FunctionsVisibleAt, below
     …
 }
 ```
@@ -1380,10 +1380,11 @@ change (CLAUDE.md rule 4: no second class beside it, no forwarder): its `Find` (
 metadata by externalized name, step 2 the group then the metadata by word, step 3 looks for a different function under
 the word in either), so it lives once, in the resolver, and no provider repeats it. `FunctionResolution.Shadowed`, which
 drives COBOL2969 (REPO-13), becomes a `FunctionAnswer` (signature and origin) instead of a `BoundUnit`, so the warning
-can name a repository entry as well as a group unit. `FunctionsAt(position)` — every function the element sees by
-WORD without a specifier (`BinderDriver.UserFunctionsOf` registers them) — is the group's alone: a later-compiled unit
-reaches a repository function only through a REPOSITORY specifier (§2023:8.4.6.7), so the metadata provider has no
-counterpart, and `UserFunctionsOf` reads it from `resolver.Group` (no resolver member re-states it).
+can name a repository entry as well as a group unit. `FunctionsVisibleAt(position)` — every function the element sees by
+WORD without a specifier, in D-R3 step 2's order (the symbol table's `ResolveFunctionPrototypes` keeps each word's first; listing
+step 6b slice 7 made it a sequence the table keys, where it was a name-keyed table, `FunctionsAt`) — is the group's alone: a
+later-compiled unit reaches a repository function only through a REPOSITORY specifier (§2023:8.4.6.7), so the metadata provider
+has no counterpart, and the table reads it from `resolver.Group` (no resolver member re-states it).
 `MetadataRepositoryProvider` opens nothing until the first specifier the group cannot answer; `ClrTypeProvider` is
 §4.6's slot.
 **Landed (kb/Work PB2103, slice 7 part 1):** `GroupRepositoryProvider` (`Binding/GroupRepositoryProvider.cs`, the rename,

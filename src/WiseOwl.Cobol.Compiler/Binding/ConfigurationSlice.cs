@@ -140,37 +140,14 @@ public sealed class ConfigurationSlice
     /// resolves), without it the section is comment-treated (VCR Table 7 rows 7.9/7.17).</summary>
     public bool DebuggingModeDeclared { get; internal set; }
 
-    /// <summary>The unit's REPOSITORY user-function specifiers (§2023:12.3.8 — <c>FUNCTION function-prototype-name</c>
-    /// WITHOUT the INTRINSIC phrase): the precondition for a user-function reference, and per §2023:12.3.8.4 GR12
-    /// (:14885) the declaration that makes the name refer to the USER-DEFINED function "and not to an intrinsic
-    /// function of the same name" — so the binder's user-function dispatch precedes the intrinsic catalog.</summary>
-    internal HashSet<string> UserFunctionNames { get; } = new(CobolNames.Comparer);
-
-    /// <summary>The unit's user-defined-function specifiers by function-prototype-name-1 (<see cref="FunctionSpecifier"/>):
-    /// its EXTERNALIZED name is literal-5 when <c>AS literal-5</c> is written (§2023:12.3.8.4 GR11 NOTE 2 — "Literal-5, if
-    /// specified, is the externalized name of the function prototype; otherwise, the externalized name is
-    /// function-prototype-name-1"), otherwise the name itself. GR11's search of the compilation group runs in
-    /// <c>BinderDriver.UserFunctionsOf</c>, the twin of <c>SymbolTable.ResolveProgramPrototypes</c> (kb/Work PB974).</summary>
-    internal Dictionary<string, FunctionSpecifier> FunctionSpecifiers { get; } = new(CobolNames.Comparer);
-
-    /// <summary>The function-prototype-names whose <c>AS literal-5</c> was refused where it is written (§2023:12.3.8.3 SR2,
-    /// reported there). The word is still DECLARED by the REPOSITORY paragraph (it is in <see cref="UserFunctionNames"/>) but
-    /// registers no <see cref="FunctionSpecifiers"/> row, so a reference to it resolves to no prototype: that is the
-    /// refusal already reported, and the reference draws no COBOL1505 of its own (kb/Work PB4822, the function twin of
-    /// <c>SymbolTable</c>'s refused program-specifiers).</summary>
-    internal HashSet<string> RefusedFunctionSpecifiers { get; } = new(CobolNames.Comparer);
-
-    /// <summary>Whether a reference to <paramref name="name"/> is the cascade of a FUNCTION specifier whose <c>AS literal-5</c> was
-    /// refused (§2023:12.3.8.3 SR2) and reported where it is written (kb/Work PB4822, PB4936); see
-    /// <see cref="SymbolTable.IsRefusedProgramReference"/>. Asked BEFORE the prototype table: a refused specifier must not let the bare word
-    /// resolve to a same-named function of the group.</summary>
-    internal bool IsRefusedFunctionReference(string name, EditionContext edition) =>
-        RefusedFunctionSpecifiers.Contains(name) && edition.NoteCauseReportedEarlier(RefusedSpecifierKind.Function, name);
 
     /// <summary>The unit's REPOSITORY intrinsic-function specifiers by name (§2023:12.3.8 —
     /// <c>FUNCTION intrinsic-function-name INTRINSIC</c>): the §2023:8.4.3.2 SR2 precondition that lets the word
-    /// FUNCTION be OMITTED when referencing that intrinsic (GR13). §2023:8.3.2 case-insensitive.</summary>
-    internal HashSet<string> RepositoryIntrinsics { get; } = new(CobolNames.Comparer);
+    /// FUNCTION be OMITTED when referencing that intrinsic (GR13). Keyed by <see cref="StandardWord"/>: an
+    /// intrinsic-function-name is a word of the standard (§2023:8.11), never a user-defined word, so it is no name of the
+    /// symbol table's (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 7"). The user-defined-function
+    /// specifiers beside it are the symbol table's (<see cref="SymbolTable.DeclareFunctionSpecifier"/>).</summary>
+    internal HashSet<StandardWord> RepositoryIntrinsics { get; } = [];
 
     /// <summary>True when the unit's REPOSITORY specifies <c>FUNCTION ALL INTRINSIC</c> (§2023:12.3.8 GR14): the word
     /// FUNCTION may be omitted for EVERY §2023:8.11 intrinsic-function-name in this scope (SR2/GR13). Read only through

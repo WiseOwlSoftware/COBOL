@@ -19,7 +19,7 @@ using Core = CobolParserCore;
 /// <see cref="DirectiveResults.WithStackOps"/>); the reference-format normalizer's SOURCE FORMAT
 /// (<see cref="ImplicitFormatOps"/>, keyed to the physical lines of the file each op was written in); and the
 /// conditional-compilation driver's compilation-variable table and frontend-inline FLAG options
-/// (<see cref="ConditionalCompilationProcessor"/>'s implicit-op program, keyed to its directive encounters by
+/// (<see cref="ConditionalCompilationProcessor"/>'s implicit-op program, keyed to its state encounters by
 /// <see cref="ConditionalCompilationResult.KeyImplicitOps"/>). Only the parse tree can place the ops, so the front end
 /// collects them after the parse and — when a DEFINE, FLAG or SOURCE FORMAT written inside a bracket would change what
 /// a later directive or line sees — re-runs the stages that hold the state with them (kb/Work PB1066;

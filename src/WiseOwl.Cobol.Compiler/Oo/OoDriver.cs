@@ -180,11 +180,11 @@ internal sealed class OoDriver(BindSession session)
         // paragraph holds the specifier (kb/Work PB989) — an expansion's text starts where its skeleton does.
         int position = session.Sources.Of(cls.Symbol).Start.StartIndex;
         var (data, refs) = session.Binders.ObjectOf(cls);
+        data.Symbols.ResolveFunctionPrototypes(unit: null, repository, position, session.Binders);
         var binder = new StatementBinder(data, refs)
         {
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§2023:8.4.3.8; slice 3b)
-            UserFunctions = Binding.BinderDriver.UserFunctionsOf(data, unit: null, repository, position, session.Binders),
         };
         data.Symbols.ResolveProgramPrototypes(unit: null, repository, position, session.Binders);
         binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§2023:7.3.25 GR6)
@@ -196,12 +196,12 @@ internal sealed class OoDriver(BindSession session)
         // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory
         // SELF/SUPER context (§2023:14.9.23.3 SR4f/h; §2023:16.2.1 SELF|SUPER "NEW" — OoInFactory).
         var (fdata, frefs) = session.Binders.FactoryOf(cls);
+        fdata.Symbols.ResolveFunctionPrototypes(unit: null, repository, position, session.Binders);
         var fbinder = new StatementBinder(fdata, frefs)
         {
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,
             OoInFactory = true,
-            UserFunctions = Binding.BinderDriver.UserFunctionsOf(fdata, unit: null, repository, position, session.Binders),
         };
         fdata.Symbols.ResolveProgramPrototypes(unit: null, repository, position, session.Binders);
         fbinder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);

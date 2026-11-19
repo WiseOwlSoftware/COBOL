@@ -14,12 +14,12 @@
       *> ⛔ THE DROPPED ALPHABET WAS A SILENT WRONG ANSWER, AND THIS PROGRAM IS THE MEASUREMENT.
       *> Under MYALPH the ordinals are Z=1, Y=2, X=3, A=4, so "Z" THRU "X" is ASCENDING and CONTAINS
       *> "Y". Under the NATIVE sequence the same written range is INVERTED ('Z'=0x5A after 'X'=0x58)
-      *> and 14.7.8 rule 2 makes it EMPTY. So the two orderings give OPPOSITE answers for G1 = "Y",
+      *> and 14.7.8 GR2 makes it EMPTY. So the two orderings give OPPOSITE answers for G1 = "Y",
       *> and a clone that lost the IN alphabet-name-1 phrase answered HI-G=no where the template
       *> answers HI-G=yes. MEASURED both ways on this program.
       *>
       *> Expected values, computed from the standard.
-      *>   G1 = "Y". 14.7.8 rule 2 orders "Z" THRU "X" in MYALPH -> "Y" is inside -> HI-G is TRUE
+      *>   G1 = "Y". 14.7.8 GR2 orders "Z" THRU "X" in MYALPH -> "Y" is inside -> HI-G is TRUE
       *>   (8.8.4.5.1: the conditional variable's value is one of the values associated with the
       *>   condition-name).
       *>   SET HI-G TO FALSE places literal-4 (13.18.63.4 GR20 / 14.9.39.4 GR7) -> G1 = "A".

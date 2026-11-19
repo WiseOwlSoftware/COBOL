@@ -35,7 +35,7 @@
       *>    nothing and tier f) finds D-F (EC-BOUND) => TIER-F. The declarative completes normally and the
       *>    growth proceeds, so WS-E (5) holds 22 (this is also the row that proves the RUNTIME-site raise
       *>    reaches the tiers at all - kb/Work PB367b).
-      *>  . IF INV-RANGE: 14.7.8 rule 2 raises the nonfatal EC-RANGE-INVALID for a THROUGH range whose
+      *>  . IF INV-RANGE: 14.7.8 GR2 raises the nonfatal EC-RANGE-INVALID for a THROUGH range whose
       *>    starting value collates after its ending value. Nothing names EC-RANGE-INVALID or EC-RANGE, so the
       *>    cascade reaches tier g), where BOTH D-G1 and D-G2 qualify: GR3's "in the order in which they are
       *>    specified" and "the first declarative that satisfies the selection criteria is executed and no

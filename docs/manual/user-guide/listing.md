@@ -256,7 +256,8 @@ the column and the message, continued under itself when it is longer than the pa
 ```
 
 A diagnostic in library text is placed in the copy it belongs to: when a library text is copied twice and only the second
-copy is in error, the diagnostic is under the second copy's line. The column counts the line as listed, tabs expanded.
+copy is in error, the diagnostic is under the second copy's line. The column counts the characters of the line as listed, tabs
+expanded: a character outside the Basic Multilingual Plane (an emoji in a literal) counts once, in the text and the JSON alike.
 
 The listing ends with a summary on a page of its own, headed `DIAGNOSTICS`: the number of errors, warnings and information
 messages, then every diagnostic in listing order with its listing line, file, line and column:

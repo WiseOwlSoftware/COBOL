@@ -168,8 +168,8 @@ internal enum ProgramSpecifierRefusal
 /// <summary>One §2023:12.3.8.2 user-defined-function-specifier as WRITTEN — <c>FUNCTION function-prototype-name-1 [AS
 /// literal-5]</c>. <paramref name="ExternalizedName"/> is literal-5 when the AS phrase is present and the name itself
 /// otherwise (§2023:12.3.8.4 GR11 NOTE 2). <paramref name="At"/> is the REPOSITORY entry, where a diagnostic about its
-/// resolution (<c>BinderDriver.UserFunctionsOf</c>, COBOL2969) is reported. Collected by
-/// <c>DataBinder</c>'s REPOSITORY loop; RESOLVED by <c>RepositoryResolver.ResolveFunction</c>.</summary>
+/// resolution (<c>SymbolTable.ResolveFunctionPrototypes</c>, COBOL2969) is reported. Declared by
+/// <c>DataBinder</c>'s REPOSITORY loop into the symbol table; RESOLVED by <c>RepositoryResolver.ResolveFunction</c>.</summary>
 internal sealed record FunctionSpecifier(string Name, string ExternalizedName, Antlr4.Runtime.ParserRuleContext At);
 
 /// <summary>One RESOLVED program prototype, as §2023:12.3.8.4 GR10 defines it: the declared program-prototype-name, the
