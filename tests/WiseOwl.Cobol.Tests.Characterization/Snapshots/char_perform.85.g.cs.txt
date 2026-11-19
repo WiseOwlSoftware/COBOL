@@ -46,13 +46,16 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (9, 12) - (11, 22) 21 "char_perform.cob"
                     long __n1 = 3L;
-#line (9, 12) - (11, 22) 26 "char_perform.cob"
+#line hidden
                     for (long __i1 = 0
 #line hidden
                     ; __i1 < __n1; __i1++)
                     {
+#line (10, 16) - (10, 25) 25 "char_perform.cob"
                         bool __sizeErr0 = false;
+#line hidden
                         try
                         {
                             try
@@ -74,7 +77,9 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
 #line hidden
                     while (!(I > 5L))
                     {
+#line (13, 16) - (13, 25) 25 "char_perform.cob"
                         bool __sizeErr1 = false;
+#line hidden
                         try
                         {
                             try
@@ -104,7 +109,9 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                 }
                 case 1:   // SUB-PARA
                 {
+#line (19, 12) - (19, 23) 21 "char_perform.cob"
                     bool __sizeErr2 = false;
+#line hidden
                     try
                     {
                         try

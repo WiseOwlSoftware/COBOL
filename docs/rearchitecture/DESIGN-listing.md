@@ -1308,7 +1308,22 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   the brace that ends a try, catch, finally, lock or using block is a point of an optimized build (the leave, the release, the
   dispose) that no reading of the line `}` can tell from an if's. The continuation reading takes the first; the writer keeps the
   blocks its lines opened (`CodeWriter.ClosingPoint`) for the second. Both are held to what Roslyn writes, read back from a PDB
-  of its own compilation (`CodeWriterTests`), and the EVALUATE on a real compilation (`ListingObjectCodeTests`). Text captured for
+  of its own compilation (`CodeWriterTests`), and the EVALUATE on a real compilation (`ListingObjectCodeTests`). (Correction,
+  review round 2:) the first reading also hid a line whose code is not certain, a local declared with a constant (an ADD ON SIZE
+  ERROR's `bool __sizeErr0 = false;`, a CALL ON EXCEPTION's `bool __callErr0 = false;`, a PERFORM n TIMES's count), because an
+  optimized build drops that store when nothing reads the local, and its point with it; but when the build keeps it, the store is
+  code before the statement's first point, and it fell into the range of the statement before (an EVALUATE's last WHEN, a STRING's
+  ON OVERFLOW DISPLAY). Roslyn keeps one sequence point per IL offset, the last one written, so the writer now gives such a line
+  (`CodeWriter.PointOf`, `LinePoint.Droppable`) the statement's span too, and again the statement's next line that certainly carries
+  a point: if the store was dropped, the second point stands alone at the same offset; if it was kept, both stand. At the statement's
+  end the writer settles the pair (`CodeWriter.Settle`): when it can show the store kept (`CodeWriter.Kept`: the local is read, and
+  used where the evaluation stack cannot carry it, inside a try, catch or finally block, a lambda or local function, an if's body or
+  a switch section, or a loop, or passed by reference; Roslyn drops a store only of a local nothing reads or one it keeps on the
+  stack), the second directive becomes `#line hidden` and a debugger stops once. When it cannot show it, both points stay and a
+  debugger stops twice on that statement, at its span, the price of never giving its first code to the statement before it; the
+  ON SIZE ERROR and ON EXCEPTION flags and an n TIMES count are shown kept whenever the code reads them. The writer's reading is held to Roslyn's PDB on each shape (kept
+  and shown, kept and not shown, dropped, after a nested statement), and the ADD and CALL on a real compilation
+  (`ListingObjectCodeTests.AStatementsFlagStore_IsInItsOwnRange_NotThePreviousStatements`). Text captured for
   an expression (`CodeWriter.CaptureText`) carries no directive. The file in a directive is named by the one decider
   `SourceDocuments.NameOf`, relative to the document root (next item); a path holding a quotation mark or a line end, which a
   directive cannot spell, keeps its points under the name with each replaced by `_`.
@@ -1338,7 +1353,9 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   `Type::Member`), and `ObjectCodeMapBuilder` places each point on its listing line. A copybook copied twice: the points of one
   position are told apart by their span (a statement's first point spans the statement, its later ones only the verb), the first
   points paired in compiled order with the listing lines of that position in listing order, each later point going with the first
-  point before it; when the counts disagree the k-th first point goes to the k-th line and every later one to the last. The text
+  point before it. (Correction, review round 2:) a statement can hold two first points (the previous item), and each copy compiles
+  to the same code, so when the first points divide evenly among the lines each line takes an equal share in order; when they do
+  not, the k-th first point goes to the k-th line and every later one to the last. The text
   is `ObjectCodeText.MapRows` and `ObjectCodeText.CodeRows`.
 - **Backend diagnostics through COBOL positions.** A Roslyn diagnostic on a statement's mapped line carries the COBOL file, line
   and column. (Correction, review round 1:) the mapped file is the directive's document name, relative to the document root, which

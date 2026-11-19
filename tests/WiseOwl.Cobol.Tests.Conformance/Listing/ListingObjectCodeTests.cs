@@ -165,6 +165,41 @@ public sealed class ListingObjectCodeTests : IDisposable
         Assert.Equal(evaluate.Count, Points(map.Assembly).Count(p => p.Line == 9 && p.Column == 12));
     }
 
+    /// <summary>A statement whose code begins with storing its flag (an ADD ON SIZE ERROR's size-error flag, a CALL ON EXCEPTION's
+    /// exception flag; kb/Work PB5925 review R2-1) owns that store: the range of the statement before it ends where the statement's first
+    /// range begins, and holds no store to a local (a MOVE to a data item and a DISPLAY of a literal store to none). The ADD follows an
+    /// EVALUATE's last WHEN; the CALL follows a STRING whose ON OVERFLOW holds a DISPLAY.</summary>
+    [Fact]
+    public void AStatementsFlagStore_IsInItsOwnRange_NotThePreviousStatements()
+    {
+        var listing = Compile(ListingSectionSet.Of(ListingSection.Source, ListingSection.ObjectCode), source:
+        [
+            .. Source.Take(5),
+            "       01 S PIC X(5).",                                         // 6
+            "       01 B PIC 9(4).",                                         // 7
+            "       PROCEDURE DIVISION.",                                    // 8
+            "       P1.",                                                    // 9
+            "           EVALUATE A",                                         // 10
+            "             WHEN 1 MOVE 1 TO B",                               // 11
+            "             WHEN OTHER MOVE 3 TO B",                           // 12: MOVE at 25
+            "           END-EVALUATE",                                       // 13
+            "           ADD 9999 TO B ON SIZE ERROR DISPLAY \"SE\" END-ADD",  // 14
+            "           STRING \"ABCDEFG\" DELIMITED BY SIZE INTO S",        // 15
+            "               ON OVERFLOW DISPLAY \"OV\" END-STRING",          // 16: DISPLAY at 28
+            "           CALL \"NOSUCH\" ON EXCEPTION DISPLAY \"EXC\" END-CALL", // 17
+            "           STOP RUN.",                                          // 18
+        ]).Listing!;
+        var map = listing.ObjectCode!;
+        int ListingLine(int fileLine) => Assert.Single(listing.Lines, l => l.File == 1 && l.FileLine == fileLine).Number;
+        var move = Assert.Single(map.Ranges, r => r.Line == ListingLine(12) && r.Column == 25);
+        var add = map.Ranges.Where(r => r.Line == ListingLine(14) && r.Column == 12).OrderBy(r => r.Start).First();
+        var display = Assert.Single(map.Ranges, r => r.Line == ListingLine(16) && r.Column == 28);
+        var call = map.Ranges.Where(r => r.Line == ListingLine(17) && r.Column == 12).OrderBy(r => r.Start).First();
+        Assert.Equal((move.Method, move.End), (add.Method, add.Start));
+        Assert.Equal((display.Method, display.End), (call.Method, call.Start));
+        Assert.All(new[] { move, display }, r => Assert.DoesNotContain(r.Instructions!, i => i.OpCode.StartsWith("stloc", StringComparison.Ordinal)));
+    }
+
     /// <summary>A copybook copied twice: its one statement is two statements at one file position, and each copy's range is placed in its
     /// own block, the first copy's code before the second's (DESIGN-listing.md section 6.9).</summary>
     [Fact]

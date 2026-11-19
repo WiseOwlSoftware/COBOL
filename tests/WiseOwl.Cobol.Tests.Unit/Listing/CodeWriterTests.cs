@@ -26,7 +26,7 @@ public sealed class CodeWriterTests : WiseOwlCobolTestBase
     }
 
     [Theory]
-    [InlineData("bool __sizeErr0 = false;")]          // a declaration: the parser decides (a constant initializer has no point)
+    [InlineData("bool __sizeErr0 = false;")]          // a declaration: the parser decides (a constant initializer's point is droppable)
     [InlineData("__pc = 5; goto __xfer;")]           // two statements
     [InlineData("x = F(() => { y = 2; return y; });")] // a lambda
     [InlineData("s = \"a;b\";")]                    // a string
@@ -142,6 +142,89 @@ public sealed class CodeWriterTests : WiseOwlCobolTestBase
         Assert.Equal(resumed ? 2 : 1, atOuter.Count);
         Assert.True(atOuter[0].Offset < atInner.Offset);
         if (resumed) Assert.True(atInner.Offset < atOuter[1].Offset && atOuter[1].EndColumn < atOuter[0].EndColumn);   // the later point spans the verb
+    }
+
+    /// <summary>A statement whose C# begins with a local declared with a constant (an ADD ON SIZE ERROR's <c>bool __sizeErr0 = false;</c>,
+    /// kb/Work PB5925 review R2-1), which an optimized build keeps or drops as the code after it reads the local: either way the statement's
+    /// first point is at its first code, so the statement before it holds its own code alone (a call, five bytes of IL), and where the writer
+    /// can show the store kept (the local read, and used in a try or catch block, an if's body or a loop) the statement has one point; with a nested statement, the
+    /// statement's own first code is a call too, and so is the nested one's. The expected points are the
+    /// ones Roslyn itself writes, read back from its PDB; the stops are each shape's: kept and shown (one), kept but not shown (two, the
+    /// store's and the next line's), dropped (one: Roslyn keeps the last point of an IL offset). After a nested statement the same holds
+    /// for the enclosing statement's resumed point.</summary>
+    [Theory]
+    [InlineData("try { if (G > 3) e = true; else G = 1; } catch (System.Exception) { e = true; }|if (e) F();", 1, false)]
+    [InlineData("F();|if (G > 2) e = true;|if (e) F();", 1, false)]
+    [InlineData("while (G < 3) { if (e) F(); G++; }", 1, false)]
+    [InlineData("F();|if (e) F();", 2, false)]
+    [InlineData("e = G > 5;|if (e) F();", 1, false)]
+    [InlineData("try { F(); } catch (System.Exception) { e = true; }", 1, false)]
+    [InlineData("try { if (G > 3) e = true; else G = 1; } catch (System.Exception) { e = true; }|if (e) F();", 1, true)]
+    [InlineData("e = G > 5;|if (e) F();", 1, true)]
+    public void AStatementBeginningWithAConstantStore_OwnsItsFirstCode(string lines, int stops, bool resumed)
+    {
+        string file = Path.Combine(TempDir, "flag.cob");
+        var before = new WiseOwl.Cobol.Binding.Bound.StatementSpan(file, 1, 8, 1, 20, 12);
+        var statement = new WiseOwl.Cobol.Binding.Bound.StatementSpan(file, 2, 8, 2, 30, 11);
+        var nested = new WiseOwl.Cobol.Binding.Bound.StatementSpan(file, 3, 12, 3, 24, 16);
+        var w = new CodeWriter();
+        w.HideUnmappedLines(TempDir);
+        using (w.Block("class C"))
+        {
+            w.Line("static int G;");
+            w.Line("static void F() { G++; }");
+            using (w.Block("static void M()"))
+            {
+                using (w.MapStatement(before)) w.Line("F();");   // call: 5 bytes of IL
+                using (w.MapStatement(statement))
+                {
+                    if (resumed)
+                    {
+                        w.Line("F();");                              // the statement's own first code: 5 bytes
+                        using (w.MapStatement(nested)) w.Line("F();");   // the nested statement's: 5 bytes
+                    }
+                    w.Line("bool e = false;");
+                    foreach (string line in lines.Split('|')) w.Line(line);
+                }
+            }
+        }
+        var points = VisiblePoints(w.ToString());
+        Assert.Equal(0, Assert.Single(points, p => p.Line == 1).Offset);
+        if (resumed)
+        {
+            Assert.Equal(10, Assert.Single(points, p => p.Line == 3).Offset);
+            var own = points.Where(p => p.Line == 2).OrderBy(p => p.Offset).ToList();
+            Assert.Equal(5, own[0].Offset);   // the statement's first point spans the statement
+            var verb = own.Skip(1).ToList();
+            Assert.Equal(stops, verb.Count);
+            Assert.Equal(15, verb[0].Offset);   // the resumed point: the store after the nested statement is the enclosing one's
+            Assert.All(verb, p => Assert.Equal(11, p.EndColumn));   // spanning the verb
+        }
+        else
+        {
+            var own = points.Where(p => p.Line == 2).OrderBy(p => p.Offset).ToList();
+            Assert.Equal(stops, own.Count);
+            Assert.Equal(5, own[0].Offset);
+            Assert.All(own, p => Assert.Equal(30, p.EndColumn));   // each spanning the statement
+        }
+    }
+
+    /// <summary>The points of a copybook's statement at one position, paired with its copies' listing lines (DESIGN-listing.md section 6.9):
+    /// "S" a first point (spanning the statement, end (1, 30)), "V" a later one (its verb, end (1, 15)). One first point per copy, or two
+    /// (a droppable store kept and not shown kept, <see cref="AStatementBeginningWithAConstantStore_OwnsItsFirstCode"/>), each copy takes
+    /// its own; a verb point goes with the first point before it; counts that do not divide fall back to k-th to k-th, the rest to the
+    /// last.</summary>
+    [Theory]
+    [InlineData("S S", 2, "0 1")]
+    [InlineData("S V S V", 2, "0 0 1 1")]
+    [InlineData("S S V S S V", 2, "0 0 0 1 1 1")]
+    [InlineData("S S S S", 2, "0 0 1 1")]
+    [InlineData("S S S", 2, "0 1 1")]
+    [InlineData("S S V", 1, "0 0 0")]
+    public void ACopybooksPoints_GoToTheirCopies(string points, int lines, string expected)
+    {
+        var ends = points.Split(' ').Select(p => p == "S" ? (1, 30) : (1, 15)).ToList();
+        Assert.Equal(expected, string.Join(" ", WiseOwl.Cobol.Listing.Building.ObjectCodeMapBuilder.Copies(ends, lines)));
     }
 
     [Fact]

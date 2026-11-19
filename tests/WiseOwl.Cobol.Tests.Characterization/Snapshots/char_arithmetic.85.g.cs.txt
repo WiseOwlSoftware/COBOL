@@ -50,7 +50,9 @@ internal sealed class _PRG_CHAR_ARITHMETIC : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (11, 12) - (11, 30) 21 "char_arithmetic.cob"
                     bool __sizeErr0 = false;
+#line hidden
                     try
                     {
                         try
@@ -64,7 +66,9 @@ internal sealed class _PRG_CHAR_ARITHMETIC : ICobolProgram
                     }
                     catch (CobolSizeError) { __sizeErr0 = true; }
                     catch (global::System.OverflowException) { __sizeErr0 = true; }
+#line (12, 12) - (12, 37) 21 "char_arithmetic.cob"
                     bool __sizeErr1 = false;
+#line hidden
                     try
                     {
                         try
@@ -78,7 +82,9 @@ internal sealed class _PRG_CHAR_ARITHMETIC : ICobolProgram
                     }
                     catch (CobolSizeError) { __sizeErr1 = true; }
                     catch (global::System.OverflowException) { __sizeErr1 = true; }
+#line (13, 12) - (13, 34) 21 "char_arithmetic.cob"
                     bool __sizeErr2 = false;
+#line hidden
                     try
                     {
                         try
@@ -92,12 +98,14 @@ internal sealed class _PRG_CHAR_ARITHMETIC : ICobolProgram
                     }
                     catch (CobolSizeError) { __sizeErr2 = true; }
                     catch (global::System.OverflowException) { __sizeErr2 = true; }
+#line (14, 12) - (16, 22) 21 "char_arithmetic.cob"
                     bool __sizeErr3 = false;
+#line hidden
                     try
                     {
                         try
                         {
-#line (14, 12) - (16, 22) 29 "char_arithmetic.cob"
+#line hidden
                             if (!CobolNum.TryStore(((Int128)(A) * (B)), 0, _P_3, CobolRounding.Truncation, out var __sv0))
 #line hidden
                             __sizeErr3 = true;

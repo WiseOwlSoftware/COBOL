@@ -53,7 +53,9 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (13, 12) - (13, 49) 21 "char_intrinsics.cob"
                     bool __sizeErr0 = false;
+#line hidden
                     try
                     {
                         try
@@ -77,8 +79,9 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
                     }
 #line (15, 12) - (15, 28) 21 "char_intrinsics.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_R, _P_2, false) + WS_U);
-#line hidden
+#line (16, 12) - (16, 47) 21 "char_intrinsics.cob"
                     bool __sizeErr1 = false;
+#line hidden
                     try
                     {
                         try

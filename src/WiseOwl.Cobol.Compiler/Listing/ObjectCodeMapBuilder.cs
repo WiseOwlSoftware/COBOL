@@ -12,11 +12,12 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// </summary>
 /// <remarks>⛔ A COPYBOOK COPIED TWICE (section 6.9): its statements are two statements at one physical position, and a PDB names only the
 /// position. A statement compiles to one first sequence point, spanning the statement, and a later one for each stretch of its own code
-/// after a statement nested in it, spanning its verb (<c>CodeWriter.MapStatement</c>). The first points of one position are paired, in
-/// metadata and IL order (the order the statements were compiled in, which is their order in the text), with the listing lines that show
-/// that position, in listing order, one to one when the counts agree, and each later point goes with the first point before it. When the
-/// counts do not agree (a statement compiled more than once, or a copy whose statement compiled to no code), the k-th first point goes to
-/// the k-th line and every later one to the last.</remarks>
+/// after a statement nested in it, spanning its verb (<c>CodeWriter.MapStatement</c>); a statement whose code begins with a store an
+/// optimized build may drop can hold two first points, one after the other. The first points of one position are paired, in metadata and
+/// IL order (the order the statements were compiled in, which is their order in the text), with the listing lines that show that position,
+/// in listing order, an equal share to each line when they divide evenly (one to one, or two to one), and each later point goes with the
+/// first point before it. When they do not divide evenly (a statement compiled more than once, or a copy whose statement compiled to no
+/// code), the k-th first point goes to the k-th line and every later one to the last.</remarks>
 internal static class ObjectCodeMapBuilder
 {
     /// <summary>The map of <paramref name="facts"/>, read from the assembly at <paramref name="assembly"/>.</summary>
@@ -40,16 +41,9 @@ internal static class ObjectCodeMapBuilder
             int column = frontend.Formats.TryGetValue(text.File, out var map)
                 ? map.ExpandedIndexAt(position.Key.Line, position.Key.Column - 1) + 1
                 : position.Key.Column;
-            // A statement's first point spans the statement, its later ones (its code after a statement nested in it) only its verb: the
-            // first point of a position in compiled order is a first point, and so is every one spanning what it spans.
             var ordered = position.OrderBy(p => p.Method).ThenBy(p => p.Start).ToList();
-            var first = (ordered[0].EndLine, ordered[0].EndColumn);
-            int occurrence = -1;
-            foreach (var point in ordered)
-            {
-                if ((point.EndLine, point.EndColumn) == first) occurrence++;
-                placed.Add((point, lines[Math.Min(occurrence, lines.Count - 1)], column));
-            }
+            var copies = Copies([.. ordered.Select(p => (p.EndLine, p.EndColumn))], lines.Count);
+            for (int i = 0; i < ordered.Count; i++) placed.Add((ordered[i], lines[copies[i]], column));
         }
 
         // The methods that hold a placed point, numbered in metadata order.
@@ -62,5 +56,27 @@ internal static class ObjectCodeMapBuilder
             .Select(p => new ListingObjectRange(p.Line, p.Column, methodIds[p.Point.Method], p.Point.Start, p.Point.End, p.Point.Instructions))
             .ToList();
         return new ListingObjectCodeMap(assembly, methods, ranges);
+    }
+
+    /// <summary>Which of <paramref name="lines"/> listing lines of one position each of its points goes to, the points given by their ends
+    /// in compiled order. A statement's first point spans the statement, its later ones (its code after a statement nested in it) only its
+    /// verb: the first point of a position in compiled order is a first point, and so is every one spanning what it spans. A statement may
+    /// hold two first points (its code begins with a store an optimized build may drop, <c>CodeWriter.MapLine</c>), and each copy of it
+    /// compiles to the same code, so when the first points divide evenly among the lines each line takes an equal share in order; when
+    /// they do not, the k-th first point goes to the k-th line and every later one to the last. Each later point goes with the first point
+    /// before it.</summary>
+    internal static int[] Copies(IReadOnlyList<(int EndLine, int EndColumn)> ends, int lines)
+    {
+        var first = ends[0];
+        int firsts = ends.Count(e => e == first);
+        int share = firsts % lines == 0 ? firsts / lines : 1;
+        var copies = new int[ends.Count];
+        int occurrence = -1;
+        for (int i = 0; i < ends.Count; i++)
+        {
+            if (ends[i] == first) occurrence++;
+            copies[i] = Math.Min(occurrence / share, lines - 1);
+        }
+        return copies;
     }
 }
