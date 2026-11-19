@@ -1,13 +1,13 @@
 ---
 title: The source listing
-description: When the compiler writes a source listing, its sections (options, source, program map, data map, statistics and verbs, diagnostics), how it is paginated, its JSON form and schema, and the options that control it.
+description: When the compiler writes a source listing, its sections (options, source, program map, data map, statistics and verbs, object code, diagnostics), how it is paginated, its hyperlinked HTML form, its JSON form and schema, and the options that control it.
 sidebar:
   order: 10
 ---
 
 The compiler writes a **source listing**: every physical line of the source file and of each COPY library text, in the
-order the compiler read them, paginated for reading or printing, and on request the same listing as a JSON document for
-programs to read.
+order the compiler read them, paginated for reading or printing, and on request the same listing as a hyperlinked HTML page
+for reading in a browser and as a JSON document for programs to read.
 
 - At `--std 85` the listing is written by default. COBOL-85 requires each compiler to produce "an output listing of the
   source program in reference format" (ANSI X3.23-1985 section IV.7.1). `--listing off` turns it off.
@@ -23,8 +23,8 @@ compile is often the one most worth reading. A source file that does not exist h
 | Option | Effect |
 |---|---|
 | `--listing [on\|off]` | write a listing (a bare `--listing` is `on`); default `on` at `--std 85`, `off` at the later editions |
-| `--listing-output <BASE>` | write the listing to `BASE.lst` (and `BASE.lst.json`); `-` writes it to standard output instead of a file, in the one format requested. Default: the output assembly's path without its extension |
-| `--listing-format text\|json` | a format to write: `text` is the paginated listing `BASE.lst`, `json` the JSON listing `BASE.lst.json` (below). Repeat it for both (`--listing-format text --listing-format json`); default `text`. With `--listing-output -` exactly one format may be named |
+| `--listing-output <BASE>` | write the listing to `BASE.lst` (and `BASE.lst.json`, `BASE.lst.html`); `-` writes it to standard output instead of a file, in the one format requested. Default: the output assembly's path without its extension |
+| `--listing-format text\|json\|html` | a format to write: `text` is the paginated listing `BASE.lst`, `json` the JSON listing `BASE.lst.json`, `html` the HTML page `BASE.lst.html` (below). Repeat it for more than one (`--listing-format text --listing-format html`); default `text`. With `--listing-output -` exactly one format may be named |
 | `--listing-sections <LIST>` | the sections to produce, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `data-map`, `object-map`, `object-code`, `standard` and `all` (below); default `standard`, which is every section but the data map, the object-code map and the object code |
 | `--listing-page-length <N>` | lines per page, the four heading lines included (default 60); `0` paginates only where a page must start (below). At least 5 otherwise |
 | `--listing-page-width <N>` | columns per page, 100 to 255 (default 132) |
@@ -372,7 +372,36 @@ offset, the instruction and its operand (a number, a quoted string, a branch tar
 
 Both sections need an assembly: a check-only compilation, or one the compiler refused, prints why they are absent.
 
+## The HTML listing
+
+`--listing-format html` writes the listing as one HTML page, `BASE.lst.html`, for reading in a browser. The page is
+self-contained: its style and its small script are inside it and it loads nothing from anywhere else, so it can be mailed,
+archived or opened offline. It holds the sections asked for, in the order of the text listing, and is a rendering of the same
+document as the text and the JSON listing, so the three always agree.
+
+- **The source.** Every line of the source and of each library text is a row: its listing line number, its inclusion depth, its
+  marker (the same markers as the text listing), its line in its file and its text. A line where the text listing starts a page
+  carries a rule, and starts a page when the page is printed.
+- **Inclusions.** Each COPY library text is a block under the COPY statement's line, opened by the same banner as the text listing
+  (`COPY text-name OF library-name -> file (depth n)`); click the banner to fold it. A library text copied with `SUPPRESS` is folded
+  to begin with.
+- **Lines the text listing does not print.** Lines a `>>LISTING OFF` or COPY `SUPPRESS` turned off, lines a false `>>IF` branch
+  omitted, and the further lines of a replaced DATE-COMPILED comment-entry are on the page, greyed, in a folded block that says how
+  many lines it holds and why ("3 lines not listed (40-42)"). The DISPLAY directive's lines stay outside the block: they are listed
+  whatever a LISTING directive says.
+- **Diagnostics.** Each diagnostic stands under its line, the column it names highlighted in the line's text; the diagnostic
+  summary at the end lists them all and links each to its place.
+- **Object code.** With `object-map` or `object-code` in the sections, each statement's line holds a folded block per stretch of its
+  code: its method and IL range, and with `object-code` its instructions.
+- **Links.** A data description line's margin links to its data map entry; a data map entry's line, and each entry its facts name
+  (`REDEFINES #3`, `INDEXED BY #5`, a file's keys and records), are links; so are the program map's first and last lines, the
+  object-code map's lines and methods, and each verb's lines in the statistics.
+
+The bar at the top links to each section and holds a filter: type text to show only the source lines that contain it, or tick
+*lines with diagnostics* to show only those; *Expand all* and *Collapse all* open and fold every block.
+
 ## Later additions
 
-The listing grows section by section: the cross-reference and a hyperlinked HTML form. Each joins `--listing-sections` with its
-builder, so `all` always names exactly the sections the compiler can produce.
+The listing grows section by section: the cross-reference is next, and with it each name on a source line becomes a link to its
+definition and each definition lists its references. It joins `--listing-sections` with its builder, so `all` always names exactly
+the sections the compiler can produce.
