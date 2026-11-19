@@ -1848,7 +1848,7 @@ internal sealed class VersionConformancePass
         /// <summary>For each level-01 record name seen so far in <see cref="_recordSection"/>, whether its nearest
         /// description is external: a level-01 REDEFINES names a record of its own section, and that record decides
         /// (§1985:VI.5.15.3 SR4's "redefinition").</summary>
-        private readonly Dictionary<string, bool> _level01External = new(CobolNames.Comparer);
+        private readonly Dictionary<CobolName, bool> _level01External = [];
 
         public override object? VisitDataDescriptionEntry(CobolParserCore.DataDescriptionEntryContext ctx)
         {
@@ -1865,9 +1865,10 @@ internal sealed class VersionConformancePass
                     || (level == 1
                         && ctx.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
                             ?.Select(c => c.redefinesClause()).FirstOrDefault(r => r is not null)
-                            ?.dataReference().cobolWord()?.GetText() is { } redefined
-                        && _level01External.TryGetValue(redefined, out bool external) && external);
-                if (level == 1 && ctx.dataName()?.GetText() is { } name)
+                            ?.dataReference().cobolWord() is { } redefined
+                        && SymbolTable.WordOf(redefined) is { } redefinedKey
+                        && _level01External.TryGetValue(redefinedKey, out bool external) && external);
+                if (level == 1 && ctx.dataName() is { } dataName && SymbolTable.WordOf(dataName) is { } name)
                     _level01External[name] = HasClause(ctx, c => c.externalClause() is not null);
             }
             return base.VisitDataDescriptionEntry(ctx);

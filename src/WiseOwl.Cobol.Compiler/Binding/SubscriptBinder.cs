@@ -398,7 +398,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             for (int i = 0; i < seg.Count; i++)
             {
                 var t = seg[i];
-                if (!IsNameToken(t) || !CobolNames.Same(t.Text, index.Name)) continue;
+                if (!IsNameToken(t) || !SymbolTable.SpellsIndexName(t, index.Name)) continue;
                 if (refs.Names.ResolveIndexName(WrittenQualifiedName.Of(seg, i, IsNameToken, out _), t) is { Outcome: IndexRefOutcome.Resolved } ix
                     && ReferenceEquals(ix.Decl, index)) return true;
             }

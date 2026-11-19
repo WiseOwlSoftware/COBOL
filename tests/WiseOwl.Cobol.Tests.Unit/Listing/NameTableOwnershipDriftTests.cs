@@ -52,7 +52,7 @@ public sealed class NameTableOwnershipDriftTests
     /// commit, which keyed the USE and WHEN registers by the file a file-name identified and classified the words of the standard and
     /// the externalized names: 7 tables, 22 lookups, 75 sites; 93 at its second, which moved the data-name, condition-name and
     /// screen-name tables of the element and of each method into the table: 1 table, 22 lookups, 70 sites).</summary>
-    private const int BaselineCeiling = 89;
+    private const int BaselineCeiling = 86;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -219,6 +219,8 @@ public sealed class NameTableOwnershipDriftTests
                     internal HashSet<string> Words() => new(CobolNames.Comparer);
                     internal bool Equal(Item a, string b) => a.Name == b;
                     internal bool Clr(Item a, string b) => a.ClrText == b;
+                    internal CobolName Copy(CobolName n) => n with { Folded = "x" };
+                    internal CobolName Empty() => default;
                 }
             }
             """;
@@ -238,6 +240,8 @@ public sealed class NameTableOwnershipDriftTests
             "(3) P.Binding.Outside.ByWord(string)",
             "(3) P.Binding.Outside.ForTemp(string)",
             "(2) new(word)",
+            "(2) n with { Folded = \"x\" }",
+            "(2) default",
             "(4) P.Binding.SymbolTable.Declarations.Leak(string)",
             "(5) SAME Planted.cs P.Binding.Outside.Compare CobolNames.Same(a.Name, b)",
             "(5) CMP Planted.cs P.Binding.Outside.Words Comparer",

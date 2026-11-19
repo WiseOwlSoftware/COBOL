@@ -499,7 +499,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         var reference = WrittenQualifiedName.Of(toks, 0, SubscriptBinder.IsNameToken, out int last);
         int next = last + 1;
         if (!SubscriptBinder.IsNameToken(toks[0])
-            || !CobolNames.Same(toks[0].Text, firstIndex)
+            || !SymbolTable.SpellsIndexName(toks[0], firstIndex)
             || (table.Indexes.Count > 0
                 && refs.Names.ResolveIndexName(reference, toks[0]) is { Outcome: IndexRefOutcome.Resolved } ix
                 && !ReferenceEquals(ix.Decl, table.Indexes[0])))
