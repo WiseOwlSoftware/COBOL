@@ -8,7 +8,7 @@
       *> specified in the THROUGH phrase are of class alphabetic, alphanumeric, or national." A range whose ends
       *> are ARITHMETIC EXPRESSIONS is of class numeric (14.9.13.2 prints arithmetic-expression-3/-4 among the
       *> range-expression's operands, and 8.8.1.1 makes every constituent of an arithmetic expression numeric), so
-      *> IN alphabet-name-1 over it names a collating sequence 14.7.8 rule 1 has no use for.
+      *> IN alphabet-name-1 over it names a collating sequence 14.7.8 GR1 has no use for.
       *> ⛔ THIS COMPILED CLEAN BEFORE kb/Work PB401 and the range was evaluated as a STRING range under AL. The
       *> screen was already written (COBOL1998, kb/Work PB398) and could not fire: the range's class was read
       *> through a category reader that answered "no category" for a computed operand, which the comparison-class

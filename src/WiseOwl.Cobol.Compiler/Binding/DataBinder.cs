@@ -3389,7 +3389,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// national, and the runtime collating sequence is known, the value of literal-2 shall be less than the value
     /// of literal-3.</i>" (kb/Work PB552). LESS THAN, so an equal pair is refused as well as a reversed one, and
     /// every pair of a list is asked (<c>VALUE 1 THRU 3, 9 THRU 7</c>).
-    /// <para>a) is §2023:14.7.8 rule 1's algebraic order and always applies: a numeric conditional variable's pair, or
+    /// <para>a) is §2023:14.7.8 GR1's algebraic order and always applies: a numeric conditional variable's pair, or
     /// a pair of numeric literals on a numeric-edited one (their class is numeric whatever the subject's). b) is
     /// rule 2's collating sequence — the <c>IN alphabet-name-1</c> alphabet, else the PROGRAM COLLATING SEQUENCE,
     /// else the native order — read through the SAME <see cref="ConditionValueOrder"/> SR27 b) reads, and
@@ -3436,7 +3436,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <para>The FIRST sentence is unconditional — it carries no class qualifier and no THROUGH precondition — so
     /// it is tested against every occurrence of literal-2, singleton or range bound, before the sub-rules are
     /// reached. a) and b) then add RANGE MEMBERSHIP, and differ only in which ordering decides it: a) is
-    /// §2023:14.7.8 rule 1's algebraic order, b) is rule 2's collating sequence. b)'s "<i>any literal-2</i>" clause is
+    /// §2023:14.7.8 GR1's algebraic order, b) is GR2's collating sequence. b)'s "<i>any literal-2</i>" clause is
     /// the first sentence restated and needs no second test.</para>
     /// <para>⛔ WHY b) CAN BE ENFORCED AT ALL. The rule is conditioned on the runtime collating sequence being
     /// KNOWN, and SR26's NOTE says when it is not: "<i>The runtime collating sequence is unknown when the
@@ -3475,7 +3475,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             }
             if (hi is null) continue;
             // a) / b) — RANGE membership. b) fires only where the runtime collating sequence is KNOWN (SR26's
-            // NOTE: a LOCALE sequence is not); a) is §2023:14.7.8 rule 1's algebraic order and is always known. An
+            // NOTE: a LOCALE sequence is not); a) is §2023:14.7.8 GR1's algebraic order and is always known. An
             // INVERTED range is EMPTY (§2023:14.7.8 GR2's last paragraph — it raises EC-RANGE-INVALID and
             // "execution proceeds as if the range of values were empty"), so nothing can be inside it and the
             // test is skipped rather than inverted. SR26 refuses the inversion ITSELF (CheckRangesAscending,

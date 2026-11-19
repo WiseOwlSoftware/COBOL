@@ -6,7 +6,7 @@
 *>---
       *> ISO 14.9.13.3 SR3, sentence 1: "Alphabet-name-1 may be specified only when the literals or identifiers
       *> specified in the THROUGH phrase are of class alphabetic, alphanumeric, or national." A NUMERIC range is
-      *> ordered algebraically by 14.7.8 rule 1 - "the range of values includes literal-1, literal-2, and all
+      *> ordered algebraically by 14.7.8 GR1 - "the range of values includes literal-1, literal-2, and all
       *> algebraic values between literal-1 and literal-2" - and no collating sequence takes part in it, so
       *> naming one has no meaning. kb/Work PB398: this rule had no code site at all, because the phrase it
       *> constrains could not be written.
