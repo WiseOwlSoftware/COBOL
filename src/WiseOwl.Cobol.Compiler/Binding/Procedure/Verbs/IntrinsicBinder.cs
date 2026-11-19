@@ -3413,7 +3413,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A REPEATING SUM entry's counter is a table too (ISO §2023:13.18.54.4 GR8 a)'s "corresponding occurrence of the
         // sum counter"; kb/Work PB1271): it is asked of the ONE counter resolver FIRST, in the order
         // ReferenceResolver.Resolve asks it, and its register carries the OCCURS levels the walk below reads.
-        var counter = ctx.Refs.Counters.SumCounterFamilyFor(dref, name, quals, report: true);
+        var counter = ctx.Refs.Counters.SumCounterFamilyFor(dref, report: true);
         if ((counter?.Family.Register ?? ctx.Refs.Names.FindReportedItem(dref, name, quals)) is not { } item)
         {
             // The resolver's ONE reported lookup (kb/Work PB1029 — this arm refused silently; kb/Work PB3287 — and it

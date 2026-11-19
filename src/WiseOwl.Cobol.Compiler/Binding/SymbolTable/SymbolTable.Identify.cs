@@ -23,7 +23,9 @@ internal sealed record IdentifiedName
     /// <summary>The symbol: a <see cref="Model.CommunicationDescription"/> for a cd-name, a <see cref="Model.FileModel"/> for a
     /// file-name, a <see cref="ConstantDef"/> for a constant-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, the definition a
     /// configuration section declares for a configuration-section name (an <see cref="AlphabetDef"/>, a <see cref="SwitchStatusName"/>,
-    /// an <see cref="Editions.ImplementorName"/> row for a mnemonic-name, ...), ... (by
+    /// an <see cref="Editions.ImplementorName"/> row for a mnemonic-name, ...), a <see cref="ReportModel"/> for a report-name, a
+    /// <see cref="ReportVaryingModel"/> for a VARYING counter, the <see cref="ReportCandidates{T}"/> of a report group, a sum counter or a
+    /// report entry, ... (by
     /// <see cref="Class"/>). A procedure-name that several procedures carry identifies no one symbol: <see cref="Symbol"/> is then
     /// the <see cref="ProcedureCandidates"/>, which the reference reports (kb/Work PB466) and which records no occurrence.</summary>
     public object Symbol { get; }
@@ -52,7 +54,10 @@ public sealed partial class SymbolTable
     /// and none for a probe, so a probe followed by its resolution is one occurrence. <paramref name="reach"/> narrows a
     /// file-name position that names only this element's own entries (<see cref="NameReach.Own"/>). <paramref name="site"/> is where a
     /// procedure-name is written (its method and its containing section), which scopes its resolution; every procedure-name
-    /// reference states it, and no other class reads it.
+    /// reference states it, and no other class reads it. <paramref name="reportSite"/> is where a REPORT SECTION clause's name is
+    /// written (its report and the VARYING counters in scope, <see cref="ReportSite"/>), read only by the sum-counter and VARYING
+    /// classes. A report-section reference that may reach several entries (a report group, a sum counter, a report entry) answers
+    /// every candidate (<see cref="ReportCandidates{T}"/>), and the class's own funnel words two or more.
     /// <para>A name is ONE word, and a COBOL word is one token (<c>cobolWord</c> in CobolWords.g4), so the key is that token's
     /// text. A context of several tokens is no name and denotes nothing: its <c>GetText()</c> glues the tokens, so
     /// <c>A - B</c> would read as the file-name <c>A-B</c> and <c>F OF G</c> as <c>FOFG</c> (kb/Work PB2040, PB5932 review
@@ -61,12 +66,14 @@ public sealed partial class SymbolTable
     /// operand) is a head word and its qualifier (<see cref="ProcedureWords"/>).</para>
     /// </summary>
     internal IdentifiedName? Identify(ParserRuleContext written, NameClass wanted, bool report, NameReach reach = NameReach.Visible,
-        ProcedureSite? site = null)
+        ProcedureSite? site = null, ReportSite reportSite = default)
     {
         object? symbol;
         if (wanted == NameClass.Procedure)
             symbol = ProcedureNamed(written,
                 site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written"));
+        else if (IsReportClass(wanted))
+            symbol = ReportSymbolNamed(written, wanted, reach, reportSite);   // the occurrence `report` gates is listing step 7b's
         else if (WordOf(written) is not { } key)
             symbol = null;
         else if (IsConfigurationClass(wanted))
@@ -95,6 +102,8 @@ public sealed partial class SymbolTable
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a procedure-name is a reference rule: identify its context");
         if (IsConfigurationClass(wanted))
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a configuration-section name is one word: identify its context");
+        if (IsReportClass(wanted))
+            throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a report-section name is written in a context: identify it");
         return SymbolNamed(Key(written.Text), wanted, reach) is { } symbol ? new IdentifiedName(wanted, symbol) : null;
     }
 

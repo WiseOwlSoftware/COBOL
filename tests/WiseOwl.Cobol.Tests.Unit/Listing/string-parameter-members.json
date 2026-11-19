@@ -118,6 +118,10 @@
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     },
     {
+      "member": "WiseOwl.Cobol.Binding.DataBinder.ReportPrintablePicture(WiseOwl.Cobol.Binding.DataBinder.ReportItemDescription, string, string?)",
+      "reason": "its strings name the report item in a diagnostic (the RD's report-name and the entry's data-name, as the PICTURE screens word their site); it resolves no name: the item is the description it is given"
+    },
+    {
       "member": "WiseOwl.Cobol.Binding.DataBinder.SpecialNamesConstant(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext, System.Action<string>, string, string)",
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     },
@@ -416,6 +420,10 @@
     {
       "member": "WiseOwl.Cobol.Binding.ReferenceResolver.SegmentFailure(string)",
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ReportGroupResolution.Resolve(WiseOwl.Cobol.Binding.DataBinder, Antlr4.Runtime.ParserRuleContext, string, out WiseOwl.Cobol.Binding.ReportModel?, out WiseOwl.Cobol.Binding.ReportGroupModel?, WiseOwl.Cobol.Binding.NameReach, WiseOwl.Cobol.Binding.ReportModel?)",
+      "reason": "its name operand is the parser context, identified through SymbolTable.Identify (step 6b, slice 5 converted it from a string); its string words a diagnostic (the reference's site)"
     },
     {
       "member": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec.Of(string, string, bool, WiseOwl.Cobol.Binding.Model.SkeletonRecord)",

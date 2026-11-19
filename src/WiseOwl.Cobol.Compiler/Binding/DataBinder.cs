@@ -5181,7 +5181,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (Symbols.Identify(sub.cobolWord(), NameClass.Constant, report: true)?.Symbol
                 is ConstantDef { Category: PicCategory.Numeric, IntegerText: { } integer })
             return (integer, word);
-        if (Symbols.IsFailedConstant(word)) return null;   // its own entry was reported
+        if (Symbols.IsFailedConstant(sub.cobolWord())) return null;   // its own entry was reported
         using var at = Edition.At(sub);
         Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the subscript '{word}' is not an integer "
             + "constant-name — subscript-1 and subscript-2 shall be integer numeric literals (ISO §2023:13.18.63.3 SR19), and "

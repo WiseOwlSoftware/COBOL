@@ -31,6 +31,11 @@ internal enum DeclarationKind
     /// since a cd-name "may be referenced only by statements and entries in the source element that contains the communication section
     /// in which it is declared" (2002 8.4.5), so it is never inherited.</summary>
     CdName,
+    /// <summary>A report group description entry's data-name (ISO §2023:13.15.3 SR7) that names no sum counter: a report item
+    /// §2023:13.8.6.2.3 lets no other section of the data division and no procedure division statement reference.</summary>
+    ReportEntry,
+    /// <summary>The data-name of a SUM entry, which names its sum counter (ISO §2023:13.18.54.4 GR5).</summary>
+    ReportSumCounter,
 }
 
 /// <summary>A declaration that gives a name although it declares no data item: its kind, for a type declaration's
@@ -39,11 +44,13 @@ internal enum DeclarationKind
 /// it is that one fault's consequence and its reader reports nothing more, and the <paramref name="Depth"/> of the
 /// source element that declares it (0 = this one, n = its n-th container, <see cref="ForestSlice.DeclaringDepth"/>'s
 /// measure), the tier ISO §2023:8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).
-/// <paramref name="Spelling"/> is the declaration's own spelling where a message quotes it (an inherited GLOBAL file-name).
+/// <paramref name="Spelling"/> is the declaration's own spelling where a message quotes it (an inherited GLOBAL file-name, a report
+/// entry's data-name), and <paramref name="Report"/> the report-name of the report description a report entry belongs to.
 /// The fact names no symbol: it answers a declaration question (<see cref="SymbolTable.Declarations"/>), never a reference
 /// (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
 internal readonly record struct DeclarationFact(
-    DeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0, string? Spelling = null)
+    DeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0, string? Spelling = null,
+    string? Report = null)
 {
     /// <summary>⛔ THE ONE WORDING of what <paramref name="name"/> IS (kb/Work PB1906), completing a sentence whose subject
     /// is the reference as <paramref name="written"/>: "'T' is declared as a type-name …". Every site that refuses a

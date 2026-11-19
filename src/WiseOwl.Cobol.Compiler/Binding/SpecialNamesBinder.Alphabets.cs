@@ -340,7 +340,7 @@ public sealed partial class SpecialNamesBinder
         // ⚠ DETERMINATION: the program's own declaration of the word wins over the implementor's code-name of the same
         // spelling, as it does for the LOCALE clause's external-locale-name-1 (LocaleBind).
         if (def.alphabetEntry() is not [{ ChildCount: 1 } only] || only.GetChild(0) is not Core.CobolWordContext cw
-            || IsAlphabetFigurativeWord(cw.GetText()) || _host.Symbols.NamesConstant(cw.GetText()))
+            || IsAlphabetFigurativeWord(cw.GetText()) || _host.Symbols.NamesConstant(cw))
             return CodeNameOutcome.NotACodeName;
         if (ImplementorCodeNames.Find(cw.GetText(), national) is { } hit) { row = hit; return CodeNameOutcome.Bound; }
         Edition.Error(DiagnosticCatalog.AlphabetCodeNameUnsupported, $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} "

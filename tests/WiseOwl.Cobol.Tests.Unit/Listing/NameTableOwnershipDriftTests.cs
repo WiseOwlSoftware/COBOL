@@ -40,8 +40,9 @@ public sealed class NameTableOwnershipDriftTests
     /// <summary>The baseline only shrinks: each slice lowers this to the count it leaves (325 at slice 1: 56 tables, 63
     /// lookups, 206 comparison sites; 308 at slice 2, which moved the tables keyed by no COBOL user word and the procedure-names:
     /// 47 tables, 61 lookups, 200 sites; 294 at slice 3, which moved the constant-names: 43 tables, 56 lookups, 195 sites; 279 at
-    /// slice 4, which moved the CONFIGURATION SECTION names: 40 tables, 51 lookups, 188 sites).</summary>
-    private const int BaselineCeiling = 279;
+    /// slice 4, which moved the CONFIGURATION SECTION names: 40 tables, 51 lookups, 188 sites; 234 at slice 5, which moved the
+    /// REPORT SECTION names: 35 tables, 42 lookups, 157 sites).</summary>
+    private const int BaselineCeiling = 234;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -52,8 +53,10 @@ public sealed class NameTableOwnershipDriftTests
     /// A lookup a slice converts takes the written word as its parser context and keeps the diagnostic's strings, so it leaves the
     /// baseline and enters this classification; slice 4 converted <c>CodedCharacterSetOf</c> and <c>ResolveLocaleName</c> so, made
     /// <c>TryResolveRangeAlphabet</c> answer the carrier it registers, and dropped two entries whose string was an alphabet-name or
-    /// class-name now carried as its context: +3 -2.)</summary>
-    private const int StringMembersCeiling = 123;
+    /// class-name now carried as its context: +3 -2. Slice 5: 123 -> 125. <c>ReportGroupResolution.Resolve</c> takes the written
+    /// report-group reference as its context and keeps the diagnostic's site; <c>DataBinder.ReportPrintablePicture</c>, which the
+    /// first measurement counted as a report lookup, resolves no name: its strings word the item in a diagnostic.)</summary>
+    private const int StringMembersCeiling = 125;
     private const int ComparisonsCeiling = 86;
 
     /// <summary>Where every run writes its findings, one per line.</summary>

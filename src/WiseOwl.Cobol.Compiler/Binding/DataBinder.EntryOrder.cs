@@ -302,7 +302,8 @@ public sealed partial class DataBinder
 
     /// <summary>Where one report group description entry stands: its RD's entry list, its index there and the
     /// report-name. A report entry is no <see cref="DataItem"/> that <see cref="NameResolution.FindItem"/> sees, so
-    /// a constant's length phrase finds it here, and its description is read from here
+    /// a constant's length phrase finds it through the symbol table (<see cref="SymbolTable.DeclareReportEntries"/>,
+    /// <see cref="WiseOwl.Cobol.Symbols.NameClass.ReportEntry"/>), and its description is read from here
     /// (<see cref="DescribeReportItem"/>) by the report walk and the length phrase alike.</summary>
     internal sealed record ReportEntryLocation(Core.ReportGroupEntryContext[] Entries, int Index, string ReportName)
     {
@@ -333,36 +334,6 @@ public sealed partial class DataBinder
 
     internal static int ReportEntryLevel(Core.ReportGroupEntryContext e) =>
         int.TryParse(e.levelNumber()?.GetText(), out int level) ? level : -1;
-
-    /// <summary>Every named report group description entry of this unit, by name.</summary>
-    private readonly Dictionary<string, List<ReportEntryLocation>> _reportEntryLocations = new(CobolNames.Comparer);
-
-    internal void DeclareReportEntries(Core.ReportDescriptionEntryContext rd)
-    {
-        if (rd.reportName()?.GetText() is not { } report) return;
-        var entries = rd.reportGroupEntry();
-        for (int i = 0; i < entries.Length; i++)
-        {
-            if (entries[i].dataName().NameOrNull() is not { } name) continue;
-            if (!_reportEntryLocations.TryGetValue(name, out var list)) _reportEntryLocations[name] = list = [];
-            if (!list.Any(l => ReferenceEquals(l.Entry, entries[i])))
-                list.Add(new ReportEntryLocation(entries, i, report));
-        }
-    }
-
-    /// <summary>The report group description entries <paramref name="name"/> OF/IN <paramref name="qualifiers"/>
-    /// names: each qualifier, in the order written, is a name the entry is subordinate to (§2023:8.4.2.2.3 SR4).</summary>
-    internal List<ReportEntryLocation> ReportEntryCandidates(string name, IReadOnlyList<string> qualifiers)
-    {
-        if (!_reportEntryLocations.TryGetValue(name, out var locs)) return [];
-        return [.. locs.Where(l =>
-        {
-            int q = 0;
-            foreach (var outer in l.Qualification)
-                if (q < qualifiers.Count && CobolNames.Same(outer, qualifiers[q])) q++;
-            return q == qualifiers.Count;
-        })];
-    }
 
     /// <summary>For the section walk: whether <paramref name="entry"/> belongs to a record already bound out of source
     /// order (skip it), and, at the record's first entry, the roots to place there.</summary>

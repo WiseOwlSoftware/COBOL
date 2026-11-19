@@ -54,7 +54,7 @@ public sealed class OccursOperandCaptureDriftTests
     }
 
     /// <summary>The raw <c>KeyReference</c> capture — which DROPS a subscript or reference-modifier — is called
-    /// only by <c>ClauseDataName</c> (after its screen) and by the four report-section operands whose own rules
+    /// only by <c>ClauseDataName</c> (after its screen) and by the report-section operands whose own rules
     /// PERMIT, or screen for themselves, what it would drop. A new caller fails here until it is named, with its
     /// reason, in this list.</summary>
     [Fact]
@@ -67,7 +67,6 @@ public sealed class OccursOperandCaptureDriftTests
             "ResolveReportCode",       // §2023:13.18.12.3 SR2 RD CODE: the screen is over the BASE item; the written reference rides on
             "ScreenSourceControlData", // §1985:XIII.3.20.3 SR5 SOURCE: the screen is over the BASE item's storage; the written reference rides on FieldReferenceSource
             "SumAddendRef",            // §2023:13.18.54 SUM identifier-1: a subscript is LEGAL and bound separately
-            "UponDetailRef",           // §2023:13.18.54.3 SR7 UPON: screens subscript/ref-mod itself (COBOL2046)
             "ControlOperandRef",       // §2023:13.18.16.3 SR4 CONTROL: a ref-mod is LEGAL and kept separately
         ];
         var callers = BinderFiles()

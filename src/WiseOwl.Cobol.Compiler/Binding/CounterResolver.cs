@@ -54,11 +54,11 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     /// <para>⛔ TWO ENTRIES MAY LEGALLY CARRY ONE NAME (GR1, kb/Work PB882): §2023:8.4.2.2.1's uniqueness requirement
     /// is about a REFERENCE, so the collision is diagnosed HERE, where a reference exists, and never by dropping
     /// a declaration.</para></summary>
-    internal RefResolution? SumCounterFor(Core.DataReferenceContext dref, string name, bool report)
+    internal RefResolution? SumCounterFor(Core.DataReferenceContext dref, bool report)
     {
-        if (!data.State.SumCounters.ContainsKey(name)) return null;
+        if (SumCounterFamilyFor(dref, report) is not ({ } rep, { } family)) return null;
         var written = ReferenceResolver.ReadWritten(dref);
-        if (SumCounterFamilyFor(dref, name, written.Qualifiers, report) is not ({ } rep, { } family)) return null;
+        string name = dref.cobolWord().GetText();
         // §2023:8.4.3.3.3 SR3 — the count screen every identifier entry runs (ScreenRefModCount), asked of the counter too.
         if (!refs.RefMods.ScreenRefModCount(dref, written, name)) return RefResolution.Refused(DataBinder.WrittenText(dref));
         if (refs.Subscripts.ReadSubscripts(dref, family.Register, written.SubscriptGroup, out var indexExprs) is { } refusal)
@@ -102,16 +102,18 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     /// counter's, when an ordinary item answers the qualifiers, or when the reference was diagnosed (no counter
     /// is subordinate to the qualifiers; two counters are; a counter and an ordinary data item of the same source
     /// element are — kb/Work PB3232, the counters and the ordinary items being ONE §2023:8.4.2.2.3 SR1 candidate set).</summary>
-    internal (ReportModel Report, ReportSumFamily Family)? SumCounterFamilyFor(
-        Core.DataReferenceContext dref, string name, List<string> qualifiers, bool report)
+    internal (ReportModel Report, ReportSumFamily Family)? SumCounterFamilyFor(Core.DataReferenceContext dref, bool report)
     {
         // §2023:13.18.53.3 SR4 — inside a report's own clauses the only sum counters a SOURCE operand may name are those "defined in
         // the current report", so a homonym of another report is no candidate: the reference is unambiguous by the rule
         // and never needs a qualifier to say so (kb/Work PB1292). §2023:8.4.6.2.1 rule 3 — a counter of a report this source
         // element declares hides a same-named counter of a container's GLOBAL report; only candidates of the NEAREST
-        // declaring element can be ambiguous. Both are the ONE lookup's (ReportScope.SumCountersNamed).
-        if (!data.State.SumCounters.ContainsKey(name)
-            || data.State.Reports.SumCountersNamed(name, qualifiers, refs.EnclosingReport) is not { } matches) return null;
+        // declaring element can be ambiguous. Both are the ONE lookup's (SymbolTable.Identify, NameClass.SumCounter), which reads
+        // the written name and its qualifiers from the reference and the enclosing report from its site.
+        if (data.Symbols.Identify(dref, NameClass.SumCounter, report, reportSite: refs.ReportSite)?.Symbol
+            is not ReportCandidates<(ReportModel Report, ReportSumFamily Family)> { Hits: var matches }) return null;
+        string name = dref.cobolWord().GetText();
+        List<string> qualifiers = ReferenceResolver.ReadWritten(dref).Qualifiers;
         if (matches.Count == 0)
         {
             // The qualifiers reach no counter of this name. When an ORDINARY item of the name does answer them
@@ -131,8 +133,8 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // §2023:8.4.6.2.1 3) b) ACROSS NAME CLASSES (kb/Work PB3154 review R3-1): a counter of a container's GLOBAL report
         // is a global name of THAT container (§2023:13.18.27.4 GR1), so a same-spelled name a NEARER source element
         // declares — a nearer container's GLOBAL data item, condition-name or index-name — is the referenced item, and
-        // ordinary resolution takes it. (This element's own declarations never reach here: InheritGlobalReport keeps
-        // a counter its own data hides out of SumCounters.) Every candidate left shares one report depth.
+        // ordinary resolution takes it. (This element's own declarations never reach here: SymbolTable.InheritReport keeps
+        // a counter its own data hides out of the table's sum counters.) Every candidate left shares one report depth.
         int counterDepth = data.State.Reports.Depth(matches[0].Report);
         if (counterDepth > 0
             && (qualifiers.Count == 0
@@ -254,11 +256,12 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     /// the qualifier names no report, when no report description entry exists, or when an unqualified reference
     /// is ambiguous. Written once so a program cannot be told the qualification rule on one side of a statement
     /// and a different one on the other (kb/Work PB429).</summary>
-    internal ReportModel? ReportOf(Core.DataReferenceContext dref, string reg)
+    internal ReportModel? ReportOf(Core.DataReferenceContext dref)
     {
+        string reg = dref.PAGE_COUNTER() is not null ? "PAGE-COUNTER" : "LINE-COUNTER";
         if (dref.cobolWord() is { } q)   // qualified: COUNTER OF/IN report-name
         {
-            if (data.State.Reports.Named(q.GetText()) is { } named) return named;
+            if (data.Symbols.Identify(q, NameClass.Report, report: true)?.Symbol is ReportModel named) return named;
             data.Edition.Error(DiagnosticCatalog.ReportCounterQualification, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + $"description entry — a counter of a DIFFERENT report is referenced \"qualified explicitly by the report-name "
                 + $"associated with the different report\" (ISO {CounterQualificationRule(reg)}"

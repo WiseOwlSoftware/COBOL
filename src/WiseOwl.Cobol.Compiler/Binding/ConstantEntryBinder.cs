@@ -107,7 +107,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         bool inTypeDeclaration = false;   // the walk is inside a level-1 TYPEDEF entry's subordinate entries
         foreach (var node in ParseTreeWalk.Descendants(scope))
         {
-            if (node is Core.ReportDescriptionEntryContext rd) owner.DeclareReportEntries(rd);
+            if (node is Core.ReportDescriptionEntryContext rd) owner.Symbols.DeclareReportEntries(rd);
             if (node is Core.DataDescriptionEntryContext record && DataBinder.EntryLevel(record) is 1 or 77)
                 inTypeDeclaration = record.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
                     .Any(static c => c.typedefClause() is not null) == true;
@@ -496,7 +496,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             && !NumericLiteral.IsFloatingPointForm(canonical)
             && CtNumeric.TryParseLiteral(canonical, out var v))
             return CtValue.Numeric(v, d.Text);
-        return owner.Symbols.IsFailedConstant(word.GetText()) ? FailedConstantOperand : null;
+        return owner.Symbols.IsFailedConstant(word) ? FailedConstantOperand : null;
     }
 
     /// <summary>The recovery operand of a constant whose own entry was reported.</summary>
@@ -584,7 +584,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             }
             subscripts = resolver.Subscripts.SubscriptSegments(dref)?.Count ?? 0;
         }
-        if (LengthOperandItem(resolver, baseName, w.Qualifiers, name, phrase, written, where, demanded, out waits)
+        if (LengthOperandItem(resolver, dref, baseName, w.Qualifiers, name, phrase, written, where, demanded, out waits)
             is not { } item)
             return null;
         // ⛔ §2023:8.4.2.3.3 SR2/SR3/SR5 — THE SUBSCRIPTS AGAINST THE ITEM'S DIMENSIONS, through the ONE screen every
@@ -650,7 +650,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// <item>being described by the entry whose own description demanded the constant → the SR4 cycle.</item>
     /// </list></summary>
     private DataItem? LengthOperandItem(
-        ReferenceResolver resolver, string baseName, IReadOnlyList<string> qualifiers, string constantName,
+        ReferenceResolver resolver, Core.DataReferenceContext dref, string baseName, IReadOnlyList<string> qualifiers, string constantName,
         string phrase, string written, string where, bool demanded, out bool waits)
     {
         waits = false;
@@ -659,8 +659,9 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         DataItem? FindComposed() => resolver.Names.FindItem(baseName, qualifiers)
             ?? (owner.ComposePendingSubjectsAhead() ? resolver.Names.FindItem(baseName, qualifiers) : null);
         DataItem? item = FindComposed();
-        if (item is null && owner.ReportEntryCandidates(baseName, qualifiers) is { Count: > 0 } reportEntries)
-            return ReportLengthOperand(reportEntries, baseName, phrase, written, where);
+        if (item is null && owner.Symbols.Identify(dref, NameClass.ReportEntry, report: true)?.Symbol
+                is ReportCandidates<DataBinder.ReportEntryLocation> reportEntries)
+            return ReportLengthOperand(reportEntries.Hits, baseName, phrase, written, where);
         // Any word of the reference may be described later: the data-name, or a qualifier whose TYPE or SAME AS clause
         // supplies a data-name its type declaration already declared (`M OF V` with `01 V TYPE T.` after the constant).
         string[] words = [baseName, .. qualifiers];
@@ -713,13 +714,13 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// and data-name-2, if defined in the report section, shall reference elementary report items" — so a report
     /// group (an entry with subordinates) is refused by that rule, and an elementary report item is measured as its
     /// printable item's description (§2023:15.50 / §2023:15.14 over its PICTURE). A report entry is not a <see cref="DataItem"/>
-    /// <see cref="NameResolution.FindItem"/> sees; <see cref="ReportEntryCandidates"/> resolves it, and more than
+    /// <see cref="NameResolution.FindItem"/> sees; the symbol table resolves it (<see cref="NameClass.ReportEntry"/>), and more than
     /// one candidate is §2023:8.4.2.2.3 SR1's ambiguity. The item's description is read from its entry
     /// (<see cref="DescribeReportItem"/>, kb/Work PB1941), never from the report walk, so it is measured the same
     /// wherever the constant is evaluated — before the REPORT SECTION binds, or in a group, or an entry, that the walk
     /// has not finished.</summary>
     private DataItem? ReportLengthOperand(
-        List<DataBinder.ReportEntryLocation> candidates, string baseName, string phrase, string written, string where)
+        IReadOnlyList<DataBinder.ReportEntryLocation> candidates, string baseName, string phrase, string written, string where)
     {
         if (candidates is not [var entry])
         {
@@ -870,7 +871,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 + "position)");
             return null;
         }
-        if (owner.Symbols.IsFailedConstant(word)) return null;   // its own entry was reported
+        if (owner.Symbols.IsFailedConstant(written)) return null;   // its own entry was reported
         owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, ConstantNamesExist
             ? $"{where}: {what} '{word}' is not a defined constant-name — an integer-n position admits an integer "
               + "literal or an integer constant-name (ISO §2023:5.5 1) / §2023:13.10.3 SR2)"
@@ -905,8 +906,8 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             m =>
             {
                 string word = m.Groups[1].Value;
-                if (owner.Symbols.Identify(new WrittenWord(picture, m.Groups[1].Index, m.Groups[1].Length), NameClass.Constant,
-                        report: diagnose)?.Symbol is ConstantDef k)
+                var repetition = new WrittenWord(picture, m.Groups[1].Index, m.Groups[1].Length);
+                if (owner.Symbols.Identify(repetition, NameClass.Constant, report: diagnose)?.Symbol is ConstantDef k)
                 {
                     if (k is { Category: PicCategory.Numeric, IntegerText: { } it }) return "(" + it + ")";
                     if (diagnose)
@@ -914,7 +915,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                             + "repetition position shall be an INTEGER constant-name (ISO §2023:13.10.3 SR2)");
                     return "(1)";   // recovery shape — the compile has already failed
                 }
-                if (diagnose && !owner.Symbols.IsFailedConstant(word))
+                if (diagnose && !owner.Symbols.IsFailedConstant(repetition))
                     owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, ConstantNamesExist
                         ? $"{where}: '{word}' in the PICTURE repetition position is not a defined constant-name (ISO "
                           + "§2023:13.18.40.3 SR6 — a repetition count is an unsigned nonzero integer, or an integer "

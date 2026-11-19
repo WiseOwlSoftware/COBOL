@@ -19,6 +19,7 @@ using ReportLineKind = WiseOwl.Cobol.Runtime.IO.ReportLineKind;
 using ReportLinePlacement = WiseOwl.Cobol.Runtime.IO.ReportLinePlacement;
 using ReportPageRegions = WiseOwl.Cobol.Runtime.IO.ReportPageRegions;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// The REPORT SECTION's binder (ISO/IEC 1989:2023 §2023:13.8 report section / §2023:13.14 report description / §2023:13.15 report group
@@ -54,26 +55,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     internal void InheritContainerReports()
     {
         foreach (var (report, depth) in _d.State.Inherited.Reports)
-            InheritGlobalReport(report, depth);
-    }
-
-    /// <summary>Make a container's GLOBAL report visible here (ISO §2023:13.18.27.4 GR1/GR2): its report-name, its
-    /// report groups (reached through the report), and its sum counters (GR1 — "All data-names subordinate to a
-    /// global name are global names"). Called by <see cref="InheritContainerReports"/>, nearest container first, so
-    /// a name this unit declares — or a nearer container already supplied — hides the farther one (§2023:8.4.6.2).
-    /// Returns false when the report-name is hidden.</summary>
-    private bool InheritGlobalReport(ReportModel report, int depth)
-    {
-        if (!_scope.Inherit(report, depth)) return false;
-        foreach (var family in report.SumFamilies)
-        {
-            // A sum counter is a data-name subordinate to the report (GR1). A LOCAL declaration of the same name
-            // hides it; a same-named counter of this unit's own reports is a homonym the report-name qualifier
-            // resolves, exactly as between two reports of one program (kb/Work PB882).
-            if (family.Name is not { } sn || _d.State.Forest.ByName.ContainsKey(sn)) continue;
-            _scope.AddSumCounter(sn, report, family);
-        }
-        return true;
+            _d.Symbols.InheritReport(report, depth);
     }
 
     /// <summary>Bind the REPORT SECTION's RD entries into <see cref="ReportScope.Declared"/> (ISO §2023:13.14/§2023:13.15). Runs after
@@ -110,7 +92,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             };
             BindReportDescriptionClauses(rd, model);
             BindReportGroups(rd, model);
-            _scope.Declare(model);
+            _d.Symbols.Declare(model);
         }
     }
 
@@ -791,11 +773,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// </list></summary>
     private void ScreenReportVaryingClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
-        var enclosing = new List<(int Level, string Name)>();
+        var counters = _d.Symbols.VaryingCountersOf(model);
         foreach (var ge in entries)
         {
             int.TryParse(ge.levelNumber().GetText(), out int level);
-            enclosing.RemoveAll(c => c.Level >= level);
+            counters.BeginEntry(level);
             var specs = ge.reportGroupBody().reportGroupClause().Select(c => c.reportVaryingClause()).OfType<Core.ReportVaryingClauseContext>()
                 .SelectMany(vc => vc.reportVaryingSpec()).ToList();
             if (specs.Count == 0) continue;
@@ -807,29 +789,26 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (!repeating)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where}: a VARYING clause requires the entry to also "
                     + $"contain an OCCURS clause or a multiple LINE or multiple COLUMN clause (ISO §2023:13.18.64.3 SR1{Since2002})");
-            var own = new List<string>();
             foreach (var spec in specs)
             {
                 string name = spec.cobolWord().GetText();
-                if (own.Contains(name, CobolNames.Comparer))
+                var declared = counters.Declare(name);
+                if (declared == VaryingCounterDeclaration.TwiceInEntry)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{name}': the counter is defined twice in "
                         + "this entry; data-name-1 shall not be defined elsewhere in the source element, except as "
                         + "data-name-1 in another VARYING clause of an entry not subordinate to the subject of the "
                         + $"current entry (ISO §2023:13.18.64.3 SR2{Since2002})");
-                else if (enclosing.Any(c => CobolNames.Same(c.Name, name)))
+                else if (declared == VaryingCounterDeclaration.DeclaredAbove)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{name}': an entry above this one already "
                         + "defines the counter in its VARYING clause; a reuse of the name is permitted only in an entry "
                         + $"not subordinate to the subject of the current entry (ISO §2023:13.18.64.3 SR2{Since2002})");
-                else if (!model.VaryingNames.Contains(name, CobolNames.Comparer))
-                    model.VaryingNames.Add(name);
-                own.Add(name);
             }
             foreach (var spec in specs)
-                if (spec.FROM() is not null && own.FirstOrDefault(n => HasWord(spec.arithmeticExpression(0), n)) is { } hit)
+                if (spec.FROM() is not null && counters.OwnCounterWhere(n => HasWord(spec.arithmeticExpression(0), n)) is { } hit)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{spec.cobolWord().GetText()}': the "
                         + $"counter '{hit}' shall not be referenced in arithmetic-expression-1 of the same VARYING clause (ISO "
                         + $"§2023:13.18.64.3 SR3{Since2002})");
-            enclosing.AddRange(own.Select(n => (level, n)));
+            counters.EndEntry(level);
         }
     }
 
@@ -3408,7 +3387,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // keeps its own counter whether or not another entry spells its name the same way (GR1, kb/Work PB882).
         if (entryName is not null)
         {
-            _scope.AddSumCounter(entryName, model, family);
+            _d.Symbols.DeclareSumCounter(entryName, model, family);
         }
         return family;
     }
@@ -3651,7 +3630,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// Returns null when the operand is rejected, so it contributes no run-time filter entry.</summary>
     private ReportDetailRef? UponDetailRef(Core.DataReferenceContext dref, ReportModel model)
     {
-        var (name, quals) = DataBinder.KeyReference(dref);
+        var quals = ReferenceResolver.ReadWritten(dref).Qualifiers;
         string written = DataBinder.WrittenText(dref);
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
         if (sfx.Subscripts > 0 || sfx.RefMods > 0)
@@ -3672,7 +3651,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + ", which is one qualifier" + Edition.Edition.Cite("", " (§2023:8.4.2.2.2 Format 1)") + ".");
             return null;
         }
-        return new ReportDetailRef(name, quals.Count == 1 ? quals[0] : null) { Ctx = dref };
+        return new ReportDetailRef { Ctx = dref };
     }
 
     /// <summary>⛔ THE FD SIDE OF THE report-name ↔ REPORT-clause CORRESPONDENCE (kb/Work PB1285). The binding below walks
@@ -3684,22 +3663,25 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// third arm of §2023:13.14.3 SR1 and is reported where the file is resolved.</summary>
     private void ScreenReportClauseNames()
     {
-        var rdNames = new HashSet<string>(_scope.Declared.Select(r => r.Name), CobolNames.Comparer);
-        var firstClause = new Dictionary<string, FileModel>(CobolNames.Comparer);
+        var firstClause = new Dictionary<ReportModel, FileModel>(ReferenceEqualityComparer.Instance);
         foreach (var file in _d.State.Files.Declared)
-            foreach (var (name, at) in file.ReportNames)
+            foreach (var clauseName in file.ReportNames)
             {
+                var (name, at) = clauseName;
                 using var _ = Edition.At(at);   // each rule is about the report-name as written (kb/Work PB2034)
-                if (!rdNames.Contains(name))
+                // The REPORT clause's report-name-1 is a reference to a report description entry of the same source element
+                // (§2023:13.18.46.3 SR1), so it identifies an RD of this element's own (NameReach.Own).
+                if (_d.Symbols.Identify(_d.FileControl.WrittenReportName(clauseName), NameClass.Report, report: true, NameReach.Own)?.Symbol
+                    is not ReportModel named)
                     Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"file '{file.CobolName}': the REPORT clause names "
                         + $"'{name}', which is not the subject of a report description entry in the report section: each "
                         + $"report-name-1 shall be (ISO {Edition.Edition.Cite("§1985:XIII.3.3.3 SR1", "§2023:13.18.46.3 SR1")})");
-                else if (firstClause.TryGetValue(name, out var first))
+                else if (firstClause.TryGetValue(named, out var first))
                     Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"file '{file.CobolName}': the REPORT clause names "
                         + $"'{name}', which is already named by the REPORT clause of file '{first.CobolName}': each "
                         + $"report-name-1 may appear in only one REPORT clause (ISO {Edition.Edition.Cite("§1985:XIII.3.3.3 SR2", "§2023:13.18.46.3 SR2; §2023:13.14.3 SR1")})");
                 else
-                    firstClause[name] = file;
+                    firstClause[named] = file;
             }
     }
 
@@ -3712,7 +3694,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         foreach (var file in _d.State.Files.Declared)
         {
             if (file.ReportNames.Count < 2) continue;
-            var members = _scope.Declared.Where(r => file.ReportNames.Any(n => CobolNames.Same(n.Name, r.Name))).ToList();
+            var members = _scope.Declared.Where(r => file.ReportNames.Any(n => _d.Symbols.Declared.NamesReport(n, r))).ToList();
             if (members.Any(r => r.CodeWritten) && members.Any(r => !r.CodeWritten))
             {
                 // At the first report that omits the clause, the one the rule is violated by (kb/Work PB2034).
@@ -3744,7 +3726,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // clause; a name in none is reported here, a name in several by ScreenReportClauseNames). A report may
             // share its file with others (§2023:13.18.46.4 GR1 — each has its own engine over the one connector).
             model.File = _d.State.Files.Declared.FirstOrDefault(f =>
-                f.ReportNames.Any(rn => CobolNames.Same(rn.Name, model.Name)));
+                f.ReportNames.Any(rn => _d.Symbols.Declared.NamesReport(rn, model)));
             if (model.File is null)
                 Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"RD '{model.Name}' is not named in any file description "
                     + "entry's REPORT clause: there shall be one and only one REPORT clause specifying report-name-1 "
@@ -4253,10 +4235,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// SR2 and §2023:13.15.3 SR16 use: a name ALSO declared in ordinary storage resolves THERE, §2023:8.4.2.1); so is one a
     /// REPORT-name qualifier points at an entry of (SR4 g) — the report-name says which report description's entry
     /// is meant, whatever else the word names).</summary>
-    private bool IsRolledAddendName(ReportSumAddend addend) =>
-        IsReportSectionOnlyName(addend.Name)
-        || (addend.Qualifiers.Any(q => _scope.Declared.Any(r => CobolNames.Same(r.Name, q)))
-            && _scope.Declared.Any(r => r.EntryFamilies.Any(f => CobolNames.Same(f.Name, addend.Name))));
+    private bool IsRolledAddendName(ReportSumAddend addend) => _d.Symbols.Declared.IsRolledAddendName(addend.Name, addend.Qualifiers);
 
     /// <summary>Per WRITTEN addend (its parse node), the entry its data-name-1 names — null when it was refused. A
     /// repeating SUM entry binds its clause once per occurrence of the counter, and each occurrence meets the same
@@ -4314,11 +4293,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         string where = $"RD '{model.Name}': SUM addend '{addend.Written}'";
         // The entry the word names — the qualifiers are consumed against each entry's own hierarchy, the REPORT-name
         // last (§2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1), exactly as a sum counter's reference is (kb/Work PB1454).
-        var candidates = _scope.Declared.SelectMany(r => r.EntryFamilies)
-            .Where(f => CobolNames.Same(f.Name, addend.Name)
-                && DataBinder.QualifierWalk(f.Qualification, addend.Qualifiers,
-                    q => CobolNames.Same(q, f.Report.Name)))
-            .ToList();
+        IReadOnlyList<ReportEntryFamily> candidates = addend.Reference is { } written
+            && _d.Symbols.Identify(written, NameClass.ReportSumOperand, report: true)?.Symbol is ReportCandidates<ReportEntryFamily> named
+            ? named.Hits : [];
         if (candidates.Count > 1)
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} is ambiguous — {candidates.Count} entries of the report "
@@ -4519,8 +4496,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // user-defined name that is explicitly referenced, uniqueness must be established through a sequence of qualifiers
         // which precludes any ambiguity of reference", §1985:IV.4.3.8.1 SRL2.1) and below 2002 a detail of ANOTHER report is
         // then refused by name. COBOL-2002's SR7 lets the report-name qualifier name any report (kb/Work PB1294).
-        var match = ReportGroupResolution.Resolve(Edition, _scope.Declared, det.Name, det.Qualifier, where,
-            out var owner, out var group, _d, preferred: model);
+        var match = ReportGroupResolution.Resolve(_d, det.Ctx, where, out var owner, out var group, NameReach.Own, preferred: model);
         if (match == ReportGroupResolution.Match.Ambiguous) return;   // COBOL1920 is reported; binding its first candidate cascades
         if (match == ReportGroupResolution.Match.None)
         {
@@ -4586,7 +4562,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // A name also declared in ordinary storage resolves THERE (never to the report item), so it is not an
         // SR16 reference — only report-section-exclusive names are scanned (no textual false positives). The SAME
         // set answers §2023:13.18.16.3 SR2 for a CONTROL operand, so it is built in ONE place (kb/Work PB205).
-        var names = _scope.Declared.SelectMany(r => ReportSectionOnlyNames(r)).Distinct(CobolNames.Comparer).ToList();
+        var names = _d.Symbols.ReportSectionOnlyNames();
 
         foreach (var cond in conds)
         {
@@ -4645,13 +4621,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// §2023:13.18.16.3 SR2 needs of a CONTROL operand and §2023:13.15.3 SR16 needs of a PRESENT WHEN condition. A name
     /// also declared in ordinary storage resolves THERE (§2023:8.4.2.1), so it is not a report-section reference; the
     /// set is therefore "report-section-exclusive", never "every report-section name".</summary>
-    private bool IsReportSectionOnlyName(string name)
-    {
-        foreach (var r in _scope.Declared)
-            foreach (var n in ReportSectionOnlyNames(r))
-                if (CobolNames.Same(n, name)) return true;
-        return false;
-    }
+    private bool IsReportSectionOnlyName(string name) => _d.Symbols.Declared.IsReportSectionOnlyName(name);
 
     /// <summary>⛔ THE ONE SECTION SCREEN OVER A REPORT VALUE CLAUSE'S ARITHMETIC-EXPRESSION OPERAND (kb/Work
     /// PB852 × PB883). Both clauses constrain which items the identifiers INSIDE the expression may name, and
@@ -4688,8 +4658,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (dref.cobolWord()?.GetText() is { } w && IsReportSectionOnlyName(w))
             {
                 // A sum counter of the CURRENT report is SR4's other admitted report-section item.
-                bool ownCounter = countersOf is not null
-                    && countersOf.SumFamilies.Any(s => s.Name is { } sn && CobolNames.Same(sn, w));
+                bool ownCounter = countersOf is not null && _d.Symbols.Declared.IsSumCounterOf(countersOf, w);
                 return ownCounter ? null : dref.GetText();
             }
             // identifier-1 is a qualified-data-name-with-subscripts (§2023:8.4.3.1.2): a name inside a SUBSCRIPT or a
@@ -4733,11 +4702,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>Is <paramref name="word"/> one of the identifiers ISO §2023:8.4.2.3.3 SR8 bars as a report section subscript:
     /// the LINE-COUNTER or PAGE-COUNTER register, or a sum counter — the name of a report section entry (and of no
     /// ordinary-storage item, §2023:8.4.2.1) that contains a SUM clause.</summary>
-    private bool IsReportSubscriptCounter(string word) =>
-        CobolNames.Same(word, "LINE-COUNTER")
-        || CobolNames.Same(word, "PAGE-COUNTER")
-        || (!_d.State.Forest.DeclaresOwnDataName(word) && _scope.Declared.Any(r => r.NamedEntries.Any(e =>
-            e.IsSumCounter && CobolNames.Same(e.Name, word))));
+    private bool IsReportSubscriptCounter(string word) => _d.Symbols.Declared.IsReportSubscriptCounter(word);
 
     /// <summary>⛔ ISO §2023:8.4.2.3.3 SR8 (kb/Work PB1474) — "In the report section, neither a sum counter nor the LINE-COUNTER
     /// and PAGE-COUNTER identifiers may be used as a subscript." Asked ONCE per written entry, over every clause that
@@ -4753,9 +4718,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             foreach (var clause in ge.reportGroupBody().reportGroupClause())
             {
                 if (clause.reportPresentWhenClause() is not null) continue;
-                var seen = new HashSet<string>(CobolNames.Comparer);
-                foreach (var word in SubscriptWordsOf(clause).Where(IsReportSubscriptCounter))
-                    if (seen.Add(word))
+                foreach (var word in _d.Symbols.ReportSubscriptCountersIn(SubscriptWordsOf(clause)))
                     {
                         using var at = Edition.At(clause);
                         Edition.Error(DiagnosticCatalog.ReportSubscriptCounter, $"RD '{model.Name}' entry "
@@ -4769,71 +4732,23 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private IEnumerable<string> SubscriptWordsOf(Antlr4.Runtime.Tree.IParseTree node) =>
         ParseTreeWalk.SelfAndDescendants(node).OfType<Core.DataReferenceContext>().SelectMany(SubscriptWordsOfReference);
 
-    /// <summary>The report-section-exclusive names of one report: the data-name of EVERY report group description
-    /// entry it writes — the group's own, an intermediate group entry's, a printable entry's, a sum counter's, an
-    /// unprintable SOURCE entry's — each only when <see cref="ForestSlice.ByName"/> does not also carry it (see
-    /// <see cref="IsReportSectionOnlyName"/> for why). Read off the WRITTEN entries (<see cref="ReportModel.WrittenEntries"/>):
-    /// the set is about NAMES the programmer declared, and the bound products (lines, fields, counters) exist only
-    /// for the entries that make one, so a name on any other entry was invisible to the §2023:13.18.16.3 SR2 and
-    /// §2023:13.15.3 SR16 questions (kb/Work PB1289). A sum counter's name is its entry's (kb/Work PB882).</summary>
-    private List<string> ReportSectionOnlyNames(ReportModel model)
-    {
-        var names = new List<string>();
-        foreach (var entry in model.NamedEntries)
-            if (!_d.State.Forest.DeclaresOwnDataName(entry.Name) && !names.Contains(entry.Name, CobolNames.Comparer))
-                names.Add(entry.Name);
-        return names;
-    }
-
     /// <summary>How many report entries the written reference also reaches in the SAME source element as
-    /// <paramref name="dataItems"/> (the tier the data-name lookup leaves standing, <see cref="ReportScope.NearerEntryHides"/>): a
+    /// <paramref name="dataItems"/> (the tier the data-name lookup leaves standing, <see cref="SymbolTable.NearerEntryHides"/>): a
     /// report entry is a data-name §2023:8.4.2.2.3 SR1 counts with the ordinary ones (kb/Work PB3232, PB3767 review R1-2), so the
     /// ambiguity's wording counts it too.</summary>
     internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
         // Free for a unit with no report: the data-name lookup (DataBinder.QualifiedCandidates) asks it for EVERY reference (kb/Work PB5775).
         if (_scope.Visible.Count == 0) return 0;
-        var entries = _scope.EntriesNamed(name, qualifiers);
-        return entries.Count != 0 && dataItems.Any(item => _d.State.Forest.DeclaringDepth(item) == _scope.Depth(entries[0].Report))
+        var entries = _d.Symbols.Declared.ReportEntriesNamed(name, qualifiers);
+        return entries.Count != 0 && dataItems.Any(item => _d.State.Forest.DeclaringDepth(item) == entries[0].Depth)
             ? entries.Count
             : 0;
     }
 
-    /// <summary>⛔ THE COBOL-85 ARM OF THE REPORT-ITEM REFERENCE RULE (kb/Work PB5310): a sum counter named by a clause of another
-    /// section of the data division. §1985:XIII.3.9.3 SR10d — "Data-name-1 may be referenced only if the entry defines a sum
-    /// counter" — restricts which report entries a reference may name and says nothing of where it may be written, so at
-    /// COBOL-85 a sum counter is a data-name of the program wherever a clause prints one (an OCCURS DEPENDING ON object that
-    /// "must describe an integer", §1985:VI.5.8.3 SR6, may be one). The section rule <see cref="ReportEntryReferenceRefused"/>
-    /// applies, §2023:13.8.6.2.3 ("Report items shall not be accessed or referred to by any clauses in any other section of
-    /// the data division"), is ISO/IEC 1989:2002's (§2002:13.7.5.1.3) and has no 1985 counterpart. Returns the counter's
-    /// register (<see cref="ReportSumFamily.Register"/>, which the place builder answers with the counter's place) when the
-    /// edition is COBOL-85 and the written reference names exactly one sum counter of a non-repeating entry, found by the ONE
-    /// lookup a procedure-division reference uses (<see cref="ReportScope.SumCountersNamed"/>: the qualifier walk, then the
-    /// nearest declaring program, §1985:X.1.3.8.2 GR3a "the object in program B is the referenced object", so a nested
-    /// program's own counter hides its container's GLOBAL one); null otherwise, leaving the caller's own verdict. Two counters
-    /// of one program the qualifiers do not tell apart are §2023:8.4.2.2.3 SR1's ambiguity, reported here.
-    /// Asked only where the ordinary lookup found no data item, so a data item of the same name keeps its reference.</summary>
-    internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject, out bool ambiguityReported)
-    {
-        ambiguityReported = false;
-        if (Edition.DialectLevel >= 2002 || _scope.SumCountersNamed(name, qualifiers) is not { } matches) return null;
-        if (matches.Count > 1)
-        {
-            // The ONE verdict of the reference (kb/Work PB5627): the caller returns without asking the section rule, which would
-            // name the same operand a second time under a 2023 clause.
-            ambiguityReported = true;
-            Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"{subject}: the reference is ambiguous — {matches.Count} "
-                + $"entries establish a sum counter named '{name}'. A reference shall uniquely identify one resource (ISO "
-                + "§1985:IV.4.3.8.1 SR3); qualify it by report group entry or report-name.");
-            return null;
-        }
-        // A COBOL-85 report entry has no OCCURS clause, so a counter is never a table there; the guard keeps the 2002 shapes out.
-        return matches is [var (_, family)] && family.Register.SubscriptArity == 0 ? family.Register : null;
-    }
-
     /// <summary>⛔ THE ONE ASK OF A DATA DIVISION CLAUSE'S OPERAND THAT NO DATA ITEM ANSWERS BUT A REPORT ENTRY MAY (kb/Work PB5361):
     /// the edition's two verdicts in one place, so a clause arm cannot take the 2002 section rule at COBOL-85 or forget the 85 reading.
-    /// At COBOL-85 a sum counter is the clause's own data-name (<see cref="SumCounterOperand85"/>), returned in
+    /// At COBOL-85 a sum counter is the clause's own data-name (<see cref="SymbolTable.SumCounterOperand85"/>), returned in
     /// <paramref name="counter"/> for the clause's own rules to judge (a record key outside the file's records, a LINAGE operand
     /// that is signed); from COBOL-2002 on, and for a name that is no counter, <see cref="ReportEntryReferenceRefused"/> speaks and
     /// the method returns true. Every clause arm that resolves a data-name operand in a section other than the report section asks
@@ -4847,7 +4762,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         counter = null;
         if (survivors.Count == 0 && !inReportSection)
         {
-            counter = SumCounterOperand85(name, qualifiers, subject, out bool ambiguityReported);
+            counter = _d.Symbols.SumCounterOperand85(name, qualifiers, subject, out bool ambiguityReported);
             if (ambiguityReported) return true;
         }
         return counter is null && ReportEntryReferenceRefused(survivors, subject, name, qualifiers, inReportSection);
@@ -4868,7 +4783,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// reported; false when the written reference names no report entry, or when it reaches several
     /// <paramref name="dataItems"/> (kb/Work PB3767: §2023:8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's
     /// own verdict. ⛔ THE ORDER IS THE LOOKUP'S, NOT THIS METHOD'S (kb/Work PB4196): <see cref="DataBinder.QualifiedCandidates"/> leaves
-    /// no data item that a NEARER report entry hides (<see cref="ReportScope.NearerEntryHides"/>, ISO §2023:8.4.6.2.1 3) a)), so the data
+    /// no data item that a NEARER report entry hides (<see cref="SymbolTable.NearerEntryHides"/>, ISO §2023:8.4.6.2.1 3) a)), so the data
     /// items an arm passes are already the ones that rank with the report entries, and several of them are the ambiguity
     /// whichever report entries spell the same.</summary>
     /// <param name="dataItems">The data items the written reference reaches (<see cref="DataBinder.QualifiedCandidates"/>, the
@@ -4882,12 +4797,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                               IReadOnlyList<string> qualifiers, bool inReportSection = false)
     {
         if (dataItems.Count > 1) return false;
-        if (_scope.EntriesNamed(name, qualifiers) is not [var (report, entry), ..]) return false;
+        if (_d.Symbols.Declared.ReportEntriesNamed(name, qualifiers) is not [var entry, ..]) return false;
+        bool isSumCounter = entry.Kind == DeclarationKind.ReportSumCounter;
         const string sr7 = "ISO §2023:13.15.3 SR7: \"The data-name shall not be referenced in any other way\" than in a GENERATE "
             + "statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM "
             + "clause, or as an operand in a SUM clause.";
         string sectionRule = inReportSection
-                ? sr7 + (entry.IsSumCounter
+                ? sr7 + (isSumCounter
                     ? " A sum counter is admitted in the report section only by a SOURCE clause (ISO §2023:13.18.53.3 SR4) or a "
                       + "SUM clause."
                     : "")
@@ -4895,11 +4811,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                   + "of the data division or by any other procedure division statements, except in the following cases: "
                   + "1) Sum counters may be inspected or altered in the procedure division. 2) Report groups of type DETAIL "
                   + "are accessed by the GENERATE statement\"; and " + sr7
-                  + (entry.IsSumCounter ? " A sum counter is admitted in the procedure division only." : "");
+                  + (isSumCounter ? " A sum counter is admitted in the procedure division only." : "");
         Edition.Error(DiagnosticCatalog.ReportItemReference,
-            $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "
+            $"{subject} names the report group description entry '{entry.Spelling}' of report '{entry.Report}', which a reference "
             + "here may not name. "
-            + (entry.IsSumCounter
+            + (isSumCounter
                 ? sectionRule
                 // COBOL-85 has no section rule (SumCounterOperand85); its rule is the entry's: "Data-name-1 may be referenced only
                 // if the entry defines a sum counter" (kb/Work PB5310), and this entry defines none.

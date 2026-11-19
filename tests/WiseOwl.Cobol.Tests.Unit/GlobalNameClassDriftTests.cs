@@ -260,7 +260,7 @@ public sealed class GlobalNameClassDriftTests
     /// items: a contained program's report entry <c>PV</c> hides its container's GLOBAL <c>PV</c>. The lookup took a lone
     /// GLOBAL data item without asking, so <c>MOVE PV TO W</c> and <c>FILE STATUS IS PV</c> used another program's data.
     /// <c>SymbolTable.NearestDeclaringData</c> and <c>NearestDeclaringConditions</c> are the narrowings every data-name and
-    /// condition-name set goes through (each asks <c>ReportScope.NearerEntryHides</c>, the condition one through
+    /// condition-name set goes through (each asks <c>SymbolTable.NearerEntryHides</c>, the condition one through
     /// <c>NearerDataNameHides</c>, and each asks the OTHER class's nearer declaration, kb/Work PB4219), so no lookup outside <c>SymbolTable</c> may call the bare
     /// <c>NearestDeclaring</c> (it would skip the entries), and the other-class predicates (<c>NearerDataOrConditionNameHides</c>, over <c>NearerDataNameHides</c>,
     /// for index-names and capacity registers, <c>DeclaredNearerThan</c> for constants) must ask the entries too. The behavioural

@@ -14,6 +14,7 @@ using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Frontend.Preprocessor;// FlagDirective / FlagOption / FlagOptions / FlagDirectiveLine
 using WiseOwl.Cobol.Runtime.IO;           // FileOpenMode (the USE-declarative open-mode ordinal, I-O-DECLARATIVE)
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;                // NameClass (the symbol table's lookup)
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -545,7 +546,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitTerminateStatement(CobolParserCore.TerminateStatementContext ctx)
     {
         foreach (var report in ctx.reportName())
-            if (_currentData?.State.Reports.Visible.FirstOrDefault(r => CobolNames.Same(r.Name, report.GetText())) is { HasVarying: true })
+            if (_currentData?.Symbols.Identify(report, NameClass.Report, report: false)?.Symbol is ReportModel { HasVarying: true })
             {
                 Flag(FlagOption.Flag02TerminateWithVarying, ctx.Start.Line,
                     "the TERMINATE of a report whose description contains a VARYING clause");

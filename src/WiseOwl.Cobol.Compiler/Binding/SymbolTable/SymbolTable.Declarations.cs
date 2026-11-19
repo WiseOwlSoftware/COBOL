@@ -192,7 +192,7 @@ public sealed partial class SymbolTable
         /// <see cref="ForestSlice.ByName"/> in <see cref="ForestSlice.CapacityRegistersSoFar"/>, placed by its table (a METHOD's own register is never
         /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
         /// <see cref="OoDataBinder.ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
-        /// counter is a data-name too (§2023:13.18.54.4 GR5) kept off it in <see cref="ReportScope.SumCounters"/>, placed by its report
+        /// counter is a data-name too (§2023:13.18.54.4 GR5) kept off it in the table's sum counters, placed by its report
         /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §2023:13.18.27.4 GR1), so
         /// a FARTHER container's sum counter never hides a NEARER container's constant (kb/Work PB3154 review R3-1).
         /// <c>GlobalNameClassDriftTests</c> holds this predicate to the inherited name-index list, so a name index
@@ -202,11 +202,63 @@ public sealed partial class SymbolTable
             if (_data.State.Forest.ByName.TryGetValue(name, out var items) && items.Any(i => _data.State.Forest.DeclaringDepth(i) < depth)) return true;
             if (_data.State.Forest.Conditions.TryGetValue(name, out var conds) && conds.Any(c => _data.State.Forest.DeclaringDepth(c.Parent) < depth)) return true;
             if (_data.State.Forest.CapacityRegistersSoFar.TryGetValue(name, out var tables) && tables.Any(t => _data.State.Forest.DeclaringDepth(t) < depth)) return true;
-            if (_data.State.Reports.SumCounters.TryGetValue(name, out var counters) && counters.Any(c => _data.State.Reports.Depth(c.Report) < depth)) return true;
-            if (_data.State.Reports.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
+            if (_table._sumCounters.TryGetValue(Key(name), out var counters) && counters.Any(c => _data.State.Reports.Depth(c.Report) < depth)) return true;
+            if (_table.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
             if (!_data.State.Forest.IndexNames.Declares(name)) return false;
             _data.State.Forest.IndexNames.Candidates(name, static _ => true, out int indexDepth);   // int.MaxValue when none survives
             return indexDepth < depth;
         }
+
+        // ── The REPORT SECTION's declarations (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 5") ──────────
+
+        /// <summary>The report entries a written reference, held as text by the data division's lookups, reaches (the table's one walk,
+        /// <c>EntriesNamed</c>: every report this element can name, the written qualifiers through the §2023:8.4.2.2.3 SR4 walk, the
+        /// nearest declaring source element, §2023:8.4.6.2.1 rule 3), each as a fact: <see cref="DeclarationKind.ReportSumCounter"/> or
+        /// <see cref="DeclarationKind.ReportEntry"/>, its depth, its data-name and its report-name. Read by the report-item refusal
+        /// (<see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>, §2023:13.8.6.2.3), the ambiguity's wording
+        /// (<see cref="ReportSectionBinder.ReportEntriesInTierOf"/>) and APPLY COMMIT's operand (kb/Work PB4196).</summary>
+        public List<DeclarationFact> ReportEntriesNamed(string name, IReadOnlyList<string> qualifiers) =>
+            [.. _table.EntriesNamed(name, qualifiers).Select(h => new DeclarationFact(
+                h.Entry.IsSumCounter ? DeclarationKind.ReportSumCounter : DeclarationKind.ReportEntry,
+                Depth: _data.State.Reports.Depth(h.Report), Spelling: h.Entry.Name, Report: h.Report.Name))];
+
+        /// <summary>True when <paramref name="name"/> is defined in the report section AND NOWHERE ELSE (<see cref="SymbolTable.ReportSectionOnlyNames(ReportModel)"/>):
+        /// the test §2023:13.18.16.3 SR2 needs of a CONTROL operand and §2023:13.15.3 SR16 of a PRESENT WHEN condition.</summary>
+        public bool IsReportSectionOnlyName(string name)
+        {
+            foreach (var r in _data.State.Reports.Declared)
+                foreach (var n in _table.ReportSectionOnlyNames(r))
+                    if (CobolNames.Same(n, name)) return true;
+            return false;
+        }
+
+        /// <summary>Is <paramref name="word"/> one of the identifiers ISO §2023:8.4.2.3.3 SR8 bars as a report section subscript: the
+        /// LINE-COUNTER or PAGE-COUNTER register, or a sum counter: the name of a report section entry (and of no ordinary-storage
+        /// item, §2023:8.4.2.1) that contains a SUM clause.</summary>
+        public bool IsReportSubscriptCounter(string word) =>
+            CobolNames.Same(word, "LINE-COUNTER")
+            || CobolNames.Same(word, "PAGE-COUNTER")
+            || (!_data.State.Forest.DeclaresOwnDataName(word) && _data.State.Reports.Declared.Any(r => r.NamedEntries.Any(e =>
+                e.IsSumCounter && CobolNames.Same(e.Name, word))));
+
+        /// <summary>Whether <paramref name="word"/> is the name of a sum counter of <paramref name="report"/>: §2023:13.18.53.3 SR4's
+        /// other admitted report-section item of a SOURCE clause ("a sum counter defined in the current report").</summary>
+        public bool IsSumCounterOf(ReportModel report, string word) =>
+            report.SumFamilies.Any(f => f.Name is { } sn && CobolNames.Same(sn, word));
+
+        /// <summary>Is a SUM addend written <paramref name="name"/> OF <paramref name="qualifiers"/> SR4's <c>data-name-1</c> (a report
+        /// section item) rather than SR5's identifier-1 (ISO §2023:13.18.54.3)? A name declared in the report section AND NOWHERE ELSE
+        /// is (<see cref="IsReportSectionOnlyName"/>: a name ALSO declared in ordinary storage resolves THERE, §2023:8.4.2.1); so is
+        /// one a REPORT-name qualifier points at an entry of (SR4 g): the report-name says which report description's entry is meant).</summary>
+        public bool IsRolledAddendName(string name, IReadOnlyList<string> qualifiers) =>
+            IsReportSectionOnlyName(name)
+            || (qualifiers.Any(q => _data.State.Reports.Declared.Any(r => CobolNames.Same(r.Name, q)))
+                && _data.State.Reports.Declared.Any(r => r.EntryFamilies.Any(f => CobolNames.Same(f.Name, name))));
+
+        /// <summary>⛔ THE FD'S REPORT CLAUSE AGAINST AN RD (kb/Work PB1285): whether <paramref name="clause"/>, one report-name-1 of an
+        /// FD's REPORT clause, names <paramref name="report"/>, a report description entry of this element. A declaration agreement
+        /// (§2023:13.14.3 SR1: "one and only one REPORT clause specifying report-name-1"; §2023:13.18.46.4 GR1), asked of every RD the
+        /// clause may describe, so two RDs a refused duplicate report-name declares both keep their file.</summary>
+        public bool NamesReport(ReportClauseName clause, ReportModel report) => CobolNames.Same(clause.Name, report.Name);
     }
 }

@@ -145,7 +145,7 @@ public sealed class ReferenceIdentificationDriftTests
         // it inherits the counted-together verdict and keeps no candidate set of its own.
         string text = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"),
             "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
-        Assert.Contains("ctx.Refs.Counters.SumCounterFamilyFor(dref, name, quals, report: true)", text, StringComparison.Ordinal);
+        Assert.Contains("ctx.Refs.Counters.SumCounterFamilyFor(dref, report: true)", text, StringComparison.Ordinal);
         // ... and its table lookup is the REPORTED one (the §2023:8.4.2.2 report and the §2023:13.7.3 SR4 screen), not a bare FindItem.
         Assert.Contains("ctx.Refs.Names.FindReportedItem(dref, name, quals)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Names.FindItem(", text, StringComparison.Ordinal);

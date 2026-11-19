@@ -129,7 +129,7 @@ internal sealed class OdoResolvePass : IBindPass
             DataItem? counter = null;
             bool counterAmbiguityReported = false;
             if (!declaration && tier.Count == 0)
-                counter = binder.ReportSection.SumCounterOperand85(depName, spec.DependingQualifiers,
+                counter = binder.Symbols.SumCounterOperand85(depName, spec.DependingQualifiers,
                     $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", out counterAmbiguityReported);
             if (counterAmbiguityReported) continue;   // the ONE verdict of the reference (kb/Work PB5627)
             if (counter is null && !declaration && tier.Count != 1

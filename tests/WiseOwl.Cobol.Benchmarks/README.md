@@ -662,6 +662,28 @@ Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --proj
 
 Every branch row lies inside the parent's two runs or within 0.04 MB of them, so slice 4 moves no measurable allocation; the `None`
 budget holds. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, slice 5 (kb/Work PB5932, the REPORT SECTION names resolved by `SymbolTable.Identify`): the `None` row against the
+parent.** Slice 5 changes what every data-name reference asks first (a sum counter resolves before the ordinary lookup), so it measures
+the no-listing path. Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks --
+--filter '*CompileBenchmarks.FrontEndAndBind*'` on the `listing-step-6b-5` branch and on its parent `b039f2b67e`. The first build
+(commit 59401eabfd, parent, branch, branch, parent) allocated more on every program, consistently: IX113A `None` 69.98 and 69.95 MB
+against 68.92 and 68.95, NC218A 31.46 and 31.51 against 30.88 and 30.90. The moved sum-counter arm read the reference's word and its
+qualifiers before asking whether any counter carries the name, for every data-name reference, probes included; commit 2fad1cf810 asks
+the table first and reads them only for a name it holds. Re-measured (branch, parent, branch), allocated bytes per front end and bind:
+
+| Program | Listing | Parent (three runs) | Slice 5 (2fad1cf810) |
+|---|---|---|---|
+| IX113A | None | 68.92, 68.95, 68.85 MB | 69.08, 68.98 MB |
+| NC105A | None | 34.96, 34.96, 34.98 MB | 35.02, 35.00 MB |
+| NC218A | None | 30.88, 30.90, 30.87 MB | 30.96, 31.61 MB |
+| SM201A | None | 15.33, 15.38, 15.38 MB | 15.36, 15.41 MB |
+| IX113A | Text | 76.73, 76.56, 76.76 MB | 76.82, 76.85 MB |
+| IX113A | All | 97.20, 97.34, 97.44 MB | 97.44, 97.51 MB |
+
+Every branch `None` row lies within 0.13 MB of the parent's runs but one: NC218A's second run, 31.61 MB, whose `Text` and `All` rows of
+the same run lie inside the parent's (the parent's own NC218A `Text` row ran 35.18 to 35.94 MB). Slice 5 moves no measurable allocation
+once the arm is fixed; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

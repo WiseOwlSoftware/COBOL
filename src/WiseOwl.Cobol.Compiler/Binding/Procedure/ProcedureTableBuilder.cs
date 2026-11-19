@@ -693,9 +693,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// admits it by name: "Identifier-1 must not reference any data item defined in the Report Section except sum counters" (kb/Work PB4858).
     /// A silent probe, like <see cref="NamesDataItem"/>.</summary>
     private DataItem? SumCounterOf(Core.DataReferenceContext operand) =>
-        new DataReferenceCst(operand).Register == SpecialRegister.None && operand.cobolWord()?.GetText() is { } name
-        && ctx.Refs.Counters.SumCounterFamilyFor(operand, name, ReferenceResolver.ReadWritten(operand).Qualifiers, report: false)
-            is (_, { } family)
+        new DataReferenceCst(operand).Register == SpecialRegister.None && operand.cobolWord() is not null
+        && ctx.Refs.Counters.SumCounterFamilyFor(operand, report: false) is (_, { } family)
             ? family.Register : null;
 
     /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
@@ -879,7 +878,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (special is SpecialRegister.LinageCounter)
             return (null, ctx.Refs.Counters.LinageFileOf(operand) is { } file ? new BoundLinageCounterRef(file) : null);
         bool isPage = special is SpecialRegister.PageCounter;
-        return ctx.Refs.Counters.ReportOf(operand, isPage ? "PAGE-COUNTER" : "LINE-COUNTER") is { } report
+        return ctx.Refs.Counters.ReportOf(operand) is { } report
             ? (isPage ? report.PageCounterRegister : null, new BoundReportCounterRef(report, isPage, ctx.Data.State.Reports.Depth(report)))
             : (null, null);
     }
@@ -970,9 +969,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // Resolution is the ONE funnel's: it collects EVERY candidate and diagnoses an ambiguous reference
             // (§2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1) where this arm used to `return` inside the loop on the first match
             // and therefore could never observe a second (kb/Work PB365).
-            var (head, qualifier) = ReportGroupResolution.Parts(use.reportGroupReference());
-            var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.State.Reports.Visible, head, qualifier,
-                $"declarative section '{sectionName}': USE BEFORE REPORTING", out _, out var group, ctx.Data);
+            var (head, _) = ReportGroupResolution.Parts(use.reportGroupReference());
+            var match = ReportGroupResolution.Resolve(ctx.Data, use.reportGroupReference(),
+                $"declarative section '{sectionName}': USE BEFORE REPORTING", out _, out var group, NameReach.Visible);
             if (match == ReportGroupResolution.Match.Ambiguous) return null;   // COBOL1920 is reported; no group to record (kb/Work PB5542)
             if (match == ReportGroupResolution.Match.None || group is null)
             {

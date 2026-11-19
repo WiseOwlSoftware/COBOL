@@ -839,20 +839,27 @@ public sealed class ReportSumTerm
 /// operand resolves through the ONE report-group funnel, <see cref="ReportGroupResolution"/>, never by a bare
 /// name scan. <see cref="Detail"/> is null until that resolution succeeds; a rejected operand stays null and
 /// contributes no run-time filter entry.</summary>
-public sealed record ReportDetailRef(string Name, string? Qualifier)
+public sealed record ReportDetailRef
 {
     public ReportGroupModel? Detail { get; set; }
 
     /// <summary>The operand as written, where a refusal of it stands (kb/Work PB5090).</summary>
-    public CobolParserCore.DataReferenceContext? Ctx { get; init; }
+    public required CobolParserCore.DataReferenceContext Ctx { get; init; }
 
     /// <summary>The report description the resolved <see cref="Detail"/> belongs to — the RD of the SUM entry itself
     /// for an unqualified operand, ANOTHER report's when SR7's report-name qualifier says so (§2023:13.18.54.4 GR7 c) 2):
     /// the GENERATE that adds is then executed against that report's engine).</summary>
     public ReportModel? Owner { get; set; }
 
-    /// <summary>The operand as written — the form every diagnostic about it quotes.</summary>
-    public override string ToString() => Qualifier is null ? Name : $"{Name} OF {Qualifier}";
+    /// <summary>The operand as written — the form every diagnostic about it quotes, read through the one decomposition of a written
+    /// report-group reference (<see cref="ReportGroupResolution.Words"/>) that the lookup reads, so the quote and the candidates
+    /// cannot disagree about the head or the qualifier.</summary>
+    public override string ToString() => ReportGroupResolution.Words(Ctx) switch
+    {
+        (var head, null) => head,
+        (var head, var qualifier) => $"{head} OF {qualifier}",
+        null => Ctx.GetText(),
+    };
 }
 
 /// <summary>
@@ -1031,7 +1038,8 @@ public sealed class ReportSumFamily : ReportEntryFamily
     /// that behaves as a data item of the category numeric"), carrying the GR1 profile
     /// (<see cref="PicInfo.SumCounterItem"/>) and, for a repeating entry, the synthetic OCCURS chain of
     /// <see cref="Extents"/>. It is engine state, not storage — kept off <c>ForestSlice.ByName</c> and the forest roots, and
-    /// reachable only through <c>DataBindState.SumCounters</c>, the resolver hook that builds a
+    /// reachable only through the symbol table's sum counters (<c>SymbolTable.Identify</c>, <c>NameClass.SumCounter</c>), the resolver
+    /// hook that builds a
     /// <see cref="Model.ReportSumCounterPlace"/> (the CAPACITY-register pattern). Every occurrence shares it: they
     /// are occurrences of ONE description.</summary>
     public required DataItem Register { get; init; }

@@ -101,7 +101,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // can write more qualifiers to single out. The report entry is the verdict only when no ambiguity among data items
         // stands in its way: the candidates (QualifiedCandidates) are the ones that rank with the report entries, because
         // the lookup leaves none that a report entry of a NEARER source element hides (§2023:8.4.6.2.1 3) a), kb/Work PB4196,
-        // ReportScope.NearerEntryHides), so the refusal still stands when the data items are ambiguous GLOBAL ones of
+        // SymbolTable.NearerEntryHides), so the refusal still stands when the data items are ambiguous GLOBAL ones of
         // a farther element (review R1-1) and when there is only one.
         var dataItems = data.QualifiedCandidates(name, qualifiers, data.ActiveScope);
         if (data.ReportSection.ReportEntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;

@@ -12,7 +12,8 @@
 > kb/Work PB5932; slice 1, branch `listing-step-6b`: the drift test, the table's place, `Identify`, `Declarations`, the cd-names
 > and the file-names, and the temporary shrink-only baseline of the classes not yet moved; slice 2, branch `listing-step-6b-2`: the
 > tables keyed by no COBOL user word re-keyed by types of their own, and the procedure-names; slice 3, branch `listing-step-6b-3`:
-> the constant-names; sections 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
+> the constant-names; slice 4, branch `listing-step-6b-4`: the CONFIGURATION SECTION names; slice 5, branch `listing-step-6b-5`: the
+> REPORT SECTION names; sections 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)" or "(step 8)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
@@ -870,7 +871,7 @@ names every connector (`BinderDriver`, after `QualifyClassFiles`).
 
 ### 6.7 Cross-reference
 
-Symbols: data items, condition-names, index-names, procedure-names (sections and paragraphs, `ProcedureNameMap`), files,
+Symbols: data items, condition-names, index-names, procedure-names (sections and paragraphs, `SymbolTable`'s `ProcedureNames<T>`), files,
 programs (CALL targets and units), and copy members (from the inclusions). Each use is one `ListingReference(Symbol,
 Line, Column, Length, Use)` with `Use` one of:
 
@@ -945,7 +946,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
   `SymbolTable.Identify`, and two mechanisms, each checked by a drift test that needs no list, make that the only way:
   - **(a) Every name table is private to `SymbolTable`.** `src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs`
     OWNS every table keyed by a COBOL name whose value is a symbol, of every name class: data, condition, index,
-    procedure (`ProcedureNameMap<T>`), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
+    procedure (`ProcedureNames<T>`, step 6b slice 2), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
     report, report group, report VARYING, sum counter, CD (`CommunicationSlice`), screen, the CONFIGURATION SECTION names
     (alphabet, class, symbolic-character, mnemonic, locale, through `ConfigurationNames<T>`), type and constant names,
     the special registers that are implicitly defined names (CAPACITY, DEBUG-ITEM), the REPOSITORY specifiers and the
@@ -1100,7 +1101,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       the standard or the implementor defines, equal on the basic letters alone (`CobolKeywords`, §2023:8.1.3.2 GR3a). Three of
       those compared with the user-word fold before; every key of theirs is basic letters and the fold maps no extended letter to a
       basic one, so every lookup answers as before (the oracle is identical).
-    - **The procedure-names.** `ProcedureNameMap<T>` is the table's private `ProcedureNames<T>`, keyed by `CobolName`, and the
+    - **The procedure-names.** The binder's `ProcedureNameMap<T>` (deleted) became the table's private `ProcedureNames<T>`, keyed by `CobolName`, and the
       scopes it served are the table's: the program's, each method's (keyed by its `OoMethodScope`) and each section's own
       paragraphs. `ProcedureTableBuilder` declares through `SymbolTable.DeclareParagraph` and `DeclareSection`, and every
       procedure-name reference resolves through `Identify(written, NameClass.Procedure, report, site: ProcedureSite)`, whose body is
@@ -1139,7 +1140,15 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       first two are `Identify(WrittenWord written, NameClass wanted, bool report)`, where `WrittenWord(IToken Token, int Start, int
       Length)` is the token and the word's span in it, so step 7b records the occurrence at the word's own column; the evaluator's
       name callback (`CompileTimeExpressionEvaluator`'s `resolveName`) takes the `cobolWord` context it already held instead of its
-      text. No string reaches the table from a written name.
+      text. *(Corrected by slice 5, kb/Work PB5932's dated file `2026-11-19-review-leads-slices-2-and-3`:)* the slice still let two
+      constant-name RESOLUTIONS take the written word as text, `NamesConstant` and `IsFailedConstant`, which bind an entry on demand
+      as a reference does; slice 5 made both take the written word (`NamesConstant(ParserRuleContext)`,
+      `IsFailedConstant(ParserRuleContext)` and `IsFailedConstant(WrittenWord)`), so no resolution of a constant-name takes a string.
+      Strings still reach the table's constant-name DECLARATION questions, which bind nothing and answer a `bool` or a depth: a
+      declaring word (`DeclareMethodWord`, from the data description entry that declares it), and the questions the data-name class
+      asks with the text it holds its operands as (`IsDeclaredConstant`, `IsConstantName`, `IsRefusedConstantName`,
+      `InheritedConstantDepthOf`, `MethodDeclaresWord`: an unidentified reference's verdict, the ranking of
+      §2023:8.4.6.2.1 3)); they take the written word when the data-name class carries it.
     - *Before the data bind there is no table (correction, slice 3).* The AS phrase of PROGRAM-ID, FUNCTION-ID, CLASS-ID,
       INTERFACE-ID, METHOD-ID and a REPOSITORY class or interface specifier is read before the unit's binder exists, and its word may
       be a constant-name (§2023:13.10.3 SR2; kb/Work PB2588). That reading (`PreBindConstants`, deleted) is a resolution, so it is
@@ -1194,6 +1203,58 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       the word as its context and still take a site and a rule citation, so rule (3) sees a string; they are classified in
       `string-parameter-members.json` with that reason, and its ceiling rose 122 -> 123 (+3, less the two entries whose string was a
       name now carried as its context), in review's sight as the test's ceiling comment asks.
+  - *(Step 6b, slice 5, branch `listing-step-6b-5`.)* The REPORT SECTION names moved, and the baseline holds 234 (35 tables, 42
+    lookups, 157 sites). `SymbolTable.Reports.cs` owns what `ReportScope`, `DataBindState`, `DataBinder` and `ReferenceResolver`
+    held: the report-names (this element's own RDs, and the visible set its containers' GLOBAL reports join nearest first, a name
+    already there hiding a farther one, §2023:8.4.6.2), the sum counters (a list per name, kb/Work PB882), the report group
+    description entries as the RD entries write them, and the walks over them (the report group candidates, the sum counter
+    qualifier walk, the report entries a data-name reference also reaches, the VARYING clause's SR2 walk). `ReportScope` keeps the
+    reports in order, their depths and the refused PRESENT WHEN conditions, and names nothing. `NameClass` gains `ReportGroup`,
+    `SumCounter`, `ReportVarying`, `ReportEntry` and `ReportSumOperand`; every reference is `Identify`: INITIATE, TERMINATE, GENERATE,
+    USE BEFORE REPORTING, a SUM clause's UPON phrase and data-name-1, a LINE-COUNTER or PAGE-COUNTER report-name qualifier, a sum
+    counter, a VARYING counter, a constant's LENGTH OF report item, an FD's REPORT clause, FLAG-02 f's TERMINATE. The corrections the
+    code proved:
+    - *A report-section name may reach several entries (correction, slice 5).* A report group, a sum counter and a report entry may
+      legally share a name (§2023:13.18.54.4 GR1 gives every SUM entry its own counter; two RDs may name a group alike), and the
+      reference is ambiguous only when its qualifiers leave two (§2023:8.4.2.2.3 SR1), which each class's funnel words in its own
+      terms (`ReportGroupResolution.Resolve` counts a data item of the spelling too, kb/Work PB5775; `CounterResolver` counts the
+      ordinary data items, kb/Work PB3232). So `Identify` answers every candidate, `ReportCandidates<T>`, the shape
+      `ProcedureCandidates` first took, and the funnel decides; a sum counter whose qualifiers reach none answers an EMPTY set, which
+      the counter's funnel words as "none is subordinate to the qualifiers". Step 7b records an occurrence for a single candidate.
+    - *A reference's reach selects reports, never declarations of other classes (correction, slice 5 review round 1).* A report
+      group reference passes `NameReach.Visible` (GENERATE, USE BEFORE REPORTING: the GLOBAL reports join, nearest first) or
+      `NameReach.Own` (the SUM clause's UPON operand, a data division site), and the reach chose only which RDs the table searches.
+      The first cut of this slice also let it decide whether `ReportGroupResolution.Resolve` counts the data items of the spelling,
+      so the UPON operand stopped counting them and an unqualified `UPON DA` beside a Working-Storage `DA` compiled silently. At every
+      site an unqualified reference counts them (§2023:8.4.2.2.3 SR1, kb/Work PB5775); the witness is
+      `conformance:cases/13.18.54-SUM/pb5775-upon-homonym`. The head and the report-name qualifier are read by ONE decomposition,
+      `ReportGroupResolution.Words`, which the table's lookup, the funnel's diagnostic and an UPON operand's quote
+      (`ReportDetailRef.ToString`) all call, so the reference the table reads as qualified is the one the funnel treats as qualified.
+    - *A report clause's site is an input (correction, slice 5).* The VARYING counters in scope were a name table the clause binder
+      set for each entry (`ReferenceResolver.VaryingScope`, a dictionary). They are the reference's SITE, as a procedure-name's
+      method and section are: `ReportSite(Report, Varyings)` carries the enclosing report (§2023:13.18.53.3 SR4, "a sum counter
+      defined in the current report") and the counters in scope, in declaration order (§2023:13.18.64.3 SR2), and the table finds
+      the nearest declaration of a spelling. Only the sum-counter and VARYING classes read it.
+    - *A report entry is named at two stages (correction, slice 5).* A constant entry's length phrase names a report item before the
+      report section binds (§2023:13.10.3 SR11), so `ReportEntry` answers the entry as the RD entries write it
+      (`DataBinder.ReportEntryLocation`); a SUM clause's data-name-1 names a bound entry that carries a value (§2023:13.18.54.3 SR4),
+      so `ReportSumOperand` answers the entry family. Each keeps the qualifier walk it had, so the oracle is identical.
+    - *A text-held operand gets a fact, not a symbol (correction, slice 5).* The data division's clause operands (FILE STATUS,
+      RECORD KEY, OCCURS DEPENDING ON, ASSIGN USING, APPLY COMMIT) and its data-name lookups reach the report entries with the name
+      as TEXT, because the data-name class still holds its operands so. What they ask of a report entry is a declaration fact (is
+      the name a report entry's, nearer than the data items, a sum counter, of which report), so `Declarations.ReportEntriesNamed`
+      answers `DeclarationFact`s (`DeclarationKind.ReportEntry` and `ReportSumCounter`, with the report-name) and `NearerEntryHides`
+      a `bool`. The one exception answers a symbol: at COBOL-85 a sum counter IS such an operand (§1985:XIII.3.9.3 SR10d), so
+      `SymbolTable.SumCounterOperand85` returns its register; it moved into the table with the counters it reads, and its baseline
+      entry moved with it, to leave the baseline when the data-name class carries the written word.
+    - *A declaration agreement stays a comparison, in `Declarations` (correction, slice 5).* An FD's REPORT clause names a report
+      (§2023:13.18.46.3 SR1), which is a reference, identified once where the clauses are screened (`NameReach.Own`; the written word
+      is kept by `FileControlBinder`, as slice 4 kept a file's collating alphabets, so the model names no parse context). Which file
+      each RD is written to is the agreement of two declarations (§2023:13.14.3 SR1, "one and only one REPORT clause specifying
+      report-name-1"), so `Declarations.NamesReport` compares them, and an RD a refused duplicate report-name declares keeps its file.
+    - *A member the first measurement counted as a lookup resolves no name.* `DataBinder.ReportPrintablePicture` takes the report-name
+      and the entry's data-name to word its site in a diagnostic; it is classified in `string-parameter-members.json` with that
+      reason, beside `ReportGroupResolution.Resolve`, which now takes the written context and keeps its site string (123 -> 125).
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1314,7 +1375,7 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 | Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` |
 | Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` |
 | Index | `IndexNameRegistry._byName` |
-| Procedure | `ProcedureNameMap<T>._first`, `_duplicated` |
+| Procedure | `ProcedureNameMap<T>._first`, `_duplicated` (since step 6b slice 2, `SymbolTable`'s private `ProcedureNames<T>`) |
 | File | `FileSlice._filesByName` (`FilesByName`); `FileNameScope._own`, `_inherited` (and its public `TryGetValue`, reached as `DataBindState.VisibleFiles`); `InheritedGlobals._files` (`Files`); `FileControlBinder.SelectedFiles` |
 | Report, report group, VARYING, sum counter | `ReportScope.Named(string)` (a search, not a table: caught by rule (3)); `DataBinder._reportEntryLocations`; `ReferenceResolver.VaryingScope`; `ReportScope._sumCounters` (`SumCounters`), `DataBindState.SumCounters` |
 | CD | `CommunicationSlice._byName` (`ByName`) |
@@ -1762,6 +1823,11 @@ renderer. Naming it asks for a listing at any edition.
   Slice 4 (the CONFIGURATION SECTION names) moves no measurable allocation: every branch row of the front end and bind lies inside
   the parent's two runs or within 0.04 MB of them (IX113A `None` 68.92 and 68.88 MB against 68.94 and 68.84; the README's step-6b
   table, slice 4).
+  Slice 5 (the REPORT SECTION names): the first build allocated 0.6 to 1.3 MB more on every program's `None` row (IX113A 69.98 and
+  69.95 MB against 68.92 and 68.95), because the moved sum-counter arm, which every data-name reference asks first, read the reference's
+  word and qualifiers before asking whether any counter carries the name. The arm now asks the table first; re-measured, every
+  branch `None` row lies within 0.13 MB of the parent's three runs but one NC218A run whose other rows lie inside the parent's (the
+  README's step-6b table, slice 5).
 
 ## 10. Test plan
 
@@ -1992,7 +2058,10 @@ resolution, the pre-bind reading included (section 6.7.1, "Step 6b, slice 3"), e
 `compare_oracle.py`; the baseline is 294, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-3` holds what remains by
 class. (Step 6b, slice 4, branch `listing-step-6b-4`:) the CONFIGURATION SECTION names moved into the table with their resolution
 (section 6.7.1, "Step 6b, slice 4"), `compare_oracle.py` IDENTICAL after the move; the baseline is 279, and kb/Work PB5932's dated
-file `2026-11-19-step-6b-slice-4` holds what remains by class.
+file `2026-11-19-step-6b-slice-4` holds what remains by class. (Step 6b, slice 5, branch `listing-step-6b-5`:) the REPORT SECTION
+names moved into the table with their resolution (section 6.7.1, "Step 6b, slice 5"), `compare_oracle.py` IDENTICAL after the move;
+the baseline is 234, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-5` holds what remains by class: the data-name class
+(which takes with it the two text-held report operands), the program, function and repository names, and the OO names.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had

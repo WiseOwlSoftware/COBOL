@@ -262,9 +262,6 @@
     "WiseOwl.Cobol.Binding.DataBinder::DeclareParameterNames": [
       "WiseOwl.Cobol.Compiler.Oo.OoExpansion"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::DeclareReportEntries": [
-      "WiseOwl.Cobol.Binding.ConstantEntryBinder"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::DeclareUserWord": [
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
@@ -322,8 +319,10 @@
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.RefModBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
+      "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation"
     ],
@@ -344,10 +343,12 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::FileControl": [
       "WiseOwl.Cobol.Binding.Bound.StatementBinder",
+      "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveFilesPass",
       "WiseOwl.Cobol.Binding.Passes.UsageCollectionPass",
       "WiseOwl.Cobol.Binding.Procedure.FileLockBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SequentialIoBinder"
+      "WiseOwl.Cobol.Binding.Procedure.SequentialIoBinder",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ForceStringCanonical": [
       "WiseOwl.Cobol.Binding.LinkageBinder",
@@ -567,8 +568,7 @@
       "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::QualifierWalk": [
-      "WiseOwl.Cobol.Binding.ReportScope",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::RawValueOperandText": [
       "WiseOwl.Cobol.Binding.FileControlBinder"
@@ -596,15 +596,13 @@
       "WiseOwl.Cobol.Binding.Passes.CheckStrongTypeDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::ReportEntryCandidates": [
-      "WiseOwl.Cobol.Binding.ConstantEntryBinder"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::ReportEntryLevel": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ReportEntryLocation": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+      "WiseOwl.Cobol.Binding.ReportSectionBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ReportItemDescription": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
@@ -762,7 +760,6 @@
       "WiseOwl.Cobol.Binding.Procedure.SortBinder",
       "WiseOwl.Cobol.Binding.Procedure.UdfBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
-      "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
@@ -798,13 +795,16 @@
       "WiseOwl.Cobol.Binding.LiteralEnvironment",
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.OoDataBinder",
+      "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry",
+      "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
+      "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
@@ -985,6 +985,10 @@
     ],
     "WiseOwl.Cobol.Binding.FileControlBinder::ScreenSelectsHaveDescriptions": [
       "WiseOwl.Cobol.Binding.DataBinder"
+    ],
+    "WiseOwl.Cobol.Binding.FileControlBinder::WrittenReportName": [
+      "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.LinkageBinder::CallBindExternalAndGlobal": [
       "WiseOwl.Cobol.Binding.Passes.CallBindExternalAndGlobalPass"
@@ -1167,9 +1171,6 @@
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ScreenReportUsage": [
       "WiseOwl.Cobol.Binding.DataBinder"
-    ],
-    "WiseOwl.Cobol.Binding.ReportSectionBinder::SumCounterOperand85": [
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::BindSpecialNames": [
       "WiseOwl.Cobol.Binding.DataBinder"

@@ -998,7 +998,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             return HostPosition(integer);
         // A report VARYING counter in scope (§2023:13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
         // data item") is the compose-local integer the placement declares; it is no data item and has no scale.
-        if (qualifiers.Count == 0 && refs.VaryingScope is { } counters && counters.TryGetValue(name, out var counter))
+        if (qualifiers.Count == 0 && refs.VaryingScope is not null
+            && data.Symbols.Identify(dref.cobolWord(), NameClass.ReportVarying, report: true, reportSite: refs.ReportSite)?.Symbol
+                is ReportVaryingModel counter)
             return new PositionLocal(counter.Local, AsLong: true);
         DataItem? item = qualifiers.Count == 0 ? refs.Names.ResolveUnqualified(name) : refs.Names.ResolveQualified(name, qualifiers);
         if (item is null) return null;

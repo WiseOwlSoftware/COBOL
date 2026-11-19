@@ -223,7 +223,7 @@ public sealed partial class SpecialNamesBinder
                 // literal's characters when it is a string at all, so one bad operand does not cascade.
                 ClassRule(text);
                 return Of(CobolLiteral.IsStringLiteral(text) ? CobolLiteral.Decode(text) : null);
-            case Core.CobolWordContext w when _host.Symbols.NamesConstant(w.GetText()):
+            case Core.CobolWordContext w when _host.Symbols.NamesConstant(w):
                 // A CONSTANT-NAME (§2023:13.10.3 SR2, kb/Work PB1942): "as if literal-1 … were written where constant-name-1
                 // is written" (§2023:13.10.4 GR1), so its literal-1 meets every rule above — the ordinal rule for an integer
                 // (GR3's integer forms included), the class rule otherwise, SR11's zero-length half. Its literal-1 is

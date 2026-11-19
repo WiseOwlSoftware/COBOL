@@ -1156,7 +1156,7 @@ Draft 6 re-modelled them from the code after the fifth refuter, G2):
   or screen-name described using a GLOBAL clause is a global name"; §2023:8.4.6.2), which writes the child's state after its
   data phases have frozen (`BinderDriver.cs:685-751`): it adds the containers' GLOBAL files to `FilesByName` by
   `TryAdd` (a local declaration shadows) and their other files to `ContainerLocalFiles`; inherits their GLOBAL reports
-  (`InheritGlobalReport`) and GLOBAL subtrees with their depth (`InheritGlobalSubtree`: `ByName`, `Conditions`,
+  (`SymbolTable.InheritReport`, listing step 6b slice 5) and GLOBAL subtrees with their depth (`InheritGlobalSubtree`: `ByName`, `Conditions`,
   `IndexNames`, `_capacityRegisters`) and bridges; marks the formals' omitted-argument guards (`MarkFormals`);
   and drops the inherited constants a nearer name hides (`DropShadowedConstants`), nearest container first. Its seed
   half runs before `data.Bind` (`InheritGlobalConstants`, `InheritGlobalTypeDecls`, `ReserveInheritedMemberNames`,
@@ -1419,9 +1419,11 @@ name), makes a container's GLOBAL reports visible (`InheritContainerReports`) an
 (`ReportEntryReferenceRefused`, §2023:13.8.6.2.3); it reaches the data binder's shared helpers (the clause-operand resolvers,
 the picture screens, the unique-id counter) through the `DataBinder` it is built with, which the later steps that extract
 those helpers replace one by one. `ReportScope` (`Binding/ReportScope.cs`, `DataBindState.Reports`) is the read side the binder
-writes: `Declared`, `Visible`, `Depth`, the sum counters, the refused PRESENT WHEN conditions and the three name lookups over
-them (`EntriesNamed`, `NearerEntryHides`, `NearestInScope`); it holds no binder, so it is what `DataBindResult` carries
-at step 11. `DataBindState.SumCounters` stays the gated view of `ReportScope.SumCounters` (the `FilesResolved` watermark).
+writes: `Declared`, `Visible`, `Depth`, `NearestInScope` and the refused PRESENT WHEN conditions; it holds no binder, so it is
+what `DataBindResult` carries at step 11. (Listing step 6b, slice 5, kb/Work PB5932:) its names are the symbol table's: the
+report-names, the sum counters (their reference arm keeps the `FilesResolved` watermark gate) and the lookups over the report
+entries (`EntriesNamed`, `NearerEntryHides`) moved into `SymbolTable.Reports.cs`, and every reference to them is
+`SymbolTable.Identify` (docs/rearchitecture/DESIGN-listing.md section 6.7.1).
 The code generator, the symbol table and `StatementBinder` read `ReportScope`, a type in `WiseOwl.Cobol.Binding` beside
 `ReportModel`, so their new pairs are tolerated in `architecture-edges.json`, and PB2420 removes them: it names
 `ReportScope.cs` in its Sites and moves the type to compiler.model with the report model types it holds (after PB2416 cuts

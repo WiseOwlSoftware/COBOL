@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// be inspected or altered in the procedure division. 2) Report groups of type DETAIL are accessed by the GENERATE
 /// statement", and §2023:13.15.3 SR7: "The data-name shall not be referenced in any other way." The reference is refused
 /// (COBOL5092), under THAT rule — it used to be told COBOL1639 "no declaration gives the name", false about a
-/// name the report section declares. One lookup (<c>ReportScope.EntriesNamed</c>) and one refusal
+/// name the report section declares. One lookup (the symbol table's, <c>SymbolTable.Declarations.ReportEntriesNamed</c>) and one refusal
 /// (<c>ReportSectionBinder.ReportEntryReferenceRefused</c>) serve every arm that used to say "not defined"; the complement
 /// test names the arms so a fourth cannot be added without asking.
 /// </summary>

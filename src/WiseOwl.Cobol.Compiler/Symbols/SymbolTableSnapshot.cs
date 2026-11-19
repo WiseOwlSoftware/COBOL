@@ -57,6 +57,19 @@ internal enum NameClass
     Locale,
     /// <summary>A mnemonic-name of a SPECIAL-NAMES implementor-name entry.</summary>
     Mnemonic,
+    /// <summary>The data-name of a report group (ISO §2023:13.15.3 SR7: GENERATE, USE BEFORE REPORTING, a SUM clause's UPON phrase).
+    /// <c>SymbolTable.Identify</c> resolves it, like every report-section name below; the finished table holds no entry for them yet
+    /// (listing step 7b).</summary>
+    ReportGroup,
+    /// <summary>The data-name of a SUM entry, which names its sum counter (ISO §2023:13.18.54.4 GR5).</summary>
+    SumCounter,
+    /// <summary>The data-name-1 of a report VARYING clause (ISO §2023:13.18.64), a counter of the entry and those subordinate to it.</summary>
+    ReportVarying,
+    /// <summary>The data-name of a report group description entry as the RD entries write it, named before the report section binds
+    /// (a constant entry's length phrase, ISO §2023:13.10.3 SR11).</summary>
+    ReportEntry,
+    /// <summary>A SUM clause's data-name-1 (ISO §2023:13.18.54.3 SR4): an entry of the report section that carries a value.</summary>
+    ReportSumOperand,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>
