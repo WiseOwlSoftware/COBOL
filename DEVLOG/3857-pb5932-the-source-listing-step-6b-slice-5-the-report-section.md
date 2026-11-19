@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b slice 5 - the REPORT SECTION names move into SymbolTable with their resolution
+## Entry 3857 — 2026-11-19 07:12 PST — PB5932: the source listing, step 6b slice 5 - the REPORT SECTION names move into SymbolTable with their resolution
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands slice 5, from
@@ -51,3 +51,4 @@ text and why. The oracle against the merged main stays IDENTICAL.
 
 kb/Work/PB5932/2026-11-19-step-6b-slice-5.md holds what moved and what remains: the data-name class (with the two text-held report
 operands), the program, function and repository names, and the OO names.
+
