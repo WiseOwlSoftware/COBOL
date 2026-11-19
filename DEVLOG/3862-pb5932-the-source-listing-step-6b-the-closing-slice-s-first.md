@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b, the closing slice's first session: the data-name, condition-name and screen-name tables move into the symbol table; 86 baseline entries remain
+## Entry 3862 — 2026-11-19 14:23 PST — PB5932: the source listing, step 6b, the closing slice's first session: the data-name, condition-name and screen-name tables move into the symbol table; 86 baseline entries remain
 
 Dispatched as the closing slice of step 6b (the one store of names, docs/rearchitecture/DESIGN-listing.md sections 6.7.1 and 11): move
 whatever the shrink-only baseline of `NameTableOwnershipDriftTests` still held, then empty and delete it. It started at 122 entries on
@@ -38,3 +38,4 @@ already fixed on main (slice 7, commit 5e86899090; slice 5).
 **Section 9:** the `None` row of the front end and bind, against the parent 6fda8efbac, twice each, alternating: IX113A, NC218A and
 SM201A lie inside the parent's runs or within 0.04 MB of them; NC105A's two runs straddle the parent's (one 0.55 MB above, inside its
 own run-to-run spread). No measurable allocation moved (the benchmark README's step-6b table).
+
