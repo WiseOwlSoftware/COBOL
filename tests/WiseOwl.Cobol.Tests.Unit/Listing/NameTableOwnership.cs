@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -70,11 +72,12 @@ internal sealed record NameFinding(int Rule, string Key, string Where, string Wh
 /// </summary>
 internal static class NameTableOwnership
 {
-    /// <summary>The compiler's own sources, compiled by Roslyn against the assemblies beside this test (the compiler's
-    /// references are all copied here) and the framework's reference set, with the implicit usings the SDK adds.</summary>
-    public static CSharpCompilation CompileCompiler()
+    /// <summary>The compiler's own sources under <paramref name="root"/>, compiled by Roslyn against the framework's reference
+    /// set and every assembly the compiler references (resolved through the ones this host has loaded), with the implicit
+    /// usings the SDK adds and the compiler's own source generator (<paramref name="generatorDll"/>) run over them, as the
+    /// build runs it.</summary>
+    public static CSharpCompilation CompileCompiler(string root, string generatorDll)
     {
-        string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
         var options = new CSharpParseOptions(LanguageVersion.Preview);
         var trees = new List<SyntaxTree>
         {
@@ -96,25 +99,13 @@ internal static class NameTableOwnership
             trees.Add(CSharpSyntaxTree.ParseText(File.ReadAllText(f), options, path: rel));
         }
 
-        string here = AppContext.BaseDirectory;
-        var references = FrameworkReferences()
-            .Concat(Directory.EnumerateFiles(here, "*.dll").Where(p =>
-            {
-                string name = Path.GetFileName(p);
-                return name is not "WiseOwl.Cobol.Compiler.dll"
-                    && (name.StartsWith("WiseOwl.Cobol.", StringComparison.Ordinal) || name.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal)
-                        || name.StartsWith("Antlr4", StringComparison.Ordinal) || name.StartsWith("System.", StringComparison.Ordinal));
-            })
-            .Where(p => !Path.GetFileName(p).StartsWith("WiseOwl.Cobol.Tests", StringComparison.Ordinal))
-            .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p)));
-        var compilation = CSharpCompilation.Create("WiseOwl.Cobol.Compiler", trees, references,
+        var compilation = CSharpCompilation.Create("WiseOwl.Cobol.Compiler", trees,
+            FrameworkReferences().Concat(CompilerReferences()),
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable,
                 allowUnsafe: true));
 
         // The compiler's own source generator (the bound-tree visitors) runs as it does in the build, so the generated
         // members the sources call are bound too.
-        string generatorDll = TestRepo.Src("WiseOwl.Cobol.Compiler.SourceGen", "bin", TestRepo.Configuration, "netstandard2.0",
-            "WiseOwl.Cobol.Compiler.SourceGen.dll");
         ISourceGenerator[] generators = [.. ScratchDirectory.LoadAssembly(generatorDll).GetTypes()
             .Where(t => !t.IsAbstract && typeof(IIncrementalGenerator).IsAssignableFrom(t))
             .Select(t => ((IIncrementalGenerator)Activator.CreateInstance(t)!).AsSourceGenerator())];
@@ -125,12 +116,35 @@ internal static class NameTableOwnership
         return (CSharpCompilation)generated;
     }
 
-    /// <summary>The framework's reference set, as the compiler's build lays it beside every referencing project
-    /// (<c>reference-assemblies/</c>).</summary>
+    /// <summary>The framework's reference set the compiler compiles against: the set the backend compiles a COBOL program
+    /// against (<see cref="AssemblyPackager.ReferenceAssemblyPaths"/>).</summary>
     public static IEnumerable<MetadataReference> FrameworkReferences() =>
-        Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "reference-assemblies"), "*.dll")
-            .Order(StringComparer.Ordinal)
-            .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p));
+        AssemblyPackager.ReferenceAssemblyPaths.Order(StringComparer.Ordinal).Select(p => (MetadataReference)MetadataReference.CreateFromFile(p));
+
+    /// <summary>Every assembly the compiler references, directly or through another, that is not the framework's: the
+    /// product's own (front end, editions, listing, runtime), Roslyn and ANTLR, each as this host loaded it.</summary>
+    private static IEnumerable<MetadataReference> CompilerReferences()
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var pending = new Stack<System.Reflection.Assembly>([typeof(SymbolTable).Assembly]);
+        var found = new List<string>();
+        while (pending.Count > 0)
+        {
+            foreach (var name in pending.Pop().GetReferencedAssemblies())
+            {
+                if (name.Name is null || IsFramework(name.Name) || !seen.Add(name.Name))
+                    continue;
+                var loaded = System.Reflection.Assembly.Load(name);
+                found.Add(loaded.Location);
+                pending.Push(loaded);
+            }
+        }
+        return found.Order(StringComparer.Ordinal).Select(p => (MetadataReference)MetadataReference.CreateFromFile(p));
+
+        static bool IsFramework(string name) =>
+            name is "mscorlib" or "netstandard" or "Microsoft.CSharp" || name.StartsWith("System", StringComparison.Ordinal)
+            || name.StartsWith("Microsoft.Win32", StringComparison.Ordinal) || name.StartsWith("Microsoft.VisualBasic", StringComparison.Ordinal);
+    }
 
     /// <summary>Every rule's findings, in rule order and then source order.</summary>
     public static IReadOnlyList<NameFinding> Findings(Compilation compilation, NameTableShape shape)

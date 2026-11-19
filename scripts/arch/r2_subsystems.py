@@ -96,7 +96,7 @@ TABLE = [
     {"key": "procedure-binding", "area": "binding", "name": "procedure binding", "include": [B + "/Procedure/**"]},
     {"key": "reference-resolution", "area": "binding", "name": "reference resolution",
      "include": [B + "/ReferenceResolver*.cs", B + "/{CounterResolver,NameResolution,RefModBinder,SubscriptBinder,ObjectPropertyResolver}.cs", B + "/RefResolution.cs", B + "/QualifiedNameClasses.cs",
-                 B + "/EcNameResolution.cs", B + "/ReportGroupResolution.cs"]},
+                 B + "/EcNameResolution.cs", B + "/ReportGroupResolution.cs", B + "/SymbolTable/**"]},
     {"key": "validation", "area": "binding/validation", "name": "validation and edition gating", "include": [C + "/Validation/**", B + "/Validation/**"]},
     {"key": "bound-tree", "area": "binding", "name": "lowering and the bound tree",
      "include": [B + "/Bound/**", "src/WiseOwl.Cobol.Compiler.SourceGen/**"]},

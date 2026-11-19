@@ -40,7 +40,9 @@ public sealed class NameTableOwnershipDriftTests
 
     private static readonly Lazy<(IReadOnlyList<NameFinding> Findings, IReadOnlyList<Diagnostic> Errors)> Product = new(() =>
     {
-        CSharpCompilation compilation = NameTableOwnership.CompileCompiler();
+        // The whole compiler's sources: this class is a tree-wide sweep of src/WiseOwl.Cobol.Compiler.
+        CSharpCompilation compilation = NameTableOwnership.CompileCompiler(TestRepo.Src("WiseOwl.Cobol.Compiler"),
+            TestRepo.Src("WiseOwl.Cobol.Compiler.SourceGen", "bin", TestRepo.Configuration, "netstandard2.0", "WiseOwl.Cobol.Compiler.SourceGen.dll"));
         Diagnostic[] errors = [.. compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)];
         IReadOnlyList<NameFinding> findings = NameTableOwnership.Findings(compilation, NameTableShape.Product);
         // The whole measured picture beside the run's output, so a red is read in full, never from a truncated message.
