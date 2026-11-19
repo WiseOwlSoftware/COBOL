@@ -9,7 +9,9 @@ namespace WiseOwl.Cobol.Compiler.Oo;
 /// shape (a brace group of object-class-name-1 | interface-name-1).</summary>
 public enum OoNameWant { Class, Interface, Either }
 
-/// <summary>What a written object-class-name or interface-name resolved to (<c>SymbolTable.ClassNames.Resolve</c>).
+/// <summary>What a written object-class-name or interface-name resolved to (<c>SymbolTable.ClassNames.Resolve</c>). Only
+/// <c>SymbolTable</c> makes one (<c>NameTableOwnershipDriftTests</c>, rule (2)'s companion), so a class or interface reached from
+/// a written word came through the group tier's recording point, <c>SymbolTable.ClassNames.Lookup</c>.
 /// <see cref="Class"/> and <see cref="Interface"/> are mutually exclusive: classes and interfaces share ONE name namespace (a
 /// collision is COBOL0820, ISO §2023:8.3.2.2), so at most one is set.
 /// <para><see cref="IsFormal"/> is the third outcome, and sets neither: the name is a PARAMETER-NAME of the parameterized

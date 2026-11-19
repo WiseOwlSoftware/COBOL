@@ -938,7 +938,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
 | Invariant | Proof |
 |---|---|
 | Every name table is the symbol table: no table keyed by a COBOL name exists outside it | `NameTableOwnershipDriftTests` rule (1) |
-| `Identify` is the only way from a written name to a symbol | rules (2) and (3) |
+| `Identify`, and for the compilation group's object-class-names and interface-names `SymbolTable.ClassNames.Lookup` (which `Resolve`, its diagnosing half, calls), are the only ways from a written name to a symbol, and the only recording points | rules (2) and (3), rule (2)'s companion (only the table makes `IdentifiedName` and `OoNameResult`, the two lookups' answers), and `OoNameResolutionDriftTests` (the group-wide readers of a written word are adjudicated declaration questions) |
 | A declaration question cannot answer a reference (`DeclarationFact`) | rule (4) |
 | Name equality is the table's alone | rule (5) |
 | Every name the programmer wrote to USE something is one occurrence | `GrammarNameSlotDriftTests` (the slots, from the grammar) and `EveryWrittenReferenceIsRecorded` (each slot, one occurrence) |
@@ -947,16 +947,33 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
 - **ONE recording point, made structural in both halves (rounds 2 and 3, R2-1, R3-1, R3-2).** A list of resolve paths
   was incomplete twice, so no list is the guarantee. The occurrence is recorded where a written name becomes a symbol,
   `SymbolTable.Identify`, and two mechanisms, each checked by a drift test that needs no list, make that the only way:
-  - **(a) Every name table is private to `SymbolTable`.** `src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs`
-    OWNS every table keyed by a COBOL name whose value is a symbol, of every name class: data, condition, index,
-    procedure (`ProcedureNames<T>`, step 6b slice 2), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
+  - *(The compilation group's tier, correction of step 6b's OO lane, review round 1 R1-1.)* The object-class-names and
+    interface-names are not one element's names: they are the compilation group's (section "Step 6b, the OO names" below),
+    held by `SymbolTable.ClassNames`, one per group, and a written one is identified by that tier's funnel,
+    `SymbolTable.ClassNames.Lookup(RuleContext? site, ParserRuleContext written, OoNameWant want) -> OoNameResult` (and
+    `Resolve`, which calls `Lookup` and words the diagnostic when nothing answers). It is the second recording point, the
+    group tier's twin of `Identify`, and it holds the same contract: `written` is the word as the parser read it (one token),
+    the answer (`OoNameResult`) is made only inside `SymbolTable` (rule (2)'s companion), and it already records the
+    word's §2023:8.3.2.2 use in the census of the element `site` lies in (`OoClassTable.RecordReferenceUse`). Step 7b records
+    the occurrence there, at `written`, under the same condition it records that use (the word resolved, or named a formal
+    parameter-name), into the same occurrence store `Identify` appends to; a site that asks the funnel twice for one written
+    word (`RaisingPhrase.Partition` re-asks a formal under FACTORY OF with `OoNameWant.Class`) records one occurrence, keyed
+    by the written token, as `Identify`'s probe flag keeps a probe and its resolution one occurrence. What the tier answers
+    WITHOUT recording is no reference: `GroupClassNamed` and `GroupInterfaceNamed` (a REPOSITORY specifier's own question
+    of the group, §2023:12.3.8.3 SR6, SR9 and SR16, adjudicated by `OoNameResolutionDriftTests`), `ResolveSpecifier` (what
+    a specifier, a declaration, stands for) and the carrier readers (`ClassOf`, `InterfaceOf`, `SkeletonOf`: a read of a
+    name resolved, and recorded, where it was written).
+  - **(a) Every name table is private to `SymbolTable`.** `src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs`
+    and its partial files OWN every table keyed by a COBOL name whose value is a symbol, of every name class: data,
+    condition, index, procedure (`ProcedureNames<T>`, step 6b slice 2), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
     report, report group, report VARYING, sum counter, CD (`CommunicationSlice`), screen, the CONFIGURATION SECTION names
     (alphabet, class, symbolic-character, mnemonic, locale, through `ConfigurationNames<T>`), type and constant names,
     the special registers that are implicitly defined names (CAPACITY, DEBUG-ITEM), the REPOSITORY specifiers and the
-    OO class, interface and method tables. Its one public LOOKUP is
+    OO class and interface tables (the group tier's, `SymbolTable.ClassNames`; a method roster is keyed by the
+    externalized method name, no COBOL word, and stays on its class). Its one public LOOKUP of an element's names is
     `SymbolTable.Identify(ParserRuleContext written, NameClass wanted, bool report) -> IdentifiedName`, where `written`
-    is the name as the parser read it and `NameClass` says which classes the position admits. Every other lookup the
-    tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
+    is the name as the parser read it and `NameClass` says which classes the position admits; the group tier's is
+    `ClassNames.Lookup`, above. Every other lookup the tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
     (`SymbolTable.Declare`, which records the `Defined` occurrence and returns a `SymbolId`, an opaque number, never an
     entry or a symbol) and write each entry's attributes where they decide them (`SymbolTable.SetAttributes(SymbolId,
     ...)`, section 6.6); those two and `Identify` are the table's only writers.
@@ -966,8 +983,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     `readonly record struct DeclarationFact(bool Exists, DeclarationConflict Conflict, NameClass Class,
     SourceLocation DeclaredAt)`. The fact names a place in the source, never a `DataItem`, `FileModel`, `Condition88`
     or any other symbol, so no caller can turn it into an operand: a reference needs a symbol, and only
-    `Identify` hands one out (inside an `IdentifiedName`). Every position the programmer wrote a name in to USE it
-    goes through `Identify` and records, whatever division it is in: a RECORD KEY or ALTERNATE RECORD KEY name
+    `Identify` hands one out (inside an `IdentifiedName`; a class or interface, `ClassNames.Lookup` inside an `OoNameResult`).
+    Every position the programmer wrote a name in to USE it goes through `Identify` (an object-class-name or interface-name
+    through `ClassNames.Lookup`) and records, whatever division it is in: a RECORD KEY or ALTERNATE RECORD KEY name
     (`FileModel.RecordKeyNameCandidates` today), an ASSIGN USING data-name, a KEY phrase of SORT, MERGE or READ, an
     OCCURS DEPENDING ON or INDEXED BY operand, a REDEFINES or RENAMES object, a CONSTANT FROM or LENGTH OF operand, and
     every caller of today's `DataBinder.QualifiedCandidates` (which asks for symbols, so it is a resolution).
@@ -1360,7 +1378,10 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       use is recorded in and the scope it is resolved in are the SITE's (an IMPLEMENTS operand is asked at its class definition,
       whose census is not its OBJECT paragraph's), and the name is the word, one token: `Resolve(edition, site, written, want, ...)`
       and `Lookup(site, written, want)`. A context of several tokens names nothing (the one-word rule of `Identify`), where a
-      receiver's glued text was looked up before.
+      receiver's glued text was looked up before. `Lookup` is therefore the group tier's recording point, `Identify`'s twin
+      (the invariant table and "The compilation group's tier" above, review round 1 R1-1), and the census it records into takes
+      the word as written, as the declaration funnel (`DataBinder.DeclareUserWord`) does, so a COBOL2692 names the word in the
+      programmer's spelling at every site (review round 1 R1-2: the RAISING partition passed the upper-folded word before).
     - *A name a symbol carries resolves from the carrier (as slice 6's prototypes).* An object-reference description and a RAISING
       element hold the class's table key as text, resolved where it was written; their readers hand the tier the carrier
       (`ClassOf(ObjectRefDescriptor)`, `InterfaceOf`, `ClassOf(RaisingTarget)`, `SkeletonOf`), and `OoClassTable.Find` and
@@ -2222,7 +2243,8 @@ self-test, then the labels on every name slot of `CobolParserCore.g4` and the `C
 (`scripts/gen-grammar-diagrams.ps1`) taught to drop a label. It changes no parse and depends on nothing step 6b changes.
 **Step 7b - the occurrences and the cross-reference, after step 6b lands.** `ReferenceOccurrenceDriftTests`; `Identify`
 appends each `SymbolOccurrence`
-to its entry (Identify's register arms included), `PlaceBuilder.PlaceForItem` / `PlaceBuilder.WholeTable` take
+to its entry (Identify's register arms included), and so does the group tier's recording point, `SymbolTable.ClassNames.Lookup`,
+for each written object-class-name and interface-name (section 6.7.1, "The compilation group's tier"), `PlaceBuilder.PlaceForItem` / `PlaceBuilder.WholeTable` take
 `IdentifiedName`, `StatementBinder.BindStatement` classifies the occurrences since its mark through the new
 `BoundStores.StorePositionsOf`, all gated by `EditionContext.RecordsReferences`. Step 7b lands with the grammar test,
 the completeness oracle and the pairing test green. Then `CrossReferenceBuilder` (a view of the entries and their

@@ -202,7 +202,12 @@ public sealed partial class SymbolTable
         /// §2023:8.3.2.2 census records (<see cref="OoClassTable.RecordReferenceUse"/>, kb/Work PB3132): the one thing this half
         /// reports, and only for a word the element has made two types. A parameter-name is recorded as the type its own
         /// definition's REPOSITORY specifier declares it (§2023:11.3.3 SR8 / §2023:11.6.3 SR4 require that specifier), so the
-        /// definition's own references to its formal agree with its declaration of it.</para></summary>
+        /// definition's own references to its formal agree with its declaration of it. The census records the word as written,
+        /// as the declaration funnel does, so a conflict is worded in the programmer's spelling.</para>
+        /// <para>This is the compilation group tier's RECORDING POINT, the twin of <see cref="SymbolTable.Identify(ParserRuleContext,
+        /// NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/> (docs/rearchitecture/DESIGN-listing.md section 6.7.1): only the
+        /// table makes an <see cref="OoNameResult"/>, and listing step 7b records the occurrence here, at
+        /// <paramref name="written"/>, under the condition the census use is recorded.</para></summary>
         internal OoNameResult Lookup(RuleContext? site, ParserRuleContext written, OoNameWant want)
         {
             if (WordOf(written) is not { } key) return default;

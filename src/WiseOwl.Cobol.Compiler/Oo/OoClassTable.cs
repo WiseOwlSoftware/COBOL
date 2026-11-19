@@ -229,8 +229,8 @@ public sealed class OoClassTable
     /// source element references are often declared by ANOTHER element: a method's by its CLASS (the CLASS-ID, the
     /// class's REPOSITORY, its USING clause), a contained program's, a factory definition's or an instance definition's
     /// by a CONTAINING element's REPOSITORY (§2023:12.3.4 GR1), none of which is the referring element (§2023:10.5: "A source element is a source unit
-    /// excluding any contained source units"). So the referring element's census (<see cref="CensusOf"/>) learns each
-    /// one funnel every such reference resolves through (<see cref="SymbolTable.ClassNames.Lookup"/>),
+    /// excluding any contained source units"). So the referring element's census (<see cref="CensusOf"/>) learns each one
+    /// here, from the one funnel every such reference resolves through (<see cref="SymbolTable.ClassNames.Lookup"/>),
     /// whatever kind of element refers. A word the element declares itself as the same type is recorded twice, which
     /// is no conflict. A METHOD-ID spelled like its CLASS-ID, or a contained program's paragraph spelled like a class
     /// its container's REPOSITORY declares, is therefore legal until the element references that class-name, and then

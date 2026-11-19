@@ -13,7 +13,9 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// <summary>
 /// ⛔ <c>SymbolTable</c> IS THE ONE STORE OF THE PROGRAM'S NAMES (docs/rearchitecture/DESIGN-listing.md section 6.7.1;
 /// kb/Work PB5932, listing step 6b). The listing's cross-reference is complete only if every written name reaches its
-/// symbol through one place, <c>SymbolTable.Identify</c>, which records it. A list of resolve paths was incomplete twice
+/// symbol through a recording point: <c>SymbolTable.Identify</c> for an element's names, and the compilation group tier's
+/// twin, <c>SymbolTable.ClassNames.Lookup</c>, for an object-class-name or interface-name (only the table makes either's answer,
+/// <c>IdentifiedName</c> or <c>OoNameResult</c>). A list of resolve paths was incomplete twice
 /// (design review rounds 1 and 2), so no list is the guarantee: the five rules of <see cref="NameTableOwnership"/> are
 /// properties of types and calls the semantic model sees, so a new table, lookup or comparison anywhere in the compiler is
 /// red by what it is. Two committed classifications hold what is not a resolution, each entry with its reason, and may
