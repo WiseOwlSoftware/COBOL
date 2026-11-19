@@ -297,7 +297,7 @@ public sealed class GlobalNameClassDriftTests
         AssertBodyAsks(table, @"public NameCandidates<IndexDeclaration>\? IndexCandidates\(", "NearerDataOrConditionNameHides(");
         string resolver = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ReferenceResolver.cs"));
         AssertBodyAsks(resolver, @"internal CapacityRef\? CapacityRegisterFor\(", "NearerDataOrConditionNameHides(");
-        // ... and the non-data declarations of one spelling are RANKED by depth (NonDataDeclarationOf), never returned from
+        // ... and the non-data declarations of one spelling are RANKED by depth (SymbolTable.Declarations.OtherThanData), never returned from
         // the first class asked: a farther constant-name, index-name or file-name would beat a nearer condition-name.
         string nonData = declarations;
         var ranked = Regex.Match(nonData, @"public DeclarationFact\? OtherThanData\(.*?\n        \}", RegexOptions.Singleline).Value;

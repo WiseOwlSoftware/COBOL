@@ -435,7 +435,7 @@ public sealed partial class FileControlBinder
     /// item"; b): otherwise the nearest containing element's):</para>
     /// <list type="bullet">
     /// <item>A data item this element declares, or another kind of name (a constant, an alphabet, an index, a
-    /// condition-name) declared no farther out than the GLOBAL file of the spelling (<see cref="NonDataDeclaration.Depth"/>,
+    /// condition-name) declared no farther out than the GLOBAL file of the spelling (<see cref="DeclarationFact.Depth"/>,
     /// kb/Work PB4219): identifier-1 as written.</item>
     /// <item>A report entry nearer than any data item or file of the spelling (this element's own, against a container's
     /// GLOBAL record): the report-item refusal, §2023:13.8.6.2.3 (<see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>; review R2-2, the

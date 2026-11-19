@@ -167,7 +167,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
               + ").";
 
     /// <summary>What a named CAPACITY register is, as the noun phrase <see cref="HiddenConditionText"/> says (the register
-    /// is no data item of the name table, so <see cref="NonDataDeclaration.ClassPhrase"/> does not cover it).</summary>
+    /// is no data item of the name table, so <see cref="DeclarationFact.ClassPhrase"/> does not cover it).</summary>
     internal const string CapacityRegisterClassPhrase =
         "the CAPACITY register of an OCCURS DYNAMIC table (a CAPACITY IN phrase, ISO §2023:13.18.38.3 SR30)";
 
@@ -176,7 +176,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// PB4219 review R1-1; <see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>, kb/Work PB4432 review R1-1):
     /// the reference names that item, so it is neither a misqualified condition-name nor an undeclared word, and saying
     /// either states the opposite of the facts. <paramref name="nearer"/> is what the nearer declaration is ("a data
-    /// item", <see cref="NonDataDeclaration.ClassPhrase"/>, <see cref="CapacityRegisterClassPhrase"/>).</summary>
+    /// item", <see cref="DeclarationFact.ClassPhrase"/>, <see cref="CapacityRegisterClassPhrase"/>).</summary>
     internal static string HiddenConditionText(string text, string name, string nearer, EditionInfo edition) =>
         $"'{text}' names {nearer}, not a condition-name, and this position requires a condition-name: '{name}' is "
         + "declared in a source element nearer than the containing program whose GLOBAL condition-name "

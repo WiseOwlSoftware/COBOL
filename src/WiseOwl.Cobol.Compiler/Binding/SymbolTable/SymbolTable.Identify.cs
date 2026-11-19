@@ -33,14 +33,19 @@ public sealed partial class SymbolTable
     /// that classifies a word before the reference is resolved (false); listing step 7b records an occurrence for a reference
     /// and none for a probe, so a probe followed by its resolution is one occurrence. <paramref name="reach"/> narrows a
     /// file-name position that names only this element's own entries (<see cref="NameReach.Own"/>).
+    /// <para>A name is ONE word, and a COBOL word is one token (<c>cobolWord</c> in CobolWords.g4), so the key is that token's
+    /// text. A context of several tokens is no name and denotes nothing: its <c>GetText()</c> glues the tokens, so
+    /// <c>A - B</c> would read as the file-name <c>A-B</c> and <c>F OF G</c> as <c>FOFG</c> (kb/Work PB2040, PB5932 review
+    /// round 1). The rule lives here, once, so no caller can hand the table a glued text.</para>
     /// </summary>
     internal IdentifiedName? Identify(ParserRuleContext written, NameClass wanted, bool report, NameReach reach = NameReach.Visible)
     {
         _ = report;   // the occurrence it gates is listing step 7b's
+        if (WordOf(written) is not { } word) return null;
         object? symbol = wanted switch
         {
-            NameClass.CommunicationDescription => _cds.GetValueOrDefault(Key(written.GetText())),
-            NameClass.File => FileNamed(Key(written.GetText()), reach),
+            NameClass.CommunicationDescription => _cds.GetValueOrDefault(word),
+            NameClass.File => FileNamed(word, reach),
             _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not yet a class SymbolTable.Identify resolves"),
         };
         return symbol is null ? null : new IdentifiedName(wanted, symbol);
@@ -48,4 +53,9 @@ public sealed partial class SymbolTable
 
     /// <summary>The name key of a written word: the table's one maker of a <see cref="CobolName"/>.</summary>
     private static CobolName Key(string word) => new(word);
+
+    /// <summary>The key of a context that is exactly one token, or null for a context of several (or none): only a single
+    /// word is a name.</summary>
+    private static CobolName? WordOf(ParserRuleContext written) =>
+        written.Start is { } first && written.Stop is { } last && first.TokenIndex == last.TokenIndex ? Key(first.Text) : null;
 }

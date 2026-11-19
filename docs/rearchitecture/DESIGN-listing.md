@@ -1058,6 +1058,11 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     NameReach.Visible)`: a position that names only the element's OWN entries (an FD or SD's file-name, §2023:13.4.5.3 SR1,
     §2023:13.4.6.3 SR1; I-O-CONTROL SAME AREA; APPLY COMMIT) passes `NameReach.Own`, so it does not find a container's GLOBAL
     file as today's own-files lookups did not.
+  - *`Identify` keys one word (correction, PB5932 review round 1).* `written` is a parse context because step 7b records its
+    span, but a name is ONE word and a COBOL word is one token (`cobolWord`, `CobolWords.g4`), so the key is that token's
+    text. A context of several tokens denotes no name and `Identify` answers null: `GetText()` glues tokens, and slice 1's
+    first build let `FUNCTION EXCEPTION-FILE (A - B)` bind to the file `A-B` because it handed the whole argument context to
+    the table. The rule is the table's, so no caller can bring the glued-text hazard (kb/Work PB2040) back.
   - *A question that answers no symbol is the table's too.* The qualifier walk asks `CdQualifies` and `FileQualifies` (does
     this outermost qualifier name a cd or a file whose record is the root), and an enumeration reads `VisibleFiles` or
     `OwnFiles`: a `bool` or a list of symbols in declaration order is no lookup by name, so rules (2) and (3) do not see it and

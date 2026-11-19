@@ -26,7 +26,7 @@ public sealed partial class SymbolTable
         /// site that refuses a reference for identifying no data item (ISO §2023:8.4.2.1: "a statement shall contain a reference
         /// that uniquely identifies that resource"): the procedure division's unidentified reference
         /// (<see cref="NameResolution.ReportUnidentified"/>), a file clause's data-name operand
-        /// (<see cref="ResolveClauseOperand"/>) and an OCCURS DEPENDING ON object. Each used to screen its own subset, so a
+        /// (<see cref="DataBinder.ResolveClauseOperand"/>) and an OCCURS DEPENDING ON object. Each used to screen its own subset, so a
         /// type-name was "not defined" at all three and an alphabet-, constant-, index- or condition-name at the two clause
         /// sites. Null when the name is declared as nothing but data — or as nothing at all — so the caller's own
         /// uniqueness verdict stands. A data-name of the same spelling the ranked lookup leaves standing (a condition-name
@@ -39,7 +39,7 @@ public sealed partial class SymbolTable
         /// containing one otherwise, so a contained program's own level-88 RELF is what `RELF` names there, not its
         /// container's GLOBAL file, constant-name or index-name RELF; each used to be asked first whatever the nesting. Each answer carries its
         /// <see cref="DeclarationFact.Depth"/> so a caller that weighs it against a declaration this query does not
-        /// rank (APPLY COMMIT's GLOBAL file, <see cref="ScreenEnclosingFileOperand"/>) compares like with like.</para></summary>
+        /// rank (APPLY COMMIT's GLOBAL file, <see cref="FileControlBinder.ScreenEnclosingFileOperand"/>) compares like with like.</para></summary>
         public DeclarationFact? OtherThanData(string name, IReadOnlyList<string> qualifiers, Scope scope)
         {
             if (_data.State.Forest.ScreenNames.Contains(name)) return new(DeclarationKind.ScreenEntry);
@@ -83,7 +83,7 @@ public sealed partial class SymbolTable
         /// it (kb/Work PB4432): the constant-name, the index-name and the file-name of the spelling (this element's own SELECT
         /// or a containing element's GLOBAL file, §2023:13.18.27.4 GR1) and this element's cd-name (never inherited, so depth 0; kb/Work
         /// PB4713), in the order a tie at one depth keeps.
-        /// <see cref="DeclarationFactOf"/> ranks them with the condition-name for a reference that identifies no data
+        /// <see cref="OtherThanData"/> ranks them with the condition-name for a reference that identifies no data
         /// item, and <see cref="NonConditionDeclarationNearerThan"/> asks the same list the other way round for the
         /// condition-name lookup, so a class added here ranks in both. (A named CAPACITY register is not in it: the register
         /// has ONE lookup, <c>ReferenceResolver.CapacityRegisterFor</c>, which judges the written reference
@@ -116,7 +116,7 @@ public sealed partial class SymbolTable
         }
 
         /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A CONDITION-NAME REFERENCE AGAINST THE OTHER NAME CLASSES (kb/Work PB4432, the
-        /// reverse arm of <see cref="DeclarationFactOf"/>'s ranking): the nearest constant-name, index-name or file-name of
+        /// reverse arm of <see cref="OtherThanData"/>'s ranking): the nearest constant-name, index-name or file-name of
         /// the spelling declared in a source element NEARER than <paramref name="depth"/>, the depth of the level-88 tier the
         /// reference reaches, or null when none is. "If the name is declared in source element B, the item in source element
         /// B is the referenced item", so a contained program's own `INDEXED BY RELF`, `RELF CONSTANT` or SELECT RELF hides its
@@ -138,14 +138,6 @@ public sealed partial class SymbolTable
         public bool NonConditionDeclarationHides(string name, IReadOnlyList<string> qualifiers, Scope scope, int depth) =>
             NonConditionDeclarationNearerThan(name, qualifiers, scope, depth) is not null;
 
-        /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A DATA-NAME AGAINST A NEARER FILE-NAME (kb/Work PB5786; §1985:X.1.3.8.2 GR3a): a
-        /// reference is "to the object which that program describes" even when the name there is "a different type of
-        /// user-defined word" (§1985:X.1.3.8), so a contained program's own file-name FX is what `FX` names there, never its
-        /// container's GLOBAL data item FX. True when an unqualified spelling names a file-name (this element's own SELECT, or a
-        /// containing element's GLOBAL file) declared in a source element NEARER than <paramref name="depth"/>; a file-name takes no
-        /// qualifier, so a qualified reference is never hidden by one. The caller meets an unidentified reference, and
-        /// <see cref="DeclarationFactOf"/> words it as "declared as a file-name". The reverse arm — an own data-name hiding
-        /// a container's GLOBAL file — is <c>InheritedGlobals.DropShadowed</c>'s.</summary>
         /// <summary>Whether a SELECT of this element already names <paramref name="name"/> (§2023:12.4.5.2 SR2: one SELECT per
         /// file-name).</summary>
         public bool IsSelected(string name) => _table._selectedFiles.ContainsKey(Key(name));
@@ -157,12 +149,20 @@ public sealed partial class SymbolTable
                 ? new DeclarationFact(DeclarationKind.FileName, Depth: _data.State.Inherited.FileDepth(file), Spelling: file.CobolName)
                 : null;
 
+        /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A DATA-NAME AGAINST A NEARER FILE-NAME (kb/Work PB5786; §1985:X.1.3.8.2 GR3a): a
+        /// reference is "to the object which that program describes" even when the name there is "a different type of
+        /// user-defined word" (§1985:X.1.3.8), so a contained program's own file-name FX is what `FX` names there, never its
+        /// container's GLOBAL data item FX. True when an unqualified spelling names a file-name (this element's own SELECT, or a
+        /// containing element's GLOBAL file) declared in a source element NEARER than <paramref name="depth"/>; a file-name takes no
+        /// qualifier, so a qualified reference is never hidden by one. The caller meets an unidentified reference, and
+        /// <see cref="OtherThanData"/> words it as "declared as a file-name". The reverse arm — an own data-name hiding
+        /// a container's GLOBAL file — is <see cref="SymbolTable.HideShadowedFiles"/>'s.</summary>
         public bool NearerFileNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
             depth != 0 && qualifiers.Count == 0 && _table.FileNamed(Key(name), NameReach.Visible) is { } file
             && _data.State.Inherited.FileDepth(file) < depth;
 
         /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
-        /// (kb/Work PB4432 review R1-1, the class twin of <see cref="ConditionNameHiddenByNearerDataItem"/>): the written
+        /// (kb/Work PB4432 review R1-1, the class twin of <see cref="DataBinder.ConditionNameHiddenByNearerDataItem"/>): the written
         /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name or file-name of it declared in a
         /// NEARER source element is the referenced item. The declaration that hides it, or null. Pure: it reports nothing.</summary>
         public DeclarationFact? ConditionNameHiddenByNearerNonDataName(
@@ -172,7 +172,7 @@ public sealed partial class SymbolTable
             return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, _data.State.Forest.DeclaringDepth(tier[0].Parent));
         }
 
-        /// <summary>The type declarations visible in <paramref name="scope"/>, in <see cref="TryFindTypeDecl"/>'s order: a
+        /// <summary>The type declarations visible in <paramref name="scope"/>, in <see cref="DataBinder.TryFindTypeDecl"/>'s order: a
         /// method's own, this element's, a container's GLOBAL one.</summary>
         private IEnumerable<DataItem> VisibleTypeDeclarations(Scope scope)
         {

@@ -1011,24 +1011,24 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // reference-modified reference is refused by the ONE file-name shape rule, never looked up by its glued
         // text (`F OF G` → `FOFG`). Any other shape is no name at all and falls to the not-a-file refusal below.
         string name;
-        Antlr4.Runtime.ParserRuleContext written;
+        Core.CobolWordContext? written = null;   // null: the argument is no name, so it is never looked up (PB5932 review round 1)
         if (SoleDataReference(argCtx) is { } dref)
         {
             if (ctx.Validation.ScreenFileNameOperand(dref, $"FUNCTION {sig.Name}") is not { } word)
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
             (name, written) = (word.GetText(), word);
         }
-        else (name, written) = (DataBinder.WrittenText(argCtx), argCtx);
+        else name = DataBinder.WrittenText(argCtx);
         // §2023:15.28.3 r1 / §2023:15.29.3 r1 (word for word): "Argument-1 is optional and when specified shall be the name of
         // a file connector that is specified in an FD statement." BOTH halves (kb/Work PB63): the name must be a
         // file-name, and that file must be FD-described — an SD (a sort-merge file description) or a SELECT with no
         // description entry at all fails the second half; the resolver used to match on the bare name only, so
         // both compiled clean and answered r2a's two spaces. The clause cited is the function's OWN.
         string clause = sig.Name == "EXCEPTION-FILE" ? "§2023:15.28.3 rule 1" : "§2023:15.29.3 rule 1";
-        // Resolve through VisibleFiles — the ONE file-name resolution every other site uses (kb/Work PB123:
+        // Resolve through SymbolTable.Identify — the ONE file-name resolution every other site uses (kb/Work PB123:
         // this arm scanned ctx.Data.Files, the program's OWN FD list, so a contained program naming its
         // container's GLOBAL FD — visible per §2023:13.18.27.4 GR1–2 — drew "not the name of a file connector" on legal source).
-        if (ctx.Symbols.Identify(written, NameClass.File, report: true) is not { Symbol: FileModel file })
+        if (written is null || ctx.Symbols.Identify(written, NameClass.File, report: true) is not { Symbol: FileModel file })
         {
             ctx.Edition.Error(DiagnosticCatalog.ExceptionFileArgumentNotFile, $"FUNCTION {sig.Name} argument '{name}' "
                 + $"is not the name of a file connector specified in an FD statement (ISO {clause})");

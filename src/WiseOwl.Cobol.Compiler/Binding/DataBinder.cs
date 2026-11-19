@@ -6335,7 +6335,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The nearest declaring source element's level-88s of <paramref name="name"/> that the written
     /// <paramref name="qualifiers"/> reach, BEFORE a nearer declaration of another name class hides them: the tier the
     /// §2023:8.4.6.2.1 3) a) question "is a nearer element's declaration the referenced item?" is asked of
-    /// (<see cref="ConditionNameHiddenByNearerNonDataName"/>, and <c>ConditionBinder</c>'s CAPACITY register arm).</summary>
+    /// (<see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>, and <c>ConditionBinder</c>'s CAPACITY register arm).</summary>
     internal List<Condition88> ConditionTier(string name, IReadOnlyList<string> qualifiers, Model.Scope scope) =>
         Symbols.NearestDeclaring(ConditionsUnderQualifiers(name, qualifiers, scope), static c => c.Parent);
 

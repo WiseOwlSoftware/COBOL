@@ -53,3 +53,9 @@ run-to-run spread or at most 0.23 MB above it (IX113A 68.87 and 68.91 MB against
 **Also fixed on the way.** After merging main, the tests tree's walk guard could not follow the analyzer's source root (a
 parameter from another file); moving the listing into the analyzer then made `drift_rules.py` refuse the class's `Sweep` trait (a
 helper's paths never make a sweep). The drift test now lists the tree it sweeps and the analyzer compiles what it is given.
+
+**Review round 1.** The first build let `FUNCTION EXCEPTION-FILE (A - B)` bind to the file `A-B`: it handed the whole argument to
+`Identify`, which keyed it by its glued `GetText()`. `Identify` now keys one token, the only shape a COBOL word has, and answers
+null for a context of several, so no caller can bring the glued-text hazard back (case `pb5932-exception-file-glued-expression`).
+The move had also left a summary on the wrong member and crefs to deleted names; a documentation build against the merge base
+found six the branch introduced, all fixed. The repository-wide count (188 unresolved crefs) is recorded on kb/Work PB1322.
