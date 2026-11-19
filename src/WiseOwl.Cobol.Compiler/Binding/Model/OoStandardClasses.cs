@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// external repository for the class" (§2023:12.3.8.3 SR6 b), and the implementation's own standard class is always
 /// there. How a specifier and that information choose the class "is implementor-defined" (§2023:12.3.8.4 GR6): a class
 /// DEFINED in the compilation group under the same name is the one the group's own specifiers mean, and the
-/// standard class answers only a name no definition of the group claims (<c>OoClassTable.Find</c>).</para>
+/// standard class answers only a name no definition of the group claims (<c>SymbolTable.ClassNames</c>).</para>
 ///
 /// <para><b>What it is NOT.</b> It is never in <c>OoClassTable.Classes</c> — it has no source, binds no
 /// data and emits nothing — so every pass over the group's definitions is unaffected. It is reached only through

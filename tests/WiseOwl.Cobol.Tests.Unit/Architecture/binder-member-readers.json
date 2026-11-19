@@ -788,6 +788,7 @@
       "WiseOwl.Cobol.Binding.InheritStep",
       "WiseOwl.Cobol.Binding.LiteralEnvironment",
       "WiseOwl.Cobol.Binding.NameResolution",
+      "WiseOwl.Cobol.Binding.ObjectPropertyResolver",
       "WiseOwl.Cobol.Binding.OoDataBinder",
       "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",

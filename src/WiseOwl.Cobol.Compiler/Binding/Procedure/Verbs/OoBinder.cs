@@ -271,8 +271,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // A parameter-name declared CLASS is an object-class-name in every expansion (§2023:11.3.4 GR6), so SR3 holds for
             // it in the definition bound as itself too (kb/Work PB2937).
             if (computedReceiver is null && atom?.dataReference() is { } cref && ctx.Refs.Probe(cref) is null
-                && Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, cref, cref.GetText(),
-                    Compiler.Oo.OoNameResolution.Want.Class) is { Class: not null } or { IsFormal: true })
+                && host.OoClasses?.Names.Lookup(cref, cref, OoNameWant.Class) is { Class: not null } or { IsFormal: true })
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeUniversalReferenceRule,
                     $"INVOKE {DataBinder.WrittenText(cref)} {DataBinder.WrittenText(mref)}: when object-class-name-1 is specified, literal-1 "
                     + "shall be specified (ISO §2023:14.9.23.3 SR3) — identifier-2 may be specified only when identifier-1 "
@@ -399,7 +398,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (searchRoot is null) return OoBindDeferredInvoke(site, $"INVOKE {predefined} \"{methodName}\"");
             // Roster selection by CONTEXT (§2023:14.9.23.3 SR4f/g/h/i): a factory method's SELF/SUPER resolve
             // over the FACTORY interface; an instance method's over the instance interface.
-            var sm = MethodRoster.Of(searchRoot, host.OoInFactory).Find(methodName);
+            var sm = MethodRoster.Of(searchRoot, host.OoInFactory).Find(new ExternalizedMethodName(methodName));
             // Not in the definition bound as itself, nor in a written superclass: the method may be the formal
             // superclass's, which each expansion's actual decides (§2023:9.3.9, §2023:9.3.8.2.4; kb/Work PB2937).
             if (sm is null && cur.FormalBaseName is not null)
@@ -460,8 +459,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 ? OoBindInstanceInvoke(site, receiver, methodName) : ra.Refusal(ctx.Edition);
         // The class-name-1 alternative is scoped by §2023:8.4.6.4 to the names this SOURCE ELEMENT may reference,
         // so the partition asks the ONE funnel (kb/Work PB365 — `OoClasses.Find` asked the whole group).
-        var named = Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, dref, dref.GetText(),
-            Compiler.Oo.OoNameResolution.Want.Class);
+        var named = host.OoClasses?.Names.Lookup(dref, dref, OoNameWant.Class) ?? default;
         if (named.Class is { } cls)
             return OoBindClassInvoke(site, cls, methodName);
         // A parameter-name declared CLASS, as class-name-1 (§2023:11.3.4 GR6): the factory interface SR3 searches is the
@@ -666,10 +664,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // §2023:8.4.3.8.3 SR4: "Object-class-name-1 shall be the name of a class specified in the INHERITS clause of the
             // containing class definition"; GR4: "the search for the method shall include only those methods defined
             // for object-class-name-1".
-            var lookup = Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, qualifier, qualifier.GetText(),
-                Compiler.Oo.OoNameResolution.Want.Class);
+            var lookup = host.OoClasses?.Names.Lookup(qualifier, qualifier, OoNameWant.Class) ?? default;
             // The formal superclass named as object-class-name-1: SR4 holds (it IS the class the INHERITS clause names).
-            if (lookup.IsFormal && CobolNames.Same(qualifier.GetText(), cur.FormalBaseName)) return (cur, null);
+            if (lookup.IsFormal && SymbolTable.ClassNames.NamesFormalBase(qualifier, cur)) return (cur, null);
             var named = lookup.Class;
             if (named is null || !ReferenceEquals(named, cur.Base))
             {
@@ -737,7 +734,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// interface of exactly the classes that inherit BASE (§2023:16.2; §2023:9.3.9), and in no other (kb/Work PB1548).</summary>
     private BoundStatement OoBindClassInvoke(InvocationSite site, OoClassSymbol cls, string method)
     {
-        if (cls.FindFactoryMethod(method) is { } fm)
+        if (cls.FindFactoryMethod(new ExternalizedMethodName(method)) is { } fm)
         {
             // §2023:14.8.3.3 rule 2 b) 1.: a method invoked with an object-class-name is invoked through "that same
             // object-class-name and an ONLY phrase" — and §2023:16.2.1.2 GR1 agrees for New: invoked on the factory object
@@ -876,9 +873,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         string className = rdesc.Name!;
         // An INTERFACE-typed receiver: resolution over the interface's prototype closure (§2023:14.9.23.3 SR4e);
         // the emitted call is static C# interface dispatch behind the same GR5 null guard.
-        if (rdesc.Kind is ObjectRefKind.Interface && host.OoClasses?.FindInterface(className) is { } recvIface)
+        if (rdesc.Kind is ObjectRefKind.Interface && host.OoClasses?.Names.InterfaceOf(rdesc) is { } recvIface)
         {
-            var proto = MethodRoster.Of(recvIface).Find(method);
+            var proto = MethodRoster.Of(host.OoClasses.Names.AllPrototypes(recvIface)).Find(new ExternalizedMethodName(method));
             if (proto is null)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNotDefined,
@@ -889,7 +886,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             var ibound = OoBindResolvedInvoke(site, proto, InvokeForm.Instance, receiver, rdesc);
             return ibound is BoundInvoke ibi ? ibi with { OwnerClrName = recvIface.ClrName } : ibound;
         }
-        if (host.OoClasses?.Find(className) is not { } cls)
+        if (host.OoClasses?.Names.ClassOf(rdesc) is not { } cls)
         {
             // Unreachable when DataBinder validated the declared class (COBOL0813) — defensive, loud.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ObjectClassNameNotResolvable,
@@ -899,7 +896,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // §2023:9.3.6: a class has TWO separate method interfaces, and which one a receiver selects is the FACTORY
         // axis of its own description — a FACTORY-OF reference holds the factory object (§2023:13.18.60.4 GR22 d)1.a.)
         // and therefore resolves the FACTORY roster (§2023:14.9.23.3 SR4b/SR4c). Both arms of ONE dispatch.
-        var m = MethodRoster.Of(cls, rdesc.Factory).Find(method);
+        var m = MethodRoster.Of(cls, rdesc.Factory).Find(new ExternalizedMethodName(method));
         // §2023:14.9.23.3 SR4 a)–d): the rule a typed receiver's method name answers to is chosen by its description's
         // two axes — object-class-name or ACTIVE-CLASS, with or without FACTORY — so the citation is derived from
         // the same two facts the roster lookup above used, never written per arm (kb/Work PB1136).
@@ -919,7 +916,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (m is null)
         {
             string other = rdesc.Factory ? "an INSTANCE" : "a FACTORY";
-            string hint = MethodRoster.Of(cls, !rdesc.Factory).Find(method) is not null
+            string hint = MethodRoster.Of(cls, !rdesc.Factory).Find(new ExternalizedMethodName(method)) is not null
                 ? $" ('{method}' IS {other} method of class '{cls.Name}' — the two interfaces are separate, "
                   + "§2023:9.3.6, and this receiver's description selects the "
                   + (rdesc.Factory ? "factory" : "instance") + " one)"
@@ -1790,7 +1787,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 // through unchecked and the emitter rendered a raw `(I)(this)` cast — a runtime
                 // InvalidCastException, or a Roslyn CS error on generated user source for a sealed
                 // class, which the G4 no-CS-on-user-source rule forbids.
-                if (!relationTurnsOnFormal && host.OoClasses?.FindInterface(rd.Name!) is { } tiface
+                if (!relationTurnsOnFormal && host.OoClasses?.Names.InterfaceOf(rd) is { } tiface
                     && !host.OoClasses.ImplementsClosure(cur, host.OoInFactory).Contains(tiface))
                     yield return
                         $"the {(host.OoInFactory ? "factory" : "instance")} "
@@ -1807,7 +1804,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         + "a permitted sending operand (ISO §2023:14.9.39.3 SR12c1)";
                 // c)2. — the class containing the SET statement shall be the receiver's class or a
                 // subclass of it.
-                else if (!relationTurnsOnFormal && host.OoClasses?.Find(rd.Name!) is { } tcls && !cur.ConformsTo(tcls))
+                else if (!relationTurnsOnFormal && host.OoClasses?.Names.ClassOf(rd) is { } tcls && !cur.ConformsTo(tcls))
                     yield return
                         $"class '{cur.Name}' is not '{tcls.Name}' or a "
                         + "subclass of it (ISO §2023:14.9.39.3 SR12c2)";
@@ -1994,9 +1991,8 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 src = sp;
             }
             // SR13's class-name-1 sender is a source reference and takes the §2023:8.4.6.4 scope (PB365).
-            else if (senderRef?.cobolWord()?.GetText() is { } sname
-                     && Compiler.Oo.OoNameResolution.Lookup(host.OoClasses, senderRef, sname,
-                            Compiler.Oo.OoNameResolution.Want.Class) is var named
+            else if (senderRef?.cobolWord() is { } sword && sword.GetText() is { } sname
+                     && (host.OoClasses?.Names.Lookup(senderRef, sword, OoNameWant.Class) ?? default) is var named
                      && (named.Class is not null || named.IsFormal))
             {
                 // SR11 + SR13: the sender names a CLASS → the FACTORY OBJECT of that class (D11's singleton

@@ -150,4 +150,41 @@ public sealed class RaisingPhraseTupleTests
             END OBJECT.
             END CLASS CRPT6.
             """);
+
+    /// <summary>§2023:8.3.2.2: "Within a source element, a given user-defined word may be used as only one type of
+    /// user-defined word". The contained program declares the data-name and USES the same word as the object-class-name
+    /// its container's REPOSITORY declares (§2023:12.3.4 GR1), so its census refuses the RAISING operand COBOL2692. The
+    /// census records a referenced class-name as written, as the declaration funnel records a declared word, so the
+    /// message names the word in the programmer's spelling at the RAISING site (the wording is the implementor's; the
+    /// RAISING partition passed the upper-folded word before listing step 6b's OO lane, review round 1 R1-2).</summary>
+    [Fact]
+    public void ContainedHeaderRaising_ClassNameSpelledLikeOwnData_2692_NamesTheWordAsWritten()
+    {
+        var errors = ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RPT7.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS Exc-A.
+            PROCEDURE DIVISION.
+            MAIN.
+                GOBACK.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RPT7I.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 exc-a PIC X.
+            PROCEDURE DIVISION RAISING Exc-a.
+            MAIN.
+                GOBACK.
+            END PROGRAM RPT7I.
+            END PROGRAM RPT7.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. Exc-A.
+            END CLASS Exc-A.
+            """);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL2692");
+        Assert.Contains(errors, e => e.Contains("COBOL2692", StringComparison.Ordinal) && e.Contains("'Exc-a'", StringComparison.Ordinal));
+    }
 }

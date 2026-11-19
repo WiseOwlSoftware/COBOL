@@ -124,7 +124,6 @@ internal static class ConfigurationStep
         // section 6.7.1, step 6b slices 6 and 7).
         into.RepositoryIntrinsics.UnionWith(from.RepositoryIntrinsics);
         if (from.RepositoryAllIntrinsic) into.RepositoryAllIntrinsic = true;
-        foreach (var (k, v) in from.OoRepositoryProperties) into.OoRepositoryProperties.TryAdd(k, v);
         // OPTIONS (§2023:11.9.4 GR1) — the unit's own OPTIONS paragraph overrides clause by clause when it binds.
         into.InheritedOptions = from.Options;
     }

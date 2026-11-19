@@ -143,7 +143,7 @@ internal static class RepositoryCodec
     /// <summary>⛔ THE NAMES THE IMPORTING GROUP GIVES THE CLASS AND INTERFACE IDENTITIES <paramref name="record"/> NAMES in its
     /// object-reference descriptions (§2023:6.4, §2023:8.7) — the ONE derivation the resolver's provider (REPO-11) and
     /// <c>--repository-check</c>'s comparison both read: each identity's class of the group, else the standard class BASE, else the class
-    /// the external repository publishes under it (<see cref="OoClassTable.ImportClass"/>, which imports it), by identity, because the
+    /// the external repository publishes under it (<see cref="SymbolTable.ClassNames.ImportClass"/>, which imports it), by identity, because the
     /// record keeps the PUBLISHING element's words and a word is per source element. <paramref name="unanswered"/> lists the
     /// identities no class or interface answers (an identity's name is then the written one, the difference a comparison reports).
     /// <paramref name="import"/> false asks only what the group has already imported or defines: a comparison of records
@@ -158,9 +158,9 @@ internal static class RepositoryCodec
             string identity = pic.ObjectRefIdentity!;
             if (names.ContainsKey((isInterface, identity)) || unanswered.Contains((isInterface, identity))) continue;
             IdentityName? name = isInterface
-                ? (import ? table.ImportInterface(identity) : table.FindInterfaceByExternalizedName(identity)) is { } iface
+                ? (import ? table.Names.ImportInterface(identity) : table.Names.FindInterfaceByExternalizedName(identity)) is { } iface
                     ? new IdentityName(iface.Name, iface.Origin is OoSymbolOrigin.Imported ? iface.ClrName : null) : null
-                : (import ? table.ImportClass(identity) : table.FindByExternalizedName(identity)) is { } cls
+                : (import ? table.Names.ImportClass(identity) : table.Names.FindByExternalizedName(identity)) is { } cls
                     ? new IdentityName(cls.Name, cls.Origin is OoSymbolOrigin.Imported ? cls.ClrName : null) : null;
             if (name is { } found) names[(isInterface, identity)] = found;
             else unanswered.Add((isInterface, identity));
@@ -231,9 +231,9 @@ internal static class RepositoryCodec
         public string Identity(RaisingTarget t) => t.Kind switch
         {
             RaisingTargetKind.ExceptionName => t.Name,
-            RaisingTargetKind.ObjectClass => classes?.Find(t.Name)?.ExternalizedName
+            RaisingTargetKind.ObjectClass => classes?.Names.ClassOf(t)?.ExternalizedName
                 ?? throw new InvalidOperationException($"RepositoryCodec: the RAISING class '{t.Name}' resolves to no class of the group"),
-            _ => classes?.FindInterface(t.Name)?.ExternalizedName
+            _ => classes?.Names.InterfaceOf(t)?.ExternalizedName
                 ?? throw new InvalidOperationException($"RepositoryCodec: the RAISING interface '{t.Name}' resolves to no interface of the group"),
         };
 
@@ -297,8 +297,8 @@ internal static class RepositoryCodec
         {
             null or { Name: null } or { Formal: true } or { Kind: ObjectRefKind.Universal } => null,
             { Identity: { } identity } => identity,
-            { Kind: ObjectRefKind.Interface } => classes?.FindInterface(d.Value.Name)?.ExternalizedName,
-            _ => classes?.Find(d.Value.Name)?.ExternalizedName,
+            { Kind: ObjectRefKind.Interface } => classes?.Names.InterfaceOf(d.Value)?.ExternalizedName,
+            _ => classes?.Names.ClassOf(d.Value)?.ExternalizedName,
         };
 
         private int TypeDeclarationOf(DataItem declaration)

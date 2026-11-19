@@ -2,8 +2,8 @@
  "rule-id": "GR-12.3.8.4-1",
  "rule-digest": "05db9ac3ced1",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#IsParameterized",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#IsParameterized",
  "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance-test:ParameterizedClassTests.SkeletonNameOutsideRepository_NamesGr1",
  "editions": "2002,2014,2023",
- "notes": "kb/Work/PB759.md landed w46i3. object-class-name-1 (incl. an expansion name) is usable throughout the scope via the 8.4.6.4 funnel (golden: PB759HOLD-BOX etc. as types and INVOKE receivers). A parameterized class name used outside a REPOSITORY is refused through the referring construct's own code with the GR1 reason."
+ "notes": "kb/Work/PB759.md landed w46i3. object-class-name-1 (incl. an expansion name) is usable throughout the scope via the 8.4.6.4 funnel (golden: PB759HOLD-BOX etc. as types and INVOKE receivers). A parameterized class name used outside a REPOSITORY is refused through the referring construct's own code with the GR1 reason. retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve (listing step 6b, the OO names, kb/Work PB5932, moved the object-class-names and interface-names, their resolution and the PROPERTY specifiers into the symbol table; the row cites src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Resolve)"
 }

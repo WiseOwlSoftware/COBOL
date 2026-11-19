@@ -938,7 +938,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
 | Invariant | Proof |
 |---|---|
 | Every name table is the symbol table: no table keyed by a COBOL name exists outside it | `NameTableOwnershipDriftTests` rule (1) |
-| `Identify` is the only way from a written name to a symbol | rules (2) and (3) |
+| `Identify`, and for the compilation group's object-class-names and interface-names `SymbolTable.ClassNames.Lookup` (which `Resolve`, its diagnosing half, calls), are the only ways from a written name to a symbol, and the only recording points | rules (2) and (3), rule (2)'s companion (only the table makes `IdentifiedName` and `OoNameResult`, the two lookups' answers), and `OoNameResolutionDriftTests` (the group-wide readers of a written word are adjudicated declaration questions) |
 | A declaration question cannot answer a reference (`DeclarationFact`) | rule (4) |
 | Name equality is the table's alone | rule (5) |
 | Every name the programmer wrote to USE something is one occurrence | `GrammarNameSlotDriftTests` (the slots, from the grammar) and `EveryWrittenReferenceIsRecorded` (each slot, one occurrence) |
@@ -947,16 +947,33 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
 - **ONE recording point, made structural in both halves (rounds 2 and 3, R2-1, R3-1, R3-2).** A list of resolve paths
   was incomplete twice, so no list is the guarantee. The occurrence is recorded where a written name becomes a symbol,
   `SymbolTable.Identify`, and two mechanisms, each checked by a drift test that needs no list, make that the only way:
-  - **(a) Every name table is private to `SymbolTable`.** `src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs`
-    OWNS every table keyed by a COBOL name whose value is a symbol, of every name class: data, condition, index,
-    procedure (`ProcedureNames<T>`, step 6b slice 2), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
+  - *(The compilation group's tier, correction of step 6b's OO lane, review round 1 R1-1.)* The object-class-names and
+    interface-names are not one element's names: they are the compilation group's (section "Step 6b, the OO names" below),
+    held by `SymbolTable.ClassNames`, one per group, and a written one is identified by that tier's funnel,
+    `SymbolTable.ClassNames.Lookup(RuleContext? site, ParserRuleContext written, OoNameWant want) -> OoNameResult` (and
+    `Resolve`, which calls `Lookup` and words the diagnostic when nothing answers). It is the second recording point, the
+    group tier's twin of `Identify`, and it holds the same contract: `written` is the word as the parser read it (one token),
+    the answer (`OoNameResult`) is made only inside `SymbolTable` (rule (2)'s companion), and it already records the
+    word's §2023:8.3.2.2 use in the census of the element `site` lies in (`OoClassTable.RecordReferenceUse`). Step 7b records
+    the occurrence there, at `written`, under the same condition it records that use (the word resolved, or named a formal
+    parameter-name), into the same occurrence store `Identify` appends to; a site that asks the funnel twice for one written
+    word (`RaisingPhrase.Partition` re-asks a formal under FACTORY OF with `OoNameWant.Class`) records one occurrence, keyed
+    by the written token, as `Identify`'s probe flag keeps a probe and its resolution one occurrence. What the tier answers
+    WITHOUT recording is no reference: `GroupClassNamed` and `GroupInterfaceNamed` (a REPOSITORY specifier's own question
+    of the group, §2023:12.3.8.3 SR6, SR9 and SR16, adjudicated by `OoNameResolutionDriftTests`), `ResolveSpecifier` (what
+    a specifier, a declaration, stands for) and the carrier readers (`ClassOf`, `InterfaceOf`, `SkeletonOf`: a read of a
+    name resolved, and recorded, where it was written).
+  - **(a) Every name table is private to `SymbolTable`.** `src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs`
+    and its partial files OWN every table keyed by a COBOL name whose value is a symbol, of every name class: data,
+    condition, index, procedure (`ProcedureNames<T>`, step 6b slice 2), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
     report, report group, report VARYING, sum counter, CD (`CommunicationSlice`), screen, the CONFIGURATION SECTION names
     (alphabet, class, symbolic-character, mnemonic, locale, through `ConfigurationNames<T>`), type and constant names,
     the special registers that are implicitly defined names (CAPACITY, DEBUG-ITEM), the REPOSITORY specifiers and the
-    OO class, interface and method tables. Its one public LOOKUP is
+    OO class and interface tables (the group tier's, `SymbolTable.ClassNames`; a method roster is keyed by the
+    externalized method name, no COBOL word, and stays on its class). Its one public LOOKUP of an element's names is
     `SymbolTable.Identify(ParserRuleContext written, NameClass wanted, bool report) -> IdentifiedName`, where `written`
-    is the name as the parser read it and `NameClass` says which classes the position admits. Every other lookup the
-    tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
+    is the name as the parser read it and `NameClass` says which classes the position admits; the group tier's is
+    `ClassNames.Lookup`, above. Every other lookup the tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
     (`SymbolTable.Declare`, which records the `Defined` occurrence and returns a `SymbolId`, an opaque number, never an
     entry or a symbol) and write each entry's attributes where they decide them (`SymbolTable.SetAttributes(SymbolId,
     ...)`, section 6.6); those two and `Identify` are the table's only writers.
@@ -966,8 +983,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     `readonly record struct DeclarationFact(bool Exists, DeclarationConflict Conflict, NameClass Class,
     SourceLocation DeclaredAt)`. The fact names a place in the source, never a `DataItem`, `FileModel`, `Condition88`
     or any other symbol, so no caller can turn it into an operand: a reference needs a symbol, and only
-    `Identify` hands one out (inside an `IdentifiedName`). Every position the programmer wrote a name in to USE it
-    goes through `Identify` and records, whatever division it is in: a RECORD KEY or ALTERNATE RECORD KEY name
+    `Identify` hands one out (inside an `IdentifiedName`; a class or interface, `ClassNames.Lookup` inside an `OoNameResult`).
+    Every position the programmer wrote a name in to USE it goes through `Identify` (an object-class-name or interface-name
+    through `ClassNames.Lookup`) and records, whatever division it is in: a RECORD KEY or ALTERNATE RECORD KEY name
     (`FileModel.RecordKeyNameCandidates` today), an ASSIGN USING data-name, a KEY phrase of SORT, MERGE or READ, an
     OCCURS DEPENDING ON or INDEXED BY operand, a REDEFINES or RENAMES object, a CONSTANT FROM or LENGTH OF operand, and
     every caller of today's `DataBinder.QualifiedCandidates` (which asks for symbols, so it is a resolution).
@@ -1335,6 +1353,53 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       and `CheckDefinitionNameUniqueness`. They wait in the baseline for the run-unit tier the OO class names need, which is the same
       tier; `DataBinder._repositoryNameReported` (the once-per-word report of §2023:12.3.8.3 SR12 and SR13 in the user-word
       declaration funnel) moves with the data-name class's declarations.
+  - *(Step 6b, the OO names, branch `listing-step-6b-oo`, a lane beside the data-name lane.)* The object-class-names,
+    interface-names and method rosters moved, and the PROPERTY specifiers; the lane lowers the baseline by 46 (rule (1) 8 tables,
+    rule (3) 7 lookups, rule (5) 31 sites): 155 with slice 7's. `SymbolTable.ClassNames` (`SymbolTable.ClassNames.cs`) owns what `OoClassTable`,
+    `OoNameResolution` and `IdentityScope` (both deleted) and `OoInterfaceSymbol` held: the group's classes and interfaces by name, the
+    imported ones by identity and the identities asked of the importer, the §2023:8.4.6.4 funnel (`Resolve`, and `Lookup`, its
+    non-diagnosing half), each source element's REPOSITORY scope (`SymbolTable.RepositoryScope`, which was `IdentityScope`), an
+    interface's method surface (`AllPrototypes`) with the §2023:11.6.3 SR5 conforming choice, and the questions that answer no symbol.
+    `SymbolTable.Properties.cs` owns the PROPERTY specifiers (`ConfigurationSlice.OoRepositoryProperties`, deleted), inherited with the
+    configuration-section names. The corrections the code proved:
+    - *The class names are the COMPILATION GROUP's tier, not an element's table (correction).* The progress table said "run-unit
+      wide: the table needs a run-unit tier". A class or interface definition is a source unit of the group, built before any element
+      binds so that a reference resolves a class defined later in the file (OO deep-dive D1), and one element's REPOSITORY names
+      another unit's class (§2023:8.4.6.4), so the names are the group's, never one element's: one `ClassNames` per `OoClassTable`
+      (`OoClassTable.Names`), which keeps the symbols in source order, the skeletons and the §2023:8.3.2.2 censuses. It is a nested
+      type of `SymbolTable`, so its tables are the one store's and rules (1) to (5) see them; it is the tier slice 7's group-wide
+      function comparisons wait for.
+    - *A method roster is keyed by no COBOL word (correction).* An INVOKE names its method only by literal-1 or identifier-2
+      (§2023:14.9.23.2), resolved "as described in 8.3.2.2, User-defined words" (§2023:14.9.23.4 GR2) against the method's
+      externalized name (§2023:11.7.4 GR1 b)), so a class's instance and factory rosters and an interface's prototypes are keyed by a
+      type of their own, `ExternalizedMethodName` (`OoMethodSymbol.RosterKey`), as slice 6 keyed the AS NESTED table by
+      `ExternalizedProgramName`; its one equality is the Annex C fold the rosters compared with, one classified comparer site.
+    - *A written name's SITE and its WORD are two inputs (correction).* The funnel took the site and the name as text. The census a
+      use is recorded in and the scope it is resolved in are the SITE's (an IMPLEMENTS operand is asked at its class definition,
+      whose census is not its OBJECT paragraph's), and the name is the word, one token: `Resolve(edition, site, written, want, ...)`
+      and `Lookup(site, written, want)`. A context of several tokens names nothing (the one-word rule of `Identify`), where a
+      receiver's glued text was looked up before. `Lookup` is therefore the group tier's recording point, `Identify`'s twin
+      (the invariant table and "The compilation group's tier" above, review round 1 R1-1), and the census it records into takes
+      the word as written, as the declaration funnel (`DataBinder.DeclareUserWord`) does, so a COBOL2692 names the word in the
+      programmer's spelling at every site (review round 1 R1-2: the RAISING partition passed the upper-folded word before).
+    - *A name a symbol carries resolves from the carrier (as slice 6's prototypes).* An object-reference description and a RAISING
+      element hold the class's table key as text, resolved where it was written; their readers hand the tier the carrier
+      (`ClassOf(ObjectRefDescriptor)`, `InterfaceOf`, `ClassOf(RaisingTarget)`, `SkeletonOf`), and `OoClassTable.Find` and
+      `FindInterface` are deleted. A REPOSITORY specifier's own question of the group (§2023:12.3.8.3 SR6, SR9, SR16) reads the group
+      whatever the scope (`GroupClassNamed`, `GroupInterfaceNamed`, by the written word); `OoNameResolutionDriftTests` adjudicates
+      those callers, as it adjudicated the direct `Find` callers before.
+    - *An interface's method SURFACE is keyed by method-name (correction).* `AllPrototypes` presents one prototype per method-name
+      and the SR5 choice is keyed by method-name, both user words, so both are the tier's; `MethodRoster`'s interface arm holds the
+      surface the tier presents (`MethodRoster.Of(IReadOnlyList<OoMethodSymbol>)`), and the symbol keeps only the presented set the
+      emitter reads (`OoInterfaceSymbol.PresentedInherited`). The surface is keyed by method-name while the inherited-prototype
+      grouping and every roster are keyed by the externalized name: kb/Work PB5932's dated file `2026-11-19-step-6b-oo` carries that
+      lead (behaviour kept exactly; the oracle is identical).
+    - *What the OO class leaves (a decision for its next sub-slice).* The parameterized definitions' expansion (`OoExpansion.Expand`)
+      runs before the class table exists and compares skeleton names, EXPANDS operands and formal parameter-names with the token
+      text it substitutes: 18 rule (5) sites. Its names are class-names, interface-names and parameter-names, so they are the
+      group tier's, but the tier is made with the table the expansion produces; whether the tier is made first (before the
+      expansion) or the expansion's names get a tier of their own is the next sub-slice's design question, and the 18 sites stay
+      in the baseline until it is answered.
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1469,7 +1534,7 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 | CONFIGURATION SECTION names (alphabet, class, symbolic character, mnemonic, locale) | `ConfigurationNames<T>._entries`; `SpecialNamesBinder.RangeCollations`, `DataBindResult.RangeCollations` |
 | Implicit registers | `ImplicitRegisters._debugRegisters` (`DebugRegisters`) |
 | Program, function, prototype, repository | `StatementBinder.ProgramPrototypes`, `NestedCallables`, `UserFunctions`; `ConfigurationSlice.ProgramSpecifiers`, `FunctionSpecifiers`; `DataBinder._repositorySpecified`; `GroupRepositoryProvider.NoFunctions` (since step 6b slice 6 the program-prototype tables are `SymbolTable`'s and `NestedCallables` is keyed by `ExternalizedProgramName`; since slice 7 the function tables are `SymbolTable`'s and `NoFunctions` is deleted) |
-| OO class, interface, method | `OoClassTable._byName`, `_ifaceByName`, `_imported`, `_importedInterfaces`; `OoClassSymbol._methods`, `_factoryMethods`; `OoInterfaceSymbol._protos`, `_conformingChoice` |
+| OO class, interface, method | `OoClassTable._byName`, `_ifaceByName`, `_imported`, `_importedInterfaces`; `OoClassSymbol._methods`, `_factoryMethods`; `OoInterfaceSymbol._protos`, `_conformingChoice` (since step 6b's OO lane the class and interface tables and the SR5 choice are `SymbolTable.ClassNames`', and the rosters are keyed by `ExternalizedMethodName`) |
 | Keyed by something that is not a COBOL user word (re-keyed by a type of their own, so rule (1) no longer sees a `string` key) | `IntrinsicCatalog.Table`, `IntrinsicArgumentRules.Verified` (intrinsic function names, a standard catalog); `ImplementorNameRegistry.ByName` (implementor-names); `FileModel.FdClauses`, `ScreenFacility.ClauseFacts` (clause keywords); `ExpansionPlacements.ByName` (CLR type names); `Polynomial._terms` (C# expression text) |
 
 **The name comparisons (R4-2).** A second Roslyn sweep (by symbol through the `SemanticModel`, over every document of
@@ -1916,6 +1981,7 @@ renderer. Naming it asks for a listing at any edition.
   README's step-6b table, slice 5).
   Slice 6 (the program-prototype-names) moves no measurable allocation: every branch `None` row lies inside the parent's two runs or
   within 0.06 MB of them, IX113A's below both (68.98 and 68.85 MB against 69.05 and 69.09; the README's step-6b table, slice 6).
+  The OO lane (the object-class-names, interface-names, method rosters and PROPERTY specifiers, measured against its parent 84097a3e22): every branch `None` row lies inside the parent's two runs or within 0.09 MB of them (IX113A 69.07 and 69.02 MB against 69.05 and 68.99; NC105A 35.20 and 35.04 against 35.11 and 35.06; NC218A 30.94 and 31.08 against 30.96 and 31.56; SM201A 15.41 and 15.21 against 15.35 and 15.40), so the lane moves no measurable allocation; the `None` budget holds (the benchmark README's step-6b table, the OO lane).
 
 ## 10. Test plan
 
@@ -2161,6 +2227,12 @@ function-prototype-names moved into the table with their resolution and the cont
 holds what remains by class: the data-name class and the OO names with the compilation group's tier. Slice 7 also fixed the open
 review leads of listing steps 2 to 7 (kb/Work PB5932's dated file `2026-11-19-review-leads-slices-2-and-3` and the review findings of
 each step), whose corrections are marked "step 6b slice 7" in sections 6.3, 6.7.1 and 11.
+(Step 6b, the OO names, branch `listing-step-6b-oo`, a lane beside the data-name lane, controller 2026-11-19:) the object-class-names
+and interface-names moved into the symbol table's compilation-group tier, `SymbolTable.ClassNames`, with their resolution, the method
+rosters are keyed by the externalized method name, and the PROPERTY specifiers are the element tier's (section 6.7.1, "Step 6b, the
+OO names"), each change shown behaviour-neutral by `compare_oracle.py`; kb/Work PB5932's dated file `2026-11-19-step-6b-oo` holds what
+the OO class leaves (the parameterized definitions' expansion) and the section 9 rows. Lanes run in parallel by class; none empties
+the baseline, which a closing slice deletes after every lane has landed.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had
@@ -2171,7 +2243,8 @@ self-test, then the labels on every name slot of `CobolParserCore.g4` and the `C
 (`scripts/gen-grammar-diagrams.ps1`) taught to drop a label. It changes no parse and depends on nothing step 6b changes.
 **Step 7b - the occurrences and the cross-reference, after step 6b lands.** `ReferenceOccurrenceDriftTests`; `Identify`
 appends each `SymbolOccurrence`
-to its entry (Identify's register arms included), `PlaceBuilder.PlaceForItem` / `PlaceBuilder.WholeTable` take
+to its entry (Identify's register arms included), and so does the group tier's recording point, `SymbolTable.ClassNames.Lookup`,
+for each written object-class-name and interface-name (section 6.7.1, "The compilation group's tier"), `PlaceBuilder.PlaceForItem` / `PlaceBuilder.WholeTable` take
 `IdentifiedName`, `StatementBinder.BindStatement` classifies the occurrences since its mark through the new
 `BoundStores.StorePositionsOf`, all gated by `EditionContext.RecordsReferences`. Step 7b lands with the grammar test,
 the completeness oracle and the pairing test green. Then `CrossReferenceBuilder` (a view of the entries and their

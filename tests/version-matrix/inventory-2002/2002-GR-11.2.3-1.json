@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-11.2.3-1",
  "rule-digest": "4693924f884f",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindByExternalizedName",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#FindByExternalizedName",
  "test-ref": "conformance:cases/11.2@2002-CLASS-ID-PARAGRAPH/g2-classid-as-externalized",
- "notes": "§2002:11.2.3 GR1 with §2002:12.2.7.3 GR2: CLASS-ID. G2CLN AS \"G2CLNEXT\" is reached by a client's CLASS K AS \"G2CLNEXT\", and its method prints HI FROM G2CLN at --std 2002 as derived. A client naming AS \"G2CLN\" is refused COBOL5962, so the literal is the externalized name."
+ "notes": "§2002:11.2.3 GR1 with §2002:12.2.7.3 GR2: CLASS-ID. G2CLN AS \"G2CLNEXT\" is reached by a client's CLASS K AS \"G2CLNEXT\", and its method prints HI FROM G2CLN at --std 2002 as derived. A client naming AS \"G2CLN\" is refused COBOL5962, so the literal is the externalized name. retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindByExternalizedName (listing step 6b, the OO names, kb/Work PB5932, moved the object-class-names and interface-names, their resolution and the PROPERTY specifiers into the symbol table; the row cites src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#FindByExternalizedName)"
 }

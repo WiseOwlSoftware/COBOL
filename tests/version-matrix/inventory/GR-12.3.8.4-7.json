@@ -2,8 +2,8 @@
  "rule-id": "GR-12.3.8.4-7",
  "rule-digest": "8db5d279147d",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#IsParameterized",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#IsParameterized",
  "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
  "editions": "2002,2014,2023",
- "notes": "kb/Work/PB759.md landed w46i3. interface-name-2 (PB759IPUT-BOX) is usable throughout the scope (USAGE OBJECT REFERENCE, IMPLEMENTS); a parameterized interface name outside a REPOSITORY takes the same GR1/GR7 refusal in Resolve."
+ "notes": "kb/Work/PB759.md landed w46i3. interface-name-2 (PB759IPUT-BOX) is usable throughout the scope (USAGE OBJECT REFERENCE, IMPLEMENTS); a parameterized interface name outside a REPOSITORY takes the same GR1/GR7 refusal in Resolve. retired-witness: src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve (listing step 6b, the OO names, kb/Work PB5932, moved the object-class-names and interface-names, their resolution and the PROPERTY specifiers into the symbol table; the row cites src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.ClassNames.cs#Resolve)"
 }

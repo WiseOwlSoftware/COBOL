@@ -13,7 +13,9 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// <summary>
 /// ⛔ <c>SymbolTable</c> IS THE ONE STORE OF THE PROGRAM'S NAMES (docs/rearchitecture/DESIGN-listing.md section 6.7.1;
 /// kb/Work PB5932, listing step 6b). The listing's cross-reference is complete only if every written name reaches its
-/// symbol through one place, <c>SymbolTable.Identify</c>, which records it. A list of resolve paths was incomplete twice
+/// symbol through a recording point: <c>SymbolTable.Identify</c> for an element's names, and the compilation group tier's
+/// twin, <c>SymbolTable.ClassNames.Lookup</c>, for an object-class-name or interface-name (only the table makes either's answer,
+/// <c>IdentifiedName</c> or <c>OoNameResult</c>). A list of resolve paths was incomplete twice
 /// (design review rounds 1 and 2), so no list is the guarantee: the five rules of <see cref="NameTableOwnership"/> are
 /// properties of types and calls the semantic model sees, so a new table, lookup or comparison anywhere in the compiler is
 /// red by what it is. Two committed classifications hold what is not a resolution, each entry with its reason, and may
@@ -42,8 +44,11 @@ public sealed class NameTableOwnershipDriftTests
     /// 47 tables, 61 lookups, 200 sites; 294 at slice 3, which moved the constant-names: 43 tables, 56 lookups, 195 sites; 279 at
     /// slice 4, which moved the CONFIGURATION SECTION names: 40 tables, 51 lookups, 188 sites; 234 at slice 5, which moved the
     /// REPORT SECTION names: 35 tables, 42 lookups, 157 sites; 223 at slice 6, which moved the program-prototype-names: 31 tables,
-    /// 40 lookups, 152 sites; 201 at slice 7, which moved the function-prototype-names: 28 tables, 38 lookups, 135 sites).</summary>
-    private const int BaselineCeiling = 201;
+    /// 40 lookups, 152 sites; 201 at slice 7, which moved the function-prototype-names: 28 tables, 38 lookups, 135 sites; 155 with the
+    /// OO names' lane, branch listing-step-6b-oo, which moved the method rosters, re-keyed by the externalized method name, and the
+    /// object-class-names and interface-names with their resolution into the compilation group's tier and the PROPERTY specifiers:
+    /// 20 tables, 31 lookups, 104 sites).</summary>
+    private const int BaselineCeiling = 155;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -56,9 +61,13 @@ public sealed class NameTableOwnershipDriftTests
     /// <c>TryResolveRangeAlphabet</c> answer the carrier it registers, and dropped two entries whose string was an alphabet-name or
     /// class-name now carried as its context: +3 -2. Slice 5: 123 -> 125. <c>ReportGroupResolution.Resolve</c> takes the written
     /// report-group reference as its context and keeps the diagnostic's site; <c>DataBinder.ReportPrintablePicture</c>, which the
-    /// first measurement counted as a report lookup, resolves no name: its strings word the item in a diagnostic.)</summary>
+    /// first measurement counted as a report lookup, resolves no name: its strings word the item in a diagnostic. The OO names' lane:
+    /// 125 -> 123 -> 125. <c>MethodRoster.Find</c> and <c>OoInterfaceSymbol.FindOwnPrototype</c> take the roster key's own type (-2);
+    /// the four external-repository members moved into <c>SymbolTable.ClassNames</c> with their reason (-4 +4); and
+    /// <c>SymbolTable.ClassNames.Resolve</c> and <c>OoDataBinder.DescribeNamedReference</c> take the written word as its context and
+    /// keep the diagnostic's strings (+2). The comparisons: 86 -> 81, the five the tier now makes.)</summary>
     private const int StringMembersCeiling = 125;
-    private const int ComparisonsCeiling = 86;
+    private const int ComparisonsCeiling = 81;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
     private static readonly string MeasuredFile = Path.Combine(AppContext.BaseDirectory, "name-table-ownership.measured.txt");

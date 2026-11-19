@@ -130,7 +130,7 @@ public sealed class UserWordDeclarationDriftTests
     /// (<c>DataBinder.CheckOneTypePerWord</c>) and the reference funnel (<c>OoClassTable.RecordReferenceUse</c>, a
     /// method's reference to an object-class-name, interface-name or parameter-name its class declares, kb/Work PB3132),
     /// and the reference funnel is reached from two resolvers only: the one class-name resolver,
-    /// <c>OoNameResolution.Lookup</c>, and the one recorder of a reference to a name a CONFIGURATION SECTION declares,
+    /// <c>SymbolTable.ClassNames.Lookup</c> (the symbol table's compilation-group tier, listing step 6b), and the one recorder of a reference to a name a CONFIGURATION SECTION declares,
     /// <c>DataBinder.RecordConfigurationNameUse</c> (kb/Work PB3153), which only <c>SymbolTable.Identify</c> calls, for a
     /// configuration-section name it identifies with <c>report: true</c> (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step
     /// 6b, slice 4"). A third recorder, or a resolution that bypassed them, would let a contained program or a method use a word
@@ -141,7 +141,7 @@ public sealed class UserWordDeclarationDriftTests
         var sources = CompilerSources();
         Assert.Equal(["DataBinder.cs", "OoClassTable.cs"],
             sources.Where(s => Regex.IsMatch(s.Text, @"(?:WordCensus|Words)\.Record\(")).Select(s => s.Name).Order());
-        Assert.Equal(["DataBinder.cs", "OoNameResolution.cs"],
+        Assert.Equal(["DataBinder.cs", "SymbolTable.ClassNames.cs"],
             sources.Where(s => Regex.IsMatch(s.Text, @"\.RecordReferenceUse\(")).Select(s => s.Name).Order());
         Assert.Equal(["SymbolTable.Identify.cs"],
             sources.Where(s => Regex.IsMatch(s.Text, @"\.RecordConfigurationNameUse\(")).Select(s => s.Name).Order());

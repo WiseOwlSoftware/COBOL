@@ -227,8 +227,8 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             return ObjectRefDescriptor.ActiveClass(OwnerClassName, factory);
         }
 
-        if (oru.className()?.GetText() is not { } name) return ObjectRefDescriptor.Universal;
-        return DescribeNamedReference(oru, name, factory, only: oru.ONLY() is not null,
+        if (oru.className() is not { } written) return ObjectRefDescriptor.Universal;
+        return DescribeNamedReference(oru, written, factory, only: oru.ONLY() is not null,
             $"{entryWhere}: USAGE OBJECT REFERENCE", "ISO §2023:13.18.60.2/.4",
             DiagnosticCatalog.ObjectReferenceInterfacePhrase, "ISO §2023:13.18.60.2; §2023:13.18.60.4 GR22 c)");
     }
@@ -240,10 +240,11 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// interface is refused by the asking format's own rule (<paramref name="interfacePhrase"/>). An unresolved name
     /// keeps the word written (the funnel has reported why), so every later diagnostic still says what the program
     /// wrote.</summary>
-    internal ObjectRefDescriptor DescribeNamedReference(Antlr4.Runtime.ParserRuleContext site, string name,
+    internal ObjectRefDescriptor DescribeNamedReference(Antlr4.Runtime.ParserRuleContext site, Antlr4.Runtime.ParserRuleContext written,
         bool factory, bool only, string where, string resolveRule,
         DiagnosticDescriptor interfacePhrase, string interfaceRule)
     {
+        string name = written.GetText();
         // A TYPED reference (spine part 2 — LIVE): the declared name must resolve — its emitted C# field type
         // IS the named class's or interface's emitted type (PicInfo.ClrType), so an unresolved name would
         // surface as a Roslyn CS0246 on user source (a loud-failure violation). §2023:13.18.60.2: the operand is
@@ -254,16 +255,15 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         // REPOSITORY rule of its own, so §2023:8.4.6.4 IS the rule). Resolving the name HERE, through the one
         // funnel, is what makes that scope travel with the descriptor: `oru` is the reference site the
         // ancestor walk starts from.
-        var resolved = Compiler.Oo.OoNameResolution.Resolve(OoClasses, Edition, site, name,
-            Compiler.Oo.OoNameResolution.Want.Either, where, DiagnosticCatalog.ObjectClassNameNotResolvable.Code, resolveRule);
+        var resolved = OoClasses?.Names.Resolve(Edition, site, written,
+            OoNameWant.Either, where, DiagnosticCatalog.ObjectClassNameNotResolvable.Code, resolveRule) ?? default;
         // A PARAMETER-NAME of the parameterized definition being bound as itself (kb/Work PB2051, PB2937): it stands where
         // an object-class-name or an interface-name is permitted (§2023:11.3.4 GR6), so the description takes the alternative
         // its own REPOSITORY specifier declares — an interface formal is the bare-name alternative — marked FORMAL: what it
         // names is each expansion's actual (§2023:9.3.8.2.4, §2023:12.3.8.4 GR5), so a question that turns on which class it is
         // waits for the expansion, and every other one is asked here (ObjectRefDescriptor.Formal). Nothing emits from it.
         bool isInterface = resolved.Interface is not null
-            || resolved.IsFormal && !Compiler.Oo.OoNameResolution.Lookup(OoClasses, site, name,
-                Compiler.Oo.OoNameResolution.Want.Class).IsFormal;
+            || resolved.IsFormal && !(OoClasses?.Names.Lookup(site, written, OoNameWant.Class) ?? default).IsFormal;
         if (isInterface && (factory || only))
             // The general format's interface-name-1 alternative is the BARE name: FACTORY OF and ONLY belong to
             // the object-class-name-1 alternative alone, and GR22 c) states the interface reading with no
@@ -603,7 +603,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             // NO GET + explicit GET pair, which synthesizes no colliding accessor, compiled). The clause then defines no
             // accessor: the explicit method keeps the property.
             if ((factory ? cls.FactoryMethods : cls.Methods).FirstOrDefault(m =>
-                    m.Origin is OoSymbolOrigin.Source && CobolNames.Same(m.PropertyName, subjName)) is { } explicitAccessor)
+                    m.Origin is OoSymbolOrigin.Source && SymbolTable.ClassNames.IsAccessorOf(m, subjName)) is { } explicitAccessor)
             {
                 Edition.Error(DiagnosticCatalog.PropertyMethodRule, $"{where}: METHOD-ID "
                     + $"{(explicitAccessor.Accessor == 'G' ? "GET" : "SET")} PROPERTY {subjName} names a data-name of the "

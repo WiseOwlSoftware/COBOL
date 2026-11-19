@@ -62,14 +62,17 @@ public static class OoConformance
             Check(cls, cls.FactoryMethods, cls.FindFactoryMethod);
         }
 
-        void Check(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> declared, Func<string, OoMethodSymbol?> find)
+        void Check(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> declared, Func<ExternalizedMethodName, OoMethodSymbol?> find)
         {
-            var seen = new HashSet<string>(CobolNames.Comparer);
+            // Each property's pair once, keyed by its get accessor's roster key (the pinned accessor name, §2023:11.7.4 GR1 a)).
+            var seen = new HashSet<ExternalizedMethodName>();
             foreach (var accessor in declared)
             {
-                if (accessor.PropertyName is not { } prop || !seen.Add(prop)) continue;
-                if (find(NamingConvention.GetAccessorName(prop)) is not { Binding.Returning: { } returning } get
-                    || find(NamingConvention.SetAccessorName(prop)) is not { Binding.Formals: [{ } setFormal] } set)
+                if (accessor.PropertyName is not { } prop) continue;
+                var getKey = new ExternalizedMethodName(NamingConvention.GetAccessorName(prop));
+                if (!seen.Add(getKey)) continue;
+                if (find(getKey) is not { Binding.Returning: { } returning } get
+                    || find(new ExternalizedMethodName(NamingConvention.SetAccessorName(prop))) is not { Binding.Formals: [{ } setFormal] } set)
                     continue;   // a missing accessor is §2023:8.4.3.9.3 SR3/SR4's, decided where the polarity is known
                 if (SignatureDifference(returning, setFormal.Item, "RETURNING item of the get property method",
                         "USING parameter of the set property method") is not { } why) continue;
@@ -108,9 +111,9 @@ public static class OoConformance
         {
             string side = factory ? "factory " : "";
             foreach (var iface in closure)
-                foreach (var proto in iface.AllPrototypes())
+                foreach (var proto in table.Names.AllPrototypes(iface))
                 {
-                    var impl = MethodRoster.Of(cls, factory).Find(proto.ExternalizedName);   // the roster key (PB303)
+                    var impl = MethodRoster.Of(cls, factory).Find(proto.RosterKey);   // the roster key (PB303)
                     if (impl is null)
                     {
                         using var atClass = edition.At(sources.Of(cls).classIdParagraph().className(0));
@@ -276,7 +279,7 @@ public static class OoConformance
     /// <summary>Rule 9 b) for one object-class-name element <paramref name="t"/> of interface-1's phrase.</summary>
     private static bool ClassRaisingCovered(OoClassTable table, RaisingTarget t, IReadOnlyList<RaisingTarget> other)
     {
-        var cls = table.Find(t.Name);
+        var cls = table.Names.ClassOf(t);
         for (var c = cls; c is not null; c = c.Base)
             if (other.Any(u => u.Kind is RaisingTargetKind.ObjectClass && u.Factory == t.Factory
                     && CobolNames.Same(u.Name, c.Name)))
@@ -293,7 +296,7 @@ public static class OoConformance
         var listed = other.Where(u => u.Kind is RaisingTargetKind.Interface).ToList();
         if (listed.Count == 0) return false;
         if (listed.Any(u => CobolNames.Same(u.Name, t.Name))) return true;
-        if (table.FindInterface(t.Name) is not { } iface) return false;
+        if (table.Names.InterfaceOf(t) is not { } iface) return false;
         var seen = new HashSet<OoInterfaceSymbol>();
         var stack = new Stack<OoInterfaceSymbol>(iface.Inherits);
         while (stack.Count > 0)
@@ -325,51 +328,13 @@ public static class OoConformance
         OoMethodSymbol m2, string interface2)
     {
         if (CobolNames.Same(interface1, interface2)) return null;
-        if (ReturningReference(m1) is not { } r1 || ReturningReference(m2) is not { } r2) return null;
-        return Reaches(table, r1, interface2) && Reaches(table, r2, interface1)
+        if (SymbolTable.ClassNames.ReturningReference(m1) is not { } r1 || SymbolTable.ClassNames.ReturningReference(m2) is not { } r2) return null;
+        return table.Names.ReturningReaches(r1, interface2) && table.Names.ReturningReaches(r2, interface1)
             ? $"the returning item of this method references '{interface2}' (through '{r1}') and the returning item of "
               + $"the corresponding method references '{interface1}' (through '{r2}'), directly or indirectly (ISO "
               + "§2023:9.3.8.2.3: the description of the returning item of the corresponding method in interface-2 \"shall "
               + "not directly or indirectly reference interface-1\")"
             : null;
-    }
-
-    /// <summary>The class or interface a method's RETURNING item references — the name an object reference described
-    /// with an object-class-name, an interface-name or ACTIVE-CLASS (whose descriptor names the containing class)
-    /// carries; null for a universal reference or a returning item that is not an object reference.</summary>
-    private static string? ReturningReference(OoMethodSymbol m) =>
-        m.Binding?.Returning?.Pic is { Category: PicCategory.ObjectReference, ObjectRef: { Kind: not ObjectRefKind.Universal, Name: { } n } }
-            ? n : null;
-
-    /// <summary>Does the reference graph lead from <paramref name="start"/> to <paramref name="target"/> (the start
-    /// itself counting — a DIRECT reference)? Edges: every RETURNING item of a class's methods (instance and factory)
-    /// or an interface's prototypes (inherited ones included), a class's INHERITS and both IMPLEMENTS lists, an
-    /// interface's INHERITS. Breadth-first with a visited set (kb/Work R63 3.).</summary>
-    private static bool Reaches(OoClassTable table, string start, string target)
-    {
-        var seen = new HashSet<string>(CobolNames.Comparer);
-        var queue = new Queue<string>();
-        queue.Enqueue(start);
-        while (queue.Count > 0)
-        {
-            string node = queue.Dequeue();
-            if (!seen.Add(node)) continue;
-            if (CobolNames.Same(node, target)) return true;
-            if (table.Find(node) is { } cls)
-            {
-                foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
-                    if (ReturningReference(m) is { } r) queue.Enqueue(r);
-                if (cls.Base is { } b) queue.Enqueue(b.Name);
-                foreach (var i in cls.Implements.Concat(cls.FactoryImplements)) queue.Enqueue(i.Name);
-            }
-            else if (table.FindInterface(node) is { } iface)
-            {
-                foreach (var p in iface.AllPrototypes())
-                    if (ReturningReference(p) is { } r) queue.Enqueue(r);
-                foreach (var i in iface.Inherits) queue.Enqueue(i.Name);
-            }
-        }
-        return false;
     }
 
     /// <summary>
@@ -380,7 +345,7 @@ public static class OoConformance
     /// conditions" — the conditions being <see cref="MethodConformanceMismatches"/>. "Every method in" an
     /// interface includes the inherited ones (§2023:9.3.10: "The inheriting interface has all the method
     /// specifications defined for the inherited interface definition or definitions"), hence
-    /// <see cref="OoInterfaceSymbol.AllPrototypes"/> on both sides. One implementation, one entry convention
+    /// <see cref="SymbolTable.ClassNames.AllPrototypes"/> on both sides. One implementation, one entry convention
     /// (every method of the group is emitted to the same .NET calling convention), so that clause holds. Asked by
     /// GOBACK §2023:14.9.18.3 SR4 b) / EXIT §2023:14.9.14.3 SR5 b) (kb/Work PB814); runs after every interface's prototype
     /// formals have bound (<c>BinderDriver</c> binds interface data before any procedure body).
@@ -388,10 +353,10 @@ public static class OoConformance
     public static bool InterfaceConformsTo(OoClassTable table, OoInterfaceSymbol interface1, OoInterfaceSymbol interface2)
     {
         if (ReferenceEquals(interface1, interface2)) return true;
-        var mine = new Dictionary<string, OoMethodSymbol>(CobolNames.Comparer);
-        foreach (var p in interface1.AllPrototypes()) mine.TryAdd(p.ExternalizedName, p);   // first declaration wins
-        foreach (var m2 in interface2.AllPrototypes())
-            if (!mine.TryGetValue(m2.ExternalizedName, out var m1)
+        var mine = new Dictionary<ExternalizedMethodName, OoMethodSymbol>();
+        foreach (var p in table.Names.AllPrototypes(interface1)) mine.TryAdd(p.RosterKey, p);   // first declaration wins
+        foreach (var m2 in table.Names.AllPrototypes(interface2))
+            if (!mine.TryGetValue(m2.RosterKey, out var m1)
                 || MethodConformanceMismatches(table, m1, m2, $"the '{interface2.Name}' prototype",
                        interface1.Name, interface2.Name).Any())
                 return false;
@@ -406,7 +371,7 @@ public static class OoConformance
     /// when ONE inherited prototype conforms (<see cref="MethodConformanceMismatches"/>, the §2023:9.3.8.2.3 rule set every
     /// asker shares) to every other — identical prototypes inherited twice trivially, and a covariant RETURNING pair
     /// (rule 5) through the more specific one. That prototype is recorded as the interface's own presentation
-    /// (<see cref="OoInterfaceSymbol.ChooseInheritedPrototype"/>), so <see cref="OoInterfaceSymbol.AllPrototypes"/>, the
+    /// (<see cref="SymbolTable.ClassNames.ChooseInheritedPrototype"/>), so <see cref="SymbolTable.ClassNames.AllPrototypes"/>, the
     /// IMPLEMENTS pass and <see cref="InterfaceConformsTo"/> all read the conforming one. A violation is COBOL2762 on
     /// the INHERITING interface — before this pass it surfaced only when some class implemented the interface (COBOL0841
     /// at the class), and an unimplemented interface was accepted. Runs after every interface's prototype formals bound.</summary>
@@ -414,12 +379,12 @@ public static class OoConformance
     {
         foreach (var isym in table.Interfaces)
         {
-            var byName = new Dictionary<string, List<(OoInterfaceSymbol Iface, OoMethodSymbol Proto)>>(CobolNames.Comparer);
+            var byName = new Dictionary<ExternalizedMethodName, List<(OoInterfaceSymbol Iface, OoMethodSymbol Proto)>>();
             foreach (var inherited in isym.InheritedClosure())
                 foreach (var proto in inherited.Prototypes)
                 {
-                    if (!byName.TryGetValue(proto.ExternalizedName, out var list))
-                        byName[proto.ExternalizedName] = list = [];
+                    if (!byName.TryGetValue(proto.RosterKey, out var list))
+                        byName[proto.RosterKey] = list = [];
                     list.Add((inherited, proto));
                 }
             foreach (var (_, protos) in byName)
@@ -432,7 +397,7 @@ public static class OoConformance
                 var chosen = protos.FirstOrDefault(c => protos.All(o => ReferenceEquals(o.Proto, c.Proto) || !Mismatches(c, o).Any()));
                 if (chosen.Proto is not null)
                 {
-                    isym.ChooseInheritedPrototype(chosen.Proto);
+                    table.Names.ChooseInheritedPrototype(isym, chosen.Proto);
                     continue;
                 }
                 var (first, second) = (protos[0], protos.Skip(1).First(o => Mismatches(protos[0], o).Any()));
