@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b slice 6 - the program-prototype-names move into SymbolTable with their resolution
+## Entry 3858 — 2026-11-19 08:35 PST — PB5932: the source listing, step 6b slice 6 - the program-prototype-names move into SymbolTable with their resolution
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands slice 6, from
@@ -41,3 +41,4 @@ code-location named a moved member name the table's.
 
 **What remains** (kb/Work PB5932's dated file `2026-11-19-step-6b-slice-6`): the data-name class, the function-prototype-names and the OO
 names.
+
