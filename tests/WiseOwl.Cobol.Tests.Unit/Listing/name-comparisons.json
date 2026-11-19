@@ -405,6 +405,56 @@
       "site": "SAME Oo/OoConformance.cs WiseOwl.Cobol.Compiler.Oo.OoConformance.ReturningCircularity CobolNames.Same(interface1, interface2)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
+    },
+    {
+      "site": "CMP Binding/AssignTargetRule.cs WiseOwl.Cobol.Binding.AssignTargetRule.DeviceClasses Comparer",
+      "class": "KEYWORD",
+      "reason": "the device classes DISK and PRINTER are implementor-names (ImplementorNameRegistry's source), a written word against a fixed word of the implementor"
+    },
+    {
+      "site": "CMP Validation/DeclinedFacilityPass.cs WiseOwl.Cobol.Validation.DeclinedFacilityPass.Connectives Comparer",
+      "class": "KEYWORD",
+      "reason": "the optional words IS and ARE (§2023:5.2.3), fixed words of the standard dropped from a clause's name"
+    },
+    {
+      "site": "CMP Validation/FlagConformancePass.cs WiseOwl.Cobol.Validation.FlagConformancePass.EcProgramFamily Comparer",
+      "class": "KEYWORD",
+      "reason": "the EC-PROGRAM family exception-names of §2023:7.3.14.4 GR4 b), fixed words of the standard"
+    },
+    {
+      "site": "CMP Binding/Procedure/EcBindState.cs WiseOwl.Cobol.Binding.Procedure.EcBindState.<PdRaising>k__BackingField Comparer",
+      "class": "KEYWORD",
+      "reason": "the procedure division header's RAISING exception-names (§2023:14.2.1), words of the standard's exception table, no name the data division declares"
+    },
+    {
+      "site": "CMP Binding/Procedure/Verbs/EcBinder.cs WiseOwl.Cobol.Binding.Procedure.EcBinder.EcBindRaising Comparer",
+      "class": "KEYWORD",
+      "reason": "orders the header's RAISING exception-names (§2023:14.2.1) for the bound statement: words of the standard's exception table"
+    },
+    {
+      "site": "CMP Binding/ExternalFileConnectorRules.cs WiseOwl.Cobol.Binding.ExternalFileConnectorRules.Check Comparer",
+      "class": "EXTERNAL",
+      "reason": "groups EXTERNAL file connectors by externalized name across the compilation group (§2023:8.3.2.2: the same externalized name is the same instance), identity across source elements, not a reference written in one"
+    },
+    {
+      "site": "CMP Binding/ExternalFileConnectorRules.cs WiseOwl.Cobol.Binding.ExternalFileConnectorRules.ShareAdvancing Comparer",
+      "class": "EXTERNAL",
+      "reason": "groups EXTERNAL file connectors by externalized name across the compilation group (§2023:8.3.2.2), identity across source elements, not a reference written in one"
+    },
+    {
+      "site": "CMP Binding/ExternalRecordNameRules.cs WiseOwl.Cobol.Binding.ExternalRecordNameRules.Check Comparer",
+      "class": "EXTERNAL",
+      "reason": "groups EXTERNAL records by externalized name across the compilation group's elements (§2023:8.3.2.2), identity across source elements, not a reference written in one"
+    },
+    {
+      "site": "SAME Validation/VersionConformancePass.cs WiseOwl.Cobol.Validation.VersionConformancePass.CalledFromRange CobolNames.Same(u.ExternalizedName, name)",
+      "class": "EXTERNAL",
+      "reason": "a CALL literal against the programs' externalized names (§2023:8.3.2.2), identity across compilations, not a name the program declares"
+    },
+    {
+      "site": "CMP Binding/Repository/CompileInputs.cs WiseOwl.Cobol.Binding.Repository.CompileInputs.VariablesAt Comparer",
+      "class": "EXTERNAL",
+      "reason": "compilation-variable names of the text stage's >>DEFINE table (§2023:7.3.11), replayed into the repository record; no binder table holds them and no data division declares them"
     }
   ]
 }

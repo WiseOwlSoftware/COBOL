@@ -184,7 +184,7 @@ internal sealed partial class EcBinder
                 {
                     ops.Add(new BoundWhenOperand(null, f));
                     overlay.Add(("EC-I-O", f.CobolName));
-                    census.Add(new(null, f.CobolName, fn.Start));
+                    census.Add(new(null, f, fn.Start));
                 }
             return (null, ops);
         }
@@ -216,7 +216,7 @@ internal sealed partial class EcBinder
                 {
                     ops.Add(new BoundWhenOperand(info.Name, f));
                     overlay.Add((info.Name, f.CobolName));
-                    census.Add(new(info.Name, f.CobolName, fn.Start));
+                    census.Add(new(info.Name, f, fn.Start));
                 }
         }
         return (null, ops);
@@ -230,9 +230,11 @@ internal sealed partial class EcBinder
         return null;
     }
 
-    /// <summary>One WHEN operand as the SR14/SR15 census counts it: the exception-name and/or file-name it names, and
-    /// the token a repeat is reported at (the operand itself, not the PERFORM that contains it).</summary>
-    private readonly record struct WhenOperandSite(string? Ec, string? File, Antlr4.Runtime.IToken At);
+    /// <summary>One WHEN operand as the SR14/SR15 census counts it: the exception-name (the catalog's own spelling) and/or the
+    /// file its file-name identified, and the token a repeat is reported at (the operand itself, not the PERFORM that contains
+    /// it). Two file-names are the same file-name when they identify the same file, so the census keeps the file, not its
+    /// spelling: the comparison of written names is the symbol table's (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
+    private readonly record struct WhenOperandSite(string? Ec, FileModel? File, Antlr4.Runtime.IToken At);
 
     /// <summary>PF3-SR14 (COBOL1599) — a file-name shall not appear more than once across the WHEN phrases
     /// unless every instance is paired with an exception-name (§2023:14.9.28.3 SR14). PF3-SR15 (COBOL1600) — an
@@ -242,11 +244,11 @@ internal sealed partial class EcBinder
     private void CheckSr14Sr15(List<WhenOperandSite> census)
     {
         // SR14: group by file-name; a file that appears >1 time with ANY bare (unpaired) instance is illegal.
-        foreach (var g in census.Where(c => c.File is not null).GroupBy(c => c.File!, CobolNames.Comparer))
+        foreach (var g in census.Where(c => c.File is not null).GroupBy(c => c.File!))   // the file, by identity
             if (FirstOffender(g, inst => inst.Count <= 1 || inst.All(c => c.Ec is not null)) is { } offender)
             {
                 using var at = ctx.Edition.At(offender);
-                ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFileNameRepeated, $"file-name '{g.Key.ToUpperInvariant()}' is specified in more than one WHEN phrase "
+                ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFileNameRepeated, $"file-name '{g.Key.CobolName.ToUpperInvariant()}' is specified in more than one WHEN phrase "
                     + "without an exception-name pairing (ISO §2023:14.9.28.3 SR14)");
             }
 
@@ -254,9 +256,9 @@ internal sealed partial class EcBinder
         // if ANY occurrence is bare (no file — not "in conjunction with a file-name"), or two occurrences share a
         // file. A bare occurrence's null is NOT a licensing "distinct file-name" (so bare+FILE-paired same name is
         // rejected, not just bare+bare).
-        foreach (var g in census.Where(c => c.Ec is not null).GroupBy(c => c.Ec!, CobolNames.Comparer))
+        foreach (var g in census.Where(c => c.Ec is not null).GroupBy(c => c.Ec!, StringComparer.Ordinal))   // the catalog's spelling
             if (FirstOffender(g, inst => inst.Count <= 1 || (inst.All(c => c.File is not null)
-                    && inst.Select(c => c.File!).Distinct(CobolNames.Comparer).Count() == inst.Count)) is { } offender)
+                    && inst.Select(c => c.File!).Distinct().Count() == inst.Count)) is { } offender)
             {
                 using var at = ctx.Edition.At(offender);
                 ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformExceptionNameRepeated, $"exception-name '{g.Key.ToUpperInvariant()}' is specified more than once without a "

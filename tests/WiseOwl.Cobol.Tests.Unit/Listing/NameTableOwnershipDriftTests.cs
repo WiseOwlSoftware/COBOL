@@ -48,8 +48,10 @@ public sealed class NameTableOwnershipDriftTests
     /// OO names' lane, branch listing-step-6b-oo, which moved the method rosters, re-keyed by the externalized method name, and the
     /// object-class-names and interface-names with their resolution into the compilation group's tier and the PROPERTY specifiers:
     /// 20 tables, 31 lookups, 104 sites; 122 with the data-name lane's first slice, which moved the DEBUG-ITEM register names, the
-    /// type-names, the CAPACITY register names and the index-names: 7 tables, 22 lookups, 93 sites).</summary>
-    private const int BaselineCeiling = 122;
+    /// type-names, the CAPACITY register names and the index-names: 7 tables, 22 lookups, 93 sites; 104 at the closing slice's first
+    /// commit, which keyed the USE and WHEN registers by the file a file-name identified and classified the words of the standard and
+    /// the externalized names: 7 tables, 22 lookups, 75 sites).</summary>
+    private const int BaselineCeiling = 104;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -66,9 +68,11 @@ public sealed class NameTableOwnershipDriftTests
     /// 125 -> 123 -> 125. <c>MethodRoster.Find</c> and <c>OoInterfaceSymbol.FindOwnPrototype</c> take the roster key's own type (-2);
     /// the four external-repository members moved into <c>SymbolTable.ClassNames</c> with their reason (-4 +4); and
     /// <c>SymbolTable.ClassNames.Resolve</c> and <c>OoDataBinder.DescribeNamedReference</c> take the written word as its context and
-    /// keep the diagnostic's strings (+2). The comparisons: 86 -> 81, the five the tier now makes.)</summary>
+    /// keep the diagnostic's strings (+2). The comparisons: 86 -> 81, the five the tier now makes. The closing slice: 81 -> 91, ten sites the first measurement left in
+    /// the baseline that resolve no written name: five words of the standard or the implementor (KEYWORD) and five externalized or
+    /// compilation-variable names (EXTERNAL).)</summary>
     private const int StringMembersCeiling = 125;
-    private const int ComparisonsCeiling = 81;
+    private const int ComparisonsCeiling = 91;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
     private static readonly string MeasuredFile = Path.Combine(AppContext.BaseDirectory, "name-table-ownership.measured.txt");
