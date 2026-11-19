@@ -179,13 +179,18 @@ public sealed class ReferenceResolver(DataBinder data)
     /// (kb/Work PB1292).</summary>
     internal ReportModel? EnclosingReport { get; set; }
 
-    /// <summary>The VARYING counters the report-section expression being bound may name, by data-name (ISO §2023:13.18.64.3
-    /// SR2 — a counter "may be referenced only within the current entry or a subordinate entry"), or null outside a
+    /// <summary>The VARYING counters the report-section expression being bound may name (ISO §2023:13.18.64.3 SR2 — a counter
+    /// "may be referenced only within the current entry or a subordinate entry"), the entries above it first, or null outside a
     /// report entry's clause. Set only by <c>ReportWriterBinder</c>. A counter is no data item (§2023:13.18.64.4 GR1 — "a
-    /// temporary integer data item") and lives in no name table, so every reader of a written NAME asks here: the
-    /// operand and expression binders through <c>ReportWriterBinder.VaryingExpr</c>, and the subscript renderer
-    /// (<see cref="ResolveSubscriptName"/>), which is how a counter subscripts a source item (GR4's NOTE).</summary>
-    internal IReadOnlyDictionary<string, ReportVaryingModel>? VaryingScope { get; set; }
+    /// temporary integer data item"), so every reader of a written NAME asks the symbol table with this scope as the reference's
+    /// site (<see cref="ReportSite"/>, <c>NameClass.ReportVarying</c>): the operand and expression binders through
+    /// <c>ReportWriterBinder.VaryingExpr</c>, and the subscript renderer (<see cref="ResolveSubscriptName"/>), which is how a
+    /// counter subscripts a source item (GR4's NOTE).</summary>
+    internal IReadOnlyList<ReportVaryingModel>? VaryingScope { get; set; }
+
+    /// <summary>Where a report-section name being bound is written (<see cref="Binding.ReportSite"/>): the enclosing report and the
+    /// VARYING counters in scope, both null outside a report section clause.</summary>
+    internal ReportSite ReportSite => new(EnclosingReport, VaryingScope);
 
     /// <summary>Set when a subscript or reference-modifier SEGMENT of the current resolution failed because one of
     /// its own operands is a deferred shape (the materializer's expression came back
@@ -409,7 +414,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // (kb/Work PB840). Its qualifiers are the report group entries above it and, outermost, its REPORT-NAME
         // (§2023:8.4.2.2.3 SR4; §2023:8.4.2.2.2 Format 1's file-report-qualifier — kb/Work PB1454). A REPEATING entry's
         // counter is a table and takes the ordinary subscripts (kb/Work PB1271).
-        if (Counters.SumCounterFor(dref, name, report) is { } sumCounter) return Ends(sumCounter);
+        if (Counters.SumCounterFor(dref, report) is { } sumCounter) return Ends(sumCounter);
 
         // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference).
         var written = ReadWritten(dref);

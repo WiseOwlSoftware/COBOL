@@ -40,6 +40,14 @@ public sealed partial class FileControlBinder
     /// <inheritdoc cref="_fileLevelAlphabets"/>
     private readonly Dictionary<KeyLevelCollatingClause, CollatingAlphabet> _keyLevelAlphabets = new(ReferenceEqualityComparer.Instance);
 
+    /// <summary>Each report-name-1 of an FD's REPORT clause (<see cref="FileModel.ReportNames"/>, which keeps the names as written) and
+    /// the word the parser read: the clause's report-name is a reference the symbol table identifies (docs/rearchitecture/
+    /// DESIGN-listing.md section 6.7.1, "Step 6b, slice 5"), and the model names no parse context.</summary>
+    private readonly Dictionary<ReportClauseName, Core.ReportNameContext> _reportNamesWritten = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>The report-name of an FD's REPORT clause as the parser read it.</summary>
+    internal Core.ReportNameContext WrittenReportName(ReportClauseName clause) => _reportNamesWritten[clause];
+
     private EditionContext Edition { get; }
 
     internal FileControlBinder(DataBinder host, EditionContext edition)

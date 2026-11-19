@@ -109,7 +109,9 @@ public sealed partial class FileControlBinder
                     foreach (var rn in rep.reportName())
                     {
                         using var at = Edition.At(rn);   // the name's own position, where the correspondence rules report
-                        file.ReportNames.Add(new ReportClauseName(rn.GetText(), Edition.Cursor));
+                        var clauseName = new ReportClauseName(rn.GetText(), Edition.Cursor);
+                        file.ReportNames.Add(clauseName);
+                        _reportNamesWritten[clauseName] = rn;
                     }
                 else if (clause.fileGlobalExternalClause() is { } ge)
                 {

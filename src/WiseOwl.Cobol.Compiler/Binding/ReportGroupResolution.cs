@@ -2,12 +2,13 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using Antlr4.Runtime;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
-using WiseOwl.Cobol.Runtime;
 
 /// <summary>
 /// ⛔ THE ONE FUNNEL FOR RESOLVING A WRITTEN REPORT-GROUP REFERENCE (kb/Work PB365). THREE sites name a
@@ -51,33 +52,41 @@ internal static class ReportGroupResolution
     public static (string Head, string? Qualifier) Parts(Core.ReportGroupReferenceContext r) =>
         (r.cobolWord().GetText(), r.reportName()?.GetText());
 
-    /// <summary>Resolve a possibly-qualified report-group reference against the unit's report models. Collects
-    /// EVERY candidate (a qualified reference restricts the candidate reports to the named one) and reports
+    /// <summary>The head and the IN/OF report-name qualifier of a written report-group reference, as the messages quote them: a
+    /// <c>reportGroupReference</c> (<see cref="Parts"/>), or the <c>dataReference</c> of a SUM clause's UPON operand, which
+    /// <c>ReportSectionBinder.UponDetailRef</c> has screened to one qualifier at most.</summary>
+    private static (string Head, string? Qualifier) Words(ParserRuleContext written)
+    {
+        if (written is Core.ReportGroupReferenceContext r) return Parts(r);
+        var (head, quals) = DataBinder.KeyReference((Core.DataReferenceContext)written);
+        return (head, quals.Count == 1 ? quals[0] : null);
+    }
+
+    /// <summary>Resolve a possibly-qualified report-group reference: the symbol table answers EVERY candidate
+    /// (<see cref="SymbolTable.Identify(ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>,
+    /// <c>NameClass.ReportGroup</c>: a qualified reference restricts the candidate reports to the named one), and this funnel reports
     /// COBOL1920 when more than one survives — §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1.</summary>
+    /// <param name="written">The reference as written: a <c>reportGroupReference</c> or an UPON operand's <c>dataReference</c>.</param>
     /// <param name="where">The reference site for the diagnostic, e.g. <c>"GENERATE 'DET-A'"</c>.</param>
-    /// <param name="scope">The procedure division's binder when <paramref name="reports"/> includes GLOBAL reports
-    /// inherited from containers: candidates from more than one source element are narrowed to the NEAREST one
-    /// before ambiguity is asked (§2023:8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>). Null for the
-    /// data-division site, whose reports are all the unit's own.</param>
+    /// <param name="reach"><see cref="NameReach.Visible"/> for a procedure division reference, whose reports include the GLOBAL
+    /// ones inherited from containers: candidates from more than one source element are narrowed to the NEAREST one before
+    /// ambiguity is asked (§2023:8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>), and a data item of the head's spelling
+    /// counts against an unqualified reference. <see cref="NameReach.Own"/> for the data-division site, whose reports are all the
+    /// unit's own.</param>
     /// <param name="preferred">The report whose name the hint's example qualifier should use when it is one of the
     /// candidates, else the first candidate's. The SUM clause's UPON operand passes the control footing's own report: below
     /// COBOL-2002 data-name-1 must be a detail "described in the same report as the control footing report group"
     /// (§1985:XIII.3.19.3 SR2), so the qualifier that resolves the ambiguity is that report's (kb/Work PB5524).</param>
-    public static Match Resolve(EditionContext edition, IReadOnlyList<ReportModel> reports,
-        string head, string? qualifier, string where, out ReportModel? report, out ReportGroupModel? group,
-        DataBinder? scope = null, ReportModel? preferred = null)
+    public static Match Resolve(DataBinder binder, ParserRuleContext written, string where, out ReportModel? report,
+        out ReportGroupModel? group, NameReach reach, ReportModel? preferred = null)
     {
         report = null;
         group = null;
-        var found = new List<(ReportModel Report, ReportGroupModel Group)>();
-        foreach (var r in reports)
-        {
-            if (qualifier is not null && !CobolNames.Same(r.Name, qualifier)) continue;
-            foreach (var g in r.Groups)
-                if (g.Name is not null && CobolNames.Same(head, g.Name))
-                    found.Add((r, g));
-        }
-        if (scope is not null) found = scope.State.Reports.NearestInScope(found, f => f.Report);
+        var edition = binder.Edition;
+        var (head, qualifier) = Words(written);
+        IReadOnlyList<(ReportModel Report, ReportGroupModel Group)> found =
+            binder.Symbols.Identify(written, NameClass.ReportGroup, report: true, reach)?.Symbol
+                is ReportCandidates<(ReportModel Report, ReportGroupModel Group)> { Hits: var hits } ? hits : [];
         if (found.Count == 0) return Match.None;
         // ⛔ A DATA ITEM OF THE SAME SPELLING IS ANOTHER DECLARATION OF THE NAME (kb/Work PB5775). A report group's name and a
         // Working-Storage item's live in one namespace of user-defined names: "For each nonunique user-defined name that is explicitly
@@ -85,8 +94,8 @@ internal static class ReportGroupResolution
         // (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1), and a data item has no qualifier that tells it from the report group, so an
         // UNQUALIFIED reference to the shared name is the ambiguity and the report-name qualifier (DA OF R-1) is the way out. Counted
         // in the source element the reports are (the data lookup leaves no item a nearer report entry hides, kb/Work PB4196).
-        int dataItems = qualifier is null && scope is not null
-            ? scope.QualifiedCandidates(head, [], scope.ActiveScope).ItemCount : 0;
+        int dataItems = qualifier is null && reach == NameReach.Visible
+            ? binder.QualifiedCandidates(head, [], binder.ActiveScope).ItemCount : 0;
         if (found.Count == 1 && dataItems == 0)
         {
             (report, group) = found[0];

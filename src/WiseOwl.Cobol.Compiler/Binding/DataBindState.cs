@@ -57,17 +57,10 @@ public sealed class DataBindState
     /// <summary>The DEBUG-ITEM family and EXCEPTION-OBJECT, which no entry declares (<see cref="ImplicitRegisters"/>).</summary>
     public ImplicitRegisters Implicit { get; } = new();
 
-    /// <summary>The report description entries this unit declares and the GLOBAL ones it inherits, with the sum counters and
-    /// the name lookups over them (<see cref="ReportScope"/>; kb/Work PB2357): written by <see cref="ReportSectionBinder"/>
-    /// alone, read by every later phase.</summary>
+    /// <summary>The report description entries this unit declares and the GLOBAL ones it inherits (<see cref="ReportScope"/>;
+    /// kb/Work PB2357): written by <see cref="ReportSectionBinder"/> alone, read by every later phase. Their names (the report-names,
+    /// the sum counters, the report entries) are the symbol table's (<see cref="SymbolTable"/>).</summary>
     public ReportScope Reports { get; } = new();
-
-    /// <summary>REPORT SECTION sum counter names → their SUM entries (<see cref="ReportScope.SumCounters"/>), behind the P6
-    /// Step-6 watermark gate: the counters exist once <see cref="PassPhase.FilesResolved"/> has run.</summary>
-    public IReadOnlyDictionary<string, List<(ReportModel Report, ReportSumFamily Family)>> SumCounters
-    {
-        get { Require(PassPhase.FilesResolved, "SumCounters"); return Reports.SumCounters; }
-    }
 
     /// <summary>The highest <see cref="PassPhase"/> whose producing pass has COMPLETED on this unit's forest (the P6 Step-6
     /// completion gate). Advanced by <c>DataBinder.BindResolve</c> (the per-unit prefix) and by <c>BinderDriver.Bind</c> (the

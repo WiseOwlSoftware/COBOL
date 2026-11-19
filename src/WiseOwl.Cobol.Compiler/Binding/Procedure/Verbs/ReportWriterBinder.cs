@@ -9,6 +9,7 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// The Report Writer half of the statement binder (ISO/IEC 1989:2023 §2023:14.9.21 INITIATE / §2023:14.9.16 GENERATE /
@@ -355,13 +356,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         return text.Length > 0 && text.All(c => char.IsAsciiDigit(c) || c is '.' or '+' or '-') ? new BoundNumLiteral(text) : null;
     }
 
-    /// <summary>The scope a report entry's clause expression binds in (<see cref="ReferenceResolver.VaryingScope"/>).</summary>
-    private static Dictionary<string, ReportVaryingModel> ScopeOf(IEnumerable<ReportVaryingModel> counters)
-    {
-        var scope = new Dictionary<string, ReportVaryingModel>(CobolNames.Comparer);
-        foreach (var c in counters) scope[c.Name] = c;
-        return scope;
-    }
+    /// <summary>The scope a report entry's clause expression binds in (<see cref="ReferenceResolver.VaryingScope"/>): the counters in
+    /// the order the entries declare them, so the symbol table's lookup finds the nearest declaration of a spelling last.</summary>
+    private static List<ReportVaryingModel> ScopeOf(IEnumerable<ReportVaryingModel> counters) => [.. counters];
 
     /// <summary>A bare reference to a VARYING counter in scope (ISO §2023:13.18.64.4 GR3/GR4 — "this allows data-name-1 to be
     /// used as a source data item, as a subscript to a source data item …"): the compose-local integer the placement
@@ -370,8 +367,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// right after the report counters, ahead of name resolution: a counter is "not defined elsewhere in the source
     /// element" (SR2), so no ordinary name can answer the word.</summary>
     public BoundExpr? VaryingExpr(Core.DataReferenceContext dref) =>
-        ctx.Refs.VaryingScope is { } scope && dref.dataReferenceSuffix().Length == 0
-            && dref.cobolWord() is { } w && scope.TryGetValue(w.GetText(), out var counter)
+        ctx.Refs.VaryingScope is not null && dref.dataReferenceSuffix().Length == 0
+            && dref.cobolWord() is { } w
+            && ctx.Data.Symbols.Identify(w, NameClass.ReportVarying, report: true, reportSite: ctx.Refs.ReportSite)?.Symbol
+                is ReportVaryingModel counter
             ? new BoundReportVaryingRef(counter.Local) : null;
 
     /// <summary><c>INITIATE report-name…</c> (ISO §2023:14.9.21): each name shall be an RD entry (SR1); a multi-name
@@ -384,7 +383,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var members = new List<BoundStatement>();
         foreach (var rn in stmt.reportName())
         {
-            if (ctx.Data.State.Reports.Named(rn.GetText()) is not { } r)
+            if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1")})");
             if (RejectContainedReportFile(r, $"INITIATE {r.Name}", "ISO §2023:14.9.21.3 SR2") is { } notGlobal) return notGlobal;
@@ -398,10 +397,12 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     public BoundStatement BindGenerate(Core.GenerateStatementContext stmt)
     {
         if (RejectInBeforeReporting("GENERATE") is { } refused) return refused;
-        var (name, qualifier) = ReportGroupResolution.Parts(stmt.reportGroupReference());
+        var operand = stmt.reportGroupReference();
+        var (name, qualifier) = ReportGroupResolution.Parts(operand);
         // The report-name form (SR2, summary reporting) has NO qualifier — §2023:8.4.2.2 gives a report-name no
-        // qualifier at all — so a qualified operand can only be the data-name form and skips this arm.
-        if (qualifier is null && ctx.Data.State.Reports.Named(name) is { } summary)
+        // qualifier at all — so a qualified operand can only be the data-name form and skips this arm. Its one word is the
+        // head's: a probe, since the group form below may be the reference.
+        if (qualifier is null && ctx.Data.Symbols.Identify(operand.cobolWord(), NameClass.Report, report: false)?.Symbol is ReportModel summary)
         {
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
@@ -423,8 +424,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // SR1's data-name form, through the ONE funnel: it owns the qualified spelling ("It may be qualified by
         // a report-name") AND the §2023:8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
         string where = $"GENERATE {name}{(qualifier is null ? "" : $" OF {qualifier}")}";
-        var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.State.Reports.Visible, name, qualifier, where,
-            out var report, out var group, ctx.Data);
+        var match = ReportGroupResolution.Resolve(ctx.Data, operand, where, out var report, out var group, NameReach.Visible);
         // Ambiguous is already refused (COBOL1920): stop there, bind nothing on a guessed group (kb/Work PB5542).
         if (match == ReportGroupResolution.Match.Ambiguous) return BoundRejected.Reported(ctx.Edition);
         if (match == ReportGroupResolution.Match.Found)
@@ -453,7 +453,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var members = new List<BoundStatement>();
         foreach (var rn in stmt.reportName())
         {
-            if (ctx.Data.State.Reports.Named(rn.GetText()) is not { } r)
+            if (ctx.Data.Symbols.Identify(rn, NameClass.Report, report: true)?.Symbol is not ReportModel r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1")})");
             if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §2023:14.9.46.3 SR2") is { } notGlobal) return notGlobal;
@@ -638,7 +638,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         bool isPage = dref.PAGE_COUNTER() is not null;
         if (!isPage && dref.LINE_COUNTER() is null) return null;
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
-        return ctx.Refs.Counters.ReportOf(dref, reg) is { } report
+        return ctx.Refs.Counters.ReportOf(dref) is { } report
             ? new BoundReportCounterRef(report, isPage, ctx.Data.State.Reports.Depth(report))
             : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{DataBinder.WrittenText(dref)}'");
     }
@@ -650,7 +650,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// does not resolve to a report — the qualification diagnostic has then already been raised, exactly as on
     /// the sending side, because BOTH directions ask <see cref="CounterResolver.ReportOf"/> (kb/Work PB429).</summary>
     public Place? CounterPlace(Core.DataReferenceContext dref) =>
-        ctx.Refs.Counters.ReportOf(dref, "PAGE-COUNTER") is { } report
+        ctx.Refs.Counters.ReportOf(dref) is { } report
             ? new ReportPageCounterPlace(report.CsIndex, report.PageCounterRegister, ctx.Data.State.Reports.Depth(report))
             : null;
 }

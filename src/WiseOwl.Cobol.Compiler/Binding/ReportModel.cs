@@ -844,7 +844,7 @@ public sealed record ReportDetailRef(string Name, string? Qualifier)
     public ReportGroupModel? Detail { get; set; }
 
     /// <summary>The operand as written, where a refusal of it stands (kb/Work PB5090).</summary>
-    public CobolParserCore.DataReferenceContext? Ctx { get; init; }
+    public required CobolParserCore.DataReferenceContext Ctx { get; init; }
 
     /// <summary>The report description the resolved <see cref="Detail"/> belongs to — the RD of the SUM entry itself
     /// for an unqualified operand, ANOTHER report's when SR7's report-name qualifier says so (§2023:13.18.54.4 GR7 c) 2):
@@ -1031,7 +1031,8 @@ public sealed class ReportSumFamily : ReportEntryFamily
     /// that behaves as a data item of the category numeric"), carrying the GR1 profile
     /// (<see cref="PicInfo.SumCounterItem"/>) and, for a repeating entry, the synthetic OCCURS chain of
     /// <see cref="Extents"/>. It is engine state, not storage — kept off <c>ForestSlice.ByName</c> and the forest roots, and
-    /// reachable only through <c>DataBindState.SumCounters</c>, the resolver hook that builds a
+    /// reachable only through the symbol table's sum counters (<c>SymbolTable.Identify</c>, <c>NameClass.SumCounter</c>), the resolver
+    /// hook that builds a
     /// <see cref="Model.ReportSumCounterPlace"/> (the CAPACITY-register pattern). Every occurrence shares it: they
     /// are occurrences of ONE description.</summary>
     public required DataItem Register { get; init; }
