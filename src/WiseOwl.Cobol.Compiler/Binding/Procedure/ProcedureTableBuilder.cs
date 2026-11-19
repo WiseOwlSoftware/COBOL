@@ -485,7 +485,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     + "section and follows a declarative section that is not one; §1985:XV.3.2.3 SR1: \"Debugging section(s), if "
                     + "specified, must appear together immediately after the DECLARATIVES header.\"");
             info.MarkDebugging();
-            ctx.Data.State.Implicit.ActivateDebugRegisters(ctx.Data.TakeUid);   // make DEBUG-* references resolvable while this section binds
+            ctx.Data.Symbols.ActivateDebugRegisters();   // make DEBUG-* references resolvable while this section binds
             _pendingDebug.Add((info, use));      // info.EndPc is filled after the body is collected below
             // fall through to collect the section body into the pc space (scope stays null — no BoundDeclarative)
         }
@@ -650,7 +650,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     foreach (var entry in alter.alterEntry())
                         if (entry.procedureName() is { Length: >= 2 } names)
                             _debugContentsWidth = Math.Max(_debugContentsWidth, ProcedureNameShape.AsWritten(names[1]).Length);
-        ctx.Data.State.Implicit.ActivateDebugRegisters(ctx.Data.TakeUid, _debugContentsWidth);
+        ctx.Data.Symbols.ActivateDebugRegisters(_debugContentsWidth);
     }
 
     /// <summary>The operand of a USE FOR DEBUGGING target as a message quotes it: the word and its OF/IN qualifiers

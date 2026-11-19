@@ -14,6 +14,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// Resolves a <c>dataReference</c> parse node to a <see cref="Place"/> — the single entry point every verb uses to
@@ -400,11 +401,12 @@ public sealed class ReferenceResolver(DataBinder data)
         // modification of an alphanumeric item like any other (§2023:8.4.3.3.3 SR1; X3.23-1985 USE FOR DEBUGGING general rule 10
         // describes DEBUG-CONTENTS as PICTURE X(n), kb/Work PB4858), so the register's place meets the reference-modification
         // tail below. A qualified DEBUG-* falls through to loud.
-        if (data.State.Implicit.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null))
+        if (dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
+            && data.Symbols.Identify(dref.cobolWord(), NameClass.DebugRegister, report) is { Symbol: DebugRegisterPlace dbg })
         {
             var debugWritten = ReadWritten(dref);
             if (!RefMods.ScreenRefModCount(dref, debugWritten, name)) return Ends(Refused());
-            return new Identified(null, dbg.Item, debugWritten, [], new DebugRegisterPlace(dbg.Item, dbg.Member));
+            return new Identified(null, dbg.RegisterItem, debugWritten, [], dbg);
         }
 
         // A REPORT SECTION SUM COUNTER (ISO §2023:13.18.54.4 GR5 — the data-name after the level number names the

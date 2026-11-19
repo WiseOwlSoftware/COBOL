@@ -114,6 +114,7 @@ public sealed partial class SymbolTable
         NameClass.File => FileNamed(key, reach),
         NameClass.Constant => ConstantNamed(key),
         NameClass.ProgramPrototype => ProgramPrototypeNamed(key),
+        NameClass.DebugRegister => DebugRegisterNamed(key),
         _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not yet a class SymbolTable.Identify resolves"),
     };
 

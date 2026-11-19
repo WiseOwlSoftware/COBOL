@@ -73,6 +73,11 @@ internal enum NameClass
     /// <summary>A program-prototype-name (ISO §2023:8.4.6.8): a REPOSITORY program-specifier's name, or the program-name of a containing
     /// program definition. <c>SymbolTable.Identify</c> resolves it; the finished table holds no entry for it yet (listing step 7b).</summary>
     ProgramPrototype,
+    /// <summary>The X3.23-1985 DEBUG-ITEM special register or one of its members (DEBUG-LINE, DEBUG-NAME, DEBUG-SUB-1 to -3,
+    /// DEBUG-CONTENTS), implicitly described when a debugging section is active (§1985:XV.3.2.4 GR10: "DEBUG-ITEM has the following implicit
+    /// description").
+    /// <c>SymbolTable.Identify</c> resolves it; the finished table holds no entry for it yet (listing step 7b).</summary>
+    DebugRegister,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>
