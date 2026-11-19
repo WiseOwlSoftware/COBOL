@@ -45,11 +45,11 @@ public sealed class GlobalNameClassDriftTests
     /// <summary>Name indexes that are NOT names a GLOBAL data description entry hands to a contained program.</summary>
     private static readonly Dictionary<string, string> NotPerEntryGlobalNames = new()
     {
-        ["ForestSlice._typeDecls"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§2023:13.18.58.4 GR3; kb/Work PB1303), "
+        ["SymbolTable._ownTypeNames"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§2023:13.18.58.4 GR3; kb/Work PB1303), "
             + "and a template's subordinate names are kept off the name index",
-        ["InheritedGlobals._typeDecls"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
-        ["ClauseFacts.LapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §2023:8.4.2.2.1 "
-            + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
+        ["SymbolTable._inheritedTypeNames"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
+        ["SymbolTable._lapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §2023:8.4.2.2.1 "
+            + "rule 4 and never resolve (kb/Work PB1476) — a derived view of the type declarations, declaring no name of its own",
         ["SymbolTable._debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
             + "never declared by a data description entry",
         ["SymbolTable._ownConstants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
@@ -179,13 +179,19 @@ public sealed class GlobalNameClassDriftTests
         ["Conditions"] = "Conditions.ContainsKey(",
         ["IndexNames"] = "IndexNames.Declares(",
         ["CapacityRegisters"] = "CapacityRegisters.ContainsKey(",
-        ["TypeDecls"] = "TypeDecls.ContainsKey(",              // a method's type-names are its own (kb/Work PB3192)
+    };
+
+    /// <summary>A METHOD's name table the SYMBOL TABLE holds (<c>SymbolTable.MethodNames</c>, listing step 6b, kb/Work PB5932) → the
+    /// text <c>MethodNames.Declares</c> asks it by.</summary>
+    private static readonly Dictionary<string, string> AskedByMethodNames = new()
+    {
+        ["TypeNames"] = "TypeNames.ContainsKey(",              // a method's type-names are its own (kb/Work PB3192)
     };
 
     /// <summary>The method's words the BINDER keeps (kb/Work PB2402: binder working state, never on the model scope) → the
     /// text <c>SymbolTable.MethodDeclaresWord</c> asks them by: its constant entries (kb/Work PB3164) and the words its
     /// data division defines before any entry binds (kb/Work PB3192).</summary>
-    private static readonly string[] AskedByMethodConstants = ["Declared.ContainsKey(", "OtherWords.Contains("];
+    private static readonly string[] AskedByMethodConstants = ["tables.Declares(key)", "Declared.ContainsKey(", "OtherWords.Contains("];
 
     /// <summary>⛔ THE METHOD TIER ASKS EVERY NAME INDEX OF THE METHOD (the kb/Work PB3165 merge-queue bounce). A method
     /// is a source element of its own (§2023:10.5), its names the NEAREST tier a reference in it can reach, so a method's
@@ -209,6 +215,16 @@ public sealed class GlobalNameClassDriftTests
         foreach (var (index, ask) in AskedByMethodShadowing)
             Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
                 $"OoMethodDataScope.IndexesDeclare no longer asks the method's name index '{index}' (expected '{ask}').");
+
+        var methodNames = typeof(SymbolTable).GetNestedType("MethodNames", BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("SymbolTable declares no nested MethodNames: the method's tables were renamed or moved");
+        Assert.Equal(AskedByMethodNames.Keys.Order(StringComparer.Ordinal), NameIndexFields(methodNames).Order(StringComparer.Ordinal));
+        string tables = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.MethodNames.cs"));
+        var t = Regex.Match(tables, @"public bool Declares\(CobolName word\) =>(?<body>.*?);", RegexOptions.Singleline);
+        Assert.True(t.Success, "SymbolTable.MethodNames.Declares not found in SymbolTable.MethodNames.cs");
+        foreach (var (index, ask) in AskedByMethodNames)
+            Assert.True(t.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
+                $"SymbolTable.MethodNames.Declares no longer asks the method's name table '{index}' (expected '{ask}').");
 
         string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Constants.cs"));
         var c = Regex.Match(constants, @"internal bool MethodDeclaresWord\(OoMethodDataScope method, string word\) =>(?<body>.*?);",

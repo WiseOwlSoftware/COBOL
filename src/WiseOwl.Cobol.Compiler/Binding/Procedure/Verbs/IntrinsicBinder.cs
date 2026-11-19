@@ -2460,7 +2460,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// scope, so inside a METHOD its own declarations of either kind come first (§2023:11.7.4 GR5; kb/Work PB3192).</summary>
     private DataItem? TypeNameArgument(Core.FunctionArgumentContext a) =>
         KeywordWordOf(a) is { } w && a.fnArgPhraseWord() is null && !ctx.Symbols.TryResolve(w, ctx.ActiveScope, out _)
-            && ctx.Data.TryFindTypeDecl(w, ctx.ActiveScope, out var t) ? t : null;
+            && ctx.Symbols.Identify(KeywordWordContext(a)!, NameClass.TypeName, report: true) is { Symbol: DataItem t } ? t : null;
 
     /// <summary>
     /// FUNCTION LENGTH (§2023:15.50.2) — argument-1 plus the optional PHYSICAL keyword.

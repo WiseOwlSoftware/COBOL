@@ -65,10 +65,10 @@ public sealed partial class SymbolTable
                 Offer(new(DeclarationKind.ConditionName, Depth: conditions.Min(c => _data.State.Forest.DeclaringDepth(c.Parent))));
             if (nearest is { } answer) return answer;
             if (dataName) return null;
-            if (qualifiers.Count == 0 && _data.TryFindTypeDecl(name, scope, out _)) return new(DeclarationKind.TypeName);
+            if (qualifiers.Count == 0 && _table.TypeDeclarationNamed(Key(name), scope) is not null) return new(DeclarationKind.TypeName);
             // §2023:13.18.58.4 GR1: "Subordinate data description entries, condition-name entries, and RENAMES clauses are part of
             // the type declaration of that type" — a data-name or a condition-name such an entry declares.
-            foreach (var declaration in VisibleTypeDeclarations(scope))
+            foreach (var declaration in _table.VisibleTypeDeclarations(scope))
             {
                 if (DataItem.DescendantsOf(declaration).Any(i => CobolNames.Same(i.CobolName, name)))
                     return new(DeclarationKind.TypeDeclarationMember, declaration.CobolName);
@@ -170,14 +170,6 @@ public sealed partial class SymbolTable
         {
             var tier = _data.ConditionTier(name, qualifiers, scope);
             return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, _data.State.Forest.DeclaringDepth(tier[0].Parent));
-        }
-
-        /// <summary>The type declarations visible in <paramref name="scope"/>, in <see cref="DataBinder.TryFindTypeDecl"/>'s order: a
-        /// method's own, this element's, a container's GLOBAL one.</summary>
-        private IEnumerable<DataItem> VisibleTypeDeclarations(Scope scope)
-        {
-            IEnumerable<DataItem> visible = _data.State.Forest.TypeDecls.Values.Concat(_data.State.Inherited.TypeDecls.Values);
-            return scope.Method is { } m ? m.TypeDecls.Values.Concat(visible) : visible;
         }
 
         /// <summary>⛔ ISO §2023:8.4.6.2.1 3) ACROSS NAME CLASSES for a word that stands for a literal: whether this unit's set

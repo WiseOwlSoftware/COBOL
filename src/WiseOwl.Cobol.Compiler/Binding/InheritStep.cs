@@ -44,7 +44,7 @@ internal static class InheritStep
             data.Symbols.InheritConstants(binders.Of(anc).Data.Symbols, ++depth);
             // …its GLOBAL type declarations (§2023:13.18.58.4 GR3; §2023:8.4.6.2.2; kb/Work PB1303): ExpandTypes runs inside the
             // unit's first data phase, so a TYPE clause there already sees the container's type-name.
-            inherited.AddContainerTypeDecls(binders.Of(anc).Data.State.Forest.TypeDecls);
+            data.Symbols.InheritTypeDeclarations(binders.Of(anc).Data.Symbols);
             // …and its files' names (§2023:13.18.27.4 GR1): the data division's own resolutions ask whether a name that is no
             // data item IS a visible file-name (kb/Work PB3557).
             data.Symbols.InheritFiles(binders.Of(anc).Data.State.Files.Declared, binders.Of(anc).Data.Linkage.GlobalRoots, depth);

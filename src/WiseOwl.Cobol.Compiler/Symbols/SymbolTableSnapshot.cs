@@ -78,6 +78,9 @@ internal enum NameClass
     /// description").
     /// <c>SymbolTable.Identify</c> resolves it; the finished table holds no entry for it yet (listing step 7b).</summary>
     DebugRegister,
+    /// <summary>A type-name (a TYPEDEF entry, §2023:13.18.58), named where a TYPE clause or a function argument writes it.
+    /// <c>SymbolTable.Identify</c> resolves it; the finished table declares the type declaration as a data entry.</summary>
+    TypeName,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>

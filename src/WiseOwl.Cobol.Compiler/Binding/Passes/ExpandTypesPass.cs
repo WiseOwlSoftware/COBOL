@@ -48,7 +48,7 @@ internal sealed class ExpandTypesPass : IBindPass
         // of which clones happen to reach the name index. The WRITTEN clause is read (DataItem.WrittenTypeName), never
         // the pending mark: a constant's length phrase may have expanded an entry already (kb/Work PB2465).
         foreach (var written in binder.DeclaredForest())
-            if (written.WrittenTypeName is { } referenced && binder.TryFindTypeDecl(referenced, binder.ScopeOf(written.Root), out var decl))
+            if (binder.Symbols.TypeDeclarationOf(written, TypeNameCarried.TypeClause) is { } decl)
                 decl.ReferencedByTypeClause = true;
         foreach (var template in binder.AllTypeDecls().ToList())
             binder.ExpandTemplate(template);
@@ -84,22 +84,12 @@ internal sealed class ExpandTypesPass : IBindPass
     private static void ResolveRestrictedTypes(DataBinder binder)
     {
         foreach (var item in binder.ClauseResolutionForest())
-            if (item.Pic is { Category: PicCategory.Pointer, RestrictedTypeName: { } tn, RestrictedTypeDecl: null }
-                && binder.TryFindTypeDecl(tn, binder.ScopeOf(item.Root), out var decl))
+            if (item.Pic is { Category: PicCategory.Pointer, RestrictedTypeName: not null, RestrictedTypeDecl: null }
+                && binder.Symbols.TypeDeclarationOf(item, TypeNameCarried.RestrictedPointer) is { } decl)
                 item.Pic = item.Pic with { RestrictedTypeDecl = decl };
     }
 
-    /// <summary>Build <see cref="ClauseFacts.LapsedTypeMembers"/> — the tail of <see cref="Run"/>.</summary>
-    private static void IndexLapsedTypeMembers(DataBinder binder)
-    {
-        var index = new Dictionary<string, List<DataItem>>(CobolNames.Comparer);
-        foreach (var decl in binder.State.Forest.TypeDecls.Values.Where(d => d.ReferencedByTypeClause))
-            foreach (var member in DataItem.DescendantsOf(decl))
-                if (member.CobolName is { } n)
-                {
-                    if (!index.TryGetValue(n, out var list)) index[n] = list = [];
-                    list.Add(member);
-                }
-        binder.State.Clauses.LapsedTypeMembers = index;
-    }
+    /// <summary>Index the lapsed type-declaration members (§2023:8.4.2.2.1 rule 4) in the symbol table, now that every declaration
+    /// is complete: the tail of <see cref="Run"/>.</summary>
+    private static void IndexLapsedTypeMembers(DataBinder binder) => binder.Symbols.IndexLapsedTypeMembers();
 }

@@ -76,6 +76,7 @@
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
       "WiseOwl.Cobol.Validation.FlagConformancePass"
@@ -648,8 +649,8 @@
       "WiseOwl.Cobol.Binding.OoDataBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ScopeOf": [
-      "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
+      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ScreenDataNameShape": [
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
@@ -796,12 +797,14 @@
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.OoDataBinder",
       "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
+      "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry",
+      "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
       "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportGroupResolution",
@@ -825,8 +828,8 @@
       "WiseOwl.Cobol.Binding.CompilerTemps",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
-      "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+      "WiseOwl.Cobol.Binding.ReportSectionBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::TemplateItems": [
       "WiseOwl.Cobol.Binding.Passes.ClassifyRedefinesClassesPass"
@@ -839,11 +842,6 @@
       "WiseOwl.Cobol.Binding.Procedure.OoBinder",
       "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp",
       "WiseOwl.Cobol.Binding.Procedure.UdfBinder"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::TryFindTypeDecl": [
-      "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
-      "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
-      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::TryIntrinsicOfThisCompilation": [
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder"
@@ -893,15 +891,6 @@
     "WiseOwl.Cobol.Binding.DataBinder::ViaReference": [
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::WithLapsedTypeConditions": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::WithLapsedTypeIndexes": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::WithLapsedTypeMembers": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::WordCensus": [
       "WiseOwl.Cobol.Binding.SpecialNamesBinder"

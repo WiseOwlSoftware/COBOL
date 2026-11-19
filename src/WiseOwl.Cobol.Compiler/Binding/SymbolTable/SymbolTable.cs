@@ -59,14 +59,14 @@ public sealed partial class SymbolTable
         {
             if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
             {
-                items = _data.WithLapsedTypeMembers(name, mlist, m);   // the method's own type declarations (kb/Work PB3192)
+                items = WithLapsedTypeMembers(Key(name), mlist, m);   // the method's own type declarations (kb/Work PB3192)
                 return true;
             }
             if (_data.MethodDeclares(m, name)) { items = []; return false; }
         }
         if (_data.State.Forest.ByName.TryGetValue(name, out var list) && list.Count > 0)
         {
-            items = _data.WithLapsedTypeMembers(name, list, null);
+            items = WithLapsedTypeMembers(Key(name), list, null);
             return true;
         }
         items = [];
@@ -198,14 +198,14 @@ public sealed partial class SymbolTable
         {
             if (m.Conditions.TryGetValue(name, out var mlist) && mlist.Count > 0)
             {
-                conds = _data.WithLapsedTypeConditions(name, mlist, m);   // the method's own type declarations (kb/Work PB3192)
+                conds = WithLapsedTypeConditions(Key(name), mlist, m);   // the method's own type declarations (kb/Work PB3192)
                 return true;
             }
             if (_data.MethodDeclares(m, name)) { conds = []; return false; }
         }
         if (_data.State.Forest.Conditions.TryGetValue(name, out var list) && list.Count > 0)
         {
-            conds = _data.WithLapsedTypeConditions(name, list, null);
+            conds = WithLapsedTypeConditions(Key(name), list, null);
             return true;
         }
         conds = [];
@@ -231,7 +231,7 @@ public sealed partial class SymbolTable
         {
             if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
             if (m.IndexNames.Declares(name))
-                return _data.WithLapsedTypeIndexes(name,
+                return WithLapsedTypeIndexes(Key(name),
                     m.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers)),
                     d => _data.IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
             // A method condition-name, CAPACITY register or constant-name of the spelling hides the object's
@@ -247,7 +247,7 @@ public sealed partial class SymbolTable
         // exactly as its `01 X` hides the container's global `X` (kb/Work PB4432). At EQUAL depth the index-name keeps
         // the reference, as before.
         if (indexes.Count > 0 && NearerDataOrConditionNameHides(name, qualifiers, indexDepth)) return null;
-        return _data.WithLapsedTypeIndexes(name, indexes, d => _data.IndexQualifierChainMatches(d, qualifiers), null);
+        return WithLapsedTypeIndexes(Key(name), indexes, d => _data.IndexQualifierChainMatches(d, qualifiers), null);
     }
 
     /// <summary>⛔ THE ONE CAPACITY-REGISTER-NAME LOOKUP (kb/Work PB3165) — the dynamic tables whose named OCCURS

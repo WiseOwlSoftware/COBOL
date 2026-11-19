@@ -78,12 +78,13 @@ public sealed partial class SymbolTable
         _data.Oo.CurrentMethodScope is { } method ? MethodConstantsOf(method) : null;
 
     /// <summary>The table's half of "does the method whose name scope is <paramref name="method"/> declare
-    /// <paramref name="word"/>" (§2023:11.7.4 GR5; kb/Work PB3164, PB3192): one of its constant entries names it, or a data
-    /// description entry of its data division does, declared before any entry binds. The model's half is
+    /// <paramref name="word"/>" (§2023:11.7.4 GR5; kb/Work PB3164, PB3192): one of its type declarations or constant entries
+    /// names it, or a data description entry of its data division does, declared before any entry binds. The model's half is
     /// <see cref="OoMethodDataScope.IndexesDeclare"/>; <see cref="DataBinder.MethodDeclares"/> asks both.</summary>
     internal bool MethodDeclaresWord(OoMethodDataScope method, string word) =>
-        _methodConstants.TryGetValue(method, out var names) && Key(word) is var key
-        && (names.Declared.ContainsKey(key) || names.OtherWords.Contains(key));
+        Key(word) is var key
+        && ((_methodNames.TryGetValue(method, out var tables) && tables.Declares(key))
+            || (_methodConstants.TryGetValue(method, out var names) && (names.Declared.ContainsKey(key) || names.OtherWords.Contains(key))));
 
     /// <summary>⛔ THE ONE ANSWER TO "WHICH ELEMENT'S CONSTANT DOES <paramref name="name"/> NAME HERE?" (kb/Work PB3164;
     /// §2023:11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the

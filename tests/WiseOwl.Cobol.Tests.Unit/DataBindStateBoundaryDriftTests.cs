@@ -162,8 +162,12 @@ public sealed class DataBindStateBoundaryDriftTests
         var slices = new (string Name, Regex Mutator, string[] Writers)[]
         {
             ("ForestSlice (the type forest and its name tables)",
-                new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|TryDeclareType|AddScreenNames|Inherit|AddCapacityRegister)\("),
+                new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|AddScreenNames|Inherit|AddCapacityRegister)\("),
                 ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CommunicationSectionBinder.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
+            // The type declarations join the forest where the symbol table keys their type-names (listing step 6b, kb/Work PB5932).
+            ("ForestSlice's type declarations",
+                new(@"\.Forest\.AddTypeDeclaration\("),
+                ["/Binding/SymbolTable/SymbolTable.Types.cs"]),
             ("CommunicationSlice (the communication description entries the unit declares)",
                 new(@"\.Communication\.Declare\("),
                 ["/Binding/SymbolTable/SymbolTable.Communication.cs"]),
@@ -188,11 +192,11 @@ public sealed class DataBindStateBoundaryDriftTests
                 new(@"\.StorageTier\.(AddStatic\w+|AddBasedBridge|ClaimAddressableCell)\("),
                 ["/Binding/DataBinder.Ptr.cs", "/Binding/Passes/PtrBindBasedAndAddressablesPass.cs", "/Binding/Passes/RouteStaticUnitStoragePass.cs"]),
             ("ClauseFacts (what the entry walk recorded for the screening passes)",
-                new(@"\.Clauses\.(Record\w+\(|LapsedTypeMembers\s*=(?!=))"),
-                ["/Binding/DataBinder*.cs", "/Binding/Passes/ExpandTypesPass.cs"]),
+                new(@"\.Clauses\.Record\w+\("),
+                ["/Binding/DataBinder*.cs"]),
             ("ImplicitRegisters (the DEBUG-ITEM family)",
                 new(@"\.Implicit\.ActivateDebugRegisters\("),
-                ["/Binding/Procedure/ProcedureTableBuilder.cs"]),
+                ["/Binding/SymbolTable/SymbolTable.DebugRegisters.cs"]),
         };
         var offenders = new List<string>();
         var found = new int[slices.Length];

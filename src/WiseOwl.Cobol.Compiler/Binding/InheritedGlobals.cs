@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Binding;
 /// which writes it BEFORE the unit's first data phase from its containers, nearest container first. Empty for an outermost
 /// program and for every OO source element.
 /// <para>A lookup reads the unit's own declarations first and this slice after (<see cref="SymbolTable.VisibleFiles"/>,
-/// <see cref="DataBinder.TryFindTypeDecl"/>), which is the §2023:8.4.6.2.1 3) a) rule — "if the name is declared in source
+/// <c>SymbolTable.TypeDeclarationOf</c>), which is the §2023:8.4.6.2.1 3) a) rule — "if the name is declared in source
 /// element B, the item in source element B is the referenced item" — made structural: an own declaration never has to
 /// displace an inherited one.</para>
 /// </summary>
@@ -22,7 +22,6 @@ public sealed class InheritedGlobals
     private readonly Dictionary<FileModel, int> _fileDepths = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<DataItem, FileModel> _recordAreas = new(ReferenceEqualityComparer.Instance);
     private readonly List<FileModel> _containerLocalFiles = [];
-    private readonly Dictionary<string, DataItem> _typeDecls = new(CobolNames.Comparer);
 
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
     /// container (<c>SymbolTable.InheritFiles</c>), 0 for any other — the file-name twin of <see cref="ForestSlice.DeclaringDepth"/>
@@ -44,14 +43,6 @@ public sealed class InheritedGlobals
     /// Read by <c>StatementValidation.ResolveRecordName</c>, to refuse WRITE / REWRITE of such a record by §2023:14.9.51.3 SR21
     /// / §2023:14.9.35.3 SR3 (kb/Work PB1193), and by the APPLY COMMIT screen (§2023:12.4.6.3.3 SR1).</summary>
     public IReadOnlyList<FileModel> ContainerLocalFiles => _containerLocalFiles;
-
-    /// <summary>The GLOBAL type declarations of every containing program (§2023:13.18.58.4 GR3; §2023:8.4.6.2.2 — a type-name
-    /// described with a GLOBAL clause is a global name; kb/Work PB1303), the nearest container's declaration of a name
-    /// kept. Kept APART from <see cref="ForestSlice.TypeDecls"/>, the source element's OWN declarations: an own declaration
-    /// must neither collide with an inherited one (§2023:8.4.6.2.1 3 a) nor be walked, emitted or re-validated as this
-    /// unit's. An inherited template is already fully expanded (its container's bind finished first), and cloning it
-    /// writes only to the referencing item.</summary>
-    public IReadOnlyDictionary<string, DataItem> TypeDecls => _typeDecls;
 
     /// <summary>The containers' GLOBAL reports, nearest container first, each with how many containment levels out it
     /// lives (the <c>__outer</c> chain length a reference to its storage renders through). Like a GLOBAL FD, the report is
@@ -90,13 +81,6 @@ public sealed class InheritedGlobals
 
     /// <summary>The containment depth of a GLOBAL file whose file-name the table made visible (<c>SymbolTable.InheritFiles</c>).</summary>
     internal void SetFileDepth(FileModel file, int depth) => _fileDepths[file] = depth;
-
-    internal void AddContainerTypeDecls(IEnumerable<KeyValuePair<string, DataItem>> typeDecls)
-    {
-        foreach (var (name, decl) in typeDecls)
-            if (decl.HasGlobalClause)
-                _typeDecls.TryAdd(name, decl);
-    }
 
     /// <summary>Offer the containers' GLOBAL reports and data roots, nearest container first. <see cref="InheritStep"/>
     /// only.</summary>

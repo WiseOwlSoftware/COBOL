@@ -31,7 +31,7 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     private readonly Dictionary<string, List<Condition88>> _conditions = new(CobolNames.Comparer);
     private readonly Dictionary<string, List<DataItem>> _capacityRegisters = new(CobolNames.Comparer);
     private readonly Dictionary<DataItem, int> _inheritedGlobalDepth = new(ReferenceEqualityComparer.Instance);
-    private readonly Dictionary<string, DataItem> _typeDecls = new(CobolNames.Comparer);
+    private readonly List<DataItem> _typeDeclarations = [];
     private readonly HashSet<string> _screenNames = new(CobolNames.Comparer);
 
     /// <summary>The top-level (01/77) items, in source order: WORKING-STORAGE, the FILE records and the compiler
@@ -96,14 +96,15 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// funnel's "is this word declared nearer" question, which runs while they are still being minted).</summary>
     internal IReadOnlyDictionary<string, List<DataItem>> CapacityRegistersSoFar => _capacityRegisters;
 
-    /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO §2023:13.18.58;
-    /// data-model D17) — THIS source element's own: a METHOD's declarations are its own source element's, in
-    /// <see cref="OoMethodDataScope.TypeDecls"/> (kb/Work PB3192), and <c>DataBinder.AllTypeDecls</c> walks both. The template
-    /// is built by <c>BindEntries</c> but kept OFF <see cref="Roots"/> and <see cref="ByName"/> (it allocates no storage; its
-    /// subordinate names are not globally referenceable, GR1/GR2). A <c>TYPE IS type-name</c> reference clones this subtree
-    /// into the referencing entry in the post-build <see cref="ExpandTypesPass.Run"/> pass — which runs before every resolution
-    /// pass, so each sees the clone.</summary>
-    public IReadOnlyDictionary<string, DataItem> TypeDecls => _typeDecls;
+    /// <summary>THIS source element's own TYPEDEF type declarations, in source order (ISO §2023:13.18.58; data-model D17): each the
+    /// template root <see cref="DataItem"/>. A METHOD's declarations are its own source element's
+    /// (<see cref="OoMethodDataScope.TypeDeclarations"/>, kb/Work PB3192), and <c>DataBinder.AllTypeDecls</c> walks both. Their
+    /// type-names are the symbol table's (<c>SymbolTable.DeclareType</c>, which adds each here; docs/rearchitecture/DESIGN-listing.md
+    /// section 6.7.1). The template is built by <c>BindEntries</c> but kept OFF <see cref="Roots"/> and <see cref="ByName"/> (it
+    /// allocates no storage; its subordinate names are not globally referenceable, GR1/GR2). A <c>TYPE IS type-name</c> reference
+    /// clones this subtree into the referencing entry in the post-build <see cref="ExpandTypesPass.Run"/> pass, which runs before
+    /// every resolution pass, so each sees the clone.</summary>
+    public IReadOnlyList<DataItem> TypeDeclarations => _typeDeclarations;
 
     /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
     /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
@@ -142,9 +143,6 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     public bool DeclaresOwnDataName(string name) =>
         _byName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
 
-    /// <summary>The type declarations of the source element <paramref name="scope"/> names: a METHOD's own table when the scope
-    /// is a method's (§2023:8.4.6.2.2; kb/Work PB3192), else this unit's.</summary>
-    public IReadOnlyDictionary<string, DataItem> TypeDeclsOf(Scope scope) => scope.Method?.TypeDecls ?? _typeDecls;
 
     // ── The writers (internal: the data binder's declaration walk, its passes and its inheritance of a container's GLOBALs) ──
 
@@ -187,10 +185,9 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     internal void DeclareIndex(IndexDeclaration decl, OoMethodDataScope? method) =>
         (method?.IndexNames ?? IndexNames).Declare(decl);
 
-    /// <summary>Declare a TYPEDEF template in the declaring source element's table (a method's type-name is local to the
-    /// method, §2023:8.4.6.2.2; kb/Work PB3192); false when the spelling is already declared there.</summary>
-    internal bool TryDeclareType(DataItem template, string name, Scope scope) =>
-        (scope.Method?.TypeDecls ?? _typeDecls).TryAdd(name, template);
+    /// <summary>Append a TYPEDEF template of this element, in source order: <c>SymbolTable.DeclareType</c>'s, once it has keyed the
+    /// type-name.</summary>
+    internal void AddTypeDeclaration(DataItem template) => _typeDeclarations.Add(template);
 
     /// <summary>Record the screen-names the refused SCREEN SECTION declared.</summary>
     internal void AddScreenNames(IEnumerable<string> names)

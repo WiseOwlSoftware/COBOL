@@ -45,17 +45,6 @@ public sealed class ClauseFacts
     /// <see cref="Passes.CheckConditionNameAssociationsPass.Run"/>.</summary>
     internal IReadOnlyList<ConditionAssociation> ConditionAssociations => _conditionAssociations;
 
-    /// <summary>The members of every type declaration a TYPE clause references, by name — the "other definition of the
-    /// name" of §2023:8.4.2.2.1 GR4 ("Any other definition of the name is subordinate to a type declaration entry for which the
-    /// type-name is not referenced in any TYPE clause"). Built ONCE, when <see cref="Passes.ExpandTypesPass.Run"/> has completed every declaration; null until then
-    /// (a SAME AS operand resolved while the declarations are being completed walks them live, since the copies inside a
-    /// declaration are still arriving). Written once.</summary>
-    internal IReadOnlyDictionary<string, List<DataItem>>? LapsedTypeMembers
-    {
-        get;
-        set => field = field is null ? value : throw new InvalidOperationException("ClauseFacts.LapsedTypeMembers is built once, by ExpandTypesPass (kb/Work PB2296)");
-    }
-
     internal void RecordSignClauseWritten(DataItem item) => _signClauseWritten.Add(item);
     internal void RecordValueClauseWritten(DataItem item) => _valueClauseWritten.Add(item);
     internal void RecordRefusedClauseOperand(string written) => _refusedClauseOperands.Add(written);
