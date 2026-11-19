@@ -27,6 +27,31 @@ def case_banner_and_timestamp(expect) -> None:
                  sp.gh_time("2026-11-18T18:01:56Z"), "11/18/2026 18:01:56")
 
 
+def _merge_queue_with(protection: str) -> list[str]:
+    """merge_queue() with no ruleset on main (exit 3) and `protection` as the classic-protection API's answer."""
+    saved = sp.py, sp.gh, sp.have_gh
+    sp.py = lambda *a: sp.Cmd(3, "ABSENT: no ruleset on main")
+    sp.gh = lambda *a: sp.Cmd(0, protection)
+    sp.have_gh = lambda: True
+    try:
+        return sp.merge_queue()
+    finally:
+        sp.py, sp.gh, sp.have_gh = saved
+
+
+def case_protection_without_required_checks_is_drift_not_unread(expect) -> None:
+    # GitHub omits required_status_checks when none are enabled (kb/Work PB5939 review R1-1): that is the DRIFTED alarm
+    # with contexts=[], as the pwsh probe printed it, never the "did not parse" line.
+    got = _merge_queue_with('{"enforce_admins": {"enabled": true}}')
+    expect("an absent required_status_checks is the DRIFTED alarm", len(got) == 1 and "DRIFTED" in got[-1]
+           and "contexts=[]" in got[-1], got)
+    got = _merge_queue_with('{"required_status_checks": {"contexts": ["ci-gate"]}, "enforce_admins": {"enabled": true}}')
+    expect("ci-gate with enforce_admins is the queue-not-applied alarm", "requires ci-gate" in got[-1], got)
+    for bad in ('not json', '[]', '{"required_status_checks": {"contexts": []}}'):
+        got = _merge_queue_with(bad)
+        expect(f"a response that does not parse stays UNREAD: {bad}", "did not parse" in got[-1], got)
+
+
 def case_sections_are_listed_once(expect) -> None:
     names = [n for n, _ in sp.SECTIONS]
     expect("every section is listed once", len(names) == len(set(names)))

@@ -268,7 +268,7 @@ def main() -> int:
         # the verdict is kept while what it is a function of is the same, and recomputed when main's content moves
         calls: list[int] = []
 
-        def compute(_repo):
+        def compute(_repo, _commit):
             calls.append(1)
             return {"same": True, "version": f"v{len(calls)}"}
         first, again = fh.main_verdict(repo.path, compute), fh.main_verdict(repo.path, compute)
@@ -280,8 +280,42 @@ def main() -> int:
         expect("SYNC a main that moved is judged again", moved_main["version"] == "v2" and len(calls) == 2, (moved_main, calls))
         repo.commit("moves kb", {"kb/Work/PB1.md": "moved\n"})
         repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
-        expect("SYNC an error verdict is never kept", fh.main_verdict(repo.path, lambda _r: {"error": "boom"}) == {"error": "boom"}
+        expect("SYNC an error verdict is never kept", fh.main_verdict(repo.path, lambda _r, _c: {"error": "boom"}) == {"error": "boom"}
                and fh.main_verdict(repo.path, compute)["version"] == "v3", calls)
+        # R1-2: main moves between the key's read and the content's read; the verdict must be kept under the id it was
+        # computed from, never the key of one main and the content of another.
+        repo.commit("moves before the race", {"scripts/z.py": "z\n"})
+        repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
+        base = fh.resolve_main(repo.path)
+        repo.commit("moves again", {"scripts/y.py": "moved again\n"})
+        repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
+        seen = []
+        fh.main_verdict(repo.path, lambda _r, c: seen.append(c) or {"same": True, "version": "old"}, commit=base)
+        expect("SYNC the verdict is computed from the id the key names, though main has moved on", seen == [base], seen)
+        expect("SYNC the key of the older id is not served for the newer main",
+               fh.main_verdict(repo.path, lambda _r, c: {"same": True, "version": "new"})["version"] == "new")
+        by_id = root / "by-id"
+        fh.extract_main(by_id, ("scripts",), repo=repo.path, commit=base)
+        expect("SYNC an archive by id is that commit's content, not main's name", not (by_id / "scripts" / "y.py").exists())
+        # The REAL path (extract_verdict, main_ledger, the default compute of main_verdict) with main moved between the id's
+        # resolution and the read: commit A's fuzz_history.py prints verdict "A", B's prints "B", and each commit's
+        # FUZZ-LEDGER.md names it. Whatever reads origin/main by name instead of by the id gets B and fails here.
+        def stamp(tag: str) -> dict:
+            return {"scripts/fuzz_history.py": f"import json\nprint(json.dumps({{'same': True, 'version': '{tag}'}}))\n",
+                    "FUZZ-LEDGER.md": f"ledger {tag}\n"}
+        repo.commit("race A", stamp("A"))
+        repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
+        id_a = fh.resolve_main(repo.path)
+        repo.commit("race B", stamp("B"))
+        repo.git("update-ref", f"refs/remotes/{fh.MAIN_REF}", "HEAD")
+        got_a = fh.extract_verdict(repo.path, commit=id_a)
+        expect("SYNC the real extract_verdict builds the commit it is handed, not main's name",
+               got_a == {"same": True, "version": "A"}, got_a)
+        expect("SYNC the ledger text is the handed commit's", fh.main_ledger(repo.path, commit=id_a) == "ledger A\n")
+        expect("SYNC the real main_verdict keeps and serves the handed commit's verdict",
+               fh.main_verdict(repo.path, commit=id_a) == {"same": True, "version": "A"}
+               and fh.main_verdict(repo.path, commit=id_a) == {"same": True, "version": "A"}
+               and fh.main_verdict(repo.path)["version"] == "B")
 
         # HISTORY: the subcommand, on a history file of its own
         hfile = root / "fuzz-history.json"

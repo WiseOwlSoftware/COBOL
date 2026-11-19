@@ -91,6 +91,10 @@ public sealed class PlatformAssumptionTests : IDisposable
         Directory.CreateDirectory(dir);
         string source = Path.Combine(dir, "child.cs");
         File.WriteAllText(source, ChildSource, new UTF8Encoding(false));
+        // `dotnet run` is an SDK command, and outside the repository no global.json selects the SDK: the host's newest
+        // one runs, preview or not (a .NET 11 RC installed beside 10.0.404 failed the build, kb/Work PB5942). The child
+        // carries the repository's own global.json, so it builds with the SDK toolchain.env names and nothing else.
+        File.Copy(Path.Combine(TestRepo.Root, "global.json"), Path.Combine(dir, "global.json"), overwrite: true);
         var psi = new ProcessStartInfo("dotnet") { WorkingDirectory = dir };
         // The tree kill below must not reach the host-wide Roslyn server (VBCSCompiler) that other builds on this host share:
         // with shared compilation off, `dotnet run` compiles in-process and starts no server of its own.

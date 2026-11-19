@@ -348,9 +348,11 @@ def merge_queue() -> list[str]:
         return out + ["gate   : gh could not read main's protection — required-check state UNREAD (do not infer it is on)"]
     try:
         j = json.loads(prot.out)
-        ctx = list(j["required_status_checks"]["contexts"] or [])
+        # GitHub omits required_status_checks when none are enabled: that is no required check (the DRIFTED alarm below),
+        # never an unparsed answer. enforce_admins is always present, so its absence is a response that is not protection.
+        ctx = list((j.get("required_status_checks") or {}).get("contexts") or [])
         adm = bool(j["enforce_admins"]["enabled"])
-    except (ValueError, KeyError, TypeError):
+    except (ValueError, KeyError, TypeError, AttributeError):
         return out + ["gate   : main's protection did not parse — required-check state UNREAD (do not infer it is on)"]
     if "ci-gate" in ctx and adm:
         return out + ["gate   : ⛔ main requires ci-gate (enforce_admins on) but the merge queue is not applied (ruleset.py "
