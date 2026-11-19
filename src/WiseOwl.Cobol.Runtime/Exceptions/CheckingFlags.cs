@@ -40,7 +40,7 @@ public struct CheckingFlags
     public bool BoundSet;
 
     /// <summary>EC-RANGE-INVALID — an alphanumeric/national THROUGH range whose starting value collates after its
-    /// ending value (§2023:14.7.8 rule 2), in a level-88 VALUE THRU or an EVALUATE WHEN range.</summary>
+    /// ending value (§2023:14.7.8 GR2), in a level-88 VALUE THRU or an EVALUATE WHEN range.</summary>
     public bool RangeInvalid;
 
     /// <summary>EC-STORAGE-NOT-AVAIL — a <c>SET [SIZE OF] dynamic-length-item TO arithmetic-expression-5</c> whose

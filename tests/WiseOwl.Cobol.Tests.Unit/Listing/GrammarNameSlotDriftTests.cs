@@ -56,9 +56,10 @@ public sealed class GrammarNameSlotDriftTests
     }
 
     /// <summary>The planted failure (section 6.7.1): the same counter over <c>NameSlotFixture.g4</c> reports exactly its
-    /// five bad rules, each at the slot that hides, and passes its clean one. So the check can fail on each way a slot
+    /// six bad rules, each at the slot that hides, and passes its clean one. So the check can fail on each way a slot
     /// can hide: a reused label, an unlabelled <c>cobolWord</c>, an unlabelled alternative-of-a-slot token, a header
-    /// whose transition into a reference rule carries no label, and a label not of the name-slot label's form.</summary>
+    /// whose transition into a reference rule carries no label, a label not of the name-slot label's form, and a classified
+    /// label on an element that is no slot beside an unlabelled slot, whose counts agree (listing step 7 review lead R1-1).</summary>
     [Fact]
     public void TheCounter_ReportsEachPlantedFailure_AtItsSlot()
     {
@@ -68,13 +69,15 @@ public sealed class GrammarNameSlotDriftTests
         Assert.Equal(["dataRef", "procName"], analysis.ReferenceRules);
 
         Dictionary<string, NameSlotFinding> findings = analysis.Findings().ToDictionary(f => f.Rule);
-        Assert.Equal(["header", "malformed", "numbered", "reused", "unlabelled"], findings.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(["header", "malformed", "misplaced", "numbered", "reused", "unlabelled"], findings.Keys.Order(StringComparer.Ordinal));
 
         AssertFinding(findings["reused"], ["cobolWord", "cobolWord"], 1);
         AssertFinding(findings["unlabelled"], ["cobolWord", "cobolWord"], 1);
         AssertFinding(findings["numbered"], ["INTEGERLIT", "cobolWord"], 1);
         AssertFinding(findings["header"], ["procName"], 0);
         AssertFinding(findings["malformed"], ["cobolWord"], 0);
+        AssertFinding(findings["misplaced"], ["cobolWord", "cobolWord"], 2);
+        Assert.Equal([GrammarNameSlots.Analysis.TokenElement, "cobolWord"], analysis.LabelledElementsOf("misplaced"));
 
         // The clean rules hold one field per slot: the reference rules' heads and qualifiers included.
         Assert.Equal(2, analysis.SlotsOf("clean").Count);

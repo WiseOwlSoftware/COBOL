@@ -480,7 +480,7 @@ public sealed class ExceptionEngine
     /// <item><see cref="DispatchResult.Normal"/> — the declarative RAN and completed normally (§2023:14.6.13.1.2). #3's own sentence places the
     /// return: "If execution of the declarative completes normally, execution continues as specified in the
     /// RULES FOR NORMAL EXECUTION", and every condition reaching this method has a rule that names that
-    /// continuation outright — §2023:14.7.8 rule 2 ("upon completion of any exception processing, execution proceeds
+    /// continuation outright — §2023:14.7.8 GR2 ("upon completion of any exception processing, execution proceeds
     /// as if the range of values were empty"), §2023:8.5.1.9.6 GR1 (the capacity change happens), §2023:14.9.39 Format 16
     /// GR37/GR38 (the length is 0 / clamped), §2023:15.19.4 r3 (the substitution character is used). So the raise site
     /// returns and the statement finishes. ⚠ §2023:14.9.49.4 GR13 a) — "control is returned to an implicit CONTINUE
@@ -684,7 +684,7 @@ public sealed class ExceptionEngine
     }
 
     /// <summary>Record EC-RANGE-INVALID for a THROUGH range whose starting value collates AFTER its ending value
-    /// (§2023:14.7.8 rule 2 — a level-88 VALUE THRU or an EVALUATE WHEN range). Nonfatal (Table 13): the range is
+    /// (§2023:14.7.8 GR2 — a level-88 VALUE THRU or an EVALUATE WHEN range). Nonfatal (Table 13): the range is
     /// treated as empty whether or not the condition is raised.</summary>
     public void RangeInvalidError(string detail) => NonfatalIfEnabled(RangeInvalidChecking, "EC-RANGE-INVALID");
 

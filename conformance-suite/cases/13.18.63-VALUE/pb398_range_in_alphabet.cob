@@ -6,11 +6,11 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> ISO 14.9.13.2's range-expression `[ IN alphabet-name-1 ]` + 14.9.13.3 SR3 + 14.7.8 rule 2, over BOTH
+      *> ISO 14.9.13.2's range-expression `[ IN alphabet-name-1 ]` + 14.9.13.3 SR3 + 14.7.8 GR2, over BOTH
       *> clauses the phrase is printed in - EVALUATE's selection object and the VALUE clause's condition-name
       *> list (13.18.63.2 formats 3 and 5) - because 14.7.8 opens by governing them in one sentence: "This
       *> specification applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement."
-      *> 14.7.8 rule 2: with no phrase "the collating sequence is defined by the implementor" (this compiler's
+      *> 14.7.8 GR2: with no phrase "the collating sequence is defined by the implementor" (this compiler's
       *> default is the PROGRAM COLLATING SEQUENCE); "when the IN alphabet-name phrase is specified, the
       *> collating sequence used for range evaluation is the collating sequence defined by that alphabet".
       *> kb/Work PB398: the EVALUATE phrase had NO GRAMMAR (a raw parse error) and the VALUE clause's twin was

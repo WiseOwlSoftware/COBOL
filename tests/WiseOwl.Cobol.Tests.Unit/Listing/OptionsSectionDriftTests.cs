@@ -19,8 +19,16 @@ public sealed class OptionsSectionDriftTests
 {
     private const string Source = "a.cob";
 
-    private static IEnumerable<PropertyInfo> Settable(Type type) =>
-        type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.SetMethod is { IsPublic: true });
+    /// <summary>The properties a caller chooses: each one with a public setter, and each one the record's primary constructor takes
+    /// (<see cref="ListingRequest"/>'s destination, <c>OutputBase</c> with <c>Formats</c>, is set only as a pair, by the constructor or
+    /// <see cref="ListingRequest.WithDestination"/>, so it has no setter of its own).</summary>
+    private static IEnumerable<PropertyInfo> Settable(Type type)
+    {
+        var positional = type.GetConstructors().MaxBy(c => c.GetParameters().Length)!.GetParameters().Select(p => p.Name)
+            .ToHashSet(StringComparer.Ordinal);
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.SetMethod is { IsPublic: true } || positional.Contains(p.Name));
+    }
 
     [Fact]
     public void EveryOptionProperty_HasExactlyOneRow()
@@ -88,12 +96,22 @@ public sealed class OptionsSectionDriftTests
         Assert.Equal(ListingOptionOrigin.Specified, after[row].Origin);
     }
 
-    /// <summary>A copy of <paramref name="record"/> with <paramref name="property"/> alone set to a value other than its own.</summary>
+    /// <summary>A copy of <paramref name="record"/> with <paramref name="property"/> alone set to a value other than its own: through its
+    /// setter, or, for half of a listing request's destination, through <see cref="ListingRequest.WithDestination"/> with the other half
+    /// kept.</summary>
     private static T With<T>(T record, string property) where T : class
     {
-        var copy = (T)typeof(T).GetMethod("<Clone>$")!.Invoke(record, null)!;
         var info = typeof(T).GetProperty(property)!;
-        info.SetValue(copy, Other(info, info.GetValue(record)));
+        object? other = Other(info, info.GetValue(record));
+        if (record is ListingRequest request && info.SetMethod is not { IsPublic: true })
+            return (T)(object)(property switch
+            {
+                nameof(ListingRequest.OutputBase) => request.WithDestination((string?)other, request.Formats),
+                nameof(ListingRequest.Formats) => request.WithDestination(request.OutputBase, (ListingFormats)other!),
+                _ => throw new InvalidOperationException($"no way to set ListingRequest.{property} alone: teach this test one"),
+            });
+        var copy = (T)typeof(T).GetMethod("<Clone>$")!.Invoke(record, null)!;
+        info.SetValue(copy, other);
         return copy;
     }
 

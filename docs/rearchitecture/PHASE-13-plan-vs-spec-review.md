@@ -856,7 +856,7 @@ the batch-2 journal (session store) + `scratchpad/batch2-verdicts.json`.
 > `EcWrap.QueryFor` arm on `BoundInlinePerform/BoundOutOfLinePerform { PerformVarying { CheckIndexRange } }` + a
 > FatalAmbientGates entry + `PerformVaryingIndexError` (index-name FROM a data-item value ≤0, §2023:14.9.28.4 GR3 — corrected
 > from the finding's "non-positive BY step"); **INVALID** — `CobolString.ThruMember` at the level-88 (`RenderMembershipTest`)
-> and EVALUATE-range (`BoundRangeMembership`) sites (§2023:14.7.8 rule 2, alphanumeric/national only). Design validated by
+> and EVALUATE-range (`BoundRangeMembership`) sites (§2023:14.7.8 GR2, alphanumeric/national only). Design validated by
 > `wf_a0883513-5f3`. Goldens `2023/ec_range_{search,perform_varying,invalid}`. (The finding's cited §s were corrected:
 > SEARCH is §2023:14.9.37 not §2023:14.9.35; PERFORM-VARYING is §2023:14.9.28.4 GR3 :29222; INVALID is §2023:14.7.8 :24863.)
 

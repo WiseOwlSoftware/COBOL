@@ -1527,7 +1527,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var inner = ConditionOperandExpression(vo);
         if (inner is { } expr && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
             // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§2023:8.4.2.3 Format 2).
-            // Capture EC-RANGE-INVALID checking (§2023:14.7.8 rule 2 — an inverted alphanumeric/national VALUE THRU range).
+            // Capture EC-RANGE-INVALID checking (§2023:14.7.8 GR2 — an inverted alphanumeric/national VALUE THRU range).
             return BareOperandAnalysis.OfCondition(BareOperandForm.ConditionName,
                 ctx.Refs.ResolveForItem(dref, cond.Parent) is var parentAnswer && parentAnswer.Place is { } parent
                     ? new BoundCondition88(parent, cond,

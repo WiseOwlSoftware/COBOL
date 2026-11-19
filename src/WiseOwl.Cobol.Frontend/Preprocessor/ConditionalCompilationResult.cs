@@ -37,8 +37,10 @@ public sealed record ConditionalCompilationResult(MappedText Text, IReadOnlyList
     /// <summary>
     /// <paramref name="ops"/> — resultant-line PUSH/POP ops in token order
     /// (<see cref="ExceptionPerformDirectiveScope.ImplicitOps"/>) — as the driver's implicit-op program: each op keyed
-    /// to the first directive written on a LATER line (a directive occupies its own line, so no directive shares an
-    /// op's line), keeping only the brackets that matter. A PUSH ALL / POP ALL pair enclosing no directive that
+    /// to the first STATE ENCOUNTER (<see cref="StateEncounter"/>) on a LATER line: a directive (which occupies its own line,
+    /// so none shares an op's line) or, with a listing, a library text's start or end, where §2023:7.2.3.4 GR5 reads the
+    /// LISTING state (kb/Work PB5925 review R1-1: an op standing before a COPY is applied at the library text's start, not
+    /// at the next directive). Only the brackets that matter are kept: a PUSH ALL / POP ALL pair enclosing no encounter that
     /// changed the driver's state restores exactly the state it saved, so it is dropped; the result is therefore
     /// empty for every source whose handlers write no DEFINE, FLAG-02 / FLAG-14 or PUSH / POP, which is what lets
     /// the front end skip re-running the driver. Equal programs mean equal driver behaviour — the front end's

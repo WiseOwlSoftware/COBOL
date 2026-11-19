@@ -22,7 +22,7 @@ internal static class DataMapBuilder
     {
         if (!at.IsSet || index.Of(at.Line) is not { } line) return new Placement(null, null, null);
         int? column = index.PointAt(at.Line, at.Column) is { } point && frontend.Formats.TryGetValue(point.Origin.File, out var map)
-            ? map.ExpandedIndexAt(point.Origin.Line, point.Column) + 1
+            ? map.CharacterPositionAt(point.Origin.Line, point.Column)
             : null;
         return new Placement(line, column, drafts[line - 1].Program);
     }

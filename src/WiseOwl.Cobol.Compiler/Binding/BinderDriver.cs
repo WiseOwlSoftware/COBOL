@@ -652,11 +652,12 @@ internal sealed class BinderDriver
             UnitIsContained = unit.Parent is not null,
             UnitIsFunction = unit.IsFunction,
             UnitIsRecursive = unit.Recursive,   // §2023:12.4.6.3.3 SR5 (kb/Work PB3338)
-            // §2023:8.4.6.6 / §2023:8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the
-            // registries read too (ContainingDefinitions; kb/Work PB452/PB817, PB3121).
-            ContainingDefinitionNames = new HashSet<string>(ContainingDefinitions(unit).Select(u => u.Name), CobolNames.Comparer),
             UnitStaticWs = unit.Recursive && !unit.Initial,
         };
+        // §2023:8.4.6.6 / §2023:8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the prototype
+        // tables read (ContainingDefinitions; kb/Work PB452/PB817, PB3121), the symbol table's (DESIGN-listing.md section 6.7.1,
+        // step 6b slice 7), declared before the unit's data binds so its USAGE TO screen reads it.
+        data.Symbols.DeclareContainingDefinitions(unit);
         data.CallSeedUids(session.TakeUidBand());
 
         // The configuration slice (ISO §2023:12.3.4 GR1 / §2023:11.9.4 GR1; §2023:12.3.3 SR1 — a contained program cannot have its own
@@ -754,7 +755,8 @@ internal sealed class BinderDriver
         foreach (var (data, unit, position) in forests)
         {
             data.Symbols.ResolveProgramPrototypes(unit, repository, position, session.Binders);
-            data.ResolveRestrictedPrototypes(UserFunctionsOf(data, unit, repository, position, session.Binders));
+            data.Symbols.ResolveFunctionPrototypes(unit, repository, position, session.Binders);
+            data.ResolveRestrictedPrototypes();
         }
         PrototypeSignatures.StampContentRestrictions(forests.SelectMany(f => f.Data.RestrictedPrototypePointers()));
     }
@@ -766,17 +768,16 @@ internal sealed class BinderDriver
     private static void BindUnitProcedure(BoundUnit unit, BindSession session)
     {
         var (data, refs) = session.Binders.Of(unit);
+        // The unit's user-defined functions (§2023:12.3.8.4 GR11, plus §2023:8.4.6.6's containing function definition: inside a
+        // function definition its OWN name is a referable function-prototype-name, and §2023:12.3.8.3 SR11 makes a present
+        // self-entry a no-op), the symbol table's (DESIGN-listing.md section 6.7.1, step 6b slice 7).
+        data.Symbols.ResolveFunctionPrototypes(unit, session.Repository, unit.SourcePosition, session.Binders);
         var binder = new StatementBinder(data, refs)
         {
             OoClasses = session.OoClasses,
-            UserFunctions = UserFunctionsOf(data, unit, session.Repository, unit.SourcePosition, session.Binders),
-            // §2023:8.4.6.6 — inside a function definition its OWN name is a referable function-prototype-name
-            // (self-recursion without a repository entry; §2023:12.3.8.3 SR11 makes a present self-entry a no-op —
-            // UserFunctionsOf ignores it; both read ContainingDefinitions).
-            UdfSelfName = unit.IsFunction ? unit.Name : null,
             // ISO §2023:14.2.2 SR10's enumeration of the five source elements that may carry a Format-1/2 procedure
-            // division — the input to every EXIT / GOBACK placement rule (kb/Work PB403). Derived HERE, beside
-            // UdfSelfName, from the same two unit facts, so the "am I a function?" answer cannot fork.
+            // division — the input to every EXIT / GOBACK placement rule (kb/Work PB403), and the one "am I a function?"
+            // answer of the procedure binders.
             UnitKind = SourceElementKindOf(unit),
             // §2023:15.65.3 argument rule 1 — MODULE-NAME NESTED requires a contained program.
             InNestedProgram = unit.Parent is not null,
@@ -1044,8 +1045,8 @@ internal sealed class BinderDriver
     /// enclosing it: <paramref name="unit"/> itself, then each program that contains it. All of them are of
     /// <paramref name="unit"/>'s own kind. A class forest (<paramref name="unit"/> null) has none: a class is
     /// neither definition kind. The program registry (<see cref="SymbolTable.ResolveProgramPrototypes"/>), the function registry's
-    /// self entry (<see cref="UserFunctionsOf"/>) and the DATA-phase TO-phrase screen
-    /// (<c>DataBinder.ContainingDefinitionNames</c>, seeded from here) all read THIS set, so "is this name in
+    /// self entry (<see cref="SymbolTable.ResolveFunctionPrototypes"/>) and the DATA-phase TO-phrase screen
+    /// (<see cref="SymbolTable.DeclaresPrototypeName"/>, declared from here) all read THIS set, so "is this name in
     /// scope" has one answer in every phase — they used to disagree in both directions: the screen admitted the
     /// element's own program-name, which the registry registered only under a written specifier, and refused a
     /// containing program's, which the registry always held.</summary>
@@ -1069,75 +1070,9 @@ internal sealed class BinderDriver
                     yield return d;
     }
 
-    /// <summary>The user-defined functions ONE source element may reference, by the function-prototype-name it
-    /// WRITES — the function twin of <see cref="SymbolTable.ResolveProgramPrototypes"/> (kb/Work PB974, PB989), resolved by
-    /// <see cref="RepositoryResolver.ResolveFunction"/> as of <paramref name="position"/> (determination D-R3,
-    /// DESIGN-external-repository §8.3): §2023:12.3.8.4 GR11 a) / b) keyed by the EXTERNALIZED name — literal-5 when the
-    /// specifier writes <c>AS literal-5</c>, else the name itself (NOTE 2) — over the definitions specified BEFORE this
-    /// element and then the prototypes, then c) the external repository's entry of that externalized name; when all miss,
-    /// the function the WORD names (§2023:8.4.6.7), in the group and then in the repository. No hit is REPO-1 at the specifier
-    /// (SR10; DESIGN-external-repository §8.3) and leaves the name unmapped; a definition that FOLLOWS the element and has
-    /// no prototype is such a name. A hit that is NOT the function the word names, while a different function does carry
-    /// the word, warns (COBOL2969): the externalized name wins, as GnuCOBOL's does.
-    /// A specifier naming the function definition it is written in is IGNORED (§2023:12.3.8.3 SR11; the definition is
-    /// <see cref="ContainingDefinitions"/>' function member) and the name resolves to its own signature — registered LAST,
-    /// as <see cref="SymbolTable.ResolveProgramPrototypes"/> registers its self entry. <paramref name="data"/> is a program unit's
-    /// forest or a CLASS's OBJECT / FACTORY forest (whose specifiers are the class REPOSITORY's — §2023:12.3.4 GR1,
-    /// kb/Work PB1100; <paramref name="unit"/> is then null, and <paramref name="position"/> is the class's own start).
-    /// A function definition's own name is ALWAYS referable inside it (§2023:8.4.6.6), so the self entry is registered
-    /// whether or not a specifier writes it: a definition does not start strictly before itself, and the group's
-    /// view as of <paramref name="position"/> would otherwise drop it. A forest with no function specifier and no
-    /// self entry shares the group view (no copy).</summary>
-    internal static IReadOnlyDictionary<string, UserFunctionSignature> UserFunctionsOf(
-        DataBinder data, BoundUnit? unit, RepositoryResolver repository, int position, ElementBinders binders)
-    {
-        var group = repository.Group.FunctionsAt(position);
-        // §2023:8.4.6.6's no-specifier leg — the containing function definition, i.e. the element's own when it is one.
-        var selves = ContainingDefinitions(unit).Where(u => u.IsFunction).ToList();
-        Dictionary<string, UserFunctionSignature>? own = null;
-        foreach (var (name, specifier) in data.State.Configuration.FunctionSpecifiers)
-        {
-            // §2023:12.3.8.3 SR11: "If the specified function-prototype-name-1 is the name of the function definition in
-            // which this REPOSITORY paragraph is specified, references to function-prototype-name-1 are to that
-            // function definition and this function-specifier is ignored" — whatever its AS literal says, so it is
-            // never resolved (a remap there bound the recursive self-call against another function's signature,
-            // kb/Work PB1084); the self entry below is the reference's target.
-            if (selves.Exists(u => CobolNames.Same(name, u.Name))) continue;
-            own ??= new Dictionary<string, UserFunctionSignature>(group, CobolNames.Comparer);
-            using var _ = data.Edition.At(specifier.At);
-            if (repository.ResolveFunction(name, specifier.ExternalizedName, position) is not { } resolved)
-            {
-                // None of SR10's three alternatives, nor §2023:8.4.6.7's word, holds: REPO-1 at the specifier (DESIGN-external-repository §8.3), and the
-                // name is no function of the element.
-                own.Remove(name);
-                repository.ReportUnanswered(specifier, function: true, name, specifier.ExternalizedName, data.Edition);
-                continue;
-            }
-
-            own[name] = resolved.Signature;
-            if (resolved.Shadowed is { } shadowed)
-            {
-                data.Edition.Warning(DiagnosticCatalog.FunctionWordNamesAnotherFunction,
-                    $"FUNCTION {name} activates the function externalized \"{resolved.Signature.Externalized}\" "
-                    + $"(§2023:12.3.8.4 GR11 a) / b) take the details by externalized name), but {shadowed.Origin.Describe("function")} "
-                    + $"also has the user-function-name {name}: it is reachable only through a REPOSITORY entry "
-                    + $"FUNCTION {name} AS \"{shadowed.Signature.Externalized}\" (§2023:8.4.6.7)");
-            }
-        }
-        foreach (var u in selves)
-        {
-            own ??= new Dictionary<string, UserFunctionSignature>(group, CobolNames.Comparer);
-            var signature = binders.SignatureOf(u);
-            own[u.Name] = new UserFunctionSignature(u.Name, u.ExternalizedName, signature.Returning, signature.Formals,
-                DefinitionCompiledHere: true);   // §2023:8.4.6.6: the element's own definition
-        }
-        return own ?? group;
-    }
-
-
     /// <summary>The per-unit screens of the group's FUNCTION-ID units, run once before any source element searches the
     /// group (<see cref="GroupRepositoryProvider"/> is the search; the table this method used to build is its
-    /// <see cref="GroupRepositoryProvider.FunctionsAt"/>). The §2023:14.2 procedure-division-header rule "The RETURNING phrase
+    /// <see cref="GroupRepositoryProvider.FunctionsVisibleAt"/>). The §2023:14.2 procedure-division-header rule "The RETURNING phrase
     /// shall be specified in a function definition" (:23666) is checked HERE, once per unit — even an uncalled
     /// function without RETURNING is ill-formed — and so is the same-word duplicate (COBOL1508).</summary>
     private static void CheckFunctionUnits(IReadOnlyList<BoundUnit> units, SourceMap sources, EditionContext edition,

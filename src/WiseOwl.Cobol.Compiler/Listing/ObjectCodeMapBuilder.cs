@@ -39,7 +39,7 @@ internal static class ObjectCodeMapBuilder
             var lines = text.Inclusions.Select(i => index.Of(i, position.Key.Line)).OfType<int>().Order().ToList();
             if (lines.Count == 0) continue;
             int column = frontend.Formats.TryGetValue(text.File, out var map)
-                ? map.ExpandedIndexAt(position.Key.Line, position.Key.Column - 1) + 1
+                ? map.CharacterPositionAt(position.Key.Line, position.Key.Column - 1)
                 : position.Key.Column;
             var ordered = position.OrderBy(p => p.Method).ThenBy(p => p.Start).ToList();
             var copies = Copies([.. ordered.Select(p => (p.EndLine, p.EndColumn))], lines.Count);

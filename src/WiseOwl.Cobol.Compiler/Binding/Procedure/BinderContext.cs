@@ -105,8 +105,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     //    that says a statement "may be specified only in …". See EnclosingContext for the rule inventory. ──
 
     /// <summary>The kind of source element whose procedure division this binder binds (ISO §2023:14.2.2 SR10) — set
-    /// once per unit by <c>BinderDriver.BindUnitProcedure</c> from the unit's own facts, beside the
-    /// <c>UdfSelfName</c> it is derived from, so the two cannot disagree. A METHOD body overrides it through
+    /// once per unit by <c>BinderDriver.BindUnitProcedure</c> from the unit's own facts. A METHOD body overrides it through
     /// <see cref="CurrentMethodScope"/> (see <see cref="SourceElement"/>), because a method's statements bind on
     /// a CLASS unit's binder.</summary>
     public SourceElementKind UnitKind { get; set; } = SourceElementKind.Program;

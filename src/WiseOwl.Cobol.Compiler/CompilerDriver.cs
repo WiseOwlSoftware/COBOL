@@ -165,8 +165,10 @@ public static class CompilerDriver
         /// the front end's, the binder's, each expansion's own compilation's (located at its EXPANDS entry) and the backend's, errors
         /// and warnings alike, each a <see cref="Diagnostic"/> with its code, severity, message and location. Every line of
         /// <see cref="Errors"/> and <see cref="Warnings"/> that reports one of them is its <see cref="Diagnostic.Render"/>; their other lines
-        /// name no source (the source file is missing, the host refused an output) and have no record. Present on every outcome.</summary>
-        public IReadOnlyList<Diagnostic> Diagnostics { get; init; } = [];
+        /// name no source (the source file is missing, the host refused an output) and have no record. Present on every outcome, and
+        /// REQUIRED: every return of the driver states it, so a new outcome cannot leave the listing's records empty while its lines
+        /// print errors (listing step 3 review lead R1-3; the listing reads only this, section 6.3).</summary>
+        public required IReadOnlyList<Diagnostic> Diagnostics { get; init; }
 
         /// <summary>The source listing (DESIGN-listing.md section 4.6), when <see cref="Options.Listing"/> asked for one and the
         /// source text was read; null otherwise. Present on every outcome that read the source, failures included.</summary>
@@ -248,7 +250,7 @@ public static class CompilerDriver
     {
         if (!inputs.FileExists(options.SourcePath))
             return new Result(Outcome.SourceNotFound, "", null, [$"source file not found: {options.SourcePath}"], [])
-                { Inputs = inputs };
+                { Inputs = inputs, Diagnostics = [] };   // its line names no source, so it has no record
         // kb/Work PB4502: the output must be a file in a directory, since the runtime is deployed beside it and the default
         // external repository is that directory. A device (`-o NUL`, or `/dev/null` from a POSIX shell on Windows) or a
         // volume root names none, and is refused here as a fault of the command line rather than failing deep in the bind.
@@ -256,7 +258,7 @@ public static class CompilerDriver
             return new Result(Outcome.OutputNotWritable, "", null,
                 [$"output path '{options.OutputDll()}' names no file in a directory (a device such as NUL, or a volume root): "
                  + "write the assembly to a file path (`cobol check-batch` checks sources without writing one)"], [])
-                { Inputs = inputs };
+                { Inputs = inputs, Diagnostics = [] };   // a fault of the command line: no source position, no record
 
         // Phase 1 — front-end: preprocess + parse.
         var diagnostics = new DiagnosticBag();

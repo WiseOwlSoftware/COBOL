@@ -11,6 +11,11 @@ namespace WiseOwl.Cobol.Listing;
 /// constructor, each <c>init</c> accessor and so every <c>with</c> expression ask the request's rules
 /// (<see cref="PageLengthProblem"/>, <see cref="PageWidthProblem"/>, <see cref="FormatsProblem"/>, <see cref="SectionsProblem"/>) and throw
 /// <see cref="ArgumentException"/> on a problem.
+/// <para>The DESTINATION, <see cref="OutputBase"/> with <see cref="Formats"/>, is one choice with one rule over the pair
+/// (<see cref="FormatsProblem"/>), so the two are set together: by the constructor or by <see cref="WithDestination"/>, never by
+/// an <c>init</c> of either alone. An accessor of one could only judge the pair against the OTHER's value before the change, so a
+/// <c>with</c> expression that changed both was refused or accepted by the order its two assignments were written (listing step 2
+/// review lead R2-1).</para>
 /// </summary>
 /// <param name="OutputBase">Where the listing goes: <c>BASE</c> plus each format's extension (<see cref="ListingOutput.Extension"/>);
 /// null for the output assembly's path without its extension; <see cref="StandardOutput"/> for no file (the caller prints the
@@ -22,14 +27,14 @@ namespace WiseOwl.Cobol.Listing;
 public sealed record ListingRequest(string? OutputBase = null, int PageLength = ListingRequest.DefaultPageLength,
     int PageWidth = ListingRequest.DefaultPageWidth, ListingFormats Formats = ListingFormats.Text)
 {
-    private readonly string? _outputBase = Valid(FormatsProblem(OutputBase, Formats), nameof(Formats), OutputBase);
+    private string? _outputBase = Valid(FormatsProblem(OutputBase, Formats), nameof(Formats), OutputBase);   // written again only by WithDestination's fresh copy
     private readonly int _pageLength = Valid(PageLengthProblem(PageLength), nameof(PageLength), PageLength);
     private readonly int _pageWidth = Valid(PageWidthProblem(PageWidth), nameof(PageWidth), PageWidth);
-    private readonly ListingFormats _formats = Formats;
+    private ListingFormats _formats = Formats;   // written again only by WithDestination's fresh copy
 
     /// <summary>Where the listing goes (the record's <c>OutputBase</c> parameter); with the formats, one problem at most
-    /// (<see cref="FormatsProblem"/>).</summary>
-    public string? OutputBase { get => _outputBase; init => _outputBase = Valid(FormatsProblem(value, _formats), nameof(OutputBase), value); }
+    /// (<see cref="FormatsProblem"/>). Changed only with the formats (<see cref="WithDestination"/>).</summary>
+    public string? OutputBase => _outputBase;
 
     /// <summary>Lines per page (the record's <c>PageLength</c> parameter; <see cref="PageLengthProblem"/>).</summary>
     public int PageLength { get => _pageLength; init => _pageLength = Valid(PageLengthProblem(value), nameof(PageLength), value); }
@@ -37,8 +42,21 @@ public sealed record ListingRequest(string? OutputBase = null, int PageLength = 
     /// <summary>Columns (the record's <c>PageWidth</c> parameter; <see cref="PageWidthProblem"/>).</summary>
     public int PageWidth { get => _pageWidth; init => _pageWidth = Valid(PageWidthProblem(value), nameof(PageWidth), value); }
 
-    /// <summary>The formats to write: never none, and one alone when the listing goes to standard output.</summary>
-    public ListingFormats Formats { get => _formats; init => _formats = Valid(FormatsProblem(_outputBase, value), nameof(Formats), value); }
+    /// <summary>The formats to write: never none, and one alone when the listing goes to standard output. Changed only with the
+    /// output base (<see cref="WithDestination"/>).</summary>
+    public ListingFormats Formats => _formats;
+
+    /// <summary>This request sent to <paramref name="outputBase"/> in <paramref name="formats"/>, its other choices kept: the one way to
+    /// change the destination, judged as the pair it is (<see cref="FormatsProblem"/>), so the result does not depend on which of the
+    /// two was named first.</summary>
+    public ListingRequest WithDestination(string? outputBase, ListingFormats formats)
+    {
+        Valid(FormatsProblem(outputBase, formats), nameof(formats), formats);
+        var copy = this with { };
+        copy._outputBase = outputBase;
+        copy._formats = formats;
+        return copy;
+    }
 
     private readonly ListingSectionSet _sections = ListingSectionSet.Standard;
 

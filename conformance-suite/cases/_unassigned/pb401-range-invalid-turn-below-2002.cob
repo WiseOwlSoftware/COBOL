@@ -10,7 +10,7 @@
       *> a COBOL-2002 introduction - so the same identifier-ended THROUGH range that raises the exception at 2002
       *> and above shall be REJECTED at COBOL-85 for naming a directive that edition has no such thing as.
       *> The EVALUATE range-expression itself is not gated: it is EVALUATE's own since 1985, and at 85 it is
-      *> evaluated by 14.7.8 rule 2's empty-range behaviour with no exception condition to set.
+      *> evaluated by 14.7.8 GR2's empty-range behaviour with no exception condition to set.
        >>TURN EC-RANGE-INVALID CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB401-RNG-85.

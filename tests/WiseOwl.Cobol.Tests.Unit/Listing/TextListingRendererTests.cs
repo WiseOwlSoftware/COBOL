@@ -138,8 +138,11 @@ public sealed class TextListingRendererTests
         Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + 7) + "^", rows[0]);
         Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1) + "==> error COBOL0001 (col 8): no such name", rows[1]);
         Assert.Equal(2, rows.Length);
-        // \U0001D11E is two UTF-16 units and one position: column 3 (the index after it) stands one position on.
-        Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + 1) + "^", TextListingRenderer.CaretRow("\U0001D11EX", 3));
+        // \U0001D11E is two UTF-16 units and one character position: the X after it is position 2, and the caret stands one
+        // position on; position 3 is the text's end plus one, and 4 lies past it.
+        Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + 1) + "^", TextListingRenderer.CaretRow("\U0001D11EX", 2));
+        Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + 2) + "^", TextListingRenderer.CaretRow("\U0001D11EX", 3));
+        Assert.Null(TextListingRenderer.CaretRow("\U0001D11EX", 4));
         Assert.Null(TextListingRenderer.CaretRow("AB", 4));
         // Under a line not printed whole (wrapped or replaced) there is no caret, and a diagnostic with no column names none.
         Assert.Single(TextListingRenderer.DiagnosticRows(Diagnostic(1, ListingSeverity.Warning, "w"), null, 132));

@@ -71,26 +71,38 @@ public sealed class ListingOutputTests
     }
 
     /// <summary>The request refuses a request the listing would fail however it is built (review R1-3): the constructor, an
-    /// object initializer and a <c>with</c> expression all ask the same three rules.</summary>
+    /// object initializer, a <c>with</c> expression and <see cref="ListingRequest.WithDestination"/> all ask the same rules.</summary>
     [Fact]
     public void ARequestTheListingWouldFail_IsRefused_HoweverItIsBuilt()
     {
         var two = new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json);
         var toStandardOutput = new ListingRequest(ListingRequest.StandardOutput);
-        Assert.Throws<ArgumentException>(() => toStandardOutput with { Formats = ListingFormats.Text | ListingFormats.Json });
-        Assert.Throws<ArgumentException>(() => new ListingRequest(ListingRequest.StandardOutput) { Formats = ListingFormats.Text | ListingFormats.Json });
-        Assert.Throws<ArgumentException>(() => two with { OutputBase = ListingRequest.StandardOutput });
-        Assert.Throws<ArgumentException>(() => two with { Formats = 0 });
+        Assert.Throws<ArgumentException>(() => toStandardOutput.WithDestination(ListingRequest.StandardOutput, ListingFormats.Text | ListingFormats.Json));
+        Assert.Throws<ArgumentException>(() => two.WithDestination(ListingRequest.StandardOutput, two.Formats));
+        Assert.Throws<ArgumentException>(() => two.WithDestination(two.OutputBase, 0));
         Assert.Throws<ArgumentException>(() => new ListingRequest(PageLength: ListingRequest.MinimumPageLength - 1));
         Assert.Throws<ArgumentException>(() => new ListingRequest() { PageLength = -1 });
         Assert.Throws<ArgumentException>(() => new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth - 1));
         Assert.Throws<ArgumentException>(() => new ListingRequest() with { PageWidth = ListingRequest.MaximumPageWidth + 1 });
         // and each rule's edge is accepted, by every route
-        Assert.Equal(ListingFormats.Json, (toStandardOutput with { Formats = ListingFormats.Json }).Formats);
-        Assert.Equal("out/x", (two with { OutputBase = "out/x" }).OutputBase);
+        Assert.Equal(ListingFormats.Json, toStandardOutput.WithDestination(ListingRequest.StandardOutput, ListingFormats.Json).Formats);
+        Assert.Equal("out/x", two.WithDestination("out/x", two.Formats).OutputBase);
         Assert.Equal(0, (two with { PageLength = 0 }).PageLength);
         Assert.Equal(ListingRequest.MinimumPageLength, new ListingRequest { PageLength = ListingRequest.MinimumPageLength }.PageLength);
         Assert.Equal(ListingRequest.MaximumPageWidth, new ListingRequest(PageWidth: ListingRequest.MaximumPageWidth).PageWidth);
-        Assert.Equal(new ListingRequest("out/x", 0, 200, ListingFormats.Json), new ListingRequest("out/x", 0, 200) with { Formats = ListingFormats.Json });
+        Assert.Equal(new ListingRequest("out/x", 0, 200, ListingFormats.Json), new ListingRequest("out/x", 0, 200).WithDestination("out/x", ListingFormats.Json));
+    }
+
+    /// <summary>The destination is one choice (listing step 2 review lead R2-1): the output base and the formats change together and
+    /// are judged as the pair, so moving between two valid destinations never passes through an invalid one, and the page geometry
+    /// is kept. The rule (FormatsProblem): standard output takes one format alone; a file base takes any non-empty set.</summary>
+    [Fact]
+    public void TheDestination_IsChangedAsOnePair()
+    {
+        var toStandardOutput = new ListingRequest(ListingRequest.StandardOutput, 0, 200);
+        var both = toStandardOutput.WithDestination("out/x", ListingFormats.Text | ListingFormats.Json);
+        Assert.Equal(new ListingRequest("out/x", 0, 200, ListingFormats.Text | ListingFormats.Json), both);
+        var back = both.WithDestination(ListingRequest.StandardOutput, ListingFormats.Json);
+        Assert.Equal(new ListingRequest(ListingRequest.StandardOutput, 0, 200, ListingFormats.Json), back);
     }
 }

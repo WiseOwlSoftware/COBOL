@@ -23,7 +23,7 @@
       *>    finishes under its own rules - which each condition's own clause names outright:
       *>  . 8.5.1.9.6 GR1 - the implicit growth past the expected capacity raises EC-BOUND-OVERFLOW on
       *>    the FIRST crossing only; the growth itself proceeds (8.5.1.9.5), so WS-E (5) holds 22.
-      *>  . 14.7.8 rule 2 - "the EC-RANGE-INVALID exception condition is set to exist, and, upon
+      *>  . 14.7.8 GR2 - "the EC-RANGE-INVALID exception condition is set to exist, and, upon
       *>    completion of any exception processing, execution proceeds as if the range of values were
       *>    empty", so the IF takes its ELSE branch AFTER the declarative has run.
       *>  . 14.9.39 Format 16 GR37 - a value that is not nonnegative sets the length to 0 and raises
@@ -87,7 +87,7 @@
       *> 8.5.1.9.6 GR1: 5 is the first implicit crossing of the expected capacity 4.
            MOVE 22 TO WS-E (5).
            DISPLAY "BO-VAL=" WS-E (5) " EC[" FUNCTION EXCEPTION-STATUS "]".
-      *> 14.7.8 rule 2: "Z" collates after "A", so the range is empty - the ELSE branch runs.
+      *> 14.7.8 GR2: "Z" collates after "A", so the range is empty - the ELSE branch runs.
            IF INV-RANGE DISPLAY "RI-TRUE" ELSE DISPLAY "RI-FALSE" END-IF.
            DISPLAY "RI-EC[" FUNCTION EXCEPTION-STATUS "]".
       *> 14.9.39 Format 16 GR37: -1 is not nonnegative - the length becomes 0.

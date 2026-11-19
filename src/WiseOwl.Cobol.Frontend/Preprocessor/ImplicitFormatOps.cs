@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// <para>THE DIRECTIVE STATE LIVES WHERE THE DIRECTIVE IS PROCESSED, and the reference format is the one state that is
 /// settled BEFORE any parse: the §2023:6.5 logical conversion reads the physical lines in order with the format in effect as
 /// state (<see cref="ReferenceFormatProcessor"/>), so the ops that restore it cannot be keyed to the conditional-
-/// compilation driver's directive encounters (<see cref="ConditionalCompilationResult.KeyImplicitOps"/> — the driver
+/// compilation driver's state encounters (<see cref="ConditionalCompilationResult.KeyImplicitOps"/> — the driver
 /// runs on the already-normalized text) nor to the post-COPY resultant lines the line-scoped timelines use. They are
 /// keyed to PHYSICAL lines of the text they were written in: the parse places them in the resultant-line frame, and
 /// <see cref="Place"/> maps each through the source-line map to its file and physical line, because the format is read

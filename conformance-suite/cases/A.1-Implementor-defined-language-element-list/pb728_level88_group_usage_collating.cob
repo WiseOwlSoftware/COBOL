@@ -13,7 +13,7 @@
       *> national conditional variable under the NATIONAL program
       *> collating sequence and 8.8.4.2.8 compares a boolean one by
       *> value with boolean-zero extension - never the alphanumeric one.
-      *> 14.7.8 rule 2 - "When the range of values is defined by
+      *> 14.7.8 GR2 - "When the range of values is defined by
       *> alphanumeric or national literals, the range of values depends
       *> on the collating sequence used for evaluation of the range" -
       *> makes the THROUGH leg decide on the sequence, not merely carry

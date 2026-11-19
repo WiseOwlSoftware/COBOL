@@ -24,6 +24,7 @@ internal sealed record IdentifiedName
     /// file-name, a <see cref="ConstantDef"/> for a constant-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, the definition a
     /// configuration section declares for a configuration-section name (an <see cref="AlphabetDef"/>, a <see cref="SwitchStatusName"/>,
     /// an <see cref="Editions.ImplementorName"/> row for a mnemonic-name, ...), a <see cref="ReportModel"/> for a report-name, a <see cref="ProgramPrototype"/> for a program-prototype-name, a
+    /// <see cref="FunctionPrototypeReference"/> for a function-prototype-name, a
     /// <see cref="ReportVaryingModel"/> for a VARYING counter, the <see cref="ReportCandidates{T}"/> of a report group, a sum counter or a
     /// report entry, ... (by
     /// <see cref="Class"/>). A procedure-name that several procedures carry identifies no one symbol: <see cref="Symbol"/> is then
@@ -98,6 +99,9 @@ public sealed partial class SymbolTable
     /// written (its report and the VARYING counters in scope, <see cref="ReportSite"/>), read only by the sum-counter and VARYING
     /// classes. A report-section reference that may reach several entries (a report group, a sum counter, a report entry) answers
     /// every candidate (<see cref="ReportCandidates{T}"/>), and the class's own funnel words two or more.
+    /// <para>A function-prototype-name (<see cref="NameClass.FunctionPrototype"/>) is keyed by the word the &gt;&gt;COBOL-WORDS
+    /// directive made of its token (<see cref="FunctionWord"/>, §2023:7.3.10.4 GR2 to GR4), the name every function-name lookup
+    /// reads, never the token's text a second time (kb/Work PB1372).</para>
     /// <para>A name is ONE word, and a COBOL word is one token (<c>cobolWord</c> in CobolWords.g4), so the key is that token's
     /// text. A context of several tokens is no name and denotes nothing: its <c>GetText()</c> glues the tokens, so
     /// <c>A - B</c> would read as the file-name <c>A-B</c> and <c>F OF G</c> as <c>FOFG</c> (kb/Work PB2040, PB5932 review
@@ -114,6 +118,10 @@ public sealed partial class SymbolTable
                 site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written"));
         else if (IsReportClass(wanted))
             symbol = ReportSymbolNamed(written, wanted, reach, reportSite);   // the occurrence `report` gates is listing step 7b's
+        else if (wanted == NameClass.FunctionPrototype)
+            symbol = written.Start is { } only && written.Stop is { } last && only.TokenIndex == last.TokenIndex
+                ? FunctionPrototypeNamed(FunctionKey(WrittenWord.Of(only)))   // the occurrence `report` gates is listing step 7b's
+                : null;
         else if (WordOf(written) is not { } key)
             symbol = null;
         else if (IsConfigurationClass(wanted))
@@ -133,7 +141,9 @@ public sealed partial class SymbolTable
     /// 3"): a whole token the binder reads from a token list (a constant-name subscript of a LENGTH OF operand, §2023:13.10.3
     /// SR3), or a word INSIDE one token (an integer constant-name in a PICTURE character-string's repetition, §2023:13.10.3 SR2,
     /// which the scanner reads as part of the PICTURE string). <see cref="WrittenWord"/> carries the token and the word's span
-    /// in it, so the position listing step 7b records is exact. A procedure-name is a reference rule and is never written so.
+    /// in it, so the position listing step 7b records is exact. A function-name the binder reads off a token (the reserved
+    /// intrinsic-function words, a keyword-omitted reference's head) is identified so too. A procedure-name is a reference rule and
+    /// is never written so.
     /// </summary>
     internal IdentifiedName? Identify(WrittenWord written, NameClass wanted, bool report, NameReach reach = NameReach.Visible)
     {
@@ -144,7 +154,10 @@ public sealed partial class SymbolTable
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a configuration-section name is one word: identify its context");
         if (IsReportClass(wanted))
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a report-section name is written in a context: identify it");
-        return SymbolNamed(Key(written.Text), wanted, reach) is { } symbol ? new IdentifiedName(wanted, symbol) : null;
+        object? symbol = wanted == NameClass.FunctionPrototype
+            ? FunctionPrototypeNamed(FunctionKey(written))
+            : SymbolNamed(Key(written.Text), wanted, reach);
+        return symbol is null ? null : new IdentifiedName(wanted, symbol);
     }
 
     /// <summary>

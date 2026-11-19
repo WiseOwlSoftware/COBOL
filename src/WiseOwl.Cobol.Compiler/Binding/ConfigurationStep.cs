@@ -119,14 +119,12 @@ internal static class ConfigurationStep
         // REPOSITORY (§2023:12.3.8). The containee's OWN specifier wins on a name clash — TryAdd, the sibling posture, and the one
         // §2023:12.3.8.3 SR15 shape that matters here (the containee may re-specify a name the container also declares).
         // §2023:12.3.8.2's program-specifiers reach contained units on the same rule (kb/Work PB237): §2023:12.3.8.4 GR10 scopes
-        // program-prototype-name-1 "throughout the scope of the containing environment division". They are the symbol table's,
-        // inherited beside this call (SymbolTable.InheritConfigurationNames; DESIGN-listing.md section 6.7.1, step 6b slice 6).
-        into.UserFunctionNames.UnionWith(from.UserFunctionNames);
+        // program-prototype-name-1 "throughout the scope of the containing environment division". They, and the user-defined-function
+        // specifiers, are the symbol table's, inherited beside this call (SymbolTable.InheritConfigurationNames; DESIGN-listing.md
+        // section 6.7.1, step 6b slices 6 and 7).
         into.RepositoryIntrinsics.UnionWith(from.RepositoryIntrinsics);
         if (from.RepositoryAllIntrinsic) into.RepositoryAllIntrinsic = true;
         foreach (var (k, v) in from.OoRepositoryProperties) into.OoRepositoryProperties.TryAdd(k, v);
-        foreach (var (k, v) in from.FunctionSpecifiers) into.FunctionSpecifiers.TryAdd(k, v);
-        into.RefusedFunctionSpecifiers.UnionWith(from.RefusedFunctionSpecifiers);
         // OPTIONS (§2023:11.9.4 GR1) — the unit's own OPTIONS paragraph overrides clause by clause when it binds.
         into.InheritedOptions = from.Options;
     }

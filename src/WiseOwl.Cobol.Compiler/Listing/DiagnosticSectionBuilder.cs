@@ -31,7 +31,7 @@ internal static class DiagnosticSectionBuilder
             var at = d.Location is { } location ? Listed(location, fileIds, filesByFullPath) : null;
             int? line = at is { } listed ? index.Place(listed) : null;
             int column = line is not null && frontend.Formats.TryGetValue(at!.Value.FileName, out var map)
-                ? map.ExpandedIndexAt(at.Value.Line + 1, at.Value.Column) + 1
+                ? map.CharacterPositionAt(at.Value.Line + 1, at.Value.Column)
                 : (d.Location?.Column ?? 0) + 1;
             placed.Add((line, column, order, d));
         }

@@ -703,6 +703,51 @@ the two runs of each tree:
 
 Every branch `None` row lies inside the parent's two runs or within 0.06 MB of them (SM201A's first run), and IX113A's lies below
 both, so slice 6 moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, slice 7 (kb/Work PB5932, the function-prototype-names resolved by `SymbolTable.Identify`): the `None` row against the
+parent.** Slice 7 changes where every element's user-defined functions are made and read (the symbol table, made twice per element as
+`BinderDriver.UserFunctionsOf` was, now always as the element's own table where a forest with no specifier shared the group's view), so
+it measures the no-listing path. Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project
+tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FrontEndAndBind*'` twice in a detached worktree of the slice's commit
+(4525d45aae) and twice in one of its parent `84097a3e22`, alternating (parent, slice, slice, parent). Allocated bytes per front end and
+bind, the two runs of each tree:
+
+| Program | Listing | Parent | Slice 7 |
+|---|---|---|---|
+| IX113A | None | 69.05, 68.98 MB | 69.06, 69.00 MB |
+| NC105A | None | 35.07, 34.99 MB | 35.66, 35.03 MB |
+| NC218A | None | 30.95, 30.98 MB | 31.12, 31.56 MB |
+| SM201A | None | 15.36, 15.21 MB | 15.35, 15.41 MB |
+| IX113A | Text | 76.81, 76.81 MB | 76.83, 76.94 MB |
+| IX113A | All | 97.51, 97.45 MB | 97.52, 97.55 MB |
+
+IX113A's and SM201A's branch rows lie inside the parent's two runs or within 0.05 MB of them, and one run of NC105A and of NC218A does
+too; the other two branch runs stand above this parent pair, NC105A's by 0.59 MB and NC218A's by 0.58 MB. Both are within the
+run-to-run spread these programs show on one tree (the slice's own two NC105A runs are 0.63 MB apart, and slice 6's parent measured NC218A at 31.56 and 30.99 MB, 0.57 MB apart), and none of
+the four programs declares a function, so the only new work on their path is two empty tables per element. Slice 7 moves no allocation
+this measurement can tell from its noise; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, data-name lane, first slice (kb/Work PB5932, the DEBUG-ITEM register names, the type-names, the CAPACITY register names and
+the index-names resolved by `SymbolTable.Identify`): the `None` row against the parent.** The lane changes the lookup every data
+reference makes first (the register arms) and every subscript name's index-name lookup, so it measures the no-listing path. Measured on
+2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FrontEndAndBind*'` on the parent `84097a3e22` and the `listing-step-6b-data` branch, alternating (parent, branch
+3ee68ed1ff, branch, parent), then twice more on the branch after the fix below (09c8c66fb2). Allocated bytes per front end and bind:
+
+| Program | Listing | Parent | Branch, first build | Branch, the fix |
+|---|---|---|---|---|
+| IX113A | None | 68.98, 68.98 MB | 69.53, 69.65 MB | 69.24, 69.12 MB |
+| NC105A | None | 35.00, 35.02 MB | 35.62, 35.31 MB | 35.23, 35.19 MB |
+| NC218A | None | 31.54, 30.94 MB | 31.63, 31.86 MB | 31.08, 31.68 MB |
+| SM201A | None | 15.69, 15.36 MB | 15.29, 15.45 MB | 15.20, 15.44 MB |
+| IX113A | Text | 76.83, 76.89 MB | 77.41, 77.39 MB | 76.99, 77.05 MB |
+
+The first build allocated more on IX113A in both runs (+0.6 MB over two identical parent runs). Two causes, both fixed: the DEBUG-ITEM
+arm read every data reference's suffix list (an array) before asking whether any debug register exists, which the name lookup had
+short-circuited; and `WrittenQualifiedName.Of` built a qualifier list through LINQ for every subscript name. After the fix NC218A and
+SM201A lie inside the parent's runs, NC105A within 0.21 MB of them, and IX113A 0.14 and 0.26 MB above them (0.4 %): what is left is the
+identification object an index-name reference now receives (`IdentifiedName`, the candidate set boxed), which the data-name slice that
+follows rewrites with the rest of the reference path and re-measures. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

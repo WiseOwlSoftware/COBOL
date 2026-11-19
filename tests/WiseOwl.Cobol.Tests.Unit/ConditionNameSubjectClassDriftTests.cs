@@ -183,7 +183,7 @@ public sealed class ConditionNameSubjectClassDriftTests
            01 EB PIC 1(3) USAGE BIT.
               88 EB-R VALUE B"000" THRU B"111".
     """)]
-    // A national THROUGH range is spec-legal (§2023:14.7.8 rule 2 orders it under the national sequence); whatever this
+    // A national THROUGH range is spec-legal (§2023:14.7.8 GR2 orders it under the national sequence); whatever this
     // compiler does with it, it must do the same to both subject shapes.
     [InlineData("national", """
            01 GN GROUP-USAGE NATIONAL.
