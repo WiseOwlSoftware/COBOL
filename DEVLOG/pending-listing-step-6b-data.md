@@ -21,8 +21,11 @@ ways, are the lane's next slice, and the progress note lists them with the work 
 
 **Section 9.** The first build allocated 0.6 MB more on IX113A's front end and bind; the DEBUG-ITEM arm read every data reference's
 suffix list before asking whether a register exists, and the qualified-name carrier built a list for every subscript name. Both are
-fixed; IX113A remains 0.14 to 0.26 MB (0.4 %) above its parent, the next slice's to re-measure, and the other three programs lie in the
-parent's spread (the benchmark README's step-6b table).
+fixed. IX113A then remained 0.14 to 0.26 MB above its parent, over the `None` budget, and review round 1 removed the rest: an
+index-name ask answered an `IdentifiedName` around its boxed candidate set (now the typed set, `SymbolTable.IdentifyIndexName`), the
+qualified-name carrier read its words off the tokens at each use (a token's text is a new string per read), and the CAPACITY register
+arm read every data reference's word before asking the table. Every `None` row now lies at or below the merged main's, alternating on
+one host (IX113A 68.46 and 68.40 MB against 69.09 and 69.06; the benchmark README's step-6b table).
 
 **Also:** the inherited citation form `§2023:8.4.2.2.1 rule N`, which `cite.py` refuses, is `§2023:8.4.2.2.1 SRN` at 43 comment and
 document sites; the one in a diagnostic's text is filed as a lead. Every review lead of listing steps 2 to 7 was checked on this tree:

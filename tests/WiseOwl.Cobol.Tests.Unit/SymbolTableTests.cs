@@ -88,13 +88,12 @@ public sealed class SymbolTableTests
     }
 
     /// <summary>The index-name a written <paramref name="name"/> identifies in <paramref name="method"/>'s scope (the program's when
-    /// null): <c>SymbolTable.Identify</c>, the table's one lookup (listing step 6b, kb/Work PB5932), with the method entered as
-    /// the active scope a reference is made in.</summary>
+    /// null): <c>SymbolTable.IdentifyIndexName</c>, the table's one index-name lookup (listing step 6b, kb/Work PB5932), with the
+    /// method entered as the active scope a reference is made in.</summary>
     private static NameCandidates<IndexDeclaration>? IndexNamed(DataBinder data, string name, OoMethodDataScope? method = null)
     {
         using var _ = data.Procedure.ActiveMethodScope.Enter(method);
-        return data.Symbols.Identify(new WrittenQualifiedName(new Antlr4.Runtime.CommonToken(1, name), []),
-            WiseOwl.Cobol.Symbols.NameClass.Index, report: false)?.Symbol is NameCandidates<IndexDeclaration> candidates ? candidates : null;
+        return data.Symbols.IdentifyIndexName(new WrittenQualifiedName(new Antlr4.Runtime.CommonToken(1, name), []), report: false);
     }
 
     // (c) §2023:8.4.6.2.3: a method-local DATA-name shadows an object-level INDEX-name of the same spelling —

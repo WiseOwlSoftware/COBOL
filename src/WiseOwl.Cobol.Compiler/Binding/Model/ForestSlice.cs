@@ -7,8 +7,9 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The type forest of ONE bound unit and the name tables over it (ISO §2023:8.4.6.2.1 3): the roots of its WORKING-STORAGE,
-/// LOCAL-STORAGE and the rest of the forest, every referenceable data-name, condition-name, index-name and named CAPACITY
-/// register, the type declarations, the screen-names and the inheritance tier of each GLOBAL name a container offered
+/// LOCAL-STORAGE and the rest of the forest, every referenceable data-name and condition-name, the element's own index
+/// declarations and type declarations in source order (lists, not name tables: their names are keyed by <see cref="SymbolTable"/>,
+/// which also owns the named CAPACITY registers), the screen-names and the inheritance tier of each GLOBAL name a container offered
 /// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296, step 1 of the <see cref="DataBinder"/>
 /// extract, M6). A value slice of <see cref="DataBindState"/>: its one writer is the data binder's declaration walk
 /// (<c>DataBinder.RegisterName</c>, <c>RegisterCondition</c>, <c>BindEntries</c> and the post-build TYPE copies, which
@@ -19,8 +20,8 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// this slice (<see cref="SymbolTable"/>); the mutators here take that scope, because a name joins the index of the
 /// source element that owns its record (§2023:11.7.4 GR5; kb/Work PB3192).</para>
 /// <para>A model-layer value: it names no binder type, so <see cref="DataBindResult"/> hands it to a backend as it is (kb/Work
-/// PB2361). The one gated read, <see cref="CapacityRegisters"/>, asks <paramref name="requireRegisters"/>, which the owning
-/// <see cref="DataBindState"/> answers with its <see cref="PassPhase.OccursResolved"/> watermark.</para>
+/// PB2361). It has no gated read: the CAPACITY registers' <see cref="PassPhase.OccursResolved"/> watermark gate is the symbol
+/// table's (<c>SymbolTable.CapacityRegisterNamed</c>).</para>
 /// </summary>
 public sealed class ForestSlice
 {

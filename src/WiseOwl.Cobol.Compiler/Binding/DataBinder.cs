@@ -237,10 +237,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>⛔ THE ONE ANSWER TO "DOES THE METHOD WHOSE NAME SCOPE IS <paramref name="method"/> DECLARE <paramref name="word"/>?"
     /// (§2023:11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
     /// data division of the containing object definition, the use of that word in this method refers to the declaration
-    /// in this method"; §2023:8.4.6.1 "even when it is a different type of user-defined word"): a data-name, condition-name,
-    /// index-name, CAPACITY register or type-name in the method's model scope (<see cref="OoMethodDataScope.IndexesDeclare"/>),
-    /// or a constant-name or a word its data division defines before any entry binds, which this binder keeps
-    /// (<see cref="SymbolTable.MethodDeclaresWord"/>; kb/Work PB3164, PB3192, PB2402). Every method tier of a lookup
+    /// in this method"; §2023:8.4.6.1 "even when it is a different type of user-defined word"): a data-name or condition-name in the method's model scope
+    /// (<see cref="OoMethodDataScope.IndexesDeclare"/>), or an index-name, CAPACITY register, type-name, constant-name or a word its
+    /// data division defines before any entry binds, which the symbol table keeps (<see cref="SymbolTable.MethodDeclaresWord"/>;
+    /// kb/Work PB3164, PB3192, PB2402, PB5932). Every method tier of a lookup
     /// asks it before it falls through to the object's names (<c>GlobalNameClassDriftTests</c>).</summary>
     internal bool MethodDeclares(OoMethodDataScope method, string word) =>
         method.IndexesDeclare(word) || Symbols.MethodDeclaresWord(method, word);
@@ -894,7 +894,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // declared under it joins the method's own scope (NameScopeOf), never the class's.
                 if (Oo.BindingMethod is { } owner) Oo.RootOwner[item] = owner;
                 // A TYPEDEF entry is a type DECLARATION (ISO §2023:13.18.58; D17): a named level-01 template that
-                // allocates NO storage — registered in TypeDecls, kept OFF Roots (and, below, off ByName).
+                // allocates NO storage — declared by SymbolTable.DeclareType (ForestSlice.TypeDeclarations), kept OFF Roots (and, below, off ByName).
                 if (item.IsTypedef)
                 {
                     rootIsTemplate = true;
@@ -5914,7 +5914,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// items bind into it too, so <see cref="LinkageBinder.Roots"/> is a SUBSET of it and is not walked again) and the TYPEDEF
     /// templates (<see cref="ForestSlice.TypeDeclarations"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
     /// never re-analyzed and so never gated: a <c>TYPE IS type-name</c> clone subtree (its items carry a non-null
-    /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <c>TypeDecls</c>) and the
+    /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <see cref="ForestSlice.TypeDeclarations"/>) and the
     /// OO/UDF compiler temps (recorded in <see cref="CompilerTemps.Clones"/>; both share the source item's <c>PicInfo</c> by
     /// reference — so they must NOT be dedup'd by <c>PicInfo</c> identity: a clone and its source share ONE <c>PicInfo</c>
     /// instance. (<c>PicInfo.PointerItem</c> stopped being a singleton at kb/Work PB153 — it is a factory now, since a

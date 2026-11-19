@@ -14,8 +14,8 @@ internal readonly record struct ConditionAssociation(string Name, DataItem? Vari
 /// What the declaration walk recorded about the CLAUSES an entry's own source wrote, for the passes that screen them after the
 /// forest is built (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296 M6): a value slice of
 /// <see cref="DataBindState"/> whose one writer is the data binder's entry walk (<c>BindEntries</c>, the clause-operand
-/// capture) — plus <see cref="LapsedTypeMembers"/>, written once by <see cref="Passes.ExpandTypesPass"/> — and which the
-/// screening passes only read. Each fact is a question the post-forest passes cannot re-derive from the tree they hold: the
+/// capture), and which the screening passes only read (the §2023:8.4.2.2.1 SR4 lapsed type-declaration members it once held
+/// are the symbol table's, <c>SymbolTable.IndexLapsedTypeMembers</c>). Each fact is a question the post-forest passes cannot re-derive from the tree they hold: the
 /// source order of a level-88, whether an entry WROTE a clause or only acquired it, which operand a capture already refused.
 /// </summary>
 public sealed class ClauseFacts

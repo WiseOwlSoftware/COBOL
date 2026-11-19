@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
@@ -47,15 +48,33 @@ internal readonly record struct WrittenWord(IToken Token, int Start, int Length)
 
 /// <summary>A qualified name written where no parse rule holds it with its qualifiers: <see cref="Head"/>, the name, and
 /// <see cref="Qualifiers"/>, the words of its <c>OF</c>/<c>IN</c> phrases innermost first (§2023:8.4.2.2.3 SR4), each a token of a
-/// subscript's token list or of a <c>dataReference</c>'s qualifications. <see cref="SymbolTable.Identify(WrittenQualifiedName, NameClass, bool)"/>
-/// keys their texts, and listing step 7b records the occurrence at <see cref="Head"/>.</summary>
-internal readonly record struct WrittenQualifiedName(IToken Head, IReadOnlyList<IToken> Qualifiers)
+/// subscript's token list or of a <c>dataReference</c>'s qualifications. <see cref="SymbolTable.IdentifyIndexName"/> keys their
+/// texts, and listing step 7b records the occurrence at <see cref="Head"/>. Every word is read off its token once, when the name is
+/// made (a token's text is a new string at each read), and an unqualified name allocates no list (section 9's budget: every
+/// subscript name is read so).</summary>
+internal readonly record struct WrittenQualifiedName
 {
+    public WrittenQualifiedName(IToken head, IReadOnlyList<IToken> qualifiers)
+    {
+        Head = head;
+        Name = head.Text;
+        Qualifiers = qualifiers;
+        QualifierWords = qualifiers.Count == 0 ? [] : [.. qualifiers.Select(static q => q.Text)];
+    }
+
+    /// <summary>The name's token.</summary>
+    public IToken Head { get; }
+
+    /// <summary>The qualifiers' tokens, innermost first.</summary>
+    public IReadOnlyList<IToken> Qualifiers { get; }
+
+    /// <summary>The qualifiers' words as written, innermost first: made once with the name, so every reader shares one array.</summary>
+    public IReadOnlyList<string> QualifierWords { get; }
+
     /// <summary>A <c>dataReference</c>'s name and the words of its qualifications (its subscripts and reference modifiers are not
     /// read).</summary>
     public static WrittenQualifiedName Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref)
     {
-        // Every subscript name and index operand is read so, so an unqualified reference allocates no list (section 9's budget).
         List<IToken>? qualifiers = null;
         foreach (var suffix in dref.dataReferenceSuffix())
             if (suffix.qualification() is { } q) (qualifiers ??= []).Add(q.cobolWord().Start);
@@ -66,23 +85,19 @@ internal readonly record struct WrittenQualifiedName(IToken Head, IReadOnlyList<
     /// word <paramref name="isWord"/> admits), and the index of the last token read.</summary>
     public static WrittenQualifiedName Of(IReadOnlyList<IToken> tokens, int at, Func<IToken, bool> isWord, out int last)
     {
-        List<IToken> qualifiers = [];
+        List<IToken>? qualifiers = null;
         last = at;
         while (last + 2 < tokens.Count && tokens[last + 1].Type is Frontend.Generated.CobolParserCore.OF or Frontend.Generated.CobolParserCore.IN
                && isWord(tokens[last + 2]))
         {
-            qualifiers.Add(tokens[last + 2]);
+            (qualifiers ??= []).Add(tokens[last + 2]);
             last += 2;
         }
-        return new(tokens[at], qualifiers);
+        return new(tokens[at], qualifiers ?? (IReadOnlyList<IToken>)[]);
     }
 
     /// <summary>The name as written.</summary>
-    public string Name => Head.Text;
-
-    /// <summary>The qualifiers' words as written, innermost first.</summary>
-    public IReadOnlyList<string> QualifierWords =>
-        Qualifiers.Count == 0 ? [] : Qualifiers.Select(static q => q.Text).ToArray();
+    public string Name { get; }
 }
 
 public sealed partial class SymbolTable
@@ -161,20 +176,19 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>
-    /// The same lookup for a QUALIFIED name no parse rule holds with its qualifiers (an index-name in a subscript's token list,
-    /// §2023:8.4.2.2.2 Format 3, or read off a <c>dataReference</c>): the name and its qualifier words, keyed as written. An
-    /// index-name answers its §2023:8.4.2.2 candidate set (<see cref="NameCandidates{T}"/> of <see cref="Model.IndexDeclaration"/>),
-    /// whose count is the caller's verdict, or null when the spelling names no index-name visible here.
+    /// THE lookup of a written INDEX-NAME (§2023:8.4.2.2.2 Format 3), a qualified name no parse rule holds with its qualifiers (a
+    /// token of a subscript's token list, or read off a <c>dataReference</c>): its §2023:8.4.2.2 candidate set, whose count is the
+    /// caller's verdict (<c>NameResolution.ResolveIndexName</c>), or null when the spelling names no index-name visible here (the
+    /// reference is then a data-name one). A qualifiable name's identification IS its candidate set, typed and unboxed: an
+    /// index-name is read at every subscript name, several times per reference, so it answers no <see cref="IdentifiedName"/>
+    /// around a boxed set (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, data-name lane, first slice"; the
+    /// section 9 budget). <paramref name="report"/> is <see cref="Identify(ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>'s:
+    /// listing step 7b records the occurrence here when it is true and the set has one member.
     /// </summary>
-    internal IdentifiedName? Identify(WrittenQualifiedName written, NameClass wanted, bool report)
+    internal NameCandidates<IndexDeclaration>? IdentifyIndexName(WrittenQualifiedName written, bool report)
     {
         _ = report;   // the occurrence it gates is listing step 7b's
-        object? symbol = wanted switch
-        {
-            NameClass.Index => IndexCandidates(written.Name, written.QualifierWords, _data.ActiveScope),
-            _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not a class a qualified written name is identified as"),
-        };
-        return symbol is null ? null : new IdentifiedName(wanted, symbol);
+        return IndexCandidates(written.Name, written.QualifierWords, _data.ActiveScope);
     }
 
     /// <summary>The symbol of class <paramref name="wanted"/> one word names here, or null.</summary>

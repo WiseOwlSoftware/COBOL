@@ -756,10 +756,12 @@ public sealed class ReferenceResolver(DataBinder data)
     /// index-name class already obeys), handing it back to the ordinary lookup.</para></summary>
     internal CapacityRef? CapacityRegisterFor(Core.DataReferenceContext dref, bool report)
     {
-        DataReferenceCst r = dref;
-        if (r.BaseName is not { } name
-            || data.Symbols.Identify(dref.cobolWord(), NameClass.CapacityRegister, report) is not { Symbol: CapacityRegisterCandidates { Tables: var tables } })
+        // The word is identified before its text is read: a token's text is a new string at each read, and every data reference
+        // asks this arm first (section 9's budget, PB5932 review round 1).
+        if (dref.cobolWord() is not { } word
+            || data.Symbols.Identify(word, NameClass.CapacityRegister, report) is not { Symbol: CapacityRegisterCandidates { Tables: var tables } })
             return null;
+        string name = word.GetText();
         var written = ReadWritten(dref);
         var reached = tables.Where(t => t.OccursSpec?.CapacityRegister is { } cand
                                         && data.QualifierChainMatches(cand, written.Qualifiers)).ToList();
