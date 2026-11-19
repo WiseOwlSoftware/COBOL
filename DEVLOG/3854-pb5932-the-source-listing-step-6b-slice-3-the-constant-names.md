@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b slice 3 - the constant-names move into SymbolTable with their resolution
+## Entry 3854 — 2026-11-19 02:54 PST — PB5932: the source listing, step 6b slice 3 - the constant-names move into SymbolTable with their resolution
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands slice 3, from
@@ -46,3 +46,4 @@ more pairs of that row alone put it at 34.90 to 35.64 MB on the branch against 3
 SECTION names, the program and function names, and the OO names. **Lead filed:** kb/Work PB5925's dated file
 `2026-11-19-as-phrase-constant-slot` (an AS phrase's word is labelled `nn` by step 7a but names a constant when one is declared, and
 the pre-bind reader records nothing; step 7b decides).
+
