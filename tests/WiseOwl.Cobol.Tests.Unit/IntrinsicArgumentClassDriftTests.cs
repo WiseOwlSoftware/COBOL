@@ -101,7 +101,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         // clause in the SAME position — the first string literal — so this guard reads either without caring
         // which. A regex that still required the old tuple would have silently matched nothing and passed.
         var entries = Regex.Matches(table,
-            """\["(?<f>[A-Z0-9-]+)"\]\s*=\s*(?:Uniform\('(?<k>.)',\s*"(?<c>[^"]*)"|Schema\("(?<c2>[^"]*)")""");
+            """\[new\("(?<f>[A-Z0-9-]+)"\)\]\s*=\s*(?:Uniform\('(?<k>.)',\s*"(?<c>[^"]*)"|Schema\("(?<c2>[^"]*)")""");
         Assert.True(entries.Count >= 11, $"only {entries.Count} verified rules parsed — the table shape changed "
             + "and this guard has gone blind; fix the regex, do not lower the floor.");
 
@@ -126,7 +126,7 @@ public sealed class IntrinsicArgumentClassDriftTests
             .Select(m => m.Groups["c"].Value[0])) { 'p', ' ' };
 
         foreach (Match m in Regex.Matches(table,
-            """\["(?<f>[A-Z0-9-]+)"\]\s*=\s*(?:Uniform\('(?<k>.)'|Schema\("[^"]*",\s*\['(?<k2>.)')"""))
+            """\[new\("(?<f>[A-Z0-9-]+)"\)\]\s*=\s*(?:Uniform\('(?<k>.)'|Schema\("[^"]*",\s*\['(?<k2>.)')"""))
         {
             string fn = m.Groups["f"].Value;
             char code = (m.Groups["k"].Value + m.Groups["k2"].Value)[0];
@@ -221,7 +221,7 @@ public sealed class IntrinsicArgumentClassDriftTests
         Assert.True(withCross.Count >= 4,
             $"only {withCross.Count} cross-argument rules found — §2023:15.59.3 r2, §2023:15.63.3 r2, §2023:15.68.3 r2 and "
             + "§2023:15.37.3 r2 are all modelled, so this guard has gone blind; fix the regex, do not lower the floor.");
-        foreach (Match m in Regex.Matches(table, """\["(?<f>[A-Z0-9-]+)"\][^\r\n]*CrossArgRule\.(?<r>\w+)"""))
+        foreach (Match m in Regex.Matches(table, """\[new\("(?<f>[A-Z0-9-]+)"\)\][^\r\n]*CrossArgRule\.(?<r>\w+)"""))
         {
             if (m.Groups["r"].Value == "None") continue;
             string row = m.Value;
@@ -355,7 +355,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     {
         var catalog = CatalogRows().Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var missing = catalog
-            .Where(n => !IntrinsicArgumentRules.Verified.ContainsKey(n) && !IntrinsicArgumentRules.DeliberatelyUnscreened.ContainsKey(n))
+            .Where(n => !IntrinsicArgumentRules.Verified.ContainsKey(new(n)) && !IntrinsicArgumentRules.DeliberatelyUnscreened.ContainsKey(new(n)))
             .Order()
             .ToList();
         Assert.True(missing.Count == 0,
@@ -373,6 +373,7 @@ public sealed class IntrinsicArgumentClassDriftTests
     {
         var both = IntrinsicArgumentRules.Verified.Keys
             .Where(IntrinsicArgumentRules.DeliberatelyUnscreened.ContainsKey)
+            .Select(k => k.Word)
             .Order()
             .ToList();
         Assert.True(both.Count == 0,
@@ -460,8 +461,8 @@ public sealed class IntrinsicArgumentClassDriftTests
 
         var positions = IntrinsicArgumentRules.Verified
             .SelectMany(kv => kv.Value.Positions
-                .Select((r, i) => (Fn: kv.Key, Ordinal: i + 1, Rule: r))
-                .Concat(kv.Value.Tail is { } t ? [(kv.Key, kv.Value.Positions.Length + 1, t)] : []))
+                .Select((r, i) => (Fn: kv.Key.Word, Ordinal: i + 1, Rule: r))
+                .Concat(kv.Value.Tail is { } t ? [(kv.Key.Word, kv.Value.Positions.Length + 1, t)] : []))
             .Where(x => x.Rule.Kind == 'i')
             .ToList();
         Assert.True(positions.Count >= 8,
@@ -496,8 +497,8 @@ public sealed class IntrinsicArgumentClassDriftTests
 
         var rejected = IntrinsicArgumentRules.Verified
             .SelectMany(kv => kv.Value.Positions
-                .Select((r, i) => (Fn: kv.Key, Ordinal: i + 1, Rule: r))
-                .Concat(kv.Value.Tail is { } t ? [(kv.Key, kv.Value.Positions.Length + 1, t)] : []))
+                .Select((r, i) => (Fn: kv.Key.Word, Ordinal: i + 1, Rule: r))
+                .Concat(kv.Value.Tail is { } t ? [(kv.Key.Word, kv.Value.Positions.Length + 1, t)] : []))
             .Where(x => x.Rule.Kind == 'i' && IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest, ArithmeticMode.Native, x.Fn) is { } why)
             .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}: {IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest, ArithmeticMode.Native, x.Fn)}")
             .Order()
@@ -593,7 +594,7 @@ public sealed class IntrinsicArgumentClassDriftTests
 
         var rejected = new List<string>();
         int exercised = 0;
-        foreach (var (fn, schema) in crossSchemas.Select(kv => (kv.Key, kv.Value)))
+        foreach (var (fn, schema) in crossSchemas.Select(kv => (kv.Key.Word, kv.Value)))
         {
             foreach (var (ca, opA) in witnesses)
             {
@@ -705,7 +706,7 @@ public sealed class IntrinsicArgumentClassDriftTests
             if (!body.Contains(text, StringComparison.Ordinal))
                 problems.Add($"{fn}: §{clause} no longer prints \"{text}\"");
 
-            var schema = IntrinsicArgumentRules.Verified[fn];
+            var schema = IntrinsicArgumentRules.Verified[new(fn)];
             var rule = schema.At(0) ?? throw new InvalidOperationException($"{fn} declares no argument-1 rule");
             bool hasPredicate = rule.Predicates.Any(p => p.Kind == ArgPredicateKind.CharacterCategory);
             if (hasPredicate != category)
@@ -744,14 +745,14 @@ public sealed class IntrinsicArgumentClassDriftTests
         var problems = new List<string>();
         foreach (var (fn, rule, since) in wording)
         {
-            var predicate = IntrinsicArgumentRules.Verified[fn].At(0)?.Predicates
+            var predicate = IntrinsicArgumentRules.Verified[new(fn)].At(0)?.Predicates
                 .SingleOrDefault(p => p.Kind == ArgPredicateKind.CharacterCategory);
             if (predicate is not { } p) problems.Add($"{fn}: its row carries no CharacterCategory predicate");
             else if (p.Since != since) problems.Add($"{fn}: its CharacterCategory predicate starts at {p.Since}, {rule} says {since}");
         }
         // Every CharacterCategory row of a 1985 function is in the table above, so the next one cannot be forgotten.
-        foreach (var (fn, schema) in IntrinsicArgumentRules.Verified)
-            if (IntrinsicCatalog.TryGet(fn, out var sig) && sig.IntroducedIn == 85
+        foreach (var (key, schema) in IntrinsicArgumentRules.Verified)
+            if (key.Word is var fn && IntrinsicCatalog.TryGet(fn, out var sig) && sig.IntroducedIn == 85
                 && schema.At(0)?.Predicates.Any(p => p.Kind == ArgPredicateKind.CharacterCategory) == true
                 && !wording.Any(w => w.Function == fn))
                 problems.Add($"{fn}: a 1985 function with a CharacterCategory predicate, missing from the 1989 wording table");
@@ -806,8 +807,8 @@ public sealed class IntrinsicArgumentClassDriftTests
             {
                 if (!positions[p].All(t => t.StartsWith("Int", StringComparison.Ordinal))) continue;
                 integerPositions++;
-                if (IntrinsicArgumentRules.DeliberatelyUnscreened.ContainsKey(function)) continue;
-                if (!IntrinsicArgumentRules.Verified.TryGetValue(function, out var schema))
+                if (IntrinsicArgumentRules.DeliberatelyUnscreened.ContainsKey(new(function))) continue;
+                if (!IntrinsicArgumentRules.Verified.TryGetValue(new(function), out var schema))
                 {
                     problems.Add($"{function}: Table 21 types argument position {p + 1} Int, and the function has no Verified row");
                     continue;

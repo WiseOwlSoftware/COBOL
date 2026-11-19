@@ -49,16 +49,21 @@ internal sealed record PublishedSkeleton(string Name, string ExternalizedName, b
 internal sealed record ExpansionToWrite(string Text, CompileState State, ExpansionPlacement Placement, SourceLocation RequestedAt, DiagnosticRegion Region,
     IReadOnlySet<string> ClientWritten);
 
+/// <summary>The name a class or interface has in this module's CLR metadata, compared ordinally: the key of
+/// <see cref="ExpansionPlacements.ByName"/>. A CLR name is no COBOL word, so the table is keyed by a type of its own, never a string
+/// (docs/rearchitecture/DESIGN-listing.md section 6.7.2's last row: the one store of names holds the program's names).</summary>
+internal readonly record struct ClrTypeName(string Name);
+
 /// <summary>What the group publishes for its parameterized definitions and where each of its expansions lives (§2023:10.5): produced by
 /// <c>ExpansionPlacementPass</c> once the group is bound, carried on the <see cref="BoundCompilation"/>, read by the emitter and the
 /// driver.</summary>
 /// <param name="ByName">Each expansion's placement, by the CLR name its class or interface has in this module (a module's type names are
 /// unique across its classes and interfaces).</param>
 /// <param name="Skeletons">The group's skeletons, in source order.</param>
-internal sealed record ExpansionPlacements(IReadOnlyDictionary<string, ExpansionPlacement> ByName, IReadOnlyList<PublishedSkeleton> Skeletons)
+internal sealed record ExpansionPlacements(IReadOnlyDictionary<ClrTypeName, ExpansionPlacement> ByName, IReadOnlyList<PublishedSkeleton> Skeletons)
 {
     /// <summary>A group with no parameterized definition and no expansion — nearly every group.</summary>
-    public static readonly ExpansionPlacements None = new(new Dictionary<string, ExpansionPlacement>(StringComparer.Ordinal), []);
+    public static readonly ExpansionPlacements None = new(new Dictionary<ClrTypeName, ExpansionPlacement>(), []);
 
     /// <summary>The expansions to be written to assemblies of their own (placement (a)), in dependency order — an expansion before any
     /// expansion that names it.</summary>
@@ -72,7 +77,7 @@ internal sealed record ExpansionPlacements(IReadOnlyDictionary<string, Expansion
         [.. All.Where(p => p.HoldingFile is not null).Select(p => p.HoldingFile!).Distinct(StringComparer.OrdinalIgnoreCase)];   // not a COBOL word: a file path
 
     /// <summary>The placement of the class or interface this module names <paramref name="clrName"/>, or null when it is no expansion.</summary>
-    public ExpansionPlacement? Of(string clrName) => ByName.GetValueOrDefault(clrName);
+    public ExpansionPlacement? Of(string clrName) => ByName.GetValueOrDefault(new(clrName));
 
     /// <summary>Whether this module emits the class or interface it names <paramref name="clrName"/>: every one but an expansion
     /// placed in another assembly (§2023:10.5). The one answer: the binder publishes a record for exactly these, and the backend emits
@@ -85,5 +90,5 @@ internal sealed record ExpansionPlacements(IReadOnlyDictionary<string, Expansion
         All.Any(p => p.Where is not ExpansionWhere.InGroup && (p.LocalName == clrName || p.LocalFactoryName == clrName));
 
     /// <summary>The kind the class or interface named <paramref name="clrName"/> is published as: an expansion's, else <paramref name="plain"/>.</summary>
-    public RepositoryUnitKind KindOf(string clrName, RepositoryUnitKind plain) => ByName.ContainsKey(clrName) ? RepositoryUnitKind.Expansion : plain;
+    public RepositoryUnitKind KindOf(string clrName, RepositoryUnitKind plain) => ByName.ContainsKey(new(clrName)) ? RepositoryUnitKind.Expansion : plain;
 }

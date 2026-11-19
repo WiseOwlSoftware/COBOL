@@ -85,7 +85,7 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
             {
                 if (file.CodeSetBothAlphabets && file.WrittenRecords.Any())
                 {
-                    using var at = binder.Edition.At(file.FdClauses[FileDescriptionIdentity.CodeSet].At);
+                    using var at = binder.Edition.At(file.FdClauses[FdClause.CodeSet].At);
                     binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, "CODE-SET: if any record description entries are "
                         + "associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or "
                         + "alphabet-name-2 may be specified, but not both (ISO §2023:13.18.13.3 SR3)");

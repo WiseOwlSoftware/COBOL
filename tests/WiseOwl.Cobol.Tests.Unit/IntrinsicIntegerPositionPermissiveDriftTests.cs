@@ -84,8 +84,9 @@ public sealed class IntrinsicIntegerPositionPermissiveDriftTests : WiseOwlCobolT
     private static List<string> IntegerPositions()
     {
         var keys = new List<string>();
-        foreach (var (name, schema) in IntrinsicArgumentRules.Verified)
+        foreach (var (key, schema) in IntrinsicArgumentRules.Verified)
         {
+            string name = key.Word;
             Assert.True(IntrinsicCatalog.TryGet(name, out var sig),
                 $"IntrinsicArgumentRules.Verified names '{name}', which the catalog does not — a schema nothing can call.");
             int positions = Math.Min(sig.MaxArgs, IntrinsicFloatLaneArgumentRunDriftTests.PastEveryDeclaredPosition);

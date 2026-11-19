@@ -29,14 +29,6 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 internal static class FileDescriptionIdentity
 {
-    internal const string Label = "LABEL";
-    internal const string Block = "BLOCK";
-    internal const string CodeSet = "CODE-SET";
-    internal const string Linage = "LINAGE";
-    internal const string Record = "RECORD";
-    internal const string RecordLength = "RECORD-LENGTH";
-    internal const string ValueOf = "VALUE-OF";
-    internal const string Report = "REPORT";
 
     /// <summary>The operand a value does not decide at compile time (a data-name that names no external data item, whose own rule
     /// reports it).</summary>
@@ -45,28 +37,28 @@ internal static class FileDescriptionIdentity
     /// <summary>One agreement rule: the clause as a diagnostic names it, the 1985 rule, and when two of its values agree.
     /// <paramref name="AbsentCite"/> is the rule that an entry writing NO such clause breaks when another entry of the connector writes
     /// one, or null when an entry that writes none has nothing to disagree with.</summary>
-    internal sealed record Rule(string Key, string Clause, string Cite, Func<string, string, bool> Agree, string? AbsentCite = null);
+    internal sealed record Rule(FdClause Key, string Clause, string Cite, Func<string, string, bool> Agree, string? AbsentCite = null);
 
     internal static readonly IReadOnlyList<Rule> Rules =
     [
-        new(Label, "the LABEL RECORDS clause", "§1985:VII.3.6.3 GR4", string.Equals),
-        new(Block, "the BLOCK CONTAINS clause", "§1985:VII.3.3.3 GR5", string.Equals),
-        new(CodeSet, "the CODE-SET clause", "§1985:VII.3.4.4 GR3", string.Equals),
-        new(Linage, "the LINAGE clause", "§1985:VII.3.7.4 GR11", OperandsAgree, AbsentCite: "§1985:VII.3.7.4 GR11a"),
-        new(Record, "the RECORD clause", "§1985:VII.3.8.4 GR2", OperandsAgree),
-        new(RecordLength, "no RECORD clause", "§1985:VII.3.8.4 GR2", SameLength),
-        new(ValueOf, "the VALUE OF clause", "§1985:VII.3.9.4 GR2", ValueOfConsistent),
+        new(FdClause.Label, "the LABEL RECORDS clause", "§1985:VII.3.6.3 GR4", string.Equals),
+        new(FdClause.Block, "the BLOCK CONTAINS clause", "§1985:VII.3.3.3 GR5", string.Equals),
+        new(FdClause.CodeSet, "the CODE-SET clause", "§1985:VII.3.4.4 GR3", string.Equals),
+        new(FdClause.Linage, "the LINAGE clause", "§1985:VII.3.7.4 GR11", OperandsAgree, AbsentCite: "§1985:VII.3.7.4 GR11a"),
+        new(FdClause.Record, "the RECORD clause", "§1985:VII.3.8.4 GR2", OperandsAgree),
+        new(FdClause.RecordLength, "no RECORD clause", "§1985:VII.3.8.4 GR2", SameLength),
+        new(FdClause.ValueOf, "the VALUE OF clause", "§1985:VII.3.9.4 GR2", ValueOfConsistent),
         // "Describe it as a report file" is the whole of the rule: the report-names an entry's REPORT clause writes are its own.
-        new(Report, "the REPORT clause", "§1985:XIII.3.3.4 GR3", static (_, _) => true, AbsentCite: "§1985:XIII.3.3.4 GR3"),
+        new(FdClause.Report, "the REPORT clause", "§1985:XIII.3.3.4 GR3", static (_, _) => true, AbsentCite: "§1985:XIII.3.3.4 GR3"),
     ];
 
     /// <summary>What <paramref name="f"/>'s entry specifies for <paramref name="rule"/>'s clause, or null when it writes none.</summary>
     internal static FdClauseValue? Of(FileModel f, Rule rule) => rule.Key switch
     {
-        Linage => f.Linage is { } linage && LinageValue(linage) is var lines ? new FdClauseValue(lines, LinageWritten(linage), linage.Body.At) : null,
-        Record or RecordLength => RecordOf(f, rule.Key == RecordLength),
-        Report => f.IsReportFile
-            ? new FdClauseValue(Report, "REPORT " + string.Join(" ", f.ReportNames.Select(r => r.Name)), f.ReportNames[0].At) : null,
+        FdClause.Linage => f.Linage is { } linage && LinageValue(linage) is var lines ? new FdClauseValue(lines, LinageWritten(linage), linage.Body.At) : null,
+        FdClause.Record or FdClause.RecordLength => RecordOf(f, rule.Key == FdClause.RecordLength),
+        FdClause.Report => f.IsReportFile
+            ? new FdClauseValue("REPORT", "REPORT " + string.Join(" ", f.ReportNames.Select(r => r.Name)), f.ReportNames[0].At) : null,
         _ => f.FdClauses.TryGetValue(rule.Key, out var value) ? value : null,
     };
 

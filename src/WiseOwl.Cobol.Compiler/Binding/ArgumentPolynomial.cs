@@ -121,16 +121,23 @@ internal sealed class Polynomial
     /// <summary>One monomial: its factors (atom index, power ≥ 1) in ascending atom order, and its coefficient.</summary>
     public readonly record struct Term((int Atom, int Power)[] Factors, ExactRational Coefficient);
 
-    private readonly SortedDictionary<string, Term> _terms;
+    /// <summary>A monomial's key: its factors as text (<c>0003^2,0007^1</c>), ordered by ordinal, which orders the monomials. The key
+    /// is no COBOL word, so it is a type of its own, never a string (docs/rearchitecture/DESIGN-listing.md section 6.7.2's last row).</summary>
+    private readonly record struct MonomialKey(string Factors) : IComparable<MonomialKey>
+    {
+        public int CompareTo(MonomialKey other) => string.CompareOrdinal(Factors, other.Factors);
+    }
 
-    private Polynomial(SortedDictionary<string, Term> terms) => _terms = terms;
+    private readonly SortedDictionary<MonomialKey, Term> _terms;
+
+    private Polynomial(SortedDictionary<MonomialKey, Term> terms) => _terms = terms;
 
     /// <summary>The monomials whose coefficient is not zero, in ordinal order of their key.</summary>
     public IEnumerable<Term> Terms => _terms.Values;
 
     public bool IsZero => _terms.Count == 0;
 
-    public static Polynomial Zero => new(new(StringComparer.Ordinal));
+    public static Polynomial Zero => new(new());
 
     public static Polynomial Constant(ExactRational c) => Single([], c);
 
@@ -144,12 +151,12 @@ internal sealed class Polynomial
         return p;
     }
 
-    private static string KeyOf((int Atom, int Power)[] factors) =>
-        string.Join(",", factors.Select(f => $"{f.Atom:D4}^{f.Power}"));
+    private static MonomialKey KeyOf((int Atom, int Power)[] factors) =>
+        new(string.Join(",", factors.Select(f => $"{f.Atom:D4}^{f.Power}")));
 
-    private static void Accumulate(SortedDictionary<string, Term> terms, (int Atom, int Power)[] factors, ExactRational c)
+    private static void Accumulate(SortedDictionary<MonomialKey, Term> terms, (int Atom, int Power)[] factors, ExactRational c)
     {
-        string key = KeyOf(factors);
+        MonomialKey key = KeyOf(factors);
         var sum = terms.TryGetValue(key, out var prior) ? prior.Coefficient + c : c;
         if (sum.Sign == 0) terms.Remove(key);
         else terms[key] = new Term(factors, sum);
@@ -158,7 +165,7 @@ internal sealed class Polynomial
     /// <summary>this + k × other.</summary>
     public Polynomial Add(Polynomial other, ExactRational k)
     {
-        var terms = new SortedDictionary<string, Term>(_terms, StringComparer.Ordinal);
+        var terms = new SortedDictionary<MonomialKey, Term>(_terms);
         foreach (var t in other._terms.Values) Accumulate(terms, t.Factors, k * t.Coefficient);
         return new(terms);
     }
@@ -169,7 +176,7 @@ internal sealed class Polynomial
     /// <summary>this × other, or null when the product has more than <see cref="MaxMonomials"/> monomials.</summary>
     public Polynomial? Multiply(Polynomial other)
     {
-        var terms = new SortedDictionary<string, Term>(StringComparer.Ordinal);
+        var terms = new SortedDictionary<MonomialKey, Term>();
         foreach (var a in _terms.Values)
             foreach (var b in other._terms.Values)
             {

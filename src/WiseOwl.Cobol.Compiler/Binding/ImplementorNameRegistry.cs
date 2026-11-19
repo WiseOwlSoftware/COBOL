@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
 using WiseOwl.Cobol.Editions;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -57,14 +56,15 @@ internal static class ImplementorNameRegistry
     /// <summary>Every specified implementor-name, in position order and within a position in its table's order.</summary>
     public static IReadOnlyList<SpecifiedImplementorName> All { get; } = Build();
 
-    /// <summary>The rows keyed by name, case-insensitively (§2023:8.1.3.2 GR3 a; a system-name is written in COBOL basic
-    /// letters). A name specified at two positions keeps the first.</summary>
-    private static readonly FrozenDictionary<string, SpecifiedImplementorName> ByName = All
-        .GroupBy(r => r.Name, CobolNames.Comparer)
-        .ToFrozenDictionary(g => g.Key, g => g.First(), CobolNames.Comparer);
+    /// <summary>The rows keyed by name, on the basic letters alone (§2023:8.1.3.2 3) a); a system-name is written in COBOL basic
+    /// letters, so it is a <see cref="StandardWord"/>, a word the implementor defines, never a user word). A name specified at two
+    /// positions keeps the first.</summary>
+    private static readonly FrozenDictionary<StandardWord, SpecifiedImplementorName> ByName = All
+        .GroupBy(r => new StandardWord(r.Name))
+        .ToFrozenDictionary(g => g.Key, g => g.First());
 
     /// <summary>The row naming <paramref name="word"/>, or null when this implementation specifies no implementor-name so spelled.</summary>
-    public static SpecifiedImplementorName? Lookup(string word) => ByName.GetValueOrDefault(word);
+    public static SpecifiedImplementorName? Lookup(string word) => ByName.GetValueOrDefault(new(word));
 
     /// <summary>The words a diagnostic uses for <paramref name="position"/>.</summary>
     public static string Describe(ImplementorNamePosition position) => position switch

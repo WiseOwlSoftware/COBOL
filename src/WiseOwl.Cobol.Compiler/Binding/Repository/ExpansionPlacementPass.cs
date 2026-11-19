@@ -45,8 +45,8 @@ internal static class ExpansionPlacementPass
             var only = new ExpansionPlacement(publishAs, ExpansionWhere.InGroup);
             return (classes.Count, table.Interfaces.Count) switch
             {
-                (1, 0) => new ExpansionPlacements(new Dictionary<string, ExpansionPlacement> { [classes[0].Symbol.ClrName] = only }, []),
-                (0, 1) => new ExpansionPlacements(new Dictionary<string, ExpansionPlacement> { [table.Interfaces[0].ClrName] = only }, []),
+                (1, 0) => new ExpansionPlacements(new Dictionary<ClrTypeName, ExpansionPlacement> { [new(classes[0].Symbol.ClrName)] = only }, []),
+                (0, 1) => new ExpansionPlacements(new Dictionary<ClrTypeName, ExpansionPlacement> { [new(table.Interfaces[0].ClrName)] = only }, []),
                 _ => ExpansionPlacements.None,
             };
         }
@@ -100,7 +100,7 @@ internal static class ExpansionPlacementPass
         var reportedStale = new HashSet<Guid>();
         foreach (object symbol in classes.Select(c => (object)c.Symbol).Concat(table.Interfaces))
             Place(symbol);
-        return new ExpansionPlacements(placements.ToDictionary(e => LocalNameOf(e.Key), e => e.Value, StringComparer.Ordinal), skeletons) { ToWrite = order };
+        return new ExpansionPlacements(placements.ToDictionary(e => new ClrTypeName(LocalNameOf(e.Key)), e => e.Value), skeletons) { ToWrite = order };
 
         // One expansion's placement, after the placement of every expansion it names (an actual may itself be an expansion).
         ExpansionPlacement? Place(object symbol)

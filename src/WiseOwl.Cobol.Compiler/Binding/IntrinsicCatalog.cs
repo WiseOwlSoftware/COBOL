@@ -197,7 +197,7 @@ public static class IntrinsicCatalog
     /// a user-defined word, so it matches on the BASIC LETTERS ALONE (ISO §2023:8.1.3.2 3) a), 4); kb/Work PB4240): <c>İNTEGER</c>
     /// (U+0130) is no INTEGER, and it is no user-defined word that folds to INTEGER either: the Annex C fold applies no pair
     /// from an extended letter to a basic one (kb/Work PB4420), so a USER-DEFINED word asks this same question.</summary>
-    public static bool TryGet(string name, out IntrinsicSig sig) => Table.TryGetValue(name, out sig);
+    public static bool TryGet(string name, out IntrinsicSig sig) => Table.TryGetValue(new(name), out sig);
 
     /// <summary>⛔ THE PARAGRAPH OF THE 1989 INTRINSIC FUNCTION MODULE THAT DEFINES A FUNCTION (kb/Work PB4950): ANSI X3.23a-1989
     /// Section A prints one paragraph per function, <c>2.5 THE ACOS FUNCTION</c> through <c>2.46 THE WHEN-COMPILED FUNCTION</c>, in
@@ -207,16 +207,17 @@ public static class IntrinsicCatalog
     /// against it. Null for a function the 1989 module does not define (every one a later edition introduced).</summary>
     public static int? Paragraph1989(string name) => Module1989.TryGetValue(name, out int n) ? n : null;
 
-    private static readonly Dictionary<string, IntrinsicSig> Table = Build();
+    /// <summary>The catalog, by the function's name: a word the standard defines (<see cref="StandardWord"/>).</summary>
+    private static readonly Dictionary<StandardWord, IntrinsicSig> Table = Build();
 
     private static readonly FrozenDictionary<string, int> Module1989 = Table.Values
         .Where(s => s.IntroducedIn == 85).Select(s => s.Name).Order(StringComparer.Ordinal)
         .Select((name, i) => (name, paragraph: 5 + i)).ToFrozenDictionary(p => p.name, p => p.paragraph, CobolKeywords.Comparer);
 
-    private static Dictionary<string, IntrinsicSig> Build()
+    private static Dictionary<StandardWord, IntrinsicSig> Build()
     {
-        var t = new Dictionary<string, IntrinsicSig>(CobolKeywords.Comparer);
-        void Add(IntrinsicSig s) => t.Add(s.Name, s);
+        var t = new Dictionary<StandardWord, IntrinsicSig>();
+        void Add(IntrinsicSig s) => t.Add(new(s.Name), s);
         const int inf = int.MaxValue;
 
         // ── The 1989 Intrinsic Function Module (IntroducedIn 85 — the NIST IF101A..IF142A surface) ──────────
