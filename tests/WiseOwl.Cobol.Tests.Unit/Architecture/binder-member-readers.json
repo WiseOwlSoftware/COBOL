@@ -810,6 +810,7 @@
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
+      "WiseOwl.Cobol.Compiler.Oo.OoDriver",
       "WiseOwl.Cobol.Validation.FlagConformancePass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::SynchronizedViolation": [

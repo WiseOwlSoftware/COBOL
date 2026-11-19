@@ -1284,7 +1284,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     - *The AS NESTED table is keyed by an externalized name (correction, slice 6).* `StatementBinder.NestedCallables` is read with the name
       a CALL's literal-1 forms (§2023:14.9.4.3 SR15), compared by the implementor's mapping rule exactly as the run-time program table
       compares it (`ExternalizedNames`, DOC-A.1-68), never a word the program writes. Like slice 2's tables keyed by no COBOL user word,
-      it is keyed by a type that says so, `ExternalizedProgramName`, and stays the procedure binder's.
+      it is keyed by a type that says so, `ExternalizedProgramName` (in the model layer, which the bound layer's `StatementBinder` may
+      name), and stays the procedure binder's.
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1858,6 +1859,8 @@ renderer. Naming it asks for a listing at any edition.
   word and qualifiers before asking whether any counter carries the name. The arm now asks the table first; re-measured, every
   branch `None` row lies within 0.13 MB of the parent's three runs but one NC218A run whose other rows lie inside the parent's (the
   README's step-6b table, slice 5).
+  Slice 6 (the program-prototype-names) moves no measurable allocation: every branch `None` row lies inside the parent's two runs or
+  within 0.06 MB of them, IX113A's below both (68.98 and 68.85 MB against 69.05 and 69.09; the README's step-6b table, slice 6).
 
 ## 10. Test plan
 

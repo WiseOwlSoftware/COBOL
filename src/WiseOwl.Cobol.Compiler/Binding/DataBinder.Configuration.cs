@@ -83,18 +83,6 @@ public sealed partial class DataBinder
         return Symbols.RepeatedRepositorySpecification(name, spec, externalized) ?? externalized;
     }
 
-    /// <summary>ONE REPOSITORY specification of a name, as §2023:12.3.8.3 SR1 compares it: the specifier KIND (class,
-    /// interface, program, property, user-defined function, or intrinsic function), the value of its
-    /// <c>[ AS literal-n ]</c> (null when absent — the name is then externalized by the implementor's mapping of the
-    /// user-defined word, §2023:8.3.2.2, so two case spellings of one word are one specification), and the canonical
-    /// text of its <c>[ EXPANDS … USING … ]</c> phrase (null when absent). Every part of the written specification
-    /// that carries a meaning is a component, so "identical" is record equality.</summary>
-    internal sealed record RepositorySpecification(string Kind, string? As, string? Expands)
-    {
-        public override string ToString() =>
-            $"{Kind}{(As is null ? "" : $" AS \"{As}\"")}{(Expands is null ? "" : " " + Expands)}";
-    }
-
     /// <summary>The kind an intrinsic-function-name-1 of <c>FUNCTION { intrinsic-function-name-1 } … INTRINSIC</c>
     /// is specified with.</summary>
     private const string IntrinsicKind = "FUNCTION … INTRINSIC";
@@ -104,7 +92,6 @@ public sealed partial class DataBinder
     private static string? ExpandsText(Core.ExpandsPhraseContext? ep) => ep is null ? null
         : $"EXPANDS {ep.expandsTarget().GetText().ToUpperInvariant()} USING "
           + string.Join(" ", ep.expandsActual().Select(a => a.GetText().ToUpperInvariant()));
-
 
     /// <summary>The literal environment of a position OUTSIDE the SPECIAL-NAMES paragraph (kb/Work PB1406).</summary>
     internal LiteralEnvironment LiteralEnv => LiteralEnvironment.Program(this);

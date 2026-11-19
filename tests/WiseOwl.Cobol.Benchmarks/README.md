@@ -684,6 +684,25 @@ the table first and reads them only for a name it holds. Re-measured (branch, pa
 Every branch `None` row lies within 0.13 MB of the parent's runs but one: NC218A's second run, 31.61 MB, whose `Text` and `All` rows of
 the same run lie inside the parent's (the parent's own NC218A `Text` row ran 35.18 to 35.94 MB). Slice 5 moves no measurable allocation
 once the arm is fixed; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, slice 6 (kb/Work PB5932, the program-prototype-names resolved by `SymbolTable.Identify`): the `None` row against the
+parent.** Slice 6 changes where every unit's program prototypes are made and read (the symbol table, once per element as before), so
+it measures the no-listing path. Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project
+tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FrontEndAndBind*'` twice on the `listing-step-6b-6` branch (commit
+9ae07c433e) and twice on its parent `3dd8fd019b`, alternating (parent, branch, branch, parent). Allocated bytes per front end and bind,
+the two runs of each tree:
+
+| Program | Listing | Parent | Slice 6 |
+|---|---|---|---|
+| IX113A | None | 69.05, 69.09 MB | 68.98, 68.85 MB |
+| NC105A | None | 34.99, 35.16 MB | 35.00, 35.12 MB |
+| NC218A | None | 31.56, 30.99 MB | 31.14, 30.98 MB |
+| SM201A | None | 15.35, 15.35 MB | 15.41, 15.34 MB |
+| IX113A | Text | 76.83, 76.85 MB | 76.82, 76.86 MB |
+| IX113A | All | 97.22, 97.50 MB | 97.44, 97.44 MB |
+
+Every branch `None` row lies inside the parent's two runs or within 0.06 MB of them (SM201A's first run), and IX113A's lies below
+both, so slice 6 moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

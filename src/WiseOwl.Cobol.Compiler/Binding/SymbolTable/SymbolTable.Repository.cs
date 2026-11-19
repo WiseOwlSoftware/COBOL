@@ -34,7 +34,7 @@ public sealed partial class SymbolTable
 
     /// <summary>The §2023:12.3.8.3 SR1 memory of THIS element's REPOSITORY paragraph: each specified name's first specification
     /// and the externalized name it gave.</summary>
-    private readonly Dictionary<CobolName, (DataBinder.RepositorySpecification Spec, string Externalized)> _repositorySpecified = [];
+    private readonly Dictionary<CobolName, (RepositorySpecification Spec, string Externalized)> _repositorySpecified = [];
 
     // ---- declaration -----------------------------------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ public sealed partial class SymbolTable
     /// specified more than once in the REPOSITORY paragraph, all the specifications for that name shall be identical." Keyed on
     /// THE NAME, not on (kind, name), and comparing everything <paramref name="specification"/> says. Reports a difference and
     /// returns the FIRST specification's externalized name when <paramref name="name"/> repeats; null when the name is new.</summary>
-    internal string? RepeatedRepositorySpecification(string name, DataBinder.RepositorySpecification specification, string externalized)
+    internal string? RepeatedRepositorySpecification(string name, RepositorySpecification specification, string externalized)
     {
         var key = Key(name);
         if (_repositorySpecified.TryGetValue(key, out var first))
@@ -215,4 +215,16 @@ public sealed partial class SymbolTable
     /// <see cref="ConfigurationFacts"/> (kb/Work PB2361).</summary>
     internal IReadOnlyList<string> ProgramSpecifierExternalizedNames() =>
         [.. _programSpecifiers.Values.Select(static s => s.ExternalizedName)];
+}
+
+/// <summary>ONE REPOSITORY specification of a name, as §2023:12.3.8.3 SR1 compares it: the specifier KIND (class,
+/// interface, program, property, user-defined function, or intrinsic function), the value of its
+/// <c>[ AS literal-n ]</c> (null when absent — the name is then externalized by the implementor's mapping of the
+/// user-defined word, §2023:8.3.2.2, so two case spellings of one word are one specification), and the canonical
+/// text of its <c>[ EXPANDS … USING … ]</c> phrase (null when absent). Every part of the written specification
+/// that carries a meaning is a component, so "identical" is record equality.</summary>
+internal sealed record RepositorySpecification(string Kind, string? As, string? Expands)
+{
+    public override string ToString() =>
+        $"{Kind}{(As is null ? "" : $" AS \"{As}\"")}{(Expands is null ? "" : " " + Expands)}";
 }

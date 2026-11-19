@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-12.2.7.3-2",
  "rule-digest": "12a1c993e99f",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindByExternalizedName; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/WiseOwl.Cobol.Compiler/Binding/ObjectPropertyResolver.cs#ResolveObjectProperty",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Lookup; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#FindByExternalizedName; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Repository.cs#ResolveProgramPrototypes; src/WiseOwl.Cobol.Compiler/Binding/ObjectPropertyResolver.cs#ResolveObjectProperty",
  "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase; conformance:cases/8.3.2.2-User-defined-words/pb237_program_prototype",
  "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.3.8.4-2, witnessed at 2002 by the cases test-ref names. The read: 2002 numbers the literals class 1, interface 2, function 3, program 4, property 5, and the rule's 'respectively' list is consistent. 2023's list 'literal-1, literal-2, literal-3, or literal-5 ... class, interface, function, or program' does not match its own renumbered format; the compiler applies the kind-by-kind mapping, which is the 2002 reading. 'When the AS phrase is required': DOC-A.1-163 (never). Cited: §2002:12.2.7.3 GR2."
 }
