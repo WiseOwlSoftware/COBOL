@@ -1171,6 +1171,13 @@ public abstract record BoundStatement
     /// position standing (<c>DiagnosticCursorExtensions.At</c>).</summary>
     public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; internal set; }
 
+    /// <summary>⛔ WHERE THE STATEMENT IS WRITTEN IN THE FILE THE USER EDITS (DESIGN-listing.md section 6.9): the span every backend places
+    /// the statement's sequence point at. Stamped by <c>StatementBinder.BindStatement</c> on the node it returns for a statement the
+    /// programmer wrote (the outermost node: a checked wrapper, a debug trigger, an implicit series), so the backend maps the statement's
+    /// code once, there. Null for a node the binder synthesised (its code is part of the statement that encloses it) and for a statement
+    /// of a skeleton read from the repository, whose text is no file of this compilation.</summary>
+    public StatementSpan? Span { get; internal set; }
+
     /// <summary>The user's source line of this statement - the X3.23-1985 DEBUG-LINE of a debugging section that "the statement
     /// ... causes" to run (§1985:XV.3.2.4 GR21 a, a USE procedure the statement executes), stamped by
     /// <c>StatementBinder.BindStatement</c> only in a program with a debug subject in the declaratives portion (a USE procedure);

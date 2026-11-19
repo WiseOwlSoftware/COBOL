@@ -90,6 +90,9 @@ internal sealed class ProgramEmitter
         w.Line("// </auto-generated>");
         w.Line("#nullable enable");
         w.Line("#pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to");
+        // DESIGN-listing.md section 6.9: every line but a statement's first line of code is hidden from a debugger and from the PDB, so
+        // the program's sequence points are its COBOL statements' (StatementEmitter.EmitStatement maps each).
+        w.HideUnmappedLines();
         // The module's namespace and its record (DESIGN-external-repository §4.5, §6.2; kb/Work PB2097). Every emitted
         // type lives in Cobol.<S>, and every name outside it is global::-rooted: the using directives sit INSIDE the
         // namespace and name their namespaces from global::, so a simple name such as CobolNum finds the runtime's type

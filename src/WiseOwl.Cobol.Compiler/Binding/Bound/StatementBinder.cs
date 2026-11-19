@@ -574,8 +574,32 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var bound = Ec.EcWrap(s, core);
         if (!_inDebuggingSection && Ctx.Table.DebugTargets is { Count: > 0 } debugTargets
             && DebugTriggerPlanner.Plan(core, debugTargets) is { Count: > 0 } fires)
-            return new BoundDebugTriggered(bound, fires, Ctx.SourceLine(s)) { At = core.At };
+            bound = new BoundDebugTriggered(bound, fires, Ctx.SourceLine(s)) { At = core.At };
+        // DESIGN-listing.md section 6.9: the outermost node is the one the backend meets first, so it carries where the statement is written.
+        // A node the verb binder returned from a nested statement keeps that statement's own.
+        bound.Span ??= SpanOf(s);
         return bound;
+    }
+
+    /// <summary>Where statement <paramref name="s"/> is written in the file the user edits
+    /// (<see cref="StatementSpan"/>): its first token's position, the position after that token and the position after its last token's
+    /// last character, each through the one resultant-to-physical mapping. Null for a statement of a skeleton read from the repository (no file of this compilation holds it).
+    /// A last token in another file than the first (or before it) ends the span where it begins.</summary>
+    private StatementSpan? SpanOf(Core.StatementContext s)
+    {
+        var at = WiseOwl.Cobol.Frontend.Common.ExpansionToken.CursorOf(s.Start);   // the statement's own first token, as this funnel's cursor
+        if (!at.IsSet || at.Region is { IsRepositoryText: true }) return null;
+        var start = data.Edition.LocationOf(at.Line, at.Column);
+        var stopToken = s.Stop is { } stop && stop.TokenIndex >= s.Start.TokenIndex ? stop : s.Start;
+        var last = WiseOwl.Cobol.Frontend.Common.ExpansionToken.CursorOf(stopToken);
+        var end = data.Edition.LocationOf(last.Line, last.Column + Math.Max(stopToken.Text?.Length ?? 1, 1) - 1);
+        var verb = data.Edition.LocationOf(at.Line, at.Column + Math.Max(s.Start.Text?.Length ?? 1, 1) - 1);
+        int verbEnd = verb.FileName == start.FileName && verb.Line == start.Line && verb.Column >= start.Column ? verb.Column + 2 : start.Column + 2;
+        bool endsInFile = end.FileName == start.FileName
+            && (end.Line > start.Line || (end.Line == start.Line && end.Column + 2 >= verbEnd));
+        return endsInFile
+            ? new StatementSpan(start.FileName, start.Line + 1, start.Column + 1, end.Line + 1, end.Column + 2, verbEnd)
+            : new StatementSpan(start.FileName, start.Line + 1, start.Column + 1, start.Line + 1, verbEnd, verbEnd);
     }
 
     /// <summary>Whether <paramref name="statement"/> itself references the DEBUG-ITEM register or a member, whole, reference-modified or as a

@@ -15,7 +15,8 @@ namespace WiseOwl.Cobol.Listing;
 /// inclusions, lines and programs; step 2 the JSON form; step 3 the diagnostics; step 4a the directive hooks (the LISTING and
 /// PAGE directives, COPY SUPPRESS, the DISPLAY directive's transfers, the lines REPLACE changed); step 5 the options, the
 /// statistics and the verbs, and the choice of sections; step 6 the data map and the file map, the program attributes and the
-/// margin, all from the symbol table; later steps add their sections beside them.</remarks>
+/// margin, all from the symbol table; step 8 the object-code map and the object code, from the assembly and its PDB; later steps add
+/// their sections beside them.</remarks>
 /// <param name="Header">The compiler, the edition, the compilation timestamp, the main source and the outcome.</param>
 /// <param name="Files">Every file read: the source and each library text.</param>
 /// <param name="Inclusions">Every COPY statement processed, in text order.</param>
@@ -31,6 +32,9 @@ namespace WiseOwl.Cobol.Listing;
 /// and the verbs; null when the section was not asked for.</param>
 /// <param name="DataMap">The data map and the file map: every name of the data division with what the compiler decided for it;
 /// null when the section was not asked for or could not be produced.</param>
+/// <param name="ObjectCode">The COBOL to object-code map read from the assembly and its PDB, its instructions when the object-code
+/// section was asked for; null when neither the object-code map nor the object code was asked for, or the compilation wrote no
+/// assembly.</param>
 /// <param name="Sections">Each section the listing was asked for, in the order of <see cref="ListingSection"/>: produced, or
 /// why not (DESIGN-listing.md section 4.3). A section not asked for has no entry and its part of the document is empty: the
 /// lines and the DISPLAY transfers are the source section's, the diagnostics the diagnostics section's. The header, the
@@ -46,6 +50,7 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingOption> Options,
     ListingStatistics? Statistics,
     ListingDataMap? DataMap,
+    ListingObjectCodeMap? ObjectCode,
     IReadOnlyList<ListingSectionStatus> Sections)
 {
     /// <summary>The identifier of the JSON schema's major version 1 (DESIGN-listing.md section 7.3): every JSON listing of this
@@ -278,6 +283,11 @@ public enum ListingSection
     /// and file-name with its level, offset, lengths, usage, picture and the .NET field it became, and each file's keys, reports
     /// and connector; and, in the source section, each data description line's offset, length and usage in the margin.</summary>
     DataMap,
+    /// <summary>The object-code map: each COBOL statement's method and IL offset range, read from the assembly the compilation wrote
+    /// and its portable PDB.</summary>
+    ObjectMap,
+    /// <summary>The object code: under each COBOL statement, its IL instructions, decoded from the assembly the compilation wrote.</summary>
+    ObjectCode,
 }
 
 /// <summary>How serious a diagnostic is.</summary>

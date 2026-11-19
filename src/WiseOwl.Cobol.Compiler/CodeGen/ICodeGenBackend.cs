@@ -28,8 +28,9 @@ public enum BackendId
 /// <param name="Edition">The targeted edition. The Roslyn backend does not consult it — emit is
 /// edition-agnostic by the P3 pipeline contract (every edition diagnostic precedes emit) — but the seam carries
 /// it for backend-neutral plumbing a future backend may need (e.g. per-edition runtime feature switches, P16).</param>
-/// <param name="EmitPdb">RESERVED (declared by the design contract; not yet honored — P7 Step 1 is
-/// no-behavior-change, and today's backend emits no symbols. A later phase wires it).</param>
+/// <param name="EmitPdb">Write a portable PDB beside the assembly (<c>&lt;out&gt;.pdb</c>) holding one sequence point per COBOL
+/// statement at the place it is written (<c>BoundStatement.Span</c>; DESIGN-listing.md section 6.9): a .NET debugger steps through
+/// COBOL source, and the source listing's object-code map reads each statement's code back from it. Every backend honours it.</param>
 /// <param name="Inputs">The compilation's ambient-input record (kb/Work PB985) — a backend that reads anything
 /// outside the bound tree (the WHEN-COMPILED clock) reads it through this, so the record stays complete.</param>
 /// <param name="RepositoryReferences">The assemblies of the external repository the generated code names a type of — every one a

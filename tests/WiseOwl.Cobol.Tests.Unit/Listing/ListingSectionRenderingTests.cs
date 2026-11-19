@@ -49,7 +49,7 @@ public sealed class ListingSectionRenderingTests
     }
 
     private static ListingDocument Document(IReadOnlyList<ListingSectionStatus> sections, ListingStatistics? statistics = null,
-        IReadOnlyList<ListingOption>? options = null, ListingDataMap? dataMap = null) => new(
+        IReadOnlyList<ListingOption>? options = null, ListingDataMap? dataMap = null, ListingObjectCodeMap? objectCode = null) => new(
         new ListingHeader("30.0.0", 2023, "ISO/IEC 1989:2023", Instant, "/src/p.cob", ListingOutcome.Success, ListingParse.Parsed),
         [new ListingFile(1, "/src/p.cob", ListingFileRole.Source, "00"), new ListingFile(2, "/src/lib/REC.cpy", ListingFileRole.Library, "00")],
         [new ListingInclusion(1, null, 1, 3, 3, "REC", null, 2, ListingInclusionOutcome.Found, false)],
@@ -62,6 +62,7 @@ public sealed class ListingSectionRenderingTests
                     new ListingOption("compiler", "30.0.0", ListingOptionOrigin.Host)],
         statistics,
         dataMap,
+        objectCode,
         sections);
 
     private static ListingStatistics Statistics(ListingParseStatistics? parse) => new(

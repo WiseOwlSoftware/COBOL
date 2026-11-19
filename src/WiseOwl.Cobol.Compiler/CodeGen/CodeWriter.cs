@@ -1,6 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using WiseOwl.Cobol.Binding.Bound;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -14,6 +18,12 @@ public sealed class CodeWriter
     private readonly StringBuilder _sb = new();
     private int _indent;
     private bool _atLineStart = true;
+
+    // DESIGN-listing.md section 6.9: the statements being emitted, innermost last, each with whether its sequence point is written.
+    private readonly List<StatementMapping> _mappings = [];
+    private bool _mapsStatements;   // HideUnmappedLines was called: every line is hidden but a statement's sequence point
+    private bool _hidden;      // the last line directive written is `#line hidden`
+    private int _capturing;    // inside CaptureText: the text is spliced into one line, where no directive may stand
 
     /// <summary>Increase the indentation level by one (4 spaces).</summary>
     public void Indent() => _indent++;
@@ -29,6 +39,14 @@ public sealed class CodeWriter
             _sb.Append('\n');
             _atLineStart = true;
             return;
+        }
+        if (_atLineStart && _capturing == 0 && _mapsStatements && MapLine(text) is { } rest)
+        {
+            // The line holds code after the statement's sequence point: that code is hidden, on a line of its own.
+            WriteIndentIfNeeded();
+            _sb.Append(text, 0, rest).Append('\n').Append("#line hidden\n");
+            _hidden = true;
+            text = text[rest..].TrimStart();
         }
         WriteIndentIfNeeded();
         _sb.Append(text).Append('\n');
@@ -52,6 +70,161 @@ public sealed class CodeWriter
     {
         Outdent();
         Line("}");
+    }
+
+    /// <summary>⛔ THE ROSLYN BACKEND'S SEQUENCE POINTS (DESIGN-listing.md section 6.9; behind the backend seam): from here on, every line
+    /// written outside a statement is hidden from a debugger (<c>#line hidden</c>), so the only sequence points of the program are the
+    /// statements' own. The program emitter calls it once, after the file's header.</summary>
+    public void HideUnmappedLines()
+    {
+        _sb.Append("#line hidden\n");
+        _hidden = true;
+        _mapsStatements = true;
+    }
+
+    /// <summary>Map the C# a statement emits to where the statement is written (<paramref name="span"/>; null: a statement with no
+    /// position of its own, whose code belongs to the statement enclosing it), until the scope is disposed. The statement's first line
+    /// that carries a sequence point (<see cref="FirstSequencePoint(string)"/>) is mapped to the span exactly, and every line before it too
+    /// (any of them that carries one is the statement's as well); every line after it is hidden, so a debugger stops once per COBOL
+    /// statement and the PDB holds one sequence point at its position, spanning the statement. A statement nested in it maps its own
+    /// first line; the enclosing statement's next line of code after it (a PERFORM's step and test after its body) takes one more
+    /// sequence point at the same position, spanning only the verb, so that code is the enclosing statement's and not the nested one's.
+    /// A nested node at the same span (a wrapper's inner node) is the same statement and maps nothing of its own.</summary>
+    public StatementScope MapStatement(StatementSpan? span)
+    {
+        if (span is null || (_mappings.Count > 0 && _mappings[^1].Span == span)) return default;
+        _mappings.Add(new StatementMapping(span));
+        return new StatementScope(this);
+    }
+
+    /// <summary>End the innermost statement's mapping. The statement enclosing it, if any, maps the code it writes next (a PERFORM's step
+    /// and test after its body) to its verb, once more.</summary>
+    private void EndStatement()
+    {
+        _mappings.RemoveAt(_mappings.Count - 1);
+        if (_mappings.Count > 0 && _mappings[^1].Written) _mappings[^1].Resumed = true;
+    }
+
+    /// <summary>Write the line directive the line <paramref name="text"/> needs: while the innermost statement's sequence point is not
+    /// written and the line begins code that carries one (<see cref="FirstSequencePoint(string)"/>), the statement's span, at that code's
+    /// column; else <c>#line hidden</c> (once), so a line whose sequence point is not certain (a declaration whose constant an optimized
+    /// build may fold away) never takes the statement's place. Returns the index in <paramref name="text"/> after that first code when more code follows it on the
+    /// line, which <see cref="Line"/> then writes hidden on a line of its own (a debugger stops once per statement, and the PDB holds no
+    /// sequence point at a column the statement does not begin at); null otherwise.</summary>
+    private int? MapLine(string text)
+    {
+        if (text[0] == '#') return null;   // a directive of the emitter's own carries no code
+        if (_mappings.Count > 0 && _mappings[^1] is { } mapping && (!mapping.Written || mapping.Resumed))
+        {
+            // `#line (line, column) - (endLine, endColumn) offset "file"` maps the code at 1-based character `offset` of the next line to
+            // the span, whose end is inclusive (C# 10's span form). The statement's first sequence point spans the statement; a later
+            // one (resumed after a nested statement) spans its verb.
+            var span = mapping.Span;
+            var (endLine, endColumn) = mapping.Written ? (span.Line, span.VerbEndColumn) : (Math.Max(span.EndLine, span.Line), span.EndColumn);
+            endColumn = endLine == span.Line ? Math.Max(endColumn - 1, span.Column) : Math.Max(endColumn - 1, 1);
+            if (FirstSequencePoint(text) is { } at)
+            {
+                _sb.Append(CultureInfo.InvariantCulture,
+                    $"#line ({span.Line}, {span.Column}) - ({endLine}, {endColumn}) {_indent * 4 + at.Start + 1} \"{DirectiveFile(span.File)}\"\n");
+                _hidden = false;
+                mapping.Resumed = false;
+                mapping.Written = true;
+                return text.AsSpan(at.End).IsWhiteSpace() ? null : at.End;
+            }
+        }
+        if (_hidden) return null;
+        _sb.Append("#line hidden\n");
+        _hidden = true;
+        return null;
+    }
+
+    /// <summary>The file a line directive names: the full path, which a debugger opens. A directive's file name has no escapes, so a
+    /// path holding a quotation mark or a line end cannot be written; such a file is named with each of them replaced by an underscore,
+    /// keeping the sequence points at a name no file has.</summary>
+    private static string DirectiveFile(string file)
+    {
+        string full = Path.GetFullPath(file);
+        return full.AsSpan().IndexOfAny("\"\r\n") < 0 ? full : full.Replace('"', '_').Replace('\r', '_').Replace('\n', '_');
+    }
+
+    /// <summary>Where in <paramref name="text"/> the first code Roslyn gives a sequence point in an optimized build begins and ends, read
+    /// with Roslyn's own parser so a line is classified as Roslyn compiles it; null when the line begins no such code (a brace, a label, a
+    /// declaration with no initializer, a <c>try</c> or <c>do</c> header, a fragment of an expression). The sequence point of an expression
+    /// statement, a jump (return, throw, goto, break, continue, yield) and a local declaration is the statement (the declaration up to its
+    /// first initialized variable; a declaration whose initializer is a constant is none, since an optimized build may keep the constant
+    /// and emit no code for it); of an if, while (not on the constant <c>true</c>), switch, lock or using statement its header, up to the
+    /// closing parenthesis; of a for statement its declaration or first initializer, else its condition. A block, a labeled, checked,
+    /// unchecked, try, do or for statement with neither has none of its own: its first statement's is the line's.
+    /// <para><c>End</c> is where the line stops being that sequence point's: its end, or, sooner, the first place inside it that takes a
+    /// sequence point of its own in another method (the body of a lambda or an anonymous method, an arm of a switch expression), whose
+    /// code must not be mapped to the statement's column.</para></summary>
+    internal static (int Start, int End)? FirstSequencePoint(string text)
+    {
+        var statement = SyntaxFactory.ParseStatement(text);
+        if (FirstSequencePoint(statement, text.Length) is not { } point) return null;
+        int end = point.End;
+        foreach (var node in statement.DescendantNodes(n => n.Span.Start < end))
+        {
+            int nested = node switch
+            {
+                AnonymousFunctionExpressionSyntax function => function.Body.SpanStart,
+                SwitchExpressionArmSyntax arm => arm.SpanStart,
+                _ => int.MaxValue,
+            };
+            if (nested > point.Start && nested < end) end = nested;
+        }
+        return (point.Start, end);
+    }
+
+    private static (int Start, int End)? FirstSequencePoint(StatementSyntax? statement, int length)
+    {
+        static (int, int)? Within((int Start, int End) point, int length) =>
+            point.Start < length && point.End <= length && point.End > point.Start ? point : null;
+        switch (statement)
+        {
+            case null:
+                return null;
+            case ExpressionStatementSyntax e:
+                return e.Expression.IsMissing || e.SemicolonToken.IsMissing ? null : Within((e.SpanStart, e.Span.End), length);
+            case ReturnStatementSyntax or ThrowStatementSyntax or GotoStatementSyntax or BreakStatementSyntax or ContinueStatementSyntax
+                or YieldStatementSyntax:
+                return statement.GetLastToken().IsMissing ? null : Within((statement.SpanStart, statement.Span.End), length);
+            case LocalDeclarationStatementSyntax d when d.Declaration.Variables.FirstOrDefault(v => v.Initializer is not null) is { } first
+                && first.Initializer!.Value is not (LiteralExpressionSyntax or DefaultExpressionSyntax):
+                return first == d.Declaration.Variables[^1]
+                    ? d.SemicolonToken.IsMissing ? null : Within((d.SpanStart, d.Span.End), length)
+                    : Within((d.SpanStart, first.Span.End), length);
+            case IfStatementSyntax i:
+                return i.CloseParenToken.IsMissing ? null : Within((i.SpanStart, i.CloseParenToken.Span.End), length);
+            case WhileStatementSyntax w when !Microsoft.CodeAnalysis.CSharpExtensions.IsKind(w.Condition, SyntaxKind.TrueLiteralExpression):
+                return w.CloseParenToken.IsMissing ? null : Within((w.SpanStart, w.CloseParenToken.Span.End), length);
+            case SwitchStatementSyntax sw:
+                return sw.CloseParenToken.IsMissing ? null : Within((sw.SpanStart, sw.CloseParenToken.Span.End), length);
+            case LockStatementSyntax l:
+                return l.CloseParenToken.IsMissing ? null : Within((l.SpanStart, l.CloseParenToken.Span.End), length);
+            case UsingStatementSyntax u when u.Expression is not null || u.Declaration is not null:
+                return u.CloseParenToken.IsMissing ? null : Within((u.SpanStart, u.CloseParenToken.Span.End), length);
+            case ForStatementSyntax f when f.Declaration is { } declaration:
+                return Within((declaration.SpanStart, declaration.Span.End), length);
+            case ForStatementSyntax f when f.Initializers.Count > 0:
+                return Within((f.Initializers[0].SpanStart, f.Initializers[0].Span.End), length);
+            case ForStatementSyntax f when f.Condition is { } condition:
+                return Within((condition.SpanStart, condition.Span.End), length);
+            case ForStatementSyntax f:
+                return FirstSequencePoint(f.Statement, length);
+            case BlockSyntax b:
+                return FirstSequencePoint(b.Statements.FirstOrDefault(), length);
+            case LabeledStatementSyntax labeled:
+                return FirstSequencePoint(labeled.Statement, length);
+            case CheckedStatementSyntax c:
+                return FirstSequencePoint(c.Block, length);
+            case TryStatementSyntax t:
+                return FirstSequencePoint(t.Block, length);
+            case DoStatementSyntax d:
+                return FirstSequencePoint(d.Statement, length);
+            default:
+                return null;
+        }
     }
 
     private void WriteIndentIfNeeded()
@@ -79,6 +252,7 @@ public sealed class CodeWriter
         bool savedAtLineStart = _atLineStart;
         _indent = 0;
         _atLineStart = true;
+        _capturing++;
         try
         {
             emit();
@@ -86,6 +260,7 @@ public sealed class CodeWriter
         }
         finally
         {
+            _capturing--;
             _sb.Length = start;
             _indent = savedIndent;
             _atLineStart = savedAtLineStart;
@@ -94,6 +269,25 @@ public sealed class CodeWriter
 
     /// <summary>The accumulated C# source.</summary>
     public override string ToString() => _sb.ToString();
+
+    /// <summary>One statement whose code is being mapped to <see cref="Span"/>.</summary>
+    private sealed class StatementMapping(StatementSpan span)
+    {
+        public StatementSpan Span { get; } = span;
+
+        /// <summary>The statement's sequence point is written: its later lines are hidden.</summary>
+        public bool Written { get; set; }
+
+        /// <summary>A statement nested in it ended: its next line of code takes a sequence point of its own, at its verb.</summary>
+        public bool Resumed { get; set; }
+    }
+
+    /// <summary>A <c>using</c>-scoped statement mapping (<see cref="MapStatement"/>); the default value maps nothing.</summary>
+    public readonly struct StatementScope(CodeWriter? writer) : IDisposable
+    {
+        /// <summary>End the statement's mapping.</summary>
+        public void Dispose() => writer?.EndStatement();
+    }
 
     /// <summary>A <c>using</c>-scoped brace pair; closing it emits the matching <c>}</c>.</summary>
     public readonly struct BlockScope(CodeWriter writer) : IDisposable

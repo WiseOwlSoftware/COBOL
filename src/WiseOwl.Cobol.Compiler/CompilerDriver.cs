@@ -388,6 +388,9 @@ public static class CompilerDriver
                         Diagnostics = Reported([.. expansion.Diagnostics, .. artifact.Diagnostics.Where(d => d.IsError)]),
                     };
 
+            // DESIGN-listing.md section 6.9: the listing's object-code map reads the assembly and its PDB, which the backend names.
+            string pdb = Path.GetFullPath(Path.ChangeExtension(outputDll, ".pdb"));
+            listing?.DepositObjectCode(outputDll, artifact.OutputFiles.Contains(pdb, StringComparer.Ordinal) ? pdb : null);
             return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [], warnings)
             {
                 Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles],

@@ -40,11 +40,14 @@ internal sealed class RoslynBackend : ICodeGenBackend
         // Main, no runtimeconfig.json, reached through its host entries and the sibling probe. ProgramEmitter.MainUnit is
         // the one answer, which EmitMain read too.
         bool library = ProgramEmitter.MainUnit(program.Units) is null;
-        var result = Compile(csharp, options.OutputPath, options.AssemblyName,
+        // DESIGN-listing.md section 6.9: the portable PDB beside the assembly holds each COBOL statement's sequence point.
+        string? pdbPath = options.EmitPdb ? Path.ChangeExtension(options.OutputPath, ".pdb") : null;
+        var result = Compile(csharp, options.OutputPath, pdbPath, options.AssemblyName,
             library ? OutputKind.DynamicallyLinkedLibrary : OutputKind.ConsoleApplication, options.RepositoryReferences ?? []);
         if (result.Success)
         {
             written.Add(Path.GetFullPath(options.OutputPath));
+            if (pdbPath is not null) written.Add(Path.GetFullPath(pdbPath));
             written.AddRange(AssemblyPackager.Package(options.OutputPath, library));   // P7 Step 2 — packaging off Compile
         }
         return new BackendArtifact(result.Success, Neutral(result.Diagnostics), csPath,
@@ -102,11 +105,13 @@ internal sealed class RoslynBackend : ICodeGenBackend
     /// <see cref="AssemblyPackager"/>, invoked by <see cref="Emit"/> on success — the only writes here are the
     /// assembly itself and the failed-emit cleanup.
     /// </summary>
+    /// <param name="pdbPath">Where the portable PDB is written beside the assembly (DESIGN-listing.md section 6.9), or null for none. The
+    /// assembly names it by its file name alone, so the assembly's bytes do not depend on the directory it is written to.</param>
     /// <param name="assemblyName">The emitted assembly's simple name (the COBOL PROGRAM-ID).</param>
     /// <param name="outputKind">The assembly's kind (DESIGN-external-repository §7.2).</param>
     /// <param name="repositoryReferences">The assemblies of the external repository the generated code names a type of
     /// (<see cref="BackendOptions.RepositoryReferences"/>): referenced beside the framework and the runtime.</param>
-    public static Result Compile(string csharpSource, string outputDllPath, string assemblyName, OutputKind outputKind,
+    public static Result Compile(string csharpSource, string outputDllPath, string? pdbPath, string assemblyName, OutputKind outputKind,
         IReadOnlyList<string> repositoryReferences)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(
@@ -140,8 +145,19 @@ internal sealed class RoslynBackend : ICodeGenBackend
         // compilation or a running program reading the output directory (a repository directory, §7.4) never sees a
         // partial assembly, and a failed Emit — which leaves a partial/0-byte file, the swept phantom-RUNERR class
         // (ST133A/ST134A/SQ203A) — deletes only its temporary and leaves the previous build in place.
+        // The PDB follows the same protocol: written to its own temporary in the same emit, renamed over its target after the assembly.
         EmitResult? emit = null;
-        OutputFileProtocol.Replace(outputDllPath, temporary => (emit = compilation.Emit(temporary)).Success);
+        if (pdbPath is null)
+            OutputFileProtocol.Replace(outputDllPath, temporary => (emit = compilation.Emit(temporary)).Success);
+        else
+            OutputFileProtocol.Replace(pdbPath, pdbTemporary => OutputFileProtocol.Replace(outputDllPath, temporary =>
+            {
+                using var pe = File.Create(temporary);
+                using var pdb = File.Create(pdbTemporary);
+                emit = compilation.Emit(pe, pdb, options: new EmitOptions(
+                    debugInformationFormat: DebugInformationFormat.PortablePdb, pdbFilePath: Path.GetFileName(pdbPath)));
+                return emit.Success;
+            }));
         return new Result(emit!.Success, emit.Diagnostics);
     }
 

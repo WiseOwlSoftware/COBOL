@@ -109,7 +109,7 @@ public sealed class TextListingRendererTests
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 2, null)],
             [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "a message of many words " + string.Join(" ", Enumerable.Repeat("word", 60)),
                 2, 2, 1, 8, [])],
-            [], [], null, null,
+            [], [], null, null, null,
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null),
              new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         var request = new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth);
@@ -172,7 +172,7 @@ public sealed class TextListingRendererTests
             [new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       MOVE X TO Y.", false, true, false, null,
                 ListingReplacement.None, null, [1, 2], null)],
             [], [Diagnostic(1, ListingSeverity.Error, "e"), Diagnostic(2, ListingSeverity.Warning, "w"), Diagnostic(3, ListingSeverity.Warning, "g", line: null)],
-            [], [], null, null,
+            [], [], null, null, null,
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         Assert.Equal(
         [
