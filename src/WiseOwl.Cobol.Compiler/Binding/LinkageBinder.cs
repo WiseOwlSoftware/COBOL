@@ -135,7 +135,7 @@ public sealed record CalleeSignature(IReadOnlyList<LinkageFormal> Formals, DataI
 /// prototype name itself otherwise; §2023:12.3.8.4 GR10 NOTE 1 states that identity outright ("Literal-3, if specified,
 /// is the externalized name of the program prototype; otherwise, the externalized name is
 /// program-prototype-name-1"). Collected by <c>DataBinder.BindProgramSpecifier</c>; RESOLVED by
-/// <c>BinderDriver.ProgramPrototypesOf</c>. <paramref name="At"/> is the REPOSITORY entry, where a diagnostic about its
+/// <c>SymbolTable.ResolveProgramPrototypes</c>. <paramref name="At"/> is the REPOSITORY entry, where a diagnostic about its
 /// resolution (REPO-1 and the external repository's, DESIGN-external-repository §14) is reported.</summary>
 public sealed record ProgramSpecifier(string Name, string ExternalizedName, Antlr4.Runtime.ParserRuleContext At);
 
@@ -157,7 +157,7 @@ internal enum RefusedSpecifierKind
 /// REPO-1 at the specifier (§2023:12.3.8.3 SR14) — has no member: it is the specifier having a row and no entry here.</summary>
 internal enum ProgramSpecifierRefusal
 {
-    /// <summary>Its <c>AS literal-3</c> was refused (§2023:12.3.8.3 SR2), so it has no row of <c>ConfigurationSlice.ProgramSpecifiers</c>.</summary>
+    /// <summary>Its <c>AS literal-3</c> was refused (§2023:12.3.8.3 SR2), so it has no row of the symbol table's program-specifiers.</summary>
     Literal3,
 
     /// <summary>No provider answers it and the external repository's own finding refuses it, which suppresses REPO-1

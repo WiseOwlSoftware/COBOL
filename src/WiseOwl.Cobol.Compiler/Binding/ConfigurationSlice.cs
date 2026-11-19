@@ -146,66 +146,6 @@ public sealed class ConfigurationSlice
     /// the specifier writes <c>AS literal-4</c> (§2023:12.3.8.2, kb/Work PB974), otherwise property-name-1 itself.</para>
     internal Dictionary<string, string> OoRepositoryProperties { get; } = new(CobolNames.Comparer);
 
-    /// <summary>The unit's REPOSITORY PROGRAM specifiers (ISO §2023:12.3.8.2's program-specifier, <c>PROGRAM
-    /// program-prototype-name-1 [AS literal-3]</c>) keyed by program-prototype-name — the ONE declaration surface
-    /// for a program-prototype-name, and therefore the §2023:14.9.4.3 SR16 / §2023:14.9.5.3 SR3 precondition for every
-    /// Format-2 CALL and prototype CANCEL (kb/Work PB237). §2023:8.3.2 case-insensitive. The SPECIFIER is collected
-    /// here (syntax); §2023:12.3.8.3 SR15's self/containing-program ignore and §2023:12.3.8.4 GR10's resolution against the
-    /// compilation group need the unit's identity and its siblings, so they run in
-    /// <c>BinderDriver.ProgramPrototypesOf</c>, exactly as the function twin resolves in <c>BinderDriver.UserFunctionsOf</c>.</summary>
-    internal Dictionary<string, ProgramSpecifier> ProgramSpecifiers { get; } = new(CobolNames.Comparer);
-
-    /// <summary>The program-prototype-names whose PROGRAM specifier was refused where it is written, and why. The word is
-    /// still DECLARED by the REPOSITORY paragraph, so a reference to it is never "undeclared" (kb/Work PB4708); ask
-    /// <see cref="DeclaresProgramSpecifier"/> for that, not either table. <see cref="ProgramSpecifierRefusal.Literal3"/> is
-    /// recorded by the specifier's binding (no <see cref="ProgramSpecifiers"/> row exists for it);
-    /// <see cref="ProgramSpecifierRefusal.RepositoryFinding"/> by <c>BinderDriver.ProgramPrototypesOf</c> when the external
-    /// repository's own finding refused a specifier no provider answered.</summary>
-    internal Dictionary<string, ProgramSpecifierRefusal> RefusedProgramSpecifiers { get; } = new(CobolNames.Comparer);
-
-    /// <summary>Whether a PROGRAM specifier of the REPOSITORY paragraph in scope declares <paramref name="name"/> — the
-    /// written declaration, whatever became of its externalized name (kb/Work PB4708). The ONE question every reader of
-    /// "is this word a declared program-prototype-name" asks: the spelling-(b) arm of <c>CallBinder</c>, <see cref="WhyNoPrototype"/>,
-    /// the ADDRESS OF PROGRAM operand of <c>SetBinder</c> and the USAGE PROGRAM-POINTER TO screen of the data binder.</summary>
-    internal bool DeclaresProgramSpecifier(string name) =>
-        ProgramSpecifiers.ContainsKey(name) || RefusedProgramSpecifiers.ContainsKey(name);
-
-    /// <summary>Whether a reference to <paramref name="name"/> is the cascade of a PROGRAM specifier whose <c>AS literal-3</c> was
-    /// refused (§2023:12.3.8.3 SR2) and reported where it is written (kb/Work PB4936): then the reference adds no diagnostic and
-    /// <see cref="EditionContext.NoteCauseReportedEarlier"/> answers for the refusal it builds. The twin of
-    /// <see cref="IsRefusedFunctionReference"/>; every reader of a program-prototype-name (CALL, CANCEL, SET ... ADDRESS OF PROGRAM)
-    /// asks this one question before it reports.</summary>
-    internal bool IsRefusedProgramReference(string name, EditionContext edition) =>
-        RefusedProgramSpecifiers.TryGetValue(name, out var refusal) && refusal == ProgramSpecifierRefusal.Literal3
-        && edition.NoteCauseReportedEarlier(RefusedSpecifierKind.Program, name);
-
-    /// <summary>WHY <paramref name="name"/> is no program prototype here, the one sentence <c>CallBinder.ResolvePrototype</c>
-    /// (COBOL1760) and the ADDRESS OF PROGRAM operand of <c>SetBinder</c> (COBOL2157) add to their refusals (kb/Work PB4633,
-    /// PB4708). A word a specifier DECLARES is never called "neither declared"; the two routes to a declared word with no
-    /// prototype that this sentence names are different refusals, and only the first is REPO-1. The third route reports nothing
-    /// here (<see cref="IsRefusedProgramReference"/>):
-    /// <list type="number">
-    /// <item>no provider answers the specifier (§2023:12.3.8.3 SR14: a program prototype of the group, a program definition
-    /// specified previously, or information in the external repository) and COBOL5962 is reported where it is written;</item>
-    /// <item>the same, but the external repository holds an entry whose own finding refuses it, which suppresses REPO-1
-    /// (<c>RepositoryResolver.ReportUnanswered</c>) — the sentence then names no REPO-1 and no code;</item>
-    /// <item>the specifier's AS literal-3 was refused (§2023:12.3.8.3 SR2), so it registered no row at all, and its reference is the silent cascade of that refusal.</item>
-    /// </list></summary>
-    internal string WhyNoPrototype(string name)
-    {
-        const string declared = "it is declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §2023:12.3.8.2), but ";
-        if (ProgramSpecifiers.ContainsKey(name))
-            return RefusedProgramSpecifiers.TryGetValue(name, out var refusal)
-                   && refusal == ProgramSpecifierRefusal.RepositoryFinding
-                ? declared + "the external repository's entry for it was refused by that repository's own finding, so it "
-                  + "registers no program prototype"
-                : declared + "no program prototype and no program definition specified previously in this compilation group "
-                  + "and no information in the external repository answers that specifier (ISO §2023:12.3.8.3 SR14, COBOL5962), "
-                  + "so it registers no program prototype";
-        return "it is neither declared by a PROGRAM specifier in the REPOSITORY paragraph (ISO §2023:12.3.8.2) nor the "
-               + "program-name of a containing program definition (§2023:8.4.6.8)";
-    }
-
     /// <summary>The unit's REPOSITORY user-function specifiers (§2023:12.3.8 — <c>FUNCTION function-prototype-name</c>
     /// WITHOUT the INTRINSIC phrase): the precondition for a user-function reference, and per §2023:12.3.8.4 GR12
     /// (:14885) the declaration that makes the name refer to the USER-DEFINED function "and not to an intrinsic
@@ -216,19 +156,19 @@ public sealed class ConfigurationSlice
     /// its EXTERNALIZED name is literal-5 when <c>AS literal-5</c> is written (§2023:12.3.8.4 GR11 NOTE 2 — "Literal-5, if
     /// specified, is the externalized name of the function prototype; otherwise, the externalized name is
     /// function-prototype-name-1"), otherwise the name itself. GR11's search of the compilation group runs in
-    /// <c>BinderDriver.UserFunctionsOf</c>, the twin of <c>ProgramPrototypesOf</c> (kb/Work PB974).</summary>
+    /// <c>BinderDriver.UserFunctionsOf</c>, the twin of <c>SymbolTable.ResolveProgramPrototypes</c> (kb/Work PB974).</summary>
     internal Dictionary<string, FunctionSpecifier> FunctionSpecifiers { get; } = new(CobolNames.Comparer);
 
     /// <summary>The function-prototype-names whose <c>AS literal-5</c> was refused where it is written (§2023:12.3.8.3 SR2,
     /// reported there). The word is still DECLARED by the REPOSITORY paragraph (it is in <see cref="UserFunctionNames"/>) but
     /// registers no <see cref="FunctionSpecifiers"/> row, so a reference to it resolves to no prototype: that is the
     /// refusal already reported, and the reference draws no COBOL1505 of its own (kb/Work PB4822, the function twin of
-    /// <see cref="RefusedProgramSpecifiers"/>).</summary>
+    /// <c>SymbolTable</c>'s refused program-specifiers).</summary>
     internal HashSet<string> RefusedFunctionSpecifiers { get; } = new(CobolNames.Comparer);
 
     /// <summary>Whether a reference to <paramref name="name"/> is the cascade of a FUNCTION specifier whose <c>AS literal-5</c> was
     /// refused (§2023:12.3.8.3 SR2) and reported where it is written (kb/Work PB4822, PB4936); see
-    /// <see cref="IsRefusedProgramReference"/>. Asked BEFORE the prototype table: a refused specifier must not let the bare word
+    /// <see cref="SymbolTable.IsRefusedProgramReference"/>. Asked BEFORE the prototype table: a refused specifier must not let the bare word
     /// resolve to a same-named function of the group.</summary>
     internal bool IsRefusedFunctionReference(string name, EditionContext edition) =>
         RefusedFunctionSpecifiers.Contains(name) && edition.NoteCauseReportedEarlier(RefusedSpecifierKind.Function, name);
@@ -247,7 +187,8 @@ public sealed class ConfigurationSlice
     /// <summary>The configuration facts a backend reads (<see cref="ConfigurationFacts"/>), copied from this slice when the unit's
     /// <see cref="DataBindResult"/> is made (<c>DataBinder.Result</c>; kb/Work PB2361): the OPTIONS model, the CHARACTER
     /// CLASSIFICATION, the two PROGRAM COLLATING SEQUENCEs, DECIMAL-POINT IS COMMA and the program-specifiers' externalized
-    /// names, in the order they were written. The declaration tables and the name-use recorder stay with the binder.</summary>
-    internal ConfigurationFacts Facts() => new(Options, Classification, Collating, NationalCollating, DecimalPointIsComma,
-        [.. ProgramSpecifiers.Values.Select(static s => s.ExternalizedName)]);
+    /// names, in the order they were written (<paramref name="programSpecifierNames"/>, the symbol table's,
+    /// <see cref="SymbolTable.ProgramSpecifierExternalizedNames"/>). The declaration tables and the name-use recorder stay with the binder.</summary>
+    internal ConfigurationFacts Facts(IReadOnlyList<string> programSpecifierNames) =>
+        new(Options, Classification, Collating, NationalCollating, DecimalPointIsComma, programSpecifierNames);
 }

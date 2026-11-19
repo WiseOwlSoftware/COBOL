@@ -185,8 +185,8 @@ internal sealed class OoDriver(BindSession session)
             OoClasses = session.OoClasses,
             OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§2023:8.4.3.8; slice 3b)
             UserFunctions = Binding.BinderDriver.UserFunctionsOf(data, unit: null, repository, position, session.Binders),
-            ProgramPrototypes = Binding.BinderDriver.ProgramPrototypesOf(data, unit: null, repository, position, session.Binders),
         };
+        data.Symbols.ResolveProgramPrototypes(unit: null, repository, position, session.Binders);
         binder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);   // methods fold the same source-ordered >>TURN state (§2023:7.3.25 GR6)
         // kb/Work PB971 — the method formals' EC-OO-ARG-OMITTED guards (§2023:14.9.23.4 GR10), before any body binds.
         Binding.Procedure.EcBinder.MarkFormals(cls.Symbol.Methods, session.Turn);
@@ -202,8 +202,8 @@ internal sealed class OoDriver(BindSession session)
             OoCurrentClass = cls.Symbol,
             OoInFactory = true,
             UserFunctions = Binding.BinderDriver.UserFunctionsOf(fdata, unit: null, repository, position, session.Binders),
-            ProgramPrototypes = Binding.BinderDriver.ProgramPrototypesOf(fdata, unit: null, repository, position, session.Binders),
         };
+        fdata.Symbols.ResolveProgramPrototypes(unit: null, repository, position, session.Binders);
         fbinder.ConfigureEc(session.Turn, session.DirectiveSites, cls.Name);
         cls.FactoryBound = fbinder.BindMethodRoster(cls.Symbol, cls.Symbol.FactoryMethods);
     }

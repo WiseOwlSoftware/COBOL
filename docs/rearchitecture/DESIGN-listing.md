@@ -13,7 +13,7 @@
 > and the file-names, and the temporary shrink-only baseline of the classes not yet moved; slice 2, branch `listing-step-6b-2`: the
 > tables keyed by no COBOL user word re-keyed by types of their own, and the procedure-names; slice 3, branch `listing-step-6b-3`:
 > the constant-names; slice 4, branch `listing-step-6b-4`: the CONFIGURATION SECTION names; slice 5, branch `listing-step-6b-5`: the
-> REPORT SECTION names; sections 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
+> REPORT SECTION names; slice 6, branch `listing-step-6b-6`: the program-prototype-names; sections 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)" or "(step 8)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
@@ -1255,6 +1255,36 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     - *A member the first measurement counted as a lookup resolves no name.* `DataBinder.ReportPrintablePicture` takes the report-name
       and the entry's data-name to word its site in a diagnostic; it is classified in `string-parameter-members.json` with that
       reason, beside `ReportGroupResolution.Resolve`, which now takes the written context and keeps its site string (123 -> 125).
+  - *(Step 6b, slice 6, branch `listing-step-6b-6`.)* The program-prototype-names moved, and the baseline holds 223 (31 tables, 40
+    lookups, 152 sites). `SymbolTable.Repository.cs` owns what `ConfigurationSlice`, `DataBinder`, `BinderDriver` and `StatementBinder`
+    held: the REPOSITORY paragraph's program-specifiers as written and the refused ones (§2023:12.3.8.2; kb/Work PB4708), inherited by a
+    contained unit and a class half with the configuration-section names (`InheritConfigurationNames`, §2023:12.3.8.4 GR10), the program
+    prototypes they resolve to with §2023:8.4.6.8's containing program definitions (`ResolveProgramPrototypes`, which was
+    `BinderDriver.ProgramPrototypesOf`), and the §2023:12.3.8.3 SR1 memory of every name the paragraph specifies
+    (`RepeatedRepositorySpecification`, which was `DataBinder.CheckRepositorySpecification` and its table). `NameClass` gains
+    `ProgramPrototype`; every program-prototype-name a statement writes is `Identify(written, NameClass.ProgramPrototype, report)`: CALL's
+    AS phrase and its bare-word spelling (b), CANCEL's operand, a program-address-identifier's program-prototype-name-1, and the
+    statement funnel's pure question (`CallBinder.CalleeSignatureOf`, `report: false`). The corrections the code proved:
+    - *The progress table's "program, function, prototype, repository" row is two classes (correction, slice 6).* ISO §2023:8.3.2.2
+      lists program-prototype-name and function-prototype-name as two user-defined words, each with its own scope rule (§2023:8.4.6.8 and
+      §2023:8.4.6.6), and their tables, lookups and comparisons share nothing but the REPOSITORY paragraph that declares them. Slice 6
+      moves the program-prototype-names whole; the function-prototype-names (the user-function specifiers, the intrinsic specifiers, the
+      group's user-function table and the function-name lookups of `IntrinsicBinder`, `UdfBinder`, `SetBinder` and `SubscriptBinder`)
+      are the next slice's class. The SR1 memory is the paragraph's, of every class, so it moved with the first of them.
+    - *A name a SYMBOL carries is resolved by the table from the symbol (correction, slice 6).* A restricted program-pointer's USAGE TO
+      phrase (§2023:13.18.60.4 GR25) is held as text by the item (`PicInfo.RestrictedPrototypeName`, also decoded from a repository
+      record that has no parse tree), and a program-address-identifier's program-prototype-name-1 by the bound node
+      (`BoundProgramAddress.Prototype`, which the bound tree keeps as text for the activation description). The readers that compared
+      their signatures took the name (`StatementBinder.ProgramSignatureOf(string?)`, `ProgramRestrictionOf(string)`, both deleted). They
+      now hand the table the CARRIER, the item or the bound node (`SymbolTable.ProgramSignatureOf(DataItem)`,
+      `ProgramSignatureOf(BoundProgramAddress)`, `ProgramRestrictionOf(BoundProgramAddress?)`, `RestrictedProgramPrototypeOf(DataItem)`),
+      and the table reads the text it holds, in the referencing element's scope as before. No caller handles the name, so rule (3) has
+      nothing to see, and the written word (the USAGE clause's TO phrase, a `ref` slot of the grammar) is the occurrence step 7b records
+      where it is declared.
+    - *The AS NESTED table is keyed by an externalized name (correction, slice 6).* `StatementBinder.NestedCallables` is read with the name
+      a CALL's literal-1 forms (§2023:14.9.4.3 SR15), compared by the implementor's mapping rule exactly as the run-time program table
+      compares it (`ExternalizedNames`, DOC-A.1-68), never a word the program writes. Like slice 2's tables keyed by no COBOL user word,
+      it is keyed by a type that says so, `ExternalizedProgramName`, and stays the procedure binder's.
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -2061,7 +2091,11 @@ class. (Step 6b, slice 4, branch `listing-step-6b-4`:) the CONFIGURATION SECTION
 file `2026-11-19-step-6b-slice-4` holds what remains by class. (Step 6b, slice 5, branch `listing-step-6b-5`:) the REPORT SECTION
 names moved into the table with their resolution (section 6.7.1, "Step 6b, slice 5"), `compare_oracle.py` IDENTICAL after the move;
 the baseline is 234, and kb/Work PB5932's dated file `2026-11-19-step-6b-slice-5` holds what remains by class: the data-name class
-(which takes with it the two text-held report operands), the program, function and repository names, and the OO names.
+(which takes with it the two text-held report operands), the program, function and repository names, and the OO names. (Step 6b, slice 6, branch `listing-step-6b-6`:) the program-prototype-names moved into the table with their resolution (section
+6.7.1, "Step 6b, slice 6"), `compare_oracle.py` IDENTICAL after the move; the baseline is 223, and kb/Work PB5932's dated file
+`2026-11-19-step-6b-slice-6` holds what remains by class. The progress table's program, function and repository row proved to be two
+classes (§2023:8.3.2.2 lists program-prototype-name and function-prototype-name apart): what remains is the data-name class, the
+function-prototype-names and the OO names.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had

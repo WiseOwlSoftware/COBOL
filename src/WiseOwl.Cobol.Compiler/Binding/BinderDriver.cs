@@ -752,8 +752,10 @@ internal sealed class BinderDriver
         }
         foreach (var (iface, data) in interfaces) forests.Add((data, null, session.Sources.Of(iface).Start.StartIndex));
         foreach (var (data, unit, position) in forests)
-            data.ResolveRestrictedPrototypes(
-                ProgramPrototypesOf(data, unit, repository, position, session.Binders), UserFunctionsOf(data, unit, repository, position, session.Binders));
+        {
+            data.Symbols.ResolveProgramPrototypes(unit, repository, position, session.Binders);
+            data.ResolveRestrictedPrototypes(UserFunctionsOf(data, unit, repository, position, session.Binders));
+        }
         PrototypeSignatures.StampContentRestrictions(forests.SelectMany(f => f.Data.RestrictedPrototypePointers()));
     }
 
@@ -785,11 +787,11 @@ internal sealed class BinderDriver
             // visibility the runtime ResolveVisible applies, computed statically so GR9's formal-mode
             // lookup and SR15's scope check both happen at BIND time.
             NestedCallables = NestedCallablesOf(unit, session.Binders),
-            // kb/Work PB237 — the unit's visible program prototypes (§2023:12.3.8.2 specifiers resolved through
-            // §2023:12.3.8.4 GR10, plus §2023:8.4.6.8's containing-program spelling).
-            ProgramPrototypes = ProgramPrototypesOf(data, unit, session.Repository, unit.SourcePosition, session.Binders),
             UnitRecursive = unit.Recursive,   // §2023:14.9.7.3 SR1 / §2023:14.9.36.3 SR1 (kb/Work PB137)
         };
+        // kb/Work PB237 — the unit's visible program prototypes (§2023:12.3.8.2 specifiers resolved through §2023:12.3.8.4 GR10, plus
+        // §2023:8.4.6.8's containing-program spelling), the symbol table's (DESIGN-listing.md section 6.7.1, step 6b slice 6).
+        data.Symbols.ResolveProgramPrototypes(unit, session.Repository, unit.SourcePosition, session.Binders);
         binder.ConfigureEc(session.Turn, session.DirectiveSites, unit.Name);   // the EC bind context (TURN fold + directive sites + §2023:15.30 location element)
         unit.Bound = binder.Bind(session.Sources.Of(unit));
         // The boundary-copied GROUP formals + RETURNING item are registered whole-group-referenced (so StorageFormPass
@@ -826,15 +828,15 @@ internal sealed class BinderDriver
     /// with AS NESTED both halves of that pair are statically known. Carrying only the formals is what left the
     /// RETURNING half unchecked — the same shape as <c>UserFunctionSignature</c>, which has carried both since
     /// it was written.</para></summary>
-    private static Dictionary<string, CalleeSignature> NestedCallablesOf(BoundUnit unit, ElementBinders binders)
+    private static Dictionary<ExternalizedProgramName, CalleeSignature> NestedCallablesOf(BoundUnit unit, ElementBinders binders)
     {
-        var map = new Dictionary<string, CalleeSignature>(WiseOwl.Cobol.Runtime.ExternalizedNames.Comparer);
+        var map = new Dictionary<ExternalizedProgramName, CalleeSignature>();
         foreach (var c in unit.Children)
-            map.TryAdd(c.Name, binders.SignatureOf(c));
+            map.TryAdd(new(c.Name), binders.SignatureOf(c));
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
             foreach (var c in anc.Children)
                 if (c.Common && WiseOwl.Cobol.Runtime.ProgramNameScope.CommonProgramReferable(c, c.Recursive, unit, u => u.Parent))
-                    map.TryAdd(c.Name, binders.SignatureOf(c));
+                    map.TryAdd(new(c.Name), binders.SignatureOf(c));
         return map;
     }
 
@@ -1033,79 +1035,6 @@ internal sealed class BinderDriver
 
     }
 
-    /// <summary>The program prototypes ONE source element may name (ISO §2023:8.4.6.8, Scope of program-prototype-names:
-    /// "Program-prototype-names referenced within a source element shall be either the program-name of a
-    /// containing program definition or a program-prototype-name declared in the REPOSITORY paragraph").
-    /// Both spellings register here, so §2023:14.9.4.3 SR16 and §2023:14.9.5.3 SR3 are ONE lookup:
-    /// <list type="number">
-    /// <item>every §2023:12.3.8.2 program-specifier visible to the element (<c>ConfigurationSlice.ProgramSpecifiers</c>, which
-    /// already inherits its container's — §2023:12.3.8.4 GR10's "scope of the containing environment division"; for a
-    /// CLASS's OBJECT or FACTORY forest, the class-level REPOSITORY, which §2023:12.3.4 GR1 applies to every method —
-    /// kb/Work PB1100), resolved through GR10 by <paramref name="repository"/> AS OF
-    /// <paramref name="position"/> — a definition specified LATER in the group is not a) and takes the element
-    /// down to b) / c) (kb/Work PB989), c) being the external repository's entry; a specifier none answers is REPO-1 and
-    /// is not registered (kb/Work PB2103);</item>
-    /// <item>for a program <paramref name="unit"/>, its own name and every containing program definition's name,
-    /// which §2023:8.4.6.8 admits with no specifier at all — and which is also exactly what §2023:12.3.8.3 syntax rule 15 means
-    /// by "references to program-prototype-name-1 are to the named program definition and this program-specifier is
-    /// ignored": a self- or container-named specifier is never resolved, and the definition, registered LAST, is the
-    /// name's entry. A class forest
-    /// (<paramref name="unit"/> null) has neither: a class is not a program definition and contains none.</item>
-    /// </list>
-    /// The table is the same at every edition. COBOL-85 has no program-prototype-names (ISO/IEC 1989:2002 introduced
-    /// them), and the verbs that read a bare word against this table decide that: below 2002 CALL and CANCEL route the
-    /// word as identifier-1 and never ask it (<c>CallBinder.ProgramPrototypeNamesExist</c>, kb/Work PB4509). The other
-    /// readers are reached only through syntax that is itself refused below 2002 (the AS phrase, a USAGE … TO phrase, a
-    /// program-address-identifier).</summary>
-    internal static Dictionary<string, ProgramPrototype> ProgramPrototypesOf(
-        DataBinder data, BoundUnit? unit, RepositoryResolver repository, int position, ElementBinders binders)
-    {
-        var map = new Dictionary<string, ProgramPrototype>(CobolNames.Comparer);
-        var containing = ContainingDefinitions(unit).Where(u => !u.IsFunction).ToList();
-        foreach (var (name, spec) in data.State.Configuration.ProgramSpecifiers)
-        {
-            // §2023:12.3.8.3 SR15: a specifier naming the element's own or a containing program definition "is ignored" — never
-            // resolved (it would take c) and draw REPO-1: a definition does not precede itself); the self entry below is
-            // the reference's target.
-            if (containing.Exists(u => CobolNames.Same(name, u.Name))) continue;
-            // GR10 a) / b): the in-group definition SPECIFIED PREVIOUSLY — else the in-group program PROTOTYPE
-            // definition (kb/Work PB894) — supplies the details; c) the external repository entry that publishes the
-            // externalized name (RepositoryResolver.ResolveProgram, the one search over both providers). None is REPO-1
-            // (SR14), at the specifier, and registers no prototype: a CALL through it is COBOL1760 (DESIGN-external-repository §8.2 step 4).
-            using var _ = data.Edition.At(spec.At);
-            if (repository.ResolveProgram(spec.ExternalizedName, position) is { } details)
-                map[name] = new ProgramPrototype(name, spec.ExternalizedName, details);
-            else
-            {
-                repository.ReportUnanswered(spec, function: false, name, spec.ExternalizedName, data.Edition);
-                // The refusal's route, for the CALL / CANCEL sentence (kb/Work PB4708): the external repository's finding
-                // suppresses REPO-1, so no SR14 refusal exists to cite. The fact is position-independent, so every element
-                // that inherits the specifier records the same entry.
-                if (repository.External.Refused(RepositoryFamily.Program, name, spec.ExternalizedName))
-                    data.State.Configuration.RefusedProgramSpecifiers.TryAdd(name, ProgramSpecifierRefusal.RepositoryFinding);
-            }
-        }
-        // §2023:8.4.6.8's other spelling: "the program-name of a containing program definition" is a referable
-        // program-prototype-name with NO specifier at all — the element's OWN program definition included, the one
-        // set ContainingDefinitions names and DataBinder's TO-phrase screen asks (kb/Work PB3121). Registered LAST,
-        // it also realizes §2023:12.3.8.3 SR15 — a specifier naming "the program definition in which this REPOSITORY
-        // paragraph is specified or ... a containing program definition" is "ignored" and references go to that
-        // definition, which is precisely what overwriting the specifier's entry does. (§2023:11.10.4 GR4's RECURSIVE
-        // attribute is what makes a self-call reachable at run time; without it §2023:14.9.4.4 GR3 f) raises
-        // EC-PROGRAM-RECURSIVE-CALL.)
-        foreach (var u in ContainingDefinitions(unit))
-            if (!u.IsFunction) map[u.Name] = SelfPrototype(u);
-        return map;
-
-        // The prototype NAME is the referable word (§2023:8.4.6.8), its EXTERNALIZED name is what CallBinder
-        // emits as the activation target (§2023:14.9.4.4 GR3 b) → §2023:8.3.2.2) — so the two arguments are the unit's
-        // two names, never the same one twice: a `PROGRAM-ID. P AS "PX".` that CALLs itself by the word P
-        // must still activate "PX", the only name the run-unit registry holds it under (kb/Work PB303).
-        ProgramPrototype SelfPrototype(BoundUnit u) =>
-            new(u.Name, u.ExternalizedName,
-                new ProgramAnswer(binders.SignatureOf(u), new GroupUnitOrigin(u)));
-    }
-
     /// <summary>⛔ THE ONE "CONTAINING DEFINITION" SET of the two prototype-name scope rules (kb/Work PB3121): ISO
     /// §2023:8.4.6.6 admits "the user-function-name of the containing function definition" and §2023:8.4.6.8 "the program-name of
     /// a containing program definition" with no REPOSITORY entry. The two are the same sentence over two namespaces,
@@ -1114,7 +1043,7 @@ internal sealed class BinderDriver
     /// outermost program" alone), so "containing" names the definition the reference is written in and every one
     /// enclosing it: <paramref name="unit"/> itself, then each program that contains it. All of them are of
     /// <paramref name="unit"/>'s own kind. A class forest (<paramref name="unit"/> null) has none: a class is
-    /// neither definition kind. The program registry (<see cref="ProgramPrototypesOf"/>), the function registry's
+    /// neither definition kind. The program registry (<see cref="SymbolTable.ResolveProgramPrototypes"/>), the function registry's
     /// self entry (<see cref="UserFunctionsOf"/>) and the DATA-phase TO-phrase screen
     /// (<c>DataBinder.ContainingDefinitionNames</c>, seeded from here) all read THIS set, so "is this name in
     /// scope" has one answer in every phase — they used to disagree in both directions: the screen admitted the
@@ -1141,7 +1070,7 @@ internal sealed class BinderDriver
     }
 
     /// <summary>The user-defined functions ONE source element may reference, by the function-prototype-name it
-    /// WRITES — the function twin of <see cref="ProgramPrototypesOf"/> (kb/Work PB974, PB989), resolved by
+    /// WRITES — the function twin of <see cref="SymbolTable.ResolveProgramPrototypes"/> (kb/Work PB974, PB989), resolved by
     /// <see cref="RepositoryResolver.ResolveFunction"/> as of <paramref name="position"/> (determination D-R3,
     /// DESIGN-external-repository §8.3): §2023:12.3.8.4 GR11 a) / b) keyed by the EXTERNALIZED name — literal-5 when the
     /// specifier writes <c>AS literal-5</c>, else the name itself (NOTE 2) — over the definitions specified BEFORE this
@@ -1152,7 +1081,7 @@ internal sealed class BinderDriver
     /// the word, warns (COBOL2969): the externalized name wins, as GnuCOBOL's does.
     /// A specifier naming the function definition it is written in is IGNORED (§2023:12.3.8.3 SR11; the definition is
     /// <see cref="ContainingDefinitions"/>' function member) and the name resolves to its own signature — registered LAST,
-    /// as <see cref="ProgramPrototypesOf"/> registers its self entry. <paramref name="data"/> is a program unit's
+    /// as <see cref="SymbolTable.ResolveProgramPrototypes"/> registers its self entry. <paramref name="data"/> is a program unit's
     /// forest or a CLASS's OBJECT / FACTORY forest (whose specifiers are the class REPOSITORY's — §2023:12.3.4 GR1,
     /// kb/Work PB1100; <paramref name="unit"/> is then null, and <paramref name="position"/> is the class's own start).
     /// A function definition's own name is ALWAYS referable inside it (§2023:8.4.6.6), so the self entry is registered
