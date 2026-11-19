@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b slice 2 - the tables keyed by no COBOL user word take keys of their own, and the procedure-names move into SymbolTable with their resolution
+## Entry 3853 — 2026-11-19 01:32 PST — PB5932: the source listing, step 6b slice 2 - the tables keyed by no COBOL user word take keys of their own, and the procedure-names move into SymbolTable with their resolution
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands slice 2, from
@@ -53,3 +53,4 @@ does not.
 
 **What remains** (kb/Work/PB5932/2026-11-19-step-6b-slice-2.md): the data-name unit, the report class, constants, the
 CONFIGURATION SECTION names, programs and functions, and the OO classes; 308 baseline entries.
+
