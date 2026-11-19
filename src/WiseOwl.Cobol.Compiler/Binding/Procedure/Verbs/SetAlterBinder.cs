@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Symbols;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Binding.Bound;
@@ -187,8 +188,9 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     {
         if (dref.dataReferenceSuffix().Length != 0) return null;   // a status condition-name takes no subscript/qualifier
         // A special register's cobolWord is its qualifier, never a switch-status name (ReferenceResolver.WrittenWordOf).
-        return ReferenceResolver.WrittenWordOf(dref) is { } name && ctx.Data.State.Configuration.SwitchConditions.Declares(name)
-            && !ctx.Refs.DescribesOwnItem(dref) && ctx.Data.State.Configuration.SwitchConditions.TryUse(dref, name, out var sc)
+        return ReferenceResolver.WrittenWordOf(dref) is { } name && ctx.Symbols.DeclaresConfigurationName(NameClass.SwitchCondition, name)
+            && !ctx.Refs.DescribesOwnItem(dref)
+            && ctx.Symbols.Identify(dref.cobolWord(), NameClass.SwitchCondition, report: true)?.Symbol is SwitchStatusName sc
             ? new BoundSwitchCondition(sc.ImplementorName, sc.IsOn)
             : null;
     }
@@ -228,7 +230,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             foreach (var word in phrase.cobolWord())
             {
                 string name = word.GetText();
-                if (!ctx.Mnemonics.TryUse(word, name, out var row) || row.Kind != SystemNameKind.Switch)
+                if (!ctx.Mnemonics.TryUse(word, out var row) || row.Kind != SystemNameKind.Switch)
                 {
                     // SR5 is decided here, so it is REPORTED here (kb/Work PB390 — the Format-3 sibling of the
                     // Format-4 condition-name rule; both used to ship as a run-time "not implemented" abort).

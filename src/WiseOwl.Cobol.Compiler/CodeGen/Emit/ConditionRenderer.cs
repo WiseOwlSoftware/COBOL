@@ -143,7 +143,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // natively inside a program whose PCS reorders the alphabet. An identity alphabet registers no carrier and
         // renders as the native two-argument overload, which IS its sequence.
         PicCategory? subjectCat = StringCategoryOf(n.Left);
-        string collate = RangeCollateArg(n.Alphabet, subjectCat, StringCategoryOf(n.Lo));
+        string collate = RangeCollateArg(n.Collation, subjectCat, StringCategoryOf(n.Lo));
         // ⛔ A FIGURATIVE RANGE END IS A SEED, NOT A VALUE (ISO §2023:8.3.3.6.4 GR2 — it is materialized to "the
         // associated data item"'s size, which for both ends of a range is the item being tested). It is rendered
         // through the SAME producer the figurative relation uses — <see cref="FigSeed"/>, so HIGH-/LOW-VALUE is
@@ -1039,7 +1039,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // never compare its raw image to an unscaled long (diagnosis B3).
         string read = isString ? OperandText.AsString(subject, num) : num.FieldNum(c.Parent).Expr;
         var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, cat, isString, v.Low, v.High,
-            c.CheckRangeInvalid, c.Condition.Alphabet)).ToList();
+            c.CheckRangeInvalid, c.Condition.Collation)).ToList();
         // ⛔ TOTAL OVER AN EMPTY VALUE SET (kb/Work PB501). §2023:13.16.2 formats 3 and 4 both print the value-clause
         // UNBRACKETED, so an entry with no values is nonconforming source and `LevelNumberPass` refuses it by
         // name (COBOL1747) — this renderer is never reached for one in a compilation that gets as far as
@@ -1060,8 +1060,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// SEQUENCE included — that default is precisely what rule 2's no-phrase arm gives and what the phrase is for.
     /// The ONE reader, shared by the EVALUATE range and the level-88 VALUE range, because §2023:14.7.8's first sentence
     /// governs both clauses at once.</summary>
-    private string RangeCollateArg(string? alphabet, PicCategory? left, PicCategory? right) => alphabet is { } a
-        ? ctx.Data.RangeCollations.TryGetValue(a, out var c) && c.Field is { } f ? ", " + f : ""
+    private string RangeCollateArg(RangeCollationId? collation, PicCategory? left, PicCategory? right) => collation is { } id
+        ? ctx.Data.RangeCollations[id.Index].Field is { } f ? ", " + f : ""
         : ctx.CollateArgFor(left, right);
 
     /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.
@@ -1069,7 +1069,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// test routes through <c>CobolString.ThruMember</c> which sets the nonfatal EC-RANGE-INVALID for an inverted
     /// range (lo collating after hi) and treats it as empty.</summary>
     private string RenderMembershipTest(string read, DataItem parent, PicCategory? cat, bool isString, string low,
-        string? high, bool checkRangeInvalid = false, string? alphabet = null)
+        string? high, bool checkRangeInvalid = false, RangeCollationId? collation = null)
     {
         if (isString)
         {
@@ -1096,7 +1096,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // relation-condition rules, whose sequence is §2023:8.8.4.2.7's PROGRAM COLLATING SEQUENCE. Handing the
             // alphabet to the equality tests as well would have made `88 X VALUE "A", "M" THRU "Z" IN AL` weigh
             // its singleton on a sequence no rule puts there.
-            string rangeCollate = RangeCollateArg(alphabet, cat, cat);
+            string rangeCollate = RangeCollateArg(collation, cat, cat);
             string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
             // ⛔ A FIGURATIVE VALUE IS A SEED, SIZED BY THE RUNTIME AGAINST THE OPERAND AS READ — exactly as the
             // relation condition sizes it (kb/Work PB1477). §2023:8.8.4.5.3 GR2 makes this comparison the relation

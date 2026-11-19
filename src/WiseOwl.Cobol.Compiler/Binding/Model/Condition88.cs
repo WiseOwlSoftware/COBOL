@@ -33,9 +33,10 @@ public sealed class Condition88
     /// </summary>
     public List<(string Low, string? High)> Values { get; } = [];
 
-    /// <summary>alphabet-name-1 of the clause's <c>IN</c> phrase as written (ISO §2023:13.18.63.2 formats 3 and 5 —
-    /// <c>[ IN alphabet-name-1 ]</c> stands OUTSIDE the repeated literal group, so one alphabet governs the whole
-    /// VALUE set), or null when the phrase is absent. §2023:14.7.8 rule 2 makes it the collating sequence every THRU
+    /// <summary>The collating sequence alphabet-name-1 of the clause's <c>IN</c> phrase names, the position of the carrier the one
+    /// resolver made (<see cref="DataBindResult.RangeCollations"/>)
+    /// (ISO §2023:13.18.63.2 formats 3 and 5 — <c>[ IN alphabet-name-1 ]</c> stands OUTSIDE the repeated literal group, so one
+    /// alphabet governs the whole VALUE set), or null when the phrase is absent or was refused. §2023:14.7.8 rule 2 makes it the collating sequence every THRU
     /// range in the set is evaluated in, overriding the no-phrase arm's implementor default — which for this
     /// compiler is the PROGRAM COLLATING SEQUENCE.
     /// <para>⛔ IT WAS PARSED AND DROPPED (kb/Work PB398), which is a silent wrong answer rather than a missing
@@ -43,8 +44,9 @@ public sealed class Condition88
     /// value the range contains, because the range was weighed natively. The EVALUATE twin could not even be
     /// written. §2023:14.7.8's opening sentence — "This specification applies to THROUGH phrases specified in the VALUE
     /// clause and the EVALUATE statement" — is why both now resolve through the one
-    /// <c>SpecialNamesBinder.TryResolveRangeAlphabet</c>.</para></summary>
-    public string? Alphabet { get; set; }
+    /// <c>SpecialNamesBinder.TryResolveRangeAlphabet</c>, which hands this node its carrier: no name is looked up again
+    /// (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 4").</para></summary>
+    public RangeCollationId? Collation { get; set; }
 
     /// <summary>literal-4 of the clause's <c>[ WHEN SET TO FALSE IS literal-4 ]</c> phrase (ISO §2023:13.18.63.2
     /// format 3 — the bracket printed on the line after the IN phrase) as WRITTEN, in the same raw-operand-text
@@ -67,7 +69,7 @@ public sealed class Condition88
     /// (§2023:13.18.49.4 GR2a) — and it lives HERE, next to the state, because a copier written at the call site is
     /// a list of fields that silently stops being exhaustive.
     /// <para>⛔ IT WAS EXACTLY THAT (kb/Work PB555 sibling sweep). <c>DataBinder.CloneConditionOnto</c> copied
-    /// <see cref="Values"/> and nothing else, so a clone lost <see cref="Alphabet"/> — a SILENT WRONG ANSWER,
+    /// <see cref="Values"/> and nothing else, so a clone lost the IN phrase's alphabet (<see cref="Collation"/>) — a SILENT WRONG ANSWER,
     /// since §2023:14.7.8 rule 2's sequence reverting to the program default re-answers every THRU range the clone
     /// tests — and would have lost <see cref="FalseValue"/> the moment it existed. Every constituent
     /// §2023:13.18.63.2 Format 3 prints is carried here; <c>Condition88CloneDriftTests</c> fails if a field is added
@@ -76,7 +78,7 @@ public sealed class Condition88
     /// CLONE's storage, not the template's.</para></summary>
     public Condition88 CopyOnto(DataItem newParent)
     {
-        var c = new Condition88 { Name = Name, Parent = newParent, DeclaredAt = DeclaredAt, Alphabet = Alphabet, FalseValue = FalseValue };
+        var c = new Condition88 { Name = Name, Parent = newParent, DeclaredAt = DeclaredAt, Collation = Collation, FalseValue = FalseValue };
         c.Values.AddRange(Values);
         c._clonedFrom = this;
         return c;

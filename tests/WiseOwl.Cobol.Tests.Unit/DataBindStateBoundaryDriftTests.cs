@@ -58,19 +58,20 @@ public sealed class DataBindStateBoundaryDriftTests
     }
 
     /// <summary>The configuration slice is SEEDED in one place (kb/Work PB2296 M5; ISO §2023:12.3.4 GR1, §2023:11.9.4 GR1): what a
-    /// container hands a contained unit or a class hands its halves (<c>ConfigurationNames.InheritFrom</c>, the OPTIONS
-    /// baseline and skeleton paragraph, the mnemonic container) is written only by <c>ConfigurationStep</c>, and the step is
-    /// run only by the two drivers that bind units (<c>BinderDriver</c>, <c>OoDriver</c>).</summary>
+    /// container hands a contained unit or a class hands its halves (the symbol table's configuration-section names,
+    /// <c>SymbolTable.InheritConfigurationNames</c>; the OPTIONS baseline and skeleton paragraph) is written only by
+    /// <c>ConfigurationStep</c>, and the step is run only by the two drivers that bind units (<c>BinderDriver</c>,
+    /// <c>OoDriver</c>).</summary>
     [Fact]
     public void TheConfigurationSlice_IsSeededOnlyByConfigurationStep()
     {
-        var seeding = new Regex(@"\.(InheritFrom|InheritMnemonicsFrom)\(|\.(InheritedOptions|OptionsParagraph)\s*=(?!=)");
+        var seeding = new Regex(@"\.(InheritFrom|InheritConfigurationNames)\(|\.(InheritedOptions|OptionsParagraph)\s*=(?!=)");
         var producers = new Regex(@"ConfigurationStep\.Produce\(");
         var offenders = new List<string>();
         int seeds = 0, produced = 0;
         foreach (var (file, text) in CompilerSources())
         {
-            if (file.EndsWith("/Binding/ConfigurationNames.cs", StringComparison.Ordinal)
+            if (file.EndsWith("/Binding/SymbolTable/SymbolTable.Configuration.cs", StringComparison.Ordinal)
                 || file.EndsWith("/Binding/ConfigurationSlice.cs", StringComparison.Ordinal)) continue;
             foreach (Match m in seeding.Matches(text))
             {
@@ -87,7 +88,7 @@ public sealed class DataBindStateBoundaryDriftTests
                     offenders.Add($"{file}: {m.Value}");
             }
         }
-        Assert.True(seeds >= 10 && produced >= 5,
+        Assert.True(seeds >= 5 && produced >= 5,
             $"the scan found {seeds} seeding writes and {produced} step runs — the patterns no longer match the code");
         Assert.True(offenders.Count == 0,
             "A unit's configuration slice is seeded outside ConfigurationStep — a contained program's and a class half's "

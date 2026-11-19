@@ -255,8 +255,8 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             ScreenSendAdvancingLiteral(literal);
         if (advancing.sendIdentifier() is not { } identifier) return;
         using var at = ctx.Edition.At(identifier);
-        if (identifier.dataReference() is { } operand && operand.cobolWord() is { } word && ctx.Mnemonics.TryPeek(word.GetText(), out _) && !ctx.Refs.DescribesOwnItem(operand)
-            && ctx.Mnemonics.TryUse(advancing, word.GetText(), out var system))
+        if (identifier.dataReference() is { } operand && operand.cobolWord() is { } word && ctx.Mnemonics.TryPeek(word, out _) && !ctx.Refs.DescribesOwnItem(operand)
+            && ctx.Mnemonics.TryUse(word, out var system))
         {
             if (system.Kind != SystemNameKind.Feature || (advancing.LINE() ?? advancing.LINES()) is not null)
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {DataBinder.WrittenText(advancing)}: {Cite(SendMnemonic)}, and "

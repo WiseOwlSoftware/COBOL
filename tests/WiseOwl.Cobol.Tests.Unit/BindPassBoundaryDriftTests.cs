@@ -91,7 +91,7 @@ public sealed class BindPassBoundaryDriftTests
     [Fact]
     public void AnAppend_ToAFactSetTheRunningPassDidNotDeclare_IsRefused()
     {
-        var state = new DataBindState((_, _, _) => { });
+        var state = new DataBindState();
         var none = new Pass("none", PassViews.None);
         var declares = new Pass("declares", PassViews.Appends(FactSetKind.ActivationSites));
 

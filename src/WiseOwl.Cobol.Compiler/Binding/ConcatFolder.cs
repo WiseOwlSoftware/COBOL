@@ -329,7 +329,7 @@ internal static class ConcatFolder
                     + "specify none, as a concatenation-expression operand included (ISO §2023:12.3.7.3 SR11)");
                 return Term.Refusal(word);
             }
-            if (env.SymbolicOf(op, word) is { } sym) return Term.Symbolic(sym.Value, sym.National, word);
+            if (env.SymbolicOf(op.cobolWord()) is { } sym) return Term.Symbolic(sym.Value, sym.National, word);
         }
         report?.Error(DiagnosticCatalog.ConcatOperandNotLiteral, $"'{word}' is not a literal — a concatenation-expression "
             + "operand is a literal or a figurative constant, and the only words that stand for one are a constant-name "

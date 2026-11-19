@@ -23,12 +23,6 @@ public sealed class InheritedGlobals
     private readonly Dictionary<DataItem, FileModel> _recordAreas = new(ReferenceEqualityComparer.Instance);
     private readonly List<FileModel> _containerLocalFiles = [];
     private readonly Dictionary<string, DataItem> _typeDecls = new(CobolNames.Comparer);
-    private readonly HashSet<string> _shadowedSymbolics = new(CobolNames.Comparer);
-
-    /// <summary>Does a nearer declaration hide the inherited symbolic-character <paramref name="word"/> (§2023:8.4.6.1; kb/Work
-    /// PB3154 review R1-1)? Such a one is HIDDEN, never removed from the configuration slice's table: a contained unit
-    /// inherits the whole table from this one, and this unit's local data-name hides nothing from it.</summary>
-    public bool HidesSymbolic(string word) => _shadowedSymbolics.Contains(word);
 
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
     /// container (<c>SymbolTable.InheritFiles</c>), 0 for any other — the file-name twin of <see cref="ForestSlice.DeclaringDepth"/>
@@ -102,17 +96,6 @@ public sealed class InheritedGlobals
         foreach (var (name, decl) in typeDecls)
             if (decl.HasGlobalClause)
                 _typeDecls.TryAdd(name, decl);
-    }
-
-    /// <summary>Hide the inherited symbolic-characters (<paramref name="symbolicDepths"/>: each with its containment distance)
-    /// that a declaration in a source element NEARER than their containers' hides (<paramref name="declaredNearerThan"/>: the
-    /// name and the container's distance). <see cref="InheritStep"/> only; the inherited constants and file-names are the
-    /// symbol table's (<see cref="SymbolTable.DropShadowedConstants"/>, <see cref="SymbolTable.HideShadowedFiles"/>).</summary>
-    internal void HideShadowedSymbolics(Func<string, int, bool> declaredNearerThan, IEnumerable<KeyValuePair<string, int>> symbolicDepths)
-    {
-        foreach (var (name, depth) in symbolicDepths)
-            if (declaredNearerThan(name, depth))
-                _shadowedSymbolics.Add(name);
     }
 
     /// <summary>Offer the containers' GLOBAL reports and data roots, nearest container first. <see cref="InheritStep"/>

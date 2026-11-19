@@ -668,8 +668,8 @@ internal sealed class BinderDriver
         // DECIMAL-POINT IS COMMA parsed NUMVAL("123,45") as 0). One level suffices: the container inherited
         // from ITS container before it bound (units bind container-first).
         ConfigurationStep.Produce(unit.Parent is { } container
-            ? new ConfigurationSource.Contained(session.Binders.Of(container).Data.State.Configuration)
-            : new ConfigurationSource.Own(), data.State.Configuration);
+            ? new ConfigurationSource.Contained(session.Binders.Of(container).Data.State.Configuration, session.Binders.Of(container).Data.Symbols)
+            : new ConfigurationSource.Own(), data);
         // The inheritance merge's seed half (InheritStep.Seed; ISO §2023:13.18.27.4 GR1–GR2; kb/Work PB2296): every container's
         // GLOBAL constant-names, type declarations, file-names, reports and data roots, and the C# member names their
         // GLOBAL roots occupy, nearest container first, BEFORE this unit binds, because its own data division reads them.

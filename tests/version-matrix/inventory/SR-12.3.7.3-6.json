@@ -2,8 +2,8 @@
  "rule-id": "SR-12.3.7.3-6",
  "rule-digest": "c04414eae691",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Configuration.cs#MnemonicNamed",
  "test-ref": "unit:ImplementorNamesDriftTests.MnemonicUse_IsKeyedOnTheNamesKind; conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance",
  "editions": "85,2002,2014,2023",
- "notes": "SR6 - mnemonic-name-2 (a feature's) only in WRITE: the mnemonic registry carries the name's KIND, DISPLAY/ACCEPT refuse a feature's mnemonic (COBOL0817), SET cannot resolve one (COBOL1757). kb/Work PB862. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of (kb/Work PB2296 M5 made the mnemonic map a field of ConfigurationSlice (TryGetMnemonic); MnemonicRegistry no longer walks the parse tree)"
+ "notes": "SR6 - mnemonic-name-2 (a feature's) only in WRITE: the mnemonic registry carries the name's KIND, DISPLAY/ACCEPT refuse a feature's mnemonic (COBOL0817), SET cannot resolve one (COBOL1757). kb/Work PB862. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#Of (kb/Work PB2296 M5 made the mnemonic map a field of ConfigurationSlice (TryGetMnemonic); MnemonicRegistry no longer walks the parse tree) retired-witness: src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic (listing step 6b slice 4, kb/Work PB5932: the mnemonic-names moved into SymbolTable, resolved through SymbolTable.Identify; now src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Configuration.cs#MnemonicNamed)"
 }

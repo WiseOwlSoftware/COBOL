@@ -154,9 +154,9 @@ public sealed class DataBindState
     public FactSet<object> ActivationSites { get; }
 
     /// <summary>An empty state: every fact set empty, each checking its appends through <see cref="Gate"/>.</summary>
-    public DataBindState(Action<Antlr4.Runtime.RuleContext?, string, UserWordKind> recordConfigurationNameUse)
+    public DataBindState()
     {
-        Configuration = new(recordConfigurationNameUse);
+        Configuration = new();
         Forest = new(fact => Require(PassPhase.OccursResolved, fact));
         WholeGroupReferenced = new(FactSetKind.WholeGroupReferenced, Gate);
         ImageForcedItems = new(FactSetKind.ImageForcedItems, Gate);

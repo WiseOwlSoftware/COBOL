@@ -47,7 +47,7 @@ internal static class ObjectComputerEmit
         // EVALUATE's range-expression and the VALUE clause's condition-name list). One carrier per named alphabet
         // per type, so the range test itself is a field read rather than a per-evaluation table allocation; the
         // registry already collapsed an alphabet that IS the program collating sequence onto __COLLATE.
-        foreach (var c in data.RangeCollations.Values.Where(c => c.Declare))
+        foreach (var c in data.RangeCollations.Where(c => c.Declare))
             w.Line($"private static readonly CobolCollation {c.Field} = {CollationEmit.New(c.Table, c.Locale, c.National)};"
                 + $"   // ALPHABET {c.Name} — a THROUGH range's IN phrase (ISO §2023:14.7.8 rule 2)");
     }

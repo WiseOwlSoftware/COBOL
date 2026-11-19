@@ -38,6 +38,25 @@ internal enum NameClass
     /// <summary>A paragraph-name or a section-name. <c>SymbolTable.Identify</c> resolves it; the finished table holds no procedure
     /// entry yet (the cross-reference of listing step 7b adds them).</summary>
     Procedure,
+    /// <summary>A SPECIAL-NAMES switch-status condition-name (ISO §2023:12.3.7.2). <c>SymbolTable.Identify</c> resolves it, like
+    /// every configuration-section name below; the finished table holds no entry for them yet (listing step 7b).</summary>
+    SwitchCondition,
+    /// <summary>A class-name of a SPECIAL-NAMES CLASS clause.</summary>
+    ClassName,
+    /// <summary>An alphabet-name of an alphanumeric ALPHABET clause.</summary>
+    Alphabet,
+    /// <summary>An alphabet-name of an ALPHABET … FOR NATIONAL clause.</summary>
+    NationalAlphabet,
+    /// <summary>A symbolic-character of a SYMBOLIC CHARACTERS clause.</summary>
+    SymbolicCharacter,
+    /// <summary>An ordering-name of the ORDER TABLE clause.</summary>
+    OrderingName,
+    /// <summary>A dynamic-length-structure-name of a DYNAMIC LENGTH STRUCTURE clause.</summary>
+    DynamicLengthStructure,
+    /// <summary>A locale-name of a LOCALE clause.</summary>
+    Locale,
+    /// <summary>A mnemonic-name of a SPECIAL-NAMES implementor-name entry.</summary>
+    Mnemonic,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>

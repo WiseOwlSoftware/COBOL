@@ -163,10 +163,6 @@ public sealed partial class SpecialNamesBinder
             Rule1985Numeric: "§1985:VI.4.5.3 SR11a", Rule1985Length: "§1985:VI.4.5.3 SR11b");
     }
 
-    /// <summary>The symbolic-character names the SPECIAL-NAMES paragraph being bound declares (see
-    /// <c>SpecialNamesBinder.BindSpecialNames</c>) — read by the §2023:12.3.7.3 SR11 arm of <see cref="LiteralPhraseOperand"/>.</summary>
-    private HashSet<string> _paragraphSymbolicNames = new(CobolNames.Comparer);
-
     /// <summary>⛔ THE ONE SPECIAL-NAMES literal-operand decoder (ISO §2023:12.3.7.3 SR14 b/c for the ALPHABET clause,
     /// SR17 b/c for the CLASS clause — see <see cref="LiteralPhraseRules"/>): the characters one operand stands
     /// for, or null when it violates its clause's rule (the diagnostic is already reported).</summary>
@@ -461,7 +457,7 @@ public sealed partial class SpecialNamesBinder
     /// SYMBOLIC CHARACTERS clause, read syntactically because the clauses are order-free (kb/Work PB226), or already
     /// bound. The ONE recognition §2023:12.3.7.3 SR11 asks, of a bare operand and of a concatenation operand alike.</summary>
     internal bool IsSymbolicCharacterName(string word) =>
-        _paragraphSymbolicNames.Contains(word) || Cfg.SymbolicCharacters.Declares(word);
+        _host.Symbols.IsSymbolicCharacterName(word);
 
     /// <summary>The characters of an alphabet-entry string literal: a §2023:8.8.3.3 GR3 concatenation folded first — in
     /// the SPECIAL-NAMES environment (§2023:12.3.7.4 GR10's native extremes), with §2023:12.3.7.3 SR11's

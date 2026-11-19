@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -52,7 +53,7 @@ public sealed partial class SpecialNamesBinder
         Cfg.Classification = new ClassificationSpec(alphanumeric, national);
     }
 
-    private LocalePhrase? ClassificationPhrase(Antlr4.Runtime.RuleContext at, string word, bool national)
+    private LocalePhrase? ClassificationPhrase(Antlr4.Runtime.ParserRuleContext at, string word, bool national)
     {
         // >>COBOL-WORDS (ISO §2023:7.3.10.4 GR2/GR3/GR4; kb/Work PB250): a §2023:8.9/§2023:8.10 word the lexer does not
         // tokenize is reached ONLY through the map; a raw text test here is inert to the directive both ways.
@@ -116,18 +117,21 @@ public sealed partial class SpecialNamesBinder
         else external = words[1].GetText();
         // A second LOCALE of one name was refused by the declaration funnel (DeclareUserWord, ISO §2023:8.4.2.1; kb/Work
         // PB3216); the first stands, as every registry keeps it.
-        Cfg.Locales.TryAdd(name, new LocaleSymbol(name, external, fromLiteral));
+        _host.Symbols.Declare(new LocaleSymbol(name, external, fromLiteral));
     }
 
     /// <summary>Resolve a locale-name reference (ISO §2023:12.3.7.3 SR24 for the ALPHABET clause; §2023:14.9.39.3 SR26 for SET
     /// LOCALE; the later increments' sites) to its symbol, or null after COBOL1664 — the ONE undeclared-locale-name
     /// diagnostic, with the citing site named (DESIGN-locale-facility §7 rule a).</summary>
-    /// <param name="at">The reference, whose source element's §2023:8.3.2.2 census records the use (kb/Work PB3153).</param>
-    internal LocaleSymbol? ResolveLocaleName(Antlr4.Runtime.RuleContext at, string name, string site, string rule)
+    /// <param name="written">The reference as written, identified through <see cref="SymbolTable.Identify(Antlr4.Runtime.ParserRuleContext,
+    /// NameClass, bool, NameReach, ProcedureSite?)"/>, whose source element's §2023:8.3.2.2 census records the use (kb/Work PB3153).</param>
+    /// <param name="name">The name as the diagnostic prints it.</param>
+    internal LocaleSymbol? ResolveLocaleName(Antlr4.Runtime.ParserRuleContext written, string name, string site, string rule)
     {
-        if (Cfg.Locales.TryUse(at, name, out var sym)) return sym;
+        if (_host.Symbols.Identify(written, NameClass.Locale, report: true)?.Symbol is LocaleSymbol sym) return sym;
+        var (count, names) = _host.Symbols.LocaleNames;
         Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"{site}: '{name}' is not a locale-name declared by a SPECIAL-NAMES LOCALE clause ({rule})"
-            + (Cfg.Locales.Count == 0 ? "; no LOCALE clause is in scope" : $"; declared: {string.Join(", ", Cfg.Locales.Names)}"));
+            + (count == 0 ? "; no LOCALE clause is in scope" : $"; declared: {string.Join(", ", names)}"));
         return null;
     }
 }

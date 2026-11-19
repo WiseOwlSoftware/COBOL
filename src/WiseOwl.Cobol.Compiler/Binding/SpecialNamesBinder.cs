@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
@@ -52,19 +53,21 @@ public sealed partial class SpecialNamesBinder
     /// alphabet-name a different type of user-defined word from every name a qualifier can be, so a declared
     /// alphabet-name there is §2023:14.9.13.2's <c>IN alphabet-name-1</c> phrase and never a qualifier. A predicate, so
     /// it records no §2023:8.3.2.2 use: the caller that takes the word as an alphabet-name resolves it through
-    /// <see cref="ConfigurationNames{T}.TryUse"/> (kb/Work PB3153).</summary>
-    public bool IsAlphabetName(string name) => Cfg.Alphabets.Declares(name) || Cfg.NationalAlphabets.Declares(name);
+    /// <see cref="UseAlphabetName"/> (kb/Work PB3153).</summary>
+    public bool IsAlphabetName(string name) => _host.Symbols.IsAlphabetName(name);
 
-    /// <summary>Take <paramref name="name"/>, written at <paramref name="site"/>, as a REFERENCE to an alphabet-name of
-    /// either class, recording the §2023:8.3.2.2 use (kb/Work PB3153) — the site that names an alphabet whose definition a
-    /// later screen or resolver reads (a COLLATING SEQUENCE phrase). False when no alphabet is named so.</summary>
-    internal bool UseAlphabetName(Antlr4.Runtime.RuleContext site, string name) =>
-        Cfg.Alphabets.TryUse(site, name, out _) || Cfg.NationalAlphabets.TryUse(site, name, out _);
+    /// <summary>Take the written word <paramref name="word"/> as a REFERENCE to an alphabet-name of either class, recording the
+    /// §2023:8.3.2.2 use (kb/Work PB3153) — the site that names an alphabet whose definition a later screen or resolver reads (a
+    /// COLLATING SEQUENCE phrase). False when no alphabet is named so.</summary>
+    internal bool UseAlphabetName(Antlr4.Runtime.ParserRuleContext word) =>
+        _host.Symbols.Identify(word, NameClass.Alphabet, report: true) is not null
+        || _host.Symbols.Identify(word, NameClass.NationalAlphabet, report: true) is not null;
 
     /// <summary>Is <paramref name="name"/> one of the class condition's user-defined-word alternatives — a
     /// class-name-1 or an alphabet-name-1 (ISO §2023:8.8.4.4.2)? The symbol test that separates a bare EVALUATE object
     /// naming a class from identifier-2 (kb/Work PB843).</summary>
-    public bool IsClassConditionWord(string name) => Cfg.UserClasses.Declares(name) || IsAlphabetName(name);
+    public bool IsClassConditionWord(string name) =>
+        _host.Symbols.DeclaresConfigurationName(NameClass.ClassName, name) || IsAlphabetName(name);
 
     /// <summary>Normalize a NUMERIC literal's source text to the canonical dot-decimal form the whole emit-side
     /// decode pipeline consumes (ISO §2023:12.3.7.4 GR14 a): under DECIMAL-POINT IS COMMA "the character written in
@@ -186,10 +189,10 @@ public sealed partial class SpecialNamesBinder
             // The paragraph's symbolic-character NAMES, read syntactically before any clause binds: the clauses are
             // order-free, so an ALPHABET clause may precede the SYMBOLIC CHARACTERS clause that declares a name it
             // writes — and §2023:12.3.7.3 SR11 must still recognize it (kb/Work PB226).
-            _paragraphSymbolicNames = sn.specialNameEntry()
+            _host.Symbols.DeclareSymbolicCharactersAhead(sn.specialNameEntry()
                 .Select(e => e.symbolicCharactersClause()).OfType<Core.SymbolicCharactersClauseContext>()
                 .SelectMany(sc => sc.symbolicCharacterEntry()).SelectMany(e => e.cobolWord())
-                .Select(w => w.GetText()).ToHashSet(CobolNames.Comparer);
+                .Select(w => w.GetText()));
             // ⛔ DEPENDENCY ORDER, NEVER SOURCE ORDER (kb/Work PB1558). A clause that REFERENCES a name another clause
             // of this paragraph DECLARES binds after every declaring clause, whatever the source order:
             //   1. the walk below — the clauses that reference no paragraph name (LOCALE declares locale-names,
@@ -285,13 +288,13 @@ public sealed partial class SpecialNamesBinder
             Edition.Error(DiagnosticCatalog.UnavailableImplementorName, why);
             return;
         }
-        // The mnemonic-name's row, for the one procedure-side reader (ConfigurationSlice.TryGetMnemonic): the first declaration
-        // of a spelling wins, and a container's entries come after this unit's own (ConfigurationStep).
-        if (e.Mnemonic is { } mnemonicName) Cfg.DeclareMnemonic(mnemonicName, e.Row!);
+        // The mnemonic-name's row, for the one procedure-side reader (Procedure.MnemonicRegistry, through SymbolTable.Identify): the
+        // first declaration of a spelling wins, and a container's entries come after this unit's own (SymbolTable.InheritConfigurationNames).
+        if (e.Mnemonic is { } mnemonicName) _host.Symbols.DeclareMnemonic(mnemonicName, e.Row!);
         if (e.Row!.Kind != SystemNameKind.Switch) return;
         string switchName = e.Row.Name;
-        if (e.OnCondition is { } on) Cfg.SwitchConditions.TryAdd(on, (switchName, true));
-        if (e.OffCondition is { } off) Cfg.SwitchConditions.TryAdd(off, (switchName, false));
+        if (e.OnCondition is { } on) _host.Symbols.DeclareSwitchCondition(on, switchName, isOn: true);
+        if (e.OffCondition is { } off) _host.Symbols.DeclareSwitchCondition(off, switchName, isOn: false);
     }
 
     /// <summary>Resolve the PROGRAM COLLATING SEQUENCE clause (ISO §2023:12.3.6): the IS form's alphabet-name-1
@@ -305,26 +308,27 @@ public sealed partial class SpecialNamesBinder
     private void ResolveProgramCollating(Core.ProgramCollatingSequenceClauseContext pcs)
     {
         using var _ = Edition.At(pcs);   // every verdict below is about this clause — report it there
-        var (alnumName, natName) = ChoiceIndicators.AlphabetPair(Edition, pcs.collatingForPhrase(),
-            f => f.NATIONAL() is not null, f => f.cobolWord().GetText(), pcs.cobolWord(),
+        var (alnumWord, natWord) = ChoiceIndicators.AlphabetPair(Edition, pcs.collatingForPhrase(),
+            f => f.NATIONAL() is not null, f => f.cobolWord(), pcs.cobolWord(),
             "PROGRAM COLLATING SEQUENCE", "12.3.6.2");
 
         // ⛔ BOTH SLOTS ASK THE ONE CLASS TEST, CollatingAlphabetFault (kb/Work PB1082): name-1 used to answer only a
         // FOR NATIONAL alphabet and leave every other word inert at every edition — an undeclared word, a data-name, a
         // class-name — so the program silently ran on the native order, while name-2's slot refused the same shapes.
-        if (alnumName is not null)
+        if (alnumWord is not null)
         {
-            if (CollatingAlphabetFault(alnumName, national: false) is { } fault)
-                Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
+            if (CollatingAlphabetFault(WrittenAlphabet(alnumWord), national: false) is { } fault)
+                Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumWord.GetText(),
                     national: false, fault, "ISO " + Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "§2023:12.3.6.3 SR1")));
-            else if (Cfg.Alphabets.TryUse(pcs, alnumName, out var def)) Cfg.Collating = def.IsIdentity ? null : def;
+            else if (_host.Symbols.Identify(alnumWord, NameClass.Alphabet, report: true)?.Symbol is AlphabetDef def)
+                Cfg.Collating = def.IsIdentity ? null : def;
         }
-        if (natName is not null)
+        if (natWord is not null)
         {
-            if (CollatingAlphabetFault(natName, national: true) is { } fault)
+            if (CollatingAlphabetFault(WrittenAlphabet(natWord), national: true) is { } fault)
                 Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE FOR NATIONAL",
-                    natName, national: true, fault, "ISO §2023:12.3.6.3 SR2"));
-            else if (Cfg.NationalAlphabets.TryUse(pcs, natName, out var def))
+                    natWord.GetText(), national: true, fault, "ISO §2023:12.3.6.3 SR2"));
+            else if (_host.Symbols.Identify(natWord, NameClass.NationalAlphabet, report: true)?.Symbol is NationalAlphabetDef def)
                 Cfg.NationalCollating = def.IsIdentity ? null : def;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
         }
     }
@@ -373,7 +377,7 @@ public sealed partial class SpecialNamesBinder
         // PB3216): the first stands, so a repeat sets nothing — and an INHERITED same-named structure is still replaced
         // by this element's first (§2023:8.4.6.1), since the census counts this element's own declarations alone.
         if (_host.WordCensus.UnqualifiedDeclarations(name, UserWordKind.DynamicLengthStructureName) > 1) return;
-        Cfg.DynamicLengthStructures.Set(name, declared);   // replaces an INHERITED same-named structure (§2023:8.4.6.1)
+        _host.Symbols.Declare(declared);   // replaces an INHERITED same-named structure (§2023:8.4.6.1)
     }
 
     private void OrderTableBind(Core.OrderTableClauseContext ot)
@@ -394,14 +398,14 @@ public sealed partial class SpecialNamesBinder
         // ellipsis, where the repeatable clauses beside it (CLASS, CURRENCY, LOCALE, the switch entry, SYMBOLIC
         // CHARACTERS) each print one. A second clause is therefore a form violation, and so — as a consequence
         // rather than as a second rule — is a second ordering-name.
-        if (Cfg.OrderTables.Count > 0)
+        if (_host.Symbols.OrderingNames is { Count: > 0 } declaredOrderings)
         {
             Edition.Error(DiagnosticCatalog.OrderTableRepeated, $"ORDER TABLE {name}: the ORDER TABLE clause may be specified only once "
                 + "in a SPECIAL-NAMES paragraph — its general format brackets it without an ellipsis, unlike the "
-                + $"repeatable clauses (ISO §2023:12.3.7.2); '{Cfg.OrderTables.Names.First()}' is already declared");
+                + $"repeatable clauses (ISO §2023:12.3.7.2); '{declaredOrderings.Names.First()}' is already declared");
             return;
         }
-        Cfg.OrderTables.Set(name, text);
+        _host.Symbols.DeclareOrderingName(name, text);
         // GR17's implementor half, checked against the ONE resolver the runtime uses (§2023:15.85.4 r2 owns the outcome).
         // A site collation file that cannot be used is that resolver's typed failure, named here with its file, never
         // a crash of the compile (kb/Work PB2773).

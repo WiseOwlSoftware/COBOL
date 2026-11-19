@@ -1102,8 +1102,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             bool mustBeName = at == 2 && argCtxs.Count == 4;
             // An argument-4 position: the element's own item of the word's spelling is the referent (§2023:8.4.6.1).
             bool ownItem = !mustBeName && SoleDataReference(a) is { } own && ctx.Refs.DescribesOwnItem(own);
-            if (at == 2 && !ownItem && KeywordWordOf(a) is { } word
-                && ctx.Data.State.Configuration.OrderTables.TryUse(a, word, out string? literal9))
+            if (at == 2 && !ownItem && KeywordWordOf(a) is not null && KeywordWordContext(a) is { } written
+                && ctx.Symbols.Identify(written, NameClass.OrderingName, report: true)?.Symbol is string literal9)
             {
                 orderingTable = literal9;
                 continue;
@@ -1113,12 +1113,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
                     + "§2023:15.85.2 general format's third position IS ordering-name-1 (ISO §2023:15.85.3 r5; §2023:15.3 "
                     + "argument type 12)"
-                    + (ctx.Data.State.Configuration.OrderTables.Count == 0
+                    + (ctx.Symbols.OrderingNames is not { Count: > 0 } declared
                         ? "; this compilation unit declares no ORDER TABLE clause"
-                        : $"; declared: {string.Join(", ", ctx.Data.State.Configuration.OrderTables.Names)}"));
+                        : $"; declared: {string.Join(", ", declared.Names)}"));
             // A SECOND ordering-name where argument-4 belongs. Reachable, and worth its own message: the operand
             // path would otherwise report it as an unresolved data-name, which is true and useless.
-            if (!ownItem && KeywordWordOf(a) is { } second && ctx.Data.State.Configuration.OrderTables.Declares(second))
+            if (!ownItem && KeywordWordOf(a) is { } second && ctx.Symbols.DeclaresConfigurationName(NameClass.OrderingName, second))
                 return Malformed($"is given the ordering-name '{second}' in the argument-4 position — the "
                     + "§2023:15.85.2 general format admits ONE [ ordering-name-1 ], and the fourth position is "
                     + "argument-4, the ordering level (ISO §2023:15.85.3 r6)");
@@ -1178,7 +1178,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             string site = $"FUNCTION {sig.Name}'s locale-name-1 '{a.GetText().Trim()}'";
             if (KeywordWordOf(a) is { } word)
             {
-                var sym = ctx.Data.SpecialNames.ResolveLocaleName(a, word, site, rule);
+                var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(a)!, word, site, rule);
                 if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                 locale = new LocaleRef(sym);
             }
@@ -1222,7 +1222,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         LocaleRef locale;
         if (KeywordWordOf(argCtxs[2]) is { } word)
         {
-            var sym = ctx.Data.SpecialNames.ResolveLocaleName(argCtxs[2], word, $"FUNCTION {sig.Name}'s LOCALE phrase '{word}'", rule);
+            var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(argCtxs[2])!, word, $"FUNCTION {sig.Name}'s LOCALE phrase '{word}'", rule);
             if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
             locale = new LocaleRef(sym);
         }
@@ -1973,7 +1973,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     $"the LOCALE keyword of FUNCTION {sig.Name}");
                 if (at + 1 < argCtxs.Count && KeywordWordOf(argCtxs[at + 1]) is { } lname && lname != "ANYCASE")
                 {
-                    var sym = ctx.Data.SpecialNames.ResolveLocaleName(argCtxs[at + 1], lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
+                    var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(argCtxs[at + 1])!, lname, $"FUNCTION {sig.Name}'s LOCALE {lname}",
                         "ISO §2023:15.68.3 r5a — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph");
                     if (sym is null) return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
                     locale = new LocaleRef(sym);
@@ -3288,6 +3288,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// IDENTIFIERs — <c>CobolExpressions.g4</c> functionArgument), and it is also what closes the de-reserved arm
     /// for the words that ARE tokens: the retype turns a de-reserved LEADING into an IDENTIFIER, which would
     /// otherwise reach the <c>cobolWord</c> branch below and be re-read as the keyword by its raw text.</para></summary>
+    /// <summary>The word <see cref="KeywordWordOf"/> reads, as written: the argument's phrase word or its sole unqualified data
+    /// reference's word, or null. A name read there is identified through the symbol table from this context.</summary>
+    private static Antlr4.Runtime.ParserRuleContext? KeywordWordContext(Core.FunctionArgumentContext a) =>
+        a.fnArgPhraseWord() is { } kw ? kw
+        : SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0 ? d.cobolWord() : null;
+
     private string? KeywordWordOf(Core.FunctionArgumentContext a)
     {
         bool bareName = a.fnArgPhraseWord() is null;

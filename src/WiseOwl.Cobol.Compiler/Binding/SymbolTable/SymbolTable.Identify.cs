@@ -21,7 +21,9 @@ internal sealed record IdentifiedName
     public NameClass Class { get; }
 
     /// <summary>The symbol: a <see cref="Model.CommunicationDescription"/> for a cd-name, a <see cref="Model.FileModel"/> for a
-    /// file-name, a <see cref="ConstantDef"/> for a constant-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, ... (by
+    /// file-name, a <see cref="ConstantDef"/> for a constant-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, the definition a
+    /// configuration section declares for a configuration-section name (an <see cref="AlphabetDef"/>, a <see cref="SwitchStatusName"/>,
+    /// an <see cref="Editions.ImplementorName"/> row for a mnemonic-name, ...), ... (by
     /// <see cref="Class"/>). A procedure-name that several procedures carry identifies no one symbol: <see cref="Symbol"/> is then
     /// the <see cref="ProcedureCandidates"/>, which the reference reports (kb/Work PB466) and which records no occurrence.</summary>
     public object Symbol { get; }
@@ -61,11 +63,21 @@ public sealed partial class SymbolTable
     internal IdentifiedName? Identify(ParserRuleContext written, NameClass wanted, bool report, NameReach reach = NameReach.Visible,
         ProcedureSite? site = null)
     {
-        _ = report;   // the occurrence it gates is listing step 7b's
-        object? symbol = wanted == NameClass.Procedure
-            ? ProcedureNamed(written,
-                site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written"))
-            : WordOf(written) is { } key ? SymbolNamed(key, wanted, reach) : null;
+        object? symbol;
+        if (wanted == NameClass.Procedure)
+            symbol = ProcedureNamed(written,
+                site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written"));
+        else if (WordOf(written) is not { } key)
+            symbol = null;
+        else if (IsConfigurationClass(wanted))
+        {
+            // A configuration-section name's reference is a §2023:8.3.2.2 USE of the word in the element it is written in
+            // (kb/Work PB3153); a probe uses nothing. (Listing step 7b records the occurrence under the same flag.)
+            (symbol, var kind) = ConfigurationNamed(key, wanted);
+            if (symbol is not null && report) _data.RecordConfigurationNameUse(written, key.Word, kind);
+        }
+        else
+            symbol = SymbolNamed(key, wanted, reach);   // the occurrence `report` gates is listing step 7b's
         return symbol is null ? null : new IdentifiedName(wanted, symbol);
     }
 
@@ -81,6 +93,8 @@ public sealed partial class SymbolTable
         _ = report;   // the occurrence it gates is listing step 7b's
         if (wanted == NameClass.Procedure)
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a procedure-name is a reference rule: identify its context");
+        if (IsConfigurationClass(wanted))
+            throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a configuration-section name is one word: identify its context");
         return SymbolNamed(Key(written.Text), wanted, reach) is { } symbol ? new IdentifiedName(wanted, symbol) : null;
     }
 

@@ -703,7 +703,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 : item.condition() is { } leadingClass
                     ? host.Cond.BindPartialExpression(leadingClass, spliced)
                 : pair.ObjectBare.ClassWord is { } classWord
-                    ? host.Cond.BindPartialClassName(item, classWord, spliced)
+                    ? host.Cond.BindPartialClassName(classWord, spliced)
                     : host.Cond.Refused($"EVALUATE partial-expression '{DataBinder.WrittenText(item)}'");
             return host.Udf.UdfAttachPerEvaluation(partialCond, objMark);
         }
@@ -729,7 +729,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             if (BindRangeObject(range) is not { } bound)
                 return host.Cond.Refused(
                     $"EVALUATE range-expression '{DataBinder.WrittenText(range)}'");
-            var (lo, hi, rangeClass, alphabet) = bound;
+            var (lo, hi, rangeClass, collation) = bound;
             bool check = ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line);
             // §2023:14.7.8 rule 2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID, and
             // then "execution proceeds as if the range of values were empty". The EC is a property of the RANGE's
@@ -753,9 +753,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // is §2023:14.9.13.4 GR4 a) 5.'s own lowering and passes through the ONE relation checkpoint.
             bool flatRange = RelationPair.Classify(left, lo) is RelationPairShape.Flat
                 && RelationPair.Classify(left, hi) is RelationPairShape.Flat;
-            if (flatRange && (alphabet is not null || ecApplies))
+            if (flatRange && (collation is not null || ecApplies))
                 return host.Udf.UdfAttachPerEvaluation(
-                    host.Cond.CheckedRangeMembership(left, lo, hi, checkInvalid: ecApplies, alphabet),
+                    host.Cond.CheckedRangeMembership(left, lo, hi, checkInvalid: ecApplies, collation),
                     objMark);
             return host.Udf.UdfAttachPerEvaluation(new BoundLogical("&&",
                 [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]),
@@ -787,7 +787,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>A range-expression's two bound operands with the facts the rules below ask of the PAIR: its class and its
     /// <c>IN alphabet-name-1</c> collating sequence (null when absent or refused).</summary>
-    private readonly record struct BoundRangeObject(BoundOperand Lo, BoundOperand Hi, CollatingClass Class, string? Alphabet);
+    private readonly record struct BoundRangeObject(BoundOperand Lo, BoundOperand Hi, CollatingClass Class, RangeCollationId? Collation);
 
     /// <summary>⛔ THE ONE BINDING OF A RANGE-EXPRESSION'S OPERANDS AND PHRASE — for the pair that compares against it
     /// and for the object a refused or surplus pairing binds standalone (kb/Work PB4446), so the range's own syntax
@@ -813,7 +813,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         var (hi, alphabetWord) = BindRangeHigh(range);
         if (!ScreenRangeOperands(range, lo, hi)) return null;
         var rangeClass = CollatingSelection.ThroughRangeClass(lo, hi);
-        return new BoundRangeObject(lo, hi, rangeClass, RangeAlphabet(range, alphabetWord, rangeClass));
+        return new BoundRangeObject(lo, hi, rangeClass, RangeAlphabet(alphabetWord, rangeClass));
     }
 
     /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §2023:14.9.13.2's range-expression), screened by
@@ -825,9 +825,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// of the same class — so the pair has one class to have. It is COMPUTED BY THE CALLER and passed in, because
     /// the EC gate one line below keys on the SAME antecedent and the two must not be able to disagree
     /// (kb/Work PB401).</para></summary>
-    private string? RangeAlphabet(Core.ValueRangeContext range, string? name, CollatingClass rangeClass) =>
-        name is not null && ctx.Data.SpecialNames.TryResolveRangeAlphabet(range, name, rangeClass, "an EVALUATE WHEN THROUGH range")
-            ? name : null;
+    private RangeCollationId? RangeAlphabet(Core.CobolWordContext? word, CollatingClass rangeClass) =>
+        word is null ? null : ctx.Data.SpecialNames.TryResolveRangeAlphabet(word, rangeClass, "an EVALUATE WHEN THROUGH range");
 
     /// <summary>The range's right-hand operand and its <c>IN alphabet-name-1</c> word, with the one ambiguity the
     /// grammar cannot settle settled by SYMBOL (kb/Work PB843). §2023:14.9.13.3 SR3 admits the phrase over identifiers
@@ -847,15 +846,15 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// reference. So the qualified reference is probed first, and only when it identifies nothing is the trailing
     /// word the phrase (whose resolution records the §2023:8.3.2.2 use). In one element an alphabet-name and a qualifier
     /// cannot share a spelling, so the probe changes no answer there.</para></summary>
-    private (BoundOperand Hi, string? AlphabetWord) BindRangeHigh(Core.ValueRangeContext range)
+    private (BoundOperand Hi, Core.CobolWordContext? AlphabetWord) BindRangeHigh(Core.ValueRangeContext range)
     {
         var hiNode = range.valueOperand(1);
-        if (range.cobolWord() is { } written) return (BindValueOperand(hiNode), written.GetText());
+        if (range.cobolWord() is { } written) return (BindValueOperand(hiNode), written);
         if (hiNode.arithmeticExpression() is { } expr && ConditionBinder.SoleDataRef(expr) is { } dref
             && dref.dataReferenceSuffix() is { Length: > 0 } suffixes
             && suffixes[^1].qualification() is { } q && q.IN() is not null && q.ChildCount == 2
             && ctx.Data.SpecialNames.IsAlphabetName(q.cobolWord().GetText()) && !ctx.Refs.DescribesOwnItem(dref))
-            return (host.Expr.FieldOperand(ReferenceResolver.WithoutTrailingSuffix(dref)), q.cobolWord().GetText());
+            return (host.Expr.FieldOperand(ReferenceResolver.WithoutTrailingSuffix(dref)), q.cobolWord());
         return (BindValueOperand(hiNode), null);
     }
 

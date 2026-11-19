@@ -252,7 +252,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The unit's data-binding state (<see cref="DataBindState"/>;
     /// docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1), kb/Work PB2296): its value slices and its four
     /// append-only fact sets. Every reader of those facts reads through it.</summary>
-    public DataBindState State => field ??= new DataBindState(RecordConfigurationNameUse);
+    public DataBindState State => field ??= new DataBindState();
 
     /// <summary>The state procedure binding keeps on this unit's binder (<see cref="ProcedureBindState"/>;
     /// DESIGN-architecture-review §8.3 (1)): the
@@ -3209,7 +3209,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         CheckValueConnective(value, pairedConnective: true, $"condition-name '{name}'");
                     // `[ IN alphabet-name-1 ]`, IN optional (kb/Work PB983) — decided BEFORE the operand loop,
                     // because with IN omitted the parser has handed the word in AS the last operand.
-                    var (alphaName, alphaOperand) = RangeAlphabetPhraseOf(value);
+                    var (alphaWord, alphaOperand) = RangeAlphabetPhraseOf(value);
+                    string? alphaName = alphaWord?.GetText();
                     foreach (var vi in value.valueItem())
                     {
                         // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7 GR14a).
@@ -3329,19 +3330,19 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                                 + "the clause, so there are no \"literals specified in the THROUGH phrase\" for "
                                 + "it to order (ISO §2023:13.18.63.3 SR31)");
                         }
-                        else if (SpecialNames.TryResolveRangeAlphabet(value, alphaName,
+                        else
+                            cond.Collation = SpecialNames.TryResolveRangeAlphabet(alphaWord!,
                                 CollatingSelection.ForComparison(parent.OperandPic?.Category, parent.OperandPic?.Category),
-                                $"condition-name '{name}'"))
-                            cond.Alphabet = alphaName;
+                                $"condition-name '{name}'");
                     }
-                    // §2023:13.18.63.3 SR26 — every THROUGH pair ascends, in the sequence cond.Alphabet (just resolved)
+                    // §2023:13.18.63.3 SR26 — every THROUGH pair ascends, in the sequence cond.Collation (just resolved)
                     // names. Before literal-4, whose SR27 screen reads the same ordering.
                     CheckRangesAscending(cond, parent);
                     // literal-4 LAST, because the phrase is written last (§2023:13.18.63.2 format 3 prints
                     // `[ WHEN SET TO FALSE IS literal-4 ]` on the line after the operand list), so the
                     // diagnostics a malformed entry produces come out in source order. It is bound AFTER the
                     // alphabet because §2023:13.18.63.3 SR27 b) weighs literal-4 against the ranges in the sequence
-                    // §2023:14.7.8 rule 2 gives them, which `cond.Alphabet` is what names.
+                    // §2023:14.7.8 rule 2 gives them, which `cond.Collation` is what names.
                     BindFalsePhraseOperand(value, parent, cond);
                 }
 
@@ -3372,9 +3373,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// a qualifier of K, and the clause's own <c>IN</c> is never parsed. A trailing <c>IN word</c> suffix naming a
     /// declared alphabet is the phrase by the same §2023:8.3.2.2 argument; the operand is registered in
     /// <see cref="_alphabetPeeledOperands"/> so every literal-position reader sees K alone.</para></summary>
-    private (string? Name, Core.ValueClauseOperandContext? Operand) RangeAlphabetPhraseOf(Core.ValueClauseContext value)
+    private (Antlr4.Runtime.ParserRuleContext? Word, Core.ValueClauseOperandContext? Operand) RangeAlphabetPhraseOf(Core.ValueClauseContext value)
     {
-        if (value.IN() is not null) return (value.cobolWord()?.GetText(), null);
+        if (value.IN() is not null) return (value.cobolWord(), null);
         var items = value.valueItem();
         if (items.Length == 0) return (null, null);
         var ops = items[^1].valueClauseOperand();
@@ -3387,7 +3388,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 && q.cobolWord().GetText() is var qualWord && SpecialNames.IsAlphabetName(qualWord))
             {
                 _alphabetPeeledOperands[last] = ReferenceResolver.WithoutTrailingSuffix(dref);
-                return (qualWord, null);
+                return (q.cobolWord(), null);
             }
             return (null, null);
         }
@@ -3398,7 +3399,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // different type of user-defined word, is to the item which that source element describes" (§2023:8.4.6.1;
         // kb/Work PB3153), so the element's own constant-name of the spelling keeps its literal-2 reading.
         return dref.GetText() is var word && SpecialNames.IsAlphabetName(word) && Constants.ConstantOf(dref) is null
-            ? (word, last) : (null, null);
+            ? (dref, last) : (null, null);
     }
 
     /// <summary>Screen <c>[ WHEN SET TO FALSE IS literal-4 ]</c> — Format 3's SECOND literal position (ISO
@@ -3471,7 +3472,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             if (order >= 0)
                 Edition.Error(DiagnosticCatalog.ValueThroughNotAscending, $"condition-name '{cond.Name}': the VALUE "
                     + $"range {lo} THRU {hi} does not ascend — {lo} is {(order == 0 ? "equal to" : "greater than")} "
-                    + $"{hi}{(cond.Alphabet is { } al ? $" in alphabet '{al}'" : "")}, and the value of literal-2 shall be "
+                    + $"{hi}{(cond.Collation is { } al ? $" in alphabet '{SpecialNames.RangeCollation(al).Name}'" : "")}, and the value of literal-2 shall be "
                     + $"less than the value of literal-3 (ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.3 SR26")})");
         }
     }
@@ -3663,7 +3664,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             if (_resolved) return;
             _resolved = true;
-            (_order, _known) = owner.RangeOrdering(cond.Alphabet,
+            (_order, _known) = owner.RangeOrdering(cond.Collation,
                 parent.OperandPic?.Category is PicCategory.National);
         }
     }
@@ -3737,17 +3738,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// then decline to enforce a rule the standard conditions on knowing it.
     /// <para>A null <c>Order</c> with <c>Known</c> true is the NATIVE (identity) sequence: no carrier exists for
     /// it, and the caller's two-argument <c>CobolString.Compare</c> is exactly its ordering.</para></summary>
-    private (WiseOwl.Cobol.Runtime.CobolCollation? Order, bool Known) RangeOrdering(string? alphabetName, bool national)
+    private (WiseOwl.Cobol.Runtime.CobolCollation? Order, bool Known) RangeOrdering(RangeCollationId? id, bool national)
     {
-        if (alphabetName is not null)
-        {
-            // TryResolveRangeAlphabet resolved (and recorded) the reference; this reads its definition again.
-            if (national && State.Configuration.NationalAlphabets.TryPeek(alphabetName, out var nd))
-                return nd.Locale is not null ? (null, false) : (nd.Table?.Collation(true), true);
-            if (!national && State.Configuration.Alphabets.TryPeek(alphabetName, out var ad))
-                return ad.Locale is not null ? (null, false) : (ad.Table?.Collation(false), true);
-            return (null, true);       // unresolved: TryResolveRangeAlphabet already reported it; native order
-        }
+        // TryResolveRangeAlphabet resolved (and recorded) the reference and made the carrier, which holds the definition's
+        // ordering; its class is the range's, which TryResolveRangeAlphabet took from the conditional variable's category.
+        if (id is { } named && SpecialNames.RangeCollation(named) is var collation)
+            return collation.Locale is not null ? (null, false) : (collation.Table?.Collation(collation.National), true);
         if (national)
             return State.Configuration.NationalCollating is { } pn
                 ? pn.Locale is not null ? (null, false) : (pn.Table?.Collation(true), true)
@@ -3808,7 +3804,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Int128? dynLengthLimit = null; // integer-1 of the LIMIT phrase (§2023:13.18.19.4 GR2); null = the phrase is absent
         string dynLengthLimitText = "";// integer-1 AS WRITTEN, for the COBOL2027 report
         string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name-1 (§2023:13.18.19.2)
-        Antlr4.Runtime.RuleContext? dynLengthStructureAt = null;   // where it is written: its §2023:8.3.2.2 use (PB3153)
+        Antlr4.Runtime.ParserRuleContext? dynLengthStructureAt = null;   // where it is written: its §2023:8.3.2.2 use (PB3153)
         DynamicLengthStructure? dynStructure = null;   // … and the SPECIAL-NAMES declaration it resolves to (SR2)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
         Core.ExternalizedNamePhraseContext? externalAs = null;   // the EXTERNAL clause's `AS literal-1` (§2023:13.18.22.2; kb/Work PB511)
@@ -4597,7 +4593,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // used to be refused outright as "not yet supported" (COBOL1562, retired): the clause it names had no
             // grammar at all (kb/Work PB829).
             else if (dynLengthStructureName is not null
-                     && !State.Configuration.DynamicLengthStructures.TryUse(dynLengthStructureAt, dynLengthStructureName, out dynStructure))
+                     && (dynStructure = Symbols.Identify(dynLengthStructureAt!, NameClass.DynamicLengthStructure, report: true)?.Symbol
+                         as DynamicLengthStructure) is null)
             {
                 Edition.Error(DiagnosticCatalog.DynamicLengthStructureReference, $"{entryWhere}: the DYNAMIC LENGTH "
                     + $"clause names '{dynLengthStructureName}', which is not a dynamic-length-structure-name "
@@ -4856,7 +4853,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             ? "ALL" + literal1.RawText
             // [ALL] symbolic-character-1 (§2023:8.3.3.6.2 Format 7; §2023:12.3.7.4 GR11 — kb/Work PB110): the figurative's ONE
             // character as an ALL literal of its class — GR2's fill in a VALUE association, exactly like ALL "c".
-            : op.nonNumericLiteral()?.figurativeConstant()?.cobolWord() is { } symAll && SymbolicRaw(symAll, symAll.GetText()) is { } rawAll
+            : op.nonNumericLiteral()?.figurativeConstant()?.cobolWord() is { } symAll && SymbolicRaw(symAll) is { } rawAll
             ? rawAll
             // A constant-name substitutes its literal AS WRITTEN and that literal then takes the path the written
             // literal takes (§2023:13.10.4 GR1 "as if literal-1 … were written"; kb/Work PB1230): `VALUE K` where
@@ -5025,13 +5022,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The raw <c>ALL"c"</c> text a symbolic-character VALUE operand substitutes (bare-word form), or
     /// null when the operand names no symbolic character (kb/Work PB110; the ConstantValueRawText shape).</summary>
     private string? SymbolicValueRawText(Core.ValueClauseOperandContext op) =>
-        BareValueOperandWord(op) is { } dref ? SymbolicRaw(dref, dref.GetText()) : null;
+        BareValueOperandWord(op) is { } dref ? SymbolicRaw(dref) : null;
 
     /// <summary>The raw ALL-literal text of the symbolic character named <paramref name="word"/>, or null: the
     /// class-prefixed re-quoted one-character literal (embedded delimiters doubled per §2023:8.3.3.2.3 r3). A
-    /// resolution, recorded as a use at <paramref name="site"/> (§2023:8.3.2.2; kb/Work PB3153).</summary>
-    private string? SymbolicRaw(Antlr4.Runtime.RuleContext site, string word) =>
-        SpecialNames.SymbolicOf(site, word) is not { } sym ? null
+    /// resolution of the written word, recorded as a use (§2023:8.3.2.2; kb/Work PB3153).</summary>
+    private string? SymbolicRaw(Antlr4.Runtime.ParserRuleContext word) =>
+        SpecialNames.SymbolicOf(word) is not { } sym ? null
         : "ALL" + (sym.National ? "N" : "") + "\"" + sym.Value.Replace("\"", "\"\"") + "\"";
 
     /// <summary>Build the <see cref="EditingPhraseSpec"/> list for a PICTURE clause's EDITING phrases
@@ -6372,7 +6369,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// reference counts it as one more candidate beside the level-88s (§2023:8.4.2.2.3 SR1).
     /// <para>"Same source element" is a TIER comparison (§2023:8.4.6.2.1 3): <see cref="ForestSlice.DeclaringDepth"/> places the 88
     /// (this element's own, or a container's GLOBAL one n levels out) and
-    /// <see cref="ConfigurationNames{T}.ContainmentDepth"/> places the switch, so a container's switch beside a
+    /// <see cref="SymbolTable.SwitchConditionDepth"/> places the switch, so a container's switch beside a
     /// container's GLOBAL 88 is the same pair, and an 88 NEARER than the switch is the item the reference names
     /// (§2023:8.4.6.1 "to the item which that source element describes", kb/Work PB3153). The switch is never the nearer
     /// one: only the outermost program of a unit declares a configuration section (COBOL1643, §2023:12.3.3 SR1) and every
@@ -6380,7 +6377,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal bool SwitchConditionCompetes(Core.DataReferenceContext dref, IReadOnlyList<Condition88> matches) =>
         matches.Count != 0 && dref.dataReferenceSuffix().Length == 0
         && dref.cobolWord()?.GetText() is { } name
-        && State.Configuration.SwitchConditions.ContainmentDepth(name) == State.Forest.DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
+        && Symbols.SwitchConditionDepth(name) == State.Forest.DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
 
     /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
     /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>

@@ -49,7 +49,7 @@ public sealed partial class FileControlBinder
             }
             // A symbolic-character is a figurative constant (§1985:IV.4.2.2.2.3 GR7; §2023:8.3.3.6.3 SR4), so it stands where the
             // format specifies literal-1 and is read before the word is tried as data-name-1 (kb/Work PB5420).
-            if (SymbolicCharacter(dref, dref.GetText(), _host.LiteralEnv) is { } symbolic)
+            if (SymbolicCharacter(dref, _host.LiteralEnv) is { } symbolic)
                 return new PaddingCharacterSpec { Literal = symbolic, At = Edition.Cursor };
             if (_host.LiteralEnv.IsSymbolicCharacter(dref.GetText()))   // a national symbolic-character: literal-1, but not alphanumeric
             {
@@ -96,7 +96,7 @@ public sealed partial class FileControlBinder
             // Format 7, ALL symbolic-character-1, one or more of the character the symbolic-character names (§1985:IV.4.2.2.2.3
             // GR7): one character here, so the ALL is redundant.
             if (fig.ALL() is not null && fig.cobolWord()?.GetText() is { } word)
-                return SymbolicCharacter(fig, word, env);
+                return SymbolicCharacter(fig.cobolWord(), env);
             return ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, env) is { } c ? c.ToString() : null;
         }
         // NULL is an identifier, not a literal (§2023:8.4.3.10.3 SR1): the one refusal, not the literal-shape verdict.
@@ -106,11 +106,11 @@ public sealed partial class FileControlBinder
         return CobolLiteral.ClassOf(token) == LiteralClass.Alphanumeric && CobolLiteral.Decode(token) is { Length: 1 } v ? v : null;
     }
 
-    /// <summary>The one character <paramref name="word"/> stands for when it names an alphanumeric symbolic-character bound at
-    /// <paramref name="site"/>, else null (a symbolic-character is a figurative constant, §1985:IV.4.2.2.2.3 GR7; a national
-    /// one is no one-character alphanumeric literal, §2002:12.3.4.10.2 SR1).</summary>
-    private static string? SymbolicCharacter(Antlr4.Runtime.RuleContext site, string word, LiteralEnvironment env) =>
-        env.IsSymbolicCharacter(word) && env.SymbolicOf(site, word) is { National: false } sym ? sym.Value : null;
+    /// <summary>The one character the written <paramref name="word"/> stands for when it names an alphanumeric symbolic-character,
+    /// else null (a symbolic-character is a figurative constant, §1985:IV.4.2.2.2.3 GR7; a national one is no one-character
+    /// alphanumeric literal, §2002:12.3.4.10.2 SR1).</summary>
+    private static string? SymbolicCharacter(Antlr4.Runtime.ParserRuleContext word, LiteralEnvironment env) =>
+        env.IsSymbolicCharacter(word.GetText()) && env.SymbolicOf(word) is { National: false } sym ? sym.Value : null;
 
     /// <summary>Screen a resolved data-name-1 (an unresolved one was reported by its resolution).</summary>
     private void ScreenPaddingDataName(PaddingCharacterSpec pad)

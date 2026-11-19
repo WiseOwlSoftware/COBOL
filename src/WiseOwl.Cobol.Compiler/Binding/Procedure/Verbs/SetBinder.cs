@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Symbols;
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
@@ -367,8 +368,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // the same spelling — "a source element's reference to such a name, even when it is a different type of
         // user-defined word, is to the item which that source element describes" (§2023:8.4.6.1; kb/Work PB3153) — so
         // the own-item test is asked first, and only the locale-name reading records the §2023:8.3.2.2 use.
-        if (to.ChildCount == 1 && ctx.Data.State.Configuration.Locales.Declares(toText) && !ctx.Refs.DescribesOwnItem(to)
-            && ctx.Data.State.Configuration.Locales.TryUse(to, toText, out var symbol))
+        if (to.ChildCount == 1 && ctx.Symbols.DeclaresConfigurationName(NameClass.Locale, toText) && !ctx.Refs.DescribesOwnItem(to)
+            && ctx.Symbols.Identify(to, NameClass.Locale, report: true)?.Symbol is LocaleSymbol symbol)
             return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.LocaleName, symbol, null);
         // identifier-10: an elementary data item of category data-pointer (SR27).
         if (ctx.Refs.Probe(to) is { } probe)

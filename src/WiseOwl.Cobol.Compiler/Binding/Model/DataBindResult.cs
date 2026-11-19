@@ -44,8 +44,10 @@ internal sealed class DataBindResult
     /// <summary>The LINKAGE / EXTERNAL facts the backend reads (<see cref="LinkageFacts"/>).</summary>
     public required LinkageFacts Linkage { get; init; }
 
-    /// <summary>The range-collation carriers of the ALPHABET clauses a relation reads (ISO §2023:12.3.7.4; keyed by alphabet-name).</summary>
-    public required IReadOnlyDictionary<string, RangeCollationCarrier> RangeCollations { get; init; }
+    /// <summary>The range-collation carriers of the ALPHABET clauses a THROUGH range's IN phrase names (ISO §2023:14.7.8 rule 2), in
+    /// the order first named: the fields the backend declares. Each range's node carries its carrier's position
+    /// (<see cref="RangeCollationId"/>).</summary>
+    public required IReadOnlyList<RangeCollationCarrier> RangeCollations { get; init; }
 
     /// <summary>The element's APPLY COMMIT clause (ISO §2023:12.4.6.3), or null when it writes none.</summary>
     public required ApplyCommitModel? ApplyCommit { get; init; }

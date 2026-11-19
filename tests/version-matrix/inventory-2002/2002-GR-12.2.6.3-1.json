@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-12.2.6.3-1",
  "rule-digest": "07c83ee74875",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Configuration.cs#MnemonicNamed",
  "test-ref": "conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002_special_names_reach_contained_program; conformance:cases/12.3.7-SPECIAL-NAMES/pb64t1_locale_scope_and_return",
- "notes": "§2002:12.2.6.3 GR1: a directly and an indirectly contained program reference the container's symbolic-character, device and feature mnemonic-names (DISPLAY UPON, SEND ADVANCING), class-name, alphabet-name, currency sign/symbol and switch condition-names (SYM=B ... J-SYM=B); locale-names by pb64t1_locale_scope_and_return (accept [2002]); the --std 2002 run matched."
+ "notes": "§2002:12.2.6.3 GR1: a directly and an indirectly contained program reference the container's symbolic-character, device and feature mnemonic-names (DISPLAY UPON, SEND ADVANCING), class-name, alphabet-name, currency sign/symbol and switch condition-names (SYM=B ... J-SYM=B); locale-names by pb64t1_locale_scope_and_return (accept [2002]); the --std 2002 run matched. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic (listing step 6b slice 4, kb/Work PB5932: the mnemonic-names moved into SymbolTable, resolved through SymbolTable.Identify; now src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Configuration.cs#MnemonicNamed)"
 }

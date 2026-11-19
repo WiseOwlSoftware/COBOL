@@ -441,7 +441,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
         if (ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, _d.LiteralEnv) is { } fill) return fill.ToString();
         if (fig.ALL() is not null && fig.cobolWord()?.GetText() is { } word && _d.LiteralEnv.IsSymbolicCharacter(word)
-            && _d.LiteralEnv.SymbolicOf(fig, word) is { } symbolic)
+            && _d.LiteralEnv.SymbolicOf(fig.cobolWord()) is { } symbolic)
         {
             if (!symbolic.National) return symbolic.Value;
             // A symbol declared SYMBOLIC CHARACTERS FOR NATIONAL is a NATIONAL figurative constant (§2023:12.3.7.4 GR11c), the
