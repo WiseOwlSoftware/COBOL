@@ -401,7 +401,8 @@ public sealed class ReferenceResolver(DataBinder data)
         // modification of an alphanumeric item like any other (§2023:8.4.3.3.3 SR1; X3.23-1985 USE FOR DEBUGGING general rule 10
         // describes DEBUG-CONTENTS as PICTURE X(n), kb/Work PB4858), so the register's place meets the reference-modification
         // tail below. A qualified DEBUG-* falls through to loud.
-        if (dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
+        // Only a program whose debugging section activated the family asks (the suffix list is an allocation per reference).
+        if (data.State.Implicit.DebugRegisters.Count > 0 && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
             && data.Symbols.Identify(dref.cobolWord(), NameClass.DebugRegister, report) is { Symbol: DebugRegisterPlace dbg })
         {
             var debugWritten = ReadWritten(dref);

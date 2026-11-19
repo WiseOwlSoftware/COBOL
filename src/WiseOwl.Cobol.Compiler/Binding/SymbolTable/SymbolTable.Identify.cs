@@ -52,8 +52,14 @@ internal readonly record struct WrittenQualifiedName(IToken Head, IReadOnlyList<
 {
     /// <summary>A <c>dataReference</c>'s name and the words of its qualifications (its subscripts and reference modifiers are not
     /// read).</summary>
-    public static WrittenQualifiedName Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref) =>
-        new(dref.cobolWord().Start, [.. dref.dataReferenceSuffix().Select(s => s.qualification()?.cobolWord().Start).OfType<IToken>()]);
+    public static WrittenQualifiedName Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref)
+    {
+        // Every subscript name and index operand is read so, so an unqualified reference allocates no list (section 9's budget).
+        List<IToken>? qualifiers = null;
+        foreach (var suffix in dref.dataReferenceSuffix())
+            if (suffix.qualification() is { } q) (qualifiers ??= []).Add(q.cobolWord().Start);
+        return new(dref.cobolWord().Start, qualifiers ?? (IReadOnlyList<IToken>)[]);
+    }
 
     /// <summary>The name at <paramref name="at"/> of a token list and the qualifiers written after it (<c>OF</c> or <c>IN</c>, then a
     /// word <paramref name="isWord"/> admits), and the index of the last token read.</summary>
@@ -74,7 +80,8 @@ internal readonly record struct WrittenQualifiedName(IToken Head, IReadOnlyList<
     public string Name => Head.Text;
 
     /// <summary>The qualifiers' words as written, innermost first.</summary>
-    public IReadOnlyList<string> QualifierWords => [.. Qualifiers.Select(static q => q.Text)];
+    public IReadOnlyList<string> QualifierWords =>
+        Qualifiers.Count == 0 ? [] : Qualifiers.Select(static q => q.Text).ToArray();
 }
 
 public sealed partial class SymbolTable
