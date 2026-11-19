@@ -379,7 +379,8 @@ public static class CompilerDriver
                     { Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = expansion.Files, Diagnostics = Reported(expansion.Diagnostics) };
             var artifact = backend.Emit(bound, new BackendOptions(
                 outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
-                RepositoryReferences: [.. bound.Imported.Assemblies, .. bound.Expansions.ReferencedAssemblies]));
+                RepositoryReferences: [.. bound.Imported.Assemblies, .. bound.Expansions.ReferencedAssemblies],
+                DocumentRoot: SourceDocuments.RootOf(options.SourcePath)));
             if (!artifact.Success)
                 return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                     artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)
@@ -388,6 +389,9 @@ public static class CompilerDriver
                         Diagnostics = Reported([.. expansion.Diagnostics, .. artifact.Diagnostics.Where(d => d.IsError)]),
                     };
 
+            // DESIGN-listing.md section 6.9: the listing's object-code map reads the assembly and its PDB, which the backend names.
+            string pdb = Path.GetFullPath(Path.ChangeExtension(outputDll, ".pdb"));
+            listing?.DepositObjectCode(outputDll, artifact.OutputFiles.Contains(pdb, StringComparer.Ordinal) ? pdb : null);
             return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [], warnings)
             {
                 Inputs = inputs, CompileOutput = diagnostics.CompileOutput, OutputFiles = [.. expansion.Files, .. artifact.OutputFiles],

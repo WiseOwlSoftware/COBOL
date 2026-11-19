@@ -27,6 +27,7 @@ public sealed class DiagnosticCursorColumnDriftTests
     private static readonly Dictionary<string, string> NotACursor = new(StringComparer.Ordinal)
     {
         ["SourceLocation.cs"] = "renders the 0-based SourceLocation as a 1-based file(line,column) string",
+        ["StatementSpan.cs"] = "a sequence point's 1-based column, made from the 0-based SourceLocation the one mapping returns (DESIGN-listing.md section 6.9)",
     };
 
     [Fact]

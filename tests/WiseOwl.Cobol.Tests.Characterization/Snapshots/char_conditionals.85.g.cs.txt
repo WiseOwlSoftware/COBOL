@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-CONDITIONALS:CHAR-CONDITIONALS" })]
 namespace Cobol.p;
 
@@ -45,32 +46,54 @@ internal sealed class _PRG_CHAR_CONDITIONALS : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (9, 12) - (13, 17) 21 "char_conditionals.cob"
                     if ((WS_N < 0))
+#line hidden
                     {
+#line (10, 16) - (10, 28) 25 "char_conditionals.cob"
                         global::System.Console.WriteLine("NEG");
+#line hidden
                     }
                     else
                     {
+#line (12, 16) - (12, 31) 25 "char_conditionals.cob"
                         global::System.Console.WriteLine("NONNEG");
+#line hidden
                     }
+#line (14, 12) - (16, 17) 21 "char_conditionals.cob"
                     if ((CobolClass.IsAlphabetic(WS_C)))
+#line hidden
                     {
+#line (15, 16) - (15, 30) 25 "char_conditionals.cob"
                         global::System.Console.WriteLine("ALPHA");
+#line hidden
                     }
+#line (17, 12) - (21, 23) 21 "char_conditionals.cob"
                     __sendval2_EVALUATE = CobolString.Store(WS_C, 1);
+#line hidden
                     if (CobolString.Compare(__sendval2_EVALUATE, "A") == 0)
                     {
+#line (18, 25) - (18, 38) 25 "char_conditionals.cob"
                         global::System.Console.WriteLine("IS-A");
+#line hidden
                     }
+#line (17, 12) - (17, 19) 26 "char_conditionals.cob"
                     else if (CobolString.Compare(__sendval2_EVALUATE, "B") == 0)
+#line hidden
                     {
+#line (19, 25) - (19, 38) 25 "char_conditionals.cob"
                         global::System.Console.WriteLine("IS-B");
+#line hidden
                     }
                     else
                     {
+#line (20, 27) - (20, 41) 25 "char_conditionals.cob"
                         global::System.Console.WriteLine("OTHER");
+#line hidden
                     }
+#line (22, 12) - (22, 19) 21 "char_conditionals.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

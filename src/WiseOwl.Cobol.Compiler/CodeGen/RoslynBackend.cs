@@ -5,6 +5,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -27,7 +28,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
     /// (<see cref="Neutral"/>; kb/Work PB4272).</remarks>
     public BackendArtifact Emit(Binding.Model.BoundCompilation program, BackendOptions options)
     {
-        string csharp = _emitter.EmitBound(program, options.AssemblyName, options.Inputs);
+        string csharp = _emitter.EmitBound(program, options.AssemblyName, options.Inputs, options.DocumentRoot);
         var written = new List<string>();
 
         string outDir = Path.GetDirectoryName(Path.GetFullPath(options.OutputPath)) is { Length: > 0 } d ? d : ".";
@@ -40,24 +41,31 @@ internal sealed class RoslynBackend : ICodeGenBackend
         // Main, no runtimeconfig.json, reached through its host entries and the sibling probe. ProgramEmitter.MainUnit is
         // the one answer, which EmitMain read too.
         bool library = ProgramEmitter.MainUnit(program.Units) is null;
-        var result = Compile(csharp, options.OutputPath, options.AssemblyName,
+        // DESIGN-listing.md section 6.9: the portable PDB beside the assembly holds each COBOL statement's sequence point.
+        string? pdbPath = options.EmitPdb ? Path.ChangeExtension(options.OutputPath, ".pdb") : null;
+        var result = Compile(csharp, options.OutputPath, pdbPath, options.AssemblyName,
             library ? OutputKind.DynamicallyLinkedLibrary : OutputKind.ConsoleApplication, options.RepositoryReferences ?? []);
         if (result.Success)
         {
             written.Add(Path.GetFullPath(options.OutputPath));
+            if (pdbPath is not null) written.Add(Path.GetFullPath(pdbPath));
             written.AddRange(AssemblyPackager.Package(options.OutputPath, library));   // P7 Step 2 — packaging off Compile
         }
-        return new BackendArtifact(result.Success, Neutral(result.Diagnostics), csPath,
+        return new BackendArtifact(result.Success, Neutral(result.Diagnostics, options.DocumentRoot), csPath,
             result.Success ? options.OutputPath : null, written, library);
     }
 
     /// <summary>Roslyn's diagnostics as the seam's backend-neutral <see cref="Frontend.Diagnostics.Diagnostic"/>s (kb/Work PB4272; DESIGN-listing.md section 6.3: one diagnostic record for every phase), each rendering the
     /// line Roslyn's own <see cref="Diagnostic.ToString"/> renders (its <c>DiagnosticFormatter</c>): the mapped source
     /// position when the diagnostic lies in a file, else none, and the message in the current UI culture.
-    /// <c>RoslynFreeSeamDriftTests</c> pins the two texts equal. A HIDDEN diagnostic (Roslyn's severity for
+    /// <c>RoslynFreeSeamDriftTests</c> pins the two texts equal for a diagnostic in no mapped file. A position a line directive maps to a
+    /// COBOL file names that file by its full path (<see cref="SourceDocuments.PathOf"/> of the directive's document name against
+    /// <paramref name="documentRoot"/>, <see cref="BackendOptions.DocumentRoot"/>; DESIGN-listing.md section 6.9), the path every other
+    /// reader of the compilation's files resolves, so the listing places it on its line and the command line names a file the user
+    /// can open from wherever the compiler ran. A HIDDEN diagnostic (Roslyn's severity for
     /// what is "not surfaced through normal means", such as an unnecessary using directive) is not a diagnostic of the
     /// compilation and is not carried.</summary>
-    internal static IReadOnlyList<Frontend.Diagnostics.Diagnostic> Neutral(IReadOnlyList<Diagnostic> diagnostics)
+    internal static IReadOnlyList<Frontend.Diagnostics.Diagnostic> Neutral(IReadOnlyList<Diagnostic> diagnostics, string? documentRoot)
     {
         var neutral = new List<Frontend.Diagnostics.Diagnostic>(diagnostics.Count);
         foreach (Diagnostic d in diagnostics)
@@ -71,21 +79,22 @@ internal sealed class RoslynBackend : ICodeGenBackend
                 _ => throw new System.Diagnostics.UnreachableException($"Roslyn diagnostic severity {d.Severity}"),
             };
             if (severity is { } s)
-                neutral.Add(new Frontend.Diagnostics.Diagnostic(d.Id, s, d.GetMessage(CultureInfo.CurrentUICulture), LocationOf(d.Location), default));
+                neutral.Add(new Frontend.Diagnostics.Diagnostic(d.Id, s, d.GetMessage(CultureInfo.CurrentUICulture), LocationOf(d.Location, documentRoot), default));
         }
         return neutral;
     }
 
     /// <summary>The position Roslyn's <c>DiagnosticFormatter</c> prints for <paramref name="location"/>: in a source, XML
-    /// or external file with a valid span, the mapped path (else the file's own) and the mapped start; otherwise none.</summary>
-    private static Frontend.Common.SourceLocation? LocationOf(Location location)
+    /// or external file with a valid span, the mapped file (else the file's own) and the mapped start; otherwise none. A mapped file is
+    /// named by its full path, resolved against <paramref name="documentRoot"/>.</summary>
+    private static Frontend.Common.SourceLocation? LocationOf(Location location, string? documentRoot)
     {
         if (location.Kind is not (LocationKind.SourceFile or LocationKind.XmlFile or LocationKind.ExternalFile))
             return null;
         FileLinePositionSpan span = location.GetLineSpan(), mapped = location.GetMappedLineSpan();
         if (!span.IsValid || !mapped.IsValid)
             return null;
-        string path = mapped.HasMappedPath ? mapped.Path : span.Path;
+        string path = mapped.HasMappedPath ? SourceDocuments.PathOf(mapped.Path, documentRoot) : span.Path;
         return new Frontend.Common.SourceLocation(path, location.SourceSpan.Start,
             mapped.StartLinePosition.Line, mapped.StartLinePosition.Character);
     }
@@ -102,11 +111,13 @@ internal sealed class RoslynBackend : ICodeGenBackend
     /// <see cref="AssemblyPackager"/>, invoked by <see cref="Emit"/> on success — the only writes here are the
     /// assembly itself and the failed-emit cleanup.
     /// </summary>
+    /// <param name="pdbPath">Where the portable PDB is written beside the assembly (DESIGN-listing.md section 6.9), or null for none. The
+    /// assembly names it by its file name alone, so the assembly's bytes do not depend on the directory it is written to.</param>
     /// <param name="assemblyName">The emitted assembly's simple name (the COBOL PROGRAM-ID).</param>
     /// <param name="outputKind">The assembly's kind (DESIGN-external-repository §7.2).</param>
     /// <param name="repositoryReferences">The assemblies of the external repository the generated code names a type of
     /// (<see cref="BackendOptions.RepositoryReferences"/>): referenced beside the framework and the runtime.</param>
-    public static Result Compile(string csharpSource, string outputDllPath, string assemblyName, OutputKind outputKind,
+    public static Result Compile(string csharpSource, string outputDllPath, string? pdbPath, string assemblyName, OutputKind outputKind,
         IReadOnlyList<string> repositoryReferences)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(
@@ -140,8 +151,19 @@ internal sealed class RoslynBackend : ICodeGenBackend
         // compilation or a running program reading the output directory (a repository directory, §7.4) never sees a
         // partial assembly, and a failed Emit — which leaves a partial/0-byte file, the swept phantom-RUNERR class
         // (ST133A/ST134A/SQ203A) — deletes only its temporary and leaves the previous build in place.
+        // The PDB follows the same protocol: written to its own temporary in the same emit, renamed over its target after the assembly.
         EmitResult? emit = null;
-        OutputFileProtocol.Replace(outputDllPath, temporary => (emit = compilation.Emit(temporary)).Success);
+        if (pdbPath is null)
+            OutputFileProtocol.Replace(outputDllPath, temporary => (emit = compilation.Emit(temporary)).Success);
+        else
+            OutputFileProtocol.Replace(pdbPath, pdbTemporary => OutputFileProtocol.Replace(outputDllPath, temporary =>
+            {
+                using var pe = File.Create(temporary);
+                using var pdb = File.Create(pdbTemporary);
+                emit = compilation.Emit(pe, pdb, options: new EmitOptions(
+                    debugInformationFormat: DebugInformationFormat.PortablePdb, pdbFilePath: Path.GetFileName(pdbPath)));
+                return emit.Success;
+            }));
         return new Result(emit!.Success, emit.Diagnostics);
     }
 

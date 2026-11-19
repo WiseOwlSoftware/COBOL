@@ -30,8 +30,8 @@ public sealed class ImportedTypeCollisionTests
         try
         {
             string library = Path.Combine(dir, "Collide.dll");
-            Assert.True(RoslynBackend.Compile(Library, library, "Collide", OutputKind.DynamicallyLinkedLibrary, []).Success);
-            var r = RoslynBackend.Compile(source, Path.Combine(dir, "Caller.dll"), "Caller", OutputKind.DynamicallyLinkedLibrary, [library]);
+            Assert.True(RoslynBackend.Compile(Library, library, null, "Collide", OutputKind.DynamicallyLinkedLibrary, []).Success);
+            var r = RoslynBackend.Compile(source, Path.Combine(dir, "Caller.dll"), null, "Caller", OutputKind.DynamicallyLinkedLibrary, [library]);
             Assert.False(r.Success);
             Assert.Contains(r.Diagnostics, d => d.Id == code && d.Severity == DiagnosticSeverity.Error);
         }
@@ -45,8 +45,8 @@ public sealed class ImportedTypeCollisionTests
         try
         {
             string library = Path.Combine(dir, "Collide.dll");
-            Assert.True(RoslynBackend.Compile(Library, library, "Collide", OutputKind.DynamicallyLinkedLibrary, []).Success);
-            Assert.True(RoslynBackend.Compile("namespace Mine { public class Use { global::P2104.Twin T; } }", Path.Combine(dir, "Clean.dll"),
+            Assert.True(RoslynBackend.Compile(Library, library, null, "Collide", OutputKind.DynamicallyLinkedLibrary, []).Success);
+            Assert.True(RoslynBackend.Compile("namespace Mine { public class Use { global::P2104.Twin T; } }", Path.Combine(dir, "Clean.dll"), null,
                 "Clean", OutputKind.DynamicallyLinkedLibrary, [library]).Success);
         }
         finally { ScratchDirectory.Remove(dir); }

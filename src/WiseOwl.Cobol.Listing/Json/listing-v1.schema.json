@@ -1164,6 +1164,130 @@
         "files"
       ]
     },
+    "objectCode": {
+      "description": "The COBOL to object-code map read from the assembly and its PDB, its instructions when the object-code section was asked for; null when neither the object-code map nor the object code was asked for, or the compilation wrote no assembly.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "assembly": {
+          "description": "The path of the assembly the map was read from, as the compilation wrote it.",
+          "type": "string"
+        },
+        "methods": {
+          "description": "Every method of the assembly that holds the code of a statement of the listing, in metadata order.",
+          "type": "array",
+          "items": {
+            "description": "A method of the assembly that holds the code of statements of the listing.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "1-based, in metadata order.",
+                "type": "integer"
+              },
+              "token": {
+                "description": "The method's metadata token (ECMA-335 II.22.26, table 0x06).",
+                "type": "integer"
+              },
+              "type": {
+                "description": "The full name of the type that declares the method, a nested type after its enclosing type and a '/'.",
+                "type": "string"
+              },
+              "name": {
+                "description": "The method's name in the metadata.",
+                "type": "string"
+              },
+              "codeSize": {
+                "description": "The size of the method's IL body in bytes.",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "id",
+              "token",
+              "type",
+              "name",
+              "codeSize"
+            ]
+          }
+        },
+        "ranges": {
+          "description": "Every stretch of a statement's object code, in listing order (by line, then column, then method and IL offset). A statement compiled more than once (a statement the compiler emits in two places) has a range for each.",
+          "type": "array",
+          "items": {
+            "description": "One stretch of a COBOL statement's object code.",
+            "type": "object",
+            "properties": {
+              "line": {
+                "description": "The listing line the statement begins on.",
+                "type": "integer"
+              },
+              "column": {
+                "description": "The 1-based character position of the statement's first character in that line's text.",
+                "type": "integer"
+              },
+              "method": {
+                "description": "The Id of the method holding the code.",
+                "type": "integer"
+              },
+              "start": {
+                "description": "The IL offset of the statement's sequence point.",
+                "type": "integer"
+              },
+              "end": {
+                "description": "The IL offset after the stretch: the next statement's sequence point in the method, or the end of its body.",
+                "type": "integer"
+              },
+              "instructions": {
+                "description": "The IL instructions of the stretch, in order, when the object-code section was asked for; null otherwise.",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "description": "One IL instruction (ECMA-335 partition III), decoded from the method body.",
+                  "type": "object",
+                  "properties": {
+                    "offset": {
+                      "description": "The instruction's IL offset in its method.",
+                      "type": "integer"
+                    },
+                    "opCode": {
+                      "description": "The instruction's name (ldarg.0, call, br.s).",
+                      "type": "string"
+                    },
+                    "operand": {
+                      "description": "The operand as text, or null for an instruction that takes none: a number, a quoted string, a branch target as IL_xxxx, a switch's targets, or the type, field or method a token names (Type::Member).",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "offset",
+                    "opCode"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "line",
+              "column",
+              "method",
+              "start",
+              "end"
+            ]
+          }
+        }
+      },
+      "required": [
+        "assembly",
+        "methods",
+        "ranges"
+      ]
+    },
     "sections": {
       "description": "Each section the listing was asked for, in the order of ListingSection: produced, or why not (DESIGN-listing.md section 4.3). A section not asked for has no entry and its part of the document is empty: the lines and the DISPLAY transfers are the source section's, the diagnostics the diagnostics section's. The header, the files, the inclusions and the programs are always present, since the lines and every page heading refer to them.",
       "type": "array",
@@ -1172,14 +1296,16 @@
         "type": "object",
         "properties": {
           "section": {
-            "description": "The section. Source: The source section: every physical line of every file read, with the DISPLAY directive's transfers. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end. Options: The options in effect: every option with its value and whether it is the default, the compiler and the host. Statistics: The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with its count and its lines. DataMap: The data map and the file map: every data item, condition-name, index-name, constant-name, report-name, cd-name and file-name with its level, offset, lengths, usage, picture and the .NET field it became, and each file's keys, reports and connector; and, in the source section, each data description line's offset, length and usage in the margin.",
+            "description": "The section. Source: The source section: every physical line of every file read, with the DISPLAY directive's transfers. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end. Options: The options in effect: every option with its value and whether it is the default, the compiler and the host. Statistics: The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with its count and its lines. DataMap: The data map and the file map: every data item, condition-name, index-name, constant-name, report-name, cd-name and file-name with its level, offset, lengths, usage, picture and the .NET field it became, and each file's keys, reports and connector; and, in the source section, each data description line's offset, length and usage in the margin. ObjectMap: The object-code map: each COBOL statement's method and IL offset range, read from the assembly the compilation wrote and its portable PDB. ObjectCode: The object code: under each COBOL statement, its IL instructions, decoded from the assembly the compilation wrote.",
             "enum": [
               "Source",
               "Programs",
               "Diagnostics",
               "Options",
               "Statistics",
-              "DataMap"
+              "DataMap",
+              "ObjectMap",
+              "ObjectCode"
             ]
           },
           "produced": {

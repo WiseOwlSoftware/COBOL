@@ -3,6 +3,7 @@
 // </auto-generated>
 #nullable enable
 #pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to
+#line hidden
 [assembly: global::WiseOwl.Cobol.Runtime.Repository.CobolRepositoryAttribute(2, "{RUNTIME-VERSION}", {CALL-ABI}, Registrar = "Cobol.p.__CobolModule", CompilerVersion = "{COMPILER-VERSION}", Edition = 85, HasSignatures = true, Units = new string[] { "0:CHAR-CALL:CHAR-CALL" })]
 namespace Cobol.p;
 
@@ -48,11 +49,16 @@ internal sealed class _PRG_CHAR_CALL : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
+#line (8, 12) - (8, 52) 21 "char_call.cob"
                     var __ident0 = _scell_WS_ARG;
+#line hidden
                     ProgramRegistry.CallProgram("CHAR-SUB", "CHAR-CALL", new CobolArg[] { new CobolArg(CobolPassMode.Reference, ManagedPointer<string>.OverField(() => CobolString.Window(__ident0.Ref, (int)(0 + 1), 4), __v => { __ident0.Ref = CobolString.WindowInto(__ident0.Ref, (int)(0 + 1), 4, CobolString.Store(__v, 4)); }), new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 }, Area: new CellPointer(__ident0, 0)) }, null);
                     global::WiseOwl.Cobol.Runtime.IO.CobolSort.AfterActivationReturn();   // §2023:14.9.40.4 GR17 - a declarative's EXIT PROGRAM / GOBACK ended the SORT this activation ran in
+#line (9, 12) - (9, 25) 21 "char_call.cob"
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(CobolNum.SendingImage(CobolString.Window(_redef_WS_ARG, (int)(0 + 1), 4), _P_0), _P_0, false));
+#line (10, 12) - (10, 19) 21 "char_call.cob"
                     throw new StopRun();
+#line hidden
                 }
                 default:
                 {

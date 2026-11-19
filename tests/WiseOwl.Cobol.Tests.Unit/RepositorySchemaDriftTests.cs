@@ -89,7 +89,9 @@ public sealed class RepositorySchemaDriftTests
     [Fact]
     public void RepositoryMetadata_IsReadOnlyThroughTheTwoHalves()
     {
-        string[] halves = ["RepositoryIndex.cs", "RepositoryReader.cs"];
+        // The source listing's object-code map reads an assembly the compilation itself wrote, its method bodies and its PDB, and no
+        // repository attribute (DESIGN-listing.md section 6.9): its three readers are no half of the repository.
+        string[] halves = ["IlDisassembler.cs", "MetadataNames.cs", "ObjectCodeMapReader.cs", "RepositoryIndex.cs", "RepositoryReader.cs"];
         var readers = new List<string>();
         int files = 0;
         foreach (string path in Directory.EnumerateFiles(TestRepo.At("src"), "*.cs", SearchOption.AllDirectories)

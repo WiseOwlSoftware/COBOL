@@ -74,12 +74,20 @@ public sealed class JsonListingWriterTests
                 new ListingFileKey("REC", [1], false), [new ListingFileKey("N", [2], true)], null, [7], "MAIN.F", null),
              new ListingFileEntry(2, "S", null, null, null, true, "SEQUENTIAL", "SEQUENTIAL", [], false, true, null, [], 2, [], "S",
                 "__fkey_S")]),
+        new ListingObjectCodeMap("out/main.dll",
+            [new ListingMethod(1, 0x06000002, "Cobol.main.MAIN", "__Run", 40), new ListingMethod(2, 0x06000005, "Cobol.main.MAIN/Inner", "Go", 2)],
+            [new ListingObjectRange(4, 8, 1, 0, 12,
+                [new ListingInstruction(0, "ldarg.0", null), new ListingInstruction(1, "ldstr", "\"HELLO\""),
+                 new ListingInstruction(6, "call", "WiseOwl.Cobol.Runtime.Display::Line"), new ListingInstruction(11, "ret", null)]),
+             new ListingObjectRange(4, 20, 2, 0, 2, null)]),
         [new ListingSectionStatus(ListingSection.Source, true, null),
          new ListingSectionStatus(ListingSection.Programs, false, "the bind refused the program"),
          new ListingSectionStatus(ListingSection.Diagnostics, true, null),
          new ListingSectionStatus(ListingSection.Options, true, null),
          new ListingSectionStatus(ListingSection.Statistics, true, null),
-         new ListingSectionStatus(ListingSection.DataMap, true, null)]);
+         new ListingSectionStatus(ListingSection.DataMap, true, null),
+         new ListingSectionStatus(ListingSection.ObjectMap, true, null),
+         new ListingSectionStatus(ListingSection.ObjectCode, false, "the backend wrote no PDB")]);
 
     /// <summary>Each line as a value: a record's list member compares by reference, so a line's diagnostic ids are compared as a
     /// sequence beside the rest of it.</summary>
@@ -95,7 +103,7 @@ public sealed class JsonListingWriterTests
     {
         var json = Written(EveryMember());
         Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "displays",
-            "options", "statistics", "dataMap", "sections"], json.Select(p => p.Key));
+            "options", "statistics", "dataMap", "objectCode", "sections"], json.Select(p => p.Key));
         Assert.Equal("urn:wiseowl:cobol:listing:v1", (string?)json["$schema"]);
         Assert.Equal("1.0", (string?)json["schemaVersion"]);
     }

@@ -141,7 +141,7 @@ public sealed class RoslynFreeSeamDriftTests
         Assert.Contains(roslyn, d => d.Severity == DiagnosticSeverity.Hidden);      // the unnecessary using
 
         var carried = roslyn.Where(d => d.Severity != DiagnosticSeverity.Hidden).ToList();
-        var neutral = RoslynBackend.Neutral(roslyn);
+        var neutral = RoslynBackend.Neutral(roslyn, documentRoot: null);
         Assert.Equal(carried.Select(d => d.ToString()), neutral.Select(d => d.ToString()));
         Assert.Equal(carried.Select(d => d.Severity == DiagnosticSeverity.Error), neutral.Select(d => d.IsError));
         Assert.Equal(carried.Select(d => d.Id), neutral.Select(d => d.Code));
