@@ -2753,7 +2753,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// Format-3 state is copied by <see cref="Condition88.CopyOnto"/>, and — unlike the template's copy — it IS
     /// registered in the global by-name index (a clone's condition-names ARE referenceable). D17 inc 3.
     /// <para>⛔ THE FIELD LIST LIVES ON THE MODEL, NOT HERE (kb/Work PB555). This method used to copy the VALUE set
-    /// and nothing else, so a clone silently lost the <c>IN alphabet-name-1</c> phrase — §2023:14.7.8 rule 2's sequence
+    /// and nothing else, so a clone silently lost the <c>IN alphabet-name-1</c> phrase — §2023:14.7.8 GR2's sequence
     /// fell back to the program default and every THRU range the clone tested could answer differently from the
     /// template's. One copier next to the state, with a drift test, is what stops the next added field from
     /// repeating it.</para></summary>
@@ -3207,7 +3207,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                             // "Alphabet-name-1 may be specified only when the literals specified in the THROUGH
                             // phrase are of class alphanumeric or national", which governs WHEN the
                             // IN alphabet-name-1 phrase may be written and never makes the range
-                            // unimplementable. §2023:14.7.8 rule 2 is the rule that actually governs the range —
+                            // unimplementable. §2023:14.7.8 GR2 is the rule that actually governs the range —
                             // "When the range of values is defined by alphanumeric or national literals, the
                             // range of values depends on the collating sequence used for evaluation of the
                             // range" — and ConditionRenderer has rendered exactly that since PB678 put
@@ -3285,7 +3285,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // `[ IN alphabet-name-1 ]` — printed AFTER the repeated literal group and BEFORE the
                     // `[ WHEN SET TO FALSE … ]` line, so it is resolved here, between the two. ONE alphabet
                     // governs the whole VALUE set (the bracket stands outside the group's ellipsis), and it is
-                    // §2023:14.7.8 rule 2's collating sequence for every THRU range in it.
+                    // §2023:14.7.8 GR2's collating sequence for every THRU range in it.
                     // ⛔ IT USED TO BE PARSED AND DROPPED — a SILENT WRONG ANSWER, measured: under
                     // `ALPHABET AL IS "ZYXW…A"`, `88 X VALUE "M" THRU "A" IN AL` answered NO for the value "C"
                     // that AL's ordering puts inside the range, because the range was weighed natively
@@ -3323,7 +3323,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // `[ WHEN SET TO FALSE IS literal-4 ]` on the line after the operand list), so the
                     // diagnostics a malformed entry produces come out in source order. It is bound AFTER the
                     // alphabet because §2023:13.18.63.3 SR27 b) weighs literal-4 against the ranges in the sequence
-                    // §2023:14.7.8 rule 2 gives them, which `cond.Collation` is what names.
+                    // §2023:14.7.8 GR2 gives them, which `cond.Collation` is what names.
                     BindFalsePhraseOperand(value, parent, cond);
                 }
 
@@ -3474,7 +3474,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// KNOWN, and SR26's NOTE says when it is not: "<i>The runtime collating sequence is unknown when the
     /// collating sequence is defined by a locale or the collating sequence is otherwise determined at runtime</i>".
     /// This processor fixes every other sequence at compile time — the <c>IN alphabet-name-1</c> phrase's alphabet
-    /// (§2023:14.7.8 rule 2) or, absent it, the PROGRAM COLLATING SEQUENCE — so a LOCALE alphabet is the only arm that
+    /// (§2023:14.7.8 GR2) or, absent it, the PROGRAM COLLATING SEQUENCE — so a LOCALE alphabet is the only arm that
     /// drops the screen, and it drops it rather than guessing. The ordering itself is the runtime's own
     /// <c>CobolCollation.Compare</c>, reached through <c>CollatingTable.Collation</c>: one §2023:8.8.4.2.7 comparison,
     /// not a compile-time paraphrase of it.</para>
@@ -3508,7 +3508,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             if (hi is null) continue;
             // a) / b) — RANGE membership. b) fires only where the runtime collating sequence is KNOWN (SR26's
             // NOTE: a LOCALE sequence is not); a) is §2023:14.7.8 rule 1's algebraic order and is always known. An
-            // INVERTED range is EMPTY (§2023:14.7.8 rule 2's last paragraph — it raises EC-RANGE-INVALID and
+            // INVERTED range is EMPTY (§2023:14.7.8 GR2's last paragraph — it raises EC-RANGE-INVALID and
             // "execution proceeds as if the range of values were empty"), so nothing can be inside it and the
             // test is skipped rather than inverted. SR26 refuses the inversion ITSELF (CheckRangesAscending,
             // COBOL2961, under the same Known), so an inverted pair reaches here only behind its error.
@@ -3593,7 +3593,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Order two operand VALUES: negative / zero / positive as the first is less than, equal to or
     /// greater than the second, and NULL when either names no value the compiler can weigh or the two are not
-    /// comparable at all. A character pair is ordered by §2023:14.7.8 rule 2's sequence
+    /// comparable at all. A character pair is ordered by §2023:14.7.8 GR2's sequence
     /// (<see cref="ConditionValueOrder"/>), an algebraic pair by rule 1's algebraic order.
     /// <para>A MIXED pair reaching here means the entry already violates the category funnel (§2023:13.18.63.3
     /// SR2/SR4/SR5/SR10, reported by <c>ValidateValueCategory</c>) on a subject whose two spellings have no common
@@ -3608,7 +3608,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return null;
     }
 
-    /// <summary>§2023:14.7.8 rule 2's collating sequence for one condition-name's VALUE set — the <c>IN
+    /// <summary>§2023:14.7.8 GR2's collating sequence for one condition-name's VALUE set — the <c>IN
     /// alphabet-name-1</c> phrase's alphabet, or the PROGRAM COLLATING SEQUENCE — resolved AT MOST ONCE and
     /// only when a character comparison actually asks for it, because building the carrier materializes a weight
     /// block and most VALUE sets never reach one. <see cref="Known"/> is SR26's NOTE ("<i>The runtime collating
@@ -3712,7 +3712,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             System.Globalization.CultureInfo.InvariantCulture, out decimal v) ? v : null;
     }
 
-    /// <summary>The ordering a level-88 THROUGH range is evaluated in (ISO §2023:14.7.8 rule 2) AS THE COMPILER KNOWS
+    /// <summary>The ordering a level-88 THROUGH range is evaluated in (ISO §2023:14.7.8 GR2) AS THE COMPILER KNOWS
     /// IT: the <c>IN alphabet-name-1</c> alphabet when the clause writes one, else the PROGRAM COLLATING SEQUENCE
     /// (§2023:12.3.6), else the native order. <c>Known</c> is false exactly for §2023:13.18.63.3 SR26 NOTE's unknowable arm
     /// — a LOCALE sequence, whose ordering is the locale current at each use (§2023:12.3.7.4 GR7e) — and its consumers

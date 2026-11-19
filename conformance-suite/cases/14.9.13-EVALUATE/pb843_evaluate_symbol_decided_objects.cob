@@ -23,10 +23,10 @@
       *>
       *> EXPECTED VALUES. ALPHABET AL IS "ZYXWVUTSRQPONMLKJIHGFEDCBA": a literal phrase assigns ascending
       *> positions in written order (12.3.7.4 GR7 k), so pos(M)=13, pos(C)=23, pos(A)=25. No PROGRAM
-      *> COLLATING SEQUENCE is declared, so with no phrase 14.7.8 rule 2's implementor arm is the NATIVE order.
+      *> COLLATING SEQUENCE is declared, so with no phrase 14.7.8 GR2's implementor arm is the NATIVE order.
       *> WS-C = "C".
       *>   A  `WS-LO THRU WS-HI IN AL`, WS-LO = "M", WS-HI = "A": 13 <= 23 <= 25            -> A-IN
-      *>      (with no phrase, native "M" > "A" is an inverted range, empty by 14.7.8 rule 2 -> A-OUT)
+      *>      (with no phrase, native "M" > "A" is an inverted range, empty by 14.7.8 GR2 -> A-OUT)
       *>   B  `"A" THRU WS-H2 IN GRP2` - GRP2 is a GROUP, so IN GRP2 stays a qualifier: WS-H2 OF GRP2 = "D",
       *>      native "A" <= "C" <= "D"                                                       -> B-IN
       *>   C  `"M" THRU WS-H2 IN GRP1 IN AL` - the first IN qualifies, the LAST names the alphabet:

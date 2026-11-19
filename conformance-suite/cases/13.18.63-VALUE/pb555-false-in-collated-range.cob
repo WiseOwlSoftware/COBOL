@@ -11,10 +11,10 @@
 *> ⛔ THIS CASE IS UNREACHABLE UNDER THE NATIVE SEQUENCE, WHICH IS THE POINT. Under MYALPH the ordinals
 *> are Z=1, Y=2, X=3, A=4, so "Z" THRU "X" is an ASCENDING range that CONTAINS "Y" — and literal-4 =
 *> "Y" is therefore a value the condition-name is TRUE for. Under the native sequence the same written
-*> range is INVERTED ('Z'=0x5A collates after 'X'=0x58), 14.7.8 rule 2 makes it EMPTY, and no literal-4
+*> range is INVERTED ('Z'=0x5A collates after 'X'=0x58), 14.7.8 GR2 makes it EMPTY, and no literal-4
 *> could ever be inside it: a compiler that ignored the IN alphabet-name-1 phrase, or that weighed the
 *> range natively, would accept this program. It pins that the SR27 screen consults the sequence
-*> 14.7.8 rule 2 gives the range, through the SAME CobolCollation.Compare the generated program uses.
+*> 14.7.8 GR2 gives the range, through the SAME CobolCollation.Compare the generated program uses.
 *> COBOL2048. Its conforming twin (literal-4 = "A", outside the range) is exercised by
 *> conformance-suite/cases/13.18.63-VALUE/pb555_value_false_phrase's native-ordered leg.
 IDENTIFICATION DIVISION.

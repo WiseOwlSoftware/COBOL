@@ -1224,7 +1224,7 @@ internal static class RuntimeApi
 
     /// <summary>Alphanumeric/national THROUGH-range membership under the effective collating sequence —
     /// <c>CobolString.ThruMember(read, lo, hi{collate})</c>: sets the nonfatal EC-RANGE-INVALID and returns false when
-    /// <c>lo</c> collates after <c>hi</c> (§2023:14.7.8 rule 2), else the inclusive bound test. <paramref name="collate"/>
+    /// <c>lo</c> collates after <c>hi</c> (§2023:14.7.8 GR2), else the inclusive bound test. <paramref name="collate"/>
     /// is the trailing collating-arg fragment (empty for the default, <c>, __COLLATE</c> / <c>, __COLLATE_NAT</c>
     /// otherwise) selecting the matching <c>Compare</c> overload.</summary>
     public static string ThruMember(string read, string lo, string hi, string collate) =>
@@ -1232,7 +1232,7 @@ internal static class RuntimeApi
 
     /// <summary>The same carrier when one or both range ends is a FIGURATIVE SEED —
     /// <c>CobolString.ThruMemberFig(read, lo, hi, loFig:, hiFig:{collate})</c>, which sizes each figurative end to
-    /// <c>read</c>'s own runtime character-position count (ISO §2023:8.3.3.6.4 GR2) before §2023:14.7.8 rule 2's inversion
+    /// <c>read</c>'s own runtime character-position count (ISO §2023:8.3.3.6.4 GR2) before §2023:14.7.8 GR2's inversion
     /// test. A SEPARATE runtime name for the same reason <c>CompareFig</c> is one beside <c>Compare</c> — the
     /// collating overload set stays collapsed to its two sequence channels. The flags are named so the generated
     /// text says which end carries the seed (kb/Work PB401).</summary>

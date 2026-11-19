@@ -36,7 +36,7 @@
       *> excludes twice over -- and a guard in DataBinder.BindCondition skipped the screen to keep it
       *> green. The BRACKET ORDER this program exists to pin is unchanged: IN alphabet-name-1 first, the
       *> WHEN SET TO FALSE bracket second. ORDER1 is still `yes` and the expectation is DERIVED, not
-      *> measured: AL1 IS STANDARD-1, so 14.7.8 rule 2 orders "A" < "B" < "C" and C2 = "B" is inside the
+      *> measured: AL1 IS STANDARD-1, so 14.7.8 GR2 orders "A" < "B" < "C" and C2 = "B" is inside the
       *> range; SR26's ascending-endpoint requirement is satisfied by the same ordering.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB695VALFW.

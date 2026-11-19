@@ -6,7 +6,7 @@
 *>---
       *> kb/Work PB1015 - the THROUGH range's [ IN alphabet-name-1 ] phrase is a COBOL-2002 addition
       *> (constructs.json range-in-alphabet-2002; the edge is DERIVED - the 2023 Annex E covers 2014->2023 only,
-      *> and COBOL-85's EVALUATE and VALUE formats carry a bare THROUGH pair). 14.7.8 rule 2: "When the IN
+      *> and COBOL-85's EVALUATE and VALUE formats carry a bare THROUGH pair). 14.7.8 GR2: "When the IN
       *> alphabet-name phrase is specified, the collating sequence used for range evaluation is the collating
       *> sequence defined by that alphabet." Every spelling is gated at the ONE resolver, because the phrase is
       *> decided by symbol, not position:

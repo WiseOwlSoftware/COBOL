@@ -18,7 +18,7 @@
       *>    The first case below is that rule's OWN NOTE 1: "IF a GO TO x ELSE GO TO y END-IF. If an
       *>    exception condition was raised during the evaluation of 'a', transfer would be after the
       *>    END-IF even though control normally would never be passed there." The inverted THROUGH
-      *>    range (14.7.8 rule 2) is raised during the evaluation of the IF's condition, so NEITHER
+      *>    range (14.7.8 GR2) is raised during the evaluation of the IF's condition, so NEITHER
       *>    branch runs and control lands after the END-IF => RI-DECL then AFTER-IF, with no
       *>    RI-THEN / RI-ELSE line. (That is the whole point of the NOTE: without the RESUME the
       *>    range is empty and RI-ELSE would run - which is what pb367b_nonfatal_runtime_dispatch

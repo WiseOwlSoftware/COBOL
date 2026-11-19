@@ -621,7 +621,7 @@ public sealed record SortCollation(AlphabetDef? Alphanumeric, NationalAlphabetDe
 
 /// <summary>
 /// One per-runtime-module carrier for a collating sequence a THROUGH range's <c>IN alphabet-name-1</c> phrase names
-/// (ISO §2023:14.7.8 rule 2). It is made by <c>SpecialNamesBinder.TryResolveRangeAlphabet</c> when the phrase resolves, and
+/// (ISO §2023:14.7.8 GR2). It is made by <c>SpecialNamesBinder.TryResolveRangeAlphabet</c> when the phrase resolves, and
 /// the range's node carries its identity (<see cref="Id"/>: <c>BoundRangeMembership.Collation</c>,
 /// <c>Condition88.Collation</c>); its field is declared by <c>ObjectComputerEmit</c> in the type of the unit that
 /// made it, and a contained program that renders the node reaches it through that type (<c>CodeGen.Emit.RangeCollationFields</c>;

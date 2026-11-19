@@ -2194,7 +2194,7 @@ identical stdout; now the committed goldens, R69). The remaining items below sta
     class alphabetic operand are "treated as" elementary alphanumeric — and §2023:8.8.4.2.5's numeric integer against an
     alphanumeric operand). `EmitContext.CollateArgFor(left, right)` takes the PAIR, so a caller cannot supply half a
     comparison, and all four relation surfaces go through it: the direct relation, the figurative relation, the
-    level-88 membership test (§2023:8.8.4.5.3 GR2) and the EVALUATE THRU range (§2023:14.7.8 rule 2). ⛔ The two classifiers
+    level-88 membership test (§2023:8.8.4.5.3 GR2) and the EVALUATE THRU range (§2023:14.7.8 GR2). ⛔ The two classifiers
     must stay separate: folding the comparison onto `Of` made `IF numeric-item < SPACE` take the SORT-key answer
     ("numeric ⇒ no sequence") and silently drop the PROGRAM COLLATING SEQUENCE — NIST NC215A SEQ-TEST-GF-6/-7.
     `CollatingComparisonClassDriftTests` pins the whole category matrix and the exact pair where they disagree.

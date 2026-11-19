@@ -132,12 +132,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     // for every other range (kb/Work PB398).
     public string Visit(BoundRangeMembership n)
     {
-        // The range test is a PAIR of relation conditions (§2023:14.7.8 rule 2 over §2023:8.8.4.2), so its collating
+        // The range test is a PAIR of relation conditions (§2023:14.7.8 GR2 over §2023:8.8.4.2), so its collating
         // sequence comes from the ONE comparison-class rule over BOTH operands — not from a local "is either
         // side national" test, which read `Place.Item.Pic` and so missed a national GROUP (Pic null, the
         // §2023:13.18.29.4 GR2b as-if PICTURE lives on OperandPic), a national ref-mod slice and a national function
         // result, handing all three the alphanumeric 256-entry weight table (kb/Work PB741 sweep).
-        // §2023:14.7.8 rule 2 — an IN alphabet-name-1 phrase names the sequence OUTRIGHT ("the collating sequence used
+        // §2023:14.7.8 GR2 — an IN alphabet-name-1 phrase names the sequence OUTRIGHT ("the collating sequence used
         // for range evaluation is the collating sequence defined by that alphabet"), so it displaces the
         // categories' own answer, PROGRAM COLLATING SEQUENCE included: a range written `IN STANDARD-1` collates
         // natively inside a program whose PCS reorders the alphabet. An identity alphabet registers no carrier and
@@ -182,7 +182,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// rule 2's EC-RANGE-INVALID, by two different spellings (kb/Work PB1477: the 88 folded a figurative end to
     /// the variable's DECLARED width while the EVALUATE range sized it at run time).
     /// <para><paramref name="checkInvalid"/> selects <c>ThruMember</c> / <c>ThruMemberFig</c>, which add exactly
-    /// the §2023:14.7.8 rule 2 EC-set; unchecked, the test is the inclusive bound pair the relation lowering produces
+    /// the §2023:14.7.8 GR2 EC-set; unchecked, the test is the inclusive bound pair the relation lowering produces
     /// (§2023:14.9.13.4 GR4 a) 5.) — emitting the carrier with checking off would set a nonfatal EC no >>TURN asked
     /// for. <paramref name="weights"/> is the trailing pad / collation fragment.</para></summary>
     private static string RenderStringRange(string read, MembershipOperand lo, MembershipOperand hi, bool checkInvalid,
@@ -1054,7 +1054,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     }
 
     /// <summary>The trailing collation argument for a THROUGH range, when its clause named one with
-    /// <c>IN alphabet-name-1</c> (ISO §2023:14.7.8 rule 2 — "the collating sequence used for range evaluation is the
+    /// <c>IN alphabet-name-1</c> (ISO §2023:14.7.8 GR2 — "the collating sequence used for range evaluation is the
     /// collating sequence defined by that alphabet"): the alphabet's carrier, or nothing when it is an identity
     /// sequence, whose ordering IS the native one. ⛔ It DISPLACES the categories' own answer, PROGRAM COLLATING
     /// SEQUENCE included — that default is precisely what rule 2's no-phrase arm gives and what the phrase is for.
@@ -1065,7 +1065,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         : ctx.CollateArgFor(left, right);
 
     /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.
-    /// When <paramref name="checkRangeInvalid"/> and the range is alphanumeric/national (§2023:14.7.8 rule 2), the range
+    /// When <paramref name="checkRangeInvalid"/> and the range is alphanumeric/national (§2023:14.7.8 GR2), the range
     /// test routes through <c>CobolString.ThruMember</c> which sets the nonfatal EC-RANGE-INVALID for an inverted
     /// range (lo collating after hi) and treats it as empty.</summary>
     private string RenderMembershipTest(string read, DataItem parent, PicCategory? cat, bool isString, string low,
@@ -1114,13 +1114,13 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
                     ? $"{RuntimeApi.StrCompareFig(read, lo.Text, figIsLeft: false, pad + collate)} == 0"
                     : $"{RuntimeApi.StrCompare(read, lo.Text, pad + collate)} == 0";
             var hi = StringMembershipOperand(high, parent, cat);
-            // §2023:14.7.8 rule 2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
+            // §2023:14.7.8 GR2: an alphanumeric/national THRU range under checking routes through ThruMember (sets the
             // nonfatal EC-RANGE-INVALID for an inverted range, then treats it as empty — the empty behaviour is
             // otherwise emergent from the inclusive test). Boolean/other categories keep the inline form.
             // The class that governs the COMPARISON, not the raw category — the same pair rule the collate
             // argument above asks (§2023:8.8.4.5.3 GR2; the pair is the variable's category twice, as stated there).
             // ForComparison(null, null) is the ALPHANUMERIC branch (an ordinary group item, ISO §2023:8.8.4.2.1), so
-            // an alphanumeric GROUP's 88 range now reaches §2023:14.7.8 rule 2's exception exactly as its elementary
+            // an alphanumeric GROUP's 88 range now reaches §2023:14.7.8 GR2's exception exactly as its elementary
             // twin does. Boolean and numeric ranges keep the inline form (§2023:14.7.8 rule 1 sets no
             // exception; a boolean subject may not carry THROUGH at all, §2023:13.18.63.3 SR29).
             // ⛔ THE ONE §2023:14.7.8 rule-1/rule-2 predicate, the same call the EVALUATE range's EC gate and

@@ -151,7 +151,7 @@ public sealed class PartialExpressionSpineDriftTests
             + $"object. Order: [{string.Join(" | ", alts)}]");
     }
 
-    /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §2023:14.9.13.2's range-expression; §2023:14.7.8 rule 2) —
+    /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §2023:14.9.13.2's range-expression; §2023:14.7.8 GR2) —
     /// present, and present on the EVALUATE range specifically. Its VALUE-clause twin lives in
     /// <c>CobolData.g4</c>'s <c>valueClause</c>, where §2023:14.7.8's first sentence puts it. IN is an OPTIONAL word in
     /// both (not underlined, §2023:5.2.3; kb/Work PB983): the EVALUATE rule admits it omitted, and the VALUE clause's

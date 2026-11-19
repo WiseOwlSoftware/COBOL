@@ -1062,11 +1062,11 @@ public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool 
 
 /// <summary>An alphanumeric/national THRU-range membership test (the EVALUATE WHEN <c>lo THRU hi</c> form, and the
 /// carrier for EC-RANGE-INVALID checking): <c>Left</c> is within [<c>Lo</c>, <c>Hi</c>] in the effective collating
-/// sequence. When <paramref name="CheckInvalid"/> and <c>lo</c> collates after <c>hi</c> (§2023:14.7.8 rule 2) the nonfatal
+/// sequence. When <paramref name="CheckInvalid"/> and <c>lo</c> collates after <c>hi</c> (§2023:14.7.8 GR2) the nonfatal
 /// EC-RANGE-INVALID is set and the range is treated as empty — realized by the runtime <c>CobolString.ThruMember</c>
 /// (the empty behaviour is already emergent from the inclusive-bound test, so only the EC-set is added).
 /// <para><paramref name="Collation"/> is the collating sequence alphabet-name-1 of the range's <c>IN</c> phrase names (its carrier's
-/// identity, <see cref="RangeCollationId"/>), or null when the phrase is absent. §2023:14.7.8 rule 2 makes it the ordering outright — "the collating sequence used for range
+/// identity, <see cref="RangeCollationId"/>), or null when the phrase is absent. §2023:14.7.8 GR2 makes it the ordering outright — "the collating sequence used for range
 /// evaluation is the collating sequence defined by that alphabet" — so it OVERRIDES the implementor default, which
 /// for this compiler is the PROGRAM COLLATING SEQUENCE: a range under <c>IN STANDARD-1</c> collates natively even
 /// inside a program whose PCS reorders the alphabet. The identity of the carrier the one resolver made rides here
