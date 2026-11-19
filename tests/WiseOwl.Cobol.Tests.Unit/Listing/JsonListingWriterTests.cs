@@ -103,7 +103,7 @@ public sealed class JsonListingWriterTests
     {
         var json = Written(EveryMember());
         Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "displays",
-            "options", "statistics", "dataMap", "sections"], json.Select(p => p.Key));
+            "options", "statistics", "dataMap", "objectCode", "sections"], json.Select(p => p.Key));
         Assert.Equal("urn:wiseowl:cobol:listing:v1", (string?)json["$schema"]);
         Assert.Equal("1.0", (string?)json["schemaVersion"]);
     }

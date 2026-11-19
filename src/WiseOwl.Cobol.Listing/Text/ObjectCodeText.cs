@@ -33,6 +33,7 @@ public static class ObjectCodeText
     {
         var methods = map.Methods.ToDictionary(m => m.Id);
         var text = lines.ToDictionary(l => l.Number, l => l.Text);
+        if (map.Ranges.Count == 0) yield return "No statement of the listing compiled to object code.";
         bool first = true;
         foreach (var range in map.Ranges)
         {
