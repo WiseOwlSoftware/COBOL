@@ -4156,7 +4156,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the outermost qualifier of the entry (§2023:8.4.2.2.2 Format 1).</item>
     /// <item>SR5's <c>identifier-1</c> — "it shall specify a numeric data item NOT defined in the report
     /// section". Both halves of that sentence are screened: resolution against ordinary storage (report-section
-    /// names never enter <see cref="ForestSlice.ByName"/>) and the CATEGORY, which nothing checked before —
+    /// names never enter the symbol table's data-names) and the CATEGORY, which nothing checked before —
     /// <c>SUM WS-TXT</c> over a <c>PIC X(6)</c> holding "123456" totalled 123456 per GENERATE, silently.</item>
     /// </list>
     /// The SUBSCRIPT is deliberately absent from this method: the arm choice is about the base name, and the

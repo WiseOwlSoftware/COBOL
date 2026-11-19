@@ -84,15 +84,14 @@ internal static class BackendContract
             "Model.OoClassSymbol._factoryMethods", "Model.OoInterfaceSymbol.Name", "Model.OoInterfaceSymbol.ExternalizedName",
             "Model.OoInterfaceSymbol._protos", "Model.OoMethodSymbol.Name",
             "Model.OoMethodSymbol.ExternalizedName", "Model.OoMethodSymbol._externalizedName", "Model.OoMethodSymbol.PropertyName",
-            "Model.OoMethodSymbol.SourceName", "Model.OoMethodDataScope.ByName", "Model.OoMethodDataScope.Conditions",
+            "Model.OoMethodSymbol.SourceName",
             // the standard class BASE and its two §2023:16.2 method-names, in compiler.model since kb/Work PB2403
             "Model.OoStandardClasses.BaseName", "Model.OoStandardClasses.NewMethodName",
             "Model.OoStandardClasses.FactoryObjectMethodName",
-            // the name tables of the frozen data binding a backend reads (DataBindResult, kb/Work PB2361): data-, condition-,
-            // screen- and file-names, and the alphabet-names of the range-collation carriers (the capacity-register, index- and
-            // type-names are the symbol table's since listing step 6b, kb/Work PB5932)
-            "Model.ForestSlice.ByName", "Model.ForestSlice._byName", "Model.ForestSlice.Conditions", "Model.ForestSlice._conditions",
-            "Model.ForestSlice.ScreenNames", "Model.ForestSlice._screenNames", "Model.DataBindResult.RangeCollations",
+            // the alphabet-names of the range-collation carriers the frozen data binding hands a backend (DataBindResult, kb/Work
+            // PB2361; the data-, condition-, screen-, capacity-register, index- and type-names are the symbol table's since listing
+            // step 6b, kb/Work PB5932, and no backend reads them)
+            "Model.DataBindResult.RangeCollations",
         ]),
         new(NeutralKind.ClrName,
         [

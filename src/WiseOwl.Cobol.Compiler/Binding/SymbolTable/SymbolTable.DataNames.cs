@@ -85,8 +85,8 @@ public sealed partial class SymbolTable
         foreach (var (name, items) in _dataNames) yield return (name.Word, items);
     }
 
-    /// <summary>The level-88 entries a SELECT WHEN clause of <paramref name="record"/> may name (§2023:13.18.51.3 SR3): every
-    /// condition-name of the spelling the clause carries, resolved from the record that carries it as slice 6 resolved a
+    /// <summary>The level-88 entries a SELECT WHEN clause of <paramref name="record"/> may name (§2023:13.18.51.1: the clause
+    /// "specifies a condition-name condition under which a record description entry is associated" with a record): every condition-name of the spelling the clause carries, resolved from the record that carries it as slice 6 resolved a
     /// restricted pointer's prototype from its item (section 6.7.1, "A name a SYMBOL carries is resolved by the table from the
     /// symbol"). Empty when the record has no SELECT WHEN condition-name.</summary>
     internal IReadOnlyList<Condition88> SelectWhenConditionsOf(DataItem record) =>

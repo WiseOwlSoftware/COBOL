@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding;
 /// The registers the standard (or the 1985 debug module) describes IMPLICITLY, so no DATA DIVISION entry declares them
 /// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296 M6): the X3.23-1985 <c>DEBUG-ITEM</c> family
 /// and the predefined object reference <c>EXCEPTION-OBJECT</c>. A value slice of <see cref="DataBindState"/>, kept OFF
-/// <see cref="ForestSlice.ByName"/> and <see cref="ForestSlice.Roots"/> like the CAPACITY register: it is not storage this
+/// the symbol table's data-names and <see cref="ForestSlice.Roots"/> like the CAPACITY register: it is not storage this
 /// program declares or emits; the resolver builds a <see cref="DebugRegisterPlace"/> or an <see cref="ExceptionObjectPlace"/>
 /// VIEW over the runtime's. Its writers are the procedure table builder (the debug family, activated when a procedure-subject
 /// debugging declarative is collected) and the first reference to <c>EXCEPTION-OBJECT</c> (synthesized on demand).

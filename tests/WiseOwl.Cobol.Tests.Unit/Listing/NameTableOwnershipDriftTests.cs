@@ -51,7 +51,8 @@ public sealed class NameTableOwnershipDriftTests
     /// type-names, the CAPACITY register names and the index-names: 7 tables, 22 lookups, 93 sites; 104 at the closing slice's first
     /// commit, which keyed the USE and WHEN registers by the file a file-name identified and classified the words of the standard and
     /// the externalized names: 7 tables, 22 lookups, 75 sites; 93 at its second, which moved the data-name, condition-name and
-    /// screen-name tables of the element and of each method into the table: 1 table, 22 lookups, 70 sites).</summary>
+    /// screen-name tables of the element and of each method into the table: 1 table, 22 lookups, 70 sites; 86 at its end, with the end
+    /// markers, the flag pass's file-name, the index-name pre-filter and the version pass's level-01 keys: 1 table, 22 lookups, 63 sites).</summary>
     private const int BaselineCeiling = 86;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is

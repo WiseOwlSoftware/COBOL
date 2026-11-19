@@ -314,7 +314,7 @@ public sealed partial class FileControlBinder
     /// <para>A GROUP and not an elementary PIC X(n): the distinction is observable. §2023:14.9.25.4 makes a MOVE whose
     /// sending operand is a group item a group (alphanumeric) move, so <c>READ … INTO</c> a numeric receiver copies
     /// bytes; an elementary alphanumeric sender would instead convert. GR6 says "group item", so a group it is.</para>
-    /// <para>The record is kept OFF <see cref="ForestSlice.ByName"/>: the entry is IMPLIED, so it has no record-name and the
+    /// <para>The record is kept OFF the symbol table's data-names: the entry is IMPLIED, so it has no record-name and the
     /// program cannot reference it (which is also why §2023:13.4.5.3 SR3 b/c require the FILE … FROM and INTO phrases on
     /// the verbs). It IS on <see cref="ForestSlice.Roots"/>, because it is real storage that has to emit.</para></summary>
     private void MaterializeImpliedRecord(FileModel file, string fdName, CsNameScope rootNames)

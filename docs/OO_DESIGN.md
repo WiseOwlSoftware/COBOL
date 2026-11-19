@@ -83,10 +83,11 @@ declares, or the CLASS-ID is therefore legal (§2023:8.4.6.1), until that half i
 index-name or register) spelled like a SYMBOLIC CHARACTERS name of the class is the item a reference there names (§2023:8.4.6.1): the half hides
 the inherited symbolic after it binds (`InheritStep.DropShadowed`), and a method's names hide it, and an
 object constant-name, at reference time (`OoDataBinder.ActiveMethodDeclares`; kb/Work PB3154 review R1-1). That method tier is
-`DataBinder.MethodDeclares`, which asks the method's model scope, `OoMethodDataScope.IndexesDeclare` (EVERY name index the scope holds: `ByName`, `Conditions`, `IndexNames`,
-`CapacityRegisters` and the method's type declarations, `TypeDecls`, kb/Work PB3192), and the symbol table's half, `SymbolTable.MethodDeclaresWord`
+`SymbolTable.MethodDeclaresWord`, which asks every table of the method the symbol table keeps, `SymbolTable.MethodNames.Declares` (its
+`DataNames`, `ConditionNames`, `TypeNames`, `CapacityRegisters` and `IndexNames`, kb/Work PB3192; listing step 6b moved each off the model
+scope, kb/Work PB5932), and the method's words that are not table entries
 (the method's constant entries, kb/Work PB3164, and the words its data description entries declare before they bind, `OtherWords`, a type declaration's
-members excepted, §2023:13.18.58.4 GR1; binder working state, kept per method by the class half's `SymbolTable` and never on the model scope, kb/Work PB2402); `GlobalNameClassDriftTests.MethodDeclares_AsksEveryMethodNameIndex` finds the scope's indexes by reflection and holds both halves to it (a method's `01 X CONSTANT AS 7` that the predicate missed let `IF X` test the object's level-88 `X`, kb/Work PB3153 review round 3), so an
+members excepted, §2023:13.18.58.4 GR1; binder working state, kept per method by the class half's `SymbolTable` and never on the model scope, kb/Work PB2402); `GlobalNameClassDriftTests.MethodDeclares_AsksEveryMethodNameIndex` finds the method's tables by reflection and holds `Declares` to each (a method's `01 X CONSTANT AS 7` that the predicate missed let `IF X` test the object's level-88 `X`, kb/Work PB3153 review round 3), so an
 index added to the scope is asked too (kb/Work PB3165: when a method's registers moved into the method's own scope, a hand-written list
 kept asking the class's register index and the method's register stopped hiding the symbolic). Every `SymbolTable` lookup with a
 method tier asks the same predicate after its own name class's method index: `TryResolve`, `TryResolveCondition`, `IndexCandidates`,

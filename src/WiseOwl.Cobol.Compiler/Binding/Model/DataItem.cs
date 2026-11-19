@@ -739,7 +739,7 @@ public sealed class DataItem
     }
 
     /// <summary>The level-88 condition-names whose conditional variable is THIS item (ISO §2023:13.16.3 SR24). Normally these
-    /// also live in <c>ForestSlice.Conditions</c> (the global by-name index), but a TYPEDEF template keeps them ONLY
+    /// also live in the symbol table's condition-names (the by-name index), but a TYPEDEF template keeps them ONLY
     /// here — its condition-names are not globally referenceable (§2023:13.18.58.4 GR1) until a <c>TYPE</c> reference
     /// clones the item, at which point the clone's copies ARE registered globally (data-model D17 inc 3).</summary>
     [DescriptionCopy(DescriptionCopyKind.None,

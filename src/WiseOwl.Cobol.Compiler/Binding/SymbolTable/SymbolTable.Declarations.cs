@@ -179,9 +179,9 @@ public sealed partial class SymbolTable
         /// The item in source element A if the name is declared in source element A. 2. The item in the containing
         /// source element if the name is not declared in source element A and is declared in the source element
         /// containing source element A." A condition-name is placed by its conditional variable.
-        /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only <see cref="ForestSlice.ByName"/> (kb/Work PB3154
+        /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only the data-names, <c>_dataNames</c> (kb/Work PB3154
         /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§2023:13.18.38.3 SR30) kept off
-        /// <see cref="ForestSlice.ByName"/> in the table's own register table (<c>CapacityRegisterDeclaredNearerThan</c>), placed by its table
+        /// the data-names in the table's own register table (<c>CapacityRegisterDeclaredNearerThan</c>), placed by its table
         /// (a METHOD's own register is never in that index: it lives in the method's <c>MethodNames</c>, the method tier
         /// <see cref="OoDataBinder.ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
         /// counter is a data-name too (§2023:13.18.54.4 GR5) kept off it in the table's sum counters, placed by its report

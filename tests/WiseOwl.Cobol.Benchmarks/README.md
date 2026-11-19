@@ -775,6 +775,28 @@ causes: an index-name ask answered an `IdentifiedName` around its boxed candidat
 each read; it now reads each once, when it is made, and allocates no list for an unqualified name); and the CAPACITY register arm,
 which every data reference asks first, read the word's text before asking the table (it now asks first). With them the `None` rows lie
 below main's on IX113A (0.6 MB), NC105A (0.4 MB) and SM201A, and NC218A straddles it. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, the closing slice's first session (kb/Work PB5932, the data-name, condition-name and screen-name tables moved into
+`SymbolTable`, the USE and WHEN file registers keyed by the file, one end-marker question): the `None` row against the parent.** The
+slice changes the table every data-name and condition-name lookup reads, so it measures the no-listing path. Measured on 2026-11-19,
+Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FrontEndAndBind*'` on the parent `6fda8efbac` and the `listing-step-6b-close` branch (74b5a8cb08), alternating
+(parent, branch, branch, parent). Allocated bytes per front end and bind, the two runs of each tree:
+
+| Program | Listing | Parent 6fda8efbac | Branch 74b5a8cb08 |
+|---|---|---|---|
+| IX113A | None | 68.33, 68.33 MB | 68.32, 68.29 MB |
+| NC105A | None | 34.61, 34.71 MB | 34.60, 35.26 MB |
+| NC218A | None | 30.68, 30.64 MB | 30.61, 30.66 MB |
+| SM201A | None | 15.30, 15.25 MB | 15.27, 15.28 MB |
+| IX113A | Text | 76.24, 76.19 MB | 76.10, 76.07 MB |
+| IX113A | All | 96.67, 96.78 MB | 96.75, 96.71 MB |
+
+Reading them: IX113A's, NC218A's and SM201A's branch `None` rows lie inside the parent's two runs or below them (by at most 0.04 MB
+above, SM201A's second); NC105A's first branch run is below both parent runs and its second is 0.55 MB above them, inside the program's
+own run-to-run spread on one tree (slice 3 measured NC105A's `None` row from 34.90 to 35.64 MB on one branch, and 35.15 to 35.78 MB on
+its parent). The moves replace a dictionary per name class with one of the same shape in another type and allocate nothing per
+reference, so the slice moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

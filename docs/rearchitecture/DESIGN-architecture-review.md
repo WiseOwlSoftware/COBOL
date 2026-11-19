@@ -720,8 +720,8 @@ walk found too: LANDED, kb/Work PB2401, into the bind session's `SourceMap`); PB
 types) to `Binding/Model` (LANDED: `Binding.Model → Compiler.Oo` 5 → 2, `Binding.Bound → Compiler.Oo` 6 → 1, no row grew),
 after an Extract gave `OoMethodDataScope`'s binder working state a binder-side home: its §2023:8.3.2.2 census is the class
 table's per method symbol (`OoClassTable.CensusOf(OoMethodSymbol)`), its constant tables the class half's
-`ConstantEntryBinder` keeps per method, and "does the method declare this word" is `DataBinder.MethodDeclares` over the
-model scope's `IndexesDeclare` and the binder's half, since moved with the scope they would have added
+`ConstantEntryBinder` keeps per method, and "does the method declare this word" is `SymbolTable.MethodDeclaresWord` over the
+method's tables in the symbol table (listing step 6b, kb/Work PB5932), since moved with the scope they would have added
 `Binding.Model → Binding` pairs (kb/Work PB2402's what-if). Five members the backend contract (DESIGN-backend-abstraction
 §6) would read as C# by name were renamed for what they carry: `FactoryOrInstanceClrNames`, `ImplementedClrNames`,
 `RunUnitKey`, `HalfKey` and `ImportedFrom.AssemblyFile`; PB2403 moves `AdapterPair`, `OoStandardClasses` (its closure is model types only) and the two crossing-form predicates (`ActivationCrossing.StringCarried` / `LeafCarried`, out of `OoClassTable`) to `Binding/Model` (step 1: `CodeGen → Compiler.Oo` 13 → 8, `Binding.Model → Compiler.Oo` 2 → 1), and turns the remaining OO answers — the class lists, the imported types, the RAISING class names and the activation descriptions — into data the bound compilation carries (step 2, LANDED: `BoundCompilation.Interfaces` / `Imported`, and `BackendAnswers` writes the descriptions, the resolved RAISING entries and an external file's entry identity onto the unit, method and file nodes at the end of the bind; `CodeGen → Compiler.Oo` and `Binding.Model → Compiler.Oo` read zero); PB2399 ends the
