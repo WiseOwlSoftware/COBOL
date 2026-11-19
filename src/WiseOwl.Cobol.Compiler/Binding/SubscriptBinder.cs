@@ -259,17 +259,6 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         TableSubject subject, out List<Position> outerIndexExprs) =>
         ReadSubscripts(dref, table, SubscriptGroupOf(dref), out outerIndexExprs, subject);
 
-    /// <summary>⛔ A DATA REFERENCE FOLLOWED BY EMPTY PARENTHESES — <c>WS-X()</c> or <c>WS-X( )</c> — is neither
-    /// form a parenthesis after a data-name can take (kb/Work PB969): §2023:8.4.2.3.2 writes a subscript list as
-    /// <c>( subscript … )</c>, at least one subscript, and §2023:8.4.3.3.2 a reference modifier as
-    /// <c>( leftmost-position : [ length ] )</c>, a required leftmost position. Returns <see langword="true"/> when
-    /// the reference is rejected, so the caller returns null.
-    /// <para>The GRAMMAR admits the empty group because the same parenthesis carries a keyword-omitted
-    /// function-identifier's argument list, where §2023:8.4.3.2.2 brackets the arguments inside the parentheses and
-    /// <c>F()</c> is the zero-argument spelling — only the resolved symbol tells a function from a data item, and
-    /// a name that reached THIS resolver resolved to a data item. Unscreened, <c>DISPLAY WS-X( )</c> compiled CLEAN
-    /// and aborted at RUN time on NotImplementedCobolFeatureException while the receiving side drew COBOL0899's
-    /// "not yet implemented". It is asked of the written GROUP, before the subscript interpreter.</para></summary>
     /// <summary>THE test for an empty written parenthesis group — no subscript list inside it (kb/Work PB969). One
     /// definition for every reader that must refuse <c>X()</c> on a data reference.</summary>
     internal static bool IsEmptyGroup(Core.SubscriptPartContext group) => group.subscriptList() is null;
@@ -285,6 +274,17 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             + "with no arguments (ISO §2023:8.4.3.2.2).")
         + " Remove the parentheses, or write the subscript.";
 
+    /// <summary>⛔ A DATA REFERENCE FOLLOWED BY EMPTY PARENTHESES — <c>WS-X()</c> or <c>WS-X( )</c> — is neither
+    /// form a parenthesis after a data-name can take (kb/Work PB969): §2023:8.4.2.3.2 writes a subscript list as
+    /// <c>( subscript … )</c>, at least one subscript, and §2023:8.4.3.3.2 a reference modifier as
+    /// <c>( leftmost-position : [ length ] )</c>, a required leftmost position. Returns <see langword="true"/> when
+    /// the reference is rejected, so the caller returns null.
+    /// <para>The GRAMMAR admits the empty group because the same parenthesis carries a keyword-omitted
+    /// function-identifier's argument list, where §2023:8.4.3.2.2 brackets the arguments inside the parentheses and
+    /// <c>F()</c> is the zero-argument spelling — only the resolved symbol tells a function from a data item, and
+    /// a name that reached THIS resolver resolved to a data item. Unscreened, <c>DISPLAY WS-X( )</c> compiled CLEAN
+    /// and aborted at RUN time on NotImplementedCobolFeatureException while the receiving side drew COBOL0899's
+    /// "not yet implemented". It is asked of the written GROUP, before the subscript interpreter.</para></summary>
     private bool ScreenEmptyParentheses(Core.DataReferenceContext dref, Core.SubscriptPartContext group)
     {
         if (!IsEmptyGroup(group)) return false;

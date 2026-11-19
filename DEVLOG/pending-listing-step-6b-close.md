@@ -20,6 +20,13 @@ origin/main 6fda8efbac, after every lane had landed, and ends at 86. It does not
 - Ten comparisons that resolve no written name were classified (five words of the standard or the implementor, five externalized or
   compilation-variable names).
 
+**Review round 1** (kb/Work PB5932's dated file `2026-11-19-listing-step-6b-close-review-r1`): which file holds a record is one
+question, `SymbolTable.FileWhoseRecordIs`, asked by the binder's record-name-1 rule and by the flag pass. The flag pass asks every file
+question of the element's table: in a FACTORY or OBJECT method `WRITE FREC` was not flagged under FLAG-14 WRITE-END-OF-PAGE while
+`WRITE FILE FF` to the same LINAGE file was, a FILE STATUS test went unflagged, and a method's own USE declaratives were not read. All
+three are flagged now (new Unit test, red at the round's base). `EndMarkerAgrees` cites §2023:10.7.3 SR2 and SR4 to SR9 where it
+cited "SR1 to SR6". Four misplaced doc comments are back on their members; the 39 elsewhere are kb/Work PB5946.
+
 **What remains** (kb/Work PB5932's dated file `2026-11-19-step-6b-close`, by class): the data-names' and condition-names' resolution by
 text (22 lookups, about 100 call sites), their declaration sites, the §2023:8.3.2.2 census, the compilation group's function units and
 the parameterized expansion. The next slice converts the lookups to the typed `IdentifyDataName` the data-name lane named.

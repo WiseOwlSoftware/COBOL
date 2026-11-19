@@ -6,8 +6,9 @@ namespace WiseOwl.Cobol.Binding;
 
 public sealed partial class SymbolTable
 {
-    /// <summary>Does an end marker's name repeat the name its source unit's header declares (§2023:10.7.3 SR1 to SR6: END PROGRAM,
-    /// END FUNCTION, END CLASS, END INTERFACE and END METHOD)? A question of the parse tree, asked before any element's table exists
+    /// <summary>Does an end marker's name repeat the name its source unit's header declares (§2023:10.7.3 SR2 and SR4 to SR9: END
+    /// PROGRAM for a program, SR2, and a program prototype, SR8; END CLASS, SR4; END METHOD, SR5; END INTERFACE, SR6; END
+    /// FUNCTION for a user function, SR7, and a function prototype, SR9)? A question of the parse tree, asked before any element's table exists
     /// (as <see cref="IdentifyConstantBeforeBind"/> is), and answered with the table's one name equality: two written words, both
     /// declarations, compared here so that no pass beside the table compares COBOL names (docs/rearchitecture/DESIGN-listing.md
     /// section 6.7.1, "Equality of COBOL names is private too").</summary>
@@ -16,7 +17,7 @@ public sealed partial class SymbolTable
 
     /// <summary>Does an END PROGRAM or END FUNCTION marker name one of <paramref name="programs"/> (the program-names of the
     /// source units of one nesting chain: the containers still open, or the programs the unit contains)? The marker then stands
-    /// where another unit's belongs (§1985:X.2.5.3 SR3, the markers out of order).</summary>
+    /// where another unit's belongs (§2023:10.7.3 SR3, §1985:X.2.5.3 SR3: the markers out of order).</summary>
     internal static bool EndMarkerNamesAny(ParserRuleContext endName, IEnumerable<ParserRuleContext> programs)
     {
         var key = Key(endName.GetText());

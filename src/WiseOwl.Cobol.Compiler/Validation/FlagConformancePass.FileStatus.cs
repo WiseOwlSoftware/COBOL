@@ -39,29 +39,18 @@ namespace WiseOwl.Cobol.Validation;
 /// </summary>
 internal sealed partial class FlagConformancePass
 {
-    /// <summary>Whether any file visible from the current unit — its own, or a container's — names a FILE STATUS item
-    /// (the cheap guard before a condition is scanned; a level-88 can only hang on such an item).</summary>
-    private bool FileStatusReferencesPossible
-    {
-        get
-        {
-            for (var unit = _currentUnit; unit is not null; unit = unit.Parent)
-                if (_binders.Of(unit).Data.State.Files.Declared.Any(f => f.FileStatusItem is not null)) return true;
-            return false;
-        }
-    }
+    /// <summary>Whether any file of the current element or its containers names a FILE STATUS item (the cheap guard before a
+    /// condition is scanned; a level-88 can only hang on such an item).</summary>
+    private bool FileStatusReferencesPossible =>
+        _currentData?.Symbols.FilesOfContainingChain.Any(f => f.FileStatusItem is not null) == true;
 
-    /// <summary>Whether <paramref name="item"/> IS the data item some file in the current unit or a containing program
+    /// <summary>Whether <paramref name="item"/> IS the data item some file of the current element or a containing program
     /// specified in its FILE STATUS clause (the data item itself: reference identity, never its name). A container's
     /// FD need not be GLOBAL for its status item to be referenced from a contained program (the item's own GLOBAL
-    /// clause makes it visible), so every file of the chain counts here, unlike <see cref="VisibleFiles"/>.</summary>
-    private bool IsFileStatusItem(DataItem item)
-    {
-        for (var unit = _currentUnit; unit is not null; unit = unit.Parent)
-            foreach (var file in _binders.Of(unit).Data.State.Files.Declared)
-                if (ReferenceEquals(file.FileStatusItem, item)) return true;
-        return false;
-    }
+    /// clause makes it visible), so every file of the chain counts (<see cref="SymbolTable.FilesOfContainingChain"/>);
+    /// a method's are its FACTORY or OBJECT half's.</summary>
+    private bool IsFileStatusItem(DataItem item) =>
+        _currentData?.Symbols.FilesOfContainingChain.Any(f => ReferenceEquals(f.FileStatusItem, item)) == true;
 
     /// <summary>The subject of an abbreviated combined relation in flight (§2023:8.8.4.12.4 GR1): the leftmost operand of the
     /// last preceding stated relation of the SAME condition, which every succeeding elided relation takes as its own.</summary>

@@ -1481,7 +1481,16 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     - *An end marker's name is the table's question at every kind of unit (correction).* The OO lane made `ClassNames.EndMarkerAgrees`
       for END CLASS, END INTERFACE and END METHOD, while END PROGRAM and END FUNCTION still compared text in `EndMarkerPass`.
       `SymbolTable.EndMarkerAgrees` and `EndMarkerNamesAny` (the test that the markers of nested programs are out of order) answer all five, before any
-      element's table exists, from the written contexts.
+      element's table exists, from the written contexts. The identity rules are §2023:10.7.3 SR2 and SR4 to SR9 (END PROGRAM for a
+      program SR2 and a program prototype SR8, END CLASS SR4, END METHOD SR5, END INTERFACE SR6, END FUNCTION for a user function SR7
+      and a function prototype SR9); the order rule is SR3; SR1 is the end marker's presence, which neither member answers (review
+      R1-2 corrected a first citation of "SR1 to SR6").
+    - *Which file holds a record is one member, and a method asks it of its half (correction, review R1-1).* The binder's record-name-1
+      rule (`StatementValidation.ResolveRecordName`) and the flag pass's probe of the same WRITE each walked the files themselves, the
+      pass over program units only, so in a FACTORY or OBJECT method `WRITE FILE FF` found the LINAGE file and `WRITE FREC` did not.
+      `SymbolTable.FileWhoseRecordIs` is the one question (own files, then visible GLOBAL ones) and both ask it;
+      `FilesOfContainingChain` (every file of the element and its containers, GLOBAL or not) answers the FILE STATUS role, so
+      `FlagConformancePass` keeps no unit walk of its own, and a method's own USE declaratives govern its FLAG-14 d test.
     - *A pass before the bind keys its facts by the table's key.* `VersionConformancePass` remembers each level-01 record's EXTERNAL
       clause by its name for a later REDEFINES; it keys the written word's `CobolName` (`SymbolTable.WordOf`, now internal), so its
       equality is the table's, and a subscript's written word is pre-filtered against an INDEXED BY name by
@@ -1617,8 +1626,8 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 
 | Name class | Tables found (owner.member) |
 |---|---|
-| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` (since step 6b's data-name lane, first slice, the type-name and CAPACITY register tables and the lapsed members are `SymbolTable`'s, in `SymbolTable.Types.cs`, `SymbolTable.CapacityRegisters.cs` and a method's `SymbolTable.MethodNames`; `ForestSlice.TypeDeclarations` and `OoMethodDataScope.TypeDeclarations` keep the declarations as lists; the data-name tables are the lane's next slice) |
-| Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` |
+| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` (since step 6b's data-name lane, first slice, the type-name and CAPACITY register tables and the lapsed members are `SymbolTable`'s, in `SymbolTable.Types.cs`, `SymbolTable.CapacityRegisters.cs` and a method's `SymbolTable.MethodNames`; `ForestSlice.TypeDeclarations` and `OoMethodDataScope.TypeDeclarations` keep the declarations as lists; since step 6b's closing slice the data-name tables are `SymbolTable`'s too, `_dataNames` in `SymbolTable.DataNames.cs` and a method's `SymbolTable.MethodNames.DataNames`) |
+| Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` (since step 6b's closing slice `SymbolTable._conditionNames` in `SymbolTable.DataNames.cs` and a method's `SymbolTable.MethodNames.ConditionNames`) |
 | Index | `IndexNameRegistry._byName` (since step 6b's data-name lane, first slice, `SymbolTable`'s private `IndexNameTable`, one per element and one per method; `IndexNameRegistry` is deleted) |
 | Procedure | `ProcedureNameMap<T>._first`, `_duplicated` (since step 6b slice 2, `SymbolTable`'s private `ProcedureNames<T>`) |
 | File | `FileSlice._filesByName` (`FilesByName`); `FileNameScope._own`, `_inherited` (and its public `TryGetValue`, reached as `DataBindState.VisibleFiles`); `InheritedGlobals._files` (`Files`); `FileControlBinder.SelectedFiles` |
@@ -1649,7 +1658,7 @@ classified by reading its site; the result is committed, one row per site, as
 The 130 `Comparer` uses key name collections and move with their tables (or, for a set of fixed words, are re-keyed);
 the 40 name-property comparisons are classified site by site in step 7 into the same classes. The KEYWORD, SAMESYMBOL,
 EXTERNAL and MESSAGE rows seed `name-comparisons.json`, which may then only shrink.
-Screen names (`ForestSlice.ScreenNames`) are a set, not a table, and resolve through the data tables. The front end's
+Screen names (`ForestSlice.ScreenNames` at 522468b9c8, since step 6b's closing slice `SymbolTable._screenNames`) are a set, not a table, and resolve through the data tables. The front end's
 own name tables (compilation variables of `>>DEFINE`, the `>>COBOL-WORDS` map) are text-stage names, not program
 symbols, and are outside the cross-reference.
 

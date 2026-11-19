@@ -126,10 +126,12 @@ bespoke switch — `feedback_path_a_leverage_tooling`). Options whose trigger is
 CLOSE NO REWIND/UNIT, WRITE-without-EOP, SET-index, the VALUE-clause data options, MOVE shape) are decided from
 the parse node directly; options needing a **resolved fact** (TERMINATE's report has a VARYING clause; a WRITE's file has a LINAGE
 clause; a MOVE's operands share a DDE; a condition tests a FILE STATUS item) **resolve the operand in the CURRENT
-unit's name scope** (`_currentUnit` / `_currentData` / `_currentRefs`, selected by `VisitUnit`; the same
+element's name scope** (`_currentData` / `_currentRefs`, selected by `VisitUnit` and `VisitMethodDefinition`; the same
 `ReferenceResolver` / `DataBinder` entries the binder uses, so qualification and §2023:8.4.6.2.1 visibility are the
 binder's) and read the **role off the resolved object** (the `FileModel.Linage`, the `ReportModel.HasVarying`, a
-`DataItem` that is reference-equal to a visible file's `FileStatusItem`) — never a re-run of operand binding, and
+`DataItem` that is reference-equal to a file's `FileStatusItem`). Every file question is the element's `SymbolTable`'s
+(`Identify` for a file-name, `FileWhoseRecordIs` for a record-name, `FilesOfContainingChain` for a FILE STATUS item), so a
+method finds its FACTORY or OBJECT half's files exactly as the binder does (kb/Work PB5932) — never a re-run of operand binding, and
 **never a name set**: the pass builds no group-wide set of names, because a spelling shared by an unrelated item of
 another program or another group would then carry the role (kb/Work PB3288).
 
@@ -208,8 +210,9 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     `PictureAnalyzer` (discard edition); figurative ZERO via `FirstDescendant<FigurativeConstantContext>`.
   * **1c (DONE)** m WRITE-END-OF-PAGE (WRITE + `FileModel.Linage` + no AT END-OF-PAGE phrase in its `conditionalPhrases`) + FLAG-02 f
     TERMINATE-WITH-VARYING (TERMINATE + a report whose fields carry `Varyings`) — scope-exact (kb/Work PB3288): the
-    WRITE's record-name (qualified or not, through `ResolveItem`) or `FILE file-name` resolves to a file among
-    `VisibleFiles()` (the unit's own, then its containers' GLOBAL ones, §2023:13.18.27.4 GR1), and each TERMINATE report-name
+    WRITE's record-name (qualified or not, through `ResolveItem`) or `FILE file-name` resolves to its file through the current
+    element's `SymbolTable` (`FileWhoseRecordIs` and `Identify`: the element's own files, then its containers' GLOBAL ones,
+    §2023:13.18.27.4 GR1; a method's element is its FACTORY or OBJECT half, kb/Work PB5932), and each TERMINATE report-name
     to a report among `ReportScope.Visible`; `Run` builds no lookup.
   * **1b (DONE for j)** j VALUE-EDITING — a numeric-edited VALUE that is a LITERAL (not figurative) with no
     editing symbols (§2023:13.18.63 SR6/SR11 + E.2 item 29: numeric literals get editing auto-supplied, alphanumeric/
@@ -250,8 +253,8 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     INDEX data-item receiver is **NOT** flagged (matching only `IndexFields` names realizes this exactly, and the
     shared SET grammar's pointer / capacity / dynamic-length / object receivers are intrinsically excluded).
   * **Scope note (d/e):** an OO **METHOD body** resolves through the method's own name scope over its class half's
-    forest (kb/Work PB1952, `VisitMethodDefinition`); `_currentUnit` stays null there (files and reports live in
-    program units). A contained program has its own entry: `_unitByIdentification` keys every program unit (outermost and contained) on its IDENTIFICATION
+    forest (kb/Work PB1952, `VisitMethodDefinition`), and its file questions are that half's `SymbolTable`'s (a FACTORY or
+    OBJECT declares files too; kb/Work PB5932). A contained program has its own entry: `_unitByIdentification` keys every program unit (outermost and contained) on its IDENTIFICATION
     DIVISION node, the one node a contained program shares with the synthetic `programUnit` its binder is built over
     (`BinderDriver.Reparent` adopts the children).
 * **Incr 4 — the new-analysis options.**
@@ -278,11 +281,13 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     §2023:14.9.35.3 SR2; DELETE unless the file is in sequential access mode, §2023:14.9.10.3 SR2)
     lacking its INVALID KEY phrase, when the unit has ANY open-mode USE declarative; (2) an AT-END-capable READ (a
     sequential retrieval — a NEXT/PREVIOUS direction, or AccessMode Sequential) lacking AT END, when the unit has an
-    INPUT or I-O declarative. Per-unit modes are read from the BOUND model (`unit.Bound.Declaratives` —
-    `BoundDeclarative.ModeIndex` is the `FileOpenMode` ordinal; null for a file-name / Format-3/4 declarative, which
-    GR4 d does not consider), set in `VisitProgramUnit` (order-independent, so it never depends on the declaratives
-    preceding the body). Per-statement file classification is from `_currentData.Files` (WRITE/REWRITE map their
-    record name to its file via `FileModel.Records`). A file that does not resolve stays unflagged.
+    INPUT or I-O declarative. The modes are read from the BOUND model (`BoundDeclarative.ModeIndex` is the
+    `FileOpenMode` ordinal; null for a file-name / Format-3/4 declarative, which GR4 d does not consider) by
+    `SelectModeDeclaratives`: a program unit's (`unit.Bound.Declaratives`) in `VisitUnit`, a method's own (its half's
+    `BoundProgram.Methods[i].Declaratives`, §2023:14.2.2 SR10 admits them in a method; kb/Work PB5932) in
+    `VisitMethodDefinition`, each restored on exit (order-independent, so it never depends on the declaratives preceding
+    the body). Per-statement file classification is the element's `SymbolTable`'s (WRITE/REWRITE map their record name
+    to its file via `FileWhoseRecordIs`). A file that does not resolve stays unflagged.
   * **FLAG-02 b EC-PROGRAM-EXCEPTIONS (DONE)** — a `>>TURN` for an EC-PROGRAM-family exception (EC-ALL, EC-PROGRAM,
     EC-PROGRAM-ARG-OMITTED, EC-PROGRAM-NOT-FOUND) is flagged when its **source element** (§2023:3.164: a source unit
     excluding its contained source units — a program, a function, a contained program, a class, an interface, a

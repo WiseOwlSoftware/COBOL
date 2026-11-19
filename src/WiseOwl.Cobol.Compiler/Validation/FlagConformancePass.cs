@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;                // ParserRuleContext — the source-element walk
 using WiseOwl.Cobol.Binding;              // FlagState / PictureAnalyzer / EditionContext
+using WiseOwl.Cobol.Binding.Bound;        // BoundDeclarative (a unit's or method's USE declaratives)
 using WiseOwl.Cobol.Binding.Model;        // Usage / PicCategory / PicInfo
 using WiseOwl.Cobol.Binding.Passes;       // GroupBindContext
 using WiseOwl.Cobol.Compiler.Oo;          // OoSymbolOrigin (a method symbol's origin)
@@ -61,17 +62,18 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     private readonly IReadOnlyDictionary<CobolParserCore.MethodDefinitionContext, MethodNameScope> _methodScopes;
     private DataBinder? _currentData;
     private ReferenceResolver? _currentRefs;
-    // The program unit the walk is in (null in a class's method body — files and reports live in program units): its
-    // Parent chain is the set of containing programs whose GLOBAL files are visible here (§2023:13.18.27.4 GR1).
-    private BoundUnit? _currentUnit;
+    // Every file question (which file a WRITE's record-name or FILE file-name names, whether an item is some file's FILE
+    // STATUS item) is the current element's SymbolTable's: a FACTORY or OBJECT half declares files too, so a walk of
+    // program units alone would see none of a method's (kb/Work PB5932).
 
     /// <summary>Where a METHOD's operands resolve: the OBJECT or FACTORY forest that holds the method, its resolver,
     /// and the method's own §2023:11.7.4 GR5 name scope, which shadows that forest's names while the method's body is
-    /// walked.</summary>
-    private sealed record MethodNameScope(DataBinder Data, ReferenceResolver Refs, OoMethodDataScope Scope, OptionsModel? Options);
-    // The current unit's USE-declarative open modes (FLAG-14 d I-O-DECLARATIVE), read from the bound model: whether
-    // it has ANY open-mode declarative (USE … ON INPUT/OUTPUT/I-O/EXTEND — the INVALID-KEY rule) and whether it has
-    // an INPUT / I-O one (the AT-END rule). Reset per unit in VisitProgramUnit (a nested unit does not inherit).
+    /// walked; and the method's own USE declaratives, which govern its own statements as a program's govern the program's.</summary>
+    private sealed record MethodNameScope(DataBinder Data, ReferenceResolver Refs, OoMethodDataScope Scope, OptionsModel? Options,
+        IReadOnlyList<BoundDeclarative> Declaratives);
+    // The current unit's or method's USE-declarative open modes (FLAG-14 d I-O-DECLARATIVE), read from the bound model:
+    // whether it has ANY open-mode declarative (USE … ON INPUT/OUTPUT/I-O/EXTEND — the INVALID-KEY rule) and whether it
+    // has an INPUT / I-O one (the AT-END rule). Reset per program unit and per method (a contained one does not inherit).
     private bool _hasAnyModeDecl;
     private bool _hasReadModeDecl;
     // FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b): the SOURCE ELEMENTS of the compilation group (§2023:3.164 — a source
@@ -140,11 +142,22 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         // method's operands resolve in the forest of the OBJECT or FACTORY that holds it, through the method's own
         // name scope (§2023:11.7.4 GR5 — a method-local name shadows object data). Each bound method is mapped to that
         // binder, its resolver and its scope, the same overlay the statement binder activates (ActiveMethodScope).
+        // A method's own declaratives are its half's bound program's: Methods[i] binds the half's roster[i] (OoDriver).
         var methodScopes = new Dictionary<CobolParserCore.MethodDefinitionContext, MethodNameScope>();
         foreach (var cls in group.Classes)
-            foreach (var (data, refs) in new[] { group.Session.Binders.ObjectOf(cls), group.Session.Binders.FactoryOf(cls) })
+            foreach (var ((data, refs), roster, bound) in new[]
+                     {
+                         (group.Session.Binders.ObjectOf(cls), cls.Symbol.Methods, cls.Bound),
+                         (group.Session.Binders.FactoryOf(cls), cls.Symbol.FactoryMethods, cls.FactoryBound),
+                     })
+            {
+                var declaratives = new Dictionary<OoMethodSymbol, IReadOnlyList<BoundDeclarative>>(ReferenceEqualityComparer.Instance);
+                foreach (var (m, b) in roster.Zip(bound.Methods ?? [])) declaratives[m] = b.Declaratives;
                 foreach (var m in data.Oo.BoundMethods)
-                    if (m.Origin is OoSymbolOrigin.Source) methodScopes[group.Session.Sources.Of(m)] = new MethodNameScope(data, refs, m.DataScope, m.MethodOptions);
+                    if (m.Origin is OoSymbolOrigin.Source)
+                        methodScopes[group.Session.Sources.Of(m)] = new MethodNameScope(data, refs, m.DataScope, m.MethodOptions,
+                            declaratives.GetValueOrDefault(m, []));
+            }
 
         // The binder's record of the function activations and property references that look like data references
         // (DataBindState.ActivationSites) — every forest of the group, class and program alike.
@@ -209,13 +222,14 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitMethodDefinition(CobolParserCore.MethodDefinitionContext ctx)
     {
         if (!_methodScopes.TryGetValue(ctx, out var method)) return VisitElement(ctx);
-        var saved = (_currentData, _currentRefs);
+        var saved = (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl);
         (_currentData, _currentRefs) = (method.Data, method.Refs);
+        SelectModeDeclaratives(method.Declaratives);
         using var scope = method.Data.Procedure.ActiveMethodScope.Enter(method.Scope);
         // The method's own OPTIONS paragraph governs ITS body (§2023:11.9.4 GR1): FLAG-NATIVE-ARITHMETIC reads the arithmetic mode it names.
         using var options = method.Options is { } own ? method.Data.Procedure.Options.Push(own) : (Scoped<OptionsModel>.RestoreScope?)null;
         try { return VisitElement(ctx); }
-        finally { (_currentData, _currentRefs) = saved; }
+        finally { (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl) = saved; }
     }
 
     /// <summary>Open the source element <paramref name="ctx"/> for the walk of its subtree and close it on exit.</summary>
@@ -234,20 +248,23 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// restores its container's scope on exit.</summary>
     private object? VisitUnit(ParserRuleContext ctx, CobolParserCore.IdentificationDivisionContext? identification)
     {
-        var saved = (_currentData, _currentRefs, _currentUnit, _hasAnyModeDecl, _hasReadModeDecl);
+        var saved = (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl);
         if (identification is not null && _unitByIdentification.TryGetValue(identification, out var unit))
         {
-            _currentUnit = unit;
             (_currentData, _currentRefs) = _binders.Of(unit);
-            // The unit's Format-1 open-mode USE declaratives (BoundDeclarative.ModeIndex = the FileOpenMode ordinal;
-            // null for a file-name-targeted or Format-3/4 declarative — which GR4 d does not consider).
-            var modes = unit.Bound?.Declaratives;
-            _hasAnyModeDecl = modes is not null && modes.Any(d => d.ModeIndex is not null);
-            _hasReadModeDecl = modes is not null && modes.Any(d =>
-                d.ModeIndex == (int)FileOpenMode.Input || d.ModeIndex == (int)FileOpenMode.IO);
+            SelectModeDeclaratives(unit.Bound?.Declaratives ?? []);
         }
         try { return VisitElement(ctx); }
-        finally { (_currentData, _currentRefs, _currentUnit, _hasAnyModeDecl, _hasReadModeDecl) = saved; }
+        finally { (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl) = saved; }
+    }
+
+    /// <summary>Select the open-mode USE declaratives of the program unit or method whose statements are walked next: its
+    /// Format-1 ones (<see cref="BoundDeclarative.ModeIndex"/> is the <see cref="FileOpenMode"/> ordinal; null for a
+    /// file-name-targeted or Format-3/4 declarative, which GR4 d does not consider).</summary>
+    private void SelectModeDeclaratives(IReadOnlyList<BoundDeclarative> declaratives)
+    {
+        _hasAnyModeDecl = declaratives.Any(d => d.ModeIndex is not null);
+        _hasReadModeDecl = declaratives.Any(d => d.ModeIndex == (int)FileOpenMode.Input || d.ModeIndex == (int)FileOpenMode.IO);
     }
 
     // ── FLAG-02 b EC-PROGRAM-EXCEPTIONS (§2023:7.3.14.4 GR4 b) — record that the current source element calls a function
@@ -513,18 +530,6 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         => Flag(FlagOption.Flag14IoDeclarative, line,
             $"{what} while an INPUT/OUTPUT/I-O/EXTEND USE declarative is in effect (it now executes on the exception)");
 
-    /// <summary>The files a reference in the current unit can name: its own, then the GLOBAL ones of its containing
-    /// programs, nearest container first (ISO §2023:13.18.27.4 GR1 — "A constant-name, data-name, file-name, report-name,
-    /// or screen-name described using a GLOBAL clause is a global name", and §2023:8.4.6.2.1 — "A global name may be
-    /// referenced … in any source elements that are directly or indirectly contained within" the declaring one).</summary>
-    private IEnumerable<FileModel> VisibleFiles()
-    {
-        bool own = true;
-        for (var unit = _currentUnit; unit is not null; unit = unit.Parent, own = false)
-            foreach (var file in _binders.Of(unit).Data.State.Files.Declared)
-                if (own || file.IsGlobal) yield return file;
-    }
-
     /// <summary>The <see cref="FileModel"/> the written <paramref name="name"/> identifies in the current unit's scope (its own
     /// files, then its containers' GLOBAL ones, nearest first: the table's file-name rule), or null. A probe: the binder
     /// identified and reported the same reference where it bound its statement.</summary>
@@ -533,12 +538,14 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
 
     /// <summary>The <see cref="FileModel"/> a WRITE/REWRITE targets: the explicit <c>FILE file-name</c> when written,
     /// else the file whose record descriptions include the record the <paramref name="record"/> reference RESOLVES to
-    /// (qualified or not: <c>REC IN F</c> names the same record as <c>REC</c> when it is unique).</summary>
+    /// (qualified or not: <c>REC IN F</c> names the same record as <c>REC</c> when it is unique). Both arms ask the
+    /// current element's <see cref="SymbolTable"/> (<see cref="SymbolTable.FileWhoseRecordIs"/> is the binder's own
+    /// record-name-1 question), so the two forms of one WRITE find one file, in a program and in a method alike.</summary>
     private FileModel? FileByRecordOrName(CobolParserCore.RecordNameContext? record, CobolParserCore.FileNameContext? file)
     {
         if (file is not null) return FileByName(file);
         if (record?.dataReference() is not { } dref || ResolveItem(dref) is not { } item) return null;
-        return VisibleFiles().FirstOrDefault(f => f.Records.Contains(item));
+        return _currentData?.Symbols.FileWhoseRecordIs(item);
     }
 
     // ── FLAG-02 f TERMINATE-WITH-VARYING (§2023:7.3.14.4 GR4 f) — a TERMINATE of a report whose description contains a

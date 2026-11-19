@@ -1630,7 +1630,6 @@ public sealed class DataItem
     /// children's bytes times their occurrences.</remarks>
     public int ByteWidth => RecordLayout.ItemSize(RecordLayout.ExactByteWidth(this));
 
-    /// <summary>An elementary item's byte width — the per-usage pinned widths documented on <see cref="ByteWidth"/>.</summary>
     /// <summary>The byte width this implementation gives every pointer-class and object-reference item — USAGE
     /// POINTER, PROGRAM-POINTER, FUNCTION-POINTER, OBJECT REFERENCE (§2023:13.18.60.4 GR23, GR24 and GR26 leave each
     /// pointer's "alignment, size, and representation" to the implementor) — and so the width of the unique pointer
@@ -1638,6 +1637,7 @@ public sealed class DataItem
     /// (§2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1), which the LENGTH / BYTE-LENGTH folds read (kb/Work PB1060).</summary>
     internal const int PointerByteWidth = 8;
 
+    /// <summary>An elementary item's byte width — the per-usage pinned widths documented on <see cref="ByteWidth"/>.</summary>
     internal int ElementaryByteWidth
     {
         get
