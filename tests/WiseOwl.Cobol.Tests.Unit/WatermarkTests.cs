@@ -38,13 +38,16 @@ public sealed class WatermarkTests
         db.State.Require(PassPhase.TypesExpanded, "test-fact");    // must not throw (earlier phase)
     }
 
-    /// <summary>The flagged late-fact read point: a <c>CapacityRegisters</c> read before <c>DynamicResolve</c>
-    /// produced it trips the gate (the "read a null CapacityRegister" silent-miscompile class, now structural).</summary>
+    /// <summary>The flagged late-fact read point: a CAPACITY register name looked up (<c>SymbolTable.Identify</c>, the table's one
+    /// lookup since listing step 6b, kb/Work PB5932) before <c>DynamicResolve</c> produced the registers trips the gate (the "read a
+    /// null CapacityRegister" silent-miscompile class, now structural).</summary>
     [Fact]
     public void CapacityRegisters_ReadBeforeOccursResolved_Trips()
     {
         var db = new DataBinder();
-        Assert.Throws<InvalidOperationException>(() => _ = db.State.Forest.CapacityRegisters.Count);
+        Assert.Throws<InvalidOperationException>(() =>
+            db.Symbols.Identify(WrittenWord.Of(new Antlr4.Runtime.CommonToken(1, "CAP")), WiseOwl.Cobol.Symbols.NameClass.CapacityRegister,
+                report: false));
     }
 
     /// <summary>⛔ No <see cref="DataBindResult"/> is made over a binder the group tail has not finished (kb/Work PB2361): the

@@ -250,23 +250,6 @@ public sealed partial class SymbolTable
         return WithLapsedTypeIndexes(Key(name), indexes, d => _data.IndexQualifierChainMatches(d, qualifiers), null);
     }
 
-    /// <summary>⛔ THE ONE CAPACITY-REGISTER-NAME LOOKUP (kb/Work PB3165) — the dynamic tables whose named OCCURS
-    /// DYNAMIC <c>CAPACITY IN</c> register a written <paramref name="name"/> can reach in <paramref name="scope"/>, or
-    /// <see langword="null"/> when it reaches none. The register is a data-name of its entry's source element
-    /// (§2023:13.18.38.3 SR30), so it has the data-name's visibility (§2023:11.7.4 GR5): a method sees its OWN registers first,
-    /// and they REPLACE the object's; a method-local name of the spelling in any other class
-    /// (<see cref="DataBinder.MethodDeclares"/>: a data-name, a condition-name, an index-name, a constant-name) hides an object-level register (the
-    /// object's declaration is "inaccessible to this method"); a sibling method's registers are not in the scope at
-    /// all. Else the unit's map, nearest declaring element first (<see cref="ForestSlice.CapacityRegisters"/>).</summary>
-    public List<DataItem>? CapacityCandidates(string name, Scope scope)
-    {
-        if (scope.Method is { } m)
-        {
-            if (m.CapacityRegisters.TryGetValue(name, out var own)) return own;
-            if (_data.MethodDeclares(m, name)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
-        }
-        return _data.State.Forest.CapacityRegisters.TryGetValue(name, out var tables) ? tables : null;
-    }
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) ACROSS NAME CLASSES — the ONE answer to "does an ordinary DATA-name of this spelling,
     /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than

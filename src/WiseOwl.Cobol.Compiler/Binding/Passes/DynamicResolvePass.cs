@@ -127,7 +127,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // implementor digit count is 10 (unsigned BinaryLong): the CobolDynTable implementor maximum,
             // 0x3FFF_FFFF ≈ 1.07e9, fits in 10 digits (§2023:8.5.1.9.1 — "a number of digits sufficient to hold the
             // maximum"). Kept off ByName/Roots — reachable ONLY through a register-name map, which only
-            // SymbolTable.CapacityCandidates reads.
+            // SymbolTable.CapacityRegisterNamed reads.
             // ⛔ MINTED FOR EVERY DYNAMIC TABLE, NAMED ONLY WHEN `CAPACITY IN data-name-3` IS WRITTEN (kb/Work
             // PB61): the view over the table's current capacity is what FUNCTION LENGTH / BYTE-LENGTH read for a
             // variable-length group (§2023:15.50.4 r7c / §2023:15.14.4 r6c — "based on their current capacity"), whether or
@@ -174,11 +174,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // word is declared in both, and never against a sibling method's. The name lands in the same scope.
             var method = binder.Oo.RootOwner.GetValueOrDefault(item.Root);   // the method whose data the table is, as ScopeOf finds it
             var methodScope = method?.DataScope;
-            var registers = methodScope?.CapacityRegisters ?? binder.State.Forest.CapacityRegistersSoFar;
-            if ((methodScope is null ? binder.State.Forest.DeclaresOwnDataName(capName) : methodScope.ByName.ContainsKey(capName))
-                || (registers.TryGetValue(capName, out var sameName)
-                    && !sameName.TrueForAll(t => binder.State.Forest.DeclaringDepth(t) != 0
-                                                 || ReferenceEquals(t.WrittenDefinition, item.WrittenDefinition))))
+            if (binder.Symbols.DuplicatesCapacityRegister(methodScope, capName, item))
             {
                 binder.Edition.Error(DiagnosticCatalog.CapacityRegisterNameDuplicated, $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
                     + "defined by the OCCURS DYNAMIC entry and shall not duplicate another data-name or "
@@ -194,7 +190,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // (A method's word lands in the method's own census — the funnel reads it off the declaration scope.)
             if (method is null) binder.DeclareUserWord(capName, UserWordKind.DataName);
             else using (binder.Oo.EnterMethodDeclarations(method)) binder.DeclareUserWord(capName, UserWordKind.DataName);
-            binder.State.Forest.AddCapacityRegister(methodScope, capName, item);
+            binder.Symbols.DeclareCapacityRegister(methodScope, capName, item);
         }
     }
 }

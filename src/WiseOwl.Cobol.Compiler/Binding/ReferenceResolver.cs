@@ -375,7 +375,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // {tablePath}.Capacity. The NAME identifies it outright (§2023:13.18.38.3 SR30 first sentence — "Data-name-3
         // shall not be defined elsewhere in the source element"), so every other question is a predicate over the
         // reference AS WRITTEN and belongs to this one screen, not to a fall-through (kb/Work PB457).
-        if (CapacityRegisterFor(dref) is { } capReg)
+        if (CapacityRegisterFor(dref, report) is { } capReg)
             return Ends(CapacityPlaceOf(dref, capReg) is { } capPlace ? Resolved(capPlace) : Refused());
 
         // The PREDEFINED OBJECT REFERENCE EXCEPTION-OBJECT (ISO §2023:8.4.3.6; kb/Work PB922): §2023:8.4.3.6.3 SR2 —
@@ -753,13 +753,15 @@ public sealed class ReferenceResolver(DataBinder data)
     /// none does, so the qualifier fault is stated about it), and an ordinary data-name of the spelling in a NEARER
     /// element takes the reference instead (<see cref="SymbolTable.NearerDataNameHides"/> — the rule the
     /// index-name class already obeys), handing it back to the ordinary lookup.</para></summary>
-    internal CapacityRef? CapacityRegisterFor(Core.DataReferenceContext dref)
+    internal CapacityRef? CapacityRegisterFor(Core.DataReferenceContext dref, bool report)
     {
         DataReferenceCst r = dref;
-        if (r.BaseName is not { } name || data.Symbols.CapacityCandidates(name, data.ActiveScope) is not { } tables) return null;
+        if (r.BaseName is not { } name
+            || data.Symbols.Identify(dref.cobolWord(), NameClass.CapacityRegister, report) is not { Symbol: CapacityRegisterCandidates { Tables: var tables } })
+            return null;
         var written = ReadWritten(dref);
-        var reached = tables.FindAll(t => t.OccursSpec?.CapacityRegister is { } cand
-                                          && data.QualifierChainMatches(cand, written.Qualifiers));
+        var reached = tables.Where(t => t.OccursSpec?.CapacityRegister is { } cand
+                                        && data.QualifierChainMatches(cand, written.Qualifiers)).ToList();
         // The nearest declaring element's reached registers (the list is in nearest-element order, §2023:8.4.6.2.1 3)), or
         // the nearest register at all when the qualifiers reach none, so the qualifier fault is stated about it.
         DataItem table = reached.Count > 0 ? reached[0] : tables[0];

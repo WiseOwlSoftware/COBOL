@@ -20,8 +20,14 @@ public sealed partial class SymbolTable
         /// object definition"), and inside the method it hides its object's type-name of the spelling.</summary>
         public Dictionary<CobolName, DataItem> TypeNames { get; } = [];
 
+        /// <summary>The method's own OCCURS DYNAMIC <c>CAPACITY IN data-name-3</c> registers, each name to the method's dynamic tables
+        /// that declare it (kb/Work PB3165): the register is "treated as though implicitly defined at the same level as the entry
+        /// containing the OCCURS clause" (§2023:13.18.38.3 SR30), so it is a name of the method, method-private, shadowing an
+        /// object-level name of the spelling. A list per name, as the element's (a TYPE / SAME AS copy reproduces it, kb/Work PB2988).</summary>
+        public Dictionary<CobolName, List<DataItem>> CapacityRegisters { get; } = [];
+
         /// <summary>Whether one of the method's tables declares <paramref name="word"/>.</summary>
-        public bool Declares(CobolName word) => TypeNames.ContainsKey(word);
+        public bool Declares(CobolName word) => TypeNames.ContainsKey(word) || CapacityRegisters.ContainsKey(word);
     }
 
     /// <summary>Each METHOD's own name tables, by its name scope.</summary>

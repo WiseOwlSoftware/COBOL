@@ -162,12 +162,10 @@ public sealed class DataBindStateBoundaryDriftTests
         var slices = new (string Name, Regex Mutator, string[] Writers)[]
         {
             ("ForestSlice (the type forest and its name tables)",
-                new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|AddScreenNames|Inherit|AddCapacityRegister)\("),
-                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CommunicationSectionBinder.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
-            // The type declarations join the forest where the symbol table keys their type-names (listing step 6b, kb/Work PB5932).
-            ("ForestSlice's type declarations",
-                new(@"\.Forest\.AddTypeDeclaration\("),
-                ["/Binding/SymbolTable/SymbolTable.Types.cs"]),
+                new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|AddScreenNames|Inherit|AddTypeDeclaration)\("),
+                // The symbol table writes the declarations whose names it keys (listing step 6b, kb/Work PB5932).
+                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CommunicationSectionBinder.cs",
+                 "/Binding/SymbolTable/SymbolTable*.cs"]),
             ("CommunicationSlice (the communication description entries the unit declares)",
                 new(@"\.Communication\.Declare\("),
                 ["/Binding/SymbolTable/SymbolTable.Communication.cs"]),

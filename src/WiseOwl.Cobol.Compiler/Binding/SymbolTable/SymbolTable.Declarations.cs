@@ -193,7 +193,7 @@ public sealed partial class SymbolTable
         {
             if (_data.State.Forest.ByName.TryGetValue(name, out var items) && items.Any(i => _data.State.Forest.DeclaringDepth(i) < depth)) return true;
             if (_data.State.Forest.Conditions.TryGetValue(name, out var conds) && conds.Any(c => _data.State.Forest.DeclaringDepth(c.Parent) < depth)) return true;
-            if (_data.State.Forest.CapacityRegistersSoFar.TryGetValue(name, out var tables) && tables.Any(t => _data.State.Forest.DeclaringDepth(t) < depth)) return true;
+            if (_table.CapacityRegisterDeclaredNearerThan(name, depth)) return true;
             if (_table._sumCounters.TryGetValue(Key(name), out var counters) && counters.Any(c => _data.State.Reports.Depth(c.Report) < depth)) return true;
             if (_table.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
             if (!_data.State.Forest.IndexNames.Declares(name)) return false;

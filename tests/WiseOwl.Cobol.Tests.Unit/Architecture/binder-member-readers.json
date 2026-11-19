@@ -73,7 +73,6 @@
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
-      "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.SymbolTable",
@@ -797,6 +796,7 @@
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.OoDataBinder",
       "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
+      "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
@@ -1076,6 +1076,7 @@
     "WiseOwl.Cobol.Binding.OoDataBinder::BoundMethods": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
+      "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Validation.FlagConformancePass"
     ],
     "WiseOwl.Cobol.Binding.OoDataBinder::CurrentMethodScope": [

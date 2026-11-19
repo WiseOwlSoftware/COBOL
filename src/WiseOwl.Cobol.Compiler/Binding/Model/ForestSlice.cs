@@ -22,14 +22,13 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// PB2361). The one gated read, <see cref="CapacityRegisters"/>, asks <paramref name="requireRegisters"/>, which the owning
 /// <see cref="DataBindState"/> answers with its <see cref="PassPhase.OccursResolved"/> watermark.</para>
 /// </summary>
-public sealed class ForestSlice(Action<string> requireRegisters)
+public sealed class ForestSlice
 {
     private readonly List<DataItem> _roots = [];
     private readonly List<DataItem> _workingStorageRoots = [];
     private readonly List<DataItem> _localStorageRoots = [];
     private readonly Dictionary<string, List<DataItem>> _byName = new(CobolNames.Comparer);
     private readonly Dictionary<string, List<Condition88>> _conditions = new(CobolNames.Comparer);
-    private readonly Dictionary<string, List<DataItem>> _capacityRegisters = new(CobolNames.Comparer);
     private readonly Dictionary<DataItem, int> _inheritedGlobalDepth = new(ReferenceEqualityComparer.Instance);
     private readonly List<DataItem> _typeDeclarations = [];
     private readonly HashSet<string> _screenNames = new(CobolNames.Comparer);
@@ -62,7 +61,6 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// <summary>Level-88 condition-names (case-insensitive) → the conditions with that name (a list, since names may be
     /// duplicated under different parents and disambiguated by qualification).</summary>
     public IReadOnlyDictionary<string, List<Condition88>> Conditions => _conditions;
-
     /// <summary>THE UNIT'S INDEX-NAME NAMESPACE (kb/Work PB919): every INDEXED BY declaration of this unit's own data division
     /// (<see cref="IndexNameRegistry.Own"/> — the <c>long</c> cells it emits, 1-based occurrence numbers, DESIGN §3.5), plus
     /// the GLOBAL tables' declarations of every containing program (§2023:8.4.6.2.3), registered beside their tables' data-names
@@ -70,31 +68,6 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// never keyed by spelling alone. Declared into only by <c>DataBinder.RegisterIndexes</c> and <see cref="Inherit"/>.</summary>
     public IndexNameRegistry IndexNames { get; } = new();
 
-    /// <summary>OCCURS DYNAMIC <c>CAPACITY IN data-name-3</c> register-names (case-insensitive) → the owning dynamic-table
-    /// <see cref="DataItem"/> (ISO §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9). The register is IMPLICITLY defined at the OCCURS
-    /// entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults this map to build a
-    /// <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated by the post-build
-    /// <see cref="DynamicResolvePass.Run"/> pass; the getter carries the P6 Step-6 watermark gate — a read before
-    /// <see cref="PassPhase.OccursResolved"/> throws loud, the "read a null CapacityRegister" silent-miscompile class made
-    /// structural.
-    /// <para>⛔ A LIST PER NAME, NEAREST DECLARING SOURCE ELEMENT FIRST (kb/Work PB1674). The register of a dynamic table in a
-    /// GLOBAL record is subordinate to a global name — SR30 places it "at the same level as the entry containing the OCCURS
-    /// clause" — so it is a global name too (§2023:8.4.6.2.2: "All data-names and screen-names subordinate to a global name are
-    /// global names"), and a contained program inherits it with the rest of the record (<see cref="Inherit"/>). This
-    /// element's own registers come first (one written definition per spelling: SR30's "shall not be defined elsewhere in the
-    /// source element", reproduced once per TYPE / SAME AS copy of its entry, kb/Work PB2988), then each container's, so
-    /// <c>ReferenceResolver.CapacityRegisterFor</c> can apply §2023:8.4.6.2.1 3)'s nearest-element rule. The one reader of a name
-    /// in this map is <see cref="SymbolTable.CapacityCandidates"/>. The OWN registers alone are the tables whose
-    /// <see cref="DeclaringDepth"/> is 0.</para></summary>
-    public IReadOnlyDictionary<string, List<DataItem>> CapacityRegisters
-    {
-        get { requireRegisters("CapacityRegisters"); return _capacityRegisters; }
-    }
-
-    /// <summary>The capacity registers recorded SO FAR, with no watermark gate: for the phases that produce and screen them
-    /// (<see cref="DynamicResolvePass"/>, which writes them at <see cref="PassPhase.OccursResolved"/>, and the declaration
-    /// funnel's "is this word declared nearer" question, which runs while they are still being minted).</summary>
-    internal IReadOnlyDictionary<string, List<DataItem>> CapacityRegistersSoFar => _capacityRegisters;
 
     /// <summary>THIS source element's own TYPEDEF type declarations, in source order (ISO §2023:13.18.58; data-model D17): each the
     /// template root <see cref="DataItem"/>. A METHOD's declarations are its own source element's
@@ -212,27 +185,6 @@ public sealed class ForestSlice(Action<string> requireRegisters)
             conds.Add(cond);
         }
         foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
-        // Placed by depth (AddCapacityRegister): this element's own registers, minted later by DynamicResolve, sort
-        // in before it, a nearer container's before a farther one's — the order
-        // ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
-        // failed that compile and has no CapacityRegister view to inherit.
-        if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) AddCapacityRegister(null, cap, item);
     }
 
-    /// <summary>The ONE insert into <see cref="CapacityRegisters"/>: this element's own register (from
-    /// <see cref="DynamicResolvePass.Run"/>) and each container's GLOBAL one (from <see cref="Inherit"/>, nearest container
-    /// first), into <paramref name="method"/>'s own register index when the table is a method's. ⛔ THE LIST IS KEPT IN
-    /// NEAREST-DECLARING-ELEMENT ORDER BY THE INSERT, NOT BY THE ORDER OF THE CALLS (kb/Work PB1674; PB3766 review R2-1): the
-    /// containers' names are inherited before this element's registers are minted, so a register goes after the last one at
-    /// its own depth or nearer — the order <c>ReferenceResolver.CapacityRegisterFor</c> reads (<c>tables[0]</c> is the
-    /// nearest).</summary>
-    internal void AddCapacityRegister(OoMethodDataScope? method, string name, DataItem table)
-    {
-        var registers = method?.CapacityRegisters ?? _capacityRegisters;
-        if (!registers.TryGetValue(name, out var tables)) registers[name] = tables = [];
-        int depth = DeclaringDepth(table);
-        int at = tables.Count;
-        while (at > 0 && DeclaringDepth(tables[at - 1]) > depth) at--;
-        tables.Insert(at, table);
-    }
 }

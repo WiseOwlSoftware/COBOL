@@ -43,10 +43,11 @@ public sealed partial class SymbolTable
     /// source order. False when the spelling is already declared there (§2023:13.18.58: a type-name shall be unique).</summary>
     internal bool DeclareType(DataItem template, string name, Scope scope)
     {
-        var table = scope.Method is { } method ? MethodNamesOf(method).TypeNames : _ownTypeNames;
+        var method = scope.Method;
+        var table = method is null ? _ownTypeNames : MethodNamesOf(method).TypeNames;
         if (!table.TryAdd(Key(name), template)) return false;
-        if (scope.Method is { } m) m.AddTypeDeclaration(template);
-        else _data.State.Forest.AddTypeDeclaration(template);
+        if (method is null) _data.State.Forest.AddTypeDeclaration(template);
+        else method.AddTypeDeclaration(template);
         return true;
     }
 

@@ -278,7 +278,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         // such receiver by its own rule (§2023:8.4.3.7.3 SR1 / §2023:8.4.3.8.3 SR2, the receiving chokepoint's form table)
         // before a format is selected. EXCEPTION-OBJECT is the one spelled as an ordinary word.
         if (ctx.Refs.IsExceptionObjectRegister(dref)) return SetOperandKind.ObjectReference;          // §2023:8.4.3.6.3 SR2
-        if (ctx.Refs.CapacityRegisterFor(dref) is not null) return SetOperandKind.CapacityRegister;   // SR29
+        if (ctx.Refs.CapacityRegisterFor(dref, report: false) is not null) return SetOperandKind.CapacityRegister;   // SR29
         if (host.Expr.IndexFieldOf(dref) is not null) return SetOperandKind.IndexName;                // §2023:13.18.38.3 SR7
         if (ctx.Refs.Probe(dref) is not { } sniff) return SetOperandKind.Unclassified;
         return KindOfItem(sniff.Item, sniff.OperandCategory);

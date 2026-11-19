@@ -157,11 +157,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             LeapSecond = LeapSecond,
             UnitStaticWs = UnitStaticWs,
             EmitsStaticReset = State.StorageTier.HasStaticMembers || (UnitStaticWs && State.Files.Declared.Count > 0),
-            DeclaredCapacityRegisterTables =
-            [
-                .. State.Forest.CapacityRegisters.Values.SelectMany(static t => t).Where(t => State.Forest.DeclaringDepth(t) == 0),
-                .. Oo.BoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t),
-            ],
+            DeclaredCapacityRegisterTables = [.. Symbols.DeclaredCapacityRegisterTables],
             CellLifetimes = CellLifetimes(),
         };
 
@@ -212,7 +208,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and never emits them.</summary>
     private void InheritGlobalSubtree(DataItem item, int depth)
     {
-        State.Forest.Inherit(item, depth);
+        Symbols.InheritGlobalItem(item, depth);
         foreach (var child in item.Children) InheritGlobalSubtree(child, depth);
         foreach (var ren in item.Renames66) InheritGlobalSubtree(ren, depth);
     }

@@ -19,14 +19,6 @@ public sealed class OoMethodDataScope
     /// object IX with its OWN cell — never one of the unit's <see cref="ForestSlice.IndexNames"/>).</summary>
     public IndexNameRegistry IndexNames { get; } = new();
 
-    /// <summary>The method's own OCCURS DYNAMIC <c>CAPACITY IN data-name-3</c> register-names → the method's dynamic
-    /// tables that declare them (the method twin of <see cref="ForestSlice.CapacityRegisters"/>; kb/Work PB3165). The
-    /// register is "treated as though implicitly defined at the same level as the entry containing the OCCURS
-    /// clause" (§2023:13.18.38.3 SR30), so it is a name of the SAME source element and scope as that entry's data-names:
-    /// method-private, shadowing an object-level name of the spelling and invisible to a sibling method (§2023:11.7.4
-    /// GR5). A list per name for the reason the unit's map has one (a TYPE / SAME AS copy of one written entry
-    /// reproduces its register, kb/Work PB2988).</summary>
-    public Dictionary<string, List<DataItem>> CapacityRegisters { get; } = new(CobolNames.Comparer);
 
     /// <summary>The method's own TYPE DECLARATIONS, in source order (kb/Work PB3192). A type-name declared in a method definition
     /// is a LOCAL name: §2023:8.4.6.2.2 makes global only a type-name "described with a GLOBAL clause" or "declared in a source
@@ -42,8 +34,8 @@ public sealed class OoMethodDataScope
     internal void AddTypeDeclaration(DataItem template) => _typeDeclarations.Add(template);
 
     /// <summary>Whether this method declares <paramref name="word"/> in one of THIS SCOPE'S name indexes: a data-name, a
-    /// condition-name, an index-name or a named CAPACITY register (§2023:13.18.38.3 SR30 makes the register a data-name of the
-    /// method that declares its table). The method's type-names, constant-names, and the words its data division defines
+    /// condition-name or an index-name. The method's named CAPACITY registers (§2023:13.18.38.3 SR30 makes the register a
+    /// data-name of the method that declares its table), type-names, constant-names, and the words its data division defines
     /// before any entry binds are the symbol table's (<c>SymbolTable.MethodDeclaresWord</c>; kb/Work PB2402, PB3192), and THE question
     /// "does this method declare the word" (§2023:11.7.4 GR5: "the use of that word in this method refers to the declaration in
     /// this method") is <c>DataBinder.MethodDeclares</c>, which asks both. ⛔ EVERY NAME INDEX OF THIS SCOPE, asked here
@@ -53,7 +45,6 @@ public sealed class OoMethodDataScope
     /// finds this scope's name indexes by reflection and holds this predicate to every one.</summary>
     internal bool IndexesDeclare(string word)
     {
-        return ByName.ContainsKey(word) || Conditions.ContainsKey(word) || IndexNames.Declares(word)
-            || CapacityRegisters.ContainsKey(word);
+        return ByName.ContainsKey(word) || Conditions.ContainsKey(word) || IndexNames.Declares(word);
     }
 }
