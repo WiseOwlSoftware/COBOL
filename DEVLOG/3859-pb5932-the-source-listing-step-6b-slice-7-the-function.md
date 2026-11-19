@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b slice 7 - the function-prototype-names move into SymbolTable, and the listing's open review leads are fixed
+## Entry 3859 — 2026-11-19 10:04 PST — PB5932: the source listing, step 6b slice 7 - the function-prototype-names move into SymbolTable, and the listing's open review leads are fixed
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands slice 7, from
@@ -33,3 +33,4 @@ checker refuses, is `§2023:14.7.8 GR2` in all 91 places. That last change reach
 22647 cases (8 diagnostic streams, 11 emitted C#), and each of the 23 differing line pairs differs only by that citation.
 
 **Section 9.** The `None` row of the front end and bind, twice on the slice's commit (4525d45aae) and twice on the parent 84097a3e22, alternating, Release: IX113A and SM201A inside the parent's two runs or within 0.05 MB, one run of NC105A and of NC218A inside too, the other two 0.59 and 0.58 MB above this parent pair, within the run-to-run spread the same programs show on one tree (the slice's own two NC105A runs 0.63 MB apart, NC218A 0.57 MB apart on slice 6's parent); none of the four declares a function (the benchmark README's step-6b table, slice 7).
+
