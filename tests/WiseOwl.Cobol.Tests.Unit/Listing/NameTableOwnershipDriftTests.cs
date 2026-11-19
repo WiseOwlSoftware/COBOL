@@ -19,12 +19,27 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// red by what it is. Two committed classifications hold what is not a resolution, each entry with its reason, and may
 /// only shrink: <c>string-parameter-members.json</c> (a member whose <c>string</c> is no COBOL name) and
 /// <c>name-comparisons.json</c> (a comparison of class KEYWORD, SAMESYMBOL, EXTERNAL or MESSAGE).
+/// <para>⛔ TEMPORARY, step 6b's slices (kb/Work/PB5932/2026-11-18-land-by-class.md; DESIGN-listing.md section 11): step 6b
+/// lands by name class, so the findings of rules (1), (3) and (5) its slices have not yet moved are held in
+/// <c>name-table-ownership.baseline.json</c>. A finding neither classified nor in the baseline is red (no new table, lookup or
+/// comparison may appear); a baseline entry no longer found is red (each slice lowers the baseline in the same change); the
+/// baseline is under a ceiling that only falls. Rules (2) and (4) take no baseline. The LAST slice empties the baseline and
+/// deletes the file, <see cref="BaselineFile"/>, <see cref="BaselineCeiling"/> and every use of <see cref="Baselined"/>, so
+/// all five rules are again green with no exceptions, as the design asks.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class NameTableOwnershipDriftTests
 {
     internal static readonly string StringMembersFile = TestRepo.Tests("WiseOwl.Cobol.Tests.Unit", "Listing", "string-parameter-members.json");
     internal static readonly string ComparisonsFile = TestRepo.Tests("WiseOwl.Cobol.Tests.Unit", "Listing", "name-comparisons.json");
+    internal static readonly string BaselineFile = TestRepo.Tests("WiseOwl.Cobol.Tests.Unit", "Listing", "name-table-ownership.baseline.json");
+
+    /// <summary>The rules a baseline entry may name: the three whose remainder step 6b's slices move.</summary>
+    private static readonly int[] BaselinedRules = [1, 3, 5];
+
+    /// <summary>The baseline only shrinks: each slice lowers this to the count it leaves (325 at slice 1: 56 tables, 63
+    /// lookups, 206 comparison sites).</summary>
+    private const int BaselineCeiling = 325;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -71,7 +86,7 @@ public sealed class NameTableOwnershipDriftTests
     /// <summary>Rule (1): no field or property outside <c>SymbolTable</c> is a table keyed by a name whose value holds a
     /// binder symbol.</summary>
     [Fact]
-    public void EveryNameTable_IsPrivateToSymbolTable() => AssertNone(1, "name table(s) outside SymbolTable");
+    public void EveryNameTable_IsPrivateToSymbolTable() => AssertClassified(1, [], file: null);
 
     /// <summary>Rule (2): no member takes a <c>CobolName</c> and gives a binder symbol, and no <c>CobolName</c> is made
     /// outside the table.</summary>
@@ -193,24 +208,71 @@ public sealed class NameTableOwnershipDriftTests
         Assert.Equal(planted.Order(StringComparer.Ordinal), found.Order(StringComparer.Ordinal));
     }
 
+    /// <summary>The temporary baseline itself: under its ceiling, only rules (1), (3) and (5), no entry twice, and no entry
+    /// that a classification already holds (a site is either classified for good or waiting for its slice, never both).</summary>
+    [Fact]
+    public void TheBaseline_OnlyShrinks_AndHoldsOnlyWhatTheSlicesMove()
+    {
+        Baseline baseline = Load<Baseline>(BaselineFile);
+        Assert.True(baseline.Findings.Count <= BaselineCeiling,
+            $"{Path.GetFileName(BaselineFile)} holds {baseline.Findings.Count} entries, over its ceiling {BaselineCeiling}: the baseline only shrinks");
+        Assert.Empty(baseline.Findings.Where(e => !BaselinedRules.Contains(e.Rule)).Select(e => $"({e.Rule}) {e.Key}"));
+        Assert.Empty(baseline.Findings.GroupBy(e => (e.Rule, e.Key)).Where(g => g.Count() > 1).Select(g => $"({g.Key.Rule}) {g.Key.Key}"));
+        HashSet<string> members = [.. Load<StringMembers>(StringMembersFile).Members.Select(m => m.Member)];
+        HashSet<string> sites = [.. Load<NameComparisons>(ComparisonsFile).Sites.Select(s => s.Site)];
+        Assert.Empty(baseline.Findings.Where(e => (e.Rule == 3 && members.Contains(e.Key)) || (e.Rule == 5 && sites.Contains(e.Key)))
+            .Select(e => $"({e.Rule}) {e.Key}"));
+    }
+
+    /// <summary>The baseline's two reds shown able to fire: over the planted findings, a baseline missing one finding
+    /// reports that finding, and a baseline naming a site no longer found reports it stale.</summary>
+    [Fact]
+    public void TheBaseline_ReportsAFindingItLacks_AndAnEntryNoLongerFound()
+    {
+        NameFinding[] findings =
+        [
+            new(5, "SAME a.cs X.Compare CobolNames.Same(a.Name, b)", "a.cs:1", ""),
+            new(5, "CMP a.cs X.Words Comparer", "a.cs:2", ""),
+            new(5, "NAMEEQ a.cs X.Equal a.Name == b", "a.cs:3", ""),
+        ];
+        (NameFinding[] unclassified, string[] stale) = Unaccounted(findings,
+            classified: ["CMP a.cs X.Words Comparer"],
+            baselined: ["SAME a.cs X.Compare CobolNames.Same(a.Name, b)", "SAME a.cs X.Moved CobolNames.Same(a.Name, b)"]);
+        Assert.Equal(["NAMEEQ a.cs X.Equal a.Name == b"], unclassified.Select(f => f.Key));
+        Assert.Equal(["SAME a.cs X.Moved CobolNames.Same(a.Name, b)"], stale);
+    }
+
+    /// <summary>The baseline's keys of <paramref name="rule"/>.</summary>
+    private static IEnumerable<string> Baselined(int rule) =>
+        Load<Baseline>(BaselineFile).Findings.Where(e => e.Rule == rule).Select(e => e.Key);
+
+    /// <summary>The findings neither classified nor baselined, and the classified or baselined keys naming no finding.</summary>
+    private static (NameFinding[] Unclassified, string[] Stale) Unaccounted(IReadOnlyList<NameFinding> findings, IEnumerable<string> classified, IEnumerable<string> baselined)
+    {
+        HashSet<string> entries = [.. classified, .. baselined];
+        NameFinding[] unclassified = [.. findings.Where(f => !entries.Contains(f.Key))];
+        string[] stale = [.. entries.Except(findings.Select(f => f.Key)).Order(StringComparer.Ordinal)];
+        return (unclassified, stale);
+    }
+
+    private static void AssertClassified(int rule, IEnumerable<string> classified, string? file)
+    {
+        NameFinding[] findings = [.. Product.Value.Findings.Where(f => f.Rule == rule)];
+        (NameFinding[] unclassified, string[] stale) = Unaccounted(findings, classified, Baselined(rule));
+        Assert.True(unclassified.Length == 0 && stale.Length == 0,
+            $"rule ({rule}): {unclassified.Length} site(s) not in {(file is null ? "" : Path.GetFileName(file) + " or ")}{Path.GetFileName(BaselineFile)} (no new name table, "
+            + "lookup or comparison may appear: convert each to SymbolTable, or classify it with its reason) "
+            + $"and {stale.Length} entr(ies) naming no site (delete them in this change: both files only shrink; every finding is in {MeasuredFile}):\n  "
+            + string.Join("\n  ", unclassified.Take(80).Select(f => f.ToString()).Concat(stale.Take(40).Select(s => "STALE " + s)))
+            + (unclassified.Length > 80 ? $"\n  ... and {unclassified.Length - 80} more" : ""));
+    }
+
+    /// <summary>Rules (2) and (4) take no baseline: every finding is red.</summary>
     private static void AssertNone(int rule, string what)
     {
         NameFinding[] findings = [.. Product.Value.Findings.Where(f => f.Rule == rule)];
         Assert.True(findings.Length == 0, $"{findings.Length} {what} (DESIGN-listing.md section 6.7.1; every finding is in {MeasuredFile}):\n  "
             + string.Join("\n  ", findings.Take(80)) + (findings.Length > 80 ? $"\n  ... and {findings.Length - 80} more" : ""));
-    }
-
-    private static void AssertClassified(int rule, IEnumerable<string> classified, string file)
-    {
-        HashSet<string> entries = [.. classified];
-        NameFinding[] findings = [.. Product.Value.Findings.Where(f => f.Rule == rule)];
-        NameFinding[] unclassified = [.. findings.Where(f => !entries.Contains(f.Key))];
-        string[] stale = [.. entries.Except(findings.Select(f => f.Key)).Order(StringComparer.Ordinal)];
-        Assert.True(unclassified.Length == 0 && stale.Length == 0,
-            $"rule ({rule}): {unclassified.Length} site(s) not in {Path.GetFileName(file)} (convert each to SymbolTable, or classify it with its reason) "
-            + $"and {stale.Length} entr(ies) naming no site (delete them: the file only shrinks):\n  "
-            + string.Join("\n  ", unclassified.Take(80).Select(f => f.ToString()).Concat(stale.Take(40).Select(s => "STALE " + s)))
-            + (unclassified.Length > 80 ? $"\n  ... and {unclassified.Length - 80} more" : ""));
     }
 
     private static T Load<T>(string path) =>
@@ -223,4 +285,8 @@ public sealed class NameTableOwnershipDriftTests
     private sealed record NameComparisons(string Note, IReadOnlyList<NameComparison> Sites);
 
     private sealed record NameComparison(string Site, string Class, string Reason);
+
+    private sealed record Baseline(string Note, IReadOnlyList<BaselineEntry> Findings);
+
+    private sealed record BaselineEntry(int Rule, string Key);
 }

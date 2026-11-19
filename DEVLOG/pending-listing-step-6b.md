@@ -1,9 +1,9 @@
-## PB5932: the source listing, step 6b (in progress) - SymbolTable becomes the one store of names: the drift test, the table's place, Identify, the cd-names and the file-names
+## PB5932: the source listing, step 6b slice 1 - SymbolTable becomes the one store of names: the drift test, the table's place, Identify, the cd-names and the file-names, behind a shrink-only baseline
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, so
-that step 7b's occurrences can be recorded at the one place a written name becomes a symbol. This entry records the first
-session of it, on `listing-step-6b`; the step is not finished and the branch is not landable until
-`NameTableOwnershipDriftTests` is green (the design's landing condition).
+that step 7b's occurrences can be recorded at the one place a written name becomes a symbol. This entry lands slice 1 of it,
+from `listing-step-6b`: the step lands by name class behind a temporary baseline (the decision below), and the classes
+not yet moved are held in that baseline, which only shrinks and which the last slice deletes.
 
 **What was built.**
 - `NameTableOwnershipDriftTests` (Unit), written first and red, with its analyzer `NameTableOwnership`: the design's five rules
@@ -33,4 +33,14 @@ the fact the questions answered, not the drafted `(Exists, Conflict, Class, Decl
 table by a rule, since C# cannot give an outer type a nested type's private constructor; `Identify` takes a reach for a
 position that names only the element's own entries; a `bool` question and an ordered enumeration are the table's non-symbol
 answers. The estimate was wrong in size: each name class moves with its resolution code, and the data-name class moves as one
-unit (kb/Work PB5932's dated file `2026-11-18-step-6b-progress`, with a lead for landing by class behind a ratchet).
+unit (kb/Work PB5932's dated file `2026-11-18-step-6b-progress`).
+
+**Landing by class (decision, kb/Work PB5932's dated file `2026-11-18-land-by-class`; design sections 6.7.1 and 11 corrected).**
+The remainder is the binder's whole name resolution, which one branch would carry for many sessions against a moving main, so
+step 6b lands in slices. `NameTableOwnershipDriftTests` reads `tests/WiseOwl.Cobol.Tests.Unit/Listing/name-table-ownership.baseline.json`,
+the 325 findings of rules (1), (3) and (5) not yet moved (56 tables, 63 lookups, 206 sites), under a ceiling in the test. A
+finding neither classified nor baselined is red (nothing new may bypass the table); a baseline entry no longer found is red (each
+slice lowers it in the same change); the baseline names only rules (1), (3) and (5) and shares no key with a classification.
+Rules (2) and (4) take none. The test is green, 9 of 9; each red was shown firing on the product (an entry removed, a stale entry
+added) and over planted findings. The last slice empties and deletes the baseline and the code that reads it, measures the
+no-listing path against its parent and flips PB5932.

@@ -34,14 +34,17 @@ Rule (5)'s 206: the 130 `Comparer` uses move with their tables or are re-keyed; 
 and DECLARE sites of section 6.7.2 (and the members whose evidence classes were mixed, classified site by site as each class
 moves). Then `SymbolTable.Declare` replaces `SymbolTableWriter.Declare` and `SymbolTable.Finish()` the snapshot hand-off.
 
-**Owed before the step lands**: the section 9 measurement of the no-listing path against the parent (6b touches every
-compilation's name resolution), and the full gate.
+**Owed by the last slice**: the section 9 measurement of the no-listing path against the parent (6b touches every
+compilation's name resolution).
 
-### Lead (for the controller): land step 6b by name class behind a ratchet
-The design says step 6b lands only with `NameTableOwnershipDriftTests` green. The measured remainder is the binder's whole name
-resolution (the data-name unit alone is NameResolution, ReferenceResolver's Identify and about 1,000 lines of DataBinder), which
-one branch would carry for many sessions against a moving main. The codebase's own precedent for such a restructuring is a
-ratchet (architecture-edges.json's tolerated rows, which only fall): commit the measured findings as a baseline the test may only
-shrink, land each name class as it moves (each with its own `IDENTICAL` differential), and flip PB5932 when the baseline is
-empty. That changes the design's landing condition, which is a decision for the codebase owner's session, not this implementer:
-it is recorded here, and this branch keeps the test red as the design asks.
+### Decided: land step 6b by name class behind a temporary baseline (slice 1)
+
+The lead this session left (one branch would carry the binder's whole name resolution for many sessions; land by class behind
+a ratchet) was decided by the controller: dated file `2026-11-18-land-by-class` beside this note. Slice 1 is this branch: what
+is built above, plus `tests/WiseOwl.Cobol.Tests.Unit/Listing/name-table-ownership.baseline.json` holding the measured remainder
+(rule (1) 56 tables, rule (3) 63 lookups, rule (5) 206 sites: 325 entries, the test's `BaselineCeiling`): rule (1)'s and rule (3)'s entries are the
+classes in the table above, and rule (5)'s move with them or are classified as each class moves. `NameTableOwnershipDriftTests` is green (9 of 9) at slice 1; both of the baseline's reds were shown
+firing on the product (an entry removed: rule (1) red naming `ClauseFacts.LapsedTypeMembers`; a stale entry added: rule (1) red
+`STALE`, and the ceiling test red at 326), and `TheBaseline_ReportsAFindingItLacks_AndAnEntryNoLongerFound` holds both over
+planted findings. The next slice takes any whole class of the table above, lowers the baseline and the ceiling by what it moves,
+and writes a dated file here.

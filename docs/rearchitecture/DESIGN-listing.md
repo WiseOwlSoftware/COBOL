@@ -7,10 +7,11 @@
 > options, the program map, the statistics and verbs, `--listing-sections`, branch `listing-step-5`); STEP 6 BUILT (the
 > finished symbol table, the data map and file map, the program attributes and the margin, branch `listing-step-6`); STEP 7a
 > BUILT (every name slot of the grammar labelled and held by `GrammarNameSlotDriftTests`, branch `listing-step-7`); STEP 6b IN
-> PROGRESS (the one store of names, kb/Work PB5932, branch `listing-step-6b`: the drift test, the table's place, `Identify`,
-> `Declarations`, the cd-names and the file-names; section 6.7.1 "Step 6b, as built so far"); steps 7b (the occurrences and the
+> PROGRESS, LANDING BY NAME CLASS (the one store of names, kb/Work PB5932; slice 1, branch `listing-step-6b`: the drift test,
+> the table's place, `Identify`, `Declarations`, the cd-names and the file-names, and the temporary shrink-only baseline of the
+> classes not yet moved; sections 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the
 > cross-reference, which stand on 6b) and 8 to 9 not yet built.** Where building a step proved this document wrong it was corrected in the same change; each correction is marked
-> "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)", "(step 6)" or "(step 7a)" in the section it changed.
+> "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)", "(step 6)", "(step 6b)" or "(step 7a)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -1071,6 +1072,16 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     124, 130, 40 at 7bc7e33469), rules (2) and (4) red because neither `CobolName` nor `Declarations` existed. The
     classifications were seeded from the evidence and a reading of each member: rule (3) 122 members whose string is no COBOL
     name, rule (5) 86 sites of a staying class.
+  - *(Step 6b, slice 1, correction: the TEMPORARY baseline.)* Step 6b lands by name class (section 11, kb/Work
+    PB5932's dated file `2026-11-18-land-by-class`), so between slices the test reads
+    `tests/WiseOwl.Cobol.Tests.Unit/Listing/name-table-ownership.baseline.json`: the findings of rules (1), (3) and (5) no slice
+    has yet moved, each by the key the classifications use (the member for rules (1) and (3), the site for rule (5)). A finding
+    neither classified nor in the baseline is red, so no new table, lookup or comparison can appear; a baseline entry no longer
+    found is red, so each slice lowers the baseline in the same change; the baseline is under a ceiling in the test that only
+    falls, holds no rule other than (1), (3) and (5), and shares no key with a classification (a site is either classified for
+    good or waiting for its slice). Rules (2) and (4) take no baseline. At slice 1 it holds 325 entries: 56 tables, 63 lookups,
+    206 comparison sites. It is not a permanent ratchet: the LAST slice empties it and deletes the file and the code that reads
+    it, and the test is again the five rules above, green with no exceptions.
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1716,11 +1727,21 @@ returning only `DeclarationFact`), every name table moved into it and made priva
 or classified in `string-parameter-members.json` with its reason, every `CobolNames.Same` / `Comparer` / name comparison
 moved in or classified in `name-comparisons.json` (seeded from section 6.7.2's evidence), and (step 6) each attribute of
 section 6.6 still read off its symbol when the table is finished, never stored a second time; `SymbolTable.Finish()` and the
-snapshot handed to the collector. The step lands only with `NameTableOwnershipDriftTests` green. Then the data map and file map as views of the
+snapshot handed to the collector. (Step 6b, slice 1, correction, kb/Work PB5932's dated file `2026-11-18-land-by-class`:)
+this said the step lands only with `NameTableOwnershipDriftTests` green; it lands IN SLICES, by name class, behind the
+temporary shrink-only baseline of section 6.7.1. The first session measured the remainder as the binder's whole name
+resolution, which one branch would carry for many sessions against a moving main. Each slice moves one or more whole name
+classes (each WITH its resolution code), sends every lookup of them through `Identify`, moves in or classifies every comparison,
+is shown behaviour-neutral by `compare_oracle.py` (IDENTICAL) after every source change, lowers the baseline and its ceiling,
+and records what moved and what remains in a dated file beside PB5932. Slice 1 is the drift test, the table's place,
+`Identify`, `Declarations`, `CobolName`, the two classifications, the cd-names and the file-names, and the baseline. The LAST
+slice empties the baseline and deletes it with the code that reads it (so `NameTableOwnershipDriftTests` is green with no
+exceptions, the original landing condition), measures the no-listing path against its parent (section 9), and flips PB5932
+to landed. Step 7b branches after the last slice. Then the data map and file map as views of the
 snapshot (`DataMapBuilder`), `LineAnnotationBuilder` with `ListingLine.Margin` for definition lines, and the `All`
 benchmark row. `Identify` records nothing yet; the table's entries and attributes are complete. (Step 6:) the data map, the
 `LineAnnotationBuilder` margin and the `All` row are built in step 6; step 6b moves the finishing into the grown table, whose
-`Declare` then replaces `SymbolTableWriter.Declare`, and the data map is unchanged. (Step 6b, in progress on `listing-step-6b`:)
+`Declare` then replaces `SymbolTableWriter.Declare`, and the data map is unchanged. (Step 6b, slice 1, branch `listing-step-6b`:)
 the drift test was written first and measured red (section 6.7.1, "Step 6b, as built so far"); the table moved to the binder layer
 with `Identify`, `Declarations` (`DeclarationFact`) and `CobolName`; the cd-names and the file-names are its own, with every
 reference to them through `Identify` and each change shown behaviour-neutral by `compare_oracle.py` (IDENTICAL over 22641 cases).
