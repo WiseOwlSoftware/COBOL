@@ -50,7 +50,7 @@ public sealed class GlobalNameClassDriftTests
         ["InheritedGlobals._typeDecls"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
         ["ClauseFacts.LapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §2023:8.4.2.2.1 "
             + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
-        ["ImplicitRegisters._debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
+        ["SymbolTable._debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
             + "never declared by a data description entry",
         ["SymbolTable._ownConstants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
             + "InheritStep.Seed (SymbolTable.InheritConstants; §2023:13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
