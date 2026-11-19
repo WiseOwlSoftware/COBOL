@@ -401,8 +401,8 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         var (name, qualifier) = ReportGroupResolution.Parts(operand);
         // The report-name form (SR2, summary reporting) has NO qualifier — §2023:8.4.2.2 gives a report-name no
         // qualifier at all — so a qualified operand can only be the data-name form and skips this arm. Its one word is the
-        // head's: a probe, since the group form below may be the reference.
-        if (qualifier is null && ctx.Data.Symbols.Identify(operand.cobolWord(), NameClass.Report, report: false)?.Symbol is ReportModel summary)
+        // head's, and when it names a report the report-name form IS the reference (the group form below is not asked).
+        if (qualifier is null && ctx.Data.Symbols.Identify(operand.cobolWord(), NameClass.Report, report: true)?.Symbol is ReportModel summary)
         {
             if (summary.Controls.Count == 0)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
