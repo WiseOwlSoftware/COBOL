@@ -114,8 +114,9 @@ public sealed partial class SymbolTable
     /// nearest declaration winning); null for an outermost element.</summary>
     private SymbolTable? _configurationContainer;
 
-    /// <summary>The configuration-section table of class <paramref name="class"/>, or null for a class no configuration section
-    /// declares.</summary>
+    /// <summary>Is <paramref name="class"/> one of the nine classes of name a configuration section declares (the switch-status
+    /// condition-names, class-names, both alphabet classes, symbolic-characters, ordering-names, dynamic-length structures, locales
+    /// and mnemonic-names), each held in a table of this file rather than in the data-name tables?</summary>
     private static bool IsConfigurationClass(NameClass @class) => @class is NameClass.SwitchCondition or NameClass.ClassName
         or NameClass.Alphabet or NameClass.NationalAlphabet or NameClass.SymbolicCharacter or NameClass.OrderingName
         or NameClass.DynamicLengthStructure or NameClass.Locale or NameClass.Mnemonic;

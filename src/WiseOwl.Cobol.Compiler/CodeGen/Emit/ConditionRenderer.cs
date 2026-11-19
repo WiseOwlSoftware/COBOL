@@ -1061,7 +1061,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// The ONE reader, shared by the EVALUATE range and the level-88 VALUE range, because §2023:14.7.8's first sentence
     /// governs both clauses at once.</summary>
     private string RangeCollateArg(RangeCollationId? collation, PicCategory? left, PicCategory? right) => collation is { } id
-        ? ctx.Data.RangeCollations[id.Index].Field is { } f ? ", " + f : ""
+        ? ctx.RangeCollations.FieldOf(id) is { } f ? ", " + f : ""
         : ctx.CollateArgFor(left, right);
 
     /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.

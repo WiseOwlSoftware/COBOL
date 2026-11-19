@@ -1763,11 +1763,6 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The §2023:8.8.4.2.12 element-order lowering (kb/Work PB1469) — per unit, stateless beyond the context.</summary>
     private readonly StrongGroupComparison _strongGroups = new(ctx);
 
-    /// <summary>ISO §2023:8.8.4.7.3 SR2 — a sign condition is Format 2 (the IEEE sign-bit test, §2023:8.8.4.7.4 GR2) iff
-    /// data-name-1 is a single data item of a standard floating-point usage that is NOT enclosed in parentheses.
-    /// A parenthesized float (SR1 makes <c>(FL) IS POSITIVE</c> Format 1), a non-float item, or any compound /
-    /// unary-signed expression stays Format 1 (the algebraic test). The paren distinction is invisible in the
-    /// bound tree (<c>(FL)</c> and <c>FL</c> bind identically), so it is decided on the PARSE shape here.</summary>
     /// <summary>The numeric expression an already-bound selection-subject VALUE supplies as a sign-condition
     /// operand (§2023:8.8.4.7.3 SR1 — "any single numeric data item … or any form of arithmetic expression"), or null
     /// when the value is not numeric (the caller then takes the SR1 diagnostic path).</summary>
@@ -1779,6 +1774,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         _ => null,
     };
 
+    /// <summary>ISO §2023:8.8.4.7.3 SR2 — a sign condition is Format 2 (the IEEE sign-bit test, §2023:8.8.4.7.4 GR2) iff
+    /// data-name-1 is a single data item of a standard floating-point usage that is NOT enclosed in parentheses.
+    /// A parenthesized float (SR1 makes <c>(FL) IS POSITIVE</c> Format 1), a non-float item, or any compound /
+    /// unary-signed expression stays Format 1 (the algebraic test). The paren distinction is invisible in the
+    /// bound tree (<c>(FL)</c> and <c>FL</c> bind identically), so it is decided on the PARSE shape here.</summary>
     private bool IsFormat2FloatSign(Core.ValueOperandContext? operand) =>
         SoleDataReference(operand?.arithmeticExpression()) is { } dref
         && ctx.Refs.Probe(dref) is { Item.Pic: { } pic }      // Probe — a routing predicate is diagnostic-free (R30)

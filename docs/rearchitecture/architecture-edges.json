@@ -2284,7 +2284,7 @@
       "from": "WiseOwl.Cobol.CodeGen.Emit",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 26,
-      "walkUses": 22,
+      "walkUses": 21,
       "removedBy": [
         "PB2399",
         "PB2405",
@@ -2329,15 +2329,6 @@
           "to": "WiseOwl.Cobol.Binding.IntrinsicResultType",
           "removedBy": [
             "PB2405"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.Emit.ConditionRenderer",
-          "to": "WiseOwl.Cobol.Binding.RangeCollationCarrier",
-          "removedBy": [
-            "PB2399",
-            "PB2405",
-            "PB2420"
           ]
         },
         {

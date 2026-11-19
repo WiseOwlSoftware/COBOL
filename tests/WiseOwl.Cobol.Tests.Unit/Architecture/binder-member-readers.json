@@ -1223,6 +1223,9 @@
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollation": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
+    "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollationIds": [
+      "WiseOwl.Cobol.Binding.DataBinder"
+    ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::RangeCollations": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],

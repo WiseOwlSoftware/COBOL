@@ -35,6 +35,7 @@ internal static class BackendContract
             "Model.BoundUnit.ExternalizedName", "Model.BoundUnit.Name",
             "Model.CollatingKeyOperand.Name", "Model.CollatingKeyOperand.Qualifiers",
             "Model.Condition88.Name",
+            "Model.RangeCollationId.Name",   // alphabet-name-1 as written, for the carrier's comment (kb/Work PB5932)
             "Model.CommunicationDescription.Name",
             "Model.DataItem.CobolName", "Model.DataItem.ExternalizedAs", "Model.DataItem.IndexNames",
             "Model.DataItem.RedefinesTargetName", "Model.DataItem.SameAsName", "Model.DataItem.SameAsQualifiers",

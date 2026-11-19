@@ -25,7 +25,12 @@ reference is `SymbolTable.Identify(written, class, report)`.
   `SymbolicOf` take the word. A COLLATING SEQUENCE clause's alphabet-name is read where written into a `CollatingAlphabet`, which the
   one class test and a file's key resolution read after the bind; the binder keeps it, and the model keeps the names as written.
 - The THROUGH range's alphabet rode the bound node as a NAME that the C# renderer looked up in a name table of the data binding. It now
-  rides as a `RangeCollationId`, the carrier's position in `DataBindResult.RangeCollations`, so the backend looks no name up.
+  rides as a `RangeCollationId`, so the backend looks no name up. Review round 1 found the first form, the carrier's POSITION in the
+  defining unit's list, wrong across units: a container's GLOBAL `88 OK VALUE "B" THRU "A" IN AL` tested in a contained program read
+  the contained program's carrier at that position (a wrong answer) or none (the compiler failed), and the name-keyed table before it
+  had weighed such a range natively. The id is now an identity with the sequence kind and ordinal; `RangeCollationFields` finds it in
+  the unit's carriers and then its containers', reaching a container's field through the container's type, and the new case
+  `pb5932_global_condition_range_in_alphabet` pins it. The same round fixed 10 orphaned doc comments and filed the other 36 as PB5944.
 - Three converted members keep a diagnostic's strings beside the word's context, so rule (3) classifies them:
   `string-parameter-members.json` 122 -> 123.
 

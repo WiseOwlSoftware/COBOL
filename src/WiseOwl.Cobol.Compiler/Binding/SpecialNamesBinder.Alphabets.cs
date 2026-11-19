@@ -21,10 +21,11 @@ public sealed partial class SpecialNamesBinder
     /// <summary>⛔ THE per-TYPE runtime carriers a THROUGH range's <c>IN alphabet-name-1</c> phrase needs (ISO
     /// §2023:14.7.8 rule 2 — "the collating sequence used for range evaluation is the collating sequence defined by that
     /// alphabet"), one per ALPHABET the phrase resolves to, in the order first named. Each is declared beside
-    /// <c>__COLLATE</c> by <c>ObjectComputerEmit</c>, and the node of each range carries its position
+    /// <c>__COLLATE</c> by <c>ObjectComputerEmit</c>, and the node of each range carries its identity
     /// (<see cref="RangeCollationId"/>: <see cref="Bound.BoundRangeMembership.Collation"/>, <see cref="Condition88.Collation"/>),
     /// so the backend looks no name up (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 4": a name table is
-    /// the symbol table's).
+    /// the symbol table's). An identity and not a position, because the node crosses units: a GLOBAL condition-name is rendered
+    /// in the contained programs too, which reach this unit's field through its type.
     /// <para>⛔ A FIELD, NOT AN INLINE CARRIER, and that is a correctness-adjacent performance rule rather than a
     /// preference: a range test sits inside a WHEN pair that is re-analysed on every execution of the EVALUATE, and
     /// rendering <c>new AlphanumericCollation(new ushort[256]{…}, …)</c> there would allocate a fresh 256-entry
@@ -35,11 +36,23 @@ public sealed partial class SpecialNamesBinder
 
     private readonly List<RangeCollationCarrier> _rangeCollations = [];
 
-    /// <summary>Each carrier's position by the alphabet's DEFINITION (the symbol the name identified), never by its name.</summary>
-    private readonly Dictionary<object, RangeCollationId> _rangeCollationIds = new(ReferenceEqualityComparer.Instance);
+    /// <summary>The identities of <see cref="RangeCollations"/>, in the same order: what the backend resolves a range's node by
+    /// (<see cref="DataBindResult.RangeCollationIds"/>).</summary>
+    public IReadOnlyList<RangeCollationId> RangeCollationIds => _rangeCollationIdList;
 
-    /// <summary>The carrier a range's node names.</summary>
-    internal RangeCollationCarrier RangeCollation(RangeCollationId id) => _rangeCollations[id.Index];
+    private readonly List<RangeCollationId> _rangeCollationIdList = [];
+
+    /// <summary>Each carrier by the alphabet's DEFINITION (the symbol the name identified), never by its name.</summary>
+    private readonly Dictionary<object, RangeCollationCarrier> _rangeCollationsByDefinition = new(ReferenceEqualityComparer.Instance);
+
+    /// <summary>Each carrier by the identity a range's node carries.</summary>
+    private readonly Dictionary<RangeCollationId, RangeCollationCarrier> _rangeCollationsById = [];
+
+    /// <summary>The carrier a range's node names, which THIS unit made: the binder asks it only of the VALUE clause it is
+    /// binding (§2023:13.18.63.3 SR26, §2023:13.18.63.3 SR27), whose phrase this unit's resolver resolved. A miss is a compiler defect and
+    /// fails loudly.</summary>
+    internal RangeCollationCarrier RangeCollation(RangeCollationId id) => _rangeCollationsById.TryGetValue(id, out var c) ? c
+        : throw new InvalidOperationException($"range collation '{id.Name}' was not made by this unit's SPECIAL-NAMES binder");
 
     /// <summary>The carrier of an ALPHANUMERIC alphabet as a range collating sequence — with no field when the alphabet is
     /// the native order (an identity sequence needs none: §2023:14.7.8 rule 2's "the collating sequence defined by that
@@ -50,11 +63,12 @@ public sealed partial class SpecialNamesBinder
     /// falls back to the category-derived sequence and silently reinstates the very default the phrase overrides —
     /// measured, while these two cases returned early instead of recording themselves.</para>
     private RangeCollationId RangeCollationOf(string name, AlphabetDef def)
-        => Register(def, name, ReferenceEquals(def, Cfg.Collating) ? "__COLLATE" : null, def.Table, def.Locale, National: false);
+        => Register(def, name, ReferenceEquals(def, Cfg.Collating) ? RangeCollationSequence.ProgramCollating : null, def.Table, def.Locale,
+            National: false);
 
     /// <inheritdoc cref="RangeCollationOf(string,AlphabetDef)"/>
     private RangeCollationId RangeCollationOf(string name, NationalAlphabetDef def)
-        => Register(def, name, ReferenceEquals(def, Cfg.NationalCollating) ? "__COLLATE_NAT" : null,
+        => Register(def, name, ReferenceEquals(def, Cfg.NationalCollating) ? RangeCollationSequence.NationalProgramCollating : null,
             def.Table, def.Locale, National: true);
 
     /// <summary>⛔ THE EDITION GATE OF THE <c>[ IN alphabet-name-1 ]</c> RANGE PHRASE — a COBOL-2002 addition
@@ -73,7 +87,7 @@ public sealed partial class SpecialNamesBinder
     /// "This specification applies to THROUGH phrases specified in the VALUE clause and the EVALUATE statement":
     /// ONE sentence governing both, so one resolver. It enforces both halves of §2023:14.9.13.3 SR3 (§2023:13.18.63.3 SR31 is
     /// the same rule for the VALUE clause) and makes the runtime carrier.
-    /// <para>Returns the carrier's position when the phrase is accepted, which the bound node carries; null when it was refused, and
+    /// <para>Returns the carrier's identity when the phrase is accepted, which the bound node carries; null when it was refused, and
     /// the range then keeps the implementor default sequence (§2023:14.7.8 rule 2's no-phrase arm) rather than acquiring a
     /// second, invented error mode.</para></summary>
     /// <param name="written">alphabet-name-1 as written, identified through the symbol table.</param>
@@ -141,25 +155,26 @@ public sealed partial class SpecialNamesBinder
         return null;
     }
 
-    /// <param name="known">The field that ALREADY names this sequence (<c>__COLLATE</c> / <c>__COLLATE_NAT</c>), or
+    /// <param name="known">The program collating sequence this alphabet IS, whose field the unit already declares, or
     /// null when a fresh carrier is needed. An identity alphabet takes neither, and is recognised here — from both
     /// components being absent — rather than at each caller.</param>
-    private RangeCollationId Register(object definition, string name, string? known, CollatingTable? table,
+    private RangeCollationId Register(object definition, string name, RangeCollationSequence? known, CollatingTable? table,
         LocaleCollatingSpec? locale, bool National)
     {
-        if (_rangeCollationIds.TryGetValue(definition, out var made)) return made;
+        if (_rangeCollationsByDefinition.TryGetValue(definition, out var made)) return made.Id;
         bool identity = table is null && locale is null;
-        // An ORDINAL field name, not one derived from the COBOL word: a user-defined word admits both '-' and '_'
-        // (§2023:8.3.2.1), so any sanitizing map could collide two distinct alphabet-names onto one field.
-        var id = new RangeCollationId(_rangeCollations.Count);
-        string? field = identity ? null : known ?? $"__COLLATE_R{id.Index}";
-        _rangeCollations.Add(new RangeCollationCarrier(field, name, table, locale, National, Declare: field is not null && known is null));
-        return _rangeCollationIds[definition] = id;
+        var sequence = identity ? RangeCollationSequence.Native : known ?? RangeCollationSequence.Own;
+        var carrier = new RangeCollationCarrier(new RangeCollationId(name, sequence, _rangeCollations.Count), table, locale, National);
+        _rangeCollations.Add(carrier);
+        _rangeCollationIdList.Add(carrier.Id);
+        _rangeCollationsByDefinition[definition] = carrier;
+        _rangeCollationsById[carrier.Id] = carrier;
+        return carrier.Id;
     }
 
     /// <summary>Is <paramref name="alphabetName"/> an alphabet "associated with a locale" (ISO §2023:8.8.4.4.3 SR2) /
     /// "specified with the LOCALE phrase" (§2023:12.3.7.3 SR16g / SR17d) — of EITHER class (<c>ALPHABET … IS LOCALE</c>
-    /// registers in <see cref="ConfigurationSlice.Alphabets"/>, <c>ALPHABET … FOR NATIONAL IS LOCALE</c> in <see cref="ConfigurationSlice.NationalAlphabets"/>)?
+    /// declares an alphanumeric alphabet-name, <c>ALPHABET … FOR NATIONAL IS LOCALE</c> a national one, both in the symbol table)?
     /// Such an alphabet defines a collating sequence only (§2023:12.3.7.4 GR7, Table 6: the LOCALE row names no coded
     /// character set), so the ONE question every site that needs a CODED CHARACTER SET asks is this one (kb/Work PB64
     /// T5 — the class condition's alphabet-name-1 today; the CLASS / SYMBOLIC CHARACTERS <c>IN</c> phrases and CODE-SET

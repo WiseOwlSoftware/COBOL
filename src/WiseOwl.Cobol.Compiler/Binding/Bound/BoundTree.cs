@@ -1066,10 +1066,10 @@ public sealed record BoundCondition88(Place Parent, Condition88 Condition, bool 
 /// EC-RANGE-INVALID is set and the range is treated as empty — realized by the runtime <c>CobolString.ThruMember</c>
 /// (the empty behaviour is already emergent from the inclusive-bound test, so only the EC-set is added).
 /// <para><paramref name="Collation"/> is the collating sequence alphabet-name-1 of the range's <c>IN</c> phrase names (its carrier's
-/// position in <see cref="Model.DataBindResult.RangeCollations"/>), or null when the phrase is absent. §2023:14.7.8 rule 2 makes it the ordering outright — "the collating sequence used for range
+/// identity, <see cref="RangeCollationId"/>), or null when the phrase is absent. §2023:14.7.8 rule 2 makes it the ordering outright — "the collating sequence used for range
 /// evaluation is the collating sequence defined by that alphabet" — so it OVERRIDES the implementor default, which
 /// for this compiler is the PROGRAM COLLATING SEQUENCE: a range under <c>IN STANDARD-1</c> collates natively even
-/// inside a program whose PCS reorders the alphabet. The position of the carrier the one resolver made rides here
+/// inside a program whose PCS reorders the alphabet. The identity of the carrier the one resolver made rides here
 /// (<c>SpecialNamesBinder.TryResolveRangeAlphabet</c>), so the renderer looks no alphabet-name up.</para>
 /// <para>⛔ A RANGE WITH AN <c>IN</c> PHRASE ALWAYS BINDS TO THIS NODE, checked or not, because the alternative
 /// lowering — a pair of <c>BoundRelational</c>s — has nowhere to put a per-range collating sequence: a relation's

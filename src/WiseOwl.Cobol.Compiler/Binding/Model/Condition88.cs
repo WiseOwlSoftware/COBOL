@@ -33,7 +33,7 @@ public sealed class Condition88
     /// </summary>
     public List<(string Low, string? High)> Values { get; } = [];
 
-    /// <summary>The collating sequence alphabet-name-1 of the clause's <c>IN</c> phrase names, the position of the carrier the one
+    /// <summary>The collating sequence alphabet-name-1 of the clause's <c>IN</c> phrase names, the identity of the carrier the one
     /// resolver made (<see cref="DataBindResult.RangeCollations"/>)
     /// (ISO §2023:13.18.63.2 formats 3 and 5 — <c>[ IN alphabet-name-1 ]</c> stands OUTSIDE the repeated literal group, so one
     /// alphabet governs the whole VALUE set), or null when the phrase is absent or was refused. §2023:14.7.8 rule 2 makes it the collating sequence every THRU

@@ -50,7 +50,7 @@ public sealed class Condition88CloneDriftTests
         {
             Name = "CN-DRIFT",
             Parent = template,
-            Collation = new RangeCollationId(7),
+            Collation = new RangeCollationId("DRIFT-ALPHABET", RangeCollationSequence.Own, 7),
             FalseValue = "\"DRIFT-FALSE\"",
         };
         src.Values.Add(("\"LO\"", "\"HI\""));
@@ -60,7 +60,7 @@ public sealed class Condition88CloneDriftTests
 
         Assert.Same(clone, copy.Parent);
         Assert.Equal(src.Name, copy.Name);
-        Assert.Equal(src.Collation, copy.Collation);
+        Assert.Same(src.Collation, copy.Collation);   // the identity, which the backend finds the carrier by
         Assert.Equal(src.FalseValue, copy.FalseValue);
         Assert.Equal(src.Values, copy.Values);
         Assert.NotSame(src.Values, copy.Values);   // the clone owns its list — a shared one is a later aliasing bug
@@ -90,10 +90,10 @@ public sealed class Condition88CloneDriftTests
                 list.Add(Activator.CreateInstance(elem, "REFLECT-LOW", "REFLECT-HIGH"));
                 populated.Add(p.Name);
             }
-            else if (p.CanWrite && p.PropertyType == typeof(RangeCollationId?))
+            else if (p.CanWrite && p.PropertyType == typeof(RangeCollationId))
             {
-                // The IN phrase's collating sequence (§2023:13.18.63.2 formats 3 and 5): any carrier's position.
-                p.SetValue(src, new RangeCollationId(7));
+                // The IN phrase's collating sequence (§2023:13.18.63.2 formats 3 and 5): any carrier's identity.
+                p.SetValue(src, new RangeCollationId("REFLECT-ALPHABET", RangeCollationSequence.Own, 7));
                 populated.Add(p.Name);
             }
             else if (p.CanWrite && p.PropertyType == typeof(WiseOwl.Cobol.Editions.DiagnosticCursor))

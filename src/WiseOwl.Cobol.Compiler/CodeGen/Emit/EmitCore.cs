@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.CodeGen.Emit;
 /// the H1 staleness class by construction.
 /// </summary>
 internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAllocator names, GroupAtomTable atoms,
-    Lazy<string> whenCompiledStamp)
+    Lazy<string> whenCompiledStamp, RangeCollationFields rangeCollations)
 {
     /// <summary>The C# output writer.</summary>
     public CodeWriter Writer { get; } = writer;
@@ -33,6 +33,9 @@ internal sealed class EmitContext(CodeWriter writer, DataBindResult data, NameAl
 
     /// <summary>The bound DATA DIVISION model.</summary>
     public DataBindResult Data { get; } = data;
+
+    /// <summary>The THROUGH range carriers as seen from this unit's type, its containers' included (<see cref="RangeCollationFields"/>).</summary>
+    public RangeCollationFields RangeCollations { get; } = rangeCollations;
 
     /// <summary>The METHOD OPTIONS override of the code now emitted (ISO §2023:11.9.4 GR1): a method's own OPTIONS model,
     /// which <c>OoEmitter.EmitMethod</c> pushes over the unit's (<see cref="ConfigurationFacts.Options"/>) around the

@@ -53,10 +53,10 @@ internal sealed class UnitEmitters
 
     public UnitEmitters(CodeWriter w, DataBindResult data, PlaceTable places, NameAllocator names, GroupAtomTable atoms,
         DispatchState dispatchState, EcState ecState, CallUnitState callState, OoEmitter oo,
-        Lazy<string> whenCompiledStamp)
+        Lazy<string> whenCompiledStamp, RangeCollationFields rangeCollations)
     {
         Places = places;
-        Ctx = new EmitContext(w, data, names, atoms, whenCompiledStamp);
+        Ctx = new EmitContext(w, data, names, atoms, whenCompiledStamp, rangeCollations);
         Num = new NumericRenderer(Ctx, ecState);
         Cond = new ConditionRenderer(Num, Ctx);
 

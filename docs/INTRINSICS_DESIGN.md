@@ -901,13 +901,14 @@ class-name the same element also references is refused. A parameter-name is reco
 specifier declares it, as the skeleton's binder declares it. The names a CONFIGURATION SECTION declares reach a
 contained element the same way (§2023:8.4.6.1's list: alphabet-name, class-name, a SPECIAL-NAMES condition-name,
 dynamic-length-structure-name, locale-name, mnemonic-name, ordering-name, symbolic-character; kb/Work PB3153): each
-type's registry is a `ConfigurationNames<T>` table, which exposes no `TryGetValue` — a reference the binder commits to
-resolves through `TryUse(site, name)`, which records the use through the ONE recorder
-`DataBinder.RecordConfigurationNameUse` (into `OoClassTable.RecordReferenceUse`), and a predicate, a declaration's
-duplicate check or a second read of an already-resolved name asks `Declares` / `TryPeek`, which record nothing; the
-mnemonic-names keep their parse-tree registry (`Procedure.MnemonicRegistry`), whose `TryUse` records the same way.
-`ConfigurationStep` hands every table down (`InheritFrom`; the symbolic characters were not handed down at all
-before PB3153, so a contained program's use of one was COBOL1639). Where a format admits both an inherited name and
+type's names are a table of the symbol table (`SymbolTable.Configuration.cs`, since listing step 6b slice 4,
+docs/rearchitecture/DESIGN-listing.md section 6.7.1), and a reference the binder commits to is identified from the word as written,
+`SymbolTable.Identify(written, class, report: true)`, which records the use through the ONE recorder
+`DataBinder.RecordConfigurationNameUse` (into `OoClassTable.RecordReferenceUse`); a predicate, a declaration's duplicate
+check or a second read of an already-resolved name asks `DeclaresConfigurationName` or `Identify` with `report: false`, which
+record nothing. The mnemonic-names are the symbol table's too: `Procedure.MnemonicRegistry`'s `TryUse` and `TryPeek` identify them
+the same way. `ConfigurationStep` hands every table down (`SymbolTable.InheritConfigurationNames`; the symbolic characters were
+not handed down at all before PB3153, so a contained program's use of one was COBOL1639). Where a format admits both an inherited name and
 another reading of the same word, the referring element's own item of the same spelling is asked first — §2023:8.4.6.1: "a
 source element's reference to such a name, even when it is a different type of user-defined word, is to the item which
 that source element describes" — and only the inherited reading records a use. The own item may be a data item or a

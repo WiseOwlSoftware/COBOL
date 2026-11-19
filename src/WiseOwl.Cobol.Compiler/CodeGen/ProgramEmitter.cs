@@ -61,10 +61,12 @@ internal sealed class ProgramEmitter
 
     /// <summary>Begin one emitted unit: re-create the per-unit context/renderer quadruple and every
     /// collaborator emitter over the fresh writer/data/resolver (the <see cref="UnitEmitters"/> ctor wires
-    /// the cycles).</summary>
-    internal void BeginUnit(CodeWriter w, DataBindResult data, PlaceTable places)
+    /// the cycles). <paramref name="container"/> is the unit's containing program, null for an outermost program, a class or an
+    /// interface: a contained program renders its containers' GLOBAL condition-names, whose THROUGH range carriers are the
+    /// containers' (<see cref="RangeCollationFields"/>).</summary>
+    internal void BeginUnit(CodeWriter w, DataBindResult data, PlaceTable places, BoundUnit? container)
         => Current = new UnitEmitters(w, data, places, _names, _atoms, _dispatchState, _ecState, _callState, _oo,
-            _whenCompiledStamp);
+            _whenCompiledStamp, RangeCollationFields.Of(data, container));
 
     /// <summary>The EMIT half (rearch PHASE-03 Step 14a / PHASE-06 Step 2): render the run unit's C# from an
     /// already-bound immutable <see cref="BoundCompilation"/> — reached ONLY after the driver confirmed the edition
@@ -160,7 +162,7 @@ internal sealed class ProgramEmitter
         // is the compilation's one (kb/Work PB803): a group of prototypes alone — the library that publishes them to the
         // external repository (DESIGN-external-repository §7.2) — emits no program class, so no unit emitter is current here.
         new HostEntryEmitter(comp.SignEncoding, _atoms,
-            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(comp.EntryUnits,
+            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp, RangeCollationFields.Of(data, null)))).Emit(comp.EntryUnits,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(classes.SelectMany(c => c.Symbol.FactoryOrInstanceClrNames))
                 .Concat(comp.Interfaces.Select(i => i.ClrName))
@@ -299,7 +301,7 @@ internal sealed class ProgramEmitter
     private void EmitProgramClass(BoundUnit unit, CodeWriter w)
     {
         var data = unit.Data;
-        BeginUnit(w, data, unit.Places);
+        BeginUnit(w, data, unit.Places, unit.Parent);
         var places = Current.Places;
         _callState.SelfPath = unit.RegistryKey;
         _callState.ReturningPlace = data.Linkage.Returning is { } ret ? places.Of(ret) : null;

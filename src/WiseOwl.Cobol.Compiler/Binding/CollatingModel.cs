@@ -622,20 +622,22 @@ public sealed record SortCollation(AlphabetDef? Alphanumeric, NationalAlphabetDe
 /// <summary>
 /// One per-runtime-module carrier for a collating sequence a THROUGH range's <c>IN alphabet-name-1</c> phrase names
 /// (ISO §2023:14.7.8 rule 2). It is made by <c>SpecialNamesBinder.TryResolveRangeAlphabet</c> when the phrase resolves, and
-/// the range's node carries its position (<c>RangeCollationId</c>: <c>BoundRangeMembership.Collation</c>,
-/// <c>Condition88.Collation</c>); its <see cref="Field"/> is declared by <c>ObjectComputerEmit</c> (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 4": the
-/// renderer used to look the alphabet-NAME up in a table of its own, a lookup by name outside the symbol table).
+/// the range's node carries its identity (<see cref="Id"/>: <c>BoundRangeMembership.Collation</c>,
+/// <c>Condition88.Collation</c>); its field is declared by <c>ObjectComputerEmit</c> in the type of the unit that
+/// made it, and a contained program that renders the node reaches it through that type (<c>CodeGen.Emit.RangeCollationFields</c>;
+/// docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 4": the renderer used to look the alphabet-NAME up in a
+/// table of its own, a lookup by name outside the symbol table).
 /// </summary>
-/// <param name="Field">The <c>CobolCollation</c> field to pass, or NULL when the alphabet is the native order —
-/// an identity sequence has no carrier and the native two-argument comparison IS it (§2023:14.7.8 rule 2's "the
-/// collating sequence defined by that alphabet", where that sequence is the native one).</param>
-/// <param name="Name">alphabet-name-1 as written, for the declaration's comment.</param>
+/// <param name="Id">The identity the range's node carries; its name is alphabet-name-1 as first written.</param>
 /// <param name="Table">The non-identity collating table, or null for the LOCALE arm / an identity alphabet.</param>
 /// <param name="Locale">The LOCALE arm, or null for a table / an identity alphabet.</param>
 /// <param name="National">True when the alphabet is an <c>ALPHABET … FOR NATIONAL</c> one — it becomes a
 /// <c>NationalCollation</c> rather than an <c>AlphanumericCollation</c>.</param>
-/// <param name="Declare">True when THIS carrier owns the field's declaration. False for an identity alphabet (no
-/// field) and for one that IS the program collating sequence, whose <c>__COLLATE</c> / <c>__COLLATE_NAT</c> is
-/// already declared — the carrier still exists so the range's node names the sequence its phrase chose.</param>
-public sealed record RangeCollationCarrier(string? Field, string Name, CollatingTable? Table,
-    LocaleCollatingSpec? Locale, bool National, bool Declare);
+public sealed record RangeCollationCarrier(RangeCollationId Id, CollatingTable? Table,
+    LocaleCollatingSpec? Locale, bool National)
+{
+    /// <summary>True when THIS carrier owns its field's declaration (<see cref="RangeCollationSequence.Own"/>). False for an identity
+    /// alphabet (no field) and for one that IS the program collating sequence, whose field is already declared: the carrier still
+    /// exists so the range's node names the sequence its phrase chose.</summary>
+    public bool Declare => Id.Sequence is RangeCollationSequence.Own;
+}

@@ -149,6 +149,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             Linkage = new LinkageFacts(Linkage.Roots, Linkage.Formals, Linkage.Returning, Linkage.SuppressedRootFields,
                 Linkage.ExternalBackings),
             RangeCollations = SpecialNames.RangeCollations,
+            RangeCollationIds = SpecialNames.RangeCollationIds,
             ApplyCommit = FileControl.ApplyCommit,
             DialectLevel = Edition.DialectLevel,
             SignEncoding = Edition.SignEncoding,
@@ -1379,13 +1380,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     // kb/Work PB743) are worded the same way one category wider ("alphanumeric or national"), and a second copy
     // of the walk over Pic / AsIfPic / GroupUsage is exactly how the two arms of one rule drift apart.
 
-    /// <summary>VALUE-clause literal/category conformance for national and boolean receivers (ISO §2023:13.18.63,
-    /// the COBOL0898 band). SR5: a category-national item takes a national literal or a figurative constant
-    /// (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE / ZERO, §2023:8.3.3.6.4 GR1/GR6/GR7). §2023:13.18.63.3 SR10: a category-boolean item
-    /// takes a boolean literal or figurative ZERO (no boolean SPACE/QUOTE/HIGH/LOW exists — the §2023:14.9.25.3 SR7
-    /// posture). Both directions: an <c>N"…"</c>/<c>B"…"</c> literal seeds no OTHER category. Size: the decoded
-    /// content shall not exceed the item's positions (SR5/SR10; alphanumeric receivers keep their historical
-    /// truncating store — only the new categories get the strict check).</summary>
     /// <summary>How a VALUE operand's text reads as a numeric literal (optional sign, digits, one decimal point —
     /// ISO §2023:8.3.3.3.2 fixed-point; the floating-point form's significand likewise, §2023:8.3.3.3.3: the exponent cannot
     /// make a zero significand nonzero): <see cref="NumericLiteralMagnitude.NotNumeric"/> for a quoted, national,
@@ -2125,8 +2119,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     }
 
     /// <summary>⛔ THE ONE RECORDER of a reference to a name a configuration section declares (kb/Work PB3153): every
-    /// <see cref="ConfigurationNames{T}.TryUse"/> of this binder's tables, and every mnemonic-name resolution
-    /// (<c>Procedure.MnemonicRegistry</c>), lands here. §2023:8.3.2.2 counts a USE ("<i>a given user-defined word may be
+    /// <see cref="SymbolTable.Identify"/> of a configuration-section name with <c>report: true</c> (the mnemonic-names
+    /// <c>Procedure.MnemonicRegistry</c> resolves included: they are the symbol table's too), lands here. §2023:8.3.2.2 counts a USE ("<i>a given user-defined word may be
     /// used as only one type of user-defined word</i>"), and a contained program or a method resolves names its
     /// container declares (§2023:8.4.6.1), so the use is recorded in the census of the element <paramref name="site"/> lies
     /// in (<see cref="Compiler.Oo.OoClassTable.RecordReferenceUse"/>, the census PB3132's object-class-name references
@@ -3472,7 +3466,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             if (order >= 0)
                 Edition.Error(DiagnosticCatalog.ValueThroughNotAscending, $"condition-name '{cond.Name}': the VALUE "
                     + $"range {lo} THRU {hi} does not ascend — {lo} is {(order == 0 ? "equal to" : "greater than")} "
-                    + $"{hi}{(cond.Collation is { } al ? $" in alphabet '{SpecialNames.RangeCollation(al).Name}'" : "")}, and the value of literal-2 shall be "
+                    + $"{hi}{(cond.Collation is { } al ? $" in alphabet '{al.Name}'" : "")}, and the value of literal-2 shall be "
                     + $"less than the value of literal-3 (ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.3 SR26")})");
         }
     }

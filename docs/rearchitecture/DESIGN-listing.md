@@ -1152,7 +1152,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       counts a table keyed by `CobolName` as well as by `string`, so a class moved into the table stays under the test (shown red on a
       planted `Dictionary<CobolName, DataItem>` in the table).
   - *(Step 6b, slice 4, branch `listing-step-6b-4`.)* The CONFIGURATION SECTION names moved, and the baseline holds 279 (40 tables,
-    51 lookups, 188 sites). `SymbolTable.Configuration.cs` owns what `ConfigurationNames<T>` (deleted) and `ConfigurationSlice` held:
+    51 lookups, 188 sites). `SymbolTable.Configuration.cs` owns what the binding layer's `ConfigurationNames<T>` (deleted) and `ConfigurationSlice` held:
     the switch-status condition-names, class-names, alphanumeric and national alphabet-names, symbolic-characters, ordering-names,
     dynamic-length-structure-names and locale-names (§2023:8.4.6.1's list), each a private `ConfigurationNames<T>` keyed by `CobolName`
     with its containment depths, the mnemonic-names, the symbolic-characters a SPECIAL-NAMES paragraph declares ahead of its
@@ -1175,11 +1175,21 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       `CollatingAlphabet` (the name and what it names in each class), which the one class test, `CollatingAlphabetFault`, and the
       file's key resolution read after the bind; the model keeps the names as written for the external-file identity, and the
       binder keeps what they name (`FileControlBinder`), so no model type depends on the binder layer.
-    - *A range carries its carrier's position (correction, slice 4).* The THROUGH range's `IN alphabet-name-1` phrase rode the bound
-      node and `Condition88` as the alphabet-NAME, which the renderer looked up in a name table of the data binding
-      (`DataBindResult.RangeCollations`, keyed by the name): a lookup by name in the backend. `TryResolveRangeAlphabet` now answers
-      a `RangeCollationId` (model layer), the carrier's position in `DataBindResult.RangeCollations`, a list in the order first named;
-      the binder keys its carriers by the alphabet's definition. The field names are the same ordinals.
+    - *A range carries its carrier's identity (correction, slice 4; corrected again by review round 1).* The THROUGH range's
+      `IN alphabet-name-1` phrase rode the bound node and `Condition88` as the alphabet-NAME, which the renderer looked up in a name
+      table of the data binding (`DataBindResult.RangeCollations`, keyed by the name): a lookup by name in the backend.
+      `TryResolveRangeAlphabet` now answers a `RangeCollationId` (model layer), an IDENTITY the unit's binder makes once per alphabet
+      it names (keyed by the alphabet's definition) and the carrier holds; `DataBindResult.RangeCollations` is the unit's carriers in
+      the order first named, and the field names are their ordinals. The slice first carried the carrier's POSITION in that list, and
+      review round 1 measured why a position is wrong: a level-88 node crosses units. A container's GLOBAL condition-name is rendered
+      in every contained program that references it (§2023:13.18.27.4 GR2), and a clone of a GLOBAL TYPEDEF's condition-name keeps
+      the template's phrase, so the container's position read against the contained program's list named another alphabet's carrier
+      (a silent wrong answer) or none (the compiler failed); the name-keyed table before it found nothing in a contained program that
+      named no range of its own, so that program weighed the range natively. The backend's one reader, `CodeGen.Emit.RangeCollationFields`,
+      finds the identity in the rendering unit's own carriers and then in each container's, outward, and reaches a container's static
+      field through the container's type, which encloses the contained program's (`_PRG_OUTER.__COLLATE_R0`); an identity no unit of
+      the chain made fails loudly. `conformance:cases/13.18.63-VALUE/pb5932_global_condition_range_in_alphabet` pins a contained, a
+      doubly contained and a TYPEDEF-clone reference.
     - *A converted member keeps its diagnostic strings.* `CodedCharacterSetOf`, `ResolveLocaleName` and `TryResolveRangeAlphabet` take
       the word as its context and still take a site and a rule citation, so rule (3) sees a string; they are classified in
       `string-parameter-members.json` with that reason, and its ceiling rose 122 -> 123 (+3, less the two entries whose string was a

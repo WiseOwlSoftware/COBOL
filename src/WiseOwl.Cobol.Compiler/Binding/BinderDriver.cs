@@ -567,13 +567,6 @@ internal sealed class BinderDriver
         return unit;
     }
 
-    /// <summary>The DATA half of unit binding (phase 1 of the two-phase bind): the unit's DATA DIVISION on a
-    /// per-unit <see cref="DataBinder"/> with a disjoint uid band (so nested-class struct/profile names never
-    /// shadow a container's), then inject the containers' GLOBAL names (ISO §2023:13.18.27 GR1–2 — nearest container
-    /// first, each at its nesting depth; which one a reference names is §2023:8.4.6.2.1 3)'s question, asked at the
-    /// reference by <c>SymbolTable.NearestDeclaring</c>) and record the <c>ref</c>-bridges the nested class needs to reach the
-    /// container's storage. Every unit passes through here BEFORE any unit's procedure binds
-    /// (<see cref="BindUnitProcedure"/>) — the forward-reference enabler for user-function signatures.</summary>
     /// <summary>The line of a unit's first token — where §2023:7.3.4 GR5's "all of the source text … that follows" is folded.
     /// A unit whose context carries no start token of its own (a header-less nested program, §2023:11.2.1) takes its first
     /// descendant's line.</summary>
@@ -623,6 +616,13 @@ internal sealed class BinderDriver
         return null;
     }
 
+    /// <summary>The DATA half of unit binding (phase 1 of the two-phase bind): the unit's DATA DIVISION on a
+    /// per-unit <see cref="DataBinder"/> with a disjoint uid band (so nested-class struct/profile names never
+    /// shadow a container's), then inject the containers' GLOBAL names (ISO §2023:13.18.27 GR1–2 — nearest container
+    /// first, each at its nesting depth; which one a reference names is §2023:8.4.6.2.1 3)'s question, asked at the
+    /// reference by <c>SymbolTable.NearestDeclaring</c>) and record the <c>ref</c>-bridges the nested class needs to reach the
+    /// container's storage. Every unit passes through here BEFORE any unit's procedure binds
+    /// (<see cref="BindUnitProcedure"/>) — the forward-reference enabler for user-function signatures.</summary>
     private static void BindUnitData(BoundUnit unit, BindSession session)
     {
         var definition = session.Sources.Of(unit);

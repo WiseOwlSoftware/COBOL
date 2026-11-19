@@ -45,9 +45,13 @@ internal sealed class DataBindResult
     public required LinkageFacts Linkage { get; init; }
 
     /// <summary>The range-collation carriers of the ALPHABET clauses a THROUGH range's IN phrase names (ISO §2023:14.7.8 rule 2), in
-    /// the order first named: the fields the backend declares. Each range's node carries its carrier's position
-    /// (<see cref="RangeCollationId"/>).</summary>
+    /// the order first named: the fields the backend declares in THIS unit's type. Each range's node carries its carrier's identity
+    /// (<see cref="RangeCollationId"/>), which a contained program rendering a GLOBAL condition-name finds among its containers'.</summary>
     public required IReadOnlyList<RangeCollationCarrier> RangeCollations { get; init; }
+
+    /// <summary>The identities of <see cref="RangeCollations"/>, in the same order, each carrying its field: what the backend's
+    /// range reader (<c>CodeGen.Emit.RangeCollationFields</c>) finds a range's node in, this unit's and its containers'.</summary>
+    public required IReadOnlyList<RangeCollationId> RangeCollationIds { get; init; }
 
     /// <summary>The element's APPLY COMMIT clause (ISO §2023:12.4.6.3), or null when it writes none.</summary>
     public required ApplyCommitModel? ApplyCommit { get; init; }

@@ -48,9 +48,22 @@ internal static class ObjectComputerEmit
         // per type, so the range test itself is a field read rather than a per-evaluation table allocation; the
         // registry already collapsed an alphabet that IS the program collating sequence onto __COLLATE.
         foreach (var c in data.RangeCollations.Where(c => c.Declare))
-            w.Line($"private static readonly CobolCollation {c.Field} = {CollationEmit.New(c.Table, c.Locale, c.National)};"
-                + $"   // ALPHABET {c.Name} — a THROUGH range's IN phrase (ISO §2023:14.7.8 rule 2)");
+            w.Line($"private static readonly CobolCollation {RangeCollationField(c.Id)} = {CollationEmit.New(c.Table, c.Locale, c.National)};"
+                + $"   // ALPHABET {c.Id.Name} — a THROUGH range's IN phrase (ISO §2023:14.7.8 rule 2)");
     }
+
+    /// <summary>⛔ THE ONE SPELLING of a THROUGH range carrier's field in the type of the unit that made it (ISO §2023:14.7.8 rule 2):
+    /// that unit's <c>__COLLATE</c> / <c>__COLLATE_NAT</c> when the alphabet IS its program collating sequence, a field of its own named by
+    /// its ordinal, or null for the native order, whose two-argument comparison IS the sequence. The declaration above and the range
+    /// reader (<c>RangeCollationFields</c>) both spell it here.</summary>
+    public static string? RangeCollationField(RangeCollationId id) => id.Sequence switch
+    {
+        RangeCollationSequence.Native => null,
+        RangeCollationSequence.ProgramCollating => "__COLLATE",
+        RangeCollationSequence.NationalProgramCollating => "__COLLATE_NAT",
+        RangeCollationSequence.Own => $"__COLLATE_R{id.Ordinal}",
+        _ => throw new InvalidOperationException($"range collation '{id.Name}': no spelling for {id.Sequence}"),
+    };
 
     /// <summary>The activation-time resolution expression of a classification (§2023:12.3.6.4 GR5 a–j; GR8; §2023:14.6.6 r2).</summary>
     public static string ClassificationResolve(ClassificationSpec cls)

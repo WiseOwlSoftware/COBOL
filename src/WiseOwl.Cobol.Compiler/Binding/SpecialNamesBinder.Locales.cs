@@ -65,28 +65,6 @@ public sealed partial class SpecialNamesBinder
         return sym is null ? null : new LocalePhrase(Runtime.Globalization.LocalePhraseKind.Named, sym);
     }
 
-    /// <summary>
-    /// Bind the SPECIAL-NAMES <c>ORDER TABLE ordering-name-1 IS literal-9</c> clause (ISO §2023:12.3.7.2 — the last item
-    /// of the paragraph's general format; kb/Work PB101 / DESIGN-locale-facility §4.9). §2023:12.3.7.4 GR17: "When ORDER
-    /// TABLE is specified, ordering-name-1 shall reference a cultural ordering table that is identified by
-    /// literal-9 and constructed in accordance with ISO/IEC 14651:2020, Annex A. The implementor specifies the
-    /// allowable content of literal-9."
-    /// <list type="bullet">
-    ///   <item>SR10 — "Literal-4 and literal-9 shall be alphanumeric or national literals": a numeric, boolean or
-    ///   figurative operand is COBOL0898.</item>
-    ///   <item>SR11 — literal-9 "shall specify neither a symbolic-character figurative constant nor a zero-length
-    ///   literal".</item>
-    ///   <item>The clause is BRACKETED and unrepeated in the general format (unlike LOCALE / CURRENCY / CLASS,
-    ///   which carry a printed ellipsis), so a second ORDER TABLE clause — or a repeated ordering-name — is a form
-    ///   violation.</item>
-    /// </list>
-    /// <para>⚖ The ADVISORY (COBOL1662, a warning): GR17 leaves literal-9's allowable content to the
-    /// implementor, so a spelling this implementation cannot resolve is legal source with a defined RUNTIME
-    /// outcome — §2023:15.85.4 r2 sets EC-ORDER-NOT-SUPPORTED at every reference. Rejecting it would refuse a
-    /// conforming program; saying nothing would let a program whose every STANDARD-COMPARE is inoperative compile
-    /// clean. The resolver consulted here is the SAME one the runtime uses
-    /// (<c>CollationEngine.TryGetOrderingTable</c>), so bind-time advice and run-time behaviour cannot drift.</para>
-    /// </summary>
     /// <summary>The SPECIAL-NAMES <c>LOCALE locale-name-1 IS {external-locale-name-1 | literal-4}</c> clause (ISO
     /// §2023:12.3.7.2; DESIGN-locale-facility §4.1, T1): declare the locale-name with its external identification. §2023:12.3.7.3
     /// SR10 — literal-4 "shall be alphanumeric or national"; SR11 — "shall not be a symbolic-character figurative

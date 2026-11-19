@@ -454,7 +454,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     {
         if (methodRecords is not null && methodRecords.Count != roster.Count)
             throw new InvalidOperationException($"OoEmitter: {csName} has {roster.Count} methods and {methodRecords.Count} method records");
-        program.BeginUnit(w, data, places);
+        program.BeginUnit(w, data, places, container: null);
         callState.SelfPath = CallUnitState.NoProgramPath;   // a method is contained in no program (§2023:8.4.6.3; kb/Work PB2843)
         callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
         callState.Formals = [];               // a class has no program-ABI formals — clear the last program's (GR1c recognition)
@@ -1513,7 +1513,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // Interface units emit no statements, so the per-unit resolver is never consulted — and none can
         // exist: interfaces emit FIRST, before any program/class unit begins (the pre-9n code passed the
         // host's null-or-stale _refs field here, equally unread). The fresh renderers are unused but harmless.
-        program.BeginUnit(w, data, null!);
+        program.BeginUnit(w, data, null!, container: null);
         string bases = iface.Inherits.Count > 0
             ? " : " + string.Join(", ", iface.Inherits.Select(b => b.ClrName))
             : "";
