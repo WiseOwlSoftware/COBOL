@@ -4970,7 +4970,7 @@ public static class DiagnosticCatalog
         "ISO §2023:14.9.13.3 syntax rule 3: \"Alphabet-name-1 may be specified only when the literals or identifiers "
         + "specified in the THROUGH phrase are of class alphabetic, alphanumeric, or national.\" (The VALUE clause's "
         + "twin, §2023:13.18.63.3 SR31, names class alphanumeric or national.) A NUMERIC range is ordered algebraically "
-        + "by §2023:14.7.8 rule 1 — \"the range of values includes literal-1, literal-2, and all algebraic values between\" "
+        + "by §2023:14.7.8 GR1 — \"the range of values includes literal-1, literal-2, and all algebraic values between\" "
         + "— and a collating sequence has no part in it, so naming one here has no meaning. Remove the IN phrase.",
         "ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31",
         No1985Rule: "The IN alphabet-name-1 phrase after the THROUGH phrase of an EVALUATE WHEN range or of a condition-name VALUE "
