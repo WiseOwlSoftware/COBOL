@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b slice 4 - the CONFIGURATION SECTION names move into SymbolTable with their resolution
+## Entry 3855 — 2026-11-19 05:05 PST — PB5932: the source listing, step 6b slice 4 - the CONFIGURATION SECTION names move into SymbolTable with their resolution
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands slice 4, from
@@ -42,3 +42,4 @@ runs or within 0.04 MB of them (the benchmark README's step-6b table, slice 4).
 
 **What remains:** the data-name unit, the report class, the program/function/repository class and the OO class (kb/Work PB5932's dated
 file `2026-11-19-step-6b-slice-4`).
+
