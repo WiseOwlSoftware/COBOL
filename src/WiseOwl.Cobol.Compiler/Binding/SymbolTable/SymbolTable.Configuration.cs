@@ -85,11 +85,11 @@ public sealed partial class SymbolTable
     /// <summary>User-defined CLASS names and their expanded member sets (§2023:12.3.7 class-name clause).</summary>
     private readonly ConfigurationNames<UserClassDef> _userClasses = new(UserWordKind.ClassName);
 
-    /// <summary>ALPHANUMERIC alphabet-names (§2023:12.3.7 GR7). An <c>ALPHABET … FOR NATIONAL</c> clause declares in
-    /// <see cref="_nationalAlphabets"/> instead: the two classes are disjoint reference domains (§2023:12.3.6 SR1/SR2).</summary>
+    /// <summary>ALPHANUMERIC alphabet-names (§2023:12.3.7.4 GR7). An <c>ALPHABET … FOR NATIONAL</c> clause declares in
+    /// <see cref="_nationalAlphabets"/> instead: the two classes are disjoint reference domains (§2023:12.3.6.3 SR1, SR2).</summary>
     private readonly ConfigurationNames<AlphabetDef> _alphabets = new(UserWordKind.AlphabetName);
 
-    /// <summary>NATIONAL alphabet-names (§2023:12.3.7 GR7, Table 6).</summary>
+    /// <summary>NATIONAL alphabet-names (§2023:12.3.7.4 GR7, Table 6).</summary>
     private readonly ConfigurationNames<NationalAlphabetDef> _nationalAlphabets = new(UserWordKind.AlphabetName);
 
     /// <summary>SYMBOLIC CHARACTERS figurative constants (§2023:12.3.7.4 GR11).</summary>

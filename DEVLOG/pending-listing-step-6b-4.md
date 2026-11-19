@@ -32,7 +32,8 @@ reference is `SymbolTable.Identify(written, class, report)`.
 **Proved.** `python scripts/arch/compare_oracle.py`: `=== ARCH-ORACLE: IDENTICAL — 22642 cases ===` after the move and after the
 range-collation and file-collating restructuring. `NameTableOwnershipDriftTests` was red naming exactly the 15 baseline entries the move
 retired (rule (1) 3, rule (3) 5, rule (5) 7), the 2 retired classification entries and the 3 converted members before the files were
-lowered and classified. The `None` row of the front end and bind against the parent: the benchmark README's step-6b table, slice 4.
+lowered and classified. The `None` row of the front end and bind against the parent c7088a17b9, twice each, alternating: every branch row inside the parent's two
+runs or within 0.04 MB of them (the benchmark README's step-6b table, slice 4).
 
 **What remains:** the data-name unit, the report class, the program/function/repository class and the OO class (kb/Work PB5932's dated
 file `2026-11-19-step-6b-slice-4`).

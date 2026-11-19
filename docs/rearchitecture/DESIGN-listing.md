@@ -1749,7 +1749,9 @@ renderer. Naming it asks for a listing at any edition.
   Slice 3 (the constant-names) moves no measurable allocation: over four runs each, alternating, NC105A's `None` row is 34.90
   to 35.64 MB on the branch and 35.15 to 35.78 MB on the parent, IX113A's is 0.2 to 0.4 MB below the parent's on every run, NC218A's
   straddles it and SM201A's equals it (the README's step-6b table, slice 3).
-  Slice 4 (the CONFIGURATION SECTION names): the README's step-6b table, slice 4 rows.
+  Slice 4 (the CONFIGURATION SECTION names) moves no measurable allocation: every branch row of the front end and bind lies inside
+  the parent's two runs or within 0.04 MB of them (IX113A `None` 68.92 and 68.88 MB against 68.94 and 68.84; the README's step-6b
+  table, slice 4).
 
 ## 10. Test plan
 
