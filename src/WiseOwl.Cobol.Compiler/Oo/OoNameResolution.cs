@@ -259,7 +259,7 @@ public sealed class IdentityScope
         foreach (var re in SpecifierEntries(env))
         {
             string? ext = re.externalizedNamePhrase() is { } asPhrase
-                ? ExternalizedName.Peek(asPhrase, k => PreBindConstants.Read(asPhrase, k, variables), dialectLevel)
+                ? ExternalizedName.Peek(asPhrase, k => SymbolTable.IdentifyConstantBeforeBind(k, variables), dialectLevel)
                 : null;
             if (re.className() is { } cn) classes.TryAdd(cn.GetText(), ext);
             else if (re.interfaceName() is { } inm) interfaces.TryAdd(inm.GetText(), ext);

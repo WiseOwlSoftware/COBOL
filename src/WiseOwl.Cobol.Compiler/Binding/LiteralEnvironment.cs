@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -17,7 +18,7 @@ namespace WiseOwl.Cobol.Binding;
 /// specifies a literal of its class and category, and §2023:12.3.7.4 GR11 a) makes a symbolic-character a figurative
 /// constant — the §2023:8.8.3.1 format writes literal-1 / literal-2, so both are operands. They resolve through the
 /// program's own tables: a symbolic-character as the table stands at the fold, a constant-name through
-/// <c>ConstantEntryBinder.FindConstant</c>, which binds a constant entry written LATER on demand (kb/Work PB1231 — no clause
+/// <c>SymbolTable.Identify</c>'s constant arm, which binds a constant entry written LATER on demand (kb/Work PB1231 — no clause
 /// orders a constant entry before its references; §2023:13.10.3 SR4/SR5 forbid only circular dependence).</item>
 /// </list>
 /// ⛔ The constructor is private: an environment is obtained from one of the three NAMED contexts below, so a
@@ -84,14 +85,16 @@ internal sealed class LiteralEnvironment
         : cat is not (PicCategory.National or PicCategory.Boolean) && _collate is { } alnum ? alnum.LowValue
         : '\0';
 
-    /// <summary>The constant-name <paramref name="word"/> names here, or null (§2023:13.10.3 SR2).</summary>
-    public ConstantDef? Constant(string word) => _data?.Constants.FindConstant(word);
+    /// <summary>The constant the written word <paramref name="word"/> names here, or null (§2023:13.10.3 SR2), through the
+    /// table's one lookup.</summary>
+    public ConstantDef? Constant(Antlr4.Runtime.ParserRuleContext word) =>
+        _data?.Symbols.Identify(word, NameClass.Constant, report: true)?.Symbol as ConstantDef;
 
     /// <summary>What <paramref name="word"/> stands for at a position that admits BOTH a literal and a system-name
     /// (§2023:13.10.3 SR2; ASSIGN's device-name-1 / literal-1, kb/Work PB2500): the constant it names, a refused constant
     /// entry, or no constant at all. <see cref="Unscoped"/> defines none, so every word is
     /// <see cref="ConstantReadingKind.NotAConstant"/> there.</summary>
-    public ConstantReading ReadConstant(string word) => _data?.ReadConstant(word) ?? ConstantReading.NotAConstant;
+    public ConstantReading ReadConstant(Antlr4.Runtime.ParserRuleContext word) => _data?.ReadConstant(word) ?? ConstantReading.NotAConstant;
 
     /// <summary>Whether <paramref name="word"/> is a symbolic-character name here — in SPECIAL-NAMES, one the
     /// paragraph declares in any clause, since the clauses are order-free (kb/Work PB226).</summary>

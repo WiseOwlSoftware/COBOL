@@ -21,12 +21,17 @@ public sealed class LiteralAliasResolutionDriftTests
     private static string Procedure(params string[] path) =>
         TestRepo.Src(["WiseOwl.Cobol.Compiler", "Binding", "Procedure", .. path]);
 
+    /// <summary>A read of either table: the constant-name through the symbol table's one lookup (<c>Identify</c> with
+    /// <c>NameClass.Constant</c>, since listing step 6b slice 3, kb/Work PB5932) or a bare constant reader, and the
+    /// symbolic-character readers.</summary>
+    private const string ConstantOrSymbolicRead = @"\.(ConstantOf|NamesSymbolic|SymbolicOf)\(|\bNameClass\.Constant\b";
+
     [Fact]
     public void NoProcedureBinder_ReadsTheAliasTables_OutsideTheOneResolution()
     {
         string home = Procedure("ExpressionBinder.cs");
         var elsewhere = Directory.EnumerateFiles(Procedure(), "*.cs", SearchOption.AllDirectories)
-            .Where(f => f != home && Regex.IsMatch(File.ReadAllText(f), @"\.(ConstantOf|FindConstant|NamesSymbolic|SymbolicOf)\("))
+            .Where(f => f != home && Regex.IsMatch(File.ReadAllText(f), ConstantOrSymbolicRead))
             .Select(Path.GetFileName).ToList();
         Assert.True(elsewhere.Count == 0,
             "a procedure binder reads the constant-name or symbolic-character table itself (" + string.Join(", ", elsewhere)
@@ -40,12 +45,12 @@ public sealed class LiteralAliasResolutionDriftTests
         // of its spelling (kb/Work PB5301): a bare reference to a name a constant-name and a data item share is not unique.
         Assert.Single(Regex.Matches(src, @"\.ConstantOfIdentifierPosition\("));
         Assert.Empty(Regex.Matches(src, @"\.ConstantOf\("));
-        Assert.Single(Regex.Matches(src, @"\.FindConstant\("));
+        Assert.Single(Regex.Matches(src, @"\bNameClass\.Constant\b"));
         Assert.Equal(3, Regex.Matches(src, @"\.SymbolicOf\(").Count);
         int wordResolution = src.IndexOf("internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>", StringComparison.Ordinal);
         Assert.True(wordResolution >= 0, "ExpressionBinder.LiteralAliasOf(CobolWordContext) is gone");
         string wordBody = src[wordResolution..src.IndexOf(';', wordResolution)];
-        Assert.Contains("ctx.Data.Constants.FindConstant(w)", wordBody);
+        Assert.Contains("ctx.Symbols.Identify(word, NameClass.Constant, report: true)", wordBody);
         Assert.Contains("ctx.Data.SpecialNames.SymbolicOf(word, w)", wordBody);
         int resolution = src.IndexOf("internal LiteralAlias? LiteralAliasOf(Core.DataReferenceContext dref) =>", StringComparison.Ordinal);
         Assert.True(resolution >= 0, "ExpressionBinder.LiteralAliasOf is gone");

@@ -14,13 +14,14 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// THE CONSTANT-ENTRY BINDER of one unit (kb/Work PB2358; ISO/IEC 1989:2023 §2023:13.10 constant entry + §2023:13.18.15 CONSTANT
 /// RECORD; P10 Step 15). A constant entry defines a COMPILE-TIME substitution: §2023:13.10.4 GR1/GR3 make every
 /// reference to constant-name-1 "as if [the] literal were written where constant-name-1 is written" — so a
 /// constant occupies NO storage and produces NO <see cref="DataItem"/>; <see cref="BindConstantEntry"/> folds
-/// the entry into the per-unit compile-time constant table (<see cref="_constants"/>), and the reference
+/// the entry into the unit's symbol table (<c>SymbolTable.Constants.cs</c>), and the reference
 /// chokepoints substitute the literal:
 /// <list type="bullet">
 /// <item><c>ExpressionBinder.FieldOperand</c> / <c>RefExpr</c> — the ONE dataReference→operand/expression
@@ -59,218 +60,24 @@ using WiseOwl.Cobol.Runtime;
 /// <para>⛔ THE CONSTANT ENTRIES THEMSELVES ARE NOT ORDERED (kb/Work PB1231). No clause of §2023:13.10 or §2023:8.4 makes a
 /// reference follow the constant entry it names, and §2023:13.10.3 SR4/SR5 — a length or a value "shall not be dependent,
 /// directly or indirectly, upon the value of constant-name-1" — could not be broken if one had to. So every entry is
-/// DECLARED before anything binds (<see cref="DeclareDataEntries"/>), <see cref="FindConstant"/> binds one on demand,
+/// DECLARED before anything binds (<see cref="DeclareDataEntries"/>), <c>SymbolTable.Identify</c> binds one on demand,
 /// a re-entry is the reported cycle, and a length phrase may measure an item described later
 /// (<see cref="LengthOperandItem"/>; the record-order half is <c>DataBinder.EntryOrder.cs</c>). It used to be filled
 /// in declaration order, and every reference that preceded its entry was refused as undefined.</para>
 /// </summary>
 internal sealed class ConstantEntryBinder(DataBinder owner)
 {
-    /// <summary>⛔ THE CONSTANT ENTRIES OF ONE SOURCE ELEMENT (kb/Work PB3164): the binder's own element (a program, a
-    /// function, or a class's object, factory or interface definition — <see cref="_constants"/>), or one METHOD
-    /// (<see cref="_methodConstants"/>). A method definition is a source unit of its own, and so a source
-    /// element (§2023:3.164, "source unit excluding any contained source units"), which "may use identical user-defined
-    /// words to name items independent of the use of these user-defined words by other source elements" (§2023:8.4.6.1).
-    /// A method's constant-name is a local name (§2023:8.4.6.2.2; §2023:13.18.27.3 SR4 bars GLOBAL in a method definition), which
-    /// "may be referenced only in the source element in which it is declared" (§2023:8.4.6.2.1), so it is invisible to its
-    /// sibling methods and to its object, while the object's own constant-names are global names its methods see
-    /// (§2023:8.4.6.2.2). §2023:11.7.4 GR5 makes the method's constant-name, and every other word the method's data division
-    /// defines, hide a same-spelled word of the containing object or factory definition inside that method. One method's
-    /// entries used to join the class binder's one table, so a sibling method substituted them for its object's own data
-    /// item, a method's data item lost to its object's constant, and two methods' unequal entries of one name drew
-    /// §2023:13.10.3 SR9.</summary>
-    private sealed class ConstantScope
-    {
-        /// <summary>The bound constants by name (§2023:13.10.4 GR1 substitution source): this element's OWN entries only. The
-        /// GLOBAL constants of the containing programs are <see cref="InheritedGlobals.Constants"/>, read after these
-        /// (kb/Work PB1009).</summary>
-        internal Dictionary<string, ConstantDef> Bound { get; } = new(CobolNames.Comparer);
+    // The constant-names themselves (each element's declared and bound entries, a method's other words, the containers'
+    // GLOBAL constants) and their resolution are SymbolTable's (SymbolTable.Constants.cs; docs/rearchitecture/DESIGN-listing.md
+    // section 6.7.1, listing step 6b slice 3): this binder declares the entries, binds them in order or on the table's
+    // demand, and reads a constant-name only through SymbolTable.Identify.
 
-        /// <summary>The element's constant entries by name, in source order (a duplicated name, §2023:13.10.3 SR9, has
-        /// several), declared before any of them binds (kb/Work PB1231).</summary>
-        internal Dictionary<string, List<DeclaredConstant>> Declared { get; } = new(CobolNames.Comparer);
-
-        /// <summary>The words a METHOD's data division defines as anything but a constant-name — its data-names,
-        /// condition-names, index-names and type-names, but not the names inside a type declaration, which "may be
-        /// referenced only as subordinate items of groups defined using the type-name" (§2023:13.18.58.4 GR1) and so hide
-        /// nothing (kb/Work PB3192). §2023:11.7.4 GR5 makes each hide a word of the same spelling in the containing object or
-        /// factory definition, from before the entry that defines it binds (<see cref="MethodDeclares"/>). Empty for the binder's own element, whose data-names cannot repeat
-        /// one of its own constant-names (§2023:8.3.2.2) and whose containers' constants it shadows through
-        /// <see cref="InheritStep.DropShadowed"/>.</summary>
-        internal HashSet<string> OtherWords { get; } = new(CobolNames.Comparer);
-
-        /// <summary>Whether the element has any constant, bound or still to bind.</summary>
-        internal bool Any => Bound.Count > 0 || Declared.Count > 0;
-    }
-
-    /// <summary>This binder's own source element's constants (<see cref="ConstantScope"/>).</summary>
-    private readonly ConstantScope _constants = new();
-
-    /// <summary>Each METHOD's own constants (<see cref="ConstantScope"/>), keyed by the method's name scope: binder working
-    /// state (a declared entry holds its parse contexts), so it is kept here and never on the method's model scope
-    /// (kb/Work PB2402). The methods of a class half are bound by that half's binder, their data and their statements alike
-    /// (<c>OoDataBinder.BindMethodData</c>, <c>StatementBinder.BindClassBody</c>), so one map holds every table a reference
-    /// made in one of them reads.</summary>
-    private readonly Dictionary<OoMethodDataScope, ConstantScope> _methodConstants = new(ReferenceEqualityComparer.Instance);
-
-    /// <summary>The constant table of the method whose name scope is <paramref name="method"/>, made the first time it is
-    /// asked for (every method has one, empty until its data division declares an entry).</summary>
-    private ConstantScope MethodConstantsOf(OoMethodDataScope method)
-    {
-        if (!_methodConstants.TryGetValue(method, out var scope)) _methodConstants[method] = scope = new ConstantScope();
-        return scope;
-    }
-
-    /// <summary>The METHOD whose constants a reference made now reads first: the method whose data division is being
-    /// bound, else the method whose statements are (<see cref="ProcedureBindState.ActiveMethodScope"/>); null at program, object,
-    /// factory and interface level.</summary>
-    private ConstantScope? MethodConstants => owner.Oo.CurrentMethodScope is { } method ? MethodConstantsOf(method) : null;
-
-    /// <summary>The constants of the METHOD whose data division is being bound (<see cref="OoDataBinder.BindingMethodScope"/>),
-    /// the table its entries are declared in; null outside a method's data division.</summary>
-    private ConstantScope? BindingMethodConstants => owner.Oo.BindingMethodScope is { } method ? MethodConstantsOf(method) : null;
-
-    /// <summary>The binder's half of "does the method whose name scope is <paramref name="method"/> declare
-    /// <paramref name="word"/>" (§2023:11.7.4 GR5; kb/Work PB3164, PB3192): one of its constant entries names it
-    /// (<see cref="ConstantScope.Declared"/>), or a data description entry of its data division does, declared before any
-    /// entry binds (<see cref="ConstantScope.OtherWords"/>). The model's half is <see cref="OoMethodDataScope.IndexesDeclare"/>;
-    /// <see cref="DataBinder.MethodDeclares"/> asks both.</summary>
-    internal bool MethodDeclares(OoMethodDataScope method, string word) =>
-        _methodConstants.TryGetValue(method, out var scope) && (scope.Declared.ContainsKey(word) || scope.OtherWords.Contains(word));
-
-    /// <summary>⛔ THE ONE ANSWER TO "WHICH ELEMENT'S CONSTANT DOES <paramref name="name"/> NAME HERE?" (kb/Work PB3164;
-    /// §2023:11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
-    /// data division of the containing object definition, the use of that word in this method refers to the
-    /// declaration in this method"). Inside a method: the method's own table when it declares a constant entry of
-    /// that name; null when its data division defines the word as something else (that item is the one the word
-    /// names); else the containing definition's. Elsewhere, the binder's own table.
-    /// <para>The method's other words are its data division's data-names, condition-names and index-names
-    /// (<see cref="ConstantScope.OtherWords"/>, declared before its entries bind) and, while its statements bind, every
-    /// name <see cref="ActiveMethodDeclares"/> reaches — among them a method table's named CAPACITY register, which no
-    /// data description entry names (§2023:13.18.38.3 SR30; ISO §2023:8.4.6.2.1 3) a); kb/Work PB3154 review R1-1, R2-1).</para></summary>
-    private ConstantScope? ConstantScopeOf(string name)
-    {
-        if (MethodConstants is { } method)
-        {
-            if (method.Declared.ContainsKey(name)) return method;
-            if (owner.Oo.ActiveMethodDeclares(name)) return null;
-        }
-        return _constants;
-    }
-
-    /// <summary>Does <paramref name="name"/> name a constant entry of the element it is read in — bound, still to bind,
-    /// or refused?</summary>
-    internal bool IsDeclaredConstant(string name) => ConstantScopeOf(name)?.Declared.ContainsKey(name) == true;
-
-    /// <summary>Is <paramref name="name"/> a constant-name here at all — a constant entry of the element it is read in
-    /// (<see cref="IsDeclaredConstant"/>) or a GLOBAL one inherited from a container (§2023:13.18.27.4 GR1; bound at the
-    /// inheritance)? A PURE question: unlike <see cref="FindConstant"/> it binds nothing. The reporter of an
-    /// unidentified reference asks it so a constant-name is never told it "is not defined".</summary>
-    internal bool IsConstantName(string name) =>
-        ConstantScopeOf(name) is { } scope && (scope.Declared.ContainsKey(name) || BoundConstantOf(scope, name) is not null);
-
-    /// <summary>Is <paramref name="name"/> a constant-name whose every entry FINISHED with no value — refused, and
-    /// reported at the entry (a cycle, a bad operand)? A PURE question, like <see cref="IsConstantName"/>: a reference to
-    /// it is the consequence of that one fault, so its reader reports nothing more (kb/Work PB1906).</summary>
-    internal bool IsRefusedConstantName(string name) =>
-        ConstantScopeOf(name) is { } scope && !scope.Bound.ContainsKey(name)
-        && scope.Declared.TryGetValue(name, out var declared)
-        && declared.TrueForAll(static d => d.State == ConstantBindState.Finished);
-
-    /// <summary>ISO §2023:13.18.27.4 GR1–GR2 for constant-names (kb/Work PB1009): "A constant-name, data-name, file-name,
-    /// report-name, or screen-name described using a GLOBAL clause is a global name", and "A statement in a program
-    /// contained directly or indirectly within a program that describes a global name may reference that name
-    /// without describing it again". The constants a program contained in THIS one inherits: this unit's own bound GLOBAL
-    /// constants, and the GLOBAL constants it inherited itself (<see cref="InheritedGlobals.Constants"/>) that no
-    /// declaration of its own hides. <see cref="InheritStep"/> offers them to the contained unit's slice, nearest container
-    /// first, the first definition of a name winning — "directly or indirectly", with the nearest global declaration
-    /// taking precedence. A local declaration of the same name shadows (§2023:8.4.6): a local constant entry hides the inherited
-    /// one structurally (<see cref="InheritedConstantOf"/>), and a data-name declared NEARER removes it
-    /// (<see cref="InheritStep.DropShadowed"/>).</summary>
-    internal IEnumerable<KeyValuePair<string, ConstantDef>> GlobalConstantsToInherit()
-    {
-        foreach (var (name, def) in _constants.Bound)
-            if (def.IsGlobal)
-                yield return new(name, def);
-        foreach (var (name, inherited) in owner.State.Inherited.Constants)
-            if (!_constants.Declared.ContainsKey(name))
-                yield return new(name, inherited.Definition);
-    }
-
-    /// <summary>The GLOBAL constant of a container that <paramref name="name"/> names in <paramref name="scope"/>, or null:
-    /// only the unit's own element reads the inherited table (a method's constants hide, never inherit, §2023:11.7.4 GR5), and
-    /// an entry of this unit's own that is DECLARED under the name — bound, still to bind or refused — hides it (§2023:8.4.6).</summary>
-    private ConstantDef? InheritedConstantOf(ConstantScope scope, string name) =>
-        ReferenceEquals(scope, _constants) && !scope.Declared.ContainsKey(name)
-        && owner.State.Inherited.Constants.TryGetValue(name, out var inherited) ? inherited.Definition : null;
-
-    /// <summary>The containment distance of the container whose GLOBAL constant <paramref name="name"/> names here (1 = the
-    /// direct container), 0 when the name is not an inherited constant — this element's own declaration hides it
-    /// (ISO §2023:8.4.6.2.1 3); kb/Work PB4432: the depth <c>SymbolTable.Declarations.NonConditionDeclarationsOf</c> ranks it at).</summary>
-    internal int InheritedDepthOf(string name) =>
-        !_constants.Declared.ContainsKey(name) && owner.State.Inherited.Constants.TryGetValue(name, out var inherited)
-            ? inherited.Depth : 0;
-
-    /// <summary>The constant bound under <paramref name="name"/> in <paramref name="scope"/>: the element's own, else the
-    /// GLOBAL one a container offered.</summary>
-    private ConstantDef? BoundConstantOf(ConstantScope scope, string name) =>
-        scope.Bound.TryGetValue(name, out var def) ? def : InheritedConstantOf(scope, name);
-
-    /// <summary>⛔ THE ONE CONSTANT LOOKUP (§2023:13.10.4 GR1/GR3 substitution; kb/Work PB1231): the defined constant named
-    /// <paramref name="name"/>, or null. A constant entry of this unit that is DECLARED but not yet bound — it stands
-    /// later in the source than the reference, or in a section the binder walks later — is bound HERE, on demand,
-    /// through <see cref="BindDeclaredConstant"/>; so a reference may precede the entry it names (§2023:13.10.3 SR4 and SR5
-    /// forbid only a CIRCULAR dependence, which that bind reports). Every reader goes through this method: the
-    /// arithmetic operand (<see cref="ResolveConstantName"/>), <see cref="ConstantOf"/>, <see cref="IsIntegerConstant"/>,
-    /// <see cref="IntegerOperandValue"/>, <see cref="ExpandPicConstants"/> and <c>LiteralEnvironment.Constant</c>.</summary>
-    internal ConstantDef? FindConstant(string name)
-    {
-        // The element whose entry the word names here: a method's own, or its object's (§2023:11.7.4 GR5; kb/Work PB3164).
-        if (ConstantScopeOf(name) is not { } scope) return null;
-        if (scope.Declared.TryGetValue(name, out var declared))
-            foreach (var d in declared)
-            {
-                if (scope.Bound.ContainsKey(name)) break;
-                BindDeclaredConstant(d, demanded: true);
-            }
-        return BoundConstantOf(scope, name);
-    }
-
-    /// <summary>Whether a constant, bound or still to bind, is visible here — this unit's own, or the method's being
-    /// bound — the guard the PICTURE expansion takes so a constant-free program's PICTURE pipeline is untouched.</summary>
-    internal bool UnitHasConstants => _constants.Any || owner.State.Inherited.Constants.Count > 0 || MethodConstants?.Any == true;
+    /// <summary>The constant a written word names here (<see cref="SymbolTable.Identify(Antlr4.Runtime.ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?)"/>'s
+    /// constant arm, which binds a declared entry on demand), or null.</summary>
+    private ConstantDef? ConstantNamed(Antlr4.Runtime.ParserRuleContext written, bool report) =>
+        owner.Symbols.Identify(written, NameClass.Constant, report)?.Symbol as ConstantDef;
 
     // ── Declaration before binding (kb/Work PB1231) ──────────────────────────────────────────────────────────────
-
-    /// <summary>Where a constant entry stands in its bind: not yet reached, being evaluated (a re-entry is a
-    /// circular dependence), waiting for the later data item its length phrase names, or finished (bound or
-    /// rejected).</summary>
-    private enum ConstantBindState { Declared, Evaluating, Postponed, Finished }
-
-    /// <summary>One constant entry of this unit or of one of its methods, collected before anything binds
-    /// (<see cref="DeclareDataEntries"/>). <paramref name="entry"/> is the host entry (the diagnostic anchor); the
-    /// level-number, the optional name and the body are the three parts both hosts spell (§2023:13.10.2; kb/Work PB1226).
-    /// <paramref name="scope"/> is the source element that declares it, whose table its value joins (kb/Work PB3164).</summary>
-    private sealed class DeclaredConstant(
-        Antlr4.Runtime.ParserRuleContext entry, Core.LevelNumberContext level, Core.DataNameContext? nameCtx,
-        Core.ConstantEntryBodyContext body, ConstantScope scope)
-    {
-        public Antlr4.Runtime.ParserRuleContext Entry { get; } = entry;
-        public ConstantScope Scope { get; } = scope;
-        public Core.LevelNumberContext Level { get; } = level;
-        public Core.DataNameContext? NameCtx { get; } = nameCtx;
-        public Core.ConstantEntryBodyContext Body { get; } = body;
-        public ConstantBindState State { get; set; }
-        /// <summary>The entry's §2023:13.10.2 shape checks and its user-word declaration ran (once, whatever the order).</summary>
-        public bool Screened { get; set; }
-        /// <summary>The cycle through this entry was reported, so a second reader of it does not report it again.</summary>
-        public bool CycleReported { get; set; }
-        /// <summary>What the entry stands for once it bound, or null while unbound or when it was refused (ISO §2023:13.10.4 GR1).</summary>
-        public ConstantDef? Def { get; set; }
-        /// <summary>The entry is a length phrase (§2023:13.10.2 BYTE-LENGTH OF / LENGTH OF) — its cycle is SR4's.</summary>
-        public bool IsLengthPhrase => Body.constantValue() is { } cv
-            && (cv.LENGTH() is not null || cv.constantByteLengthWord() is not null);
-    }
 
     /// <summary>Every constant entry declared in this binder, its methods' included, by its body — how an in-order walk
     /// finds the declaration it has reached.</summary>
@@ -292,11 +99,11 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// <summary>Collect every constant entry under <paramref name="scope"/> (a DATA DIVISION, or a method's) BEFORE any
     /// of it binds, and every data description entry's place in its section (<see cref="DeclareDataEntryRuns"/>), so a
     /// reference can name an entry that follows it. A method's entries join the method's own table, beside every other
-    /// word its data division defines (<see cref="ConstantScope.OtherWords"/>; §2023:11.7.4 GR5, kb/Work PB3164).</summary>
+    /// word its data division defines (<c>SymbolTable.DeclareMethodWord</c>; §2023:11.7.4 GR5, kb/Work PB3164).</summary>
     internal void DeclareDataEntries(Core.DataDivisionContext? scope)
     {
         if (scope is null) return;
-        var method = BindingMethodConstants;
+        var method = owner.Oo.BindingMethodScope;
         bool inTypeDeclaration = false;   // the walk is inside a level-1 TYPEDEF entry's subordinate entries
         foreach (var node in ParseTreeWalk.Descendants(scope))
         {
@@ -316,10 +123,10 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 // GR5); the names inside one of its type declarations hide nothing (§2023:13.18.58.4 GR1).
                 case Core.DataDescriptionEntryContext e when method is not null && e.dataName()?.GetText() is { } n
                         && !(inTypeDeclaration && DataBinder.EntryLevel(e) is not (1 or 77)):
-                    method.OtherWords.Add(n);
+                    owner.Symbols.DeclareMethodWord(method, n);
                     break;
                 case Core.IndexNameListContext ix when method is not null && !inTypeDeclaration:
-                    foreach (var w in ix.cobolWord()) method.OtherWords.Add(w.GetText());
+                    foreach (var w in ix.cobolWord()) owner.Symbols.DeclareMethodWord(method, w.GetText());
                     break;
             }
         }
@@ -334,14 +141,10 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         Core.DataNameContext? nameCtx, Core.ConstantEntryBodyContext body)
     {
         if (_constantByBody.TryGetValue(body, out var known)) return known;
-        var scope = BindingMethodConstants ?? _constants;
-        var d = new DeclaredConstant(entry, level, nameCtx, body, scope);
+        var d = new DeclaredConstant(entry, level, nameCtx, body, owner.Oo.BindingMethodScope);
         _constantByBody[body] = d;
         if (nameCtx?.GetText() is { } name && !CobolNames.Same(name, "FILLER"))
-        {
-            if (!scope.Declared.TryGetValue(name, out var list)) scope.Declared[name] = list = [];
-            list.Add(d);
-        }
+            owner.Symbols.Declare(d);
         return d;
     }
 
@@ -359,7 +162,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// circular dependence: reported once, as §2023:13.10.3 SR4 when a length phrase is on the cycle and SR5 otherwise. A
     /// length phrase whose operand is described LATER waits (<see cref="ConstantBindState.Postponed"/>) when reached in
     /// order, and is bound when first demanded or at <see cref="BindRemainingConstants"/>, whichever comes first.</summary>
-    private void BindDeclaredConstant(DeclaredConstant d, bool demanded)
+    internal void BindDeclaredConstant(DeclaredConstant d, bool demanded)
     {
         switch (d.State)
         {
@@ -424,9 +227,9 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         // ⚠ DETERMINATION (kb/Work PB1009): SR9's "duplicates another constant-name" is read within one source element
         // — a contained program's own declaration SHADOWS a container's GLOBAL constant of the same name
         // (DeclareConstant drops the inherited one), never a cross-element obligation to repeat its specification.
-        // So the entries compared are those of the entry's own element (d.Scope): a METHOD is a source element of its
+        // So the entries compared are those of the entry's own element (d.Method): a METHOD is a source element of its
         // own (§2023:3.164; kb/Work PB3164), and two methods, or a method and its object, may each declare the name freely.
-        if (d.Scope.Bound.TryGetValue(name, out var prior))
+        if (owner.Symbols.BindConstant(d, def) is { } prior)
         {
             if (!WiseOwl.Cobol.Frontend.Preprocessor.TextWordSequence.Matches(prior.Specification, def.Specification,
                     owner.Edition.Edition.HasCompilerDirectives))
@@ -436,28 +239,12 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                     + "specification (ISO §2023:13.10.3 SR9)");
             return;
         }
-        d.Scope.Bound[name] = def;
     }
-
-    /// <summary>Does a reference to <paramref name="word"/> close a circular dependence — it names a constant entry being
-    /// evaluated? Reported here (<see cref="ReportConstantCycle"/>), so the caller can recover silently.</summary>
-    private bool ClosesConstantCycle(string word)
-    {
-        if (ConstantScopeOf(word)?.Declared.TryGetValue(word, out var declared) != true
-            || declared!.FirstOrDefault(d => d.State == ConstantBindState.Evaluating) is not { } reentered)
-            return false;
-        ReportConstantCycle(reentered);
-        return true;
-    }
-
-    /// <summary>Does <paramref name="word"/> name a constant entry, here, that yielded no value? Its own entry was
-    /// reported (a cycle, a bad operand), so a reader recovers without a second "not a constant-name" error.</summary>
-    internal bool IsFailedConstant(string word) => IsDeclaredConstant(word) && FindConstant(word) is null;
 
     /// <summary>Report the circular dependence <paramref name="reentered"/> closes, once, at that entry: the chain of
     /// entries being evaluated from it back to itself. §2023:13.10.3 SR4 when a length phrase is on the cycle (the length of
     /// its data-name then depends on the constant), SR5 otherwise (the value of its literals does).</summary>
-    private void ReportConstantCycle(DeclaredConstant reentered)
+    internal void ReportConstantCycle(DeclaredConstant reentered)
     {
         if (reentered.CycleReported) return;
         reentered.CycleReported = true;
@@ -473,17 +260,18 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 + $"the value of '{name}' itself (ISO §2023:13.10.3 SR5)");
     }
 
-    /// <summary>Is <paramref name="name"/> an INTEGER constant-name — the shape §2023:13.10.3 SR2 admits where a format
+    /// <summary>Is the token <paramref name="name"/> an INTEGER constant-name — the shape §2023:13.10.3 SR2 admits where a format
     /// specifies an integer literal ("If constant-name-1 is an integer, …"; GR3 for the expression and length
     /// forms)?</summary>
-    private bool IsIntegerConstant(string name) =>
-        FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: not null };
+    private bool IsIntegerConstant(Antlr4.Runtime.IToken name) =>
+        owner.Symbols.Identify(WrittenWord.Of(name), NameClass.Constant, report: true)?.Symbol
+            is ConstantDef { Category: PicCategory.Numeric, IntegerText: not null };
 
     /// <summary>The constant a BARE (unqualified, unsubscripted) data reference names, or null. A constant-name
     /// takes no qualifiers, subscripts, or reference-modification — it substitutes a literal (§2023:13.10.4 GR1) —
     /// so any suffixed reference falls through to ordinary resolution.</summary>
     internal ConstantDef? ConstantOf(Core.DataReferenceContext dref) =>
-        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w ? FindConstant(w.GetText()) : null;
+        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w ? ConstantNamed(w, report: true) : null;
 
     // ── The constant-entry bind (§2023:13.10) ─────────────────────────────────────────────────────────────────────
 
@@ -537,7 +325,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// once (§2023:13.10.3 SR5). The caller restates only the entry's own name, GLOBAL and specification (the word, SR9's
     /// subject); the named constant's <see cref="ConstantDef.WrittenLiteral"/> is literal-1 here too and is kept.</summary>
     private ConstantDef? ConstantLiteralOperand(Core.ArithmeticExpressionContext operand) =>
-        SoleOperand.DataRef(operand) is { } word && !ClosesConstantCycle(word.GetText()) ? ConstantOf(word) : null;
+        SoleOperand.DataRef(operand) is { } word && !owner.Symbols.ClosesConstantCycle(word) ? ConstantOf(word) : null;
 
     /// <summary>The AS operand's specification as written (§2023:13.10.3 SR9's subject): its tokens' texts, one space
     /// apart. Built from the parse tree's TOKENS, not the source span, so a comment written inside a multi-line
@@ -601,7 +389,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// <summary>The class, category and value a STRING-class compilation variable gives the constant entry that names it
     /// in its FROM phrase (§2023:13.10.4 GR2: "the class and category of constant-name-1 is the same as that of … the
     /// literal represented by compilation-variable-name-1"). The ONE reading, shared by the data bind
-    /// (<see cref="BindConstantFrom"/>) and the pre-bind reader (<see cref="PreBindConstants"/>), so the two cannot
+    /// (<see cref="BindConstantFrom"/>) and the pre-bind reader (<c>SymbolTable.IdentifyConstantBeforeBind</c>), so the two cannot
     /// disagree on what a FROM constant is.</summary>
     internal static ConcatFolder.Folded VariableStringValue(CtValue value, string where) =>
         // ⛔ EVERY string category is named: a new CtCategory fails loudly here instead of binding as the last one.
@@ -649,7 +437,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// <summary>The class, category and value of a nonnumeric literal written as ONE literal token — an alphanumeric,
     /// hexadecimal, national or boolean literal (§2023:13.10.4 GR2 for a constant entry's literal-1). The caller has already
     /// taken the concatenation, figurative and NULL alternatives. The ONE decoder, shared by the data bind
-    /// (<see cref="BindConstantStringLiteral"/>), the pre-bind reader (<see cref="PreBindConstants"/>) and the AS-phrase
+    /// (<see cref="BindConstantStringLiteral"/>), the pre-bind reader (<c>SymbolTable.IdentifyConstantBeforeBind</c>) and the AS-phrase
     /// screen (<see cref="ExternalizedName"/>), whose literal and constant-name operands therefore decode alike.</summary>
     internal static ConcatFolder.Folded LiteralTokenValue(Core.NonNumericLiteralContext nn, string where) =>
         // ⛔ EVERY alternative is named: a new nonNumericLiteral arm fails loudly here instead of being decoded as the
@@ -696,19 +484,19 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// normalizer in this program's DECIMAL-POINT mode (§2023:12.3.7.4 GR14a — already screened when the constant was
     /// bound, so no issue can arise here) and the ONE literal parser; it enters the expression in the edition's
     /// arithmetic mode at the evaluator.</summary>
-    private CtValue? ResolveConstantName(string word)
+    private CtValue? ResolveConstantName(Core.CobolWordContext word)
     {
         // A constant that closes a circular dependence (§2023:13.10.3 SR4/SR5, reported by ReportConstantCycle) or whose
         // own entry failed reads 1 (never 0: a recovered PICTURE repetition or divisor stays legal), so the evaluator
         // adds no second "not a constant-name" error for the same mistake (the compile has already failed — the
         // ExpandPicConstants "(1)" recovery precedent; kb/Work PB1231).
-        if (ClosesConstantCycle(word)) return FailedConstantOperand;
-        if (FindConstant(word) is { Category: PicCategory.Numeric } d
+        if (owner.Symbols.ClosesConstantCycle(word)) return FailedConstantOperand;
+        if (ConstantNamed(word, report: true) is { Category: PicCategory.Numeric } d
             && NumericLiteral.Normalize(d.Text, owner.State.Configuration.DecimalPointIsComma, out _) is var canonical
             && !NumericLiteral.IsFloatingPointForm(canonical)
             && CtNumeric.TryParseLiteral(canonical, out var v))
             return CtValue.Numeric(v, d.Text);
-        return IsFailedConstant(word) ? FailedConstantOperand : null;
+        return owner.Symbols.IsFailedConstant(word.GetText()) ? FailedConstantOperand : null;
     }
 
     /// <summary>The recovery operand of a constant whose own entry was reported.</summary>
@@ -788,7 +576,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             // FNARG_ paren can occur without a FUNCTION, which is no literal).
             if (toks.Any(t => t.Type is not (Core.INTEGERLIT or Core.REF_LPAREN or Core.REF_RPAREN
                     or Core.LPAREN or Core.RPAREN or Core.FNARG_SEPARATOR or Core.COMMA)
-                && !(SubscriptBinder.IsNameToken(t) && IsIntegerConstant(t.Text))))
+                && !(SubscriptBinder.IsNameToken(t) && IsIntegerConstant(t))))
             {
                 owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: all subscripts of the {phrase} "
                     + "operand shall be literals (ISO §2023:13.10.3 SR3)");
@@ -1007,7 +795,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// the operand's integer as digits, the literal as written or the constant's canonical integer, with every refusal
     /// of <see cref="IntegerOperandValue"/> except the host limit, which a full-width slot does not have.</summary>
     internal string? IntegerOperandText(Core.IntegerOperandContext operand, string where) =>
-        operand.integerLiteral() is { } il ? il.GetText() : ConstantIntegerText(operand, operand.cobolWord().GetText(), where);
+        operand.integerLiteral() is { } il ? il.GetText() : ConstantIntegerText(operand, operand.cobolWord(), where);
 
     /// <summary>The value of a BARE <c>dataReference</c> that names a constant (<see cref="ConstantOf"/>) where the
     /// format prints "data-name-1 or integer-1" (LINAGE, ISO §2023:13.18.34.2) — the grammar cannot tell the constant-name
@@ -1015,21 +803,22 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// reads it as the integer it substitutes (§2023:13.10.3 SR2, §2023:13.10.4 GR1) by the same reader as every
     /// <c>integerOperand</c>. Null when refused (and reported).</summary>
     internal int? ConstantOperandValue(Core.DataReferenceContext dref, string where) =>
-        ConstantIntegerText(dref, dref.cobolWord().GetText(), where) is { } text
+        ConstantIntegerText(dref, dref.cobolWord(), where) is { } text
             ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(text) : null;
 
     /// <summary>⛔ A CONSTANT-NAME THAT STANDS FOR AN <c>integer-n</c> (ISO §2023:13.10.3 SR2), asked once per operand node
     /// — the <c>integerOperand</c> grammar rule's cobolWord arm, and the bare <c>dataReference</c> a clause that prints
     /// "data-name-1 or integer-1" (LINAGE) parsed the word as. <paramref name="operand"/> is the node the diagnostic
     /// anchors and the owning clause is read from; <paramref name="word"/> is the constant-name as written.</summary>
-    internal string? ConstantIntegerText(Antlr4.Runtime.ParserRuleContext operand, string word, string where)
+    internal string? ConstantIntegerText(Antlr4.Runtime.ParserRuleContext operand, Core.CobolWordContext word, string where)
     {
         if (_integerOperandTexts.TryGetValue(operand, out var known)) return known;
         return _integerOperandTexts[operand] = ConstantIntegerOperand(operand, word, where);
     }
 
-    private string? ConstantIntegerOperand(Antlr4.Runtime.ParserRuleContext operand, string word, string where)
+    private string? ConstantIntegerOperand(Antlr4.Runtime.ParserRuleContext operand, Core.CobolWordContext written, string where)
     {
+        string word = written.GetText();
         string what = "the OCCURS bound";
         if (WiseOwl.Cobol.Validation.IntegerOperandRules.OwnerOf(operand) is not Core.OccursClauseContext)
         {
@@ -1037,7 +826,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             what = "the integer operand";
             where = $"{where} ({WiseOwl.Cobol.Validation.IntegerOperandRules.ConstructName(operand)})";
         }
-        if (FindConstant(word) is { } k)
+        if (ConstantNamed(written, report: true) is { } k)
         {
             // THE ONE integer-literal reader (kb/Work PB1579): an integer constant beyond the host range is still an
             // INTEGER constant-name — a TryParse here refused it as "not an INTEGER constant-name". Substituted for
@@ -1081,7 +870,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 + "position)");
             return null;
         }
-        if (IsFailedConstant(word)) return null;   // its own entry was reported
+        if (owner.Symbols.IsFailedConstant(word)) return null;   // its own entry was reported
         owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, ConstantNamesExist
             ? $"{where}: {what} '{word}' is not a defined constant-name — an integer-n position admits an integer "
               + "literal or an integer constant-name (ISO §2023:5.5 1) / §2023:13.10.3 SR2)"
@@ -1105,18 +894,19 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// repetition position is otherwise an unsigned nonzero integer, §2023:13.18.40.3 SR6) is replaced by its constant's
     /// value. Called only when the unit defines constants, so a constant-free program's PICTURE pipeline is
     /// byte-identical to before.</summary>
-    /// <param name="pictureText">The PICTURE character-string as written.</param>
+    /// <param name="picture">The PICTURE character-string's token: each repetition word is identified where it is written in it.</param>
     /// <param name="where">The entry named in a diagnostic.</param>
     /// <param name="diagnose">False for a MEASURING caller that reads the expanded string only for its width and
     /// leaves the diagnosis to the binder of the same entry, so one bad repetition word is reported once.</param>
-    internal string ExpandPicConstants(string pictureText, string where, bool diagnose = true)
+    internal string ExpandPicConstants(Antlr4.Runtime.IToken picture, string where, bool diagnose = true)
     {
-        return System.Text.RegularExpressions.Regex.Replace(pictureText,
+        return System.Text.RegularExpressions.Regex.Replace(picture.Text,
             @"\(\s*([A-Za-z][A-Za-z0-9-]*)\s*\)",
             m =>
             {
                 string word = m.Groups[1].Value;
-                if (FindConstant(word) is { } k)
+                if (owner.Symbols.Identify(new WrittenWord(picture, m.Groups[1].Index, m.Groups[1].Length), NameClass.Constant,
+                        report: diagnose)?.Symbol is ConstantDef k)
                 {
                     if (k is { Category: PicCategory.Numeric, IntegerText: { } it }) return "(" + it + ")";
                     if (diagnose)
@@ -1124,7 +914,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                             + "repetition position shall be an INTEGER constant-name (ISO §2023:13.10.3 SR2)");
                     return "(1)";   // recovery shape — the compile has already failed
                 }
-                if (diagnose && !IsFailedConstant(word))
+                if (diagnose && !owner.Symbols.IsFailedConstant(word))
                     owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, ConstantNamesExist
                         ? $"{where}: '{word}' in the PICTURE repetition position is not a defined constant-name (ISO "
                           + "§2023:13.18.40.3 SR6 — a repetition count is an unsigned nonzero integer, or an integer "

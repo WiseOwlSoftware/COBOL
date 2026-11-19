@@ -851,7 +851,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>⛔ THE REPORT SECTION'S ENTRIES IN SOURCE ORDER (ISO §2023:13.8.2: <c>{ constant-entry |
     /// report-group-description-entry } …</c>; kb/Work PB1226). A constant entry binds into the compile-time
     /// constant table at the point it stands, unless a reference bound it earlier on demand (a reference may precede
-    /// the entry it names, kb/Work PB1231, <see cref="ConstantEntryBinder.FindConstant"/>); the report group entries between two constants bind as
+    /// the entry it names, kb/Work PB1231, <c>SymbolTable.Identify</c>); the report group entries between two constants bind as
     /// one run (<see cref="ReportEntryRuns"/>) through <see cref="BindReportEntries"/>, which takes an index range for
     /// exactly this. A constant is a level-01 entry (§2023:13.10.2), so it ends the group before it: the entries after it
     /// have no 01 entry to belong to, and the builder's group is dropped so
@@ -2360,7 +2360,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (clause.pictureClause()?.PIC_STRING() is { } pic)
                 // The SAME character-position count the print columns use (§2023:13.18.14.4 GR9), through the ONE rule.
                 return PictureAnalyzer.Analyze(
-                    _d.Constants.UnitHasConstants ? _d.Constants.ExpandPicConstants(pic.GetText(), "", diagnose: false) : pic.GetText(),
+                    _d.Symbols.UnitHasConstants ? _d.Constants.ExpandPicConstants(pic.Symbol, "", diagnose: false) : pic.GetText(),
                     Usage.Display, Edition,
                     $"RD '{model.Name}' repeating entry", null, currencies: _d.State.Configuration.CurrencySigns,
                     decimalPointIsComma: _d.State.Configuration.DecimalPointIsComma) is { } p ? DataItem.DisplayTextWidthOf(p) : null;

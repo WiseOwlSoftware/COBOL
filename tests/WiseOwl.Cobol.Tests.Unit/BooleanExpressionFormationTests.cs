@@ -30,7 +30,7 @@ public sealed class BooleanExpressionFormationTests
         var diag = new CollectingDiag();
         var eval = new CompileTimeExpressionEvaluator(
             edition: EditionInfo.Latest,
-            resolveName: w => names is not null && names.TryGetValue(w, out var v) ? v : null,
+            resolveName: w => names is not null && names.TryGetValue(w.GetText(), out var v) ? v : null,
             diag: diag,
             vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §2023:7.3.6.2 SR1b"),
             decimalPointIsComma: false);

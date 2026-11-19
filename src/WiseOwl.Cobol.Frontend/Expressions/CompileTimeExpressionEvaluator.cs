@@ -38,7 +38,7 @@ using Core = CobolParserCore;
 /// </summary>
 public sealed class CompileTimeExpressionEvaluator
 {
-    private readonly Func<string, CtValue?> _resolveName;
+    private readonly Func<Core.CobolWordContext, CtValue?> _resolveName;
     private readonly Func<string, bool>? _isRefusedName;
     private readonly ICtDiagnostics _diag;
     private readonly CtOperandVocabulary _vocab;
@@ -64,7 +64,7 @@ public sealed class CompileTimeExpressionEvaluator
     /// compilation variable" at every later use (kb/Work PB3119). Absent for a consumer whose names are never
     /// defined by a directive that can be refused (the CONSTANT-entry binder keeps its own recovery value).</param>
     public CompileTimeExpressionEvaluator(
-        EditionInfo edition, Func<string, CtValue?> resolveName, ICtDiagnostics diag, CtOperandVocabulary vocab,
+        EditionInfo edition, Func<Core.CobolWordContext, CtValue?> resolveName, ICtDiagnostics diag, CtOperandVocabulary vocab,
         bool decimalPointIsComma, Func<string, bool>? isRefusedName = null)
     {
         _edition = edition;
@@ -235,9 +235,9 @@ public sealed class CompileTimeExpressionEvaluator
                     // enters the expression through the edition's mode like any literal operand.
                     if (dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w)
                     {
-                        if (_resolveName(w.GetText()) is { Category: CtCategory.Numeric } cv)
+                        if (_resolveName(w) is { Category: CtCategory.Numeric } cv)
                             return EnterOperand(cv.Number, w.GetText(), where);
-                        if (IsRefusedName(w.GetText())) return null;   // its DEFINE was reported (PB3119)
+                        if (IsRefusedName(w)) return null;   // its DEFINE was reported (PB3119)
                     }
                     _diag.Report(CtDiagCode.ArithmeticRule, $"{where}: '{WrittenSource.Of(dref)}' — all operands of the "
                         + $"compile-time arithmetic expression shall be fixed-point numeric literals or {_vocab.OperandSource} "
@@ -336,8 +336,8 @@ public sealed class CompileTimeExpressionEvaluator
             // numeric literal) runs through the §2023:7.3.6 numeric core.
             if (SoleDataRef(ae) is { } dref && dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w)
             {
-                if (_resolveName(w.GetText()) is { } cv) return cv;
-                if (IsRefusedName(w.GetText())) return null;   // its DEFINE was reported (PB3119)
+                if (_resolveName(w) is { } cv) return cv;
+                if (IsRefusedName(w)) return null;   // its DEFINE was reported (PB3119)
                 ReportDirective(where, $"'{w.GetText()}' is not a previously-defined compilation variable (ISO §2023:7.3.11 / §2023:13.10.3)");
                 return null;
             }
@@ -417,8 +417,8 @@ public sealed class CompileTimeExpressionEvaluator
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref
             && dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w)
         {
-            if (_resolveName(w.GetText()) is { Category: CtCategory.Boolean, Bits: { } b }) return b;
-            if (IsRefusedName(w.GetText())) return null;   // its DEFINE was reported (PB3119)
+            if (_resolveName(w) is { Category: CtCategory.Boolean, Bits: { } b }) return b;
+            if (IsRefusedName(w)) return null;   // its DEFINE was reported (PB3119)
             ReportDirective(where, $"'{w.GetText()}' is not a previously-defined boolean compilation variable (ISO §2023:7.3.7.2 SR1)");
             return null;
         }
@@ -474,10 +474,10 @@ public sealed class CompileTimeExpressionEvaluator
         if (SoleDataRef(count) is not { } dref) return EvaluateDirectiveArithmetic(count, where);
         if (dref.dataReferenceSuffix().Length == 0 && dref.cobolWord() is { } w)
         {
-            if (_resolveName(w.GetText()) is { Category: CtCategory.Numeric } cv)
+            if (_resolveName(w) is { Category: CtCategory.Numeric } cv)
                 return new CtNumber(true, cv.Number, cv.Text,
                     IsInteger: WiseOwl.Cobol.Common.NumericLiteral.IsIntegerLiteralForm(cv.Text));
-            if (IsRefusedName(w.GetText())) return null;   // its DEFINE was reported (PB3119)
+            if (IsRefusedName(w)) return null;   // its DEFINE was reported (PB3119)
         }
         ReportDirective(where, $"'{WrittenSource.Of(dref)}' — the second operand of a boolean shift shall be an integer "
             + "operand (ISO §2023:8.8.2 rule 5): an integer literal or a previously-defined numeric compilation variable "
@@ -557,7 +557,7 @@ public sealed class CompileTimeExpressionEvaluator
                 + $"{WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.Citation(_edition.Year, WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.Site.DefinedCondition)})");
             return false;
         }
-        bool defined = _resolveName(name) is not null;
+        bool defined = _resolveName(d.cobolWord()) is not null;
         return d.NOT() is not null ? !defined : defined;
     }
 
@@ -644,7 +644,7 @@ public sealed class CompileTimeExpressionEvaluator
     /// <summary>True for a name that resolves to nothing because its own definition was refused and reported
     /// (<c>isRefusedName</c> of the constructor). Asked at every site that would otherwise report an undefined or
     /// wrong-category name, so the cascade is cut at the one place a name is read (kb/Work PB3119).</summary>
-    private bool IsRefusedName(string name) => _isRefusedName?.Invoke(name) == true && _resolveName(name) is null;
+    private bool IsRefusedName(Core.CobolWordContext name) => _isRefusedName?.Invoke(name.GetText()) == true && _resolveName(name) is null;
 
     private static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr) =>
         SoleOperand.DataRef(expr);

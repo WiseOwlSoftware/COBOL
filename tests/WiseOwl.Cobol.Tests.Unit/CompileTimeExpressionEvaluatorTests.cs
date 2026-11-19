@@ -50,7 +50,7 @@ public sealed class CompileTimeExpressionEvaluatorTests
         var diag = new CollectingDiag();
         var ev = new CompileTimeExpressionEvaluator(
             edition: EditionInfo.Of(edition),
-            resolveName: w => names is not null && names.TryGetValue(w, out var t) && CtNumeric.TryParseLiteral(t, out var v)
+            resolveName: w => names is not null && names.TryGetValue(w.GetText(), out var t) && CtNumeric.TryParseLiteral(t, out var v)
                 ? CtValue.Numeric(v, t) : null,
             diag: diag, vocab: Vocab, decimalPointIsComma: false);
         return (ev.EvaluateArithmeticOperand(ctx, "test"), diag);

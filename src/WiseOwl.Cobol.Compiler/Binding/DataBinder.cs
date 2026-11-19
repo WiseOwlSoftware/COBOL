@@ -15,6 +15,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// Builds the bound DATA DIVISION model (a forest of <see cref="DataItem"/> trees, one per 01/77 item) from the
@@ -270,10 +271,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// in this method"; §2023:8.4.6.1 "even when it is a different type of user-defined word"): a data-name, condition-name,
     /// index-name, CAPACITY register or type-name in the method's model scope (<see cref="OoMethodDataScope.IndexesDeclare"/>),
     /// or a constant-name or a word its data division defines before any entry binds, which this binder keeps
-    /// (<see cref="ConstantEntryBinder.MethodDeclares"/>; kb/Work PB3164, PB3192, PB2402). Every method tier of a lookup
+    /// (<see cref="SymbolTable.MethodDeclaresWord"/>; kb/Work PB3164, PB3192, PB2402). Every method tier of a lookup
     /// asks it before it falls through to the object's names (<c>GlobalNameClassDriftTests</c>).</summary>
     internal bool MethodDeclares(OoMethodDataScope method, string word) =>
-        method.IndexesDeclare(word) || Constants.MethodDeclares(method, word);
+        method.IndexesDeclare(word) || Symbols.MethodDeclaresWord(method, word);
 
     /// <summary><see cref="IPlaceFacts"/>: the BIND-TIME image-storage query (kb/Work PB2375): true when
     /// <paramref name="item"/> is already known - at THIS point of binding - to store its character image. It reads the
@@ -408,17 +409,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
         // Every constant entry and every data description entry's place is DECLARED before anything binds, so a
         // reference may name a constant entry that follows it — in SPECIAL-NAMES, in an earlier section, or earlier in
-        // the same one (kb/Work PB1231; §2023:13.10.3 SR4/SR5 forbid only a circular dependence). FindConstant binds an
+        // the same one (kb/Work PB1231; §2023:13.10.3 SR4/SR5 forbid only a circular dependence). SymbolTable.Identify binds an
         // entry on demand; BindRemainingConstants, after the last section, binds the rest.
         Constants.DeclareDataEntries(program.dataDivision());
 
         // §2023:11.9.4 GR1: a contained program's OPTIONS start from its container's model and override clause by
         // clause (ConfigurationStep set the baseline); an outermost unit starts from the all-defaults model.
         // Bound AFTER DeclareDataEntries: the INITIALIZE clause's literal-1 may be a constant-name of this element
-        // (§2023:13.10.3 SR2), and FindConstant binds one on demand (kb/Work PB780).
+        // (§2023:13.10.3 SR2), and SymbolTable.Identify binds one on demand (kb/Work PB780).
         var configuration = State.Configuration;
         configuration.Options = OptionsBinder.BindParagraph(configuration.OptionsParagraph ?? OptionsBinder.ParagraphOf(program), Edition,
-            configuration.InheritedOptions, Constants.FindConstant);   // captured even when there is no WORKING-STORAGE
+            configuration.InheritedOptions, Symbols);   // captured even when there is no WORKING-STORAGE
 
         // §2023:12.3.3 SR1: "The configuration section shall not be specified in a program that is contained within
         // another program" — the container's applies (§2023:12.3.4 GR1, ConfigurationStep). Diagnosed, then the
@@ -3775,6 +3776,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string csName = isFiller ? $"_filler{TakeFillerOrdinal()}" : DataItem.Sanitize(cobolName!);
 
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
+        Antlr4.Runtime.IToken? pictureToken = null;   // the PICTURE string's token, where a repetition constant-name is written
         var groupUsage = GroupUsage.None;   // GROUP-USAGE (§2023:13.18.29; D20/PB79)
         List<EditingPhraseSpec>? editingSpecs = null;   // PICTURE EDITING phrases (§2023:13.18.40.2), threaded to PictureAnalyzer
         LocaleEditSpec? pictureLocale = null;           // PICTURE format 2 — the LOCALE phrase (§2023:13.18.40.2; PB64 T6)
@@ -3839,6 +3841,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 if (clause.PictureText is { } picText)
                 {
                     pictureText = picText;
+                    pictureToken = clause.Context.pictureClause().PIC_STRING().Symbol;
                     editingSpecs = BuildEditingSpecs(clause.Context.pictureClause(),   // PICTURE EDITING (§2023:13.18.40.2)
                         $"data item '{cobolName ?? "FILLER"}'");
                     // PICTURE Format 2 (locale) — `LOCALE [IS locale-name-1] SIZE IS integer-1` (§2023:13.18.40.2; LIVE
@@ -4111,8 +4114,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // An integer constant-name may specify repetition in a PICTURE character-string (ISO §2023:13.10.3 SR2 second
         // sentence → §2023:13.18.40): expand `PIC X(K)` to `PIC X(5)` BEFORE Analyze reads the string. Guarded on the
         // unit actually defining constants, so a constant-free program's PICTURE pipeline is untouched.
-        if (pictureText is not null && Constants.UnitHasConstants)
-            pictureText = Constants.ExpandPicConstants(pictureText, entryWhere);
+        if (pictureText is not null && Symbols.UnitHasConstants)
+            pictureText = Constants.ExpandPicConstants(pictureToken!, entryWhere);
         // The WRITTEN character-string, kept for the screens that cannot run until the forest is complete
         // (§2023:13.18.60.4 GR1's inherited usage — DataItem.PictureText). Captured HERE, before the §2023:13.16.3 SR8
         // recovery below clears `pictureText`.
@@ -4894,7 +4897,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // counted a literal here, `PIC X VALUE NULL` stored LOW-VALUE).
             return nn.predefinedNull() is null
                 && (nn.figurativeConstant()?.cobolWord()?.GetText() is not { } symWord
-                || SpecialNames.NamesSymbolic(symWord) || Constants.FindConstant(symWord) is not null);
+                || SpecialNames.NamesSymbolic(symWord) || Symbols.Identify(nn.figurativeConstant().cobolWord(), NameClass.Constant, report: false) is not null);
         // §2023:8.3.3.3.2 rule 2 makes a written sign part of the numeric literal — ONE sign, as its leftmost
         // character — so `VALUE -9999` is literal-1, while `--5`, `+-5` and `- 5` are no literal at all (kb/Work
         // PB1445: this arm used to strip ANY number of signs, and `VALUE --5` reached the C# backend as a
@@ -5184,8 +5187,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return (literal, literal);
         }
         string word = sub.cobolWord().GetText();
-        if (Constants.FindConstant(word) is { Category: PicCategory.Numeric, IntegerText: { } integer }) return (integer, word);
-        if (Constants.IsFailedConstant(word)) return null;   // its own entry was reported
+        if (Symbols.Identify(sub.cobolWord(), NameClass.Constant, report: true)?.Symbol
+                is ConstantDef { Category: PicCategory.Numeric, IntegerText: { } integer })
+            return (integer, word);
+        if (Symbols.IsFailedConstant(word)) return null;   // its own entry was reported
         using var at = Edition.At(sub);
         Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: the subscript '{word}' is not an integer "
             + "constant-name — subscript-1 and subscript-2 shall be integer numeric literals (ISO §2023:13.18.63.3 SR19), and "

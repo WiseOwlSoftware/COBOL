@@ -13,6 +13,7 @@ using WiseOwl.Cobol.Runtime;
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 using Core = CobolParserCore;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// WHY an expression is being bound, which decides whether an ALPHANUMERIC operand is admissible in it (DA6).
@@ -544,7 +545,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// of the data-reference overload does not arise. The same two tables in the same order: a constant-name, then a
     /// symbolic-character.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>
-        word.GetText() is var w && ctx.Data.Constants.FindConstant(w) is { } k ? new(w, k, null)
+        word.GetText() is var w && ctx.Symbols.Identify(word, NameClass.Constant, report: true)?.Symbol is ConstantDef k ? new(w, k, null)
         : ctx.Data.SpecialNames.NamesSymbolic(w) && ctx.Data.SpecialNames.SymbolicOf(word, w) is { } s ? new(w, null, s)
         : null;
 

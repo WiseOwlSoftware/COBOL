@@ -15,6 +15,9 @@
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
+    "WiseOwl.Cobol.Binding.ConstantEntryBinder::BindDeclaredConstant": [
+      "WiseOwl.Cobol.Binding.SymbolTable"
+    ],
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::BindRemainingConstants": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.OoDataBinder"
@@ -45,21 +48,6 @@
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::FindConstant": [
-      "WiseOwl.Cobol.Binding.DataBinder",
-      "WiseOwl.Cobol.Binding.LiteralEnvironment",
-      "WiseOwl.Cobol.Binding.OoDataBinder",
-      "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
-      "WiseOwl.Cobol.Binding.SpecialNamesBinder",
-      "WiseOwl.Cobol.Binding.SubscriptBinder"
-    ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::GlobalConstantsToInherit": [
-      "WiseOwl.Cobol.Binding.InheritStep"
-    ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::InheritedDepthOf": [
-      "WiseOwl.Cobol.Binding.DataBinder",
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::IntegerOperandText": [
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
@@ -70,32 +58,15 @@
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder"
     ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::IsConstantName": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::IsDeclaredConstant": [
-      "WiseOwl.Cobol.Binding.DataBinder"
-    ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::IsFailedConstant": [
-      "WiseOwl.Cobol.Binding.DataBinder",
-      "WiseOwl.Cobol.Binding.SpecialNamesBinder"
-    ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::IsRefusedConstantName": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::LiteralTokenValue": [
       "WiseOwl.Cobol.Binding.ExternalizedName",
-      "WiseOwl.Cobol.Binding.PreBindConstants"
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::MethodDeclares": [
-      "WiseOwl.Cobol.Binding.DataBinder"
-    ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::UnitHasConstants": [
-      "WiseOwl.Cobol.Binding.DataBinder",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+    "WiseOwl.Cobol.Binding.ConstantEntryBinder::ReportConstantCycle": [
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::VariableStringValue": [
-      "WiseOwl.Cobol.Binding.PreBindConstants"
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ActiveScope": [
       "WiseOwl.Cobol.Binding.CounterResolver",
@@ -268,14 +239,10 @@
     "WiseOwl.Cobol.Binding.DataBinder::Constants": [
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
-      "WiseOwl.Cobol.Binding.InheritStep",
-      "WiseOwl.Cobol.Binding.LiteralEnvironment",
       "WiseOwl.Cobol.Binding.OoDataBinder",
-      "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
-      "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Binding.SymbolTableFinish"
     ],
@@ -516,9 +483,6 @@
       "WiseOwl.Cobol.Binding.OoDataBinder",
       "WiseOwl.Cobol.Binding.SymbolTable"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::NamesConstant": [
-      "WiseOwl.Cobol.Binding.SpecialNamesBinder"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::NextUid": [
       "WiseOwl.Cobol.Binding.CompilerTemps"
     ],
@@ -537,6 +501,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ParameterConformance",
       "WiseOwl.Cobol.Binding.Procedure.UdfBinder",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Compiler.Oo.OoDriver",
       "WiseOwl.Cobol.Validation.FlagConformancePass"
     ],
@@ -826,16 +791,21 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::Symbols": [
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
+      "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.InheritStep",
+      "WiseOwl.Cobol.Binding.LiteralEnvironment",
       "WiseOwl.Cobol.Binding.NameResolution",
+      "WiseOwl.Cobol.Binding.OoDataBinder",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder",
+      "WiseOwl.Cobol.Binding.SpecialNamesBinder",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
@@ -1082,8 +1052,8 @@
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder"
     ],
     "WiseOwl.Cobol.Binding.OoDataBinder::ActiveMethodDeclares": [
-      "WiseOwl.Cobol.Binding.ConstantEntryBinder",
-      "WiseOwl.Cobol.Binding.SpecialNamesBinder"
+      "WiseOwl.Cobol.Binding.SpecialNamesBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.OoDataBinder::BindMethodData": [
       "WiseOwl.Cobol.Compiler.Oo.OoDriver"
@@ -1114,8 +1084,8 @@
       "WiseOwl.Cobol.Validation.FlagConformancePass"
     ],
     "WiseOwl.Cobol.Binding.OoDataBinder::CurrentMethodScope": [
-      "WiseOwl.Cobol.Binding.ConstantEntryBinder",
-      "WiseOwl.Cobol.Binding.DataBinder"
+      "WiseOwl.Cobol.Binding.DataBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.OoDataBinder::DescribeNamedReference": [
       "WiseOwl.Cobol.Binding.Procedure.OoBinder"

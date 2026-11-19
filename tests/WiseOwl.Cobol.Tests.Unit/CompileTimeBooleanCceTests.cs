@@ -27,7 +27,7 @@ public sealed class CompileTimeBooleanCceTests
 
     private static CompileTimeExpressionEvaluator NewEval(CollectingDiag diag, Dictionary<string, CtValue>? names) =>
         new(edition: EditionInfo.Latest,
-            resolveName: w => names is not null && names.TryGetValue(w, out var v) ? v : null,
+            resolveName: w => names is not null && names.TryGetValue(w.GetText(), out var v) ? v : null,
             diag: diag, vocab: Vocab, decimalPointIsComma: false);
 
     private static (CtValue? Value, CollectingDiag Diag) EvalOperand(string text, Dictionary<string, CtValue>? names = null)

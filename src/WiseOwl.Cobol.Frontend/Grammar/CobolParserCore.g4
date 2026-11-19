@@ -140,7 +140,7 @@ functionIdParagraph
 // AS literal position, and the constant entry stands later, in the DATA DIVISION, so the parser cannot tell it
 // from any other word. The operand is exactly one token after AS, so the alternative is unambiguous; the ONE
 // screen decides what the word names (`ExternalizedName.Screen` over the phrase, through the constant reading its
-// caller hands it — `DataBinder.ReadConstant` inside the data bind, `PreBindConstants.Read` before it).
+// caller hands it — `DataBinder.ReadConstant` inside the data bind, `SymbolTable.IdentifyConstantBeforeBind` before it).
 externalizedNamePhrase
     : AS (literal | nnCobolWord1=cobolWord)
     ;

@@ -52,28 +52,29 @@ public sealed class GlobalNameClassDriftTests
             + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
         ["ImplicitRegisters._debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
             + "never declared by a data description entry",
-        ["ConstantEntryBinder._constants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
-            + "InheritStep.Seed (InheritedGlobals.Constants; §2023:13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
+        ["SymbolTable._ownConstants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
+            + "InheritStep.Seed (SymbolTable.InheritConstants; §2023:13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
     };
 
-    /// <summary>The types whose instances hold a source element's name indexes: the binder, and every slice of its
-    /// <see cref="DataBindState"/> (kb/Work PB2296), found by reflection so a slice added tomorrow is walked too. A field of a
-    /// slice is named <c>Slice.field</c>.</summary>
+    /// <summary>The types whose instances hold a source element's name indexes: the binder, the one store of names it owns
+    /// (<see cref="SymbolTable"/>, docs/rearchitecture/DESIGN-listing.md section 6.7.1, which listing step 6b fills class by
+    /// class), and every slice of its <see cref="DataBindState"/> (kb/Work PB2296), found by reflection so a slice added
+    /// tomorrow is walked too. A field of a slice is named <c>Slice.field</c>.</summary>
     private static IEnumerable<(Type Owner, string Prefix)> StateOwners()
     {
         yield return (typeof(DataBinder), "");
         yield return (typeof(DataBindState), $"{nameof(DataBindState)}.");
-        yield return (typeof(ConstantEntryBinder), $"{nameof(ConstantEntryBinder)}.");   // the unit's constant entries (kb/Work PB2358)
+        yield return (typeof(SymbolTable), $"{nameof(SymbolTable)}.");   // the one store of names: the constant entries since step 6b slice 3
         foreach (var p in typeof(DataBindState).GetProperties())
             if (p.PropertyType.IsClass && p.PropertyType.Assembly == typeof(DataBinder).Assembly)
                 yield return (p.PropertyType, $"{p.PropertyType.Name}.");
     }
 
-    /// <summary>The constant binder's private registry of an element's constant entries (no product type outside the
-    /// binder names it, so it is private; kb/Work PB2361).</summary>
+    /// <summary>The symbol table's private registry of an element's constant entries (listing step 6b slice 3 moved it there
+    /// from <c>ConstantEntryBinder</c>, kb/Work PB5932).</summary>
     private static readonly Type ConstantScope =
-        typeof(ConstantEntryBinder).GetNestedType("ConstantScope", BindingFlags.NonPublic)
-        ?? throw new InvalidOperationException("ConstantEntryBinder declares no nested ConstantScope: the registry was renamed or moved");
+        typeof(SymbolTable).GetNestedType("ConstantNames", BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("SymbolTable declares no nested ConstantNames: the registry was renamed or moved");
 
     private static IEnumerable<string> NameIndexFields(Type owner)
     {
@@ -92,7 +93,7 @@ public sealed class GlobalNameClassDriftTests
             // A slice hands out a name index as a read-only view, so the view's own type counts as one too.
             if (new[] { f.FieldType }.Concat(f.FieldType.GetInterfaces()).Any(i => i.IsGenericType
                     && (i.GetGenericTypeDefinition() == typeof(IDictionary<,>) || i.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)))
-                && args[0] == typeof(string) && Mentions(args[1]))
+                && (args[0] == typeof(string) || args[0] == typeof(CobolName)) && Mentions(args[1]))
                 yield return MemberName(f);
         }
     }
@@ -182,7 +183,7 @@ public sealed class GlobalNameClassDriftTests
     };
 
     /// <summary>The method's words the BINDER keeps (kb/Work PB2402: binder working state, never on the model scope) → the
-    /// text <c>ConstantEntryBinder.MethodDeclares</c> asks them by: its constant entries (kb/Work PB3164) and the words its
+    /// text <c>SymbolTable.MethodDeclaresWord</c> asks them by: its constant entries (kb/Work PB3164) and the words its
     /// data division defines before any entry binds (kb/Work PB3192).</summary>
     private static readonly string[] AskedByMethodConstants = ["Declared.ContainsKey(", "OtherWords.Contains("];
 
@@ -194,7 +195,7 @@ public sealed class GlobalNameClassDriftTests
     /// old index, and <c>conformance-suite/cases/_unassigned/pb3154_half_capacity_register_hides_symbolic.cob</c> displayed the
     /// figurative <c>CCC</c> for the method's own register. The model scope's name indexes are found by REFLECTION, so an
     /// index added to the scope must be asked by <c>OoMethodDataScope.IndexesDeclare</c> too; the binder's half
-    /// (<c>ConstantEntryBinder.MethodDeclares</c>) asks the method's constants and early words; and THE question,
+    /// (<c>SymbolTable.MethodDeclaresWord</c>) asks the method's constants and early words; and THE question,
     /// <c>DataBinder.MethodDeclares</c>, asks both halves (kb/Work PB2402 split the one predicate when the census and the
     /// constants left the model scope).</summary>
     [Fact]
@@ -209,19 +210,19 @@ public sealed class GlobalNameClassDriftTests
             Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
                 $"OoMethodDataScope.IndexesDeclare no longer asks the method's name index '{index}' (expected '{ask}').");
 
-        string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ConstantEntryBinder.cs"));
-        var c = Regex.Match(constants, @"internal bool MethodDeclares\(OoMethodDataScope method, string word\) =>(?<body>.*?);",
+        string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Constants.cs"));
+        var c = Regex.Match(constants, @"internal bool MethodDeclaresWord\(OoMethodDataScope method, string word\) =>(?<body>.*?);",
             RegexOptions.Singleline);
-        Assert.True(c.Success, "ConstantEntryBinder.MethodDeclares not found in ConstantEntryBinder.cs");
+        Assert.True(c.Success, "SymbolTable.MethodDeclaresWord not found in SymbolTable.Constants.cs");
         foreach (string ask in AskedByMethodConstants)
             Assert.True(c.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
-                $"ConstantEntryBinder.MethodDeclares no longer asks '{ask}'.");
+                $"SymbolTable.MethodDeclaresWord no longer asks '{ask}'.");
 
         string binder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.cs"));
         var d = Regex.Match(binder, @"internal bool MethodDeclares\(OoMethodDataScope method, string word\) =>(?<body>.*?);",
             RegexOptions.Singleline);
         Assert.True(d.Success, "DataBinder.MethodDeclares not found in DataBinder.cs");
-        foreach (string ask in (string[])["method.IndexesDeclare(word)", "Constants.MethodDeclares(method, word)"])
+        foreach (string ask in (string[])["method.IndexesDeclare(word)", "Symbols.MethodDeclaresWord(method, word)"])
             Assert.True(d.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
                 $"DataBinder.MethodDeclares no longer asks '{ask}': a method-local word of that half would not hide the object's.");
     }

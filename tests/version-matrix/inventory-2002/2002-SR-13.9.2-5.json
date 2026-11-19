@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-13.9.2-5",
  "rule-digest": "bb4b0e7a9b03",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindDeclaredConstant; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ReportConstantCycle; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ClosesConstantCycle; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ResolveConstantName",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindDeclaredConstant; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ReportConstantCycle; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Constants.cs#ClosesConstantCycle; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ResolveConstantName",
  "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2con03-cd-constant-value-cycle; conformance:cases/13.9@2002-CONSTANT-ENTRY/g2con01_cd_constant_entries",
- "notes": "§2002:13.9.2 SR5: constants under a CD with KA AS KB + 1 and KB AS KA + 1 must be refused. g2con03 is refused with COBOL1547 (KA -> KB -> KA) at --std 2002. In g2con01, the non-cyclic KA AS KB + 1 with KB AS 3 gave KA=04."
+ "notes": "§2002:13.9.2 SR5: constants under a CD with KA AS KB + 1 and KB AS KA + 1 must be refused. g2con03 is refused with COBOL1547 (KA -> KB -> KA) at --std 2002. In g2con01, the non-cyclic KA AS KB + 1 with KB AS 3 gave KA=04. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ClosesConstantCycle (listing step 6b slice 3, kb/Work PB5932: the constant tables moved into SymbolTable, now SymbolTable/SymbolTable.Constants.cs#ClosesConstantCycle)"
 }

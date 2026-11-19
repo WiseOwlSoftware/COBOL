@@ -98,9 +98,9 @@ public sealed partial class SymbolTable
         private IEnumerable<DeclarationFact> NonConditionDeclarationsOf(
             string name, IReadOnlyList<string> qualifiers, Scope scope, bool dataName)
         {
-            if (qualifiers.Count == 0 && !dataName && _data.Constants.IsConstantName(name))
-                yield return new(DeclarationKind.ConstantName, DeclarationRefused: _data.Constants.IsRefusedConstantName(name),
-                    Depth: _data.Constants.InheritedDepthOf(name));
+            if (qualifiers.Count == 0 && !dataName && _table.IsConstantName(name))
+                yield return new(DeclarationKind.ConstantName, DeclarationRefused: _table.IsRefusedConstantName(name),
+                    Depth: _table.InheritedConstantDepthOf(name));
             // An index-name that the written qualifiers reach NONE of is still the declaration a refusal words ("declared, but not
             // under the given qualifiers"), but the reference does not name it: it ranks behind every other class (int.MaxValue),
             // so a qualified `RELF OF X` that only a container's GLOBAL level-88 satisfies is not hidden by an own `INDEXED BY RELF`

@@ -1258,9 +1258,9 @@ bridges and the drop of an inherited constant a nearer data-name hides. A contai
 subtrees are made visible INSIDE the unit's declaration half (`ReportSectionBinder.InheritContainerReports`,
 `InheritContainerGlobalData`; kb/Work PB3766, PB4199), because the unit's own FILE STATUS, KEY, DEPENDING ON and ASSIGN
 USING clauses name them, so the step offers them in its seed half rather than merging them after the data phases. The
-inherited constant-names are `InheritedGlobals.Constants`, each with its container's depth (offered by the seed half from
-the container's `ConstantEntryBinder.GlobalConstantsToInherit` and read by `ConstantEntryBinder.FindConstant` after the
-unit's own entries, a declared local entry hiding them structurally), and `InheritStep.DropShadowed` (the merge half, and
+inherited constant-names are the symbol table's (`SymbolTable.InheritConstants`, each with its container's depth, written by
+the seed half from the container's table and read by `SymbolTable.Identify`'s constant arm after the unit's own entries, a
+declared local entry hiding them structurally; listing step 6b slice 3, kb/Work PB5932), and `InheritStep.DropShadowed` (the merge half, and
 `OoDriver` for a class half) drops those a nearer name hides and hides the inherited symbolic-characters; the inherited
 subtrees join its own name indexes with their depth. `ConstantEntryBinder` (`DataBinder.Constants`, PB2358) owns the unit's
 constant tables and every reader of a constant-name; the CONSTANT RECORD predicates stay with the data binder

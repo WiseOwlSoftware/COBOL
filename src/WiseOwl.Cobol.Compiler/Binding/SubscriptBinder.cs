@@ -15,6 +15,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>The enclosing occurrence a SEARCH's WHEN phrase names: the subscripts of the tables enclosing the
 /// searched table, outermost first, and the pre-ops that must run before those positions can be read (see
@@ -992,7 +993,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // §2023:13.10.4 GR1/GR3 — a subscript is a literal position, §2023:8.4.2.3.2) — its VALUE is the position, read by THE ONE
         // integer-literal reader (kb/Work PB1579).
         if (qualifiers.Count == 0
-            && data.Constants.FindConstant(name) is { Category: PicCategory.Numeric, IntegerText: { } integer })
+            && data.Symbols.Identify(dref.cobolWord(), NameClass.Constant, report: true)?.Symbol
+                is ConstantDef { Category: PicCategory.Numeric, IntegerText: { } integer })
             return HostPosition(integer);
         // A report VARYING counter in scope (§2023:13.18.64.4 GR4's NOTE: "data-name-1 [may] be used … as a subscript to a source
         // data item") is the compose-local integer the placement declares; it is no data item and has no scale.

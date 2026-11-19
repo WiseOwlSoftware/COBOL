@@ -12,6 +12,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>The CLASS and SYMBOLIC CHARACTERS clauses (ISO §2023:12.3.7.2; §2023:12.3.7.3 SR16, SR17; §2023:12.3.7.4 GR11, GR12).
 /// A partial of <see cref="SpecialNamesBinder"/>.</summary>
@@ -242,7 +243,7 @@ public sealed partial class SpecialNamesBinder
     /// literal, so a constant-name ordinal after a literal one opens a NEW entry). The entry is therefore NOT a unit of
     /// the rule: this walk reads the entries' tokens as one stream in SOURCE ORDER whatever the parse called them and
     /// decides each WORD by the one fact only the binder has — whether the compilation unit defines it as a constant
-    /// (<see cref="ConstantEntryBinder.FindConstant"/>): a literal is an ordinal; a word that names a constant is an ordinal; the first word
+    /// (<c>SymbolTable.Identify</c>): a literal is an ordinal; a word that names a constant is an ordinal; the first word
     /// after IS/ARE is an ordinal whatever it names (so an undefined one is reported by the reader as "not a defined
     /// constant-name"); any other word is a symbolic-character-1. An ordinal whose value is null was refused by the
     /// reader and is already reported.</para></summary>
@@ -274,7 +275,7 @@ public sealed partial class SpecialNamesBinder
                     Core.IntegerOperandContext io when io.integerLiteral() is null => io.cobolWord(),
                     _ => null,
                 };
-                if (word is not null && !afterIs && _host.Constants.FindConstant(word.GetText()) is null && !_host.Constants.IsFailedConstant(word.GetText()))
+                if (word is not null && !afterIs && _host.Symbols.Identify(word, NameClass.Constant, report: false) is null && !_host.Symbols.IsFailedConstant(word.GetText()))
                 {
                     names.Add(word);
                     firstIsName ??= true;
@@ -289,7 +290,7 @@ public sealed partial class SpecialNamesBinder
                     Core.IntegerLiteralContext il => (il.GetText(),
                         (int?)WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(il)),
                     Core.IntegerOperandContext io => (io.GetText(), _host.Constants.IntegerOperandValue(io, where)),
-                    _ => (word!.GetText(), _host.Constants.ConstantIntegerText(word, word.GetText(), where) is { } digits
+                    _ => (word!.GetText(), _host.Constants.ConstantIntegerText(word, word, where) is { } digits
                         ? WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(digits) : null),
                 });
             }

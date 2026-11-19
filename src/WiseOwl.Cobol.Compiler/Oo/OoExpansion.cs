@@ -298,7 +298,7 @@ internal static class OoExpansion
         // specifier, §2023:11.3.4 GR1 for a CLASS-ID; the literal is screened by §2023:11.3.3 SR1). Read by the pure peek the identity scope uses, so a rejected literal resolves by the word it falls back to.
         string SkeletonIdentity(Core.ExternalizedNamePhraseContext? asPhrase, string word) =>
             asPhrase is null ? word
-            : ExternalizedName.Peek(asPhrase, k => PreBindConstants.Read(asPhrase, k, inputs.Variables), edition.DialectLevel) ?? word;
+            : ExternalizedName.Peek(asPhrase, k => SymbolTable.IdentifyConstantBeforeBind(k, inputs.Variables), edition.DialectLevel) ?? word;
 
         Expansion? Validate(Core.RepositoryEntryContext e)
         {
