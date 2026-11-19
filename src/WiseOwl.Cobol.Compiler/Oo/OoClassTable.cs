@@ -753,7 +753,7 @@ public sealed class OoClassTable
         foreach (var isym in table._interfaces.Concat(table._parameterizedInterfaces))
             foreach (var own in isym.Prototypes)
                 foreach (var inherited in isym.InheritedClosure())
-                    if (inherited.FindOwnPrototype(own.ExternalizedName) is not null)
+                    if (inherited.FindOwnPrototype(own.RosterKey) is not null)
                     {
                         using var atPrototype = edition.At(sources.Of(own));
                         edition.Error(DiagnosticCatalog.InterfacePrototypeRedeclaresInherited,
@@ -1136,7 +1136,7 @@ public sealed class OoClassTable
     }
 
     private static void MarkRoster(OoClassSymbol sym, IReadOnlyList<OoMethodSymbol> roster,
-        Func<string, OoMethodSymbol?>? findInBase, string kind, SourceMap sources, EditionContext edition)
+        Func<ExternalizedMethodName, OoMethodSymbol?>? findInBase, string kind, SourceMap sources, EditionContext edition)
     {
         foreach (var m in roster)
         {
@@ -1144,7 +1144,7 @@ public sealed class OoClassTable
             // refuses the only way one can meet a superclass method of its name.
             if (m.PropertySubject is not null) continue;
             using var atMethod = edition.At(sources.Of(m));
-            var baseM = findInBase?.Invoke(m.ExternalizedName);   // the roster key (PB303)
+            var baseM = findInBase?.Invoke(m.RosterKey);   // the roster key (PB303)
             if (baseM is null)
             {
                 if (m.HasOverride)
@@ -1223,7 +1223,7 @@ public sealed class OoClassTable
         foreach (var cls in _classes)
             foreach (bool factory in new[] { false, true })
                 foreach (var proto in ImplementsClosure(cls, factory).SelectMany(i => i.AllPrototypes()))
-                    if (MethodRoster.Of(cls, factory).Find(proto.ExternalizedName) is { } impl)
+                    if (MethodRoster.Of(cls, factory).Find(proto.RosterKey) is { } impl)
                     {
                         // An imported interface's prototype is in no roster above; it joins the slot of the method that implements it,
                         // under the name the built assembly gave it.

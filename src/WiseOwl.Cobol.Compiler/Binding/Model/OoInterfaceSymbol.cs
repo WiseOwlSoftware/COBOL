@@ -58,20 +58,20 @@ public sealed class OoInterfaceSymbol
     /// own INHERITS as C# bases and the emitted class carries its base's implementations.</para></summary>
     public IReadOnlyList<string> ImplementedClrNames => [ClrName];
 
-    private readonly Dictionary<string, OoMethodSymbol> _protos = new(CobolNames.Comparer);
+    private readonly Dictionary<ExternalizedMethodName, OoMethodSymbol> _protos = [];
     public IReadOnlyList<OoMethodSymbol> Prototypes => _protoList;
     private readonly List<OoMethodSymbol> _protoList = [];
 
     internal bool TryAddPrototype(OoMethodSymbol m)
     {
-        if (!_protos.TryAdd(m.ExternalizedName, m)) return false;   // the roster key (PB303)
+        if (!_protos.TryAdd(m.RosterKey, m)) return false;   // the roster key (PB303)
         _protoList.Add(m);
         return true;
     }
 
-    /// <summary>This interface's OWN prototype of the given roster key (<see cref="OoMethodSymbol.ExternalizedName"/>),
+    /// <summary>This interface's OWN prototype of the given roster key (<see cref="OoMethodSymbol.RosterKey"/>),
     /// or null — the question §2023:11.7.3 SR4 b) asks of every interface in the INHERITS closure.</summary>
-    internal OoMethodSymbol? FindOwnPrototype(string externalizedName) => _protos.GetValueOrDefault(externalizedName);
+    internal OoMethodSymbol? FindOwnPrototype(ExternalizedMethodName key) => _protos.GetValueOrDefault(key);
 
     /// <summary>Every interface this one inherits from, directly or indirectly (§2023:9.3.10 — "the inheriting interface has
     /// all the method specifications defined for the inherited interface definition or definitions"), each once and never

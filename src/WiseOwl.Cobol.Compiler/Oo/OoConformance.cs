@@ -62,14 +62,17 @@ public static class OoConformance
             Check(cls, cls.FactoryMethods, cls.FindFactoryMethod);
         }
 
-        void Check(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> declared, Func<string, OoMethodSymbol?> find)
+        void Check(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> declared, Func<ExternalizedMethodName, OoMethodSymbol?> find)
         {
-            var seen = new HashSet<string>(CobolNames.Comparer);
+            // Each property's pair once, keyed by its get accessor's roster key (the pinned accessor name, §2023:11.7.4 GR1 a)).
+            var seen = new HashSet<ExternalizedMethodName>();
             foreach (var accessor in declared)
             {
-                if (accessor.PropertyName is not { } prop || !seen.Add(prop)) continue;
-                if (find(NamingConvention.GetAccessorName(prop)) is not { Binding.Returning: { } returning } get
-                    || find(NamingConvention.SetAccessorName(prop)) is not { Binding.Formals: [{ } setFormal] } set)
+                if (accessor.PropertyName is not { } prop) continue;
+                var getKey = new ExternalizedMethodName(NamingConvention.GetAccessorName(prop));
+                if (!seen.Add(getKey)) continue;
+                if (find(getKey) is not { Binding.Returning: { } returning } get
+                    || find(new ExternalizedMethodName(NamingConvention.SetAccessorName(prop))) is not { Binding.Formals: [{ } setFormal] } set)
                     continue;   // a missing accessor is §2023:8.4.3.9.3 SR3/SR4's, decided where the polarity is known
                 if (SignatureDifference(returning, setFormal.Item, "RETURNING item of the get property method",
                         "USING parameter of the set property method") is not { } why) continue;
@@ -110,7 +113,7 @@ public static class OoConformance
             foreach (var iface in closure)
                 foreach (var proto in iface.AllPrototypes())
                 {
-                    var impl = MethodRoster.Of(cls, factory).Find(proto.ExternalizedName);   // the roster key (PB303)
+                    var impl = MethodRoster.Of(cls, factory).Find(proto.RosterKey);   // the roster key (PB303)
                     if (impl is null)
                     {
                         using var atClass = edition.At(sources.Of(cls).classIdParagraph().className(0));
@@ -388,10 +391,10 @@ public static class OoConformance
     public static bool InterfaceConformsTo(OoClassTable table, OoInterfaceSymbol interface1, OoInterfaceSymbol interface2)
     {
         if (ReferenceEquals(interface1, interface2)) return true;
-        var mine = new Dictionary<string, OoMethodSymbol>(CobolNames.Comparer);
-        foreach (var p in interface1.AllPrototypes()) mine.TryAdd(p.ExternalizedName, p);   // first declaration wins
+        var mine = new Dictionary<ExternalizedMethodName, OoMethodSymbol>();
+        foreach (var p in interface1.AllPrototypes()) mine.TryAdd(p.RosterKey, p);   // first declaration wins
         foreach (var m2 in interface2.AllPrototypes())
-            if (!mine.TryGetValue(m2.ExternalizedName, out var m1)
+            if (!mine.TryGetValue(m2.RosterKey, out var m1)
                 || MethodConformanceMismatches(table, m1, m2, $"the '{interface2.Name}' prototype",
                        interface1.Name, interface2.Name).Any())
                 return false;
@@ -414,12 +417,12 @@ public static class OoConformance
     {
         foreach (var isym in table.Interfaces)
         {
-            var byName = new Dictionary<string, List<(OoInterfaceSymbol Iface, OoMethodSymbol Proto)>>(CobolNames.Comparer);
+            var byName = new Dictionary<ExternalizedMethodName, List<(OoInterfaceSymbol Iface, OoMethodSymbol Proto)>>();
             foreach (var inherited in isym.InheritedClosure())
                 foreach (var proto in inherited.Prototypes)
                 {
-                    if (!byName.TryGetValue(proto.ExternalizedName, out var list))
-                        byName[proto.ExternalizedName] = list = [];
+                    if (!byName.TryGetValue(proto.RosterKey, out var list))
+                        byName[proto.RosterKey] = list = [];
                     list.Add((inherited, proto));
                 }
             foreach (var (_, protos) in byName)

@@ -42,8 +42,9 @@ public sealed class NameTableOwnershipDriftTests
     /// 47 tables, 61 lookups, 200 sites; 294 at slice 3, which moved the constant-names: 43 tables, 56 lookups, 195 sites; 279 at
     /// slice 4, which moved the CONFIGURATION SECTION names: 40 tables, 51 lookups, 188 sites; 234 at slice 5, which moved the
     /// REPORT SECTION names: 35 tables, 42 lookups, 157 sites; 223 at slice 6, which moved the program-prototype-names: 31 tables,
-    /// 40 lookups, 152 sites).</summary>
-    private const int BaselineCeiling = 223;
+    /// 40 lookups, 152 sites; the OO names' lane, branch listing-step-6b-oo, lowers it by what it moves: the method rosters re-keyed by
+    /// the externalized method name, 3 tables, 2 lookups, 6 sites).</summary>
+    private const int BaselineCeiling = 212;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -56,8 +57,9 @@ public sealed class NameTableOwnershipDriftTests
     /// <c>TryResolveRangeAlphabet</c> answer the carrier it registers, and dropped two entries whose string was an alphabet-name or
     /// class-name now carried as its context: +3 -2. Slice 5: 123 -> 125. <c>ReportGroupResolution.Resolve</c> takes the written
     /// report-group reference as its context and keeps the diagnostic's site; <c>DataBinder.ReportPrintablePicture</c>, which the
-    /// first measurement counted as a report lookup, resolves no name: its strings word the item in a diagnostic.)</summary>
-    private const int StringMembersCeiling = 125;
+    /// first measurement counted as a report lookup, resolves no name: its strings word the item in a diagnostic. The OO names' lane:
+    /// 125 -> 123, <c>MethodRoster.Find</c> and <c>OoInterfaceSymbol.FindOwnPrototype</c> take the roster key's own type.)</summary>
+    private const int StringMembersCeiling = 123;
     private const int ComparisonsCeiling = 86;
 
     /// <summary>Where every run writes its findings, one per line.</summary>

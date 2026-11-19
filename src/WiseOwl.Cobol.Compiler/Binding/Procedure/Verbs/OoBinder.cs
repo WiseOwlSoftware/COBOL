@@ -399,7 +399,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (searchRoot is null) return OoBindDeferredInvoke(site, $"INVOKE {predefined} \"{methodName}\"");
             // Roster selection by CONTEXT (§2023:14.9.23.3 SR4f/g/h/i): a factory method's SELF/SUPER resolve
             // over the FACTORY interface; an instance method's over the instance interface.
-            var sm = MethodRoster.Of(searchRoot, host.OoInFactory).Find(methodName);
+            var sm = MethodRoster.Of(searchRoot, host.OoInFactory).Find(new ExternalizedMethodName(methodName));
             // Not in the definition bound as itself, nor in a written superclass: the method may be the formal
             // superclass's, which each expansion's actual decides (§2023:9.3.9, §2023:9.3.8.2.4; kb/Work PB2937).
             if (sm is null && cur.FormalBaseName is not null)
@@ -737,7 +737,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// interface of exactly the classes that inherit BASE (§2023:16.2; §2023:9.3.9), and in no other (kb/Work PB1548).</summary>
     private BoundStatement OoBindClassInvoke(InvocationSite site, OoClassSymbol cls, string method)
     {
-        if (cls.FindFactoryMethod(method) is { } fm)
+        if (cls.FindFactoryMethod(new ExternalizedMethodName(method)) is { } fm)
         {
             // §2023:14.8.3.3 rule 2 b) 1.: a method invoked with an object-class-name is invoked through "that same
             // object-class-name and an ONLY phrase" — and §2023:16.2.1.2 GR1 agrees for New: invoked on the factory object
@@ -878,7 +878,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // the emitted call is static C# interface dispatch behind the same GR5 null guard.
         if (rdesc.Kind is ObjectRefKind.Interface && host.OoClasses?.FindInterface(className) is { } recvIface)
         {
-            var proto = MethodRoster.Of(recvIface).Find(method);
+            var proto = MethodRoster.Of(recvIface).Find(new ExternalizedMethodName(method));
             if (proto is null)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeMethodNotDefined,
@@ -899,7 +899,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // §2023:9.3.6: a class has TWO separate method interfaces, and which one a receiver selects is the FACTORY
         // axis of its own description — a FACTORY-OF reference holds the factory object (§2023:13.18.60.4 GR22 d)1.a.)
         // and therefore resolves the FACTORY roster (§2023:14.9.23.3 SR4b/SR4c). Both arms of ONE dispatch.
-        var m = MethodRoster.Of(cls, rdesc.Factory).Find(method);
+        var m = MethodRoster.Of(cls, rdesc.Factory).Find(new ExternalizedMethodName(method));
         // §2023:14.9.23.3 SR4 a)–d): the rule a typed receiver's method name answers to is chosen by its description's
         // two axes — object-class-name or ACTIVE-CLASS, with or without FACTORY — so the citation is derived from
         // the same two facts the roster lookup above used, never written per arm (kb/Work PB1136).
@@ -919,7 +919,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         if (m is null)
         {
             string other = rdesc.Factory ? "an INSTANCE" : "a FACTORY";
-            string hint = MethodRoster.Of(cls, !rdesc.Factory).Find(method) is not null
+            string hint = MethodRoster.Of(cls, !rdesc.Factory).Find(new ExternalizedMethodName(method)) is not null
                 ? $" ('{method}' IS {other} method of class '{cls.Name}' — the two interfaces are separate, "
                   + "§2023:9.3.6, and this receiver's description selects the "
                   + (rdesc.Factory ? "factory" : "instance") + " one)"

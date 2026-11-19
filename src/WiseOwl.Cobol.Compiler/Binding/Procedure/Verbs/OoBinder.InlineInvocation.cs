@@ -312,7 +312,7 @@ internal sealed partial class OoBinder
         {
             if (roster is not { } r
                 || ProbedMethodName(seg.cobolWord() is { } word ? host.Expr.LiteralAliasOf(word) : null, seg.literal()) is not { } name
-                || r.Find(name) is not { } method)
+                || r.Find(new ExternalizedMethodName(name)) is not { } method)
                 break;
             methods.Add(method);
             roster = method.Binding?.Returning is { } returned ? ProbedRoster(returned) : null;
@@ -331,7 +331,7 @@ internal sealed partial class OoBinder
         var written = inv.invokeMethodName();
         return roster is { } r
                && ProbedMethodName(written.dataReference() is { } word ? host.Expr.LiteralAliasOf(word) : null, written.literal()) is { } name
-            ? r.Find(name)
+            ? r.Find(new ExternalizedMethodName(name))
             : null;
     }
 

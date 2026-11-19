@@ -669,7 +669,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
                     $"{hit.Origin.Path}: the class \"{hit.Record.ExternalizedName}\" records two {(dm.Record.IsFactory ? "factory " : "")}methods "
                     + $"externalized \"{m.ExternalizedName}\" (ISO §2023:8.13)");
             else if (dm.Record.Override)
-                m.OverrideOf = symbol.Base is { } inherited ? MethodRoster.Of(inherited, dm.Record.IsFactory).Find(m.ExternalizedName) : null;
+                m.OverrideOf = symbol.Base is { } inherited ? MethodRoster.Of(inherited, dm.Record.IsFactory).Find(m.RosterKey) : null;
         }
 
         void Implemented(List<OoInterfaceSymbol> into, RecordList<string> identities)

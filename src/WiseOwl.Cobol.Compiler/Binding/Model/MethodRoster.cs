@@ -20,10 +20,10 @@ public readonly record struct MethodRoster(OoClassSymbol? Class, OoInterfaceSymb
     /// <summary>The prototype closure of <paramref name="iface"/> (§2023:9.3.8.2.2), which has no factory half.</summary>
     public static MethodRoster Of(OoInterfaceSymbol iface) => new(null, iface, false);
 
-    /// <summary>The method this roster holds under the externalized name <paramref name="externalizedName"/>, or null.</summary>
-    public OoMethodSymbol? Find(string externalizedName) =>
+    /// <summary>The method this roster holds under the externalized name <paramref name="key"/>, or null.</summary>
+    public OoMethodSymbol? Find(ExternalizedMethodName key) =>
         Interface is { } iface
-            ? iface.AllPrototypes().FirstOrDefault(p => WiseOwl.Cobol.Runtime.CobolNames.Same(p.ExternalizedName, externalizedName))
+            ? iface.AllPrototypes().FirstOrDefault(p => p.RosterKey == key)
             : Class is not { } cls ? null
-            : Factory ? cls.FindFactoryMethod(externalizedName) : cls.FindMethod(externalizedName);
+            : Factory ? cls.FindFactoryMethod(key) : cls.FindMethod(key);
 }

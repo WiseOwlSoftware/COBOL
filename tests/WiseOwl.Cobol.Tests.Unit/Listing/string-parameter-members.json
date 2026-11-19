@@ -222,10 +222,6 @@
       "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
     },
     {
-      "member": "WiseOwl.Cobol.Binding.Model.MethodRoster.Find(string)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
-    },
-    {
       "member": "WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor.ActiveClass(string?, bool)",
       "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
     },
@@ -244,10 +240,6 @@
     {
       "member": "WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor.Resolved(string, string?)",
       "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
-    },
-    {
-      "member": "WiseOwl.Cobol.Binding.Model.OoInterfaceSymbol.FindOwnPrototype(string)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
     },
     {
       "member": "WiseOwl.Cobol.Binding.Model.PicInfo.FunctionPointerItem(string)",
