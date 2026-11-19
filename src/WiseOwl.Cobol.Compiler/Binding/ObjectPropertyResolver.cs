@@ -84,15 +84,15 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     /// is a class-name this source element may reference (§2023:8.4.6.4) is the qualified SUPER.</summary>
     internal Core.CobolWordContext? QualifiedSuperClass(Core.DataReferenceContext dref) =>
         dref.dataReferenceSuffix() is [var only] && only.propertyObject()?.SUPER() is not null
-        && dref.cobolWord() is { } word && IsClassName(dref, word.Name())
+        && dref.cobolWord() is { } word && IsClassName(dref, word)
             ? word : null;
 
     /// <summary>A class-name this source element may reference (§2023:8.4.6.4), or a parameter-name declared CLASS of the
     /// parameterized definition bound as itself, which stands where an object-class-name does (§2023:11.3.4 GR6; kb/Work
     /// PB2937 — <c>B OF SUPER</c> over a formal superclass B).</summary>
-    private bool IsClassName(RuleContext site, string name) =>
+    private bool IsClassName(RuleContext site, Core.CobolWordContext word) =>
         data.OoClasses is { } table
-        && OoNameResolution.Lookup(table, site, name, OoNameResolution.Want.Class) is { Class: not null } or { IsFormal: true };
+        && table.Names.Lookup(site, word, OoNameWant.Class) is { Class: not null } or { IsFormal: true };
 
     /// <summary>True when <paramref name="dref"/> is the object-view of a qualified data item written as one chain,
     /// <c>A OF G AS C</c> — a view, which §2023:8.4.3.5.3 SR2 forbids as a receiving operand. Pure.</summary>
@@ -183,7 +183,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             }
             // `name OF SUPER` with a class-name is the qualified SUPER (§2023:8.4.3.8.2) written as an operand: §2023:8.4.3.8.3 SR3
             // admits it only as the object an invocation selects a method through (OoBinder.OoBindByReceiver).
-            if (terminal!.SUPER() is not null && IsClassName(dref, name))
+            if (terminal!.SUPER() is not null && dref.cobolWord() is { } head && IsClassName(dref, head))
             {
                 if (!refs.Probing && refs.Diagnosed.Add(dref))
                     data.Edition.Error(DiagnosticCatalog.SuperPosition,
@@ -196,7 +196,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             receiver = bound;
         }
         else if (objRef.dataReferenceSuffix().Length == 0
-                 && OoNameResolution.Lookup(table, dref, objRef.cobolWord()!.Name(), OoNameResolution.Want.Class).Class is { } cls)
+                 && table.Names.Lookup(dref, objRef.cobolWord()!, OoNameWant.Class).Class is { } cls)
         {
             // `prop OF class-name` — the FACTORY accessors (SR3/SR4 "or in the factory object of the object class
             // object-class-name-1"). The class-name is a SOURCE reference and takes the §2023:8.4.6.4 scope (kb/Work PB365).
@@ -247,7 +247,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         // property-name-1, and literal-4 — when written — is the property as the declared classes know it (§2023:12.3.8.3
         // SR16 a)), so the accessors are looked up under THAT name. Without a specifier the reference is still
         // reported below (SR1), under the name as written.
-        string known = data.State.Configuration.OoRepositoryProperties.TryGetValue(name, out var specified) ? specified : name;
+        string known = data.Symbols.PropertyKnownAs(name);
         var get = Accessor(receiver, NamingConvention.GetAccessorName(known));
         var set = Accessor(receiver, NamingConvention.SetAccessorName(known));
         if (get is null && set is null)
@@ -272,7 +272,7 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         // "invokes any method" for ISO §2023:7.3.14.4 GR4 b, though the text is a qualified data reference.
         data.State.ActivationSites.Add(dref);
 
-        if (!data.State.Configuration.OoRepositoryProperties.ContainsKey(name))
+        if (!data.Symbols.DeclaresPropertySpecifier(name))
             data.Edition.Error(DiagnosticCatalog.ObjectPropertyReferenceRule,
                 $"the object-property reference '{name}' OF '{objWritten}' requires a PROPERTY specifier in the "
                 + "REPOSITORY paragraph (ISO §2023:8.4.3.9.3 SR1; §2023:12.3.8)");
@@ -322,12 +322,14 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
             return null;
         }
         if (described.Kind is ObjectRefKind.Interface)
-            return table.FindInterface(described.Name!) is { } iface ? receiver with { Interface = iface, Factory = false } : null;
-        return table.Find(described.Name!) is { } cls ? receiver with { Class = cls, Factory = described.Factory } : null;
+            return table.Names.InterfaceOf(described) is { } iface ? receiver with { Interface = iface, Factory = false } : null;
+        return table.Names.ClassOf(described) is { } cls ? receiver with { Class = cls, Factory = described.Factory } : null;
     }
 
-    private static OoMethodSymbol? Accessor(PropertyReceiver receiver, string accessorName) =>
-        new MethodRoster(receiver.Class, receiver.Interface, receiver.Factory).Find(new ExternalizedMethodName(accessorName));
+    private OoMethodSymbol? Accessor(PropertyReceiver receiver, string accessorName) =>
+        (receiver.Interface is { } iface && data.OoClasses is { } table
+            ? MethodRoster.Of(table.Names.AllPrototypes(iface))
+            : new MethodRoster(receiver.Class, null, receiver.Factory)).Find(new ExternalizedMethodName(accessorName));
 
     /// <summary>Identifier-3 of a property reference written as a word chain: the written reference less its head word
     /// (the property-name) and its reference modifiers (§2023:8.4.3.1.4 GR1 g) applies them to the property's value, last),

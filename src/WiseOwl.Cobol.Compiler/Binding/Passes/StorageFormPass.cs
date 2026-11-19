@@ -250,7 +250,7 @@ internal static class StorageFormPass
                 }
                 foreach (bool factory in (ReadOnlySpan<bool>)[false, true])
                     foreach (var iface in classes.ImplementsClosure(cls, factory))
-                        foreach (var proto in iface.AllPrototypes())
+                        foreach (var proto in classes.Names.AllPrototypes(iface))
                             if (MethodRoster.Of(cls, factory).Find(proto.RosterKey) is { } impl)   // the roster key (PB303)
                                 changed |= UnifyPair(impl, proto);
             }

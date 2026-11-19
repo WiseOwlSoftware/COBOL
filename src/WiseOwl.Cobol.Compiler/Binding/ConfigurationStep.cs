@@ -124,7 +124,6 @@ internal static class ConfigurationStep
         into.UserFunctionNames.UnionWith(from.UserFunctionNames);
         into.RepositoryIntrinsics.UnionWith(from.RepositoryIntrinsics);
         if (from.RepositoryAllIntrinsic) into.RepositoryAllIntrinsic = true;
-        foreach (var (k, v) in from.OoRepositoryProperties) into.OoRepositoryProperties.TryAdd(k, v);
         foreach (var (k, v) in from.FunctionSpecifiers) into.FunctionSpecifiers.TryAdd(k, v);
         into.RefusedFunctionSpecifiers.UnionWith(from.RefusedFunctionSpecifiers);
         // OPTIONS (§2023:11.9.4 GR1) — the unit's own OPTIONS paragraph overrides clause by clause when it binds.

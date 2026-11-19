@@ -12,18 +12,19 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <para>Every reader that selects a method by name — an invocation through a typed receiver, SELF or SUPER, a property's
 /// accessor, the diagnostic-free probe of the statement funnel and the conformance walks — asks <see cref="Find"/>, never a
 /// <c>factory ? FindFactoryMethod : FindMethod</c> of its own (pinned by <c>MethodRosterLookupDriftTests</c>).</para></summary>
-public readonly record struct MethodRoster(OoClassSymbol? Class, OoInterfaceSymbol? Interface, bool Factory)
+public readonly record struct MethodRoster(OoClassSymbol? Class, IReadOnlyList<OoMethodSymbol>? Prototypes, bool Factory)
 {
     /// <summary>The factory (<paramref name="factory"/>) or instance interface of <paramref name="cls"/> (§2023:9.3.6).</summary>
     public static MethodRoster Of(OoClassSymbol cls, bool factory) => new(cls, null, factory);
 
-    /// <summary>The prototype closure of <paramref name="iface"/> (§2023:9.3.8.2.2), which has no factory half.</summary>
-    public static MethodRoster Of(OoInterfaceSymbol iface) => new(null, iface, false);
+    /// <summary>An interface's prototype closure (§2023:9.3.8.2.2), which has no factory half: the surface the symbol table's name
+    /// tier presents for it, one prototype per method-name (<c>SymbolTable.ClassNames.AllPrototypes</c>).</summary>
+    public static MethodRoster Of(IReadOnlyList<OoMethodSymbol> prototypes) => new(null, prototypes, false);
 
     /// <summary>The method this roster holds under the externalized name <paramref name="key"/>, or null.</summary>
     public OoMethodSymbol? Find(ExternalizedMethodName key) =>
-        Interface is { } iface
-            ? iface.AllPrototypes().FirstOrDefault(p => p.RosterKey == key)
+        Prototypes is { } prototypes
+            ? prototypes.FirstOrDefault(p => p.RosterKey == key)
             : Class is not { } cls ? null
             : Factory ? cls.FindFactoryMethod(key) : cls.FindMethod(key);
 }

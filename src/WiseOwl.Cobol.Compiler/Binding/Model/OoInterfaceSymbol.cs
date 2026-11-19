@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Runtime;
-
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>One INTERFACE-ID of the compilation group (§2023:11.6 — pass-1): the PROTOTYPE roster (reusing
@@ -89,41 +87,15 @@ public sealed class OoInterfaceSymbol
         }
     }
 
-    /// <summary>The prototype the inheriting interface presents for a method-name inherited from SEVERAL interfaces:
-    /// §2023:11.6.3 SR5 requires "this interface conforms to all inherited interfaces", so one inherited prototype shall
-    /// conform to every other; <c>OoConformance.ValidateInterfaceInheritance</c> finds it and records it here
-    /// (<see cref="AllPrototypes"/> reads it). Keyed by method-name, like <see cref="AllPrototypes"/>.</summary>
-    private readonly Dictionary<string, OoMethodSymbol> _conformingChoice = new(CobolNames.Comparer);
+    /// <summary>The prototypes this interface PRESENTS for a name it inherits from several interfaces (§2023:11.6.3 SR5; chosen
+    /// by <c>OoConformance.ValidateInterfaceInheritance</c> through <c>SymbolTable.ClassNames.ChooseInheritedPrototype</c>, which
+    /// keys the choice by method-name and sets this) — each needs a C# member of its own on the emitted interface, because C#
+    /// member lookup over two base interfaces that both declare <c>SPEAK()</c> is ambiguous (CS0121) at every call through a
+    /// reference to THIS interface, where §2023:11.6.3 SR5 says the inheriting interface has one method of that name
+    /// (<c>OoEmitter.EmitInterfaceUnit</c>). The interface's full method surface, one prototype per method-name, is
+    /// <c>SymbolTable.ClassNames.AllPrototypes</c>.</summary>
+    internal IReadOnlyCollection<OoMethodSymbol> PresentedInherited { get; private set; } = [];
 
-    internal void ChooseInheritedPrototype(OoMethodSymbol proto) => _conformingChoice[proto.Name] = proto;
-
-    /// <summary>The prototypes this interface PRESENTS for a name it inherits from several interfaces
-    /// (<see cref="ChooseInheritedPrototype"/>) — each needs a C# member of its own on the emitted interface, because
-    /// C# member lookup over two base interfaces that both declare <c>SPEAK()</c> is ambiguous (CS0121) at every call
-    /// through a reference to THIS interface, where §2023:11.6.3 SR5 says the inheriting interface has one method of that
-    /// name (<c>OoEmitter.EmitInterfaceUnit</c>).</summary>
-    internal IReadOnlyCollection<OoMethodSymbol> PresentedInherited => _conformingChoice.Values;
-
-    /// <summary>The interface's FULL method surface: own prototypes + the INHERITS closure (§2023:9.3.8.2.2), ONE prototype per
-    /// name. An inherited name cannot also be an own prototype (§2023:11.7.3 SR4 b), refused at Build), and a name inherited
-    /// from several interfaces presents the prototype every other one conforms to
-    /// (<see cref="ChooseInheritedPrototype"/>; §2023:11.6.3 SR5 is validated by
-    /// <c>OoConformance.ValidateInterfaceInheritance</c> after the prototypes' formals bind) — before that pass, and for
-    /// a name with one prototype, discovery order.</summary>
-    public IEnumerable<OoMethodSymbol> AllPrototypes()
-    {
-        var seen = new HashSet<string>(CobolNames.Comparer);
-        var stack = new Stack<OoInterfaceSymbol>();
-        var visited = new HashSet<OoInterfaceSymbol>();
-        stack.Push(this);
-        while (stack.Count > 0)
-        {
-            var i = stack.Pop();
-            if (!visited.Add(i)) continue;
-            foreach (var m in i._protoList)
-                if (seen.Add(m.Name))
-                    yield return _conformingChoice.GetValueOrDefault(m.Name) ?? m;
-            foreach (var b in i.Inherits) stack.Push(b);
-        }
-    }
+    /// <summary>Set <see cref="PresentedInherited"/> (the name tier's chosen set, in the order first chosen).</summary>
+    internal void Present(IReadOnlyCollection<OoMethodSymbol> chosen) => PresentedInherited = chosen;
 }

@@ -135,7 +135,7 @@ internal static class EndMarkerPass
     {
         var declared = c.classIdParagraph()?.className(0);
         var endName = c.endClassHeader()?.className();
-        if (declared is not null && endName is not null && !CobolNames.Same(endName.GetText(), declared.GetText()))
+        if (declared is not null && endName is not null && !SymbolTable.ClassNames.EndMarkerAgrees(endName, declared))
             Report(endName, "SR4", null,
                 $"END CLASS {endName.GetText()} ends CLASS-ID '{declared.GetText()}' — object-class-name-1 shall be "
                 + "identical to the object-class-name declared in the corresponding CLASS-ID paragraph", edition);
@@ -147,7 +147,7 @@ internal static class EndMarkerPass
     {
         // `interfaceName()` lists the INTERFACE-ID name, then the INHERITS names, then the END INTERFACE name.
         var names = f.interfaceName();
-        if (names.Length > 1 && f.END() is not null && !CobolNames.Same(names[^1].GetText(), names[0].GetText()))
+        if (names.Length > 1 && f.END() is not null && !SymbolTable.ClassNames.EndMarkerAgrees(names[^1], names[0]))
             Report(names[^1], "SR6", null,
                 $"END INTERFACE {names[^1].GetText()} ends INTERFACE-ID '{names[0].GetText()}' — interface-name-1 shall "
                 + "be identical to the interface-name declared in the corresponding INTERFACE-ID paragraph", edition);
@@ -169,7 +169,7 @@ internal static class EndMarkerPass
                     + $"method (property '{sel.propertyName().GetText()}') — if the PROPERTY phrase is specified in "
                     + "the METHOD-ID paragraph, method-name-1 shall be omitted (write END METHOD.)", edition);
         }
-        else if (names.Length > 1 && !CobolNames.Same(names[1].GetText(), names[0].GetText()))
+        else if (names.Length > 1 && !SymbolTable.ClassNames.EndMarkerAgrees(names[1], names[0]))
             Report(names[1], "SR5", null,
                 $"END METHOD {names[1].GetText()} ends METHOD-ID '{names[0].GetText()}' — method-name-1 shall be "
                 + "identical to the method-name declared in the corresponding METHOD-ID paragraph", edition);

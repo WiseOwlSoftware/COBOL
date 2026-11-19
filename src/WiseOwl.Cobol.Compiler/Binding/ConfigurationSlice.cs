@@ -140,12 +140,6 @@ public sealed class ConfigurationSlice
     /// resolves), without it the section is comment-treated (VCR Table 7 rows 7.9/7.17).</summary>
     public bool DebuggingModeDeclared { get; internal set; }
 
-    /// <summary>The unit's REPOSITORY PROPERTY specifier names (§2023:12.3.8) — the §2023:8.4.3.9.3 SR1 gate for
-    /// object-property references (case-insensitive per §2023:8.3.2).</summary>
-    /// <para>Keyed by property-name-1 → the name the property is known by in the declared classes: literal-4 when
-    /// the specifier writes <c>AS literal-4</c> (§2023:12.3.8.2, kb/Work PB974), otherwise property-name-1 itself.</para>
-    internal Dictionary<string, string> OoRepositoryProperties { get; } = new(CobolNames.Comparer);
-
     /// <summary>The unit's REPOSITORY user-function specifiers (§2023:12.3.8 — <c>FUNCTION function-prototype-name</c>
     /// WITHOUT the INTRINSIC phrase): the precondition for a user-function reference, and per §2023:12.3.8.4 GR12
     /// (:14885) the declaration that makes the name refer to the USER-DEFINED function "and not to an intrinsic

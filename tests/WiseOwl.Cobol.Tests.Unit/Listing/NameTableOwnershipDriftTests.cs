@@ -43,8 +43,9 @@ public sealed class NameTableOwnershipDriftTests
     /// slice 4, which moved the CONFIGURATION SECTION names: 40 tables, 51 lookups, 188 sites; 234 at slice 5, which moved the
     /// REPORT SECTION names: 35 tables, 42 lookups, 157 sites; 223 at slice 6, which moved the program-prototype-names: 31 tables,
     /// 40 lookups, 152 sites; the OO names' lane, branch listing-step-6b-oo, lowers it by what it moves: the method rosters re-keyed by
-    /// the externalized method name, 3 tables, 2 lookups, 6 sites).</summary>
-    private const int BaselineCeiling = 212;
+    /// the externalized method name, 3 tables, 2 lookups, 6 sites, then the object-class-names and interface-names with their
+    /// resolution into the compilation group's tier and the PROPERTY specifiers, 5 tables, 5 lookups, 25 sites: 177).</summary>
+    private const int BaselineCeiling = 177;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -58,9 +59,12 @@ public sealed class NameTableOwnershipDriftTests
     /// class-name now carried as its context: +3 -2. Slice 5: 123 -> 125. <c>ReportGroupResolution.Resolve</c> takes the written
     /// report-group reference as its context and keeps the diagnostic's site; <c>DataBinder.ReportPrintablePicture</c>, which the
     /// first measurement counted as a report lookup, resolves no name: its strings word the item in a diagnostic. The OO names' lane:
-    /// 125 -> 123, <c>MethodRoster.Find</c> and <c>OoInterfaceSymbol.FindOwnPrototype</c> take the roster key's own type.)</summary>
-    private const int StringMembersCeiling = 123;
-    private const int ComparisonsCeiling = 86;
+    /// 125 -> 123 -> 125. <c>MethodRoster.Find</c> and <c>OoInterfaceSymbol.FindOwnPrototype</c> take the roster key's own type (-2);
+    /// the four external-repository members moved into <c>SymbolTable.ClassNames</c> with their reason (-4 +4); and
+    /// <c>SymbolTable.ClassNames.Resolve</c> and <c>OoDataBinder.DescribeNamedReference</c> take the written word as its context and
+    /// keep the diagnostic's strings (+2). The comparisons: 86 -> 81, the five the tier now makes.)</summary>
+    private const int StringMembersCeiling = 125;
+    private const int ComparisonsCeiling = 81;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
     private static readonly string MeasuredFile = Path.Combine(AppContext.BaseDirectory, "name-table-ownership.measured.txt");

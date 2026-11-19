@@ -655,7 +655,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         string what = $"the repository entry '{hit.Origin.Path}', class \"{hit.Record.ExternalizedName}\", names";
         if (facts.BaseIdentity is { } baseIdentity)
         {
-            if (table.ImportClass(baseIdentity) is { } baseSymbol) symbol.Base = baseSymbol;
+            if (table.Names.ImportClass(baseIdentity) is { } baseSymbol) symbol.Base = baseSymbol;
             else Unanswered($"{what} its superclass", isInterface: false, baseIdentity);
         }
         Implemented(symbol.Implements, facts.Implements);
@@ -675,7 +675,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         void Implemented(List<OoInterfaceSymbol> into, RecordList<string> identities)
         {
             foreach (var identity in identities)
-                if (table.ImportInterface(identity) is { } iface) into.Add(iface);
+                if (table.Names.ImportInterface(identity) is { } iface) into.Add(iface);
                 else Unanswered($"{what} an implemented interface", isInterface: true, identity);
         }
     }
@@ -687,7 +687,7 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
         var facts = hit.Record.Class!;
         string what = $"the repository entry '{hit.Origin.Path}', interface \"{hit.Record.ExternalizedName}\", names";
         foreach (var identity in facts.Implements)
-            if (table.ImportInterface(identity) is { } inherited) symbol.Inherits.Add(inherited);
+            if (table.Names.ImportInterface(identity) is { } inherited) symbol.Inherits.Add(inherited);
             else Unanswered($"{what} an inherited interface", isInterface: true, identity);
         if (Decode(hit.Origin.Path, hit.Record, report: true) is not { } decoded) return;
         foreach (var dm in decoded.Methods)
@@ -727,11 +727,11 @@ internal sealed class MetadataRepositoryProvider : IRepositoryProvider, IOoImpor
                     m.Raising.Add(new RaisingTarget(RaisingTargetKind.ExceptionName, raised.Identity, Factory: false));
                     break;
                 case RepositoryRaisingKind.ObjectClass:
-                    if (Table.ImportClass(raised.Identity) is { } cls) m.Raising.Add(new RaisingTarget(RaisingTargetKind.ObjectClass, cls.Name, raised.Factory));
+                    if (Table.Names.ImportClass(raised.Identity) is { } cls) m.Raising.Add(new RaisingTarget(RaisingTargetKind.ObjectClass, cls.Name, raised.Factory));
                     else Unanswered($"{what} RAISING", isInterface: false, raised.Identity);
                     break;
                 default:
-                    if (Table.ImportInterface(raised.Identity) is { } iface) m.Raising.Add(new RaisingTarget(RaisingTargetKind.Interface, iface.Name, Factory: false));
+                    if (Table.Names.ImportInterface(raised.Identity) is { } iface) m.Raising.Add(new RaisingTarget(RaisingTargetKind.Interface, iface.Name, Factory: false));
                     else Unanswered($"{what} RAISING", isInterface: true, raised.Identity);
                     break;
             }

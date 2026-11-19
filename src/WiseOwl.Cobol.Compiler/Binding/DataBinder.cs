@@ -493,7 +493,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             {
                 specifierWords.Add((re, pn.GetText(), UserWordKind.PropertyName));
                 string? propertyExternalized = BindSpecifierExternalizedName(re, "PROPERTY", pn.GetText(), "literal-4");
-                State.Configuration.OoRepositoryProperties[pn.GetText()] = propertyExternalized ?? pn.GetText();   // the word stays declared (§2023:8.4.3.9.3 SR1) even when literal-4 was refused
+                Symbols.DeclarePropertySpecifier(pn.GetText(), propertyExternalized ?? pn.GetText());   // the word stays declared (§2023:8.4.3.9.3 SR1) even when literal-4 was refused
                 // §2023:12.3.8.3 SR16: checked once every class's roster is complete (OoClassTable.CheckPropertySpecifiers, run by BinderDriver).
                 // A refused literal-4 (reported by SR2) leaves nothing to search for: the word is not the name the source gave,
                 // so a REPO-1 sentence over it would say what the source never said (kb/Work PB4773).

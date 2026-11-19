@@ -270,6 +270,10 @@
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     },
     {
+      "member": "WiseOwl.Cobol.Binding.OoDataBinder.DescribeNamedReference(Antlr4.Runtime.ParserRuleContext, Antlr4.Runtime.ParserRuleContext, bool, bool, string, string, WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor, string)",
+      "reason": "its name operand is the parser context, resolved through the symbol table's compilation-group tier (SymbolTable.ClassNames; step 6b, the OO names, converted it from a string); its strings word a diagnostic (a site, a code, a rule citation)"
+    },
+    {
       "member": "WiseOwl.Cobol.Binding.PictureAnalyzer.Analyze(string, WiseOwl.Cobol.Binding.Model.Usage, WiseOwl.Cobol.Binding.EditionContext, string, WiseOwl.Cobol.Binding.Model.SignSpec?, char, bool, bool, System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Binding.EditingPhraseSpec>?, System.Collections.Generic.IReadOnlyDictionary<char, WiseOwl.Cobol.Binding.Model.CurrencyDefinition>?, WiseOwl.Cobol.Binding.Model.LocaleEditSpec?, bool)",
       "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
     },
@@ -442,6 +446,26 @@
       "reason": "its name operand is the parser context, identified through SymbolTable.Identify (step 6b, slice 4 converted it from a string); its strings word a diagnostic (a site, a rule citation)"
     },
     {
+      "member": "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.FindByExternalizedName(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.FindInterfaceByExternalizedName(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.ImportClass(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.ImportInterface(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.Resolve(WiseOwl.Cobol.Binding.EditionContext, Antlr4.Runtime.RuleContext?, Antlr4.Runtime.ParserRuleContext, WiseOwl.Cobol.Compiler.Oo.OoNameWant, string, string, string)",
+      "reason": "its name operand is the parser context, resolved through the symbol table's compilation-group tier (SymbolTable.ClassNames; step 6b, the OO names, converted it from a string); its strings word a diagnostic (a site, a code, a rule citation)"
+    },
+    {
       "member": "WiseOwl.Cobol.Binding.Validation.StatementValidation.ResolveFile(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext, string, out WiseOwl.Cobol.Binding.Model.FileModel?, bool, string?)",
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     },
@@ -475,22 +499,6 @@
     },
     {
       "member": "WiseOwl.Cobol.Compiler.Oo.IOoImporter.Skeleton(string, bool)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
-    },
-    {
-      "member": "WiseOwl.Cobol.Compiler.Oo.OoClassTable.FindByExternalizedName(string)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
-    },
-    {
-      "member": "WiseOwl.Cobol.Compiler.Oo.OoClassTable.FindInterfaceByExternalizedName(string)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
-    },
-    {
-      "member": "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ImportClass(string)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
-    },
-    {
-      "member": "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ImportInterface(string)",
       "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
     }
   ]

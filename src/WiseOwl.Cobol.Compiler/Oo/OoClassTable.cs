@@ -23,7 +23,12 @@ using WiseOwl.Cobol.Runtime;
 /// </summary>
 public sealed class OoClassTable
 {
-    private readonly Dictionary<string, OoClassSymbol> _byName = new(CobolNames.Comparer);
+    private OoClassTable() => Names = new SymbolTable.ClassNames(this);
+
+    /// <summary>The group's object-class-names and interface-names: the symbol table's compilation-group tier
+    /// (<see cref="SymbolTable.ClassNames"/>; docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, the OO names"), where
+    /// every class and interface this table builds is declared and every written or carried name of one resolves.</summary>
+    internal SymbolTable.ClassNames Names { get; }
 
     /// <summary>All classes in source order (the emitter's deterministic emission order).</summary>
     public IReadOnlyList<OoClassSymbol> Classes => _classes;
@@ -31,7 +36,7 @@ public sealed class OoClassTable
 
     /// <summary>All interfaces in source order (§2023:11.6 — emitted as C# interfaces BEFORE the classes, purely
     /// for readability; Roslyn needs no ordering). Interfaces and classes share ONE name namespace
-    /// (<see cref="_ifaceByName"/> is checked against <see cref="_byName"/> at Build — a collision is COBOL0820, §2023:8.3.2.2).</summary>
+    /// (<see cref="SymbolTable.ClassNames"/> is asked for both at Build — a collision is COBOL0820, §2023:8.3.2.2).</summary>
     public IReadOnlyList<OoInterfaceSymbol> Interfaces => _interfaces;
     private readonly List<OoInterfaceSymbol> _interfaces = [];
 
@@ -48,48 +53,30 @@ public sealed class OoClassTable
     /// <summary>The interface twin of <see cref="ParameterizedClasses"/>.</summary>
     public IReadOnlyList<OoInterfaceSymbol> ParameterizedInterfaces => _parameterizedInterfaces;
     private readonly List<OoInterfaceSymbol> _parameterizedInterfaces = [];
-    private readonly Dictionary<string, OoInterfaceSymbol> _ifaceByName = new(CobolNames.Comparer);
-
-    /// <summary>The interface named <paramref name="name"/>, or null (case-insensitive, §2023:8.3.2.2).</summary>
-    public OoInterfaceSymbol? FindInterface(string name) => _ifaceByName.TryGetValue(name, out var i) ? i : null;
-    /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive). A class
-    /// DEFINED in the compilation group wins; otherwise the name may be the standard class BASE (ISO §2023:16.1), whose
-    /// information the implementation's external repository always holds (§2023:12.3.8.3 SR6 b) — the §2023:12.3.8.4 GR6
-    /// implementor-defined choice, documented at <see cref="OoStandardClasses"/>. This is the group-wide table, NOT
-    /// the question "may this source element name it": that is <see cref="OoNameResolution"/>'s, and the standard
-    /// class is as subject to it as any other (§2023:8.4.6.4 — a REPOSITORY entry is still required).</summary>
-    public OoClassSymbol? Find(string name) =>
-        _byName.TryGetValue(name, out var c) ? c
-        : CobolNames.Same(name, OoStandardClasses.BaseName) ? StandardBase
-        : null;
-
-    /// <summary>The class whose EXTERNALIZED name (its CLASS-ID's <c>AS literal-1</c>, or its name) is
-    /// <paramref name="externalized"/> — what a REPOSITORY class-specifier's <c>AS literal-1</c> names (ISO §2023:12.3.8.4
-    /// GR2; kb/Work PB974). Compared as the group's other externalized names are (case-insensitive). The standard
-    /// class BASE is externalized as its own name, and answers only when no definition of the group claims it —
-    /// the same precedence as <see cref="Find"/>.</summary>
-    public OoClassSymbol? FindByExternalizedName(string externalized) =>
-        _classes.FirstOrDefault(c => CobolNames.Same(c.ExternalizedName, externalized))
-        ?? (CobolNames.Same(externalized, StandardBase.ExternalizedName)
-            ? StandardBase : _imported.GetValueOrDefault(externalized));
 
     /// <summary>The classes this compilation IMPORTED from the external repository (DESIGN-external-repository §10.1), in
     /// the order they were first asked for. They are in no other list: nothing emits one, binds its data or walks its
-    /// source, and a lookup reaches one by identity (<see cref="ImportClass"/>) or by its table key
-    /// (<see cref="Find"/>, <see cref="ImportedKey"/>).</summary>
+    /// source, and a lookup reaches one by identity (<see cref="SymbolTable.ClassNames.ImportClass"/>) or by its table key
+    /// (<see cref="ImportedKey"/>).</summary>
     public IReadOnlyList<OoClassSymbol> ImportedClasses => _importedList;
     private readonly List<OoClassSymbol> _importedList = [];
 
     /// <summary>The interfaces this compilation IMPORTED from the external repository (the twin of <see cref="ImportedClasses"/>),
-    /// in the order they were first asked for: in no emission list, reached by identity (<see cref="ImportInterface"/>) or by their
-    /// table key (<see cref="FindInterface"/>, <see cref="ImportedInterfaceKey"/>).</summary>
+    /// in the order they were first asked for: in no emission list, reached by identity (<see cref="SymbolTable.ClassNames.ImportInterface"/>)
+    /// or by their table key (<see cref="ImportedInterfaceKey"/>).</summary>
     public IReadOnlyList<OoInterfaceSymbol> ImportedInterfaces => _importedInterfaceList;
     private readonly List<OoInterfaceSymbol> _importedInterfaceList = [];
-    private readonly Dictionary<string, OoInterfaceSymbol> _importedInterfaces = new(CobolNames.Comparer);
-    private readonly HashSet<string> _importInterfaceAsked = new(CobolNames.Comparer);
-    private readonly Dictionary<string, OoClassSymbol> _imported = new(CobolNames.Comparer);
-    private readonly HashSet<string> _importAsked = new(CobolNames.Comparer);
     private IOoImporter? _importer;
+
+    /// <summary>The external repository's importer (null: the compilation names none), which the name tier asks
+    /// (<see cref="SymbolTable.ClassNames.ImportClass"/>).</summary>
+    internal IOoImporter? Importer => _importer;
+
+    /// <summary>Append a class the name tier imported to <see cref="ImportedClasses"/>.</summary>
+    internal void AddImported(OoClassSymbol symbol) => _importedList.Add(symbol);
+
+    /// <summary>Append an interface the name tier imported to <see cref="ImportedInterfaces"/>.</summary>
+    internal void AddImported(OoInterfaceSymbol symbol) => _importedInterfaceList.Add(symbol);
 
     /// <summary>The key an imported class has in this table and in every object-reference description naming it
     /// (<see cref="OoClassSymbol.Name"/>): <c>class "&lt;identity&gt;"</c>, the spelling DESIGN-external-repository §8.7 gives an
@@ -108,12 +95,12 @@ public sealed class OoClassTable
     /// when one answers, or the importer refused the question with a finding of its own (REPO-3 … REPO-8, REPO-6); otherwise the
     /// text REPO-1 says was searched. Asked once per specifier (<paramref name="specifier"/>, the entry), however many source elements
     /// inherit it (§2023:12.3.4 GR1).</summary>
-    public string? UnansweredClassSpecifier(Antlr4.Runtime.ParserRuleContext specifier, string word, string? externalized)
+    public string? UnansweredClassSpecifier(Core.RepositoryEntryContext specifier, string word, string? externalized)
     {
         if (!_specifiersAsked.Add(specifier)) return null;
         string identity = externalized ?? word;
-        if ((externalized is null ? Find(word) : FindByExternalizedName(externalized)) is not null
-            || IsParameterized(word) || RepositoryScopeFor(specifier).IsFormal(word) || ImportClass(identity) is not null
+        if ((externalized is null ? Names.GroupClassNamed(specifier.className()) : Names.FindByExternalizedName(externalized)) is not null
+            || IsParameterized(word) || RepositoryScopeFor(specifier).IsFormal(word) || Names.ImportClass(identity) is not null
             || _importer?.Refused(identity, isInterface: false) == true)
             return null;
         return _importer?.Searched(identity, isInterface: false) ?? "no external repository is named";
@@ -155,64 +142,23 @@ public sealed class OoClassTable
                     || other.interfaceName() is { } formalInterface && other.INTERFACE() is not null && scope.IsFormal(formalInterface.GetText()))
                     found = true;
                 else if (other.className() is { } cn && other.CLASS() is not null && scope.ClassTarget(cn.GetText(), out var clsExt)
-                    && (clsExt is null ? Find(cn.GetText()) ?? FindByExternalizedName(cn.GetText()) : FindByExternalizedName(clsExt)) is { } cls && ClassHasProperty(cls, identity))
+                    && (clsExt is null ? Names.GroupClassNamed(cn) ?? Names.FindByExternalizedName(cn.GetText()) : Names.FindByExternalizedName(clsExt)) is { } cls && ClassHasProperty(cls, identity))
                     found = true;
                 else if (other.interfaceName() is { } inm && other.INTERFACE() is not null && scope.InterfaceTarget(inm.GetText(), out var ifcExt)
-                    && (ifcExt is null ? FindInterface(inm.GetText()) ?? FindInterfaceByExternalizedName(inm.GetText()) : FindInterfaceByExternalizedName(ifcExt)) is { } ifc
-                    && ifc.AllPrototypes().Any(p => IsAccessorOf(p, identity)))
+                    && (ifcExt is null ? Names.GroupInterfaceNamed(inm) ?? Names.FindInterfaceByExternalizedName(inm.GetText()) : Names.FindInterfaceByExternalizedName(ifcExt)) is { } ifc
+                    && Names.AllPrototypes(ifc).Any(p => SymbolTable.ClassNames.IsAccessorOf(p, identity)))
                     found = true;
             }
             if (!found) report(entry, word, externalized);
         }
     }
 
-    private static bool IsAccessorOf(OoMethodSymbol m, string property) =>
-        m.Accessor != '\0' && CobolNames.Same(m.PropertyName, property);
-
     private bool ClassHasProperty(OoClassSymbol cls, string property)
     {
         foreach (var c in ClassLineage(cls))
-            if (c.Methods.Concat(c.FactoryMethods).Any(m => IsAccessorOf(m, property))) return true;
+            if (c.Methods.Concat(c.FactoryMethods).Any(m => SymbolTable.ClassNames.IsAccessorOf(m, property))) return true;
         return ImplementsClosure(cls, factory: false).Concat(ImplementsClosure(cls, factory: true))
-            .Any(i => i.AllPrototypes().Any(p => IsAccessorOf(p, property)));
-    }
-
-    /// <summary>⛔ THE IMPORT (DESIGN-external-repository §8.4 step 3, §2023:10.1): the class whose EXTERNALIZED name is
-    /// <paramref name="identity"/> — the group's own definition, else the standard class BASE, else one already imported —
-    /// and otherwise the one the external repository publishes, registered here by that identity so the whole group shares
-    /// one symbol per identity. Null when nothing answers; the importer has reported a finding of its own when it refused
-    /// one. Each identity is asked of the importer once (a refusal is remembered), and a table with no importer answers
-    /// only the first three.</summary>
-    public OoClassSymbol? ImportClass(string identity)
-    {
-        if (FindByExternalizedName(identity) is { } known) return known;
-        if (_importer is null || !_importAsked.Add(identity)) return null;
-        if (_importer.Class(identity, this) is not { } found) return null;
-        // Registered BEFORE it is completed: a method of the class that takes the class itself, or a class that takes it,
-        // names this identity, which must answer with the symbol under construction rather than ask again.
-        var symbol = found.Symbol;
-        _imported[symbol.ExternalizedName] = symbol;
-        _importedList.Add(symbol);
-        _byName[symbol.Name] = symbol;
-        found.Complete();
-        return symbol;
-    }
-
-    /// <summary>The interface twin of <see cref="ImportClass"/> (ISO §2023:12.3.8.3 SR9; DESIGN-external-repository §10.6): the interface
-    /// whose externalized name is <paramref name="identity"/> — the group's definition, else one already imported, else the one the
-    /// external repository publishes, registered here by identity and BEFORE it is completed (its INHERITS list and its prototypes
-    /// name other interfaces, and a prototype may name its own). §16 defines no standard interface, so there is no BASE step.</summary>
-    public OoInterfaceSymbol? ImportInterface(string identity)
-    {
-        if (FindInterfaceByExternalizedName(identity) is { } known) return known;
-        if (_importer is null || !_importInterfaceAsked.Add(identity)) return null;
-        if (_importer.Interface(identity, this) is not { } found) return null;
-        var symbol = found.Symbol;
-        _importedInterfaces[symbol.ExternalizedName] = symbol;
-        _importedInterfaceList.Add(symbol);
-        _ifaceByName[symbol.Name] = symbol;
-        found.Complete();
-        return symbol;
+            .Any(i => Names.AllPrototypes(i).Any(p => SymbolTable.ClassNames.IsAccessorOf(p, property)));
     }
 
     /// <summary>ISO §2023:12.3.8.3 SR9 for one interface-specifier without EXPANDS (the twin of
@@ -220,12 +166,12 @@ public sealed class OoClassTable
     /// group defines, a parameterized definition (an EXPANDS operand), the formal of the definition the specifier lies in, or one the
     /// external repository publishes under <c>literal-2 ?? word</c>. Null when one answers or the importer has reported a finding of
     /// its own; otherwise the text REPO-1 says was searched. Asked once per specifier.</summary>
-    public string? UnansweredInterfaceSpecifier(Antlr4.Runtime.ParserRuleContext specifier, string word, string? externalized)
+    public string? UnansweredInterfaceSpecifier(Core.RepositoryEntryContext specifier, string word, string? externalized)
     {
         if (!_specifiersAsked.Add(specifier)) return null;
         string identity = externalized ?? word;
-        if ((externalized is null ? FindInterface(word) : FindInterfaceByExternalizedName(externalized)) is not null
-            || IsParameterized(word) || RepositoryScopeFor(specifier).IsFormal(word) || ImportInterface(identity) is not null
+        if ((externalized is null ? Names.GroupInterfaceNamed(specifier.interfaceName()) : Names.FindInterfaceByExternalizedName(externalized)) is not null
+            || IsParameterized(word) || RepositoryScopeFor(specifier).IsFormal(word) || Names.ImportInterface(identity) is not null
             || _importer?.Refused(identity, isInterface: true) == true)
             return null;
         return _importer?.Searched(identity, isInterface: true) ?? "no external repository is named";
@@ -235,15 +181,10 @@ public sealed class OoClassTable
     /// Never in <see cref="Classes"/>: it has no source, binds nothing and emits nothing.</summary>
     public OoClassSymbol StandardBase { get; } = OoStandardClasses.BuildBase();
 
-    /// <summary>The interface twin of <see cref="FindByExternalizedName"/> (literal-2).</summary>
-    public OoInterfaceSymbol? FindInterfaceByExternalizedName(string externalized) =>
-        _interfaces.FirstOrDefault(i => CobolNames.Same(i.ExternalizedName, externalized))
-        ?? _importedInterfaces.GetValueOrDefault(externalized);
-
     /// <summary>True when <paramref name="name"/> names a PARAMETERIZED class or interface definition of the group
     /// (kb/Work PB759). Such a definition is a skeleton (§2023:9.3.12 / §2023:9.3.13) and is deliberately NOT in this table
     /// — <see cref="OoExpansion"/> puts its EXPANSIONS here instead — so a lookup of its name misses; this is what
-    /// lets <see cref="OoNameResolution.Resolve"/> say WHY (ISO §2023:12.3.8.4 GR1: "If object-class-name-1 is a class
+    /// lets <see cref="SymbolTable.ClassNames.Resolve"/> say WHY (ISO §2023:12.3.8.4 GR1: "If object-class-name-1 is a class
     /// described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY
     /// paragraph").</summary>
     public bool IsParameterized(string name) => _parameterized.Contains(name);
@@ -254,39 +195,17 @@ public sealed class OoClassTable
     /// <summary>The §2023:8.4.6.4 name scope visible at <paramref name="site"/> — memoized per SOURCE ELEMENT so the
     /// ancestor walk runs once per program / class / interface / method definition rather than once per
     /// reference. ⛔ This table is the GROUP's set and is deliberately NOT the answer to "may this source
-    /// element reference that name": go through <see cref="OoNameResolution"/>, which composes the two.</summary>
-    public IdentityScope RepositoryScopeFor(Antlr4.Runtime.RuleContext? site)
+    /// element reference that name": go through <see cref="SymbolTable.ClassNames.Resolve"/>, which composes the two.</summary>
+    internal SymbolTable.RepositoryScope RepositoryScopeFor(Antlr4.Runtime.RuleContext? site)
     {
         var key = SourceElementOf(site);
-        if (key is null) return IdentityScope.Empty;
+        if (key is null) return SymbolTable.RepositoryScope.Empty;
         // Built from the SOURCE ELEMENT, not from `site`: the two walks are identical (nothing between a
         // reference and its source element carries a REPOSITORY paragraph or names a class), and starting at
         // the memo key makes that identity a property of the code rather than an argument about it.
         if (!_scopes.TryGetValue(key, out var scope))
-            _scopes[key] = scope = IdentityScope.Build(key, _variables, _dialectLevel);
+            _scopes[key] = scope = SymbolTable.RepositoryScope.Build(key, _variables, _dialectLevel);
         return scope;
-    }
-
-    /// <summary>The class or interface a class-specifier or interface-specifier <paramref name="entry"/> stands for in its own scope —
-    /// what its identity (<c>literal-1 ?? word</c>, ISO §2023:12.3.8.4 GR2) names in the group, the standard class or the external
-    /// repository — without recording a use of the word (the NON-diagnosing, census-free half of <see cref="OoNameResolution.Lookup"/>).
-    /// Neither when nothing answers or the word is a formal parameter-name of the definition it lies in.</summary>
-    internal (OoClassSymbol? Class, OoInterfaceSymbol? Interface) ResolveSpecifier(Core.RepositoryEntryContext entry)
-    {
-        var scope = RepositoryScopeFor(entry);
-        if (entry.className() is { } cn)
-        {
-            string word = cn.GetText();
-            if (scope.IsFormal(word) || !scope.ClassTarget(word, out var ext)) return default;
-            return (ext is null ? Find(word) ?? ImportClass(word) : FindByExternalizedName(ext) ?? ImportClass(ext), null);
-        }
-        if (entry.interfaceName() is { } inm)
-        {
-            string word = inm.GetText();
-            if (scope.IsFormal(word) || !scope.InterfaceTarget(word, out var ext)) return default;
-            return (null, ext is null ? FindInterface(word) ?? ImportInterface(word) : FindInterfaceByExternalizedName(ext) ?? ImportInterface(ext));
-        }
-        return default;
     }
 
     /// <summary>The compilation group's &gt;&gt;DEFINE timeline — what a FROM constant-name written as an AS phrase's
@@ -295,7 +214,7 @@ public sealed class OoClassTable
 
     // Keyed by parse-tree node IDENTITY: a ParserRuleContext does not override Equals, so the default
     // comparer already IS reference equality.
-    private readonly Dictionary<Antlr4.Runtime.RuleContext, IdentityScope> _scopes = [];
+    private readonly Dictionary<Antlr4.Runtime.RuleContext, SymbolTable.RepositoryScope> _scopes = [];
 
     /// <summary>The compilation's diagnostics, for the one rule this table reports at a reference
     /// (<see cref="RecordReferenceUse"/>). Null only for a table no <see cref="Build"/> made.</summary>
@@ -311,7 +230,7 @@ public sealed class OoClassTable
     /// class's REPOSITORY, its USING clause), a contained program's, a factory definition's or an instance definition's
     /// by a CONTAINING element's REPOSITORY (§2023:12.3.4 GR1), none of which is the referring element (§2023:10.5: "A source element is a source unit
     /// excluding any contained source units"). So the referring element's census (<see cref="CensusOf"/>) learns each
-    /// one here, from the one funnel every such reference resolves through (<see cref="OoNameResolution.Lookup"/>),
+    /// one funnel every such reference resolves through (<see cref="SymbolTable.ClassNames.Lookup"/>),
     /// whatever kind of element refers. A word the element declares itself as the same type is recorded twice, which
     /// is no conflict. A METHOD-ID spelled like its CLASS-ID, or a contained program's paragraph spelled like a class
     /// its container's REPOSITORY declares, is therefore legal until the element references that class-name, and then
@@ -452,13 +371,13 @@ public sealed class OoClassTable
             return new ObjectReferenceOperand(d.RuntimeKind, d.Name, d.Factory, d.Only,
                 d.Kind is ObjectRefKind.Interface ? null : self, d.Kind is ObjectRefKind.Interface ? self : []);
         }
-        if (d.Kind is ObjectRefKind.Interface && FindInterface(d.Name!) is { } i)
+        if (d.Kind is ObjectRefKind.Interface && Names.InterfaceOf(d) is { } i)
         {
             interfaces = InterfaceLineage(i).Select(x => Spell(x)).ToArray();
             if (identities) name = i.ExternalizedName;
         }
-        else if (d.Kind is ObjectRefKind.ObjectClass or ObjectRefKind.ActiveClass && d.Name is { } n
-                 && (Find(n) ?? ContainingSkeleton(d, n)) is { } c)
+        else if (d.Kind is ObjectRefKind.ObjectClass or ObjectRefKind.ActiveClass && d.Name is not null
+                 && (Names.ClassOf(d) ?? Names.SkeletonOf(d)) is { } c)
         {
             classes = ClassLineage(c).Select(x => identities ? x.ExternalizedName : x.Name).ToArray();
             interfaces = ImplementsClosure(c, d.Factory).Select(x => Spell(x)).ToArray();
@@ -486,7 +405,7 @@ public sealed class OoClassTable
         var r = SetOperand(recv);
         // An ACTIVE-CLASS sender in a definition whose superclass is a parameter-name: its class inherits from the actual,
         // which may be the receiver's class or one implementing the receiver's interface (§2023:9.3.9) — most favourable too.
-        if (send.IsActiveClass && send.Name is { } own && ContainingSkeleton(send, own)?.FormalBaseName is not null)
+        if (send.IsActiveClass && send.Name is not null && Names.SkeletonOf(send)?.FormalBaseName is not null)
             s = s with { Classes = [.. s.Classes ?? [], .. r.Classes ?? []], Interfaces = [.. s.Interfaces ?? [], .. r.Interfaces ?? []] };
         if (send.Formal && recv.Formal && CobolNames.Same(send.Name, recv.Name)) return (s, r);
         if (send.Formal)
@@ -500,12 +419,6 @@ public sealed class OoClassTable
             });
         return (s, r);
     }
-
-    /// <summary>The unexpanded parameterized class an ACTIVE-CLASS description written inside it names (its containing
-    /// class, <see cref="ObjectRefDescriptor.ActiveClass"/>; kb/Work PB2937): it is in no name lookup (it creates no class),
-    /// but its bodies bind as themselves and SELF there is described by it.</summary>
-    private OoClassSymbol? ContainingSkeleton(ObjectRefDescriptor d, string name) =>
-        d.IsActiveClass ? _parameterizedClasses.FirstOrDefault(c => CobolNames.Same(c.Name, name)) : null;
 
     /// <summary>The class and every class it inherits from, nearest first (cycle-safe; §2023:11.3.3 SR4 refuses a cycle).</summary>
     private static List<OoClassSymbol> ClassLineage(OoClassSymbol cls)
@@ -596,7 +509,7 @@ public sealed class OoClassTable
             // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             var isym = NewInterfaceSymbol(ictx);
             string icsName = isym.ClrName;
-            if (table._ifaceByName.ContainsKey(iname) || table._byName.ContainsKey(iname)
+            if (table.Names.NamesInterface(iname) || table.Names.NamesClass(iname)
                 || !usedCsNames.Add(icsName))
             {
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
@@ -604,7 +517,7 @@ public sealed class OoClassTable
                     + "shall have unique interface-names (ISO §2023:8.4.6.4)");
                 continue;
             }
-            table._ifaceByName.Add(iname, isym);
+            table.Names.DeclareInterface(isym);
             table._interfaces.Add(isym);
             // The END INTERFACE and END METHOD names are §2023:10.7.3 SR6 / SR5, asked by Validation.EndMarkerPass.
             AddPrototypes(isym);
@@ -697,14 +610,16 @@ public sealed class OoClassTable
             // two different REPOSITORY names for one externalized interface (§2023:12.3.8.3 — INTERFACE R6X AS "E" and
             // INTERFACE R6Y AS "E") are two interface-names, which no sentence of the standard forbids, so both are
             // legal and name ONE base (docs/CONFORMANCE.md D-INH1; kb/Work PB1502, following the PB946 determination).
-            var writtenNames = new HashSet<string>(CobolNames.Comparer);
-            foreach (var inhCtx in sources.Of(isym).interfaceName().Skip(1).Take(sources.Of(isym).interfaceName().Length - 2))
+            var inherits = sources.Of(isym).interfaceName().Skip(1).Take(sources.Of(isym).interfaceName().Length - 2).ToList();
+            var repeated = SymbolTable.ClassNames.RepeatsAnEarlierWord(inherits);
+            for (int k = 0; k < inherits.Count; k++)
             {
+                var inhCtx = inherits[k];
                 string inh = inhCtx.GetText();
                 using var atInherits = edition.At(inhCtx);
                 // SR6 is asked of the written list before any name resolves, as the class twin's SR7 is
                 // (ScreenInheritsNames): a repeated name that resolves to nothing is the repetition, reported once.
-                if (!writtenNames.Add(inh))
+                if (repeated[k])
                 {
                     edition.Error(DiagnosticCatalog.InheritsClauseRule,
                         $"interface '{isym.Name}': INHERITS FROM names '{inh}' more than once; a given interface-name "
@@ -713,7 +628,7 @@ public sealed class OoClassTable
                 }
                 // §2023:11.6.3 SR2: "Interface-name-2 shall be the name of an interface specified in the REPOSITORY
                 // paragraph of this source element" — the class-INHERITS rule's twin, same funnel (PB365).
-                if (OoNameResolution.Resolve(table, edition, sources.Of(isym), inh, OoNameResolution.Want.Interface,
+                if (table.Names.Resolve(edition, sources.Of(isym), inhCtx, OoNameWant.Interface,
                         $"interface '{isym.Name}': INHERITS FROM", DiagnosticCatalog.InterfaceNameNotInScope.Code,
                         "ISO §2023:11.6.3 SR2").Interface is { } b
                     && !isym.Inherits.Contains(b))
@@ -775,14 +690,14 @@ public sealed class OoClassTable
             ScreenInheritsNames(id, name, edition);
             // A class named like an interface is ONE report, not two: the interface already holds the emitted name, so
             // the duplicate-class arm below would also have fired on the same definition.
-            if (table._ifaceByName.ContainsKey(name))
+            if (table.Names.NamesInterface(name))
             {
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"'{name}' is defined as both a class and an interface — two kinds of entity cannot share one "
                     + "externalized name (ISO §2023:8.3.2.2)");
                 continue;
             }
-            if (!table._byName.TryAdd(name, sym) || !usedCsNames.Add(csName))
+            if (!table.Names.TryDeclareClass(sym) || !usedCsNames.Add(csName))
             {
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"duplicate class definition '{name}' — object class definitions within a compilation group shall "
@@ -904,7 +819,7 @@ public sealed class OoClassTable
             // §2023:11.3.3 SR2: "Object-class-name-2 shall be the name of a class specified in the REPOSITORY
             // paragraph of this source element" — an INSTANCE of §2023:8.4.6.4, so it resolves through the ONE
             // funnel and NOT through this table's group-wide Find (kb/Work PB365).
-            if (OoNameResolution.Resolve(table, edition, sources.Of(sym), baseName, OoNameResolution.Want.Class,
+            if (table.Names.Resolve(edition, sources.Of(sym), sources.Of(sym).classIdParagraph().className(1), OoNameWant.Class,
                     $"class '{sym.Name}': INHERITS FROM", DiagnosticCatalog.InheritedClassNotInScope.Code,
                     "ISO §2023:11.3.3 SR2").Class
                 is { } baseSym)
@@ -972,7 +887,7 @@ public sealed class OoClassTable
             if (id.className().Length < 2) continue;
             var baseCtx = id.className(1);
             string baseName = baseCtx.GetText();
-            if (id.ooParameterName().Any(p => CobolNames.Same(p.GetText(), baseName)))
+            if (SymbolTable.ClassNames.NamesOneOf(baseCtx, id.ooParameterName()))
             {
                 // The base is a formal: the method search SUPER starts (§2023:8.4.3.8.4 GR3) and SELF continues through is
                 // the actual's, known only in an expansion (kb/Work PB2937).
@@ -980,14 +895,14 @@ public sealed class OoClassTable
                 continue;
             }
             using var atBase = edition.At(baseCtx);
-            if (CobolNames.Same(baseName, name))
+            if (SymbolTable.ClassNames.NamesOneOf(baseCtx, [id.className(0)]))
             {
                 edition.Error(DiagnosticCatalog.InheritsClauseRule,
                     $"parameterized class '{name}': INHERITS FROM '{baseName}' names the class itself; object-class-name-2 "
                     + "shall not be the name of the class declared by this class definition (ISO §2023:11.3.3 SR3)");
                 continue;
             }
-            var resolvedBase = OoNameResolution.Resolve(table, edition, skeleton, baseName, OoNameResolution.Want.Class,
+            var resolvedBase = table.Names.Resolve(edition, skeleton, baseCtx, OoNameWant.Class,
                 $"parameterized class '{name}': INHERITS FROM", DiagnosticCatalog.InheritedClassNotInScope.Code,
                 "ISO §2023:11.3.3 SR2").Class;
             // A written class is the skeleton's superclass exactly as it is an ordinary class's (§2023:9.3.9): the search
@@ -1027,8 +942,8 @@ public sealed class OoClassTable
                     // The site is the CLASS definition (§2023:11.8.3 SR1 says "of the containing class
                     // definition"), which is also where the OBJECT/FACTORY paragraph's own scope comes from:
                     // §2023:12.3.3 SR3 forbids a REPOSITORY inside either paragraph.
-                    if (OoNameResolution.Resolve(table, edition, sources.Of(sym), iref.GetText(),
-                            OoNameResolution.Want.Interface, $"class '{sym.Name}' ({where}): IMPLEMENTS",
+                    if (table.Names.Resolve(edition, sources.Of(sym), iref,
+                            OoNameWant.Interface, $"class '{sym.Name}' ({where}): IMPLEMENTS",
                             DiagnosticCatalog.InterfaceNameNotInScope.Code, citation).Interface is { } isym)
                     {
                         // A REPEATED interface-name is legal and changes nothing (kb/Work PB946): §2023:11.8.2/§2023:11.4.2
@@ -1053,11 +968,14 @@ public sealed class OoClassTable
     /// (§2023:11.6.3 SR6, kb/Work PB1502) takes.</summary>
     private static void ScreenInheritsNames(Core.ClassIdParagraphContext id, string name, EditionContext edition)
     {
+        var inherits = id.className().Skip(1).ToList();
+        var repeated = SymbolTable.ClassNames.RepeatsAnEarlierWord(inherits);
         var distinct = new List<string>();
-        foreach (var written in id.className().Skip(1))
+        for (int k = 0; k < inherits.Count; k++)
         {
+            var written = inherits[k];
             string w = written.GetText();
-            if (distinct.Any(d => CobolNames.Same(d, w)))
+            if (repeated[k])
             {
                 using var _ = edition.At(written);
                 edition.Error(DiagnosticCatalog.InheritsClauseRule,
@@ -1222,7 +1140,7 @@ public sealed class OoClassTable
                 }
         foreach (var cls in _classes)
             foreach (bool factory in new[] { false, true })
-                foreach (var proto in ImplementsClosure(cls, factory).SelectMany(i => i.AllPrototypes()))
+                foreach (var proto in ImplementsClosure(cls, factory).SelectMany(Names.AllPrototypes))
                     if (MethodRoster.Of(cls, factory).Find(proto.RosterKey) is { } impl)
                     {
                         // An imported interface's prototype is in no roster above; it joins the slot of the method that implements it,

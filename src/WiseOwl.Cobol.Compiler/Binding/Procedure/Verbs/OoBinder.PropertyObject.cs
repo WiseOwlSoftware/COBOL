@@ -70,7 +70,7 @@ internal sealed partial class OoBinder
         // A probe's reading of a view: the roster its LAST phrase describes, looked up without a diagnostic (the ONE reading
         // the invocation probe asks too, kb/Work PB4893).
         PropertyReceiver? DescribedByView(Core.ObjectViewContext view) =>
-            ViewRoster(view) is { } roster ? new(InvokeForm.Instance, null, roster.Class, roster.Interface, roster.Factory) : null;
+            ViewTarget(view) is { } target ? new(InvokeForm.Instance, null, target.Class, target.Interface, target.Factory) : null;
 
         // A probe's reading of a function-identifier (kb/Work PB2073): activating it is a side effect, so the probe takes
         // the description its result temporary WOULD carry — §2023:8.4.3.2.4 GR1: "the description, class, and category of

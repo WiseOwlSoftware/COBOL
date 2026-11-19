@@ -18,7 +18,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// compared the externalized name (§2023:14.9.23.4 GR2a; §2023:11.7.4 GR1b), so <c>INVOKE I "Y"</c> of a prototype
 /// <c>METHOD-ID. X AS "Y"</c> was refused (COBOL0825) while the same call through the implementing class bound. This scan fails
 /// when a compiler file writes the selection again: a <c>FindFactoryMethod</c> and a <c>FindMethod</c> chosen by one conditional, or a
-/// search of <c>AllPrototypes()</c> by name.
+/// search of an interface's prototype surface (<c>SymbolTable.ClassNames.AllPrototypes</c>, or the roster's own <c>Prototypes</c>) by
+/// name.
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class MethodRosterLookupDriftTests
@@ -29,7 +30,7 @@ public sealed class MethodRosterLookupDriftTests
 
     /// <summary>A search of an interface's prototype closure for ONE prototype (a predicate over all of them, such as
     /// <c>OoClassTable</c>'s accessor test, selects no method and is not a lookup).</summary>
-    private static readonly Regex PrototypeSearch = new(@"AllPrototypes\(\)\s*\.\s*(?:FirstOrDefault|First|SingleOrDefault|Single)\(",
+    private static readonly Regex PrototypeSearch = new(@"[Pp]rototypes(?:\([^()]*\))?\s*\.\s*(?:FirstOrDefault|First|SingleOrDefault|Single)\(",
         RegexOptions.Compiled);
 
     private static readonly string Home = Path.Combine("Binding", "Model", "MethodRoster.cs");

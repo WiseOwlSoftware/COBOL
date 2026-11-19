@@ -362,26 +362,6 @@
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Oo/OoClassTable.cs WiseOwl.Cobol.Compiler.Oo.OoClassTable.Find CobolNames.Same(name, OoStandardClasses.BaseName)",
-      "class": "KEYWORD",
-      "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
-    },
-    {
-      "site": "SAME Oo/OoClassTable.cs WiseOwl.Cobol.Compiler.Oo.OoClassTable.FindByExternalizedName CobolNames.Same(c.ExternalizedName, externalized)",
-      "class": "EXTERNAL",
-      "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
-    },
-    {
-      "site": "SAME Oo/OoClassTable.cs WiseOwl.Cobol.Compiler.Oo.OoClassTable.FindByExternalizedName CobolNames.Same(externalized, StandardBase.ExternalizedName)",
-      "class": "EXTERNAL",
-      "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
-    },
-    {
-      "site": "SAME Oo/OoClassTable.cs WiseOwl.Cobol.Compiler.Oo.OoClassTable.FindInterfaceByExternalizedName CobolNames.Same(i.ExternalizedName, externalized)",
-      "class": "EXTERNAL",
-      "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
-    },
-    {
       "site": "SAME Oo/OoClassTable.cs WiseOwl.Cobol.Compiler.Oo.OoClassTable.ScreenInheritedPropertyNames CobolNames.Same(bm.PropertyName, accessor.PropertyName)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
@@ -418,11 +398,6 @@
     },
     {
       "site": "SAME Oo/OoConformance.cs WiseOwl.Cobol.Compiler.Oo.OoConformance.RaisingMismatches CobolNames.Same(u.Name, t.Name)",
-      "class": "SAMESYMBOL",
-      "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
-    },
-    {
-      "site": "SAME Oo/OoConformance.cs WiseOwl.Cobol.Compiler.Oo.OoConformance.Reaches CobolNames.Same(node, target)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
