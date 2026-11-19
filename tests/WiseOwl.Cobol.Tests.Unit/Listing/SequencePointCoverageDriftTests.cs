@@ -26,9 +26,10 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// <para><b>What compiles to no code.</b> A statement has no sequence point when it has no object code, for one of three reasons, each
 /// exempt here and nothing else:</para>
 /// <list type="bullet">
-/// <item>the standard gives it nothing to execute: CONTINUE "is a no operation statement" (ISO §2023:14.9.8.4 GR1), an EXIT statement
-/// with no phrase only marks "a common end point" (ISO §2023:14.9.14.4 GR1), a USE statement "is never executed" (ISO §2023:14.9.49.4 GR1),
-/// and NEXT SENTENCE at a sentence's end transfers to where control goes anyway;</item>
+/// <item>the standard gives it nothing to execute: "The CONTINUE statement is a no-operation statement" (ISO §2023:14.9.9.1; its AFTER
+/// phrase's pause has code, and is exempt with it), "The EXIT statement provides a common end point" (ISO §2023:14.9.14.1), "The USE
+/// statement specifies" the procedures a condition runs (ISO §2023:14.9.49.1) and is no statement of the sequence, and NEXT SENTENCE
+/// at a sentence's end transfers to where control goes anyway (every EXIT and NEXT SENTENCE is exempt, sound as below);</item>
 /// <item>no execution reaches it: it follows, in its paragraph, a statement that transfers control (GO TO, STOP, EXIT, GOBACK, NEXT
 /// SENTENCE). The rule is the flat order of the paragraph's statements, so a reached statement after a GO TO nested in an IF is exempt
 /// too: sound (a reached statement left unasked is only a statement this check does not ask about), never a false red;</item>

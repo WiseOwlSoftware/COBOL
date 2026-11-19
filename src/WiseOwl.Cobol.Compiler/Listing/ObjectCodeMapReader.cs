@@ -52,6 +52,7 @@ internal static class ObjectCodeMapReader
         var debug = pdbProvider.GetMetadataReader();
 
         var methods = new List<ObjectMethod>();
+        var names = new Dictionary<int, string>();   // each token's text, once for the assembly
         var points = new List<ObjectSequencePoint>();
         foreach (var handle in metadata.MethodDefinitions)
         {
@@ -65,15 +66,30 @@ internal static class ObjectCodeMapReader
             int method = methods.Count;
             methods.Add(new ObjectMethod(MetadataTokens.GetToken(handle), MetadataNames.TypeName(metadata, definition.GetDeclaringType()),
                 metadata.GetString(definition.Name), il.Length));
+            // The body is decoded once and each stretch takes its own instructions: decoding each stretch from the body's start (to find
+            // the instruction boundaries) is quadratic in a method that holds a whole program's paragraphs.
+            var decoded = instructions ? IlDisassembler.Decode(metadata, il, 0, il.Length, names) : null;
+            int next = 0;
             for (int i = 0; i < visible.Count; i++)
             {
                 var point = visible[i];
                 int end = i + 1 < visible.Count ? visible[i + 1].Offset : il.Length;
                 string document = Path.GetFullPath(debug.GetString(debug.GetDocument(point.Document).Name), documentRoot);
                 points.Add(new ObjectSequencePoint(method, point.Offset, end, document, point.StartLine, point.StartColumn,
-                    point.EndLine, point.EndColumn, instructions ? IlDisassembler.Decode(metadata, il, point.Offset, end) : null));
+                    point.EndLine, point.EndColumn, decoded is null ? null : Stretch(decoded, ref next, point.Offset, end)));
             }
         }
         return new ObjectCodeFacts(methods, points);
+    }
+
+    /// <summary>The instructions of <paramref name="decoded"/> (a body's, in offset order) from <paramref name="start"/> up to
+    /// <paramref name="end"/>; <paramref name="next"/>, where the previous stretch's search stopped, moves past them. The stretches of a
+    /// method come in offset order, so the body is walked once.</summary>
+    private static List<ListingInstruction> Stretch(IReadOnlyList<ListingInstruction> decoded, ref int next, int start, int end)
+    {
+        while (next < decoded.Count && decoded[next].Offset < start) next++;
+        var stretch = new List<ListingInstruction>();
+        for (int i = next; i < decoded.Count && decoded[i].Offset < end; i++) stretch.Add(decoded[i]);
+        return stretch;
     }
 }

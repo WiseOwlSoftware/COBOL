@@ -556,6 +556,30 @@ design's own mechanism (DESIGN-listing.md section 6.7.1 classifies each slot by 
 measurement; no listing work runs without a listing. Time rows are not shown (kb/Work PB5927).
 ---
 
+**Step 8 (kb/Work PB5925, sequence points, the PDB and the object code): the `None` row against the parent, and the `All` row.**
+Step 8 changes every compilation: the Roslyn backend writes a line directive before each statement's first code and `#line hidden`
+elsewhere, and a portable PDB beside the assembly; and `all` now holds the object-code map and the object code. Measured on
+2026-11-18, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FullCompile*'` on the `listing-step-8` branch after its last change and on its parent `ec1dc45947`, the
+parent's in parentheses. Allocated bytes per full compile:
+
+| Program | None | Text | TextAndJson | All | None over the parent | All over None |
+|---|---|---|---|---|---|---|
+| IX113A | 189.57 (171.16) MB | 207.87 (179.81) MB | 205.89 (187.27) MB | 256.88 (197.49) MB | +18.4 MB (+10.8 %) | +35.5 % |
+| NC105A | 118.36 (107.13) MB | 119.26 (107.91) MB | 124.50 (113.25) MB | 160.93 (113.74) MB | +11.2 MB (+10.5 %) | +36.0 % |
+| NC218A | 114.31 (97.58) MB | 118.43 (100.49) MB | 122.54 (106.05) MB | 158.49 (106.71) MB | +16.7 MB (+17.1 %) | +38.6 % |
+| SM201A | 41.14 (37.77) MB | 42.69 (37.37) MB | 46.17 (41.52) MB | 56.11 (43.88) MB | +3.4 MB (+8.9 %) | +36.4 % |
+
+Reading them: two probe runs of the branch split the `None` cost (temporary switches, reverted): with neither the directives nor
+the PDB the full compile is the parent's (IX113A 170.30, NC218A 97.05 MB); the directives alone are most of it (IX113A 185.06,
+NC218A 112.60 MB: Roslyn's handling of a directive pair per statement), and the PDB the rest. Reading each line's first sequence
+point without a parse (`CodeWriter.SimpleStatement`) did not move the `None` row, so the cost is Roslyn's, not the classifier's.
+Both are the design's decided mechanism (section 6.9: every compilation carries COBOL sequence points and a PDB, which a debugger
+needs whether or not a listing is asked), so section 9's `None` budget now names them with this measurement. The `All` row is over
+its 25 % budget: kb/Work PB5941 (the IL instructions of the object-code section); the first build of the section decoded each
+stretch from its method's start and allocated 2,657 MB for NC105A, fixed in the step. The standard text listing (`Text`) is +0.8
+to +9.7 % over `None`, inside its 10 % budget. Time rows are not shown (kb/Work PB5927).
+
 ## Not measured here
 
 **The COBOL layer beyond the carrier.** `Compare_ShortStrings_LocaleCollation` (run 2) measures the

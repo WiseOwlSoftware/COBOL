@@ -25,9 +25,12 @@ internal static class IlDisassembler
         .ToDictionary(o => unchecked((ushort)o.Value));
 
     /// <summary>The instructions of <paramref name="il"/> (a method body's IL) from offset <paramref name="start"/> up to
-    /// <paramref name="end"/>, their operands named through <paramref name="metadata"/>.</summary>
-    public static IReadOnlyList<ListingInstruction> Decode(MetadataReader metadata, ImmutableArray<byte> il, int start, int end)
+    /// <paramref name="end"/>, their operands named through <paramref name="metadata"/>. <paramref name="names"/>, when given, holds each
+    /// token's text once for every body of one assembly (a program's code names the same fields and methods thousands of times).</summary>
+    public static IReadOnlyList<ListingInstruction> Decode(MetadataReader metadata, ImmutableArray<byte> il, int start, int end,
+        Dictionary<int, string>? names = null)
     {
+        names ??= [];
         var instructions = new List<ListingInstruction>();
         int at = 0;
         while (at < end && at < il.Length)
@@ -37,14 +40,14 @@ internal static class IlDisassembler
             if (value == 0xFE && at < il.Length) value = (ushort)(0xFE00 | il[at++]);
             if (!s_opCodes.TryGetValue(value, out var opCode))
                 throw new BadImageFormatException(string.Create(CultureInfo.InvariantCulture, $"IL byte 0x{value:X2} at offset {offset} is no instruction"));
-            string? operand = Operand(metadata, il, ref at, opCode.OperandType);
+            string? operand = Operand(metadata, il, ref at, opCode.OperandType, names);
             if (offset >= start) instructions.Add(new ListingInstruction(offset, opCode.Name!, operand));
         }
         return instructions;
     }
 
     /// <summary>The operand of an instruction of <paramref name="type"/> at <paramref name="at"/>, which it moves past the operand.</summary>
-    private static string? Operand(MetadataReader metadata, ImmutableArray<byte> il, ref int at, OperandType type)
+    private static string? Operand(MetadataReader metadata, ImmutableArray<byte> il, ref int at, OperandType type, Dictionary<int, string> names)
     {
         switch (type)
         {
@@ -88,7 +91,11 @@ internal static class IlDisassembler
                 return BitConverter.Int64BitsToDouble(low | (high << 32)).ToString("R", CultureInfo.InvariantCulture);
             }
             case OperandType.InlineString:
-                return Quoted(metadata.GetUserString(MetadataTokens.UserStringHandle(ReadInt32(il, ref at) & 0x00FFFFFF)));
+            {
+                int token = ReadInt32(il, ref at);
+                return names.TryGetValue(token, out string? text) ? text
+                    : names[token] = Quoted(metadata.GetUserString(MetadataTokens.UserStringHandle(token & 0x00FFFFFF)));
+            }
             case OperandType.InlineSwitch:
             {
                 int count = ReadInt32(il, ref at);
@@ -99,7 +106,10 @@ internal static class IlDisassembler
             }
             case OperandType.InlineField or OperandType.InlineMethod or OperandType.InlineType or OperandType.InlineTok
                 or OperandType.InlineSig:
-                return MetadataNames.Of(metadata, MetadataTokens.EntityHandle(ReadInt32(il, ref at)));
+            {
+                int token = ReadInt32(il, ref at);
+                return names.TryGetValue(token, out string? name) ? name : names[token] = MetadataNames.Of(metadata, MetadataTokens.EntityHandle(token));
+            }
             default:
                 throw new BadImageFormatException($"an IL operand of type {type}");
         }

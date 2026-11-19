@@ -148,10 +148,13 @@ public sealed class CodeWriter
     /// is named with each of them replaced by an underscore, keeping the sequence points at a name no file has.</summary>
     private string DirectiveFile(string file)
     {
+        if (_directiveFiles.TryGetValue(file, out string? named)) return named;
         string full = Path.GetFullPath(file);
         string name = _documentRoot is null ? full : Path.GetRelativePath(_documentRoot, full).Replace(Path.DirectorySeparatorChar, '/');
-        return name.AsSpan().IndexOfAny("\"\r\n") < 0 ? name : name.Replace('"', '_').Replace('\r', '_').Replace('\n', '_');
+        return _directiveFiles[file] = name.AsSpan().IndexOfAny("\"\r\n") < 0 ? name : name.Replace('"', '_').Replace('\r', '_').Replace('\n', '_');
     }
+
+    private readonly Dictionary<string, string> _directiveFiles = new(StringComparer.Ordinal);   // each file's name in a directive, once
 
     /// <summary>Where in <paramref name="text"/> the first code Roslyn gives a sequence point in an optimized build begins and ends, read
     /// with Roslyn's own parser so a line is classified as Roslyn compiles it; null when the line begins no such code (a brace, a label, a
@@ -165,6 +168,12 @@ public sealed class CodeWriter
     /// sequence point of its own in another method (the first statement of a lambda's or an anonymous method's block, or its expression
     /// body; an arm of a switch expression), whose code must not be mapped to the statement's column.</para></summary>
     internal static (int Start, int End)? FirstSequencePoint(string text)
+    {
+        return SimpleStatement(text) ?? ParsedSequencePoint(text);
+    }
+
+    /// <summary><see cref="FirstSequencePoint(string)"/> read by Roslyn's parser alone.</summary>
+    internal static (int Start, int End)? ParsedSequencePoint(string text)
     {
         var statement = SyntaxFactory.ParseStatement(text);
         if (FirstSequencePoint(statement, text.Length) is not { } point) return null;
@@ -181,6 +190,29 @@ public sealed class CodeWriter
             if (nested > point.Start && nested < end) end = nested;
         }
         return (point.Start, end);
+    }
+
+    /// <summary>The sequence point of a line that is one simple statement, read without a parse (most of a program's lines are, and a
+    /// parse per statement cost every compilation several megabytes): an assignment or a call ending the line with its only semicolon,
+    /// holding no string, character, brace, lambda or declaration, whose point is the whole line. Null when the line is anything else,
+    /// and <see cref="FirstSequencePoint(string)"/> parses it; <c>CodeWriterTests</c> holds the two readings equal on every shape.</summary>
+    internal static (int Start, int End)? SimpleStatement(string text)
+    {
+        int end = text.Length;
+        while (end > 0 && text[end - 1] == ' ') end--;
+        if (end < 2 || text[end - 1] != ';') return null;
+        int start = 0;
+        while (start < end && text[start] == ' ') start++;
+        if (start == end || !(char.IsAsciiLetter(text[start]) || text[start] == '_')) return null;
+        var body = text.AsSpan(start, end - 1 - start);
+        if (body.IndexOfAny("\"'{};") >= 0 || body.Contains("=>", StringComparison.Ordinal)) return null;
+        // An assignment's target is one name, member or element: a space before its '=' ends that, and a declaration (a type, a space, a
+        // name) has one, as has a keyword statement (return, throw, goto, new ...), each left to the parse.
+        int assign = body.IndexOf(" = ", StringComparison.Ordinal);
+        int open = body.IndexOf('(');
+        int head = assign >= 0 && (open < 0 || assign < open) ? assign : open;
+        if (head <= 0 || body[..head].Contains(' ')) return null;
+        return (start, end);
     }
 
     private static (int Start, int End)? FirstSequencePoint(StatementSyntax? statement, int length)

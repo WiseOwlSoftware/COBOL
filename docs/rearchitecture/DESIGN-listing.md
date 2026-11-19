@@ -1498,8 +1498,9 @@ renderer. Naming it asks for a listing at any edition.
   and `TextStageTrace.None`'s recording methods THROW: a call site that forgets the question fails every compilation of a
   COPY statement without a listing, the no-work drift test's own program first.
 - **Budgets, measured.** No listing: compile time within the run-to-run noise of the parent commit, and allocated bytes
-  per compile no more than the parent's plus the line-kind arrays (one byte per physical line read) and (step 7a) the
-  name-slot label fields (one reference field per label in each parse-tree context of its rule, section 6.7.1). Standard text
+  per compile no more than the parent's plus the line-kind arrays (one byte per physical line read), (step 7a) the
+  name-slot label fields (one reference field per label in each parse-tree context of its rule, section 6.7.1) and (step 8) the
+  backend's sequence points: a line directive pair per statement and the portable PDB (section 6.9). Standard text
   listing: at most 10 % over the no-listing compile. Every section in every format: at most 25 %.
 - **The harness.** `tests/WiseOwl.Cobol.Benchmarks/Compile/CompileBenchmarks.cs` (BenchmarkDotNet, Release, run by
   `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*`) gains, in step 1,
@@ -1548,6 +1549,13 @@ renderer. Naming it asks for a listing at any edition.
   they are a fact the design records for every compilation so the listing can be exact (section 6.7.1's oracle reads each
   slot's class from its label), so the budget now names them. Labels are plain fields, never list labels, for this reason
   (section 6.7.1).
+  (Step 8:) step 8 changes every compilation: the Roslyn backend writes a line directive pair per statement and a portable PDB
+  (section 6.9), which the design decided for every compilation (a debugger needs them with no listing asked). Measured against the
+  parent on a full compile (the benchmark README's step-8 table): `None` allocates +3.4 to +18.4 MB (+8.9 to +17.1 %) more, most of
+  it Roslyn's handling of the directives and the rest the PDB (probe runs with each switched off); so the `None` budget now names
+  the sequence-point directives and the PDB beside the line-kind arrays and the label fields. The standard text listing is +0.8 to
+  +9.7 % over `None`, inside its 10 %. The `All` row, now holding the object code (every statement's IL), is +35.5 to +38.6 % over
+  `None`, over its 25 %: kb/Work PB5941, filed before the step lands.
 
 ## 10. Test plan
 

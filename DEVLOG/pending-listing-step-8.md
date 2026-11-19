@@ -41,6 +41,12 @@ compiles to no code (CONTINUE, dead code, a CORRESPONDING with no pair, a condit
 coverage test is in the Unit assembly over the NIST corpus, not every conformance-suite program, since a listing compilation is
 never cached and the backend factory is internal.
 
-**Leads filed.** kb/Work PB5940 (the default listing of a compilation that fails before the backend is not written when the
+**Measured** (the benchmark README's step-8 table): with no listing a full compile allocates +3.4 to +18.4 MB more than the parent,
+most of it Roslyn's handling of the line directives (probe runs with the directives and the PDB switched off), so section 9's
+budget now names the sequence points and the PDB; the standard text listing is +0.8 to +9.7 % over no listing; every section with
+the object code is +35.5 to +38.6 %, over its 25 % (kb/Work PB5941). The first object-code build decoded each stretch from its
+method's start, 2,657 MB for NC105A; fixed.
+
+**Leads filed.** kb/Work PB5941 (the `All` row over budget); kb/Work PB5940 (the default listing of a compilation that fails before the backend is not written when the
 output directory does not exist yet: found compiling NC101A into a new directory). PB5925's dated file `2026-11-18-step-8-built`
 holds the measurements and the leads on the coverage test's flat-order exemption and its minute of Unit time.
