@@ -134,7 +134,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// unit-kind conjunct (a METHOD owns no WORKING-STORAGE at any edition, §2023:13.5.3 SR1; kb/Work PB1308).</para>
     /// <para>The declared CAPACITY registers: the element's own (an inherited register's profile is its container's, whose
     /// class the contained class is nested in) and its methods' (the method's own scope holds the NAME,
-    /// <see cref="OoMethodDataScope.CapacityRegisters"/>, kb/Work PB3165; the class still emits the profile, as it does for the
+    /// the method's own register table, <c>SymbolTable.MethodNames</c>, kb/Work PB3165; the class still emits the profile, as it does for the
     /// method's other numeric items).</para></summary>
     internal DataBindResult Result() =>
         new()
@@ -2257,7 +2257,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// Returns false when the declaration is still IN PROGRESS — the caller's TYPE clause is then part of this
     /// declaration's own description, directly or through another declaration, which is the recursion
     /// §2023:13.18.58.3 SR2 forbids. A GLOBAL declaration inherited from a containing program
-    /// (<see cref="InheritedGlobals.TypeDecls"/>) was completed by that program's own bind, which runs first.
+    /// (the symbol table's inherited type-names, <c>SymbolTable.InheritTypeDeclarations</c>) was completed by that program's own bind, which runs first.
     /// <para>§2023:13.18.58.3 SR1 — "If the subject of the entry is an elementary item, the STRONG phrase shall not be
     /// specified" — is asked HERE, after the chained TYPE clause has composed the subject (kb/Work PB1301): by
     /// §2023:13.18.57.4 GR1 <c>01 T TYPEDEF STRONG TYPE E.</c> over an elementary E is an elementary subject exactly as
@@ -5928,7 +5928,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// Every SOURCE-DECLARED data item this unit binds, for the post-bind <c>VersionConformancePass</c> data-attribute
     /// gates (Step 14g): the WS + LS + FILE-record + LINKAGE + OO-method forest (<see cref="ForestSlice.Roots"/> — the LINKAGE 01/77
     /// items bind into it too, so <see cref="LinkageBinder.Roots"/> is a SUBSET of it and is not walked again) and the TYPEDEF
-    /// templates (<see cref="ForestSlice.TypeDecls"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
+    /// templates (<see cref="ForestSlice.TypeDeclarations"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
     /// never re-analyzed and so never gated: a <c>TYPE IS type-name</c> clone subtree (its items carry a non-null
     /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <c>TypeDecls</c>) and the
     /// OO/UDF compiler temps (recorded in <see cref="CompilerTemps.Clones"/>; both share the source item's <c>PicInfo</c> by
@@ -5968,7 +5968,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// </summary>
     public IEnumerable<DataItem> CompositionForest() => DeclaredForest();
 
-    /// <summary>The shared spine of the two forests: <see cref="ForestSlice.Roots"/> + <see cref="ForestSlice.TypeDecls"/> templates, pre-order
+    /// <summary>The shared spine of the two forests: <see cref="ForestSlice.Roots"/> + <see cref="ForestSlice.TypeDeclarations"/> templates, pre-order
     /// DFS in declaration order, pruning the OO/UDF compiler temps recorded in <see cref="CompilerTemps.Clones"/>.
     /// ⛔ <see cref="LinkageBinder.Roots"/> is NOT concatenated: <c>BindEntries</c> puts every LINKAGE 01/77 on
     /// <see cref="ForestSlice.Roots"/> as well (LinkageBinder.cs: "LINKAGE 01/77 items bind into the ordinary storage

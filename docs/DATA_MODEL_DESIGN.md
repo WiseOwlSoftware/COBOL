@@ -1331,7 +1331,7 @@ initializer (reuse `GroupValueSlicer.ComposedInit`/`ValueInitializer.Initializer
 satisfies INITIALIZED exactly, and is crash-safe for the "undefined" (INITIALIZED-absent) case.
 
 **CAPACITY register (decided).** A view over `table.Capacity` (no own storage): the binder maps `name → owning
-dynamic-table DataItem` (`ForestSlice.CapacityRegisters`); resolution returns a `CapacityRegisterPlace(table)` whose
+dynamic-table DataItem` (the symbol table's register table, `SymbolTable.CapacityRegisters.cs`); resolution returns a `CapacityRegisterPlace(table)` whose
 `Read()` emits `{tablePath}.Capacity` (synthetic unsigned-integer PicInfo) and whose `Write()` is illegal except via
 SET Format 14 (SR30–32). Initial capacity = `FROM ?? 0` (§2023:8.5.1.9.1 :8199). `FUNCTION LENGTH` over a dynamic
 table/containing group = `Capacity * elemWidth` (§2023:15.50, not a static width).
@@ -1549,13 +1549,14 @@ SUCCESS only; the below-2014 **COBOL0900** rejection is asserted by the matrix r
 resolution) belongs with increments 2/3 where the register becomes a readable item;
 (2) CAPACITY register read + SET Format 14. The register is a `CapacityRegisterPlace`
 (a VIEW over `{tablePath}.Capacity`, synthesized in a `DynamicResolvePass` post-build pass, indexed by
-`ForestSlice.CapacityRegisters`, resolved via an early `ReferenceResolver.Resolve` hook + the new
+the symbol table's register table (`SymbolTable.DeclareCapacityRegister`), resolved via an early `ReferenceResolver.Resolve` hook + the new
 `ReferenceResolver.TablePath` whole-table-path helper); an unsigned-integer native-binary `PicInfo` so numeric reads
 hit the plain scale-0 branch, its `NumProfile` emitted (not a field) for the DISPLAY/`FormatDisplay` path. **Scope (kb/Work
 PB3165):** the register is a name of its entry's source element (§2023:13.18.38.3 SR30), so a METHOD's registers live in
-`OoMethodDataScope.CapacityRegisters`, not the unit map — method-private, shadowing an object-level register or data-name
-(§2023:11.7.4 GR5), invisible to a sibling method, and the SR30 duplicate check is made against the method's own names.
-`SymbolTable.CapacityCandidates` is the one scope-aware lookup `ReferenceResolver.CapacityRegisterFor` reads. SET Format
+the method's own table (`SymbolTable.MethodNames.CapacityRegisters`), not the unit's — method-private, shadowing an object-level
+register or data-name (§2023:11.7.4 GR5), invisible to a sibling method, and the SR30 duplicate check
+(`SymbolTable.DuplicatesCapacityRegister`) is made against the method's own names. `SymbolTable.CapacityRegisterNamed`, behind
+`Identify(word, NameClass.CapacityRegister, report)`, is the one scope-aware lookup `ReferenceResolver.CapacityRegisterFor` reads. SET Format
 14 (TO/UP BY/DOWN BY) reroutes in `BindSetTo`/`BindSetUpDown` on a `CapacityRegisterPlace` first target →
 `BoundSetCapacity` → `SetCapacity`/`CapacityUpBy`/`CapacityDownBy`. Diagnostics: **1523** (register as an ordinary
 receiver — the `ResolveReceiving` chokepoint; and the SR30 implicit-definition name collision in `DynamicResolve`),
@@ -1853,7 +1854,7 @@ leaves a recovery profile on its subject, so the §2023:13.16.3 SR8 guard does n
 §2023:8.5.3.1's equivalence (`StrongTypeModel.DeclaredStrong`) and §2023:13.18.58.3 SR1, which is asked when the declaration is
 COMPLETED so `01 T TYPEDEF STRONG TYPE E.` over an elementary E is refused (**1529**). §2023:8.4.2.2.1 rule 4's antecedent
 is `DataItem.ReferencedByTypeClause`, recorded from every WRITTEN TYPE clause before anything expands; once set, the
-declaration's members join a name's storage candidates in `SymbolTable.TryResolve` (`DataBinder.WithLapsedTypeMembers`)
+declaration's members join a name's storage candidates in `SymbolTable.TryResolve` (`SymbolTable.WithLapsedTypeMembers`)
 as definitions that COUNT for uniqueness but never resolve alone, except a member the candidate is itself a copy of
 (`DataItem.ClonedFrom`), which is §2023:13.18.58.4 GR1's one-group case.
 

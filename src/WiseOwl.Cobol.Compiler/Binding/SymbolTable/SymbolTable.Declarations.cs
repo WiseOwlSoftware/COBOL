@@ -91,7 +91,7 @@ public sealed partial class SymbolTable
         /// <c>ConditionBinder.ConditionOf</c>.)
         /// <paramref name="dataName"/> is whether the ranked data-name lookup left a data item standing: it answers for
         /// itself, so the constant and the file are not offered beside it (an index-name is, because
-        /// <see cref="SymbolTable.IndexCandidates"/> has already weighed it against the data-name). The inherited
+        /// <c>SymbolTable.IndexCandidates</c> has already weighed it against the data-name). The inherited
         /// GLOBAL constant is still in the table until the unit's data division has bound (<c>InheritStep.DropShadowed</c>), so
         /// the data division's own clause operands meet it here, where a contained program's own level-88 of the spelling
         /// must outrank it.</summary>
@@ -181,8 +181,8 @@ public sealed partial class SymbolTable
         /// containing source element A." A condition-name is placed by its conditional variable.
         /// <para>⛔ EVERY NAME INDEX A DATA DESCRIPTION ENTRY DECLARES INTO, not only <see cref="ForestSlice.ByName"/> (kb/Work PB3154
         /// review R2-1): a named OCCURS DYNAMIC CAPACITY register is a data-name (§2023:13.18.38.3 SR30) kept off
-        /// <see cref="ForestSlice.ByName"/> in <see cref="ForestSlice.CapacityRegistersSoFar"/>, placed by its table (a METHOD's own register is never
-        /// in that index: it lives in <see cref="OoMethodDataScope.CapacityRegisters"/>, the method tier
+        /// <see cref="ForestSlice.ByName"/> in the table's own register table (<c>CapacityRegisterDeclaredNearerThan</c>), placed by its table
+        /// (a METHOD's own register is never in that index: it lives in the method's <c>MethodNames</c>, the method tier
         /// <see cref="OoDataBinder.ActiveMethodDeclares"/> asks, kb/Work PB3165); a REPORT SECTION sum
         /// counter is a data-name too (§2023:13.18.54.4 GR5) kept off it in the table's sum counters, placed by its report
         /// (<see cref="ReportScope.Depth"/>: 0 for this element's own, n for a container's GLOBAL report, §2023:13.18.27.4 GR1), so

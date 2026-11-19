@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Binding;
 /// is inaccessible to this method." The rule is real, it is this clause, and it says exactly what this table
 /// implements.</item>
 /// <item>§2023:8.4.6.2.3 — a method-local DATA-name shadows an object-level INDEX-name of the same spelling
-/// (<see cref="IndexCandidates"/> returns null; without this every index-first consumer would silently
+/// (<c>IndexCandidates</c> returns null; without this every index-first consumer would silently
 /// bind the subscript/SET target to the OBJECT's index cell — a torn read/write of the wrong storage).</item>
 /// <item>§2023:11.7.4 GR5 index privacy — a method-local index-name has its OWN cell, never the shared global one.</item>
 /// <item>§2023:8.4.6.2.1 3) for a CONTAINED program — the unit map holds its own names and every container's global
@@ -74,7 +74,7 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) — THE NEAREST-DECLARING-ELEMENT RULE for data-names and condition-names
-    /// (kb/Work PB1047 / PB1243), the data-name twin of <see cref="IndexNameRegistry.Candidates"/>'s depth tiers. A
+    /// (kb/Work PB1047 / PB1243), the data-name twin of the index-name table's depth tiers (<c>IndexNameTable.Candidates</c>). A
     /// contained program's name set holds its own names AND every container's global names (rule 1), so after the
     /// reference's qualifiers have been applied over that WHOLE set (rule 1: "the normal rules for qualification …
     /// are applied until one or more items is identified"), a plural survivor set is narrowed to the survivors
@@ -134,7 +134,7 @@ public sealed partial class SymbolTable
     /// condition-names, or none when a data-name (or a report entry) of the spelling is declared nearer
     /// (<see cref="NearerDataNameHides"/>), or a constant-name, index-name or file-name is
     /// (<see cref="SymbolTable.Declarations.NonConditionDeclarationHides"/>, kb/Work PB4432 review R1-1): the reverse arm of the
-    /// ranking <see cref="IndexCandidates"/> and <c>ReferenceResolver.CapacityRegisterFor</c> already apply to a condition-name
+    /// ranking <c>IndexCandidates</c> and <c>ReferenceResolver.CapacityRegisterFor</c> already apply to a condition-name
     /// beside them. (A nearer CAPACITY register is asked by <c>ConditionBinder.ConditionOf</c> of the register's one lookup.)
     /// The caller's own verdict then says what the name is declared as.</summary>
     public List<Condition88> NearestDeclaringConditions(
@@ -228,7 +228,7 @@ public sealed partial class SymbolTable
         NearerDataItemHides(name, qualifiers, depth) || NearerEntryHides(name, qualifiers, depth);
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
-    /// (<see cref="IndexCandidates"/>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>) — against
+    /// (<c>IndexCandidates</c>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>) — against
     /// EVERY other class that is a name of the reference's own position: does a data-name
     /// (<see cref="NearerDataNameHides"/>) or a condition-name (<see cref="NearerConditionNameHides"/>) of the spelling,
     /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than <paramref name="depth"/>?
@@ -249,5 +249,16 @@ public sealed partial class SymbolTable
             if (_data.State.Forest.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
                 return true;
         return false;
+    }
+
+    /// <summary>Makes ONE container GLOBAL item (no recursion: <c>DataBinder.InheritGlobalSubtree</c> walks the subtree) visible here,
+    /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2, "may reference that name without describing it
+    /// again"): its data-name and the condition-names associated with it (<see cref="ForestSlice.Inherit"/>), its index-names and
+    /// its CAPACITY register. A register the container refused (SR30's COBOL1523) failed that compile and has none to inherit.</summary>
+    internal void InheritGlobalItem(DataItem item, int depth)
+    {
+        _data.State.Forest.Inherit(item, depth);
+        foreach (var index in item.Indexes) _indexNames.Add(Key(index.Name), index, depth);
+        if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) DeclareCapacityRegister(null, cap, item);
     }
 }

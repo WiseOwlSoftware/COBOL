@@ -721,8 +721,8 @@ public sealed class ReferenceResolver(DataBinder data)
 
     /// <summary>⛔ THE ONE MATCH OF A WRITTEN REFERENCE AGAINST THE NAMED OCCURS DYNAMIC CAPACITY REGISTERS
     /// (kb/Work PB457) — a PURE check over the registers the ONE name lookup
-    /// <see cref="SymbolTable.CapacityCandidates"/> reaches in the active scope (the unit's
-    /// <see cref="ForestSlice.CapacityRegisters"/>, or a method's own, kb/Work PB3165) with NO side effects (unlike
+    /// the symbol table reaches in the active scope (<c>Identify(word, NameClass.CapacityRegister, report)</c>: the element's
+    /// registers, or a method's own, kb/Work PB3165) with NO side effects (unlike
     /// the full <see cref="Resolve"/> pipeline, which routes an unresolved qualified name through the
     /// property-reference hook and enqueues a pending op). The SET Format 14 reroute peek uses this so it never
     /// mints a spurious property temp/op for a non-capacity target (data-model D9; OCCURS DYNAMIC review #7).
@@ -747,7 +747,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// ambiguity (<see cref="CapacityRefFault.Ambiguous"/>), judged by the ONE verdict
     /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>.</para>
     /// <para>⛔ ACROSS SOURCE ELEMENTS IT IS §2023:8.4.6.2.1 (kb/Work PB1674). A contained program also sees every
-    /// container's GLOBAL record's registers, nearest container first after its own (<see cref="ForestSlice.CapacityRegisters"/>),
+    /// container's GLOBAL record's registers, nearest container first after its own (the symbol table's register table, kb/Work PB5932),
     /// and rule 1 applies "the normal rules for qualification" over that whole set before rule 3 picks the nearest
     /// declaring element: the first register the written qualifiers reach is the candidate (the nearest one when
     /// none does, so the qualifier fault is stated about it), and an ordinary data-name of the spelling in a NEARER

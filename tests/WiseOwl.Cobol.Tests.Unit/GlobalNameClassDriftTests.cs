@@ -135,10 +135,10 @@ public sealed class GlobalNameClassDriftTests
         Assert.True(walk.Success, "InheritGlobalSubtree not found in DataBinder.cs");
         Assert.True(walk.Groups["body"].Value.Contains("Symbols.InheritGlobalItem(item, depth)", StringComparison.Ordinal),
             "InheritGlobalSubtree no longer hands each item of the subtree to SymbolTable.InheritGlobalItem.");
-        string table = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.CapacityRegisters.cs"));
+        string table = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.cs"));
         var item = Regex.Match(table, @"internal void InheritGlobalItem\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
-        Assert.True(item.Success, "InheritGlobalItem not found in SymbolTable.CapacityRegisters.cs");
+        Assert.True(item.Success, "InheritGlobalItem not found in SymbolTable.cs");
         Assert.True(item.Groups["body"].Value.Contains("_data.State.Forest.Inherit(item, depth)", StringComparison.Ordinal),
             "SymbolTable.InheritGlobalItem no longer hands the item to ForestSlice.Inherit.");
         string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "ForestSlice.cs"));
@@ -209,7 +209,7 @@ public sealed class GlobalNameClassDriftTests
     /// is a source element of its own (§2023:10.5), its names the NEAREST tier a reference in it can reach, so a method's
     /// declaration of a spelling in ANY name class hides the class's constant-name or symbolic-character of it
     /// (§2023:8.4.6.1, §2023:8.4.6.2.1 3) a)). When PB3165 moved a method's CAPACITY registers out of the binder's index into
-    /// <see cref="OoMethodDataScope.CapacityRegisters"/>, the binder's hand-written method predicate kept asking the
+    /// the method's own register index (since listing step 6b <c>SymbolTable.MethodNames</c>), the binder's hand-written method predicate kept asking the
     /// old index, and <c>conformance-suite/cases/_unassigned/pb3154_half_capacity_register_hides_symbolic.cob</c> displayed the
     /// figurative <c>CCC</c> for the method's own register. The model scope's name indexes are found by REFLECTION, so an
     /// index added to the scope must be asked by <c>OoMethodDataScope.IndexesDeclare</c> too; the binder's half
@@ -232,7 +232,7 @@ public sealed class GlobalNameClassDriftTests
             ?? throw new InvalidOperationException("SymbolTable declares no nested MethodNames: the method's tables were renamed or moved");
         Assert.Equal(AskedByMethodNames.Keys.Order(StringComparer.Ordinal), NameIndexFields(methodNames).Order(StringComparer.Ordinal));
         string tables = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.MethodNames.cs"));
-        var t = Regex.Match(tables, @"public bool Declares\(CobolName word\) =>(?<body>.*?);", RegexOptions.Singleline);
+        var t = Regex.Match(tables, @"public bool Declares\(CobolName word\)\s*\{(?<body>.*?)\n        \}", RegexOptions.Singleline);
         Assert.True(t.Success, "SymbolTable.MethodNames.Declares not found in SymbolTable.MethodNames.cs");
         foreach (var (index, ask) in AskedByMethodNames)
             Assert.True(t.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),

@@ -31,8 +31,10 @@ public sealed partial class SymbolTable
         public IndexNameTable IndexNames { get; } = new();
 
         /// <summary>Whether one of the method's tables declares <paramref name="word"/>.</summary>
-        public bool Declares(CobolName word) =>
-            TypeNames.ContainsKey(word) || CapacityRegisters.ContainsKey(word) || IndexNames.Declares(word);
+        public bool Declares(CobolName word)
+        {
+            return TypeNames.ContainsKey(word) || CapacityRegisters.ContainsKey(word) || IndexNames.Declares(word);
+        }
     }
 
     /// <summary>Each METHOD's own name tables, by its name scope.</summary>

@@ -311,7 +311,7 @@ public sealed class DataItem
     public DataItem? ValueCopiedFrom { get; set; }
 
     /// <summary>True when this entry carries a TYPEDEF clause — it is a TYPE DECLARATION (a named template; ISO
-    /// §2023:13.18.58, data-model D17), allocating NO storage. Registered in <c>ForestSlice.TypeDecls</c>, kept OFF
+    /// §2023:13.18.58, data-model D17), allocating NO storage. Declared through <c>SymbolTable.DeclareType</c> into <c>ForestSlice.TypeDeclarations</c>, kept OFF
     /// <c>Roots</c>/<c>ByName</c>; its subordinate names are not globally referenceable (GR1).</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "ISO §2023:13.18.57.4 GR1 excludes the TYPEDEF clause by name, and §2023:13.18.58.3 SR1 confines it to level 1 so no subordinate carries it")]
@@ -530,7 +530,7 @@ public sealed class DataItem
     public string? TypeName { get; set; }
 
     /// <summary>After <c>ExpandTypes</c>: the type declaration <see cref="TypeName"/> names, as the binder's ONE type-name
-    /// lookup resolved it where the TYPE clause was written (<c>DataBinder.TryFindTypeDecl</c>: a method's own declaration
+    /// lookup resolved it where the TYPE clause was written (<c>SymbolTable.TypeDeclarationOf</c>: a method's own declaration
     /// first, ISO §2023:11.7.4 GR5; a containing program's GLOBAL one, §2023:13.18.58.4 GR3). A consumer that needs the declaration
     /// itself — the repository record's "type declarations required for the description of parameters and returning items"
     /// (ISO §2023:8.13; <c>RepositoryCodec</c>) — reads this resolution, never a second lookup by name in a scope it may not

@@ -816,7 +816,7 @@ names every connector (`BinderDriver`, after `QualifyClassFiles`).
 - **What the table holds.** Every name a source element declared, in definition order: each record's entries in the order
   written (FILLER included, each level-88 under its conditional variable, each INDEXED BY index-name under its table, a named
   CAPACITY register after its table's subordinates, marked implicit, the level-66 entries after their record), the type
-  declarations (`ForestSlice.TypeDecls`: listed where written, with no offset, bytes or field, since "A type declaration has no
+  declarations (`ForestSlice.TypeDeclarations`: listed where written, with no offset, bytes or field, since "A type declaration has no
   storage associated with it", ISO §2023:13.18.58.4 GR2), the constant entries (`ConstantEntryBinder.DeclaredConstants`: a constant
   makes no data item, ISO §2023:13.10.4 GR1, so it is read off the binder), the file-names (`FileModel.SelectName`), each report
   description entry with its report group description entries (`ReportScope.Declared`, `ReportModel.WrittenEntries`: stored

@@ -42,8 +42,9 @@ public sealed class NameTableOwnershipDriftTests
     /// 47 tables, 61 lookups, 200 sites; 294 at slice 3, which moved the constant-names: 43 tables, 56 lookups, 195 sites; 279 at
     /// slice 4, which moved the CONFIGURATION SECTION names: 40 tables, 51 lookups, 188 sites; 234 at slice 5, which moved the
     /// REPORT SECTION names: 35 tables, 42 lookups, 157 sites; 223 at slice 6, which moved the program-prototype-names: 31 tables,
-    /// 40 lookups, 152 sites).</summary>
-    private const int BaselineCeiling = 223;
+    /// 40 lookups, 152 sites; 190 at the data-name lane's first slice, which moved the DEBUG-ITEM register names, the type-names, the
+    /// CAPACITY register names and the index-names: 18 tables, 31 lookups, 141 sites).</summary>
+    private const int BaselineCeiling = 190;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an

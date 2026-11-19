@@ -8,7 +8,7 @@ public sealed partial class SymbolTable
 {
     /// <summary>The X3.23-1985 DEBUG-ITEM special register and its members by name (§1985:XV.1.3.2: "The names of the subordinate
     /// data items in DEBUG-ITEM are also reserved words"), empty until a debugging section activates the family. The registers
-    /// themselves, in the order of their implicit description, are <see cref="ImplicitRegisters.DebugRegisters"/>.</summary>
+    /// themselves, in the order of their implicit description, are <see cref="ImplicitRegisters.DebugRegisters"/>, a list keyed by nothing.</summary>
     private readonly Dictionary<CobolName, (DataItem Item, DebugRegisterMember Member)> _debugRegisters = [];
 
     /// <summary>Activates the DEBUG-ITEM register family, or widens DEBUG-CONTENTS to <paramref name="contentsWidth"/>

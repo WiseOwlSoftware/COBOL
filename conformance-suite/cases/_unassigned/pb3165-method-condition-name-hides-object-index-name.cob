@@ -4,7 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB3165 review R2-1 (SymbolTable.IndexCandidates). ISO 11.7.4 GR5: "The declaration
+      *> kb/Work PB3165 review R2-1 (SymbolTable.IndexCandidates, in SymbolTable.IndexNames.cs). ISO 11.7.4 GR5: "The declaration
       *>   in the containing object definition is inaccessible to this method" (cite.py --check
       *>   11.7.4 -> OK 11.7.4 5)), whatever the name class (8.4.6.1 "even when it is a different
       *>   type of user-defined word" -> OK 8.4.6.1). In SHOWX, QI is the method's condition-name,

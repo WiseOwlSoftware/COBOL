@@ -27,7 +27,7 @@ internal sealed class ExpandTypesPass : IBindPass
 
     /// <summary>Post-build TYPE-expansion pass: every <c>TYPE IS type-name</c> reference (a real item in the forest)
     /// gets the referenced type declaration's subtree cloned in. Runs at the top of <see cref="DataBinder.BindResolve"/> — AFTER
-    /// all <see cref="DataBinder.BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="ForestSlice.TypeDecls"/>),
+    /// all <see cref="DataBinder.BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="ForestSlice.TypeDeclarations"/>),
     /// AFTER <see cref="SynthesizeImpliedPicturesPass.Run"/> (so a template's §2023:13.16.3 SR9 VALUE-implied PICTURE is part of
     /// the description it hands over — §2023:13.18.57.4 GR3; kb/Work PB1300) and BEFORE the resolution passes (so the
     /// clone is a normal part of the forest they walk).</summary>

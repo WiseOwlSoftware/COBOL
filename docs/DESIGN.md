@@ -333,11 +333,11 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
   integrality, sign and range guards are written (D3 deep dive). *(Rejected: the legacy byte-displacement index —
   leaks table-element width into a program-visible value.)*
   **Each INDEXED BY DECLARATION owns its cell** — an `IndexDeclaration(name, table, cell)` minted when the table is
-  registered (`DataBinder.RegisterIndexes`; cell `_IX_<table uid>[_k]`), held by the scope's `IndexNameRegistry`
+  registered (`DataBinder.RegisterIndexes`; cell `_IX_<table uid>[_k]`), held by the scope's index-name table in the symbol table (`SymbolTable.IndexNames.cs`)
   (the unit, a method's §2023:11.7.4 GR5 overlay, and — by §2023:8.4.6.2.3 — a containing program's GLOBAL tables, tagged
   with their nesting depth for §2023:8.4.6.2.1 3)). A WRITTEN index-name, bare or qualified through its table
   (§2023:8.4.2.2.2 Format 3; §2023:8.4.2.2.3 SR6 — `IX OF T`), resolves through ONE resolution
-  (`NameResolution.ResolveIndexName` over `SymbolTable.IndexCandidates`) whose candidate count meets the same
+  (`NameResolution.ResolveIndexName` over `SymbolTable.Identify(WrittenQualifiedName, NameClass.Index, report)`) whose candidate count meets the same
   §2023:8.4.2.2.3 SR1 verdict as a data-name (`DataBinder.UniqueOrReportAmbiguous<T>` over `NameCandidates<T>`,
   COBOL1639). A table's OWN index (SEARCH's first index-name) is read off `DataItem.Indexes` — a declaration,
   not a reference. *(Rejected: a `name → cell` map de-duplicated on insert — two tables' `INDEXED BY IX` silently

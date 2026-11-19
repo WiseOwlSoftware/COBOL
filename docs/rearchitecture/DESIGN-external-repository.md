@@ -939,7 +939,7 @@ importer's mapping); `ObjectRefIdentity` the externalized name it resolved to in
 factory methods, each in roster order (`RepositoryCodec.Of(OoClassUnit)`, `RepositoryCodec.Of(OoInterfaceSymbol,
 DataBinder)`, kb/Work PB2100). **Corrections the OO arm made.** A description's `TypeDeclaration` row is the declaration
 the BINDER resolved where the TYPE clause was written (`DataItem.TypeDeclaration`, set by `DataBinder.ExpandType` beside `TypeName`
-from the one lookup `DataBinder.TryFindTypeDecl`, and carried by the description copy), never a second lookup by name in
+from the one lookup, the symbol table's `TypeDeclarationOf`, and carried by the description copy), never a second lookup by name in
 the codec: a method's formal typed by a method-local TYPEDEF names that declaration (ISO §2023:11.7.4 GR5), and a referenced
 prototype's formal typed by the prototype's own TYPEDEF names the prototype's, which the publishing unit's scope does not
 hold (the codec's first form resolved it there and left the row out). An accessor's
