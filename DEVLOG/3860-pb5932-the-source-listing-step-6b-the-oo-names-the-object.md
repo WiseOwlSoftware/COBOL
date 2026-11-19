@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b, the OO names - the object-class-names and interface-names move into the symbol table's compilation-group tier
+## Entry 3860 — 2026-11-19 11:44 PST — PB5932: the source listing, step 6b, the OO names - the object-class-names and interface-names move into the symbol table's compilation-group tier
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). This entry lands the OO lane, from
@@ -39,3 +39,4 @@ SR5 choice, the externalized name in every roster and the SR5 grouping).
 **Section 9.** The `None` row of the front end and bind, twice on the branch (f6cd542052) and twice on the parent 84097a3e22, alternating (parent, branch, branch, parent), Release: every branch `None` row lies inside the parent's two runs or within 0.09 MB of them (IX113A 69.07 and 69.02 MB against 69.05 and 68.99; NC105A 35.20 and 35.04 against 35.11 and 35.06; NC218A 30.94 and 31.08 against 30.96 and 31.56; SM201A 15.41 and 15.21 against 15.35 and 15.40), so the lane moves no measurable allocation; the `None` budget holds (the benchmark README's step-6b table, the OO lane).
 
 **Review round 1.** R1-1: the design now names the compilation group tier's recording point, `SymbolTable.ClassNames.Lookup`, beside `Identify` (DESIGN-listing.md section 6.7.1), and `OoNameResult` is made only by the table (`NameTableOwnershipDriftTests`, shown red on a planted one). R1-2: a COBOL2692 at a RAISING class-name now quotes the word as written, as every other site does (it quoted the upper-folded word before); `RaisingPhraseTupleTests.ContainedHeaderRaising_ClassNameSpelledLikeOwnData_2692_NamesTheWordAsWritten` pins it. R1-3: a doc comment the rename cut is whole again. Each line is in kb/Work PB5932's dated file `2026-11-19-listing-step-6b-oo-review-r1`.
+
