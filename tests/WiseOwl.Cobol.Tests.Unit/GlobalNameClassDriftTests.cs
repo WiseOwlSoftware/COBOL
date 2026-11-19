@@ -29,6 +29,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class GlobalNameClassDriftTests
 {
+    /// <summary>A member of <c>SymbolTable.Declarations</c>, a nested class, ends at this indent.</summary>
+    private const string Nested = "        ";
+
     /// <summary>Name index → the text <c>ForestSlice.Inherit</c> (which <c>DataBinder.InheritGlobalSubtree</c> calls for every
     /// item of a GLOBAL subtree) reaches it by.</summary>
     private static readonly Dictionary<string, string> Inherited = new()
@@ -154,10 +157,10 @@ public sealed class GlobalNameClassDriftTests
     public void DeclaredNearerThan_AsksEveryInheritedNameIndex()
     {
         Assert.Equal(Inherited.Keys.Order(StringComparer.Ordinal), AskedByShadowing.Keys.Order(StringComparer.Ordinal));
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs"));
-        var m = Regex.Match(text, @"internal bool DeclaredNearerThan\(string name, int depth\)\s*\{(?<body>.*?)\n    \}",
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs"));
+        var m = Regex.Match(text, @"public bool DeclaredNearerThan\(string name, int depth\)\s*\{(?<body>.*?)\n" + Nested + @"\}",
             RegexOptions.Singleline);
-        Assert.True(m.Success, "DeclaredNearerThan not found in DataBinder.NonDataNames.cs");
+        Assert.True(m.Success, "DeclaredNearerThan not found in SymbolTable.Declarations.cs");
         foreach (var (index, ask) in AskedByShadowing)
             Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
                 $"DeclaredNearerThan no longer asks the name index '{index}' (expected '{ask}').");
@@ -238,7 +241,7 @@ public sealed class GlobalNameClassDriftTests
     [Fact]
     public void EverySymbolTableMethodTier_AsksTheMethodsWholeDeclaration()
     {
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "SymbolTable.cs"));
+        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.cs"));
         var members = Regex.Matches(text, @"^    public [^\r\n]*?\b(?<name>\w+)(?:<\w+>)?\((?<rest>.*?)(?=^    public |\z)",
             RegexOptions.Multiline | RegexOptions.Singleline);
         var tiered = members.Where(m => m.Groups["rest"].Value.Contains("scope.Method is { } m", StringComparison.Ordinal))
@@ -265,7 +268,7 @@ public sealed class GlobalNameClassDriftTests
     public void ADataNameNarrowing_RanksTheReportEntriesToo()
     {
         string root = TestRepo.Src("WiseOwl.Cobol.Compiler");
-        string symbolTable = Path.GetFullPath(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "SymbolTable.cs"));
+        string symbolTable = Path.GetFullPath(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.cs"));
         var bare = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                         && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
@@ -282,8 +285,8 @@ public sealed class GlobalNameClassDriftTests
         AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerConditionNameHides(");
         AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NearerDataNameHides(");
         AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerEntryHides(");
-        string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs"));
-        AssertBodyAsks(constants, @"internal bool DeclaredNearerThan\(", "NearerEntryHides(");
+        string declarations = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs"));
+        AssertBodyAsks(declarations, @"public bool DeclaredNearerThan\(", "NearerEntryHides(", Nested);
 
         // The classes resolved BEFORE the data-name lookup ask the data-name AND the condition-name (kb/Work PB4432): a
         // contained program's own level-88 hides a container's GLOBAL index-name or capacity register as its own data item does.
@@ -294,26 +297,26 @@ public sealed class GlobalNameClassDriftTests
         AssertBodyAsks(table, @"public NameCandidates<IndexDeclaration>\? IndexCandidates\(", "NearerDataOrConditionNameHides(");
         string resolver = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ReferenceResolver.cs"));
         AssertBodyAsks(resolver, @"internal CapacityRef\? CapacityRegisterFor\(", "NearerDataOrConditionNameHides(");
-        // ... and the non-data declarations of one spelling are RANKED by depth (NonDataDeclarationOf), never returned from
+        // ... and the non-data declarations of one spelling are RANKED by depth (SymbolTable.Declarations.OtherThanData), never returned from
         // the first class asked: a farther constant-name, index-name or file-name would beat a nearer condition-name.
-        string nonData = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "DataBinder.NonDataNames.cs"));
-        var ranked = Regex.Match(nonData, @"internal NonDataDeclaration\? NonDataDeclarationOf\(.*?\n    \}", RegexOptions.Singleline).Value;
+        string nonData = declarations;
+        var ranked = Regex.Match(nonData, @"public DeclarationFact\? OtherThanData\(.*?\n        \}", RegexOptions.Singleline).Value;
         Assert.Contains("Offer(", ranked);
-        Assert.DoesNotMatch(@"return new\(NonDataDeclarationKind\.(ConstantName|IndexName|FileName|ConditionName)", ranked);
+        Assert.DoesNotMatch(@"return new\(DeclarationKind\.(ConstantName|IndexName|FileName|ConditionName)", ranked);
         // ... and the REVERSE arm (kb/Work PB4432 review R1-1): the condition-name narrowing asks the same list of the other
         // name classes, so a contained program's own index-name, constant-name or file-name hides a container's GLOBAL
         // level-88 as its own data item does. One list (NonConditionDeclarationsOf) serves both directions, so a class
         // added to it ranks in both. The CAPACITY register has its own one lookup (CapacityRegisterReferenceDriftTests), so
         // the condition lookup asks CapacityRegisterFor of it.
         AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NonConditionDeclarationHides(");
-        AssertBodyAsks(nonData, @"private NonDataDeclaration\? NonConditionDeclarationNearerThan\(", "NonConditionDeclarationsOf(");
+        AssertBodyAsks(nonData, @"private DeclarationFact\? NonConditionDeclarationNearerThan\(", "NonConditionDeclarationsOf(", Nested);
         Assert.Contains("NonConditionDeclarationsOf(", ranked);
         string conditionBinder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "ConditionBinder.cs"));
         AssertBodyAsks(conditionBinder, @"public Condition88\? ConditionOf\(", "CapacityRegisterHides(");
 
-        static void AssertBodyAsks(string text, string signature, string ask)
+        static void AssertBodyAsks(string text, string signature, string ask, string indent = "    ")
         {
-            var m = Regex.Match(text, signature + @".*?\n    \}", RegexOptions.Singleline);
+            var m = Regex.Match(text, signature + @".*?\n" + indent + @"\}", RegexOptions.Singleline);
             Assert.True(m.Success, $"{signature} not found");
             Assert.True(m.Value.Contains(ask, StringComparison.Ordinal),
                 $"{signature} no longer asks {ask}: a report entry of a nearer source element would stop hiding the farther name.");

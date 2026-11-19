@@ -183,7 +183,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         foreach (var record in inLine.Skip(1))
             if (record.RedefinesTarget is null)
                 record.SetRedefinition(anchor, RedefinitionKind.ImplicitCommunicationRecord);
-        host.State.Communication.Declare(new CommunicationDescription(name, format, mode.INITIAL_() is not null, area, written));
+        host.Symbols.Declare(new CommunicationDescription(name, format, mode.INITIAL_() is not null, area, written));
     }
 
     /// <summary>Read the clauses or the series of data-names into the field they name, refusing what the entry's format does not print (A.1.2.1): the

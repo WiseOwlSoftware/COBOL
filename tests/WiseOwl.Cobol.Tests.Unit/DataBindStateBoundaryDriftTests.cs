@@ -97,7 +97,9 @@ public sealed class DataBindStateBoundaryDriftTests
     [Fact]
     public void TheInheritedGlobalsSlice_IsWrittenOnlyByInheritStep()
     {
-        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|AddContainerConstants|OfferContainerGlobals)\(|Inherited\.DropShadowed\(");
+        // InheritFiles and HideShadowedFiles are SymbolTable's half (the inherited file-NAMES are the one store's), called by
+        // InheritStep alone; the table's file is where that half writes the slice (kb/Work PB5932).
+        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|AddContainerConstants|OfferContainerGlobals|SetFileDepth|InheritFiles|HideShadowedFiles)\(|Inherited\.DropShadowed\(");
         var offenders = new List<string>();
         int found = 0;
         foreach (var (file, text) in CompilerSources())
@@ -106,7 +108,9 @@ public sealed class DataBindStateBoundaryDriftTests
             foreach (Match m in writers.Matches(text))
             {
                 found++;
-                if (!file.EndsWith("/Binding/InheritStep.cs", StringComparison.Ordinal))
+                bool tableHalf = file.EndsWith("/Binding/SymbolTable/SymbolTable.Files.cs", StringComparison.Ordinal)
+                                 && m.Value is ".AddContainerFiles(" or ".SetFileDepth(";
+                if (!file.EndsWith("/Binding/InheritStep.cs", StringComparison.Ordinal) && !tableHalf)
                     offenders.Add($"{file}: {m.Value}");
             }
         }
@@ -160,7 +164,7 @@ public sealed class DataBindStateBoundaryDriftTests
                 ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CommunicationSectionBinder.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
             ("CommunicationSlice (the communication description entries the unit declares)",
                 new(@"\.Communication\.Declare\("),
-                ["/Binding/CommunicationSectionBinder.cs"]),
+                ["/Binding/SymbolTable/SymbolTable.Communication.cs"]),
             // The LATE doors (design §8.3 (1)): the PROCEDURE binders mint compiler temporaries after every data phase, so a slice
             // that takes them is frozen only when those binders are done. Each door has the one caller that names its phase.
             ("ForestSlice's late door (a compiler temporary's root, procedure phase)",
@@ -177,7 +181,7 @@ public sealed class DataBindStateBoundaryDriftTests
                 ["/Binding/Passes/PtrBindBasedAndAddressablesPass.cs"]),
             ("FileSlice (the files the unit declares)",
                 new(@"\.Files\.Declare\("),
-                ["/Binding/FileControlBinder.cs", "/Binding/FileControlBinder.FileSection.cs"]),
+                ["/Binding/SymbolTable/SymbolTable.Files.cs"]),
             ("StorageTierSlice (the static channels, cell backings and bridges)",
                 new(@"\.StorageTier\.(AddStatic\w+|AddBasedBridge|ClaimAddressableCell)\("),
                 ["/Binding/DataBinder.Ptr.cs", "/Binding/Passes/PtrBindBasedAndAddressablesPass.cs", "/Binding/Passes/RouteStaticUnitStoragePass.cs"]),

@@ -2054,7 +2054,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         ctx.Data.ConditionNameHiddenByNearerDataItem(WrittenWord(dref), QualifiersOf(dref), ctx.ActiveScope);
 
     /// <summary>What hides the level-88 <paramref name="dref"/> names, when it is a declaration of another name class than
-    /// a data item — a constant-name, index-name or file-name (<see cref="DataBinder.ConditionNameHiddenByNearerNonDataName"/>)
+    /// a data item — a constant-name, index-name or file-name (<see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>)
     /// or a CAPACITY register (<see cref="CapacityRegisterHides"/>) of a NEARER source element (ISO §2023:8.4.6.2.1 3) a); kb/Work
     /// PB4432 review R1-1) — as the noun phrase the refusal says, else null. The class twin of
     /// <see cref="NamesHidingDataItem"/>.</summary>
@@ -2062,7 +2062,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     {
         string name = WrittenWord(dref);
         var qualifiers = QualifiersOf(dref);
-        if (ctx.Data.ConditionNameHiddenByNearerNonDataName(name, qualifiers, ctx.ActiveScope) is { } hider) return hider.ClassPhrase;
+        if (ctx.Data.Symbols.Declared.ConditionNameHiddenByNearerNonDataName(name, qualifiers, ctx.ActiveScope) is { } hider) return hider.ClassPhrase;
         return CapacityRegisterHides(dref, ctx.Data.ConditionTier(name, qualifiers, ctx.ActiveScope))
             ? NameResolution.CapacityRegisterClassPhrase
             : null;

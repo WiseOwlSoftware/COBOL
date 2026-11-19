@@ -58,11 +58,11 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     {
         // ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NOT UNDEFINED (kb/Work PB1906): the one query of
         // what it IS. "Not defined" would send the user hunting a declaration that is right there.
-        var nonData = data.NonDataDeclarationOf(name, qualifiers, data.ActiveScope);
+        var nonData = data.Symbols.Declared.OtherThanData(name, qualifiers, data.ActiveScope);
         // kb/Work R32 — a SCREEN SECTION name. Since kb/Work PB260 the section itself is REFUSED (COBOL1560), so the
         // reference is to a REFUSED declaration (COBOL2364). Before kb/Work PB1030 this arm reported NOTHING, and the
         // statement bound a run-time NotImplemented announced as a WiseOwl COBOL gap.
-        if (nonData is { Kind: NonDataDeclarationKind.ScreenEntry })
+        if (nonData is { Kind: DeclarationKind.ScreenEntry })
         {
             ReportRefusedDeclaration(dref, name, "a SCREEN SECTION entry — COBOL1560");
             return;
@@ -70,7 +70,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // A constant-name whose entry was refused (a cycle, a bad operand; reported there): `DISPLAY K` is that fault's
         // consequence, named as such (COBOL2364) rather than as a constant-name in a data-item position. A statement
         // still answers for its refusal with an error of its own (the COBOL2362 ledger), so it is never silent.
-        if (nonData is { Kind: NonDataDeclarationKind.ConstantName, DeclarationRefused: true })
+        if (nonData is { Kind: DeclarationKind.ConstantName, DeclarationRefused: true })
         {
             ReportRefusedDeclaration(dref, name, "a constant entry that yielded no value", "a constant-name");
             return;
@@ -81,7 +81,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // and `CALL "P" USING IX` put an index-name in an identifier position. §2023:13.18.38.3 SR7 closes the list of
         // contexts an index-name may appear in, and this position is not one, so the reference is refused for the
         // CATEGORY — the same COBOL1637 DISPLAY / MOVE / COMPUTE already draw.
-        if (nonData is { Kind: NonDataDeclarationKind.IndexName })
+        if (nonData is { Kind: DeclarationKind.IndexName })
         {
             data.Edition.Error(DiagnosticCatalog.IndexNameContext,
                 $"'{text}' is an index-name, which is not an identifier (ISO {data.Edition.Edition.NotAnIdentifier()}): {data.Edition.Edition.Contexts()} admits an "
@@ -119,7 +119,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // misqualified-condition text. Every other kind — an alphabet-name (kb/Work R38: GnuCOBOL's INSPECT CONVERTING
         // alphabet is an extension no edition admits), a constant-name (kb/Work PB3287: `ADDRESS OF C`), a type-name or
         // a type declaration's member (kb/Work PB1906, §2023:13.18.58.4 GR1/GR2) — identifies no data item (§2023:8.4.2.1).
-        if (nonData is { Kind: NonDataDeclarationKind.ConditionName })
+        if (nonData is { Kind: DeclarationKind.ConditionName })
             msg = MisqualifiedConditionText(text, name, qualifiers, data.Edition.Edition);
         else if (nonData is { } declared)
             msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item ({data.Edition.Edition.Quoted()}).";
@@ -167,16 +167,16 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
               + ").";
 
     /// <summary>What a named CAPACITY register is, as the noun phrase <see cref="HiddenConditionText"/> says (the register
-    /// is no data item of the name table, so <see cref="NonDataDeclaration.ClassPhrase"/> does not cover it).</summary>
+    /// is no data item of the name table, so <see cref="DeclarationFact.ClassPhrase"/> does not cover it).</summary>
     internal const string CapacityRegisterClassPhrase =
         "the CAPACITY register of an OCCURS DYNAMIC table (a CAPACITY IN phrase, ISO §2023:13.18.38.3 SR30)";
 
     /// <summary>The wording of a reference in a CONDITION-ONLY position whose word names a level-88 of a containing program
     /// that a nearer declaration of the spelling hides (<see cref="DataBinder.ConditionNameHiddenByNearerDataItem"/>, kb/Work
-    /// PB4219 review R1-1; <see cref="DataBinder.ConditionNameHiddenByNearerNonDataName"/>, kb/Work PB4432 review R1-1):
+    /// PB4219 review R1-1; <see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>, kb/Work PB4432 review R1-1):
     /// the reference names that item, so it is neither a misqualified condition-name nor an undeclared word, and saying
     /// either states the opposite of the facts. <paramref name="nearer"/> is what the nearer declaration is ("a data
-    /// item", <see cref="NonDataDeclaration.ClassPhrase"/>, <see cref="CapacityRegisterClassPhrase"/>).</summary>
+    /// item", <see cref="DeclarationFact.ClassPhrase"/>, <see cref="CapacityRegisterClassPhrase"/>).</summary>
     internal static string HiddenConditionText(string text, string name, string nearer, EditionInfo edition) =>
         $"'{text}' names {nearer}, not a condition-name, and this position requires a condition-name: '{name}' is "
         + "declared in a source element nearer than the containing program whose GLOBAL condition-name "
@@ -305,7 +305,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     }
 
     /// <summary>The item an unqualified name resolves to (first match; COBOL requires qualification to
-    /// disambiguate) — through the ONE scope-aware <see cref="Model.SymbolTable"/> (P7 Step 10a, the DEVLOG-773
+    /// disambiguate) — through the ONE scope-aware <see cref="SymbolTable"/> (P7 Step 10a, the DEVLOG-773
     /// pickup): the §2023:11.7 GR5 method-overlay-first precedence (a method-local name shadows object data; sibling
     /// methods' names are invisible) lives in <c>TryResolve</c>, no longer duplicated here.</summary>
     internal DataItem? ResolveUnqualified(string name)
@@ -353,7 +353,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// user-defined word is defined in the data division of this method definition and in the data division of
     /// the containing object definition, the use of that word in this method refers to the declaration in this
     /// method. The declaration in the containing object definition is inaccessible to this method" — which
-    /// <see cref="Model.SymbolTable.TryResolve"/> already implements, one file away.</para>
+    /// <see cref="SymbolTable.TryResolve"/> already implements, one file away.</para>
     /// <para>Returns null having REPORTED (COBOL1639) when no declaration in scope carries the name or when
     /// several do — §2023:8.4.2.2.1's ambiguity is the ordinary qualification question and gets the ordinary
     /// diagnostic, never the silent first-wins the bypass took. A caller distinguishes "reported" from "resolved
@@ -400,7 +400,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// <c>ExpressionBinder.IndexFieldOf</c>). kb/Work PB919: both used to look the bare spelling up in a
     /// <c>name → cell</c> map, so a qualified reference was "not defined" and a duplicated one silently read the
     /// cell the two tables shared.
-    /// <para>The candidate set is <see cref="Model.SymbolTable.IndexCandidates"/>'s; the count is §2023:8.4.2.2.3 SR1's
+    /// <para>The candidate set is <see cref="SymbolTable.IndexCandidates"/>'s; the count is §2023:8.4.2.2.3 SR1's
     /// ("For each non unique user-defined name that is explicitly referenced, uniqueness shall be established
     /// through a sequence of qualifiers that precludes any ambiguity of reference"), judged by the ONE verdict
     /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/> — the data-name's own diagnostic (COBOL1639) and

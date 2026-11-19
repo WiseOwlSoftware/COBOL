@@ -20,7 +20,7 @@ using Core = CobolParserCore;
 /// <c>FileControlBinder.FileSection.cs</c>); and the post-build resolution of every file's clause operands to data items
 /// (<c>FileControlBinder.Resolve.cs</c>, kb/Work PB2296 M7). The data binder constructs one per unit
 /// (<see cref="DataBinder.FileControl"/>) and drives it from its declaration half; the files it declares are the
-/// <see cref="FileSlice"/> of <see cref="DataBindState"/> (<see cref="FileSlice.Declared"/>, <see cref="FileSlice.FilesByName"/>),
+/// <see cref="FileSlice"/> of <see cref="DataBindState"/> (<see cref="FileSlice.Declared"/>, <c>SymbolTable</c>'s own file-names),
 /// where the report section and the file resolution reach them, and it asks the data binder for what is not a file concern: the
 /// §2023:8.3.2.2 declaration funnel, the clause-operand screens, the constant readings and the entry walk.
 /// </summary>
@@ -35,13 +35,6 @@ public sealed partial class FileControlBinder
         _host = host;
         Edition = edition;
     }
-
-    /// <summary>The files this unit's OWN file control entries select, by file-name — the subjects of ISO §2023:12.4.5.2
-    /// SR2 ("A given file-name may be specified in only one SELECT clause within a factory, function, object, or
-    /// program") and SR3 (each needs an FD or SD in the same file section). It is not <see cref="FileSlice.FilesByName"/>,
-    /// which also holds the models an FD or SD synthesizes, and it leaves out a class-level FILE-CONTROL, which
-    /// §2023:12.4.3 SR1 forbids outright (kb/Work PB1076) and which belongs to no factory or object (kb/Work PB1077).</summary>
-    private Dictionary<string, FileModel> SelectedFiles { get; } = new(CobolNames.Comparer);
 
     /// <summary>The SUPPRESS WHEN operands as written, keyed by their clause (captured in <see cref="BindFileControl"/>, read by
     /// <see cref="FileControlBinder.ReadSuppressWhen"/> once the data division's constant-names are declared).</summary>
@@ -65,8 +58,8 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(grp);
             if (grp.fileName()?.GetText() is not { } name) continue;
             // ISO §2023:12.4.5.2 SR2 — one SELECT per file-name. The first entry stands: binding the second used to
-            // REPLACE it in FilesByName, so the program silently ran against the last ASSIGN target (kb/Work PB1077).
-            if (screened && SelectedFiles.ContainsKey(name))
+            // REPLACE it in the file-name table, so the program silently ran against the last ASSIGN target (kb/Work PB1077).
+            if (screened && _host.Symbols.Declared.IsSelected(name))
             {
                 Edition.Error(DiagnosticCatalog.FileNameSelectedTwice, $"file-name '{name}' is specified in a second "
                     + "SELECT clause; ISO "
@@ -321,8 +314,7 @@ public sealed partial class FileControlBinder
             // called from SequentialIoBinder.BindOpen per file-name (kb/Work PB319, feedback_one_rule_one_place;
             // conformance:OpenSharingLockModeTests pins the single-diagnostic count).
             _host.DeclareUserWord(name, UserWordKind.FileName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-            _host.State.Files.Declare(name, file);
-            if (screened) SelectedFiles[name] = file;
+            _host.Symbols.Declare(file, name, selected: screened);
         }
     }
 

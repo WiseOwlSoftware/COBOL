@@ -554,7 +554,6 @@ fixed amount that grows with the program (about 0.3 MB on IX113A, 0.2 MB on NC21
 design's own mechanism (DESIGN-listing.md section 6.7.1 classifies each slot by its label), outside the budget's letter for the
 `None` row ("the parent's plus the line-kind arrays"), so section 9 now names it beside the line-kind arrays, with this
 measurement; no listing work runs without a listing. Time rows are not shown (kb/Work PB5927).
----
 
 **Step 8 (kb/Work PB5925, sequence points, the PDB and the object code): the `None` row against the parent, and the `All` row.**
 Step 8 changes every compilation: the Roslyn backend writes a line directive before each statement's first code and `#line hidden`
@@ -579,6 +578,27 @@ needs whether or not a listing is asked), so section 9's `None` budget now names
 its 25 % budget: kb/Work PB5941 (the IL instructions of the object-code section); the first build of the section decoded each
 stretch from its method's start and allocated 2,657 MB for NC105A, fixed in the step. The standard text listing (`Text`) is +0.8
 to +9.7 % over `None`, inside its 10 % budget. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, slice 1 (kb/Work PB5932, the cd-names and the file-names resolved by `SymbolTable.Identify`): the `None` row against
+the parent.** Slice 1 changes how every compilation resolves a cd-name or a file-name, with or without a listing, so it
+measures the no-listing path. Measured on 2026-11-18, Release, one Windows host,
+`dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FrontEndAndBind*'` twice on the
+`listing-step-6b` branch (commit 82820eddff, main merged) and twice on its parent `bfb8500569`, alternating. Allocated bytes per
+front end and bind, the two runs of each tree:
+
+| Program | Listing | Parent | Slice 1 |
+|---|---|---|---|
+| IX113A | None | 68.88, 68.71 MB | 68.87, 68.91 MB |
+| NC105A | None | 35.49, 34.90 MB | 35.24, 34.84 MB |
+| NC218A | None | 30.78, 31.13 MB | 30.78, 31.36 MB |
+| SM201A | None | 15.37, 15.30 MB | 15.31, 15.29 MB |
+| IX113A | Text | 76.76, 76.66 MB | 76.71, 76.68 MB |
+| IX113A | All | 97.26, 97.26 MB | 97.21, 97.35 MB |
+
+Reading them: every slice-1 row lies within the parent's own spread or within 0.23 MB of it (NC218A's second run, where the
+parent's two runs differ by 0.35 MB), so slice 1 moves no measurable allocation; the `None` budget holds. Time rows are not
+shown (kb/Work PB5927). The later slices of step 6b each measure their own `None` row the same way.
+---
 
 ## Not measured here
 

@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Communication;
 
 namespace WiseOwl.Cobol.Binding.Model;
@@ -49,15 +48,10 @@ public sealed class CommunicationDescription(string name, CommunicationFormat fo
 public sealed class CommunicationSlice
 {
     private readonly List<CommunicationDescription> _declared = [];
-    private readonly Dictionary<string, CommunicationDescription> _byName = new(CobolNames.Comparer);
 
     public IReadOnlyList<CommunicationDescription> Declared => _declared;
 
-    public IReadOnlyDictionary<string, CommunicationDescription> ByName => _byName;
-
-    internal void Declare(CommunicationDescription description)
-    {
-        _declared.Add(description);
-        _byName.TryAdd(description.Name, description);   // the first stands: the second is refused COBOL4250 at its declaration (kb/Work PB5307)
-    }
+    /// <summary>Appends an entry in the order written; its cd-name joins the name table through <c>SymbolTable.Declare</c>, the
+    /// one caller.</summary>
+    internal void Declare(CommunicationDescription description) => _declared.Add(description);
 }

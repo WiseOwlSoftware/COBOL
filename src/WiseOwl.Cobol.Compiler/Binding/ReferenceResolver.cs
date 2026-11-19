@@ -714,7 +714,7 @@ public sealed class ReferenceResolver(DataBinder data)
 
     /// <summary>⛔ THE ONE MATCH OF A WRITTEN REFERENCE AGAINST THE NAMED OCCURS DYNAMIC CAPACITY REGISTERS
     /// (kb/Work PB457) — a PURE check over the registers the ONE name lookup
-    /// <see cref="Model.SymbolTable.CapacityCandidates"/> reaches in the active scope (the unit's
+    /// <see cref="SymbolTable.CapacityCandidates"/> reaches in the active scope (the unit's
     /// <see cref="ForestSlice.CapacityRegisters"/>, or a method's own, kb/Work PB3165) with NO side effects (unlike
     /// the full <see cref="Resolve"/> pipeline, which routes an unresolved qualified name through the
     /// property-reference hook and enqueues a pending op). The SET Format 14 reroute peek uses this so it never
@@ -744,7 +744,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// and rule 1 applies "the normal rules for qualification" over that whole set before rule 3 picks the nearest
     /// declaring element: the first register the written qualifiers reach is the candidate (the nearest one when
     /// none does, so the qualifier fault is stated about it), and an ordinary data-name of the spelling in a NEARER
-    /// element takes the reference instead (<see cref="Model.SymbolTable.NearerDataNameHides"/> — the rule the
+    /// element takes the reference instead (<see cref="SymbolTable.NearerDataNameHides"/> — the rule the
     /// index-name class already obeys), handing it back to the ordinary lookup.</para></summary>
     internal CapacityRef? CapacityRegisterFor(Core.DataReferenceContext dref)
     {

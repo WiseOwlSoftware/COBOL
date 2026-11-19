@@ -8,10 +8,12 @@
 > finished symbol table, the data map and file map, the program attributes and the margin, branch `listing-step-6`); STEP 7a
 > BUILT (every name slot of the grammar labelled and held by `GrammarNameSlotDriftTests`, branch `listing-step-7`); STEP 8 BUILT
 > (one sequence point per COBOL statement and a portable PDB from the Roslyn backend, the object-code map and the object code read
-> from the assembly and its PDB, branch `listing-step-8`); steps 6b (the one store of names, kb/Work PB5932), 7b (the occurrences
-> and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
+> from the assembly and its PDB, branch `listing-step-8`); STEP 6b IN PROGRESS, LANDING BY NAME CLASS (the one store of names,
+> kb/Work PB5932; slice 1, branch `listing-step-6b`: the drift test, the table's place, `Identify`, `Declarations`, the cd-names
+> and the file-names, and the temporary shrink-only baseline of the classes not yet moved; sections 6.7.1 "Step 6b, as built so
+> far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
-> "(step 6)", "(step 7a)" or "(step 8)" in the section it changed.
+> "(step 6)", "(step 6b)", "(step 7a)" or "(step 8)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -1032,6 +1034,61 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
   constant table or `StorageFormPass` (`ArchitectureEdgesDriftTests` and `BackendContractDriftTests` refused a first build that
   put `Finish` there). The finishing is therefore `SymbolTableFinish.Of` in the binder layer. Step 6b, which makes the table the
   one store of names, decides where the grown `SymbolTable` lives (kb/Work PB5932).
+- **(Step 6b, as built so far, with the corrections the code proved.)**
+  - *Where the table lives.* In the BINDER layer, not the model: `src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/`, namespace
+    `WiseOwl.Cobol.Binding` (`compiler.binding`). The one store owns tables of binder types (`FileModel`, `ReportModel`,
+    `ConstantDef`, the OO symbols) and resolves through the binder, so it cannot be backend input; the move ended the three
+    tolerated `compiler.model` -> `compiler.binding` pairs it held. `Scope` stays in the model (`Binding/Model/Scope.cs`).
+    `SymbolTable` is ONE type written as a partial class, one file per name class (`SymbolTable.Communication.cs`,
+    `SymbolTable.Files.cs`, ...), with `SymbolTable.Identify.cs` and `SymbolTable.Declarations.cs` beside them: one store
+    without one file of every class's code.
+  - *`DeclarationFact` is the fact the questions already answered (correction).* The data division's declaration questions
+    (`DataBinder.NonDataNames.cs`, deleted) answered `NonDataDeclaration`: a kind (screen entry, alphabet-name, constant-name,
+    index-name, condition-name, type-name, a type declaration's member or condition, file-name, cd-name), the type's name, whether
+    the declaration was refused, and the depth of the declaring element. It names no symbol, so it IS the fact: it is renamed
+    `DeclarationFact(DeclarationKind Kind, string? TypeName, bool DeclarationRefused, int Depth, string? Spelling)`, not the
+    `(Exists, Conflict, Class, DeclaredAt)` drafted above, which no question asked. Rule (4) admits `DeclarationFact`,
+    `DeclarationFact?` (a fact or none), `bool` and a collection of `DeclarationFact`. The instance is `SymbolTable.Declared`
+    (a member may not share its nested type's name).
+  - *`IdentifiedName` is made only by the table, by a rule, not by C# access (correction).* "A constructor private to
+    `SymbolTable`" cannot be written: an outer type cannot call a nested type's private constructor, and a top-level type cannot
+    restrict construction to another type. `IdentifiedName` and `CobolName` have internal constructors, and
+    `NameTableOwnershipDriftTests` refuses an object creation of either outside `SymbolTable` (rule (2)'s companion).
+  - *`Identify` takes a reach.* `Identify(ParserRuleContext written, NameClass wanted, bool report, NameReach reach =
+    NameReach.Visible)`: a position that names only the element's OWN entries (an FD or SD's file-name, §2023:13.4.5.3 SR1,
+    §2023:13.4.6.3 SR1; I-O-CONTROL SAME AREA; APPLY COMMIT) passes `NameReach.Own`, so it does not find a container's GLOBAL
+    file as today's own-files lookups did not.
+  - *`Identify` keys one word (correction, PB5932 review round 1).* `written` is a parse context because step 7b records its
+    span, but a name is ONE word and a COBOL word is one token (`cobolWord`, `CobolWords.g4`), so the key is that token's
+    text. A context of several tokens denotes no name and `Identify` answers null: `GetText()` glues tokens, and slice 1's
+    first build let `FUNCTION EXCEPTION-FILE (A - B)` bind to the file `A-B` because it handed the whole argument context to
+    the table. The rule is the table's, so no caller can bring the glued-text hazard (kb/Work PB2040) back.
+  - *A question that answers no symbol is the table's too.* The qualifier walk asks `CdQualifies` and `FileQualifies` (does
+    this outermost qualifier name a cd or a file whose record is the root), and an enumeration reads `VisibleFiles` or
+    `OwnFiles`: a `bool` or a list of symbols in declaration order is no lookup by name, so rules (2) and (3) do not see it and
+    the table stays the only place that turns a NAME into a symbol.
+  - *The rules as the test applies them.* "Binder type" is a type declared in a binder namespace other than an enum (a value,
+    never a symbol), the name key and the declaration fact. Rules (2) and (3) ask every member whose EFFECTIVE accessibility is
+    not private, `SymbolTable`'s own included: its one lookup is `Identify`, which takes the parser's context, so a second
+    public lookup on the table is as red as one outside it. Rule (5) also leaves `CobolName`'s own equality alone: it is the
+    one definition of the name equality the keys use (`CobolNames.Comparer`'s, the equality of every table it replaces). The
+    analysis compiles the compiler's sources with Roslyn, its source generator run as in the build, and asserts the
+    compilation has no error, so no site is unbound.
+  - *Measured red, at the branch's first commit (4527cb3dcd):* rule (1) 65 tables (the evidence's 65), rule (3) 188 members
+    (the evidence's superset, 194, less the enum returns), rule (5) 299 sites (125 SAME, 130 CMP, 44 NAMEEQ; the evidence's
+    124, 130, 40 at 7bc7e33469), rules (2) and (4) red because neither `CobolName` nor `Declarations` existed. The
+    classifications were seeded from the evidence and a reading of each member: rule (3) 122 members whose string is no COBOL
+    name, rule (5) 86 sites of a staying class.
+  - *(Step 6b, slice 1, correction: the TEMPORARY baseline.)* Step 6b lands by name class (section 11, kb/Work
+    PB5932's dated file `2026-11-18-land-by-class`), so between slices the test reads
+    `tests/WiseOwl.Cobol.Tests.Unit/Listing/name-table-ownership.baseline.json`: the findings of rules (1), (3) and (5) no slice
+    has yet moved, each by the key the classifications use (the member for rules (1) and (3), the site for rule (5)). A finding
+    neither classified nor in the baseline is red, so no new table, lookup or comparison can appear; a baseline entry no longer
+    found is red, so each slice lowers the baseline in the same change; the baseline is under a ceiling in the test that only
+    falls, holds no rule other than (1), (3) and (5), and shares no key with a classification (a site is either classified for
+    good or waiting for its slice). Rules (2) and (4) take no baseline. At slice 1 it holds 325 entries: 56 tables, 63 lookups,
+    206 comparison sites. It is not a permanent ratchet: the LAST slice empties it and deletes the file and the code that reads
+    it, and the test is again the five rules above, green with no exceptions.
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1589,6 +1646,10 @@ renderer. Naming it asks for a listing at any edition.
   the sequence-point directives and the PDB beside the line-kind arrays and the label fields. The standard text listing is +0.8 to
   +9.7 % over `None`, inside its 10 %. The `All` row, now holding the object code (every statement's IL), is +35.5 to +38.6 % over
   `None`, over its 25 %: kb/Work PB5941, filed before the step lands.
+  (Step 6b:) step 6b changes every compilation's name resolution, so EACH slice measures the `None` row of the front end and
+  bind against its parent, twice each, alternating, and the last slice measures the whole step against the parent of slice 1.
+  Slice 1 (the cd-names and the file-names) is within the parent's run-to-run spread on all four programs, at most 0.23 MB
+  above it (the README's step-6b table).
 
 ## 10. Test plan
 
@@ -1789,11 +1850,29 @@ returning only `DeclarationFact`), every name table moved into it and made priva
 or classified in `string-parameter-members.json` with its reason, every `CobolNames.Same` / `Comparer` / name comparison
 moved in or classified in `name-comparisons.json` (seeded from section 6.7.2's evidence), and (step 6) each attribute of
 section 6.6 still read off its symbol when the table is finished, never stored a second time; `SymbolTable.Finish()` and the
-snapshot handed to the collector. The step lands only with `NameTableOwnershipDriftTests` green. Then the data map and file map as views of the
+snapshot handed to the collector. (Step 6b, slice 1, correction, kb/Work PB5932's dated file `2026-11-18-land-by-class`:)
+this said the step lands only with `NameTableOwnershipDriftTests` green; it lands IN SLICES, by name class, behind the
+temporary shrink-only baseline of section 6.7.1. The first session measured the remainder as the binder's whole name
+resolution, which one branch would carry for many sessions against a moving main. Each slice moves one or more whole name
+classes (each WITH its resolution code), sends every lookup of them through `Identify`, moves in or classifies every comparison,
+is shown behaviour-neutral by `compare_oracle.py` (IDENTICAL) after every source change, measures its `None` row against its parent (section 9), lowers the baseline and its ceiling,
+and records what moved and what remains in a dated file beside PB5932. Slice 1 is the drift test, the table's place,
+`Identify`, `Declarations`, `CobolName`, the two classifications, the cd-names and the file-names, and the baseline. The LAST
+slice empties the baseline and deletes it with the code that reads it (so `NameTableOwnershipDriftTests` is green with no
+exceptions, the original landing condition), measures the whole step's no-listing path against the parent of slice 1 (section 9), and flips PB5932
+to landed. Step 7b branches after the last slice. Then the data map and file map as views of the
 snapshot (`DataMapBuilder`), `LineAnnotationBuilder` with `ListingLine.Margin` for definition lines, and the `All`
 benchmark row. `Identify` records nothing yet; the table's entries and attributes are complete. (Step 6:) the data map, the
 `LineAnnotationBuilder` margin and the `All` row are built in step 6; step 6b moves the finishing into the grown table, whose
-`Declare` then replaces `SymbolTableWriter.Declare`, and the data map is unchanged.
+`Declare` then replaces `SymbolTableWriter.Declare`, and the data map is unchanged. (Step 6b, slice 1, branch `listing-step-6b`:)
+the drift test was written first and measured red (section 6.7.1, "Step 6b, as built so far"); the table moved to the binder layer
+with `Identify`, `Declarations` (`DeclarationFact`) and `CobolName`; the cd-names and the file-names are its own, with every
+reference to them through `Identify` and each change shown behaviour-neutral by `compare_oracle.py` (IDENTICAL over 22641 cases).
+The estimate was wrong in size, not in shape (rule 5): each name class moves WITH its resolution code, because a private table can
+be read only by the table's own members, so the data-name class (ForestSlice's maps, the method overlay, the index-name registry,
+the inherited type declarations and the lapsed type members, with `NameResolution`, `ReferenceResolver.Identify` and
+`DataBinder`'s candidate walks) moves as one unit; kb/Work PB5932's dated file `2026-11-18-step-6b-progress` holds the measured
+remainder by class.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had

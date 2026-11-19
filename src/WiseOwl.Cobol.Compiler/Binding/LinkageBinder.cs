@@ -675,7 +675,7 @@ internal sealed class LinkageBinder(DataBinder data)
         // record-names described subordinate to the FD are global names): the records join the GLOBAL roots so
         // contained programs reach the OWNER's record area through the standard containment bridges
         // (§2023:13.18.27 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
-        // contained unit's VisibleFiles lookup (InheritedGlobals.Files).
+        // contained unit's file lookup (SymbolTable.InheritFiles).
         foreach (var file in data.State.Files.Declared)
             if (file.IsGlobal)
                 foreach (var rec in file.Records)

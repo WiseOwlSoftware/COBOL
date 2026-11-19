@@ -111,7 +111,8 @@ public sealed class ReferenceIdentificationDriftTests
             if (!lookup.IsMatch(code)) continue;
             bool asksScreen = code.Contains("ScreenLinkageReference(", StringComparison.Ordinal)
                               || code.Contains("FindReportedItem(", StringComparison.Ordinal)
-                              || code.Contains("Identify(", StringComparison.Ordinal);
+                              // the data-name Identify; SymbolTable.Identify of another name class (a file-name, a cd-name) screens nothing
+                              || Regex.IsMatch(code, @"(?<!Symbols\.)\bIdentify\(");
             if (noProcedureReference.ContainsKey(name))
             {
                 Assert.False(asksScreen, $"{name} is named as a file whose lookups are no procedure-division reference, yet it asks the linkage screen: drop it from the list.");

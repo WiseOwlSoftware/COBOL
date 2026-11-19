@@ -12,18 +12,16 @@ namespace WiseOwl.Cobol.Binding;
 /// producer is <see cref="InheritStep"/> (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296),
 /// which writes it BEFORE the unit's first data phase from its containers, nearest container first. Empty for an outermost
 /// program and for every OO source element.
-/// <para>A lookup reads the unit's own declarations first and this slice after (<see cref="DataBindState.VisibleFiles"/>,
+/// <para>A lookup reads the unit's own declarations first and this slice after (<see cref="SymbolTable.VisibleFiles"/>,
 /// <see cref="DataBinder.TryFindTypeDecl"/>), which is the §2023:8.4.6.2.1 3) a) rule — "if the name is declared in source
 /// element B, the item in source element B is the referenced item" — made structural: an own declaration never has to
 /// displace an inherited one.</para>
 /// </summary>
 public sealed class InheritedGlobals
 {
-    private readonly Dictionary<string, FileModel> _files = new(CobolNames.Comparer);
     private readonly Dictionary<FileModel, int> _fileDepths = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<DataItem, FileModel> _recordAreas = new(ReferenceEqualityComparer.Instance);
     private readonly List<FileModel> _containerLocalFiles = [];
-    private readonly HashSet<string> _hiddenFileNames = new(CobolNames.Comparer);
     private readonly Dictionary<string, DataItem> _typeDecls = new(CobolNames.Comparer);
     private readonly Dictionary<string, InheritedConstant> _constants = new(CobolNames.Comparer);
     private readonly HashSet<string> _shadowedSymbolics = new(CobolNames.Comparer);
@@ -48,22 +46,8 @@ public sealed class InheritedGlobals
     /// inherits the whole table from this one, and this unit's local data-name hides nothing from it.</summary>
     public bool HidesSymbolic(string word) => _shadowedSymbolics.Contains(word);
 
-    /// <summary>The GLOBAL files of every containing program, by file-name, nearest container first (§2023:13.18.27.4 GR1: the
-    /// file-name of a GLOBAL FD is a global name, visible in every directly or indirectly contained program; §2023:8.4.6.2.1 3)
-    /// b): the nearest containing element's declaration is the referenced item). Read after the unit's own files
-    /// (<see cref="DataBindState.VisibleFiles"/>): an FD of this unit finds the unit's own SELECT, never an inherited model,
-    /// and the shared <see cref="FileModel"/> keys the child's verbs to the owner's connector, so the child never
-    /// re-registers, re-qualifies or CANCEL-closes it. (An EXTERNAL non-GLOBAL FD is not here — §2023:13.18.22.4 GR1 NOTE 1.)</summary>
-    public IReadOnlyDictionary<string, FileModel> Files => _files;
-
-    /// <summary>The spellings in <see cref="Files"/> that a data-, condition- or index-name declared in a nearer source element
-    /// hides (<see cref="InheritStep.DropShadowed"/>): the word no longer NAMES the file here, but the file stays in
-    /// <see cref="Files"/> because its GLOBAL record-names are still global names, so a WRITE of such a record identifies
-    /// the container's file (§2023:8.4.6.2.1 3) a) hides the word only; kb/Work PB5786 review R1-1).</summary>
-    public IReadOnlySet<string> HiddenFileNames => _hiddenFileNames;
-
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
-    /// container (<see cref="Files"/>), 0 for any other — the file-name twin of <see cref="ForestSlice.DeclaringDepth"/>
+    /// container (<c>SymbolTable.InheritFiles</c>), 0 for any other — the file-name twin of <see cref="ForestSlice.DeclaringDepth"/>
     /// and <see cref="ReportScope.Depth"/>, so a name a container declares as a file and a nearer element declares
     /// as something else resolves to the nearer declaration (§2023:8.4.6.2.1 3); kb/Work PB4219).</summary>
     public int FileDepth(FileModel file) => _fileDepths.GetValueOrDefault(file);
@@ -77,7 +61,7 @@ public sealed class InheritedGlobals
     public IReadOnlyDictionary<DataItem, FileModel> RecordAreas => _recordAreas;
 
     /// <summary>Every file of every containing program that is NOT a global name here — its FD has no GLOBAL clause
-    /// (§2023:13.18.27.3 SR1 d)), so its file-name is not in <see cref="Files"/>. It is still reachable through a record: a
+    /// (§2023:13.18.27.3 SR1 d)), so its file-name is not among the inherited file-names (<see cref="SymbolTable.InheritFiles"/>). It is still reachable through a record: a
     /// file-section level-1 entry may carry its own GLOBAL clause (SR1 b)), and the record-name is then visible here.
     /// Read by <c>StatementValidation.ResolveRecordName</c>, to refuse WRITE / REWRITE of such a record by §2023:14.9.51.3 SR21
     /// / §2023:14.9.35.3 SR3 (kb/Work PB1193), and by the APPLY COMMIT screen (§2023:12.4.6.3.3 SR1).</summary>
@@ -106,26 +90,29 @@ public sealed class InheritedGlobals
     /// R1-1).</summary>
     public IReadOnlyList<(DataItem Root, int Depth)> DataRoots { get; private set; } = [];
 
-    /// <summary>Record one containing program's files, <paramref name="depth"/> containment levels out: a GLOBAL one is a
-    /// visible file-name (the nearest container's declaration kept), any other is known for the one question
-    /// <see cref="ContainerLocalFiles"/> answers; a record that is a GLOBAL name is recorded with its file.
-    /// <paramref name="globalRoots"/> is the container's GLOBAL data roots. <see cref="InheritStep"/> only.</summary>
-    internal void AddContainerFiles(IEnumerable<FileModel> files, IReadOnlyCollection<DataItem> globalRoots, int depth)
+    /// <summary>Record one containing program's files, <paramref name="depth"/> containment levels out: a non-GLOBAL one is known
+    /// for the one question <see cref="ContainerLocalFiles"/> answers, and a record that is a GLOBAL name is recorded with its file.
+    /// <paramref name="globalRoots"/> is the container's GLOBAL data roots. Answers the GLOBAL files, whose file-names
+    /// <c>SymbolTable.InheritFiles</c> (the one caller) makes visible.</summary>
+    internal List<FileModel> AddContainerFiles(IEnumerable<FileModel> files, IReadOnlyCollection<DataItem> globalRoots, int depth)
     {
+        var global = new List<FileModel>();
         foreach (var f in files)
         {
             if (!f.IsGlobal)
                 _containerLocalFiles.Add(f);
-            else if (_files.TryAdd(f.CobolName, f))
-                _fileDepths[f] = depth;
+            else
+                global.Add(f);
             foreach (var record in f.Records)
                 if (globalRoots.Contains(record))
                     _recordAreas.TryAdd(record, f);
         }
+        return global;
     }
 
-    /// <summary>Record one containing program's GLOBAL type declarations, the nearer container's kept.
-    /// <see cref="InheritStep"/> only.</summary>
+    /// <summary>The containment depth of a GLOBAL file whose file-name the table made visible (<c>SymbolTable.InheritFiles</c>).</summary>
+    internal void SetFileDepth(FileModel file, int depth) => _fileDepths[file] = depth;
+
     internal void AddContainerTypeDecls(IEnumerable<KeyValuePair<string, DataItem>> typeDecls)
     {
         foreach (var (name, decl) in typeDecls)
@@ -154,11 +141,6 @@ public sealed class InheritedGlobals
         foreach (var (name, depth) in symbolicDepths)
             if (declaredNearerThan(name, depth))
                 _shadowedSymbolics.Add(name);
-        // An inherited GLOBAL file-name is hidden the same way (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786): a
-        // data-name, condition-name or index-name of its spelling declared in a nearer source element is the referenced item.
-        foreach (var (name, file) in _files)
-            if (declaredNearerThan(name, FileDepth(file)))
-                _hiddenFileNames.Add(name);
     }
 
     /// <summary>Offer the containers' GLOBAL reports and data roots, nearest container first. <see cref="InheritStep"/>

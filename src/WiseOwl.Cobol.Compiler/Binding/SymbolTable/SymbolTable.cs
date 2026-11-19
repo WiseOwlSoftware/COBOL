@@ -1,18 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-namespace WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Model;
 
-/// <summary>The name-resolution SCOPE of one lookup (P6 Step 7): <see cref="Program"/> for program/object-level
-/// code, or a METHOD scope carrying the method's own name overlay (ISO §2023:11.7.4 GR5 — method-local names SHADOW
-/// object/program names and are invisible to sibling methods). The scope is an EXPLICIT parameter of every
-/// <see cref="SymbolTable"/> lookup — the "which overload" decision the old <c>LookupData</c>/
-/// <c>LookupDataInScopeOf</c> pair encoded in the METHOD NAME is now data.</summary>
-public readonly record struct Scope(OoMethodDataScope? Method)
-{
-    /// <summary>The program/object-level scope (no method overlay).</summary>
-    public static Scope Program => new((OoMethodDataScope?)null);
-}
+namespace WiseOwl.Cobol.Binding;
 
 /// <summary>
 /// THE ONE scope-aware name resolver (P6 Step 7 — collapses the <c>LookupData</c> / <c>LookupDataInScopeOf</c> /
@@ -42,11 +33,18 @@ public readonly record struct Scope(OoMethodDataScope? Method)
 /// PHASE-06 doc's single <c>BoundCompilation.Symbols</c> sketch, which presumed a merged namespace that does
 /// not exist.</para>
 /// </summary>
-public sealed class SymbolTable
+public sealed partial class SymbolTable
 {
     private readonly DataBinder _data;
 
-    internal SymbolTable(DataBinder data) => _data = data;
+    internal SymbolTable(DataBinder data)
+    {
+        _data = data;
+        Declared = new Declarations(this);
+    }
+
+    /// <summary>The data division's declaration questions, answered as facts (<see cref="Declarations"/>).</summary>
+    internal Declarations Declared { get; }
 
     /// <summary>Resolve a DATA-name in <paramref name="scope"/>: the method overlay first (§2023:8.4.6.2.1 rule 3a),
     /// else the unit's global multimap. False when the name is unknown in both. (← <c>LookupData</c> /
@@ -127,7 +125,7 @@ public sealed class SymbolTable
         if (tier.Count == 0) return tier;
         int depth = _data.State.Forest.DeclaringDepth(tier[0]);
         return _data.State.Reports.NearerEntryHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
-            || _data.NearerFileNameHides(name, qualifiers, depth)
+            || Declared.NearerFileNameHides(name, qualifiers, depth)
             ? []
             : tier;
     }
@@ -135,7 +133,7 @@ public sealed class SymbolTable
     /// <summary>The condition-name twin of <see cref="NearestDeclaringData"/>: the nearest declaring source element's
     /// condition-names, or none when a data-name (or a report entry) of the spelling is declared nearer
     /// (<see cref="NearerDataNameHides"/>), or a constant-name, index-name or file-name is
-    /// (<see cref="DataBinder.NonConditionDeclarationHides"/>, kb/Work PB4432 review R1-1): the reverse arm of the
+    /// (<see cref="SymbolTable.Declarations.NonConditionDeclarationHides"/>, kb/Work PB4432 review R1-1): the reverse arm of the
     /// ranking <see cref="IndexCandidates"/> and <c>ReferenceResolver.CapacityRegisterFor</c> already apply to a condition-name
     /// beside them. (A nearer CAPACITY register is asked by <c>ConditionBinder.ConditionOf</c> of the register's one lookup.)
     /// The caller's own verdict then says what the name is declared as.</summary>
@@ -145,7 +143,7 @@ public sealed class SymbolTable
         var tier = NearestDeclaring(candidates, static c => c.Parent);
         if (tier.Count == 0) return tier;
         int depth = _data.State.Forest.DeclaringDepth(tier[0].Parent);
-        return NearerDataNameHides(name, qualifiers, depth) || _data.NonConditionDeclarationHides(name, qualifiers, scope, depth)
+        return NearerDataNameHides(name, qualifiers, depth) || Declared.NonConditionDeclarationHides(name, qualifiers, scope, depth)
             ? []
             : tier;
     }

@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NEVER "NOT DEFINED" (kb/Work PB1906). ISO §2023:8.4.2.1: "a
 /// statement shall contain a reference that uniquely identifies that resource", so a reference whose word names no data
 /// item is refused — but the word IS declared, and "no declaration in this source element gives the name … Check the
-/// spelling" sends the user hunting a typo. <c>DataBinder.NonDataDeclarationOf</c> is the one answer to what the word
+/// spelling" sends the user hunting a typo. <c>SymbolTable.Declarations.OtherThanData</c> is the one answer to what the word
 /// is declared as, and every site that refuses such a reference asks it: the procedure division's unidentified
 /// reference (<c>NameResolution.ReportUnidentified</c>), a file clause's data-name operand
 /// (<c>DataBinder.ResolveClauseOperand</c>), an OCCURS DEPENDING ON object and SET Format 4's "not a condition-name"
@@ -172,7 +172,7 @@ public sealed class NonDataNameReferenceTests
     }
 
     /// <summary>A FILE-NAME is declared too (kb/Work PB3557, ISO §2023:12.4.5): a file clause's data-name operand and a statement
-    /// operand that name a file say what the word is, at both sites that ask <c>NonDataDeclarationOf</c>.</summary>
+    /// operand that name a file say what the word is, at both sites that ask <c>SymbolTable.Declarations.OtherThanData</c>.</summary>
     [Theory]
     [InlineData("           MOVE \"A\" TO F1")]
     [InlineData("           DISPLAY F1")]

@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -779,14 +780,14 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>Whether the operand is a bare file-name of this program (the file subject of USE FOR DEBUGGING).</summary>
     private bool NamesFile(Core.DataReferenceContext operand) =>
         operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
-        && ctx.Data.State.VisibleFiles.ContainsKey(word.GetText());
+        && ctx.Symbols.Identify(word, NameClass.File, report: false) is not null;
 
     /// <summary>Whether the operand is a bare cd-name of this program (the cd-name subject of USE FOR DEBUGGING: X3.23-1985's debug
     /// module triggers on the ENABLE, DISABLE, PURGE, RECEIVE and SEND of a cd-name, kb/Work PB4713). A cd-name is this source
     /// element's alone (ISO/IEC 1989:2002 8.4.5), so the element's own slice is the whole scope.</summary>
     private bool NamesCommunicationDescription(Core.DataReferenceContext operand) =>
         operand.dataReferenceSuffix().Length == 0 && operand.cobolWord() is { } word
-        && ctx.Data.State.Communication.ByName.ContainsKey(word.GetText());
+        && ctx.Symbols.Identify(word, NameClass.CommunicationDescription, report: false) is not null;
 
     /// <summary>An operand that is no procedure, data item, file or cd-name is told why. A qualified word whose HEAD is a
     /// paragraph or section the program declares (<c>P1 OF NOSEC</c>) is a procedure-name that identifies nothing,
@@ -967,7 +968,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private void AddDebugCdTarget(Core.DataReferenceContext operand, SectionInfo section)
     {
         string written = DebugOperandAsWritten(operand);
-        var cd = ctx.Data.State.Communication.ByName[operand.cobolWord()!.GetText()];
+        var cd = (CommunicationDescription)ctx.Symbols.Identify(operand.cobolWord()!, NameClass.CommunicationDescription, report: true)!.Symbol;
         if (_debugTargets.Any(t => t.CdKey == cd.Key))
         {
             ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "
@@ -984,7 +985,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private void AddDebugFileTarget(Core.DataReferenceContext operand, SectionInfo section)
     {
         string written = DebugOperandAsWritten(operand);
-        if (!ctx.Data.State.VisibleFiles.TryGetValue(operand.cobolWord()!.GetText(), out var file)) return;   // NamesFile said it is one
+        if (ctx.Symbols.Identify(operand.cobolWord()!, NameClass.File, report: true) is not { Symbol: FileModel file }) return;   // NamesFile said it is one
         if (_debugTargets.Any(t => ReferenceEquals(t.File, file)))
         {
             ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{section.Name}': USE FOR DEBUGGING ON '{written}' names a "
@@ -1007,7 +1008,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>Bind the USE statement's trigger scope (ISO §2023:14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
-    /// walk). <c>ON file-name</c> resolves against <c>DataBindState.VisibleFiles</c>, which includes containers' GLOBAL FDs
+    /// walk). <c>ON file-name</c> resolves against <c>SymbolTable.VisibleFiles</c>, which includes containers' GLOBAL FDs
     /// (§2023:13.18.27.4 GR1; IC234A's contained USE names the outer's GLOBAL file).
     /// Format 2 (BEFORE REPORTING, SR9) names a report group — the section becomes the group's
     /// before-reporting hook, invoked by the report engine just before the group is produced (GR8; wired in
@@ -1098,7 +1099,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         foreach (var fn in target.fileName())
         {
             string fname = fn.GetText();
-            if (!ctx.Data.State.VisibleFiles.TryGetValue(fname, out var file))
+            if (ctx.Symbols.Identify(fn, NameClass.File, report: true) is not { Symbol: FileModel file })
             {
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
                     + $"file '{fname}' (ISO §2023:14.9.49)");
@@ -1170,7 +1171,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             foreach (var fn in fileNames)
             {
                 string fname = fn.GetText();
-                if (!ctx.Data.State.VisibleFiles.TryGetValue(fname, out var file))
+                if (ctx.Symbols.Identify(fn, NameClass.File, report: true) is not { Symbol: FileModel file })
                 {
                     ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': USE names unknown "
                         + $"file '{fname}' (ISO §2023:14.9.49)");

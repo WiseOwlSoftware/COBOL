@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Communication;
 
@@ -76,7 +77,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     {
         using var _ = ctx.Edition.At(word);
         string name = word.GetText();
-        if (!ctx.Data.State.Communication.ByName.TryGetValue(name, out var cd))
+        if (ctx.Symbols.Identify(word, NameClass.CommunicationDescription, report: true) is not { Symbol: CommunicationDescription cd })
         {
             ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementCdName, $"{rule.Statement}: '{name}' is not the cd-name of a communication description entry in this "
                 + $"source element; {Cite(rule.Rule)}");

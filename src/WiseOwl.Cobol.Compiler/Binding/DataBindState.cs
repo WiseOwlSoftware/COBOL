@@ -69,13 +69,6 @@ public sealed class DataBindState
         get { Require(PassPhase.FilesResolved, "SumCounters"); return Reports.SumCounters; }
     }
 
-    /// <summary>⛔ THE ONE LOOKUP OF A FILE-NAME VISIBLE IN THIS SOURCE ELEMENT, at any point of the bind: its own file
-    /// (<see cref="FileSlice.FilesByName"/>), which hides a container's of the same spelling (§2023:8.4.6.2.1 3) a)), else the
-    /// nearest container's GLOBAL file (§2023:13.18.27.4 GR1; <see cref="InheritedGlobals.Files"/>, known before the unit binds). A
-    /// container's GLOBAL record qualified by its file (§2023:8.4.2.2.2 Format 1's file-report-qualifier) resolves through it
-    /// too (kb/Work PB3557 review R2-1).</summary>
-    public FileNameScope VisibleFiles => new(Files.FilesByName, Inherited.Files, Inherited.HiddenFileNames);
-
     /// <summary>The highest <see cref="PassPhase"/> whose producing pass has COMPLETED on this unit's forest (the P6 Step-6
     /// completion gate). Advanced by <c>DataBinder.BindResolve</c> (the per-unit prefix) and by <c>BinderDriver.Bind</c> (the
     /// group tail, which marks every binder of the group after each group pass); never regresses.</summary>

@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding.Validation;
 
@@ -163,7 +164,7 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>⛔ THE ONE file-name → <see cref="FileModel"/> resolution for a STATEMENT operand (kb/Work
     /// PB236). Seven binder sites — UNLOCK, OPEN, CLOSE, READ, DELETE, DELETE FILE and START — each wrote its
-    /// own <c>FilesByName.TryGetValue</c> (now <c>VisibleFiles</c>) and its own unreported <c>BoundUnsupported</c>, so a word naming no
+    /// own <c>FilesByName.TryGetValue</c> (now <c>SymbolTable.Identify</c>) and its own unreported <c>BoundUnsupported</c>, so a word naming no
     /// file connector compiled clean at every edition and either aborted the run unit or, on an unexecuted
     /// path, said nothing at all. Each of those statements' general formats writes the operand as
     /// <c>file-name-1</c>, and ISO §2023:8.4.2.1 fixes what a name must do: "In order to use a resource, a statement
@@ -196,7 +197,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// silence.</remarks>
     public bool ResolveFile(Core.FileNameContext name, string verb, [NotNullWhen(true)] out FileModel? file,
                             bool admitsReportFile = false, string? statementRule = null) =>
-        ResolveFileWord(name.GetText(), verb, out file, admitsReportFile, statementRule);
+        ResolveFileWord(name, verb, out file, admitsReportFile, statementRule);
 
     /// <summary>The <c>dataReference</c>-shaped file-name operand: <see cref="ScreenFileNameOperand"/>, then the
     /// base word resolves exactly as a <c>fileName</c> does (kb/Work PB2040).</summary>
@@ -221,10 +222,10 @@ internal sealed class StatementValidation(DataBinder data)
     /// not bound. A position that may hold EITHER a file-name or a data-name (the SORT subject, APPLY COMMIT's
     /// operand list) decides by the base word first and asks this only of the file reading.</para></summary>
     /// <returns>The base word when the operand is a bare file-name; null after reporting.</returns>
-    public string? ScreenFileNameOperand(Core.DataReferenceContext operand, string verb)
+    public Core.CobolWordContext? ScreenFileNameOperand(Core.DataReferenceContext operand, string verb)
     {
         if (operand.cobolWord() is { } word && operand.dataReferenceSuffix().Length == 0)
-            return word.GetText();
+            return word;
         using var _ = data.Edition.At(operand);
         data.Edition.Error(DiagnosticCatalog.FileNameOperandShape,
             $"{verb} '{DataBinder.WrittenText(operand)}' — a file-name is a user-defined word naming a file "
@@ -240,10 +241,12 @@ internal sealed class StatementValidation(DataBinder data)
         return null;
     }
 
-    private bool ResolveFileWord(string name, string verb, [NotNullWhen(true)] out FileModel? file,
+    private bool ResolveFileWord(Antlr4.Runtime.ParserRuleContext written, string verb, [NotNullWhen(true)] out FileModel? file,
                                  bool admitsReportFile, string? statementRule)
     {
-        if (data.State.VisibleFiles.TryGetValue(name, out file))
+        string name = written.GetText();
+        file = data.Symbols.Identify(written, NameClass.File, report: true)?.Symbol as FileModel;
+        if (file is not null)
             return admitsReportFile || ScreenReportFileReference(file, verb, statementRule);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
@@ -572,9 +575,9 @@ internal sealed class StatementValidation(DataBinder data)
         // A level-88 entry of a type declaration DOES declare the word (kb/Work PB1906), so "no level-88 entry declares
         // it" would be false: the one query says what it is.
         var declared = switchName is null && name is not null
-            ? data.NonDataDeclarationOf(name, qualifiers, data.ActiveScope) : null;
-        if (name is not null && declared is { Kind: NonDataDeclarationKind.TypeDeclarationCondition
-                or NonDataDeclarationKind.TypeName or NonDataDeclarationKind.TypeDeclarationMember })
+            ? data.Symbols.Declared.OtherThanData(name, qualifiers, data.ActiveScope) : null;
+        if (name is not null && declared is { Kind: DeclarationKind.TypeDeclarationCondition
+                or DeclarationKind.TypeName or DeclarationKind.TypeDeclarationMember })
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
                 $"{set} — '{refText}' {declared.Value.DeclaredAs(refText, name)}, so the reference "
                 + $"identifies no resource (ISO {data.Edition.Edition.Citation()}), and {SetConditionRule(data.Edition.Edition)} requires a condition-name associated with "
@@ -822,14 +825,14 @@ internal sealed class StatementValidation(DataBinder data)
     /// <see cref="ResolveRecordName"/>, asked of the reference's own item and (for the message only) of its
     /// top-level record. The second sweep is an inherited GLOBAL FD's record (ISO §2023:13.18.27.4 GR1 — the record-names
     /// of a GLOBAL FD are GLOBAL names): the owning file is a CONTAINER's <see cref="FileModel"/>, present in
-    /// this unit only through <c>DataBindState.VisibleFiles</c> (<see cref="InheritedGlobals.Files"/>), so a contained program's
+    /// this unit only through <c>SymbolTable.VisibleFiles</c> (<see cref="SymbolTable.InheritFiles"/>), so a contained program's
     /// WRITE/REWRITE of the owner's record resolves to the owner's ONE connector (IC233A's family; never a
     /// second mapping mechanism).</summary>
     private FileModel? FileWhoseRecordIs(DataItem item)
     {
         foreach (var f in data.State.Files.Declared)
             if (f.Records.Contains(item)) return f;
-        foreach (var f in data.State.VisibleFiles.Values)
+        foreach (var f in data.Symbols.VisibleFiles)
             if (f.Records.Contains(item)) return f;
         return null;
     }

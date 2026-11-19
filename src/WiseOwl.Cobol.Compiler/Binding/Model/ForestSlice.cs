@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// <see cref="AddTemporaryRoot"/> that the procedure binders' compiler temporaries use; everyone else reads the
 /// read-only views below. <c>DataBindStateBoundaryDriftTests</c> pins the writers.
 /// <para>A lookup that must see a METHOD's own names first asks the method's <see cref="OoMethodDataScope"/> before it asks
-/// this slice (<see cref="Model.SymbolTable"/>); the mutators here take that scope, because a name joins the index of the
+/// this slice (<see cref="SymbolTable"/>); the mutators here take that scope, because a name joins the index of the
 /// source element that owns its record (§2023:11.7.4 GR5; kb/Work PB3192).</para>
 /// <para>A model-layer value: it names no binder type, so <see cref="DataBindResult"/> hands it to a backend as it is (kb/Work
 /// PB2361). The one gated read, <see cref="CapacityRegisters"/>, asks <paramref name="requireRegisters"/>, which the owning
@@ -66,7 +66,7 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// <summary>THE UNIT'S INDEX-NAME NAMESPACE (kb/Work PB919): every INDEXED BY declaration of this unit's own data division
     /// (<see cref="IndexNameRegistry.Own"/> — the <c>long</c> cells it emits, 1-based occurrence numbers, DESIGN §3.5), plus
     /// the GLOBAL tables' declarations of every containing program (§2023:8.4.6.2.3), registered beside their tables' data-names
-    /// by <see cref="Inherit"/>. A reference resolves through <see cref="Model.SymbolTable.IndexCandidates"/> — counted,
+    /// by <see cref="Inherit"/>. A reference resolves through <see cref="SymbolTable.IndexCandidates"/> — counted,
     /// never keyed by spelling alone. Declared into only by <c>DataBinder.RegisterIndexes</c> and <see cref="Inherit"/>.</summary>
     public IndexNameRegistry IndexNames { get; } = new();
 
@@ -84,7 +84,7 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// element's own registers come first (one written definition per spelling: SR30's "shall not be defined elsewhere in the
     /// source element", reproduced once per TYPE / SAME AS copy of its entry, kb/Work PB2988), then each container's, so
     /// <c>ReferenceResolver.CapacityRegisterFor</c> can apply §2023:8.4.6.2.1 3)'s nearest-element rule. The one reader of a name
-    /// in this map is <see cref="Model.SymbolTable.CapacityCandidates"/>. The OWN registers alone are the tables whose
+    /// in this map is <see cref="SymbolTable.CapacityCandidates"/>. The OWN registers alone are the tables whose
     /// <see cref="DeclaringDepth"/> is 0.</para></summary>
     public IReadOnlyDictionary<string, List<DataItem>> CapacityRegisters
     {

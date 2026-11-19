@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 namespace WiseOwl.Cobol.Binding;
 
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 using Core = CobolParserCore;
 
 /// <summary>
@@ -134,7 +135,7 @@ public sealed partial class FileControlBinder
     private FileModel? ResolveIoControlFile(Core.FileNameContext name, string clause)
     {
         string word = name.GetText();
-        if (_host.State.VisibleFiles.TryGetValue(word, out var file)) return file;
+        if (_host.Symbols.Identify(name, NameClass.File, report: true) is { Symbol: FileModel file }) return file;
         using var _ = Edition.At(name);
         Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{clause} names '{word}', which is not defined as a file: no SELECT clause of this program gives that name, so "
@@ -192,7 +193,7 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(rerun);
             var on = rerun.cobolWord();
             FileModel? onFile = null;
-            if (on is not null && _host.State.VisibleFiles.TryGetValue(on.GetText(), out var named))
+            if (on is not null && _host.Symbols.Identify(on, NameClass.File, report: true) is { Symbol: FileModel named })
             {
                 onFile = named;
                 if (!IsSequentiallyOrganized(named))
@@ -273,6 +274,11 @@ public sealed partial class FileControlBinder
     /// paragraph writes none. The code generator registers it at the runtime element's activation (§2023:12.4.6.3.4 GR5).</summary>
     public ApplyCommitModel? ApplyCommit { get; private set; }
 
+    /// <summary>The files a CONTAINER's APPLY COMMIT clause puts under commit control that this element names: its GLOBAL
+    /// file-names, visible here (<see cref="SymbolTable.VisibleFiles"/>) and never in its own files.</summary>
+    internal List<FileModel> ForeignCommitFiles() =>
+        [.. _host.Symbols.VisibleFiles.Where(f => f.SubjectToApplyCommit && !_host.State.Files.Declared.Contains(f)).Distinct()];
+
     /// <summary>Bind one APPLY COMMIT clause (ISO §2023:12.4.6.3.2: <c>APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] …</c>)
     /// and the syntax rules that need no data division: SR1/SR2 (the files), SR4 (an operand at all), SR5 (a recursive
     /// source element). SR6 (a factory or instance definition, the only class-side definitions with an I-O-CONTROL
@@ -306,7 +312,7 @@ public sealed partial class FileControlBinder
         {
             using var at = Edition.At(operand);
             if (operand.cobolWord() is { } word && operand.dataReferenceSuffix().Length == 0
-                && _host.State.Files.FilesByName.TryGetValue(word.GetText(), out var file))
+                && _host.Symbols.Identify(word, NameClass.File, report: true, NameReach.Own) is { Symbol: FileModel file })
             {
                 if (file.IsSortMerge || file.IsReportFile)
                 {
@@ -429,7 +435,7 @@ public sealed partial class FileControlBinder
     /// item"; b): otherwise the nearest containing element's):</para>
     /// <list type="bullet">
     /// <item>A data item this element declares, or another kind of name (a constant, an alphabet, an index, a
-    /// condition-name) declared no farther out than the GLOBAL file of the spelling (<see cref="NonDataDeclaration.Depth"/>,
+    /// condition-name) declared no farther out than the GLOBAL file of the spelling (<see cref="DeclarationFact.Depth"/>,
     /// kb/Work PB4219): identifier-1 as written.</item>
     /// <item>A report entry nearer than any data item or file of the spelling (this element's own, against a container's
     /// GLOBAL record): the report-item refusal, §2023:13.8.6.2.3 (<see cref="ReportSectionBinder.ReportEntryReferenceRefused"/>; review R2-2, the
@@ -451,13 +457,13 @@ public sealed partial class FileControlBinder
     {
         var dataItems = _host.QualifiedCandidates(name, quals, Model.Scope.Program);
         if (dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
-        FileModel? global = quals.Count == 0 && _host.State.Inherited.Files.TryGetValue(name, out var g) ? g : null;
-        int fileDepth = global is null ? int.MaxValue : _host.State.Inherited.FileDepth(global);
+        DeclarationFact? global = quals.Count == 0 ? _host.Symbols.Declared.InheritedFile(name) : null;
+        int fileDepth = global?.Depth ?? int.MaxValue;
         // A constant-, index- or condition-name no farther than the GLOBAL file is the referenced item (§2023:8.4.6.2.1 3)), and
         // the operand resolves as written to its own refusal; a farther one does not hide the file (kb/Work PB4219: a
         // container's GLOBAL table's INDEXED BY RELF used to beat a nearer container's GLOBAL file RELF).
-        if (_host.NonDataDeclarationOf(name, quals, Model.Scope.Program) is { } declared
-            && declared.Kind != NonDataDeclarationKind.FileName && declared.Depth <= fileDepth) return false;
+        if (_host.Symbols.Declared.OtherThanData(name, quals, Model.Scope.Program) is { } declared
+            && declared.Kind != DeclarationKind.FileName && declared.Depth <= fileDepth) return false;
         string written = DataBinder.WrittenQualified(name, quals);
         using var reportAt = Edition.At(at);
         if (_host.State.Reports.EntriesNamed(name, quals) is [var (report, _), ..] && _host.State.Reports.Depth(report) < fileDepth
@@ -467,7 +473,7 @@ public sealed partial class FileControlBinder
             return _host.ReportSection.ReportItemOperandRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals, out _);
         if (global is not null && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) < fileDepth))
         {
-            ApplyCommitRule($"'{global.CobolName}' is a file of a containing source element declared with the GLOBAL clause, "
+            ApplyCommitRule($"'{global.Value.Spelling}' is a file of a containing source element declared with the GLOBAL clause, "
                 + "and it is not specified in the FILE-CONTROL paragraph of this source element either (SR1)", "SR11", Sr11Text);
             return true;
         }
@@ -587,7 +593,7 @@ public sealed partial class FileControlBinder
     /// REQUIRING a file-name-2, and §2023:12.4.6.4.4 GR1/GR2 define the clause over "two or more files referenced by
     /// file-name-1, file-name-2" — so a clause naming fewer than two distinct files is not a legal form (the
     /// grammar admits it, superset-parse / bind-narrow). SR2: each operand "shall be specified in the FILE-CONTROL
-    /// paragraph of the source element that contains this SAME clause" — <see cref="FileSlice.FilesByName"/> holds exactly
+    /// paragraph of the source element that contains this SAME clause" — <c>SymbolTable</c>'s own file-names holds exactly
     /// this unit's own files here (a containing program's GLOBAL files merge in after the unit's data binds, so a
     /// SAME clause cannot name one) — so a name that is no file, or a data-name, is refused rather than dropped.
     /// SR3: the operands "shall not reference an external file connector".</para></summary>
@@ -604,7 +610,7 @@ public sealed partial class FileControlBinder
             string name = fn.GetText();
             seenNames.Add(name);
             using var _ = Edition.At(fn);
-            if (!_host.State.Files.FilesByName.TryGetValue(name, out var file))
+            if (_host.Symbols.Identify(fn, NameClass.File, report: true, NameReach.Own) is not { Symbol: FileModel file })
             {
                 complete = false;
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
