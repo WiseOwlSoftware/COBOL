@@ -871,7 +871,7 @@ names every connector (`BinderDriver`, after `QualifyClassFiles`).
 
 ### 6.7 Cross-reference
 
-Symbols: data items, condition-names, index-names, procedure-names (sections and paragraphs, `ProcedureNameMap`), files,
+Symbols: data items, condition-names, index-names, procedure-names (sections and paragraphs, `SymbolTable`'s `ProcedureNames<T>`), files,
 programs (CALL targets and units), and copy members (from the inclusions). Each use is one `ListingReference(Symbol,
 Line, Column, Length, Use)` with `Use` one of:
 
@@ -946,7 +946,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
   `SymbolTable.Identify`, and two mechanisms, each checked by a drift test that needs no list, make that the only way:
   - **(a) Every name table is private to `SymbolTable`.** `src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs`
     OWNS every table keyed by a COBOL name whose value is a symbol, of every name class: data, condition, index,
-    procedure (`ProcedureNameMap<T>`), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
+    procedure (`ProcedureNames<T>`, step 6b slice 2), file (`FileSlice`, `FileNameScope`, `InheritedGlobals.Files`, the `SELECT` table),
     report, report group, report VARYING, sum counter, CD (`CommunicationSlice`), screen, the CONFIGURATION SECTION names
     (alphabet, class, symbolic-character, mnemonic, locale, through `ConfigurationNames<T>`), type and constant names,
     the special registers that are implicitly defined names (CAPACITY, DEBUG-ITEM), the REPOSITORY specifiers and the
@@ -1101,7 +1101,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       the standard or the implementor defines, equal on the basic letters alone (`CobolKeywords`, §2023:8.1.3.2 GR3a). Three of
       those compared with the user-word fold before; every key of theirs is basic letters and the fold maps no extended letter to a
       basic one, so every lookup answers as before (the oracle is identical).
-    - **The procedure-names.** `ProcedureNameMap<T>` is the table's private `ProcedureNames<T>`, keyed by `CobolName`, and the
+    - **The procedure-names.** The binder's `ProcedureNameMap<T>` (deleted) became the table's private `ProcedureNames<T>`, keyed by `CobolName`, and the
       scopes it served are the table's: the program's, each method's (keyed by its `OoMethodScope`) and each section's own
       paragraphs. `ProcedureTableBuilder` declares through `SymbolTable.DeclareParagraph` and `DeclareSection`, and every
       procedure-name reference resolves through `Identify(written, NameClass.Procedure, report, site: ProcedureSite)`, whose body is
@@ -1140,7 +1140,15 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       first two are `Identify(WrittenWord written, NameClass wanted, bool report)`, where `WrittenWord(IToken Token, int Start, int
       Length)` is the token and the word's span in it, so step 7b records the occurrence at the word's own column; the evaluator's
       name callback (`CompileTimeExpressionEvaluator`'s `resolveName`) takes the `cobolWord` context it already held instead of its
-      text. No string reaches the table from a written name.
+      text. *(Corrected by slice 5, kb/Work PB5932's dated file `2026-11-19-review-leads-slices-2-and-3`:)* the slice still let two
+      constant-name RESOLUTIONS take the written word as text, `NamesConstant` and `IsFailedConstant`, which bind an entry on demand
+      as a reference does; slice 5 made both take the written word (`NamesConstant(ParserRuleContext)`,
+      `IsFailedConstant(ParserRuleContext)` and `IsFailedConstant(WrittenWord)`), so no resolution of a constant-name takes a string.
+      Strings still reach the table's constant-name DECLARATION questions, which bind nothing and answer a `bool` or a depth: a
+      declaring word (`DeclareMethodWord`, from the data description entry that declares it), and the questions the data-name class
+      asks with the text it holds its operands as (`IsDeclaredConstant`, `IsConstantName`, `IsRefusedConstantName`,
+      `InheritedConstantDepthOf`, `MethodDeclaresWord`: an unidentified reference's verdict, the ranking of
+      §2023:8.4.6.2.1 3)); they take the written word when the data-name class carries it.
     - *Before the data bind there is no table (correction, slice 3).* The AS phrase of PROGRAM-ID, FUNCTION-ID, CLASS-ID,
       INTERFACE-ID, METHOD-ID and a REPOSITORY class or interface specifier is read before the unit's binder exists, and its word may
       be a constant-name (§2023:13.10.3 SR2; kb/Work PB2588). That reading (`PreBindConstants`, deleted) is a resolution, so it is
@@ -1358,7 +1366,7 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 | Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` |
 | Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` |
 | Index | `IndexNameRegistry._byName` |
-| Procedure | `ProcedureNameMap<T>._first`, `_duplicated` |
+| Procedure | `ProcedureNameMap<T>._first`, `_duplicated` (since step 6b slice 2, `SymbolTable`'s private `ProcedureNames<T>`) |
 | File | `FileSlice._filesByName` (`FilesByName`); `FileNameScope._own`, `_inherited` (and its public `TryGetValue`, reached as `DataBindState.VisibleFiles`); `InheritedGlobals._files` (`Files`); `FileControlBinder.SelectedFiles` |
 | Report, report group, VARYING, sum counter | `ReportScope.Named(string)` (a search, not a table: caught by rule (3)); `DataBinder._reportEntryLocations`; `ReferenceResolver.VaryingScope`; `ReportScope._sumCounters` (`SumCounters`), `DataBindState.SumCounters` |
 | CD | `CommunicationSlice._byName` (`ByName`) |

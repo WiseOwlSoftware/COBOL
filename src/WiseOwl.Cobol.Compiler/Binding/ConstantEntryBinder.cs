@@ -496,7 +496,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             && !NumericLiteral.IsFloatingPointForm(canonical)
             && CtNumeric.TryParseLiteral(canonical, out var v))
             return CtValue.Numeric(v, d.Text);
-        return owner.Symbols.IsFailedConstant(word.GetText()) ? FailedConstantOperand : null;
+        return owner.Symbols.IsFailedConstant(word) ? FailedConstantOperand : null;
     }
 
     /// <summary>The recovery operand of a constant whose own entry was reported.</summary>
@@ -871,7 +871,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 + "position)");
             return null;
         }
-        if (owner.Symbols.IsFailedConstant(word)) return null;   // its own entry was reported
+        if (owner.Symbols.IsFailedConstant(written)) return null;   // its own entry was reported
         owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, ConstantNamesExist
             ? $"{where}: {what} '{word}' is not a defined constant-name — an integer-n position admits an integer "
               + "literal or an integer constant-name (ISO §2023:5.5 1) / §2023:13.10.3 SR2)"
@@ -906,8 +906,8 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             m =>
             {
                 string word = m.Groups[1].Value;
-                if (owner.Symbols.Identify(new WrittenWord(picture, m.Groups[1].Index, m.Groups[1].Length), NameClass.Constant,
-                        report: diagnose)?.Symbol is ConstantDef k)
+                var repetition = new WrittenWord(picture, m.Groups[1].Index, m.Groups[1].Length);
+                if (owner.Symbols.Identify(repetition, NameClass.Constant, report: diagnose)?.Symbol is ConstantDef k)
                 {
                     if (k is { Category: PicCategory.Numeric, IntegerText: { } it }) return "(" + it + ")";
                     if (diagnose)
@@ -915,7 +915,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                             + "repetition position shall be an INTEGER constant-name (ISO §2023:13.10.3 SR2)");
                     return "(1)";   // recovery shape — the compile has already failed
                 }
-                if (diagnose && !owner.Symbols.IsFailedConstant(word))
+                if (diagnose && !owner.Symbols.IsFailedConstant(repetition))
                     owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, ConstantNamesExist
                         ? $"{where}: '{word}' in the PICTURE repetition position is not a defined constant-name (ISO "
                           + "§2023:13.18.40.3 SR6 — a repetition count is an unsigned nonzero integer, or an integer "

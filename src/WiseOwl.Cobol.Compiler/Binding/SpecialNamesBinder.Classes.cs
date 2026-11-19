@@ -278,7 +278,7 @@ public sealed partial class SpecialNamesBinder
                     Core.IntegerOperandContext io when io.integerLiteral() is null => io.cobolWord(),
                     _ => null,
                 };
-                if (word is not null && !afterIs && _host.Symbols.Identify(word, NameClass.Constant, report: false) is null && !_host.Symbols.IsFailedConstant(word.GetText()))
+                if (word is not null && !afterIs && _host.Symbols.Identify(word, NameClass.Constant, report: false) is null && !_host.Symbols.IsFailedConstant(word))
                 {
                     names.Add(word);
                     firstIsName ??= true;

@@ -134,7 +134,9 @@ public sealed partial class SymbolTable
 
     /// <summary>Does <paramref name="name"/> name a constant entry of the element it is read in: bound, still to bind, or
     /// refused?</summary>
-    internal bool IsDeclaredConstant(string name) => Key(name) is var key && ConstantNamesFor(key)?.Declared.ContainsKey(key) == true;
+    internal bool IsDeclaredConstant(string name) => IsDeclaredConstant(Key(name));
+
+    private bool IsDeclaredConstant(CobolName key) => ConstantNamesFor(key)?.Declared.ContainsKey(key) == true;
 
     /// <summary>Is <paramref name="name"/> a constant-name here at all: a constant entry of the element it is read in
     /// (<see cref="IsDeclaredConstant"/>) or a GLOBAL one inherited from a container (§2023:13.18.27.4 GR1; bound at the
@@ -152,15 +154,24 @@ public sealed partial class SymbolTable
         && names.Declared.TryGetValue(key, out var declared)
         && declared.TrueForAll(static d => d.State == ConstantBindState.Finished);
 
-    /// <summary>Does <paramref name="name"/> name a constant entry, here, that yielded no value? Its own entry was reported (a
-    /// cycle, a bad operand), so a reader recovers without a second "not a constant-name" error. It binds the entry on demand,
-    /// as a reference would.</summary>
-    internal bool IsFailedConstant(string name) => IsDeclaredConstant(name) && ConstantNamed(Key(name)) is null;
+    /// <summary>Does the word <paramref name="written"/> name a constant entry, here, that yielded no value? Its own entry was reported
+    /// (a cycle, a bad operand), so a reader recovers without a second "not a constant-name" error. It binds the entry on demand, as
+    /// a reference would, so it takes the written word like <see cref="Identify(Antlr4.Runtime.ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>
+    /// (kb/Work PB5932's dated file <c>2026-11-19-review-leads-slices-2-and-3</c>): only a single word is a name.</summary>
+    internal bool IsFailedConstant(Antlr4.Runtime.ParserRuleContext written) => WordOf(written) is { } key && IsFailedConstant(key);
 
-    /// <summary>Does <paramref name="word"/> name a constant here: one of this unit's constant entries (bound, bindable or
-    /// refused) or an inherited GLOBAL one? The question a position whose word alternative has a meaning of its own (an
-    /// ALPHABET code-name, an external-locale-name) asks before taking that meaning. It binds the entry on demand.</summary>
-    internal bool NamesConstant(string word) => IsDeclaredConstant(word) || ConstantNamed(Key(word)) is not null;
+    /// <summary><see cref="IsFailedConstant(Antlr4.Runtime.ParserRuleContext)"/> for a word inside a token (a PICTURE repetition's
+    /// constant-name, §2023:13.10.3 SR2).</summary>
+    internal bool IsFailedConstant(WrittenWord written) => IsFailedConstant(Key(written.Text));
+
+    private bool IsFailedConstant(CobolName key) => IsDeclaredConstant(key) && ConstantNamed(key) is null;
+
+    /// <summary>Does the word <paramref name="written"/> name a constant here: one of this unit's constant entries (bound, bindable or
+    /// refused) or an inherited GLOBAL one? The question a position whose word alternative has a meaning of its own (an ALPHABET
+    /// code-name, an external-locale-name, a literal phrase's word) asks before taking that meaning. It binds the entry on demand,
+    /// so it takes the written word as a reference does.</summary>
+    internal bool NamesConstant(Antlr4.Runtime.ParserRuleContext written) =>
+        WordOf(written) is { } key && (IsDeclaredConstant(key) || ConstantNamed(key) is not null);
 
     /// <summary>The containment distance of the container whose GLOBAL constant <paramref name="name"/> names here (1 = the
     /// direct container), 0 when the name is not an inherited constant: this element's own declaration hides it (ISO

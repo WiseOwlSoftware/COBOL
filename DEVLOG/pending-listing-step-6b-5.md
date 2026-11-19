@@ -44,5 +44,10 @@ asking whether any counter carries the name. The arm now asks the table first (2
 within 0.13 MB of the parent's three runs but one NC218A run whose other rows lie inside the parent's (the benchmark README's step-6b
 table, slice 5).
 
+The two review leads of slices 2 and 3 that the controller filed against this slice are closed: the design's four `ProcedureNameMap`
+mentions name `SymbolTable`'s `ProcedureNames<T>`, and `NamesConstant` and `IsFailedConstant`, constant-name resolutions that took the
+name as text, take the written word; the slice-3 claim "no string reaches the table" now says which declaration questions still take
+text and why. The oracle against the merged main stays IDENTICAL.
+
 kb/Work/PB5932/2026-11-19-step-6b-slice-5.md holds what moved and what remains: the data-name class (with the two text-held report
 operands), the program, function and repository names, and the OO names.

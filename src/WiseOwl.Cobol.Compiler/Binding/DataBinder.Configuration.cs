@@ -202,7 +202,7 @@ public sealed partial class DataBinder
     {
         string name = word.GetText();
         if (Symbols.Identify(word, NameClass.Constant, report: true)?.Symbol is ConstantDef constant) return constant;
-        if (!Symbols.IsFailedConstant(name))
+        if (!Symbols.IsFailedConstant(word))
             report($"{what}: {ConstantReading.NotAConstantMessage(operand, name)}");
         return null;
     }
@@ -216,6 +216,6 @@ public sealed partial class DataBinder
     internal ConstantReading ReadConstant(Antlr4.Runtime.ParserRuleContext written) =>
         Symbols.Identify(written, NameClass.Constant, report: true)?.Symbol is ConstantDef k
             ? ConstantReading.Of(new ConcatFolder.Folded(k.Category, k.Text))
-        : Symbols.IsFailedConstant(written.GetText()) ? ConstantReading.Refused
+        : Symbols.IsFailedConstant(written) ? ConstantReading.Refused
         : ConstantReading.NotAConstant;
 }
