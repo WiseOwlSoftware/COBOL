@@ -58,8 +58,9 @@ internal static class ReportGroupResolution
     private static (string Head, string? Qualifier) Words(ParserRuleContext written)
     {
         if (written is Core.ReportGroupReferenceContext r) return Parts(r);
-        var (head, quals) = DataBinder.KeyReference((Core.DataReferenceContext)written);
-        return (head, quals.Count == 1 ? quals[0] : null);
+        var d = (Core.DataReferenceContext)written;
+        var quals = ReferenceResolver.ReadWritten(d).Qualifiers;
+        return (d.cobolWord()?.GetText() ?? d.GetText(), quals.Count == 1 ? quals[0] : null);
     }
 
     /// <summary>Resolve a possibly-qualified report-group reference: the symbol table answers EVERY candidate

@@ -146,7 +146,7 @@ public sealed partial class SymbolTable
     /// <see cref="NameReach.Own"/> (the SUM clause's UPON operand, a data division site) reads this element's own reports. The
     /// head and the qualifier are read from the context's children: a <c>reportGroupReference</c> (GENERATE, USE BEFORE REPORTING)
     /// or the <c>dataReference</c> of an UPON operand, which <c>ReportSectionBinder.UponDetailRef</c> has screened to one
-    /// qualifier at most. Null when no group answers; <c>ReportGroupResolution.Resolve</c> decides what several mean.</summary>
+    /// qualifier at most (a written reference is read through the one decomposition, <see cref="ReferenceResolver.ReadWritten"/>). Null when no group answers; <c>ReportGroupResolution.Resolve</c> decides what several mean.</summary>
     private ReportCandidates<(ReportModel Report, ReportGroupModel Group)>? ReportGroupsNamed(ParserRuleContext written, NameReach reach)
     {
         string head;
@@ -156,9 +156,9 @@ public sealed partial class SymbolTable
             case Core.ReportGroupReferenceContext r:
                 (head, qualifier) = (r.cobolWord().GetText(), r.reportName()?.GetText());
                 break;
-            case Core.DataReferenceContext d:
-                var (name, quals) = DataBinder.KeyReference(d);
-                (head, qualifier) = (name, quals.Count == 1 ? quals[0] : null);
+            case Core.DataReferenceContext d when d.cobolWord() is { } word:
+                var quals = ReferenceResolver.ReadWritten(d).Qualifiers;
+                (head, qualifier) = (word.GetText(), quals.Count == 1 ? quals[0] : null);
                 break;
             default:
                 return null;
@@ -253,8 +253,8 @@ public sealed partial class SymbolTable
     /// constant entry's length phrase names a report item so (§2023:13.10.3 SR11) before the report section is bound. Null when none.</summary>
     private ReportCandidates<ReportEntryLocation>? ReportEntriesWritten(Core.DataReferenceContext dref)
     {
-        var (name, qualifiers) = DataBinder.KeyReference(dref);
-        if (!_reportEntryLocations.TryGetValue(Key(name), out var locs)) return null;
+        if (dref.cobolWord()?.GetText() is not { } name || !_reportEntryLocations.TryGetValue(Key(name), out var locs)) return null;
+        var qualifiers = ReferenceResolver.ReadWritten(dref).Qualifiers;
         List<ReportEntryLocation> hits = [.. locs.Where(l =>
         {
             int q = 0;
@@ -272,7 +272,8 @@ public sealed partial class SymbolTable
     /// words several (<c>ReportSectionBinder.ScreenRolledAddend</c>).</summary>
     private ReportCandidates<ReportEntryFamily>? RolledEntriesNamed(Core.DataReferenceContext dref)
     {
-        var (name, qualifiers) = DataBinder.KeyReference(dref);
+        if (dref.cobolWord()?.GetText() is not { } name) return null;
+        var qualifiers = ReferenceResolver.ReadWritten(dref).Qualifiers;
         List<ReportEntryFamily> hits = [.. _data.State.Reports.Declared.SelectMany(r => r.EntryFamilies)
             .Where(f => CobolNames.Same(f.Name, name)
                 && DataBinder.QualifierWalk(f.Qualification, qualifiers, q => CobolNames.Same(q, f.Report.Name)))];
