@@ -3630,7 +3630,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// Returns null when the operand is rejected, so it contributes no run-time filter entry.</summary>
     private ReportDetailRef? UponDetailRef(Core.DataReferenceContext dref, ReportModel model)
     {
-        var (name, quals) = DataBinder.KeyReference(dref);
+        var quals = ReferenceResolver.ReadWritten(dref).Qualifiers;
         string written = DataBinder.WrittenText(dref);
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
         if (sfx.Subscripts > 0 || sfx.RefMods > 0)
@@ -3651,7 +3651,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + ", which is one qualifier" + Edition.Edition.Cite("", " (§2023:8.4.2.2.2 Format 1)") + ".");
             return null;
         }
-        return new ReportDetailRef(name, quals.Count == 1 ? quals[0] : null) { Ctx = dref };
+        return new ReportDetailRef { Ctx = dref };
     }
 
     /// <summary>⛔ THE FD SIDE OF THE report-name ↔ REPORT-clause CORRESPONDENCE (kb/Work PB1285). The binding below walks

@@ -839,7 +839,7 @@ public sealed class ReportSumTerm
 /// operand resolves through the ONE report-group funnel, <see cref="ReportGroupResolution"/>, never by a bare
 /// name scan. <see cref="Detail"/> is null until that resolution succeeds; a rejected operand stays null and
 /// contributes no run-time filter entry.</summary>
-public sealed record ReportDetailRef(string Name, string? Qualifier)
+public sealed record ReportDetailRef
 {
     public ReportGroupModel? Detail { get; set; }
 
@@ -851,8 +851,15 @@ public sealed record ReportDetailRef(string Name, string? Qualifier)
     /// the GENERATE that adds is then executed against that report's engine).</summary>
     public ReportModel? Owner { get; set; }
 
-    /// <summary>The operand as written — the form every diagnostic about it quotes.</summary>
-    public override string ToString() => Qualifier is null ? Name : $"{Name} OF {Qualifier}";
+    /// <summary>The operand as written — the form every diagnostic about it quotes, read through the one decomposition of a written
+    /// report-group reference (<see cref="ReportGroupResolution.Words"/>) that the lookup reads, so the quote and the candidates
+    /// cannot disagree about the head or the qualifier.</summary>
+    public override string ToString() => ReportGroupResolution.Words(Ctx) switch
+    {
+        (var head, null) => head,
+        (var head, var qualifier) => $"{head} OF {qualifier}",
+        null => Ctx.GetText(),
+    };
 }
 
 /// <summary>

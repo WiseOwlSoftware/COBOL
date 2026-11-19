@@ -1221,6 +1221,15 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       ordinary data items, kb/Work PB3232). So `Identify` answers every candidate, `ReportCandidates<T>`, the shape
       `ProcedureCandidates` first took, and the funnel decides; a sum counter whose qualifiers reach none answers an EMPTY set, which
       the counter's funnel words as "none is subordinate to the qualifiers". Step 7b records an occurrence for a single candidate.
+    - *A reference's reach selects reports, never declarations of other classes (correction, slice 5 review round 1).* A report
+      group reference passes `NameReach.Visible` (GENERATE, USE BEFORE REPORTING: the GLOBAL reports join, nearest first) or
+      `NameReach.Own` (the SUM clause's UPON operand, a data division site), and the reach chose only which RDs the table searches.
+      The first cut of this slice also let it decide whether `ReportGroupResolution.Resolve` counts the data items of the spelling,
+      so the UPON operand stopped counting them and an unqualified `UPON DA` beside a Working-Storage `DA` compiled silently. At every
+      site an unqualified reference counts them (§2023:8.4.2.2.3 SR1, kb/Work PB5775); the witness is
+      `conformance:cases/13.18.54-SUM/pb5775-upon-homonym`. The head and the report-name qualifier are read by ONE decomposition,
+      `ReportGroupResolution.Words`, which the table's lookup, the funnel's diagnostic and an UPON operand's quote
+      (`ReportDetailRef.ToString`) all call, so the reference the table reads as qualified is the one the funnel treats as qualified.
     - *A report clause's site is an input (correction, slice 5).* The VARYING counters in scope were a name table the clause binder
       set for each entry (`ReferenceResolver.VaryingScope`, a dictionary). They are the reference's SITE, as a procedure-name's
       method and section are: `ReportSite(Report, Varyings)` carries the enclosing report (§2023:13.18.53.3 SR4, "a sum counter

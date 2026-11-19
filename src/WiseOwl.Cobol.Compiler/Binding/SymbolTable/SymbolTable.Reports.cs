@@ -144,25 +144,12 @@ public sealed partial class SymbolTable
     /// file-report-qualifier). <see cref="NameReach.Visible"/> (a procedure division reference) reads every report this element can
     /// name and keeps the nearest declaring source element's candidates (§2023:8.4.6.2.1 rule 3, <see cref="ReportScope.NearestInScope{T}"/>);
     /// <see cref="NameReach.Own"/> (the SUM clause's UPON operand, a data division site) reads this element's own reports. The
-    /// head and the qualifier are read from the context's children: a <c>reportGroupReference</c> (GENERATE, USE BEFORE REPORTING)
-    /// or the <c>dataReference</c> of an UPON operand, which <c>ReportSectionBinder.UponDetailRef</c> has screened to one
-    /// qualifier at most (a written reference is read through the one decomposition, <see cref="ReferenceResolver.ReadWritten"/>). Null when no group answers; <c>ReportGroupResolution.Resolve</c> decides what several mean.</summary>
+    /// head and the qualifier are read by the one decomposition of a written report-group reference,
+    /// <see cref="ReportGroupResolution.Words"/>, which the funnel's diagnostic reads too: a <c>reportGroupReference</c> (GENERATE,
+    /// USE BEFORE REPORTING) or the <c>dataReference</c> of an UPON operand. Null when no group answers; <c>ReportGroupResolution.Resolve</c> decides what several mean.</summary>
     private ReportCandidates<(ReportModel Report, ReportGroupModel Group)>? ReportGroupsNamed(ParserRuleContext written, NameReach reach)
     {
-        string head;
-        string? qualifier;
-        switch (written)
-        {
-            case Core.ReportGroupReferenceContext r:
-                (head, qualifier) = (r.cobolWord().GetText(), r.reportName()?.GetText());
-                break;
-            case Core.DataReferenceContext d when d.cobolWord() is { } word:
-                var quals = ReferenceResolver.ReadWritten(d).Qualifiers;
-                (head, qualifier) = (word.GetText(), quals.Count == 1 ? quals[0] : null);
-                break;
-            default:
-                return null;
-        }
+        if (ReportGroupResolution.Words(written) is not (var head, var qualifier)) return null;
         var reports = reach == NameReach.Own ? _data.State.Reports.Declared : _data.State.Reports.Visible;
         var found = new List<(ReportModel Report, ReportGroupModel Group)>();
         foreach (var r in reports)

@@ -52,15 +52,24 @@ internal static class ReportGroupResolution
     public static (string Head, string? Qualifier) Parts(Core.ReportGroupReferenceContext r) =>
         (r.cobolWord().GetText(), r.reportName()?.GetText());
 
-    /// <summary>The head and the IN/OF report-name qualifier of a written report-group reference, as the messages quote them: a
+    /// <summary>⛔ THE ONE DECOMPOSITION OF A WRITTEN REPORT-GROUP REFERENCE into its head and its IN/OF report-name qualifier: a
     /// <c>reportGroupReference</c> (<see cref="Parts"/>), or the <c>dataReference</c> of a SUM clause's UPON operand, which
-    /// <c>ReportSectionBinder.UponDetailRef</c> has screened to one qualifier at most.</summary>
-    private static (string Head, string? Qualifier) Words(ParserRuleContext written)
+    /// <c>ReportSectionBinder.UponDetailRef</c> has screened to one qualifier at most (read through the one decomposition of a written
+    /// reference, <see cref="ReferenceResolver.ReadWritten"/>). The symbol table's lookup (<c>SymbolTable.ReportGroupsNamed</c>) and
+    /// this funnel's diagnostic and data-item count read the SAME words from here, so the candidates a qualifier restricts and the
+    /// reference the funnel treats as qualified cannot drift apart. Null for any other context, or a <c>dataReference</c> with no word.</summary>
+    internal static (string Head, string? Qualifier)? Words(ParserRuleContext written)
     {
-        if (written is Core.ReportGroupReferenceContext r) return Parts(r);
-        var d = (Core.DataReferenceContext)written;
-        var quals = ReferenceResolver.ReadWritten(d).Qualifiers;
-        return (d.cobolWord()?.GetText() ?? d.GetText(), quals.Count == 1 ? quals[0] : null);
+        switch (written)
+        {
+            case Core.ReportGroupReferenceContext r:
+                return Parts(r);
+            case Core.DataReferenceContext d when d.cobolWord() is { } word:
+                var quals = ReferenceResolver.ReadWritten(d).Qualifiers;
+                return (word.GetText(), quals.Count == 1 ? quals[0] : null);
+            default:
+                return null;
+        }
     }
 
     /// <summary>Resolve a possibly-qualified report-group reference: the symbol table answers EVERY candidate
@@ -71,9 +80,9 @@ internal static class ReportGroupResolution
     /// <param name="where">The reference site for the diagnostic, e.g. <c>"GENERATE 'DET-A'"</c>.</param>
     /// <param name="reach"><see cref="NameReach.Visible"/> for a procedure division reference, whose reports include the GLOBAL
     /// ones inherited from containers: candidates from more than one source element are narrowed to the NEAREST one before
-    /// ambiguity is asked (§2023:8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>), and a data item of the head's spelling
-    /// counts against an unqualified reference. <see cref="NameReach.Own"/> for the data-division site, whose reports are all the
-    /// unit's own.</param>
+    /// ambiguity is asked (§2023:8.4.6.2.1 rule 3 — <see cref="ReportScope.NearestInScope"/>). <see cref="NameReach.Own"/> for the
+    /// data-division site, whose reports are all the unit's own. The reach selects the reports only: at both, a data item of the
+    /// head's spelling counts against an unqualified reference (kb/Work PB5775).</param>
     /// <param name="preferred">The report whose name the hint's example qualifier should use when it is one of the
     /// candidates, else the first candidate's. The SUM clause's UPON operand passes the control footing's own report: below
     /// COBOL-2002 data-name-1 must be a detail "described in the same report as the control footing report group"
@@ -84,18 +93,20 @@ internal static class ReportGroupResolution
         report = null;
         group = null;
         var edition = binder.Edition;
-        var (head, qualifier) = Words(written);
         IReadOnlyList<(ReportModel Report, ReportGroupModel Group)> found =
             binder.Symbols.Identify(written, NameClass.ReportGroup, report: true, reach)?.Symbol
                 is ReportCandidates<(ReportModel Report, ReportGroupModel Group)> { Hits: var hits } ? hits : [];
         if (found.Count == 0) return Match.None;
+        var (head, qualifier) = Words(written)!.Value;   // the table answered, so the reference has words
         // ⛔ A DATA ITEM OF THE SAME SPELLING IS ANOTHER DECLARATION OF THE NAME (kb/Work PB5775). A report group's name and a
         // Working-Storage item's live in one namespace of user-defined names: "For each nonunique user-defined name that is explicitly
         // referenced, uniqueness must be established through a sequence of qualifiers which precludes any ambiguity of reference"
         // (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1), and a data item has no qualifier that tells it from the report group, so an
         // UNQUALIFIED reference to the shared name is the ambiguity and the report-name qualifier (DA OF R-1) is the way out. Counted
-        // in the source element the reports are (the data lookup leaves no item a nearer report entry hides, kb/Work PB4196).
-        int dataItems = qualifier is null && reach == NameReach.Visible
+        // in the source element the reports are (the data lookup leaves no item a nearer report entry hides, kb/Work PB4196). At
+        // EVERY site: the reach chooses which reports are searched, never whether a data item of the spelling is a declaration of the
+        // name, so the SUM clause's UPON operand (NameReach.Own) counts them as GENERATE and USE BEFORE REPORTING do.
+        int dataItems = qualifier is null
             ? binder.QualifiedCandidates(head, [], binder.ActiveScope).ItemCount : 0;
         if (found.Count == 1 && dataItems == 0)
         {
