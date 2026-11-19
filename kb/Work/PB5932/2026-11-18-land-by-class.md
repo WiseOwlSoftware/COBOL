@@ -22,9 +22,10 @@ the binder.
 - Rules (2) and (4) take no baseline (both are green).
 - Each slice: whole name classes from the progress table, each with its resolution code; every lookup through `Identify`;
   every comparison moved in or classified; `python scripts/arch/compare_oracle.py` IDENTICAL after every source change; the
+  `None` row of the front end and bind measured against the slice's parent (DESIGN-listing.md section 9); the
   baseline and its ceiling lowered; a dated file beside this note saying what moved and what remains.
 - The LAST slice empties the baseline and DELETES the file and the code that reads it, so the test is again the design's five
-  rules, green with no exceptions, and no permanent ratchet remains. It also measures the no-listing path against its parent
+  rules, green with no exceptions, and no permanent ratchet remains. It also measures the whole step's no-listing path against the parent of slice 1
   (section 9) and flips PB5932 to landed. Step 7b branches after it.
 
 **Why.** Each slice is a behaviour-neutral restructuring with its own differential, so landing it early carries no risk to what

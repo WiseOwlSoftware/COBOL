@@ -1530,6 +1530,10 @@ renderer. Naming it asks for a listing at any edition.
   they are a fact the design records for every compilation so the listing can be exact (section 6.7.1's oracle reads each
   slot's class from its label), so the budget now names them. Labels are plain fields, never list labels, for this reason
   (section 6.7.1).
+  (Step 6b:) step 6b changes every compilation's name resolution, so EACH slice measures the `None` row of the front end and
+  bind against its parent, twice each, alternating, and the last slice measures the whole step against the parent of slice 1.
+  Slice 1 (the cd-names and the file-names) is within the parent's run-to-run spread on all four programs, at most 0.23 MB
+  above it (the README's step-6b table).
 
 ## 10. Test plan
 
@@ -1732,11 +1736,11 @@ this said the step lands only with `NameTableOwnershipDriftTests` green; it land
 temporary shrink-only baseline of section 6.7.1. The first session measured the remainder as the binder's whole name
 resolution, which one branch would carry for many sessions against a moving main. Each slice moves one or more whole name
 classes (each WITH its resolution code), sends every lookup of them through `Identify`, moves in or classifies every comparison,
-is shown behaviour-neutral by `compare_oracle.py` (IDENTICAL) after every source change, lowers the baseline and its ceiling,
+is shown behaviour-neutral by `compare_oracle.py` (IDENTICAL) after every source change, measures its `None` row against its parent (section 9), lowers the baseline and its ceiling,
 and records what moved and what remains in a dated file beside PB5932. Slice 1 is the drift test, the table's place,
 `Identify`, `Declarations`, `CobolName`, the two classifications, the cd-names and the file-names, and the baseline. The LAST
 slice empties the baseline and deletes it with the code that reads it (so `NameTableOwnershipDriftTests` is green with no
-exceptions, the original landing condition), measures the no-listing path against its parent (section 9), and flips PB5932
+exceptions, the original landing condition), measures the whole step's no-listing path against the parent of slice 1 (section 9), and flips PB5932
 to landed. Step 7b branches after the last slice. Then the data map and file map as views of the
 snapshot (`DataMapBuilder`), `LineAnnotationBuilder` with `ListingLine.Margin` for definition lines, and the `All`
 benchmark row. `Identify` records nothing yet; the table's entries and attributes are complete. (Step 6:) the data map, the

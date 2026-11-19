@@ -44,3 +44,12 @@ slice lowers it in the same change); the baseline names only rules (1), (3) and 
 Rules (2) and (4) take none. The test is green, 9 of 9; each red was shown firing on the product (an entry removed, a stale entry
 added) and over planted findings. The last slice empties and deletes the baseline and the code that reads it, measures the
 no-listing path against its parent and flips PB5932.
+
+**Measured (section 9).** Slice 1 changes how every compilation resolves a cd-name or a file-name, so it measured the front end
+and bind with no listing against its parent (`bfb8500569`), twice each, alternating: every row is within the parent's own
+run-to-run spread or at most 0.23 MB above it (IX113A 68.87 and 68.91 MB against 68.88 and 68.71; SM201A 15.31 and 15.29 against
+15.37 and 15.30), the README's step-6b table. Each later slice measures its own row the same way.
+
+**Also fixed on the way.** After merging main, the tests tree's walk guard could not follow the analyzer's source root (a
+parameter from another file); moving the listing into the analyzer then made `drift_rules.py` refuse the class's `Sweep` trait (a
+helper's paths never make a sweep). The drift test now lists the tree it sweeps and the analyzer compiles what it is given.

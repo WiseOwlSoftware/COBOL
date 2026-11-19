@@ -34,8 +34,9 @@ Rule (5)'s 206: the 130 `Comparer` uses move with their tables or are re-keyed; 
 and DECLARE sites of section 6.7.2 (and the members whose evidence classes were mixed, classified site by site as each class
 moves). Then `SymbolTable.Declare` replaces `SymbolTableWriter.Declare` and `SymbolTable.Finish()` the snapshot hand-off.
 
-**Owed by the last slice**: the section 9 measurement of the no-listing path against the parent (6b touches every
-compilation's name resolution).
+**Section 9** (6b touches every compilation's name resolution): each slice measures its `None` row against its parent; slice 1
+is within the parent's run-to-run spread on all four programs, at most +0.23 MB (tests/WiseOwl.Cobol.Benchmarks/README.md,
+the step-6b table). The last slice measures the whole step against the parent of slice 1.
 
 ### Decided: land step 6b by name class behind a temporary baseline (slice 1)
 
