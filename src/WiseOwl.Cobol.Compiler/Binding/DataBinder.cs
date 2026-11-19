@@ -123,7 +123,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// unit-kind conjunct (a METHOD owns no WORKING-STORAGE at any edition, §2023:13.5.3 SR1; kb/Work PB1308).</para>
     /// <para>The declared CAPACITY registers: the element's own (an inherited register's profile is its container's, whose
     /// class the contained class is nested in) and its methods' (the method's own scope holds the NAME,
-    /// <see cref="OoMethodDataScope.CapacityRegisters"/>, kb/Work PB3165; the class still emits the profile, as it does for the
+    /// the method's own register table, <c>SymbolTable.MethodNames</c>, kb/Work PB3165; the class still emits the profile, as it does for the
     /// method's other numeric items).</para></summary>
     internal DataBindResult Result() =>
         new()
@@ -146,11 +146,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             LeapSecond = LeapSecond,
             UnitStaticWs = UnitStaticWs,
             EmitsStaticReset = State.StorageTier.HasStaticMembers || (UnitStaticWs && State.Files.Declared.Count > 0),
-            DeclaredCapacityRegisterTables =
-            [
-                .. State.Forest.CapacityRegisters.Values.SelectMany(static t => t).Where(t => State.Forest.DeclaringDepth(t) == 0),
-                .. Oo.BoundMethods.SelectMany(static m => m.DataScope.CapacityRegisters.Values).SelectMany(static t => t),
-            ],
+            DeclaredCapacityRegisterTables = [.. Symbols.DeclaredCapacityRegisterTables],
             CellLifetimes = CellLifetimes(),
         };
 
@@ -167,7 +163,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             var decl = new IndexDeclaration(item.IndexNames[k], item, $"_IX_{item.Uid}" + (k == 0 ? "" : $"_{k}"));
             item.Indexes.Add(decl);
-            State.Forest.DeclareIndex(decl, NameScopeOf(item));
+            Symbols.DeclareIndex(decl, NameScopeOf(item));
         }
     }
 
@@ -201,7 +197,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<see cref="LinkageBinder.GlobalBridgesOf"/>) and never emits them.</summary>
     private void InheritGlobalSubtree(DataItem item, int depth)
     {
-        State.Forest.Inherit(item, depth);
+        Symbols.InheritGlobalItem(item, depth);
         foreach (var child in item.Children) InheritGlobalSubtree(child, depth);
         foreach (var ren in item.Renames66) InheritGlobalSubtree(ren, depth);
     }
@@ -214,29 +210,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>The communication section (ISO/IEC 1989:2002 Annex A.1; kb/Work PB4677).</summary>
     internal CommunicationSectionBinder Communication => field ??= new(this);
 
-    /// <summary>⛔ THE ONE TYPE-NAME LOOKUP, in the source element <paramref name="scope"/> names: a METHOD's own
-    /// declaration first (kb/Work PB3192) — and none of its object's when the method declares the word as anything
-    /// else, since "the declaration in the containing object definition is inaccessible to this method" (§2023:11.7.4 GR5) —
-    /// then this binder's element's own, else the nearest containing program's GLOBAL one
-    /// (<see cref="InheritedGlobals.TypeDecls"/>). Every reader of a type-name (the TYPE clause, a restricted pointer's
-    /// <c>USAGE POINTER TO type-name</c>, an intrinsic function's type-name argument) asks here, with the scope of the
-    /// entry that writes it (<see cref="ScopeOf"/> of its root) or of the statement (<see cref="ActiveScope"/>).</summary>
-    internal bool TryFindTypeDecl(string typeName, Model.Scope scope, out DataItem decl)
-    {
-        if (scope.Method is { } m)
-        {
-            if (m.TypeDecls.TryGetValue(typeName, out decl!)) return true;
-            if (MethodDeclares(m, typeName)) return false;
-        }
-        return State.Forest.TypeDecls.TryGetValue(typeName, out decl!) || State.Inherited.TypeDecls.TryGetValue(typeName, out decl!);
-    }
-
-    /// <summary>Every TYPE DECLARATION this binder's forest holds: its own element's (<see cref="ForestSlice.TypeDecls"/>) and each
-    /// of its methods' (<see cref="OoMethodDataScope.TypeDecls"/>, kb/Work PB3192), in that order — what a pass over
+    /// <summary>Every TYPE DECLARATION this binder's forest holds: its own element's (<see cref="ForestSlice.TypeDeclarations"/>) and
+    /// each of its methods' (<see cref="OoMethodDataScope.TypeDeclarations"/>, kb/Work PB3192), in that order — what a pass over
     /// the WHOLE forest walks (the completion of every declaration, the clause-resolution and declared forests). A
-    /// lookup BY NAME never reads it: it reads the declaring element's own table (<see cref="TryFindTypeDecl"/>).</summary>
+    /// lookup BY NAME never reads it: the symbol table resolves a type-name (<see cref="SymbolTable.TypeDeclarationOf"/>).</summary>
     internal IEnumerable<DataItem> AllTypeDecls() =>
-        State.Forest.TypeDecls.Values.Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.TypeDecls.Values));
+        State.Forest.TypeDeclarations.Concat(Oo.BoundMethods.SelectMany(static m => m.DataScope.TypeDeclarations));
 
 
     /// <summary>The unit's data-binding state (<see cref="DataBindState"/>;
@@ -258,10 +237,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>⛔ THE ONE ANSWER TO "DOES THE METHOD WHOSE NAME SCOPE IS <paramref name="method"/> DECLARE <paramref name="word"/>?"
     /// (§2023:11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
     /// data division of the containing object definition, the use of that word in this method refers to the declaration
-    /// in this method"; §2023:8.4.6.1 "even when it is a different type of user-defined word"): a data-name, condition-name,
-    /// index-name, CAPACITY register or type-name in the method's model scope (<see cref="OoMethodDataScope.IndexesDeclare"/>),
-    /// or a constant-name or a word its data division defines before any entry binds, which this binder keeps
-    /// (<see cref="SymbolTable.MethodDeclaresWord"/>; kb/Work PB3164, PB3192, PB2402). Every method tier of a lookup
+    /// in this method"; §2023:8.4.6.1 "even when it is a different type of user-defined word"): a data-name or condition-name in the method's model scope
+    /// (<see cref="OoMethodDataScope.IndexesDeclare"/>), or an index-name, CAPACITY register, type-name, constant-name or a word its
+    /// data division defines before any entry binds, which the symbol table keeps (<see cref="SymbolTable.MethodDeclaresWord"/>;
+    /// kb/Work PB3164, PB3192, PB2402, PB5932). Every method tier of a lookup
     /// asks it before it falls through to the object's names (<c>GlobalNameClassDriftTests</c>).</summary>
     internal bool MethodDeclares(OoMethodDataScope method, string word) =>
         method.IndexesDeclare(word) || Symbols.MethodDeclaresWord(method, word);
@@ -915,7 +894,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // declared under it joins the method's own scope (NameScopeOf), never the class's.
                 if (Oo.BindingMethod is { } owner) Oo.RootOwner[item] = owner;
                 // A TYPEDEF entry is a type DECLARATION (ISO §2023:13.18.58; D17): a named level-01 template that
-                // allocates NO storage — registered in TypeDecls, kept OFF Roots (and, below, off ByName).
+                // allocates NO storage — declared by SymbolTable.DeclareType (ForestSlice.TypeDeclarations), kept OFF Roots (and, below, off ByName).
                 if (item.IsTypedef)
                 {
                     rootIsTemplate = true;
@@ -1002,7 +981,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         DeclareUserWord(item.CobolName, UserWordKind.TypeName);   // the template is off ByName, so RegisterName never sees it
         // The declaring element's own table: a method's type-name is local to the method (§2023:8.4.6.2.2; kb/Work PB3192),
         // so it neither collides with nor replaces its object's of the spelling.
-        if (!State.Forest.TryDeclareType(item, item.CobolName, ScopeOf(item)))
+        if (!Symbols.DeclareType(item, item.CobolName, ScopeOf(item)))
             Edition.Error(DiagnosticCatalog.TypeDeclarationShape, $"duplicate type-name '{item.CobolName}' — a type-name shall be unique "
                 + "(ISO §2023:13.18.58)");
     }
@@ -2266,15 +2245,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// Returns false when the declaration is still IN PROGRESS — the caller's TYPE clause is then part of this
     /// declaration's own description, directly or through another declaration, which is the recursion
     /// §2023:13.18.58.3 SR2 forbids. A GLOBAL declaration inherited from a containing program
-    /// (<see cref="InheritedGlobals.TypeDecls"/>) was completed by that program's own bind, which runs first.
+    /// (the symbol table's inherited type-names, <c>SymbolTable.InheritTypeDeclarations</c>) was completed by that program's own bind, which runs first.
     /// <para>§2023:13.18.58.3 SR1 — "If the subject of the entry is an elementary item, the STRONG phrase shall not be
     /// specified" — is asked HERE, after the chained TYPE clause has composed the subject (kb/Work PB1301): by
     /// §2023:13.18.57.4 GR1 <c>01 T TYPEDEF STRONG TYPE E.</c> over an elementary E is an elementary subject exactly as
     /// <c>01 T TYPEDEF STRONG PIC X(3).</c> is, and the check that ran at registration saw no PICTURE yet.</para></summary>
     internal bool ExpandTemplate(DataItem template)
     {
-        if (!State.Forest.TypeDeclsOf(ScopeOf(template)).TryGetValue(template.CobolName!, out var own) || !ReferenceEquals(own, template))
-            return true;
+        if (!Symbols.IsDeclaredTypeDeclaration(template)) return true;
         if (_templateComplete.TryGetValue(template, out bool complete)) return complete;
         _templateComplete[template] = false;
         // The declaration's own references, then its members' — the order ExpandTypesPass.Run gives every storage item
@@ -2330,9 +2308,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string typeName = item.TypeRefName!;
         item.TypeRefName = null;   // mark expanded (idempotent)
         string subject = item.CobolName ?? item.ClrName;
-        var scope = ScopeOf(item.Root);   // the element whose entry writes the clause (§2023:11.7.4 GR5; kb/Work PB3192)
-        if (!TryFindTypeDecl(typeName, scope, out var template)
-            && !(BindLaterTypeDeclaration(typeName, scope) && TryFindTypeDecl(typeName, scope, out template)))
+        // The clause as written names the declaration, in the element whose entry writes it (§2023:11.7.4 GR5; kb/Work PB3192): a
+        // pending TypeRefName is the written one (a copy is made only of an expanded entry, CloneItem).
+        if (Symbols.TypeDeclarationOf(item, TypeNameCarried.TypeClause) is not { } template
+            && !(BindLaterTypeDeclaration(item, typeName) && (template = Symbols.TypeDeclarationOf(item, TypeNameCarried.TypeClause)) is not null))
         {
             Edition.Error(DiagnosticCatalog.TypeNameUndefined, $"TYPE '{typeName}' on '{subject}': the type-name is not defined by any "
                 + "TYPEDEF entry (ISO §2023:13.18.57 / §2023:13.18.58)");
@@ -2497,7 +2476,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         foreach (var typed in DataItem.DescendantsOf(subject).Prepend(subject))
         {
             if (typed.TypeName is not { } tn || !ReferenceEquals(StrongTypeModel.TypeAnchor(typed), typed)
-                || !TryFindTypeDecl(tn, ScopeOf(typed.Root), out var decl) || !decl.DeclaresStrongType || decl.IsExternalTypedef)
+                || Symbols.TypeDeclarationOf(typed, TypeNameCarried.Typed) is not { } decl || !decl.DeclaresStrongType || decl.IsExternalTypedef)
                 continue;
             using var _ = Edition.At(typed);
             Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{typed.CobolName ?? typed.ClrName}': a record that is "
@@ -2728,7 +2707,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // are part of the type") / §2023:13.18.49.4 GR2a ("the same names, DESCRIPTIONS, and hierarchy").
         CopyClauseDescription(src, clone, DescriptionCopyScope.Entry);
         clone.RedefinesTargetName = src.RedefinesTargetName;   // a member's REDEFINES is part of the type
-        clone.ClonedFrom = src;                                // §2023:8.4.2.2.1 rule 4: the definition this copy reproduces
+        clone.ClonedFrom = src;                                // §2023:8.4.2.2.1 SR4: the definition this copy reproduces
         clone.Uid = _uidCounter++;
         clone.Parent = newParent;
         // The member's INDEXED BY names are part of the type (§2023:13.18.58.4 GR1). RegisterName re-declares them on
@@ -2840,7 +2819,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // ⛔ Through the ONE §2023:8.4.2.2 resolver and the ONE ambiguity verdict (kb/Work PB978): the private
         // qualifier matcher this used knew nothing of the file-name qualifier (§2023:8.4.2.2.2 Format 1's
         // file-report-qualifier), and its ambiguity sentence cited §2023:8.4.3.2, a clause about something else.
-        // §2023:8.4.2.2.1 rule 5's implicit qualifiers apply: SAME AS is a data description entry clause.
+        // §2023:8.4.2.2.1 SR5's implicit qualifiers apply: SAME AS is a data description entry clause.
         // A subject expanded AHEAD of the pipeline (CompleteDescriptionAhead, kb/Work PB2465) may name an entry the
         // section walk has not reached: it is bound now, out of source order, as a length phrase's operand is. After
         // the walk nothing is described later and this is a no-op.
@@ -2891,7 +2870,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             if (pending.SameAsName is not null) ExpandSameAs(pending, expanding);
             if (pending.TypeRefName is not { } pendingType) continue;
-            if (TryFindTypeDecl(pendingType, ScopeOf(pending.Root), out var decl) && _templateComplete.TryGetValue(decl, out bool done)
+            if (Symbols.TypeDeclarationOf(pending, TypeNameCarried.TypeClause) is { } decl && _templateComplete.TryGetValue(decl, out bool done)
                 && !done)
             {
                 Edition.Error(DiagnosticCatalog.SameAsCycle, $"'{subject}': SAME AS '{targetName}' references an "
@@ -3162,7 +3141,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 ThruQualifiers = info.ThruQualifiers,
             },
         };
-        clone.ClonedFrom = src;   // a copy like every other member of the type (§2023:8.4.2.2.1 rule 4; DataItem.ReferenceSite)
+        clone.ClonedFrom = src;   // a copy like every other member of the type (§2023:8.4.2.2.1 SR4; DataItem.ReferenceSite)
         clone.Uid = _uidCounter++;
         clone.Parent = target;
         target.Renames66.Add(clone);
@@ -5933,9 +5912,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// Every SOURCE-DECLARED data item this unit binds, for the post-bind <c>VersionConformancePass</c> data-attribute
     /// gates (Step 14g): the WS + LS + FILE-record + LINKAGE + OO-method forest (<see cref="ForestSlice.Roots"/> — the LINKAGE 01/77
     /// items bind into it too, so <see cref="LinkageBinder.Roots"/> is a SUBSET of it and is not walked again) and the TYPEDEF
-    /// templates (<see cref="ForestSlice.TypeDecls"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
+    /// templates (<see cref="ForestSlice.TypeDeclarations"/>, kept OFF <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
     /// never re-analyzed and so never gated: a <c>TYPE IS type-name</c> clone subtree (its items carry a non-null
-    /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <c>TypeDecls</c>) and the
+    /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <see cref="ForestSlice.TypeDeclarations"/>) and the
     /// OO/UDF compiler temps (recorded in <see cref="CompilerTemps.Clones"/>; both share the source item's <c>PicInfo</c> by
     /// reference — so they must NOT be dedup'd by <c>PicInfo</c> identity: a clone and its source share ONE <c>PicInfo</c>
     /// instance. (<c>PicInfo.PointerItem</c> stopped being a singleton at kb/Work PB153 — it is a factory now, since a
@@ -5973,7 +5952,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// </summary>
     public IEnumerable<DataItem> CompositionForest() => DeclaredForest();
 
-    /// <summary>The shared spine of the two forests: <see cref="ForestSlice.Roots"/> + <see cref="ForestSlice.TypeDecls"/> templates, pre-order
+    /// <summary>The shared spine of the two forests: <see cref="ForestSlice.Roots"/> + <see cref="ForestSlice.TypeDeclarations"/> templates, pre-order
     /// DFS in declaration order, pruning the OO/UDF compiler temps recorded in <see cref="CompilerTemps.Clones"/>.
     /// ⛔ <see cref="LinkageBinder.Roots"/> is NOT concatenated: <c>BindEntries</c> puts every LINKAGE 01/77 on
     /// <see cref="ForestSlice.Roots"/> as well (LinkageBinder.cs: "LINKAGE 01/77 items bind into the ordinary storage
@@ -6049,108 +6028,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return new NameCandidates<DataItem>(tier, reportEntries);
     }
 
-    /// <summary>⛔ ISO §2023:8.4.2.2.1 RULE 4, IN THE ONE PLACE EVERY DATA-NAME LOOKUP READS (kb/Work PB1476). "Qualification
-    /// of a user-defined name is required unless … 4) Any other definition of the name is subordinate to a type
-    /// declaration entry for which the type-name is not referenced in any TYPE clause in the source unit." A type
-    /// declaration's members are off the name index (§2023:13.18.58.4 GR1), which IS the exemption while the type is
-    /// unreferenced; once any TYPE clause names it (<see cref="DataItem.ReferencedByTypeClause"/>) its members are
-    /// "other definitions" again, so they join <paramref name="storage"/> — the name's storage definitions, never
-    /// empty — as candidates that COUNT for the uniqueness verdict and never resolve alone
-    /// (<see cref="QualifiedCandidates"/>). A member a candidate is a copy of (<see cref="DataItem.ClonedFrom"/>,
-    /// to its written end) is that candidate's own definition, not another one: <c>01 Z TYPE T.</c> makes a
-    /// reference to T's member through Z's one copy unique, as §2023:13.18.58.4 GR1 says ("If there is more than one
-    /// such group, qualification with the name of the group is necessary"). Before this the lapse was keyed on a
-    /// copy reaching the index, so a type referenced only from a TYPE clause inside another, unreferenced, type
-    /// declaration kept its exemption. Returns <paramref name="storage"/> itself when nothing lapses, so the
-    /// common lookup allocates nothing. <paramref name="method"/> is the METHOD whose tier found
-    /// <paramref name="storage"/>, whose own type declarations are the other definitions there, or null for this
-    /// binder's element's (kb/Work PB3192: a method's type declarations are its own source element's).</summary>
-    internal List<DataItem> WithLapsedTypeMembers(string name, List<DataItem> storage, OoMethodDataScope? method)
-    {
-        List<DataItem>? merged = null;
-        foreach (var member in LapsedTypeMembers(name, method))
-            if (!storage.Exists(s => IsCopyOf(s, member)))
-                (merged ??= [.. storage]).Add(member);
-        return merged ?? storage;
-    }
-
-    /// <summary>The INDEX-NAME arm of <see cref="WithLapsedTypeMembers"/>: an INDEXED BY name written on a member of
-    /// a referenced type declaration is "another definition of the name" (§2023:8.4.2.2.1 rule 4) exactly as the
-    /// member's data-name is, so it COUNTS against <paramref name="declared"/> — the reference's qualified index
-    /// survivors — when <paramref name="qualifies"/> reaches it, and only while at least one declared survivor
-    /// exists (such a member declares no index cell to resolve to). A member a survivor's table is a copy of is
-    /// that survivor's own definition (kb/Work PB1476). <paramref name="method"/> as for <see cref="WithLapsedTypeMembers"/>.</summary>
-    internal NameCandidates<IndexDeclaration> WithLapsedTypeIndexes(string name, NameCandidates<IndexDeclaration> declared,
-                                                                   Func<IndexDeclaration, bool> qualifies, OoMethodDataScope? method)
-    {
-        var declarations = method?.TypeDecls ?? State.Forest.TypeDecls;
-        if (declared.Count == 0 || declarations.Count == 0) return declared;
-        List<IndexDeclaration> lapsed = [];
-        foreach (var decl in declarations.Values)
-        {
-            if (!decl.ReferencedByTypeClause) continue;
-            foreach (var table in DataItem.DescendantsOf(decl))
-                if (table.IndexNames.Exists(n => CobolNames.Same(n, name))
-                    && !declared.Any(d => IsCopyOf(d.Table, table))
-                    && new IndexDeclaration(name, table, "") is var member && qualifies(member))
-                    lapsed.Add(member);
-        }
-        return declared.Including(lapsed);
-    }
-
-    private static bool IsCopyOf(DataItem copy, DataItem definition)
-    {
-        for (var from = copy.ClonedFrom; from is not null; from = from.ClonedFrom)
-            if (ReferenceEquals(from, definition)) return true;
-        return false;
-    }
-
-    /// <summary>The members of every type declaration a TYPE clause references, by name — §2023:8.4.2.2.1 rule 4's
-    /// "other definitions" (<see cref="WithLapsedTypeMembers"/>). Built ONCE, when <see cref="ExpandTypesPass.Run"/> has
-    /// completed every declaration; until then (a SAME AS operand resolved while the declarations are being
-    /// completed) it is walked live, since the copies inside a declaration are still arriving. A METHOD's declarations
-    /// (<paramref name="method"/>, kb/Work PB3192) are few and always walked live.</summary>
-    private IEnumerable<DataItem> LapsedTypeMembers(string name, OoMethodDataScope? method)
-    {
-        var declarations = method?.TypeDecls ?? State.Forest.TypeDecls;
-        if (declarations.Count == 0) return [];
-        if (method is null && State.Clauses.LapsedTypeMembers is { } index)
-            return index.TryGetValue(name, out var hits) ? hits : [];
-        return declarations.Values.Where(d => d.ReferencedByTypeClause)
-            .SelectMany(DataItem.DescendantsOf).Where(m => CobolNames.Same(m.CobolName, name));
-    }
-
-    /// <summary>The CONDITION-NAME arm of <see cref="WithLapsedTypeMembers"/> — §2023:8.4.2.2.1 rule 4 is about "the
-    /// name" of any user-defined word, and a type declaration's level-88 entries are "part of the type declaration
-    /// of that type" (§2023:13.18.58.4 GR1), off the condition-name index exactly as its data members are off the
-    /// data-name index. Once the type is referenced by a TYPE clause they COUNT against <paramref name="registered"/>
-    /// (never empty), except one a registered condition-name is a copy of (<see cref="Condition88.ClonedFrom"/>);
-    /// the condition binder lets such a member count but never resolve alone (kb/Work PB1476). <paramref name="method"/>
-    /// as for <see cref="WithLapsedTypeMembers"/>.</summary>
-    internal List<Condition88> WithLapsedTypeConditions(string name, List<Condition88> registered, OoMethodDataScope? method)
-    {
-        List<Condition88>? merged = null;
-        foreach (var decl in (method?.TypeDecls ?? State.Forest.TypeDecls).Values)
-        {
-            if (!decl.ReferencedByTypeClause) continue;
-            foreach (var holder in DataItem.DescendantsOf(decl).Prepend(decl))
-                foreach (var member in holder.Own88s)
-                {
-                    if (!CobolNames.Same(member.Name, name) || registered.Exists(c => IsCopyOf(c, member))) continue;
-                    (merged ??= [.. registered]).Add(member);
-                }
-        }
-        return merged ?? registered;
-
-        static bool IsCopyOf(Condition88 copy, Condition88 definition)
-        {
-            for (var from = copy.ClonedFrom; from is not null; from = from.ClonedFrom)
-                if (ReferenceEquals(from, definition)) return true;
-            return false;
-        }
-    }
-
-    /// <summary>Whether a candidate condition-name is a TYPE DECLARATION's own member — one that §2023:8.4.2.2.1 rule 4
+    /// <summary>Whether a candidate condition-name is a TYPE DECLARATION's own member — one that §2023:8.4.2.2.1 SR4
     /// lets count against a reference but that names no storage to test (§2023:13.18.58.4 GR2).</summary>
     internal static bool IsTypeDeclarationCondition(Condition88 condition) => InTypeDeclaration(condition.Parent);
 
@@ -6178,13 +6056,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <see cref="EntryClauseCandidates"/> (OCCURS … DEPENDING ON) and <see cref="RegionClauseCandidates"/> (OCCURS KEY,
     /// RENAMES). It is ISO/IEC 1989:2002's change (§2002:F.2, item 67: "Data-names referenced in a data description entry
     /// need not be qualified when they are defined in the same group as the subject of the entry"), carried on by
-    /// §2023:8.4.2.2.1 rule 5. §1985:IV.4.3.8.1 SR3 has only the exception "in the case of redefinition": every other
+    /// §2023:8.4.2.2.1 SR5. §1985:IV.4.3.8.1 SR3 has only the exception "in the case of redefinition": every other
     /// explicitly referenced name must be made unique by qualification, so below 2002 the whole scope's candidates
     /// are counted (§1985:VI.5.8.3 SR2 and §1985:VI.5.11.3 SR5 give these clauses the qualifier to say it with).</summary>
     private bool ClauseOperandsTakeImplicitQualifiers => Edition.DialectLevel >= 2002;
 
     /// <summary>The candidate set of a data-name referenced in a DATA DESCRIPTION ENTRY CLAUSE of
-    /// <paramref name="subject"/> (OCCURS … DEPENDING ON, SAME AS), with ISO §2023:8.4.2.2.1 rule 5's implicit
+    /// <paramref name="subject"/> (OCCURS … DEPENDING ON, SAME AS), with ISO §2023:8.4.2.2.1 SR5's implicit
     /// qualification applied (from 2002, <see cref="ClauseOperandsTakeImplicitQualifiers"/>): "The name is a data-name referenced in a data description entry clause whose subject
     /// is subordinate to the same group item as that data-name. In this case, the names of any group items
     /// superordinate to both the data-name and the subject of the data description entry clause are used as
@@ -6302,7 +6180,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// survivors is the §2023:8.4.2.2.1 uniqueness verdict, which the caller reports (<c>ConditionBinder.ConditionOf</c>)
     /// or ignores (a pass that only reads which condition a bare operand names: <c>FlagConformancePass</c>, kb/Work
     /// PB3288). EMPTY when the spelling names no condition-name, when the qualifiers reach none, or when every
-    /// survivor is a lapsed type-declaration condition (§2023:8.4.2.2.1 rule 4 — alone it names nothing to test). Pure:
+    /// survivor is a lapsed type-declaration condition (§2023:8.4.2.2.1 SR4 — alone it names nothing to test). Pure:
     /// it reports nothing.</summary>
     internal List<Condition88> QualifiedConditionCandidates(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
     {

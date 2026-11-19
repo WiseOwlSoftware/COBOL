@@ -150,7 +150,7 @@ public sealed class DataBindState
     public DataBindState()
     {
         Configuration = new();
-        Forest = new(fact => Require(PassPhase.OccursResolved, fact));
+        Forest = new();
         WholeGroupReferenced = new(FactSetKind.WholeGroupReferenced, Gate);
         ImageForcedItems = new(FactSetKind.ImageForcedItems, Gate);
         CharacterChannelItems = new(FactSetKind.CharacterChannelItems, Gate);

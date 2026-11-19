@@ -1593,7 +1593,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // A PURE capacity-register peek (NOT refs.Resolve, which would route an OO `prop OF obj` first target through
         // the property hook and enqueue a spurious pending op — OCCURS DYNAMIC review #7). The selection classified
         // this very reference as a CAPACITY register through the same peek, so a miss is a broken invariant.
-        if (ctx.Refs.CapacityRegisterFor(targets[0]) is not { } cap)
+        if (ctx.Refs.CapacityRegisterFor(targets[0], report: true) is not { } cap)
             throw new InvalidOperationException(
                 $"SET Format 14 was selected for '{DataBinder.WrittenText(targets[0])}', which is not a CAPACITY register (kb/Work PB3225)");
         // The target NAMES a register but breaks one of its reference rules (§2023:13.18.38.3 SR30/SR31, §2023:8.4.2.2.3 SR4,

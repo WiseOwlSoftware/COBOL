@@ -72,7 +72,7 @@ public sealed partial class DataBinder
     {
         if (Edition.DialectLevel >= 2002) return;
         var seen = new HashSet<string>(CobolNames.Comparer);
-        foreach (var decl in State.Forest.IndexNames.Own)
+        foreach (var decl in State.Forest.OwnIndexes)
         {
             if (seen.Add(decl.Name)) continue;
             using var _ = Edition.At(decl.Table.DeclaredAt);

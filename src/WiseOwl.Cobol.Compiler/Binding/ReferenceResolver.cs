@@ -14,6 +14,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// Resolves a <c>dataReference</c> parse node to a <see cref="Place"/> — the single entry point every verb uses to
@@ -374,7 +375,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // {tablePath}.Capacity. The NAME identifies it outright (§2023:13.18.38.3 SR30 first sentence — "Data-name-3
         // shall not be defined elsewhere in the source element"), so every other question is a predicate over the
         // reference AS WRITTEN and belongs to this one screen, not to a fall-through (kb/Work PB457).
-        if (CapacityRegisterFor(dref) is { } capReg)
+        if (CapacityRegisterFor(dref, report) is { } capReg)
             return Ends(CapacityPlaceOf(dref, capReg) is { } capPlace ? Resolved(capPlace) : Refused());
 
         // The PREDEFINED OBJECT REFERENCE EXCEPTION-OBJECT (ISO §2023:8.4.3.6; kb/Work PB922): §2023:8.4.3.6.3 SR2 —
@@ -400,11 +401,13 @@ public sealed class ReferenceResolver(DataBinder data)
         // modification of an alphanumeric item like any other (§2023:8.4.3.3.3 SR1; X3.23-1985 USE FOR DEBUGGING general rule 10
         // describes DEBUG-CONTENTS as PICTURE X(n), kb/Work PB4858), so the register's place meets the reference-modification
         // tail below. A qualified DEBUG-* falls through to loud.
-        if (data.State.Implicit.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null))
+        // Only a program whose debugging section activated the family asks (the suffix list is an allocation per reference).
+        if (data.State.Implicit.DebugRegisters.Count > 0 && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
+            && data.Symbols.Identify(dref.cobolWord(), NameClass.DebugRegister, report) is { Symbol: DebugRegisterPlace dbg })
         {
             var debugWritten = ReadWritten(dref);
             if (!RefMods.ScreenRefModCount(dref, debugWritten, name)) return Ends(Refused());
-            return new Identified(null, dbg.Item, debugWritten, [], new DebugRegisterPlace(dbg.Item, dbg.Member));
+            return new Identified(null, dbg.RegisterItem, debugWritten, [], dbg);
         }
 
         // A REPORT SECTION SUM COUNTER (ISO §2023:13.18.54.4 GR5 — the data-name after the level number names the
@@ -719,8 +722,8 @@ public sealed class ReferenceResolver(DataBinder data)
 
     /// <summary>⛔ THE ONE MATCH OF A WRITTEN REFERENCE AGAINST THE NAMED OCCURS DYNAMIC CAPACITY REGISTERS
     /// (kb/Work PB457) — a PURE check over the registers the ONE name lookup
-    /// <see cref="SymbolTable.CapacityCandidates"/> reaches in the active scope (the unit's
-    /// <see cref="ForestSlice.CapacityRegisters"/>, or a method's own, kb/Work PB3165) with NO side effects (unlike
+    /// the symbol table reaches in the active scope (<c>Identify(word, NameClass.CapacityRegister, report)</c>: the element's
+    /// registers, or a method's own, kb/Work PB3165) with NO side effects (unlike
     /// the full <see cref="Resolve"/> pipeline, which routes an unresolved qualified name through the
     /// property-reference hook and enqueues a pending op). The SET Format 14 reroute peek uses this so it never
     /// mints a spurious property temp/op for a non-capacity target (data-model D9; OCCURS DYNAMIC review #7).
@@ -745,19 +748,23 @@ public sealed class ReferenceResolver(DataBinder data)
     /// ambiguity (<see cref="CapacityRefFault.Ambiguous"/>), judged by the ONE verdict
     /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>.</para>
     /// <para>⛔ ACROSS SOURCE ELEMENTS IT IS §2023:8.4.6.2.1 (kb/Work PB1674). A contained program also sees every
-    /// container's GLOBAL record's registers, nearest container first after its own (<see cref="ForestSlice.CapacityRegisters"/>),
+    /// container's GLOBAL record's registers, nearest container first after its own (the symbol table's register table, kb/Work PB5932),
     /// and rule 1 applies "the normal rules for qualification" over that whole set before rule 3 picks the nearest
     /// declaring element: the first register the written qualifiers reach is the candidate (the nearest one when
     /// none does, so the qualifier fault is stated about it), and an ordinary data-name of the spelling in a NEARER
     /// element takes the reference instead (<see cref="SymbolTable.NearerDataNameHides"/> — the rule the
     /// index-name class already obeys), handing it back to the ordinary lookup.</para></summary>
-    internal CapacityRef? CapacityRegisterFor(Core.DataReferenceContext dref)
+    internal CapacityRef? CapacityRegisterFor(Core.DataReferenceContext dref, bool report)
     {
-        DataReferenceCst r = dref;
-        if (r.BaseName is not { } name || data.Symbols.CapacityCandidates(name, data.ActiveScope) is not { } tables) return null;
+        // The word is identified before its text is read: a token's text is a new string at each read, and every data reference
+        // asks this arm first (section 9's budget, PB5932 review round 1).
+        if (dref.cobolWord() is not { } word
+            || data.Symbols.Identify(word, NameClass.CapacityRegister, report) is not { Symbol: CapacityRegisterCandidates { Tables: var tables } })
+            return null;
+        string name = word.GetText();
         var written = ReadWritten(dref);
-        var reached = tables.FindAll(t => t.OccursSpec?.CapacityRegister is { } cand
-                                          && data.QualifierChainMatches(cand, written.Qualifiers));
+        var reached = tables.Where(t => t.OccursSpec?.CapacityRegister is { } cand
+                                        && data.QualifierChainMatches(cand, written.Qualifiers)).ToList();
         // The nearest declaring element's reached registers (the list is in nearest-element order, §2023:8.4.6.2.1 3)), or
         // the nearest register at all when the qualifiers reach none, so the qualifier fault is stated about it.
         DataItem table = reached.Count > 0 ? reached[0] : tables[0];

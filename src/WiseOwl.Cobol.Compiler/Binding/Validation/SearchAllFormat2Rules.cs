@@ -496,18 +496,12 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // The index-name may be written QUALIFIED (§2023:8.4.2.2.2 Format 3; §2023:8.4.2.2.3 SR6), and must be when another
         // table declares the same spelling (SR1) — so the qualifiers are consumed here and the reference is judged
         // by the DECLARATION it resolves to, never by its spelling alone (kb/Work PB919).
-        int next = 1;
-        List<string> quals = [];
-        while (next + 1 < toks.Count && toks[next].Type is Core.OF or Core.IN
-               && SubscriptBinder.IsNameToken(toks[next + 1]))
-        {
-            quals.Add(toks[next + 1].Text);
-            next += 2;
-        }
+        var reference = WrittenQualifiedName.Of(toks, 0, SubscriptBinder.IsNameToken, out int last);
+        int next = last + 1;
         if (!SubscriptBinder.IsNameToken(toks[0])
             || !CobolNames.Same(toks[0].Text, firstIndex)
             || (table.Indexes.Count > 0
-                && refs.Names.ResolveIndexName(toks[0].Text, quals, toks[0]) is { Outcome: IndexRefOutcome.Resolved } ix
+                && refs.Names.ResolveIndexName(reference, toks[0]) is { Outcome: IndexRefOutcome.Resolved } ix
                 && !ReferenceEquals(ix.Decl, table.Indexes[0])))
             return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "

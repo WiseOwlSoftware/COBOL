@@ -138,11 +138,13 @@ public sealed partial class DataBinder
     /// has not reached it — a TYPE clause expanded ahead of the pipeline (<see cref="CompleteDescriptionAhead"/>) may
     /// name one declared later, which §2023:13.18.57 permits — and give it its §2023:13.16.3 SR9 implied PICTUREs, which it must
     /// own before it is copied. False when nothing was bound; after the walk nothing is described later, so in the
-    /// pipeline this is a no-op. <paramref name="scope"/> is the element whose TYPE clause names it (kb/Work PB3192).</summary>
-    private bool BindLaterTypeDeclaration(string typeName, Model.Scope scope)
+    /// pipeline this is a no-op. <paramref name="typed"/> is the entry whose TYPE clause, <paramref name="typeName"/>, names it,
+    /// resolved in the element that writes it (kb/Work PB3192).</summary>
+    private bool BindLaterTypeDeclaration(DataItem typed, string typeName)
     {
         if (!IsDescribedLater(typeName) || !BindLaterRecords(typeName)) return false;
-        if (TryFindTypeDecl(typeName, scope, out var declaration)) SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder(this, declaration);
+        if (Symbols.TypeDeclarationOf(typed, TypeNameCarried.TypeClause) is { } declaration)
+            SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder(this, declaration);
         return true;
     }
 }

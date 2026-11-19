@@ -67,7 +67,7 @@ internal sealed class OdoResolvePass : IBindPass
             // so every rule that is a fact of the declaration alone — SR16's bounds, the counter's own SR17/SR2 when it
             // resolves — is asked of it; a use site is asked again through its clone. But §2023:13.18.57.4 GR1 makes a TYPE
             // clause "as though the data description … had been coded in place", so data-name-1 is looked up where the
-            // description is PLACED (§2023:8.4.2.2.1 rule 5: the groups superordinate to the subject): a name the declaration
+            // description is PLACED (§2023:8.4.2.2.1 SR5: the groups superordinate to the subject): a name the declaration
             // and the program do not define may be a sibling of the use site, and an unused library type whose counter
             // each user supplies is legal source. A name the declaration does not define is therefore NOT an error here — the clone
             // that places it reports it (COBOL0851) — and the rules that read the PLACEMENT (SR18/SR21's GLOBAL and
@@ -81,7 +81,7 @@ internal sealed class OdoResolvePass : IBindPass
                     + $"be greater than or equal to zero and less than integer-2 (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR5", "§2023:13.18.38.3 SR16")})");
 
             // data-name-1 resolution. A counter under a group the table is ALSO subordinate to is found first:
-            // §2023:8.4.2.2.1 rule 5 makes the groups superordinate to both the data-name and the subject IMPLICIT
+            // §2023:8.4.2.2.1 SR5 makes the groups superordinate to both the data-name and the subject IMPLICIT
             // qualifiers of a data-name referenced in a data description entry clause. That is also what binds a
             // TYPEDEF clone's internal DEPENDING to the clone's own sibling (review DEVLOG 664 fix #4; §2023:13.18.57.4
             // GR1 — the type is "coded in place"). (This comment used to justify the own-record preference by
@@ -99,7 +99,7 @@ internal sealed class OdoResolvePass : IBindPass
             string depFace = $"OCCURS DEPENDING ON data-name-1 of '{subject}'";
             var tier = binder.EntryClauseCandidates(item, depName, spec.DependingQualifiers, binder.ScopeOf(item.Root));
             // A declaration's counter is judged here only when the DECLARATION defines it: an item of the same name
-            // elsewhere in the program is not where a use site will find it (§2023:8.4.2.2.1 rule 5 qualifies from the
+            // elsewhere in the program is not where a use site will find it (§2023:8.4.2.2.1 SR5 qualifies from the
             // placement), so neither its ambiguity nor its SR17 category is a fact of the declaration (train 1055
             // review: an unused template beside two unrelated CNTs drew COBOL1639).
             if (declaration) tier = tier.Where(c => ReferenceEquals(c.Root, item.Root));

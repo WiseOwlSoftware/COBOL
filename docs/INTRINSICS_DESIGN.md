@@ -370,7 +370,7 @@ must NOT be rejected) and the `pb58-*` negatives (one per rule instance).
 
 `IntrinsicBinder.BindLengthFamily` serves BOTH functions (`argument-1 [PHYSICAL]` — §2023:15.50.2 / §2023:15.14.2 — the
 keyword consumed by name; a bare word that names a level-1 TYPEDEF is a type-name argument, §2023:15.50.3 r1 /
-§2023:15.14.3 r1, resolved from `ForestSlice.TypeDecls` because a typedef lives off the data-name namespace) and hands the
+§2023:15.14.3 r1, resolved by `SymbolTable.Identify(word, NameClass.TypeName, report)` because a typedef lives off the data-name namespace) and hands the
 operand to `BindLengthFold` / `BindByteLengthFold`, whose arms are the returned-value rules in order, never a list of
 shapes that happened to be met: a LITERAL folds to its own length (a zero-length literal is ZERO — §2023:8.5.4 — no
 `Math.Max(1, …)`; national is 2 bytes/position under BYTE-LENGTH; the literal-class rules DIFFER — §2023:15.50.3 r1

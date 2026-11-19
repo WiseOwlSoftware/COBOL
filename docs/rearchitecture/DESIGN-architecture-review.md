@@ -1251,7 +1251,7 @@ the result is made after the group tail, PB2361), and writes one slice of its ow
 `InheritedGlobals` (`DataBindState.Inherited`: the inherited GLOBAL files with their depth, their GLOBAL record areas,
 the container-local files, the inherited type declarations, and the offers of the containers' GLOBAL reports and data
 roots; a lookup reads the child's own declarations first and this slice after — `DataBindState.VisibleFiles`,
-`TryFindTypeDecl` — which is `TryAdd`'s local-shadows rule made structural: the merge of the inherited files into
+the symbol table's type-name lookup (`SymbolTable.TypeDeclarationNamed`) — which is `TryAdd`'s local-shadows rule made structural: the merge of the inherited files into
 `FilesByName` is gone, and `FilesByName` holds the unit's own files only), carried into `DataBindResult`.
 `InheritStep.Seed` writes the seed part at a phase before the first data phase, `GlobalsSeeded`; `InheritStep.Merge`
 writes the rest at `GlobalsInherited`, after the last data phase and before ProcedureBound: the formals'
@@ -1374,9 +1374,10 @@ memories the entry walk leaves for the screening passes, and the two implicit re
 `DataBindState`, each field in exactly one, each with `internal` mutators and read-only views, and every reader reads them
 through `State` (`DataBinder` keeps no forwarder; `DataBindStateBoundaryDriftTests` fails when `DataBinder` declares a
 public or internal collection of its own and when a slice's mutator is called from a file that is not its writer):
-- `ForestSlice` (`State.Forest`): `Roots`, `WorkingStorageRoots`, `LocalStorageRoots`, the name tables `ByName`,
-  `Conditions`, `IndexNames`, `CapacityRegisters` (gated: a read before `OccursResolved` throws; `CapacityRegistersSoFar` is the
-  ungated read of the declaration funnel and of the pass that mints them), `TypeDecls` and `ScreenNames`, and the inheritance
+- `ForestSlice` (`State.Forest`): `Roots`, `WorkingStorageRoots`, `LocalStorageRoots`, the name tables `ByName` and
+  `Conditions`, the element's own index declarations (`OwnIndexes`) and type declarations (`TypeDeclarations`) in order, and
+  `ScreenNames` (the index-names, CAPACITY register names and type-names are the symbol table's since listing step 6b, kb/Work
+  PB5932, the register read gated: a lookup before `OccursResolved` throws), and the inheritance
   tier of a container's GLOBAL names (`DeclaringDepth`, `InheritsGlobalData`, `DeclaresOwnDataName`, which read the tier and
   so live beside it). Its writers are the declaration walk (`DataBinder.RegisterName`, `RegisterCondition`, `BindEntries`,
   `InheritGlobalSubtree`, the post-build TYPE copies through the same funnel) and `DynamicResolvePass`, and one LATE door,
@@ -1403,7 +1404,7 @@ public or internal collection of its own and when a slice's mutator is called fr
   tail (`ElementBinders.Freeze`), so the two doors are shut when the forest roots and the cell backings are frozen into it.
 - `ClauseFacts` (`State.Clauses`): the entries that WROTE a SIGN or a VALUE clause (§2023:13.18.52.3 SR1/SR2, §2023:13.16.3 SR10), the
   clause operands the capture already refused, the written level-88s in source order (§2023:13.16.3 SR24) and `LapsedTypeMembers`
-  (§2023:8.4.2.2.1 rule 4, written once by `ExpandTypesPass`).
+  (§2023:8.4.2.2.1 SR4, written once by `ExpandTypesPass`).
 - `ImplicitRegisters` (`State.Implicit`): the X3.23-1985 DEBUG-ITEM family and `EXCEPTION-OBJECT` (§2023:8.4.3.6.3 SR2).
 And `DataBindState` now holds `Reports` (the `ReportScope` of step 7), `SumCounters` (the `FilesResolved`-gated view of it) and the
 pass-completion watermark (`Watermark`, `MarkProduced`, `Require`, the P6 Step-6 gate), which the gated reads of the slices

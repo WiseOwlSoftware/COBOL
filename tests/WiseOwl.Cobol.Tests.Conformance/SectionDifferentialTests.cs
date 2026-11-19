@@ -96,7 +96,7 @@ public sealed class SectionDifferentialTests
 
     /// <summary>SPEC-PINNED (not differential): a duplicated paragraph-name referenced WITHOUT qualification from
     /// within a section that contains the named paragraph resolves to the paragraph IN THAT SECTION — ISO
-    /// §2023:8.4.2.2.1 rule 6 ("the name is a paragraph-name and the section containing the reference also contains the
+    /// §2023:8.4.2.2.1 SR6 ("the name is a paragraph-name and the section containing the reference also contains the
     /// named paragraph") + §2023:8.4.2.2.3 SR7 ("need not be qualified when referred to from within the same section").
     /// The former legacy engine resolves this global-first (a version-invariant non-conformance — the rule is unchanged
     /// since COBOL-85), so this case pins to the spec.</summary>

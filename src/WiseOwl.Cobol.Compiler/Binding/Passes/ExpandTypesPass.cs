@@ -27,7 +27,7 @@ internal sealed class ExpandTypesPass : IBindPass
 
     /// <summary>Post-build TYPE-expansion pass: every <c>TYPE IS type-name</c> reference (a real item in the forest)
     /// gets the referenced type declaration's subtree cloned in. Runs at the top of <see cref="DataBinder.BindResolve"/> — AFTER
-    /// all <see cref="DataBinder.BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="ForestSlice.TypeDecls"/>),
+    /// all <see cref="DataBinder.BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="ForestSlice.TypeDeclarations"/>),
     /// AFTER <see cref="SynthesizeImpliedPicturesPass.Run"/> (so a template's §2023:13.16.3 SR9 VALUE-implied PICTURE is part of
     /// the description it hands over — §2023:13.18.57.4 GR3; kb/Work PB1300) and BEFORE the resolution passes (so the
     /// clone is a normal part of the forest they walk).</summary>
@@ -41,14 +41,14 @@ internal sealed class ExpandTypesPass : IBindPass
         // SR6's placement of a member typed by a STRONG declaration — whether or not anything references it.
         // They used to be side effects of per-REFERENCE expansion, so a recursive type declaration that no
         // storage item expanded compiled clean, and the answer for one that was depended on declaration order.
-        // §2023:8.4.2.2.1 rule 4's antecedent, recorded BEFORE anything is expanded or resolved (kb/Work PB1476): "a type
+        // §2023:8.4.2.2.1 SR4's antecedent, recorded BEFORE anything is expanded or resolved (kb/Work PB1476): "a type
         // declaration entry for which the type-name is not referenced in any TYPE clause in the source unit". EVERY
         // written TYPE clause counts — a storage item's, a linkage item's, and a member's of another type
         // declaration, which nothing may ever copy — so the exemption's lapse is a property of the source, never
         // of which clones happen to reach the name index. The WRITTEN clause is read (DataItem.WrittenTypeName), never
         // the pending mark: a constant's length phrase may have expanded an entry already (kb/Work PB2465).
         foreach (var written in binder.DeclaredForest())
-            if (written.WrittenTypeName is { } referenced && binder.TryFindTypeDecl(referenced, binder.ScopeOf(written.Root), out var decl))
+            if (binder.Symbols.TypeDeclarationOf(written, TypeNameCarried.TypeClause) is { } decl)
                 decl.ReferencedByTypeClause = true;
         foreach (var template in binder.AllTypeDecls().ToList())
             binder.ExpandTemplate(template);
@@ -84,22 +84,12 @@ internal sealed class ExpandTypesPass : IBindPass
     private static void ResolveRestrictedTypes(DataBinder binder)
     {
         foreach (var item in binder.ClauseResolutionForest())
-            if (item.Pic is { Category: PicCategory.Pointer, RestrictedTypeName: { } tn, RestrictedTypeDecl: null }
-                && binder.TryFindTypeDecl(tn, binder.ScopeOf(item.Root), out var decl))
+            if (item.Pic is { Category: PicCategory.Pointer, RestrictedTypeName: not null, RestrictedTypeDecl: null }
+                && binder.Symbols.TypeDeclarationOf(item, TypeNameCarried.RestrictedPointer) is { } decl)
                 item.Pic = item.Pic with { RestrictedTypeDecl = decl };
     }
 
-    /// <summary>Build <see cref="ClauseFacts.LapsedTypeMembers"/> — the tail of <see cref="Run"/>.</summary>
-    private static void IndexLapsedTypeMembers(DataBinder binder)
-    {
-        var index = new Dictionary<string, List<DataItem>>(CobolNames.Comparer);
-        foreach (var decl in binder.State.Forest.TypeDecls.Values.Where(d => d.ReferencedByTypeClause))
-            foreach (var member in DataItem.DescendantsOf(decl))
-                if (member.CobolName is { } n)
-                {
-                    if (!index.TryGetValue(n, out var list)) index[n] = list = [];
-                    list.Add(member);
-                }
-        binder.State.Clauses.LapsedTypeMembers = index;
-    }
+    /// <summary>Index the lapsed type-declaration members (§2023:8.4.2.2.1 SR4) in the symbol table, now that every declaration
+    /// is complete: the tail of <see cref="Run"/>.</summary>
+    private static void IndexLapsedTypeMembers(DataBinder binder) => binder.Symbols.IndexLapsedTypeMembers();
 }

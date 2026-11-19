@@ -98,10 +98,10 @@ public sealed class DataBindStateBoundaryDriftTests
     [Fact]
     public void TheInheritedGlobalsSlice_IsWrittenOnlyByInheritStep()
     {
-        // InheritFiles, HideShadowedFiles, InheritConstants and DropShadowedConstants are SymbolTable's half (the inherited
-        // file-NAMES and constant-names are the one store's, listing step 6b slices 1 and 3), called by InheritStep alone; the
-        // table's file is where that half writes the slice (kb/Work PB5932).
-        var writers = new Regex(@"\.(AddContainerFiles|AddContainerTypeDecls|OfferContainerGlobals|SetFileDepth|InheritFiles|HideShadowedFiles|InheritConstants|DropShadowedConstants)\(|Inherited\.HideShadowedSymbolics\(");
+        // InheritFiles, HideShadowedFiles, InheritConstants, DropShadowedConstants and InheritTypeDeclarations are SymbolTable's half
+        // (the inherited file-NAMES, constant-names and type-names are the one store's, listing step 6b), called by InheritStep alone;
+        // the table's file is where that half writes the slice (kb/Work PB5932).
+        var writers = new Regex(@"\.(AddContainerFiles|OfferContainerGlobals|SetFileDepth|InheritFiles|HideShadowedFiles|InheritConstants|DropShadowedConstants|InheritTypeDeclarations)\(|Inherited\.HideShadowedSymbolics\(");
         var offenders = new List<string>();
         int found = 0;
         foreach (var (file, text) in CompilerSources())
@@ -162,8 +162,10 @@ public sealed class DataBindStateBoundaryDriftTests
         var slices = new (string Name, Regex Mutator, string[] Writers)[]
         {
             ("ForestSlice (the type forest and its name tables)",
-                new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|DeclareIndex|TryDeclareType|AddScreenNames|Inherit|AddCapacityRegister)\("),
-                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CommunicationSectionBinder.cs", "/Binding/Passes/DynamicResolvePass.cs"]),
+                new(@"\.Forest\.(AddRoot|AddWorkingStorageRoots|AddLocalStorageRoots|DeclareName|DeclareCondition|AddOwnIndex|AddScreenNames|Inherit|AddTypeDeclaration)\("),
+                // The symbol table writes the declarations whose names it keys (listing step 6b, kb/Work PB5932).
+                ["/Binding/DataBinder*.cs", "/Binding/FileControlBinder.FileSection.cs", "/Binding/CommunicationSectionBinder.cs",
+                 "/Binding/SymbolTable/SymbolTable*.cs"]),
             ("CommunicationSlice (the communication description entries the unit declares)",
                 new(@"\.Communication\.Declare\("),
                 ["/Binding/SymbolTable/SymbolTable.Communication.cs"]),
@@ -188,11 +190,11 @@ public sealed class DataBindStateBoundaryDriftTests
                 new(@"\.StorageTier\.(AddStatic\w+|AddBasedBridge|ClaimAddressableCell)\("),
                 ["/Binding/DataBinder.Ptr.cs", "/Binding/Passes/PtrBindBasedAndAddressablesPass.cs", "/Binding/Passes/RouteStaticUnitStoragePass.cs"]),
             ("ClauseFacts (what the entry walk recorded for the screening passes)",
-                new(@"\.Clauses\.(Record\w+\(|LapsedTypeMembers\s*=(?!=))"),
-                ["/Binding/DataBinder*.cs", "/Binding/Passes/ExpandTypesPass.cs"]),
+                new(@"\.Clauses\.Record\w+\("),
+                ["/Binding/DataBinder*.cs"]),
             ("ImplicitRegisters (the DEBUG-ITEM family)",
                 new(@"\.Implicit\.ActivateDebugRegisters\("),
-                ["/Binding/Procedure/ProcedureTableBuilder.cs"]),
+                ["/Binding/SymbolTable/SymbolTable.DebugRegisters.cs"]),
         };
         var offenders = new List<string>();
         var found = new int[slices.Length];

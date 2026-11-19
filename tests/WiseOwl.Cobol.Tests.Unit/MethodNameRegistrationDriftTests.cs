@@ -24,13 +24,15 @@ public sealed class MethodNameRegistrationDriftTests
 {
     private static readonly string BindingDir = TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding");
 
-    /// <summary>The slice calls that write the forest's data-name and condition-name maps, and the one member of the data
-    /// binder that may make each.</summary>
-    private static readonly (Regex Call, string Member)[] MapWriters =
+    /// <summary>The slice calls that write the forest's data-name and condition-name maps, and the one member (and its file) that
+    /// may make each: the data binder's two registration funnels, and the symbol table's inheritance of a container's GLOBAL item
+    /// (<c>SymbolTable.InheritGlobalItem</c>, which <c>DataBinder.InheritGlobalSubtree</c> calls for each item; listing step 6b,
+    /// kb/Work PB5932).</summary>
+    private static readonly (Regex Call, string File, string Member)[] MapWriters =
     [
-        (new(@"Forest\.DeclareName\(", RegexOptions.Compiled), "RegisterName"),
-        (new(@"Forest\.DeclareCondition\(", RegexOptions.Compiled), "RegisterCondition"),
-        (new(@"Forest\.Inherit\(", RegexOptions.Compiled), "InheritGlobalSubtree"),
+        (new(@"Forest\.DeclareName\(", RegexOptions.Compiled), "DataBinder.cs", "RegisterName"),
+        (new(@"Forest\.DeclareCondition\(", RegexOptions.Compiled), "DataBinder.cs", "RegisterCondition"),
+        (new(@"Forest\.Inherit\(", RegexOptions.Compiled), "SymbolTable.cs", "InheritGlobalItem"),
     ];
 
     [Fact]
@@ -46,7 +48,7 @@ public sealed class MethodNameRegistrationDriftTests
                 {
                     if (!MapWriters[w].Call.IsMatch(lines[i]) || lines[i].TrimStart().StartsWith("//", StringComparison.Ordinal)) continue;
                     found[w]++;
-                    if (!(Path.GetFileName(file) == "DataBinder.cs" && EnclosingMember(lines, i) == MapWriters[w].Member))
+                    if (!(Path.GetFileName(file) == MapWriters[w].File && EnclosingMember(lines, i) == MapWriters[w].Member))
                         offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
                 }
         }
@@ -66,11 +68,13 @@ public sealed class MethodNameRegistrationDriftTests
             int end = text.IndexOf("\n    }", at, StringComparison.Ordinal);
             string body = text[at..end];
             Assert.True(body.Contains("NameScopeOf(", StringComparison.Ordinal)
-                    || body.Contains("TryDeclareType(item, item.CobolName, ScopeOf(", StringComparison.Ordinal),
-                $"{funnel} no longer asks which source element owns the item (NameScopeOf / TryDeclareType(…, ScopeOf(…))).");
+                    || body.Contains("DeclareType(item, item.CobolName, ScopeOf(", StringComparison.Ordinal),
+                $"{funnel} no longer asks which source element owns the item (NameScopeOf / SymbolTable.DeclareType(…, ScopeOf(…))).");
         }
-        Assert.False(Regex.IsMatch(text, @"(?<![\w])TypeDecls\.TryAdd\("),
-            "a type-name is added to a table directly instead of through ForestSlice.TryDeclareType(…, ScopeOf(…)).");
+        // The type-names are the symbol table's (listing step 6b, kb/Work PB5932): a declaration joins a forest or a method directly,
+        // past the table's DeclareType, only as a bypass.
+        Assert.False(Regex.IsMatch(text, @"\.AddTypeDeclaration\("),
+            "a type declaration is added to a forest or a method directly instead of through SymbolTable.DeclareType(…, ScopeOf(…)).");
     }
 
     [Fact]

@@ -89,11 +89,12 @@ object constant-name, at reference time (`OoDataBinder.ActiveMethodDeclares`; kb
 members excepted, §2023:13.18.58.4 GR1; binder working state, kept per method by the class half's `SymbolTable` and never on the model scope, kb/Work PB2402); `GlobalNameClassDriftTests.MethodDeclares_AsksEveryMethodNameIndex` finds the scope's indexes by reflection and holds both halves to it (a method's `01 X CONSTANT AS 7` that the predicate missed let `IF X` test the object's level-88 `X`, kb/Work PB3153 review round 3), so an
 index added to the scope is asked too (kb/Work PB3165: when a method's registers moved into the method's own scope, a hand-written list
 kept asking the class's register index and the method's register stopped hiding the symbolic). Every `SymbolTable` lookup with a
-method tier asks the same predicate after its own name class's method index: `TryResolve`, `TryResolveCondition`, `IndexCandidates`
-and `CapacityCandidates` each answer from the method when it declares the spelling in their class, and report "not found here" when
+method tier asks the same predicate after its own name class's method index: `TryResolve`, `TryResolveCondition`, `IndexCandidates`,
+`CapacityRegisterNamed` and `TypeDeclarationNamed` each answer from the method when it declares the spelling in their class, and report "not found here" when
 it declares it in another, so a method's word hides the object's declaration of it whatever either's class (§2023:11.7.4 GR5, §2023:8.4.6.1;
 kb/Work PB3165 review R2-1). `GlobalNameClassDriftTests.EverySymbolTableMethodTier_AsksTheMethodsWholeDeclaration` holds every
-method-tiered member of `SymbolTable` to it.
+method-tiered member of `SymbolTable`, in every file of it, to it; a method's own index-names, CAPACITY registers and type-names are
+`SymbolTable.MethodNames`, whose `Declares` the predicate asks.
 A method's names join the METHOD's scope as they are declared, never the class's (kb/Work PB3192): each record or type
 declaration a method's entry opens is the method's from that moment (`OoDataBinder.RootOwner`, written in `BindEntries`), and
 every registration — a data-name, its index-names, a condition-name, a type-name — asks `DataBinder.NameScopeOf` (the owner of
@@ -101,7 +102,7 @@ the item's root) at the entry's bind and at a post-build TYPE / SAME AS copy ali
 (a constant's `LENGTH OF` operand, a TYPE clause's type-name, a SAME AS operand) is answered from the method first, exactly as
 one its statements make: `DataBinder.ActiveScope` reads `CurrentMethodScope` (the statements' method, else the method whose data
 binds), and the post-build passes read `ScopeOf` of the entry's root. A method's type-name is a local name (§2023:8.4.6.2.2;
-§2023:13.18.27.3 SR4 bars GLOBAL there) found by `TryFindTypeDecl(name, scope)` before its object's, and `AllTypeDecls` walks every
+§2023:13.18.27.3 SR4 bars GLOBAL there) found by `SymbolTable.TypeDeclarationNamed` before its object's, and `AllTypeDecls` walks every
 element's declarations for the whole-forest passes. The names used to join the class's maps and move after the method bound, so
 the method's own data division resolved against the object's names and a later TYPE copy's members leaked to sibling methods.
 

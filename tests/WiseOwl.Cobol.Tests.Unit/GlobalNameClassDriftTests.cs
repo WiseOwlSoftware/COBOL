@@ -32,25 +32,25 @@ public sealed class GlobalNameClassDriftTests
     /// <summary>A member of <c>SymbolTable.Declarations</c>, a nested class, ends at this indent.</summary>
     private const string Nested = "        ";
 
-    /// <summary>Name index → the text <c>ForestSlice.Inherit</c> (which <c>DataBinder.InheritGlobalSubtree</c> calls for every
-    /// item of a GLOBAL subtree) reaches it by.</summary>
+    /// <summary>Name index → the text <c>SymbolTable.InheritGlobalItem</c> or the <c>ForestSlice.Inherit</c> it calls (which
+    /// <c>DataBinder.InheritGlobalSubtree</c> calls for every item of a GLOBAL subtree) reaches it by.</summary>
     private static readonly Dictionary<string, string> Inherited = new()
     {
         ["ForestSlice._byName"] = "_byName",                    // data-names and RENAMES (§2023:8.4.6.2.2)
         ["ForestSlice._conditions"] = "_conditions",            // condition-names (§2023:8.4.6.2.2)
-        ["ForestSlice.IndexNames"] = "IndexNames.Inherit(",     // index-names (§2023:8.4.6.2.3)
-        ["ForestSlice._capacityRegisters"] = "AddCapacityRegister(",   // CAPACITY registers (§2023:13.18.38.3 SR30, PB1674)
+        ["SymbolTable._indexNames"] = "_indexNames.Add(",       // index-names (§2023:8.4.6.2.3)
+        ["SymbolTable._capacityRegisters"] = "DeclareCapacityRegister(",   // CAPACITY registers (§2023:13.18.38.3 SR30, PB1674)
     };
 
     /// <summary>Name indexes that are NOT names a GLOBAL data description entry hands to a contained program.</summary>
     private static readonly Dictionary<string, string> NotPerEntryGlobalNames = new()
     {
-        ["ForestSlice._typeDecls"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§2023:13.18.58.4 GR3; kb/Work PB1303), "
+        ["SymbolTable._ownTypeNames"] = "a type-name is inherited BEFORE Bind by InheritStep.Seed (§2023:13.18.58.4 GR3; kb/Work PB1303), "
             + "and a template's subordinate names are kept off the name index",
-        ["InheritedGlobals._typeDecls"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
-        ["ClauseFacts.LapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §2023:8.4.2.2.1 "
-            + "rule 4 and never resolve (kb/Work PB1476) — a derived view of TypeDecls, declaring no name of its own",
-        ["ImplicitRegisters._debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
+        ["SymbolTable._inheritedTypeNames"] = "the inherited half of the type-name index itself (InheritStep.Seed; kb/Work PB2296)",
+        ["SymbolTable._lapsedTypeMembers"] = "the members of THIS element's referenced type declarations, which COUNT for §2023:8.4.2.2.1 "
+            + "rule 4 and never resolve (kb/Work PB1476) — a derived view of the type declarations, declaring no name of its own",
+        ["SymbolTable._debugRegisters"] = "the X3.23-1985 DEBUG-ITEM special register of the element's own debugging declaratives, "
             + "never declared by a data description entry",
         ["SymbolTable._ownConstants"] = "a constant entry occupies no storage, so a GLOBAL constant is inherited BEFORE Bind by "
             + "InheritStep.Seed (SymbolTable.InheritConstants; §2023:13.18.27.4 GR1-GR2; kb/Work PB1009), not bridged by InheritGlobalSubtree",
@@ -76,6 +76,12 @@ public sealed class GlobalNameClassDriftTests
         typeof(SymbolTable).GetNestedType("ConstantNames", BindingFlags.NonPublic)
         ?? throw new InvalidOperationException("SymbolTable declares no nested ConstantNames: the registry was renamed or moved");
 
+    /// <summary>The symbol table's index-name namespace of one scope (listing step 6b, kb/Work PB5932): a registry type that is itself
+    /// a name index.</summary>
+    private static readonly Type IndexNameTable =
+        typeof(SymbolTable).GetNestedType("IndexNameTable", BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("SymbolTable declares no nested IndexNameTable: the index-name namespace was renamed or moved");
+
     private static IEnumerable<string> NameIndexFields(Type owner)
     {
         foreach (var f in owner.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
@@ -83,7 +89,7 @@ public sealed class GlobalNameClassDriftTests
             // A registry type that is itself a name index: the index-names, and an element's constant entries (a
             // constant-name is a user-defined word its element declares, so it hides a same-spelled word of a
             // containing element; kb/Work PB3164, PB3153 review round 3).
-            if (f.FieldType == typeof(IndexNameRegistry) || f.FieldType == ConstantScope)
+            if (f.FieldType == IndexNameTable || f.FieldType == ConstantScope)
             {
                 yield return MemberName(f);
                 continue;
@@ -127,15 +133,21 @@ public sealed class GlobalNameClassDriftTests
         var walk = Regex.Match(binder, @"private void InheritGlobalSubtree\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
         Assert.True(walk.Success, "InheritGlobalSubtree not found in DataBinder.cs");
-        Assert.True(walk.Groups["body"].Value.Contains("State.Forest.Inherit(item, depth)", StringComparison.Ordinal),
-            "InheritGlobalSubtree no longer hands each item of the subtree to ForestSlice.Inherit.");
+        Assert.True(walk.Groups["body"].Value.Contains("Symbols.InheritGlobalItem(item, depth)", StringComparison.Ordinal),
+            "InheritGlobalSubtree no longer hands each item of the subtree to SymbolTable.InheritGlobalItem.");
+        string table = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.cs"));
+        var item = Regex.Match(table, @"internal void InheritGlobalItem\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
+            RegexOptions.Singleline);
+        Assert.True(item.Success, "InheritGlobalItem not found in SymbolTable.cs");
+        Assert.True(item.Groups["body"].Value.Contains("_data.State.Forest.Inherit(item, depth)", StringComparison.Ordinal),
+            "SymbolTable.InheritGlobalItem no longer hands the item to ForestSlice.Inherit.");
         string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Model", "ForestSlice.cs"));
         var m = Regex.Match(text, @"internal void Inherit\(DataItem item, int depth\)\s*\{(?<body>.*?)\n    \}",
             RegexOptions.Singleline);
         Assert.True(m.Success, "Inherit not found in ForestSlice.cs");
         foreach (var (index, reach) in Inherited)
-            Assert.True(m.Groups["body"].Value.Contains(reach, StringComparison.Ordinal),
-                $"ForestSlice.Inherit no longer reaches the name index '{index}' (expected '{reach}').");
+            Assert.True(item.Groups["body"].Value.Contains(reach, StringComparison.Ordinal) || m.Groups["body"].Value.Contains(reach, StringComparison.Ordinal),
+                $"SymbolTable.InheritGlobalItem and ForestSlice.Inherit no longer reach the name index '{index}' (expected '{reach}').");
     }
 
     /// <summary>Inherited name index → the text <c>DataBinder.DeclaredNearerThan</c> asks it by.</summary>
@@ -143,8 +155,8 @@ public sealed class GlobalNameClassDriftTests
     {
         ["ForestSlice._byName"] = "Forest.ByName.TryGetValue(",
         ["ForestSlice._conditions"] = "Forest.Conditions.TryGetValue(",
-        ["ForestSlice.IndexNames"] = "Forest.IndexNames.Declares(",
-        ["ForestSlice._capacityRegisters"] = "Forest.CapacityRegistersSoFar.TryGetValue(",
+        ["SymbolTable._indexNames"] = "_table.IndexNameDeclaredNearerThan(",
+        ["SymbolTable._capacityRegisters"] = "_table.CapacityRegisterDeclaredNearerThan(",
     };
 
     /// <summary>⛔ THE SAME LIST DECIDES SHADOWING (kb/Work PB3154 review R2-1). An inherited constant-name or
@@ -177,21 +189,27 @@ public sealed class GlobalNameClassDriftTests
     {
         ["ByName"] = "ByName.ContainsKey(",
         ["Conditions"] = "Conditions.ContainsKey(",
-        ["IndexNames"] = "IndexNames.Declares(",
-        ["CapacityRegisters"] = "CapacityRegisters.ContainsKey(",
-        ["TypeDecls"] = "TypeDecls.ContainsKey(",              // a method's type-names are its own (kb/Work PB3192)
+    };
+
+    /// <summary>A METHOD's name table the SYMBOL TABLE holds (<c>SymbolTable.MethodNames</c>, listing step 6b, kb/Work PB5932) → the
+    /// text <c>MethodNames.Declares</c> asks it by.</summary>
+    private static readonly Dictionary<string, string> AskedByMethodNames = new()
+    {
+        ["TypeNames"] = "TypeNames.ContainsKey(",              // a method's type-names are its own (kb/Work PB3192)
+        ["CapacityRegisters"] = "CapacityRegisters.ContainsKey(",   // a method's CAPACITY registers are its own (kb/Work PB3165)
+        ["IndexNames"] = "IndexNames.Declares(",                     // a method's index-names are its own (§2023:11.7.4 GR5)
     };
 
     /// <summary>The method's words the BINDER keeps (kb/Work PB2402: binder working state, never on the model scope) → the
     /// text <c>SymbolTable.MethodDeclaresWord</c> asks them by: its constant entries (kb/Work PB3164) and the words its
     /// data division defines before any entry binds (kb/Work PB3192).</summary>
-    private static readonly string[] AskedByMethodConstants = ["Declared.ContainsKey(", "OtherWords.Contains("];
+    private static readonly string[] AskedByMethodConstants = ["tables.Declares(key)", "Declared.ContainsKey(", "OtherWords.Contains("];
 
     /// <summary>⛔ THE METHOD TIER ASKS EVERY NAME INDEX OF THE METHOD (the kb/Work PB3165 merge-queue bounce). A method
     /// is a source element of its own (§2023:10.5), its names the NEAREST tier a reference in it can reach, so a method's
     /// declaration of a spelling in ANY name class hides the class's constant-name or symbolic-character of it
     /// (§2023:8.4.6.1, §2023:8.4.6.2.1 3) a)). When PB3165 moved a method's CAPACITY registers out of the binder's index into
-    /// <see cref="OoMethodDataScope.CapacityRegisters"/>, the binder's hand-written method predicate kept asking the
+    /// the method's own register index (since listing step 6b <c>SymbolTable.MethodNames</c>), the binder's hand-written method predicate kept asking the
     /// old index, and <c>conformance-suite/cases/_unassigned/pb3154_half_capacity_register_hides_symbolic.cob</c> displayed the
     /// figurative <c>CCC</c> for the method's own register. The model scope's name indexes are found by REFLECTION, so an
     /// index added to the scope must be asked by <c>OoMethodDataScope.IndexesDeclare</c> too; the binder's half
@@ -209,6 +227,16 @@ public sealed class GlobalNameClassDriftTests
         foreach (var (index, ask) in AskedByMethodShadowing)
             Assert.True(m.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
                 $"OoMethodDataScope.IndexesDeclare no longer asks the method's name index '{index}' (expected '{ask}').");
+
+        var methodNames = typeof(SymbolTable).GetNestedType("MethodNames", BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("SymbolTable declares no nested MethodNames: the method's tables were renamed or moved");
+        Assert.Equal(AskedByMethodNames.Keys.Order(StringComparer.Ordinal), NameIndexFields(methodNames).Order(StringComparer.Ordinal));
+        string tables = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.MethodNames.cs"));
+        var t = Regex.Match(tables, @"public bool Declares\(CobolName word\)\s*\{(?<body>.*?)\n        \}", RegexOptions.Singleline);
+        Assert.True(t.Success, "SymbolTable.MethodNames.Declares not found in SymbolTable.MethodNames.cs");
+        foreach (var (index, ask) in AskedByMethodNames)
+            Assert.True(t.Groups["body"].Value.Contains(ask, StringComparison.Ordinal),
+                $"SymbolTable.MethodNames.Declares no longer asks the method's name table '{index}' (expected '{ask}').");
 
         string constants = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Constants.cs"));
         var c = Regex.Match(constants, @"internal bool MethodDeclaresWord\(OoMethodDataScope method, string word\) =>(?<body>.*?);",
@@ -234,22 +262,24 @@ public sealed class GlobalNameClassDriftTests
     /// but <c>IndexCandidates</c>, <c>TryResolve</c> and <c>TryResolveCondition</c> each asked only their own class's
     /// method index and then fell through to the object's: a method CAPACITY register spelled like an object
     /// index-name was refused as an index in COMPUTE, and a method condition-name let <c>MOVE X</c> read the object's
-    /// data-name <c>X</c>. Every <see cref="SymbolTable"/> member whose body opens a method tier
-    /// (<c>scope.Method is { } m</c>) must ask <c>_data.MethodDeclares(m, name)</c> (<c>DataBinder.MethodDeclares</c>) before
+    /// data-name <c>X</c>. Every <see cref="SymbolTable"/> member, in every file of the table, whose body opens a method tier
+    /// (<c>if (scope.Method is { } m)</c>) must ask <c>_data.MethodDeclares(m, ...)</c> (<c>DataBinder.MethodDeclares</c>) before
     /// it reaches the unit's maps. The
     /// behavioural half is <c>conformance-suite/cases/_unassigned/pb3165_method_capacity_register_scope.cob</c> (SHOWF) and the
     /// three <c>negative/pb3165-method-*-hides-object-*</c> cases.</summary>
     [Fact]
     public void EverySymbolTableMethodTier_AsksTheMethodsWholeDeclaration()
     {
-        string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.cs"));
-        var members = Regex.Matches(text, @"^    public [^\r\n]*?\b(?<name>\w+)(?:<\w+>)?\((?<rest>.*?)(?=^    public |\z)",
-            RegexOptions.Multiline | RegexOptions.Singleline);
-        var tiered = members.Where(m => m.Groups["rest"].Value.Contains("scope.Method is { } m", StringComparison.Ordinal))
+        // Every file of the one store (the lookups moved into its partial files class by class, listing step 6b, kb/Work PB5932).
+        var tiered = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable"), "SymbolTable*.cs")
+            .SelectMany(f => Regex.Matches(File.ReadAllText(f),
+                @"^    (?:public|internal|private) [^\r\n]*?\b(?<name>\w+)(?:<\w+>)?\((?<rest>.*?)(?=^    (?:public|internal|private) |\z)",
+                RegexOptions.Multiline | RegexOptions.Singleline))
+            .Where(m => m.Groups["rest"].Value.Contains("if (scope.Method is { } m)", StringComparison.Ordinal))
             .ToList();
-        Assert.True(tiered.Count >= 4, $"expected the four method-tiered lookups in SymbolTable.cs, found {tiered.Count}");
+        Assert.True(tiered.Count >= 5, $"expected the five method-tiered lookups of SymbolTable, found {tiered.Count}");
         foreach (var m in tiered)
-            Assert.True(Regex.IsMatch(m.Groups["rest"].Value, @"\b_data\.MethodDeclares\(m, name\)"),
+            Assert.True(Regex.IsMatch(m.Groups["rest"].Value, @"\b_data\.MethodDeclares\(m, (?:name|key\.Word)\)"),
                 $"SymbolTable.{m.Groups["name"].Value} opens a method tier but never asks _data.MethodDeclares(m, name): a "
                 + "method-local name of the spelling in another name class would not hide the object's (ISO §2023:11.7.4 GR5).");
     }
@@ -295,7 +325,8 @@ public sealed class GlobalNameClassDriftTests
         Assert.True(either.Success && either.Value.Contains("NearerDataNameHides(", StringComparison.Ordinal)
                     && either.Value.Contains("NearerConditionNameHides(", StringComparison.Ordinal),
             "NearerDataOrConditionNameHides no longer asks both NearerDataNameHides and NearerConditionNameHides.");
-        AssertBodyAsks(table, @"public NameCandidates<IndexDeclaration>\? IndexCandidates\(", "NearerDataOrConditionNameHides(");
+        string indexNames = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.IndexNames.cs"));
+        AssertBodyAsks(indexNames, @"private NameCandidates<IndexDeclaration>\? IndexCandidates\(", "NearerDataOrConditionNameHides(");
         string resolver = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "ReferenceResolver.cs"));
         AssertBodyAsks(resolver, @"internal CapacityRef\? CapacityRegisterFor\(", "NearerDataOrConditionNameHides(");
         // ... and the non-data declarations of one spelling are RANKED by depth (SymbolTable.Declarations.OtherThanData), never returned from

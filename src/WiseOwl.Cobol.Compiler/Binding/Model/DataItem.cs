@@ -311,7 +311,7 @@ public sealed class DataItem
     public DataItem? ValueCopiedFrom { get; set; }
 
     /// <summary>True when this entry carries a TYPEDEF clause — it is a TYPE DECLARATION (a named template; ISO
-    /// §2023:13.18.58, data-model D17), allocating NO storage. Registered in <c>ForestSlice.TypeDecls</c>, kept OFF
+    /// §2023:13.18.58, data-model D17), allocating NO storage. Declared through <c>SymbolTable.DeclareType</c> into <c>ForestSlice.TypeDeclarations</c>, kept OFF
     /// <c>Roots</c>/<c>ByName</c>; its subordinate names are not globally referenceable (GR1).</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "ISO §2023:13.18.57.4 GR1 excludes the TYPEDEF clause by name, and §2023:13.18.58.3 SR1 confines it to level 1 so no subordinate carries it")]
@@ -333,7 +333,7 @@ public sealed class DataItem
     public bool DeclaresStrongType => IsTypedef && (TypedefStrong || StrongType);
 
     /// <summary>True once any TYPE clause in the source unit — on a storage item or on a member of another type
-    /// declaration — references this TYPE DECLARATION: the antecedent of ISO §2023:8.4.2.2.1 rule 4's exemption ("Any
+    /// declaration — references this TYPE DECLARATION: the antecedent of ISO §2023:8.4.2.2.1 SR4's exemption ("Any
     /// other definition of the name is subordinate to a type declaration entry for which the type-name is not
     /// referenced in any TYPE clause in the source unit"). Written by <c>DataBinder.ExpandType</c>, which every TYPE
     /// clause passes through (kb/Work PB1476).</summary>
@@ -343,14 +343,14 @@ public sealed class DataItem
 
     /// <summary>The entry a TYPE / SAME AS copy reproduced this subordinate from (<c>DataBinder.CloneItem</c>, and
     /// <c>DataBinder.CloneRenamesOnto</c> for a level-66 entry of the type), or null for a written entry. Followed to its end it names the WRITTEN definition the copy stands for — the
-    /// identity ISO §2023:8.4.2.2.1 rule 4 asks about ("any other definition of the name"), so a reference to the one
+    /// identity ISO §2023:8.4.2.2.1 SR4 asks about ("any other definition of the name"), so a reference to the one
     /// copy of a type member is not made ambiguous by the member's own declaration (kb/Work PB1476).</summary>
     [DescriptionCopy(DescriptionCopyKind.None, "the copy's provenance — identity, written by CloneItem itself")]
     public DataItem? ClonedFrom { get; set; }
 
     /// <summary>The WRITTEN entry this item stands for: <see cref="ClonedFrom"/> followed to its end, or the item itself
     /// when it is no copy. Two TYPE / SAME AS expansions of one written entry share it — one definition reproduced
-    /// twice, never two definitions (ISO §2023:8.4.2.2.1 rule 4; kb/Work PB2988).</summary>
+    /// twice, never two definitions (ISO §2023:8.4.2.2.1 SR4; kb/Work PB2988).</summary>
     public DataItem WrittenDefinition
     {
         get
@@ -501,7 +501,7 @@ public sealed class DataItem
     public string? TypeRefName { get; set; }
 
     /// <summary>The type-name the entry's OWN TYPE clause wrote (ISO §2023:13.18.57), or null — the source fact, which
-    /// expansion never clears (<see cref="TypeRefName"/> is the pending-expansion mark it clears). §2023:8.4.2.2.1 rule 4's
+    /// expansion never clears (<see cref="TypeRefName"/> is the pending-expansion mark it clears). §2023:8.4.2.2.1 SR4's
     /// "type declaration … not referenced in any TYPE clause" asks it, so the answer does not depend on whether a
     /// constant's length phrase expanded the entry ahead of the pipeline (<c>DataBinder.CompleteDescriptionAhead</c>,
     /// kb/Work PB2465).</summary>
@@ -530,7 +530,7 @@ public sealed class DataItem
     public string? TypeName { get; set; }
 
     /// <summary>After <c>ExpandTypes</c>: the type declaration <see cref="TypeName"/> names, as the binder's ONE type-name
-    /// lookup resolved it where the TYPE clause was written (<c>DataBinder.TryFindTypeDecl</c>: a method's own declaration
+    /// lookup resolved it where the TYPE clause was written (<c>SymbolTable.TypeDeclarationOf</c>: a method's own declaration
     /// first, ISO §2023:11.7.4 GR5; a containing program's GLOBAL one, §2023:13.18.58.4 GR3). A consumer that needs the declaration
     /// itself — the repository record's "type declarations required for the description of parameters and returning items"
     /// (ISO §2023:8.13; <c>RepositoryCodec</c>) — reads this resolution, never a second lookup by name in a scope it may not

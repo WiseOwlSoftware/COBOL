@@ -726,6 +726,7 @@ too; the other two branch runs stand above this parent pair, NC105A's by 0.59 MB
 run-to-run spread these programs show on one tree (the slice's own two NC105A runs are 0.63 MB apart, and slice 6's parent measured NC218A at 31.56 and 30.99 MB, 0.57 MB apart), and none of
 the four programs declares a function, so the only new work on their path is two empty tables per element. Slice 7 moves no allocation
 this measurement can tell from its noise; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
+
 **Step 6b, the OO lane (kb/Work PB5932, the object-class-names and interface-names resolved by the symbol table's compilation-group
 tier, the method rosters keyed by the externalized method name, the PROPERTY specifiers): the `None` row against the parent.** The lane
 changes how every class-name, interface-name and method roster is declared and looked up (a lookup keyed by `CobolName` or
@@ -747,6 +748,33 @@ Every branch `None` row lies inside the parent's two runs or within 0.09 MB of t
 measurable allocation; the `None` budget holds. None of the four programs declares a class, so the OO tables are empty in every row:
 the rows measure what the lane adds to a compilation with no OO (one empty tier per class table, the per-element PROPERTY table).
 Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, data-name lane, first slice (kb/Work PB5932, the DEBUG-ITEM register names, the type-names, the CAPACITY register names and
+the index-names resolved by `SymbolTable.Identify`): the `None` row against the parent.** The lane changes the lookup every data
+reference makes first (the register arms) and every subscript name's index-name lookup, so it measures the no-listing path. Measured on
+2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FrontEndAndBind*'` on the parent `84097a3e22` and the `listing-step-6b-data` branch, alternating (parent, branch
+3ee68ed1ff, branch, parent), then twice more on the branch after the fix below (09c8c66fb2). Review round 1 measured the last build
+against the branch's merge base with main (`0da7bc9f6e`, slice 7 landed), alternating (branch, main, branch, main). Allocated bytes per
+front end and bind:
+
+| Program | Listing | Parent 84097a3e22 | Branch, first build | Branch, 09c8c66fb2 | Main 0da7bc9f6e | Branch, review round 1 |
+|---|---|---|---|---|---|---|
+| IX113A | None | 68.98, 68.98 MB | 69.53, 69.65 MB | 69.24, 69.12 MB | 69.09, 69.06 MB | 68.46, 68.40 MB |
+| NC105A | None | 35.00, 35.02 MB | 35.62, 35.31 MB | 35.23, 35.19 MB | 35.01, 34.99 MB | 34.61, 34.62 MB |
+| NC218A | None | 31.54, 30.94 MB | 31.63, 31.86 MB | 31.08, 31.68 MB | 30.96, 30.96 MB | 30.61, 31.01 MB |
+| SM201A | None | 15.69, 15.36 MB | 15.29, 15.45 MB | 15.20, 15.44 MB | 15.42, 15.22 MB | 15.29, 15.25 MB |
+| IX113A | Text | 76.83, 76.89 MB | 77.41, 77.39 MB | 76.99, 77.05 MB | 76.86, 76.89 MB | 76.24, 76.15 MB |
+
+The first build allocated more on IX113A in both runs (+0.6 MB over two identical parent runs). Two causes, both fixed: the DEBUG-ITEM
+arm read every data reference's suffix list (an array) before asking whether any debug register exists, which the name lookup had
+short-circuited; and `WrittenQualifiedName.Of` built a qualifier list through LINQ for every subscript name. After that fix IX113A was
+still 0.14 to 0.26 MB above its parent, which section 9 of DESIGN-listing.md does not allow, and review round 1 found three more
+causes: an index-name ask answered an `IdentifiedName` around its boxed candidate set (it now answers the typed set,
+`SymbolTable.IdentifyIndexName`); `WrittenQualifiedName` read its words off the tokens at each use (a token's text is a new string at
+each read; it now reads each once, when it is made, and allocates no list for an unqualified name); and the CAPACITY register arm,
+which every data reference asks first, read the word's text before asking the table (it now asks first). With them the `None` rows lie
+below main's on IX113A (0.6 MB), NC105A (0.4 MB) and SM201A, and NC218A straddles it. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

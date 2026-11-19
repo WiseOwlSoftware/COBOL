@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using WiseOwl.Cobol.Runtime;
-
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>⛔ ONE INDEX-NAME DECLARATION — the identity an index-name reference resolves to (kb/Work PB919).
@@ -26,67 +24,5 @@ public sealed record IndexDeclaration(string Name, DataItem Table, string Cell)
     {
         foreach (var d in root.Indexes) yield return d;
         foreach (var c in root.Children) foreach (var d in Under(c)) yield return d;
-    }
-}
-
-/// <summary>⛔ THE INDEX-NAME NAMESPACE OF ONE SCOPE (a unit, or a method's §2023:11.7.4 GR5 overlay) — every
-/// declaration VISIBLE there, each tagged with the nesting distance of the source element that declares it
-/// (0 = this one; n = the n-th containing program, whose GLOBAL tables §2023:8.4.6.2.3 makes visible: "the scope of an
-/// index-name is identical to that of the data-name that names the table"). <see cref="Own"/> is what this scope
-/// must EMIT; an inherited declaration's cell is reached through the container's bridge.</summary>
-public sealed class IndexNameRegistry
-{
-    private readonly Dictionary<string, List<(IndexDeclaration Decl, int Depth)>> _byName =
-        new(CobolNames.Comparer);
-    private readonly List<IndexDeclaration> _own = [];
-
-    /// <summary>The declarations this scope itself makes, in declaration order — the cells it emits.</summary>
-    public IReadOnlyList<IndexDeclaration> Own => _own;
-
-    /// <summary>Record a declaration made by this scope's own data division.</summary>
-    public void Declare(IndexDeclaration decl)
-    {
-        _own.Add(decl);
-        Add(decl, 0);
-    }
-
-    /// <summary>Record a GLOBAL declaration of a containing source element <paramref name="depth"/> levels out.</summary>
-    public void Inherit(IndexDeclaration decl, int depth) => Add(decl, depth);
-
-    private void Add(IndexDeclaration decl, int depth)
-    {
-        if (!_byName.TryGetValue(decl.Name, out var list)) _byName[decl.Name] = list = [];
-        list.Add((decl, depth));
-    }
-
-    /// <summary>True when some visible declaration carries the spelling — the reference IS an index-name reference
-    /// (qualified correctly or not), never a data-name one.</summary>
-    public bool Declares(string name) => _byName.ContainsKey(name);
-
-    /// <summary>The §2023:8.4.2.2 candidate set of a written index-name reference: the visible declarations of
-    /// <paramref name="name"/> that <paramref name="qualifies"/> admits, then ISO §2023:8.4.6.2.1's rule for a name
-    /// duplicated across nested source elements — "3) If more than one item is identified, no more than one of them
-    /// may have a name local to source element B … a) If the name is declared in source element B, the item in
-    /// source element B is the referenced item", else the nearest containing element that declares it (3 b). So the
-    /// survivors at the NEAREST depth are the set; two there are still ambiguous.</summary>
-    public NameCandidates<IndexDeclaration> Candidates(string name, Func<IndexDeclaration, bool> qualifies) =>
-        Candidates(name, qualifies, out _);
-
-    /// <summary><see cref="Candidates(string, Func{IndexDeclaration, bool})"/>, also reporting the nesting distance of
-    /// the source element the survivors belong to (<see cref="int.MaxValue"/> when none survive) — what
-    /// <see cref="SymbolTable.IndexCandidates"/> weighs against a same-spelled DATA-name's (kb/Work PB1047).</summary>
-    public NameCandidates<IndexDeclaration> Candidates(string name, Func<IndexDeclaration, bool> qualifies,
-                                                       out int nearestDepth)
-    {
-        nearestDepth = int.MaxValue;
-        if (!_byName.TryGetValue(name, out var list)) return new([]);
-        int nearest = int.MaxValue;
-        foreach (var (d, depth) in list)
-            if (depth < nearest && qualifies(d)) nearest = depth;
-        List<IndexDeclaration> hits = [];
-        foreach (var (d, depth) in list)
-            if (depth == nearest && qualifies(d)) hits.Add(d);
-        nearestDepth = nearest;
-        return new(hits);
     }
 }

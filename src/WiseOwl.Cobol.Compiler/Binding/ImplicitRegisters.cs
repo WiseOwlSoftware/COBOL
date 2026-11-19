@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -16,14 +15,16 @@ namespace WiseOwl.Cobol.Binding;
 /// </summary>
 public sealed class ImplicitRegisters
 {
-    private readonly Dictionary<string, (DataItem, DebugRegisterMember)> _debugRegisters = new(CobolNames.Comparer);
+    private readonly List<(DataItem Item, DebugRegisterMember Member)> _debugRegisters = [];
 
     /// <summary>The X3.23-1985 <c>DEBUG-ITEM</c> special register and its members (DEBUG-LINE / DEBUG-NAME / DEBUG-SUB-1/2/3 /
-    /// DEBUG-CONTENTS), keyed by COBOL name (case-insensitive) → the synthesized alphanumeric <see cref="DataItem"/> VIEW + its
-    /// read-only runtime read expression. The register is IMPLICITLY described (no DATA DIVISION entry, §ISO absent — 1985 debug
-    /// module, VCR Table 7 row 7.17). Populated by <see cref="ActivateDebugRegisters"/> when a procedure-subject debugging
-    /// declarative is collected under WITH DEBUGGING MODE (empty otherwise — a non-debug program's resolution is unchanged).</summary>
-    public IReadOnlyDictionary<string, (DataItem Item, DebugRegisterMember Member)> DebugRegisters => _debugRegisters;
+    /// DEBUG-CONTENTS), each the synthesized <see cref="DataItem"/> VIEW and the member it reads, the members in the order of the
+    /// implicit description and the group last. The register is IMPLICITLY described (no DATA DIVISION entry, §ISO absent — 1985
+    /// debug module, VCR Table 7 row 7.17). Populated by <see cref="ActivateDebugRegisters"/> when a procedure-subject debugging
+    /// declarative is collected under WITH DEBUGGING MODE (empty otherwise — a non-debug program's resolution is unchanged). Its
+    /// names are the symbol table's (<c>SymbolTable.ActivateDebugRegisters</c> keys them; docs/rearchitecture/DESIGN-listing.md
+    /// section 6.7.1): no table here is keyed by a name.</summary>
+    public IReadOnlyList<(DataItem Item, DebugRegisterMember Member)> DebugRegisters => _debugRegisters;
 
     /// <summary>The implicit description of the predefined object reference <c>EXCEPTION-OBJECT</c> (ISO §2023:8.4.3.6.3 SR2 —
     /// "EXCEPTION-OBJECT is implicitly described as class object and category object reference, as an external data item, and as
@@ -63,7 +64,7 @@ public sealed class ImplicitRegisters
     /// COMPUTE or DISPLAY sees the value, and a MOVE to an alphanumeric item drops the separate sign (§2023:14.9.25.4 GR6; CCVS DB201A
     /// moves it to X(5) and compares <c>"0005"</c>). <paramref name="takeUid"/> is the binder's unique-id counter
     /// (<c>DataBinder.TakeUid</c>).</summary>
-    internal void ActivateDebugRegisters(Func<int> takeUid, int contentsWidth = Runtime.DebugItem.MinContentsWidth)
+    internal void ActivateDebugRegisters(Func<int> takeUid, int contentsWidth)
     {
         contentsWidth = Math.Max(contentsWidth, Runtime.DebugItem.MinContentsWidth);
         if (_debugRegisters.Count > 0 && contentsWidth <= DebugContentsWidth) return;
@@ -77,15 +78,17 @@ public sealed class ImplicitRegisters
             Uid = takeUid(),
         };
         // A re-activation keeps a member that did not change (its unique id is its identity) and replaces the widened ones.
-        DataItem Member(string name, PicInfo pic) =>
-            _debugRegisters.TryGetValue(name, out var held) && held.Item1.Pic == pic ? held.Item1 : NewItem(name, pic);
+        DataItem Member(string name, DebugRegisterMember member, PicInfo pic) =>
+            _debugRegisters.FindIndex(r => r.Member == member) is >= 0 and var at && _debugRegisters[at].Item.Pic == pic
+                ? _debugRegisters[at].Item
+                : NewItem(name, pic);
         static PicInfo Alnum(int width) => new(PicCategory.Alphanumeric, Usage.Display, Length: width, Digits: 0, Scale: 0, Signed: false);
         // General rule 10: DEBUG-SUB-n is PICTURE S9999 SIGN IS LEADING SEPARATE — a separate leading sign and four digits, five characters.
         var sub = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 4, Digits: 4, Scale: 0, Signed: true)
         { SignKind = PicInfo.SignKindFor(Usage.Display, signed: true, new SignSpec(Leading: true, Separate: true)) };
-        DataItem SubMember(string name)
+        DataItem SubMember(string name, DebugRegisterMember member)
         {
-            var item = Member(name, sub);
+            var item = Member(name, member, sub);
             item.Storage = new StorageForm.CharImage(item.ImageWidth, PicCategory.Numeric);
             return item;
         }
@@ -100,21 +103,22 @@ public sealed class ImplicitRegisters
         // The implicit description, in order (general rule 10): each member, then the single-space FILLER that follows it.
         (DataItem Item, DebugRegisterMember Member)[] members =
         [
-            (Member("DEBUG-LINE", Alnum(Runtime.DebugItem.LineWidth)), DebugRegisterMember.Line),
-            (Member("DEBUG-NAME", Alnum(Runtime.DebugItem.NameWidth)), DebugRegisterMember.Name),
-            (SubMember("DEBUG-SUB-1"), DebugRegisterMember.Sub1),
-            (SubMember("DEBUG-SUB-2"), DebugRegisterMember.Sub2),
-            (SubMember("DEBUG-SUB-3"), DebugRegisterMember.Sub3),
-            (Member("DEBUG-CONTENTS", Alnum(contentsWidth)), DebugRegisterMember.Contents),
+            (Member("DEBUG-LINE", DebugRegisterMember.Line, Alnum(Runtime.DebugItem.LineWidth)), DebugRegisterMember.Line),
+            (Member("DEBUG-NAME", DebugRegisterMember.Name, Alnum(Runtime.DebugItem.NameWidth)), DebugRegisterMember.Name),
+            (SubMember("DEBUG-SUB-1", DebugRegisterMember.Sub1), DebugRegisterMember.Sub1),
+            (SubMember("DEBUG-SUB-2", DebugRegisterMember.Sub2), DebugRegisterMember.Sub2),
+            (SubMember("DEBUG-SUB-3", DebugRegisterMember.Sub3), DebugRegisterMember.Sub3),
+            (Member("DEBUG-CONTENTS", DebugRegisterMember.Contents, Alnum(contentsWidth)), DebugRegisterMember.Contents),
         ];
+        _debugRegisters.Clear();
         for (int i = 0; i < members.Length; i++)
         {
             group.AddMember(members[i].Item);
             members[i].Item.Parent = group;
-            _debugRegisters[members[i].Item.CobolName!] = members[i];
+            _debugRegisters.Add(members[i]);
             if (i < members.Length - 1) AddFiller(group, NewItem(null, Alnum(1)));
         }
-        _debugRegisters["DEBUG-ITEM"] = (group, DebugRegisterMember.Item);
+        _debugRegisters.Add((group, DebugRegisterMember.Item));
         _debugSubRegisters = [members[2].Item, members[3].Item, members[4].Item];
 
         static void AddFiller(DataItem g, DataItem filler) { g.AddMember(filler); filler.Parent = g; }
@@ -124,13 +128,13 @@ public sealed class ImplicitRegisters
     /// entries only; the single-space FILLER between each pair is not a receiver (§2023:14.9.20.4 GR5a2) and has no register.
     /// Empty until <see cref="ActivateDebugRegisters"/> runs.</summary>
     public IEnumerable<(DataItem Item, DebugRegisterMember Member)> DebugItemMembers =>
-        _debugRegisters.Values.Where(r => r.Item2 is not DebugRegisterMember.Item).OrderBy(r => r.Item2);
+        _debugRegisters.Where(r => r.Member is not DebugRegisterMember.Item).OrderBy(r => r.Member);
 
     /// <summary>The <see cref="DebugRegisterPlace"/> of a member (or of the whole group) of the DEBUG-ITEM register, by its
     /// item — the one place a CORRESPONDING pair and an INITIALIZE receiver reach a member by the entry the group lists —
     /// or <see langword="null"/> for an item that is no register.</summary>
     public DebugRegisterPlace? DebugPlaceOf(DataItem item) =>
-        _debugRegisters.Values.Where(r => ReferenceEquals(r.Item1, item)).Select(r => new DebugRegisterPlace(r.Item1, r.Item2)).FirstOrDefault();
+        _debugRegisters.Where(r => ReferenceEquals(r.Item, item)).Select(r => new DebugRegisterPlace(r.Item, r.Member)).FirstOrDefault();
 
     /// <summary>Whether <paramref name="item"/> is the DEBUG-ITEM group or one of its named members (the item a reference to the register
     /// carries; a FILLER entry has no register and no reference reaches it).</summary>

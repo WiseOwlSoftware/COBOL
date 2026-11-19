@@ -1946,7 +1946,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // the ONE resolution this and FlagConformancePass read (kb/Work PB3288): one namespace tier, narrowed by the
         // written qualifiers, then by §2023:8.4.6.2.1 3) after qualification (a condition-name of this source element hides
         // a container's global one, a nearer container's a farther one, kb/Work PB1047), and EMPTY for a lapsed
-        // type-declaration condition-name alone (§2023:8.4.2.2.1 rule 4 — it only COUNTS against a condition-name the
+        // type-declaration condition-name alone (§2023:8.4.2.2.1 SR4 — it only COUNTS against a condition-name the
         // reference also reaches). A plural SURVIVOR set — unqualified with duplicate 88 names, or qualifiers matching
         // more than one — is genuine ambiguity, previously resolved silently to the first declaration. Strict: report
         // and bind the first anyway (the compile already fails; no caller fallback runs a different reading).
@@ -2079,7 +2079,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// do not take to that register names only the level-88 (§2023:8.4.6.2.1 2): rule 1 applies qualification over the whole
     /// set before rule 3 ranks it; kb/Work PB4432 review R2-2).</summary>
     private bool CapacityRegisterHides(Core.DataReferenceContext dref, List<Condition88> tier) =>
-        tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref) is { Reached.Count: > 0 } cap
+        tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref, report: false) is { Reached.Count: > 0 } cap
         && ctx.Data.State.Forest.DeclaringDepth(cap.Table) < ctx.Data.State.Forest.DeclaringDepth(tier[0].Parent);
 
     private static string WrittenWord(Core.DataReferenceContext dref) => dref.cobolWord()?.GetText() ?? dref.GetText();

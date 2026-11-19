@@ -523,7 +523,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// <para>⛔ THE DATA-NAME READINGS ARE COUNTED, NOT PROBED (kb/Work PB1099 review R2-1). A probe answers only a
     /// UNIQUE data item, so it dropped the data-name readings out of the count exactly when there were more of
     /// them: one same-spelled data item made the record-key-name ambiguous, and a second one made it compile clean
-    /// and bind silently to the record key (§2023:8.4.2.2.1 rule 1, "No other name has the identical
+    /// and bind silently to the record key (§2023:8.4.2.2.1 SR1, "No other name has the identical
     /// spelling").</para></summary>
     private (RecordKeyNameUse Use, int KeyIndex) RecordKeyNameOf(FileModel file, Core.DataReferenceContext dref,
                                                                 string face)

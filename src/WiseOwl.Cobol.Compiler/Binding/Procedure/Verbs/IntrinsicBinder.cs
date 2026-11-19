@@ -2455,7 +2455,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>A bare-word argument that names a TYPE (§2023:15.50.3 r1 / §2023:15.14.3 r1: "… a based entry, a type-name,
-    /// or a data item of any class or category") — a level-1 TYPEDEF lives in <c>ForestSlice.TypeDecls</c>, off the
+    /// or a data item of any class or category") — a level-1 TYPEDEF's type-name is the symbol table's (<c>NameClass.TypeName</c>), off the
     /// data-name namespace, so <c>BindArgOperand</c> would report it undefined (kb/Work PB61 / AR-15.50.3-1 /
     /// AR-15.14.3-1). Returns the type's template item, or null when the word is not a type-name. An own data-name
     /// of the same spelling cannot exist beside an own type-name (one user-word namespace); but a data-name VISIBLE
@@ -2464,7 +2464,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// scope, so inside a METHOD its own declarations of either kind come first (§2023:11.7.4 GR5; kb/Work PB3192).</summary>
     private DataItem? TypeNameArgument(Core.FunctionArgumentContext a) =>
         KeywordWordOf(a) is { } w && a.fnArgPhraseWord() is null && !ctx.Symbols.TryResolve(w, ctx.ActiveScope, out _)
-            && ctx.Data.TryFindTypeDecl(w, ctx.ActiveScope, out var t) ? t : null;
+            && ctx.Symbols.Identify(KeywordWordContext(a)!, NameClass.TypeName, report: true) is { Symbol: DataItem t } ? t : null;
 
     /// <summary>
     /// FUNCTION LENGTH (§2023:15.50.2) — argument-1 plus the optional PHYSICAL keyword.

@@ -7,8 +7,9 @@ namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
 /// The type forest of ONE bound unit and the name tables over it (ISO §2023:8.4.6.2.1 3): the roots of its WORKING-STORAGE,
-/// LOCAL-STORAGE and the rest of the forest, every referenceable data-name, condition-name, index-name and named CAPACITY
-/// register, the type declarations, the screen-names and the inheritance tier of each GLOBAL name a container offered
+/// LOCAL-STORAGE and the rest of the forest, every referenceable data-name and condition-name, the element's own index
+/// declarations and type declarations in source order (lists, not name tables: their names are keyed by <see cref="SymbolTable"/>,
+/// which also owns the named CAPACITY registers), the screen-names and the inheritance tier of each GLOBAL name a container offered
 /// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296, step 1 of the <see cref="DataBinder"/>
 /// extract, M6). A value slice of <see cref="DataBindState"/>: its one writer is the data binder's declaration walk
 /// (<c>DataBinder.RegisterName</c>, <c>RegisterCondition</c>, <c>BindEntries</c> and the post-build TYPE copies, which
@@ -19,19 +20,18 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// this slice (<see cref="SymbolTable"/>); the mutators here take that scope, because a name joins the index of the
 /// source element that owns its record (§2023:11.7.4 GR5; kb/Work PB3192).</para>
 /// <para>A model-layer value: it names no binder type, so <see cref="DataBindResult"/> hands it to a backend as it is (kb/Work
-/// PB2361). The one gated read, <see cref="CapacityRegisters"/>, asks <paramref name="requireRegisters"/>, which the owning
-/// <see cref="DataBindState"/> answers with its <see cref="PassPhase.OccursResolved"/> watermark.</para>
+/// PB2361). It has no gated read: the CAPACITY registers' <see cref="PassPhase.OccursResolved"/> watermark gate is the symbol
+/// table's (<c>SymbolTable.CapacityRegisterNamed</c>).</para>
 /// </summary>
-public sealed class ForestSlice(Action<string> requireRegisters)
+public sealed class ForestSlice
 {
     private readonly List<DataItem> _roots = [];
     private readonly List<DataItem> _workingStorageRoots = [];
     private readonly List<DataItem> _localStorageRoots = [];
     private readonly Dictionary<string, List<DataItem>> _byName = new(CobolNames.Comparer);
     private readonly Dictionary<string, List<Condition88>> _conditions = new(CobolNames.Comparer);
-    private readonly Dictionary<string, List<DataItem>> _capacityRegisters = new(CobolNames.Comparer);
     private readonly Dictionary<DataItem, int> _inheritedGlobalDepth = new(ReferenceEqualityComparer.Instance);
-    private readonly Dictionary<string, DataItem> _typeDecls = new(CobolNames.Comparer);
+    private readonly List<DataItem> _typeDeclarations = [];
     private readonly HashSet<string> _screenNames = new(CobolNames.Comparer);
 
     /// <summary>The top-level (01/77) items, in source order: WORKING-STORAGE, the FILE records and the compiler
@@ -62,48 +62,24 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     /// <summary>Level-88 condition-names (case-insensitive) → the conditions with that name (a list, since names may be
     /// duplicated under different parents and disambiguated by qualification).</summary>
     public IReadOnlyDictionary<string, List<Condition88>> Conditions => _conditions;
+    /// <summary>THE INDEX-NAME DECLARATIONS THIS SOURCE ELEMENT MAKES, in declaration order (kb/Work PB919): every INDEXED BY of
+    /// its own data division, each with its own <c>long</c> cell (1-based occurrence numbers, DESIGN §3.5), the cells it emits.
+    /// The index-names, its own and the GLOBAL tables' of every containing program (§2023:8.4.6.2.3), are the symbol table's
+    /// (<c>SymbolTable.DeclareIndex</c>, which adds each own declaration here); a reference resolves through it, counted, never
+    /// keyed by spelling alone.</summary>
+    public IReadOnlyList<IndexDeclaration> OwnIndexes => _ownIndexes;
+    private readonly List<IndexDeclaration> _ownIndexes = [];
 
-    /// <summary>THE UNIT'S INDEX-NAME NAMESPACE (kb/Work PB919): every INDEXED BY declaration of this unit's own data division
-    /// (<see cref="IndexNameRegistry.Own"/> — the <c>long</c> cells it emits, 1-based occurrence numbers, DESIGN §3.5), plus
-    /// the GLOBAL tables' declarations of every containing program (§2023:8.4.6.2.3), registered beside their tables' data-names
-    /// by <see cref="Inherit"/>. A reference resolves through <see cref="SymbolTable.IndexCandidates"/> — counted,
-    /// never keyed by spelling alone. Declared into only by <c>DataBinder.RegisterIndexes</c> and <see cref="Inherit"/>.</summary>
-    public IndexNameRegistry IndexNames { get; } = new();
 
-    /// <summary>OCCURS DYNAMIC <c>CAPACITY IN data-name-3</c> register-names (case-insensitive) → the owning dynamic-table
-    /// <see cref="DataItem"/> (ISO §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9). The register is IMPLICITLY defined at the OCCURS
-    /// entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults this map to build a
-    /// <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated by the post-build
-    /// <see cref="DynamicResolvePass.Run"/> pass; the getter carries the P6 Step-6 watermark gate — a read before
-    /// <see cref="PassPhase.OccursResolved"/> throws loud, the "read a null CapacityRegister" silent-miscompile class made
-    /// structural.
-    /// <para>⛔ A LIST PER NAME, NEAREST DECLARING SOURCE ELEMENT FIRST (kb/Work PB1674). The register of a dynamic table in a
-    /// GLOBAL record is subordinate to a global name — SR30 places it "at the same level as the entry containing the OCCURS
-    /// clause" — so it is a global name too (§2023:8.4.6.2.2: "All data-names and screen-names subordinate to a global name are
-    /// global names"), and a contained program inherits it with the rest of the record (<see cref="Inherit"/>). This
-    /// element's own registers come first (one written definition per spelling: SR30's "shall not be defined elsewhere in the
-    /// source element", reproduced once per TYPE / SAME AS copy of its entry, kb/Work PB2988), then each container's, so
-    /// <c>ReferenceResolver.CapacityRegisterFor</c> can apply §2023:8.4.6.2.1 3)'s nearest-element rule. The one reader of a name
-    /// in this map is <see cref="SymbolTable.CapacityCandidates"/>. The OWN registers alone are the tables whose
-    /// <see cref="DeclaringDepth"/> is 0.</para></summary>
-    public IReadOnlyDictionary<string, List<DataItem>> CapacityRegisters
-    {
-        get { requireRegisters("CapacityRegisters"); return _capacityRegisters; }
-    }
-
-    /// <summary>The capacity registers recorded SO FAR, with no watermark gate: for the phases that produce and screen them
-    /// (<see cref="DynamicResolvePass"/>, which writes them at <see cref="PassPhase.OccursResolved"/>, and the declaration
-    /// funnel's "is this word declared nearer" question, which runs while they are still being minted).</summary>
-    internal IReadOnlyDictionary<string, List<DataItem>> CapacityRegistersSoFar => _capacityRegisters;
-
-    /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO §2023:13.18.58;
-    /// data-model D17) — THIS source element's own: a METHOD's declarations are its own source element's, in
-    /// <see cref="OoMethodDataScope.TypeDecls"/> (kb/Work PB3192), and <c>DataBinder.AllTypeDecls</c> walks both. The template
-    /// is built by <c>BindEntries</c> but kept OFF <see cref="Roots"/> and <see cref="ByName"/> (it allocates no storage; its
-    /// subordinate names are not globally referenceable, GR1/GR2). A <c>TYPE IS type-name</c> reference clones this subtree
-    /// into the referencing entry in the post-build <see cref="ExpandTypesPass.Run"/> pass — which runs before every resolution
-    /// pass, so each sees the clone.</summary>
-    public IReadOnlyDictionary<string, DataItem> TypeDecls => _typeDecls;
+    /// <summary>THIS source element's own TYPEDEF type declarations, in source order (ISO §2023:13.18.58; data-model D17): each the
+    /// template root <see cref="DataItem"/>. A METHOD's declarations are its own source element's
+    /// (<see cref="OoMethodDataScope.TypeDeclarations"/>, kb/Work PB3192), and <c>DataBinder.AllTypeDecls</c> walks both. Their
+    /// type-names are the symbol table's (<c>SymbolTable.DeclareType</c>, which adds each here; docs/rearchitecture/DESIGN-listing.md
+    /// section 6.7.1). The template is built by <c>BindEntries</c> but kept OFF <see cref="Roots"/> and <see cref="ByName"/> (it
+    /// allocates no storage; its subordinate names are not globally referenceable, GR1/GR2). A <c>TYPE IS type-name</c> reference
+    /// clones this subtree into the referencing entry in the post-build <see cref="ExpandTypesPass.Run"/> pass, which runs before
+    /// every resolution pass, so each sees the clone.</summary>
+    public IReadOnlyList<DataItem> TypeDeclarations => _typeDeclarations;
 
     /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
     /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
@@ -142,9 +118,6 @@ public sealed class ForestSlice(Action<string> requireRegisters)
     public bool DeclaresOwnDataName(string name) =>
         _byName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
 
-    /// <summary>The type declarations of the source element <paramref name="scope"/> names: a METHOD's own table when the scope
-    /// is a method's (§2023:8.4.6.2.2; kb/Work PB3192), else this unit's.</summary>
-    public IReadOnlyDictionary<string, DataItem> TypeDeclsOf(Scope scope) => scope.Method?.TypeDecls ?? _typeDecls;
 
     // ── The writers (internal: the data binder's declaration walk, its passes and its inheritance of a container's GLOBALs) ──
 
@@ -183,14 +156,13 @@ public sealed class ForestSlice(Action<string> requireRegisters)
         list.Add(cond);
     }
 
-    /// <summary>Declare one INDEXED BY index-name of this unit's own data division, or of the method that owns its table.</summary>
-    internal void DeclareIndex(IndexDeclaration decl, OoMethodDataScope? method) =>
-        (method?.IndexNames ?? IndexNames).Declare(decl);
+    /// <summary>Append one INDEXED BY declaration of this element's own data division, in declaration order:
+    /// <c>SymbolTable.DeclareIndex</c>'s, once it has keyed the index-name.</summary>
+    internal void AddOwnIndex(IndexDeclaration decl) => _ownIndexes.Add(decl);
 
-    /// <summary>Declare a TYPEDEF template in the declaring source element's table (a method's type-name is local to the
-    /// method, §2023:8.4.6.2.2; kb/Work PB3192); false when the spelling is already declared there.</summary>
-    internal bool TryDeclareType(DataItem template, string name, Scope scope) =>
-        (scope.Method?.TypeDecls ?? _typeDecls).TryAdd(name, template);
+    /// <summary>Append a TYPEDEF template of this element, in source order: <c>SymbolTable.DeclareType</c>'s, once it has keyed the
+    /// type-name.</summary>
+    internal void AddTypeDeclaration(DataItem template) => _typeDeclarations.Add(template);
 
     /// <summary>Record the screen-names the refused SCREEN SECTION declared.</summary>
     internal void AddScreenNames(IEnumerable<string> names)
@@ -200,7 +172,8 @@ public sealed class ForestSlice(Action<string> requireRegisters)
 
     /// <summary>Make ONE container GLOBAL item (no recursion: the caller walks the subtree) visible here,
     /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2 — "may reference that name without describing it
-    /// again"): its data-name, the condition-names associated with it, its index-names and its CAPACITY register.</summary>
+    /// again"): its data-name and the condition-names associated with it (<c>SymbolTable.InheritGlobalItem</c> keys its index-names
+    /// and its CAPACITY register).</summary>
     internal void Inherit(DataItem item, int depth)
     {
         _inheritedGlobalDepth[item] = depth;
@@ -214,28 +187,6 @@ public sealed class ForestSlice(Action<string> requireRegisters)
             if (!_conditions.TryGetValue(cond.Name, out var conds)) _conditions[cond.Name] = conds = [];
             conds.Add(cond);
         }
-        foreach (var idx in item.Indexes) IndexNames.Inherit(idx, depth);
-        // Placed by depth (AddCapacityRegister): this element's own registers, minted later by DynamicResolve, sort
-        // in before it, a nearer container's before a farther one's — the order
-        // ReferenceResolver.CapacityRegisterFor reads. A register the container refused (SR30's COBOL1523)
-        // failed that compile and has no CapacityRegister view to inherit.
-        if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) AddCapacityRegister(null, cap, item);
     }
 
-    /// <summary>The ONE insert into <see cref="CapacityRegisters"/>: this element's own register (from
-    /// <see cref="DynamicResolvePass.Run"/>) and each container's GLOBAL one (from <see cref="Inherit"/>, nearest container
-    /// first), into <paramref name="method"/>'s own register index when the table is a method's. ⛔ THE LIST IS KEPT IN
-    /// NEAREST-DECLARING-ELEMENT ORDER BY THE INSERT, NOT BY THE ORDER OF THE CALLS (kb/Work PB1674; PB3766 review R2-1): the
-    /// containers' names are inherited before this element's registers are minted, so a register goes after the last one at
-    /// its own depth or nearer — the order <c>ReferenceResolver.CapacityRegisterFor</c> reads (<c>tables[0]</c> is the
-    /// nearest).</summary>
-    internal void AddCapacityRegister(OoMethodDataScope? method, string name, DataItem table)
-    {
-        var registers = method?.CapacityRegisters ?? _capacityRegisters;
-        if (!registers.TryGetValue(name, out var tables)) registers[name] = tables = [];
-        int depth = DeclaringDepth(table);
-        int at = tables.Count;
-        while (at > 0 && DeclaringDepth(tables[at - 1]) > depth) at--;
-        tables.Insert(at, table);
-    }
 }

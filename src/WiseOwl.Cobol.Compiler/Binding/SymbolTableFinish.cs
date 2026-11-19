@@ -73,7 +73,7 @@ internal static class SymbolTableFinish
         var seen = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
         var roots = data.Forest.Roots.Concat(data.Linkage.Roots)
             .Concat(methods.SelectMany(static m => m.Binding is { } b ? b.LocalRoots.Concat(b.LinkageRoots) : []))
-            .Concat(data.Forest.TypeDecls.Values).Concat(methods.SelectMany(static m => m.DataScope.TypeDecls.Values));
+            .Concat(data.Forest.TypeDeclarations).Concat(methods.SelectMany(static m => m.DataScope.TypeDeclarations));
         // A CD entry declares its cd-name, then the implicit description of its record area (ISO §1985:XIV.2.2, ISO/IEC
         // 1989:2002 A.1.2.3), which the binder adds to the forest as a root standing on the CD entry; the area is declared with its
         // cd-name, never a second time as a root of its own.

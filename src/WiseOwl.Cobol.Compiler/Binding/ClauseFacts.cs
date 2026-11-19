@@ -14,8 +14,8 @@ internal readonly record struct ConditionAssociation(string Name, DataItem? Vari
 /// What the declaration walk recorded about the CLAUSES an entry's own source wrote, for the passes that screen them after the
 /// forest is built (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296 M6): a value slice of
 /// <see cref="DataBindState"/> whose one writer is the data binder's entry walk (<c>BindEntries</c>, the clause-operand
-/// capture) — plus <see cref="LapsedTypeMembers"/>, written once by <see cref="Passes.ExpandTypesPass"/> — and which the
-/// screening passes only read. Each fact is a question the post-forest passes cannot re-derive from the tree they hold: the
+/// capture), and which the screening passes only read (the §2023:8.4.2.2.1 SR4 lapsed type-declaration members it once held
+/// are the symbol table's, <c>SymbolTable.IndexLapsedTypeMembers</c>). Each fact is a question the post-forest passes cannot re-derive from the tree they hold: the
 /// source order of a level-88, whether an entry WROTE a clause or only acquired it, which operand a capture already refused.
 /// </summary>
 public sealed class ClauseFacts
@@ -44,17 +44,6 @@ public sealed class ClauseFacts
     /// <summary>Every written level-88 and the entry it follows, in source order — read by
     /// <see cref="Passes.CheckConditionNameAssociationsPass.Run"/>.</summary>
     internal IReadOnlyList<ConditionAssociation> ConditionAssociations => _conditionAssociations;
-
-    /// <summary>The members of every type declaration a TYPE clause references, by name — the "other definition of the
-    /// name" of §2023:8.4.2.2.1 GR4 ("Any other definition of the name is subordinate to a type declaration entry for which the
-    /// type-name is not referenced in any TYPE clause"). Built ONCE, when <see cref="Passes.ExpandTypesPass.Run"/> has completed every declaration; null until then
-    /// (a SAME AS operand resolved while the declarations are being completed walks them live, since the copies inside a
-    /// declaration are still arriving). Written once.</summary>
-    internal IReadOnlyDictionary<string, List<DataItem>>? LapsedTypeMembers
-    {
-        get;
-        set => field = field is null ? value : throw new InvalidOperationException("ClauseFacts.LapsedTypeMembers is built once, by ExpandTypesPass (kb/Work PB2296)");
-    }
 
     internal void RecordSignClauseWritten(DataItem item) => _signClauseWritten.Add(item);
     internal void RecordValueClauseWritten(DataItem item) => _valueClauseWritten.Add(item);

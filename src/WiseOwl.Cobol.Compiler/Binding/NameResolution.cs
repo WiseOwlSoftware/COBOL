@@ -400,16 +400,20 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// <c>ExpressionBinder.IndexFieldOf</c>). kb/Work PB919: both used to look the bare spelling up in a
     /// <c>name → cell</c> map, so a qualified reference was "not defined" and a duplicated one silently read the
     /// cell the two tables shared.
-    /// <para>The candidate set is <see cref="SymbolTable.IndexCandidates"/>'s; the count is §2023:8.4.2.2.3 SR1's
+    /// <para>The candidate set is the symbol table's (<see cref="SymbolTable.IdentifyIndexName"/>);
+    /// <paramref name="writtenAt"/> is the written node each report about this reference is keyed and positioned by (the
+    /// <c>dataReference</c>, or the subscript's name token); the count is §2023:8.4.2.2.3 SR1's
     /// ("For each non unique user-defined name that is explicitly referenced, uniqueness shall be established
     /// through a sequence of qualifiers that precludes any ambiguity of reference"), judged by the ONE verdict
     /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/> — the data-name's own diagnostic (COBOL1639) and
     /// its <c>--permissive</c> disposition. A spelling that IS an index-name but whose qualifiers name no table
     /// declaring it is the same diagnostic's "not defined" arm, citing SR6.</para></summary>
-    internal IndexRef ResolveIndexName(string name, IReadOnlyList<string> qualifiers, object writtenAt)
+    internal IndexRef ResolveIndexName(WrittenQualifiedName reference, object writtenAt)
     {
-        if (data.Symbols.IndexCandidates(name, qualifiers, data.ActiveScope) is not { } cands)
+        if (data.Symbols.IdentifyIndexName(reference, report: !refs.Probing) is not { } cands)
             return new IndexRef(IndexRefOutcome.NotAnIndexName, null);
+        string name = reference.Name;
+        var qualifiers = reference.QualifierWords;
         // Every report about this written reference — the edition gate, the SR6 "not defined", the SR1 ambiguity, the
         // §2023:13.7.3 SR4 e) linkage refusal — stands AT the written index-name (kb/Work PB4485), not at the SET / SEARCH /
         // PERFORM / relation statement whose operand it is: the statement can carry several references, and the user

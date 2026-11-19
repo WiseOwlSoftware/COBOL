@@ -819,7 +819,7 @@ names every connector (`BinderDriver`, after `QualifyClassFiles`).
 - **What the table holds.** Every name a source element declared, in definition order: each record's entries in the order
   written (FILLER included, each level-88 under its conditional variable, each INDEXED BY index-name under its table, a named
   CAPACITY register after its table's subordinates, marked implicit, the level-66 entries after their record), the type
-  declarations (`ForestSlice.TypeDecls`: listed where written, with no offset, bytes or field, since "A type declaration has no
+  declarations (`ForestSlice.TypeDeclarations`: listed where written, with no offset, bytes or field, since "A type declaration has no
   storage associated with it", ISO §2023:13.18.58.4 GR2), the constant entries (`ConstantEntryBinder.DeclaredConstants`: a constant
   makes no data item, ISO §2023:13.10.4 GR1, so it is read off the binder), the file-names (`FileModel.SelectName`), each report
   description entry with its report group description entries (`ReportScope.Declared`, `ReportModel.WrittenEntries`: stored
@@ -972,8 +972,10 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     OO class and interface tables (the group tier's, `SymbolTable.ClassNames`; a method roster is keyed by the
     externalized method name, no COBOL word, and stays on its class). Its one public LOOKUP of an element's names is
     `SymbolTable.Identify(ParserRuleContext written, NameClass wanted, bool report) -> IdentifiedName`, where `written`
-    is the name as the parser read it and `NameClass` says which classes the position admits; the group tier's is
-    `ClassNames.Lookup`, above. Every other lookup the tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
+    is the name as the parser read it and `NameClass` says which classes the position admits (a name a reference qualifies
+    whose candidate set is a struct is identified by its class's typed method beside it, `IdentifyIndexName`: section 6.7.1,
+    "Step 6b, data-name lane, first slice"); the group tier's is `ClassNames.Lookup`, above. Every other lookup the
+    tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
     (`SymbolTable.Declare`, which records the `Defined` occurrence and returns a `SymbolId`, an opaque number, never an
     entry or a symbol) and write each entry's attributes where they decide them (`SymbolTable.SetAttributes(SymbolId,
     ...)`, section 6.6); those two and `Identify` are the table's only writers.
@@ -1133,7 +1135,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     context's children (`SymbolTable.ProcedureWords`), never its glued text, so the hazard the one-word rule closes stays closed;
     any other context names a procedure only when it is one word. The data-name class will read `dataReference` the same way.
   - *A reference's SITE is an input (correction, slice 2).* A procedure-name resolves from where it is written: its method (a
-    method's procedure-names are its own, §2023:8.4.6.1) and its containing section (§2023:8.4.2.2.1 rule 6). The ambient cursor
+    method's procedure-names are its own, §2023:8.4.6.1) and its containing section (§2023:8.4.2.2.1 SR6). The ambient cursor
     that held them is the procedure binder's (`BinderContext.CurrentMethodScope`, `CurrentSection`), not the table's, and a USE FOR
     DEBUGGING subject is resolved after collection, when no cursor stands at it; so the caller states the site
     (`ProcedureSite(Method, Section)`), `Identify` refuses a procedure-name without one, and no other class reads it.
@@ -1400,6 +1402,53 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       group tier's, but the tier is made with the table the expansion produces; whether the tier is made first (before the
       expansion) or the expansion's names get a tier of their own is the next sub-slice's design question, and the 18 sites stay
       in the baseline until it is answered.
+  - *(Step 6b, data-name lane, first slice, branch `listing-step-6b-data`.)* The DEBUG-ITEM register names, the type-names, the named
+    CAPACITY registers and the index-names moved, each with its resolution, and the baseline fell by 33 (rule (1) 13 tables, rule (3)
+    9 lookups, rule (5) 11 sites): 122 with slice 7's and the OO lane's. `SymbolTable.DebugRegisters.cs` keys the X3.23-1985 DEBUG-ITEM family (§1985:XV.3.2.4 GR10)
+    where `ActivateDebugRegisters` makes it; `SymbolTable.Types.cs` owns the element's, the containers' GLOBAL and each method's
+    type-names with the §2023:8.4.2.2.1 SR4 lapsed members (`WithLapsedTypeMembers`, `WithLapsedTypeConditions`,
+    `WithLapsedTypeIndexes`, private now); `SymbolTable.CapacityRegisters.cs` owns the registers (§2023:13.18.38.3 SR30), their one
+    insert, SR30's duplicate test and the one lookup behind the `OccursResolved` watermark; `SymbolTable.IndexNames.cs` owns the
+    index-name namespaces (`IndexNameTable`, which was the model's `IndexNameRegistry`). `NameClass` gains `DebugRegister`, `TypeName`
+    and `CapacityRegister`, and every written name of the four classes is `Identify`. The corrections the code proved:
+    - *The progress table's first row is several classes (correction).* It moved the data, condition, index, capacity, type and
+      debug-register names "as one unit, because they resolve together". §2023:8.3.2.2 lists data-name, condition-name, index-name and
+      type-name as separate user-defined words, and the two registers are names the standard or SR30 defines implicitly; what ties
+      them is §2023:8.4.6.2.1 3)'s ranking ACROSS the classes, and those questions (`NearerDataOrConditionNameHides`,
+      `Declarations.DeclaredNearerThan`, `NonConditionDeclarationsOf`) were already the table's members reading each class through
+      a question. So each class moved alone, the oracle IDENTICAL after each. The data-names and the condition-names stay one unit
+      (each ranks the other both ways, and one qualifier walk serves both) and are the lane's next slice.
+    - *A method's tables are the table's (correction).* The method overlay (`OoMethodDataScope`) held a method's name indexes as model
+      dictionaries. They are `SymbolTable.MethodNames`, one per method, and `MethodNames.Declares` asks every table of it, so a
+      method's declaration of a spelling in any class hides the object's (§2023:11.7.4 GR5); `MethodDeclaresWord` asks it, and
+      `GlobalNameClassDriftTests` finds the tables by reflection and holds `Declares` to each, as it held `OoMethodDataScope.IndexesDeclare`.
+    - *A type-name an entry carries is resolved from the entry.* A TYPE clause, a typed entry's type and a restricted pointer's
+      `USAGE POINTER TO type-name` are held as text by the `DataItem` (slice 6's pattern): `SymbolTable.TypeDeclarationOf(DataItem,
+      TypeNameCarried)` reads the text the entry carries, in the scope of the element whose entry writes it.
+    - *A qualified name no parse rule holds with its qualifiers.* An index-name in a subscript is a token of the subscript's token list,
+      its `OF`/`IN` qualifiers the tokens after it (§2023:8.4.2.2.2 Format 3). `WrittenQualifiedName(Head, Qualifiers)` carries the
+      tokens (made from a token list by the one qualifier walk, which replaced `SubscriptBinder.QualifiersAfter` and its copy in
+      `SearchAllFormat2Rules`, or from a `dataReference`'s qualifications), and `IdentifyIndexName(WrittenQualifiedName, report)`
+      answers the §2023:8.4.2.2 candidate set, whose count stays `NameResolution.ResolveIndexName`'s verdict.
+    - *A qualifiable name's identification is its typed candidate set (correction, review round 1).* The slice first answered an
+      index-name through `Identify(WrittenQualifiedName, NameClass.Index, report)`, an `IdentifiedName` whose `Symbol` was the
+      `NameCandidates<IndexDeclaration>` boxed, and the qualifier words as a fresh array at each read. Every subscript name is asked
+      whether it is an index-name, several times per reference, so every compile without a listing paid two objects per ask and
+      IX113A's front end and bind allocated 0.14 to 0.26 MB over its parent: over section 9's `None` budget, which names no
+      identification object. A name a reference qualifies (§2023:8.4.2.2) is identified as its candidate set, and that set is a
+      struct: so the class's own method answers it typed and unboxed (`SymbolTable.IdentifyIndexName`, beside `Identify`, with the
+      same `report` flag, at which step 7b records the occurrence when the set has one member), and `WrittenQualifiedName` makes
+      its name and qualifier words off their tokens once, when it is made (a token's text is a new string at each read), and no list for
+      an unqualified name; the CAPACITY register arm, which every data reference asks first, asks the table before it reads the word. The data-names and condition-names, the
+      lane's next slice, are qualifiable names too and get their own typed method the same way (`IdentifyDataName`), never the
+      boxed `Identify` arm. `FlagConformancePass.FlagIndexSet` asks with the receiver's written qualifiers
+      (`WrittenQualifiedName.Of(dref)`), as the binder resolves the same SET, where it had asked with none.
+    - *The forest keeps the declarations, in order.* The element's own index declarations (the cells it emits, `ForestSlice.OwnIndexes`)
+      and type declarations (`ForestSlice.TypeDeclarations`, and a method's `OoMethodDataScope.TypeDeclarations`) stay model lists, added
+      by the table's `DeclareIndex` and `DeclareType` once they have keyed the name: an enumeration is no lookup (slice 1's files).
+    - *For step 7b.* `NameResolution.ResolveIndexName` identifies with `report: !Probing`, but SET classifies its operand and then binds
+      it, both committing, so the occurrence needs the once-per-written-reference gate the resolver already applies to its diagnostics;
+      `ReferenceResolver.CapacityRegisterFor` takes `report` (the reference arm's own, false for the classifying probes).
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1523,16 +1572,16 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 
 | Name class | Tables found (owner.member) |
 |---|---|
-| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` |
+| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` (since step 6b's data-name lane, first slice, the type-name and CAPACITY register tables and the lapsed members are `SymbolTable`'s, in `SymbolTable.Types.cs`, `SymbolTable.CapacityRegisters.cs` and a method's `SymbolTable.MethodNames`; `ForestSlice.TypeDeclarations` and `OoMethodDataScope.TypeDeclarations` keep the declarations as lists; the data-name tables are the lane's next slice) |
 | Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` |
-| Index | `IndexNameRegistry._byName` |
+| Index | `IndexNameRegistry._byName` (since step 6b's data-name lane, first slice, `SymbolTable`'s private `IndexNameTable`, one per element and one per method; `IndexNameRegistry` is deleted) |
 | Procedure | `ProcedureNameMap<T>._first`, `_duplicated` (since step 6b slice 2, `SymbolTable`'s private `ProcedureNames<T>`) |
 | File | `FileSlice._filesByName` (`FilesByName`); `FileNameScope._own`, `_inherited` (and its public `TryGetValue`, reached as `DataBindState.VisibleFiles`); `InheritedGlobals._files` (`Files`); `FileControlBinder.SelectedFiles` |
 | Report, report group, VARYING, sum counter | `ReportScope.Named(string)` (a search, not a table: caught by rule (3)); `DataBinder._reportEntryLocations`; `ReferenceResolver.VaryingScope`; `ReportScope._sumCounters` (`SumCounters`), `DataBindState.SumCounters` |
 | CD | `CommunicationSlice._byName` (`ByName`) |
 | Constant | `ConstantEntryBinder.ConstantScope.Bound`, `Declared`; `InheritedGlobals._constants` (`Constants`) |
 | CONFIGURATION SECTION names (alphabet, class, symbolic character, mnemonic, locale) | `ConfigurationNames<T>._entries`; `SpecialNamesBinder.RangeCollations`, `DataBindResult.RangeCollations` |
-| Implicit registers | `ImplicitRegisters._debugRegisters` (`DebugRegisters`) |
+| Implicit registers | `ImplicitRegisters._debugRegisters` (`DebugRegisters`) (since step 6b's data-name lane, first slice, the DEBUG-ITEM names are keyed by `SymbolTable.DebugRegisters.cs`; `ImplicitRegisters` keeps an unkeyed list of the registers it makes) |
 | Program, function, prototype, repository | `StatementBinder.ProgramPrototypes`, `NestedCallables`, `UserFunctions`; `ConfigurationSlice.ProgramSpecifiers`, `FunctionSpecifiers`; `DataBinder._repositorySpecified`; `GroupRepositoryProvider.NoFunctions` (since step 6b slice 6 the program-prototype tables are `SymbolTable`'s and `NestedCallables` is keyed by `ExternalizedProgramName`; since slice 7 the function tables are `SymbolTable`'s and `NoFunctions` is deleted) |
 | OO class, interface, method | `OoClassTable._byName`, `_ifaceByName`, `_imported`, `_importedInterfaces`; `OoClassSymbol._methods`, `_factoryMethods`; `OoInterfaceSymbol._protos`, `_conformingChoice` (since step 6b's OO lane the class and interface tables and the SR5 choice are `SymbolTable.ClassNames`', and the rosters are keyed by `ExternalizedMethodName`) |
 | Keyed by something that is not a COBOL user word (re-keyed by a type of their own, so rule (1) no longer sees a `string` key) | `IntrinsicCatalog.Table`, `IntrinsicArgumentRules.Verified` (intrinsic function names, a standard catalog); `ImplementorNameRegistry.ByName` (implementor-names); `FileModel.FdClauses`, `ScreenFacility.ClauseFacts` (clause keywords); `ExpansionPlacements.ByName` (CLR type names); `Polynomial._terms` (C# expression text) |
@@ -1574,11 +1623,11 @@ restore and declares no binder member) gives the paths into those tables today:
 | `ReferenceResolver.ResolveByName` -> `NameResolution.FindItem` | `IntrinsicBinder.TryBindAllArgument` | replaced by `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` on the name `TryBindAllArgument` already identified |
 | `NameResolution.FindItem` | `ConstantEntryBinder.LengthOperandItem`, `ReportLengthOperand`; `DataBinder.ReportEntryLocation`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `ReferenceResolver.ProbeDeclaration`, `ResolveByName`; `NameResolution.FindReportedItem` | private to `SymbolTable`; the data-division callers (a CONSTANT LENGTH OF operand, a BASED claim) call `Identify` and record a data-division use |
 | `NameResolution.ResolveQualified` / `ResolveUnqualified` | `ReferenceResolver.Identify`; `NameResolution.FindItem`, `DeclarationOf`; `SubscriptBinder.ResolveSubscriptName`, `CannotBeSubscripted`; `ObjectPropertyResolver.ViewSubjectChain`, `IsObjectPropertyReference`; `CounterResolver.SumCounterFamilyFor` | private to `SymbolTable`; `ResolveSubscriptName` (a subscript naming a data item) and `SumCounterFamilyFor` call `Identify`; the two object-property predicates and `CannotBeSubscripted` are probes (`report: false`) |
-| `NameResolution.ResolveIndexName` | `ExpressionBinder.IndexFieldOf`; `SubscriptBinder.SubscriptNamesIndex`, `ResolveSubscriptName`; `SearchAllFormat2Rules.CheckKeySubscript` | `Identify(..., NameClass.Index, ...)` |
+| `NameResolution.ResolveIndexName` | `ExpressionBinder.IndexFieldOf`; `SubscriptBinder.SubscriptNamesIndex`, `ResolveSubscriptName`; `SearchAllFormat2Rules.CheckKeySubscript` | `Identify(..., NameClass.Index, ...)` (since step 6b's data-name lane, first slice, `SymbolTable.IdentifyIndexName`, the typed index-name identification) |
 | `SymbolTable.TryResolve` | `DataBinder.ResolveClauseOperand`, `QualifiedCandidates`, `NonDataDeclarationOf`; `InspectBinder.BindPhraseOperands`; `IntrinsicBinder.TypeNameArgument`, `KeywordWordOf`, `KeywordOmittedFunction`; `PtrBinder.PtrResolveBased`; `SortBinder.SortBindTable`; `SubscriptBinder.IsFunctionBearing`; `StatementValidation.RejectProcedureName`; `NameResolution.ReportUnidentified`, `DeclarationOf`; `SymbolTable.TryResolveUnqualified`, `TryResolveCondition` | becomes private inside the grown `SymbolTable`: `DataBinder.ResolveClauseOperand` (a clause operand such as DEPENDING ON) and `InspectBinder.BindPhraseOperands` call `Identify`; `QualifiedCandidates` asks for symbols, so its callers (RECORD KEY, ASSIGN USING, the KEY phrases) call `Identify` and record; only `NonDataDeclarationOf`, a declaration question, calls `SymbolTable.Declarations` and gets a `DeclarationFact`; the word-class probes (`KeywordWordOf`, `KeywordOmittedFunction`, `TypeNameArgument`, `IsFunctionBearing`, `RejectProcedureName`) pass `report: false` |
 | `SymbolTable.TryResolveUnqualified` | `NameResolution.ResolveUnqualified`; `InitializeBinder.BindInitializeTarget`; `IntrinsicBinder.FunctionPointerItemNamed`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `SymbolTable.NearestDeclaringData` | as above: the two binders call `Identify` |
 | `SymbolTable.TryResolveCondition` | `DataBinder.QualifiedConditionCandidates`, `ConditionsUnderQualifiers`; `ConditionBinder.ReportMisqualifiedCondition`; `SearchAllFormat2Rules.CheckKeySide`, `CheckConditionNameSide` | through `Identify(..., NameClass.Condition, ...)`, or `Declarations` for the data-division checks |
-| `SymbolTable.IndexCandidates` | `NameResolution.ResolveIndexName`; `DataBinder.NonConditionDeclarationsOf`; `IndexNameRegistry.Candidates`; `FlagConformancePass.FlagIndexSet` | `ResolveIndexName`'s lookup inside `Identify`; `FlagIndexSet` reads the occurrences instead of looking up again |
+| `SymbolTable.IndexCandidates` | `NameResolution.ResolveIndexName`; `DataBinder.NonConditionDeclarationsOf`; `IndexNameRegistry.Candidates`; `FlagConformancePass.FlagIndexSet` | `ResolveIndexName`'s lookup inside `Identify`; `FlagIndexSet` reads the occurrences instead of looking up again (since step 6b's data-name lane, first slice, `IndexCandidates` is private, asked by `SymbolTable.IdentifyIndexName` and by `Declarations.NonConditionDeclarationsOf`; the first is what `ResolveIndexName` and, until step 7b, `FlagIndexSet` ask; `IndexNameRegistry` is deleted) |
 | `ProcedureTableBuilder.ResolveProcedureWord` | `ProcedureTableBuilder.Resolve`, `ResolveDebugProcedure`, `ReportUnresolvedDebugOperand` | `Identify(..., NameClass.Procedure, ...)` |
 | `StatementValidation.ResolveFileWord` | `StatementValidation.ResolveFile` | `Identify(..., NameClass.File, ...)` |
 | `DataBindState.VisibleFiles` (`FileNameScope.TryGetValue`), `ReportScope.Named`, `CommunicationSlice.ByName` (round 3) | the file, report and CD binders (`CounterResolver.ReportOf`, `ReportWriterBinder`, `CommunicationBinder`, `ProcedureTableBuilder`, `CheckCodeSetRecordItemsPass`, ...) | `Identify(..., NameClass.File / Report / Cd, ...)` |
@@ -1982,6 +2031,13 @@ renderer. Naming it asks for a listing at any edition.
   Slice 6 (the program-prototype-names) moves no measurable allocation: every branch `None` row lies inside the parent's two runs or
   within 0.06 MB of them, IX113A's below both (68.98 and 68.85 MB against 69.05 and 69.09; the README's step-6b table, slice 6).
   The OO lane (the object-class-names, interface-names, method rosters and PROPERTY specifiers, measured against its parent 84097a3e22): every branch `None` row lies inside the parent's two runs or within 0.09 MB of them (IX113A 69.07 and 69.02 MB against 69.05 and 68.99; NC105A 35.20 and 35.04 against 35.11 and 35.06; NC218A 30.94 and 31.08 against 30.96 and 31.56; SM201A 15.41 and 15.21 against 15.35 and 15.40), so the lane moves no measurable allocation; the `None` budget holds (the benchmark README's step-6b table, the OO lane).
+  The data-name lane's first slice (the DEBUG-ITEM, type, CAPACITY register and index-names) was over the budget twice: its first build
+  by 0.6 MB on IX113A's `None` row, then, after two causes were removed, by 0.14 to 0.26 MB (69.24 and 69.12 MB against 68.98 and
+  68.98), the identification object an index-name ask received (an `IdentifiedName` around the boxed candidate set), the qualifier
+  words read again at each use, and the CAPACITY register arm reading every data reference's word before asking the table. With those
+  removed (section 6.7.1, "Step 6b, data-name lane, first slice"), every `None` row lies at or below the merged main's, measured
+  alternating on one host: IX113A 68.46 and 68.40 MB against 69.09 and 69.06, NC105A 34.61 and 34.62 against 35.01 and 34.99 (the
+  README's step-6b table, data-name lane).
 
 ## 10. Test plan
 

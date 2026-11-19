@@ -637,7 +637,7 @@ public sealed class DebugFacilityTests
 
     /// <summary>A qualified procedure-name is a procedure-name subject: <c>ON PARA-W OF SEC-A</c> debugs SEC-A's
     /// paragraph and not SEC-B's of the same spelling (ISO §2023:8.4.2.2.2, the paragraph-name qualified by a section-name;
-    /// §2023:8.4.2.2.1 rule 6). It was refused as a staged data item, with its qualifier dropped from the message.
+    /// §2023:8.4.2.2.1 SR6). It was refused as a staged data item, with its qualifier dropped from the message.
     /// Performed once each, the debugging declarative runs once: HITS=1.</summary>
     [Fact]
     public void QualifiedProcedureNameSubject_At85_DebugsOnlyTheQualifiedParagraph()

@@ -77,6 +77,18 @@ internal enum NameClass
     /// user-function-name of the containing function definition. <c>SymbolTable.Identify</c> resolves it; the finished table holds no
     /// entry for it yet (listing step 7b).</summary>
     FunctionPrototype,
+    /// <summary>The X3.23-1985 DEBUG-ITEM special register or one of its members (DEBUG-LINE, DEBUG-NAME, DEBUG-SUB-1 to -3,
+    /// DEBUG-CONTENTS), implicitly described when a debugging section is active (§1985:XV.3.2.4 GR10: "DEBUG-ITEM has the following implicit
+    /// description").
+    /// <c>SymbolTable.Identify</c> resolves it; the finished table holds no entry for it yet (listing step 7b).</summary>
+    DebugRegister,
+    /// <summary>A type-name (a TYPEDEF entry, §2023:13.18.58), named where a TYPE clause or a function argument writes it.
+    /// <c>SymbolTable.Identify</c> resolves it; the finished table declares the type declaration as a data entry.</summary>
+    TypeName,
+    /// <summary>A named OCCURS DYNAMIC CAPACITY register (§2023:13.18.38.3 SR30: data-name-3 "is treated as though implicitly
+    /// defined at the same level as the entry containing the OCCURS clause"). <c>SymbolTable.Identify</c> resolves it; the finished
+    /// table holds no entry for it yet (listing step 7b).</summary>
+    CapacityRegister,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>
