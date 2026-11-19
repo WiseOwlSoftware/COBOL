@@ -6,7 +6,7 @@
 *>---
       *> ISO 13.18.63.3 SR31 sentence 1: "Alphabet-name-1 may be specified only when the literals specified
       *> in the THROUGH phrase are of class alphanumeric or national." A NUMERIC condition-name range is
-      *> ordered by 14.7.8 rule 1 - "when the range of values is defined by numeric literals, the range of
+      *> ordered by 14.7.8 GR1 - "when the range of values is defined by numeric literals, the range of
       *> values includes literal-1, literal-2, and all algebraic values between literal-1 and literal-2" -
       *> which names no collating sequence at all, so there is nothing for the phrase to select.
       *> The VALUE-clause arm of the screen pb398-range-alphabet-numeric-operands pins on EVALUATE

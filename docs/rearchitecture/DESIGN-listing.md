@@ -18,7 +18,8 @@
 > compilation group's tier; the data-name lane's first slice, branch `listing-step-6b-data`: the DEBUG-ITEM, type, CAPACITY register and
 > index-names; the closing slice's first session, branch `listing-step-6b-close`: the data-name, condition-name and screen-name tables,
 > the USE and WHEN file registers, the end markers; the data-name and condition-name RESOLUTION remains, 86 baseline entries; sections
-> 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
+> 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b and on the entry
+> ids 6b's remaining slices owe: section 11, "Step 7b, dispatched early") and 9 not yet built.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)" or "(step 8)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
@@ -983,7 +984,12 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
     (`SymbolTable.Declare`, which records the `Defined` occurrence and returns a `SymbolId`, an opaque number, never an
     entry or a symbol) and write each entry's attributes where they decide them (`SymbolTable.SetAttributes(SymbolId,
-    ...)`, section 6.6); those two and `Identify` are the table's only writers.
+    ...)`, section 6.6); those two and `Identify` are the table's only writers. (Step 7b, dispatched early, correction: kb/Work
+    PB5925's dated file `2026-11-19-step-7b-not-buildable-yet`:) as step 6b built it, each class's declaration keys its SYMBOL
+    (`DeclareParagraph`, `DeclareSection`, `ConfigurationNames<T>`, `DeclareDataName`, ...) and returns no `SymbolId`; the entries are
+    made after the bind by `SymbolTableFinish.Of`. The `SymbolId` made at declaration is what lets an occurrence join its entry: the
+    identified answer is not the entry for most classes (a constant, an ordering-name, a paragraph, a report group), so it is owed by
+    step 6b's remaining slices, each class's declaration giving its entry id as it moves, before step 7b records.
   - **Declarations cannot answer a reference (R4-1).** The data division's declaration questions (does this name exist
     in this scope, does it conflict with another declaration, where was it declared, is its description still open) go
     to `SymbolTable.Declarations`, a nested class whose members return only `DeclarationFact` values: a
@@ -2371,7 +2377,16 @@ for each written object-class-name and interface-name (section 6.7.1, "The compi
 `BoundStores.StorePositionsOf`, all gated by `EditionContext.RecordsReferences`. Step 7b lands with the grammar test,
 the completeness oracle and the pairing test green. Then `CrossReferenceBuilder` (a view of the entries and their
 occurrences), the PERFORM and CALL graphs, `LineAnnotationBuilder`'s `ListingLine.Names` and statement-line `Margin`;
-the `All` row.
+the `All` row. (Step 7b, dispatched early, branch `listing-step-7b`, correction: kb/Work PB5925's dated file
+`2026-11-19-step-7b-not-buildable-yet`:) step 7b was dispatched after the closing slice's FIRST session, with step 6b's baseline at
+86 and no data-name or condition-name arm in `Identify`, and the code proved a gap in the design besides: no entry exists while the
+bind runs (step 6b built each class's declaration as a table of symbols and no `SymbolId`; the finish makes the entries from the
+frozen model), so "`Identify` appends each `SymbolOccurrence` to its entry" has no entry to append to, and for most classes the
+identified answer is not what the finish declares (a constant's `ConstantDef` against the finish's own constant symbol, an
+ordering-name's string, a paragraph's per-lookup `ParagraphDefinition(Pc)`, a report group's candidates), and several classes
+(procedure, CONFIGURATION SECTION, prototype, DEBUG-ITEM and OO names) have no entry at all. Step 7b therefore waits for step 6b's
+remaining slices, which give each declared name its entry id as its declaration moves (section 6.7.1's `SymbolId`); step 7b then joins
+every occurrence to its entry by that id, never by the answer.
 
 **Step 8 - COBOL to object-code map. BUILT (branch `listing-step-8`; the corrections above marked "step 8").** Inside the Roslyn
 backend, behind the seam: the `#line` directives written by `StatementEmitter.EmitStatement` through `CodeWriter.MapStatement` and the

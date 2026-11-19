@@ -61,7 +61,7 @@
                WHEN OTHER
                    DISPLAY "NO-PHRASE"
            END-EVALUATE.
-      *> A numeric range: §2023:14.7.8 rule 1 — "the range of values includes literal-1, literal-2, and all
+      *> A numeric range: §2023:14.7.8 GR1 — "the range of values includes literal-1, literal-2, and all
       *> algebraic values between", and 2 is between 1 and 3.
            EVALUATE WS-A
                WHEN 1 THRU 3
