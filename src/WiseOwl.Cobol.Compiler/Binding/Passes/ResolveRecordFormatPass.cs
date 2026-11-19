@@ -47,7 +47,7 @@ internal sealed class ResolveRecordFormatPass : IBindPass
         // §2023:13.18.51.4 GR2: a SELECT WHEN clause in the working-storage, local-storage or linkage section has no effect — but its
         // condition-name is a name, and a name that names nothing is refused wherever it is written.
         foreach (var root in binder.State.Forest.Roots)
-            if (root.SelectWhen is { IsOther: false } sw && !inFiles.Contains(root) && Candidates(binder, sw.ConditionName!).Count == 0)
+            if (root.SelectWhen is { IsOther: false } sw && !inFiles.Contains(root) && binder.Symbols.SelectWhenConditionsOf(root).Count == 0)
             {
                 using var _ = binder.Edition.At(sw.At);
                 binder.Edition.Error(DiagnosticCatalog.SelectWhenClauseViolation,
@@ -55,9 +55,6 @@ internal sealed class ResolveRecordFormatPass : IBindPass
                     + $"{RecordFormatCitations.SelectWhen(binder.Edition.DialectLevel, "SR3")})");
             }
     }
-
-    private static List<Condition88> Candidates(DataBinder binder, string name) =>
-        binder.State.Forest.Conditions.TryGetValue(name, out var list) ? list : [];
 
     private static void Screen(DataBinder binder, FileModel file)
     {
@@ -91,7 +88,7 @@ internal sealed class ResolveRecordFormatPass : IBindPass
                         + $"({RecordFormatCitations.SelectWhen(level, "SR6")})");
                 continue;
             }
-            var inFile = Candidates(binder, sw.ConditionName!).Where(c => RecordLayout.IsInRecordOfFile(file, c.Parent)).ToList();
+            var inFile = binder.Symbols.SelectWhenConditionsOf(record).Where(c => RecordLayout.IsInRecordOfFile(file, c.Parent)).ToList();
             if (inFile.Count == 0)
             {
                 edition.Error(DiagnosticCatalog.SelectWhenClauseViolation,

@@ -38,7 +38,7 @@ public sealed partial class DataBinder
     /// copied from, which is legal on its own.</para></summary>
     internal void ScreenGlobalNameUniqueness()
     {
-        foreach (var (name, items) in State.Forest.ByName)
+        foreach (var (name, items) in Symbols.DataNameDeclarations())
         {
             if (items.Count < 2) continue;
             DataItem? firstGlobal = null;

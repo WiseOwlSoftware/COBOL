@@ -417,10 +417,6 @@ public sealed partial class SymbolTable
         /// PB2937)?</summary>
         internal static bool NamesFormalBase(ParserRuleContext written, OoClassSymbol cls) =>
             cls.FormalBaseName is { } formal && Key(written.GetText()) == Key(formal);
-
-        /// <summary>Does an END CLASS, END INTERFACE or END METHOD marker's name repeat its header's (§2023:10.7.3 SR4 to SR6)?</summary>
-        internal static bool EndMarkerAgrees(ParserRuleContext endName, ParserRuleContext declared) =>
-            Key(endName.GetText()) == Key(declared.GetText());
     }
 
     /// <summary>

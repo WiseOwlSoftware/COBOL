@@ -213,7 +213,9 @@ public sealed partial class SymbolTable
     private static CobolName Key(string word) => new(word);
 
     /// <summary>The key of a context that is exactly one token, or null for a context of several (or none): only a single
-    /// word is a name.</summary>
-    private static CobolName? WordOf(ParserRuleContext written) =>
+    /// word is a name. Internal for a pass that reads the parse tree before any element's table exists and keys its own
+    /// facts by the written word (<c>VersionConformancePass</c>'s level-01 records): the key is the table's type, so the
+    /// comparison is the table's one equality, never a comparer beside it.</summary>
+    internal static CobolName? WordOf(ParserRuleContext written) =>
         written.Start is { } first && written.Stop is { } last && first.TokenIndex == last.TokenIndex ? Key(first.Text) : null;
 }

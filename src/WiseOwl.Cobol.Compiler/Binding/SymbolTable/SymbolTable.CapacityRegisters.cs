@@ -47,7 +47,7 @@ public sealed partial class SymbolTable
     internal bool DuplicatesCapacityRegister(OoMethodDataScope? method, string name, DataItem table)
     {
         var registers = method is null ? _capacityRegisters : _methodNames.GetValueOrDefault(method)?.CapacityRegisters;
-        return (method is null ? _data.State.Forest.DeclaresOwnDataName(name) : method.ByName.ContainsKey(name))
+        return (method is null ? DeclaresOwnDataName(name) : _methodNames.TryGetValue(method, out var own) && own.DataNames.ContainsKey(Key(name)))
             || (registers is not null && registers.TryGetValue(Key(name), out var sameName)
                 && !sameName.TrueForAll(t => _data.State.Forest.DeclaringDepth(t) != 0
                                              || ReferenceEquals(t.WrittenDefinition, table.WrittenDefinition)));
@@ -64,7 +64,7 @@ public sealed partial class SymbolTable
     /// <c>CAPACITY IN</c> register the written word reaches in <paramref name="scope"/>, or null when it reaches none. The register
     /// is a data-name of its entry's source element (§2023:13.18.38.3 SR30), so it has the data-name's visibility (§2023:11.7.4
     /// GR5): a method sees its OWN registers first, and they REPLACE the object's; a method-local name of the spelling in any
-    /// other class (<see cref="DataBinder.MethodDeclares"/>) hides an object-level register (the object's declaration is
+    /// other class (<see cref="SymbolTable.MethodDeclaresWord"/>) hides an object-level register (the object's declaration is
     /// "inaccessible to this method"); a sibling method's registers are not in the scope at all. Else this element's, nearest
     /// declaring element first, read only once <c>DynamicResolvePass</c> has minted every register (the
     /// <see cref="Passes.PassPhase.OccursResolved"/> watermark, the P6 Step-6 gate): a read before it would see a null register.</summary>
@@ -73,7 +73,7 @@ public sealed partial class SymbolTable
         if (scope.Method is { } m)
         {
             if (_methodNames.TryGetValue(m, out var own) && own.CapacityRegisters.TryGetValue(key, out var tables)) return new(tables);
-            if (_data.MethodDeclares(m, key.Word)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
+            if (MethodDeclaresWord(m, key.Word)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
         }
         _data.State.Require(Passes.PassPhase.OccursResolved, "CapacityRegisters");
         return _capacityRegisters.TryGetValue(key, out var registers) ? new(registers) : null;

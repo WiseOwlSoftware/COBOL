@@ -59,7 +59,7 @@ public sealed class NegativeZeroPromotionTests
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             var bound = new BinderDriver().Bind(tree!, new EditionContext(edition, permissive: false), frontend.Directives);
             var data = bound.Units.Single().Data;
-            return name => data.Forest.ByName[name][0];
+            return name => data.Forest.ItemNamed(name);
         }
         finally { FileHarness.TryDelete(path); }
     }

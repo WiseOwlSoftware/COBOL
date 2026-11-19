@@ -26,10 +26,10 @@
       *> SHOWE declares a CONDITION-name QO, which hides the object's QO register too (11.7.4 GR5: a
       *> word "defined in the data division of this method definition"): SET QO TO TRUE sets SHOWE's
       *> own W to 1, and IF QO tests it (SymbolTable.CapacityRegisterNamed and the literal-alias lookups
-      *> ask DataBinder.MethodDeclares, every method name table; the PB3165 merge-queue bounce).
+      *> ask SymbolTable.MethodDeclaresWord, every method name table; the PB3165 merge-queue bounce).
       *> SHOWF declares a CAPACITY register QX spelled like the object's INDEX-name QX: COMPUTE N = QX
       *> reads SHOWF's own register (3, its minimum capacity), not the object's index, which as an
-      *> arithmetic operand would be refused (SymbolTable.IndexCandidates asks DataBinder.MethodDeclares;
+      *> arithmetic operand would be refused (SymbolTable.IndexCandidates asks SymbolTable.MethodDeclaresWord;
       *> branch review finding R2-1).
       *> ISO 14.6.2.3.2 item 6: each dynamic-capacity table starts at the FROM (minimum) capacity.
       *>   cite.py --check 14.6.2.3.2 "the capacity of the table is set to the minimum capacity specified

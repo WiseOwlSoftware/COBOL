@@ -1,24 +1,20 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Passes;
-using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>
-/// The type forest of ONE bound unit and the name tables over it (ISO §2023:8.4.6.2.1 3): the roots of its WORKING-STORAGE,
-/// LOCAL-STORAGE and the rest of the forest, every referenceable data-name and condition-name, the element's own index
-/// declarations and type declarations in source order (lists, not name tables: their names are keyed by <see cref="SymbolTable"/>,
-/// which also owns the named CAPACITY registers), the screen-names and the inheritance tier of each GLOBAL name a container offered
+/// The type forest of ONE bound unit (ISO §2023:8.4.6.2.1 3): the roots of its WORKING-STORAGE, LOCAL-STORAGE and the rest of the
+/// forest, the element's own index declarations and type declarations in source order, and the inheritance tier of each GLOBAL item a
+/// container offered. It holds no name table: every name of the element (its data-names, condition-names, index-names, type-names,
+/// CAPACITY registers and screen-names) is keyed by <see cref="SymbolTable"/>, the one store of names (docs/rearchitecture/DESIGN-listing.md
+/// section 6.7.1)
 /// (docs/rearchitecture/DESIGN-architecture-review.md §8.3 (1); kb/Work PB2296, step 1 of the <see cref="DataBinder"/>
 /// extract, M6). A value slice of <see cref="DataBindState"/>: its one writer is the data binder's declaration walk
-/// (<c>DataBinder.RegisterName</c>, <c>RegisterCondition</c>, <c>BindEntries</c> and the post-build TYPE copies, which
-/// register through the same funnel) and its inheritance of a container's GLOBAL subtree, plus the one late door
+/// (<c>BindEntries</c>, the roots and the declarations) and its inheritance of a container's GLOBAL subtree, plus the one late door
 /// <see cref="AddTemporaryRoot"/> that the procedure binders' compiler temporaries use; everyone else reads the
 /// read-only views below. <c>DataBindStateBoundaryDriftTests</c> pins the writers.
-/// <para>A lookup that must see a METHOD's own names first asks the method's <see cref="OoMethodDataScope"/> before it asks
-/// this slice (<see cref="SymbolTable"/>); the mutators here take that scope, because a name joins the index of the
-/// source element that owns its record (§2023:11.7.4 GR5; kb/Work PB3192).</para>
 /// <para>A model-layer value: it names no binder type, so <see cref="DataBindResult"/> hands it to a backend as it is (kb/Work
 /// PB2361). It has no gated read: the CAPACITY registers' <see cref="PassPhase.OccursResolved"/> watermark gate is the symbol
 /// table's (<c>SymbolTable.CapacityRegisterNamed</c>).</para>
@@ -28,11 +24,8 @@ public sealed class ForestSlice
     private readonly List<DataItem> _roots = [];
     private readonly List<DataItem> _workingStorageRoots = [];
     private readonly List<DataItem> _localStorageRoots = [];
-    private readonly Dictionary<string, List<DataItem>> _byName = new(CobolNames.Comparer);
-    private readonly Dictionary<string, List<Condition88>> _conditions = new(CobolNames.Comparer);
     private readonly Dictionary<DataItem, int> _inheritedGlobalDepth = new(ReferenceEqualityComparer.Instance);
     private readonly List<DataItem> _typeDeclarations = [];
-    private readonly HashSet<string> _screenNames = new(CobolNames.Comparer);
 
     /// <summary>The top-level (01/77) items, in source order: WORKING-STORAGE, the FILE records and the compiler
     /// temporaries share it (<see cref="WorkingStorageRoots"/> and <see cref="LocalStorageRoots"/> are the section subsets).</summary>
@@ -51,17 +44,6 @@ public sealed class ForestSlice
     /// (ProgramEmitter) — automatic data is in initial state on EVERY activation regardless of the unit's attributes.</summary>
     public IReadOnlyList<DataItem> LocalStorageRoots => _localStorageRoots;
 
-    /// <summary>
-    /// Every named item of this source element and every GLOBAL one a container offered, keyed by COBOL name
-    /// (case-insensitive) → the items with that name. COBOL permits duplicate data-names disambiguated only by qualification
-    /// (OF/IN), so this is a MULTIMAP — a single-valued dictionary would silently drop all but the last (a latent
-    /// wrong-item bug; DESIGN §3.5). Nearest declaring source element first (the inherited items join after the unit's own).
-    /// </summary>
-    public IReadOnlyDictionary<string, List<DataItem>> ByName => _byName;
-
-    /// <summary>Level-88 condition-names (case-insensitive) → the conditions with that name (a list, since names may be
-    /// duplicated under different parents and disambiguated by qualification).</summary>
-    public IReadOnlyDictionary<string, List<Condition88>> Conditions => _conditions;
     /// <summary>THE INDEX-NAME DECLARATIONS THIS SOURCE ELEMENT MAKES, in declaration order (kb/Work PB919): every INDEXED BY of
     /// its own data division, each with its own <c>long</c> cell (1-based occurrence numbers, DESIGN §3.5), the cells it emits.
     /// The index-names, its own and the GLOBAL tables' of every containing program (§2023:8.4.6.2.3), are the symbol table's
@@ -75,25 +57,11 @@ public sealed class ForestSlice
     /// template root <see cref="DataItem"/>. A METHOD's declarations are its own source element's
     /// (<see cref="OoMethodDataScope.TypeDeclarations"/>, kb/Work PB3192), and <c>DataBinder.AllTypeDecls</c> walks both. Their
     /// type-names are the symbol table's (<c>SymbolTable.DeclareType</c>, which adds each here; docs/rearchitecture/DESIGN-listing.md
-    /// section 6.7.1). The template is built by <c>BindEntries</c> but kept OFF <see cref="Roots"/> and <see cref="ByName"/> (it
+    /// section 6.7.1). The template is built by <c>BindEntries</c> but kept OFF <see cref="Roots"/> and the symbol table's data-names (it
     /// allocates no storage; its subordinate names are not globally referenceable, GR1/GR2). A <c>TYPE IS type-name</c> reference
     /// clones this subtree into the referencing entry in the post-build <see cref="ExpandTypesPass.Run"/> pass, which runs before
     /// every resolution pass, so each sees the clone.</summary>
     public IReadOnlyList<DataItem> TypeDeclarations => _typeDeclarations;
-
-    /// <summary>Names DECLARED in the SCREEN SECTION, which is REFUSED as the declined Annex A.4.2 module
-    /// (COBOL1560; <see cref="ScreenFacility"/>). Two consumers, both still needed after the refusal:
-    /// <list type="number">
-    /// <item>kb/Work R32 — a reference to such a name is exempt from the §2023:8.4.2.1 UNDEFINED diagnostic
-    /// (COBOL1639). The compile already fails on the section; adding "SG is not defined" on top would send
-    /// the user hunting a declaration that is right there. "Not defined" and "declared in a refused section"
-    /// are different verdicts, and only the second is true.</item>
-    /// <item>It is how <c>ACCEPT screen-name-1</c> / <c>DISPLAY screen-name-1</c> are told apart from their
-    /// token-identical DEVICE formats (AcceptDisplayBinder.ScreenFormatOf) — the operand's DECLARATION is the
-    /// only thing that distinguishes them.</item></list>
-    /// ⚠ The posture used to be compile-ACCEPT with a staged runtime loud; kb/Work PB260 measured what that
-    /// actually did (a screen record printed to standard output) and made it a refusal.</summary>
-    public IReadOnlySet<string> ScreenNames => _screenNames;
 
     // ── The inheritance tier ─────────────────────────────────────────────────────────────────────────────────────────
 
@@ -108,15 +76,6 @@ public sealed class ForestSlice
     /// tiers, so the nearest-tier filter is free for every other unit.</summary>
     public bool InheritsGlobalData => _inheritedGlobalDepth.Count != 0;
 
-    /// <summary>⛔ THE ONE QUESTION "IS THIS WORD A DATA-NAME THIS SOURCE ELEMENT ITSELF DEFINES?" — the test behind every rule
-    /// that reads "shall not be defined elsewhere in the source element" (§2023:13.18.38.3 SR30 for a CAPACITY register,
-    /// §2023:13.18.64.3 SR2 for a report VARYING counter) and behind the report section's "also declared in ordinary storage"
-    /// screens (§2023:8.4.2.1). A container's GLOBAL data-name is inherited into <see cref="ByName"/> before the resolve passes run
-    /// (<see cref="Inherit"/>), but it is defined in ANOTHER source element: this element's own declaration of the spelling
-    /// hides it (§2023:8.4.6.2.1 3), so it can neither duplicate nor be duplicated by it. Asking <c>ByName.ContainsKey</c> instead
-    /// refuses a legal program (kb/Work PB3766, review finding R2-1).</summary>
-    public bool DeclaresOwnDataName(string name) =>
-        _byName.TryGetValue(name, out var items) && items.Any(i => DeclaringDepth(i) == 0);
 
 
     // ── The writers (internal: the data binder's declaration walk, its passes and its inheritance of a container's GLOBALs) ──
@@ -137,25 +96,6 @@ public sealed class ForestSlice
     /// <summary>Record the roots a LOCAL-STORAGE SECTION bound.</summary>
     internal void AddLocalStorageRoots(IEnumerable<DataItem> roots) => _localStorageRoots.AddRange(roots);
 
-    /// <summary>Index a named item in the by-name multimap of the source element that owns its record: <paramref name="method"/>'s
-    /// own when its record is a method's, else this unit's — COBOL allows duplicate names disambiguated only by qualification.
-    /// The one insert of a bound entry and of a TYPE copy alike (kb/Work PB3192).</summary>
-    internal void DeclareName(DataItem item, string name, OoMethodDataScope? method)
-    {
-        var byName = method?.ByName ?? _byName;
-        if (!byName.TryGetValue(name, out var list)) byName[name] = list = [];
-        list.Add(item);
-    }
-
-    /// <summary>Index a level-88 condition-name in the condition multimap of the source element that owns its conditional
-    /// variable's record (<paramref name="method"/>'s when it is a method's; kb/Work PB3192).</summary>
-    internal void DeclareCondition(Condition88 cond, OoMethodDataScope? method)
-    {
-        var conditions = method?.Conditions ?? _conditions;
-        if (!conditions.TryGetValue(cond.Name, out var list)) conditions[cond.Name] = list = [];
-        list.Add(cond);
-    }
-
     /// <summary>Append one INDEXED BY declaration of this element's own data division, in declaration order:
     /// <c>SymbolTable.DeclareIndex</c>'s, once it has keyed the index-name.</summary>
     internal void AddOwnIndex(IndexDeclaration decl) => _ownIndexes.Add(decl);
@@ -164,29 +104,9 @@ public sealed class ForestSlice
     /// type-name.</summary>
     internal void AddTypeDeclaration(DataItem template) => _typeDeclarations.Add(template);
 
-    /// <summary>Record the screen-names the refused SCREEN SECTION declared.</summary>
-    internal void AddScreenNames(IEnumerable<string> names)
-    {
-        foreach (var n in names) _screenNames.Add(n);
-    }
-
-    /// <summary>Make ONE container GLOBAL item (no recursion: the caller walks the subtree) visible here,
-    /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2 — "may reference that name without describing it
-    /// again"): its data-name and the condition-names associated with it (<c>SymbolTable.InheritGlobalItem</c> keys its index-names
-    /// and its CAPACITY register).</summary>
-    internal void Inherit(DataItem item, int depth)
-    {
-        _inheritedGlobalDepth[item] = depth;
-        if (item.CobolName is { } name)
-        {
-            if (!_byName.TryGetValue(name, out var list)) _byName[name] = list = [];
-            list.Add(item);
-        }
-        foreach (var cond in item.Own88s)
-        {
-            if (!_conditions.TryGetValue(cond.Name, out var conds)) _conditions[cond.Name] = conds = [];
-            conds.Add(cond);
-        }
-    }
+    /// <summary>Record that ONE container GLOBAL item (no recursion: the caller walks the subtree) is inherited here,
+    /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2: "may reference that name without describing it
+    /// again"): <c>SymbolTable.InheritGlobalItem</c>'s, which keys its names.</summary>
+    internal void Inherit(DataItem item, int depth) => _inheritedGlobalDepth[item] = depth;
 
 }

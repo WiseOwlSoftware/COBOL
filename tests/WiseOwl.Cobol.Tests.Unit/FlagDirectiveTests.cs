@@ -677,6 +677,48 @@ public sealed class FlagDirectiveTests
         Assert.Equal(2, flagged.Count(w => w.Contains("RANGE-EXCEPTION-FOR-INDEX", StringComparison.Ordinal)));
     }
 
+    /// <summary>kb/Work PB5932 (listing step 6b-close review R1-1) — a FACTORY or OBJECT half declares files too, and every
+    /// file question the flag pass asks inside its methods is the method's element's: the record-name and the FILE
+    /// file-name forms of one WRITE find the one LINAGE file (§2023:7.3.15.4 GR4 m), a relation on the half's FILE STATUS
+    /// item tests it (GR4 e), and a method's own open-mode USE declarative governs that method's keyed WRITE (GR4 d) and
+    /// no sibling method's. Before the fix the pass looked for files in program units only: WRITE FREC in a method, the
+    /// FILE STATUS relation and the method's declarative were all missed.</summary>
+    private const string FactoryFilesSource =
+        "       >>FLAG-14 WRITE-END-OF-PAGE ON\n" +
+        "       >>FLAG-14 I-O-STATUS-04 ON\n" +
+        "       >>FLAG-14 I-O-DECLARATIVE ON\n" +
+        "       IDENTIFICATION DIVISION.\n       CLASS-ID. FLGFF.\n" +
+        "       IDENTIFICATION DIVISION.\n       FACTORY.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n" +
+        "       FILE-CONTROL.\n           SELECT FF ASSIGN TO \"ff.dat\".\n" +
+        "           SELECT FI ASSIGN TO \"fi.dat\" ORGANIZATION IS INDEXED\n" +
+        "               ACCESS MODE IS DYNAMIC RECORD KEY IS FI-KEY FILE STATUS IS FS.\n" +
+        "       DATA DIVISION.\n       FILE SECTION.\n       FD FF LINAGE IS 10 LINES.\n       01 FREC PIC X(10).\n" +
+        "       FD FI.\n       01 FI-REC.\n          05 FI-KEY PIC X(4).\n" +
+        "       WORKING-STORAGE SECTION.\n       01 X PIC X(10).\n       01 FS PIC XX.\n" +
+        "       PROCEDURE DIVISION.\n" +
+        "       IDENTIFICATION DIVISION.\n       METHOD-ID. WRA.\n       PROCEDURE DIVISION.\n" +
+        "           WRITE FREC.\n       END METHOD WRA.\n" +
+        "       IDENTIFICATION DIVISION.\n       METHOD-ID. WRB.\n       PROCEDURE DIVISION.\n" +
+        "           WRITE FILE FF FROM X.\n       END METHOD WRB.\n" +
+        "       IDENTIFICATION DIVISION.\n       METHOD-ID. STS.\n       PROCEDURE DIVISION.\n" +
+        "           IF FS = \"04\"\n               CONTINUE\n           END-IF.\n       END METHOD STS.\n" +
+        "       IDENTIFICATION DIVISION.\n       METHOD-ID. DCL.\n       PROCEDURE DIVISION.\n" +
+        "       DECLARATIVES.\n       D-SEC SECTION.\n           USE AFTER STANDARD ERROR PROCEDURE ON I-O.\n" +
+        "       D-PARA.\n           DISPLAY \"E\".\n       END DECLARATIVES.\n" +
+        "       MAIN SECTION.\n       M.\n           WRITE FI-REC.\n       END METHOD DCL.\n" +
+        "       IDENTIFICATION DIVISION.\n       METHOD-ID. NDC.\n       PROCEDURE DIVISION.\n" +
+        "           WRITE FI-REC.\n       END METHOD NDC.\n" +
+        "       END FACTORY.\n       END CLASS FLGFF.\n";
+
+    [Fact]
+    public void Compile_MethodBody_FileQuestionsAreTheMethodElements()
+    {
+        var flagged = CompileWarnings(FactoryFilesSource).Where(w => w.Contains("COBOL1621", StringComparison.Ordinal)).ToList();
+        Assert.Equal(2, flagged.Count(w => w.Contains("WRITE-END-OF-PAGE", StringComparison.Ordinal)));   // WRA and WRB
+        Assert.Single(flagged, w => w.Contains("I-O-STATUS-04", StringComparison.Ordinal));               // STS
+        Assert.Single(flagged, w => w.Contains("I-O-DECLARATIVE", StringComparison.Ordinal));             // DCL, not NDC
+    }
+
     [Fact]
     public void Compile_MoveToSameName_NotFlagged_WhenDirectiveOff()
     {

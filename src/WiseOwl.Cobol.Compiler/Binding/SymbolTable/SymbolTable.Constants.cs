@@ -77,10 +77,14 @@ public sealed partial class SymbolTable
     private ConstantNames? ReferencingMethodConstants =>
         _data.Oo.CurrentMethodScope is { } method ? MethodConstantsOf(method) : null;
 
-    /// <summary>The table's half of "does the method whose name scope is <paramref name="method"/> declare
-    /// <paramref name="word"/>" (§2023:11.7.4 GR5; kb/Work PB3164, PB3192): one of its type declarations or constant entries
-    /// names it, or a data description entry of its data division does, declared before any entry binds. The model's half is
-    /// <see cref="OoMethodDataScope.IndexesDeclare"/>; <see cref="DataBinder.MethodDeclares"/> asks both.</summary>
+    /// <summary>⛔ THE ONE ANSWER TO "DOES THE METHOD WHOSE NAME SCOPE IS <paramref name="method"/> DECLARE <paramref name="word"/>?"
+    /// (§2023:11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
+    /// data division of the containing object definition, the use of that word in this method refers to the declaration in this
+    /// method"; §2023:8.4.6.1 "even when it is a different type of user-defined word"): one of the method's own tables declares it
+    /// (<see cref="MethodNames.Declares"/>: a data-name, condition-name, type-name, CAPACITY register or index-name), or one of its
+    /// constant entries names it, or a data description entry of its data division does, declared before any entry binds
+    /// (kb/Work PB3164, PB3192, PB2402, PB5932). Every method tier of a lookup asks it before it falls through to the object's
+    /// names (<c>GlobalNameClassDriftTests</c>).</summary>
     internal bool MethodDeclaresWord(OoMethodDataScope method, string word) =>
         Key(word) is var key
         && ((_methodNames.TryGetValue(method, out var tables) && tables.Declares(key))

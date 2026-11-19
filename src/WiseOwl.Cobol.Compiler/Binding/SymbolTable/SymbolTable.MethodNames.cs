@@ -15,6 +15,13 @@ public sealed partial class SymbolTable
     /// by reflection and holds <see cref="Declares"/> to every one.</summary>
     private sealed class MethodNames
     {
+        /// <summary>The method's own data-names → the items of each (a multimap, as the element's <c>_dataNames</c>): a
+        /// method-local name REPLACES, never unions with, the object's (§2023:11.7.4 GR5), and it is invisible to sibling methods.</summary>
+        public Dictionary<CobolName, List<DataItem>> DataNames { get; } = [];
+
+        /// <summary>The method's own level-88 condition-names → the conditions of each.</summary>
+        public Dictionary<CobolName, List<Condition88>> ConditionNames { get; } = [];
+
         /// <summary>The method's own type declarations by type-name: a type-name declared in a method definition is a LOCAL name
         /// (§2023:8.4.6.2.2 makes global only a type-name "described with a GLOBAL clause" or "declared in a source element for an
         /// object definition"), and inside the method it hides its object's type-name of the spelling.</summary>
@@ -33,7 +40,8 @@ public sealed partial class SymbolTable
         /// <summary>Whether one of the method's tables declares <paramref name="word"/>.</summary>
         public bool Declares(CobolName word)
         {
-            return TypeNames.ContainsKey(word) || CapacityRegisters.ContainsKey(word) || IndexNames.Declares(word);
+            return DataNames.ContainsKey(word) || ConditionNames.ContainsKey(word) || TypeNames.ContainsKey(word)
+                || CapacityRegisters.ContainsKey(word) || IndexNames.Declares(word);
         }
     }
 

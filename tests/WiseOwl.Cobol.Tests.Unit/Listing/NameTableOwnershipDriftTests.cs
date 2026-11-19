@@ -48,8 +48,12 @@ public sealed class NameTableOwnershipDriftTests
     /// OO names' lane, branch listing-step-6b-oo, which moved the method rosters, re-keyed by the externalized method name, and the
     /// object-class-names and interface-names with their resolution into the compilation group's tier and the PROPERTY specifiers:
     /// 20 tables, 31 lookups, 104 sites; 122 with the data-name lane's first slice, which moved the DEBUG-ITEM register names, the
-    /// type-names, the CAPACITY register names and the index-names: 7 tables, 22 lookups, 93 sites).</summary>
-    private const int BaselineCeiling = 122;
+    /// type-names, the CAPACITY register names and the index-names: 7 tables, 22 lookups, 93 sites; 104 at the closing slice's first
+    /// commit, which keyed the USE and WHEN registers by the file a file-name identified and classified the words of the standard and
+    /// the externalized names: 7 tables, 22 lookups, 75 sites; 93 at its second, which moved the data-name, condition-name and
+    /// screen-name tables of the element and of each method into the table: 1 table, 22 lookups, 70 sites; 86 at its end, with the end
+    /// markers, the flag pass's file-name, the index-name pre-filter and the version pass's level-01 keys: 1 table, 22 lookups, 63 sites).</summary>
+    private const int BaselineCeiling = 86;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -66,9 +70,11 @@ public sealed class NameTableOwnershipDriftTests
     /// 125 -> 123 -> 125. <c>MethodRoster.Find</c> and <c>OoInterfaceSymbol.FindOwnPrototype</c> take the roster key's own type (-2);
     /// the four external-repository members moved into <c>SymbolTable.ClassNames</c> with their reason (-4 +4); and
     /// <c>SymbolTable.ClassNames.Resolve</c> and <c>OoDataBinder.DescribeNamedReference</c> take the written word as its context and
-    /// keep the diagnostic's strings (+2). The comparisons: 86 -> 81, the five the tier now makes.)</summary>
+    /// keep the diagnostic's strings (+2). The comparisons: 86 -> 81, the five the tier now makes. The closing slice: 81 -> 91, ten sites the first measurement left in
+    /// the baseline that resolve no written name: five words of the standard or the implementor (KEYWORD) and five externalized or
+    /// compilation-variable names (EXTERNAL).)</summary>
     private const int StringMembersCeiling = 125;
-    private const int ComparisonsCeiling = 81;
+    private const int ComparisonsCeiling = 91;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
     private static readonly string MeasuredFile = Path.Combine(AppContext.BaseDirectory, "name-table-ownership.measured.txt");
@@ -214,6 +220,8 @@ public sealed class NameTableOwnershipDriftTests
                     internal HashSet<string> Words() => new(CobolNames.Comparer);
                     internal bool Equal(Item a, string b) => a.Name == b;
                     internal bool Clr(Item a, string b) => a.ClrText == b;
+                    internal CobolName Copy(CobolName n) => n with { Folded = "x" };
+                    internal CobolName Empty() => default;
                 }
             }
             """;
@@ -233,6 +241,8 @@ public sealed class NameTableOwnershipDriftTests
             "(3) P.Binding.Outside.ByWord(string)",
             "(3) P.Binding.Outside.ForTemp(string)",
             "(2) new(word)",
+            "(2) n with { Folded = \"x\" }",
+            "(2) default",
             "(4) P.Binding.SymbolTable.Declarations.Leak(string)",
             "(5) SAME Planted.cs P.Binding.Outside.Compare CobolNames.Same(a.Name, b)",
             "(5) CMP Planted.cs P.Binding.Outside.Words Comparer",

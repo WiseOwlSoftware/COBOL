@@ -24,6 +24,10 @@ public sealed partial class SymbolTable
     /// the element binds (<see cref="InheritFiles"/>).</summary>
     private readonly Dictionary<CobolName, FileModel> _inheritedFiles = [];
 
+    /// <summary>Every file of every containing program, GLOBAL or not, nearest container first (<see cref="InheritFiles"/>):
+    /// the chain <see cref="FilesOfContainingChain"/> reads.</summary>
+    private readonly List<FileModel> _containerFiles = [];
+
     /// <summary>The inherited file-names a data-name, condition-name or index-name of the spelling declared in a nearer source
     /// element hides (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786).</summary>
     private readonly HashSet<CobolName> _hiddenFileNames = [];
@@ -61,6 +65,28 @@ public sealed partial class SymbolTable
         }
     }
 
+    /// <summary>The file whose <see cref="FileModel.Records"/> contain <paramref name="record"/> (reference identity, never its
+    /// spelling): this element's own files in the order declared, then the visible containers' GLOBAL ones (§2023:13.18.27.4
+    /// GR1 — the record-names of a GLOBAL FD are global names), so a contained program's WRITE or REWRITE of a container's
+    /// record resolves to the container's one connector. The one record-to-file question: the binder's record-name-1 rule
+    /// (<c>StatementValidation.ResolveRecordName</c>) and the flag pass's probe of the same WRITE both ask it here, in the
+    /// element's scope, a method's included (kb/Work PB5932).</summary>
+    internal FileModel? FileWhoseRecordIs(DataItem record)
+    {
+        foreach (var file in _data.State.Files.Declared)
+            if (file.Records.Contains(record)) return file;
+        foreach (var file in VisibleFiles)
+            if (file.Records.Contains(record)) return file;
+        return null;
+    }
+
+    /// <summary>Every file of this element and of each containing program, GLOBAL or not, shadowed or not: this element's own
+    /// files, then each container's, nearest first. A container's file need not be GLOBAL for an item it names
+    /// (its FILE STATUS item, made visible by the item's own GLOBAL clause) to be referenced here, so a question about such
+    /// an item's ROLE reads this chain, not <see cref="VisibleFiles"/>.</summary>
+    internal IEnumerable<FileModel> FilesOfContainingChain =>
+        _data.State.Files.Declared.Concat(_containerFiles);
+
     /// <summary>The element's own files, one per file-name (the last declared of a spelling).</summary>
     internal IEnumerable<FileModel> OwnFiles => _ownFiles.Values;
 
@@ -74,8 +100,9 @@ public sealed partial class SymbolTable
 
     /// <summary>The containers' GLOBAL file-names join the table (§2023:13.18.27.4 GR1), the nearest first; their depths, record
     /// areas and non-GLOBAL files are the inheritance slice's (<see cref="InheritedGlobals.AddContainerFiles"/>).</summary>
-    internal void InheritFiles(IEnumerable<FileModel> files, IReadOnlyCollection<DataItem> globalRoots, int depth)
+    internal void InheritFiles(IReadOnlyList<FileModel> files, IReadOnlyCollection<DataItem> globalRoots, int depth)
     {
+        _containerFiles.AddRange(files);
         foreach (var file in _data.State.Inherited.AddContainerFiles(files, globalRoots, depth))
             if (_inheritedFiles.TryAdd(Key(file.CobolName), file))
                 _data.State.Inherited.SetFileDepth(file, depth);

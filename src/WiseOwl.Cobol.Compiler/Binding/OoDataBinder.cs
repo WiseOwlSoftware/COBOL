@@ -140,12 +140,12 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
 
     /// <summary>Whether the method a reference is made in (<see cref="CurrentMethodScope"/>) declares <paramref name="word"/>
     /// as a data-name, a condition-name, an index-name, a CAPACITY register, a type-name or a constant-name of its own
-    /// (<see cref="DataBinder.MethodDeclares"/>) — the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
+    /// (<see cref="SymbolTable.MethodDeclaresWord"/>) — the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
     /// symbolic-character of the spelling the class's binder holds (ISO §2023:8.4.6.2.1 3) a) "If the name is declared in
     /// source element B, the item in source element B is the referenced item"; §2023:8.4.6.1 "even when it is a different
     /// type of user-defined word"; kb/Work PB3154 review R1-1). Asked by the two literal-alias lookups,
     /// <c>SymbolTable.Identify</c>'s constant arm and <c>SpecialNamesBinder.SymbolicOf</c>; always false outside a method.</summary>
-    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope is { } method && data.MethodDeclares(method, word);
+    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope is { } method && data.Symbols.MethodDeclaresWord(method, word);
 
     /// <summary>Reserve the names the C# class this binder's data is emitted into already holds, BEFORE the data
     /// division binds: its own type name <paramref name="classClrName"/> (the instance class beside the object data,

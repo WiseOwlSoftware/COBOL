@@ -73,7 +73,8 @@ internal static class ProcedureReach
         }
     }
 
-    /// <summary>Every ALTER destination the program holds, keyed by the alterable GO TO's paragraph-name.</summary>
+    /// <summary>Every ALTER destination the program holds, keyed by the alterable GO TO's C# alter field (a field
+    /// name the binder made, never the COBOL word: one paragraph's field is one spelling).</summary>
     private static ILookup<string, int> AlteredTargetsOf(IReadOnlyList<BoundParagraph> paragraphs)
     {
         var entries = new List<BoundAlterEntry>();
@@ -86,7 +87,7 @@ internal static class ProcedureReach
             }
         }
         foreach (var p in paragraphs) Collect(p.Statements);
-        return entries.ToLookup(e => e.AlterField, e => e.NewPc, CobolNames.Comparer);
+        return entries.ToLookup(e => e.AlterField, e => e.NewPc, StringComparer.Ordinal);   // a C# field name, no COBOL word
     }
 
     /// <summary>The paragraph pcs executed under <paramref name="seeds"/>, each mapped to the origin of the FIRST

@@ -13,7 +13,12 @@
 > and the file-names, and the temporary shrink-only baseline of the classes not yet moved; slice 2, branch `listing-step-6b-2`: the
 > tables keyed by no COBOL user word re-keyed by types of their own, and the procedure-names; slice 3, branch `listing-step-6b-3`:
 > the constant-names; slice 4, branch `listing-step-6b-4`: the CONFIGURATION SECTION names; slice 5, branch `listing-step-6b-5`: the
-> REPORT SECTION names; slice 6, branch `listing-step-6b-6`: the program-prototype-names; sections 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
+> REPORT SECTION names; slice 6, branch `listing-step-6b-6`: the program-prototype-names; slice 7, branch `listing-step-6b-7`: the
+> function-prototype-names; the OO lane, branch `listing-step-6b-oo`: the object-class-names, interface-names and method rosters in the
+> compilation group's tier; the data-name lane's first slice, branch `listing-step-6b-data`: the DEBUG-ITEM, type, CAPACITY register and
+> index-names; the closing slice's first session, branch `listing-step-6b-close`: the data-name, condition-name and screen-name tables,
+> the USE and WHEN file registers, the end markers; the data-name and condition-name RESOLUTION remains, 86 baseline entries; sections
+> 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b) and 9 not yet built.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)" or "(step 8)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
@@ -1449,6 +1454,55 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     - *For step 7b.* `NameResolution.ResolveIndexName` identifies with `report: !Probing`, but SET classifies its operand and then binds
       it, both committing, so the occurrence needs the once-per-written-reference gate the resolver already applies to its diagnostics;
       `ReferenceResolver.CapacityRegisterFor` takes `report` (the reference arm's own, false for the classifying probes).
+  - *(Step 6b, the closing slice's first session, branch `listing-step-6b-close`.)* The data-name, condition-name and screen-name
+    TABLES moved, with the questions that answer no symbol, and the baseline holds 86 (1 table, 22 lookups, 63 sites).
+    `SymbolTable.DataNames.cs` owns the element's data-names (the multimap, own entries then the inherited GLOBAL items),
+    condition-names and the refused SCREEN SECTION's names, their one insert each (`DeclareDataName`, `DeclareConditionName`,
+    `DeclareScreenNames`), `DeclaresOwnDataName` (which was `ForestSlice`'s), the screen questions, the enumeration the §2023:8.4.2.1
+    screens read (`DataNameDeclarations`), and `SelectWhenConditionsOf(DataItem)`; a method's own are `MethodNames.DataNames` and
+    `ConditionNames`. `ForestSlice` and `OoMethodDataScope` hold no name table: the forest keeps the roots, the declarations in order and
+    the declaring depth of each inherited item (`ForestSlice.Inherit`), and `SymbolTable.InheritGlobalItem` keys the item's names. The
+    corrections the code proved:
+    - *A register of written file-names keys the FILE (correction).* USE's §2023:14.9.49.3 SR8 ("The same file-name shall not appear in
+      more than one USE AFTER EXCEPTION statement within the same procedure division") and SR14 (the exception-name and file pair) and
+      the WHEN census of §2023:14.9.28.3 SR14 and SR15 kept the file-name's spelling under the
+      name comparer, beside the `Identify` that had just answered the file. Two file-names are the same file-name when they identify the
+      same file, so the registers key the `FileModel` (its reference identity) and the exception-name the catalog's spelling; no
+      comparison of written names is left there.
+    - *THE §2023:11.7.4 GR5 question is one member (correction).* "Does this method declare the word" was `DataBinder.MethodDeclares`, the
+      OR of the model scope's half (`OoMethodDataScope.IndexesDeclare`, its data-names and condition-names) and the table's
+      (`SymbolTable.MethodDeclaresWord`). With every table of a method in `MethodNames`, `MethodNames.Declares` asks them all and
+      `MethodDeclaresWord` is the question; the two halves are deleted, and `GlobalNameClassDriftTests` holds the model scope to no
+      table and `Declares` to each of the table's.
+    - *A name the record carries is resolved from the record.* A SELECT WHEN clause's condition-name (§2023:13.18.51.1: it "specifies a
+      condition-name condition under which a record description entry is associated" with a record) is text the
+      record holds; `ResolveRecordFormatPass` read the condition table by it. `SelectWhenConditionsOf(DataItem record)` reads it in the
+      table, as slice 6 resolved a restricted pointer's prototype from its item.
+    - *An end marker's name is the table's question at every kind of unit (correction).* The OO lane made `ClassNames.EndMarkerAgrees`
+      for END CLASS, END INTERFACE and END METHOD, while END PROGRAM and END FUNCTION still compared text in `EndMarkerPass`.
+      `SymbolTable.EndMarkerAgrees` and `EndMarkerNamesAny` (the test that the markers of nested programs are out of order) answer all five, before any
+      element's table exists, from the written contexts. The identity rules are §2023:10.7.3 SR2 and SR4 to SR9 (END PROGRAM for a
+      program SR2 and a program prototype SR8, END CLASS SR4, END METHOD SR5, END INTERFACE SR6, END FUNCTION for a user function SR7
+      and a function prototype SR9); the order rule is SR3; SR1 is the end marker's presence, which neither member answers (review
+      R1-2 corrected a first citation of "SR1 to SR6").
+    - *Which file holds a record is one member, and a method asks it of its half (correction, review R1-1).* The binder's record-name-1
+      rule (`StatementValidation.ResolveRecordName`) and the flag pass's probe of the same WRITE each walked the files themselves, the
+      pass over program units only, so in a FACTORY or OBJECT method `WRITE FILE FF` found the LINAGE file and `WRITE FREC` did not.
+      `SymbolTable.FileWhoseRecordIs` is the one question (own files, then visible GLOBAL ones) and both ask it;
+      `FilesOfContainingChain` (every file of the element and its containers, GLOBAL or not) answers the FILE STATUS role, so
+      `FlagConformancePass` keeps no unit walk of its own, and a method's own USE declaratives govern its FLAG-14 d test.
+    - *A pass before the bind keys its facts by the table's key.* `VersionConformancePass` remembers each level-01 record's EXTERNAL
+      clause by its name for a later REDEFINES; it keys the written word's `CobolName` (`SymbolTable.WordOf`, now internal), so its
+      equality is the table's, and a subscript's written word is pre-filtered against an INDEXED BY name by
+      `SymbolTable.SpellsIndexName` before it is resolved by its declaration (kb/Work PB919).
+    - *Rule (2)'s companion sees a copy (correction, review lead R2-1 of the OO lane).* It scanned only object creations, so a `with`
+      expression made a new `IdentifiedName` or `OoNameResult` unseen. It refuses a `with` expression of every table-made type and a
+      `default` of the name key; a `default` of an answer is the empty answer, which names nothing.
+    - *What remains is the RESOLUTION of the data-names and condition-names (correction of the "closing slice" estimate).* The 22
+      lookups that take the name as text, about 100 call sites, are now readers of the table's private tables; converting each to the
+      typed `IdentifyDataName(WrittenQualifiedName, ...)` the data-name lane named, with the clause operands carrying their written
+      words or resolved from their carrier, is the next slices' work, with the declaration sites, the census, the group tier's
+      function units and the parameterized expansion (kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the table).
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -1572,8 +1626,8 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 
 | Name class | Tables found (owner.member) |
 |---|---|
-| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` (since step 6b's data-name lane, first slice, the type-name and CAPACITY register tables and the lapsed members are `SymbolTable`'s, in `SymbolTable.Types.cs`, `SymbolTable.CapacityRegisters.cs` and a method's `SymbolTable.MethodNames`; `ForestSlice.TypeDeclarations` and `OoMethodDataScope.TypeDeclarations` keep the declarations as lists; the data-name tables are the lane's next slice) |
-| Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` |
+| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` (since step 6b's data-name lane, first slice, the type-name and CAPACITY register tables and the lapsed members are `SymbolTable`'s, in `SymbolTable.Types.cs`, `SymbolTable.CapacityRegisters.cs` and a method's `SymbolTable.MethodNames`; `ForestSlice.TypeDeclarations` and `OoMethodDataScope.TypeDeclarations` keep the declarations as lists; since step 6b's closing slice the data-name tables are `SymbolTable`'s too, `_dataNames` in `SymbolTable.DataNames.cs` and a method's `SymbolTable.MethodNames.DataNames`) |
+| Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` (since step 6b's closing slice `SymbolTable._conditionNames` in `SymbolTable.DataNames.cs` and a method's `SymbolTable.MethodNames.ConditionNames`) |
 | Index | `IndexNameRegistry._byName` (since step 6b's data-name lane, first slice, `SymbolTable`'s private `IndexNameTable`, one per element and one per method; `IndexNameRegistry` is deleted) |
 | Procedure | `ProcedureNameMap<T>._first`, `_duplicated` (since step 6b slice 2, `SymbolTable`'s private `ProcedureNames<T>`) |
 | File | `FileSlice._filesByName` (`FilesByName`); `FileNameScope._own`, `_inherited` (and its public `TryGetValue`, reached as `DataBindState.VisibleFiles`); `InheritedGlobals._files` (`Files`); `FileControlBinder.SelectedFiles` |
@@ -1604,7 +1658,7 @@ classified by reading its site; the result is committed, one row per site, as
 The 130 `Comparer` uses key name collections and move with their tables (or, for a set of fixed words, are re-keyed);
 the 40 name-property comparisons are classified site by site in step 7 into the same classes. The KEYWORD, SAMESYMBOL,
 EXTERNAL and MESSAGE rows seed `name-comparisons.json`, which may then only shrink.
-Screen names (`ForestSlice.ScreenNames`) are a set, not a table, and resolve through the data tables. The front end's
+Screen names (`ForestSlice.ScreenNames` at 522468b9c8, since step 6b's closing slice `SymbolTable._screenNames`) are a set, not a table, and resolve through the data tables. The front end's
 own name tables (compilation variables of `>>DEFINE`, the `>>COBOL-WORDS` map) are text-stage names, not program
 symbols, and are outside the cross-reference.
 
@@ -2038,6 +2092,11 @@ renderer. Naming it asks for a listing at any edition.
   removed (section 6.7.1, "Step 6b, data-name lane, first slice"), every `None` row lies at or below the merged main's, measured
   alternating on one host: IX113A 68.46 and 68.40 MB against 69.09 and 69.06, NC105A 34.61 and 34.62 against 35.01 and 34.99 (the
   README's step-6b table, data-name lane).
+  The closing slice's first session (the data-name, condition-name and screen-name tables, the file registers, the end markers),
+  measured against its parent 6fda8efbac, alternating: IX113A's, NC218A's and SM201A's branch `None` rows lie inside the parent's
+  two runs or within 0.04 MB of them (IX113A 68.32 and 68.29 MB against 68.33 and 68.33); NC105A's lie one below both parent runs and
+  one 0.55 MB above them (34.60 and 35.26 MB against 34.61 and 34.71), inside the program's run-to-run spread on one tree (slice 3's
+  four runs each). The slice moves no measurable allocation; the `None` budget holds (the README's step-6b table, the closing slice).
 
 ## 10. Test plan
 
@@ -2288,7 +2347,14 @@ and interface-names moved into the symbol table's compilation-group tier, `Symbo
 rosters are keyed by the externalized method name, and the PROPERTY specifiers are the element tier's (section 6.7.1, "Step 6b, the
 OO names"), each change shown behaviour-neutral by `compare_oracle.py`; kb/Work PB5932's dated file `2026-11-19-step-6b-oo` holds what
 the OO class leaves (the parameterized definitions' expansion) and the section 9 rows. Lanes run in parallel by class; none empties
-the baseline, which a closing slice deletes after every lane has landed.
+the baseline, which a closing slice deletes after every lane has landed. (Step 6b, the closing slice's first session, branch
+`listing-step-6b-close`, correction:) the slice dispatched to close the step moved the data-name, condition-name and screen-name
+tables, the USE and WHEN file registers and the end markers (section 6.7.1, "Step 6b, the closing slice's first session"), each change
+shown behaviour-neutral by `compare_oracle.py`, and lowered the baseline 122 -> 86; it did not empty it. What remains is the
+data-names' and condition-names' resolution by text (22 lookups, about 100 call sites), their declaration sites, the census, the group
+tier's function units and the parameterized expansion, so the step lands one more slice at least, by the same rule: the slice that
+empties the baseline deletes it with the code that reads it, measures the whole step against the parent of slice 1, and flips PB5932;
+kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the remainder by class.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had

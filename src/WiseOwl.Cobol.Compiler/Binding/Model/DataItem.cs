@@ -739,7 +739,7 @@ public sealed class DataItem
     }
 
     /// <summary>The level-88 condition-names whose conditional variable is THIS item (ISO §2023:13.16.3 SR24). Normally these
-    /// also live in <c>ForestSlice.Conditions</c> (the global by-name index), but a TYPEDEF template keeps them ONLY
+    /// also live in the symbol table's condition-names (the by-name index), but a TYPEDEF template keeps them ONLY
     /// here — its condition-names are not globally referenceable (§2023:13.18.58.4 GR1) until a <c>TYPE</c> reference
     /// clones the item, at which point the clone's copies ARE registered globally (data-model D17 inc 3).</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
@@ -1630,7 +1630,6 @@ public sealed class DataItem
     /// children's bytes times their occurrences.</remarks>
     public int ByteWidth => RecordLayout.ItemSize(RecordLayout.ExactByteWidth(this));
 
-    /// <summary>An elementary item's byte width — the per-usage pinned widths documented on <see cref="ByteWidth"/>.</summary>
     /// <summary>The byte width this implementation gives every pointer-class and object-reference item — USAGE
     /// POINTER, PROGRAM-POINTER, FUNCTION-POINTER, OBJECT REFERENCE (§2023:13.18.60.4 GR23, GR24 and GR26 leave each
     /// pointer's "alignment, size, and representation" to the implementor) — and so the width of the unique pointer
@@ -1638,6 +1637,7 @@ public sealed class DataItem
     /// (§2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1), which the LENGTH / BYTE-LENGTH folds read (kb/Work PB1060).</summary>
     internal const int PointerByteWidth = 8;
 
+    /// <summary>An elementary item's byte width — the per-usage pinned widths documented on <see cref="ByteWidth"/>.</summary>
     internal int ElementaryByteWidth
     {
         get

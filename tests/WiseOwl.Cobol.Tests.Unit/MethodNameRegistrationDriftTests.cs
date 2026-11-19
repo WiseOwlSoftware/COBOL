@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// TYPE copy composed after the move leaked to every sibling method (the backend then failed CS0103). Every registration
 /// now asks <c>NameScopeOf</c> (the owner of the item's root, recorded when a method's entry opens the record) — so a
 /// copy made at any time lands in the right element — and the move is gone. This pins the funnels: the forest's
-/// data-name and condition-name maps (<c>ForestSlice</c>, whose views are read-only) are written only by them (and by the
+/// data-name and condition-name tables (the symbol table's) are written only by them (and by the
 /// contained-program inheritance of a container's GLOBAL names, which no method has), and the type-name table only through
 /// the declaring element's own table.
 /// </summary>
@@ -24,15 +24,16 @@ public sealed class MethodNameRegistrationDriftTests
 {
     private static readonly string BindingDir = TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding");
 
-    /// <summary>The slice calls that write the forest's data-name and condition-name maps, and the one member (and its file) that
-    /// may make each: the data binder's two registration funnels, and the symbol table's inheritance of a container's GLOBAL item
-    /// (<c>SymbolTable.InheritGlobalItem</c>, which <c>DataBinder.InheritGlobalSubtree</c> calls for each item; listing step 6b,
-    /// kb/Work PB5932).</summary>
+    /// <summary>The calls that write the data-name and condition-name tables (the symbol table's since listing step 6b's closing
+    /// slice, kb/Work PB5932), and the one member (and its file) that may make each: the data binder's two registration funnels,
+    /// and the symbol table's inheritance of a container's GLOBAL item (<c>SymbolTable.InheritGlobalItem</c>, which
+    /// <c>DataBinder.InheritGlobalSubtree</c> calls for each item).</summary>
     private static readonly (Regex Call, string File, string Member)[] MapWriters =
     [
-        (new(@"Forest\.DeclareName\(", RegexOptions.Compiled), "DataBinder.cs", "RegisterName"),
-        (new(@"Forest\.DeclareCondition\(", RegexOptions.Compiled), "DataBinder.cs", "RegisterCondition"),
-        (new(@"Forest\.Inherit\(", RegexOptions.Compiled), "SymbolTable.cs", "InheritGlobalItem"),
+        (new(@"Symbols\.DeclareDataName\(", RegexOptions.Compiled), "DataBinder.cs", "RegisterName"),
+        (new(@"Symbols\.DeclareConditionName\(", RegexOptions.Compiled), "DataBinder.cs", "RegisterCondition"),
+        (new(@"(?<![.\w])DeclareDataName\(item, name, null\)", RegexOptions.Compiled), "SymbolTable.cs", "InheritGlobalItem"),
+        (new(@"(?<![.\w])DeclareConditionName\(cond, null\)", RegexOptions.Compiled), "SymbolTable.cs", "InheritGlobalItem"),
     ];
 
     [Fact]

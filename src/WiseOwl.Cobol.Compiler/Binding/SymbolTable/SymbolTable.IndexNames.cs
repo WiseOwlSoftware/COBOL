@@ -53,6 +53,12 @@ public sealed partial class SymbolTable
     /// <see cref="MethodNames.IndexNames"/> (§2023:11.7.4 GR5 privacy: a method index has its own cell).</summary>
     private readonly IndexNameTable _indexNames = new();
 
+    /// <summary>Is the written word <paramref name="written"/> (one token of a subscript's token list, where no parse rule holds
+    /// the name alone) spelled as the index-name <paramref name="declared"/> an INDEXED BY phrase declares? The cheap pre-filter
+    /// before such a word is resolved, with its qualifiers, by the declaration it identifies (kb/Work PB919): only the table
+    /// compares a written word with a declared name (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
+    internal static bool SpellsIndexName(Antlr4.Runtime.IToken written, string declared) => Key(written.Text) == Key(declared);
+
     /// <summary>Declares one INDEXED BY index-name in the scope that owns its table: <paramref name="method"/>'s when the table is a
     /// method's, else this element's, whose own declarations are also the cells it emits (<see cref="ForestSlice.OwnIndexes"/>).</summary>
     internal void DeclareIndex(IndexDeclaration decl, OoMethodDataScope? method)
@@ -80,14 +86,15 @@ public sealed partial class SymbolTable
         var key = Key(name);
         if (scope.Method is { } m)
         {
-            if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
-            if (_methodNames.TryGetValue(m, out var own) && own.IndexNames.Declares(key))
+            _methodNames.TryGetValue(m, out var own);
+            if (own is not null && own.DataNames.TryGetValue(key, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
+            if (own is not null && own.IndexNames.Declares(key))
                 return WithLapsedTypeIndexes(key,
                     own.IndexNames.Candidates(key, d => _data.IndexQualifierChainMatches(d, qualifiers), out _),
                     d => _data.IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
             // A method condition-name, CAPACITY register or constant-name of the spelling hides the object's
             // index-name too (GR5 covers every name class; kb/Work PB3165 review R2-1, PB3153 review round 3).
-            if (_data.MethodDeclares(m, name)) return null;
+            if (MethodDeclaresWord(m, name)) return null;
         }
         if (!_indexNames.Declares(key)) return null;
         var indexes = _indexNames.Candidates(key, d => _data.IndexQualifierChainMatches(d, qualifiers), out int indexDepth);

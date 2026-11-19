@@ -50,23 +50,24 @@ public sealed partial class SymbolTable
     /// else the unit's global multimap. False when the name is unknown in both. (← <c>LookupData</c> /
     /// <c>LookupDataInScopeOf</c> — the anchor-root-vs-active-method decision is now the caller's explicit
     /// <see cref="Scope"/>.) A method that declares the spelling in ANOTHER name class (a condition-name, an
-    /// index-name, a CAPACITY register, a constant-name — <see cref="DataBinder.MethodDeclares"/>) makes the object's data-name of it
+    /// index-name, a CAPACITY register, a constant-name — <see cref="SymbolTable.MethodDeclaresWord"/>) makes the object's data-name of it
     /// inaccessible (§2023:11.7.4 GR5 "the use of that word in this method refers to the declaration in this method"), so
     /// the lookup is false rather than the object's item (kb/Work PB3165 review R2-1's sibling arm).</summary>
     public bool TryResolve(string name, Scope scope, out List<DataItem> items)
     {
+        var key = Key(name);
         if (scope.Method is { } m)
         {
-            if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
+            if (_methodNames.TryGetValue(m, out var own) && own.DataNames.TryGetValue(key, out var mlist) && mlist.Count > 0)
             {
-                items = WithLapsedTypeMembers(Key(name), mlist, m);   // the method's own type declarations (kb/Work PB3192)
+                items = WithLapsedTypeMembers(key, mlist, m);   // the method's own type declarations (kb/Work PB3192)
                 return true;
             }
-            if (_data.MethodDeclares(m, name)) { items = []; return false; }
+            if (MethodDeclaresWord(m, name)) { items = []; return false; }
         }
-        if (_data.State.Forest.ByName.TryGetValue(name, out var list) && list.Count > 0)
+        if (_dataNames.TryGetValue(key, out var list) && list.Count > 0)
         {
-            items = WithLapsedTypeMembers(Key(name), list, null);
+            items = WithLapsedTypeMembers(key, list, null);
             return true;
         }
         items = [];
@@ -165,7 +166,7 @@ public sealed partial class SymbolTable
     /// unit that inherits nothing (every candidate is then depth 0).</summary>
     public bool NearerConditionNameHides(string name, IReadOnlyList<string> qualifiers, int depth)
     {
-        if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_data.State.Forest.Conditions.TryGetValue(name, out var conditions)) return false;
+        if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_conditionNames.TryGetValue(Key(name), out var conditions)) return false;
         foreach (var c in conditions)
             if (_data.State.Forest.DeclaringDepth(c.Parent) < depth && !DataBinder.IsTypeDeclarationCondition(c)
                 && _data.ConditionQualifierChainMatches(c, qualifiers))
@@ -194,18 +195,19 @@ public sealed partial class SymbolTable
     /// <see cref="TryResolve"/>).</summary>
     public bool TryResolveCondition(string name, Scope scope, out List<Condition88> conds)
     {
+        var key = Key(name);
         if (scope.Method is { } m)
         {
-            if (m.Conditions.TryGetValue(name, out var mlist) && mlist.Count > 0)
+            if (_methodNames.TryGetValue(m, out var own) && own.ConditionNames.TryGetValue(key, out var mlist) && mlist.Count > 0)
             {
-                conds = WithLapsedTypeConditions(Key(name), mlist, m);   // the method's own type declarations (kb/Work PB3192)
+                conds = WithLapsedTypeConditions(key, mlist, m);   // the method's own type declarations (kb/Work PB3192)
                 return true;
             }
-            if (_data.MethodDeclares(m, name)) { conds = []; return false; }
+            if (MethodDeclaresWord(m, name)) { conds = []; return false; }
         }
-        if (_data.State.Forest.Conditions.TryGetValue(name, out var list) && list.Count > 0)
+        if (_conditionNames.TryGetValue(key, out var list) && list.Count > 0)
         {
-            conds = WithLapsedTypeConditions(Key(name), list, null);
+            conds = WithLapsedTypeConditions(key, list, null);
             return true;
         }
         conds = [];
@@ -244,7 +246,7 @@ public sealed partial class SymbolTable
     /// <paramref name="depth"/>. Free for a unit that inherits nothing.</summary>
     public bool NearerDataItemHides(string name, IReadOnlyList<string> qualifiers, int depth)
     {
-        if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_data.State.Forest.ByName.TryGetValue(name, out var dataNames)) return false;
+        if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_dataNames.TryGetValue(Key(name), out var dataNames)) return false;
         foreach (var item in dataNames)
             if (_data.State.Forest.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
                 return true;
@@ -253,11 +255,13 @@ public sealed partial class SymbolTable
 
     /// <summary>Makes ONE container GLOBAL item (no recursion: <c>DataBinder.InheritGlobalSubtree</c> walks the subtree) visible here,
     /// <paramref name="depth"/> containment levels out (ISO §2023:13.18.27.4 GR2, "may reference that name without describing it
-    /// again"): its data-name and the condition-names associated with it (<see cref="ForestSlice.Inherit"/>), its index-names and
+    /// again"): its declaring depth (<see cref="ForestSlice.Inherit"/>), its data-name and the condition-names associated with it, its index-names and
     /// its CAPACITY register. A register the container refused (SR30's COBOL1523) failed that compile and has none to inherit.</summary>
     internal void InheritGlobalItem(DataItem item, int depth)
     {
         _data.State.Forest.Inherit(item, depth);
+        if (item.CobolName is { } name) DeclareDataName(item, name, null);
+        foreach (var cond in item.Own88s) DeclareConditionName(cond, null);
         foreach (var index in item.Indexes) _indexNames.Add(Key(index.Name), index, depth);
         if (item.OccursSpec is { CapacityName: { } cap, CapacityRegister: not null }) DeclareCapacityRegister(null, cap, item);
     }

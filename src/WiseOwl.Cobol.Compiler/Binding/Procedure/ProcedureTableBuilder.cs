@@ -404,10 +404,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     // procedure division (kb/Work PB1010 — a method definition takes Format 1, §2023:14.2.2 SR10), so
     // CollectMethodDeclaratives re-makes these four for each method's declaratives: a file named in one
     // method's USE is not "more than one USE statement within the same procedure division" as another's.
+    // SR8 and SR14 key the FILE a file-name identified (a FileModel is equal only to itself), never its spelling, and SR14's
+    // exception-name is the catalog's own spelling (EcNameResolution answers it), so neither compares written names: that
+    // comparison is the symbol table's (docs/rearchitecture/DESIGN-listing.md section 6.7.1).
     private ConstructOperandRegister<int> _useModes = new();                                      // SR7
-    private ConstructOperandRegister<string> _useFiles = new(CobolNames.Comparer);    // SR8
+    private ConstructOperandRegister<FileModel> _useFiles = new();                                // SR8
     private ConstructOperandRegister<ReportGroupModel> _useReportGroups = new();                   // SR9
-    private ConstructOperandRegister<string> _useEcPairs = new(CobolNames.Comparer);  // SR14
+    private ConstructOperandRegister<(string Ec, FileModel File)> _useEcPairs = new();             // SR14
 
     /// <summary>Collect a METHOD's declaratives portion (kb/Work PB1010; ISO §2023:14.2.2 SR10 — "Formats 1 and 2 may be
     /// specified in a source element if and only if that source element is a function definition, a function
@@ -420,9 +423,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     public IReadOnlyList<BoundDeclarative> CollectMethodDeclaratives(Core.ProcedureDivisionContext pd, HashSet<string> used)
     {
         _useModes = new();
-        _useFiles = new(CobolNames.Comparer);
+        _useFiles = new();
         _useReportGroups = new();
-        _useEcPairs = new(CobolNames.Comparer);
+        _useEcPairs = new();
         int first = _declaratives.Count;
         foreach (var dp in pd.declarativePart())
             foreach (var sec in dp.declarativeSection())
@@ -1036,7 +1039,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // procedure with the file however many times it is written — so the repeat binds ONCE and is
             // silent. It must not bind twice: the emitted `switch (__f)` would carry two identical case
             // labels (DispatchEmitter / EcEmitter EmitUseTiers).
-            switch (_useFiles.Register(fname))
+            switch (_useFiles.Register(file))
             {
                 case ConstructOperand.Repeated:
                     continue;
@@ -1113,10 +1116,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // USE statement within the same procedure division." The pair is the key (a bare exception-name-1
             // never gets here) and the STATEMENT is the boundary: the figure's inner `{ FILE file-name-2 } …`
             // and outer `…` both let ONE statement write a pair twice, which is not more than one statement.
-            // The '|' separator is unambiguous — neither part can contain it: every character of a COBOL word
-            // "shall be selected from the set of basic letters, basic digits, extended letters, and the basic
-            // special characters hyphen and underscore" (§2023:8.3.2.1).
-            switch (_useEcPairs.Register(ec + "|" + file.CobolName))
+            // The pair is the exception-name (the catalog's own spelling) and the FILE the file-name identified: two
+            // file-names are one when they identify one file, so the comparison of written names stays the symbol table's.
+            switch (_useEcPairs.Register((ec, file)))
             {
                 case ConstructOperand.Repeated:
                     return;   // written twice in this one statement — legal, and bound once

@@ -795,7 +795,7 @@ internal sealed class StatementValidation(DataBinder data)
                     + "alone; to send part of a record, use the FROM phrase or a MOVE.");
                 return false;
             }
-        if (FileWhoseRecordIs(record.Item) is { } owner) { file = owner; return true; }
+        if (data.Symbols.FileWhoseRecordIs(record.Item) is { } owner) { file = owner; return true; }
         if (data.State.Inherited.ContainerLocalFiles.FirstOrDefault(f => f.Records.Contains(record.Item)) is { } hiddenFile)
         {
             // The containing-program rule begins at 2002 (§2002:13.16.25.2 SR3). COBOL-85 has none: a global name "may be
@@ -814,27 +814,11 @@ internal sealed class StatementValidation(DataBinder data)
         while (root.Parent is { } up) root = up;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
             $"{verb} '{refText}' — {rule}"
-            + (!ReferenceEquals(root, record.Item) && FileWhoseRecordIs(root) is { } containing
+            + (!ReferenceEquals(root, record.Item) && data.Symbols.FileWhoseRecordIs(root) is { } containing
                 ? $"; '{refText}' is subordinate to '{root.CobolName}', which is the logical record of "
                   + $"'{containing.CobolName}' — name that record, not one of its items"
                 : $"; '{refText}' is not a logical record of any file description entry"));
         return false;
-    }
-
-    /// <summary>The file whose <see cref="FileModel.Records"/> contain this item — the IDENTITY test behind
-    /// <see cref="ResolveRecordName"/>, asked of the reference's own item and (for the message only) of its
-    /// top-level record. The second sweep is an inherited GLOBAL FD's record (ISO §2023:13.18.27.4 GR1 — the record-names
-    /// of a GLOBAL FD are GLOBAL names): the owning file is a CONTAINER's <see cref="FileModel"/>, present in
-    /// this unit only through <c>SymbolTable.VisibleFiles</c> (<see cref="SymbolTable.InheritFiles"/>), so a contained program's
-    /// WRITE/REWRITE of the owner's record resolves to the owner's ONE connector (IC233A's family; never a
-    /// second mapping mechanism).</summary>
-    private FileModel? FileWhoseRecordIs(DataItem item)
-    {
-        foreach (var f in data.State.Files.Declared)
-            if (f.Records.Contains(item)) return f;
-        foreach (var f in data.Symbols.VisibleFiles)
-            if (f.Records.Contains(item)) return f;
-        return null;
     }
 
     /// <summary>ISO §2023:14.9.32.3 SR1's SECOND half — "…in a SORT-MERGE file description entry". The first half
@@ -1620,7 +1604,7 @@ internal sealed class StatementValidation(DataBinder data)
             if (refs.Probe(dref) is not { } probe) return;   // an unresolved name is the resolver's to report
             DataItem root = probe.Item;
             while (root.Parent is { } up) root = up;
-            if (FileWhoseRecordIs(root) is not { IsSortMerge: true } sd) return;
+            if (data.Symbols.FileWhoseRecordIs(root) is not { IsSortMerge: true } sd) return;
             using var _ = data.Edition.At(dref);
             data.Edition.Error(DiagnosticCatalog.SortMergeRecordInIoStatement,
                 $"{verb} '{DataBinder.WrittenText(dref)}' — "

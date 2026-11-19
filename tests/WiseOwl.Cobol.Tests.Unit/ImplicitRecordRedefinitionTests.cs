@@ -75,7 +75,7 @@ public sealed class ImplicitRecordRedefinitionTests
                        STOP RUN.
             """;
         var (d, ed) = Compile(src);
-        Assert.Equal(RedefinitionKind.SameRecordArea, d.Forest.ByName["R2"][0].RedefinesKind);
+        Assert.Equal(RedefinitionKind.SameRecordArea, d.Forest.ItemNamed("R2").RedefinesKind);
         var sr4 = Assert.Single(ed.Diagnostics, x => x.Contains("COBOL5991", StringComparison.Ordinal));
         Assert.Contains("§2023:12.4.6.4.4 GR2", sr4);
         Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§2023:13.18.44", StringComparison.Ordinal));
@@ -100,12 +100,12 @@ public sealed class ImplicitRecordRedefinitionTests
     {
         var (d, ed) = Compile(Fd("01 R2 PIC X(10).\n       " + record, ""));
         Assert.Empty(ed.Diagnostics);
-        var r3 = d.Forest.ByName["R3"][0];
+        var r3 = d.Forest.ItemNamed("R3");
         Assert.True(FileModel.IsOutOfLineRecord(r3));
         Assert.Equal(RedefinitionKind.None, r3.RedefinesKind);
         Assert.Null(r3.RedefinesTarget);
         var file = Assert.Single(d.Files.Declared, f => f.Records.Contains(r3));
-        Assert.Same(d.Forest.ByName["R2"][0], file.AreaRecord);
+        Assert.Same(d.Forest.ItemNamed("R2"), file.AreaRecord);
         Assert.Same(r3, Assert.Single(file.OutOfLineRecords));
     }
 
@@ -137,11 +137,11 @@ public sealed class ImplicitRecordRedefinitionTests
         """;
         var (d, ed) = Compile(src);
         Assert.Empty(ed.Diagnostics);
-        var f = Assert.Single(d.Files.Declared, x => x.Records.Contains(d.Forest.ByName["R1"][0]));
-        Assert.Same(d.Forest.ByName["GD"][0], Assert.Single(f.OutOfLineRecords));
-        Assert.Equal(RedefinitionKind.SameRecordArea, d.Forest.ByName["G2"][0].RedefinesKind);
-        Assert.Same(d.Forest.ByName["R1"][0], d.Forest.ByName["G2"][0].RedefinesTarget);
-        Assert.Equal(RedefinitionKind.None, d.Forest.ByName["GD"][0].RedefinesKind);
+        var f = Assert.Single(d.Files.Declared, x => x.Records.Contains(d.Forest.ItemNamed("R1")));
+        Assert.Same(d.Forest.ItemNamed("GD"), Assert.Single(f.OutOfLineRecords));
+        Assert.Equal(RedefinitionKind.SameRecordArea, d.Forest.ItemNamed("G2").RedefinesKind);
+        Assert.Same(d.Forest.ItemNamed("R1"), d.Forest.ItemNamed("G2").RedefinesTarget);
+        Assert.Equal(RedefinitionKind.None, d.Forest.ItemNamed("GD").RedefinesKind);
     }
 
     /// <summary>The record kinds, and the clause kind beside them: the one fact every clause screen now reads.</summary>
@@ -151,13 +151,13 @@ public sealed class ImplicitRecordRedefinitionTests
         var (d, ed) = Compile(Fd("01 R1 PIC X(4).\n       01 R2 PIC 9(4).",
             "       01 W1 PIC X(4).\n       01 W2 REDEFINES W1 PIC 9(4)."));
         Assert.Empty(ed.Diagnostics);
-        Assert.Equal(RedefinitionKind.None, d.Forest.ByName["R1"][0].RedefinesKind);
-        Assert.Equal(RedefinitionKind.ImplicitFileRecord, d.Forest.ByName["R2"][0].RedefinesKind);
-        Assert.Same(d.Forest.ByName["R1"][0], d.Forest.ByName["R2"][0].RedefinesTarget);
-        Assert.Equal(RedefinitionKind.Clause, d.Forest.ByName["W2"][0].RedefinesKind);
+        Assert.Equal(RedefinitionKind.None, d.Forest.ItemNamed("R1").RedefinesKind);
+        Assert.Equal(RedefinitionKind.ImplicitFileRecord, d.Forest.ItemNamed("R2").RedefinesKind);
+        Assert.Same(d.Forest.ItemNamed("R1"), d.Forest.ItemNamed("R2").RedefinesTarget);
+        Assert.Equal(RedefinitionKind.Clause, d.Forest.ItemNamed("W2").RedefinesKind);
         // One storage fact for both constructs: both pairs are ONE class.
-        Assert.Same(d.Forest.ByName["R1"][0].Class, d.Forest.ByName["R2"][0].Class);
-        Assert.Same(d.Forest.ByName["W1"][0].Class, d.Forest.ByName["W2"][0].Class);
+        Assert.Same(d.Forest.ItemNamed("R1").Class, d.Forest.ItemNamed("R2").Class);
+        Assert.Same(d.Forest.ItemNamed("W1").Class, d.Forest.ItemNamed("W2").Class);
     }
 
     private static string Fd(string records, string ws) => $"""

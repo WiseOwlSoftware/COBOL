@@ -330,8 +330,11 @@ internal static class NameTableOwnership
         }
     }
 
-    /// <summary>A <c>CobolName</c> is made only by <c>SymbolTable</c> (section 6.7.1, "The name key is a type"): an object
-    /// creation, an implicit <c>new(...)</c> or a <c>default</c> of it anywhere else is a key made without the table.</summary>
+    /// <summary>A <c>CobolName</c> is made only by <c>SymbolTable</c> (section 6.7.1, "The name key is a type"), and so is each
+    /// lookup's answer (<c>IdentifiedName</c>, <c>OoNameResult</c>): an object creation, an implicit <c>new(...)</c>, a
+    /// <c>with</c> expression (a copy with members replaced is a new answer, step 6b OO lane review lead R2-1) anywhere else is a
+    /// key or an answer made without the table, and so is a <c>default</c> of the name key (a key with no word). A <c>default</c>
+    /// of an answer is the empty answer, which names no symbol (the "nothing identified" a caller returns), so it makes nothing.</summary>
     private static IEnumerable<NameFinding> CobolNameCreations(Context c)
     {
         if (c.CobolName is null)
@@ -343,9 +346,13 @@ internal static class NameTableOwnership
         foreach (SyntaxTree tree in c.Compilation.SyntaxTrees)
         {
             SemanticModel model = c.Compilation.GetSemanticModel(tree);
-            foreach (SyntaxNode node in tree.GetRoot().DescendantNodes().Where(n => n is BaseObjectCreationExpressionSyntax))
+            foreach (SyntaxNode node in tree.GetRoot().DescendantNodes().Where(n => n is BaseObjectCreationExpressionSyntax
+                or WithExpressionSyntax or DefaultExpressionSyntax || n.IsKind(SyntaxKind.DefaultLiteralExpression)))
             {
-                if (model.GetTypeInfo(node).Type is INamedTypeSymbol made && tableMade.FirstOrDefault(t => SymbolEqualityComparer.Default.Equals(made, t)) is { } kind
+                TypeInfo info = model.GetTypeInfo(node);
+                bool isDefault = node is DefaultExpressionSyntax || node.IsKind(SyntaxKind.DefaultLiteralExpression);
+                if ((info.ConvertedType ?? info.Type) is INamedTypeSymbol made && (!isDefault || SymbolEqualityComparer.Default.Equals(made, c.CobolName))
+                    && tableMade.FirstOrDefault(t => SymbolEqualityComparer.Default.Equals(made, t)) is { } kind
                     && !c.InsideSymbolTable(model.GetEnclosingSymbol(node.SpanStart)) && !InsideType(model, node, kind))
                 {
                     yield return new NameFinding(2, Normalize(node.ToString()), Where(node.GetLocation()),

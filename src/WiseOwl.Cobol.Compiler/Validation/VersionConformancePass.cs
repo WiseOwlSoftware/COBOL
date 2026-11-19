@@ -1848,7 +1848,7 @@ internal sealed class VersionConformancePass
         /// <summary>For each level-01 record name seen so far in <see cref="_recordSection"/>, whether its nearest
         /// description is external: a level-01 REDEFINES names a record of its own section, and that record decides
         /// (§1985:VI.5.15.3 SR4's "redefinition").</summary>
-        private readonly Dictionary<string, bool> _level01External = new(CobolNames.Comparer);
+        private readonly Dictionary<CobolName, bool> _level01External = [];
 
         public override object? VisitDataDescriptionEntry(CobolParserCore.DataDescriptionEntryContext ctx)
         {
@@ -1865,9 +1865,10 @@ internal sealed class VersionConformancePass
                     || (level == 1
                         && ctx.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
                             ?.Select(c => c.redefinesClause()).FirstOrDefault(r => r is not null)
-                            ?.dataReference().cobolWord()?.GetText() is { } redefined
-                        && _level01External.TryGetValue(redefined, out bool external) && external);
-                if (level == 1 && ctx.dataName()?.GetText() is { } name)
+                            ?.dataReference().cobolWord() is { } redefined
+                        && SymbolTable.WordOf(redefined) is { } redefinedKey
+                        && _level01External.TryGetValue(redefinedKey, out bool external) && external);
+                if (level == 1 && ctx.dataName() is { } dataName && SymbolTable.WordOf(dataName) is { } name)
                     _level01External[name] = HasClause(ctx, c => c.externalClause() is not null);
             }
             return base.VisitDataDescriptionEntry(ctx);
@@ -2794,11 +2795,6 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>END-ACCEPT (ISO §2023:14.9.1, a 2002 introduction). Mirrors the binder's <c>AcceptHasTerminator</c>
-        /// token scan EXACTLY. NOTE — a grammar gap: <c>acceptStatement</c> has no <c>END_ACCEPT</c> alternative, so
-        /// the scan finds nothing and this gate fires ZERO times today (as the bound-arm's
-        /// BoundAccept.HasEndTerminator did); kept in the correct home so it lights up if the grammar gains the
-        /// terminator.</summary>
         /// <summary>END-DISPLAY (§2023:14.9.11.2, a COBOL-2002 addition like every explicit scope terminator of the
         /// 2002 wave) — the registered end-accept twin had a gate and this had NONE, so `DISPLAY X END-DISPLAY`
         /// was silently accepted at 85 (kb/Work PB134).</summary>
@@ -2823,6 +2819,8 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>END-ACCEPT (ISO §2023:14.9.1, a 2002 introduction): <c>acceptStatement</c> admits the terminator at every
+        /// edition and this gate checks it (kb/Work PB134); and the four-digit-year temporal phrases, also 2002's.</summary>
         public override object? VisitAcceptStatement(CobolParserCore.AcceptStatementContext ctx)
         {
             for (int i = 0; i < ctx.ChildCount; i++)
