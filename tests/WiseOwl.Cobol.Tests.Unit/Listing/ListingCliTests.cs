@@ -63,6 +63,9 @@ public sealed class ListingCliTests
         Assert.Equal(new ListingRequest(Formats: ListingFormats.Json), Resolve("--listing-format", "json", "a.cob").Listing);
         Assert.Equal(new ListingRequest("-", Formats: ListingFormats.Json),
             Resolve("a.cob", "--listing-output", "-", "--listing-format", "json").Listing);
+        Assert.Equal(new ListingRequest(Formats: ListingFormats.Html), Resolve("a.cob", "--listing-format", "html").Listing);
+        Assert.Equal(new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json | ListingFormats.Html),
+            Resolve("a.cob", "--listing-format", "html", "--listing-format", "text", "--listing-format", "json").Listing);
         Assert.Null(Resolve("a.cob", "--std", "85", "--listing", "off", "--listing-format", "json").Listing);   // off wins
     }
 
@@ -131,7 +134,7 @@ public sealed class ListingCliTests
     [InlineData("--listing-page-width", "256")]
     [InlineData("--listing-page-length", "4")]
     [InlineData("--listing-page-length", "-1")]
-    [InlineData("--listing-format", "html")]
+    [InlineData("--listing-format", "pdf")]
     [InlineData("--listing-format", "text,json")]
     [InlineData("--listing-sections", "source,xref")]
     [InlineData("--listing-sections", "source,")]

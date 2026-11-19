@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Cli;
 /// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
 /// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions] [--repository-update on|off]
 /// [--repository DIR] [--reference FILE.dll] [--repository-check on|off] [--listing [on|off]] [--listing-output BASE]
-/// [--listing-format text|json]... [--listing-sections LIST] [--listing-page-length N] [--listing-page-width N]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
+/// [--listing-format text|json|html]... [--listing-sections LIST] [--listing-page-length N] [--listing-page-width N]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
 /// option can swallow a following flag. The generated C# is written next to the output assembly
 /// (<c>&lt;name&gt;.g.cs</c>) so the translation is directly inspectable.
 /// </remarks>

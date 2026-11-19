@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Listing;
+using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Listing.Json;
 using WiseOwl.Cobol.Listing.Text;
 using Xunit;
@@ -31,7 +32,7 @@ public sealed class ListingOutputTests
     }
 
     /// <summary>Each format's file and renderer are the design's (section 8): text is <c>BASE.lst</c>, JSON <c>BASE.lst.json</c>,
-    /// and each renders the document through its own renderer.</summary>
+    /// HTML <c>BASE.lst.html</c>, and each renders the document through its own renderer.</summary>
     [Fact]
     public void TheFormats_AreTheDesignsFiles()
     {
@@ -39,11 +40,14 @@ public sealed class ListingOutputTests
         var request = new ListingRequest();
         Assert.Equal(".lst", ListingOutput.Extension(ListingFormats.Text));
         Assert.Equal(".lst.json", ListingOutput.Extension(ListingFormats.Json));
+        Assert.Equal(".lst.html", ListingOutput.Extension(ListingFormats.Html));
         Assert.Equal(TextListingRenderer.Render(document, request), ListingOutput.Render(ListingFormats.Text, document, request));
         Assert.Equal(JsonListingWriter.Write(document), ListingOutput.Render(ListingFormats.Json, document, request));
-        Assert.Equal("text|json", ListingOutput.Spellings);
-        Assert.Equal([ListingFormats.Text, ListingFormats.Json], ListingOutput.Each(ListingFormats.Json | ListingFormats.Text));
-        Assert.False(ListingOutput.TryParse("html", out _));   // step 9 of the design's section 11 adds it, with its renderer
+        Assert.Equal(HtmlListingRenderer.Render(document, request), ListingOutput.Render(ListingFormats.Html, document, request));
+        Assert.Equal("text|json|html", ListingOutput.Spellings);
+        Assert.Equal([ListingFormats.Text, ListingFormats.Json, ListingFormats.Html],
+            ListingOutput.Each(ListingFormats.Html | ListingFormats.Json | ListingFormats.Text));
+        Assert.False(ListingOutput.TryParse("pdf", out _));
     }
 
     [Fact]
@@ -51,7 +55,7 @@ public sealed class ListingOutputTests
 
     [Theory]
     [InlineData(null, 0, "at least one format")]
-    [InlineData(null, 4, "one of text|json")]
+    [InlineData(null, 8, "one of text|json|html")]
     [InlineData("-", 3, "one format (got text, json)")]
     public void ARequestWithNoFormats_OrTwoOnStandardOutput_IsRefused(string? outputBase, int formats, string problem)
     {

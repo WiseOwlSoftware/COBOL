@@ -1,12 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Listing.Json;
 using WiseOwl.Cobol.Listing.Text;
 
 namespace WiseOwl.Cobol.Listing;
 
-/// <summary>The formats a listing is written in (DESIGN-listing.md sections 4.2 and 8). HTML joins in step 9 of the design's
-/// section 11, with its renderer: a format the compiler cannot write is not a member.</summary>
+/// <summary>The formats a listing is written in (DESIGN-listing.md sections 4.2 and 8). A format joins with its renderer: a format
+/// the compiler cannot write is not a member.</summary>
 [Flags]
 public enum ListingFormats
 {
@@ -16,6 +17,10 @@ public enum ListingFormats
     /// <summary>The versioned JSON document with its published schema (<c>BASE.lst.json</c>): the stable programming
     /// interface.</summary>
     Json = 2,
+
+    /// <summary>The hyperlinked HTML page (<c>BASE.lst.html</c>): one self-contained file, each diagnostic, inclusion, data map
+    /// entry and statement's object code linked to its line.</summary>
+    Html = 4,
 }
 
 /// <summary>
@@ -27,7 +32,7 @@ public enum ListingFormats
 public static class ListingOutput
 {
     /// <summary>Every format.</summary>
-    public const ListingFormats All = ListingFormats.Text | ListingFormats.Json;
+    public const ListingFormats All = ListingFormats.Text | ListingFormats.Json | ListingFormats.Html;
 
     /// <summary>The single formats of <paramref name="formats"/>, in the order of <see cref="ListingFormats"/>.</summary>
     public static IReadOnlyList<ListingFormats> Each(ListingFormats formats) =>
@@ -38,10 +43,11 @@ public static class ListingOutput
     {
         ListingFormats.Text => "text",
         ListingFormats.Json => "json",
+        ListingFormats.Html => "html",
         _ => throw Unknown(format),
     };
 
-    /// <summary>Every spelling, as a help text lists them: <c>text|json</c>.</summary>
+    /// <summary>Every spelling, as a help text lists them: <c>text|json|html</c>.</summary>
     public static string Spellings => string.Join("|", Enum.GetValues<ListingFormats>().Select(Spelling));
 
     /// <summary>The format <paramref name="spelling"/> names (ordinal, ignoring case), or false.</summary>
@@ -58,6 +64,7 @@ public static class ListingOutput
     {
         ListingFormats.Text => ".lst",
         ListingFormats.Json => ".lst.json",
+        ListingFormats.Html => ".lst.html",
         _ => throw Unknown(format),
     };
 
@@ -66,6 +73,7 @@ public static class ListingOutput
     {
         ListingFormats.Text => TextListingRenderer.Render(document, request),
         ListingFormats.Json => JsonListingWriter.Write(document),
+        ListingFormats.Html => HtmlListingRenderer.Render(document, request),
         _ => throw Unknown(format),
     };
 

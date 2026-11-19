@@ -26,8 +26,8 @@ namespace WiseOwl.Cobol.Benchmarks.Compile;
 /// THE LISTING'S COST (DESIGN-listing.md section 9; kb/Work PB5923): <see cref="ListingMode"/> compiles each program with no
 /// listing (<see cref="ListingMode.None"/>, the path every caller that asks for none takes), with the paginated text
 /// listing (<see cref="ListingMode.Text"/>, written beside the assembly) and with the text and the JSON listing
-/// (<see cref="ListingMode.TextAndJson"/>, step 2), and every section in both formats (<see cref="ListingMode.All"/>, step 6:
-/// the data map). The budgets: None within the run-to-run noise of the parent commit, Text (and Text with JSON, the standard
+/// (<see cref="ListingMode.TextAndJson"/>, step 2), and every section in every format (<see cref="ListingMode.All"/>, step 6:
+/// the data map; step 8: the object code; step 9: the HTML page). The budgets: None within the run-to-run noise of the parent commit, Text (and Text with JSON, the standard
 /// sections in two formats) at most 10 % over None, All at most 25 %. Allocated
 /// bytes come from the <c>MemoryDiagnoser</c> of <see cref="BenchmarkConfig"/>.
 /// </para>
@@ -69,8 +69,7 @@ public class CompileBenchmarks
                 ListingMode.Text => new WiseOwl.Cobol.Listing.ListingRequest(),
                 ListingMode.TextAndJson => new WiseOwl.Cobol.Listing.ListingRequest(
                     Formats: WiseOwl.Cobol.Listing.ListingFormats.Text | WiseOwl.Cobol.Listing.ListingFormats.Json),
-                ListingMode.All => new WiseOwl.Cobol.Listing.ListingRequest(
-                    Formats: WiseOwl.Cobol.Listing.ListingFormats.Text | WiseOwl.Cobol.Listing.ListingFormats.Json)
+                ListingMode.All => new WiseOwl.Cobol.Listing.ListingRequest(Formats: WiseOwl.Cobol.Listing.ListingOutput.All)
                     { Sections = WiseOwl.Cobol.Listing.ListingSectionSet.All },
                 _ => throw new InvalidOperationException($"no listing request for {Listing}"),
             });
@@ -103,6 +102,11 @@ public class CompileBenchmarks
             throw new InvalidOperationException($"{Program}: the {Listing} case wrote no JSON listing of every line");
         if (Listing == ListingMode.All && full.Listing!.DataMap is not { Items.Count: > 0 })
             throw new InvalidOperationException($"{Program}: the All case holds no data map");
+        string html = Path.ChangeExtension(full.OutputDll, null) + WiseOwl.Cobol.Listing.ListingOutput.Extension(WiseOwl.Cobol.Listing.ListingFormats.Html);
+        if (Listing == ListingMode.All && (!File.Exists(html) || !File.ReadAllText(html).Contains($"id=\"L{full.Listing!.Lines[^1].Number}\"", StringComparison.Ordinal)))
+            throw new InvalidOperationException($"{Program}: the All case wrote no HTML listing of every line");
+        if (Listing != ListingMode.All && File.Exists(html))
+            throw new InvalidOperationException($"{Program}: the {Listing} case wrote an HTML listing");
         if (!writesJson && File.Exists(json))
             throw new InvalidOperationException($"{Program}: the {Listing} case wrote a JSON listing");
         if (Listing == ListingMode.None && (full.Listing is not null || File.Exists(listing)))

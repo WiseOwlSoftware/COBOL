@@ -52,7 +52,7 @@ public static class StatisticsText
     }
 
     /// <summary>The named counts of one count of lines: each line kind that has lines, then the omitted, copied and unlisted lines.</summary>
-    private static IEnumerable<(string Name, int Count)> CountsOf(ListingLineCounts counts) =>
+    public static IEnumerable<(string Name, int Count)> CountsOf(ListingLineCounts counts) =>
         counts.Kinds.Where(k => k.Count > 0).Select(k => (LineKindWord(k.Kind), k.Count))
             .Append(("omitted", counts.Omitted)).Append(("copied", counts.Copied)).Append(("not listed", counts.Unlisted));
 

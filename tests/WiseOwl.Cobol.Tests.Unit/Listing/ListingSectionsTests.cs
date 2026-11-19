@@ -17,12 +17,35 @@ public sealed class ListingSectionsTests
     private static readonly ListingSection[] Every = Enum.GetValues<ListingSection>();
 
     [Fact]
-    public void EverySection_HasOneSpelling_OneTitle_AndOnePlaceInTheTextOrder()
+    public void EverySection_HasOneSpelling_OneTitle_AndOnePlaceInTheOrder()
     {
         Assert.Equal(Every.Length, Every.Select(ListingSections.Spelling).Distinct(StringComparer.Ordinal).Count());
-        Assert.Equal(Every.Length, Every.Select(TextListingRenderer.TitleOf).Distinct(StringComparer.Ordinal).Count());
-        Assert.Equal(Every.Order(), TextListingRenderer.SectionOrder.Order());
+        Assert.Equal(Every.Length, Every.Select(ListingSections.Title).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(Every.Order(), ListingSections.Order.Order());
         Assert.DoesNotContain(Every.Select(ListingSections.Spelling), s => s is ListingSections.StandardSpelling or ListingSections.AllSpelling);
+    }
+
+    /// <summary>⛔ THE VISITOR IS TOTAL (DESIGN-listing.md section 7): <see cref="ListingSectionVisitor.Visit{T}"/> sends every
+    /// section to the method of its own name, so a section added to the enum without its arm in the dispatch is red here (and one
+    /// without its method in <see cref="IListingSectionVisitor{T}"/> leaves a renderer that does not compile).</summary>
+    [Fact]
+    public void EverySection_IsVisitedByTheMethodOfItsName()
+    {
+        var names = new MethodNames();
+        Assert.All(Every, section => Assert.Equal(section.ToString(), names.Visit(section)));
+        Assert.Equal(Every.Length, typeof(IListingSectionVisitor<string>).GetMethods().Length);
+    }
+
+    private sealed class MethodNames : IListingSectionVisitor<string>
+    {
+        public string Source() => nameof(Source);
+        public string Programs() => nameof(Programs);
+        public string Diagnostics() => nameof(Diagnostics);
+        public string Options() => nameof(Options);
+        public string Statistics() => nameof(Statistics);
+        public string DataMap() => nameof(DataMap);
+        public string ObjectMap() => nameof(ObjectMap);
+        public string ObjectCode() => nameof(ObjectCode);
     }
 
     /// <summary>Section 8's lists: <c>standard</c> is the source, the diagnostics, the options, the program map and the
