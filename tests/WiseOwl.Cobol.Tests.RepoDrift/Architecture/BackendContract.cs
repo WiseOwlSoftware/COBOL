@@ -167,6 +167,8 @@ internal static class BackendContract
             "Bound.BoundRaising.EcName", "Bound.BoundRaising.Location", "Bound.BoundRaising.PdRaising",
             "Bound.BoundRaising.StatementName", "Bound.BoundWhenOperand.Ec",
             "Bound.EcStatementInfo.Enabled", "Bound.EcStatementInfo.Location", "Bound.EcStatementInfo.StatementName",
+            // the key of the AS NESTED callee table: an externalized program-name, the run-time program table's (kb/Work PB5932)
+            "Model.ExternalizedProgramName._name",
             "Bound.BoundDebugTarget.CdKey", "Model.BoundUnit.RegistryKey", "Model.CommunicationDescription.Key", "Model.FileModel.AssignTarget", "Model.FileModel.ExternalName",
             "Model.LocalePhrase.Tag", "Model.LocaleRef.Tag", "Model.LocaleSymbol.External", "Model.LocaleSymbol.Tag",
             "Model.ObjectRefDescriptor.Spelled", "Model.LocaleEditRecord.External",
@@ -271,8 +273,7 @@ internal static class BackendContract
         // edges file tolerates until StatementBinder moves to Binding/Procedure.
         new("L6", ["PB2347"],
         [
-            "Bound.StatementBinder.FirstToken()", "Bound.StatementBinder.ProgramRestrictionOf()",
-            "Bound.StatementBinder.NestedCallables", "Bound.StatementBinder.ProgramPrototypes",
+            "Bound.StatementBinder.FirstToken()", "Bound.StatementBinder.NestedCallables",
             "Bound.StatementBinder.UdfSelfName", "Bound.StatementBinder.UserFunctions",
             "Bound.StatementBinder.InputOutputStatement()", "Bound.StatementBinder.Children()",
         ]),

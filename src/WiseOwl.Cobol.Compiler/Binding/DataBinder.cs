@@ -139,7 +139,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal DataBindResult Result() =>
         new()
         {
-            Configuration = State.Configuration.Facts(),
+            Configuration = State.Configuration.Facts(Symbols.ProgramSpecifierExternalizedNames()),
             Forest = State.Forest,
             Files = State.Files,
             Communication = State.Communication,
@@ -558,7 +558,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // An intrinsic-function-name-1 is one of the names §2023:12.3.8.3 SR1 compares (kb/Work PB1017).
                 foreach (var inf in re.functionName())
                     using (Edition.At(re))
-                        CheckRepositorySpecification(inf.GetText(), new RepositorySpecification(IntrinsicKind, null, null),
+                        Symbols.RepeatedRepositorySpecification(inf.GetText(), new RepositorySpecification(IntrinsicKind, null, null),
                             inf.GetText());
                 AddRepositoryIntrinsics(re);
             }
@@ -2234,8 +2234,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>TO prototype-name-1</c> names (<see cref="DataItem.RestrictedPrototype"/>; kb/Work PB2495): its USAGE clause's TO
     /// phrase is that prototype's externalized name, and ISO §2023:13.18.60.4 GR25 / GR26 bound what it may contain by that
     /// prototype's SIGNATURE. The prototype tables exist only once the
-    /// group's REPOSITORY has resolved (<c>BinderDriver.ProgramPrototypesOf</c> / <c>UserFunctionsOf</c>, after every
-    /// unit's DATA has bound), so this is the prototype twin of <see cref="ExpandTypesPass.ResolveRestrictedTypes"/> run at the point
+    /// group's REPOSITORY has resolved (<see cref="SymbolTable.ResolveProgramPrototypes"/> / <c>BinderDriver.UserFunctionsOf</c>, after
+    /// every unit's DATA has bound), so this is the prototype twin of <see cref="ExpandTypesPass.ResolveRestrictedTypes"/> run at the point
     /// those tables are built — <c>BinderDriver.ResolvePointerRestrictions</c>, over every forest that declares pointers
     /// (a method's LINKAGE roots are on its class's). A name the table does not hold resolves to nothing, and the pointer
     /// keeps its own name as its identity (<see cref="PrototypeSignatures.SignatureRestriction"/>). The first of two
@@ -2244,14 +2244,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// forests. Both passes walk <see cref="ClauseResolutionForest"/>, the TYPEDEF templates too: a data-pointer restricted
     /// to a type is compared through that type's TEMPLATE, whose own program-pointer members must name their prototype
     /// exactly as the TYPE subjects cloned from it do (kb/Work PB3120).</summary>
-    internal void ResolveRestrictedPrototypes(
-        IReadOnlyDictionary<string, ProgramPrototype> programs, IReadOnlyDictionary<string, UserFunctionSignature> functions)
+    internal void ResolveRestrictedPrototypes(IReadOnlyDictionary<string, UserFunctionSignature> functions)
     {
         foreach (var item in ClauseResolutionForest())
             if (item.Pic is { RestrictedPrototypeName: { } name } pic)
                 item.RestrictedPrototype = pic.Category switch
                 {
-                    PicCategory.ProgramPointer when programs.TryGetValue(name, out var program) => RestrictedPrototype.Of(program),
+                    PicCategory.ProgramPointer => Symbols.RestrictedProgramPrototypeOf(item),
                     PicCategory.FunctionPointer when functions.TryGetValue(name, out var function) => RestrictedPrototype.Of(function),
                     _ => null,
                 };
@@ -4255,7 +4254,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             && !(UnitIsFunction == isFunctionPointer && ContainingDefinitionNames.Contains(restrictedPrototypeName))
             && !(isFunctionPointer
                  ? State.Configuration.UserFunctionNames.Contains(restrictedPrototypeName)
-                 : State.Configuration.DeclaresProgramSpecifier(restrictedPrototypeName)))
+                 : Symbols.DeclaresProgramSpecifier(restrictedPrototypeName)))
         {
             Edition.Error(DiagnosticCatalog.PrototypePointerRestriction, $"{entryWhere}: USAGE "
                 + $"{(isFunctionPointer ? "FUNCTION" : "PROGRAM")}-POINTER TO {restrictedPrototypeName} — "

@@ -120,40 +120,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>The programs an AS NESTED call in THIS unit may name (§2023:14.9.4.3 SR15: directly contained in
     /// the caller, or a visible COMMON program), each with its bound PD-header formals — built per unit in
     /// BinderDriver.BindUnitProcedure, after every unit's DATA has bound (the UserFunctions precedent), so
-    /// GR9's the-formal-decides mode derivation is a bind-time lookup (kb/Work PB131).</summary>
-    public IReadOnlyDictionary<string, CalleeSignature>? NestedCallables { get; set; }
-
-    /// <summary>The program prototypes THIS unit may name (kb/Work PB237): every §2023:12.3.8.2 program-specifier
-    /// visible here, resolved through §2023:12.3.8.4 GR10 against the compilation group, plus the §2023:8.4.6.8 spelling
-    /// that needs no specifier at all — "the program-name of a containing program definition". Keyed by
-    /// program-prototype-name (§2023:8.3.2 case-insensitive). It is the §2023:14.9.4.3 SR16 / §2023:14.9.5.3 SR3 lookup, and its
-    /// hit's <c>Signature</c> is what §2023:14.9.4.4 GR7 means by "program-prototype-name-1 is used to determine the
-    /// characteristics of the called program". Built per unit in BinderDriver.BindUnitProcedure, the
-    /// NestedCallables precedent (and, for a class's methods, in <c>OoDriver.BindClassBody</c>); null in unit-test
-    /// direct construction.</summary>
-    internal IReadOnlyDictionary<string, ProgramPrototype>? ProgramPrototypes { get; set; }
-
-    /// <summary>The two restrictions of a pointer restricted to program-prototype <paramref name="prototypeName"/>, which a
-    /// program-address-identifier argument is described with: its TO phrase by the prototype's externalized name
-    /// (<see cref="PrototypeSignatures.NamedRestriction(string)"/>) and what it may contain, the identity of the prototype's
-    /// signature (<see cref="PrototypeSignatures.Identity(RestrictedPrototype)"/>). A name the unit's table does not hold
-    /// was refused where it was declared (a specifier no provider answers is REPO-1), and both its restrictions are its TO
-    /// phrase as written (kb/Work PB4107), which no signature identity can equal.</summary>
-    internal PrototypeSignatures.PrototypeRestriction ProgramRestrictionOf(string prototypeName) =>
-        ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true
-            ? new(PrototypeSignatures.NamedRestriction(p.ExternalizedName), PrototypeSignatures.Identity(RestrictedPrototype.Of(p)))
-            : new(PrototypeSignatures.NamedRestriction(prototypeName), PrototypeSignatures.NamedRestriction(prototypeName));
-
-    /// <summary>A program-prototype-name's bound signature, through the §2023:8.4.6.8 scope table
-    /// (<see cref="ProgramPrototypes"/>) its declaration was already screened against — THE ONE reader every
-    /// signature comparison asks (the SET program-pointer pairs, the address-identifier argument, a restricted
-    /// program-pointer's CALL, kb/Work PB609). Null for a null name and for a name the table does not hold, which was
-    /// refused where it was declared (REPO-1, or the prototype-name screen); a comparison with such a side has no
-    /// second fault to report (<see cref="SignaturesDiffer"/>).</summary>
-    internal CalleeSignature? ProgramSignatureOf(string? prototypeName) =>
-        prototypeName is not null && ProgramPrototypes?.TryGetValue(prototypeName, out var p) == true
-            ? p.Signature
-            : null;
+    /// GR9's the-formal-decides mode derivation is a bind-time lookup (kb/Work PB131). The key is the callee's externalized
+    /// program-name (<see cref="ExternalizedProgramName"/>), which a CALL's literal-1 names.</summary>
+    internal IReadOnlyDictionary<ExternalizedProgramName, CalleeSignature>? NestedCallables { get; set; }
 
     /// <summary>True when two looked-up prototype signatures are both known and not <see cref="PrototypeSignatures.Same"/>.
     /// A side that is null names a prototype its tables do not hold — refused where it was declared — so the pair raises

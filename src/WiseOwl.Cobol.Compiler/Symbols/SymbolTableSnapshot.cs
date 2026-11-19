@@ -70,6 +70,9 @@ internal enum NameClass
     ReportEntry,
     /// <summary>A SUM clause's data-name-1 (ISO §2023:13.18.54.3 SR4): an entry of the report section that carries a value.</summary>
     ReportSumOperand,
+    /// <summary>A program-prototype-name (ISO §2023:8.4.6.8): a REPOSITORY program-specifier's name, or the program-name of a containing
+    /// program definition. <c>SymbolTable.Identify</c> resolves it; the finished table holds no entry for it yet (listing step 7b).</summary>
+    ProgramPrototype,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>

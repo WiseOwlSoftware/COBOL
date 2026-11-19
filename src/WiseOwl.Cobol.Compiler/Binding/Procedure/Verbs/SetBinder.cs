@@ -697,7 +697,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 // refused where it was declared, and raises no second fault here (StatementBinder.SignaturesDiffer).
                 string? senderProto = sender.Pic?.RestrictedPrototypeName;
                 return senderProto is null
-                       || StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(targetProto), host.ProgramSignatureOf(senderProto))
+                       || StatementBinder.SignaturesDiffer(ctx.Symbols.ProgramSignatureOf(receiver), ctx.Symbols.ProgramSignatureOf(sender))
                     ? $"the receiving program-pointer is restricted to program-prototype '{targetProto}' and the sender "
                       + $"{(senderProto is null ? "is unrestricted" : $"to '{senderProto}'")}, so the associated "
                       + "program-prototypes do not have the same signature (ISO §2023:14.9.39.3 SR22; §2023:13.18.60.4 GR25)"
@@ -843,7 +843,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // ⛔ SR20 IS ASKED OF EVERY RECEIVER, NEVER OF A REPRESENTATIVE ONE (kb/Work PB3224) — see the program twin.
         // SR20 applies to the receivers among themselves too — identifier-13 is ONE sender, so two receivers
         // restricted to differently-signed prototypes cannot both conform to it.
-        if (ReceiversDisagreeing(targets, FunctionSignatureOf) is { } clash)
+        if (ReceiversDisagreeing(targets, pointer => FunctionSignatureOf(pointer.Pic?.RestrictedPrototypeName)) is { } clash)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
                 $"SET '{clash.A.Item.CobolName}' '{clash.B.Item.CobolName}' TO ADDRESS OF FUNCTION: the receiving "
@@ -1122,7 +1122,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // `SET UPP RP TO ADDRESS OF PROGRAM OTHER` compiled while `SET RP UPP TO ...` drew COBOL1959.)
         // SR22 also binds the receivers to ONE sender, so two receivers restricted to differently-signed
         // prototypes cannot both conform to it — the SR20 argument on the function twin, verbatim.
-        if (ReceiversDisagreeing(targets, host.ProgramSignatureOf) is { } clash)
+        if (ReceiversDisagreeing(targets, ctx.Symbols.ProgramSignatureOf) is { } clash)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
                 $"SET '{clash.A.Item.CobolName}' '{clash.B.Item.CobolName}' TO ADDRESS OF PROGRAM: the receiving "
@@ -1139,7 +1139,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             foreach (var t in targets)
             {
                 if (t.Item.Pic?.RestrictedPrototypeName is not { } receiverProto
-                    || !StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(receiverProto), host.ProgramSignatureOf(word)))
+                    || !StatementBinder.SignaturesDiffer(ctx.Symbols.ProgramSignatureOf(t.Item), ctx.Symbols.ProgramSignatureOf(operand)))
                     continue;
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
                     $"SET '{t.Item.CobolName}' TO ADDRESS OF PROGRAM {word}: the receiving "
@@ -1194,19 +1194,18 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         string word = operandRef.GetText();
         // ── ARM 3: program-prototype-name-1 (§2023:8.4.3.13.3 SR3) — GR2's EXTERNALIZED program-name, never the
         //    source word (kb/Work PB303). ──
-        if (host.ProgramPrototypes?.GetValueOrDefault(word) is { } proto)
+        if (ctx.Symbols.Identify(operandRef, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype proto)
             return new BoundProgramAddress(proto.ExternalizedName, null, word);
 
         // ── A word a PROGRAM specifier declares that names no data item has no prototype: the sentence names the route
         //    (the one CALL and CANCEL give, kb/Work PB4708), and the resolver, which would add its own COBOL1639 "no
         //    declaration gives the name" to a word that IS declared, is not asked. ──
-        var configuration = ctx.Data.State.Configuration;
-        if (ctx.Refs.Probe(operandRef) is null && configuration.DeclaresProgramSpecifier(word))
+        if (ctx.Refs.Probe(operandRef) is null && ctx.Symbols.DeclaresProgramSpecifier(word))
         {
-            if (configuration.IsRefusedProgramReference(word, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
+            if (ctx.Symbols.IsRefusedProgramReference(word, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
                 $"{site} ADDRESS OF PROGRAM {word}: '{word}' is no program-prototype-name here — "
-                + $"{configuration.WhyNoPrototype(word)} (ISO §2023:8.4.3.13.3 SR3) — and no resolvable identifier (SR1)");
+                + $"{ctx.Symbols.WhyNoPrototype(word)} (ISO §2023:8.4.3.13.3 SR3) — and no resolvable identifier (SR1)");
             return null;
         }
         // ── ARM 1: identifier-1 (§2023:8.4.3.13.3 SR1 / §2023:8.4.3.13.4 GR1a) ───────────────────────────────────────
@@ -1276,15 +1275,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// the first): <see cref="StatementBinder.SignaturesDiffer"/> raises nothing for an unrestricted receiver (or one
     /// whose prototype name was refused where it was declared), so a representative of that kind would hide a clash
     /// between the rest. Returns the first disagreeing pair in source order, or null.</summary>
-    /// <param name="signatureOf">The prototype name → compile-time signature lookup of the carrier (program or
-    /// function), null for a name with none.</param>
+    /// <param name="signatureOf">The restricted pointer → compile-time signature of the prototype its USAGE TO phrase names
+    /// (program or function), null for an unrestricted pointer or a name with none.</param>
     private static (Place A, Place B)? ReceiversDisagreeing(IReadOnlyList<Place> receivers,
-                                                            Func<string?, CalleeSignature?> signatureOf)
+                                                            Func<DataItem, CalleeSignature?> signatureOf)
     {
         for (int i = 0; i < receivers.Count; i++)
             for (int j = i + 1; j < receivers.Count; j++)
-                if (StatementBinder.SignaturesDiffer(signatureOf(receivers[i].Item.Pic?.RestrictedPrototypeName),
-                                              signatureOf(receivers[j].Item.Pic?.RestrictedPrototypeName)))
+                if (StatementBinder.SignaturesDiffer(signatureOf(receivers[i].Item), signatureOf(receivers[j].Item)))
                     return (receivers[i], receivers[j]);
         return null;
     }

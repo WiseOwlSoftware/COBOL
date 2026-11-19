@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -34,7 +35,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// third operand alternative. COBOL-85 has neither: its CALL and CANCEL name a program by literal-1 or by an identifier
     /// that §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 require to be a data item, so below 2002 a word that names no data item is the
     /// §2023:8.4.2.1 undefined reference, even when it spells the element's own or a containing program definition's
-    /// program-name, which <c>BinderDriver.ProgramPrototypesOf</c> registers at every edition. A BEHAVIORAL read
+    /// program-name, which <c>SymbolTable.ResolveProgramPrototypes</c> registers at every edition. A BEHAVIORAL read
     /// (DESIGN-version-conformance-pipeline §1.1 item 3, the IntrinsicBinder keyword-omission routing's twin): it selects
     /// the meaning and emits nothing, and the construct's own row (program-prototype-name-2002) is the edition fact.</summary>
     private bool ProgramPrototypeNamesExist =>
@@ -103,9 +104,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (!asNested)
             {
                 // §2023:14.9.4.3 SR16: "Program-prototype-name-1 shall be specified in a program-specifier in the
-                // REPOSITORY paragraph." ONE lookup answers it, because ProgramPrototypesOf also registers
+                // REPOSITORY paragraph." ONE lookup answers it, because the symbol table's prototypes also register
                 // §2023:8.4.6.8's no-specifier spelling (a containing program definition's program-name).
-                if (ResolvePrototype(asPhrase.cobolWord().GetText(), "CALL AS") is not { } proto) return BoundRejected.Reported(ctx.Edition);
+                if (ResolvePrototype(asPhrase.cobolWord(), "CALL AS") is not { } proto) return BoundRejected.Reported(ctx.Edition);
                 prototype = proto;
             }
             else
@@ -158,7 +159,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // so the bind-time scope table and the run-time resolver match the same string (kb/Work PB1539).
             if (ProgramName(asLit, "CALL AS NESTED", "§2023:14.9.4.3 SR2", "§1985:X.5.2.3 SR1") is not { } nestedName)
                 return BoundRejected.Reported(ctx.Edition);
-            if (host.NestedCallables is { } nc && nc.TryGetValue(nestedName, out var sig))
+            if (host.NestedCallables is { } nc && nc.TryGetValue(new(nestedName), out var sig))
                 (callee, calleeCompiledHere) = (sig, true);
             else
             {
@@ -194,13 +195,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // that names no data item is refused by the resolver as undefined (§2023:14.9.4.3 SR1, §2023:8.4.2.1).
             bool spellingB = prototype is null && ProgramPrototypeNamesExist && ctx.Refs.Probe(dref) is null;
             if (spellingB && BarePrototypeWord(dref) is { } bareWord
-                && host.ProgramPrototypes?.GetValueOrDefault(bareWord) is { } bareProto)
+                && ctx.Symbols.Identify(bareWord, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype bareProto)
                 // GR3 b) third bullet: "If neither identifier-1 nor literal-1 is specified,
                 // program-prototype-name-1 determines the externalized program-name of the program being
                 // called, according to the rules specified in 12.3.8, REPOSITORY paragraph."
                 prototype = bareProto;
             else if (spellingB && BarePrototypeWord(dref) is { } declaredWord
-                     && ctx.Data.State.Configuration.DeclaresProgramSpecifier(declaredWord))
+                     && ctx.Symbols.DeclaresProgramSpecifier(declaredWord.GetText()))
                 // The word is a declared PROGRAM specifier that registered no prototype — no provider answered it (REPO-1 at
                 // the specifier, DESIGN-external-repository §8.2 step 4) or its literal-3 was refused (kb/Work PB4708, silent: reported at the
                 // specifier, kb/Work PB4936) — so this is SR16's undeclared prototype, never a data name.
@@ -887,7 +888,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // recompiled since (DESIGN-external-repository §4.2).
         if (!calleeCompiledHere)
             for (int i = 0; i < args.Count; i++)
-                args[i] = Described(host, args[i]);
+                args[i] = Described(host, ctx.Symbols, args[i]);
         // The CALL's receivers -- each BY REFERENCE argument and the RETURNING item -- are identified at its start
         // (§2023:14.9.4.4 GR3 a)) and stored at the return, before either EXCEPTION phrase runs: CallEmitter places an
         // object-property receiver's accessors there (kb/Work PB2078).
@@ -905,13 +906,12 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ ONE ARGUMENT, DESCRIBED FOR §2023:14.9.4.4 GR3 d)'s RUN-TIME CHECK (kb/Work PB165, PB2103): <paramref name="arg"/>
     /// with its §2023:14.8.2 description (<see cref="ActivationDescriptions.OfCallArgument"/>, the builder a universal INVOKE's
     /// operands take; a program-address-identifier described by its prototype's restriction, through the
-    /// <paramref name="host"/>'s prototype table). The CALL statement and the user-defined function reference
+    /// element's prototype table, <paramref name="symbols"/>). The CALL statement and the user-defined function reference
     /// (<c>UdfBinder</c>) both describe their arguments through it whenever the element they activate is not a definition
     /// this compilation group compiles (<see cref="BoundCallProgram.CalleeCompiledHere"/>).</summary>
-    internal static BoundCallArg Described(StatementBinder host, BoundCallArg arg) => arg with
+    internal static BoundCallArg Described(StatementBinder host, SymbolTable symbols, BoundCallArg arg) => arg with
     {
-        Description = ActivationDescriptions.OfCallArgument(arg,
-            arg.ProgramAddress?.Prototype is { } addressed ? host.ProgramRestrictionOf(addressed) : null, host.OoClasses),
+        Description = ActivationDescriptions.OfCallArgument(arg, symbols.ProgramRestrictionOf(arg.ProgramAddress), host.OoClasses),
     };
 
     /// <summary>Bind ONE address-identifier argument (ISO §2023:8.4.3.1.2 identifier Format 9; §2023:14.9.4.3 SR3/SR4 —
@@ -1099,7 +1099,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     private BoundStatement? Identifier1Screen(BoundOperand name, string written, ProgramPrototype? prototype, out bool isPointerTarget)
     {
         isPointerTarget = false;
-        if (name is BoundFieldOperand { Place.Item.Pic: { Category: PicCategory.ProgramPointer } pointerPic })
+        if (name is BoundFieldOperand { Place.Item: { Pic: { Category: PicCategory.ProgramPointer } pointerPic } pointer })
         {
             isPointerTarget = true;
             // §2023:14.9.4.3 SR14 (Format 2): "If identifier-1 references a restricted program-pointer, the
@@ -1111,7 +1111,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // prototype whose details are the external repository's (§2023:12.3.8.4 GR10 c)) has that entry's
             // signature (DESIGN-external-repository §8.2), and so is compared as any other.
             if (prototype is { } named && pointerPic.RestrictedPrototypeName is { } held
-                && StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(held), named.Signature))
+                && StatementBinder.SignaturesDiffer(ctx.Symbols.ProgramSignatureOf(pointer), named.Signature))
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallRestrictedProgramPointerSignature,
                     $"CALL {written} AS {named.Name}: '{written}' is a "
@@ -1199,15 +1199,17 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// §2023:14.9.5.3 syntax rule 3 ("Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY
     /// paragraph") state the SAME obligation about the same subject, and §2023:8.4.6.8 adds the one further spelling
     /// they both inherit — "the program-name of a containing program definition". The table
-    /// (<c>BinderDriver.ProgramPrototypesOf</c>) carries all of it, so both verbs ask this one question. Reports
-    /// COBOL1760 and returns null when the name is not a program prototype here; the sentence says WHY
-    /// (<see cref="ConfigurationSlice.WhyNoPrototype"/>).</summary>
-    private ProgramPrototype? ResolvePrototype(string name, string verb, string alsoNot = "")
+    /// (<see cref="SymbolTable.ResolveProgramPrototypes"/>) carries all of it, so both verbs ask this one question:
+    /// <c>SymbolTable.Identify</c> of the written
+    /// <paramref name="word"/>. Reports COBOL1760 and returns null when the name is not a program prototype here; the sentence says
+    /// WHY (<see cref="SymbolTable.WhyNoPrototype"/>).</summary>
+    private ProgramPrototype? ResolvePrototype(Antlr4.Runtime.ParserRuleContext word, string verb, string alsoNot = "")
     {
-        if (host.ProgramPrototypes?.GetValueOrDefault(name) is { } proto) return proto;
-        if (ctx.Data.State.Configuration.IsRefusedProgramReference(name, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
+        if (ctx.Symbols.Identify(word, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype proto) return proto;
+        string name = word.GetText();
+        if (ctx.Symbols.IsRefusedProgramReference(name, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
         ctx.Edition.Error(DiagnosticCatalog.ProgramPrototypeUndeclared,
-            $"{verb} {name}: '{name}' is not a program prototype — {ctx.Data.State.Configuration.WhyNoPrototype(name)}{alsoNot}");
+            $"{verb} {name}: '{name}' is not a program prototype — {ctx.Symbols.WhyNoPrototype(name)}{alsoNot}");
         return null;
     }
 
@@ -1226,18 +1228,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         if (call.callAsPhrase() is { } asPhrase)
         {
             if (asPhrase.formatWord() is null)
-                return host.ProgramPrototypes?.GetValueOrDefault(asPhrase.cobolWord().GetText())?.Signature;
+                return (ctx.Symbols.Identify(asPhrase.cobolWord(), NameClass.ProgramPrototype, report: false)?.Symbol as ProgramPrototype)?.Signature;
             BoundOperand? literal1 = target?.literal() is { } lit ? host.Expr.PeekNonNumericLiteralOperand(lit.nonNumericLiteral())
                 : target?.dataReference() is { } alias && host.Expr.LiteralAliasOf(alias) is { Constant.Category: not PicCategory.Numeric } constant
                     ? host.Expr.AliasOperand(constant)
                 : null;
             return ProgramNameLiteral.Form(literal1, ctx.Edition.Edition.Year).Name is { } nested
-                && host.NestedCallables is { } nestedCallables && nestedCallables.TryGetValue(nested, out var sig) ? sig : null;
+                && host.NestedCallables is { } nestedCallables && nestedCallables.TryGetValue(new(nested), out var sig) ? sig : null;
         }
         // Spelling (b): a bare word that is no constant-name and names no data item.
         return ProgramPrototypeNamesExist && target?.dataReference() is { } dref && BarePrototypeWord(dref) is { } word
             && host.Expr.LiteralAliasOf(dref) is null && ctx.Refs.Probe(dref) is null
-            ? host.ProgramPrototypes?.GetValueOrDefault(word)?.Signature
+            ? (ctx.Symbols.Identify(word, NameClass.ProgramPrototype, report: false)?.Symbol as ProgramPrototype)?.Signature
             : null;
     }
 
@@ -1247,8 +1249,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// the SHAPE test that decides whether an operand written like identifier-1 can be read as
     /// program-prototype-name-1 at all (kb/Work PB237). Used by both reference sites, so CALL and CANCEL cannot
     /// disagree about what a prototype operand looks like.</summary>
-    private static string? BarePrototypeWord(Core.DataReferenceContext dref) =>
-        dref.cobolWord() is { } w && dref.dataReferenceSuffix().Length == 0 ? w.GetText() : null;
+    private static Core.CobolWordContext? BarePrototypeWord(Core.DataReferenceContext dref) =>
+        dref.cobolWord() is { } w && dref.dataReferenceSuffix().Length == 0 ? w : null;
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §2023:14.9.5 — targets resolved like CALL's, §2023:8.4.6.3).</summary>
     public BoundStatement BindCancel(Core.CancelStatementContext cancel)
@@ -1279,7 +1281,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // (b)): the word is identifier-1, and the resolver refuses one that names no data item (§2023:8.4.2.1).
                 if (ProgramPrototypeNamesExist && ctx.Refs.Probe(dref) is null && BarePrototypeWord(dref) is { } cWord)
                 {
-                    if (host.ProgramPrototypes?.GetValueOrDefault(cWord) is { } cProto)
+                    if (ctx.Symbols.Identify(cWord, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype cProto)
                     {
                         targets.Add((cProto.ExternalizedName, null));
                         continue;

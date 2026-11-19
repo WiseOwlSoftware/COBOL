@@ -23,7 +23,7 @@ internal sealed record IdentifiedName
     /// <summary>The symbol: a <see cref="Model.CommunicationDescription"/> for a cd-name, a <see cref="Model.FileModel"/> for a
     /// file-name, a <see cref="ConstantDef"/> for a constant-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, the definition a
     /// configuration section declares for a configuration-section name (an <see cref="AlphabetDef"/>, a <see cref="SwitchStatusName"/>,
-    /// an <see cref="Editions.ImplementorName"/> row for a mnemonic-name, ...), a <see cref="ReportModel"/> for a report-name, a
+    /// an <see cref="Editions.ImplementorName"/> row for a mnemonic-name, ...), a <see cref="ReportModel"/> for a report-name, a <see cref="ProgramPrototype"/> for a program-prototype-name, a
     /// <see cref="ReportVaryingModel"/> for a VARYING counter, the <see cref="ReportCandidates{T}"/> of a report group, a sum counter or a
     /// report entry, ... (by
     /// <see cref="Class"/>). A procedure-name that several procedures carry identifies no one symbol: <see cref="Symbol"/> is then
@@ -113,6 +113,7 @@ public sealed partial class SymbolTable
         NameClass.CommunicationDescription => _cds.GetValueOrDefault(key),
         NameClass.File => FileNamed(key, reach),
         NameClass.Constant => ConstantNamed(key),
+        NameClass.ProgramPrototype => ProgramPrototypeNamed(key),
         _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not yet a class SymbolTable.Identify resolves"),
     };
 
