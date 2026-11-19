@@ -4,7 +4,6 @@ using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding;                // EditionContext, the At(ParserRuleContext) cursor
 using WiseOwl.Cobol.Editions.Diagnostics;   // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Generated;     // CobolParserCore
-using WiseOwl.Cobol.Runtime;                // CobolNames
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -68,7 +67,7 @@ internal static class EndMarkerPass
             }
     }
 
-    private static void ScreenProgram(ProgramShape unit, IReadOnlyList<string> containers, bool precedesAnother,
+    private static void ScreenProgram(ProgramShape unit, IReadOnlyList<Core.ProgramNameContext> containers, bool precedesAnother,
         EditionContext edition)
     {
         // A unit the parser could not recover an ID paragraph for has no declared name to compare; the syntax
@@ -76,7 +75,8 @@ internal static class EndMarkerPass
         var body = unit.Id?.identificationBody();
         var pid = body?.programIdParagraph();
         var fid = body?.functionIdParagraph();
-        if ((pid?.programName() ?? fid?.programName())?.GetText() is not { } name) return;
+        if ((pid?.programName() ?? fid?.programName()) is not { } declared) return;
+        string name = declared.GetText();
         bool isPrototype = (pid?.prototypePhrase() ?? fid?.prototypePhrase()) is not null;
         string paragraph = pid is not null ? "PROGRAM-ID" : "FUNCTION-ID";
 
@@ -89,18 +89,17 @@ internal static class EndMarkerPass
                 + $"its end marker END PROGRAM {name} shall be present — an end marker shall be present in every "
                 + "source unit that contains, is contained in, or precedes another source unit", edition);
 
-        var inner = containers.Append(name).ToList();
+        var inner = containers.Append(declared).ToList();
         foreach (var n in unit.Nested)
             ScreenProgram(new(n.identificationDivision(), n.nestedProgram(), n.endProgramHeader()), inner,
                 precedesAnother: false, edition);
 
-        if (unit.End?.programName() is not { } endName || CobolNames.Same(endName.GetText(), name)) return;
+        if (unit.End?.programName() is not { } endName || SymbolTable.EndMarkerAgrees(endName, declared)) return;
 
         // The grammar pairs the marker with the innermost open unit. A name that is another unit of the SAME
         // nesting chain — a container still open, or a program this one contains — means the markers were written
         // in the wrong order (SR3); any other name is the plain name rule of the unit's kind.
-        if (containers.Any(c => CobolNames.Same(c, endName.GetText()))
-            || ContainedNames(unit.Nested).Any(c => CobolNames.Same(c, endName.GetText())))
+        if (SymbolTable.EndMarkerNamesAny(endName, containers) || SymbolTable.EndMarkerNamesAny(endName, ContainedNames(unit.Nested)))
             Report(endName, "SR3", "§1985:X.2.5.3 SR3",
                 $"END {(pid is not null ? "PROGRAM" : "FUNCTION")} {endName.GetText()} stands where the end marker "
                 + $"of {paragraph} '{name}' belongs — the end markers of nested programs are out of order: an END "
@@ -121,12 +120,12 @@ internal static class EndMarkerPass
         }
     }
 
-    /// <summary>Every program-name declared inside <paramref name="nested"/>, at any depth.</summary>
-    private static IEnumerable<string> ContainedNames(IEnumerable<Core.NestedProgramContext> nested) =>
+    /// <summary>Every program-name declared inside <paramref name="nested"/>, at any depth, as written.</summary>
+    private static IEnumerable<Core.ProgramNameContext> ContainedNames(IEnumerable<Core.NestedProgramContext> nested) =>
         nested.SelectMany(n =>
         {
             var body = n.identificationDivision()?.identificationBody();
-            var name = (body?.programIdParagraph()?.programName() ?? body?.functionIdParagraph()?.programName())?.GetText();
+            var name = body?.programIdParagraph()?.programName() ?? body?.functionIdParagraph()?.programName();
             var deeper = ContainedNames(n.nestedProgram());
             return name is null ? deeper : deeper.Prepend(name);
         });
@@ -135,7 +134,7 @@ internal static class EndMarkerPass
     {
         var declared = c.classIdParagraph()?.className(0);
         var endName = c.endClassHeader()?.className();
-        if (declared is not null && endName is not null && !SymbolTable.ClassNames.EndMarkerAgrees(endName, declared))
+        if (declared is not null && endName is not null && !SymbolTable.EndMarkerAgrees(endName, declared))
             Report(endName, "SR4", null,
                 $"END CLASS {endName.GetText()} ends CLASS-ID '{declared.GetText()}' — object-class-name-1 shall be "
                 + "identical to the object-class-name declared in the corresponding CLASS-ID paragraph", edition);
@@ -147,7 +146,7 @@ internal static class EndMarkerPass
     {
         // `interfaceName()` lists the INTERFACE-ID name, then the INHERITS names, then the END INTERFACE name.
         var names = f.interfaceName();
-        if (names.Length > 1 && f.END() is not null && !SymbolTable.ClassNames.EndMarkerAgrees(names[^1], names[0]))
+        if (names.Length > 1 && f.END() is not null && !SymbolTable.EndMarkerAgrees(names[^1], names[0]))
             Report(names[^1], "SR6", null,
                 $"END INTERFACE {names[^1].GetText()} ends INTERFACE-ID '{names[0].GetText()}' — interface-name-1 shall "
                 + "be identical to the interface-name declared in the corresponding INTERFACE-ID paragraph", edition);
@@ -169,7 +168,7 @@ internal static class EndMarkerPass
                     + $"method (property '{sel.propertyName().GetText()}') — if the PROPERTY phrase is specified in "
                     + "the METHOD-ID paragraph, method-name-1 shall be omitted (write END METHOD.)", edition);
         }
-        else if (names.Length > 1 && !SymbolTable.ClassNames.EndMarkerAgrees(names[1], names[0]))
+        else if (names.Length > 1 && !SymbolTable.EndMarkerAgrees(names[1], names[0]))
             Report(names[1], "SR5", null,
                 $"END METHOD {names[1].GetText()} ends METHOD-ID '{names[0].GetText()}' — method-name-1 shall be "
                 + "identical to the method-name declared in the corresponding METHOD-ID paragraph", edition);

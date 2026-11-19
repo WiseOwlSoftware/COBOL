@@ -248,7 +248,7 @@ internal sealed partial class EcBinder
             if (FirstOffender(g, inst => inst.Count <= 1 || inst.All(c => c.Ec is not null)) is { } offender)
             {
                 using var at = ctx.Edition.At(offender);
-                ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFileNameRepeated, $"file-name '{g.Key.CobolName.ToUpperInvariant()}' is specified in more than one WHEN phrase "
+                ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFileNameRepeated, $"file-name '{CobolNames.UpperFold(g.Key.CobolName)}' is specified in more than one WHEN phrase "
                     + "without an exception-name pairing (ISO §2023:14.9.28.3 SR14)");
             }
 

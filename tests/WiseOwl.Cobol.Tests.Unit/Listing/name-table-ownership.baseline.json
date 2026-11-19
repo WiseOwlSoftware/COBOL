@@ -89,10 +89,6 @@
     { "rule": 5, "key": "SAME Oo/OoExpansion.cs WiseOwl.Cobol.Compiler.Oo.OoExpansion.Expand CobolNames.Same(DeclaredName(r), n)" },
     { "rule": 5, "key": "SAME Oo/OoExpansion.cs WiseOwl.Cobol.Compiler.Oo.OoExpansion.Expand CobolNames.Same(DeclaredName(r), target)" },
     { "rule": 5, "key": "SAME Oo/OoExpansion.cs WiseOwl.Cobol.Compiler.Oo.OoExpansion.SubstitutedTokens CobolNames.Same(DeclaredName(r), text)" },
-    { "rule": 5, "key": "SAME Oo/OoExpansion.cs WiseOwl.Cobol.Compiler.Oo.OoExpansion.SubstitutedTokens CobolNames.Same(tok.Text, headerName.Text)" },
-    { "rule": 5, "key": "SAME Validation/EndMarkerPass.cs WiseOwl.Cobol.Validation.EndMarkerPass.ScreenProgram CobolNames.Same(c, endName.GetText())" },
-    { "rule": 5, "key": "SAME Validation/EndMarkerPass.cs WiseOwl.Cobol.Validation.EndMarkerPass.ScreenProgram CobolNames.Same(c, endName.GetText()) #2" },
-    { "rule": 5, "key": "SAME Validation/EndMarkerPass.cs WiseOwl.Cobol.Validation.EndMarkerPass.ScreenProgram CobolNames.Same(endName.GetText(), name)" },
-    { "rule": 5, "key": "SAME Validation/FlagConformancePass.cs WiseOwl.Cobol.Validation.FlagConformancePass.FileByName CobolNames.Same(f.CobolName, name)" }
+    { "rule": 5, "key": "SAME Oo/OoExpansion.cs WiseOwl.Cobol.Compiler.Oo.OoExpansion.SubstitutedTokens CobolNames.Same(tok.Text, headerName.Text)" }
   ]
 }

@@ -50,7 +50,7 @@ public sealed partial class SymbolTable
     /// else the unit's global multimap. False when the name is unknown in both. (← <c>LookupData</c> /
     /// <c>LookupDataInScopeOf</c> — the anchor-root-vs-active-method decision is now the caller's explicit
     /// <see cref="Scope"/>.) A method that declares the spelling in ANOTHER name class (a condition-name, an
-    /// index-name, a CAPACITY register, a constant-name — <see cref="DataBinder.MethodDeclares"/>) makes the object's data-name of it
+    /// index-name, a CAPACITY register, a constant-name — <see cref="SymbolTable.MethodDeclaresWord"/>) makes the object's data-name of it
     /// inaccessible (§2023:11.7.4 GR5 "the use of that word in this method refers to the declaration in this method"), so
     /// the lookup is false rather than the object's item (kb/Work PB3165 review R2-1's sibling arm).</summary>
     public bool TryResolve(string name, Scope scope, out List<DataItem> items)

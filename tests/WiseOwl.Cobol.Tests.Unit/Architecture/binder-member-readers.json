@@ -476,10 +476,6 @@
     "WiseOwl.Cobol.Binding.DataBinder::LiteralPosition": [
       "WiseOwl.Cobol.Binding.FileControlBinder"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::MethodDeclares": [
-      "WiseOwl.Cobol.Binding.OoDataBinder",
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::NextUid": [
       "WiseOwl.Cobol.Binding.CompilerTemps"
     ],
@@ -741,9 +737,7 @@
       "WiseOwl.Cobol.Binding.Passes.SynthesizeImpliedPicturesPass",
       "WiseOwl.Cobol.Binding.Passes.UsageCollectionPass",
       "WiseOwl.Cobol.Binding.Passes.UsageInheritancePass",
-      "WiseOwl.Cobol.Binding.Procedure.AcceptDisplayBinder",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
-      "WiseOwl.Cobol.Binding.Procedure.CallBinder",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.EcBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
@@ -795,7 +789,10 @@
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
+      "WiseOwl.Cobol.Binding.Passes.ResolveRecordFormatPass",
+      "WiseOwl.Cobol.Binding.Procedure.AcceptDisplayBinder",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
+      "WiseOwl.Cobol.Binding.Procedure.CallBinder",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry",

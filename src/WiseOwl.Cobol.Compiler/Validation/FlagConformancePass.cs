@@ -323,7 +323,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         // sequential) is AT-END-capable: flag it lacking AT END when an INPUT/I-O declarative is present. Otherwise
         // it is a random (keyed) read → INVALID-KEY-capable: flag it lacking INVALID KEY when any open-mode
         // declarative is present. A file that does not resolve stays unflagged (no organization ⇒ neither branch fires).
-        var file = FileByName(ctx.fileName()?.GetText());
+        var file = FileByName(ctx.fileName());
         FlagReadZeroLength(file, ctx.Start.Line);   // FLAG-85 k ZERO-LENGTH
         bool sequential = ctx.readDirection() is not null || file?.AccessMode == FileAccessMode.Sequential;
         if (sequential)
@@ -489,14 +489,14 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitDeleteStatement(CobolParserCore.DeleteStatementContext ctx)
     {
         IoDeclarativeInvalidKey(InvalidKeyVerb.Delete, ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey),
-            FileByName(ctx.fileName()?.GetText()), ctx.Start.Line);
+            FileByName(ctx.fileName()), ctx.Start.Line);
         return base.VisitChildren(ctx);
     }
 
     public override object? VisitStartStatement(CobolParserCore.StartStatementContext ctx)
     {
         IoDeclarativeInvalidKey(InvalidKeyVerb.Start, ConditionalPhrases.HasFamily(ctx.conditionalPhrases(), ConditionalPhraseFamily.InvalidKey),
-            FileByName(ctx.fileName()?.GetText()), ctx.Start.Line);
+            FileByName(ctx.fileName()), ctx.Start.Line);
         return base.VisitChildren(ctx);
     }
 
@@ -525,17 +525,18 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
                 if (own || file.IsGlobal) yield return file;
     }
 
-    /// <summary>The <see cref="FileModel"/> named <paramref name="name"/> in the current unit's scope (source name; the
-    /// flag pass runs before file-connector renaming), or null.</summary>
-    private FileModel? FileByName(string? name)
-        => name is null ? null : VisibleFiles().FirstOrDefault(f => CobolNames.Same(f.CobolName, name));
+    /// <summary>The <see cref="FileModel"/> the written <paramref name="name"/> identifies in the current unit's scope (its own
+    /// files, then its containers' GLOBAL ones, nearest first: the table's file-name rule), or null. A probe: the binder
+    /// identified and reported the same reference where it bound its statement.</summary>
+    private FileModel? FileByName(CobolParserCore.FileNameContext? name)
+        => name is null ? null : _currentData?.Symbols.Identify(name, NameClass.File, report: false)?.Symbol as FileModel;
 
     /// <summary>The <see cref="FileModel"/> a WRITE/REWRITE targets: the explicit <c>FILE file-name</c> when written,
     /// else the file whose record descriptions include the record the <paramref name="record"/> reference RESOLVES to
     /// (qualified or not: <c>REC IN F</c> names the same record as <c>REC</c> when it is unique).</summary>
     private FileModel? FileByRecordOrName(CobolParserCore.RecordNameContext? record, CobolParserCore.FileNameContext? file)
     {
-        if (file is not null) return FileByName(file.GetText());
+        if (file is not null) return FileByName(file);
         if (record?.dataReference() is not { } dref || ResolveItem(dref) is not { } item) return null;
         return VisibleFiles().FirstOrDefault(f => f.Records.Contains(item));
     }

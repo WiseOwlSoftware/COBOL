@@ -64,7 +64,7 @@ public sealed partial class SymbolTable
     /// <c>CAPACITY IN</c> register the written word reaches in <paramref name="scope"/>, or null when it reaches none. The register
     /// is a data-name of its entry's source element (§2023:13.18.38.3 SR30), so it has the data-name's visibility (§2023:11.7.4
     /// GR5): a method sees its OWN registers first, and they REPLACE the object's; a method-local name of the spelling in any
-    /// other class (<see cref="DataBinder.MethodDeclares"/>) hides an object-level register (the object's declaration is
+    /// other class (<see cref="SymbolTable.MethodDeclaresWord"/>) hides an object-level register (the object's declaration is
     /// "inaccessible to this method"); a sibling method's registers are not in the scope at all. Else this element's, nearest
     /// declaring element first, read only once <c>DynamicResolvePass</c> has minted every register (the
     /// <see cref="Passes.PassPhase.OccursResolved"/> watermark, the P6 Step-6 gate): a read before it would see a null register.</summary>
