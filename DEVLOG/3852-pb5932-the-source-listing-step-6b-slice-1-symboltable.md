@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b slice 1 - SymbolTable becomes the one store of names: the drift test, the table's place, Identify, the cd-names and the file-names, behind a shrink-only baseline
+## Entry 3852 — 2026-11-18 22:53 PST — PB5932: the source listing, step 6b slice 1 - SymbolTable becomes the one store of names: the drift test, the table's place, Identify, the cd-names and the file-names, behind a shrink-only baseline
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, so
 that step 7b's occurrences can be recorded at the one place a written name becomes a symbol. This entry lands slice 1 of it,
@@ -59,3 +59,4 @@ helper's paths never make a sweep). The drift test now lists the tree it sweeps 
 null for a context of several, so no caller can bring the glued-text hazard back (case `pb5932-exception-file-glued-expression`).
 The move had also left a summary on the wrong member and crefs to deleted names; a documentation build against the merge base
 found six the branch introduced, all fixed. The repository-wide count (188 unresolved crefs) is recorded on kb/Work PB1322.
+
