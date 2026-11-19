@@ -21,13 +21,13 @@ internal static class ObjectCodeMapBuilder
 {
     /// <summary>The map of <paramref name="facts"/>, read from the assembly at <paramref name="assembly"/>.</summary>
     public static ListingObjectCodeMap Build(ObjectCodeFacts facts, string assembly, ListingLineIndex index, FrontendFacts frontend,
-        IReadOnlyDictionary<string, int> fileIds, IReadOnlyList<TextInclusion> inclusions)
+        IReadOnlyDictionary<string, string> filesByFullPath, IReadOnlyList<TextInclusion> inclusions)
     {
-        // Each file of the listing by its full path (a PDB names a document by the full path its backend wrote), with the texts that list
-        // it: the source (inclusion null) and each inclusion of it, in listing order.
+        // Each file of the listing by its full path (what the reader resolves a PDB's document name to, SourceDocuments.PathOf), with the
+        // texts that list it: the source (inclusion null) and each inclusion of it, in listing order.
         var texts = new Dictionary<string, (string File, List<int?> Inclusions)>(StringComparer.Ordinal);
-        foreach (string file in fileIds.Keys)
-            texts[Path.GetFullPath(file)] = (file, file == frontend.SourcePath ? [null] : []);
+        foreach (var (full, file) in filesByFullPath)
+            texts[full] = (file, Path.GetFullPath(frontend.SourcePath) == full ? [null] : []);
         foreach (var inclusion in inclusions.Where(i => i.File is not null))
             texts[Path.GetFullPath(inclusion.File!)].Inclusions.Add(inclusion.Id);
 

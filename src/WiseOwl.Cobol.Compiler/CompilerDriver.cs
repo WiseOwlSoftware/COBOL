@@ -380,7 +380,7 @@ public static class CompilerDriver
             var artifact = backend.Emit(bound, new BackendOptions(
                 outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition, Inputs: inputs,
                 RepositoryReferences: [.. bound.Imported.Assemblies, .. bound.Expansions.ReferencedAssemblies],
-                DocumentRoot: Path.GetDirectoryName(Path.GetFullPath(options.SourcePath))));
+                DocumentRoot: SourceDocuments.RootOf(options.SourcePath)));
             if (!artifact.Success)
                 return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
                     artifact.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()).ToList(), warnings)

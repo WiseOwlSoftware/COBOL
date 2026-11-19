@@ -133,6 +133,38 @@ public sealed class ListingObjectCodeTests : IDisposable
         Assert.Equal(points.Count(p => p.File == source), map.Ranges.Count(r => listing.Lines[r.Line - 1].File == 1));
     }
 
+    /// <summary>An EVALUATE's second WHEN is tested after the first WHEN's statements (kb/Work PB5925 review R1-1): that test is the
+    /// EVALUATE's code, a range of its own at its line between the two nested MOVEs, never part of the first MOVE's range. The third WHEN
+    /// (OTHER) tests nothing, so the EVALUATE has two ranges.</summary>
+    [Fact]
+    public void AnEvaluatesLaterWhenTest_IsTheEvaluatesOwnRange()
+    {
+        var listing = Compile(ListingSectionSet.Of(ListingSection.Source, ListingSection.ObjectMap), source:
+        [
+            .. Source.Take(8),
+            "           EVALUATE A",            // 9
+            "             WHEN 1",              // 10
+            "               MOVE 1 TO B",       // 11
+            "             WHEN 2",              // 12
+            "               MOVE 2 TO B",       // 13
+            "             WHEN OTHER",          // 14
+            "               MOVE 3 TO B",       // 15
+            "           END-EVALUATE",          // 16
+            "           STOP RUN.",             // 17
+        ]).Listing!;
+        var map = listing.ObjectCode!;
+        int ListingLine(int fileLine) => Assert.Single(listing.Lines, l => l.File == 1 && l.FileLine == fileLine).Number;
+        var evaluate = map.Ranges.Where(r => r.Line == ListingLine(9)).ToList();
+        Assert.Equal(2, evaluate.Count);
+        Assert.All(evaluate, r => Assert.Equal(12, r.Column));
+        var first = Assert.Single(map.Ranges, r => r.Line == ListingLine(11));
+        var second = Assert.Single(map.Ranges, r => r.Line == ListingLine(13));
+        Assert.True(evaluate[0].End <= first.Start && first.End <= evaluate[1].Start && evaluate[1].End <= second.Start,
+            $"EVALUATE {evaluate[0].Start}-{evaluate[0].End}, {evaluate[1].Start}-{evaluate[1].End}; MOVE 1 {first.Start}-{first.End}; "
+            + $"MOVE 2 {second.Start}-{second.End}");
+        Assert.Equal(evaluate.Count, Points(map.Assembly).Count(p => p.Line == 9 && p.Column == 12));
+    }
+
     /// <summary>A copybook copied twice: its one statement is two statements at one file position, and each copy's range is placed in its
     /// own block, the first copy's code before the second's (DESIGN-listing.md section 6.9).</summary>
     [Fact]

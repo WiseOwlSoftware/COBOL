@@ -34,6 +34,10 @@ internal static class ListingBuilder
         var files = fileIds.Select(f => new ListingFile(f.Value, f.Key, f.Value == 1 ? ListingFileRole.Source : ListingFileRole.Library,
             facts.Inputs.FileDigests.TryGetValue(Path.GetFullPath(f.Key), out var digest) ? digest
                 : throw new InvalidOperationException($"the compilation recorded no digest of '{f.Key}', which it read"))).ToList();
+        // Each listed file by its full path: what a PDB's document name and a backend diagnostic's file resolve to
+        // (SourceDocuments.PathOf; DESIGN-listing.md section 6.9). Two names of one file are one file, listed by the first.
+        var filesByFullPath = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (string file in fileIds.Keys) filesByFullPath.TryAdd(Path.GetFullPath(file), file);
 
         var drafts = SourceSectionBuilder.Build(frontend, inclusions, fileIds);
         var index = new ListingLineIndex(drafts, inclusions, frontend.SourcePath, frontend.LineMap);
@@ -54,7 +58,7 @@ internal static class ListingBuilder
         ListingVisibility.Apply(drafts, programs.Where(p => p.Depth == 0).Select(p => p.FirstLine),
             DirectiveEffectsBuilder.Build(frontend.Trace, inclusions, index, drafts));
         var displays = DirectiveEffectsBuilder.Displays(frontend.Trace, index);
-        var diagnostics = DiagnosticSectionBuilder.Build(facts.Diagnostics, frontend, index, fileIds, drafts);
+        var diagnostics = DiagnosticSectionBuilder.Build(facts.Diagnostics, frontend, index, fileIds, filesByFullPath, drafts);
         var wanted = facts.Request.Sections;
         // The symbol table's views (DESIGN-listing.md sections 6.5 and 6.6), when the bind finished it.
         var dataMap = wanted.Contains(ListingSection.DataMap) && facts.Symbols is { } symbols
@@ -68,8 +72,8 @@ internal static class ListingBuilder
         // The object-code map (DESIGN-listing.md section 6.9), read from the assembly and its PDB only when a section asks for it.
         var objectCode = ListingFacts.ReadsObjectCode(facts.Request) && facts.ObjectCode is (var assembly, string pdb)
             ? ObjectCodeMapBuilder.Build(ObjectCodeMapReader.Read(assembly, pdb, wanted.Contains(ListingSection.ObjectCode),
-                    Path.GetDirectoryName(Path.GetFullPath(frontend.SourcePath))!), assembly,
-                index, frontend, fileIds, inclusions)
+                    SourceDocuments.RootOf(frontend.SourcePath)), assembly,
+                index, frontend, filesByFullPath, inclusions)
             : null;
         if (wanted.Contains(ListingSection.Diagnostics))
             foreach (var diagnostic in diagnostics)

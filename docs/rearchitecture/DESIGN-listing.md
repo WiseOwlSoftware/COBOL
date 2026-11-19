@@ -1296,20 +1296,30 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   is open (`MapStatement`, called by `StatementEmitter.EmitStatement`), writes the span form `#line (line, column) - (endLine,
   endColumn) offset "file"` only before the statement's first line whose code Roslyn gives a sequence point in an optimized build
   (`CodeWriter.FirstSequencePoint`, read with Roslyn's own parser: an expression statement, a jump, an if, while, switch, lock or
-  using header, a for statement's declaration, a declaration whose initializer is not a constant), with `offset` the column that
-  code starts at; whatever follows that code on the line (a second statement, the body of a lambda, an arm of a switch
+  using header, a for statement's declaration, a declaration whose initializer is not a constant; a line that continues a
+  statement an earlier line began, `else if (...)`, `else x = y;`, a catch clause, `} while (...);`, a switch section, parsed inside
+  the head that makes it a statement and read as that clause, `CodeWriter.Continuation`), with `offset` the column that code
+  starts at; whatever follows that code on the line (a second statement, the body of a lambda, an arm of a switch
   expression) is moved onto a hidden line of its own; every other line is hidden. A statement nested in another maps its own
   first line; the enclosing statement's next code after it (an inline PERFORM's step and test after its body) takes ONE more
-  point at the same position, spanning only the verb, so that code is the PERFORM's and not the nested ADD's. Text captured for an
-  expression (`CodeWriter.CaptureText`) carries no directive. The path in a directive is the file's full path; a path holding a
-  quotation mark or a line end, which a directive cannot spell, keeps its points under the path with each replaced by `_`.
+  point at the same position, spanning only the verb, so that code is the PERFORM's and not the nested ADD's. (Correction, review
+  round 1:) that code is often on a line the line alone does not show to be code: an EVALUATE's second WHEN is an `else if (...)`
+  after the first WHEN's body, which the first reading took for no statement, so its test fell into the first WHEN's range; and
+  the brace that ends a try, catch, finally, lock or using block is a point of an optimized build (the leave, the release, the
+  dispose) that no reading of the line `}` can tell from an if's. The continuation reading takes the first; the writer keeps the
+  blocks its lines opened (`CodeWriter.ClosingPoint`) for the second. Both are held to what Roslyn writes, read back from a PDB
+  of its own compilation (`CodeWriterTests`), and the EVALUATE on a real compilation (`ListingObjectCodeTests`). Text captured for
+  an expression (`CodeWriter.CaptureText`) carries no directive. The file in a directive is named by the one decider
+  `SourceDocuments.NameOf`, relative to the document root (next item); a path holding a quotation mark or a line end, which a
+  directive cannot spell, keeps its points under the name with each replaced by `_`.
 - **The PDB** is written by `RoslynBackend.Compile` in the same emit as the assembly, to a temporary of its own renamed after the
   assembly (`OutputFileProtocol`), portable and deterministic, named in the assembly by its file name alone so the assembly's
   bytes do not depend on its directory. (Correction:) it names each source document RELATIVE to the main source's directory with
-  '/' (`BackendOptions.DocumentRoot`, which the driver sets; `CodeWriter.DirectiveFile`): the PE names its PDB by a hash of the
+  '/' (`BackendOptions.DocumentRoot`, which the driver sets from `SourceDocuments.RootOf`; `SourceDocuments.NameOf`): the PE names its PDB by a hash of the
   PDB's content, so full paths made identical source compiled in two directories two different assemblies, which the repository's
   byte-identity tests refuse (`RepositoryReaderTests.TwoCompilesOfOneGroup_WriteByteIdenticalModules`, the expansion assembly's
-  determinism across groups and directories). The listing's reader resolves a name against the same root; a debugger finds the
+  determinism across groups and directories). Every reader resolves a name against the same root by the one decider
+  (`SourceDocuments.PathOf`): the listing's map reader, a backend diagnostic, the tests; a debugger finds the
   files from the main source's directory (or its source search path). An expansion's own compilation writes its text under the
   expansion's name in a folder of its own (`ExpansionAssemblies.Write`), so its document name is a function of the expansion too; `BackendOptions.EmitPdb` (true by default, no longer reserved) decides it, and it is in
   `BackendArtifact.OutputFiles`, so the compiled-program cache keeps it beside the assembly. It is written for every compilation
@@ -1330,9 +1340,14 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   points paired in compiled order with the listing lines of that position in listing order, each later point going with the first
   point before it; when the counts disagree the k-th first point goes to the k-th line and every later one to the last. The text
   is `ObjectCodeText.MapRows` and `ObjectCodeText.CodeRows`.
-- **Backend diagnostics through COBOL positions.** A Roslyn diagnostic on a statement's mapped line now carries the COBOL file,
-  line and column (`RoslynBackend.Neutral` already read the mapped span) and is placed on its listing line; one on a hidden line
-  carries the generated file's position and is in the summary only (section 6.3).
+- **Backend diagnostics through COBOL positions.** A Roslyn diagnostic on a statement's mapped line carries the COBOL file, line
+  and column. (Correction, review round 1:) the mapped file is the directive's document name, relative to the document root, which
+  no file of the listing is called and which names a file relative to the source's directory rather than the user's; so
+  `RoslynBackend.Neutral` resolves it to the file's full path (`SourceDocuments.PathOf` against `BackendOptions.DocumentRoot`),
+  and `DiagnosticSectionBuilder` finds a diagnostic's file by the name the compilation read it by or, failing that, by its full
+  path (the listing's files by full path, which `ObjectCodeMapBuilder` reads too), so it is placed on its listing line
+  (`BackendDiagnosticPlacementTests`: a source by its full path, a copybook in a sibling directory). One on a hidden line carries
+  the generated file's position and is in the summary only (section 6.3).
 - **`SequencePointCoverageDriftTests` (correction: Unit, over the NIST corpus).** "Every conformance-suite program" would compile
   ten thousand programs once more with a listing for the parse's statements, and a listing compilation is never stored by the
   compiled-program cache (it reads the clock), so every gate would pay it again; and the backend factory is internal. The test
@@ -1342,7 +1357,8 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   statement's position, the points read from the PDB in the test. Exempt, and nothing else: the statements the standard gives no
   code (CONTINUE, EXIT, USE, NEXT SENTENCE), a statement after a GO TO, STOP, EXIT, GOBACK or NEXT SENTENCE in its paragraph's
   order, a statement after (or being) an IF or PERFORM whose condition the backend's source shows as a constant, and a
-  CORRESPONDING statement; each exemption is sound (it leaves a statement unasked, never asks a wrong one). It runs against the
+  MOVE, ADD or SUBTRACT CORRESPONDING read by its own phrase, the word after its verb (correction, review round 1: the first test
+  exempted every statement whose text held CORR, every move to the NIST programs' CORRECT-A among them); each exemption is sound (it leaves a statement unasked, never asks a wrong one). It runs against the
   backend the driver compiles with, the only one the factory offers. Shown able to fail: a span withheld from MOVE (431 statements
   of NC101A without a point) and `HideUnmappedLines` removed are each red.
 

@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// the backend factory offers (<c>BackendFactory.For</c>); a second backend joins the same corpus.
 /// </summary>
 /// <remarks>
-/// <para><b>What compiles to no code.</b> A statement has no sequence point when it has no object code, for one of three reasons, each
+/// <para><b>What compiles to no code.</b> A statement has no sequence point when it has no object code, for one of four reasons, each
 /// exempt here and nothing else:</para>
 /// <list type="bullet">
 /// <item>the standard gives it nothing to execute: "The CONTINUE statement is a no-operation statement" (ISO §2023:14.9.9.1; its AFTER
@@ -37,7 +37,8 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// own source shows the condition as literals, or as <c>true ||</c> or <c>false &amp;&amp;</c> before the rest) has no code of its own,
 /// and the statements after it in its paragraph are exempt with it;</item>
 /// <item>it has nothing to do in this program: a MOVE, ADD or SUBTRACT CORRESPONDING whose groups have no corresponding items has no
-/// pair to move. Every CORRESPONDING statement is exempt (sound, as above).</item>
+/// pair to move. Every such statement is exempt (sound, as above), read by its own CORRESPONDING phrase (<see cref="Corresponding"/>),
+/// never by a data name that holds CORR or by a nested statement's phrase.</item>
 /// </list>
 /// <para><b>The corpus</b> is every NIST CCVS program the golden run compiles and runs (a green or divergent row of
 /// <c>tests/nist/corpus.tsv</c>), compiled as that run compiles it (its X-card name, <c>--std 85</c>): every verb of every module of
@@ -73,7 +74,7 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
 
         var result = CompilerDriver.Compile(options);
         Assert.True(result.Success, string.Join("\n", result.Errors));
-        var points = SequencePoints(Path.ChangeExtension(options.OutputDll(), ".pdb"), Path.GetDirectoryName(Path.GetFullPath(options.SourcePath))!);
+        var points = SequencePoints(Path.ChangeExtension(options.OutputDll(), ".pdb"), SourceDocuments.RootOf(options.SourcePath));
         var folded = Header.Matches(File.ReadAllText(result.GeneratedCsPath!)).Where(m => Folded(m.Groups[3].Value))
             .Select(m => (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value))).ToHashSet();
 
@@ -89,7 +90,7 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
                 var position = (Path.GetFullPath(at.FileName), at.Line + 1, at.Column + 1);
                 expected.Add(position);
                 bool constant = folded.Contains((position.Item2, position.Item3));
-                bool corresponding = statement.GetText().Contains("CORR", StringComparison.OrdinalIgnoreCase);
+                bool corresponding = Corresponding(statement, verb);
                 if (!unreached && !constant && !corresponding && !NoCode.Contains(verb) && !points.Contains(position))
                     missing.Add($"{verb} at {position}");
                 unreached |= constant || Transfers.Contains(verb);
@@ -97,6 +98,25 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
         }
         var stray = points.Where(p => !expected.Contains(p)).Select(p => p.ToString()).ToList();
         return (missing, stray);
+    }
+
+    /// <summary>Whether <paramref name="statement"/> is itself a MOVE, ADD or SUBTRACT CORRESPONDING: its verb, then the CORRESPONDING
+    /// phrase as the very next word, as the corresponding format of each writes it (MOVE's format 2, ADD's and SUBTRACT's format 3), whose
+    /// items "are selected to be moved" (ISO §2023:14.9.25.4 GR11), "added" (ISO §2023:14.9.2.4 GR5) or "subtracted" (ISO
+    /// §2023:14.9.44.4 GR5) pair by pair, so a pair of groups with no corresponding items has no code. Never a statement that only names a data item whose name holds CORR (the NIST programs' CORRECT-A), and
+    /// never an IF, EVALUATE or PERFORM whose nested statement is one (kb/Work PB5925 review R1-2).</summary>
+    internal static bool Corresponding(ParserRuleContext statement, string verb)
+    {
+        if (verb is not ("MOVE" or "ADD" or "SUBTRACT")) return false;
+        var terminals = new List<ITerminalNode>(2);
+        void Collect(IParseTree node)
+        {
+            if (terminals.Count == 2) return;
+            if (node is ITerminalNode terminal) { if (terminal.Symbol.Type > 0) terminals.Add(terminal); return; }
+            for (int i = 0; i < node.ChildCount && terminals.Count < 2; i++) Collect(node.GetChild(i));
+        }
+        Collect(statement);
+        return terminals.Count == 2 && terminals[1].GetText().ToUpperInvariant() is "CORRESPONDING" or "CORR";
     }
 
     /// <summary>The statements of each paragraph of <paramref name="tree"/> in the order written, nested ones included: every
@@ -131,8 +151,39 @@ public sealed class SequencePointCoverageDriftTests : WiseOwlCobolTestBase
         foreach (var method in reader.MethodDebugInformation)
             foreach (var point in reader.GetMethodDebugInformation(method).GetSequencePoints())
                 if (!point.IsHidden)
-                    points.Add((Path.GetFullPath(reader.GetString(reader.GetDocument(point.Document).Name), root), point.StartLine, point.StartColumn));
+                    points.Add((SourceDocuments.PathOf(reader.GetString(reader.GetDocument(point.Document).Name), root), point.StartLine, point.StartColumn));
         return points;
+    }
+
+    /// <summary>The CORRESPONDING exemption is the statement's own phrase (kb/Work PB5925 review R1-2): a MOVE to an item named CORRECT-X
+    /// and an IF that holds a MOVE CORRESPONDING are asked about; the MOVE CORR in the IF, and an ADD CORRESPONDING, are exempt.</summary>
+    [Fact]
+    public void TheCorrespondingExemption_IsTheStatementsOwnPhrase()
+    {
+        string source = Path.Combine(TempDir, "corrprobe.cob");
+        File.WriteAllText(source, string.Join("\n",
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. CORRPROBE.",
+            "       DATA DIVISION.",
+            "       WORKING-STORAGE SECTION.",
+            "       01 G1. 02 N PIC 9.",
+            "       01 G2. 02 N PIC 9.",
+            "       01 CORRECT-X PIC X.",
+            "       PROCEDURE DIVISION.",
+            "       P1.",
+            "           MOVE SPACE TO CORRECT-X",
+            "           MOVE CORR G1 TO G2",
+            "           IF CORRECT-X = SPACE MOVE CORRESPONDING G1 TO G2 END-IF",
+            "           ADD CORRESPONDING G1 TO G2",
+            "           SUBTRACT 1 FROM N OF G2",
+            "           STOP RUN."));
+        var options = new CompilerDriver.Options(source, Path.Combine(TempDir, "corrprobe.dll"));
+        var frontend = CompilerDriver.NewFrontend(options, new CompilationInputs(), recordsListing: false);
+        var tree = frontend.Parse(source, new DiagnosticBag());
+        Assert.NotNull(tree);
+        var statements = Paragraphs(tree!).SelectMany(p => p).ToList();
+        Assert.Equal([false, true, false, true, true, false, false],
+            statements.Select(s => Corresponding(s, s.Start.Text.ToUpperInvariant())).ToList());
     }
 
     public static TheoryData<string> NistPrograms()

@@ -158,10 +158,13 @@ public sealed record BackendOptions(           // what EVERY backend reads; noth
     string? DocumentRoot = null);
 // EmitPdb: a portable PDB beside the assembly with one sequence point per COBOL statement at BoundStatement.Span, every
 // other code hidden; DocumentRoot: the directory the PDB names each document relative to, with '/' (the main source's), so
-// the assembly is the same wherever the source tree lies (DESIGN-listing.md section 6.9, listing step 8).
+// the assembly is the same wherever the source tree lies (DESIGN-listing.md section 6.9, listing step 8). The names and the
+// root come from ONE decider, SourceDocuments (RootOf, NameOf, and PathOf for every reader).
 
 // A backend diagnostic is the front end's Diagnostic(Code, Severity, Message, SourceLocation? Location, Span): no Roslyn
-// type crosses the seam (kb/Work PB4272); null Location names no position; it renders through Diagnostic.Render. One record
+// type crosses the seam (kb/Work PB4272); null Location names no position; it renders through Diagnostic.Render. A
+// position in a COBOL file names that file by its full path (SourceDocuments.PathOf of the PDB document name against
+// DocumentRoot), so the listing places it on its line (listing step 8, review round 1). One record
 // serves every phase (DESIGN-listing.md section 6.3; the seam's former BackendDiagnostic was deleted by listing step 3).
 
 public sealed record BackendArtifact(

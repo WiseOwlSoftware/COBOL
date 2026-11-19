@@ -41,7 +41,7 @@ public sealed class CodeWriter
             _atLineStart = true;
             return;
         }
-        if (_atLineStart && _capturing == 0 && _mapsStatements && MapLine(text) is { } rest)
+        if (_atLineStart && _capturing == 0 && _mapsStatements && MapLine(text, ClosingPoint(text)) is { } rest)
         {
             // The line holds code after the statement's sequence point: that code is hidden, on a line of its own.
             WriteIndentIfNeeded();
@@ -80,7 +80,7 @@ public sealed class CodeWriter
     /// <paramref name="documentRoot"/> (<see cref="BackendOptions.DocumentRoot"/>), or by its full path when it is null.</summary>
     public void HideUnmappedLines(string? documentRoot)
     {
-        _documentRoot = documentRoot is null ? null : Path.GetFullPath(documentRoot);
+        _documentRoot = documentRoot;
         _sb.Append("#line hidden\n");
         _hidden = true;
         _mapsStatements = true;
@@ -115,7 +115,7 @@ public sealed class CodeWriter
     /// build may fold away) never takes the statement's place. Returns the index in <paramref name="text"/> after that first code when more code follows it on the
     /// line, which <see cref="Line"/> then writes hidden on a line of its own (a debugger stops once per statement, and the PDB holds no
     /// sequence point at a column the statement does not begin at); null otherwise.</summary>
-    private int? MapLine(string text)
+    private int? MapLine(string text, (int Start, int End)? closing)
     {
         if (text[0] == '#') return null;   // a directive of the emitter's own carries no code
         if (_mappings.Count > 0 && _mappings[^1] is { } mapping && (!mapping.Written || mapping.Resumed))
@@ -126,7 +126,7 @@ public sealed class CodeWriter
             var span = mapping.Span;
             var (endLine, endColumn) = mapping.Written ? (span.Line, span.VerbEndColumn) : (Math.Max(span.EndLine, span.Line), span.EndColumn);
             endColumn = endLine == span.Line ? Math.Max(endColumn - 1, span.Column) : Math.Max(endColumn - 1, 1);
-            if (FirstSequencePoint(text) is { } at)
+            if ((closing ?? FirstSequencePoint(text)) is { } at)
             {
                 _sb.Append(CultureInfo.InvariantCulture,
                     $"#line ({span.Line}, {span.Column}) - ({endLine}, {endColumn}) {_indent * 4 + at.Start + 1} \"{DirectiveFile(span.File)}\"\n");
@@ -142,16 +142,51 @@ public sealed class CodeWriter
         return null;
     }
 
-    /// <summary>The file a line directive names: its path relative to the document root with '/' separators (so the PDB, and the
-    /// assembly that names the PDB by a hash of its content, are the same wherever the source tree lies), or its full path when there is
-    /// no root. A directive's file name has no escapes, so a path holding a quotation mark or a line end cannot be written; such a file
-    /// is named with each of them replaced by an underscore, keeping the sequence points at a name no file has.</summary>
+    /// <summary>The brace structure of the lines written (DESIGN-listing.md section 6.9): the reading of a line alone cannot tell what a
+    /// closing brace closes, and an optimized build gives the brace that ends a try, catch, finally, lock or using block a sequence point
+    /// of its own (the leave from the block, the release of the lock, the dispose), which is code of the statement that wrote the block.
+    /// Each block a line opens at its end is pushed (whether its end is such a point), each brace a line begins with pops one, and the
+    /// first popped brace that ends such a block is the line's first point. A line that opens and closes its braces itself (<c>try { x; }
+    /// catch { }</c>) changes nothing. Returns that brace's place in <paramref name="text"/>, or null.</summary>
+    private (int Start, int End)? ClosingPoint(string text)
+    {
+        if (text[0] == '#') return null;   // a directive of the emitter's own
+        int at = 0;
+        (int, int)? point = null;
+        while (at < text.Length && (text[at] == ' ' || text[at] == '}'))
+        {
+            if (text[at] == '}' && _blocks.TryPop(out bool ends) && ends && point is null) point = (at, at + 1);
+            at++;
+        }
+        var clause = text.AsSpan(at).TrimEnd();
+        // A trailing comment is not code: the clause ends before it (a line with a string before its `//` is taken whole).
+        if (clause.IndexOf("//", StringComparison.Ordinal) is var comment and >= 0 && clause[..comment].IndexOfAny('"', '\'') < 0)
+            clause = clause[..comment].TrimEnd();
+        if (clause.Length == 0) return point;   // a comment or the braces alone: the header before them still heads the next block
+        bool pointed = PointedBlock(clause);
+        if (clause[^1] == '{') _blocks.Push(clause.Length == 1 ? _pointedHeader : pointed);
+        _pointedHeader = pointed;
+        return point;
+
+        // A try, catch, finally, lock or using clause: the block it heads ends at a sequence point.
+        static bool PointedBlock(ReadOnlySpan<char> clause) =>
+            Keyword(clause, "try") || Keyword(clause, "catch") || Keyword(clause, "finally") || Keyword(clause, "lock")
+            || (Keyword(clause, "using") && clause.TrimEnd('{').TrimEnd() is [.., ')']);
+    }
+
+    private readonly Stack<bool> _blocks = new();   // each open block a line opened, innermost on top: whether its closing brace is a point
+    private bool _pointedHeader;   // the last line written heads a block whose closing brace is a point (its brace on the next line)
+
+    /// <summary>Whether <paramref name="s"/> begins with the keyword <paramref name="word"/>.</summary>
+    private static bool Keyword(ReadOnlySpan<char> s, string word) =>
+        s.StartsWith(word, StringComparison.Ordinal) && (s.Length == word.Length || !SyntaxFacts.IsIdentifierPartCharacter(s[word.Length]));
+
+    /// <summary>The file a line directive names: the one decider's name of it (<see cref="SourceDocuments.NameOf"/>, relative to the
+    /// document root), computed once per file.</summary>
     private string DirectiveFile(string file)
     {
         if (_directiveFiles.TryGetValue(file, out string? named)) return named;
-        string full = Path.GetFullPath(file);
-        string name = _documentRoot is null ? full : Path.GetRelativePath(_documentRoot, full).Replace(Path.DirectorySeparatorChar, '/');
-        return _directiveFiles[file] = name.AsSpan().IndexOfAny("\"\r\n") < 0 ? name : name.Replace('"', '_').Replace('\r', '_').Replace('\n', '_');
+        return _directiveFiles[file] = SourceDocuments.NameOf(file, _documentRoot);
     }
 
     private readonly Dictionary<string, string> _directiveFiles = new(StringComparer.Ordinal);   // each file's name in a directive, once
@@ -163,7 +198,10 @@ public sealed class CodeWriter
     /// first initialized variable; a declaration whose initializer is a constant is none, since an optimized build may keep the constant
     /// and emit no code for it); of an if, while (not on the constant <c>true</c>), switch, lock or using statement its header, up to the
     /// closing parenthesis; of a for statement its declaration or first initializer, else its condition. A block, a labeled, checked,
-    /// unchecked, try, do or for statement with neither has none of its own: its first statement's is the line's.
+    /// unchecked, try, do or for statement with neither has none of its own: its first statement's is the line's. A line that continues a
+    /// statement an earlier line began (<c>else if (...)</c>, <c>else x = y;</c>, <c>catch (...) when (...)</c>, <c>} while (...);</c>,
+    /// <c>case 1: x = y; break;</c>) has its clause's point (<see cref="Continuation"/>): code the emitter writes in an else, a filter or a
+    /// switch section is a line of code like any other.
     /// <para><c>End</c> is where the line stops being that sequence point's: its end, or, sooner, the first place inside it that takes a
     /// sequence point of its own in another method (the first statement of a lambda's or an anonymous method's block, or its expression
     /// body; an arm of a switch expression), whose code must not be mapped to the statement's column.</para></summary>
@@ -175,8 +213,12 @@ public sealed class CodeWriter
     /// <summary><see cref="FirstSequencePoint(string)"/> read by Roslyn's parser alone.</summary>
     internal static (int Start, int End)? ParsedSequencePoint(string text)
     {
-        var statement = SyntaxFactory.ParseStatement(text);
-        if (FirstSequencePoint(statement, text.Length) is not { } point) return null;
+        // A line that continues a statement an earlier line began (an else, a catch or finally clause, a do statement's while, a switch
+        // label; each perhaps after the braces that close the earlier part) is parsed inside the head that makes it a statement, and its
+        // sequence point is that clause's: an `else if (...)` is the nested if's header, which an EVALUATE's second WHEN compiles to.
+        var (head, clause) = Continuation(text);
+        var statement = SyntaxFactory.ParseStatement(head + text);
+        if (clause(statement, head.Length, head.Length + text.Length) is not { } point) return null;
         int end = point.End;
         foreach (var node in statement.DescendantNodes(n => n.Span.Start < end))
         {
@@ -189,7 +231,47 @@ public sealed class CodeWriter
             };
             if (nested > point.Start && nested < end) end = nested;
         }
-        return (point.Start, end);
+        return (point.Start - head.Length, end - head.Length);
+    }
+
+    /// <summary>The head that makes <paramref name="text"/> a statement, and the reading of that statement's sequence point inside the line
+    /// (its text from <c>from</c> to <c>to</c>): no head and the statement's own point for a line that begins a statement; for a line that
+    /// begins with closing braces, an <c>else</c>, a <c>catch</c>, a <c>finally</c>, a <c>while</c> after a brace, or a switch label, a head
+    /// that opens what the line closes and the clause's point. An optimized build gives an else clause its statement's point, a catch its
+    /// filter's (<c>when (...)</c>) or else its header's (<c>catch (...)</c>, where the caught exception is taken), the brace that closes a
+    /// try block before a catch or finally on its line a point of its own (the leave from the block), a finally its block's first statement's, a do statement's
+    /// condition the span from <c>while</c> to its semicolon, and a switch section its first statement's.</summary>
+    private static (string Head, Func<StatementSyntax, int, int, (int Start, int End)?> Clause) Continuation(string text)
+    {
+        int at = 0, braces = 0;
+        while (at < text.Length && (text[at] == ' ' || text[at] == '}'))
+            if (text[at++] == '}') braces++;
+        var rest = text.AsSpan(at);
+        // What the head opens: the braces the line closes, else an empty block for the clause to follow.
+        string open = braces == 0 ? "{} " : new string('{', braces);
+        if (Keyword(rest, "else"))
+            return ("if (true) " + open, static (s, from, to) => s is IfStatementSyntax { Else.Statement: { } e } ? FirstSequencePoint(e, from, to) : null);
+        // The brace that closes a try block on the line is a point of its own (the leave from the block), before the clause's.
+        if (braces > 0 && (Keyword(rest, "catch") || Keyword(rest, "finally")))
+            return ("try " + open, static (s, from, to) => s is TryStatementSyntax t
+                ? Within((t.Block.CloseBraceToken.SpanStart, t.Block.CloseBraceToken.Span.End), from, to) : null);
+        if (Keyword(rest, "catch"))
+            return ("try " + open, static (s, from, to) => s is TryStatementSyntax { Catches: [var c, ..] }
+                ? c.Filter is { } filter
+                    ? filter.CloseParenToken.IsMissing ? null : Within((filter.SpanStart, filter.CloseParenToken.Span.End), from, to)
+                    : Within((c.CatchKeyword.SpanStart, c.Declaration is { CloseParenToken.IsMissing: false } d
+                        ? d.CloseParenToken.Span.End : c.CatchKeyword.Span.End), from, to)
+                : null);
+        if (Keyword(rest, "finally"))
+            return ("try " + open, static (s, from, to) => s is TryStatementSyntax { Finally.Block: { } block }
+                ? FirstSequencePoint(block.Statements.FirstOrDefault(), from, to) : null);
+        if (braces > 0 && Keyword(rest, "while"))
+            return ("do " + open, static (s, from, to) => s is DoStatementSyntax d && !d.SemicolonToken.IsMissing
+                ? Within((d.WhileKeyword.SpanStart, d.SemicolonToken.Span.End), from, to) : null);
+        if (braces == 0 && (Keyword(rest, "case") || Keyword(rest, "default")))
+            return ("switch (0) { ", static (s, from, to) => s is SwitchStatementSyntax { Sections: [var section, ..] }
+                ? FirstSequencePoint(section.Statements.FirstOrDefault(), from, to) : null);
+        return ("", static (s, from, to) => FirstSequencePoint(s, from, to));
     }
 
     /// <summary>The sequence point of a line that is one simple statement, read without a parse (most of a program's lines are, and a
@@ -215,53 +297,55 @@ public sealed class CodeWriter
         return (start, end);
     }
 
-    private static (int Start, int End)? FirstSequencePoint(StatementSyntax? statement, int length)
+    /// <summary>The point <paramref name="point"/> when it lies on the line, the text from <paramref name="from"/> to <paramref name="to"/>,
+    /// and holds a character of it; null otherwise.</summary>
+    private static (int Start, int End)? Within((int From, int To) point, int from, int to) =>
+        point.From >= from && point.From < to && point.To <= to && point.To - point.From > 0 ? point : null;
+
+    private static (int Start, int End)? FirstSequencePoint(StatementSyntax? statement, int from, int to)
     {
-        // A sequence point lies on the line and holds a character of it (from, to are its bounds in the line's text).
-        static (int, int)? Within((int From, int To) point, int length) =>
-            point.From < length && point.To <= length && point.To - point.From > 0 ? point : null;
         switch (statement)
         {
             case null:
                 return null;
             case ExpressionStatementSyntax e:
-                return e.Expression.IsMissing || e.SemicolonToken.IsMissing ? null : Within((e.SpanStart, e.Span.End), length);
+                return e.Expression.IsMissing || e.SemicolonToken.IsMissing ? null : Within((e.SpanStart, e.Span.End), from, to);
             case ReturnStatementSyntax or ThrowStatementSyntax or GotoStatementSyntax or BreakStatementSyntax or ContinueStatementSyntax
                 or YieldStatementSyntax:
-                return statement.GetLastToken().IsMissing ? null : Within((statement.SpanStart, statement.Span.End), length);
+                return statement.GetLastToken().IsMissing ? null : Within((statement.SpanStart, statement.Span.End), from, to);
             case LocalDeclarationStatementSyntax d when d.Declaration.Variables.FirstOrDefault(v => v.Initializer is not null) is { } first
                 && first.Initializer!.Value is not (LiteralExpressionSyntax or DefaultExpressionSyntax):
                 return first == d.Declaration.Variables[^1]
-                    ? d.SemicolonToken.IsMissing ? null : Within((d.SpanStart, d.Span.End), length)
-                    : Within((d.SpanStart, first.Span.End), length);
+                    ? d.SemicolonToken.IsMissing ? null : Within((d.SpanStart, d.Span.End), from, to)
+                    : Within((d.SpanStart, first.Span.End), from, to);
             case IfStatementSyntax i:
-                return i.CloseParenToken.IsMissing ? null : Within((i.SpanStart, i.CloseParenToken.Span.End), length);
+                return i.CloseParenToken.IsMissing ? null : Within((i.SpanStart, i.CloseParenToken.Span.End), from, to);
             case WhileStatementSyntax w when !Microsoft.CodeAnalysis.CSharpExtensions.IsKind(w.Condition, SyntaxKind.TrueLiteralExpression):
-                return w.CloseParenToken.IsMissing ? null : Within((w.SpanStart, w.CloseParenToken.Span.End), length);
+                return w.CloseParenToken.IsMissing ? null : Within((w.SpanStart, w.CloseParenToken.Span.End), from, to);
             case SwitchStatementSyntax sw:
-                return sw.CloseParenToken.IsMissing ? null : Within((sw.SpanStart, sw.CloseParenToken.Span.End), length);
+                return sw.CloseParenToken.IsMissing ? null : Within((sw.SpanStart, sw.CloseParenToken.Span.End), from, to);
             case LockStatementSyntax l:
-                return l.CloseParenToken.IsMissing ? null : Within((l.SpanStart, l.CloseParenToken.Span.End), length);
+                return l.CloseParenToken.IsMissing ? null : Within((l.SpanStart, l.CloseParenToken.Span.End), from, to);
             case UsingStatementSyntax u when u.Expression is not null || u.Declaration is not null:
-                return u.CloseParenToken.IsMissing ? null : Within((u.SpanStart, u.CloseParenToken.Span.End), length);
+                return u.CloseParenToken.IsMissing ? null : Within((u.SpanStart, u.CloseParenToken.Span.End), from, to);
             case ForStatementSyntax f when f.Declaration is { } declaration:
-                return Within((declaration.SpanStart, declaration.Span.End), length);
+                return Within((declaration.SpanStart, declaration.Span.End), from, to);
             case ForStatementSyntax f when f.Initializers.Count > 0:
-                return Within((f.Initializers[0].SpanStart, f.Initializers[0].Span.End), length);
+                return Within((f.Initializers[0].SpanStart, f.Initializers[0].Span.End), from, to);
             case ForStatementSyntax f when f.Condition is { } condition:
-                return Within((condition.SpanStart, condition.Span.End), length);
+                return Within((condition.SpanStart, condition.Span.End), from, to);
             case ForStatementSyntax f:
-                return FirstSequencePoint(f.Statement, length);
+                return FirstSequencePoint(f.Statement, from, to);
             case BlockSyntax b:
-                return FirstSequencePoint(b.Statements.FirstOrDefault(), length);
+                return FirstSequencePoint(b.Statements.FirstOrDefault(), from, to);
             case LabeledStatementSyntax labeled:
-                return FirstSequencePoint(labeled.Statement, length);
+                return FirstSequencePoint(labeled.Statement, from, to);
             case CheckedStatementSyntax c:
-                return FirstSequencePoint(c.Block, length);
+                return FirstSequencePoint(c.Block, from, to);
             case TryStatementSyntax t:
-                return FirstSequencePoint(t.Block, length);
+                return FirstSequencePoint(t.Block, from, to);
             case DoStatementSyntax d:
-                return FirstSequencePoint(d.Statement, length);
+                return FirstSequencePoint(d.Statement, from, to);
             default:
                 return null;
         }

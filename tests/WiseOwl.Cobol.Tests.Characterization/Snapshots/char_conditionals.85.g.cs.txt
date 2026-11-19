@@ -77,7 +77,9 @@ internal sealed class _PRG_CHAR_CONDITIONALS : ICobolProgram
                         global::System.Console.WriteLine("IS-A");
 #line hidden
                     }
+#line (17, 12) - (17, 19) 26 "char_conditionals.cob"
                     else if (CobolString.Compare(__sendval2_EVALUATE, "B") == 0)
+#line hidden
                     {
 #line (19, 25) - (19, 38) 25 "char_conditionals.cob"
                         global::System.Console.WriteLine("IS-B");
