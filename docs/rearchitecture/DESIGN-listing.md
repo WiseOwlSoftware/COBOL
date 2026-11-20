@@ -1555,7 +1555,11 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       (`ICandidateEntries.Ids`) and names none of its own; `IdentifiedName`'s constructor refuses an answer whose entry is missing, and
       `ClassNames.Lookup` sets `OoNameResult.Entry` and refuses the same, so a declaring path that enters nothing fails at its first
       reference in every compilation. `IdentifyIndexName` stays typed and unboxed (section 9): `SymbolTable.IndexEntryOf(candidate)`
-      answers a candidate's entry when step 7b records one (a member a TYPE clause's copy lapses to answers its table's index-name).
+      answers the entry of a set's one candidate when step 7b records it, and fails loudly for a candidate whose declaration entered
+      nothing. A member of a type declaration that a TYPE clause's copy lapses to (§2023:8.4.2.2.1 SR4, made per lookup) is such a
+      candidate: a type declaration's tables register no index-names (`DataBinder` declares no name of a TYPEDEF template), so it has
+      no entry to answer, and it joins a set only beside a declared survivor, so it is never a set of one (review round 1 R1-1
+      corrected an earlier sentence here that had it answer its table's index-name entry, which no table holds).
     - *The finish reads the entries the bind made (`SymbolTableFinish.Of(..., SymbolTable.EntryStore, ...)`).* Each element's entries are
       written with the bind's class, name and position (`SymbolTableWriter.Declare(SymbolId, ...)`); the constant entries are read off
       the bind (`ConstantEntryBinder.DeclaredConstants` is deleted), the procedure-names, configuration-section names, prototype-names,
@@ -1571,9 +1575,18 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       answers no reference (no prototype is registered) and binds with an error, so the completeness oracle of step 7b, which binds the
       programs that bind clean, never meets it; a CAPACITY register SR30 refused (COBOL1523) likewise.
     - *Guards.* `SymbolEntryDriftTests` (Unit): an identification without an entry is refused, a candidate set with a candidate without
-      one is refused; three planted programs (2023, 1985, OO) declare a name of every class the table enters and reference each, and the
-      finished table holds each with the class, name and line and column written from the source text; a class of `NameClass` with no
-      witness is red, except the four classes a reference's position admits whose entry is a report group description entry's.
+      one is refused; four planted programs (2023, 1985, OO, and a 2023 report whose one VARYING clause declares two counters, the only
+      witness of `NameClass.ReportVarying`) declare a name of every class the table enters and reference each, and the finished table
+      holds each with the class, name and line and column written from the source text; a class of `NameClass` with no witness is red,
+      except the four classes a reference's position admits whose entry is a report group description entry's. Every identification
+      answers the RIGHT entry: each planted reference is identified through the table's own funnels (`Identify`, `IdentifyIndexName`
+      with `IndexEntryOf`, `ClassNames.Lookup`) and its id must name the entry of the declaration the rules resolve it to, by class,
+      name and position: the configuration-section answers, a procedure-name and a candidate set's entries in its order, a
+      function-prototype-name that goes to its containing function definition (§2023:12.3.8.3 SR11), a CAPACITY register, an
+      index-name and a TYPE clause copy's index-name, a report group, a VARYING counter beside another of its clause, and the group
+      tier's interface, BASE and parameter-name; a lapsed type member's `IndexEntryOf` is refused. (Shown red, review round 1 R1-2:
+      `FunctionEntryOf` answering the specifier's word, the candidate ids reversed, and `VaryingCounterEntry` answering the clause's
+      first word each fail it.)
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences

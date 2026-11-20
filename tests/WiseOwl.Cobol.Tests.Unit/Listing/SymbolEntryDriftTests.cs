@@ -1,11 +1,16 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol;
 using WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 using WiseOwl.Cobol.Symbols;
 using Xunit;
+using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
 
@@ -23,6 +28,9 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// table must hold each entry with the class, the name as written and the line and column of its declaring word (the data map's
 /// placement for a data description entry's names: an index-name and a CAPACITY register on their table's line, a constant at its
 /// level-number). A class with no witness here is red (<see cref="EveryClassOfTheTable_HasAWitness"/>).</item>
+/// <item>Every identification answers the RIGHT entry: each planted reference, identified through the table's own funnels after the
+/// bind, carries the id of the entry of the declaration the rules resolve it to (class, name and position), so a funnel that answers
+/// some other entry is red even though every id stays set (review round 1, R1-2).</item>
 /// </list>
 /// </summary>
 public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
@@ -59,7 +67,9 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
     // ---- the planted programs ------------------------------------------------------------------------------------------------
 
     /// <summary>The 2023 program: a user function and a program the main program's REPOSITORY specifies, the configuration-section
-    /// names, a file, a constant, a type declaration, an index-name, a CAPACITY register, procedure-names, and a reference to each.</summary>
+    /// names, a file, a constant, a type declaration, an index-name, a CAPACITY register, procedure-names, and a reference to each;
+    /// two paragraphs of one spelling in two sections, never referenced (a candidate set of two); a function whose REPOSITORY names the
+    /// function itself (§2023:12.3.8.3 SR11); and a program whose TYPE clause copies a table with an index-name.</summary>
     private static readonly string[] Program2023 =
     [
         "       IDENTIFICATION DIVISION.",
@@ -128,7 +138,37 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
         "           STOP RUN.",
         "       P-2.",
         "           EXIT.",
+        "       DUP-A SECTION.",
+        "       DUP.",
+        "           EXIT.",
+        "       S-2 SECTION.",
+        "       DUP.",
+        "           EXIT.",
         "       END PROGRAM ENTRIES.",
+        "       IDENTIFICATION DIVISION.",
+        "       FUNCTION-ID. RECUR.",
+        "       ENVIRONMENT DIVISION.",
+        "       CONFIGURATION SECTION.",
+        "       REPOSITORY.",
+        "           FUNCTION RECUR.",
+        "       DATA DIVISION.",
+        "       LINKAGE SECTION.",
+        "       01 ARG PIC 9(4).",
+        "       01 RES PIC 9(4).",
+        "       PROCEDURE DIVISION USING ARG RETURNING RES.",
+        "           IF ARG > 0 COMPUTE RES = FUNCTION RECUR(ARG) END-IF",
+        "           GOBACK.",
+        "       END FUNCTION RECUR.",
+        "       IDENTIFICATION DIVISION.",
+        "       PROGRAM-ID. TYPEIX.",
+        "       DATA DIVISION.",
+        "       WORKING-STORAGE SECTION.",
+        "       01 T-REC TYPEDEF.",
+        "          05 T-ELT PIC X OCCURS 3 INDEXED BY T-IX.",
+        "       01 A TYPE T-REC.",
+        "       PROCEDURE DIVISION.",
+        "           GOBACK.",
+        "       END PROGRAM TYPEIX.",
     ];
 
     [Fact]
@@ -216,7 +256,7 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
         Assert.False(debugName.DeclaredAt.IsSet);   // §1985:XV.3.2.4 GR10: "DEBUG-ITEM has the following implicit description"
     }
 
-    /// <summary>The 2023 report program: a VARYING counter, declared by the clause's data-name-1 (§2023:13.18.64).</summary>
+    /// <summary>The 2023 report program: two VARYING counters of one clause, each declared by its data-name-1 (§2023:13.18.64).</summary>
     private static readonly string[] ProgramVarying =
     [
         "       IDENTIFICATION DIVISION.",
@@ -232,7 +272,8 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
         "       RD R-V.",
         "       01 DET-A TYPE DE.",
         "          02 LINE PLUS 1.",
-        "             03 COLUMNS 1 3 5 PIC 9 VARYING K FROM 1 BY 1 SOURCE K.",
+        "             03 COLUMNS 1 3 5 PIC 9 SOURCE K",
+        "                VARYING J FROM 1 BY 1 K FROM 1 BY 1.",
         "       PROCEDURE DIVISION.",
         "           OPEN OUTPUT RFILE",
         "           INITIATE R-V",
@@ -246,7 +287,8 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
     public void ProgramVarying_EnteredTheCounter_AtItsWord()
     {
         var symbols = Bind(ProgramVarying, 2023);
-        AssertEntry(symbols, ProgramVarying, NameClass.ReportVarying, "K", line: 14, word: "K FROM");
+        AssertEntry(symbols, ProgramVarying, NameClass.ReportVarying, "J", line: 15, word: "J FROM");
+        AssertEntry(symbols, ProgramVarying, NameClass.ReportVarying, "K", line: 15, word: "K FROM");
         AssertEntry(symbols, ProgramVarying, NameClass.Data, "DET-A", line: 12, word: "01");
     }
 
@@ -290,6 +332,183 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
         Assert.False(standardBase.DeclaredAt.IsSet);   // declared by the standard, entered when the group first names it
     }
 
+    // ---- every identification answers the RIGHT entry ------------------------------------------------------------------------
+
+    /// <summary>Each reference of the 2023 program, identified by the table as the binder identifies it, answers the entry of the
+    /// declaration the rules resolve it to: the class, the name and the position of that declaration's word, never only "an id".
+    /// Each class's own way of choosing the entry is read here: the configuration-section answer, a procedure-name's, the containing
+    /// function definition a function-prototype-name goes to (§2023:12.3.8.3 SR11), a candidate set's entries in its order, the
+    /// CAPACITY register's and the index-name's (<c>IndexEntryOf</c>).</summary>
+    [Fact]
+    public void Program2023_EveryReference_AnswersItsDeclarationsEntry()
+    {
+        var bind = BindLive(Program2023, 2023);
+        var entries = bind.Table("ENTRIES");
+        var main = new ProcedureSite(null, null);
+        AssertAnswers(bind, Answer(entries, Word(bind, 20, "ALPHA-A"), NameClass.Alphabet), NameClass.Alphabet, "ALPHA-A", 25);
+        AssertAnswers(bind, Answer(entries, Word(bind, 55, "SW-ON"), NameClass.SwitchCondition), NameClass.SwitchCondition, "SW-ON", 23);
+        AssertAnswers(bind, Answer(entries, Word(bind, 56, "HEXDIG"), NameClass.ClassName), NameClass.ClassName, "HEXDIG", 24);
+        AssertAnswers(bind, Answer(entries, Word(bind, 57, "BELL"), NameClass.SymbolicCharacter), NameClass.SymbolicCharacter, "BELL", 26);
+        AssertAnswers(bind, Answer(entries, Word(bind, 62, "CONS-OUT"), NameClass.Mnemonic), NameClass.Mnemonic, "CONS-OUT", 22);
+        foreach (var (line, name, @class) in new[] { (27, "NAT-A", NameClass.NationalAlphabet), (28, "LOC-A", NameClass.Locale),
+                     (29, "ORD-T", NameClass.OrderingName), (30, "DLS", NameClass.DynamicLengthStructure) })
+            AssertAnswers(bind, Answer(entries, Word(bind, line, name), @class), @class, name, line);   // its declaring word
+        AssertAnswers(bind, Answer(entries, Word(bind, 39, "INFILE"), NameClass.File), NameClass.File, "INFILE", 36, "SELECT");
+        AssertAnswers(bind, Answer(entries, Word(bind, 58, "K"), NameClass.Constant), NameClass.Constant, "K", 42, "01");
+        AssertAnswers(bind, Answer(entries, Word(bind, 45, "T-TYPE"), NameClass.TypeName), NameClass.TypeName, "T-TYPE", 43, "01");
+        AssertAnswers(bind, Answer(entries, Word(bind, 61, "SUBP"), NameClass.ProgramPrototype), NameClass.ProgramPrototype, "SUBP", 33);
+        AssertAnswers(bind, Answer(entries, Word(bind, 60, "TWICE"), NameClass.FunctionPrototype), NameClass.FunctionPrototype, "TWICE", 32);
+        AssertAnswers(bind, Answer(entries, At<Core.ProcedureNameContext>(bind, 63, "P-2"), NameClass.Procedure, main),
+            NameClass.Procedure, "P-2", 65);
+
+        // A candidate set's entries stand in its order (two paragraphs of one spelling in two sections, in declaration order).
+        var dup = Assert.IsType<ProcedureCandidates>(
+            entries.Identify(At<Core.ProcedureNameContext>(bind, 68, "DUP"), NameClass.Procedure, report: false, site: main)!.Symbol);
+        Assert.Equal(2, dup.Ids.Count);
+        AssertEntryIs(bind, dup.Ids[0], NameClass.Procedure, "DUP", 68);
+        AssertEntryIs(bind, dup.Ids[1], NameClass.Procedure, "DUP", 71);
+
+        var capacity = Assert.IsType<CapacityRegisterCandidates>(
+            entries.Identify(Word(bind, 59, "CAP"), NameClass.CapacityRegister, report: false)!.Symbol);
+        AssertEntryIs(bind, Assert.Single(capacity.Ids), NameClass.CapacityRegister, "CAP", 49, "05");
+
+        var ix = entries.IdentifyIndexName(WrittenOf(bind, 58, "IX"), report: false)?.Single;
+        Assert.NotNull(ix);
+        AssertEntryIs(bind, entries.IndexEntryOf(ix), NameClass.Index, "IX", 47, "05");
+
+        // §2023:12.3.8.3 SR11: the function's own name, though its REPOSITORY specifies it, goes to the function definition.
+        AssertAnswers(bind, Answer(bind.Table("RECUR"), Word(bind, 85, "RECUR"), NameClass.FunctionPrototype),
+            NameClass.Program, "RECUR", 74, "IDENTIFICATION");
+    }
+
+    /// <summary>An index-name a TYPE clause's copy declares answers the copy's own entry; the type declaration's member, which a
+    /// lapsed candidate stands for (§2023:8.4.2.2.1 SR4), declared no index cell and entered nothing, so asking its entry fails
+    /// loudly, never a silent no-entry (it only joins a set beside a declared survivor, never a set of one).</summary>
+    [Fact]
+    public void ATypeClauseCopysIndexName_AnswersItsEntry_AndALapsedMember_HasNone()
+    {
+        var bind = BindLive(Program2023, 2023);
+        var table = bind.Table("TYPEIX");
+        var copy = table.IdentifyIndexName(new WrittenQualifiedName(new CommonToken(1, "T-IX"), []), report: false)?.Single;
+        Assert.NotNull(copy);
+        Assert.NotNull(copy.Table.ClonedFrom);   // the copy's table, under A
+        var entry = bind.Entries[table.IndexEntryOf(copy)];
+        Assert.Equal((NameClass.Index, "T-IX"), (entry.Class, entry.Name));
+        Assert.Same(copy, entry.Symbol);
+        var lapsed = new IndexDeclaration("T-IX", copy.Table.ClonedFrom!, "");
+        var refused = Assert.Throws<InvalidOperationException>(() => table.IndexEntryOf(lapsed));
+        Assert.Contains("entered no entry", refused.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>The 1985 program's references: a file, a report, a CD, a report group (a candidate set of the report group description
+    /// entry's entry), a USE FOR DEBUGGING operand's procedure-name and a DEBUG-ITEM register.</summary>
+    [Fact]
+    public void Program1985_EveryReference_AnswersItsDeclarationsEntry()
+    {
+        var bind = BindLive(Program1985, 85);
+        var table = bind.Table("ENTRIES85");
+        AssertAnswers(bind, Answer(table, Word(bind, 32, "RPT-FILE"), NameClass.File), NameClass.File, "RPT-FILE", 8, "SELECT");
+        AssertAnswers(bind, Answer(table, Word(bind, 33, "RPT"), NameClass.Report), NameClass.Report, "RPT", 18, "RD");
+        AssertAnswers(bind, Answer(table, Word(bind, 15, "CD-IN"), NameClass.CommunicationDescription),
+            NameClass.CommunicationDescription, "CD-IN", 15, "CD");
+        var dtl = Assert.IsAssignableFrom<ICandidateEntries>(table.Identify(At<Core.ReportGroupReferenceContext>(bind, 34, "DTL"),
+            NameClass.ReportGroup, report: false)!.Symbol);
+        AssertEntryIs(bind, Assert.Single(dtl.Ids), NameClass.Data, "DTL", 19, "01");
+        AssertAnswers(bind, Answer(table, At<Core.DataReferenceContext>(bind, 26, "P-1"), NameClass.Procedure, new ProcedureSite(null, null)),
+            NameClass.Procedure, "P-1", 31);
+        var debugName = bind.Entries[Answer(table, Word(bind, 28, "DEBUG-NAME"), NameClass.DebugRegister).Id];
+        Assert.Equal((NameClass.DebugRegister, "DEBUG-NAME"), (debugName.Class, debugName.Name));
+    }
+
+    /// <summary>A VARYING counter's reference answers ITS word's entry, not another counter's of the same clause.</summary>
+    [Fact]
+    public void ProgramVarying_ACounterReference_AnswersItsOwnWordsEntry()
+    {
+        var bind = BindLive(ProgramVarying, 2023);
+        var declaring = At<Core.ReportGroupEntryContext>(bind, 14, "03");
+        List<ReportVaryingModel> counters =
+            [new() { Name = "J", Uid = 1, Entry = declaring }, new() { Name = "K", Uid = 2, Entry = declaring }];
+        var answer = bind.Table("RPTV").Identify(TokenWord(bind, 14, "K", after: "SOURCE "), NameClass.ReportVarying, report: false,
+            reportSite: new ReportSite(null, counters));
+        Assert.NotNull(answer);
+        AssertAnswers(bind, answer, NameClass.ReportVarying, "K", 15, "K FROM");
+    }
+
+    /// <summary>The group tier's lookup (<c>SymbolTable.ClassNames.Lookup</c>) answers the interface's, the standard class's and the
+    /// parameter-name's entries.</summary>
+    [Fact]
+    public void ProgramOo_EveryClassNameReference_AnswersItsDeclarationsEntry()
+    {
+        var bind = BindLive(ProgramOo, 2023);
+        var names = bind.Binder.Session.OoClasses.Names;
+        var iface = Word(bind, 13, "IFACE");
+        AssertEntryIs(bind, names.Lookup(iface, iface, OoNameWant.Interface).Entry, NameClass.Interface, "IFACE", 2);
+        var standardBase = Word(bind, 5, "BASE");
+        var baseEntry = bind.Entries[names.Lookup(standardBase, standardBase, OoNameWant.Class).Entry];
+        Assert.Equal((NameClass.ObjectClass, "BASE", false), (baseEntry.Class, baseEntry.Name, baseEntry.At.IsSet));
+        var formal = Word(bind, 22, "ELEM");
+        AssertEntryIs(bind, names.Lookup(formal, formal, OoNameWant.Class).Entry, NameClass.ParameterName, "ELEM", 17);
+    }
+
+    private static IdentifiedName Answer(SymbolTable table, ParserRuleContext written, NameClass @class, ProcedureSite? site = null)
+    {
+        var answer = table.Identify(written, @class, report: false, site: site);
+        Assert.True(answer is not null, $"'{written.GetText()}' identified no {@class}");
+        return answer;
+    }
+
+    /// <summary>Assert <paramref name="answer"/>'s entry is the declaration of class <paramref name="class"/> named
+    /// <paramref name="name"/> at <paramref name="word"/> (default: the name) on 1-based source line <paramref name="line"/>.</summary>
+    private static void AssertAnswers(LiveBind bind, IdentifiedName answer, NameClass @class, string name, int line, string? word = null) =>
+        AssertEntryIs(bind, answer.Id, @class, name, line, word);
+
+    private static void AssertEntryIs(LiveBind bind, SymbolId id, NameClass @class, string name, int line, string? word = null)
+    {
+        Assert.True(id.IsSet, $"the {@class} '{name}' answered no entry");
+        var entry = bind.Entries[id];
+        Assert.Equal((@class, name, new SymbolPosition(line, ColumnOf(bind.Source, line, word ?? name))), (entry.Class, entry.Name, entry.At));
+    }
+
+    /// <summary>The resultant column of <paramref name="word"/> on 1-based source <paramref name="line"/> (its first occurrence after
+    /// <paramref name="after"/>, when given).</summary>
+    private static int ColumnOf(string[] source, int line, string word, string? after = null)
+    {
+        string text = source[line - 1];
+        int from = after is null ? 0 : text.IndexOf(after, StringComparison.Ordinal) + after.Length;
+        int written = text.IndexOf(word, from, StringComparison.Ordinal);
+        Assert.True(written >= FixedFormPrefix, $"line {line} does not write '{word}'");
+        return written - FixedFormPrefix;
+    }
+
+    /// <summary>The innermost context that holds exactly the token <paramref name="word"/> written on 1-based <paramref name="line"/>.</summary>
+    private static ParserRuleContext Word(LiveBind bind, int line, string word) => TokenWord(bind, line, word);
+
+    private static ParserRuleContext TokenWord(LiveBind bind, int line, string word, string? after = null) =>
+        (ParserRuleContext)TokenAt(bind, line, word, after).Parent;
+
+    /// <summary>The innermost context of type <typeparamref name="T"/> that holds <paramref name="word"/> on <paramref name="line"/>.</summary>
+    private static T At<T>(LiveBind bind, int line, string word) where T : ParserRuleContext
+    {
+        for (IParseTree? node = TokenAt(bind, line, word); node is not null; node = node.Parent)
+            if (node is T found) return found;
+        throw new Xunit.Sdk.XunitException($"no {typeof(T).Name} holds '{word}' on line {line}");
+    }
+
+    /// <summary>A written qualified name of one word, its token the one written at <paramref name="word"/> on <paramref name="line"/>.</summary>
+    private static WrittenQualifiedName WrittenOf(LiveBind bind, int line, string word) => new(TokenAt(bind, line, word).Symbol, []);
+
+    private static ITerminalNode TokenAt(LiveBind bind, int line, string word, string? after = null)
+    {
+        int column = ColumnOf(bind.Source, line, word, after);
+        var stack = new Stack<IParseTree>([bind.Tree]);
+        while (stack.TryPop(out var node))
+        {
+            if (node is ITerminalNode t && t.Symbol.Line == line && t.Symbol.Column == column && t.Symbol.Text == word) return t;
+            for (int i = 0; i < node.ChildCount; i++) stack.Push(node.GetChild(i));
+        }
+        throw new Xunit.Sdk.XunitException($"no token '{word}' at {line}:{column}");
+    }
+
     /// <summary>Every class of <see cref="NameClass"/> that is an entry's class has a witness among the planted programs; the classes
     /// a reference's POSITION admits whose entry is another class's (a report group, a sum counter, a report entry and a SUM operand
     /// identify a report group description entry, a <see cref="NameClass.Data"/> entry) are named with that reason. A new class is red
@@ -325,7 +544,22 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
 
     /// <summary>Bind <paramref name="source"/> at <paramref name="edition"/> with every name finished (the data map's request), through
     /// the front end and the binder the driver uses; the bind must be clean, so every reference was identified.</summary>
-    private SymbolTableSnapshot Bind(string[] source, int edition)
+    private SymbolTableSnapshot Bind(string[] source, int edition) => BindLive(source, edition).Snapshot;
+
+    /// <summary>A clean bind of a planted program, kept live: the finished snapshot, the parse tree, the bound units and the binder
+    /// whose session holds each element's <see cref="SymbolTable"/> and the group's entries.</summary>
+    private sealed record LiveBind(string[] Source, SymbolTableSnapshot Snapshot, Core.CompilationUnitContext Tree,
+        BoundCompilation Compilation, BinderDriver Binder)
+    {
+        /// <summary>The compilation group's entries (one store, <c>OoClassTable.Entries</c>).</summary>
+        public SymbolTable.EntryStore Entries => Binder.Session.OoClasses.Entries;
+
+        /// <summary>The symbol table of the program or function named <paramref name="unit"/>.</summary>
+        public SymbolTable Table(string unit) =>
+            Binder.Session.Binders.Of(Compilation.Units.Single(u => u.Name == unit)).Data.Symbols;
+    }
+
+    private LiveBind BindLive(string[] source, int edition)
     {
         string path = Path.Combine(TempDir, $"entries{edition}-{Guid.NewGuid():N}.cob");
         File.WriteAllText(path, string.Join("\n", source));
@@ -336,8 +570,8 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
         Assert.True(tree is not null, string.Join("\n", bag.Diagnostics));
         var binder = new BinderDriver();
         var context = new EditionContext(edition, false) { LineMap = frontend.LineMap, RecordsSymbols = true, RecordsNames = true };
-        binder.Bind(tree, context, frontend.Directives);
+        var compilation = binder.Bind(tree, context, frontend.Directives);
         Assert.False(context.HasErrors, string.Join("\n", context.Diagnostics));
-        return Assert.IsType<SymbolTableSnapshot>(binder.Symbols);
+        return new(source, Assert.IsType<SymbolTableSnapshot>(binder.Symbols), tree, compilation, binder);
     }
 }

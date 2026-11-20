@@ -110,21 +110,19 @@ public sealed partial class SymbolTable
         return WithLapsedTypeIndexes(key, indexes, d => _data.IndexQualifierChainMatches(d, qualifiers), null);
     }
 
+    /// <summary>The entry of the index-name a reference identified, the ONE candidate of its set: its declaration's
+    /// (<see cref="DeclareIndex"/>; an inherited GLOBAL declaration is the container's own object, so it answers the container's
+    /// entry). A member a TYPE clause's copy lapses to (§2023:8.4.2.2.1 SR4, made per lookup by <see cref="WithLapsedTypeIndexes"/>)
+    /// declares no index cell and enters nothing, and it joins a set only beside a declared survivor, so it is never a set of one:
+    /// asked of one, or of any candidate whose declaration entered nothing, this is an internal error that fails loudly. Asked when
+    /// an occurrence is recorded (a set of one), never by the lookup itself, so a subscript's many asks allocate nothing (section 9).</summary>
+    internal SymbolId IndexEntryOf(IndexDeclaration candidate) =>
+        _entries.IdOf(candidate) is { IsSet: true } id ? id
+        : throw new InvalidOperationException($"SymbolTable identified the index-name '{candidate.Name}', whose declaration entered no "
+            + "entry: a lapsed type member is never a set of one (DESIGN-listing.md section 6.7.1, \"Step 6b, the entry ids\")");
+
     /// <summary>Whether an index-name of <paramref name="name"/> visible to this element is declared in a source element nearer than
     /// <paramref name="depth"/> (<see cref="Declarations.DeclaredNearerThan"/>).</summary>
-    /// <summary>The entry of an index-name candidate <see cref="IdentifyIndexName"/> answered: its declaration's, or, for a member of a
-    /// type declaration a TYPE clause's copy lapses to (§2023:8.4.2.2.1 SR4, made per lookup), the declaration of its table's
-    /// index-name of that spelling. Asked when an occurrence is recorded (a set of one), never by the lookup itself, so a subscript's
-    /// many asks allocate nothing (section 9).</summary>
-    internal SymbolId IndexEntryOf(IndexDeclaration candidate)
-    {
-        if (_entries.IdOf(candidate) is { IsSet: true } id) return id;
-        var key = Key(candidate.Name);
-        foreach (var declared in candidate.Table.Indexes)
-            if (Key(declared.Name) == key) return _entries.IdOf(declared);
-        return default;
-    }
-
     private bool IndexNameDeclaredNearerThan(string name, int depth)
     {
         var key = Key(name);

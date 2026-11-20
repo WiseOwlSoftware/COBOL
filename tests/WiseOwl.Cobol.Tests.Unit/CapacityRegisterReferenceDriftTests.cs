@@ -109,9 +109,9 @@ public sealed class CapacityRegisterReferenceDriftTests
     }
 
     /// <summary>One read of every <c>src</c> source line, shared by the scans: each register-map read, each call of
-    /// <c>CapacityRegisterNamed</c> and each place that asks <c>Identify</c> for the class (a line that calls <c>Identify(</c> with it), as
-    /// <c>file: line</c>. Comment lines are
-    /// prose about the rule, not sites.</summary>
+    /// <c>CapacityRegisterNamed</c> and each place that names the class other than the two that declare a register (<see
+    /// cref="IsDeclaringSite"/>), as <c>file: line</c>: an asker whose <c>Identify(</c> call is split across lines still names the
+    /// class on one of them, so a second asker is seen however it is written. Comment lines are prose about the rule, not sites.</summary>
     private static readonly Lazy<(List<string> Sites, List<string> Callers, List<string> Askers)> SrcScan = new(() =>
     {
         var sites = new List<string>();
@@ -129,14 +129,20 @@ public sealed class CapacityRegisterReferenceDriftTests
                 if (t.Contains("CapacityRegisterNamed(", StringComparison.Ordinal)
                     && !t.Contains("CapacityRegisterCandidates? CapacityRegisterNamed(", StringComparison.Ordinal))
                     callers.Add($"{Path.GetFileName(file)}: {t}");
-                // An ASKER identifies the class; a declaration that enters the register's entry, or the finish that writes it, names
-                // the class without asking for a reference (DESIGN-listing.md section 6.7.1, "Step 6b, the entry ids").
-                if (t.Contains("NameClass.CapacityRegister,", StringComparison.Ordinal) && t.Contains("Identify(", StringComparison.Ordinal))
+                if (t.Contains("NameClass.CapacityRegister,", StringComparison.Ordinal) && !IsDeclaringSite(t))
                     askers.Add($"{Path.GetFileName(file)}: {t}");
             }
         }
         return (sites, callers, askers);
     });
+
+    /// <summary>The two lines that name the class to DECLARE a register, never to ask for one: the table's entry
+    /// (<c>Enter(NameClass.CapacityRegister, ...)</c> in <c>SymbolTable.DeclareCapacityRegister</c>) and the finish that writes it
+    /// (<c>SymbolTableFinish</c>'s <c>DeclareEntered(..., NameClass.CapacityRegister, ...)</c>; DESIGN-listing.md section 6.7.1,
+    /// "Step 6b, the entry ids"). Each is excluded by its own call, so every other line naming the class is an asker.</summary>
+    private static bool IsDeclaringSite(string line) =>
+        line.StartsWith("Enter(NameClass.CapacityRegister,", StringComparison.Ordinal)
+        || line.StartsWith("DeclareEntered(", StringComparison.Ordinal);
 
     private static bool IsNameLookup(string line) =>
         line.Contains("CapacityRegisters", StringComparison.OrdinalIgnoreCase)

@@ -29,6 +29,6 @@ adopts their entries that day.
 
 **Proved:** `python scripts/arch/compare_oracle.py --no-build` against the base 8dd07d2eabd1 is
 `=== ARCH-ORACLE: IDENTICAL — 22647 cases ===`; `SymbolEntryDriftTests` (the guard, four planted programs whose every entry is checked
-at the line and column the source writes, a witness of every class) is shown red with one declaration's entry removed. The section 9
+at the line and column the source writes, a witness of every class, and every planted reference identified through the table's funnels with its id checked against the declaration the rules resolve it to) is shown red with one declaration's entry removed, and, after review round 1, with a funnel that answers another entry (the containing function definition's, a candidate's, a VARYING counter's). Review round 1 also made `IndexEntryOf` fail loudly for a lapsed type member, which has no entry. The section 9
 `None` row is in the dated file `kb/Work/PB5932/2026-11-19-step-6b-entry-ids.md`. The lane also fixed the last 14.7.8 rule-number
 citations the step 7b review's lead R1-1 found (comments and inventory notes only).
