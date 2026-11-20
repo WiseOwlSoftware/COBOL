@@ -18,9 +18,9 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// </remarks>
 internal static class ExceptionRegionLayout
 {
-    /// <summary>A block of the structure: the half-open IL range it covers, the lines that open and close it, and its clause (1-based in
-    /// the body's list).</summary>
-    private readonly record struct Block(int Start, int End, ListingRegionBoundary Open, ListingRegionBoundary Close, int Region);
+    /// <summary>A block of the structure: the half-open IL range it covers (<c>From</c> up to <c>To</c>), the lines that open and close
+    /// it, and its clause (1-based in the body's list).</summary>
+    private readonly record struct Block(int From, int To, ListingRegionBoundary Open, ListingRegionBoundary Close, int Region);
 
     /// <summary>The lines of <paramref name="regions"/> (a body's clauses, in the body's order) in the order they print, each with its
     /// offset and depth. <paramref name="method"/> names the method in the failure of a body whose blocks overlap.</summary>
@@ -42,32 +42,32 @@ internal static class ExceptionRegionLayout
                 i + 1));
         }
         foreach (var block in blocks)
-            if (block.Start >= block.End)
-                throw new InvalidDataException($"{method}: clause {block.Region}'s {block.Open} block covers no IL ({block.Start} to {block.End})");
+            if (block.From >= block.To)
+                throw new InvalidDataException($"{method}: clause {block.Region}'s {block.Open} block covers no IL ({block.From} to {block.To})");
 
         // Opened in offset order, an outer block before a block it contains (the longer first; a clause nested in another comes first in
         // the body's list, so of two blocks of one range the later clause's is the outer).
-        blocks.Sort((a, b) => a.Start != b.Start ? a.Start.CompareTo(b.Start)
-            : a.End != b.End ? b.End.CompareTo(a.End)
+        blocks.Sort((a, b) => a.From != b.From ? a.From.CompareTo(b.From)
+            : a.To != b.To ? b.To.CompareTo(a.To)
             : b.Region.CompareTo(a.Region));
         var marks = new List<ListingRegionMark>(2 * blocks.Count);
         var open = new Stack<Block>();
         int next = 0;
         while (next < blocks.Count || open.Count > 0)
         {
-            int nextStart = next < blocks.Count ? blocks[next].Start : int.MaxValue;
-            if (open.Count > 0 && open.Peek().End <= nextStart)
+            int nextStart = next < blocks.Count ? blocks[next].From : int.MaxValue;
+            if (open.Count > 0 && open.Peek().To <= nextStart)
             {
                 var closed = open.Pop();
-                marks.Add(new ListingRegionMark(closed.End, closed.Close, closed.Region, open.Count));
+                marks.Add(new ListingRegionMark(closed.To, closed.Close, closed.Region, open.Count));
                 continue;
             }
             var block = blocks[next++];
-            if (open.Count > 0 && block.End > open.Peek().End)
-                throw new InvalidDataException($"{method}: clause {block.Region}'s {block.Open} block ({block.Start} to {block.End}) overlaps "
-                    + $"clause {open.Peek().Region}'s {open.Peek().Open} block ({open.Peek().Start} to {open.Peek().End}) without being "
+            if (open.Count > 0 && block.To > open.Peek().To)
+                throw new InvalidDataException($"{method}: clause {block.Region}'s {block.Open} block ({block.From} to {block.To}) overlaps "
+                    + $"clause {open.Peek().Region}'s {open.Peek().Open} block ({open.Peek().From} to {open.Peek().To}) without being "
                     + "inside it (ECMA-335 I.12.4.2.7)");
-            marks.Add(new ListingRegionMark(block.Start, block.Open, block.Region, open.Count));
+            marks.Add(new ListingRegionMark(block.From, block.Open, block.Region, open.Count));
             open.Push(block);
         }
         return marks;
