@@ -23,6 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// receiving operand (§2023:14.9.20.3 SR7), and a whole OCCURS DYNAMIC table is stored into whole: WRITTEN.</item>
 /// </list>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ReferenceStoreKindDriftTests : WiseOwlCobolTestBase
 {
     private static readonly string[] Source =
