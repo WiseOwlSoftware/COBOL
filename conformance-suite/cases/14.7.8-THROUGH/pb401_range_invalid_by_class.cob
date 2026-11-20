@@ -15,7 +15,7 @@
       *> greater than the value of literal-2 in the collating sequence in effect at runtime, the EC-RANGE-INVALID
       *> exception condition is set to exist, and, upon completion of any exception processing, execution proceeds
       *> as if the range of values were empty."  14.9.13.4 GR2 delegates EVALUATE's THROUGH phrase to that clause.
-      *> Rule 2's "literals" is NOT an operand-form restriction: 14.7.8 introduces the phrase as "a range of
+      *> GR2's "literals" is NOT an operand-form restriction: 14.7.8 introduces the phrase as "a range of
       *> values, literal-1 through literal-2" while EVALUATE's range-expression (14.9.13.2) has no literal-1 or
       *> literal-2 at all, and 14.9.13.3 SR3 - a rule about this very phrase - says "the literals or identifiers
       *> specified in the THROUGH phrase are of class alphabetic, alphanumeric, or national".

@@ -846,6 +846,31 @@ own run-to-run spread on one tree (slice 3 measured NC105A's `None` row from 34.
 its parent). The moves replace a dictionary per name class with one of the same shape in another type and allocate nothing per
 reference, so the slice moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
 
+**Step 6b, the entry-id lane (kb/Work PB5932, every class the symbol table declares enters its entry where it is declared, and every
+identification carries its id): the `None` row against the parent.** The lane adds work to every compilation (an entry per declared
+name), so it measures the no-listing path. Measured on 2026-11-19, Release, one Windows host, `WiseOwl.Cobol.Benchmarks.exe --filter
+'*CompileBenchmarks.FrontEndAndBind*'` on the `listing-step-6b-ids` branch (a4799a5605) and its parent `8dd07d2eab`, in the order
+branch, branch, parent, parent (a first parent run before them failed to build BenchmarkDotNet's boilerplate within its two-minute
+timeout and measured nothing; the second parent run passed `--buildTimeout 900`). Allocated bytes per front end and bind, the two
+runs of each tree:
+
+| Program | Listing | Parent 8dd07d2eab | Branch a4799a5605 |
+|---|---|---|---|
+| IX113A | None | 68.29, 68.43 MB | 68.45, 68.74 MB |
+| NC105A | None | 34.67, 34.66 MB | 34.81, 34.82 MB |
+| NC218A | None | 30.64, 30.72 MB | 30.75, 30.78 MB |
+| SM201A | None | 15.23, 15.28 MB | 15.12, 15.12 MB |
+| IX113A | Text | 76.07, 76.07 MB | 76.29, 76.21 MB |
+| IX113A | All | 110.21, 110.12 MB | 110.91, 110.95 MB |
+
+Reading them: the entries are a fixed cost per declared name (an entry and an identity-index slot), about 0.15 MB on NC105A on both
+runs and within 0.06 MB of the parent's runs on NC218A; IX113A's first branch run lies 0.02 MB above the parent's and its second 0.31
+MB above, inside the spread one tree shows (NC105A 0.7 MB, slice 3); SM201A's lie below the parent's, because a paragraph's
+identification answers the one `ParagraphDefinition` the table made at its declaration instead of a new one per lookup. The design
+makes the entries for every compilation, so section 9's `None` budget names them (DESIGN-listing.md section 9). The `All` row grows
+by about 0.7 MB on IX113A: the finished table now holds the procedure-names, configuration-section names, prototype-names and the
+group tier's names as entries. Time rows are not shown (kb/Work PB5927).
+
 **PB5947 (the table of flagged constructs by edition, DESIGN-listing.md section 6.11): every row against the parent.** The change
 touches every compilation's diagnostic records (each `Diagnostic` and `EditionDiagnostic` carries a flag reference, null unless the
 diagnostic is an edition flag; the construct registry's verdict is one value, `EditionVerdict`) and adds the table to every listing

@@ -579,7 +579,7 @@ public static class HtmlListingRenderer
             char marker = TextListingRenderer.MarkerOf(line);
             Escape(page, new ReadOnlySpan<char>(in marker));
             page.Write("</span><span class=\"fl\">");
-            Number(page, line.FileLine);
+            page.Write(TextListingRenderer.FileLineColumn(line));
             page.Write("</span><span class=\"tx\">");
             bool asWritten = line.Replacement is ListingReplacement.None or ListingReplacement.Replacing;
             if (line.Replacement == ListingReplacement.DateCompiled) Escape(page, line.Replaced ?? line.Text);

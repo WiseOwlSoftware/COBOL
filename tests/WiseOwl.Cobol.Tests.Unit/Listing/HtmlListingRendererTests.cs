@@ -81,9 +81,13 @@ public sealed class HtmlListingRendererTests
         {
             var row = ById(page, HtmlListingRenderer.LineId(line.Number));
             Assert.Equal(line.Replacement == ListingReplacement.DateCompiled ? line.Replaced : line.Text, Span(row, "tx"));
-            Assert.Equal(line.FileLine.ToString(System.Globalization.CultureInfo.InvariantCulture), Span(row, "fl"));
+            // The file line is printed only where it differs from the listing number (kb/Work PB5950).
+            Assert.Equal(line.FileLine == line.Number ? "" : line.FileLine.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Span(row, "fl"));
             Assert.Equal(line.PageBreakBefore, HasClass(row, "pb"));
         }
+        Assert.Contains(document.Lines, l => l.FileLine == l.Number);
+        Assert.Contains(document.Lines, l => l.FileLine != l.Number);
     }
 
     /// <summary>Section 7.2: "each inclusion is a collapsible block; suppressed and omitted lines are present but collapsed and

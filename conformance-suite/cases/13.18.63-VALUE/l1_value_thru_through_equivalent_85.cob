@@ -18,7 +18,7 @@
       *> equivalence itself drifts.
       *>
       *> DERIVED EXPECTATIONS — from the rule text, not from a run.
-      *> §2023:13.18.63.4 GR18 sends the range to §2023:14.7.8, whose rule 1
+      *> §2023:13.18.63.4 GR18 sends the range to §2023:14.7.8, whose GR1
       *> makes a numeric range include "literal-1, literal-2, and all
       *> algebraic values between literal-1 and literal-2"; §2023:8.8.4.5.3
       *> GR1 tests the conditional variable "within the specified range

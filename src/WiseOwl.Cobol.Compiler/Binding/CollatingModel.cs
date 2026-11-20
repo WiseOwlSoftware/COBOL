@@ -483,7 +483,7 @@ public static class CollatingSelection
     /// <see cref="ForComparison"/> reads as the ALPHANUMERIC arm. That is harmless for a RELATION (a numeric
     /// operand against an alphanumeric one IS an alphanumeric comparison, §2023:8.8.4.2.5, and two numeric operands
     /// never reach the string branch) and NOT harmless for the question a BINDER asks of a THROUGH range, where
-    /// §2023:14.7.8's rule 1 / rule 2 split IS the range's class: an arithmetic-expression-ended range (numeric by
+    /// §2023:14.7.8's GR1 / GR2 split IS the range's class: an arithmetic-expression-ended range (numeric by
     /// §2023:8.8.1.1) answered ALPHANUMERIC, so <c>EVALUATE N WHEN A + 1 THRU B + 2 IN AL</c> sailed past SR3 and was
     /// evaluated as a STRING range (measured on 861b6387). It is now the OTHER reader's body — the one that was
     /// already total and already declared itself the single definition — so a shape added there is seen

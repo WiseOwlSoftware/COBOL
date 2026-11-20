@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -41,6 +42,8 @@ public sealed partial class SymbolTable
     /// <paramref name="name"/>; <paramref name="selected"/> marks a SELECT that §2023:12.4.5.2 SR2 and SR3 screen.</summary>
     internal void Declare(FileModel file, string name, bool selected)
     {
+        // The entry stands at the file control entry (FileModel.EntryAt; none for the model an FD or SD with no SELECT synthesizes).
+        Enter(NameClass.File, file.SelectName, PositionOf(file.EntryAt), file);
         _data.State.Files.Declare(file);
         _ownFiles[Key(name)] = file;
         if (selected) _selectedFiles[Key(name)] = file;

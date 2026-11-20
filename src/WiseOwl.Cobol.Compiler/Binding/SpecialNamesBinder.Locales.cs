@@ -95,7 +95,7 @@ public sealed partial class SpecialNamesBinder
         else external = words[1].GetText();
         // A second LOCALE of one name was refused by the declaration funnel (DeclareUserWord, ISO §2023:8.4.2.1; kb/Work
         // PB3216); the first stands, as every registry keeps it.
-        _host.Symbols.Declare(new LocaleSymbol(name, external, fromLiteral));
+        _host.Symbols.Declare(words[0].Start, new LocaleSymbol(name, external, fromLiteral));
     }
 
     /// <summary>Resolve a locale-name reference (ISO §2023:12.3.7.3 SR24 for the ALPHABET clause; §2023:14.9.39.3 SR26 for SET

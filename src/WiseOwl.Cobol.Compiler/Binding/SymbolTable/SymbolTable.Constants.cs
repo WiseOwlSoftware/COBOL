@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -203,11 +204,14 @@ public sealed partial class SymbolTable
         return true;
     }
 
-    /// <summary>Declares a NAMED constant entry: it joins the table of its own source element
-    /// (<see cref="DeclaredConstant.Method"/>) under its constant-name. A local declaration SHADOWS a container's GLOBAL constant of the same name from here on
+    /// <summary>Declares a constant entry that writes a name: its entry is made at its level-number (where the data map places it), and
+    /// a <paramref name="named"/> one (not FILLER) joins the table of its own source element (<see cref="DeclaredConstant.Method"/>)
+    /// under its constant-name. A local declaration SHADOWS a container's GLOBAL constant of the same name from here on
     /// (§2023:8.4.6; kb/Work PB1009), whether or not its own bind succeeds.</summary>
-    internal void Declare(DeclaredConstant constant)
+    internal void Declare(DeclaredConstant constant, bool named)
     {
+        Enter(NameClass.Constant, constant.Name, PositionOf(constant.Level.Start), constant);
+        if (!named) return;
         var names = ConstantNamesOf(constant.Method);
         var key = Key(constant.Name);
         if (!names.Declared.TryGetValue(key, out var list)) names.Declared[key] = list = [];
@@ -220,9 +224,11 @@ public sealed partial class SymbolTable
 
     /// <summary>A bound constant entry's value joins its element's table under its constant-name, unless the element has
     /// already bound an entry of that name: §2023:13.10.3 SR9's duplicate, which this answers (the earlier definition) so the
-    /// caller can compare the two specifications. Read within the entry's own element (kb/Work PB1009, PB3164).</summary>
+    /// caller can compare the two specifications. Read within the entry's own element (kb/Work PB1009, PB3164). The value answers
+    /// the entry's declaration made (an identification of the name hands back the value, and with it that entry).</summary>
     internal ConstantDef? BindConstant(DeclaredConstant constant, ConstantDef def)
     {
+        _entries.Answer(def, _entries.IdOf(constant));
         var names = ConstantNamesOf(constant.Method);
         var key = Key(constant.Name);
         if (names.Bound.TryGetValue(key, out var prior)) return prior;

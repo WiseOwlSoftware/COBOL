@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -14,6 +15,8 @@ public sealed partial class SymbolTable
     /// <summary>Declares a communication description entry: its cd-name joins the table and the entry the slice.</summary>
     internal void Declare(CommunicationDescription description)
     {
+        // The entry stands where the data map places the CD: the start of its entry, which its record area's description carries.
+        Enter(NameClass.CommunicationDescription, description.Name, PositionOf(description.Area.DeclaredAt), description);
         _data.State.Communication.Declare(description);
         _cds.TryAdd(Key(description.Name), description);
     }
