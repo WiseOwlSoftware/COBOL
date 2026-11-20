@@ -28,6 +28,7 @@ from concurrent.futures import ProcessPoolExecutor
 # leaves every worker with no `gx` — 1,323 identical RUNNER_ERRORs, which is precisely the shape the harness
 # rules below refuse to launder into compiler verdicts.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import toolchain                                                                        # noqa: E402  (THE target framework: kb/Work PB5971)
 import gnucobol_extract as gx                                                              # noqa: E402
 from scratch_repo import scratch_dir  # noqa: E402  (this directory's: a run's scratch, removed at exit)
 from standard_streams import ensure_utf8  # noqa: E402
@@ -322,7 +323,7 @@ def diff_baseline(base: dict[str, tuple[str, str]], results: list[dict], path: s
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument('--exe', default='src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe')
+    ap.add_argument('--exe', default=f'src/WiseOwl.Cobol.Cli/bin/Debug/{toolchain.target_framework()}/cobol.exe')
     ap.add_argument('--src', default='tests/external/gnucobol/tests/testsuite.src')
     ap.add_argument('--only', default='',
                     help="run only the .at wrapper files whose NAME starts with this prefix (`syn_file`, not a case id "

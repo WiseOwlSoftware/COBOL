@@ -65,7 +65,7 @@ source                  specified  prog.cob
 ...
 --listing-sections      default    standard
 compiler                host       30.0.0
-.NET                    host       .NET 10.0.0
+.NET                    host       .NET 11.0.0
 ```
 
 `default` means the option has the compiler's own default value (`--std` is `2023` by default, so `--std 85` is

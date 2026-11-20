@@ -47,6 +47,7 @@ from audit_batch import Pass, answers_by_id, custom_id, draft_problem, write_pla
 from message_batches import write_atomic  # noqa: E402
 sys.path.append(str(REPO / "scripts"))
 from standard_streams import ensure_utf8  # noqa: E402
+import toolchain  # noqa: E402  (THE target framework, read from Directory.Build.props: kb/Work PB5971)
 
 TOOL = "run_drafts"
 MATCH, MISMATCH, NO_VERDICT = "MATCH", "MISMATCH", "NO VERDICT"
@@ -55,8 +56,8 @@ MATCH, MISMATCH, NO_VERDICT = "MATCH", "MISMATCH", "NO VERDICT"
 VERDICT_OF = {harness.PASS: MATCH, harness.FAIL: MISMATCH, harness.NOT_APPLICABLE: MISMATCH}
 #: The adapter and profile the drafts run through: WiseOwl COBOL's (conformance-suite/adapters/wiseowl.json).
 ADAPTER = REPO / "conformance-suite" / "adapters" / "wiseowl.json"
-DEFAULT_COBOL = REPO / "src" / "WiseOwl.Cobol.Cli" / "bin" / "Debug" / "net10.0" / ("cobol.exe" if sys.platform == "win32"
-                                                                                      else "cobol")
+DEFAULT_COBOL = REPO / "src" / "WiseOwl.Cobol.Cli" / "bin" / "Debug" / toolchain.target_framework() / (
+    "cobol.exe" if sys.platform == "win32" else "cobol")
 
 
 def tests_of(root: pathlib.Path, rule_id: str, draft: dict[str, Any]) -> list[dict[str, Any]]:

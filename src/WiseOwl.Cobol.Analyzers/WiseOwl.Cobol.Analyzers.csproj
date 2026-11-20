@@ -7,7 +7,7 @@
     here, not in a test that rebuilds the compilation by hand: a hand-built copy drifts from the build each time the build
     changes (kb/Work PB4950 round 7: project paths, then a new project, then the SDK's System.Text.Json generator).
 
-    Analyzers load as netstandard2.0 (the compiler host's contract), so this project overrides the repo-wide net10.0.
+    Analyzers load as netstandard2.0 (the compiler host's contract), so this project overrides the repo-wide net11.0.
     It is never a runtime dependency (ReferenceOutputAssembly="false"); the Unit tests reference it as a library to run
     each analyzer over planted source (CompilationWithAnalyzers) and prove that it fires.
   -->

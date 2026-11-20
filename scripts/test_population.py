@@ -756,7 +756,7 @@ def synthetic_trx(path: Path, cases: list[tuple[str, list[str]]], stray_results:
 
 
 def synthetic_listing(path: Path, names: list[str]) -> str:
-    path.write_text("Test run for X.dll (.NETCoreApp,Version=v10.0)\n" + LISTED_MARK + "\n"
+    path.write_text("Test run for X.dll (.NETCoreApp,Version=v11.0)\n" + LISTED_MARK + "\n"
                     + "".join(f"    {n}\n" for n in names), encoding="utf-8", newline="\n")
     return str(path)
 

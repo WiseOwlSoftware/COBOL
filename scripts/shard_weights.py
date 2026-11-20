@@ -753,8 +753,8 @@ def self_test() -> int:
         check("the live report's window ends at the clock it is given", (code, "NOT MEASURED" in line), (0, True))
 
         # generate: the weights file (kb/Work PB4329).
-        win = "D:\\a\\COBOL\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Release\\net10.0\\WiseOwl.Cobol.Tests.Unit.dll"
-        lin = "/home/runner/work/COBOL/COBOL/tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net10.0/WiseOwl.Cobol.Tests.Conformance.dll"
+        win = "D:\\a\\COBOL\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Release\\net11.0\\WiseOwl.Cobol.Tests.Unit.dll"
+        lin = "/home/runner/work/COBOL/COBOL/tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net11.0/WiseOwl.Cobol.Tests.Conformance.dll"
         check("duration_seconds reads hours, minutes, fractions and days",
               [duration_seconds(t, Path("x")) for t in ("00:00:01.5000000", "00:01:00", "1.00:00:00.25")], [1.5, 60.0, 86400.25])
         gen = Path(scratch) / "gen"

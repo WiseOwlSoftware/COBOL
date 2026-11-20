@@ -256,7 +256,7 @@ class Host:
     def test_output_dir(self, asm: str) -> Path:
         """The directory of `asm`'s BUILT test assembly (`<project>/bin/<GATE_CONFIGURATION>/<tfm>/<project name>.dll`):
         the working directory its test host runs in, measured 2026-11-16 by a probe test that wrote
-        `Environment.CurrentDirectory` during a run (kb/Work PB4333 R2-1: `tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net10.0`).
+        `Environment.CurrentDirectory` during a run (kb/Work PB4333 R2-1: `tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net11.0`).
         Raises OSError unless exactly one such assembly is built."""
         project = self.repo / GATED_ASSEMBLIES[asm]
         found = sorted(project.glob(f"bin/{GATE_CONFIGURATION}/*/{project.name}.dll"))
@@ -269,7 +269,7 @@ class Host:
 
     def run_facts(self) -> str:
         """WHAT A CARRIED CASE'S RUN READS THAT NO FILE OF THE TREE STATES (kb/Work PB4333 F3), for the differential's
-        harness key: the .NET runtimes installed (a compiled program's runtimeconfig rolls forward to the newest 10.0
+        harness key: the .NET runtimes installed (a compiled program's runtimeconfig rolls forward to the newest 11.0
         patch, so a runtime update changes what every program runs on) and this process's locale. The product's
         environment variables are not among them: `product_clear_env` clears them from every test host."""
         try:

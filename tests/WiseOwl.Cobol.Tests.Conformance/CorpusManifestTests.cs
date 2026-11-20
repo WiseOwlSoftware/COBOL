@@ -144,7 +144,7 @@ public sealed class CorpusManifestTests
         Assert.True(text.Contains("guard_assert_compiler_identity", StringComparison.Ordinal),
             "scripts/guard-fast.sh no longer asserts the resolved binary's identity before measuring (PB750)");
         // A hard-coded output PATH, not a mention: the selection's paths live in guard-compiler.sh alone.
-        Assert.False(text.Contains("bin/Debug/net10.0", StringComparison.OrdinalIgnoreCase),
+        Assert.False(text.Contains("bin/Debug/net11.0", StringComparison.OrdinalIgnoreCase),
             "scripts/guard-fast.sh hard-codes a compiler's bin path again — that is exactly kb/Work/PB750");
 
         // And the one place resolves WiseOwl COBOL.

@@ -440,8 +440,8 @@ without a noun that says what); a partial type splits only along named concerns.
 - A measured, not deduced, premise for every performance claim (`performance-diagnosis`).
 
 ### 5.5 .NET and C#
-- **Today:** `net10.0`, C# 14 (`LangVersion` 14); `global.json` pins SDK 10.0.100 with `latestMinor` roll-forward.
-  The .NET 11 SDK is installed as a preview.
+- **Today:** `net11.0`, C# 14 (`LangVersion` 14); `global.json` pins SDK 11.0.100 with `latestMinor` roll-forward
+  (the owner moved the repository from .NET 10 to .NET 11 on 2026-11-20, kb/Work PB5971).
 - **Target: the latest STABLE .NET and its C# at the time R4 runs.** If .NET 11 is GA by then (its usual November
   release), that is `net11.0` with C# 15. Moving to a preview SDK is an owner decision (PB1754), never a default.
 - **The one named exception:** `WiseOwl.Cobol.Compiler.SourceGen` targets `netstandard2.0` because Roslyn hosts
@@ -811,7 +811,7 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   `CobolParserCore`) where the census, which keys pairs by the nested types, counts 21.
 - **What a reference is:** every type named by the base type, the interface implementations, the generic parameter
   constraints, the field, property, event and method signatures, each body's local-variable signature, each body's IL
-  operand tokens (the opcode table is read from `System.Reflection.Emit.OpCodes`, in-box on net10.0, so the decoder is
+  operand tokens (the opcode table is read from `System.Reflection.Emit.OpCodes`, in-box on net11.0, so the decoder is
   forty lines and owns no opcode list), each body's exception handlers' catch types, and each custom attribute's
   constructor and its `typeof` arguments (decoded from the blob's serialized type names); a generic instantiation
   contributes each of its arguments, and a member reference the type that declares the member (the census's

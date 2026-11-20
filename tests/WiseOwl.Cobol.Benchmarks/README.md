@@ -52,7 +52,7 @@ available (`--help` lists it).
 The built executable can also be run directly, which skips `dotnet run`'s implicit rebuild:
 
 ```
-tests/WiseOwl.Cobol.Benchmarks/bin/Release/net10.0/WiseOwl.Cobol.Benchmarks.exe --filter '*Collation*'
+tests/WiseOwl.Cobol.Benchmarks/bin/Release/net11.0/WiseOwl.Cobol.Benchmarks.exe --filter '*Collation*'
 ```
 
 Results land in `BenchmarkDotNet.Artifacts/results/` beside the working directory — GitHub-flavoured Markdown,

@@ -227,7 +227,7 @@ fi
 
 if [ "${SKIP_DIFF:-0}" != "1" ]; then
     el "=== PHASE 3: GnuCOBOL external differential ==="
-    "$PY" scripts/gnucobol_differential.py --exe src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe \
+    "$PY" scripts/gnucobol_differential.py \
         --report "$OUT/gnucobol-report.json" > "$OUT/gnucobol.log" 2>&1
     note "$(printf '%-16s %s' 'gnucobol:' "$(grep -E '^cases run:' "$OUT/gnucobol.log" | tail -1)")"
     grep -E '^  (AGREE|WE_)' "$OUT/gnucobol.log" | sed 's/^/                 /' | tee -a "$SUMMARY"

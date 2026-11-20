@@ -65,6 +65,7 @@ from typing import NamedTuple
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+import toolchain  # noqa: E402  (THE target framework, read from Directory.Build.props: kb/Work PB5971)
 import gate  # noqa: E402  (scripts/gate.py: RECORD_SCHEMA, the record gate_rows reads)
 import gate_runs
 import gate_fake_host  # noqa: E402  (the planted machine the gate's own cases run over)
@@ -311,7 +312,7 @@ def load_sample() -> dict:
 # ── the measurements ──────────────────────────────────────────────────────────────────────────────────────────────
 
 def release_exe(project_dir: str, name: str) -> str:
-    exe = os.path.join(project_dir, "bin", "Release", "net10.0", name + (".exe" if os.name == "nt" else ""))
+    exe = os.path.join(project_dir, "bin", "Release", toolchain.target_framework(), name + (".exe" if os.name == "nt" else ""))
     if not os.path.exists(exe):
         raise MeasurementError(f"{exe} is missing: build WiseOwl.Cobol.sln in Release first (or drop --no-build)")
     return exe
@@ -445,7 +446,7 @@ def linux_runtime_image() -> str:
     """The runtime the Release compiler deploys beside a program compiled on this Linux host, resolved as
     AssemblyPackager.ResolveRuntimePath resolves it: the ReadyToRun image of this platform, else the portable
     assembly."""
-    cli = os.path.join(ROOT, "src", "WiseOwl.Cobol.Cli", "bin", "Release", "net10.0")
+    cli = os.path.join(ROOT, "src", "WiseOwl.Cobol.Cli", "bin", "Release", toolchain.target_framework())
     arch = {"x86_64": "x64", "aarch64": "arm64"}.get(platform.machine(), platform.machine())
     image = os.path.join(cli, "ReadyToRun", "linux-" + arch, "WiseOwl.Cobol.Runtime.dll")
     return image if os.path.exists(image) else os.path.join(cli, "WiseOwl.Cobol.Runtime.dll")

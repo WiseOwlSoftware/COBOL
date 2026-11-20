@@ -65,6 +65,21 @@ LINE = re.compile(r"^(?P<key>[A-Z][A-Z0-9_]*)=(?P<value>\S+)$", re.M)
 #: An exact version: digits and dots, never `x`, `*`, `latest` or a range.
 EXACT = re.compile(r"^\d+(?:\.\d+)+$")
 VERDICT = "=== TOOLCHAIN: "
+#: The ONE place the target framework is written: the repository-root Directory.Build.props. Every script that names a
+#: build output directory (`bin/<configuration>/<tfm>/`) reads it through `target_framework`, and the audit
+#: (toolchain_audit.tfm_offenders) holds it to the manifest's SDK major, so the next .NET move edits the props and the
+#: manifest and no script (kb/Work PB5971).
+BUILD_PROPS = REPO / "Directory.Build.props"
+TARGET_FRAMEWORK = re.compile(r"<TargetFramework>(?P<tfm>net\d+\.\d+)</TargetFramework>")
+
+
+def target_framework(props: Path = BUILD_PROPS) -> str:
+    """The target framework moniker every WiseOwl project builds for (`net11.0`), read from `props`. Raises ValueError
+    unless the file names exactly one."""
+    found = TARGET_FRAMEWORK.findall(props.read_text(encoding="utf-8"))
+    if len(found) != 1:
+        raise ValueError(f"{props} must name exactly one <TargetFramework> of the form netN.0, found {found}")
+    return found[0]
 
 #: The scopes `check` holds. `ci`: what a CI job runs once setup-toolchain installed it (a runner image's own tool is
 #: reported there, never failed). `image`: the runner image's own tools against the manifest and the image's newest

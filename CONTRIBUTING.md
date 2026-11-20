@@ -49,7 +49,7 @@ request you make.
 
 ## Building and testing
 
-Prerequisites: the **.NET 10 SDK**, **PowerShell 7+** (`pwsh`, used for ANTLR parser generation and the gate
+Prerequisites: the **.NET 11 SDK**, **PowerShell 7+** (`pwsh`, used for ANTLR parser generation and the gate
 scripts), **Python 3.14+** and **Java 21+** (for ANTLR).
 
 ```bash

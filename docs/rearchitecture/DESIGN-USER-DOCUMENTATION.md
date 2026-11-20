@@ -50,7 +50,7 @@ like any documentation site, nothing to download or install. A version picker sw
 ## §4 Content map
 
 **Hand-written** (`docs/manual/`):
-- *Install* (`install.md`) — prerequisites (.NET 10 runtime) and verifying the install. It builds the compiler from source
+- *Install* (`install.md`) — prerequisites (.NET 11 runtime) and verifying the install. It builds the compiler from source
   until kb/Work PB1613 publishes the packages; that change replaces the build steps with
   `dotnet tool install -g WiseOwl.COBOL` and the page doubles as the package README (§6).
 - *Getting started* (`getting-started.md`) — hello world; compile, run, the produced assembly, reading a diagnostic.

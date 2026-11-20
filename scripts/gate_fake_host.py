@@ -391,7 +391,7 @@ class FakeHost(Host):
         if asm == "Conformance" and "log-miscount" in self.plant:   # a red the trx does not account for: the log counts one more
             failed += 1
         log.append(f"{'Failed!' if red else 'Passed!'}  - Failed:     {failed}, Passed:     {passed}, Skipped:     0, "
-                   f"Total:     {len(cases)}, Duration: 1 s - WiseOwl.Cobol.Tests.{asm}.dll (net10.0)")
+                   f"Total:     {len(cases)}, Duration: 1 s - WiseOwl.Cobol.Tests.{asm}.dll (net11.0)")
         (run / f"{stem}.log").write_text("\n".join(log) + "\n", encoding="utf-8", newline="\n")
         return 1 if red or (asm == "Conformance" and "cleanup-red" in self.plant) or "preflight-cleanup-red" in planted_pre \
             else 0   # cleanup-red: all Passed, exit 1

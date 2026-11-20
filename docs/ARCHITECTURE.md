@@ -130,7 +130,7 @@ subsets. (Task G4.)
 
 ## 7. Conventions
 
-- Latest .NET 10 / C# 14 — or later (a .NET 11 upgrade is pre-authorized when its features advance the goals) —
+- Latest .NET 11 / C# 14 — or later (a later .NET upgrade is pre-authorized when its features advance the goals) —
   idioms where they aid clarity (records, primary constructors, collection expressions,
   pattern matching, `using` scopes). Full XML doc comments on public surface + inline rationale on non-obvious code.
 - The generated C# is written to `<name>.g.cs` next to the assembly — always inspectable.

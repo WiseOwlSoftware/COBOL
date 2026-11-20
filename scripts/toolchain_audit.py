@@ -487,6 +487,32 @@ def cache_job_offenders(workflow: str) -> list[str]:
     return out
 
 
+#: A target-framework literal (`net11.0`), never `netstandard2.0`.
+TFM_LITERAL = re.compile(r"(?<![A-Za-z0-9_.])net\d+\.\d+(?![0-9])")
+#: The script kinds a build-output path can live in.
+SCRIPT_SUFFIXES = (".py", ".sh", ".ps1", ".psm1", ".js")
+
+
+def tfm_offenders(sdk_pin: str, tfm: str, scripts: dict[str, str]) -> list[str]:
+    """THE TARGET FRAMEWORK IS WRITTEN ONCE (kb/Work PB5971). `tfm` (Directory.Build.props, read through
+    toolchain.target_framework) must name the major of the manifest's SDK (`sdk_pin`), and no script (`scripts`: path to
+    text) may spell another framework: a script that needs the build's output directory reads it from the props, so the
+    next .NET move edits the props, global.json and the manifest, and this audit names every script that still says the
+    old one."""
+    out = []
+    major = sdk_pin.split(".")[0]
+    if tfm != f"net{major}.0":
+        out.append(f"  Directory.Build.props targets {tfm}, but toolchain.env pins SDK {sdk_pin}: the framework is the "
+                   f"SDK's major (net{major}.0)")
+    for path, text in scripts.items():
+        for lineno, line in enumerate(text.split("\n"), 1):
+            stale = sorted({m for m in TFM_LITERAL.findall(line) if m != tfm})
+            if stale:
+                out.append(f"  {path}:{lineno} names {', '.join(stale)}, not the repository's {tfm}: read it with "
+                           "toolchain.target_framework (Python) or guard_target_framework (scripts/guard-compiler.sh)")
+    return out
+
+
 def sdk_offenders() -> tuple[int, list[str]]:
     """The .NET SDK's audits over the tree: (the jobs that run dotnet, the offenders)."""
     out = []
@@ -518,6 +544,10 @@ def sdk_offenders() -> tuple[int, list[str]]:
         out.append("  scripts/cloud/setup-env.sh's install block differs from scripts/install-tool.sh's (or one has none): "
                    "it runs before the clone, so copy the script's block, markers included, then paste setup-env.sh into "
                    "the cloud environment")
+    texts = {_rel(f): _read(f) for f in sorted(SCRIPTS.rglob("*"), key=_rel)
+             if f.is_file() and f.suffix in SCRIPT_SUFFIXES and f != Path(__file__).resolve()
+             and "__pycache__" not in f.parts}
+    out += tfm_offenders(pin, toolchain.target_framework(), texts)
     return jobs, out
 
 
@@ -849,6 +879,13 @@ def self_test() -> int:
     expect("a resolver that drops a candidate, or that probes a floor, is an offender",
            (len(resolver_offenders(bash, pwsh.replace("'python3', ", ""))),
             len(resolver_offenders(bash.replace("PYTHON_VERSION=", "PYTHON_FLOOR="), pwsh))), (1, 1))
+
+    expect("a framework other than the SDK's major, and a script spelling another framework, are offenders",
+           (tfm_offenders("11.0.100", "net11.0", {"a.py": "x = 'bin/Debug/net11.0'\ny = 'netstandard2.0'\n"}),
+            len(tfm_offenders("11.0.100", "net10.0", {})),
+            tfm_offenders("11.0.100", "net11.0", {"b.sh": "ok\nDIR=bin/Debug/net10.0/x\n"})),
+           ([], 1, ["  b.sh:2 names net10.0, not the repository's net11.0: read it with toolchain.target_framework "
+                    "(Python) or guard_target_framework (scripts/guard-compiler.sh)"]))
 
     code, report = audit()
     print(report)

@@ -19,6 +19,9 @@
 # `GUARD_GROUP_RUNNER=/tmp/old.sh bash scripts/guard-verify.sh --self-test`).
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
+. "$ROOT/scripts/guard-compiler.sh"
+guard_select_compiler || exit 1
+export GUARD_RUNTIME_DLL   # the runtime the witnesses' group runner copies beside a program (a stub at this path)
 
 case "${1:-}" in
     --self-test) ;;
@@ -43,8 +46,8 @@ witnesses() {
     # The runtime the group runner copies beside a program before running it. Since PB750 the guard's default
     # compiler is WiseOwl COBOL, so the default runtime is WiseOwl.Cobol.Runtime; the witnesses stub that path.
     mkdir -p "$FR/tests/nist/output" "$FR/tests/nist/valid" "$FR/tests/nist/data" \
-             "$FR/src/WiseOwl.Cobol.Runtime/bin/Debug/net10.0" "$BIN"
-    printf 'stub\n' > "$FR/src/WiseOwl.Cobol.Runtime/bin/Debug/net10.0/WiseOwl.Cobol.Runtime.dll"
+             "$FR/$(dirname "$GUARD_RUNTIME_DLL")" "$BIN"
+    printf 'stub\n' > "$FR/$GUARD_RUNTIME_DLL"
 
     # The golden: a CCVS-shaped report with a clean footer.
     printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \

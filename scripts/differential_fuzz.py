@@ -146,6 +146,7 @@ REPO = Path(__file__).resolve().parent.parent
 SUITE = REPO / "conformance-suite"
 sys.path.insert(0, str(SUITE / "harness"))
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
+import toolchain  # noqa: E402  (THE target framework: kb/Work PB5971)
 import config as suite_config  # noqa: E402
 import run as suite_run  # noqa: E402
 from spec_headings import GENERAL_FORMAT_NOUN  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
@@ -2482,7 +2483,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--repairs", type=int, default=3, help="corrections offered to the model after both compilers refuse (0: none)")
     ap.add_argument("--seed", type=int, default=20261020, help="shuffles the seed clauses deterministically (same seed, same walk)")
     ap.add_argument("--in-order", action="store_true", help="walk the seed clauses in the spec's order instead")
-    ap.add_argument("--cobol", default=str(REPO / "src/WiseOwl.Cobol.Cli/bin/Debug/net10.0" / ("cobol.exe" if os.name == "nt" else "cobol")),
+    ap.add_argument("--cobol", default=str(REPO / "src/WiseOwl.Cobol.Cli/bin/Debug" / toolchain.target_framework() / ("cobol.exe" if os.name == "nt" else "cobol")),
                     help="the WiseOwl compiler to test")
     ap.add_argument("--out", help="the run directory (default conformance-suite/results/fuzz-<stamp>)")
     ap.add_argument("--keep", action="store_true", help="keep every program's working directories")

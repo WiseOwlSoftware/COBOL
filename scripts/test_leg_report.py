@@ -98,7 +98,7 @@ FRAME = "at WiseOwl.Cobol.Tests.Unit.ConflictMarkerDriftTests.Sweep"
 
 #: The real transcript of a failing Unit leg (golden lane #2 batch 3, DEVLOG 1700), message replaced by PLANT.
 FAILED_TRANSCRIPT = f"""\
-Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Debug\\net10.0\\WiseOwl.Cobol.Tests.Unit.dll (.NETCoreApp,Version=v10.0)
+Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Debug\\net11.0\\WiseOwl.Cobol.Tests.Unit.dll (.NETCoreApp,Version=v11.0)
 A total of 1 test files matched the specified pattern.
 [xUnit.net 00:00:40.84]     WiseOwl.Cobol.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree [FAIL]
   Failed WiseOwl.Cobol.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree [21 s]
@@ -110,20 +110,20 @@ A total of 1 test files matched the specified pattern.
    {FRAME}(String root, IEnumerable`1 relativePaths) in E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\ConflictMarkerDriftTests.cs:line 232
    at WiseOwl.Cobol.Tests.Unit.ConflictMarkerDriftTests.TheSweepActuallyReadsTheTrackedTree() in E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\ConflictMarkerDriftTests.cs:line 124
 
-Failed!  - Failed:     1, Passed: 29189, Skipped:     0, Total: 29190, Duration: 2 m 47 s - WiseOwl.Cobol.Tests.Unit.dll (net10.0)
+Failed!  - Failed:     1, Passed: 29189, Skipped:     0, Total: 29190, Duration: 2 m 47 s - WiseOwl.Cobol.Tests.Unit.dll (net11.0)
 """.splitlines()
 
 PASSED_TRANSCRIPT = """\
-Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Debug\\net10.0\\WiseOwl.Cobol.Tests.Unit.dll (.NETCoreApp,Version=v10.0)
+Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Unit\\bin\\Debug\\net11.0\\WiseOwl.Cobol.Tests.Unit.dll (.NETCoreApp,Version=v11.0)
 A total of 1 test files matched the specified pattern.
-Passed!  - Failed:     0, Passed: 29190, Skipped:     0, Total: 29190, Duration: 2 m 41 s - WiseOwl.Cobol.Tests.Unit.dll (net10.0)
+Passed!  - Failed:     0, Passed: 29190, Skipped:     0, Total: 29190, Duration: 2 m 41 s - WiseOwl.Cobol.Tests.Unit.dll (net11.0)
 """.splitlines()
 
 #: A filter that matched nothing: vstest prints no verdict line and EXITS 0.
 EMPTY_TRANSCRIPT = """\
-Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Conformance\\bin\\Debug\\net10.0\\WiseOwl.Cobol.Tests.Conformance.dll (.NETCoreApp,Version=v10.0)
+Test run for E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Conformance\\bin\\Debug\\net11.0\\WiseOwl.Cobol.Tests.Conformance.dll (.NETCoreApp,Version=v11.0)
 A total of 1 test files matched the specified pattern.
-No test matches the given testcase filter `FullyQualifiedName~NoSuchTest` in E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Conformance\\bin\\Debug\\net10.0\\WiseOwl.Cobol.Tests.Conformance.dll
+No test matches the given testcase filter `FullyQualifiedName~NoSuchTest` in E:\\COBOL\\tests\\WiseOwl.Cobol.Tests.Conformance\\bin\\Debug\\net11.0\\WiseOwl.Cobol.Tests.Conformance.dll
 """.splitlines()
 
 
