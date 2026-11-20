@@ -21,10 +21,10 @@
 > and condition-name whose item is used identified through `IdentifyDataName` and `IdentifyConditionName`; the entry-id lane, branch
 > `listing-step-6b-ids`: every class the table declares enters its entry where it is declared and every identification hands back
 > its id; remainder slice 2, branch `listing-step-6b-r2`: the file clauses' operands kept as a `WrittenDataName` and resolved by the
-> table, the record-key-names read off their file; the procedure division's word probes and ambiguity counts, the rest of the data
-> division's clause operands, the
-> declarations (with the data-names' and condition-names' entries), the census, the group tier's units and the parameterized expansion
-> remain, 75 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
+> table, the record-key-names read off their file; remainder slice 3, branch `listing-step-6b-r3`: the data-name candidate sets and the
+> qualifier walk private to the table behind the written words, the data-entry and report clause operands kept as a `WrittenDataName`;
+> the declarations (with the data-names' and condition-names' entries), the census, the group tier's units and the parameterized
+> expansion remain, 52 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
 > PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); step 7b (the
 > occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
 > dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
@@ -1032,7 +1032,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     through `ClassNames.Lookup`) and records, whatever division it is in: a RECORD KEY or ALTERNATE RECORD KEY name
     (`SymbolTable.RecordKeyNamesOf` since step 6b's remainder slice 2), an ASSIGN USING data-name, a KEY phrase of SORT, MERGE or READ, an
     OCCURS DEPENDING ON or INDEXED BY operand, a REDEFINES or RENAMES object, a CONSTANT FROM or LENGTH OF operand, and
-    every caller of today's `DataBinder.QualifiedCandidates` (which asks for symbols, so it is a resolution).
+    every caller of what was `DataBinder.QualifiedCandidates` (which asks for symbols, so it is a resolution; since step 6b's remainder
+    slice 3 the table's private `DataNameCandidates`, reached through `IdentifyDataName`, `IdentifyEntryClauseOperand`,
+    `IdentifyRegionOperand` and `IdentifyWithin`).
     `NameTableOwnershipDriftTests` rule (4) holds this: every non-private member of `SymbolTable.Declarations` returns
     `DeclarationFact`, `bool` or a collection of `DeclarationFact`, and takes no `out` parameter of another type; a
     member that would leak a symbol from it is red.
@@ -1628,6 +1630,49 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       `NearestDeclaringData`); `IdentifyDataName(WrittenDataName, Scope)` still asks `QualifiedCandidates` until those move into the
       table, private. The procedure division's word probes and ambiguity counts (section "Step 6b, remainder slice 1", "What remains
       of the class") are part B's second half with them.
+  - *(Step 6b, remainder slice 3, branch `listing-step-6b-r3`; kb/Work PB5932's dated file `2026-11-20-step-6b-r3`.)* Part B's
+    second half, so part B is built: no lookup takes a data-name's text, and the baseline holds 52 (1 table, 0 lookups, 51 sites).
+    As built, with the corrections the code proved:
+    - *The candidate sets are the table's, private (`SymbolTable.DataNameCandidates.cs`).* `DataBinder.QualifiedCandidates`,
+      `SubtreeCandidates`, `EntryClauseCandidates`, `RegionClauseCandidates`, the qualifier chain matchers and the one §2023:8.4.2.2.3
+      SR4 walk (`QualifierWalk`, whose comparison is now the table's) moved into the table; `TryResolve`, `TryResolveUnqualified` and
+      `NearestDeclaringData` are private. A caller hands the written words: the procedure division a `WrittenQualifiedName`
+      (`IdentifyDataName(WrittenQualifiedName, report)` and its scoped overload for the storage-claim scan, `IdentifyWithin` for a
+      SORT table key, §2023:14.9.40.3 SR14 a)), a data division clause the `WrittenDataName` its model keeps
+      (`IdentifyDataName(WrittenDataName, Scope)`, `IdentifyEntryClauseOperand` for OCCURS DEPENDING ON and SAME AS with
+      §2023:8.4.2.2.1 SR5's implicit qualifiers, `IdentifyRegionOperand` for OCCURS KEY and RENAMES). The questions that answer no
+      symbol take the words as text: `DeclaresDataName` (the procedure division's word-class probes: INSPECT CONVERTING's
+      alphabet-name test, the keyword-omitted function, a keyword word or type-name argument, the subscript's function test, SORT's
+      file-or-table split, the procedure-name diagnostic), `DataNameDeclarationCounts` (the counts the unidentified-reference wording
+      quotes) and `QualifierChainMatches` (a candidate already in hand: the CAPACITY register's qualifier test).
+    - *One rule for the unqualified and the qualified data-name (remainder slice 1's lead, decided).* An unqualified reference was
+      `TryResolveUnqualified`'s set and a qualified one `QualifiedCandidates`', which also drops a set of lapsed type-declaration
+      members alone (§2023:13.18.58.4 GR1) and a repeated candidate. They were one answer already: with no qualifier the walk keeps
+      every candidate, the table's list for a spelling is never lapsed members alone (it holds the spelling's storage definitions,
+      never empty, and the members that lapse are added beside them, `WithLapsedTypeMembers`), and the multimap holds each item once.
+      So `DataNameCandidates` is both arms; an unqualified reference reads the table's list without a copy (section 9), and the sum
+      counter's count of the ordinary items of its spelling (`CounterResolver`), which asked the qualified set for an unqualified
+      name, asks the same method as the ordinary lookup. `compare_oracle.py` IDENTICAL over the corpus, `--permissive` and TYPEDEF
+      cases included.
+    - *The data-entry and report clause operands keep a `WrittenDataName` (as remainder slice 2's file operands do).* OCCURS KEY
+      (`OccursKey.Operand`), RENAMES (`RenamesInfo.FromOperand`, `ThruOperand`), SAME AS (`DataItem.SameAs`), the report section's
+      CONTROL operand (`ReportControlRef.Operand`), SUM addend (`ReportSumAddend.Operand`), CODE identifier and SOURCE screen;
+      `DataBinder.KeyReference`, the one capture of a written data-name-n, answers it.
+    - *A name a carrier holds is resolved from the carrier.* A REDEFINES clause's data-name-2 is the redefiner's own
+      (`DataItem.RedefinesTargetName`), so `SymbolTable.RedefinitionCandidatesOf(redefiner, scope)` answers the preceding entries so
+      named (an entry of the subject's level-number that the subject follows, §2023:13.18.44.3 SR2 and SR10; "Data-name-2
+      shall not be qualified", SR6, whose NOTE 1 makes the placement the answer) and `ResolveRedefinesPass` compares nothing; the layout's overlay start
+      (`BitLayout.Walk`) follows the resolved `RedefinesTarget`, not the written name matched again among the siblings.
+    - *The CAPACITY IN data-name is no operand (correction of remainder slice 2's list).* Slice 2 listed "a DYNAMIC CAPACITY IN
+      name" among the operands kept as text. `CAPACITY IN data-name-3` DECLARES the register (§2023:13.18.38.3 SR30, "Data-name-3
+      shall not be defined elsewhere in the source element"), which the table already enters as a CAPACITY register; it names
+      nothing to resolve.
+    - *What remains: part C and part D.* 1 table and 51 sites: the declarations (`DataBinder._dataEntryLocations` and its
+      comparer, `BindDeclarations`, `IsBeingDescribed`, the screen index-name uniqueness and the two report sets; `LinkageBinder` (6),
+      `OoDataBinder` (4), `CorrespondingBinder` (2), `FileControlBinder` (4), `CommunicationSectionBinder` (1)), the §2023:8.3.2.2
+      census (`UserWordCensus`, 4), the group tier's program and function units (`BinderDriver` (3),
+      `GroupRepositoryProvider.FunctionsByWord`), the parameterized expansion (`OoExpansion`, 18) and `TurnState.Fold`; then D, the
+      data-names' and condition-names' entries made where they are declared.
   - *(Step 6b, the entry ids, branch `listing-step-6b-ids`, a lane beside the data-name lane; kb/Work PB5932's dated file
     `2026-11-19-step-6b-entry-ids`.)* Every class whose declaration is the table's makes its ENTRY where the binder declares the name,
     and every identification hands the entry back, so step 7b joins an occurrence to its entry by id for every class, never by the
@@ -2858,7 +2903,13 @@ the data-names' and condition-names' entries remain, which their declarations (C
 model holds no parse tree, so the operand is the written words, not a `WrittenQualifiedName`), the record-key-names read off their file,
 `compare_oracle.py` IDENTICAL; the baseline is 63, and kb/Work PB5932's dated file `2026-11-19-step-6b-r2` holds what remains: part B's
 second half (the data-entry clause operands, the qualification walks moved into the table, the procedure division's probes and
-counts), then C and D.
+counts), then C and D. (Step 6b, remainder slice 3, branch `listing-step-6b-r3`:) part B's second half: the data-name candidate
+sets, the qualifier walk and the raw lookups moved into the table, private, every caller handing the written words (the procedure
+division a `WrittenQualifiedName`, the data-entry and report clause operands a `WrittenDataName`), the unqualified and qualified
+data-name answered by one rule, the REDEFINES target and the layout's overlay read off their carriers (section 6.7.1, "Step 6b,
+remainder slice 3"), `compare_oracle.py` IDENTICAL; the baseline is 52 (1 table, 0 lookups, 51 sites), and kb/Work PB5932's dated
+file `2026-11-20-step-6b-r3` holds what remains: C (the declarations, the census, the group tier's units, the parameterized
+expansion) and D (the data-names' and condition-names' entries).
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had
@@ -2932,7 +2983,9 @@ gap:
   (section 6.2), the statistics' counts of names and uses (section 4.1's table) and the HTML name links (section 7.2): step 7b, which
   waits for step 6b's remaining slices (section 11 "Step 7b, dispatched early"; kb/Work PB5925's dated file
   `2026-11-19-step-7b-not-buildable-yet`).
-- Section 6.7.1's one store: step 6b's data-name and condition-name resolution by text, 86 baseline entries (kb/Work PB5932).
+- Section 6.7.1's one store: step 6b's part C (the declarations, the §2023:8.3.2.2 census, the group tier's program and function units,
+  the parameterized expansion) and part D (the data-names' and condition-names' entries), 52 baseline entries (kb/Work PB5932's dated
+  file `2026-11-20-step-6b-r3`).
 - Section 2.2's two 2002 DOC rows (`2002-DOC-B.1-90`, `-165`): documented in DOC-A.1-117 and DOC-A.1-200 but held at GAP by kb/Work
   PB5930.
 - (PB5941:) section 9's `All` budget, over 25 % since step 8, is met: every format streams to its file and the page shows each

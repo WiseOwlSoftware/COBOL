@@ -19,7 +19,9 @@ cursor stays beside it for step 7b to record the occurrence. Sections 6.7.1 and 
 **Behaviour.** `python scripts/arch/compare_oracle.py --no-build --base 9682d2f88d83` printed `=== ARCH-ORACLE: IDENTICAL — 22651
 cases ===` after the operand conversion and again after the last move.
 
-**Review leads fixed here.** The 2023 rule against a MERGE inside another SORT or MERGE procedure now reports through its register
+**Review leads (correction, step 6b remainder slice 3, review lead 6b-r2 R2-1: none of the four fixes below is in this landing's net
+diff; kb/Work PB5951's lead sweep landed all four on main first, and this branch's merge of main kept main's).** The 2023 rule against
+a MERGE inside another SORT or MERGE procedure now reports through its register
 row's verdict, so it carries that row's edition flag and the listing counts it among the flagged constructs (lead pb5947 R1-2).
 `EditionFlagDriftTests` now also refuses a hand-reported code that a removed row pins. kb/Work PB5951's lead sweep fixed the same two leads
 while this branch ran; the merge of main keeps its one mechanism (the scan reads its codes from the rows; the obsolete-only rows
