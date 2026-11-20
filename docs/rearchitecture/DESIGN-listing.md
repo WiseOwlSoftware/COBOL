@@ -1936,6 +1936,16 @@ table is not built, and no step of section 11 named it: kb/Work PB5947.
   axes carries the flag its row names, through `Check` and through the binder's records; every flaggable extension carries its
   row's flag at the edition compiled to; and no source of `src/` outside those funnels names a flag code by literal, constant or
   descriptor (a Roslyn scan, shown red on planted text). A flag added to either register is in the table by construction.
+  (Correction, listing step pb5947's review lead R1-2, fixed by kb/Work PB5951's lead sweep:) the scan knew the three band codes
+  only, so a removal its row pins a code of its own for escaped it: the MERGE in a SORT or MERGE procedure (row
+  `merge-in-sort-merge-proc-removed-2023`, COBOL1572) was reported by hand in `VersionConformancePass` with no flag and was missing
+  from the table. It now reports `ConstructRegistry.VerdictAt`'s code, severity and flag, and the scan reads its codes from the rows
+  (every row with a removal edition) and its descriptors from `DiagnosticCatalog`, so a row added with a code of its own is scanned
+  with no change to the test (`EditionFlagDriftTests.TheScannedCodes_AreTheBandsAndEveryRowsPinnedRemovalCode`;
+  `ListingFlaggedConstructsTests.ARemovalWithAPinnedCode_IsInTheTable`, red with the flag withheld). The one code it does not take
+  from the rows is the reserved-word code COBOL0901, which the user-word rows pin but the reserved-word list reports for every
+  reserved word: a word a later edition reserved, used as a user word under `--permissive`, is a removal that carries no flag yet
+  (kb/Work PB5947's dated file `2026-11-19-reserved-word-removal-flag`).
 - **"By edition" is the edition of the rule that flags it.** Obsolete: the row's `ObsoleteIn`; removed: its `RemovedIn` (so a
   debugging line at `--std 2023` is a 2014 removal); an extension: the edition compiled to, whose standard does not define it
   (§2023:4.2.10, "to indicate use of a nonstandard extension in a compilation group"). Archaic (§2023:4.2.12) and obsolete

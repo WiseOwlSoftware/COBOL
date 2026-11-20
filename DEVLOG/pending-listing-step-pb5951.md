@@ -27,9 +27,14 @@ protected blocks with two `catch` clauses each, and whose reference modification
 to a `filter` inside a `finally`; the expected clauses read from the assembly with `System.Reflection.Metadata`). Each was shown able
 to fail: dropping the filter clauses in the reader, opening the innermost block first, and dropping the lines in the merge.
 
-**Leads carried.** Every lead of the listing steps' review records was checked on origin/main: all but one were already fixed or
-belong to branches not yet landed. The one still true, step 7b's R1-1, was fixed here: the last `§2023:14.7.8 rule 1 / rule 2`
-comments now name GR1 and GR2. The same "rule N" form is written at 1544 other sites, which kb/Work PB4976's sweep now counts.
+**Leads carried.** Every lead of the listing steps' review records was checked on origin/main, and again for the two branches
+that landed while this one ran. Four were still true and are fixed here. The last `§2023:14.7.8 rule 1 / rule 2` comments now name
+GR1 and GR2 (the same "rule N" form is written at 1544 other sites, which kb/Work PB4976's sweep now counts). A MERGE in a SORT
+procedure, a removal whose registry row pins a code of its own, was reported by hand without its edition flag and was missing from
+the table of flagged constructs; it now reports the registry's verdict, and the drift test that holds the table complete reads every
+row's pinned code instead of the three band codes (a reserved word used as a user word under `--permissive` is the one removal still
+without a flag: kb/Work PB5947's new lead). A doc comment named a test that does not exist, and the HTML page's script resolved the
+link target twice; both are one now.
 
 **Measured** (section 9): nothing a compilation without a listing runs changed. The `all` request is +0.9 to +5.8 % over the
 parent's on a full compile, inside the run-to-run spread on three of the four programs; the first build wrote an indentation

@@ -795,9 +795,14 @@ public static class HtmlListingRenderer
           function every(open) { document.querySelectorAll('details').forEach(function (block) { block.open = open; }); }
           document.getElementById('expand').addEventListener('click', function () { every(true); });
           document.getElementById('collapse').addEventListener('click', function () { every(false); });
+          // The one reading of the fragment's target, for the reveal and the first scroll: none for no fragment or one that is
+          // not a well-formed escape (decodeURIComponent throws URIError on '#%E0').
+          function target() {
+            if (!location.hash) return null;
+            try { return document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch (e) { return null; }
+          }
           function reveal() {
-            var at = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
-            for (; at; at = at.parentElement) if (at.tagName === 'DETAILS') at.open = true;
+            for (var at = target(); at; at = at.parentElement) if (at.tagName === 'DETAILS') at.open = true;
           }
           window.addEventListener('hashchange', reveal);
           // The sticky nav covers the top of the viewport, and it wraps to more lines as the window narrows: every link
@@ -807,7 +812,8 @@ public static class HtmlListingRenderer
           if (window.ResizeObserver) new ResizeObserver(clear).observe(nav);
           clear();
           reveal();
-          if (location.hash) { var at = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (at) at.scrollIntoView(); }
+          var first = target();
+          if (first) first.scrollIntoView();
         })();
         """;
 }
