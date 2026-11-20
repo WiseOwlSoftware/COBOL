@@ -60,11 +60,26 @@ public sealed partial class SymbolTable
     /// <summary>Declare the program-name or user-function-name of <paramref name="unit"/>, this source element (§2023:8.3.2.2): its
     /// entry, at the unit's first token, is the program map's, and the one a program-prototype-name or function-prototype-name of a
     /// containing definition (§2023:8.4.6.8, §2023:8.4.6.6) answers. Made by <c>BinderDriver.BindUnitData</c> before the unit's
-    /// containing definitions are declared, so the unit is its own.</summary>
-    internal void DeclareProgram(BoundUnit unit)
+    /// containing definitions are declared, so the unit is its own. The END PROGRAM or END FUNCTION header's name,
+    /// <paramref name="endMarker"/>, is a reference to the unit (§2023:10.7.3 SR2, SR7: it names the program it ends), recorded as an
+    /// occurrence of the entry when it spells the unit's name.</summary>
+    internal void DeclareProgram(BoundUnit unit, Antlr4.Runtime.ParserRuleContext? endMarker)
     {
         _ownUnitName = Key(unit.Name);
-        Enter(NameClass.Program, unit.Name, PositionOf(unit.DeclaredAt), unit);
+        var id = Enter(NameClass.Program, unit.Name, PositionOf(unit.DeclaredAt), unit);
+        if (endMarker is not null && WordOf(endMarker) == _ownUnitName) Record(id, endMarker, report: true);
+    }
+
+    /// <summary>⛔ THE OCCURRENCE OF A PROGRAM A CALL OR CANCEL LITERAL NAMES (DESIGN-listing.md sections 6.7 and 6.7.1, "The program-name
+    /// literal"): <paramref name="written"/> is literal-1 (§2023:14.9.4.3 SR2; §1985:X.5.2.3 SR1), at which the occurrence stands, and
+    /// <paramref name="target"/> the program of the compilation group it names, or null when the group defines none, so the call reaches a
+    /// program compiled elsewhere and the occurrence is of the group's one external-program entry of that name. Nothing when no listing
+    /// records references.</summary>
+    internal OccurrenceId RecordProgramName(Antlr4.Runtime.ParserRuleContext written, ExternalizedProgramName name, BoundUnit? target)
+    {
+        if (!_entries.RecordsReferences) return default;
+        var entry = target is not null ? _entries.IdOf(target) : _entries.ExternalProgram(this, name);
+        return Record(entry, written, report: true);
     }
 
     /// <summary>The program-name or user-function-name <see cref="DeclareProgram"/> declared; none for a class, interface or method,

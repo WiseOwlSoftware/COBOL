@@ -27,16 +27,23 @@ internal static class DataMapBuilder
         return new Placement(line, column, drafts[line - 1].Program);
     }
 
-    /// <summary>The data map of <paramref name="symbols"/> (DESIGN-listing.md section 6.6).</summary>
-    public static ListingDataMap Build(SymbolTableSnapshot symbols, ListingLineIndex index, FrontendFacts frontend,
-        IReadOnlyList<LineDraft> drafts)
+    /// <summary>⛔ THE DATA MAP'S IDS: each entry the data map lists, by its symbol-table id, to its 1-based place among the data
+    /// map's own entries (<see cref="ListingDataItem.Id"/>); the one numbering the data map and the cross-reference's links read.</summary>
+    public static Dictionary<int, int> ItemIds(SymbolTableSnapshot symbols)
     {
-        // A data-map id is the 1-based place among the data map's own entries; an attribute naming another entry names its id.
         var itemIds = new Dictionary<int, int>();
         foreach (var entry in symbols.Entries)
             if (entry.Class is NameClass.Data or NameClass.Condition or NameClass.Index or NameClass.Constant or NameClass.Report
                 or NameClass.CommunicationDescription or NameClass.TypeName or NameClass.CapacityRegister)
                 itemIds[entry.Id] = itemIds.Count + 1;
+        return itemIds;
+    }
+
+    /// <summary>The data map of <paramref name="symbols"/> (DESIGN-listing.md section 6.6).</summary>
+    public static ListingDataMap Build(SymbolTableSnapshot symbols, ListingLineIndex index, FrontendFacts frontend,
+        IReadOnlyList<LineDraft> drafts)
+    {
+        var itemIds = ItemIds(symbols);
         int? Item(int? entry) => entry is { } id && itemIds.TryGetValue(id, out int item) ? item : null;
         IReadOnlyList<int> Items(IEnumerable<int> entries) => [.. entries.Select(e => Item(e)).OfType<int>()];
         ListingFileKey? Key(FileKey? key) => key is null ? null : new ListingFileKey(key.Name, Items(key.Items), key.Duplicates);

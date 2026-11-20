@@ -659,7 +659,7 @@ internal sealed class BinderDriver
         // §2023:8.4.6.6 / §2023:8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the prototype
         // tables read (ContainingDefinitions; kb/Work PB452/PB817, PB3121), the symbol table's (DESIGN-listing.md section 6.7.1,
         // step 6b slice 7), declared before the unit's data binds so its USAGE TO screen reads it.
-        data.Symbols.DeclareProgram(unit);   // the unit's own name is an entry of the table (section 6.7.1), and a containing definition
+        data.Symbols.DeclareProgram(unit, definition.endProgramHeader()?.programName());   // the unit's own name is an entry of the table (section 6.7.1), and a containing definition
         data.Symbols.DeclareContainingDefinitions(unit);
         data.CallSeedUids(session.TakeUidBand());
 
@@ -708,7 +708,7 @@ internal sealed class BinderDriver
     /// class bodies).</summary>
     internal static void BindProcedures(GroupBindContext ctx)
     {
-        foreach (var unit in ctx.Units) BindUnitProcedure(unit, ctx.Session);
+        foreach (var unit in ctx.Units) BindUnitProcedure(unit, ctx.Session, ctx.Units);
     }
 
     /// <summary>Build the group's REPOSITORY specifier resolver (§2023:12.3.8.4 GR10 / GR11 — <see cref="RepositoryResolver"/>
@@ -771,7 +771,7 @@ internal sealed class BinderDriver
     /// (<see cref="BindUnitData"/>) and the group's <see cref="RepositoryResolver"/> is built, so a
     /// <c>FUNCTION user-name(args)</c> reference resolves its callee's RETURNING/USING descriptions from the
     /// definition or prototype §2023:12.3.8.4 GR11 a) / b) selects as of this unit's position (§2023:8.4.3.2.4 GR1).</summary>
-    private static void BindUnitProcedure(BoundUnit unit, BindSession session)
+    private static void BindUnitProcedure(BoundUnit unit, BindSession session, IReadOnlyList<BoundUnit> group)
     {
         var (data, refs) = session.Binders.Of(unit);
         // The unit's user-defined functions (§2023:12.3.8.4 GR11, plus §2023:8.4.6.6's containing function definition: inside a
@@ -794,6 +794,7 @@ internal sealed class BinderDriver
             // visibility the runtime ResolveVisible applies, computed statically so GR9's formal-mode
             // lookup and SR15's scope check both happen at BIND time.
             NestedCallables = NestedCallablesOf(unit, session.Binders),
+            ProgramsInScope = session.Edition.RecordsReferences ? ProgramsVisibleFrom(unit, group) : null,
             UnitRecursive = unit.Recursive,   // §2023:14.9.7.3 SR1 / §2023:14.9.36.3 SR1 (kb/Work PB137)
         };
         // kb/Work PB237 — the unit's visible program prototypes (§2023:12.3.8.2 specifiers resolved through §2023:12.3.8.4 GR10, plus
@@ -806,6 +807,39 @@ internal sealed class BinderDriver
         // type-checks — ISO §2023:14.2.3 GR8 / §2023:14.9.25.4 MOVE GR4) by the post-bind UsageCollectionPass, from data.Linkage.Formals
         // + data.Linkage.Returning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
         // ReferenceResolver no longer performs) — deleted, PHASE-05 Step 5.
+    }
+
+    /// <summary>⛔ THE PROGRAMS A LITERAL PROGRAM-NAME OF <paramref name="caller"/> REACHES, at bind time, by their externalized names: the scope of
+    /// a program-name for the CALL and CANCEL statements (§2023:8.4.6.3 SR1, SR2, SR3), as <c>ProgramTable.ResolveVisible</c> applies it at run
+    /// time, in its order and with its COMMON exception (<see cref="WiseOwl.Cobol.Runtime.ProgramNameScope"/>): (1) a program directly contained
+    /// in the caller, (2) the caller itself when RECURSIVE, (3) a COMMON program contained in a container of the caller, the nearest container
+    /// first, (4) an OUTERMOST program of the compilation group, which any source element of the run unit may reference (SR3). The name is the
+    /// externalized name (<see cref="BoundUnit.ExternalizedName"/>), which a literal names and which is the program-name for a contained program
+    /// (§2023:11.10.3 SR2). A name the group does not define is absent: the call reaches a program compiled elsewhere. A function is no program
+    /// (§2023:8.4.6.3).</summary>
+    private static Dictionary<ExternalizedProgramName, BoundUnit> ProgramsVisibleFrom(BoundUnit caller, IReadOnlyList<BoundUnit> group)
+    {
+        var visible = new Dictionary<ExternalizedProgramName, BoundUnit>();
+        foreach (var unit in group)
+        {
+            var name = new ExternalizedProgramName(unit.ExternalizedName);
+            if (!visible.ContainsKey(name) && ProgramVisibleFrom(caller, name, group) is { } reached) visible.Add(name, reached);
+        }
+        return visible;
+    }
+
+    /// <summary>The program <paramref name="name"/> reaches from <paramref name="caller"/> (<see cref="ProgramsVisibleFrom"/>'s one question).</summary>
+    private static BoundUnit? ProgramVisibleFrom(BoundUnit caller, ExternalizedProgramName name, IReadOnlyList<BoundUnit> group)
+    {
+        bool Named(BoundUnit u) => !u.IsFunction && !u.IsPrototype && new ExternalizedProgramName(u.ExternalizedName).Equals(name);
+        foreach (var child in caller.Children)
+            if (Named(child)) return child;
+        if (Named(caller) && caller.Recursive) return caller;
+        for (var anc = caller.Parent; anc is not null; anc = anc.Parent)
+            foreach (var sibling in anc.Children)
+                if (sibling.Common && Named(sibling) && WiseOwl.Cobol.Runtime.ProgramNameScope.CommonProgramReferable(sibling, sibling.Recursive, caller, u => u.Parent))
+                    return sibling;
+        return group.FirstOrDefault(u => u.Parent is null && Named(u));
     }
 
     /// <summary>Classify a bound unit as one of ISO §2023:14.2.2 SR10's source elements (kb/Work PB403). The two unit

@@ -30,15 +30,17 @@ public sealed class JsonListingWriterTests
         [new ListingInclusion(1, null, 1, 2, 2, "REC", "LIB", 2, ListingInclusionOutcome.Found, false),
          new ListingInclusion(2, 1, 2, 3, 3, "\"gone.cpy\"", null, null, ListingInclusionOutcome.NotFound, true)],
         [new ListingLine(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000100 ID DIVISION.", false, true,
-            false, 0, ListingReplacement.None, null, [1], new ListingMargin(1, 0, 5, "DISPLAY"),
+            false, 0, ListingReplacement.None, null, [1], new ListingMargin(1, 0, 5, "DISPLAY", []),
+            [new ListingNameUse(8, 2, 3, ListingUse.Defined)],
             [new ListingSpan(1, 6, ListingSpanClass.SequenceArea), new ListingSpan(8, 2, ListingSpanClass.ReservedWord),
              new ListingSpan(11, 8, ListingSpanClass.ReservedWord), new ListingSpan(19, 1, ListingSpanClass.Separator)]),
          new ListingLine(2, 1, 2, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000200 DATE-COMPILED. X.", false, true,
-            true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00.", [], null, []),
+            true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00.", [], null, [], []),
          new ListingLine(3, 2, 1, 1, 1, ListingLineForm.Free, ListingLineKind.PageEjectComment, "*> été", true, false,
-            false, null, ListingReplacement.DateCompiledEntry, null, [], null, [new ListingSpan(1, 6, ListingSpanClass.Comment)]),
+            false, null, ListingReplacement.DateCompiledEntry, null, [], null, [], [new ListingSpan(1, 6, ListingSpanClass.Comment)]),
          new ListingLine(4, 1, 3, null, 0, ListingLineForm.Free, ListingLineKind.Source, "MOVE A TO B.", false, true,
-            false, 0, ListingReplacement.Replacing, "MOVE X TO B.\nDISPLAY B.", [], null,
+            false, 0, ListingReplacement.Replacing, "MOVE X TO B.\nDISPLAY B.", [], new ListingMargin(null, null, null, null, [1]),
+            [new ListingNameUse(6, 1, 1, ListingUse.Read), new ListingNameUse(11, 1, 2, ListingUse.Written)],
             [new ListingSpan(1, 4, ListingSpanClass.ReservedWord), new ListingSpan(8, 2, ListingSpanClass.ReservedWord),
              new ListingSpan(11, 1, ListingSpanClass.UserWord), new ListingSpan(12, 1, ListingSpanClass.Separator)])],
         [new ListingProgram(0, "MAIN", ListingProgramKind.Program, null, 0, 1, 3,
@@ -81,6 +83,18 @@ public sealed class JsonListingWriterTests
                 new ListingFileKey("REC", [1], false), [new ListingFileKey("N", [2], true)], null, [7], "MAIN.F", null),
              new ListingFileEntry(2, "S", null, null, null, true, "SEQUENTIAL", "SEQUENTIAL", [], false, true, null, [], 2, [], "S",
                 "__fkey_S")]),
+        new ListingCrossReference(
+            [new ListingSymbol(1, "A", ListingSymbolKind.Data, 0, 1,
+                [new ListingReference(1, 1, 8, 1, ListingUse.Defined, null), new ListingReference(1, 4, 6, 1, ListingUse.Read, "MOVE"),
+                 new ListingReference(1, null, null, 1, ListingUse.Modified, "ADD")], false),
+             new ListingSymbol(2, "B", ListingSymbolKind.Procedure, null, null,
+                [new ListingReference(2, 2, 8, 1, ListingUse.Defined, null), new ListingReference(2, 4, 11, 1, ListingUse.Written, "PERFORM")],
+                false),
+             new ListingSymbol(3, "REC OF LIB", ListingSymbolKind.CopyMember, null, null,
+                [new ListingReference(3, 1, null, 0, ListingUse.Read, "COPY")], false),
+             new ListingSymbol(4, "UNUSED", ListingSymbolKind.Constant, 0, null, [], true)],
+            [new ListingEdge(2, 2, 4, "PERFORM"), new ListingEdge(null, 2, null, "PERFORM")],
+            [new ListingEdge(null, 1, 4, "CALL")]),
         new ListingObjectCodeMap("out/main.dll",
             // Every kind of exception-handling clause: a catch nested in a filter clause's protected block in __Run, a fault nested in a
             // finally's in Go; the one stretch of __Run prints every line of its method (ExceptionRegionLayout.Place).
@@ -111,8 +125,12 @@ public sealed class JsonListingWriterTests
 
     /// <summary>Each line as a value: a record's list member compares by reference, so a line's diagnostic ids are compared as a
     /// sequence beside the rest of it.</summary>
-    private static List<(ListingLine Line, string Diagnostics, string Spans)> ByValue(IEnumerable<ListingLine> lines) =>
-        [.. lines.Select(l => (l with { Diagnostics = NoIds, Spans = NoSpans }, string.Join(",", l.Diagnostics), string.Join(",", l.Spans)))];
+    private static List<(ListingLine Line, string Diagnostics, string Spans, string Names, string Definitions)> ByValue(IEnumerable<ListingLine> lines) =>
+        [.. lines.Select(l => (l with { Diagnostics = NoIds, Spans = NoSpans, Names = NoNames, Margin = l.Margin is { } m ? m with { Definitions = NoIds } : null },
+            string.Join(",", l.Diagnostics), string.Join(",", l.Spans), string.Join(",", l.Names),
+            string.Join(",", l.Margin?.Definitions ?? [])))];
+
+    private static readonly ListingNameUse[] NoNames = [];
 
     private static readonly int[] NoIds = [];
     private static readonly ListingSpan[] NoSpans = [];
@@ -124,7 +142,7 @@ public sealed class JsonListingWriterTests
     {
         var json = Written(EveryMember());
         Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "flaggedConstructs",
-            "displays", "options", "statistics", "dataMap", "objectCode", "sections"], json.Select(p => p.Key));
+            "displays", "options", "statistics", "dataMap", "crossReference", "objectCode", "sections"], json.Select(p => p.Key));
         Assert.Equal("urn:wiseowl:cobol:listing:v1", (string?)json["$schema"]);
         Assert.Equal("1.0", (string?)json["schemaVersion"]);
     }

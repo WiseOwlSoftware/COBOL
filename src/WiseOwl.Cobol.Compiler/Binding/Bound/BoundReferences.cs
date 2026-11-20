@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using WiseOwl.Cobol.Binding.Model;
@@ -96,6 +97,9 @@ internal static class BoundReferences
                 // never because the program wrote them (AllCount.Places): only the positions inside them are references.
                 foreach (var counted in count.Places) VisitFields(counted, found, skip, yieldPlace: false, statementsAreDirect: false);
                 return;
+            case SetIndexTarget indexTarget:
+                found.AddIndexTarget(indexTarget);   // an index-name receiver holds its cell by name: no place stands for it
+                return;
             case BoundLinageCounterRef or BoundReportCounterRef:
                 found.AddRegister((BoundExpr)node);   // a runtime-sourced register no place stands for, referenced where it is read
                 return;
@@ -122,15 +126,26 @@ internal static class BoundReferences
     /// property has none of, so the walk reads state and never derived answers — over the whole base chain.</summary>
     private static void VisitFields(object node, Reach.Builder found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
     {
-        for (var c = node.GetType(); c is not null && c != typeof(object); c = c.BaseType)
-            foreach (var field in c.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
-            {
-                if (field.FieldType.IsPrimitive || field.FieldType.IsEnum || field.FieldType == typeof(string)) continue;
-                // A single BoundMove-typed field is the implicit move a verb's FROM or INTO phrase performs (WRITE ... FROM x, READ ... INTO x):
-                // part of the verb's own statement, whose operands the verb explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5 a).
-                Visit(field.GetValue(node), found, skip, yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
-            }
+        foreach (var field in FieldsOf(node.GetType()))
+        {
+            // A single BoundMove-typed field is the implicit move a verb's FROM or INTO phrase performs (WRITE ... FROM x, READ ... INTO x):
+            // part of the verb's own statement, whose operands the verb explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5 a).
+            Visit(field.GetValue(node), found, skip, yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
+        }
     }
+
+    // The operand-bearing fields of each node type, found once: a walk runs per statement (the listing's classification runs one for every
+    // statement of the program, DESIGN-listing.md section 9), and asking the runtime for a type's fields allocates their array each time.
+    private static readonly ConcurrentDictionary<Type, FieldInfo[]> s_fields = new();
+
+    private static FieldInfo[] FieldsOf(Type type) => s_fields.GetOrAdd(type, static t =>
+    {
+        var fields = new List<FieldInfo>();
+        for (var c = t; c is not null && c != typeof(object); c = c.BaseType)
+            foreach (var field in c.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
+                if (!(field.FieldType.IsPrimitive || field.FieldType.IsEnum || field.FieldType == typeof(string))) fields.Add(field);
+        return [.. fields];
+    });
 }
 
 /// <summary>⛔ THE REFERENCES A BOUND STATEMENT OR OPERAND MAKES, of the two kinds a USE FOR DEBUGGING identifier-1 can be (X3.23-1985 USE FOR DEBUGGING
@@ -139,13 +154,16 @@ internal static class BoundReferences
 /// <see cref="BoundReportCounterRef"/> because the report writer and the I-O control system own their storage (kb/Work PB4858).</summary>
 /// <param name="Places">The places, in source order.</param>
 /// <param name="Registers">The register reads, in source order.</param>
-internal sealed record Reach(IReadOnlyList<Place> Places, IReadOnlyList<BoundExpr> Registers)
+/// <param name="IndexTargets">The index-name receivers (SET, a VARYING phrase), in source order: an index-name's cell is a field name, never a
+/// place, so its reference is the receiver node itself (DESIGN-listing.md section 6.7.1, "Store kind").</param>
+internal sealed record Reach(IReadOnlyList<Place> Places, IReadOnlyList<BoundExpr> Registers, IReadOnlyList<SetIndexTarget> IndexTargets)
 {
     /// <summary>The accumulator a walk fills; handed down as a parameter so the walk itself holds no state.</summary>
     internal sealed class Builder
     {
         private readonly List<Place> _places = [];
         private readonly List<BoundExpr> _registers = [];
+        private readonly List<SetIndexTarget> _indexTargets = [];
 
         /// <summary>Record a place reference.</summary>
         public void AddPlace(Place place) => _places.Add(place);
@@ -153,7 +171,10 @@ internal sealed record Reach(IReadOnlyList<Place> Places, IReadOnlyList<BoundExp
         /// <summary>Record a counter-register reference.</summary>
         public void AddRegister(BoundExpr register) => _registers.Add(register);
 
+        /// <summary>Record an index-name receiver reference.</summary>
+        public void AddIndexTarget(SetIndexTarget target) => _indexTargets.Add(target);
+
         /// <summary>The finished reach.</summary>
-        public Reach Build() => new(_places, _registers);
+        public Reach Build() => new(_places, _registers, _indexTargets);
     }
 }

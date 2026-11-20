@@ -155,7 +155,7 @@ public sealed partial class SymbolTable
     /// Pure: it reports nothing.
     /// </summary>
     internal NameCandidates<DataItem> IdentifyDataName(WrittenDataName operand, Scope scope) =>
-        DataNameCandidates(operand.Name, operand.Qualifiers, scope);
+        Recorded(DataNameCandidates(operand.Name, operand.Qualifiers, scope), operand);
 
     /// <summary>Whether a data item of <paramref name="operand"/>'s spelling is visible in <paramref name="scope"/> at all, its
     /// qualifiers not applied: the question a clause's unidentified-operand diagnostic asks to say "declared, but not under the

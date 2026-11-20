@@ -401,7 +401,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             }
             else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
             string pname = dref.GetText();
-            var item = SymbolTable.IdentifyHeaderOperand(m.Binding!.LinkageRoots, dref);
+            var item = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, dref);
             if (item is null)
                 Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
@@ -427,7 +427,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         if (pd?.returningClause()?.dataReference() is { } rref)
         {
             using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
-            m.Binding!.Returning = SymbolTable.IdentifyHeaderOperand(m.Binding!.LinkageRoots, rref);
+            m.Binding!.Returning = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, rref);
             if (m.Binding!.Returning is null)
                 Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");

@@ -975,6 +975,27 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     // ── FILE-CONTROL clause operands + FILE SECTION (the SELECT entry is FileControlBinder; ISO §2023:12.4.5 / §2023:13.18; DESIGN §8) ─────────────────────────────────
 
+    /// <summary>The statement funnel's MARK in the symbol table's occurrences and place links (docs/rearchitecture/DESIGN-listing.md
+    /// section 6.7.1, "Store kind"): <c>StatementBinder.BindStatement</c> holds it on entry and classifies what was recorded since.</summary>
+    internal (int Occurrences, int Links) OccurrenceMark => (Symbols.GroupEntries.OccurrenceMark, Symbols.GroupEntries.LinkMark);
+
+    /// <summary>Classify the occurrences recorded since <paramref name="mark"/> as the statement <paramref name="bound"/>'s, written at
+    /// <paramref name="at"/> with the verb its first token <paramref name="verb"/> writes: each at the store position its linked place
+    /// stands at (<see cref="Bound.BoundStores.StorePositionsAmong"/>), the rest read. Nothing when no listing records references.</summary>
+    internal void ClassifyOccurrences((int Occurrences, int Links) mark, DiagnosticCursor at, Antlr4.Runtime.IToken verb,
+        Bound.BoundStatement bound)
+    {
+        var store = Symbols.GroupEntries;
+        if (!store.RecordsReferences) return;
+        string verbText = verb.Text.ToUpperInvariant();
+        if (store.VerifiesPairing)
+            store.VerifyPairing(mark.Occurrences, at, verbText, Bound.BoundStores.StorePositionsOf(bound, store.LinkedSince(mark.Links)));
+        // Nothing to classify when every occurrence since the mark is a nested statement's: its own funnel classified them.
+        if (!store.AnyToClassify(mark.Occurrences)) return;
+        store.Classify(mark.Occurrences, at, verbText,
+            Bound.BoundStores.StorePositionsAmong(bound, site => store.Awaits(site, mark.Occurrences)));
+    }
+
     /// <summary>A FILE-CONTROL key reference: the base word plus its IN/OF qualifier words in written order
     /// (innermost first, ISO §2023:8.4.2.2). A raw <c>GetText()</c> would glue qualifiers into the lookup key
     /// (<c>IX-FD3-KEYINIX-FD3-RECKEY-AREA</c>) and the name could never resolve — the FILE STATUS / RENAMES
@@ -995,7 +1016,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         foreach (var s in dref.dataReferenceSuffix())
             if (s.qualification()?.cobolWord() is { } q)
                 quals.Add(q.GetText());
-        return new WrittenDataName(baseWord, quals);
+        var last = dref.Stop ?? dref.Start;
+        return new WrittenDataName(baseWord, quals)
+        {
+            Line = dref.Start.Line,
+            Column = dref.Start.Column,
+            Length = last.Line == dref.Start.Line ? last.Column - dref.Start.Column + last.Text.Length : dref.Start.Text.Length,
+        };
     }
 
     /// <summary>The capture for an operand written where a general format prints <i>data-name-n</i>: the base
@@ -3716,6 +3743,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string csName = isFiller ? $"_filler{TakeFillerOrdinal()}" : DataItem.Sanitize(cobolName!);
 
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
+        Core.DataReferenceContext? redefinesWritten = null;   // REDEFINES data-name-2 as written: its occurrence (listing step 7b)
         Antlr4.Runtime.IToken? pictureToken = null;   // the PICTURE string's token, where a repetition constant-name is written
         var groupUsage = GroupUsage.None;   // GROUP-USAGE (§2023:13.18.29; D20/PB79)
         List<EditingPhraseSpec>? editingSpecs = null;   // PICTURE EDITING phrases (§2023:13.18.40.2), threaded to PictureAnalyzer
@@ -3957,7 +3985,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 else if (clause.RedefinesTarget is { } redefTarget)
                     // Capture the target name only; resolution waits until the forest is built (the target is a
                     // prior sibling, but a chain A REDEFINES B REDEFINES C resolves in the post-build pass).
+                {
                     redefinesTargetName = RedefinesDataName2(redefTarget, cobolName);
+                    redefinesWritten = redefTarget;
+                }
                 else if (clause.Context.valueClause() is { } value)
                 {
                     valueClauseWritten = true;
@@ -4433,6 +4464,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // clause's GEOMETRY (SR18–SR23) and its §2023:13.18.63.4 GR12–GR16 resolution are the post-forest
         // ResolveTableValues pass — they read the entry's OCCURS ANCESTORS, which do not exist yet here.
         ScreenTableValueLiterals(item, entryWhere);
+        if (redefinesTargetName is not null && redefinesWritten is not null) Symbols.NoteRedefinesWritten(item, redefinesWritten);
 
         // BASED declaration validation (Phase-4b increment 2). §2023:13.16.3 SR16 — level 1 or 77, in the linkage,
         // working-storage or local-storage section — is the clause-placement table's BASED Residence row, screened

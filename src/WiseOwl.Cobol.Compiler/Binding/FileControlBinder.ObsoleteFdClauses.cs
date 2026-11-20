@@ -30,7 +30,7 @@ public sealed partial class FileControlBinder
     {
         foreach (var word in clause.cobolWord())
         {
-            if (SymbolTable.IdentifyDataRecord(records, word) is not null) continue;
+            if (_host.Symbols.IdentifyDataRecord(records, word) is not null) continue;
             string name = word.GetText();
             using var _ = Edition.At(word);
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseOperand, $"DATA RECORDS {name}: '{name}' is not the name of an "

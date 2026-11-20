@@ -14,11 +14,13 @@ public sealed partial class SymbolTable
 {
     /// <summary>The level-01 or level-77 LINKAGE SECTION record among <paramref name="linkageRoots"/> that a procedure division
     /// header's USING operand or RETURNING item <paramref name="written"/> names (§2023:14.2.2 SR1: each shall be such an entry);
-    /// null when none does, which the header reports. The reference's occurrence is listing step 7b's.</summary>
-    internal static DataItem? IdentifyHeaderOperand(IEnumerable<DataItem> linkageRoots, Core.DataReferenceContext written)
+    /// null when none does, which the header reports. The header is the reference itself, so its occurrence is recorded.</summary>
+    internal DataItem? IdentifyHeaderOperand(IEnumerable<DataItem> linkageRoots, Core.DataReferenceContext written)
     {
         var key = Key(written.GetText());
-        return linkageRoots.FirstOrDefault(r => r.CobolName is { } n && Key(n) == key);
+        var item = linkageRoots.FirstOrDefault(r => r.CobolName is { } n && Key(n) == key);
+        if (item is not null) RecordData(item, written, report: true);
+        return item;
     }
 
     /// <summary>The names the ADDRESS OF operands <paramref name="targets"/> write (their data-names, qualifiers aside): the formals

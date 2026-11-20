@@ -1415,8 +1415,14 @@ callStatement
 // (§2023:8.4.3.1.2 Format 1) barred only from a receiving operand (§2023:8.4.3.2.3 SR1), and so is an inline method
 // invocation (§2023:8.4.3.4.3 SR1); X3.23-1985 Amendment 1 says the same of an alphanumeric function (§1985:IV.4.3.8.3.3
 // SR3). CallBinder asks §2023:14.9.4.3 SR1's category of every shape (kb/Work PB5240).
+// ⛔ literal-1 IS THE ONE PLACE A LITERAL NAMES A SYMBOL: a program (§2023:14.9.4.3 SR2, §1985:X.5.2.3 SR1). Its alternative carries the `lit`
+// label (DESIGN-listing.md section 6.7.1, "The program-name literal"), the grammar's own statement that the literal is a reference
+// slot the symbol table records an occurrence at, as a `ref` label says it of a name. The same literal is a sendingOperand's too, so
+// the two alternatives are one ambiguity ANTLR settles to the first: a literal is always the `lit` alternative, and every other
+// operand (identifier-1, a function-identifier, an inline method invocation, a program-prototype-name) the second.
 callTarget
-    : sendingOperand
+    : litProgramName1=literal
+    | sendingOperand
     ;
 
 // `AS NESTED` | `AS program-prototype-name-1`. ⚠ NESTED IS NOT LEXED AS A TOKEN and deliberately so: §2023:8.9 makes
@@ -1584,7 +1590,8 @@ cancelStatement
 
 // The CALL target's rule, for the same reason (kb/Work PB5240); CallBinder.BindCancel asks §2023:14.9.5.3 SR1.
 cancelTarget
-    : sendingOperand
+    : litProgramName1=literal
+    | sendingOperand
     ;
 
 // ==========================================

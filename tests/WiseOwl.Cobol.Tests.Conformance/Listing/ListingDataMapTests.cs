@@ -178,7 +178,7 @@ public sealed class ListingDataMapTests : IDisposable
         foreach (var line in listing.Lines)
         {
             var declared = map.Items.FirstOrDefault(i => i.Kind == ListingDataItemKind.Data && i.Line == line.Number);
-            Assert.Equal(declared is null ? null : new ListingMargin(declared.Id, declared.Offset, declared.Length, declared.Usage), line.Margin);
+            Assert.Equal(declared is null ? null : new ListingMargin(declared.Id, declared.Offset, declared.Length, declared.Usage, []), line.Margin);
         }
         string text = File.ReadAllText(Path.Combine(_dir, "dmap.lst"));
         string row = Assert.Single(ListingPages.Of(text, ListingSection.Source).SelectMany(p => p.Split('\n')),
@@ -303,7 +303,7 @@ public sealed class ListingDataMapTests : IDisposable
             Assert.Equal((site.Id, (int?)start, (int?)3), (copies[0].Owner ?? 0, copies[0].Offset, copies[0].Length));
             Assert.Equal(copies[0].Id, copies[1].Owner);
             Assert.Equal((site.Id, (int?)(start + 3), (int?)4), (copies[2].Owner ?? 0, copies[2].Offset, copies[2].Length));
-            Assert.Equal(new ListingMargin(site.Id, site.Offset, site.Length, site.Usage), listing.Lines.Single(l => l.Number == line).Margin);
+            Assert.Equal(new ListingMargin(site.Id, site.Offset, site.Length, site.Usage, []), listing.Lines.Single(l => l.Number == line).Margin);
         }
     }
 

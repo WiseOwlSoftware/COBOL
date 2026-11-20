@@ -44,6 +44,7 @@ public sealed class ListingSectionsTests
         public string Options() => nameof(Options);
         public string Statistics() => nameof(Statistics);
         public string DataMap() => nameof(DataMap);
+        public string CrossReference() => nameof(CrossReference);
         public string ObjectMap() => nameof(ObjectMap);
         public string ObjectCode() => nameof(ObjectCode);
     }
@@ -89,7 +90,7 @@ public sealed class ListingSectionsTests
     [InlineData("", "between each two commas")]
     [InlineData("source,,options", "between each two commas")]
     [InlineData("source,data", "(got 'data')")]
-    [InlineData("xref", "(got 'xref')")]
+    [InlineData("xrefs", "(got 'xrefs')")]
     public void AnEmptyOrUnknownWord_IsRefused(string list, string why)
     {
         Assert.False(ListingSections.TryParse(list, out _, out string? problem));

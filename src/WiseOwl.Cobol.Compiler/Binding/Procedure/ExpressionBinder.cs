@@ -217,6 +217,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         return ix.Outcome is IndexRefOutcome.NotAnIndexName ? null : ix.Cell;
     }
 
+    /// <summary>The receiver an INDEXED BY index-name written as <paramref name="dref"/> is (SET, PERFORM VARYING, SEARCH VARYING), linked to
+    /// the index-name's occurrence so the cross-reference finds the store (<see cref="ReferenceResolver.Linked(Bound.SetIndexTarget, Antlr4.Runtime.IToken)"/>);
+    /// <see langword="null"/> when it is no index-name (<see cref="IndexFieldOf"/>).</summary>
+    public SetIndexTarget? IndexTargetOf(Core.DataReferenceContext dref) =>
+        IndexFieldOf(dref) is { } ix ? ctx.Refs.Linked(new SetIndexTarget(ix), dref.Start) : null;
+
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>⛔ THE ONE <c>nonNumericLiteral</c> → <see cref="BoundOperand"/> MAPPING (ISO §2023:8.3.3). Returns

@@ -34,6 +34,21 @@ public sealed class GrammarNameSlotDriftTests
             + Environment.NewLine + string.Join(Environment.NewLine, findings));
     }
 
+    /// <summary>A literal that names a symbol carries a <c>lit</c> label (section 6.7.1, "The program-name literal"): every such label
+    /// holds a <c>literal</c> context, so it labels what it says, and a CALL's and a CANCEL's literal-1, the literals that name programs
+    /// (§2023:14.9.4.3 SR2, §2023:14.9.5.3 SR2; §1985:X.5.2.3 SR1, §1985:X.5.3.3 SR1), are among them: the occurrence oracle reads them
+    /// as reference slots, so a literal-1 that lost its label would be an unrecorded reference no test saw.</summary>
+    [Fact]
+    public void EveryLiteralSlotLabel_HoldsALiteral_AndCallAndCancelCarryOne()
+    {
+        var labels = typeof(CobolParserCore).GetNestedTypes(BindingFlags.Public)
+            .SelectMany(t => t.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Select(f => (Type: t, Field: f)))
+            .Where(x => GrammarNameSlots.IsLiteralSlot(x.Field.Name)).ToList();
+        Assert.All(labels, x => Assert.Equal(typeof(CobolParserCore.LiteralContext), x.Field.FieldType));
+        Assert.Contains(labels, x => x.Type == typeof(CobolParserCore.CallTargetContext));
+        Assert.Contains(labels, x => x.Type == typeof(CobolParserCore.CancelTargetContext));
+    }
+
     /// <summary>The closure and the reference rules the design names (section 6.7.1) are what the ATN computes: the
     /// name rules hold <c>fileName</c> (one <c>cobolWord</c>) and <c>programName</c> (a <c>cobolWord</c> or a
     /// <c>reservedGatedWord</c>); <c>procedureName</c> and <c>dataReference</c> are reference rules, and the headers

@@ -122,4 +122,4 @@ public sealed record ListingObjectRange(int Line, int Column, int Method, int St
 /// <param name="OpCode">The instruction's name (<c>ldarg.0</c>, <c>call</c>, <c>br.s</c>).</param>
 /// <param name="Operand">The operand as text, or null for an instruction that takes none: a number, a quoted string, a branch
 /// target as <c>IL_xxxx</c>, a switch's targets, or the type, field or method a token names (<c>Type::Member</c>).</param>
-public sealed record ListingInstruction(int Offset, string OpCode, string? Operand);
+public readonly record struct ListingInstruction(int Offset, string OpCode, string? Operand);

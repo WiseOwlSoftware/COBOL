@@ -128,12 +128,79 @@ public static class BoundStores
         return s.Accept(visitor) is StoreKind.None ? null : visitor.FirstHit;
     }
 
+    /// <summary>⛔ THE STORE POSITIONS A STATEMENT'S WRITTEN OPERANDS OCCUPY (docs/rearchitecture/DESIGN-listing.md section 6.7.1,
+    /// "Store kind"): each place <paramref name="s"/> ITSELF holds in an operand position (<see cref="BoundReferences.Of"/>, the
+    /// instance the bound node holds, a decorated place as its outer place) that the exhaustive visitor stores through, with the kind
+    /// of the store, asked of that INSTANCE as <see cref="StoreKindOf"/> asks of an item (a BY REFERENCE argument counted as
+    /// <see cref="StoreKindOf"/> counts it, a store into a window <see cref="StoreKind.WriteInPart"/>). A statement nested in
+    /// <paramref name="s"/> is a statement of its own and answers for its own operands. The places a file connector's callback builds
+    /// (the record area, FILE STATUS, RELATIVE KEY, DEPENDING ON) are no written operand and are not asked. The symbol table's
+    /// statement funnel reads it to classify each occurrence (<c>SymbolTable.EntryStore.Classify</c>). <paramref name="linked"/> are the
+    /// places the statement's references were built as (the symbol table's links since the statement's mark), asked beside the places
+    /// <see cref="BoundReferences.Of"/> finds, since a node may hold an operand's place where that walk does not enter (a tuple of
+    /// <see cref="BoundSetConditions"/>: kb/Work PB5925's dated file <c>2026-11-20-step-7b-2-built</c>). This is the PAIRING TEST's walk (the symbol table asks it only when
+    /// a test asks it to verify pairing, <c>SymbolTable.EntryStore.VerifyPairing</c>): the classification itself is
+    /// <see cref="StorePositionsAmong"/>.</summary>
+    internal static IEnumerable<(object Site, StoreKind Kind)> StorePositionsOf(BoundStatement s, IEnumerable<object>? linked = null)
+    {
+        // A written reference is held by the bound tree as a place, or, for an index-name (whose cell is a field name), as the
+        // receiver node itself: the two kinds of SITE a store position can stand at (section 6.7.1, "Store kind"). The sites are
+        // what the tree holds and what the symbol table linked, so a store position whose reference was never linked is still seen.
+        var reach = BoundReferences.Of(s);
+        var asked = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        foreach (var site in ((IEnumerable<object>)reach.Places).Concat(reach.IndexTargets).Concat(linked ?? []))
+        {
+            if (!asked.Add(site)) continue;
+            if (site is Place { NamedItem.IsCompilerTemp: true }) continue;   // a temporary the binder made is no operand the program wrote
+            var at = site;
+            var visitor = new StoreKindVisitor(p => ReferenceEquals(p, at), StoreView.Operands, crossingsStore: true, direct: true,
+                matchesIndex: t => ReferenceEquals(t, at));
+            var kind = s.Accept(visitor);
+            if (kind == StoreKind.Write && visitor.StoredThroughWindow) kind = StoreKind.WriteInPart;
+            if (kind is not StoreKind.None) yield return (site, kind);
+        }
+    }
+
+    /// <summary>⛔ THE STORE POSITIONS AMONG THE SITES (a place, or an index-name receiver) <paramref name="wanted"/> NAMES (the classification's question, DESIGN-listing.md
+    /// section 6.7.1, "Store kind"; section 9): each place instance <paramref name="s"/> stores through, with the kind of the store, asked
+    /// of the instances the exhaustive visitor ITSELF asks about. One survey pass notes every wanted place an arm asks (the survey
+    /// answers no, so no arm stops early), and only those are asked their kind, so a statement's reads cost nothing beyond the survey and
+    /// no walk of the node's fields is made. Where <see cref="StorePositionsOf"/> starts from the places the statement holds, this starts
+    /// from the places the visitor asks.</summary>
+    internal static IEnumerable<(object Site, StoreKind Kind)> StorePositionsAmong(BoundStatement s, Func<object, bool> wanted)
+    {
+        List<object>? asked = null;
+        bool Note(object site)
+        {
+            if (!wanted(site)) return false;
+            asked ??= [];
+            foreach (var known in asked)
+                if (ReferenceEquals(known, site)) return false;
+            asked.Add(site);
+            return false;
+        }
+        s.Accept(new StoreKindVisitor(p => Note(p), StoreView.Operands, crossingsStore: true, direct: true, matchesIndex: t => Note(t)));
+        if (asked is null) yield break;
+        object? at = null;
+        var visitor = new StoreKindVisitor(p => ReferenceEquals(p, at), StoreView.Operands, crossingsStore: true, direct: true,
+            matchesIndex: t => ReferenceEquals(t, at));
+        foreach (var site in asked)
+        {
+            at = site;
+            visitor.Reset();
+            var kind = s.Accept(visitor);
+            if (kind == StoreKind.Write && visitor.StoredThroughWindow) kind = StoreKind.WriteInPart;
+            if (kind is not StoreKind.None) yield return (site, kind);
+        }
+    }
+
     /// <summary>The per-node store classification (the former <c>StoreKindOf</c> switch, one arm per leaf) —
     /// the exhaustive <see cref="IBoundStatementVisitor{T}"/> over the bound statements, carrying the target
     /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>. <paramref name="view"/> says whether a statement that
     /// stores into selected items of the operand it names answers for the operand or for those items.</summary>
     private sealed class StoreKindVisitor(Func<Place, bool> matches, StoreView view, bool crossingsStore, bool direct = false,
-        Func<FileModel, FileConnectorStore, IEnumerable<Place>>? connector = null) : IBoundStatementVisitor<StoreKind>
+        Func<FileModel, FileConnectorStore, IEnumerable<Place>>? connector = null,
+        Func<SetIndexTarget, bool>? matchesIndex = null) : IBoundStatementVisitor<StoreKind>
     {
         /// <summary>The first <see cref="Place"/> a matching store went through, or null (<see cref="DirectStoreOf"/> reads it).</summary>
         public Place? FirstHit { get; private set; }
@@ -153,7 +220,14 @@ public static class BoundStores
         /// <summary>True once a matching store went through a window of the item (see <see cref="Hit"/>); the visitor is
         /// one query's, single-threaded.</summary>
         public bool StoredThroughWindow { get; private set; }
-        private bool TargetHit(BoundSetTarget? t) => t is SetPlaceTarget sp && Hit(sp.Place);
+
+        /// <summary>Start the next question of the same visitor afresh (<see cref="StorePositionsAmong"/> asks one visitor of each site).</summary>
+        public void Reset() { FirstHit = null; StoredThroughWindow = false; }
+        private bool TargetHit(BoundSetTarget? t) => t is SetPlaceTarget sp ? Hit(sp.Place) : IndexHit(t as SetIndexTarget);
+
+        /// <summary>Does the statement store through the index-name receiver <paramref name="t"/>, which the query asks (only
+        /// <see cref="StorePositionsOf"/> and <see cref="StorePositionsAmong"/> do; the item queries ask of data items)?</summary>
+        private bool IndexHit(SetIndexTarget? t) => t is not null && matchesIndex is not null && matchesIndex(t);
         /// <summary>The RECEIVER of a bound <c>… INTO</c> implicit move (kb/Work PB348 — identifier-1 now rides
         /// the move rather than the I-O node). Asked of the move's own target list, which is the same single
         /// receiver the node used to hold.</summary>
@@ -350,7 +424,7 @@ public static class BoundStores
         public StoreKind Visit(BoundSetContent n) => n.Stores.Any(st => Hit(st.Target)) ? StoreKind.Write : StoreKind.None;
 
         // ── SEARCH ──────────────────────────────────────────────────────────────────────────────────────
-        public StoreKind Visit(BoundSearch n) => StoreOrKids(TargetHit(n.AlsoVaried), StoreKind.ReadWrite,
+        public StoreKind Visit(BoundSearch n) => StoreOrKids(TargetHit(n.AlsoVaried) || IndexHit(n.VaryingIndex), StoreKind.ReadWrite,
             n.AtEnd, [.. n.Whens.SelectMany(w => w.Statements)]);
 
         // ── ACCEPT / STRING / UNSTRING / INSPECT ────────────────────────────────────────────────────────

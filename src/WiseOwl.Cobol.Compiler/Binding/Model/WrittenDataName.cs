@@ -23,6 +23,17 @@ public readonly record struct WrittenDataName(string Name, IReadOnlyList<string>
     /// <summary>The operand as a diagnostic quotes it: <c>K OF G OF R</c>.</summary>
     public string Written => Qualifiers.Count == 0 ? Name : Name + " OF " + string.Join(" OF ", Qualifiers);
 
+    /// <summary>Where the operand is written: the resultant line (1-based) of its first token, 0 for an operand no source wrote (a
+    /// published entry read back from a repository, a refused operand's text, a key a SOURCE phrase names). Listing step 7b records the
+    /// operand's occurrence there (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
+    public int Line { get; init; }
+
+    /// <summary>The resultant column (0-based) of the operand's first token.</summary>
+    public int Column { get; init; }
+
+    /// <summary>The characters the operand is written in, its qualifiers included.</summary>
+    public int Length { get; init; }
+
     /// <summary>The data-name and its qualifiers, as written.</summary>
     public override string ToString() => Written;
 }

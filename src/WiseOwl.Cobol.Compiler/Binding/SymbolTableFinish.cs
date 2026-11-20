@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime.Communication;
 using WiseOwl.Cobol.Symbols;
@@ -391,7 +392,8 @@ internal static class SymbolTableFinish
 /// </summary>
 internal sealed class SymbolTableWriter(SymbolTable.EntryStore bound)
 {
-    private readonly List<(NameClass Class, string Name, SymbolPosition At, Func<Func<object, int?>, SymbolAttributes> Attributes)> _entries = [];
+    private readonly List<(NameClass Class, string Name, SymbolPosition At, Func<Func<object, int?>, SymbolAttributes> Attributes,
+        object Symbol)> _entries = [];
     private readonly Dictionary<object, int> _ids = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Write the entry <paramref name="id"/> the bind made (once) as the next entry, with its class, name and position.</summary>
@@ -408,17 +410,24 @@ internal sealed class SymbolTableWriter(SymbolTable.EntryStore bound)
     {
         if (!_ids.TryAdd(symbol, _entries.Count + 1))
             throw new InvalidOperationException($"the symbol table declared '{name}' twice");
-        _entries.Add((nameClass, name, at, attributes));
+        _entries.Add((nameClass, name, at, attributes, symbol));
     }
 
     /// <summary>Make <paramref name="other"/> name the entry <paramref name="symbol"/> was written as (the item a report group
     /// description entry describes names the entry).</summary>
     public void Alias(object other, object symbol) => _ids.TryAdd(other, _ids[symbol]);
 
-    /// <summary>The finished table: every entry with its attributes, each read now.</summary>
+    /// <summary>The finished table: every entry with its attributes, each read now, and the occurrences the bind recorded of it
+    /// (DESIGN-listing.md section 6.7.1), joined by the bind's entry id.</summary>
     public SymbolTableSnapshot Snapshot()
     {
         int? IdOf(object symbol) => _ids.TryGetValue(symbol, out int id) ? id : null;
-        return new SymbolTableSnapshot([.. _entries.Select((e, i) => new SymbolEntry(i + 1, e.Class, e.Name, e.At, e.Attributes(IdOf)))]);
+        var occurrences = bound.RecordsReferences
+            ? bound.Occurrences().ToLookup(static o => o.Entry, static o => o.Occurrence)
+            : null;
+        IReadOnlyList<SymbolOccurrence> OccurrencesOf(object symbol) =>
+            occurrences is not null && bound.IdOf(symbol) is { IsSet: true } id && occurrences.Contains(id) ? [.. occurrences[id]] : [];
+        return new SymbolTableSnapshot([.. _entries.Select((e, i) =>
+            new SymbolEntry(i + 1, e.Class, e.Name, e.At, e.Attributes(IdOf), OccurrencesOf(e.Symbol), CobolNames.UpperFold(e.Name)))]);
     }
 }

@@ -342,7 +342,7 @@ public sealed class HtmlListingRendererTests
         var document = JsonListingWriterTests.EveryMember();
         var page = Page(document);
         var margin = ById(page, HtmlListingRenderer.LineId(1)).Elements("a").Single(a => (string?)a.Attribute("class") == "mg");
-        Assert.Equal("#" + HtmlListingRenderer.DataItemId(document.Lines[0].Margin!.Item), (string?)margin.Attribute("href"));
+        Assert.Equal("#" + HtmlListingRenderer.DataItemId(document.Lines[0].Margin!.Item!.Value), (string?)margin.Attribute("href"));
         Assert.Equal("OFF=0 LEN=5 DISPLAY", margin.Value);
         var renames = ById(page, HtmlListingRenderer.DataItemId(2));   // REDEFINES #1, RENAMES #1 THRU #1
         Assert.Equal(3, renames.Descendants("a").Count(a => (string?)a.Attribute("href") == "#" + HtmlListingRenderer.DataItemId(1)));
@@ -367,6 +367,89 @@ public sealed class HtmlListingRendererTests
         Assert.Equal(expected.Select(ListingSections.Title), blocks.Select(b => b.Element("h2")!.Value));
         foreach (var status in document.Sections.Where(s => !s.Produced))
             Assert.Equal("Not produced: " + status.Reason, ById(page, HtmlListingRenderer.SectionId(status.Section)).Element("p")!.Value);
+    }
+
+    /// <summary>⛔ A NAME ON A SOURCE LINE IS A LINK, FOR EVERY KIND OF NAME (DESIGN-listing.md sections 6.7.1 and 7.2): each reference a
+    /// source line writes links to the line its symbol is defined on, a symbol with no listed definition links to its cross-reference
+    /// row, and each row lists the definition and every reference as links to their lines. The document holds one symbol per member of
+    /// <see cref="ListingSymbolKind"/> (read off the enum, so a kind added later is held to this the day it exists) and each expected link
+    /// is computed from the document's own references.</summary>
+    [Fact]
+    public void EveryKindOfName_LinksToItsDefinition_AndItsRowListsItsReferencesAsLinks()
+    {
+        var template = JsonListingWriterTests.EveryMember().Lines[3] with
+        {
+            Diagnostics = [], Margin = null, Replacement = ListingReplacement.None, Replaced = null, Names = [], Spans = [],
+        };
+        var lines = new List<ListingLine>();
+        var symbols = new List<ListingSymbol>();
+        var kinds = Enum.GetValues<ListingSymbolKind>().ToList();
+        int number = 0;
+        ListingLine Line(string text, IEnumerable<ListingNameUse>? names = null, IEnumerable<ListingSpan>? spans = null)
+        {
+            var line = template with { Number = ++number, Text = text, Names = [.. names ?? []], Spans = [.. spans ?? []] };
+            lines.Add(line);
+            return line;
+        }
+        for (int i = 0; i < kinds.Count; i++)
+        {
+            int id = i + 1;
+            string word = "NAME" + id;
+            int definedOn = Line("DEF " + word).Number;
+            // Two references on one line (a read, then a write) and the second on a line of its own: the links are per written name.
+            int usedOn = Line("XX " + word + " " + word + " YY",
+                kinds[i] == ListingSymbolKind.CopyMember ? null : [new ListingNameUse(4, word.Length, id, ListingUse.Read), new ListingNameUse(5 + word.Length, word.Length, id, ListingUse.Written)],
+                kinds[i] == ListingSymbolKind.CopyMember ? null : [new ListingSpan(4, word.Length, ListingSpanClass.UserWord), new ListingSpan(5 + word.Length, word.Length, ListingSpanClass.UserWord)]).Number;
+            bool copy = kinds[i] == ListingSymbolKind.CopyMember;
+            symbols.Add(new ListingSymbol(id, word, kinds[i], null, null,
+                [new ListingReference(id, definedOn, 5, word.Length, ListingUse.Defined, null),
+                 new ListingReference(id, usedOn, copy ? null : 4, word.Length, ListingUse.Read, null),
+                 new ListingReference(id, usedOn, copy ? null : 5 + word.Length, word.Length, ListingUse.Written, null)], false));
+        }
+        // A symbol with no listed definition (the standard declares it implicitly): its references link to its row.
+        int implicitId = symbols.Count + 1;
+        int implicitOn = Line("ZZ IMPLICIT", [new ListingNameUse(4, 8, implicitId, ListingUse.Read)], [new ListingSpan(4, 8, ListingSpanClass.UserWord)]).Number;
+        symbols.Add(new ListingSymbol(implicitId, "IMPLICIT", ListingSymbolKind.DebugRegister, null, null,
+            [new ListingReference(implicitId, implicitOn, 4, 8, ListingUse.Read, null)], false));
+
+        var document = JsonListingWriterTests.EveryMember() with
+        {
+            Lines = lines, Programs = [], Diagnostics = [], FlaggedConstructs = [], Displays = [], Statistics = null, DataMap = null,
+            ObjectCode = null, Inclusions = [],
+            CrossReference = new ListingCrossReference(symbols, [], []),
+            Sections = [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.CrossReference, true, null)],
+        };
+        var page = Page(document);
+
+        foreach (var symbol in symbols)
+        {
+            string expected = symbol.References.FirstOrDefault(r => r.Use == ListingUse.Defined)?.Line is { } line
+                ? "#" + HtmlListingRenderer.LineId(line)
+                : "#" + HtmlListingRenderer.SymbolId(symbol.Id);
+            // Every name the source writes of the symbol is one link, to its definition, over the word as written.
+            foreach (var use in symbol.References.Where(r => r.Use != ListingUse.Defined && r.Column is not null))
+            {
+                var row = ById(page, HtmlListingRenderer.LineId(use.Line!.Value));
+                var links = row.Descendants("a").Where(a => (string?)a.Attribute("class") == "nm").ToList();
+                var match = links.Where(a => a.Value == symbol.Name).ToList();
+                Assert.True(match.Count >= 1, $"{symbol.Kind}: no link over {symbol.Name} on line {use.Line}");
+                Assert.All(match, a => Assert.Equal(expected, (string?)a.Attribute("href")));
+            }
+        }
+        // The symbol with no listed definition links to its row, and the row exists.
+        var implicitLink = Assert.Single(ById(page, HtmlListingRenderer.LineId(implicitOn)).Descendants("a"), a => (string?)a.Attribute("class") == "nm");
+        Assert.Equal("#" + HtmlListingRenderer.SymbolId(implicitId), (string?)implicitLink.Attribute("href"));
+        Assert.NotNull(ById(page, HtmlListingRenderer.SymbolId(implicitId)));
+        // Each row lists the definition and then every reference as a link to its line, in the document's order.
+        foreach (var symbol in symbols.Where(s => s.Kind != ListingSymbolKind.CopyMember))
+        {
+            var row = ById(page, HtmlListingRenderer.SymbolId(symbol.Id));
+            var expectedLinks = symbol.References.Where(r => r.Line is not null).Select(r => "#" + HtmlListingRenderer.LineId(r.Line!.Value)).ToList();
+            Assert.Equal(expectedLinks, row.Descendants("a").Select(a => (string)a.Attribute("href")!).ToList());
+        }
+        // Every link of the page lands on an element it holds.
+        var ids = page.Descendants().Select(e => (string?)e.Attribute("id")).OfType<string>().ToHashSet();
+        Assert.All(page.Descendants("a").Select(a => (string)a.Attribute("href")!), href => Assert.Contains(href[1..], ids));
     }
 
     /// <summary>The model's text is printed as text: the characters markup gives a meaning are escaped, in an element and in an

@@ -399,7 +399,7 @@ internal sealed class LinkageBinder(DataBinder data)
             // condition tests the carrier's presence — the staged OptionalFormal rejection is lifted.
 
             string pname = dref.GetText();
-            var item = SymbolTable.IdentifyHeaderOperand(_roots, dref);
+            var item = data.Symbols.IdentifyHeaderOperand(_roots, dref);
             if (item is null)
             {
                 // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
@@ -468,7 +468,7 @@ internal sealed class LinkageBinder(DataBinder data)
             using var returningAt = data.Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             // §2023:14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
-            Returning = SymbolTable.IdentifyHeaderOperand(_roots, rref);
+            Returning = data.Symbols.IdentifyHeaderOperand(_roots, rref);
             if (Returning is null)
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "

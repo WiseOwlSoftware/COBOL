@@ -484,6 +484,9 @@ public sealed class OoClassTable
             _dialectLevel = edition.Edition.Year, _edition = edition, _importer = importer, _sources = sources,
             Skeletons = expanded.Skeletons,
         };
+        // The group's identifications record the references the program wrote only for a listing of the cross-reference
+        // (DESIGN-listing.md sections 6.7.1 and 9), from the first one the group makes.
+        if (edition.RecordsReferences) table.Entries.RecordReferences(edition.VerifiesStorePairing);
         var usedCsNames = new HashSet<string>(StringComparer.Ordinal);
 
         // §2023:11.3.3 SR1 / §2023:11.6.3 SR1 / §2023:11.7.3 SR1 — the AS phrase's literal, screened by the ONE screen

@@ -125,12 +125,14 @@ public sealed partial class SymbolTable
         same.fileName().Select(f => Key(f.GetText())).Distinct().Count();
 
     /// <summary>The level-01 record among <paramref name="records"/> (one file description entry's) that the DATA RECORDS clause's
-    /// data-name-1 <paramref name="written"/> names (§1985:VII.3.5.3 SR1); null when none does. The reference's occurrence is listing
-    /// step 7b's.</summary>
-    internal static DataItem? IdentifyDataRecord(IReadOnlyList<DataItem> records, Core.CobolWordContext written)
+    /// data-name-1 <paramref name="written"/> names (§1985:VII.3.5.3 SR1); null when none does. The clause is the reference itself,
+    /// so its occurrence is recorded.</summary>
+    internal DataItem? IdentifyDataRecord(IReadOnlyList<DataItem> records, Core.CobolWordContext written)
     {
         var key = Key(written.GetText());
-        return records.FirstOrDefault(r => r.Level == 1 && r.CobolName is { } n && Key(n) == key);
+        var item = records.FirstOrDefault(r => r.Level == 1 && r.CobolName is { } n && Key(n) == key);
+        if (item is not null) RecordData(item, written, report: true);
+        return item;
     }
 
     /// <summary>The SELECTed files SR3 screens, with the file-name as the SELECT wrote it.</summary>

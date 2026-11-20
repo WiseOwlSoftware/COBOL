@@ -118,6 +118,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// program-name (<see cref="ExternalizedProgramName"/>), which a CALL's literal-1 names.</summary>
     internal IReadOnlyDictionary<ExternalizedProgramName, CalleeSignature>? NestedCallables { get; set; }
 
+    /// <summary>The programs of the compilation group a CALL or CANCEL literal-1 of THIS unit can name, each by its externalized name: the
+    /// run-time resolver's four scope arms asked at bind time (<c>BinderDriver.ProgramsVisibleFrom</c>), which the cross-reference's CALL graph
+    /// reads (DESIGN-listing.md section 6.7.1, "The program-name literal"). A name not in it is an external program. Null unless the listing
+    /// records references (section 9). Set where <see cref="NestedCallables"/> is.</summary>
+    internal IReadOnlyDictionary<ExternalizedProgramName, BoundUnit>? ProgramsInScope { get; set; }
+
     /// <summary>True when two looked-up prototype signatures are both known and not <see cref="PrototypeSignatures.Same"/>.
     /// A side that is null names a prototype its tables do not hold — refused where it was declared — so the pair raises
     /// no signature fault of its own (one fault, one diagnostic). Every name-to-name signature screen of the SET, CALL and
@@ -414,6 +420,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // The receivers this statement identifies as it stores them (kb/Work PB5386): mark-on-entry / drain-own-suffix like the
         // two pending queues, so a nested statement's receivers are its own.
         int identificationMark = data.Procedure.ReceiverIdentifications.Mark();
+        // The symbol table's occurrences this statement's names record (DESIGN-listing.md section 6.7.1, "Store kind"): its MARK in
+        // the table's append order, classified below once the statement is bound; a nested statement classifies its own first.
+        var occurrenceMark = data.OccurrenceMark;
         // The operand-activation scope (kb/Work PB892): THIS statement's line is the one whose §2023:7.3.25 profile an
         // operand activation carries, and THIS statement counts only the activations it drains itself — both are
         // saved around a nested statement's bind and restored after it.
@@ -534,6 +543,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // DESIGN-listing.md section 6.9: the outermost node is the one the backend meets first, so it carries where the statement is written.
         // A node the verb binder returned from a nested statement keeps that statement's own.
         bound.Span ??= SpanOf(s);
+        // ⛔ THE ONE CLASSIFICATION OF A STATEMENT'S OCCURRENCES (DESIGN-listing.md section 6.7.1): each occurrence its names recorded
+        // since the mark is this statement's, read or at the store position its linked place stands at.
+        data.ClassifyOccurrences(occurrenceMark, core.At, s.Start, bound);
         return bound;
     }
 

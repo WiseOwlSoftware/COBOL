@@ -38,6 +38,14 @@ public sealed record TextInclusion(int Id, int? Parent, int Depth, SourceOrigin 
 {
     /// <summary>Whether 1-based resultant <paramref name="line"/> lies in this inclusion's library text.</summary>
     public bool Holds(int line) => ResultantFirst > 0 && line >= ResultantFirst && line <= ResultantLast;
+
+    /// <summary>The copy member this statement names, as the cross-reference lists it: the text-name, then <c>OF</c> and the library-name
+    /// when it writes one.</summary>
+    public string MemberName => LibraryName is { } library ? TextName + " OF " + library : TextName;
+
+    /// <summary>The Annex C fold of <see cref="MemberName"/> (<c>CobolNames.UpperFold</c>): the cross-reference's sort key, which every other
+    /// symbol's name has too (DESIGN-listing.md section 6.7), so <c>payrec</c> and <c>PAYREC</c> name one member.</summary>
+    public string MemberFold => WiseOwl.Cobol.Runtime.CobolNames.UpperFold(MemberName);
 }
 
 /// <summary>What changed the LISTING directive's state (<see cref="TextListingSwitch.Cause"/>).</summary>

@@ -42,10 +42,19 @@ internal sealed class LineDraft
     /// <summary>What the compiler read each stretch of the line's text as (<see cref="SyntaxSpanBuilder"/>), or null while none.</summary>
     public ListingSpan[]? Spans { get; set; }
 
+    /// <summary>The names written on the line (<see cref="CrossReferenceBuilder.MarkLines"/>), or null while none, which is every line
+    /// of a listing without the cross-reference, so such a line allocates nothing for them.</summary>
+    public List<ListingNameUse>? Names { get; private set; }
+
+    /// <summary>Place a name written on the line.</summary>
+    public void AddName(ListingNameUse name) => (Names ??= []).Add(name);
+
     /// <summary>The finished model line.</summary>
     public ListingLine ToLine() => new(Number, File, FileLine, Inclusion, Depth, Form, ListingLineKinds.Of(Kind), Text, Omitted,
         Listed, PageBreakBefore, Program, Replacement, Replaced, Diagnostics is { } ids ? ids.ToArray() : NoDiagnostics, Margin,
-        Spans ?? NoSpans);
+        Names is { } names ? names.ToArray() : NoNames, Spans ?? NoSpans);
+
+    private static readonly ListingNameUse[] NoNames = [];
 
     private static readonly int[] NoDiagnostics = [];
     private static readonly ListingSpan[] NoSpans = [];

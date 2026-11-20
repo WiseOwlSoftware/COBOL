@@ -93,8 +93,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         ProgramPrototype? prototype = null;
         // literal-1, as written or spelled by a constant-name (ISO §2023:13.10.3 SR2), asked ONCE: §2023:14.9.4.3 SR15's
         // presence test, the NESTED scope lookup and the static target all read it (kb/Work PB780).
-        var target = call.callTarget()?.sendingOperand();
-        ProgramNameOperand? literal1 = Literal1Of(target?.literal(), target?.dataReference());
+        var callTarget = call.callTarget();
+        var target = callTarget?.sendingOperand();
+        ProgramNameOperand? literal1 = Literal1Of(callTarget?.litProgramName1, target?.dataReference());
         if (call.callAsPhrase() is { } asPhrase)
         {
             // The grammar decided the brace (kb/Work PB764): the NESTED keyword arm is a formatWord, recognized
@@ -181,6 +182,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             // literal-1 too (kb/Work PB780), so `CALL K` is a static call of the program K's literal names.
             if (ProgramName(lit, "CALL", "§2023:14.9.4.3 SR2", "§1985:X.5.2.3 SR1") is not { } pn) return BoundRejected.Reported(ctx.Edition);
             literalName = pn;
+            RecordProgramName(callTarget?.litProgramName1, pn);
         }
         else if (target?.dataReference() is { } dref)
         {
@@ -1194,6 +1196,20 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         return name;
     }
 
+    /// <summary>⛔ THE OCCURRENCE OF A PROGRAM NAMED BY A LITERAL (DESIGN-listing.md sections 6.7 and 6.7.1, "The program-name literal"): the CALL
+    /// or CANCEL literal-1 <paramref name="written"/> names a program (§2023:14.9.4.3 SR2, §2023:14.9.5.3 SR2; §1985:X.5.2.3 SR1,
+    /// §1985:X.5.3.3 SR1), the one this element resolves <paramref name="name"/> to (the same four scope arms the run-time resolver applies),
+    /// or the external program of that name when the compilation group defines none; the occurrence is at the literal and the CALL graph's
+    /// edge. A literal a constant-name spells (§2023:13.10.3 SR2) is written as that constant's reference, which is the occurrence of its
+    /// position: no literal is written then (<paramref name="written"/> null), and its edge is a decision of the design, not a gap.</summary>
+    private void RecordProgramName(Core.LiteralContext? written, string name)
+    {
+        if (written is null) return;
+        var program = new ExternalizedProgramName(name);
+        ctx.Symbols.RecordProgramName(written, program,
+            host.ProgramsInScope is { } scope && scope.TryGetValue(program, out var reached) ? reached : null);
+    }
+
     /// <summary>THE program-prototype-name lookup (kb/Work PB237) — ONE place, because §2023:14.9.4.3 syntax rule 16
     /// ("Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph") and
     /// §2023:14.9.5.3 syntax rule 3 ("Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY
@@ -1224,12 +1240,13 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// statement binds.</summary>
     internal CalleeSignature? CalleeSignatureOf(Core.CallStatementContext call)
     {
-        var target = call.callTarget()?.sendingOperand();
+        var callTarget = call.callTarget();
+        var target = callTarget?.sendingOperand();
         if (call.callAsPhrase() is { } asPhrase)
         {
             if (asPhrase.formatWord() is null)
                 return (ctx.Symbols.Identify(asPhrase.cobolWord(), NameClass.ProgramPrototype, report: false)?.Symbol as ProgramPrototype)?.Signature;
-            BoundOperand? literal1 = target?.literal() is { } lit ? host.Expr.PeekNonNumericLiteralOperand(lit.nonNumericLiteral())
+            BoundOperand? literal1 = callTarget?.litProgramName1 is { } lit ? host.Expr.PeekNonNumericLiteralOperand(lit.nonNumericLiteral())
                 : target?.dataReference() is { } alias && host.Expr.LiteralAliasOf(alias) is { Constant.Category: not PicCategory.Numeric } constant
                     ? host.Expr.AliasOperand(constant)
                 : null;
@@ -1256,16 +1273,20 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindCancel(Core.CancelStatementContext cancel)
     {
         var targets = new List<(string?, BoundOperand?)>();
-        foreach (var t in cancel.cancelTarget().Select(target => target.sendingOperand()))
+        foreach (var cancelTarget in cancel.cancelTarget())
         {
-            if (Literal1Of(t.literal(), t.dataReference()) is { } lit)
+            var t = cancelTarget.sendingOperand();   // absent exactly when the target is a literal (the grammar's first alternative)
+            if (Literal1Of(cancelTarget.litProgramName1, cancelTarget.litProgramName1 is null ? t.dataReference() : null) is { } lit)
             {
                 // kb/Work PB130: the ONE reader (national + hex admitted per §2023:14.9.5.3 SR2 — the old
                 // rejection also miscited §2023:14.9.5.2 SR1); a bad target reports and the LOOP CONTINUES, so a
                 // statement with one illegal target no longer discards its legal ones. A constant-name is
                 // literal-1 too (§2023:13.10.3 SR2, kb/Work PB780).
                 if (ProgramName(lit, "CANCEL", "§2023:14.9.5.3 SR2", "§1985:X.5.3.3 SR1") is { } pn)
+                {
                     targets.Add((pn, null));
+                    RecordProgramName(cancelTarget.litProgramName1, pn);
+                }
             }
             else if (t.dataReference() is { } dref)
             {
