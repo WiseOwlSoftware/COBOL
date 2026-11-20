@@ -24,6 +24,11 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
+- **▶ THE FULL SOURCE LISTING HAS LANDED (2026-11-20, kb/Work PB5925, PB5932: `status: landed`).** Every step of
+  `docs/rearchitecture/DESIGN-listing.md` section 11 is on main (pull requests #1895 to #1906, the last merged as
+  99f658fbbf), with the owner's four listing reports (PB5948 to PB5951). It was the last 1985 item the owner named
+  (2026-11-18). Open beside it, none blocking 1985: PB5962 (the all-sections listing over its memory budget) and the
+  review leads PB5963 to PB5966; the gate-speed defects PB5967 to PB5970.
 - **▶ WHO RUNS WHAT (owner 2026-10-30: "Focus on fixing compiler bugs and getting to 100% deliverable"; "We should
   try and fix all single point bottlenecks").** The orchestrator loop runs on account 2 (the operator
   session) since 2026-11-14 17:49 PST. The operator runs the 2002 lanes (the golden lane gl2002, the read records, the fix
