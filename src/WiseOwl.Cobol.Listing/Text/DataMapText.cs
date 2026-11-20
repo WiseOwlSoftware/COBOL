@@ -19,83 +19,148 @@ public static class DataMapText
     /// access mode and records, and under it its keys, its reports and its connector (<see cref="FileDetails"/>).</summary>
     public static IEnumerable<string> Rows(ListingDataMap map, int width)
     {
+        var h = ItemHeadings;
         yield return string.Create(CultureInfo.InvariantCulture,
-            $"{"ID",6} {"LINE",6}  {"LVL",-3} {"KIND",-5}  {"NAME",-30} {"OFFSET",6} {"LENGTH",6} {"BYTES",6}  {"USAGE",-15} PICTURE");
-        var depth = new Dictionary<int, int>();
+            $"{h[0],6} {h[1],6}  {h[2],-3} {h[3],-5}  {h[4],-30} {h[5],6} {h[6],6} {h[7],6}  {h[8],-15} {h[9]}");
+        var depth = NestingOf(map.Items);
         foreach (var item in map.Items)
         {
-            int nesting = item.Owner is { } owner && depth.TryGetValue(owner, out int d) ? d + 1 : 0;
-            depth[item.Id] = nesting;
+            int nesting = depth[item.Id];
             string name = new string(' ', 2 * nesting) + item.Name;
             string row = string.Create(CultureInfo.InvariantCulture,
-                $"{item.Id,6} {Number(item.Line),6}  {Level(item.Level),-3} {KindWord(item.Kind),-5}  {name,-30} {Number(item.Offset),6} {Number(item.Length),6} {Number(item.Bytes),6}  {item.Usage ?? "",-15} {item.Picture ?? ""}");
+                $"{item.Id,6} {NumberText(item.Line),6}  {LevelText(item.Level),-3} {KindWord(item.Kind),-5}  {name,-30} {NumberText(item.Offset),6} {NumberText(item.Length),6} {NumberText(item.Bytes),6}  {item.Usage ?? "",-15} {item.Picture ?? ""}");
             foreach (string piece in TextListingRenderer.Indented(row.TrimEnd(), 0, NameColumn + 2 * nesting, width)) yield return piece;
             if (Details(item) is { Length: > 0 } details)
                 foreach (string piece in TextListingRenderer.Indented(details, NameColumn + 2 * nesting + 2, NameColumn + 2 * nesting + 4, width))
                     yield return piece;
         }
         yield return "";
-        yield return "FILES";
-        yield return string.Create(CultureInfo.InvariantCulture, $"{"ID",6} {"LINE",6}  {"NAME",-30} {"ORGANIZATION",-16} {"ACCESS",-10} RECORDS");
+        yield return FilesTitle;
+        var f = FileHeadings;
+        yield return string.Create(CultureInfo.InvariantCulture, $"{f[0],6} {f[1],6}  {f[2],-30} {f[3],-16} {f[4],-10} {f[5]}");
         foreach (var file in map.Files)
         {
             var row = new StringBuilder(string.Create(CultureInfo.InvariantCulture,
-                $"{file.Id,6} {Number(file.Line),6}  {file.Name,-30} {(file.SortMerge ? "SORT-MERGE" : file.Organization),-16} {(file.SortMerge ? "" : file.Access),-10} {string.Join(",", file.Records)}"));
-            if (file.External) row.Append("  EXTERNAL");
-            if (file.Global) row.Append("  GLOBAL");
+                $"{file.Id,6} {NumberText(file.Line),6}  {file.Name,-30} {OrganizationText(file),-16} {AccessText(file),-10} {string.Join(",", file.Records)}"));
+            foreach (string flag in FlagWords(file)) row.Append("  ").Append(flag);
             foreach (string piece in TextListingRenderer.Indented(row.ToString().TrimEnd(), 0, 16, width)) yield return piece;
             foreach (string piece in TextListingRenderer.Indented(FileDetails(file), 16, 18, width)) yield return piece;
         }
     }
 
+    /// <summary>The data map's headings: the entry's id, listing line, level, kind, name, offset, length, bytes, usage and picture.</summary>
+    public static readonly IReadOnlyList<string> ItemHeadings = ["ID", "LINE", "LVL", "KIND", "NAME", "OFFSET", "LENGTH", "BYTES", "USAGE", "PICTURE"];
+
+    /// <summary>The title of the file map, under the data map.</summary>
+    public const string FilesTitle = "FILES";
+
+    /// <summary>The file map's headings: the entry's id, listing line, name, organization, access mode and records.</summary>
+    public static readonly IReadOnlyList<string> FileHeadings = ["ID", "LINE", "NAME", "ORGANIZATION", "ACCESS", "RECORDS"];
+
+    /// <summary>A file map entry's organization as both renderers print it: <c>SORT-MERGE</c> for a sort-merge file, which has no
+    /// organization of its own, else its organization.</summary>
+    public static string OrganizationText(ListingFileEntry file) => file.SortMerge ? "SORT-MERGE" : file.Organization;
+
+    /// <summary>A file map entry's access mode as both renderers print it: none for a sort-merge file, else its access mode.</summary>
+    public static string AccessText(ListingFileEntry file) => file.SortMerge ? "" : file.Access;
+
+    /// <summary>The words a file map entry's EXTERNAL and GLOBAL clauses print as, in that order, each one it has.</summary>
+    public static IEnumerable<string> FlagWords(ListingFileEntry file)
+    {
+        if (file.External) yield return "EXTERNAL";
+        if (file.Global) yield return "GLOBAL";
+    }
+
+    /// <summary>Each entry's nesting under the entries that own it (<see cref="ListingDataItem.Owner"/>): 0 for an entry with no owner
+    /// written before it, one more than its owner's otherwise. The data map indents a name by it.</summary>
+    public static Dictionary<int, int> NestingOf(IReadOnlyList<ListingDataItem> items)
+    {
+        var depth = new Dictionary<int, int>(items.Count);
+        foreach (var item in items)
+            depth[item.Id] = item.Owner is { } owner && depth.TryGetValue(owner, out int d) ? d + 1 : 0;
+        return depth;
+    }
+
     /// <summary>What the second row of a file map entry says: its RECORD KEY, each ALTERNATE RECORD KEY (with DUPLICATES when the
     /// phrase is written), its RELATIVE KEY item, the reports its REPORT clause names, and the connector the run unit registers it under (with the field that holds an
     /// object's connector key).</summary>
-    public static string FileDetails(ListingFileEntry file)
+    public static string FileDetails(ListingFileEntry file) => Text(FileDetailParts(file));
+
+    /// <summary><see cref="FileDetails"/> as its parts: the text, and each data map entry it names as a part of its own
+    /// (<see cref="DataMapPart"/>), so the HTML listing links what the text listing prints.</summary>
+    public static IReadOnlyList<DataMapPart> FileDetailParts(ListingFileEntry file)
     {
-        var facts = new List<string>();
-        if (file.RecordKey is { } key) facts.Add("RECORD KEY " + KeyText(key));
-        foreach (var alternate in file.AlternateKeys) facts.Add("ALTERNATE KEY " + KeyText(alternate));
-        if (file.RelativeKey is { } relative) facts.Add(string.Create(CultureInfo.InvariantCulture, $"RELATIVE KEY #{relative}"));
-        if (file.Reports.Count > 0)
-            facts.Add("REPORTS " + string.Join(" ", file.Reports.Select(r => "#" + r.ToString(CultureInfo.InvariantCulture))));
-        facts.Add("CONNECTOR " + file.Connector + (file.ConnectorField is { } field ? " (.NET " + field + ")" : ""));
-        return string.Join("  ", facts);
+        var facts = new Facts();
+        if (file.RecordKey is { } key) { facts.Begin("RECORD KEY "); Key(facts, key); }
+        foreach (var alternate in file.AlternateKeys) { facts.Begin("ALTERNATE KEY "); Key(facts, alternate); }
+        if (file.RelativeKey is { } relative) { facts.Begin("RELATIVE KEY "); facts.Item(relative); }
+        if (file.Reports.Count > 0) { facts.Begin("REPORTS"); foreach (int report in file.Reports) { facts.Words(" "); facts.Item(report); } }
+        facts.Begin("CONNECTOR " + file.Connector + (file.ConnectorField is { } field ? " (.NET " + field + ")" : ""));
+        return facts.Parts;
     }
 
-    private static string KeyText(ListingFileKey key) =>
-        key.Name + " (" + string.Join(" ", key.Items.Select(i => "#" + i.ToString(CultureInfo.InvariantCulture))) + ")"
-            + (key.Duplicates ? " DUPLICATES" : "");
+    private static void Key(Facts facts, ListingFileKey key)
+    {
+        facts.Words(key.Name + " (");
+        bool first = true;
+        foreach (int item in key.Items) { if (!first) facts.Words(" "); facts.Item(item); first = false; }
+        facts.Words(")" + (key.Duplicates ? " DUPLICATES" : ""));
+    }
 
     /// <summary>What the second row of a data map entry says: every fact of the entry the first row does not print.</summary>
-    public static string Details(ListingDataItem item)
+    public static string Details(ListingDataItem item) => Text(DetailParts(item));
+
+    /// <summary><see cref="Details"/> as its parts: the text, and each data map entry it names (the DEPENDING ON item, the indexes,
+    /// the item redefined, the items renamed) as a part of its own, so the HTML listing links what the text listing prints.</summary>
+    public static IReadOnlyList<DataMapPart> DetailParts(ListingDataItem item)
     {
-        var facts = new List<string>();
+        var facts = new Facts();
         if (item.OccursMax is { } max)
-            facts.Add(item.OccursMin is { } min && min != max
+            facts.Begin(item.OccursMin is { } min && min != max
                 ? string.Create(CultureInfo.InvariantCulture, $"OCCURS {min} TO {max}")
                 : string.Create(CultureInfo.InvariantCulture, $"OCCURS {max}"));
-        if (item.DependingOn is { } depending) facts.Add(string.Create(CultureInfo.InvariantCulture, $"DEPENDING ON #{depending}"));
-        if (item.Indexes.Count > 0) facts.Add("INDEXED BY " + string.Join(" ", item.Indexes.Select(i => "#" + i.ToString(CultureInfo.InvariantCulture))));
-        if (item.Redefines is { } redefines) facts.Add(string.Create(CultureInfo.InvariantCulture, $"REDEFINES #{redefines}"));
+        if (item.DependingOn is { } depending) { facts.Begin("DEPENDING ON "); facts.Item(depending); }
+        if (item.Indexes.Count > 0) { facts.Begin("INDEXED BY"); foreach (int index in item.Indexes) { facts.Words(" "); facts.Item(index); } }
+        if (item.Redefines is { } redefines) { facts.Begin("REDEFINES "); facts.Item(redefines); }
         if (item.RenamesFrom is { } from)
-            facts.Add(item.RenamesThru is { } thru
-                ? string.Create(CultureInfo.InvariantCulture, $"RENAMES #{from} THRU #{thru}")
-                : string.Create(CultureInfo.InvariantCulture, $"RENAMES #{from}"));
-        if (item.Global) facts.Add("GLOBAL");
-        if (item.External) facts.Add("EXTERNAL");
-        if (item.Based) facts.Add("BASED");
-        if (item.TypeDeclaration) facts.Add("TYPE DECLARATION");
-        if (item.Implicit) facts.Add("IMPLICIT");
+        {
+            facts.Begin("RENAMES ");
+            facts.Item(from);
+            if (item.RenamesThru is { } thru) { facts.Words(" THRU "); facts.Item(thru); }
+        }
+        if (item.Global) facts.Begin("GLOBAL");
+        if (item.External) facts.Begin("EXTERNAL");
+        if (item.Based) facts.Begin("BASED");
+        if (item.TypeDeclaration) facts.Begin("TYPE DECLARATION");
+        if (item.Implicit) facts.Begin("IMPLICIT");
         if (item.Values.Count > 0)
-            facts.Add(item.Kind switch
+            facts.Begin(item.Kind switch
             {
                 ListingDataItemKind.Constant => "AS ",
                 ListingDataItemKind.CommunicationDescription => "FOR ",
                 _ => "VALUE ",
             } + string.Join(", ", item.Values));
-        if (item.NativeField is { } field) facts.Add($".NET {field} : {item.NativeType}");
-        return string.Join("  ", facts);
+        if (item.NativeField is { } field) facts.Begin($".NET {field} : {item.NativeType}");
+        return facts.Parts;
+    }
+
+    /// <summary>The text of <paramref name="parts"/>, as the text listing prints it.</summary>
+    public static string Text(IEnumerable<DataMapPart> parts) => string.Concat(parts.Select(p => p.Text));
+
+    /// <summary>The parts of a row of facts: each fact after the first separated by two spaces.</summary>
+    private sealed class Facts
+    {
+        public List<DataMapPart> Parts { get; } = [];
+
+        public void Begin(string words)
+        {
+            if (Parts.Count > 0) Words("  ");
+            Words(words);
+        }
+
+        public void Words(string words) => Parts.Add(new DataMapPart(words, null));
+
+        public void Item(int id) => Parts.Add(new DataMapPart("#" + id.ToString(CultureInfo.InvariantCulture), id));
     }
 
     /// <summary>The word a data map entry's kind is printed as.</summary>
@@ -110,7 +175,15 @@ public static class DataMapText
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a data map entry kind with no word"),
     };
 
-    private static string Number(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "-";
+    /// <summary>A number of a data map or file map row as both renderers print it: a number the map does not hold is <c>-</c>.</summary>
+    public static string NumberText(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "-";
 
-    private static string Level(int? level) => level?.ToString("00", CultureInfo.InvariantCulture) ?? "";
+    /// <summary>A level-number as both renderers print it: two digits, none for an entry with no level-number.</summary>
+    public static string LevelText(int? level) => level?.ToString("00", CultureInfo.InvariantCulture) ?? "";
 }
+
+/// <summary>A piece of a data map row's facts (<see cref="DataMapText.DetailParts"/>, <see cref="DataMapText.FileDetailParts"/>): its
+/// text, and the <see cref="ListingDataItem.Id"/> it names when it names an entry (its text is then <c>#id</c>).</summary>
+/// <param name="Text">The text as the text listing prints it.</param>
+/// <param name="Item">The data map entry the piece names, or null for words.</param>
+public readonly record struct DataMapPart(string Text, int? Item);

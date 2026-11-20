@@ -12,7 +12,7 @@ public static class OptionsText
     /// wrapped under itself.</summary>
     public static IEnumerable<string> Rows(IReadOnlyList<ListingOption> options, int width)
     {
-        yield return TextListingRenderer.Columns(("OPTION", OptionNameWidth), ("ORIGIN", OriginWidth)) + "VALUE";
+        yield return TextListingRenderer.Columns((Headings[0], OptionNameWidth), (Headings[1], OriginWidth)) + Headings[2];
         foreach (var option in options)
         {
             // The value starts on the option's row and goes on under itself.
@@ -27,6 +27,9 @@ public static class OptionsText
     }
 
     private const int OptionNameWidth = 24, OriginWidth = 11;
+
+    /// <summary>The options section's headings: the option, where its value comes from, and its value.</summary>
+    public static readonly IReadOnlyList<string> Headings = ["OPTION", "ORIGIN", "VALUE"];
 
     /// <summary>The word an option row's origin is printed as.</summary>
     public static string OriginWord(ListingOptionOrigin origin) => origin switch

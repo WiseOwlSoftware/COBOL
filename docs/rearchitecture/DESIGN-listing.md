@@ -18,10 +18,12 @@
 > compilation group's tier; the data-name lane's first slice, branch `listing-step-6b-data`: the DEBUG-ITEM, type, CAPACITY register and
 > index-names; the closing slice's first session, branch `listing-step-6b-close`: the data-name, condition-name and screen-name tables,
 > the USE and WHEN file registers, the end markers; the data-name and condition-name RESOLUTION remains, 86 baseline entries; sections
-> 6.7.1 "Step 6b, as built so far" and 11); steps 7b (the occurrences and the cross-reference, which stand on 6b and on the entry
-> ids 6b's remaining slices owe: section 11, "Step 7b, dispatched early") and 9 not yet built.** Where building a step proved this document wrong it was
+> 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); step 7b (the
+> occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
+> dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
+> part of this design not yet built and why.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
-> "(step 6)", "(step 6b)", "(step 7a)" or "(step 8)" in the section it changed.
+> "(step 6)", "(step 6b)", "(step 7a)", "(step 8)" or "(step 9)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -329,7 +331,8 @@ parses a list (`Spelling`, `Spellings`, `TryParse`, `StandardSpelling`, `AllSpel
 set back through it. `ListingRequest.SectionsProblem` (at least one section) is asked by the constructor and the `init`
 accessor like the request's other rules; `Sections` is an init property beside the positional ones, `Standard` unless set.
 (Step 2:) `ListingFormats` has `Text` and `Json` only: a format joins the enum WITH its renderer, so `Html` is added by
-step 9, and no request can name a format the compiler cannot write. ONE table, `ListingOutput`, holds each format's
+step 9, and no request can name a format the compiler cannot write. (Step 9:) `ListingFormats.Html` (`html`, `.lst.html`) joined
+with `HtmlListingRenderer`. ONE table, `ListingOutput`, holds each format's
 command-line spelling, file extension and renderer (`Spelling`, `Extension`, `Render`, `TryParse`, `Each`); the listing's
 exit writes files through it and the command line prints `-` through it, and `ListingOutputTests` calls every switch for
 every member. `ListingRequest.FormatsProblem` is the one rule for formats (at least one; exactly one when `OutputBase` is
@@ -1870,7 +1873,8 @@ GR2), in the order the directives were processed (GR1).
 ### 6.11 Conformance flags
 
 The edition flags (COBOL0903 obsolete, COBOL0902 removed under `--permissive`, COBOL2894 with `--flag-extensions`) are
-diagnostics and print inline; the summary adds a table of flagged constructs by edition.
+diagnostics and print inline; the summary adds a table of flagged constructs by edition. (Step 9, the check of what is built:) the
+table is not built, and no step of section 11 named it: kb/Work PB5947.
 
 ## 7. The renderers
 
@@ -1885,6 +1889,17 @@ not. The text renderer dispatches on `ListingSection` in one place (`TextListing
 `SectionOrder`, `TitleOf` and `ListingSections.Spelling` total over the enum: a section added without its place in the text
 listing is red at test time, as a format without its renderer is (`ListingOutputTests`). Step 9 builds the visitor with
 HTML, the second renderer that walks sections.
+(Step 9:) built as `IListingSectionVisitor<T>` (one method per member of `ListingSection`, each returning the renderer's form of
+one PRODUCED section) and its one dispatch, `ListingSectionVisitor.Visit`, a switch that throws on a member it does not know and
+that `ListingSectionsTests.EverySection_IsVisitedByTheMethodOfItsName` calls for every member: a section added to the enum without
+its arm is red at test time, and one added to the interface without its method in a renderer does not compile. The text renderer
+visits through it (`TextListingRenderer.Sections`, which replaced its own switch `RowsOf`) and so does the HTML renderer
+(`HtmlListingRenderer.Sections`). The order and the titles are one table for both renderers: `TextListingRenderer.SectionOrder`
+and `TitleOf` moved to `ListingSections.Order` and `ListingSections.Title` (the old members deleted), so the HTML page presents the
+sections in the text listing's order by construction. (Step 9, correction:) `IListingRenderer` is NOT built: the formats' one
+table, `ListingOutput` (section 4.2), already dispatches each format to its renderer in one switch that `ListingOutputTests` holds
+total, and the JSON writer walks no section, so an interface implemented by three classes would be a second statement of that
+switch, kept in step with it by nothing.
 
 ### 7.1 Paginated text (`TextListingRenderer`)
 
@@ -1907,6 +1922,56 @@ omitted lines are present but collapsed and greyed; each statement opens its met
 instructions beside it. Links come from
 each line's `ListingLine.Names` (built once from the reference occurrences, section 6.7.1) and the definitions' reference
 lists from `ListingCrossReference`; the renderer joins nothing and computes nothing.
+
+(Step 9:) built as `HtmlListingRenderer` (`src/WiseOwl.Cobol.Listing/Html`, namespace `WiseOwl.Cobol.Listing.Html` in the `listing`
+layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. What the page holds:
+- The identification (the compiler, the source, the edition, the instant, the outcome and the parse) and every file read with its
+  digest; a bar of links to each section held, with the filter (text on a source line; only the lines with diagnostics) and the
+  expand / collapse buttons, the page's one script.
+- Each section the document holds, in `ListingSections.Order`, titled `ListingSections.Title`; a section asked for and not produced
+  says `Not produced: <reason>` (section 4.3).
+- The source section: every line of `ListingDocument.Lines` is a row (`id="L<n>"`) with its number, depth mark, marker
+  (`TextListingRenderer.MarkerOf`), file line and text (DATE-COMPILED's replacement in its place, as the text listing prints it);
+  a `PageBreakBefore` line carries a rule on screen and `break-before: page` in print. Each inclusion that has lines is a `<details>`
+  block (`id="I<n>"`) opened by the text listing's banner (`TextListingRenderer.Banner`), nested as the inclusions nest, collapsed
+  when its COPY statement wrote SUPPRESS. Each run of consecutive lines of one inclusion that the text listing does not print
+  (`ListingLine.Listed` false; a further DATE-COMPILED comment-entry line; an omitted line) is a collapsed block whose summary says
+  how many lines, why, and which (`HtmlListingRenderer.HiddenReason`), its lines greyed: section 7.2's "present but collapsed and
+  greyed" read for all three, since an omitted line, which the text listing prints marked 'X' (open question 5), is the kind 7.2
+  names. Inside a SUPPRESS block no run is made, the block itself being the collapse. A DISPLAY transfer stands outside any
+  collapsed block (§2023:7.3.12.4 GR2: the transfer takes place "irrespective of whether it is suppressed by the LISTING
+  directive"), where the text listing prints it whether or not it prints its line: a run of hidden lines ends at a line with a
+  transfer, and (review round 1) a SUPPRESS block, which cannot end there, is closed before the transfer from its outermost SUPPRESS
+  block in; the next line of the inclusion reopens it as its continuation (its banner and "(continued)", no second id). Under a line: its compiled text when a replacing action changed it ('R' rows), each
+  diagnostic placed on it (`id="D<n>"`, `TextListingRenderer.DiagnosticText`) with the character its column names marked in the line's text
+  (a supplementary-plane character one position), and each stretch of its object code (`ListingObjectRange`, by its `Line`) as a
+  collapsed block naming its method and IL range, its instructions when the object-code section was asked for.
+- The links between the model's own records: a margin to its data map entry, a data map or file map entry's line and the entries its
+  facts name, the program map's first and last lines, the object-code map's lines and methods, each verb's lines, and the
+  diagnostic summary to each diagnostic placed on a line. A link is written only to an element the page holds (a line, when the
+  source section is held; an entry, when the data map is), so no link dangles. The facts an entry names are one statement for both
+  renderers: `DataMapText.DetailParts` and `FileDetailParts` give each fact's words and each entry it names as a `DataMapPart`; the
+  text prints `#<id>`, the page links it.
+- (Step 9, review round 1:) ⛔ ONE SET OF WORDS. Every word the page shares with the text listing is the text listing's, read from
+  the helper that prints it there, never typed a second time: the identification (`TextListingRenderer.CompilerText`,
+  `EditionText`), a section not produced (`ListingSections.NotProduced`), the diagnostic rows (`DiagnosticText`, `CountsText`,
+  `PlaceText`), the DISPLAY rows (`DisplayText`), the 'R' rows (`ReplacedMarker`), each table's headings (`ProgramMapText.Headings`,
+  `OptionsText.Headings`, `DataMapText.ItemHeadings` and `FileHeadings`, `ObjectCodeText.MethodHeadings` and `RangeHeadings`,
+  `StatisticsText.VerbHeadings`), the notes (`ProgramMapText.RecoveredNote`, `StatisticsText.RecoveredNote` and `NotParsedNote`,
+  `ObjectCodeText.NoCodeNote`), the data and file map's numbers and words (`DataMapText.NumberText`, `LevelText`,
+  `OrganizationText`, `AccessText`, `FlagWords`), the object code's (`ObjectCodeText.Token`, `RangeText`, `StretchText`; the
+  disassembler's branch targets spell offsets through the same `Offset`), and the statistics' labels and counts (`StatisticsText`'s
+  labels, `CountsText`, `DiagnosticCountsText`). Only the page's own form is its own: the diagnostic summary's and the file table's
+  column headings, the DETAILS and ATTRIBUTES columns, the summaries of its collapsed blocks. The Unit assembly's
+  `HtmlListingRendererTests.EveryWordThePageSharesWithTheText_IsTheTextListings` renders one document holding every section both
+  ways and finds each shared word of the page in the text listing.
+- The markup is well-formed XML as well as HTML (every element closed, the five XML characters escaped by the one
+  `HtmlListingRenderer.Escape`, the script in a CDATA section), so the tests read the page with `XmlReader` and find each row by the
+  renderer's id functions (`LineId`, `DiagnosticId`, `InclusionId`, `DataItemId`, `FileEntryId`, `ProgramId`, `MethodId`,
+  `SectionId`).
+(Step 9, not built:) every NAME on a source line linking to its definition, and every definition listing its references, stand on
+`ListingLine.Names` and `ListingCrossReference`, which step 7b adds to the model with the occurrences (section 11, "Step 7b,
+dispatched early"); neither member exists, so the page links what the model holds and step 7b adds the name links with them.
 
 ### 7.3 JSON (`JsonListingWriter`) and its schema
 
@@ -1980,7 +2045,8 @@ the repository for reference. The schema file name carries the major (`listing-v
 
 Every value is validated in `Program.BuildParser` the way `--std` is (an argument error, never a COBOL diagnostic).
 (Step 2:) `--listing-format` takes one format per occurrence (`AllowMultipleArgumentsPerToken` off, so a following source
-path is never taken for a format) and accepts `text` and `json`; `html` is refused until step 9 builds its renderer. A
+path is never taken for a format) and accepts `text` and `json`; `html` is refused until step 9 builds its renderer ((step 9) it
+does: `html` is accepted). A
 validator on the root command applies `ListingRequest.FormatsProblem` to the two options together (`-` with two formats is
 an argument error). With `-`, `RunCompile` prints `ListingOutput.Render` of the one format before the diagnostics; the
 `>>DISPLAY` lines that go to standard output follow it there, so a JSON listing on standard output is followed by them
@@ -2103,6 +2169,13 @@ renderer. Naming it asks for a listing at any edition.
   two runs or within 0.04 MB of them (IX113A 68.32 and 68.29 MB against 68.33 and 68.33); NC105A's lie one below both parent runs and
   one 0.55 MB above them (34.60 and 35.26 MB against 34.61 and 34.71), inside the program's run-to-run spread on one tree (slice 3's
   four runs each). The slice moves no measurable allocation; the `None` budget holds (the README's step-6b table, the closing slice).
+  (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
+  +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
+  times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the
+  file). Over its 25 % budget, as the row was since step 8: kb/Work PB5941, whose dated file `2026-11-19-step-9-html-row` records
+  the rows and the fix they point to (each renderer writing to the file's stream, not to a string; the instructions shown once).
+  The `None` rows lie within the full compile's run-to-run spread of the parent's (0.37 to 1.86 MB): step 9 changes nothing a
+  compilation without a listing runs.
 
 ## 10. Test plan
 
@@ -2190,6 +2263,18 @@ captured listing.
    name slot; the name rules and reference rules are what the ATN computes; the counter over `NameSlotFixture.g4` reports
    exactly its five planted failures, each at its slot (section 6.7.1). Its first commit on the branch is the test red on the
    unlabelled grammar.
+7d. **HTML (step 9).** `HtmlListingRendererTests` (Unit, over `JsonListingWriterTests.EveryMember`, the document holding every
+   member): the page is self-contained and well-formed, every id unique and every link landing on an element of the page; every line a
+   row with its text and file line, a page break where the model has one; an inclusion an open block, a suppressed one collapsed, a
+   line not listed in a collapsed run inside its inclusion's block; a diagnostic under its line, its column marked (a
+   supplementary-plane character one position), the summary linking to it and not linking one placed on no line; the compiled text,
+   the DISPLAY transfer and the object code under their line; the margin, the data map's facts, the file map, the object-code map and
+   the verbs linked; each section in `ListingSections.Order` and one not produced saying why; markup in the source printed as text.
+   `ListingHtmlTests` (Conformance): a compiled program's page, every row's text the input files' lines, the library text in its
+   inclusion's block, the margin and the data map entry linked both ways, the DISPLAY statement's object code; a program the binder
+   refuses writes its page with the error under its line and its column marked. `ListingSectionsTests.EverySection_IsVisitedByTheMethodOfItsName`
+   holds the visitor's dispatch total; `ListingOutputTests` and `ListingCliTests` take `html`. Each was mutated red (the visitor's
+   `ObjectCode` arm removed, the `html` spelling removed, the `<` escape removed, the collapsed run disabled) and green restored.
 8. **Failed compilations.** One test per kind of outcome (section 4.6): the sections present and the
    `ListingSectionStatus` of each absent one; the failed-parse test of section 4.4 (the listed pass). (Step 1:)
    `tests/WiseOwl.Cobol.Tests.Conformance/Listing/ListingOutcomeTests.cs`, beside the 1985 class's failed-compilation
@@ -2386,7 +2471,10 @@ identified answer is not what the finish declares (a constant's `ConstantDef` ag
 ordering-name's string, a paragraph's per-lookup `ParagraphDefinition(Pc)`, a report group's candidates), and several classes
 (procedure, CONFIGURATION SECTION, prototype, DEBUG-ITEM and OO names) have no entry at all. Step 7b therefore waits for step 6b's
 remaining slices, which give each declared name its entry id as its declaration moves (section 6.7.1's `SymbolId`); step 7b then joins
-every occurrence to its entry by that id, never by the answer.
+every occurrence to its entry by that id, never by the answer. (Step 9:) when step 7b adds `ListingLine.Names` and
+`ListingCrossReference` to the model, it also adds their HTML (section 7.2): each name on a source line linked to its definition,
+each definition's references listed as links, and the cross-reference section's method in `IListingSectionVisitor<T>`, which the
+text and HTML renderers then must both implement to compile.
 
 **Step 8 - COBOL to object-code map. BUILT (branch `listing-step-8`; the corrections above marked "step 8").** Inside the Roslyn
 backend, behind the seam: the `#line` directives written by `StatementEmitter.EmitStatement` through `CodeWriter.MapStatement` and the
@@ -2395,7 +2483,26 @@ portable PDB (`RoslynBackend.Compile`'s `EmitOptions`), from `BoundStatement.Spa
 `object-code`; `SequencePointCoverageDriftTests`, `ListingBackendNeutralityDriftTests`; backend diagnostics placed through their
 COBOL positions; the `All` row.
 
-**Step 9 - HTML.** `HtmlListingRenderer`, reading `ListingLine.Names` and the cross-reference only; the `All` row with HTML.
+**Step 9 - HTML. BUILT (branch `listing-step-9`; the corrections above marked "step 9").** `HtmlListingRenderer`, reading
+`ListingLine.Names` and the cross-reference only; the `All` row with HTML. (Step 9:) built: `HtmlListingRenderer` (section 7.2),
+`ListingFormats.Html`, `IListingSectionVisitor<T>` and `ListingSectionVisitor.Visit` with both renderers visiting through them
+(section 7), `ListingSections.Order` and `Title` in place of the text renderer's own, `DataMapText.DetailParts` and
+`FileDetailParts`; `--listing-format html`; the benchmark's `All` mode writes every format (section 9). The page reads what the
+model holds; `ListingLine.Names` and the cross-reference do not exist yet, so the name links join with them in step 7b.
+
+**What is not built (checked at step 9 against every section of this document).** Each part below is a kb/Work item, never a silent
+gap:
+- Section 6.7 and 6.7.1's occurrences, the cross-reference section (`xref`), `ListingLine.Names`, the statement line's margin
+  (section 6.2), the statistics' counts of names and uses (section 4.1's table) and the HTML name links (section 7.2): step 7b, which
+  waits for step 6b's remaining slices (section 11 "Step 7b, dispatched early"; kb/Work PB5925's dated file
+  `2026-11-19-step-7b-not-buildable-yet`).
+- Section 6.7.1's one store: step 6b's data-name and condition-name resolution by text, 86 baseline entries (kb/Work PB5932).
+- Section 6.11's table of flagged constructs by edition in the diagnostic summary: never built by step 3, which built the
+  diagnostics (the edition flags print inline as every diagnostic does); found by this check, kb/Work PB5947.
+- Section 2.2's two 2002 DOC rows (`2002-DOC-B.1-90`, `-165`): documented in DOC-A.1-117 and DOC-A.1-200 but held at GAP by kb/Work
+  PB5930.
+- Section 9's `All` budget: over 25 % since step 8 (kb/Work PB5941); step 9's HTML adds to it (section 9, step 9).
+- Section 7's `IListingRenderer`: not built by decision (section 7, step 9 correction).
 
 ## 12. Documents and records that change with the listing
 
@@ -2408,7 +2515,8 @@ and derivations PB5923 and section 10 name; `docs/manual/user-guide/command-line
 
 1. **Which sections by default?** Recommendation: `standard` (source, diagnostics, options, programs, statistics), the
    rest with `--listing-sections`. IBM's defaults are similar (NOMAP NOXREF NOLIST) and the full set costs a bound-tree
-   walk. Decided again from the benchmark rows steps 6 to 9 land (section 9).
+   walk. Decided again from the benchmark rows steps 6 to 9 land (section 9). (Step 9:) decided: `standard` stays the default. The
+   rows of steps 6, 8 and 9 put `all` at 35 % and more over no listing (kb/Work PB5941), and `standard` inside its 10 %.
 2. **Should JSON contain every section regardless of `--listing-sections`?** Recommendation: no; one request, one
    document, so the three formats always agree.
 3. **Diagnostics carrying their citation as data.** DECIDED in step 3: NO second copy; the message is the one source of a

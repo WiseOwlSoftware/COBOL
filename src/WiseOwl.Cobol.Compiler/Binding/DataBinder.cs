@@ -3391,7 +3391,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// every pair of a list is asked (<c>VALUE 1 THRU 3, 9 THRU 7</c>).
     /// <para>a) is §2023:14.7.8 GR1's algebraic order and always applies: a numeric conditional variable's pair, or
     /// a pair of numeric literals on a numeric-edited one (their class is numeric whatever the subject's). b) is
-    /// rule 2's collating sequence — the <c>IN alphabet-name-1</c> alphabet, else the PROGRAM COLLATING SEQUENCE,
+    /// §2023:14.7.8 GR2's collating sequence — the <c>IN alphabet-name-1</c> alphabet, else the PROGRAM COLLATING SEQUENCE,
     /// else the native order — read through the SAME <see cref="ConditionValueOrder"/> SR27 b) reads, and
     /// "known" is the one determination both rules share (docs/CONFORMANCE.md §3, D-RANGE-KNOWN): every sequence
     /// this processor fixes at compile time is known, and only a LOCALE sequence (SR26 NOTE, "<i>The runtime

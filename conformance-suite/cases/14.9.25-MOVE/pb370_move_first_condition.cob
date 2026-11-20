@@ -40,7 +40,7 @@
       *>      the sender's EC-BOUND-REF-MOD is first.
       *>   J  MOVE BX TO X (1:L): the mirror - EC-DATA-PTR-NULL.
       *>   H  EVALUATE V WHEN "Z" THRU "A" ... WHEN T (I): the first
-      *>      condition is NONFATAL - §2023:14.7.8 2) sets EC-RANGE-INVALID
+      *>      condition is NONFATAL - §2023:14.7.8 GR2 sets EC-RANGE-INVALID
       *>      for a range whose start is greater than its end, and
       *>      "upon completion of any exception processing, execution
       *>      proceeds as if the range of values were empty" - so its

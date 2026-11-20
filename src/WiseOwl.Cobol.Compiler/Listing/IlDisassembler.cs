@@ -7,6 +7,7 @@ using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using WiseOwl.Cobol.Listing.Text;
 
 namespace WiseOwl.Cobol.Listing.Building;
 
@@ -56,12 +57,12 @@ internal static class IlDisassembler
             case OperandType.ShortInlineBrTarget:
             {
                 int delta = unchecked((sbyte)il[at++]);
-                return Target(at + delta);
+                return ObjectCodeText.Offset(at + delta);
             }
             case OperandType.InlineBrTarget:
             {
                 int delta = ReadInt32(il, ref at);
-                return Target(at + delta);
+                return ObjectCodeText.Offset(at + delta);
             }
             case OperandType.ShortInlineI:
                 return unchecked((sbyte)il[at++]).ToString(CultureInfo.InvariantCulture);
@@ -101,7 +102,7 @@ internal static class IlDisassembler
                 int count = ReadInt32(il, ref at);
                 int origin = at + 4 * count;
                 var targets = new string[count];
-                for (int i = 0; i < count; i++) targets[i] = Target(origin + ReadInt32(il, ref at));
+                for (int i = 0; i < count; i++) targets[i] = ObjectCodeText.Offset(origin + ReadInt32(il, ref at));
                 return "(" + string.Join(", ", targets) + ")";
             }
             case OperandType.InlineField or OperandType.InlineMethod or OperandType.InlineType or OperandType.InlineTok
@@ -121,8 +122,6 @@ internal static class IlDisassembler
         at += 4;
         return value;
     }
-
-    private static string Target(int offset) => string.Create(CultureInfo.InvariantCulture, $"IL_{offset:X4}");
 
     /// <summary>A string operand as ILDASM writes one: in quotation marks, a quotation mark, a backslash and a control character
     /// escaped.</summary>

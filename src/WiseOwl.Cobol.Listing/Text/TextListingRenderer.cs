@@ -22,8 +22,9 @@ namespace WiseOwl.Cobol.Listing.Text;
 /// <para>Under a line a replacing action changed (marked 'R'), its compiled text in rows marked 'R' (<see cref="ReplacedRows"/>);
 /// after a DISPLAY directive's line, whether or not that line is printed, each transfer to the listing as
 /// <c>DISPLAY: text</c> (<see cref="DisplayRows"/>; DESIGN-listing.md section 6.10).</para>
-/// <para>The sections are printed in <see cref="SectionOrder"/>, each starting a page (section 7.1). This class composes the pages
-/// and prints the source section and the diagnostics summary; each other section's rows are its own class's
+/// <para>The sections are printed in <see cref="ListingSections.Order"/>, each starting a page (section 7.1), each visited through
+/// <see cref="IListingSectionVisitor{T}"/>. This class composes the pages and prints the source section and the diagnostics
+/// summary; each other section's rows are its own class's
 /// (<see cref="OptionsText"/>, <see cref="ProgramMapText"/>, <see cref="StatisticsText"/>, <see cref="DataMapText"/>,
 /// <see cref="ObjectCodeText"/>), so a section added is a class added.</para>
 /// </summary>
@@ -39,70 +40,62 @@ public static class TextListingRenderer
     public static readonly string Ruler = new string(' ', TextColumn - 1)
         + string.Concat(Enumerable.Range(1, TextWidth / 10).Select(n => "----+----" + (n % 10).ToString(CultureInfo.InvariantCulture)));
 
-    /// <summary>The order the sections are printed in (DESIGN-listing.md section 7.1): options, source with inline diagnostics,
-    /// program map, data map, statistics and verbs, object-code map, object code, diagnostic summary. Every member of <see cref="ListingSection"/> once (the Unit
-    /// assembly's <c>ListingSectionsTests.EverySection_HasOneSpelling_OneTitle_AndOnePlaceInTheTextOrder</c> holds it so).</summary>
-    public static readonly IReadOnlyList<ListingSection> SectionOrder =
-        [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.DataMap, ListingSection.Statistics,
-         ListingSection.ObjectMap, ListingSection.ObjectCode, ListingSection.Diagnostics];
-
     /// <summary>Render <paramref name="document"/> as the paginated text listing <paramref name="request"/> asks for: each section
-    /// the document holds (<see cref="ListingDocument.Sections"/>), in <see cref="SectionOrder"/>, each starting a page; a section
-    /// that could not be produced prints why. One buffer holds every section: the listing is never copied to join them.</summary>
+    /// the document holds (<see cref="ListingDocument.Sections"/>), in <see cref="ListingSections.Order"/>, each starting a page; a
+    /// section that could not be produced prints why. One buffer holds every section: the listing is never copied to join them.</summary>
     public static string Render(ListingDocument document, ListingRequest request)
     {
         var listing = new StringBuilder();
-        // Outside the source section a heading names the first outermost program (section 6.1).
-        string? firstProgram = document.Programs.FirstOrDefault(p => p.Depth == 0)?.Name;
+        var sections = new Sections(document, request);
         var header = document.Header;
         int pages = 0;
-        foreach (var section in SectionOrder)
+        foreach (var section in ListingSections.Order)
         {
             if (document.Sections.FirstOrDefault(s => s.Section == section) is not { } status) continue;
             if (pages > 0) listing.Append(PageComposer.FormFeed);
+            string title = ListingSections.Title(section);
             IReadOnlyList<string> Heading(int page, string? program) => section == ListingSection.Source
                 ? [IdentificationLine(header, program, page, request.PageWidth),
-                   KeepEnd(TitleOf(section) + "  ", header.MainSource, request.PageWidth), "", Ruler]
-                : [IdentificationLine(header, program, page, request.PageWidth), TitleOf(section), ""];
-            IReadOnlyList<ListingRow> rows = !status.Produced
-                ? [.. Indented("Not produced: " + status.Reason, 0, 2, request.PageWidth).Select(r => new ListingRow(r, false, firstProgram))]
-                : section == ListingSection.Source ? SourceRows(document, request)
-                : [.. RowsOf(section, document, request.PageWidth).Select(r => new ListingRow(r, false, firstProgram))];
-            pages += PageComposer.Compose(listing, rows, request.PageLength, Heading, firstPage: pages + 1);
+                   KeepEnd(title + "  ", header.MainSource, request.PageWidth), "", Ruler]
+                : [IdentificationLine(header, program, page, request.PageWidth), title, ""];
+            IEnumerable<ListingRow> rows = status.Produced ? sections.Visit(section)
+                : sections.Rows(Indented(ListingSections.NotProduced(status.Reason), 0, 2, request.PageWidth));
+            pages += PageComposer.Compose(listing, rows as IReadOnlyList<ListingRow> ?? [.. rows], request.PageLength, Heading, firstPage: pages + 1);
         }
         return listing.ToString();
     }
 
-    /// <summary>The second heading line of a section's pages.</summary>
-    public static string TitleOf(ListingSection section) => section switch
+    /// <summary>The text listing's rows of each produced section (DESIGN-listing.md section 7): the source section's here, the
+    /// diagnostic summary's here, each other section's its own class's. A page outside the source section names the first
+    /// outermost program (section 6.1).</summary>
+    private sealed class Sections(ListingDocument document, ListingRequest request) : IListingSectionVisitor<IEnumerable<ListingRow>>
     {
-        ListingSection.Source => "SOURCE",
-        ListingSection.Programs => "PROGRAMS",
-        ListingSection.Diagnostics => "DIAGNOSTICS",
-        ListingSection.Options => "OPTIONS",
-        ListingSection.Statistics => "STATISTICS",
-        ListingSection.DataMap => "DATA MAP",
-        ListingSection.ObjectMap => "OBJECT MAP",
-        ListingSection.ObjectCode => "OBJECT CODE",
-        _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no title"),
-    };
+        private readonly string? _firstProgram = document.Programs.FirstOrDefault(p => p.Depth == 0)?.Name;
+        private int Width => request.PageWidth;
 
-    /// <summary>The rows of a produced section other than the source, none wider than <paramref name="width"/>.</summary>
-    private static IEnumerable<string> RowsOf(ListingSection section, ListingDocument document, int width) => section switch
-    {
-        ListingSection.Options => OptionsText.Rows(document.Options, width),
-        ListingSection.Programs => ProgramMapText.Rows(document.Programs, document.Header.Parse, width),
-        ListingSection.Statistics => document.Statistics is { } statistics ? StatisticsText.Rows(statistics, document.Files, document.Header.Parse, width)
-            : throw new InvalidOperationException("the statistics section is produced but the document holds no statistics"),
-        ListingSection.Diagnostics => SummaryRows(document, width),
-        ListingSection.DataMap => document.DataMap is { } map ? DataMapText.Rows(map, width)
-            : throw new InvalidOperationException("the data map section is produced but the document holds no data map"),
-        ListingSection.ObjectMap => document.ObjectCode is { } objectMap ? ObjectCodeText.MapRows(objectMap, width)
-            : throw new InvalidOperationException("the object-code map section is produced but the document holds no object-code map"),
-        ListingSection.ObjectCode => document.ObjectCode is { } objectCode ? ObjectCodeText.CodeRows(objectCode, document.Lines, width)
-            : throw new InvalidOperationException("the object-code section is produced but the document holds no object-code map"),
-        _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section the text listing cannot print"),
-    };
+        public IEnumerable<ListingRow> Rows(IEnumerable<string> rows) => rows.Select(r => new ListingRow(r, false, _firstProgram));
+
+        public IEnumerable<ListingRow> Source() => SourceRows(document, request);
+
+        public IEnumerable<ListingRow> Programs() => Rows(ProgramMapText.Rows(document.Programs, document.Header.Parse, Width));
+
+        public IEnumerable<ListingRow> Diagnostics() => Rows(SummaryRows(document, Width));
+
+        public IEnumerable<ListingRow> Options() => Rows(OptionsText.Rows(document.Options, Width));
+
+        public IEnumerable<ListingRow> Statistics() => Rows(document.Statistics is { } statistics
+            ? StatisticsText.Rows(statistics, document.Files, document.Header.Parse, Width)
+            : throw new InvalidOperationException("the statistics section is produced but the document holds no statistics"));
+
+        public IEnumerable<ListingRow> DataMap() => Rows(document.DataMap is { } map ? DataMapText.Rows(map, Width)
+            : throw new InvalidOperationException("the data map section is produced but the document holds no data map"));
+
+        public IEnumerable<ListingRow> ObjectMap() => Rows(document.ObjectCode is { } map ? ObjectCodeText.MapRows(map, Width)
+            : throw new InvalidOperationException("the object-code map section is produced but the document holds no object-code map"));
+
+        public IEnumerable<ListingRow> ObjectCode() => Rows(document.ObjectCode is { } map ? ObjectCodeText.CodeRows(map, document.Lines, Width)
+            : throw new InvalidOperationException("the object-code section is produced but the document holds no object-code map"));
+    }
 
     /// <summary>The source section's rows (DESIGN-listing.md section 6.2): each listed line, the banner of each inclusion, the
     /// compiled text under a replaced line, each diagnostic under its line and each DISPLAY transfer at its directive.</summary>
@@ -204,7 +197,7 @@ public static class TextListingRenderer
             bool first = true;
             foreach (string piece in Wrap(resultant))
             {
-                yield return first ? new string(' ', 8) + "R" + new string(' ', TextColumn - 10) + piece : ContinuationRow(piece);
+                yield return first ? new string(' ', 8) + ReplacedMarker + new string(' ', TextColumn - 10) + piece : ContinuationRow(piece);
                 first = false;
             }
         }
@@ -215,12 +208,15 @@ public static class TextListingRenderer
     public static IEnumerable<string> DisplayRows(ListingDisplay display)
     {
         bool first = true;
-        foreach (string piece in Wrap("DISPLAY: " + display.Text))
+        foreach (string piece in Wrap(DisplayText(display)))
         {
             yield return first ? new string(' ', TextColumn - 1) + piece : ContinuationRow(piece);
             first = false;
         }
     }
+
+    /// <summary>One DISPLAY directive transfer as every renderer prints it: <c>DISPLAY: text</c>.</summary>
+    public static string DisplayText(ListingDisplay display) => "DISPLAY: " + display.Text;
 
     /// <summary>The rows of one diagnostic under its line (DESIGN-listing.md section 6.3): a caret under its column when
     /// <paramref name="wholeText"/> (the line's text, printed whole as written) is given, then <c>==&gt; severity CODE (col n):
@@ -229,9 +225,15 @@ public static class TextListingRenderer
     public static IEnumerable<string> DiagnosticRows(ListingDiagnostic diagnostic, string? wholeText, int width)
     {
         if (wholeText is not null && diagnostic.Column is { } column && CaretRow(wholeText, column) is { } caret) yield return caret;
+        foreach (string row in Indented(DiagnosticText(diagnostic), TextColumn - 1, TextColumn - 1 + Arrow.Length, width)) yield return row;
+    }
+
+    /// <summary>A diagnostic under its line as every renderer prints it: <c>==&gt; severity CODE (col n): message</c>, the column
+    /// when it has one.</summary>
+    public static string DiagnosticText(ListingDiagnostic diagnostic)
+    {
         string place = diagnostic.Column is { } col ? string.Create(CultureInfo.InvariantCulture, $" (col {col})") : "";
-        string text = $"{Arrow}{SeverityWord(diagnostic.Severity)} {diagnostic.Code}{place}: {diagnostic.Message}";
-        foreach (string row in Indented(text, TextColumn - 1, TextColumn - 1 + Arrow.Length, width)) yield return row;
+        return $"{Arrow}{SeverityWord(diagnostic.Severity)} {diagnostic.Code}{place}: {diagnostic.Message}";
     }
 
     /// <summary>The caret row of 1-based <paramref name="column"/> of <paramref name="text"/> (a character position of the line's
@@ -251,20 +253,31 @@ public static class TextListingRenderer
     /// order, its listing line (or '-') and its file, line and column ahead of its words.</summary>
     public static IEnumerable<string> SummaryRows(ListingDocument document, int width)
     {
-        int Count(ListingSeverity severity) => document.Diagnostics.Count(d => d.Severity == severity);
-        yield return string.Create(CultureInfo.InvariantCulture,
-            $"Errors: {Count(ListingSeverity.Error)}   Warnings: {Count(ListingSeverity.Warning)}   Information: {Count(ListingSeverity.Info)}");
+        yield return CountsText(document.Diagnostics);
         yield return "";
         var files = document.Files.ToDictionary(f => f.Id, f => f.Path);
         foreach (var d in document.Diagnostics)
         {
-            string place = d is { File: { } file, FileLine: { } fileLine, Column: { } column }
-                ? string.Create(CultureInfo.InvariantCulture, $" {files[file]}({fileLine},{column})") : "";
+            string place = PlaceText(d, files) is { } at ? " " + at : "";
             string lead = d.Line is { } line ? line.ToString(CultureInfo.InvariantCulture).PadLeft(6) : "     -";
             foreach (string row in Indented($"{lead}  {SeverityWord(d.Severity)} {d.Code}{place}: {d.Message}", 0, 8, width))
                 yield return row;
         }
     }
+
+    /// <summary>The summary's first row as every renderer prints it: the count of <paramref name="diagnostics"/> of each severity.</summary>
+    public static string CountsText(IReadOnlyList<ListingDiagnostic> diagnostics)
+    {
+        int Count(ListingSeverity severity) => diagnostics.Count(d => d.Severity == severity);
+        return string.Create(CultureInfo.InvariantCulture,
+            $"Errors: {Count(ListingSeverity.Error)}   Warnings: {Count(ListingSeverity.Warning)}   Information: {Count(ListingSeverity.Info)}");
+    }
+
+    /// <summary>Where a diagnostic stands as the summary prints it, <c>file(line,column)</c>, the file named by its path in
+    /// <paramref name="files"/>; null for a diagnostic with no file, line or column.</summary>
+    public static string? PlaceText(ListingDiagnostic diagnostic, IReadOnlyDictionary<int, string> files) =>
+        diagnostic is { File: { } file, FileLine: { } fileLine, Column: { } column }
+            ? string.Create(CultureInfo.InvariantCulture, $"{files[file]}({fileLine},{column})") : null;
 
     /// <summary>The word a severity is printed as: the word every diagnostic line of the compiler uses (<c>Diagnostic.SeverityWord</c>,
     /// which this assembly cannot reference; <c>DiagnosticRecordsTests.TheSeverityWords_AreTheCompilersWords</c> holds the two equal).</summary>
@@ -339,8 +352,8 @@ public static class TextListingRenderer
         // Each field and the order it yields in; the instant and the page label never yield.
         string[] fields =
         [
-            "WiseOwl COBOL " + header.CompilerVersion,
-            string.Create(CultureInfo.InvariantCulture, $"{header.EditionName} (--std {header.Edition})"),
+            CompilerText(header),
+            EditionText(header),
             program ?? "",
             ListingTimestamp.Format(header.CompiledAt),
         ];
@@ -353,6 +366,13 @@ public static class TextListingRenderer
         return string.Join(Separator, fields.Where(f => f.Length > 0)).PadRight(width - pageLabel.Length) + pageLabel;
     }
 
+    /// <summary>The compiler as every renderer names it: <c>WiseOwl COBOL</c> and its version.</summary>
+    public static string CompilerText(ListingHeader header) => "WiseOwl COBOL " + header.CompilerVersion;
+
+    /// <summary>The edition as every renderer names it: its name and its <c>--std</c> number.</summary>
+    public static string EditionText(ListingHeader header) =>
+        string.Create(CultureInfo.InvariantCulture, $"{header.EditionName} (--std {header.Edition})");
+
     /// <summary>The separator between the fields of a heading line.</summary>
     private const string Separator = "  ";
 
@@ -363,7 +383,7 @@ public static class TextListingRenderer
     {
         { Omitted: true } => 'X',
         { Replacement: ListingReplacement.DateCompiled } => 'E',
-        { Replacement: ListingReplacement.Replacing } => 'R',
+        { Replacement: ListingReplacement.Replacing } => ReplacedMarker,
         { Kind: ListingLineKind.PageEjectComment } => '/',
         { Kind: ListingLineKind.Comment } => '*',
         { Kind: ListingLineKind.DebuggingLine } => 'D',
@@ -371,6 +391,9 @@ public static class TextListingRenderer
         { Kind: ListingLineKind.Continuation } => '-',
         _ => ' ',
     };
+
+    /// <summary>The marker of a line a replacing action changed and of each row of its compiled text under it.</summary>
+    public const char ReplacedMarker = 'R';
 
     /// <summary>The depth column: blank for the source, 1-9, '+' beyond.</summary>
     public static char DepthMark(int depth) => depth switch { 0 => ' ', <= 9 => (char)('0' + depth), _ => '+' };
@@ -381,7 +404,9 @@ public static class TextListingRenderer
 
     private static string ContinuationRow(string text) => new string(' ', 8) + "+" + new string(' ', TextColumn - 10) + text;
 
-    private static string Banner(ListingInclusion inclusion, IReadOnlyDictionary<int, string> files) =>
+    /// <summary>The banner that opens an inclusion's lines (DESIGN-listing.md section 6.2): the COPY statement's names, the file read
+    /// and the depth.</summary>
+    public static string Banner(ListingInclusion inclusion, IReadOnlyDictionary<int, string> files) =>
         string.Create(CultureInfo.InvariantCulture,
             $"COPY {inclusion.TextName}{(inclusion.LibraryName is { } library ? " OF " + library : "")} -> "
             + $"{(inclusion.File is { } file ? files[file] : "(no library text)")} (depth {inclusion.Depth})");

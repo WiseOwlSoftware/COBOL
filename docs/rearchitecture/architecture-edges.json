@@ -7,6 +7,7 @@
       "id": "listing",
       "namespaces": [
         "WiseOwl.Cobol.Listing",
+        "WiseOwl.Cobol.Listing.Html",
         "WiseOwl.Cobol.Listing.Json",
         "WiseOwl.Cobol.Listing.Text"
       ]

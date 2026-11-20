@@ -579,6 +579,30 @@ its 25 % budget: kb/Work PB5941 (the IL instructions of the object-code section)
 stretch from its method's start and allocated 2,657 MB for NC105A, fixed in the step. The standard text listing (`Text`) is +0.8
 to +9.7 % over `None`, inside its 10 % budget. Time rows are not shown (kb/Work PB5927).
 
+**Step 9 (kb/Work PB5925, the HTML page): the `All` row with HTML, against the parent.** Step 9 adds the HTML page to `all`
+(`CompileBenchmarks.ListingMode.All` now writes every format, `ListingOutput.All`) and changes no compilation without a listing.
+Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FullCompile*None*' '*CompileBenchmarks.FullCompile*All*'` on the `listing-step-9` branch (commit 0ed088d9a1)
+and then on its parent `9427f2ede0` (a detached worktree of it), the parent's in parentheses. Allocated bytes per full compile:
+
+| Program | None | All | All over None | All over the parent's All |
+|---|---|---|---|---|
+| IX113A | 195.13 (193.27) MB | 299.91 (263.77) MB | +53.7 % (+36.5 %) | +36.1 MB (+13.7 %) |
+| NC105A | 117.75 (118.20) MB | 182.47 (158.89) MB | +55.0 % (+34.4 %) | +23.6 MB (+14.8 %) |
+| NC218A | 115.64 (114.99) MB | 185.01 (161.47) MB | +60.0 % (+40.4 %) | +23.5 MB (+14.6 %) |
+| SM201A | 41.79 (42.16) MB | 64.27 (56.97) MB | +53.8 % (+35.1 %) | +7.3 MB (+12.8 %) |
+
+Reading them: the `None` rows are the parent's within 0.65 MB on three programs and 1.86 MB on IX113A, inside the full compile's
+run-to-run spread on one tree (2.07 MB, kb/Work PB5925's lead `2026-11-18-full-compile-allocation-noise`); step 9's `src` changes are
+the Listing assembly, which a compilation without a listing never calls, and comments (the command line's usage line, four
+§2023:14.7.8 citations in the binder and the emitter).
+The page costs +7.3 to +36.1 MB per full compile, three times its size: IX113A's page is 6.6 MB (6,595,954 bytes, about the JSON
+listing's 6.7 MB), built in a `StringBuilder` (two bytes a character), copied once by `ToString` into the string
+`ListingOutput.Render` returns, and encoded once more by `File.WriteAllText`; most of its rows are the IL instructions, which the
+page shows both under each statement (section 7.2) and in the object-code section. The `All` row was over its 25 % budget before
+step 9 (kb/Work PB5941) and is further over now; PB5941's dated file `2026-11-19-step-9-html-row` holds these rows and the fix
+they point to. Time rows are not shown (kb/Work PB5927).
+
 **Step 6b, slice 1 (kb/Work PB5932, the cd-names and the file-names resolved by `SymbolTable.Identify`): the `None` row against
 the parent.** Slice 1 changes how every compilation resolves a cd-name or a file-name, with or without a listing, so it
 measures the no-listing path. Measured on 2026-11-18, Release, one Windows host,

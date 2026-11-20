@@ -112,9 +112,9 @@ public sealed partial class SpecialNamesBinder
         }
         GateRangeAlphabetPhrase(where);
         // SR3 sentence 1 — the phrase is admitted only over a range a COLLATING SEQUENCE can order. §2023:14.7.8 GR1
-        // orders a numeric range algebraically and names no sequence at all, and rule 2 (the sequence rule) is
+        // orders a numeric range algebraically and names no sequence at all, and GR2 (the sequence rule) is
         // written for "alphanumeric or national literals"; a boolean range cannot carry THROUGH in the first place
-        // (§2023:14.9.13.3 SR4 / §2023:13.18.63.3 SR29). ⛔ THE SAME PREDICATE THE EC GATES ASK — rule 2 owns the sequence,
+        // (§2023:14.9.13.3 SR4 / §2023:13.18.63.3 SR29). ⛔ THE SAME PREDICATE THE EC GATES ASK — §2023:14.7.8 GR2 owns the sequence,
         // the IN phrase and the exception together, so the three sites read one antecedent (kb/Work PB401).
         if (!CollatingSelection.IsCollatedThroughRange(rangeClass))
         {
