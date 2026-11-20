@@ -47,5 +47,5 @@ internal sealed class BagSink : IDiagnosticSink
 
     public void Report(in EditionDiagnostic d) => _bag.Report(d.Code,
         d.Severity == EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
-        d.Message, _locate is null ? _loc : _locate(Cursor.Line, Cursor.Column), default);
+        d.Message, _locate is null ? _loc : _locate(Cursor.Line, Cursor.Column), default, d.Flag);
 }

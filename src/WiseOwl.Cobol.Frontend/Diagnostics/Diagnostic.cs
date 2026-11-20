@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 
 namespace WiseOwl.Cobol.Frontend.Diagnostics;
@@ -23,6 +24,11 @@ public sealed record Diagnostic(
     SourceLocation? Location,
     TextSpan Span)
 {
+    /// <summary>The edition flag this diagnostic is (an obsolete or removed construct, a nonstandard extension in use), stamped
+    /// where the flag is raised (<see cref="EditionFlag"/>; DESIGN-listing.md section 6.11), or null for any other diagnostic. It
+    /// is part of the record, never of its line: <see cref="Render"/> prints the code and the message alone.</summary>
+    public EditionFlag? Flag { get; init; }
+
     public bool IsError => Severity == DiagnosticSeverity.Error;
 
     public override string ToString() => Render(Location, Severity, Code, Message);

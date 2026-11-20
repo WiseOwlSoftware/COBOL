@@ -273,6 +273,30 @@ A diagnostic that names no line of a file the listing lists (one about the compi
 only, with `-` for its line; so does a diagnostic on a line the listing does not print. Messages cite the rule of the
 edition being compiled, as on standard error.
 
+When any diagnostic is an edition flag, the summary ends with a table of the flagged constructs by edition: a construct the
+edition being compiled calls obsolete or archaic (`COBOL0903`), one it removed (`COBOL0902`, an error, or a warning under
+`--permissive`), and, with `--flag-extensions`, a nonstandard extension in use (`COBOL2894`). Each row gives the edition whose
+rule flags the construct (the edition that made it obsolete or removed it; for an extension, the edition being compiled), the
+kind, how many diagnostics flag it, the construct with its identifier, and the listing line of each of those diagnostics. A
+program compiled with `--std 2023 --permissive --flag-extensions` that writes a debugging line, a continued word, CLOSE WITH LOCK,
+two EXIT PROGRAM statements and USAGE COMP-3:
+
+```text
+FLAGGED CONSTRUCTS BY EDITION
+EDITION  KIND      COUNT  CONSTRUCT; LINES
+   2014  removed       1  the fixed-form debugging line (indicator D) (debugging-line-removed-2014); 17
+   2023  obsolete      1  the fixed continuation indicator (hyphen in column 7) (col7-continuation-obsolete-2023); 16
+   2023  obsolete      2  the EXIT PROGRAM statement (exit-program-archaic-2023); 19 20
+   2023  removed       1  the CLOSE WITH LOCK phrase (close-with-lock-removed-2023); 18
+   2023  removed       1  continuation of a COBOL word in fixed-form reference format (fixed-form-word-continuation-removed-2023);
+                          16
+   2023  extension     1  USAGE COMP-3 / COMPUTATIONAL-3 (packed decimal) (usage-comp-3); 13
+```
+
+The table is the diagnostics' own: each flag is recorded where the compiler raises it, so the table and the list above it
+always agree. A rule an edition added that `--permissive` relaxes to a warning (a later edition's restriction, under a code of its
+own) is a diagnostic of that rule, not a flagged construct, and is not in the table.
+
 ## The JSON listing
 
 `--listing-format json` writes the listing as one JSON document, `BASE.lst.json`: the stable form for a program to read,
@@ -286,7 +310,9 @@ with every line kind and severity counted (`statistics`), the data map (`dataMap
 others by id), each bound program's `attributes`, each definition line's `margin`, and which sections were asked for
 (`sections`). Each diagnostic also carries the
 citations its message makes as data, `citations`: for the example above
-`[{ "edition": 2023, "locator": "13.18.40.3", "rule": "SR14" }]`. A line lists the ids of the diagnostics placed on it. The text and
+`[{ "edition": 2023, "locator": "13.18.40.3", "rule": "SR14" }]`. A diagnostic that is an edition flag carries it as `flag`
+(`kind`, `construct`, `description`, `edition`), and `flaggedConstructs` is the summary's table, each entry naming its
+diagnostics by id. A line lists the ids of the diagnostics placed on it. The text and
 the JSON listing of one compilation are renderings of one document, so they always agree.
 
 The document opens with the schema it follows:
@@ -391,7 +417,8 @@ document as the text and the JSON listing, so the three always agree.
   every folded block, a `SUPPRESS` block included: it is listed whatever a LISTING directive or `SUPPRESS` says, so the library
   text's folded block ends before it and its further lines continue in a block whose banner ends "(continued)".
 - **Diagnostics.** Each diagnostic stands under its line, the column it names highlighted in the line's text; the diagnostic
-  summary at the end lists them all and links each to its place.
+  summary at the end lists them all and links each to its place, and its table of flagged constructs by edition links each
+  listing line to the diagnostic under it.
 - **Object code.** With `object-map` or `object-code` in the sections, each statement's line holds a folded block per stretch of its
   code: its method and IL range, and with `object-code` its instructions.
 - **Links.** A data description line's margin links to its data map entry; a data map entry's line, and each entry its facts name

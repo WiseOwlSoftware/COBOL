@@ -45,7 +45,7 @@ internal static class CompiledProgramCache
     internal const string MaxMbVariable = "WISEOWL_COBOL_COMPILE_CACHE_MAX_MB";
 
     /// <summary>Bumped whenever the entry layout or the key recipe changes — an old store then misses whole.</summary>
-    private const int FormatVersion = 4;   // 2: an entry carries the compilation's own output (kb/Work PB2116); 3: whether the assembly is a library (kb/Work PB2099); 4: the diagnostics' records (DESIGN-listing.md section 6.3)
+    private const int FormatVersion = 5;   // 2: an entry carries the compilation's own output (kb/Work PB2116); 3: whether the assembly is a library (kb/Work PB2099); 4: the diagnostics' records (DESIGN-listing.md section 6.3); 5: each record's edition flag (section 6.11, kb/Work PB5947)
 
     /// <summary>Whether this process uses the cache (see the class remarks).</summary>
     internal static bool Enabled { get; } =
@@ -352,16 +352,18 @@ internal static class CompiledProgramCache
 
     /// <summary>One <see cref="Frontend.Diagnostics.Diagnostic"/> as stored. A location's resultant line and frame
     /// (<see cref="Frontend.Common.SourceLocation.Frame"/>) are not: a frame names a line map of the process that compiled, and only a
-    /// listing reads them, whose compilation reads the clock and is never stored (<see cref="Cacheability"/>).</summary>
+    /// listing reads them, whose compilation reads the clock and is never stored (<see cref="Cacheability"/>). Its edition flag
+    /// (<see cref="Frontend.Diagnostics.Diagnostic.Flag"/>) is.</summary>
     private sealed record StoredDiagnostic(string Code, Frontend.Diagnostics.DiagnosticSeverity Severity, string Message,
-        string? File, int Position, int Line, int Column, int SpanStart, int SpanLength)
+        string? File, int Position, int Line, int Column, int SpanStart, int SpanLength, Editions.EditionFlag? Flag)
     {
         public static StoredDiagnostic Of(Frontend.Diagnostics.Diagnostic d) => new(d.Code, d.Severity, d.Message,
-            d.Location?.FileName, d.Location?.Position ?? 0, d.Location?.Line ?? 0, d.Location?.Column ?? 0, d.Span.Start, d.Span.Length);
+            d.Location?.FileName, d.Location?.Position ?? 0, d.Location?.Line ?? 0, d.Location?.Column ?? 0, d.Span.Start, d.Span.Length,
+            d.Flag);
 
         public Frontend.Diagnostics.Diagnostic ToDiagnostic() => new(Code, Severity, Message,
             File is null ? null : new Frontend.Common.SourceLocation(File, Position, Line, Column),
-            new Frontend.Common.TextSpan(SpanStart, SpanLength));
+            new Frontend.Common.TextSpan(SpanStart, SpanLength)) { Flag = Flag };
     }
 
     private sealed record StoredFile(string Name, string Blob);

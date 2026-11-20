@@ -30,16 +30,31 @@ public static partial class ConstructRegistry
     /// report is an ERROR, else null (in force, obsolete, or removed under a permissive edition, all of which report a warning
     /// or nothing). The quiet twin for a binder that asks the construct's edition gate itself (it calls <see cref="Check"/>)
     /// and also refuses the construct by its own rule: where the gate's report is an error, that error is the one report and
-    /// the binder adds none of its own (kb/Work PB5538, the ENTER statement's binder). It reads the same row and the same
-    /// severity policy as <see cref="Check"/>, so the two cannot disagree on whether the gate's report is an error.</summary>
-    public static string? GateErrorCodeAt(EditionInfo edition, string id)
+    /// the binder adds none of its own (kb/Work PB5538, the ENTER statement's binder). It reads the one verdict <see cref="Check"/>
+    /// reports (<see cref="VerdictAt"/>), so the two cannot disagree on whether the gate's report is an error.</summary>
+    public static string? GateErrorCodeAt(EditionInfo edition, string id) =>
+        VerdictAt(edition, id) is { Severity: EditionSeverity.Error } verdict ? verdict.Code : null;
+
+    /// <summary>⛔ THE ONE VERDICT of construct <paramref name="id"/> at <paramref name="edition"/>, or null when it is in force:
+    /// the severity <see cref="EditionSeverityPolicy"/> dictates, the code (NotYetIntroduced: the 0900 band for a row whose
+    /// availability is a WINDOW, whose <see cref="ConstructDialectStatus.DiagnosticCode"/> names the removal edge, else the row's
+    /// pinned code; Removed: the row's code; Obsolete: COBOL0903), and the edition flag of an obsolete or removed construct
+    /// (<see cref="EditionFlag.Of(ConstructDialectStatus, ConstructAvailability)"/>; DESIGN-listing.md section 6.11). <see cref="Check"/>
+    /// reports it, and a stage that reports the construct with words of its own (the reference-format, COPY and directive-word
+    /// stages) takes its severity, code and flag from here, so no stage spells a flag code of its own.</summary>
+    public static EditionVerdict? VerdictAt(EditionInfo edition, string id)
     {
         var c = Find(id) ?? throw new ArgumentException($"unregistered construct id '{id}'", nameof(id));
         var verdict = c.StatusAt(edition.Year);
-        if (verdict == ConstructAvailability.Available || EditionSeverityPolicy.For(verdict, edition) != EditionSeverity.Error) return null;
-        return verdict == ConstructAvailability.NotYetIntroduced && c.RemovedIn is not null
-            ? EditionCodes.Introduction
-            : c.DiagnosticCode;
+        if (verdict == ConstructAvailability.Available) return null;
+        string code = verdict switch
+        {
+            ConstructAvailability.NotYetIntroduced => c.RemovedIn is null ? c.DiagnosticCode : EditionCodes.Introduction,
+            ConstructAvailability.Removed => c.DiagnosticCode,
+            ConstructAvailability.Obsolete => EditionCodes.ObsoleteFlag,
+            _ => throw new ArgumentOutOfRangeException(nameof(id), verdict, "an availability with no code"),
+        };
+        return new EditionVerdict(verdict, EditionSeverityPolicy.For(verdict, edition), code, EditionFlag.Of(c, verdict));
     }
 
     /// <summary>
@@ -53,30 +68,16 @@ public static partial class ConstructRegistry
     /// </summary>
     public static void Check(EditionInfo edition, IDiagnosticSink sink, string id, string where)
     {
-        var c = Find(id) ?? throw new ArgumentException($"unregistered construct id '{id}'", nameof(id));
-        var verdict = c.StatusAt(edition.Year);
-        if (verdict == ConstructAvailability.Available) return;
-        var severity = EditionSeverityPolicy.For(verdict, edition);
-        switch (verdict)
+        if (VerdictAt(edition, id) is not { } verdict) return;
+        var c = Find(id)!;
+        string message = verdict.Availability switch
         {
-            case ConstructAvailability.NotYetIntroduced:
-                // Dual-obligation rows (an availability WINDOW: DiagnosticCode names the removal edge) use the
-                // 0900 band for the introduction edge; single-edge rows keep their pinned code (pic-wide's 0802).
-                sink.Report(new EditionDiagnostic(
-                    c.RemovedIn is null ? c.DiagnosticCode : EditionCodes.Introduction, severity, c.Id,
-                    $"{c.Display} requires COBOL-{c.IntroducedIn} (targeting COBOL-{edition.Year}) — {where} ({c.Citation})",
-                    where, c.Citation));
-                break;
-            case ConstructAvailability.Removed:
-                sink.Report(new EditionDiagnostic(c.DiagnosticCode, severity, c.Id,
-                    $"{c.Display} was removed in COBOL-{c.RemovedIn} (targeting COBOL-{edition.Year}) — {where} ({c.Citation})",
-                    where, c.Citation));
-                break;
-            case ConstructAvailability.Obsolete:
-                sink.Report(new EditionDiagnostic(EditionCodes.ObsoleteFlag, severity, c.Id,
-                    $"{c.Display} is obsolete as of COBOL-{c.ObsoleteIn} — {where} ({c.Citation})",
-                    where, c.Citation));
-                break;
-        }
+            ConstructAvailability.NotYetIntroduced =>
+                $"{c.Display} requires COBOL-{c.IntroducedIn} (targeting COBOL-{edition.Year}) — {where} ({c.Citation})",
+            ConstructAvailability.Removed =>
+                $"{c.Display} was removed in COBOL-{c.RemovedIn} (targeting COBOL-{edition.Year}) — {where} ({c.Citation})",
+            _ => $"{c.Display} is obsolete as of COBOL-{c.ObsoleteIn} — {where} ({c.Citation})",
+        };
+        sink.Report(new EditionDiagnostic(verdict.Code, verdict.Severity, c.Id, message, where, c.Citation, verdict.Flag));
     }
 }

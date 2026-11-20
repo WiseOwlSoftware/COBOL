@@ -40,8 +40,10 @@ public sealed class JsonListingWriterTests
              new ListingProgramAttributes(true, false, true, false, "main-ext", "MAIN")),
          new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 2, 3, null)],
         [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "no (ISO §2023:14.9.8.4 GR1)", 1, 1, 1, 8,
-            [new ListingCitation(2023, "14.9.8.4", "GR1"), new ListingCitation(1985, "VI.5.3", null)]),
-         new ListingDiagnostic(2, "CS0103", ListingSeverity.Warning, "generated", null, null, null, null, [])],
+            [new ListingCitation(2023, "14.9.8.4", "GR1"), new ListingCitation(1985, "VI.5.3", null)],
+            new ListingFlag(ListingFlagKind.Obsolete, "exit-program-archaic-2023", "the EXIT PROGRAM statement", 2023)),
+         new ListingDiagnostic(2, "CS0103", ListingSeverity.Warning, "generated", null, null, null, null, [], null)],
+        [new ListingFlaggedConstruct(2023, ListingFlagKind.Obsolete, "exit-program-archaic-2023", "the EXIT PROGRAM statement", [1])],
         [new ListingDisplay(4, "HELLO 42")],
         [new ListingOption("--std", "85 (ANSI X3.23-1985)", ListingOptionOrigin.Specified),
          new ListingOption("--permissive", "off", ListingOptionOrigin.Default),
@@ -102,8 +104,8 @@ public sealed class JsonListingWriterTests
     public void TheDocument_OpensWithItsSchemaAndVersion()
     {
         var json = Written(EveryMember());
-        Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "displays",
-            "options", "statistics", "dataMap", "objectCode", "sections"], json.Select(p => p.Key));
+        Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "flaggedConstructs",
+            "displays", "options", "statistics", "dataMap", "objectCode", "sections"], json.Select(p => p.Key));
         Assert.Equal("urn:wiseowl:cobol:listing:v1", (string?)json["$schema"]);
         Assert.Equal("1.0", (string?)json["schemaVersion"]);
     }
