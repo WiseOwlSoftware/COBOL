@@ -43,12 +43,72 @@ public static class ObjectCodeText
             foreach (string piece in TextListingRenderer.Indented(heading, 0, 13, width)) yield return piece;
             if (text.TryGetValue(range.Line, out string? source))
                 foreach (string piece in TextListingRenderer.Indented(source.TrimEnd(), 13, 13, width)) yield return piece;
-            foreach (var instruction in range.Instructions ?? [])
+            var regions = methods[range.Method].Regions;
+            foreach (var line in CodeLines(range))
             {
-                string row = string.Create(CultureInfo.InvariantCulture, $"{Offset(instruction.Offset)}  {instruction.OpCode,-12} {instruction.Operand}");
-                foreach (string piece in TextListingRenderer.Indented(row.TrimEnd(), 13, 36, width)) yield return piece;
+                int indent = 13 + RegionIndent * line.Depth;
+                string row = line.Instruction is { } instruction ? InstructionText(instruction) : RegionText(line.Mark!, regions);
+                foreach (string piece in TextListingRenderer.Indented(row, indent, line.Instruction is null ? indent : indent + 23, width))
+                    yield return piece;
             }
         }
+    }
+
+    /// <summary>The columns each level of exception-handling nesting indents a line of the object code by.</summary>
+    public const int RegionIndent = 2;
+
+    /// <summary>⛔ THE ONE MERGE of a stretch's instructions and its exception-handling lines (kb/Work PB5951), which both renderers print:
+    /// each region line before the first instruction at or after its offset (after the last instruction when none is), each line at the
+    /// depth the builder gave it (<see cref="ListingRegionMark.Depth"/>), and each instruction at the depth the lines before it leave,
+    /// from the stretch's own <see cref="ListingObjectRange.Depth"/>: one deeper after an opening line, the closing line's own depth
+    /// after a closing one. Nothing here orders or nests a region; the builder did.</summary>
+    public static IEnumerable<ObjectCodeLine> CodeLines(ListingObjectRange range)
+    {
+        var marks = range.Regions ?? [];
+        int next = 0, depth = range.Depth;
+        foreach (var instruction in range.Instructions ?? [])
+        {
+            for (; next < marks.Count && marks[next].Offset <= instruction.Offset; next++)
+            {
+                yield return new ObjectCodeLine(marks[next].Depth, null, marks[next]);
+                depth = DepthAfter(marks[next]);
+            }
+            yield return new ObjectCodeLine(depth, instruction, null);
+        }
+        for (; next < marks.Count; next++) yield return new ObjectCodeLine(marks[next].Depth, null, marks[next]);
+    }
+
+    /// <summary>The depth the lines after <paramref name="mark"/> stand at: one deeper than an opening line, a closing line's own.</summary>
+    public static int DepthAfter(ListingRegionMark mark) => ListingRegionBoundaries.Opens(mark.Boundary) ? mark.Depth + 1 : mark.Depth;
+
+    /// <summary>An instruction as both renderers' object code prints it: its offset, its name and its operand.</summary>
+    public static string InstructionText(ListingInstruction instruction) =>
+        string.Create(CultureInfo.InvariantCulture, $"{Offset(instruction.Offset)}  {instruction.OpCode,-12} {instruction.Operand}").TrimEnd();
+
+    /// <summary>A line of a method's exception-handling structure as ILDASM prints it (ECMA-335 II.19): <c>.try {</c>,
+    /// <c>} // end .try</c>, <c>catch Type {</c>, <c>filter {</c>, <c>} // end filter</c>, a filter's <c>{ // handler</c>,
+    /// <c>finally {</c>, <c>fault {</c> and <c>} // end handler</c>. <paramref name="regions"/> is the method's
+    /// <see cref="ListingMethod.Regions"/>, which <see cref="ListingRegionMark.Region"/> indexes.</summary>
+    public static string RegionText(ListingRegionMark mark, IReadOnlyList<ListingExceptionRegion> regions)
+    {
+        var region = regions[mark.Region - 1];
+        return mark.Boundary switch
+        {
+            ListingRegionBoundary.TryStart => ".try {",
+            ListingRegionBoundary.TryEnd => "} // end .try",
+            ListingRegionBoundary.FilterStart => "filter {",
+            ListingRegionBoundary.FilterEnd => "} // end filter",
+            ListingRegionBoundary.HandlerStart => region.Kind switch
+            {
+                ListingRegionKind.Catch => "catch " + region.CatchType + " {",
+                ListingRegionKind.Filter => "{ // handler",
+                ListingRegionKind.Finally => "finally {",
+                ListingRegionKind.Fault => "fault {",
+                _ => throw new InvalidOperationException($"an exception-handling clause of kind {region.Kind}"),
+            },
+            ListingRegionBoundary.HandlerEnd => "} // end handler",
+            _ => throw new InvalidOperationException($"an exception-handling boundary {mark.Boundary}"),
+        };
     }
 
     /// <summary>A method as the object-code rows name it: its type and its name, ECMA-335's <c>Type::Name</c>.</summary>
@@ -78,3 +138,10 @@ public static class ObjectCodeText
     /// <summary>What the object code section says when no statement compiled to object code.</summary>
     public const string NoCodeNote = "No statement of the listing compiled to object code.";
 }
+
+/// <summary>One line of a stretch's object code as the renderers print it (<see cref="ObjectCodeText.CodeLines"/>): an instruction or a
+/// line of the method's exception-handling structure, at its nesting depth.</summary>
+/// <param name="Depth">The line's nesting depth (<see cref="ListingRegionMark.Depth"/>).</param>
+/// <param name="Instruction">The instruction, or null for a region line.</param>
+/// <param name="Mark">The region line, or null for an instruction.</param>
+public readonly record struct ObjectCodeLine(int Depth, ListingInstruction? Instruction, ListingRegionMark? Mark);

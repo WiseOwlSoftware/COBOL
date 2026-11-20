@@ -98,10 +98,10 @@ public sealed class ListingSectionRenderingTests
     public void TheObjectCodeMap_AndTheObjectCode_PrintWhatTheMapHolds()
     {
         var map = new ListingObjectCodeMap("out/p.dll",
-            [new ListingMethod(1, 0x06000003, "Cobol.p.OUTER", "__Dispatch", 40)],
+            [new ListingMethod(1, 0x06000003, "Cobol.p.OUTER", "__Dispatch", 40, [])],
             [new ListingObjectRange(1, 12, 1, 0x12, 0x2A, [new ListingInstruction(0x12, "ldarg.0", null),
-                 new ListingInstruction(0x13, "ldstr", "\"A\""), new ListingInstruction(0x18, "br.s", "IL_002A")]),
-             new ListingObjectRange(6, 12, 1, 0x2A, 0x30, [])]);
+                 new ListingInstruction(0x13, "ldstr", "\"A\""), new ListingInstruction(0x18, "br.s", "IL_002A")], [], 0),
+             new ListingObjectRange(6, 12, 1, 0x2A, 0x30, [], [], 0)]);
         Assert.Equal(
         [
             "ASSEMBLY  out/p.dll",

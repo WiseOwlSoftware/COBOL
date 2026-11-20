@@ -108,13 +108,18 @@ internal static class IlDisassembler
             case OperandType.InlineField or OperandType.InlineMethod or OperandType.InlineType or OperandType.InlineTok
                 or OperandType.InlineSig:
             {
-                int token = ReadInt32(il, ref at);
-                return names.TryGetValue(token, out string? name) ? name : names[token] = MetadataNames.Of(metadata, MetadataTokens.EntityHandle(token));
+                return TokenName(metadata, ReadInt32(il, ref at), names);
             }
             default:
                 throw new BadImageFormatException($"an IL operand of type {type}");
         }
     }
+
+    /// <summary>⛔ THE ONE NAMING OF A METADATA TOKEN the object code prints: an instruction's field, method, type, token or signature
+    /// operand, and an exception-handling clause's catch type (<see cref="ObjectCodeMapReader"/>), each through
+    /// <see cref="MetadataNames.Of"/> and named once per assembly in <paramref name="names"/>.</summary>
+    public static string TokenName(MetadataReader metadata, int token, Dictionary<int, string> names) =>
+        names.TryGetValue(token, out string? name) ? name : names[token] = MetadataNames.Of(metadata, MetadataTokens.EntityHandle(token));
 
     private static int ReadInt32(ImmutableArray<byte> il, ref int at)
     {

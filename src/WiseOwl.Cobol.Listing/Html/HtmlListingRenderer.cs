@@ -407,7 +407,7 @@ public static class HtmlListingRenderer
                     Escape(page, source.TrimEnd());
                     page.Append("</pre>\n");
                 }
-                Instructions(page, range.Instructions);
+                Instructions(page, range, _methods[range.Method]);
                 page.Append("</div>\n");
             }
             return page;
@@ -538,7 +538,7 @@ public static class HtmlListingRenderer
                 Escape(page, StretchHeading(range, methods));
                 page.Append("</summary>\n");
                 if (range.Instructions is null) page.Append("<p class=\"np\">The object code section was not asked for.</p>\n");
-                else Instructions(page, range.Instructions);
+                else Instructions(page, range, methods[range.Method]);
                 page.Append("</details>\n");
             }
         }
@@ -589,16 +589,29 @@ public static class HtmlListingRenderer
         }
     }
 
-    private static void Instructions(StringBuilder page, IReadOnlyList<ListingInstruction>? instructions)
+    /// <summary>A stretch's instructions and the lines of its method's exception-handling structure among them (kb/Work PB5951), in the
+    /// one order the text listing prints them (<see cref="ObjectCodeText.CodeLines"/>), each indented by its nesting depth.</summary>
+    private static void Instructions(StringBuilder page, ListingObjectRange range, ListingMethod method)
     {
-        if (instructions is null) return;
+        if (range.Instructions is null) return;
         page.Append("<table class=\"il\">\n<tbody>\n");
-        foreach (var instruction in instructions)
+        foreach (var line in ObjectCodeText.CodeLines(range))
         {
-            page.Append("<tr>");
-            Cell(page, ObjectCodeText.Offset(instruction.Offset));
-            Cell(page, instruction.OpCode);
-            Cell(page, instruction.Operand ?? "");
+            string indent = string.Create(CultureInfo.InvariantCulture, $" style=\"padding-left:{line.Depth * ObjectCodeText.RegionIndent}ch\"");
+            if (line.Instruction is { } instruction)
+            {
+                page.Append("<tr><td").Append(indent).Append('>');
+                Escape(page, ObjectCodeText.Offset(instruction.Offset));
+                page.Append("</td>");
+                Cell(page, instruction.OpCode);
+                Cell(page, instruction.Operand ?? "");
+            }
+            else
+            {
+                page.Append("<tr class=\"rg\"><td colspan=\"3\"").Append(indent).Append('>');
+                Escape(page, ObjectCodeText.RegionText(line.Mark!, method.Regions));
+                page.Append("</td>");
+            }
             page.Append("</tr>\n");
         }
         page.Append("</tbody>\n</table>\n");
@@ -713,6 +726,7 @@ public static class HtmlListingRenderer
         details.inc { border-left: 2px solid var(--rule); margin-left: 8ch; } details.inc > summary { color: var(--muted); }
         details.hid > summary, details.obj > summary { color: var(--muted); padding-left: 17ch; font-size: 12px; }
         details.obj table { margin-left: 19ch; }
+        table.il tr.rg td { font-weight: 600; }
         .np { color: var(--muted); }
         .code { border-top: 1px solid var(--rule); } .code p { margin: 0.3em 0; }
         .filtered { display: none; }
