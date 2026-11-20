@@ -109,6 +109,7 @@ public sealed class ReferenceIdentificationDriftTests
             ["FileControlBinder.IoControl.cs"] = "data-division clause operands (the I-O-CONTROL paragraph), never a procedure-division operand",
             ["FileControlBinder.Resolve.cs"] = "data-division clause operands (RECORD KEY, ASSIGN USING), never a procedure-division operand",
             ["ReportSectionBinder.cs"] = "data-division clause operands (the report clauses), never a procedure-division operand",
+            ["DataBinder.cs"] = "data-division clause operands (ResolveClauseOperand: FILE STATUS, LINAGE, RELATIVE KEY and the other file clauses), never a procedure-division operand",
             ["SymbolTable.DataNames.cs"] = "the identification itself (IdentifyDataName); its callers are the files this test reads",
             ["SymbolTable.ConditionNames.cs"] = "the condition-name identification's existence question (DeclaresConditionName), no item used",
             ["SymbolTable.Declarations.cs"] = "the declaration questions of the data division, answered as facts, no item used",
