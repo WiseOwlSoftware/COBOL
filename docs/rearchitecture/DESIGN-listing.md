@@ -17,7 +17,8 @@
 > function-prototype-names; the OO lane, branch `listing-step-6b-oo`: the object-class-names, interface-names and method rosters in the
 > compilation group's tier; the data-name lane's first slice, branch `listing-step-6b-data`: the DEBUG-ITEM, type, CAPACITY register and
 > index-names; the closing slice's first session, branch `listing-step-6b-close`: the data-name, condition-name and screen-name tables,
-> the USE and WHEN file registers, the end markers; the data-name and condition-name RESOLUTION remains, 86 baseline entries; sections
+> the USE and WHEN file registers, the end markers; the entry-id lane, branch `listing-step-6b-ids`: every class the table declares
+> enters its entry where it is declared and every identification hands back its id; the data-name and condition-name RESOLUTION remains, 86 baseline entries; sections
 > 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); step 7b (the
 > occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
 > dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
@@ -987,7 +988,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     tables serve today becomes a private member of `SymbolTable`. The declaring binders create the entries
     (`SymbolTable.Declare`, which records the `Defined` occurrence and returns a `SymbolId`, an opaque number, never an
     entry or a symbol) and write each entry's attributes where they decide them (`SymbolTable.SetAttributes(SymbolId,
-    ...)`, section 6.6); those two and `Identify` are the table's only writers. (Step 7b, dispatched early, correction: kb/Work
+    ...)`, section 6.6); those two and `Identify` are the table's only writers. (Step 6b, the entry ids:) built as `EntryStore.Enter`, made
+    by every class's declaration, with the id beside the symbol in the store (below, "Step 6b, the entry ids"). (Step 7b, dispatched early, correction: kb/Work
     PB5925's dated file `2026-11-19-step-7b-not-buildable-yet`:) as step 6b built it, each class's declaration keys its SYMBOL
     (`DeclareParagraph`, `DeclareSection`, `ConfigurationNames<T>`, `DeclareDataName`, ...) and returns no `SymbolId`; the entries are
     made after the bind by `SymbolTableFinish.Of`. The `SymbolId` made at declaration is what lets an occurrence join its entry: the
@@ -1512,6 +1514,66 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       typed `IdentifyDataName(WrittenQualifiedName, ...)` the data-name lane named, with the clause operands carrying their written
       words or resolved from their carrier, is the next slices' work, with the declaration sites, the census, the group tier's
       function units and the parameterized expansion (kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the table).
+  - *(Step 6b, the entry ids, branch `listing-step-6b-ids`, a lane beside the data-name lane; kb/Work PB5932's dated file
+    `2026-11-19-step-6b-entry-ids`.)* Every class whose declaration is the table's makes its ENTRY where the binder declares the name,
+    and every identification hands the entry back, so step 7b joins an occurrence to its entry by id for every class, never by the
+    answer (kb/Work PB5925's dated file `2026-11-19-step-7b-not-buildable-yet`, finding 2). The baseline is unchanged (this lane moves
+    no table, lookup or comparison). As built, with the corrections the code proved:
+    - *One store of entries per compilation group, `SymbolTable.EntryStore`.* `Enter(element, NameClass, name, at, symbol)` returns a
+      `SymbolId` (an opaque 1-based number, `default` none) and records the entry: the table that made it (null for the group tier),
+      its class, its name as written, where it stands and the declaration's symbol. Every element's table and the group tier enter
+      into the one store the group's `OoClassTable.Entries` holds (the one object every binder of the group reaches, through
+      `DataBinder.OoClasses`), so an id is unique in the group; a binder outside every group (a unit test's, OoExpansion's
+      parameter-name screen) is a group of its own.
+    - *The id stands beside the symbol in ONE place for every class (correction: "the class's table keeps the id beside the symbol").*
+      A table per class carrying its ids would copy them down every inheritance path, and three paths hand a contained element its
+      container's BARE symbol (`InheritGlobalItem`'s index-names and CAPACITY registers, `InheritFiles`, `InheritReport`), which the
+      container's id would have to follow. So the store keys each entry by its declaration's symbol (reference identity), and an
+      identification answers `EntryOf(symbol)`: a name an element inherits holds the container's symbol and answers the container's
+      entry with nothing copied, and the next class to move (the data-names and condition-names) needs no new shape: its declaration
+      enters `(NameClass.Data, name, at, item)` and its identification answers the item's entry. A class whose answer is no object of
+      its own declaration enters a declaration object its table keeps: a configuration-section value (`AlphabetDef.Native` and an
+      implementor-name row are shared values) is held as a `NameDeclaration<T>`, a paragraph-name as the `ParagraphDefinition` the
+      table now makes once per declaration (it was made per lookup), a DEBUG-ITEM register name per member (a re-activation that
+      widens DEBUG-CONTENTS makes a new item under the same name, §1985:XV.3.2.4 GR10), a VARYING counter by its declaring word (a
+      counter model is made per enclosing occurrence). An object the binder makes LATER for an entered name answers the same entry
+      (`EntryStore.Answer`): a constant's bound `ConstantDef`, a `ProgramPrototype` a specifier or a containing definition resolved to.
+    - *Where each class enters, at the position the listing places it.* A procedure-name per declaration at the header's word
+      (`DeclareParagraph`, `DeclareSection` take the header); the nine CONFIGURATION SECTION classes at the declaring word (each
+      declaration takes the word's token, never its text); a constant entry at its level-number (FILLER included: the data map lists
+      it; only a constant-name joins the names); a file at its file control entry (`FileModel.EntryAt`); a CD at its entry; a report at
+      its RD and each report group description entry, named or FILLER, at its level-number, as a `NameClass.Data` entry (a reference to its
+      data-name competes with the ordinary data-names for uniqueness, §2023:8.4.2.2.3 SR1, kb/Work PB5775), before the report section binds (a constant's length phrase names one,
+      §2023:13.10.3 SR11); a program-prototype-name and a function-prototype-name at the specifier's word, the containing definition's
+      name answering that program's own entry, which `DeclareProgram` makes for every unit before its data binds; an index-name and a
+      CAPACITY register on their table's line and a type declaration as its type-name (section 6.6's placements); an object-class-name
+      and interface-name at its CLASS-ID or INTERFACE-ID word, an imported one and the standard class BASE at no position when the group
+      first names it, a parameter-name of a definition bound as itself at its word. The DEBUG-ITEM registers stand at no position (the
+      standard declares them implicitly).
+    - *Every identification carries its entry, and one without cannot be made.* `IdentifiedName.Id`; a candidate set
+      (`ProcedureCandidates`, `ReportCandidates<T>`, `CapacityRegisterCandidates`) carries each candidate's entry
+      (`ICandidateEntries.Ids`) and names none of its own; `IdentifiedName`'s constructor refuses an answer whose entry is missing, and
+      `ClassNames.Lookup` sets `OoNameResult.Entry` and refuses the same, so a declaring path that enters nothing fails at its first
+      reference in every compilation. `IdentifyIndexName` stays typed and unboxed (section 9): `SymbolTable.IndexEntryOf(candidate)`
+      answers a candidate's entry when step 7b records one (a member a TYPE clause's copy lapses to answers its table's index-name).
+    - *The finish reads the entries the bind made (`SymbolTableFinish.Of(..., SymbolTable.EntryStore, ...)`).* Each element's entries are
+      written with the bind's class, name and position (`SymbolTableWriter.Declare(SymbolId, ...)`); the constant entries are read off
+      the bind (`ConstantEntryBinder.DeclaredConstants` is deleted), the procedure-names, configuration-section names, prototype-names,
+      DEBUG-ITEM registers, VARYING counters and the group tier's names are entries of the finished table for the first time (with
+      `NameAttributes`, which no view of the listing reads yet, so the data map and the program map are unchanged). The data
+      description entries' DATA-NAMES and CONDITION-NAMES are still declared by the finish from the frozen forest, in the order a
+      record is written, until the data-name lane enters them; every other entry of a record (an index-name, a CAPACITY register, a
+      type-name) is the bind's, placed where the record places it, and a drift between the two positions fails loudly
+      (`SymbolTableFinish.DeclareEntered`), which is also where a data-name's entry is adopted the day its declaration makes one. A
+      type declaration's entry is its type-name's, so the data-name lane's declaration of a typedef root must answer that entry, not
+      enter a second (`EntryStore.Enter` refuses a symbol entered twice).
+    - *What enters no entry.* A REPOSITORY program-specifier whose literal-3 was refused (`RefuseProgramSpecifier`) declares a word that
+      answers no reference (no prototype is registered) and binds with an error, so the completeness oracle of step 7b, which binds the
+      programs that bind clean, never meets it; a CAPACITY register SR30 refused (COBOL1523) likewise.
+    - *Guards.* `SymbolEntryDriftTests` (Unit): an identification without an entry is refused, a candidate set with a candidate without
+      one is refused; three planted programs (2023, 1985, OO) declare a name of every class the table enters and reference each, and the
+      finished table holds each with the class, name and line and column written from the source text; a class of `NameClass` with no
+      witness is red, except the four classes a reference's position admits whose entry is a report group description entry's.
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -2445,7 +2507,10 @@ shown behaviour-neutral by `compare_oracle.py`, and lowered the baseline 122 -> 
 data-names' and condition-names' resolution by text (22 lookups, about 100 call sites), their declaration sites, the census, the group
 tier's function units and the parameterized expansion, so the step lands one more slice at least, by the same rule: the slice that
 empties the baseline deletes it with the code that reads it, measures the whole step against the parent of slice 1, and flips PB5932;
-kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the remainder by class.
+kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the remainder by class. (Step 6b, the entry ids, branch `listing-step-6b-ids`, a
+lane beside the data-name lane, controller 2026-11-19:) the classes already in the table make their entries where they are declared and
+every identification carries its id (section 6.7.1, "Step 6b, the entry ids"); the lane moves no table, so the baseline is unchanged, and
+kb/Work PB5932's dated file `2026-11-19-step-6b-entry-ids` holds what it built and measured.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had
@@ -2471,7 +2536,9 @@ identified answer is not what the finish declares (a constant's `ConstantDef` ag
 ordering-name's string, a paragraph's per-lookup `ParagraphDefinition(Pc)`, a report group's candidates), and several classes
 (procedure, CONFIGURATION SECTION, prototype, DEBUG-ITEM and OO names) have no entry at all. Step 7b therefore waits for step 6b's
 remaining slices, which give each declared name its entry id as its declaration moves (section 6.7.1's `SymbolId`); step 7b then joins
-every occurrence to its entry by that id, never by the answer. (Step 9:) when step 7b adds `ListingLine.Names` and
+every occurrence to its entry by that id, never by the answer. (Step 6b, the entry ids, branch `listing-step-6b-ids`:) every class whose
+declaration was the table's then gives its entry id (section 6.7.1, "Step 6b, the entry ids"), and the finish reads the entries the bind
+made; the data-names and condition-names give theirs when their declarations move, in the shape that lane adopts unchanged. (Step 9:) when step 7b adds `ListingLine.Names` and
 `ListingCrossReference` to the model, it also adds their HTML (section 7.2): each name on a source line linked to its definition,
 each definition's references listed as links, and the cross-reference section's method in `IListingSectionVisitor<T>`, which the
 text and HTML renderers then must both implement to compile.

@@ -290,11 +290,13 @@ public sealed partial class SpecialNamesBinder
         }
         // The mnemonic-name's row, for the one procedure-side reader (Procedure.MnemonicRegistry, through SymbolTable.Identify): the
         // first declaration of a spelling wins, and a container's entries come after this unit's own (SymbolTable.InheritConfigurationNames).
-        if (e.Mnemonic is { } mnemonicName) _host.Symbols.DeclareMnemonic(mnemonicName, e.Row!);
+        // Each declaration takes its declaring word, where its entry stands (DESIGN-listing.md section 6.7.1).
+        if (e.Mnemonic is not null) _host.Symbols.DeclareMnemonic(sw.cobolWord()[1].Start, e.Row!);
         if (e.Row!.Kind != SystemNameKind.Switch) return;
         string switchName = e.Row.Name;
-        if (e.OnCondition is { } on) _host.Symbols.DeclareSwitchCondition(on, switchName, isOn: true);
-        if (e.OffCondition is { } off) _host.Symbols.DeclareSwitchCondition(off, switchName, isOn: false);
+        var status = sw.switchStatusPhrases();
+        if (status?.switchOnClause()?.cobolWord() is { } on) _host.Symbols.DeclareSwitchCondition(on.Start, switchName, isOn: true);
+        if (status?.switchOffClause()?.cobolWord() is { } off) _host.Symbols.DeclareSwitchCondition(off.Start, switchName, isOn: false);
     }
 
     /// <summary>Resolve the PROGRAM COLLATING SEQUENCE clause (ISO §2023:12.3.6): the IS form's alphabet-name-1
@@ -377,7 +379,7 @@ public sealed partial class SpecialNamesBinder
         // PB3216): the first stands, so a repeat sets nothing — and an INHERITED same-named structure is still replaced
         // by this element's first (§2023:8.4.6.1), since the census counts this element's own declarations alone.
         if (_host.WordCensus.UnqualifiedDeclarations(name, UserWordKind.DynamicLengthStructureName) > 1) return;
-        _host.Symbols.Declare(declared);   // replaces an INHERITED same-named structure (§2023:8.4.6.1)
+        _host.Symbols.Declare(nameCtx.Start, declared);   // replaces an INHERITED same-named structure (§2023:8.4.6.1)
     }
 
     /// <summary>
@@ -427,7 +429,7 @@ public sealed partial class SpecialNamesBinder
                 + $"repeatable clauses (ISO §2023:12.3.7.2); '{declaredOrderings.Names.First()}' is already declared");
             return;
         }
-        _host.Symbols.DeclareOrderingName(name, text);
+        _host.Symbols.DeclareOrderingName(name1.Start, text);
         // GR17's implementor half, checked against the ONE resolver the runtime uses (§2023:15.85.4 r2 owns the outcome).
         // A site collation file that cannot be used is that resolver's typed failure, named here with its file, never
         // a crash of the compile (kb/Work PB2773).

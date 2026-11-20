@@ -23,4 +23,9 @@ public enum OoNameWant { Class, Interface, Either }
 public readonly record struct OoNameResult(OoClassSymbol? Class, OoInterfaceSymbol? Interface, bool IsFormal = false)
 {
     public bool Ok => Class is not null || Interface is not null;
+
+    /// <summary>The symbol-table entry the resolved name's declaration made (the class's, the interface's, or the parameter-name's;
+    /// docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, the entry ids"), set by <c>SymbolTable.ClassNames.Lookup</c> for
+    /// every answer that is <see cref="Ok"/> or <see cref="IsFormal"/>; none for no answer.</summary>
+    internal Binding.SymbolId Entry { get; init; }
 }

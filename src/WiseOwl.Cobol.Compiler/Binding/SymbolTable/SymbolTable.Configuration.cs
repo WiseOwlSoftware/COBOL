@@ -31,7 +31,7 @@ public sealed partial class SymbolTable
     /// </summary>
     private sealed class ConfigurationNames<T>(UserWordKind kind) where T : notnull
     {
-        private readonly Dictionary<CobolName, T> _entries = [];
+        private readonly Dictionary<CobolName, NameDeclaration<T>> _entries = [];
 
         /// <summary>The containment distance of each name <see cref="InheritFrom"/> took from a containing element, still
         /// unredeclared here: 1 for the direct container's own declaration, one more per level it came down. A name absent here
@@ -52,10 +52,10 @@ public sealed partial class SymbolTable
             _inherited.Select(static p => KeyValuePair.Create(p.Key.Word, p.Value));
 
         /// <summary>Declare a name; false (the first declaration kept) when it is already declared.</summary>
-        public bool TryAdd(CobolName name, T value) => _entries.TryAdd(name, value);
+        public bool TryAdd(CobolName name, NameDeclaration<T> value) => _entries.TryAdd(name, value);
 
         /// <summary>Declare a name, replacing an INHERITED entry of the same name.</summary>
-        public void Set(CobolName name, T value)
+        public void Set(CobolName name, NameDeclaration<T> value)
         {
             _entries[name] = value;
             _inherited.Remove(name);
@@ -63,7 +63,10 @@ public sealed partial class SymbolTable
 
         public bool Declares(CobolName name) => _entries.ContainsKey(name);
 
-        public T? Of(CobolName name) => _entries.GetValueOrDefault(name);
+        public T? Of(CobolName name) => _entries.TryGetValue(name, out var declared) ? declared.Value : default;
+
+        /// <summary>The declaration of <paramref name="name"/> (its entry's symbol), or null.</summary>
+        public NameDeclaration<T>? DeclarationOf(CobolName name) => _entries.GetValueOrDefault(name);
 
         /// <summary>-1 when the name is not declared, 0 when THIS source element declares it, n when only the n-th containing
         /// element did (§2023:8.4.6.2.1 3)).</summary>
@@ -108,7 +111,7 @@ public sealed partial class SymbolTable
     /// <c>feature-name-1 IS mnemonic-name-2</c> | <c>device-name-1 IS mnemonic-name-3</c>) and the implementor-name ROW each
     /// stands for, so every consumer asks the row's KIND, never the entry's spelling (kb/Work PB862). The first declaration of a
     /// spelling is kept; a container's entries are read after these (<see cref="_configurationContainer"/>).</summary>
-    private readonly Dictionary<CobolName, ImplementorName> _mnemonics = [];
+    private readonly Dictionary<CobolName, NameDeclaration<ImplementorName>> _mnemonics = [];
 
     /// <summary>The containing element's table whose mnemonic-names this element reads after its own (§2023:12.3.7.4 GR1, the
     /// nearest declaration winning); null for an outermost element.</summary>
@@ -121,56 +124,78 @@ public sealed partial class SymbolTable
         or NameClass.Alphabet or NameClass.NationalAlphabet or NameClass.SymbolicCharacter or NameClass.OrderingName
         or NameClass.DynamicLengthStructure or NameClass.Locale or NameClass.Mnemonic;
 
-    /// <summary>The symbol of a configuration-section class one word names here, or null; and the type of user-defined word a
-    /// reference uses it as.</summary>
-    private (object? Symbol, UserWordKind Kind) ConfigurationNamed(CobolName key, NameClass wanted) => wanted switch
+    /// <summary>The symbol of a configuration-section class one word names here and the entry its declaration made, or null; and the
+    /// type of user-defined word a reference uses it as.</summary>
+    private ((object? Symbol, SymbolId Id) Answer, UserWordKind Kind) ConfigurationNamed(CobolName key, NameClass wanted) => wanted switch
     {
-        NameClass.SwitchCondition => (_switchConditions.Of(key), _switchConditions.Kind),
-        NameClass.ClassName => (_userClasses.Of(key), _userClasses.Kind),
-        NameClass.Alphabet => (_alphabets.Of(key), _alphabets.Kind),
-        NameClass.NationalAlphabet => (_nationalAlphabets.Of(key), _nationalAlphabets.Kind),
-        NameClass.SymbolicCharacter => (_symbolicCharacters.Of(key), _symbolicCharacters.Kind),
-        NameClass.OrderingName => (_orderTables.Of(key), _orderTables.Kind),
-        NameClass.DynamicLengthStructure => (_dynamicLengthStructures.Of(key), _dynamicLengthStructures.Kind),
-        NameClass.Locale => (_locales.Of(key), _locales.Kind),
-        NameClass.Mnemonic => (MnemonicNamed(key), UserWordKind.MnemonicName),
+        NameClass.SwitchCondition => (Answer(_switchConditions.DeclarationOf(key)), _switchConditions.Kind),
+        NameClass.ClassName => (Answer(_userClasses.DeclarationOf(key)), _userClasses.Kind),
+        NameClass.Alphabet => (Answer(_alphabets.DeclarationOf(key)), _alphabets.Kind),
+        NameClass.NationalAlphabet => (Answer(_nationalAlphabets.DeclarationOf(key)), _nationalAlphabets.Kind),
+        NameClass.SymbolicCharacter => (Answer(_symbolicCharacters.DeclarationOf(key)), _symbolicCharacters.Kind),
+        NameClass.OrderingName => (Answer(_orderTables.DeclarationOf(key)), _orderTables.Kind),
+        NameClass.DynamicLengthStructure => (Answer(_dynamicLengthStructures.DeclarationOf(key)), _dynamicLengthStructures.Kind),
+        NameClass.Locale => (Answer(_locales.DeclarationOf(key)), _locales.Kind),
+        NameClass.Mnemonic => (Answer(MnemonicNamed(key)), UserWordKind.MnemonicName),
         _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not a configuration-section name class"),
     };
 
-    /// <summary>The row a mnemonic-name names: this element's own entry, else the nearest container's.</summary>
-    private ImplementorName? MnemonicNamed(CobolName key) =>
+    /// <summary>A configuration-section declaration's value, with its entry.</summary>
+    private (object? Symbol, SymbolId Id) Answer<T>(NameDeclaration<T>? declared) where T : notnull =>
+        declared is null ? default : (declared.Value, _entries.IdOf(declared));
+
+    /// <summary>The declaration of the row a mnemonic-name names: this element's own entry, else the nearest container's.</summary>
+    private NameDeclaration<ImplementorName>? MnemonicNamed(CobolName key) =>
         _mnemonics.GetValueOrDefault(key) ?? _configurationContainer?.MnemonicNamed(key);
 
     // ---- declarations (the SPECIAL-NAMES binder) --------------------------------------------------------------------------
+    // Each takes the DECLARING WORD's token (the written word travels, never its text, slice 4): the entry stands at it.
+
+    /// <summary>Enter a configuration-section name declared by <paramref name="word"/>: the declaration object its table keeps, whose
+    /// identity is the entry's (a value such as <see cref="AlphabetDef.Native"/> or an implementor-name row is shared, so it cannot
+    /// be the entry's symbol). A refused second declaration is a declaration too, and is entered.</summary>
+    private NameDeclaration<T> EnterConfiguration<T>(NameClass @class, Antlr4.Runtime.IToken word, T value) where T : notnull
+    {
+        var declared = new NameDeclaration<T>(value);
+        Enter(@class, word.Text, PositionOf(word), declared);
+        return declared;
+    }
 
     /// <summary>Declares a switch-status condition-name; the first declaration of a spelling stands.</summary>
-    internal void DeclareSwitchCondition(string name, string implementorName, bool isOn) =>
-        _switchConditions.TryAdd(Key(name), new SwitchStatusName(implementorName, isOn));
+    internal void DeclareSwitchCondition(Antlr4.Runtime.IToken word, string implementorName, bool isOn) =>
+        _switchConditions.TryAdd(Key(word.Text), EnterConfiguration(NameClass.SwitchCondition, word, new SwitchStatusName(implementorName, isOn)));
 
     /// <summary>Declares a class-name; the first declaration of a spelling stands.</summary>
-    internal void Declare(string className, UserClassDef members) => _userClasses.TryAdd(Key(className), members);
+    internal void Declare(Antlr4.Runtime.IToken classWord, UserClassDef members) =>
+        _userClasses.TryAdd(Key(classWord.Text), EnterConfiguration(NameClass.ClassName, classWord, members));
 
     /// <summary>Declares an alphanumeric alphabet-name; the first declaration of a spelling stands.</summary>
-    internal void Declare(string alphabetName, AlphabetDef alphabet) => _alphabets.TryAdd(Key(alphabetName), alphabet);
+    internal void Declare(Antlr4.Runtime.IToken alphabetWord, AlphabetDef alphabet) =>
+        _alphabets.TryAdd(Key(alphabetWord.Text), EnterConfiguration(NameClass.Alphabet, alphabetWord, alphabet));
 
     /// <summary>Declares a national alphabet-name; the first declaration of a spelling stands.</summary>
-    internal void Declare(string alphabetName, NationalAlphabetDef alphabet) => _nationalAlphabets.TryAdd(Key(alphabetName), alphabet);
+    internal void Declare(Antlr4.Runtime.IToken alphabetWord, NationalAlphabetDef alphabet) =>
+        _nationalAlphabets.TryAdd(Key(alphabetWord.Text), EnterConfiguration(NameClass.NationalAlphabet, alphabetWord, alphabet));
 
     /// <summary>Declares a symbolic-character; false (the first declaration kept) when the spelling is already declared.</summary>
-    internal bool DeclareSymbolicCharacter(string name, string value, bool national) =>
-        _symbolicCharacters.TryAdd(Key(name), new SymbolicCharacterName(value, national));
+    internal bool DeclareSymbolicCharacter(Antlr4.Runtime.IToken word, string value, bool national) =>
+        _symbolicCharacters.TryAdd(Key(word.Text), EnterConfiguration(NameClass.SymbolicCharacter, word, new SymbolicCharacterName(value, national)));
 
     /// <summary>Declares an ordering-name, replacing an inherited one of the spelling.</summary>
-    internal void DeclareOrderingName(string name, string literal9) => _orderTables.Set(Key(name), literal9);
+    internal void DeclareOrderingName(Antlr4.Runtime.IToken word, string literal9) =>
+        _orderTables.Set(Key(word.Text), EnterConfiguration(NameClass.OrderingName, word, literal9));
 
     /// <summary>Declares a dynamic-length-structure-name, replacing an INHERITED structure of the spelling (§2023:8.4.6.1).</summary>
-    internal void Declare(DynamicLengthStructure structure) => _dynamicLengthStructures.Set(Key(structure.Name), structure);
+    internal void Declare(Antlr4.Runtime.IToken word, DynamicLengthStructure structure) =>
+        _dynamicLengthStructures.Set(Key(structure.Name), EnterConfiguration(NameClass.DynamicLengthStructure, word, structure));
 
     /// <summary>Declares a locale-name; the first declaration of a spelling stands.</summary>
-    internal void Declare(LocaleSymbol locale) => _locales.TryAdd(Key(locale.Name), locale);
+    internal void Declare(Antlr4.Runtime.IToken word, LocaleSymbol locale) =>
+        _locales.TryAdd(Key(locale.Name), EnterConfiguration(NameClass.Locale, word, locale));
 
     /// <summary>Declares a mnemonic-name and the implementor-name row it stands for; the first declaration of a spelling stands.</summary>
-    internal void DeclareMnemonic(string name, ImplementorName row) => _mnemonics.TryAdd(Key(name), row);
+    internal void DeclareMnemonic(Antlr4.Runtime.IToken word, ImplementorName row) =>
+        _mnemonics.TryAdd(Key(word.Text), EnterConfiguration(NameClass.Mnemonic, word, row));
 
     /// <summary>Takes the containing element's configuration-section names (§2023:12.3.4 GR1: "The entries explicitly or
     /// implicitly specified in the configuration section of a source unit that contains other source units apply to each directly
@@ -200,7 +225,7 @@ public sealed partial class SymbolTable
     internal bool DeclaresConfigurationName(NameClass @class, string name) => @class switch
     {
         NameClass.Mnemonic => MnemonicNamed(Key(name)) is not null,
-        _ => ConfigurationNamed(Key(name), @class).Symbol is not null,
+        _ => ConfigurationNamed(Key(name), @class).Answer.Symbol is not null,
     };
 
     /// <summary>Is <paramref name="name"/> an alphabet-name of either class?</summary>

@@ -792,7 +792,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             foreach (var spec in specs)
             {
                 string name = spec.cobolWord().GetText();
-                var declared = counters.Declare(name);
+                var declared = counters.Declare(spec.cobolWord());
                 if (declared == VaryingCounterDeclaration.TwiceInEntry)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{name}': the counter is defined twice in "
                         + "this entry; data-name-1 shall not be defined elsewhere in the source element, except as "

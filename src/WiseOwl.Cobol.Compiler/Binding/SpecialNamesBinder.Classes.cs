@@ -129,7 +129,7 @@ public sealed partial class SpecialNamesBinder
                     + $"{distinct} characters are specified — more than the {inSet.OrdinalCount} characters of the "
                     + $"character set referenced by alphabet-name-4 ({inSet.Phrase}) (ISO {rules.Cite(Edition.Edition, '5')})");
         }
-        _host.Symbols.Declare(name, new UserClassDef(set, national));
+        _host.Symbols.Declare(cd.cobolWord(0).Start, new UserClassDef(set, national));
     }
 
     /// <summary>⛔ THE ONE READING OF A SPECIAL-NAMES FOR PHRASE, for all three clauses that print it (ALPHABET,
@@ -189,7 +189,7 @@ public sealed partial class SpecialNamesBinder
             foreach (var name in names)
             {
                 _host.DeclareUserWord(name.GetText(), UserWordKind.SymbolicCharacter);
-                _host.Symbols.DeclareSymbolicCharacter(name.GetText(), "\0", national);
+                _host.Symbols.DeclareSymbolicCharacter(name.Start, "\0", national);
             }
             return;
         }
@@ -223,10 +223,10 @@ public sealed partial class SpecialNamesBinder
                 // not defined") for a name the program did write. The placeholder value is never observed — the
                 // clause already failed, so the compilation produces no program (the posture LiteralPhraseOperand's
                 // class-rule recovery takes for an operand of the wrong class). kb/Work PB1091.
-                _host.Symbols.DeclareSymbolicCharacter(symName, "\0", national);
+                _host.Symbols.DeclareSymbolicCharacter(names[i].Start, "\0", national);
                 continue;
             }
-            if (!_host.Symbols.DeclareSymbolicCharacter(symName, value, national))
+            if (!_host.Symbols.DeclareSymbolicCharacter(names[i].Start, value, national))
                 Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS: '{symName}' is "
                     + "already defined — a given symbolic-character-1 may be specified only once within the SYMBOLIC "
                     + "CHARACTER clauses of this SPECIAL-NAMES paragraph (ISO "

@@ -17,13 +17,16 @@ public sealed class SymbolTableConfigurationNamesTests
 {
     private static SymbolTable NewTable() => new DataBinder().Symbols;
 
+    /// <summary>A declaring word as the parser reads it: a declaration takes its token, where the name's entry stands.</summary>
+    private static Antlr4.Runtime.IToken Word(string text) => new Antlr4.Runtime.CommonToken(0, text) { Line = 1, Column = 7 };
+
     [Fact]
     public void ADeclaredNameIsOwn_AnInheritedNameIsNot()
     {
         var container = NewTable();
-        container.DeclareSwitchCondition("S-ON", "SWITCH-1", isOn: true);
+        container.DeclareSwitchCondition(Word("S-ON"), "SWITCH-1", isOn: true);
         var containee = NewTable();
-        containee.DeclareSwitchCondition("OWN", "SWITCH-2", isOn: true);
+        containee.DeclareSwitchCondition(Word("OWN"), "SWITCH-2", isOn: true);
         containee.InheritConfigurationNames(container);
 
         Assert.True(containee.DeclaresConfigurationName(NameClass.SwitchCondition, "S-ON"));
@@ -37,9 +40,9 @@ public sealed class SymbolTableConfigurationNamesTests
     public void AContaineesOwnDeclarationWinsAndStaysOwn()
     {
         var container = NewTable();
-        container.DeclareSwitchCondition("S-ON", "SWITCH-1", isOn: true);
+        container.DeclareSwitchCondition(Word("S-ON"), "SWITCH-1", isOn: true);
         var containee = NewTable();
-        containee.DeclareSwitchCondition("S-ON", "SWITCH-2", isOn: false);
+        containee.DeclareSwitchCondition(Word("S-ON"), "SWITCH-2", isOn: false);
         containee.InheritConfigurationNames(container);   // the containee's own declaration wins (§2023:12.3.4 GR1)
 
         Assert.Equal(0, containee.SwitchConditionDepth("S-ON"));
@@ -49,7 +52,7 @@ public sealed class SymbolTableConfigurationNamesTests
     public void ADepthCountsEveryLevelADeclarationCameDown()
     {
         var outer = NewTable();
-        outer.DeclareSymbolicCharacter("S-ON", "A", national: false);
+        outer.DeclareSymbolicCharacter(Word("S-ON"), "A", national: false);
         var middle = NewTable();
         middle.InheritConfigurationNames(outer);
         var inner = NewTable();
@@ -64,7 +67,7 @@ public sealed class SymbolTableConfigurationNamesTests
     public void ANameIsCaseInsensitive_ForTheDepthQuestionToo()
     {
         var table = NewTable();
-        table.DeclareSwitchCondition("S-On", "SWITCH-1", isOn: true);
+        table.DeclareSwitchCondition(Word("S-On"), "SWITCH-1", isOn: true);
         Assert.Equal(0, table.SwitchConditionDepth("s-ON"));
     }
 
@@ -72,8 +75,8 @@ public sealed class SymbolTableConfigurationNamesTests
     public void ANearerDeclarationHidesAnInheritedSymbolicCharacter_AndHidesNothingElse()
     {
         var container = NewTable();
-        container.DeclareSymbolicCharacter("SC-A", "A", national: false);
-        container.DeclareSymbolicCharacter("SC-B", "B", national: false);
+        container.DeclareSymbolicCharacter(Word("SC-A"), "A", national: false);
+        container.DeclareSymbolicCharacter(Word("SC-B"), "B", national: false);
         var containee = NewTable();
         containee.InheritConfigurationNames(container);
 

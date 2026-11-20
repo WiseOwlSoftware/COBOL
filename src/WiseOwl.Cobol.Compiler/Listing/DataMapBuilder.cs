@@ -35,7 +35,7 @@ internal static class DataMapBuilder
         var itemIds = new Dictionary<int, int>();
         foreach (var entry in symbols.Entries)
             if (entry.Class is NameClass.Data or NameClass.Condition or NameClass.Index or NameClass.Constant or NameClass.Report
-                or NameClass.CommunicationDescription)
+                or NameClass.CommunicationDescription or NameClass.TypeName or NameClass.CapacityRegister)
                 itemIds[entry.Id] = itemIds.Count + 1;
         int? Item(int? entry) => entry is { } id && itemIds.TryGetValue(id, out int item) ? item : null;
         IReadOnlyList<int> Items(IEnumerable<int> entries) => [.. entries.Select(e => Item(e)).OfType<int>()];
@@ -105,6 +105,8 @@ internal static class DataMapBuilder
                     break;
                 case ProgramAttributes:
                     break;   // the program map's (ProgramAttributesOf)
+                case NameAttributes:
+                    break;   // a name the data map does not list (a procedure-name, a configuration-section name, a prototype-name, ...)
                 default:
                     throw new InvalidOperationException($"the symbol table entry '{entry.Name}' has attributes the data map does not know");
             }

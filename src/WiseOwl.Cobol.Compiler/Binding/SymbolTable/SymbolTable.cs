@@ -40,6 +40,9 @@ public sealed partial class SymbolTable
     internal SymbolTable(DataBinder data)
     {
         _data = data;
+        // The group's entries (DESIGN-listing.md section 6.7.1, "Step 6b, the entry ids"); a binder outside every compilation
+        // group (a unit test's, the parameter-name screen of OoExpansion) is a group of its own.
+        _entries = data.OoClasses?.Entries ?? new EntryStore();
         Declared = new Declarations(this);
     }
 

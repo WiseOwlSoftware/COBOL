@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -63,6 +64,8 @@ public sealed partial class SymbolTable
     /// method's, else this element's, whose own declarations are also the cells it emits (<see cref="ForestSlice.OwnIndexes"/>).</summary>
     internal void DeclareIndex(IndexDeclaration decl, OoMethodDataScope? method)
     {
+        // The index-name's entry stands on its table's line ("an index-name stands on its table's entry", section 6.6).
+        Enter(NameClass.Index, decl.Name, PositionOf(decl.Table.ReferenceSite.DeclaredAt), decl);
         if (method is null)
         {
             _data.State.Forest.AddOwnIndex(decl);
@@ -109,6 +112,19 @@ public sealed partial class SymbolTable
 
     /// <summary>Whether an index-name of <paramref name="name"/> visible to this element is declared in a source element nearer than
     /// <paramref name="depth"/> (<see cref="Declarations.DeclaredNearerThan"/>).</summary>
+    /// <summary>The entry of an index-name candidate <see cref="IdentifyIndexName"/> answered: its declaration's, or, for a member of a
+    /// type declaration a TYPE clause's copy lapses to (§2023:8.4.2.2.1 SR4, made per lookup), the declaration of its table's
+    /// index-name of that spelling. Asked when an occurrence is recorded (a set of one), never by the lookup itself, so a subscript's
+    /// many asks allocate nothing (section 9).</summary>
+    internal SymbolId IndexEntryOf(IndexDeclaration candidate)
+    {
+        if (_entries.IdOf(candidate) is { IsSet: true } id) return id;
+        var key = Key(candidate.Name);
+        foreach (var declared in candidate.Table.Indexes)
+            if (Key(declared.Name) == key) return _entries.IdOf(declared);
+        return default;
+    }
+
     private bool IndexNameDeclaredNearerThan(string name, int depth)
     {
         var key = Key(name);

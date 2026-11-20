@@ -101,7 +101,7 @@ public sealed class CapacityRegisterReferenceDriftTests
 
         string caller = Assert.Single(SrcScan.Value.Callers);
         Assert.StartsWith("SymbolTable.Identify.cs", caller, StringComparison.Ordinal);
-        Assert.Contains("NameClass.CapacityRegister => CapacityRegisterNamed(", File.ReadAllText(IdentifyPath), StringComparison.Ordinal);
+        Assert.Contains("NameClass.CapacityRegister => (CapacityRegisterNamed(", File.ReadAllText(IdentifyPath), StringComparison.Ordinal);
         string asker = Assert.Single(SrcScan.Value.Askers);
         Assert.StartsWith("ReferenceResolver.cs", asker, StringComparison.Ordinal);
         Assert.Contains("NameClass.CapacityRegister,",
@@ -109,7 +109,8 @@ public sealed class CapacityRegisterReferenceDriftTests
     }
 
     /// <summary>One read of every <c>src</c> source line, shared by the scans: each register-map read, each call of
-    /// <c>CapacityRegisterNamed</c> and each place that asks <c>Identify</c> for the class, as <c>file: line</c>. Comment lines are
+    /// <c>CapacityRegisterNamed</c> and each place that asks <c>Identify</c> for the class (a line that calls <c>Identify(</c> with it), as
+    /// <c>file: line</c>. Comment lines are
     /// prose about the rule, not sites.</summary>
     private static readonly Lazy<(List<string> Sites, List<string> Callers, List<string> Askers)> SrcScan = new(() =>
     {
@@ -128,7 +129,9 @@ public sealed class CapacityRegisterReferenceDriftTests
                 if (t.Contains("CapacityRegisterNamed(", StringComparison.Ordinal)
                     && !t.Contains("CapacityRegisterCandidates? CapacityRegisterNamed(", StringComparison.Ordinal))
                     callers.Add($"{Path.GetFileName(file)}: {t}");
-                if (t.Contains("NameClass.CapacityRegister,", StringComparison.Ordinal))
+                // An ASKER identifies the class; a declaration that enters the register's entry, or the finish that writes it, names
+                // the class without asking for a reference (DESIGN-listing.md section 6.7.1, "Step 6b, the entry ids").
+                if (t.Contains("NameClass.CapacityRegister,", StringComparison.Ordinal) && t.Contains("Identify(", StringComparison.Ordinal))
                     askers.Add($"{Path.GetFileName(file)}: {t}");
             }
         }
