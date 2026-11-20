@@ -2861,6 +2861,14 @@ accepts the sections built so far (`source`, `programs`, `diagnostics`, `options
   15.18 against 15.40 and 15.37, NC105A and NC218A within their spread of it (35.19 and 34.89 against 35.47 and 34.89; 31.04 and 30.44
   against 30.79 and 31.36), the listing work landed between the two trees in the same rows (the README's step-6b table, remainder
   slice 5).
+  (Step 7b:) the occurrences touch every compilation only by a test (`EntryStore.RecordsReferences`, read at each identification and
+  each statement), so step 7b measures the `None` row of the front end and bind against its parent `0c54b1d651`, two runs each,
+  alternating: IX113A 68.17 and 68.20 MB against 68.10 and 68.10, NC105A 34.54 and 35.12 against 34.88 and 35.11, NC218A 30.47 and
+  30.48 against 30.41 and 30.43, SM201A 15.19 and 15.05 against 15.04 and 15.01: within the parent's run-to-run spread or at most
+  0.15 MB above it, so the `None` budget holds. The `All` row, now holding the cross-reference, is +24.7 % (IX113A), +31.2 % (NC105A),
+  +30.8 % (NC218A) and +28.4 % (SM201A) over `None` on a full compile (one run), over its 25 % budget on three programs; the front
+  end and bind's `All` grows 8.5 to 12.1 MB over the parent's: kb/Work PB5953, filed before the step lands (the benchmark README's
+  step-7b table).
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the
@@ -3302,6 +3310,7 @@ and `ListingExceptionRegionTests`; the `All` row measured (section 9).
 
 **What is not built (checked at step 9 against every section of this document).** Each part below is a kb/Work item, never a silent
 gap:
+- (Step 7b:) section 9's `All` budget, over 25 % with the cross-reference: kb/Work PB5953.
 - (Step 7b:) the uses and references step 7b left, each a lead of kb/Work PB5925's dated file `2026-11-20-step-7b-2-built` (section
   6.7.1, "Step 7b, as built"): an index-name's store, the special registers' entries, a whole table's store, a literal CALL target
   in the CALL graph, and the statistics' counts of names and uses (section 4.1's table).
