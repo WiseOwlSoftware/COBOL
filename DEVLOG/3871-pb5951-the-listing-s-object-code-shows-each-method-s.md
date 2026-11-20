@@ -1,4 +1,4 @@
-## PB5951: the listing's object code shows each method's exception-handling regions, as ILDASM prints them
+## Entry 3871 — 2026-11-20 00:34 PST — PB5951: the listing's object code shows each method's exception-handling regions, as ILDASM prints them
 
 The owner, reading NC105A's listing on 2026-11-19: "I see endfinally and leave instructions, but there are no pseudo try or catch
 instructions, such as would appear in IL source code", and "catch also" (kb/Work PB5951). The object-code section (DESIGN-listing.md
@@ -42,3 +42,4 @@ link target twice; both are one now.
 parent's on a full compile, inside the run-to-run spread on three of the four programs; the first build wrote an indentation
 attribute on every instruction row of the HTML page, and writing it only where a region nests the row took 6.5 MB off IX113A. The
 `all` row stays over its budget, as before (kb/Work PB5941).
+
