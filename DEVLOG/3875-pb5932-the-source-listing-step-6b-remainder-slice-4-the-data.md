@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b remainder slice 4: the data division's declarations move into the symbol table
+## Entry 3875 — 2026-11-20 06:10 PST — PB5932: the source listing, step 6b remainder slice 4: the data division's declarations move into the symbol table
 
 Step 6b moves every name the compiler resolves into the one symbol table (docs/rearchitecture/DESIGN-listing.md section 6.7.1; kb/Work
 PB5932). It lands by name class behind a shrink-only baseline of what has not moved. Remainder slices 1 to 3 built parts A and B: no
@@ -35,3 +35,4 @@ now names the current home of each table, the entry places among them, and five 
 comments this slice split from their members were rejoined, and the defect's 45 siblings across the tree were fixed. The new
 `DocCommentShapeDriftTests` refuses a doc comment that holds `summary` or `remarks` twice. `RedefinedAmong` now cites
 §2023:13.18.44.3 SR2 for the level-number and SR6 for the unqualified word.
+
