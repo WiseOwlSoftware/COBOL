@@ -1,4 +1,4 @@
-## PB5947: the source listing's table of flagged constructs by edition, and the edition flag as a fact on its diagnostic
+## Entry 3865 — 2026-11-19 19:03 PST — PB5947: the source listing's table of flagged constructs by edition, and the edition flag as a fact on its diagnostic
 
 Section 6.11 of `docs/rearchitecture/DESIGN-listing.md` promised that the diagnostic summary "adds a table of flagged constructs by
 edition"; step 9's check of what is built found that no step had built it (kb/Work PB5947). It is built: the text summary ends with
@@ -36,3 +36,4 @@ programs flag nothing at `--std 85`, and the listing rows match but SM201A's noi
 all but one had been fixed by slice 7 and the OO lane. The one still true was the residue of the step 7b review's `14.7.8 rule 2`
 sweep: two comments in `ConditionRenderer` and the notes of inventory rows DOC-A.1-203 and SR-14.9.13.3-1 now cite
 §2023:14.7.8 GR1 and GR2 by designator.
+
