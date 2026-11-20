@@ -24,3 +24,8 @@ Not built: a COPY or REPLACE statement's words, which the text stages remove bef
 The open review leads of every listing step were checked against origin/main. Two of PB5947's were still true and are fixed: the
 MERGE placement removal now reports through its registry row's verdict and carries the removed-construct flag (the table of flagged
 constructs counts it; `EditionFlagDriftTests` now scans every code a removal row pins), and `FlagOf` names its real witness.
+
+Review round 1 found two stretches left uncoloured, both fixed at the root: a carried comment-entry header (its division decided after
+REPLACE) now records where its entry begins when it is carried, read only of a candidate the parse settled as a header; and a stretch
+is placed from the expanded index of its span's first unit, so a literal holding a supplementary-plane character or a tab is classed
+whole (kb/Work PB5949's dated file `2026-11-19-listing-step-pb5949-review-r1`).

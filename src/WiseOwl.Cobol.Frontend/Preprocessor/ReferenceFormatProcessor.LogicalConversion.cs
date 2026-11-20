@@ -100,6 +100,9 @@ public static partial class ReferenceFormatProcessor
                 // on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
                 case CommentEntryText.CandidateHeader:
                     _builder.Classify(site, PhysicalLineKind.CommentEntryCandidate);
+                    // Where its comment-entry begins SHOULD the line head a comment-entry paragraph: the listing reads it only
+                    // for a candidate the parse settled as one (DESIGN-listing.md section 7.2).
+                    _builder.Discard(site, CommentEntryStart(area), SourceTextClass.CommentEntry);
                     _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: true, ccvsIndicators, inclusion, line), site);
                     return;
                 case CommentEntryText.CandidateBody:
@@ -112,8 +115,8 @@ public static partial class ReferenceFormatProcessor
                     // free form (kb/Work PB1494, PB1758) — and only the comment-entry is discarded. The entry's end is
                     // implied by the next Area-A word (COBOL-85), so the logical conversion writes the paragraph's
                     // terminating period explicitly: `AUTHOR. .` is the paragraph `AUTHOR DOT DOT` with no content.
-                    _builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: true, out int entry), site);
-                    _builder.Discard(site, entry, SourceTextClass.CommentEntry);
+                    _builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: true), site);
+                    _builder.Discard(site, CommentEntryStart(area), SourceTextClass.CommentEntry);
                     return;
                 case CommentEntryText.Body:
                     _builder.Classify(site, PhysicalLineKind.CommentEntry);
@@ -329,12 +332,14 @@ public static partial class ReferenceFormatProcessor
                     // to decide on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
                     if (entry == CommentEntryText.Header)
                     {
-                        _builder.Emit(CommentEntryHeader(line.Text, site, file, gates, periodRequired: false, out int entryAt), site);
-                        _builder.Discard(site, entryAt, SourceTextClass.CommentEntry);
+                        _builder.Emit(CommentEntryHeader(line.Text, site, file, gates, periodRequired: false), site);
+                        _builder.Discard(site, CommentEntryStart(line.Text), SourceTextClass.CommentEntry);
                     }
                     else
                     {
                         _builder.Classify(site, PhysicalLineKind.CommentEntryCandidate);
+                        // Where its comment-entry begins should the line head a comment-entry paragraph, as in fixed form.
+                        _builder.Discard(site, CommentEntryStart(line.Text), SourceTextClass.CommentEntry);
                         _builder.AddCarrier(CommentEntryCarrier.Encode(isHeader: true, isFixed: false, ccvsIndicators: false, inclusion, line), site);
                     }
                     continue;
@@ -398,19 +403,26 @@ public static partial class ReferenceFormatProcessor
     /// one, so the parse recovers without a cascade. Free form is the extension of docs/CONFORMANCE.md D-CE1, whose period
     /// is optional.</para></summary>
     private static string CommentEntryHeader(string programText, TextSite site, string file, ReferenceFormatDiagnostics? gates,
-        bool periodRequired, out int entry)
+        bool periodRequired)
     {
         int wordStart = FirstNonSpace(programText);
         int wordEnd = WordEnd(programText, wordStart);
         if (periodRequired && !SeparatorPeriodFollows(programText, wordEnd))
             gates?.OnCommentEntryHeaderWithoutPeriod(file, site.Line, site.Col(wordStart), programText[wordStart..wordEnd]);
-        // The comment-entry this conversion discards begins at the first character after the header word's separator period
-        // (the source listing's reading of the line, DESIGN-listing.md section 7.2).
-        entry = wordEnd;
+        return programText[..wordEnd] + ". .";
+    }
+
+    /// <summary>The index in <paramref name="programText"/> (a comment-entry paragraph's header line, as
+    /// <see cref="CommentEntryHeader"/> reads it) at which the comment-entry the conversion discards begins: the first character
+    /// after the header word's separator period. The source listing's reading of the line (DESIGN-listing.md section 7.2), recorded
+    /// for a header the conversion decides and for a candidate it carries alike, so the two never disagree.</summary>
+    private static int CommentEntryStart(string programText)
+    {
+        int entry = WordEnd(programText, FirstNonSpace(programText));
         while (entry < programText.Length && programText[entry] == ' ') entry++;
         if (entry < programText.Length && programText[entry] == '.') entry++;
         while (entry < programText.Length && programText[entry] == ' ') entry++;
-        return programText[..wordEnd] + ". .";
+        return entry;
     }
 
     /// <summary>Whether the first non-space character at or after <paramref name="from"/> is a separator period: a period

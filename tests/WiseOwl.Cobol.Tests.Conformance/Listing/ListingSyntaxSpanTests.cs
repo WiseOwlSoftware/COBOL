@@ -159,6 +159,68 @@ public sealed class ListingSyntaxSpanTests : IDisposable
         Assert.DoesNotContain(copies[1].Spans, s => s.Column == copies[1].Text.IndexOf("SYN-FIELD", StringComparison.Ordinal) + 1);
     }
 
+    // A REPLACE whose pseudo-text names DIVISION leaves the division of the lines after it unknown to the logical conversion, which
+    // CARRIES their comment-entry candidates to the resolver (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
+    private const string Carried85 = """
+        000100 IDENTIFICATION DIVISION.
+        000200 PROGRAM-ID. CAR85.
+        000300     REPLACE ==DIVISION== BY ==DIVISION==.
+        000400 AUTHOR. ME AND YOU.
+        000500 INSTALLATION. HERE
+        000600     AND THERE.
+        000700 DATA DIVISION.
+        000800 PROCEDURE DIVISION.
+        000900 P-1.
+        001000     STOP RUN.
+        """;
+
+    [Fact]
+    public void ACarriedCommentEntryCandidate_IsACommentEntryOnItsHeaderLine_AsAnImmediateOneIs()
+    {
+        // §1985:III.2: a comment-entry is "An entry in the Identification Division that may be any combination of characters"; it
+        // begins after the paragraph header's separator period, on the header line as on the lines after it, and the division being
+        // decided after REPLACE changes neither.
+        var listing = Compile("car85", Carried85, 85);
+        HasSpan(Line(listing, 4), "AUTHOR", ListingSpanClass.ReservedWord);
+        HasSpan(Line(listing, 4), "ME AND YOU.", ListingSpanClass.CommentEntry);
+        HasSpan(Line(listing, 5), "INSTALLATION", ListingSpanClass.ReservedWord);
+        HasSpan(Line(listing, 5), "HERE", ListingSpanClass.CommentEntry);
+        Assert.Contains(Line(listing, 6).Spans, s => s.Class == ListingSpanClass.CommentEntry);
+    }
+
+    private const string Wide2023 = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. WIDE23.\n       DATA DIVISION.\n"
+        + "       WORKING-STORAGE SECTION.\n"
+        + "       01  A PIC X(20) VALUE \"\U0001F600xyz\". *> c1\n"
+        + "       01  D PIC X(20) VALUE \"\U0001F600\U0001F600xyz\".\n"
+        + "       01  T PIC X(20) VALUE \"A\tB\".\n"
+        + "       PROCEDURE DIVISION.\n           DISPLAY A D \"\U0001F600\" T\n           STOP RUN.\n";
+
+    [Fact]
+    public void ALiteralHoldingASupplementaryPlaneCharacterOrATab_IsClassedWhole()
+    {
+        // §2023:8.3.1: a character-string "forms a COBOL word, a literal, or a picture character-string": the literal, its
+        // delimiters and every character between them, is one stretch of one class; a supplementary-plane character is one
+        // character position, as every column of the listing counts (ListingSpan).
+        var listing = Compile("wide23", Wide2023, 2023);
+        HasCharacterSpan(Line(listing, 5), "\"\U0001F600xyz\"", ListingSpanClass.AlphanumericLiteral);
+        HasCharacterSpan(Line(listing, 5), "*> c1", ListingSpanClass.Comment);
+        HasCharacterSpan(Line(listing, 6), "\"\U0001F600\U0001F600xyz\"", ListingSpanClass.AlphanumericLiteral);
+        // The tab is expanded where the line enters (the listed text holds its spaces), and the literal still reads as one.
+        var tabbed = Line(listing, 7);
+        HasCharacterSpan(tabbed, tabbed.Text[tabbed.Text.IndexOf('"')..(tabbed.Text.LastIndexOf('"') + 1)], ListingSpanClass.AlphanumericLiteral);
+        HasCharacterSpan(Line(listing, 9), "\"\U0001F600\"", ListingSpanClass.AlphanumericLiteral);
+        HasCharacterSpan(Line(listing, 9), "T", ListingSpanClass.UserWord);
+    }
+
+    /// <summary><see cref="HasSpan"/> in CHARACTER positions, a supplementary-plane character one, as a span counts them.</summary>
+    private static void HasCharacterSpan(ListingLine line, string text, ListingSpanClass cls)
+    {
+        int at = line.Text.IndexOf(text, StringComparison.Ordinal);
+        Assert.True(at >= 0, $"'{text}' is not written on line {line.FileLine}");
+        static int Positions(string s) => s.EnumerateRunes().Count();
+        Assert.Contains(new ListingSpan(Positions(line.Text[..at]) + 1, Positions(text), cls), line.Spans);
+    }
+
     [Fact]
     public void TheHtmlPage_WrapsEachSpanInTheClassOfItsKind()
     {

@@ -508,9 +508,14 @@ away; the design keeps it:
 - (PB5949) The kinds travel in a `PhysicalLineRecord` (one per text the conversion reads) instead of a bare array, beside which,
   only when a listing is produced (`NormalizeToFreeFormMapped`'s `recordsDiscarded`), the conversion records where it DISCARDED a
   line's program text as an inline comment (§2023:6.5 GR3, at the one place the literal-aware scan stops on a comment indicator) or as
-  the comment-entry of the paragraph the line heads (`CommentEntryHeader`); `ReferenceFormatMap.DiscardedAt` answers it, and
+  the comment-entry of the paragraph the line heads (`CommentEntryStart`, the one reading of where it begins); `ReferenceFormatMap.DiscardedAt`
+  answers it, and
   `ReferenceFormatMap.RegionsAt` answers where a fixed-form line's areas begin and end, read by `FixedFormLine`, the one reader of
-  its columns. Section 7.2 colours by both: discarded text never reaches the lexer.
+  its columns. Section 7.2 colours by both: discarded text never reaches the lexer. A CARRIED candidate's header line (its division
+  decided after COPY and REPLACE) is recorded too, when the conversion carries it, as where its comment-entry begins SHOULD it head
+  a comment-entry paragraph: the builder reads it only of a candidate the parse settled as a header (`LineDraft.HeadsCarriedCommentEntry`,
+  per listed copy of the line), so a carried header colours its entry as an immediate one does (correction, review round 1: the record
+  was first made only where the conversion decided the header, and a carried header's entry went uncoloured).
 - (Step 1) A physical line is what the line-entry stage says (DOC-A.1-156: a text with n LINE FEEDs has n + 1 lines), so a
   file that ends in a LINE FEED lists an empty last line, as its reference-format map holds it.
 
@@ -2063,6 +2068,13 @@ inside its span; the text listing ignores the spans; the JSON carries them. As b
   (a token in the second copy of a copybook colours the second block; a continued literal colours both lines), and kept only where
   the written characters ARE the lexed ones: text a REPLACE or COPY REPLACING placed (a span with a layout of its own) or the text
   stages wrote (the period that closes an emptied comment-entry paragraph) stands at a place whose written text was not lexed.
+  The units differ (correction, review round 1): a resultant column and the listed text's index are UTF-16 units, an origin span's
+  source column a character position (a tab one, a supplementary-plane character one), and the reference format starts a new span at
+  each unit that does not advance the position (the second unit of a surrogate pair, each space of a tab's expansion after the
+  first). So a stretch is placed from the expanded index of its span's FIRST unit (`SyntaxSpanBuilder.StretchStart`: the position's
+  expanded index plus the units before it on that line that map to the same position) one unit for one, which within a span is exact,
+  and the stretches one token makes on one line are one piece. Placing the stretch's END at its start position plus its unit count
+  dropped everything after the first supplementary-plane character of a literal.
 - **The JSON version stays 1.0 (correction of the note's "a schema minor").** Section 7.3: no release has shipped the JSON listing,
   so `spans` (required, never null) completes 1.0 as every member since step 3 did.
 - **Not coloured: a COPY or REPLACE statement.** The text stages read and remove it; the lexer never sees its words and no stage

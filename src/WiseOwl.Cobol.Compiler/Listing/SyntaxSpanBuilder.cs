@@ -56,8 +56,9 @@ internal static class SyntaxSpanBuilder
                 Area(n, programStart, programEnd, cls, onlyIfVisible: true);
             }
             // The rest of the line's program text the conversion discarded as an inline comment or a comment-entry, which no
-            // token reads.
-            else if (map.DiscardedAt(draft.FileLine) is { } discarded)
+            // token reads; a carried candidate's only when the parse read it as a comment-entry paragraph's header.
+            else if (map.DiscardedAt(draft.FileLine) is { } discarded
+                && (map.KindAt(draft.FileLine) != PhysicalLineKind.CommentEntryCandidate || draft.HeadsCarriedCommentEntry))
                 Area(n, map.ExpandedIndexAt(draft.FileLine, discarded.Column), programEnd, discarded.Class, onlyIfVisible: true);
         }
 
@@ -100,10 +101,15 @@ internal static class SyntaxSpanBuilder
             (pieces[n] ??= []).Add((start, end, cls));
         }
 
-        // The resultant columns [from, to) of resultant line `line`, placed on each physical line their origin spans name.
+        // The resultant columns [from, to) of resultant line `line`, placed on each physical line their origin spans name. The
+        // resultant columns are UTF-16 indexes, the spans' source columns CHARACTER POSITIONS (a tab one, a supplementary-plane
+        // character one), and the line's text, the expanded text, UTF-16 again: each stretch is placed from the expanded index
+        // of its first unit (StretchStart) one unit for one, which within one origin span is exact, and the stretches one
+        // token's text makes on one line (a surrogate pair begins a span at each of its units) are one piece.
         void PlaceOnLine(int line, int from, int to, SourceTextClass cls)
         {
             var spans = frontend.LineMap.SpansAt(line);
+            int lastN = -1;   // the draft of the piece this token last added, which a stretch that follows it on extends
             for (int k = 0; k < spans.Length; k++)
             {
                 var stretch = spans[k];
@@ -114,15 +120,37 @@ internal static class SyntaxSpanBuilder
                 int n = listing - 1;
                 if (wholeLine[n]) continue;
                 var map = frontend.Formats[files[drafts[n].File]];
-                int physical = stretch.SourceColumn + (a - stretch.ResultColumn);
-                int start = map.ExpandedIndexAt(stretch.Origin.Line, physical);
-                int end = map.ExpandedIndexAt(stretch.Origin.Line, physical + (b - a));
+                int start = StretchStart(spans, k, map) + (a - stretch.ResultColumn);
+                int end = start + (b - a);
                 // A character the text stages wrote (the period they close an emptied comment-entry paragraph with) stands at a
                 // place whose written character is another: the written text there was not what the lexer read.
                 if (!Written(drafts[n].Text, start, end, lineStarts[line - 1] + a)) continue;
-                (pieces[n] ??= []).Add((start, end, cls));
+                var list = pieces[n] ??= [];
+                if (lastN == n && list[^1].End == start) list[^1] = (list[^1].Start, end, cls);
+                else list.Add((start, end, cls));
+                lastN = n;
             }
         }
+    }
+
+    /// <summary>The 0-based index into the expanded text of its physical line of the first unit of origin span
+    /// <paramref name="k"/> of <paramref name="spans"/>. Its source column names a character position, whose expanded text begins
+    /// at <see cref="ReferenceFormatMap.ExpandedIndexAt"/>; a span that begins INSIDE that text (the second unit of a surrogate
+    /// pair, a space after the first of a tab's expansion: the reference format splits a span at each, kb/Work PB1801) begins as
+    /// many units further on as the units before it, of the same line, that map to the same position.</summary>
+    private static int StretchStart(ReadOnlySpan<OriginSpan> spans, int k, ReferenceFormatMap map)
+    {
+        var stretch = spans[k];
+        int within = 0;
+        for (int j = k - 1, unit = stretch.ResultColumn - 1; j >= 0; unit--)
+        {
+            while (j >= 0 && spans[j].ResultColumn > unit) j--;
+            if (j < 0 || spans[j].Origin != stretch.Origin || spans[j].Layout is not null
+                || spans[j].SourceColumn + (unit - spans[j].ResultColumn) != stretch.SourceColumn)
+                break;
+            within++;
+        }
+        return map.ExpandedIndexAt(stretch.Origin.Line, stretch.SourceColumn) + within;
     }
 
     /// <summary>The spans of a line from its pieces (0-based indexes of its expanded text): in column order, the first of two that

@@ -17,6 +17,8 @@ internal sealed class PhysicalLineRecord(int lines, bool recordsDiscarded)
     public PhysicalLineKind[] Kinds { get; } = new PhysicalLineKind[lines];
 
     /// <summary>Per 1-based physical line, the 0-based physical column from which the conversion discarded the rest of the line's
-    /// program text, and what that text is; null when no listing is produced.</summary>
+    /// program text, and what that text is; null when no listing is produced. For a comment-entry CANDIDATE header
+    /// (<see cref="PhysicalLineKind.CommentEntryCandidate"/>, whose division is decided after COPY and REPLACE), where its
+    /// comment-entry begins should the parse read the line as a comment-entry paragraph's header.</summary>
     public Dictionary<int, (int Column, SourceTextClass Class)>? Discarded { get; } = recordsDiscarded ? [] : null;
 }
