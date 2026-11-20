@@ -141,14 +141,15 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
 
     /// <summary>The bind of <see cref="Source"/> under an edition context that does (<paramref name="recordsSymbols"/>) or does not
     /// ask for the symbol table, through the front end and the binder the driver uses.</summary>
-    private WiseOwl.Cobol.Binding.BinderDriver Bind(bool recordsSymbols, bool recordsNames = true)
+    private WiseOwl.Cobol.Binding.BinderDriver Bind(bool recordsSymbols, bool recordsNames = true, bool recordsReferences = false)
     {
         var (options, src) = Write(listing: null);
         var frontend = CompilerDriver.NewFrontend(options, new CompilationInputs(), recordsListing: false);
         var tree = frontend.Parse(src, new DiagnosticBag());
         Assert.NotNull(tree);
         var binder = new WiseOwl.Cobol.Binding.BinderDriver();
-        var edition = new WiseOwl.Cobol.Binding.EditionContext(85, false) { LineMap = frontend.LineMap, RecordsSymbols = recordsSymbols, RecordsNames = recordsNames };
+        var edition = new WiseOwl.Cobol.Binding.EditionContext(85, false) { LineMap = frontend.LineMap, RecordsSymbols = recordsSymbols, RecordsNames = recordsNames,
+            RecordsReferences = recordsReferences };
         binder.Bind(tree, edition, frontend.Directives);
         Assert.False(edition.HasErrors, string.Join("\n", edition.Diagnostics));
         return binder;
@@ -175,6 +176,23 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
             symbols.Entries.Select(e => (e.Class, e.Name)));
         Assert.True(ListingFacts.ReadsSymbols(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.DataMap) }));
         Assert.True(ListingFacts.ReadsSymbols(new ListingRequest()));   // the standard sections hold the program map
+    }
+
+    /// <summary>Section 9 (step 7b): a bind no cross-reference reads records no occurrence and links no place, the data map's own bind
+    /// included; asked, the same bind records the program's one reference, DISPLAY's X, read.</summary>
+    [Fact]
+    public void WithoutTheCrossReference_TheBindRecordsNoOccurrence()
+    {
+        var store = Bind(recordsSymbols: true).Session.OoClasses.Entries;
+        Assert.False(store.RecordsReferences);
+        Assert.Empty(store.Occurrences());
+        Assert.Equal(0, store.LinkMark);
+        Assert.False(ListingFacts.ReadsReferences(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.DataMap) }));
+        Assert.False(ListingFacts.ReadsReferences(new ListingRequest()));
+
+        var recorded = Bind(recordsSymbols: true, recordsReferences: true).Session.OoClasses.Entries;
+        Assert.Equal(WiseOwl.Cobol.Symbols.SymbolUse.Read, Assert.Single(recorded.Occurrences()).Occurrence.Use);
+        Assert.True(ListingFacts.ReadsReferences(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.CrossReference) }));
     }
 
     /// <summary>Section 9: the program map alone finishes the program entries and no other name; only the data map reads them.</summary>

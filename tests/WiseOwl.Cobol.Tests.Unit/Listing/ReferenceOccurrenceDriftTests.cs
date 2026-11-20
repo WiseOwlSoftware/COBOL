@@ -118,7 +118,7 @@ public sealed class ReferenceOccurrenceDriftTests
         }
     }
 
-    private static bool IsFiller(string word) => string.Equals(word, "FILLER", StringComparison.OrdinalIgnoreCase);
+    private static bool IsFiller(string word) => WiseOwl.Cobol.Runtime.CobolNames.UpperFold(word) == "FILLER";
 
     private static string PrefixOf(string label) => GrammarNameSlots.Prefixes.First(p => label.StartsWith(p, StringComparison.Ordinal));
 
@@ -138,8 +138,8 @@ public sealed class ReferenceOccurrenceDriftTests
         binder.Bind(tree!, edition, frontend.Directives);
         var store = binder.Session.OoClasses.Entries;
         var occurrences = store.Occurrences().Select(o => (o.Occurrence, store[o.Entry].Class, store[o.Entry].Name)).ToList();
-        var entryLines = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        for (int id = 1; id <= store.Count; id++) entryLines.Add(store[new SymbolId(id)].Name);
+        var entryLines = new HashSet<string>(StringComparer.Ordinal);
+        for (int id = 1; id <= store.Count; id++) entryLines.Add(WiseOwl.Cobol.Runtime.CobolNames.UpperFold(store[new SymbolId(id)].Name));
         return (tree!, occurrences, entryLines, store.UnpairedStorePositions, edition.Diagnostics);
     }
 
@@ -161,7 +161,7 @@ public sealed class ReferenceOccurrenceDriftTests
                 findings.Add($"occurrence of {found[0].Class} '{found[0].Name}' at {at.Line}:{at.Column} stands at no ref slot");
         // A definition's entry stands where section 6.6 places it (a data entry at its level-number, an index-name on its table's line,
         // a program at its first token), so a def slot is held to its NAME: the table entered a name of that spelling.
-        foreach (var slot in slots.Where(s => s.Prefix == "def" && !entryLines.Contains(s.Word.Trim('"', '\'')) && !IsFiller(s.Word)))
+        foreach (var slot in slots.Where(s => s.Prefix == "def" && !entryLines.Contains(WiseOwl.Cobol.Runtime.CobolNames.UpperFold(s.Word.Trim('"', '\''))) && !IsFiller(s.Word)))
             findings.Add($"def slot {slot.Rule}.{slot.Label} '{slot.Word}' at {slot.Line}:{slot.Column} entered no entry of its name");
         foreach (var (statement, verb, operand) in unpaired)
             findings.Add($"{verb} at {statement.Line}:{statement.Column} stores into '{operand}' through a place linked to no occurrence of it");

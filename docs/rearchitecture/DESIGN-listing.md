@@ -28,12 +28,12 @@
 > units, the parameterized expansion's names in the group's tier, the TURN file operand, the refused record-key operands and every
 > data-name's and condition-name's entry made where it is declared, the baseline emptied and deleted; sections 6.7.1 "Step 6b, as
 > built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
-> PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); step 7b (the
-> occurrences and the cross-reference, which stand on 6b and its entry ids, both built: section 11, "Step 7b,
-> dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
+> PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); STEP 7b BUILT (the
+> occurrences, the cross-reference and the HTML page's name links, branch `listing-step-7b-2`; section 6.7.1, "Step 7b, as
+> built"). Section 11, "What is not built", lists every
 > part of this design not yet built and why.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
-> "(step 6)", "(step 6b)", "(step 7a)", "(step 8)", "(step 9)" or "(PB5951)" in the section it changed.
+> "(step 6)", "(step 6b)", "(step 7a)", "(step 7b)", "(step 8)", "(step 9)" or "(PB5951)" in the section it changed.
 > PB5947 BUILT (the diagnostic summary's table of flagged constructs by edition, section 6.11, branch `listing-step-pb5947`).
 > kb/Work PB5941 (branch `listing-step-pb5941`, the `all` row's budget): every format streams to its file, the page shows each IL
 > instruction once, the object code is decoded into one array per method; corrections marked "(PB5941)" in sections 4.2, 7, 7.1,
@@ -937,7 +937,9 @@ Line, Column, Length, Use)` with `Use` one of:
   (`FileModel.EntryAt`), and the file-name of an FD or SD "shall be specified in a file control entry" (§2023:13.4.5.3 SR1,
   §2023:13.4.6.3 SR1), so it is a reference to that declaration (its slot is labelled `ref`), and each name has one `Defined`
   occurrence. Likewise the data-name of OCCURS DYNAMIC's CAPACITY phrase is a definition (`def`): a SET statement's operand
-  "shall reference a data item defined in the CAPACITY phrase" (§2023:14.9.39.3 SR29);
+  "shall reference a data item defined in the CAPACITY phrase" (§2023:14.9.39.3 SR29). (Step 7b:) the `Defined` reference is the
+  ENTRY's own position, where section 6.6 places it (a data description entry at its level-number, an index-name on its table's
+  line, a program at its first token), so a definition is no name of its line (`ListingLine.Names` holds references only);
 - `Read` - an occurrence at no store position of its statement;
 - `Written` - an occurrence at a store position of kind `Write` or `WriteInPart`;
 - `Modified` - an occurrence at a store position of kind `ReadWrite` (ADD TO, SUBTRACT FROM, INSPECT REPLACING, a STRING
@@ -2005,6 +2007,61 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
   - *Pairing:* every store position `StorePositionsOf` reports for a written operand pairs with exactly one occurrence
     (fails the day a binder rebuilds a linked place by value); `ADD WS-A` / `TO WS-B` on two lines and
     `MOVE WS-X (WS-X) TO WS-X` give the lines, columns and uses written from the source.
+- **Step 7b, as built (branch `listing-step-7b-2`), with the corrections the code proved.**
+  - *The store.* The occurrences are the group's `SymbolTable.EntryStore`'s (`SymbolTable.Occurrences.cs`), beside the entries they
+    join by `SymbolId`: one list in the global append order, an index by written position, the place links. They exist only when
+    the listing asks for the cross-reference (`EditionContext.RecordsReferences`, `ListingFacts.ReadsReferences`), turned on in
+    `OoClassTable.Build` before the group's first identification; `ReadsNames` and so `RecordsNames` follow it, since the
+    cross-reference lists every entry. ONE OCCURRENCE PER WRITTEN POSITION: a second identification of one written word (a probe
+    and its resolution both committing, a re-asked formal, a validation pass re-resolving a clause operand) answers the first's
+    occurrence, so "a double record" cannot be made and "keyed by the written token" is the store's rule for every funnel, not the
+    group tier's alone.
+  - *Every funnel records under its `report` flag* (a candidate set only when it has one member): `Identify` (context and
+    `WrittenWord`), `IdentifyIndexName`, `IdentifyDataName` (the procedure division's two and the clause operand's),
+    `IdentifyConditionName`, `IdentifyWithin`, `IdentifyEntryClauseOperand`, `IdentifyRegionOperand`, `ClassNames.Lookup`, and
+    the two static funnels of step 6b's remainder slice 4, `IdentifyHeaderOperand` and `IdentifyDataRecord`, made instance members
+    so they record. (Correction:) a data division clause operand is resolved from the model, which holds no token, so
+    `WrittenDataName` carries where it is written (`Line`, `Column`, `Length`, set by its one capture `DataBinder.KeyReference`;
+    none for an operand no source wrote). The oracle found three references no funnel reached, each now recorded where its entry
+    is known: a REDEFINES clause's data-name-2 when `LinkRedefinitionsPass` links it (`SymbolTable.NoteRedefinesWritten`,
+    `RecordRedefinition`: the clause is resolved by its placement, after the forest is composed), and an END PROGRAM or END
+    FUNCTION header's name as a reference to the unit it ends (`DeclareProgram(unit, endMarker)`).
+  - *The place link is the resolver's, not `PlaceBuilder`'s (correction).* "`PlaceBuilder.PlaceForItem(IdentifiedName, ...)`" cannot
+    be built: the qualifiable classes are identified as typed candidate sets, not an `IdentifiedName` (section 9's budget, step 6b's
+    data-name lane), and `PlaceBuilder` is the model layer's, which names no binder type. So the one place every written data
+    reference's place is built from, `ReferenceResolver` (`ResolveImplCore`, `ResolveForItem`, `ResolveByName`,
+    `ResolveForAddressOf`), links the INSTANCE it built to the occurrence recorded at the reference's first token
+    (`ReferenceResolver.Linked`, `EntryStore.Link`, which copies an already-linked instance with `with { }`).
+  - *`StorePositionsOf` asks every place the statement holds, by instance (correction).* It is `BoundReferences.Of(s)`'s places,
+    and the places linked since the statement's mark, each asked of the exhaustive visitor with a match on that instance, the
+    statement alone (`direct`), a store into a window `WriteInPart`; a binder's temporary is no written operand and is skipped.
+    The linked places are asked too because a node may hold an operand's place where `BoundReferences` does not enter: a
+    `BoundSetConditions` holds each conditional variable in a tuple (kb/Work PB5925's dated file `2026-11-20-step-7b-2-built`,
+    lead 3). `StatementBinder.BindStatement` holds both marks and classifies through `EntryStore.Classify`, which also records each
+    store position that pairs with no occurrence of the statement (`UnpairedStorePositions`, the pairing test's input).
+  - *The transfer kind and the verb are one fact.* An occurrence carries its statement's verb as written (`SymbolOccurrence.Verb`:
+    `PERFORM`, `GO`, `ALTER`, `SORT`, `CALL`, `READ`, ...), which is the transfer kind of a procedure reference and the verb of a
+    file or program reference; no enum of transfers is kept beside it.
+  - *The finished table carries them.* `SymbolEntry.Occurrences` (each occurrence joined by the bind's entry id) and
+    `SymbolEntry.Fold`, the name's Annex C fold the cross-reference sorts by, made by the binder (the listing's layer may not
+    name the runtime's `CobolNames`, and only the binder compares names).
+  - *The oracle is in the Unit assembly, over the NIST corpus (correction, as step 8's coverage test).*
+    `ReferenceOccurrenceDriftTests` reads the generated parser's label fields and binds with the driver's own front end
+    (`CompilerDriver.NewFrontend`), both internal to the Unit assembly; "every conformance-suite program that binds clean" would bind
+    ten thousand programs once more on every gate, so its corpus is the 374 NIST programs the golden run compiles (every verb of
+    every 1985 module). It reads the labels as the grammar writes them, with three rules the code proved: a reference rule's head is
+    the occurrence of the label on the transition into the rule, and a reference rule writes a name only when the path it matched
+    begins with its head (an `integerOperand`'s literal, a USE phrase's INPUT); a labelled node whose matched element is an `nn`
+    alternative names nothing; a special register's reference (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER) writes no name, since
+    the table enters no register entry (lead 2). A `def` slot is held to its NAME, an entry of that spelling, since its entry stands
+    where section 6.6 places it. The four resolution-dependent slots admit an occurrence and never demand one. Shown able to fail:
+    the data-name recording dropped turns 369 of the 374 programs red, and a broken place link turns 369 red through the pairing.
+  - *What is not built, each a lead of kb/Work PB5925's dated file `2026-11-20-step-7b-2-built`:* an index-name's cell is held as
+    a field name, no `Place`, so SET index-name UP BY and a VARYING index are classified `Read` (lead 1); the LINAGE-COUNTER,
+    LINE-COUNTER, PAGE-COUNTER and EXCEPTION-OBJECT registers have no entry, so their references record nothing (lead 2); a whole
+    table a statement stores into with no place (`BoundTableSort.Storage`, INITIALIZE's whole dynamic table) is classified `Read`
+    (lead 4); a CALL whose target is a literal names no entry, so the CALL graph holds only the calls written by a
+    program-prototype-name (lead 5); the statistics' counts of names and uses (section 4.1's table, lead 6).
 
 #### 6.7.2 The mechanism, and today's inventory as evidence
 
@@ -2536,9 +2593,12 @@ unchanged: it has one copy (the object-code section). `HtmlListingRendererTests.
 holds both cases. The page is written as it is rendered (section 4.2): `Escape` writes the runs between the five markup characters
 whole, and a number or an IL offset (`IlOffset`, the one spelling of `IL_xxxx`, a value that formats itself) is formatted into the
 writer with no string of its own.
-(Step 9, not built:) every NAME on a source line linking to its definition, and every definition listing its references, stand on
-`ListingLine.Names` and `ListingCrossReference`, which step 7b adds to the model with the occurrences (section 11, "Step 7b,
-dispatched early"); neither member exists, so the page links what the model holds and step 7b adds the name links with them.
+(Step 7b, built:) each reference on a source line (`ListingLine.Names`) links its WORD (the span that starts at its column) to the
+line its symbol is defined on, or to the symbol's cross-reference row when the page does not hold that line
+(`HtmlListingRenderer.NameHref`), so a link holds one span whole and links never nest when one reference is written inside another;
+the cross-reference section (`id="Y<n>"`, `HtmlListingRenderer.SymbolId`) lists each symbol's references as links to their lines,
+and the PERFORM and CALL graphs link both ends; a statement line's margin links each defining line. The words are the text
+listing's (`CrossReferenceText`).
 
 ### 7.3 JSON (`JsonListingWriter`) and its schema
 
@@ -2647,8 +2707,8 @@ expansion's own compilation in `ExpansionAssemblies`) does no listing work; the 
 (Step 5:) `--listing-sections` takes one value, a comma list of section words, `standard` and `all` (each word trimmed, case
 ignored, the union of the words), read by `ListingSections.TryParse`; an empty or unknown word is an argument error. It
 accepts the sections built so far (`source`, `programs`, `diagnostics`, `options`, `statistics`, (step 6) `data-map`, and (step 8)
-`object-map` and `object-code`); `xref` joins with step 7b, with its builder, as `html` joins `--listing-format` with its
-renderer. Naming it asks for a listing at any edition.
+`object-map` and `object-code`); (step 7b) `xref` joined with its builder, `CrossReferenceBuilder`, as `html` joins
+`--listing-format` with its renderer. Naming it asks for a listing at any edition.
 
 ## 9. Performance budget
 
@@ -2884,7 +2944,9 @@ captured listing.
    write, one modify (ADD TO) and one definition of the same name yields exactly those four uses at those lines and
    columns, `ADD WS-A` / `TO WS-B` on two lines puts each use on its own line, and `MOVE WS-X (WS-X) TO WS-X` yields two
    reads and one write (section 6.7.1); a line's `Margin` and `Names` equal what the data map and cross-reference say of
-   that line, and the text margin and the HTML links render exactly them; object-code map: each statement's method and IL
+   that line, and the text margin and the HTML links render exactly them ((step 7b) `ListingCrossReferenceTests`, Conformance, whose
+   program writes the shape as `MOVE T-N (T-N (1)) TO T-N (2)`, since a subscript names an integer item; `ReferenceOccurrenceDriftTests`
+   and `CrossReferenceKindDriftTests`, Unit); object-code map: each statement's method and IL
    range equal what the PDB's sequence points say, read independently in the test with `System.Reflection.Metadata` (step 8:
    `ListingObjectCodeTests`, Conformance: each statement of the test's own source at its line and column, the PERFORM's second
    range, a copybook copied twice placed per block, the instructions, the statuses without an assembly; `IlDisassemblerTests`,
@@ -3170,7 +3232,8 @@ corrections above marked "step 7a").** `GrammarNameSlotDriftTests` written first
 self-test, then the labels on every name slot of `CobolParserCore.g4` and the `Core/*.g4` fragments (452 slots, section
 6.7.1), `GrammarSource` for the tests that read the grammar's text, and the diagram generator's cleaning
 (`scripts/gen-grammar-diagrams.ps1`) taught to drop a label. It changes no parse and depends on nothing step 6b changes.
-**Step 7b - the occurrences and the cross-reference, after step 6b lands.** `ReferenceOccurrenceDriftTests`; `Identify`
+**Step 7b - the occurrences and the cross-reference, after step 6b lands. BUILT (branch `listing-step-7b-2`; the corrections above
+marked "step 7b", section 6.7.1 "Step 7b, as built").** `ReferenceOccurrenceDriftTests`; `Identify`
 appends each `SymbolOccurrence`
 to its entry (Identify's register arms included), and so does the group tier's recording point, `SymbolTable.ClassNames.Lookup`,
 for each written object-class-name and interface-name (section 6.7.1, "The compilation group's tier"), `PlaceBuilder.PlaceForItem` / `PlaceBuilder.WholeTable` take
@@ -3239,13 +3302,9 @@ and `ListingExceptionRegionTests`; the `All` row measured (section 9).
 
 **What is not built (checked at step 9 against every section of this document).** Each part below is a kb/Work item, never a silent
 gap:
-- Section 6.7 and 6.7.1's occurrences, the cross-reference section (`xref`), `ListingLine.Names`, the statement line's margin
-  (section 6.2), the statistics' counts of names and uses (section 4.1's table) and the HTML name links (section 7.2): step 7b, which
-  waits for step 6b's remaining slices (section 11 "Step 7b, dispatched early"; kb/Work PB5925's dated file
-  `2026-11-19-step-7b-not-buildable-yet`).
-- Section 6.7.1's one store: step 6b's part C (the declarations, the §2023:8.3.2.2 census, the group tier's program and function units,
-  the parameterized expansion) and part D (the data-names' and condition-names' entries), 52 baseline entries (kb/Work PB5932's dated
-  file `2026-11-20-step-6b-r3`).
+- (Step 7b:) the uses and references step 7b left, each a lead of kb/Work PB5925's dated file `2026-11-20-step-7b-2-built` (section
+  6.7.1, "Step 7b, as built"): an index-name's store, the special registers' entries, a whole table's store, a literal CALL target
+  in the CALL graph, and the statistics' counts of names and uses (section 4.1's table).
 - Section 2.2's two 2002 DOC rows (`2002-DOC-B.1-90`, `-165`): documented in DOC-A.1-117 and DOC-A.1-200 but held at GAP by kb/Work
   PB5930.
 - (PB5941:) section 9's `All` budget, over 25 % since step 8, is met (measured at the merged tree of PB5941 and PB5951, `0c29eebc42`,

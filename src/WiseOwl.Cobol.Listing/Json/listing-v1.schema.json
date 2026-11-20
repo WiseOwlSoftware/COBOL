@@ -320,7 +320,7 @@
             ]
           },
           "names": {
-            "description": "Each name written on the line, in column order (the cross-reference's references placed on it): the HTML listing links each to its definition; empty when the cross-reference was not asked for.",
+            "description": "Each reference written on the line, in column order (the cross-reference's references placed on it, its definitions aside): the HTML listing links each to its definition; empty when the cross-reference was not asked for.",
             "type": "array",
             "items": {
               "description": "One name written on a source line (DESIGN-listing.md section 4.2): the join of the cross-reference onto the line, made once, which the HTML listing links to the name's definition.",

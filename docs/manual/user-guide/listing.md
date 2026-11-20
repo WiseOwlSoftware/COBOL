@@ -25,7 +25,7 @@ compile is often the one most worth reading. A source file that does not exist h
 | `--listing [on\|off]` | write a listing (a bare `--listing` is `on`); default `on` at `--std 85`, `off` at the later editions |
 | `--listing-output <BASE>` | write the listing to `BASE.lst` (and `BASE.lst.json`, `BASE.lst.html`); `-` writes it to standard output instead of a file, in the one format requested. Default: the output assembly's path without its extension |
 | `--listing-format text\|json\|html` | a format to write: `text` is the paginated listing `BASE.lst`, `json` the JSON listing `BASE.lst.json`, `html` the HTML page `BASE.lst.html` (below). Repeat it for more than one (`--listing-format text --listing-format html`); default `text`. With `--listing-output -` exactly one format may be named |
-| `--listing-sections <LIST>` | the sections to produce, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `data-map`, `object-map`, `object-code`, `standard` and `all` (below); default `standard`, which is every section but the data map, the object-code map and the object code |
+| `--listing-sections <LIST>` | the sections to produce, a comma list of `source`, `programs`, `diagnostics`, `options`, `statistics`, `data-map`, `xref`, `object-map`, `object-code`, `standard` and `all` (below); default `standard`, which is every section but the data map, the cross-reference, the object-code map and the object code |
 | `--listing-page-length <N>` | lines per page, the four heading lines included (default 60); `0` paginates only where a page must start (below). At least 5 otherwise |
 | `--listing-page-width <N>` | columns per page, 100 to 255 (default 132) |
 
@@ -43,6 +43,7 @@ The listing is made of sections, each starting a page, in this order:
 | Program map | `programs` | every program, its kind, the listing lines it spans, and the programs nested in it; for each program the compiler bound, its COMMON, INITIAL, RECURSIVE and PROTOTYPE attributes, the name it is externalized as, and the .NET type it became |
 | Data map | `data-map` | every data item, condition-name, index-name, constant, report, CD and file of every program, class and method, in the order written, with its level, offset, length, usage, picture and the .NET field it became; and, in the source section, each data description line's offset, length and usage in the right margin |
 | Statistics | `statistics` | the lines by kind and by file, the programs, the statements, the diagnostics by severity, and each verb with its count and lines |
+| Cross-reference | `xref` | every name the program declares, with the line it is defined on and every line that references it, each reference marked written (`W`) or modified (`M`) when the statement stores into it, a name never referenced flagged `UNREFERENCED`, and the library texts the COPY statements name; then the PERFORM graph and the CALL graph; and, in the source section, a statement line's right margin lists the lines that define the names it uses (`DEF 12 15`) |
 | Object-code map | `object-map` | each COBOL statement's object code: the .NET method that holds it and its IL offset range, read from the assembly the compilation wrote and its PDB (below) |
 | Object code | `object-code` | under each COBOL statement, its IL instructions, decoded from the assembly (below) |
 | Diagnostics | `diagnostics` | the summary of every diagnostic; without this section no diagnostic is printed under its line either |
@@ -472,8 +473,34 @@ document as the text and the JSON listing, so the three always agree.
 The bar at the top links to each section and holds a filter: type text to show only the source lines that contain it, or tick
 *lines with diagnostics* to show only those; *Expand all* and *Collapse all* open and fold every block.
 
+## The cross-reference
+
+With `xref` in the sections, the listing holds every name the program declares: data items, condition-names, index-names,
+constants, files, reports, CDs, paragraphs and sections, programs, the CONFIGURATION SECTION and REPOSITORY names, classes and
+interfaces, and each library text a COPY statement names. Each row gives the name's kind, the listing line it is defined on and
+every line that references it, sorted by name:
+
+```
+    ID  KIND       NAME                           DEFINED  REFERENCES
+     4  DATA       WS-A                                12  23
+     5  DATA       WS-B                                13  24M 35
+     6  DATA       T-N                                 17  25 25 25W
+```
+
+A reference marked `W` is a position its statement stores into (MOVE's receiving operand, STRING's INTO); one marked `M` is read
+and stored (ADD's TO operand, SUBTRACT's FROM operand, a STRING POINTER); an unmarked one is read. A name defined and never
+referenced is flagged `UNREFERENCED`. Under the table, the PERFORM graph lists each procedure a PERFORM names, from the procedure
+the PERFORM is written in, and the CALL graph each program or function a statement activates by name.
+
+In the source section, the right margin of a line that references names and declares none lists the lines that define them
+(`DEF 13`), and on the HTML page each name on a source line is a link to the line that defines it, and the cross-reference's rows
+link each reference to its line. The JSON listing carries every reference with its line, column, length, use and verb.
+
+A reference is recorded where the compiler identifies the name, so it is exactly what the compiler bound: a name the compiler did
+not bind (a statement it refused) has no reference. Two uses are not yet classified: the cell of an index-name (SET index-name UP
+BY, a VARYING index) is listed as read, and a whole table a SORT or INITIALIZE stores into is listed as read.
+
 ## Later additions
 
-The listing grows section by section: the cross-reference is next, and with it each name on a source line becomes a link to its
-definition and each definition lists its references. It joins `--listing-sections` with its builder, so `all` always names exactly
-the sections the compiler can produce.
+The listing grows section by section. Each section joins `--listing-sections` with its builder, so `all` always names exactly the
+sections the compiler can produce.

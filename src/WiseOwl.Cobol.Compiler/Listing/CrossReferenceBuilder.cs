@@ -23,7 +23,7 @@ internal static class CrossReferenceBuilder
         foreach (var entry in symbols.Entries)
         {
             // A FILLER entry has no name to cross-reference (no reference can name it).
-            if (entry.Class == NameClass.Data && entry.Occurrences.Count == 0 && IsFiller(entry.Name)) continue;
+            if (entry.Class == NameClass.Data && entry.Occurrences.Count == 0 && entry.Fold == Filler) continue;
             var references = new List<ListingReference>();
             var defined = DataMapBuilder.Place(entry.DeclaredAt, index, frontend, drafts);
             if (entry.DeclaredAt.IsSet) references.Add(new ListingReference(0, defined.Line, defined.Column, entry.Name.Length, ListingUse.Defined, null));
@@ -38,11 +38,12 @@ internal static class CrossReferenceBuilder
                 entry.DeclaredAt.IsSet && entry.Occurrences.Count == 0));
         }
         // The copy members: a library text each COPY statement names (DESIGN-listing.md section 6.7), its references the COPY lines.
-        foreach (var member in inclusions.GroupBy(static i => (Fold: i.TextName.ToUpperInvariant(), Library: i.LibraryName?.ToUpperInvariant())))
+        // A member is the library text the compiler read (its file), or, when none was found, the text-name and library as written.
+        foreach (var member in inclusions.GroupBy(static i => (i.File, Written: i.File is null ? (i.TextName, i.LibraryName) : default)))
         {
             var first = member.First();
             string name = first.LibraryName is { } library ? first.TextName + " OF " + library : first.TextName;
-            drafted.Add((member.Key.Fold, null, name, ListingSymbolKind.CopyMember, null, null,
+            drafted.Add((name, null, name, ListingSymbolKind.CopyMember, null, null,
                 [.. member.Select(static i => new ListingReference(0, i.CopyLine, null, 0, ListingUse.Read, "COPY"))], false));
         }
         var ordered = drafted.OrderBy(static d => d.Fold, StringComparer.Ordinal).ThenBy(static d => d.DefinedLine ?? int.MaxValue).ToList();
@@ -104,7 +105,8 @@ internal static class CrossReferenceBuilder
         _ => throw new ArgumentOutOfRangeException(nameof(use), use, "not a use"),
     };
 
-    private static bool IsFiller(string name) => string.Equals(name, "FILLER", StringComparison.OrdinalIgnoreCase);
+    /// <summary>The fold of FILLER, which names no entry a reference can name.</summary>
+    private const string Filler = "FILLER";
 
     /// <summary>The procedure a listing line stands in: the procedure defined last at or before it in the same program.</summary>
     private static Func<int?, int?, int?> ProcedureAt(IReadOnlyList<ListingSymbol> symbols)
