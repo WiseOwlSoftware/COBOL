@@ -301,7 +301,7 @@ public sealed partial class DataBinder
     // ── The REPORT SECTION's entries (kb/Work PB1226, §2023:13.10.3 SR11) ─────────────────────────────────────────────
 
     /// <summary>Where one report group description entry stands: its RD's entry list, its index there and the
-    /// report-name. A report entry is no <see cref="DataItem"/> that <see cref="NameResolution.FindItem"/> sees, so
+    /// report-name. A report entry is no <see cref="DataItem"/> that <see cref="NameResolution.DataItemNamed"/> sees, so
     /// a constant's length phrase finds it through the symbol table (<see cref="SymbolTable.DeclareReportEntries"/>,
     /// <see cref="WiseOwl.Cobol.Symbols.NameClass.ReportEntry"/>), and its description is read from here
     /// (<see cref="DescribeReportItem"/>) by the report walk and the length phrase alike.</summary>

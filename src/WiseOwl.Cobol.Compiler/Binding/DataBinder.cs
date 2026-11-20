@@ -5987,9 +5987,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// </para>
     /// <para>⛔ AND IT IS THE ONLY COPY. The binder used to carry a weaker private twin
     /// (<c>FindQualified</c>/<c>QualifiersMatch</c>) that matched the IN/OF chain but knew nothing about the
-    /// file-name qualifier and never counted survivors, beside <c>NameResolution.ResolveQualified</c>, which
+    /// file-name qualifier and never counted survivors, beside the procedure division's qualified lookup, which
     /// did both — one rule written down twice, with the procedure division reading the complete one and the data
-    /// division the partial one (feedback_one_rule_one_place). <see cref="ReferenceResolver"/> now calls this.
+    /// division the partial one (feedback_one_rule_one_place). The symbol table's <see cref="SymbolTable.IdentifyDataName"/>
+    /// now asks this for a qualified reference.
     /// </para></summary>
     internal NameCandidates<DataItem> QualifiedCandidates(string name, IReadOnlyList<string> quals, Model.Scope scope)
     {
@@ -6095,7 +6096,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity
     /// of reference" — reported HERE, at the caller's cursor, under the procedure division's own descriptor
     /// (COBOL1639) and with its disposition: an error, or under <c>--permissive</c> a warning and the
-    /// first-declared survivor (NameResolution.ResolveUnqualified, kb/Work R33). None returns null WITHOUT a
+    /// first-declared survivor (as <c>NameResolution.DataItemNamed</c> does, kb/Work R33). None returns null WITHOUT a
     /// report: an operand that names nothing breaks the CLAUSE's own rule, which the caller states
     /// (<paramref name="ambiguityReported"/> says which of the two a null is).
     /// <para>⛔ THE VERDICT DOES NOT DEPEND ON WHETHER IT IS REPORTED. <paramref name="report"/> false asks the same

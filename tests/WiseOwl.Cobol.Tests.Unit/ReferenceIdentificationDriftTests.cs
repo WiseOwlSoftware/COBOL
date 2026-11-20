@@ -60,7 +60,7 @@ public sealed class ReferenceIdentificationDriftTests
         // screen the identification step owns (the pre-PB3287 ResolveForAddressOf did all four).
         foreach (var (entry, body) in new[] { ("ResolveImplCore", core), ("ResolveForAddressOf", addressOf) })
             foreach (string owned in new[]
-                     { "ReadWritten(", "FindItem(", "ResolveUnqualified(", "ResolveQualified(", "ReadSubscripts(",
+                     { "ReadWritten(", "DataItemNamed(", "IdentifyDataName(", "ReadSubscripts(",
                        "ScreenRefModCount(", "ScreenLinkageReference(", "ReportUnidentified(" })
                 Assert.False(body.Contains(owned, StringComparison.Ordinal),
                     $"ReferenceResolver.{entry} calls {owned} itself — that belongs to ReferenceResolver.Identify, the ONE "
@@ -74,7 +74,7 @@ public sealed class ReferenceIdentificationDriftTests
         string identify = Code(BodyOf("private Identified Identify("));
         foreach (string screen in new[]
                  { "CapacityRegisterFor(", "IsExceptionObjectRegister(", "SumCounterFor(", "ReadWritten(", "ScreenRefModCount(",
-                   "ResolveQualified(", "ResolveUnqualified(", "ReportUnidentified(", "ScreenLinkageReference(", "ReadSubscripts(" })
+                   "DataItemNamed(", "ReportUnidentified(", "ScreenLinkageReference(", "ReadSubscripts(" })
             Assert.True(identify.Contains(screen, StringComparison.Ordinal),
                 $"ReferenceResolver.Identify no longer asks {screen} — the screen moved out of the one identification step.");
         // §2023:13.7.3 SR4 is asked at exactly three sites of the resolver — the identification step (every identifier), the
@@ -85,10 +85,11 @@ public sealed class ReferenceIdentificationDriftTests
 
     /// <summary>⛔ A NAME LOOKUP THAT REACHES A DATA ITEM FROM THE PROCEDURE DIVISION ASKS THE LINKAGE SCREEN, AND THE SET OF
     /// FILES THAT LOOK A NAME UP IS CLOSED (kb/Work PB5846). <c>SubscriptBinder.ResolveSubscriptName</c> resolved a subscript
-    /// or reference-modification data-name through <c>Names.ResolveUnqualified</c> and never reached
+    /// or reference-modification data-name through the unqualified lookup and never reached
     /// <c>ScreenLinkageReference</c>, so a LINKAGE item the procedure division may not reference (§1985:X.5.1 GR4,
     /// §2023:13.7.3 SR4) compiled as <c>T (L2-N)</c> though <c>DISPLAY L2-N</c> was refused. A source file of the binder that
-    /// calls <c>FindItem</c>, <c>ResolveUnqualified</c> or <c>ResolveQualified</c> is therefore either one that asks the screen
+    /// calls <c>NameResolution.DataItemNamed</c> (the one verdict over <c>SymbolTable.IdentifyDataName</c>'s candidate set, which
+    /// replaced <c>FindItem</c>, <c>ResolveUnqualified</c> and <c>ResolveQualified</c>) is therefore either one that asks the screen
     /// (<c>ScreenLinkageReference</c> / <c>FindReportedItem</c> / <c>Identify</c>) or one named here with the reason its
     /// lookups are no procedure-division reference; a new file with such a lookup is red until it is one or the other.</summary>
     [Fact]
@@ -97,12 +98,11 @@ public sealed class ReferenceIdentificationDriftTests
         var noProcedureReference = new Dictionary<string, string>
         {
             ["ConstantEntryBinder.cs"] = "data-division constant entries resolve other entries' names, never a procedure-division operand",
-            ["CounterResolver.cs"] = "probes whether a name is also a data-name (an ambiguity count); the counter's own subscripts go through ReadSubscripts",
             ["ObjectPropertyResolver.cs"] = "probes whether a qualified head resolves, to choose the property-chain reading; the head is identified through Identify",
             ["PtrBindBasedAndAddressablesPass.cs"] = "the whole-unit storage-claim scan of ADDRESS OF targets, which reads a declaration's depth, not a reference",
         };
         string root = TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding");
-        var lookup = new Regex(@"\.(FindItem|ResolveUnqualified|ResolveQualified)\(");
+        var lookup = new Regex(@"\.DataItemNamed\(");
         foreach (string file in Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
         {
             string name = Path.GetFileName(file);
@@ -119,7 +119,7 @@ public sealed class ReferenceIdentificationDriftTests
                 continue;
             }
             Assert.True(asksScreen,
-                $"{name} looks a data-name up (FindItem / ResolveUnqualified / ResolveQualified) and neither asks "
+                $"{name} looks a data-name up (DataItemNamed) and neither asks "
                 + "NameResolution.ScreenLinkageReference nor looks the item up through FindReportedItem / Identify: a LINKAGE item the "
                 + "procedure division may not reference (§1985:X.5.1 GR4, §2023:13.7.3 SR4) would compile through it as a subscript or "
                 + "reference-modification operand did (kb/Work PB5846). Ask the screen, or name the file in the closed list with why.");
@@ -147,20 +147,20 @@ public sealed class ReferenceIdentificationDriftTests
             "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
         Assert.Contains("ctx.Refs.Counters.SumCounterFamilyFor(dref, report: true)", text, StringComparison.Ordinal);
         // ... and its table lookup is the REPORTED one (the §2023:8.4.2.2 report and the §2023:13.7.3 SR4 screen), not a bare FindItem.
-        Assert.Contains("ctx.Refs.Names.FindReportedItem(dref, name, quals)", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("Names.FindItem(", text, StringComparison.Ordinal);
+        Assert.Contains("ctx.Refs.Names.FindReportedItem(dref)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Names.DataItemNamed(", text, StringComparison.Ordinal);
     }
 
     /// <summary>The two references that name a TABLE rather than a place — the SEARCH / SORT table operand and the
     /// table(ALL) intrinsic argument — look their item up through <c>FindReportedItem</c>, which reports an unidentified
     /// name and screens a LINKAGE item the procedure division may not reference (§2023:13.7.3 SR4). A bare
-    /// <c>FindItem</c> there is the pre-PB3287 shape: <c>SEARCH L-TABLE</c> compiled clean over such a record.</summary>
+    /// lookup (<c>DataItemNamed</c>) there is the pre-PB3287 shape: <c>SEARCH L-TABLE</c> compiled clean over such a record.</summary>
     [Fact]
     public void TheTableOperand_LooksItsItemUpThroughTheReportedLookup()
     {
         string body = Code(BodyOf("public TableOperand? ResolveTableOperand("));
-        Assert.Contains("FindReportedItem(dref, name, written.Qualifiers)", body, StringComparison.Ordinal);
-        Assert.DoesNotContain("FindItem(", body, StringComparison.Ordinal);
+        Assert.Contains("FindReportedItem(dref)", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("DataItemNamed(", body, StringComparison.Ordinal);
         string reported = Code(BodyOf("internal DataItem? FindReportedItem("));
         Assert.Contains("ReportUnidentified(", reported, StringComparison.Ordinal);
         Assert.Contains("ScreenLinkageReference(", reported, StringComparison.Ordinal);

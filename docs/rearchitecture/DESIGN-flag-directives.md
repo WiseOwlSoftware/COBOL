@@ -239,7 +239,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 * **Incr 3 — the state-coupled options (COMPLETE).**
   * **i REF-MOD-ZERO-LENGTH** — tri-state `RefModZeroLengthState` extension + EC-BOUND-REF-MOD `TurnState` read.
   * **d MOVE-TO-SAME-NAME** — same-DDE by **exact `ReferenceEquals`** of the two operands resolved with
-    `NameResolution.FindItem` (the description entry — subscript/ref-mod-agnostic), then (1) alphanumeric-edited
+    `ReferenceResolver.ProbeDeclaration` (the description entry — subscript/ref-mod-agnostic), then (1) alphanumeric-edited
     `{ Category: PicCategory.Alphanumeric, EditMask: not null }` (there is **no** `PicCategory.AlphanumericEdited`
     member) or (2) `OdoModel.TableUnder(item) is { OccursSpec.Depending: {} dep } && OdoModel.IsWithin(dep, item)`.
     Both MOVE forms; a literal/function sender is skipped. Introduced **per-unit name resolution** to the pass — a
@@ -264,7 +264,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     and the nonnumeric literal '04'/'07' on the other); an **abbreviated combined relation** (`FS = "00" OR "04"`,
     `AND NOT = "04"` — §2023:8.8.4.12.4 GR1 inserts the last preceding stated subject, so the scan of a `condition`'s tiers
     carries the leftmost operand of the last relation in source order, and a parenthesised condition restarts it); a
-    bare **level-88 condition-name** (resolved through `DataBinder.QualifiedConditionCandidates`, the one
+    bare **level-88 condition-name** (resolved through `SymbolTable.IdentifyConditionName`, the one
     resolution the condition binder also reads) whose singleton `Condition88.Values` DECODE (`CobolLiteral.Decode`;
     `X"3034"` is '04', `"0'4"` is three characters) to '04'/'07' and whose conditional variable is the FILE-STATUS
     item; and an **EVALUATE** selection subject/object pair (§2023:14.9.13.3 SR2 pairs them by position, SR8 reads a

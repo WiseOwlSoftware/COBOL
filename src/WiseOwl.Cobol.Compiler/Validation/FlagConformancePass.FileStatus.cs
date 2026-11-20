@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Validation;
 /// value depends on the collating sequence it is ordered in, and it names no status.
 /// <para>⛔ A REFERENCE IS RESOLVED, NEVER MATCHED BY SPELLING (kb/Work PB3288). "A data item specified in a FILE STATUS
 /// clause" is a data item, not a word: the operand is resolved in the current unit's name scope (qualifiers honoured,
-/// <c>ResolveItem</c> for a data-name, <c>DataBinder.QualifiedConditionCandidates</c> for a condition-name) and is the
+/// <c>ResolveItem</c> for a data-name, <c>SymbolTable.IdentifyConditionName</c> for a condition-name) and is the
 /// reference exactly when the item it resolves to IS (reference identity) some visible file's FILE STATUS item, or the
 /// condition-name's conditional variable is. A same-named item of another program, or of another group, is not.</para>
 /// <para>The value tested for is the operand literal's VALUE, decoded once by <see cref="CobolLiteral.Decode"/>

@@ -431,8 +431,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
     // ── Intrinsic-argument entries (ISO §2023:15.3; consumed by IntrinsicBinder) ─────────────────────────────────
     // The table(ALL) argument resolves its name and renders its non-ALL subscripts itself (it builds an enumeration,
-    // not one place) — these thin internal entries expose the SAME private resolution (ResolveUnqualified /
-    // ResolveQualified → PlaceForItem → BindPosition) so argument references see identical view/qualification/
+    // not one place) — these thin internal entries expose the SAME private resolution (NameResolution.DataItemNamed
+    // → PlaceForItem → BindPosition) so argument references see identical view/qualification/
     // subscript semantics as every verb operand (singular-pattern rule).
 
     /// <summary>Bind one written subscript to its typed <see cref="Position"/> (the private

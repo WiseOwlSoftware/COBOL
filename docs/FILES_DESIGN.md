@@ -2188,8 +2188,9 @@ file name as the clause's data-name and died at OPEN naming a word the programme
 - **`QualifiedCandidates(name, quals, scope)`** — THE §2023:8.4.2.2 matcher: every in-scope declaration whose ancestor
   chain carries the qualifiers inner → outer with gaps allowed (§2023:8.4.2.2.3 SR4), the outermost qualifier
   optionally the owning FILE (Format 1's `file-report-qualifier`). It returns the SET, because the count is the
-  standard's answer. `NameResolution.ResolveQualified` — which used to own the only complete copy, while the
-  binder carried a weaker private twin that knew neither the file-name qualifier nor uniqueness — now calls it.
+  standard's answer. The procedure division's qualified lookup — which used to own the only complete copy, while the
+  binder carried a weaker private twin that knew neither the file-name qualifier nor uniqueness — now asks it, through
+  `SymbolTable.IdentifyDataName`.
   **The set is a `DataNameCandidates` and has no indexer (kb/Work PB978):** it can be counted, narrowed
   (`Where`) and read only as `Single`, so no caller can take "the first". Its record-confined twin
   `SubtreeCandidates(root, name, quals)` serves RENAMES (§2023:13.18.45.3 SR4) and a TYPEDEF clone's own OCCURS DEPENDING

@@ -505,7 +505,7 @@ off-by-one through every later counter check.
   §2023:8.4.2.2.3 SR1 whether or not a report entry spells the same. **A report entry takes part in §2023:8.4.6.2.1 3) with the
   data items, in the lookup itself** (kb/Work PB4196): `SymbolTable.NearestDeclaringData` and
   `NearestDeclaringConditions`, the narrowings of a qualified data-name or condition-name set (asked by
-  `TryResolveUnqualified`, `DataBinder.QualifiedCandidates` and `QualifiedConditionCandidates`; `NearerDataNameHides` and
+  `TryResolveUnqualified`, `DataBinder.QualifiedCandidates` and `SymbolTable.IdentifyConditionName`; `NearerDataNameHides` and
   `DeclaredNearerThan` ask it for the index-name, capacity register and constant classes, and each narrowing asks the
   other class's nearer declaration too, kb/Work PB4219), keep the survivors of the nearest declaring source element and leave NONE when
   `SymbolTable.NearerEntryHides` finds a report entry of a nearer one that the written qualifiers reach — "if the name

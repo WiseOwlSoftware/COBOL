@@ -715,7 +715,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// and data-name-2, if defined in the report section, shall reference elementary report items" — so a report
     /// group (an entry with subordinates) is refused by that rule, and an elementary report item is measured as its
     /// printable item's description (§2023:15.50 / §2023:15.14 over its PICTURE). A report entry is not a <see cref="DataItem"/>
-    /// <see cref="NameResolution.FindItem"/> sees; the symbol table resolves it (<see cref="NameClass.ReportEntry"/>), and more than
+    /// <see cref="NameResolution.DataItemNamed"/> sees; the symbol table resolves it (<see cref="NameClass.ReportEntry"/>), and more than
     /// one candidate is §2023:8.4.2.2.3 SR1's ambiguity. The item's description is read from its entry
     /// (<see cref="DescribeReportItem"/>, kb/Work PB1941), never from the report walk, so it is measured the same
     /// wherever the constant is evaluated — before the REPORT SECTION binds, or in a group, or an entry, that the walk
