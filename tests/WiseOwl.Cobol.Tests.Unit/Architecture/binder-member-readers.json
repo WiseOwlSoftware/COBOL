@@ -200,6 +200,7 @@
       "WiseOwl.Cobol.Binding.Passes.CheckGroupValueDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.CheckPictureRequiredPass",
       "WiseOwl.Cobol.Binding.Passes.CheckUsageDeclarationsPass",
+      "WiseOwl.Cobol.Binding.Passes.LinkRedefinitionsPass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveTableValuesPass"
@@ -461,6 +462,7 @@
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.LinkageBinder",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
+      "WiseOwl.Cobol.Binding.Passes.LinkRedefinitionsPass",
       "WiseOwl.Cobol.Binding.Passes.OoRouteMethodRedefinesBackingsPass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
@@ -681,6 +683,7 @@
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
       "WiseOwl.Cobol.Binding.Passes.GateFileRecordByteSurfacePass",
       "WiseOwl.Cobol.Binding.Passes.InheritSignClausesPass",
+      "WiseOwl.Cobol.Binding.Passes.LinkRedefinitionsPass",
       "WiseOwl.Cobol.Binding.Passes.MarkFileRecordImageLeavesPass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PlaceTablePass",
@@ -739,6 +742,7 @@
       "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
+      "WiseOwl.Cobol.Binding.Passes.LinkRedefinitionsPass",
       "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
@@ -1059,6 +1063,7 @@
     "WiseOwl.Cobol.Binding.OoDataBinder::RootOwner": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
+      "WiseOwl.Cobol.Binding.Passes.LinkRedefinitionsPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Passes.StorageFormPass"
     ],

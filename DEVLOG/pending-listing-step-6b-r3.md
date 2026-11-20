@@ -38,5 +38,12 @@ budget at the merged tree rested on an inference. Two full-compile runs at main 
 over `None` on the four programs, inside the 25 % budget on every run. Every other lead of the listing's review files was checked on main and is
 already fixed (kb/Work PB5932's dated file `2026-11-20-step-6b-r3`, "Leads carried").
 
+**Review round 1.** R1-1: four subsystem design docs (`FILES_DESIGN.md`, `DATA_MODEL_DESIGN.md`, `REPORT_WRITER_DESIGN.md`,
+`DESIGN-architecture-review.md`) and, by the sibling sweep, `INTERPROGRAM_DESIGN.md` still named the moved `DataBinder` members as the
+current resolver; each now names the table's methods. R1-2: reading a redefiner's overlay off `RedefinesTarget` made the layout depend
+on when the REDEFINES pass sets it, and that pass ran after `CheckStorageLimitsPass`, which measures every item. The link is now its own
+pass, `LinkRedefinitionsPass`, before the size limit, and `BindPipelineTests` pins the order (kb/Work PB5932's dated file
+`2026-11-20-listing-step-6b-r3-review-r1`).
+
 **What remains.** Part C (the declarations, the §2023:8.3.2.2 census, the group tier's program and function units, the parameterized
 expansion) and part D (the data-names' and condition-names' entries).

@@ -32,6 +32,20 @@ public sealed class BindPipelineTests
         Assert.Equal("VersionConformancePass", chain[^1].Name);
     }
 
+    /// <summary>The REDEFINES link is made before the first pass that measures an item (kb/Work PB5932 review R1-2): the layout
+    /// reads a redefiner's overlay off <c>DataItem.RedefinesTarget</c> (<c>BitLayout</c>'s walk), and both the size limit and the
+    /// REDEFINES entry rules (SR8's size screen) measure. The link shares a phase with both, so the DAG alone does not order
+    /// them; this does.</summary>
+    [Fact]
+    public void LinkRedefinitions_RunsBeforeEveryPassThatMeasuresAnItem()
+    {
+        var names = Array.ConvertAll([.. BindPipeline.Build(program: null!)], p => p.Name);
+        int link = Array.IndexOf(names, "LinkRedefinitions");
+        Assert.True(link >= 0, "LinkRedefinitions is a pass of the per-unit resolve pipeline");
+        Assert.True(link < Array.IndexOf(names, "CheckStorageLimits"), "the link precedes the size limit");
+        Assert.True(link < Array.IndexOf(names, "ResolveRedefines"), "the link precedes the REDEFINES entry rules");
+    }
+
     /// <summary>A hand-built canonical chain (each pass requires only what a prior pass produced) validates.</summary>
     [Fact]
     public void ValidateDag_CanonicalOrder_DoesNotThrow()

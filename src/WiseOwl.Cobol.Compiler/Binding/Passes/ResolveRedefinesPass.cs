@@ -36,9 +36,10 @@ internal sealed class ResolveRedefinesPass : IBindPass
     /// <inheritdoc/>
     public PassViews Views => PassViews.None;
 
-    /// <summary>Resolve each item's REDEFINES target name to its <see cref="DataItem"/>, and each level-66 RENAMES
-    /// FROM/THRU operand to its item. A REDEFINES target is an unqualified prior entry in the same scope (SR1/SR6); a
-    /// RENAMES range names items within the owning record (SR3). Target resolution does not chase chains — the
+    /// <summary>Screen each REDEFINES clause over the pair <see cref="LinkRedefinitionsPass"/> linked (reporting and clearing a
+    /// clause whose data-name-2 was found nowhere), and resolve each level-66 RENAMES FROM/THRU operand to its item. A REDEFINES
+    /// target is an unqualified prior entry in the same scope (SR1/SR6); a RENAMES range names items within the owning record
+    /// (SR3). The link does not chase chains — the
     /// classification pass walks <see cref="DataItem.RedefinesTarget"/> transitively to the anchor (SR11).
     /// <para>⛔ A REDEFINES clause written in a TYPEDEF template is resolved and screened TOO (kb/Work PB2071): the
     /// §2023:13.18.44.3 syntax rules hold of the source as written (§2023:4.3), and a type declaration nothing instantiates is
@@ -60,35 +61,13 @@ internal sealed class ResolveRedefinesPass : IBindPass
             {
                 bool written = item.ClonedFrom is null;
                 using var _ = binder.Edition.At(item);
-                // A subordinate (02+) redefiner scopes to its own siblings (correct in every scope). A top-level
-                // 01/77 method redefiner must scope to the OWNING METHOD's own roots (§2023:13.18.44.3 SR — the target
-                // is a prior sibling in the same data description; a method may NOT redefine object/program data,
-                // §2023:11.7.4), NEVER the cross-scope global `Roots` pool (M2-OO-1h step 3).
-                IReadOnlyList<DataItem> scope;
-                if (item.Parent is { } par)
-                    scope = par.Children;
-                else if (binder.Oo.RootOwner.TryGetValue(item.Root, out var mm))
-                    // A top-level method redefiner scopes to its OWN section only (§2023:13.18.44.3 SR — the target is a
-                    // preceding item in the SAME data description; cross-section LOCAL↔LINKAGE aliasing is illegal,
-                    // and their storage classes differ — review B). item.Root
-                    // == item here (Parent is null).
-                    scope = mm.Binding!.LocalRoots.Contains(item) ? mm.Binding!.LocalRoots
-                          : mm.Binding!.LinkageRoots;
-                else
-                    scope = binder.State.Forest.Roots;
-                // §2023:13.18.44.3 SR4/SR7 + NOTE 1: data-name-2 is a PRECEDING entry at the same level, and when the name is
-                // not unique "no ambiguity of reference exists because of the required placement" — the NEAREST preceding
-                // same-named sibling. The former whole-scope FirstOrDefault admitted a LATER sibling (illegal source, kb/Work
-                // PB93) and picked the FIRST of duplicates.
-                // ⛔ THE ORIGINAL DEFINITION, NOT THE NEAREST SAME-NAMED ENTRY (kb/Work PB1280; §2023:13.18.44.3 SR7, SR10): a
-                // redefinition defines no storage of its own, so "the entry that originally defined the area" of
-                // `05 A. 05 A REDEFINES A. 05 C REDEFINES A.` is the FIRST A, and that is what NOTE 1's "required placement"
-                // makes unambiguous — the nearest same-named entry that is not itself a redefinition. Only when every
-                // candidate is a redefinition is the nearest one named (SR7's own violation, reported below). A top-level
-                // entry's candidates are the roots of ITS OWN section: SR10's "entries defining the area of data-name-2"
-                // do not cross a section boundary.
-                var preceding = binder.Symbols.RedefinitionCandidatesOf(item, scope);
-                item.SetRedefinition(DataItem.RedefinedEntry(preceding), RedefinitionKind.Clause);
+                // The scope the link was made in (LinkRedefinitionsPass.RedefinitionScopeOf, the ONE statement of it): the
+                // subject's siblings, a method redefiner's own section, or the unit's roots. SR10's screen asks it again below.
+                // ⛔ THE LINK IS MADE BEFORE ANY ITEM IS MEASURED (LinkRedefinitionsPass, kb/Work PB5932 review R1-2): data-name-2
+                // is the ORIGINAL DEFINITION among the same-named entries that precede the subject (kb/Work PB1280; §2023:13.18.44.3
+                // SR7, SR10 and NOTE 1's "required placement"): `05 A. 05 A REDEFINES A. 05 C REDEFINES A.` names the FIRST A. This
+                // pass screens the pair the link made.
+                var scope = LinkRedefinitionsPass.RedefinitionScopeOf(binder, item);
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §2023:13.18.44.3 SR.
                 if (written && item.RedefinesTarget is null && item.Parent is null && binder.Oo.RootOwner.ContainsKey(item.Root))

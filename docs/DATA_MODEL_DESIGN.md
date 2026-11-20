@@ -220,8 +220,13 @@ storage between data-name-2 and the subject — every entry of the resolution sc
 redefinition, kb/Work PB2518 — SR13 no CONSTANT RECORD
 target, SR15 alignment — a subject that needs a byte boundary over a data-name-2 that begins mid-byte) are COBOL2739
 (SR8 keeps COBOL1539). The storage classification (`ClassifyRedefinesClasses`) runs after them and may assume them.
-`ResolveRedefines` walks the COMPOSED forest (`CompositionForest`: roots, `TYPE` / `SAME AS` clones and the `TYPEDEF`
-templates, which are off `Roots`) so every redefiner has its target, but it screens only the entries the programmer WROTE
+The LINK of a redefiner to its data-name-2 (`DataItem.SetRedefinition`) is made earlier, by its own pass,
+`LinkRedefinitionsPass`, which runs before `CheckStorageLimitsPass` because the layout reads a redefiner's overlay off
+`RedefinesTarget` (`BitLayout`'s walk) and the size limit measures every item; the entry rules above, SR8's size screen among
+them, stay after the size limit, and both passes read the one scope, `LinkRedefinitionsPass.RedefinitionScopeOf` (kb/Work PB5932
+review R1-2). `ResolveRedefines` reports and clears a clause whose data-name-2 the link found nowhere.
+Both walk the COMPOSED forest (`CompositionForest`: roots, `TYPE` / `SAME AS` clones and the `TYPEDEF`
+templates, which are off `Roots`) so every redefiner has its target, but only the entries the programmer WROTE are screened
 (`ClonedFrom` null): a redefiner inside a type declaration is diagnosed once, at the declaration, used or not (kb/Work PB2518).
 
 **⛔ THE RENAMES CLAUSE'S ENTRY-LEVEL RULES ARE THE SAME SHAPE** (kb/Work PB1283; `DataBinder.RenamesEntry.cs`,
@@ -1345,7 +1350,7 @@ remaining question is a syntax rule reported by `CapacityPlaceOf`, never a "not 
   the same level as the entry containing the OCCURS clause" — set where it is minted. It is NOT added to
   `Parent.Children`: it takes no record slot.
 - **Qualified** (`WS-CAP OF WS-TABLE`, `IN` likewise) resolves through the ONE §2023:8.4.2.2 matcher,
-  `DataBinder.QualifierChainMatches`, off that `Parent`. §2023:8.4.2.2.3 SR2 permits qualifying a name that needs no
+  `SymbolTable.QualifierChainMatches`, off that `Parent`. §2023:8.4.2.2.3 SR2 permits qualifying a name that needs no
   qualification; a qualifier that names no context of the register is **COBOL2127**.
 - **One written definition, several copies (kb/Work PB2988).** SR30's "defined elsewhere" compares WRITTEN
   definitions: a `CAPACITY IN` written once in a type declaration (or under a SAME AS operand) is reproduced by every
@@ -1732,7 +1737,7 @@ CONSTANT-entry surface (both §2023:8.9-interval words; `AS` is nameSlot-only �
 stays out.
 
 **SAME AS (§2023:13.18.49) rides the SAME machinery** — it is the TYPE expansion with a DATA-NAME source:
-`DataItem.SameAsName`/`SameAsQualifiers` → `ExpandSameAs` (inside the ONE `ExpandTypes` pass, AFTER the TYPE loop so
+`DataItem.SameAs` (the operand's written words, a `WrittenDataName`, resolved by `SymbolTable.IdentifyEntryClauseOperand`) → `ExpandSameAs` (inside the ONE `ExpandTypes` pass, AFTER the TYPE loop so
 targets copy their expanded description; chains recurse, cycles = the expanding-set + subject-ancestor walks). The
 copy = the shared `CopyEntryDescription` (also ExpandType's §2023:13.18.58.4 GR3 body; SYNCHRONIZED copies for SAME AS
 only — §2023:13.18.49 GR1 has no alignment exclusion, §2023:13.18.57.4 GR1 does) + `CloneItem` with a `levelDelta` (GR2b
@@ -1862,8 +1867,8 @@ as definitions that COUNT for uniqueness but never resolve alone, except a membe
 nested TYPE ref's SR6 ancestor walk sees the enclosing strong item (no false SR6 strong-in-strong rejection).
 `StrongTypeModel.TypeAnchor` (the NEAREST TYPE-carrying ancestor) drives `SameType`, so a nested `TYPE INNER-T`
 subgroup matches a standalone INNER-T item (§2023:8.5.3.1 alternative 1). A cloned OCCURS DEPENDING ON resolves data-name-1 in the clone's
-OWN record subtree first (`OdoResolve` reads `SubtreeCandidates` over the record before the scope-wide
-`QualifiedCandidates` — §2023:13.18.57.4 GR1's "coded in place"), not a globally-first same-named counter; each tier is
+OWN record subtree first (`OdoResolve` asks `SymbolTable.IdentifyEntryClauseOperand`, which counts the subject's enclosing
+groups' subtrees, innermost first, before the scope-wide set — §2023:13.18.57.4 GR1's "coded in place"), not a globally-first same-named counter; each tier is
 COUNTED, and several survivors are §2023:8.4.2.2.3 SR1's ambiguity (COBOL1639 through `UniqueOrReportAmbiguous`,
 kb/Work PB978), never the first declared. Three §2023:13.18.57.3 syntax rules are enforced: **1536** SR7 (a level-77
 subject needs an elementary type — weak-invariant, not just STRONG), **1537** SR2 (a TYPE entry must be followed

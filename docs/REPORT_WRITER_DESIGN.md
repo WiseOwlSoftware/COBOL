@@ -456,7 +456,7 @@ off-by-one through every later counter check.
   general rules of the MOVE statement" asks for). An ambiguous or mis-qualified reference is **COBOL2145** —
   and a counter is ONE CANDIDATE AMONG ALL THE DATA-NAMES OF ITS SPELLING (kb/Work PB3232): `SumCounterFamilyFor`
   counts the counters together with the ordinary data items the written qualifiers reach in the same source element
-  (`DataBinder.QualifiedCandidates`), so an unqualified `TOT-N` that names a sum counter AND a WORKING-STORAGE item is
+  (`SymbolTable.IdentifyDataName`, the ordinary lookup's own method), so an unqualified `TOT-N` that names a sum counter AND a WORKING-STORAGE item is
   ambiguous (§2023:8.4.2.2.3 SR1) instead of silently binding the counter, and `TOT-N OF group` / `TOT-N OF report-name`
   tell them apart;
   the counter's own profile (§2023:13.18.54.4 GR1 — signed, digits from the entry's PICTURE) is
@@ -474,7 +474,7 @@ off-by-one through every later counter check.
   to one fell to the "not defined" verdict, false about a name the report section declares. `ReportModel.NamedEntries`
   (every written entry with a data-name, its qualification innermost first, whether it holds a SUM clause) feeds
   the symbol table's `EntriesNamed` (answered as facts, `SymbolTable.Declarations.ReportEntriesNamed`) — the visible reports
-  (own and GLOBAL containers', nearest source element, §2023:8.4.6.2.1 rule 3) under the ONE §2023:8.4.2.2.3 SR4 `QualifierWalk`,
+  (own and GLOBAL containers', nearest source element, §2023:8.4.6.2.1 rule 3) under the ONE §2023:8.4.2.2.3 SR4 `SymbolTable.QualifierWalk`,
   report-name last — and `ReportSectionBinder.ReportEntryReferenceRefused`
   reports **COBOL5092**. Five arms ask it before they say "not defined" (or "nothing described"):
   `NameResolution.ReportUnidentified` (every procedure division identifier), `DataBinder.ResolveClauseOperand`
@@ -505,7 +505,7 @@ off-by-one through every later counter check.
   §2023:8.4.2.2.3 SR1 whether or not a report entry spells the same. **A report entry takes part in §2023:8.4.6.2.1 3) with the
   data items, in the lookup itself** (kb/Work PB4196): `SymbolTable.NearestDeclaringData` and
   `NearestDeclaringConditions`, the narrowings of a qualified data-name or condition-name set (asked by
-  `TryResolveUnqualified`, `DataBinder.QualifiedCandidates` and `SymbolTable.IdentifyConditionName`; `NearerDataNameHides` and
+  `SymbolTable.DataNameCandidates`, both arms of a data-name, and `SymbolTable.IdentifyConditionName`; `NearerDataNameHides` and
   `DeclaredNearerThan` ask it for the index-name, capacity register and constant classes, and each narrowing asks the
   other class's nearer declaration too, kb/Work PB4219), keep the survivors of the nearest declaring source element and leave NONE when
   `SymbolTable.NearerEntryHides` finds a report entry of a nearer one that the written qualifiers reach — "if the name

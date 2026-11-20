@@ -1429,7 +1429,7 @@ entries (`EntriesNamed`, `NearerEntryHides`) moved into `SymbolTable.Reports.cs`
 The code generator, the symbol table and `StatementBinder` read `ReportScope`, a type in `WiseOwl.Cobol.Binding` beside
 `ReportModel`, so their new pairs are tolerated in `architecture-edges.json`, and PB2420 removes them: it names
 `ReportScope.cs` in its Sites and moves the type to compiler.model with the report model types it holds (after PB2416 cuts
-the parse-context key of its refused PRESENT WHEN set into a verdict on the report model, and PB2399 moves `DataBinder.QualifierWalk`, the one SR4 qualifier walk it calls, down to the model layer), while PB2361 makes `DataBindResult` the
+the parse-context key of its refused PRESENT WHEN set into a verdict on the report model, and PB2399 moved `DataBinder.QualifierWalk`, the one SR4 qualifier walk it called, out of the binder: since listing step 6b's remainder slice 3 it is `SymbolTable.QualifierWalk`, private to the table, and the report-entry lookups are the table's too), while PB2361 makes `DataBindResult` the
 carrier and leaves the type where it is; the `StatementBinder` pair keeps PB2347 beside PB2420. `ReportSectionBinder` replaces `DataBinder` as the owner of the two `Validation` pairs
 (`VersionConformancePass`, `IntegerOperandRules`).
 *`LinkageBinder` (step 9, PB2359).* `Binding/LinkageBinder.cs`, reached as `DataBinder.Linkage`, owns the LINKAGE /

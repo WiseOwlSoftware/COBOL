@@ -554,9 +554,12 @@ internal static class BitLayout
     /// <summary>The start-bit offset of DIRECT child <paramref name="child"/> within <paramref name="group"/>,
     /// by the same four placement rules as <see cref="ExtentBits"/> — one walk, one law (kb/Work PB132;
     /// §2023:14.9.4.3 SR6/SR8 ask whether a BY REFERENCE bit argument "is aligned on a byte boundary"). A
-    /// redefining child overlays its target (§2023:13.18.44), so its offset IS the target's — resolved here by
-    /// name. Returns -1 when the child is not found (an unmodelled overlay chain — callers must not reject
-    /// on -1).</summary>
+    /// redefining child overlays its target (§2023:13.18.44.4 GR1), so its offset IS the target's: the one
+    /// <see cref="DataItem.RedefinesTarget"/> the LinkRedefinitions pass set, never the written data-name-2 matched again
+    /// here (DESIGN-listing.md section 6.7.1), so the link runs before any pass that measures an item. Returns -1 when the
+    /// child is not <paramref name="group"/>'s, and for a redefiner whose overlay chain does not reach a non-redefining
+    /// sibling: one whose data-name-2 was found nowhere (a program already in error; the ResolveRedefines pass reports it and
+    /// clears the clause) or a chain longer than the walk follows. Callers must not reject on -1.</summary>
     public static int StartBitWithin(DataItem group, DataItem child)
     {
         var children = group.Children;
