@@ -2032,7 +2032,9 @@ lists from `ListingCrossReference`; the renderer joins nothing and computes noth
 layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. What the page holds:
 - The identification (the compiler, the source, the edition, the instant, the outcome and the parse) and every file read with its
   digest; a bar of links to each section held, with the filter (text on a source line; only the lines with diagnostics) and the
-  expand / collapse buttons, the page's one script.
+  expand / collapse buttons, the page's one script. The bar is sticky, so every link target (a section heading, a line, a data
+  item) scrolls to just below it: the style's `scroll-padding-top` reads `--navh`, which the script sets from the bar's rendered
+  height whenever it resizes (it wraps to more lines as the window narrows; kb/Work PB5948).
 - Each section the document holds, in `ListingSections.Order`, titled `ListingSections.Title`; a section asked for and not produced
   says `Not produced: <reason>` (section 4.3).
 - The source section: every line of `ListingDocument.Lines` is a row (`id="L<n>"`) with its number, depth mark, marker
