@@ -2572,6 +2572,10 @@ renderer. Naming it asks for a listing at any edition.
   program (IX113A 67.83 MB on the parent against 67.81 on the branch, NC105A 34.43 against 34.45, NC218A 30.55 against 30.62, SM201A
   15.17 against 15.18), inside each program's run-to-run spread on one tree; the `None` budget holds (the README's step-6b table,
   remainder slice 2).
+  Remainder slice 3 (the data-name candidate sets moved into the table behind the written words, section 6.7.1 "Step 6b, remainder
+  slice 3"), measured against its parent 0c29eebc42, two runs each, alternating: every branch `None` row lies inside the parent's two
+  runs or below them but one, NC218A's 30.50 MB against 30.44 and 30.42 (its other run 30.44); IX113A is 67.66 and 67.60 MB against
+  67.78 and 67.81. No measurable allocation moved; the `None` budget holds (the README's step-6b table, remainder slice 3).
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the
@@ -2988,7 +2992,9 @@ gap:
   file `2026-11-20-step-6b-r3`).
 - Section 2.2's two 2002 DOC rows (`2002-DOC-B.1-90`, `-165`): documented in DOC-A.1-117 and DOC-A.1-200 but held at GAP by kb/Work
   PB5930.
-- (PB5941:) section 9's `All` budget, over 25 % since step 8, is met: every format streams to its file and the page shows each
+- (PB5941:) section 9's `All` budget, over 25 % since step 8, is met (measured at the merged tree of PB5941 and PB5951, `0c29eebc42`,
+  two runs: `All` is +13.8 to +23.5 % over `None` on a full compile, the benchmark README's "The `All` row at the merged tree"; review
+  lead pb5951 R4-1): every format streams to its file and the page shows each
   instruction once (section 9, PB5941; kb/Work PB5941 landed with this branch, `listing-step-pb5941`).
 - Section 7's `IListingRenderer`: not built by decision (section 7, step 9 correction).
 
