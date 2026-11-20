@@ -108,8 +108,8 @@ public sealed class TextListingRendererTests
             ],
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 2, null)],
             [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "a message of many words " + string.Join(" ", Enumerable.Repeat("word", 60)),
-                2, 2, 1, 8, [])],
-            [], [], null, null, null,
+                2, 2, 1, 8, [], null)],
+            [], [], [], null, null, null,
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null),
              new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         var request = new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth);
@@ -154,7 +154,7 @@ public sealed class TextListingRendererTests
     }
 
     private static ListingDiagnostic Diagnostic(int id, ListingSeverity severity, string message, int? line = 1, int? column = 8) =>
-        new(id, "COBOL0001", severity, message, line, line is null ? null : 1, line, line is null ? null : column, []);
+        new(id, "COBOL0001", severity, message, line, line is null ? null : 1, line, line is null ? null : column, [], null);
 
     /// <summary>A diagnostic under a line printed whole (DESIGN-listing.md section 6.3): a caret under its column, in the source
     /// columns (a supplementary-plane character before it being one position), then the arrow row at the source text's column.</summary>
@@ -202,7 +202,7 @@ public sealed class TextListingRendererTests
             [new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       MOVE X TO Y.", false, true, false, null,
                 ListingReplacement.None, null, [1, 2], null)],
             [], [Diagnostic(1, ListingSeverity.Error, "e"), Diagnostic(2, ListingSeverity.Warning, "w"), Diagnostic(3, ListingSeverity.Warning, "g", line: null)],
-            [], [], null, null, null,
+            [], [], [], null, null, null,
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         Assert.Equal(
         [

@@ -189,12 +189,13 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// (<see cref="DiagnosticRegion.IsRepositoryText"/>) is located at the EXPANDS entry and names the expansion after the message,
     /// exactly as the report of an expansion's own compilation is (<c>ExpansionAssemblies.AtTheEntry</c>), because the positions of
     /// its tokens are places in a text this compilation never read as a file (kb/Work PB4469, PB4483). Its line is
-    /// <see cref="Diagnostic.Render"/>'s.</summary>
-    private Diagnostic Record(DiagnosticSeverity severity, string code, string message) =>
+    /// <see cref="Diagnostic.Render"/>'s. <paramref name="flag"/> is the edition flag the diagnostic is, when it is one
+    /// (<see cref="Diagnostic.Flag"/>; DESIGN-listing.md section 6.11).</summary>
+    private Diagnostic Record(DiagnosticSeverity severity, string code, string message, EditionFlag? flag = null) =>
         Cursor.Region is { IsRepositoryText: true } region
             ? new Diagnostic(code, severity, $"{message} {DiagnosticRegion.InTheExpansion(region.Name)}",
-                LocationOf(region.ReportedAt.Line, region.ReportedAt.Column), default)
-            : new Diagnostic(code, severity, message, Cursor.IsSet ? LocationOf(Cursor.Line, Cursor.Column) : null, default);
+                LocationOf(region.ReportedAt.Line, region.ReportedAt.Column), default) { Flag = flag }
+            : new Diagnostic(code, severity, message, Cursor.IsSet ? LocationOf(Cursor.Line, Cursor.Column) : null, default) { Flag = flag };
 
     /// <summary>What makes two reports of <paramref name="line"/> one fact. The rendered line, except for the text of
     /// a skeleton read from the repository: every diagnostic of it renders at the EXPANDS entry, so two distinct places of the text that raise
@@ -210,10 +211,13 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
         LineMap?.Locate(resultantLine, column, SourceFile) ?? new SourceOrigin(SourceFile, resultantLine).ToLocation(column);
 
     /// <summary>Record an edition-gating error (fails the compile).</summary>
-    public void Error(string code, string message)
+    public void Error(string code, string message) => Error(code, message, null);
+
+    /// <summary><see cref="Error(string, string)"/> for an error that is an edition flag (<see cref="Report"/>).</summary>
+    private void Error(string code, string message, EditionFlag? flag)
     {
         ErrorsRecorded++;
-        var record = Record(DiagnosticSeverity.Error, code, message);
+        var record = Record(DiagnosticSeverity.Error, code, message, flag);
         if (_muted == 0 && _reported.Add(KeyOf(record.ToString())))
         {
             _records.Add(record);
@@ -430,6 +434,11 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>
     public void Warning(string code, string message) => AddWarningOnce(Record(DiagnosticSeverity.Warning, code, message));
 
+    /// <summary><see cref="Warning(string, string)"/> for a warning that is an edition flag (<see cref="Report"/>,
+    /// <see cref="Extension(NonstandardExtension, string)"/>).</summary>
+    private void Warning(string code, string message, EditionFlag flag) =>
+        AddWarningOnce(Record(DiagnosticSeverity.Warning, code, message, flag));
+
     /// <summary>The <see cref="Warning"/> twin of the descriptor-keyed <see cref="Error(DiagnosticDescriptor,string)"/>.
     /// ⛔ ITS ABSENCE WAS A DEFECT, not a gap: a descriptor-carrying site that wanted a warning had no descriptor
     /// overload to reach for, so <c>--permissive</c> sites passed <c>descriptor.Id</c> to the string overload
@@ -460,9 +469,9 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
                 $"nonstandard extension '{row.Id}' is not an accepted, syntactically distinguishable construct, so "
                 + "no binder site may flag it (ISO §2023:4.2.10: the warning mechanism flags only those)");
         if (!FlagExtensions) return;
-        Warning(DiagnosticCatalog.NonstandardExtensionUsed, $"{seen} is a nonstandard extension — {row.Display}; "
+        Warning(DiagnosticCatalog.NonstandardExtensionUsed.Code, $"{seen} is a nonstandard extension — {row.Display}; "
             + $"from {row.Origin}. ISO/IEC 1989 does not define it (§2023:4.2.10). Standard form: {row.Standard} "
-            + "(docs/CONFORMANCE.md §3.2)");
+            + "(docs/CONFORMANCE.md §3.2)", EditionFlag.Of(row, DialectLevel));
     }
 
     /// <summary>THE severity seam for removed-construct gating (P2.1): a construct the targeted edition REMOVED
@@ -553,10 +562,12 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// back onto the legacy string channels with byte-identical text — an <see cref="EditionSeverity.Error"/>
     /// goes to <see cref="Error"/> (fails the compile), a <see cref="EditionSeverity.Warning"/> to
     /// <see cref="Warning"/>. This is how the layer-neutral <see cref="Editions.ConstructRegistry.Check"/>
-    /// produces exactly the diagnostics the old direct <c>edition.Error/Removed/Warning</c> calls did.</summary>
+    /// produces exactly the diagnostics the old direct <c>edition.Error/Removed/Warning</c> calls did, each carrying the edition
+    /// flag the verdict made (<see cref="EditionDiagnostic.Flag"/>; DESIGN-listing.md section 6.11).</summary>
     public void Report(in EditionDiagnostic d)
     {
-        if (d.Severity == EditionSeverity.Error) Error(d.Code, d.Message);
+        if (d.Severity == EditionSeverity.Error) Error(d.Code, d.Message, d.Flag);
+        else if (d.Flag is { } flag) Warning(d.Code, d.Message, flag);
         else Warning(d.Code, d.Message);
     }
 

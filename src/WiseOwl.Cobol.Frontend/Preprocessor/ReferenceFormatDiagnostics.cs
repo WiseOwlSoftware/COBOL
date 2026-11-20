@@ -279,28 +279,27 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
                 "§2023:6.2.2 lists *, / (comment line), - (continuation line) and space (source line)")
             + "; a NIST CCVS program's column-7 conventions are honored under --nist", At(file, line, FixedFormLine.IndicatorColumn), default);
 
-    /// <summary>Any col-7 '-' continuation — OBSOLETE at 2023 (Annex F.2 item 4; VCR row 94).</summary>
+    /// <summary>Any col-7 '-' continuation — OBSOLETE at 2023 (Annex F.2 item 4; VCR row 94; registry row
+    /// <c>col7-continuation-obsolete-2023</c>, whose verdict gives the severity, the code and the edition flag).</summary>
     public void OnContinuation(string file, int line)
     {
-        if (dialectLevel < 2023 || _col7Flagged) return;
+        if (_col7Flagged || ConstructRegistry.VerdictAt(Edition, Constructs.Col7ContinuationObsolete2023) is not { } verdict) return;
         _col7Flagged = true;
-        var severity = EditionSeverityPolicy.For(ConstructAvailability.Obsolete, Edition);
-        Emit(severity, EditionCodes.ObsoleteFlag,
+        diagnostics.Report(verdict,
             "the fixed continuation indicator (hyphen in column 7) is obsolete as of COBOL-2023 "
             + "(Annex F.2 item 4; use the floating continuation indicator) — first use at line " + line,
-            At(file, line, FixedFormLine.IndicatorColumn));
+            At(file, line, FixedFormLine.IndicatorColumn), default);
     }
 
     /// <summary>A continuation that SPLICES a COBOL word across lines — REMOVED at 2023
-    /// (Annex E.2 item 1 bullet 2; VCR row 2). Pre-removal join semantics are preserved either way.</summary>
+    /// (Annex E.2 item 1 bullet 2; VCR row 2; registry row <c>fixed-form-word-continuation-removed-2023</c>, whose verdict gives
+    /// the severity, the code and the edition flag). Pre-removal join semantics are preserved either way.</summary>
     public void OnWordContinuation(string file, int line)
     {
-        if (dialectLevel < 2023 || _wordFlagged) return;
+        if (_wordFlagged || ConstructRegistry.VerdictAt(Edition, Constructs.FixedFormWordContinuationRemoved2023) is not { } verdict) return;
         _wordFlagged = true;
-        const string msg = "continuation of a COBOL word in fixed-form reference format was removed in "
-            + "COBOL-2023 (Annex E.2 item 1 bullet 2) — first use at line ";
-        var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition);
-        Emit(severity, EditionCodes.RemovedConstruct, msg + line, At(file, line, FixedFormLine.IndicatorColumn));
+        diagnostics.Report(verdict, "continuation of a COBOL word in fixed-form reference format was removed in "
+            + "COBOL-2023 (Annex E.2 item 1 bullet 2) — first use at line " + line, At(file, line, FixedFormLine.IndicatorColumn), default);
     }
 
     /// <summary>
@@ -322,13 +321,4 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     }
 
     private static string QuoteName(char quote) => quote == '"' ? "a quotation mark (\")" : "an apostrophe (')";
-
-    /// <summary>Emit through the <see cref="DiagnosticBag"/> at the ONE-policy-decided severity (P2.9).</summary>
-    private void Emit(EditionSeverity severity, string code, string message, Common.SourceLocation loc)
-    {
-        if (severity == EditionSeverity.Error)
-            diagnostics.ReportError(code, message, loc, default);
-        else
-            diagnostics.ReportWarning(code, message, loc, default);
-    }
 }

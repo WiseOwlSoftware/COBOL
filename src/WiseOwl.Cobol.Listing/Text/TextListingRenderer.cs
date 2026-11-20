@@ -17,8 +17,8 @@ namespace WiseOwl.Cobol.Listing.Text;
 /// <para>Under a printed line, each diagnostic placed on it (DESIGN-listing.md section 6.3): a caret row under its column when the
 /// line is printed whole as written (<see cref="CaretRow"/>), then <c>==&gt; severity CODE (col n): message</c> from the source
 /// text's column, wrapped at the page width (<see cref="DiagnosticRows"/>). After the source section, on a page of its own, the
-/// summary: the counts by severity, then every diagnostic in listing order with its listing line, file, line and column
-/// (<see cref="SummaryRows"/>).</para>
+/// summary: the counts by severity, then every diagnostic in listing order with its listing line, file, line and column, then the
+/// table of flagged constructs by edition (<see cref="SummaryRows"/>).</para>
 /// <para>Under a line a replacing action changed (marked 'R'), its compiled text in rows marked 'R' (<see cref="ReplacedRows"/>);
 /// after a DISPLAY directive's line, whether or not that line is printed, each transfer to the listing as
 /// <c>DISPLAY: text</c> (<see cref="DisplayRows"/>; DESIGN-listing.md section 6.10).</para>
@@ -250,7 +250,8 @@ public static class TextListingRenderer
     public const string Arrow = "==> ";
 
     /// <summary>The summary of every diagnostic (DESIGN-listing.md section 6.3): the counts by severity, then each diagnostic in listing
-    /// order, its listing line (or '-') and its file, line and column ahead of its words.</summary>
+    /// order, its listing line (or '-') and its file, line and column ahead of its words, then the table of flagged constructs by
+    /// edition (section 6.11, <see cref="FlaggedConstructText.Rows"/>).</summary>
     public static IEnumerable<string> SummaryRows(ListingDocument document, int width)
     {
         yield return CountsText(document.Diagnostics);
@@ -263,6 +264,7 @@ public static class TextListingRenderer
             foreach (string row in Indented($"{lead}  {SeverityWord(d.Severity)} {d.Code}{place}: {d.Message}", 0, 8, width))
                 yield return row;
         }
+        foreach (string row in FlaggedConstructText.Rows(document, width)) yield return row;
     }
 
     /// <summary>The summary's first row as every renderer prints it: the count of <paramref name="diagnostics"/> of each severity.</summary>
