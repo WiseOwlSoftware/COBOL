@@ -629,7 +629,10 @@ cols 1-6    listing line number
 col  8      inclusion depth (blank at 0, 1-9, '+' beyond)
 col  9      marker: '/' page-eject comment, '*' comment, 'D' debugging line, 'X' omitted by conditional compilation,
             'R' changed by REPLACE or REPLACING, 'E' DATE-COMPILED replaced, '>' directive, '-' continuation
-cols 11-16  the physical line number in its file
+cols 11-16  the physical line number in its file, right-aligned, printed only where it is not the listing number
+            (`TextListingRenderer.FileLineColumn`; kb/Work PB5950): blank before a program's first inclusion, where the
+            two are the same number, and on every later line of the source and every line of a library text, where
+            they differ, the line in the file the programmer edits
 cols 18-97  the line as written: a fixed-form line's 80 positions (sequence 1-6, indicator 7, area A 8-11, area B 12-72,
             identification 73-80); a free-form line's text, wrapped at col 97 onto rows marked '+'
 cols 100-132 the embedded margin: the line's `ListingLine.Margin`, printed as the builder computed it (on a data
@@ -2114,7 +2117,8 @@ layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. W
 - Each section the document holds, in `ListingSections.Order`, titled `ListingSections.Title`; a section asked for and not produced
   says `Not produced: <reason>` (section 4.3).
 - The source section: every line of `ListingDocument.Lines` is a row (`id="L<n>"`) with its number, depth mark, marker
-  (`TextListingRenderer.MarkerOf`), file line and text (DATE-COMPILED's replacement in its place, as the text listing prints it);
+  (`TextListingRenderer.MarkerOf`), file line (`TextListingRenderer.FileLineColumn`: empty where it is the listing number, as
+  in the text listing's section 6.2) and text (DATE-COMPILED's replacement in its place, as the text listing prints it);
   a `PageBreakBefore` line carries a rule on screen and `break-before: page` in print. Each inclusion that has lines is a `<details>`
   block (`id="I<n>"`) opened by the text listing's banner (`TextListingRenderer.Banner`), nested as the inclusions nest, collapsed
   when its COPY statement wrote SUPPRESS. Each run of consecutive lines of one inclusion that the text listing does not print
@@ -2449,7 +2453,9 @@ captured listing.
    names every listing option (`UserManualDriftTests`).
 7. **Unit tests** of `ListingVisibility` and `PageComposer` over hand-built line lists (one per rule above), and of
    `ListingLineIndex` over hand-built maps (step 1: `ListingLineIndexTests`, a copybook copied at two depths, framing
-   lines, a file no inclusion holds, omission); `PhysicalLineKindDriftTests` (section 4.4.1).
+   lines, a file no inclusion holds, omission); `PhysicalLineKindDriftTests` (section 4.4.1). (kb/Work PB5950:)
+   `TextListingRendererTests.TheFileLineColumn_IsBlankWhereItIsTheListingNumber` reads columns 1-17 of the text rows of a
+   source line before an inclusion, the COPY line, a library line and a source line after it (section 6.2, columns 11-16).
 7a. **Diagnostics (step 3).** The records and their rendered views, the severity map, the placement by frame over hand-built
    maps, the caret, the wrapping and the summary (Unit); a bind error placed, printed and cited, a diagnostic in the second
    copy of a copybook placed in the second block, and one record per printed diagnostic on a front-end error, a bind error and
@@ -2470,7 +2476,7 @@ captured listing.
    unlabelled grammar.
 7d. **HTML (step 9).** `HtmlListingRendererTests` (Unit, over `JsonListingWriterTests.EveryMember`, the document holding every
    member): the page is self-contained and well-formed, every id unique and every link landing on an element of the page; every line a
-   row with its text and file line, a page break where the model has one; an inclusion an open block, a suppressed one collapsed, a
+   row with its text and its file line (empty where it is the listing number, section 6.2), a page break where the model has one; an inclusion an open block, a suppressed one collapsed, a
    line not listed in a collapsed run inside its inclusion's block; a diagnostic under its line, its column marked (a
    supplementary-plane character one position), the summary linking to it and not linking one placed on no line; the compiled text,
    the DISPLAY transfer and the object code under their line; the margin, the data map's facts, the file map, the object-code map and
@@ -2713,6 +2719,15 @@ model holds; `ListingLine.Names` and the cross-reference do not exist yet, so th
 flag as a fact on the diagnostic (`EditionFlag`, `Diagnostic.Flag`, made by `ConstructRegistry.VerdictAt` and
 `EditionContext.Extension`), `ListingDiagnostic.Flag` and `ListingDocument.FlaggedConstructs`, the table in the text summary, the
 JSON and the HTML page; `EditionFlagDriftTests`, `FlaggedConstructTests`, `ListingFlaggedConstructsTests`.
+
+**The file-line column (kb/Work PB5950). BUILT (branch `listing-step-pb5950`).** The owner found every source line's number
+printed twice: until a program's first inclusion the listing number and the file line are the same number. Section 6.2's
+columns 11-16 had specified the file line on every row; the correction prints it only where it is not the listing number,
+decided once by `TextListingRenderer.FileLineColumn` and asked by both the text row and the HTML row (section 7.2). The model
+and the JSON listing keep `ListingLine.FileLine` on every line. Witnesses: `TextListingRendererTests.TheFileLineColumn_IsBlankWhereItIsTheListingNumber`
+and `HtmlListingRendererTests.EveryLine_IsARow_WithItsText` (section 10 items 7 and 7d). The diagnostic summary's
+`file(line,column)` (`TextListingRenderer.PlaceText`) keeps its line: it is the compiler's diagnostic location, read whole
+by an editor, not a column of the source row.
 
 **What is not built (checked at step 9 against every section of this document).** Each part below is a kb/Work item, never a silent
 gap:
