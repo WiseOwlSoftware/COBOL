@@ -72,6 +72,16 @@ internal static class ReportGroupResolution
         }
     }
 
+    /// <summary>The reference's head word with no qualifier, as the data-name lookup takes it: the count of the data items an
+    /// UNQUALIFIED report-group name shares its spelling with (§2023:8.4.2.2.3 SR1). <paramref name="written"/> has words (the table
+    /// answered it).</summary>
+    private static WrittenQualifiedName HeadOnly(ParserRuleContext written) => new(written switch
+    {
+        Core.ReportGroupReferenceContext r => r.cobolWord().Start,
+        Core.DataReferenceContext d => d.cobolWord().Start,
+        _ => throw new InvalidOperationException($"a report-group reference is a reportGroupReference or a dataReference, not {written.GetType().Name}"),
+    }, []);
+
     /// <summary>Resolve a possibly-qualified report-group reference: the symbol table answers EVERY candidate
     /// (<see cref="SymbolTable.Identify(ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>,
     /// <c>NameClass.ReportGroup</c>: a qualified reference restricts the candidate reports to the named one), and this funnel reports
@@ -107,7 +117,7 @@ internal static class ReportGroupResolution
         // EVERY site: the reach chooses which reports are searched, never whether a data item of the spelling is a declaration of the
         // name, so the SUM clause's UPON operand (NameReach.Own) counts them as GENERATE and USE BEFORE REPORTING do.
         int dataItems = qualifier is null
-            ? binder.QualifiedCandidates(head, [], binder.ActiveScope).ItemCount : 0;
+            ? binder.Symbols.IdentifyDataName(HeadOnly(written), report: false).ItemCount : 0;
         if (found.Count == 1 && dataItems == 0)
         {
             (report, group) = found[0];

@@ -616,9 +616,11 @@ internal static class BitLayout
             if (children[i].RedefinesTargetName is null) continue;
             long at = -1;
             var c = children[i];
-            for (int hops = 0; hops < 64 && c.RedefinesTargetName is { } name; hops++)
+            for (int hops = 0; hops < 64 && c.RedefinesTargetName is not null; hops++)
             {
-                int t = IndexOfNamed(children, name);
+                // The target the REDEFINES pass resolved (§2023:13.18.44.3 SR4: a preceding sibling), never the written name
+                // matched again here: the model reads the symbol the table resolved (DESIGN-listing.md section 6.7.1).
+                int t = c.RedefinesTarget is { } target ? IndexOf(children, target) : -1;
                 if (t < 0) break;
                 c = children[t];
                 if (c.RedefinesTargetName is null) at = starts[t];
@@ -628,10 +630,10 @@ internal static class BitLayout
         return cursor - phase;
     }
 
-    private static int IndexOfNamed(IReadOnlyList<DataItem> siblings, string name)
+    private static int IndexOf(IReadOnlyList<DataItem> siblings, DataItem sibling)
     {
         for (int i = 0; i < siblings.Count; i++)
-            if (CobolNames.Same(siblings[i].CobolName, name)) return i;
+            if (ReferenceEquals(siblings[i], sibling)) return i;
         return -1;
     }
 

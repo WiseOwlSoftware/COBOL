@@ -509,19 +509,14 @@ public sealed class DataItem
         "a fact about the entry the programmer wrote — a copy writes no TYPE clause of its own, and the carried type identity is TypeName")]
     public string? WrittenTypeName { get; init; }
 
-    /// <summary>The <c>SAME AS data-name-1</c> target name (ISO §2023:13.18.49), or null. Structurally the TYPE
-    /// reference with a DATA-NAME source: <c>DataBinder.ExpandSameAs</c> (inside the ONE <c>ExpandTypes</c> pass)
-    /// resolves the target entry and clones its description in via the SAME <c>CloneItem</c> machinery (GR1/GR2),
-    /// then clears this. <see cref="SameAsQualifiers"/> carries any OF/IN qualifiers of the reference.</summary>
+    /// <summary>The <c>SAME AS data-name-1</c> operand as written, its OF/IN qualifiers innermost first (ISO §2023:13.18.49), or
+    /// null. Structurally the TYPE reference with a DATA-NAME source: <c>DataBinder.ExpandSameAs</c> (inside the ONE
+    /// <c>ExpandTypes</c> pass) has the symbol table resolve the target entry (<c>SymbolTable.IdentifyEntryClauseOperand</c>,
+    /// docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, remainder slice 3") and clones its description in via the
+    /// SAME <c>CloneItem</c> machinery (GR1/GR2), then clears this.</summary>
     [DescriptionCopy(DescriptionCopyKind.None,
         "a reference is expanded in its OWN declaration before anything copies it (DataBinder.ExpandTemplate / ExpandSameAs complete the source first, kb/Work PB1302), so no copy carries a pending one")]
-    public string? SameAsName { get; set; }
-
-    /// <summary>The OF/IN qualifier names of a <see cref="SameAsName"/> reference, in written order (empty when
-    /// unqualified). Each must name an ancestor of the target for the reference to match.</summary>
-    [DescriptionCopy(DescriptionCopyKind.None,
-        "the OF/IN qualifiers of the SameAsName it rides, which no copy carries")]
-    public List<string> SameAsQualifiers { get; } = [];
+    public WrittenDataName? SameAs { get; set; }
 
     /// <summary>After <c>ExpandTypes</c>: the type-name this item (or its containing subtree root) was cloned from —
     /// backs the §2023:8.5.3.3 STRONG same-type check. Null for a non-typed item.</summary>

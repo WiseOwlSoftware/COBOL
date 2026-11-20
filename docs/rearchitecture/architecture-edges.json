@@ -1407,7 +1407,7 @@
       "from": "WiseOwl.Cobol.Binding.Model",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 20,
-      "walkUses": 18,
+      "walkUses": 17,
       "removedBy": [
         "PB2399",
         "PB2420"
@@ -1508,13 +1508,6 @@
         {
           "from": "WiseOwl.Cobol.Binding.Model.LinkageFacts",
           "to": "WiseOwl.Cobol.Binding.LinkageFormal",
-          "removedBy": [
-            "PB2399"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Model.OccursKey",
-          "to": "WiseOwl.Cobol.Binding.DataBinder",
           "removedBy": [
             "PB2399"
           ]

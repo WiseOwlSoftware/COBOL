@@ -105,13 +105,15 @@ public sealed partial class DataBinder
     /// that does not uniquely identify its item. So the constant is ONE CANDIDATE AMONG THE DATA ITEMS OF ITS SPELLING, counted
     /// with them as <c>CounterResolver</c> counts a sum counter (kb/Work PB3232): COBOL1639 at the reference, once per node,
     /// and under <c>--permissive</c> a warning and the constant (the reading this lookup always took). A program that never
-    /// references the name stays legal. The data items are the ones the active scope sees (<see cref="QualifiedCandidates"/>,
+    /// references the name stays legal. The data items are the ones the active scope sees (<see cref="SymbolTable.IdentifyDataName(WrittenQualifiedName, bool)"/>,
     /// the set every ordinary lookup reads), so a position that cannot be reached by an identifier asks <see cref="ConstantEntryBinder.ConstantOf"/>
     /// instead, as do the silent probes.</summary>
     internal ConstantDef? ConstantOfIdentifierPosition(Core.DataReferenceContext dref)
     {
         if (Constants.ConstantOf(dref) is not { } constant) return null;
-        string name = dref.cobolWord().GetText();
+        // The constant-name is the reference's one word (ConstantOf answers only a bare reference).
+        var written = new WrittenQualifiedName(dref.cobolWord().Start, []);
+        string name = written.Name;
         // §2023:8.4.6.2.1 GR3: among items of one spelling declared at different tiers the NEAREST declaration is the referenced
         // item — a constant THIS source element declares is "the item in source element B is the referenced item" (GR3a), a
         // GLOBAL constant of the n-th container is "The item in source element A if the name is declared in source element A"
@@ -120,7 +122,7 @@ public sealed partial class DataBinder
         // 0 for a constant of this element (or of the method being bound), else the container's distance (kb/Work PB5301,
         // reviews R1-1 of w20262006b and of its finisher).
         int constantTier = Symbols.IsDeclaredConstant(name) ? 0 : Symbols.InheritedConstantDepthOf(name);
-        int dataItems = QualifiedCandidates(name, [], ActiveScope)
+        int dataItems = Symbols.IdentifyDataName(written, report: false)
             .Where(d => State.Forest.DeclaringDepth(d) == constantTier).Count;
         if (dataItems > 0 && _sharedSpellingReported.Add(dref))
         {

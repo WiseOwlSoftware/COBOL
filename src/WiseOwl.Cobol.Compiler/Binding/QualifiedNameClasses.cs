@@ -33,7 +33,7 @@ internal static class QualifiedNameClasses
 
     internal static readonly IReadOnlyList<Row> All =
     [
-        new("qualified-data-name", Disposition.Resolved, typeof(DataBinder), "QualifiedCandidates",
+        new("qualified-data-name", Disposition.Resolved, typeof(SymbolTable), "DataNameCandidates",
             "§2023:8.4.2.2.3 SR1 + SR4 — counted by DataBinder.UniqueOrReportAmbiguous (data division) and "
             + "NameResolution.ReportUnidentified (procedure division)"),
         new("qualified-condition-name", Disposition.Resolved, typeof(ConditionBinder), "ConditionOf",

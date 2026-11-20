@@ -449,7 +449,7 @@ public sealed class ReferenceResolver(DataBinder data)
             // caller's own operand-shape refusal names the rule, so a chain stays silent here; any other name that
             // resolves to nothing is reported like every other identifier's.
             if (report && !ObjectProperties.IsObjectViewOfQualifiedItem(dref) && !ObjectProperties.IsObjectPropertyReference(dref))
-                Names.ReportUnidentified(dref, name, qualifiers);
+                Names.ReportUnidentified(dref, named);
             return Ends(Refused());
         }
         if (item is null)
@@ -463,7 +463,7 @@ public sealed class ReferenceResolver(DataBinder data)
         {
             // The NAME resolves to nothing — a typo or a mis-qualification, never a feature gap (kb/Work R30).
             // Every later null in this method is an unsupported-shape staging of a name that DID resolve.
-            if (report) Names.ReportUnidentified(dref, name, qualifiers);
+            if (report) Names.ReportUnidentified(dref, named);
             return Ends(Refused());
         }
 
@@ -740,7 +740,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// every table with a table ancestor. Because the register is off <c>ByName</c>, failing either conjunct was
     /// not a fallback but the END of resolution, and the general resolver then said COBOL1639 "is not defined"
     /// — false about a name the OCCURS clause declares.</para>
-    /// <para>The qualifier test is the ONE §2023:8.4.2.2 matcher (<see cref="DataBinder.QualifierChainMatches"/>), read
+    /// <para>The qualifier test is the ONE §2023:8.4.2.2 matcher (<see cref="SymbolTable.QualifierChainMatches"/>), read
     /// off the register's real <see cref="DataItem.Parent"/> — SR30's "treated as though implicitly defined at the
     /// same level as the entry containing the OCCURS clause", set where the register is minted
     /// (<c>DataBinder.Odo.cs</c>). Within ONE source element two registers share a spelling only when they are the
@@ -766,7 +766,7 @@ public sealed class ReferenceResolver(DataBinder data)
         string name = word.GetText();
         var written = ReadWritten(dref);
         var reached = tables.Where(t => t.OccursSpec?.CapacityRegister is { } cand
-                                        && data.QualifierChainMatches(cand, written.Qualifiers)).ToList();
+                                        && data.Symbols.QualifierChainMatches(cand, written.Qualifiers)).ToList();
         // The nearest declaring element's reached registers (the list is in nearest-element order, §2023:8.4.6.2.1 3)), or
         // the nearest register at all when the qualifiers reach none, so the qualifier fault is stated about it.
         DataItem table = reached.Count > 0 ? reached[0] : tables[0];

@@ -96,24 +96,16 @@ public sealed partial class SymbolTable
     /// ⭐ THE LOOKUP OF A WRITTEN DATA-NAME (§2023:8.4.2.2.2 Format 1; docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b,
     /// remainder slice 1"): its §2023:8.4.2.2 candidate set in the active scope, whose count is the caller's uniqueness verdict
     /// (<c>NameResolution.DataItemNamed</c>, the procedure division's; the data division's clause operands meet
-    /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>). A qualified name is matched over the whole visible set and then narrowed
-    /// to the nearest declaring source element (§2023:8.4.6.2.1 3), <c>DataBinder.QualifiedCandidates</c>); an unqualified one is the
-    /// nearest declaring element's items (<see cref="TryResolveUnqualified"/>), every survivor of its spelling counted with the
-    /// REPORT SECTION entries of that element (kb/Work PB5775). A qualifiable name's identification IS its candidate set, typed and
-    /// unboxed (the index-name's <see cref="IdentifyIndexName"/>, the condition-name's <see cref="IdentifyConditionName"/>).
+    /// <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>). Every written qualifier is applied over the whole visible set, then the
+    /// nearest declaring source element's survivors are kept (§2023:8.4.6.2.1 3)), counted with the REPORT SECTION entries of that
+    /// element (kb/Work PB5775); an unqualified name is the same walk with no qualifier to apply (<see cref="DataNameCandidates"/>,
+    /// one rule for both arms since remainder slice 3). A qualifiable name's identification IS its candidate set, typed and unboxed
+    /// (the index-name's <see cref="IdentifyIndexName"/>, the condition-name's <see cref="IdentifyConditionName"/>).
     /// <paramref name="report"/> is <see cref="Identify(Antlr4.Runtime.ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>'s:
     /// listing step 7b records the occurrence here when it is true and the set has one member. Pure: it reports nothing.
-    /// <para>The two arms keep the two answers the procedure division gave before the lookup moved here (an unqualified name is not
-    /// screened for a lapsed type-declaration member alone, kb/Work PB5932's dated file <c>2026-11-19-step-6b-r1</c>): the move is
-    /// behaviour-neutral, and the one rule they should share is that file's lead.</para>
     /// </summary>
-    internal NameCandidates<DataItem> IdentifyDataName(WrittenQualifiedName written, bool report)
-    {
-        _ = report;   // the occurrence it gates is listing step 7b's
-        if (written.QualifierWords.Count > 0) return _data.QualifiedCandidates(written.Name, written.QualifierWords, _data.ActiveScope);
-        if (!TryResolveUnqualified(written.Name, _data.ActiveScope, out var items)) return new([]);
-        return new(items, _data.ReportSection.ReportEntriesInTierOf(new NameCandidates<DataItem>(items), written.Name, []));
-    }
+    internal NameCandidates<DataItem> IdentifyDataName(WrittenQualifiedName written, bool report) =>
+        IdentifyDataName(written, _data.ActiveScope, report);
 
     /// <summary>
     /// ⭐ THE LOOKUP OF A DATA DIVISION CLAUSE'S WRITTEN DATA-NAME (§2023:8.4.2.2.2 Format 1; docs/rearchitecture/DESIGN-listing.md
@@ -126,12 +118,12 @@ public sealed partial class SymbolTable
     /// Pure: it reports nothing.
     /// </summary>
     internal NameCandidates<DataItem> IdentifyDataName(WrittenDataName operand, Scope scope) =>
-        _data.QualifiedCandidates(operand.Name, operand.Qualifiers, scope);
+        DataNameCandidates(operand.Name, operand.Qualifiers, scope);
 
     /// <summary>Whether a data item of <paramref name="operand"/>'s spelling is visible in <paramref name="scope"/> at all, its
     /// qualifiers not applied: the question a clause's unidentified-operand diagnostic asks to say "declared, but not under the
     /// given qualifiers" rather than "no declaration" (a declaration question: no symbol answers).</summary>
-    internal bool DeclaresDataNameSpelled(WrittenDataName operand, Scope scope) => TryResolve(operand.Name, scope, out _);
+    internal bool DeclaresDataNameSpelled(WrittenDataName operand, Scope scope) => DeclaresDataName(operand.Name, scope);
 
     /// <summary>The presence fact of the formal parameter <paramref name="written"/> spells (§2023:8.8.4.8.3 SR1: data-name-1 of an
     /// omitted-argument condition "shall be a formal parameter defined in the source element in which this condition is

@@ -5,17 +5,18 @@ using OdoTail = WiseOwl.Cobol.Runtime.OdoTail;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>ONE data-name-2 of an OCCURS KEY phrase (ISO §2023:13.18.38) together with the direction word that governs
-/// it: the key's name, its IN/OF qualifiers AS WRITTEN (innermost first), and the direction.
+/// it: the key's name and its IN/OF qualifiers AS WRITTEN (innermost first, a <see cref="WrittenDataName"/> only the symbol table
+/// resolves: docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, remainder slice 3"), and the direction.
 /// <para>⛔ THE QUALIFIERS ARE PART OF THE KEY (kb/Work PB1018). §2023:13.18.38.3 SR3 confines data-name-2 to "the entry
 /// containing the OCCURS clause or an entry subordinate to" it, but it does not make the name unique there: a table
 /// element <c>E</c> holding <c>A.K</c> and <c>B.K</c> must write <c>KEY IS K OF B</c>, and §2023:8.4.2.2.3 SR1 makes that
 /// qualification the ONLY thing that says which K is the key. This record used to carry the bare name with a
 /// comment claiming the qualifier chain "adds nothing", and the lookup took the FIRST K under the table — so a
 /// legal <c>SEARCH ALL … WHEN K OF B (IX) = 2</c> was refused and the table SORT keyed on A's K.</para></summary>
-public readonly record struct OccursKey(string Name, IReadOnlyList<string> Qualifiers, bool Descending)
+public readonly record struct OccursKey(WrittenDataName Operand, bool Descending)
 {
     /// <summary>The key as the programmer wrote it (<c>K OF B</c>), for a diagnostic that quotes the phrase.</summary>
-    public string Written => DataBinder.WrittenQualified(Name, Qualifiers);
+    public string Written => Operand.Written;
 }
 
 /// <summary>

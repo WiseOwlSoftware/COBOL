@@ -27,10 +27,10 @@ public sealed class DataNameResolutionDriftTests
         Assert.DoesNotContain(t.GetProperties(BindingFlags.Public | BindingFlags.Instance), p => p.GetIndexParameters().Length > 0);
         Assert.DoesNotContain(t.GetProperties(BindingFlags.Public | BindingFlags.Instance),
             p => typeof(IEnumerable).IsAssignableFrom(p.PropertyType) && p.PropertyType != typeof(string));
-        var qc = typeof(DataBinder).GetMethod("QualifiedCandidates", BindingFlags.NonPublic | BindingFlags.Instance);
+        var qc = typeof(SymbolTable).GetMethod("DataNameCandidates", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(qc);
         Assert.Equal(t, qc!.ReturnType);
-        var sc = typeof(DataBinder).GetMethod("SubtreeCandidates", BindingFlags.NonPublic | BindingFlags.Instance);
+        var sc = typeof(SymbolTable).GetMethod("SubtreeCandidates", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(sc);
         Assert.Equal(t, sc!.ReturnType);
     }
@@ -71,7 +71,7 @@ public sealed class DataNameResolutionDriftTests
         foreach (var f in files.Where(f => !f.EndsWith("DataBinder.Ptr.cs", StringComparison.Ordinal)))
             findings.AddRange(RawIndexings(File.ReadAllText(f)).Select(h => $"{Path.GetFileName(f)}: {h}"));
         Assert.True(findings.Count == 0, "a DATA DIVISION resolver reads [0] off a raw candidate list:\n  "
-            + string.Join("\n  ", findings) + "\nResolve through QualifiedCandidates / SubtreeCandidates and "
+            + string.Join("\n  ", findings) + "\nResolve through SymbolTable.IdentifyDataName / IdentifyEntryClauseOperand / IdentifyRegionOperand and "
             + "UniqueOrReportAmbiguous (kb/Work PB978).");
     }
 

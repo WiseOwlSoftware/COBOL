@@ -89,8 +89,9 @@ public sealed class ReferenceIdentificationDriftTests
     /// <c>ScreenLinkageReference</c>, so a LINKAGE item the procedure division may not reference (§1985:X.5.1 GR4,
     /// §2023:13.7.3 SR4) compiled as <c>T (L2-N)</c> though <c>DISPLAY L2-N</c> was refused. A source file of the binder that
     /// reaches the data items a written data-name names (<c>NameResolution.DataItemNamed</c>, the one verdict;
-    /// <c>SymbolTable.IdentifyDataName</c>, the candidate set beneath it; <c>DataBinder.QualifiedCandidates</c> and
-    /// <c>SymbolTable.TryResolveUnqualified</c>, the two lookups the table and the data division still answer a name's text with)
+    /// <c>SymbolTable.IdentifyDataName</c>, the candidate set beneath it, and the clause and region sets beside it,
+    /// <c>IdentifyEntryClauseOperand</c>, <c>IdentifyRegionOperand</c> and <c>IdentifyWithin</c>; since remainder slice 3 no lookup
+    /// answers a name's text)
     /// is therefore either one that asks the screen (<c>ScreenLinkageReference</c> / <c>FindReportedItem</c> / <c>Identify</c>)
     /// or one named here with the reason its lookups are no procedure-division reference; a new file with such a lookup is red
     /// until it is one or the other.</summary>
@@ -109,17 +110,22 @@ public sealed class ReferenceIdentificationDriftTests
             ["FileControlBinder.IoControl.cs"] = "data-division clause operands (the I-O-CONTROL paragraph), never a procedure-division operand",
             ["FileControlBinder.Resolve.cs"] = "data-division clause operands (RECORD KEY, ASSIGN USING), never a procedure-division operand",
             ["ReportSectionBinder.cs"] = "data-division clause operands (the report clauses), never a procedure-division operand",
-            ["DataBinder.cs"] = "data-division clause operands (ResolveClauseOperand: FILE STATUS, LINAGE, RELATIVE KEY and the other file clauses), never a procedure-division operand",
+            ["DataBinder.cs"] = "data-division clause operands (ResolveClauseOperand: FILE STATUS, LINAGE, RELATIVE KEY and the other file clauses; SAME AS), never a procedure-division operand",
+            ["DataBinder.Configuration.cs"] = "counts the data items spelled as a constant-name at the constant's own tier (an ambiguity count, no item used)",
+            ["OdoResolvePass.cs"] = "a data-division clause operand (OCCURS DEPENDING ON data-name-1), never a procedure-division operand",
+            ["OccursKeyResolvePass.cs"] = "a data-division clause operand (OCCURS KEY data-name-2), never a procedure-division operand",
+            ["ResolveRedefinesPass.cs"] = "data-division clause operands (RENAMES data-name-2 and data-name-3), never a procedure-division operand",
+            ["SortBinder.cs"] = "a SORT table key is identified within data-name-2 (§2023:14.9.40.3 SR14 a)), which ReferenceResolver.ResolveTableOperand identified and screened, so the key lies in a record already screened",
             ["SymbolTable.DataNames.cs"] = "the identification itself (IdentifyDataName); its callers are the files this test reads",
             ["SymbolTable.ConditionNames.cs"] = "the condition-name identification's existence question (DeclaresConditionName), no item used",
             ["SymbolTable.Declarations.cs"] = "the declaration questions of the data division, answered as facts, no item used",
         };
         string root = TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding");
         // Every member that answers the data items a written data-name names, wherever a binder file reaches it: the procedure
-        // division's verdict, the table's identification beneath it, and the two lookups the table and the data division still
-        // answer a name's text with (review R1-3 of step 6b's remainder slice 1: matching DataItemNamed alone let a file call
-        // ctx.Symbols.IdentifyDataName, or the qualified set, for a procedure-division operand unseen).
-        var lookup = new Regex(@"\.(DataItemNamed|IdentifyDataName|QualifiedCandidates|TryResolveUnqualified)\(");
+        // division's verdict, the table's identification beneath it, and the clause, region and record sets beside it (review R1-3
+        // of step 6b's remainder slice 1: matching DataItemNamed alone let a file call ctx.Symbols.IdentifyDataName, or the qualified
+        // set, for a procedure-division operand unseen).
+        var lookup = new Regex(@"\.(DataItemNamed|IdentifyDataName|IdentifyEntryClauseOperand|IdentifyRegionOperand|IdentifyWithin)\(");
         foreach (string file in Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
         {
             string name = Path.GetFileName(file);
@@ -136,7 +142,7 @@ public sealed class ReferenceIdentificationDriftTests
                 continue;
             }
             Assert.True(asksScreen,
-                $"{name} looks a data-name up (DataItemNamed / IdentifyDataName / QualifiedCandidates / TryResolveUnqualified) and neither asks "
+                $"{name} looks a data-name up (DataItemNamed / IdentifyDataName / IdentifyEntryClauseOperand / IdentifyRegionOperand / IdentifyWithin) and neither asks "
                 + "NameResolution.ScreenLinkageReference nor looks the item up through FindReportedItem / Identify: a LINKAGE item the "
                 + "procedure division may not reference (§1985:X.5.1 GR4, §2023:13.7.3 SR4) would compile through it as a subscript or "
                 + "reference-modification operand did (kb/Work PB5846). Ask the screen, or name the file in the closed list with why.");
@@ -149,7 +155,7 @@ public sealed class ReferenceIdentificationDriftTests
         string body = Code(BodyOf("internal (ReportModel Report, ReportSumFamily Family)? SumCounterFamilyFor("));
         // The counters (`matches`) and the ordinary candidates the SAME qualifiers reach in the SAME source element are
         // ONE count: the ambiguity verdict is asked of their sum, never of the counters alone.
-        Assert.Matches(@"matches\.Count\s*\+\s*data\.QualifiedCandidates\(name,\s*qualifiers,", body);
+        Assert.Matches(@"matches\.Count\s*\+\s*data\.Symbols\.IdentifyDataName\(written,", body);
         Assert.Matches(@"DeclaringDepth\(item\)\s*==\s*counterDepth", body);
         Assert.Matches(@"if\s*\(\s*sameSpelling\s*>\s*1\s*\)", body);
         Assert.DoesNotMatch(@"if\s*\(\s*matches\.Count\s*>\s*1\s*\)", body);

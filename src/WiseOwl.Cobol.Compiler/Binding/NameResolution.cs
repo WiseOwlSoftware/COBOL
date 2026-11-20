@@ -41,7 +41,7 @@ internal readonly record struct IndexRef(IndexRefOutcome Outcome, IndexDeclarati
 /// DESIGN-architecture-review §8.3 (4), kb/Work PB2372). "Qualification is the specification of superordinate names from the hierarchy to which a
 /// user-defined name belongs" (§2023:8.4.2.2.1); a reference shall "uniquely identify" its resource, and §2023:8.4.2.2.3 SR1 makes the
 /// written qualifiers establish that. This type asks the candidates of a spelling from <see cref="DataBinder"/>'s symbol tables
-/// (<c>QualifiedCandidates</c>, <c>Symbols</c>), decides uniqueness, and says why when it cannot: the unqualified and qualified
+/// (<c>SymbolTable.IdentifyDataName</c>, <c>Symbols</c>), decides uniqueness, and says why when it cannot: the unqualified and qualified
 /// data-name verdict (<see cref="DataItemNamed"/>, over <see cref="SymbolTable.IdentifyDataName"/>'s candidate set), the index-name lookup
 /// (§2023:8.4.2.2.3 SR6, <see cref="ResolveIndexName"/>), the one COBOL1639 report (<see cref="ReportUnidentified"/>, with the
 /// misqualified- and hidden-condition-name wordings) and the §2023:13.7.3 SR4 LINKAGE screens every identifier entry asks.
@@ -53,9 +53,13 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
 {
     /// <summary>The COBOL1639 report for a reference no declaration identifies (kb/Work R30): "not defined"
     /// when the bare name exists nowhere; "does not uniquely identify" when it exists but the qualifiers or an
-    /// ambiguity defeat resolution (§2023:8.4.2.2 — qualification shall establish uniqueness).</summary>
-    internal void ReportUnidentified(Core.DataReferenceContext dref, string name, IReadOnlyList<string> qualifiers)
+    /// ambiguity defeat resolution (§2023:8.4.2.2 — qualification shall establish uniqueness). <paramref name="written"/> is the
+    /// name <paramref name="dref"/> writes, or null for a reference that writes none (a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER
+    /// register, whose glued text the wording then quotes).</summary>
+    internal void ReportUnidentified(Core.DataReferenceContext dref, WrittenQualifiedName? written)
     {
+        string name = written?.Name ?? dref.GetText();
+        IReadOnlyList<string> qualifiers = written?.QualifierWords ?? [];
         // ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NOT UNDEFINED (kb/Work PB1906): the one query of
         // what it IS. "Not defined" would send the user hunting a declaration that is right there.
         var nonData = data.Symbols.Declared.OtherThanData(name, qualifiers, data.ActiveScope);
@@ -99,11 +103,11 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // SEVERAL data items, §2023:8.4.2.2.3 SR1 ("uniqueness shall be established through a sequence of qualifiers that precludes
         // any ambiguity of reference") is the rule the reference breaks whether or not a report entry spells the same, and the data-name candidates are the ones the programmer
         // can write more qualifiers to single out. The report entry is the verdict only when no ambiguity among data items
-        // stands in its way: the candidates (QualifiedCandidates) are the ones that rank with the report entries, because
+        // stands in its way: the candidates (SymbolTable.IdentifyDataName) are the ones that rank with the report entries, because
         // the lookup leaves none that a report entry of a NEARER source element hides (§2023:8.4.6.2.1 3) a), kb/Work PB4196,
         // SymbolTable.NearerEntryHides), so the refusal still stands when the data items are ambiguous GLOBAL ones of
         // a farther element (review R1-1) and when there is only one.
-        var dataItems = data.QualifiedCandidates(name, qualifiers, data.ActiveScope);
+        var dataItems = written is { } named ? data.Symbols.IdentifyDataName(named, report: false) : new NameCandidates<DataItem>([]);
         if (data.ReportSection.ReportEntryReferenceRefused(dataItems, $"'{text}'", name, qualifiers)) return;
         // A report entry of the data items' own source element is a data-name §2023:8.4.2.2.3 SR1 counts with them, so the
         // ambiguity's text counts it too (review R1-2).
@@ -123,18 +127,16 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             msg = MisqualifiedConditionText(text, name, qualifiers, data.Edition.Edition);
         else if (nonData is { } declared)
             msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item ({data.Edition.Edition.Quoted()}).";
-        else if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
+        else if (data.Symbols.DataNameDeclarationCounts(name, qualifiers, data.ActiveScope) is not { Declared: > 0 } counts)
             msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
                 + $"the statement's reference identifies no resource ({data.Edition.Edition.Quoted()}). Check the spelling, or declare the item.";
         else if (qualifiers.Count == 0)
-            msg = $"'{text}' does not uniquely identify a data item — {candidates.Count + reportEntries} declarations share the "
+            msg = $"'{text}' does not uniquely identify a data item — {counts.Declared + reportEntries} declarations share the "
                 + $"name{ReportEntriesWording(reportEntries)} and no qualification distinguishes them ({rule} — "
                 + "qualification shall establish uniqueness).";
         else
         {
-            int matches = 0;
-            foreach (var c in candidates) if (data.QualifierChainMatches(c, qualifiers)) matches++;
-            matches += reportEntries;
+            int matches = counts.Reached + reportEntries;
             msg = matches > 1
                 ? $"'{text}' does not uniquely identify a data item — {matches} declarations of '{name}'"
                   + $"{ReportEntriesWording(reportEntries)} match "
@@ -323,7 +325,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     {
         if (DataItemNamed(written) is not { } item)
         {
-            ReportUnidentified(dref, written.Name, written.QualifierWords);
+            ReportUnidentified(dref, written);
             return null;
         }
         ScreenLinkageReference(dref, item);
@@ -353,7 +355,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         var written = WrittenQualifiedName.Of(dref);
         if (written is { } named && DataItemNamed(named) is { } item) return item;
         // A special register names no data item: it is unidentified as written (its word is a qualifier, or none).
-        if (!refs.Probing) ReportUnidentified(dref, written?.Name ?? dref.GetText(), written?.QualifierWords ?? []);
+        if (!refs.Probing) ReportUnidentified(dref, written);
         return null;
     }
 

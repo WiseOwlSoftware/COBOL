@@ -198,7 +198,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // used to look up the base word and take the FIRST same-named item with an OCCURS clause, so `SORT E OF G2`
         // with a table E in each of two groups sorted G1's — the SEARCH arm's PB-era defect, left in its twin
         // (kb/Work PB1018's sibling sweep). An ambiguous or undeclared name is reported by the resolver itself.
-        bool declared = ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _);
+        bool declared = ctx.Symbols.DeclaresDataName(name, ctx.ActiveScope);
         DataItem? table = declared ? ctx.Refs.ResolveTableOperand(operand)?.Item : null;
         // SR13 is "an OCCURS clause", every format of it: a dynamic-capacity table (OCCURS DYNAMIC, §2023:13.18.38
         // Format 4) has no fixed integer but is a table all the same (DataItem.IsTable).
@@ -325,9 +325,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 // resolution the OCCURS KEY phrase takes (OccursKeyResolvePass, §2023:13.18.38.3 SR3). The base
                 // word alone used to be looked up here and the FIRST same-named item taken, so `SORT E ASCENDING
                 // K OF B` keyed on A's K. Ambiguity is §2023:8.4.2.2.3 SR1's verdict, reported by the ONE verdict.
-                var (baseName, quals) = DataBinder.KeyReference(dref);
-                DataItem? key = ctx.Data.UniqueOrReportAmbiguous(ctx.Data.SubtreeCandidates(table, baseName, quals),
-                    "SORT table key", kn, out bool ambiguous);
+                var within = WrittenQualifiedName.Of(dref) is { } keyName
+                    ? ctx.Symbols.IdentifyWithin(table, keyName, report: true)
+                    : new NameCandidates<DataItem>([]);   // a reference that writes no name names no key
+                DataItem? key = ctx.Data.UniqueOrReportAmbiguous(within, "SORT table key", kn, out bool ambiguous);
                 if (key is null)
                 {
                     if (!ambiguous)

@@ -98,7 +98,7 @@ internal sealed class OdoResolvePass : IBindPass
             // CNT declared under two groups `OCCURS 1 TO 9 DEPENDING ON CNT` compiled clean and ran on the first.
             string writtenDep = dependingOperand.Written;
             string depFace = $"OCCURS DEPENDING ON data-name-1 of '{subject}'";
-            var tier = binder.EntryClauseCandidates(item, depName, dependingOperand.Qualifiers, binder.ScopeOf(item.Root));
+            var tier = binder.Symbols.IdentifyEntryClauseOperand(item, dependingOperand, binder.ScopeOf(item.Root));
             // A declaration's counter is judged here only when the DECLARATION defines it: an item of the same name
             // elsewhere in the program is not where a use site will find it (§2023:8.4.2.2.1 SR5 qualifies from the
             // placement), so neither its ambiguity nor its SR17 category is a fact of the declaration (train 1055

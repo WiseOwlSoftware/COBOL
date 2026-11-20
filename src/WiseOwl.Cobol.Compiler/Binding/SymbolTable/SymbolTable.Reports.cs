@@ -200,7 +200,7 @@ public sealed partial class SymbolTable
     /// watermark gate (the counters exist once <see cref="PassPhase.FilesResolved"/> has run): the SUM entries carrying the written
     /// name — only those of <paramref name="within"/> when a report's own clause writes the reference (§2023:13.18.53.3 SR4,
     /// "defined in the current report") — that the written qualifiers reach through the ONE §2023:8.4.2.2.3 SR4 walk
-    /// (<see cref="DataBinder.QualifierWalk"/>, the report-name last), narrowed to the nearest declaring source element
+    /// (<see cref="QualifierWalk"/>, the report-name last), narrowed to the nearest declaring source element
     /// (§2023:8.4.6.2.1 rule 3; §1985:X.1.3.8.2 GR3a at COBOL-85), so a counter of this element's own report hides a same-named counter
     /// of a container's GLOBAL report. Null when the name is no eligible counter's at all; empty when it is, but the qualifiers reach
     /// none (<c>CounterResolver.SumCounterFamilyFor</c> words each). The register alternatives (LINAGE-COUNTER, LINE-COUNTER,
@@ -224,7 +224,7 @@ public sealed partial class SymbolTable
         IEnumerable<(ReportModel Report, ReportSumFamily Family)> eligible =
             within is null ? homonyms : homonyms.Where(h => ReferenceEquals(h.Report, within));
         if (!eligible.Any()) return null;
-        return _data.State.Reports.NearestInScope(eligible.Where(h => DataBinder.QualifierWalk(h.Family.Qualification, qualifiers,
+        return _data.State.Reports.NearestInScope(eligible.Where(h => QualifierWalk(h.Family.Qualification, qualifiers,
             q => CobolNames.Same(q, h.Report.Name))), h => h.Report);
     }
 
@@ -298,14 +298,14 @@ public sealed partial class SymbolTable
         var qualifiers = ReferenceResolver.ReadWritten(dref).Qualifiers;
         List<ReportEntryFamily> hits = [.. _data.State.Reports.Declared.SelectMany(r => r.EntryFamilies)
             .Where(f => CobolNames.Same(f.Name, name)
-                && DataBinder.QualifierWalk(f.Qualification, qualifiers, q => CobolNames.Same(q, f.Report.Name)))];
+                && QualifierWalk(f.Qualification, qualifiers, q => CobolNames.Same(q, f.Report.Name)))];
         return CandidatesOf(hits, static f => f.Entry);
     }
 
     /// <summary>⛔ THE ONE LOOKUP OF A WRITTEN NAME AMONG THE REPORT SECTION'S ENTRIES, for the references §2023:13.8.6.2.3 bars
     /// (kb/Work PB1046): every named entry of every report this source element can name — its own and the GLOBAL ones of its
     /// containers (<see cref="ReportScope.Visible"/>, ISO §2023:13.18.27.4 GR1/GR2) — that the written <paramref name="qualifiers"/>
-    /// reach through the ONE §2023:8.4.2.2.3 SR4 qualifier walk (<see cref="DataBinder.QualifierWalk"/>, the report-name last,
+    /// reach through the ONE §2023:8.4.2.2.3 SR4 qualifier walk (<see cref="QualifierWalk"/>, the report-name last,
     /// §2023:8.4.2.2.2 Format 1's file-report-qualifier), narrowed to the nearest declaring source element (§2023:8.4.6.2.1 rule 3).
     /// The data division's lookups ask it with the written text they hold; its answers leave the table as facts
     /// (<see cref="Declarations.ReportEntriesNamed"/>, <see cref="NearerEntryHides"/>), never as entries.</summary>
@@ -315,7 +315,7 @@ public sealed partial class SymbolTable
         foreach (var report in _data.State.Reports.Visible)
             foreach (var entry in report.NamedEntries)
                 if (CobolNames.Same(entry.Name, name)
-                    && DataBinder.QualifierWalk(entry.Qualification, qualifiers, q => CobolNames.Same(q, report.Name)))
+                    && QualifierWalk(entry.Qualification, qualifiers, q => CobolNames.Same(q, report.Name)))
                     hits.Add((report, entry));
         return _data.State.Reports.NearestInScope(hits, h => h.Report);
     }

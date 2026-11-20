@@ -451,8 +451,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (Edition.DialectLevel >= 2002) return;
         // A function-identifier or method invocation references a temporary, never control data (kb/Work PB5240).
         if (source.Ref is not Core.DataReferenceContext sourceRef) return;
-        var (name, qualifiers) = DataBinder.KeyReference(sourceRef);
-        if (_d.QualifiedCandidates(name, qualifiers, Model.Scope.Program).Single is not { } item) return;
+        if (_d.Symbols.IdentifyDataName(DataBinder.KeyReference(sourceRef), Model.Scope.Program).Single is not { } item) return;
         if (ControlDataReferenceOf(model, group.Kind, item) is not { } hit) return;
         Edition.Error(DiagnosticCatalog.ReportSourceControlData, $"RD '{model.Name}': the SOURCE operand '{source.Written}' of a "
             + $"{ReportGroupTypeWords(group.Kind).ToLowerInvariant()} report group {hit.Relation} '{hit.Control.Display}'; "
@@ -594,16 +593,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // in the procedure phase through the ONE sending-operand resolution (`ReportCodeModel.Value`), where the
         // resolver also asks §2023:8.4.2.3.3 SR3's subscript count — so an unsubscripted reference to a table element is
         // refused THERE (SR5), and a subscripted one is legal source (kb/Work PB1292).
-        var (codeName, codeQuals) = DataBinder.KeyReference(code.Reference!);
+        var codeOperand = DataBinder.KeyReference(code.Reference!);
         using var codeAt = Edition.At(code.Reference!);   // identifier-1 as written (kb/Work PB2034)
         string where = $"RD '{model.Name}': the CODE clause";
-        code.Item = LookupQualified(codeName, codeQuals, where, out bool ambiguous);
+        code.Item = LookupQualified(codeOperand, where, out bool ambiguous);
         if (code.Item is not { } item)
         {
             // A report entry's data-name is declared, and §2023:13.15.3 SR7 bars this clause from naming it (kb/Work PB4226's
             // sibling): the one report-item refusal, under the report section's own rule, not "does not resolve".
             if (!ambiguous
-                && !ReportEntryReferenceRefused(default, $"{where} '{code.Written}'", codeName, codeQuals, inReportSection: true))
+                && !ReportEntryReferenceRefused(default, $"{where} '{code.Written}'", codeOperand.Name, codeOperand.Qualifiers, inReportSection: true))
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names '{code.Written}', which does not resolve "
                     + "to a data item (ISO §2023:8.4.2.1; identifier-1 of §2023:13.18.12.2)");
             return;
@@ -3598,11 +3597,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         string written = DataBinder.WrittenText(op);
         if (IdentifierOperandOf(op) is not { } dref)
-            return new ReportSumAddend { Ctx = op, Reference = null, Name = "", Qualifiers = [], Written = written };
-        var (name, quals) = DataBinder.KeyReference(dref);
+            return new ReportSumAddend { Ctx = op, Reference = null, Operand = new WrittenDataName(""), Written = written };
         var addend = new ReportSumAddend
         {
-            Ctx = op, Reference = dref, Name = name, Qualifiers = quals, Written = written,
+            Ctx = op, Reference = dref, Operand = DataBinder.KeyReference(dref), Written = written,
         };
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
         if (sfx.RefMods > 0)
@@ -3734,7 +3732,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             foreach (var ctl in model.Controls)
                 if (!ctl.IsFinal && ctl.Operand is { } op)
                 {
-                    ctl.Item = LookupQualified(op.Name, op.Qualifiers, $"RD '{model.Name}': CONTROL operand", out bool ctlAmbiguous);
+                    ctl.Item = LookupQualified(op.Operand, $"RD '{model.Name}': CONTROL operand", out bool ctlAmbiguous);
                     if (ctl.Item is null && !ctlAmbiguous)
                     {
                         // §2023:13.18.16.3 SR2 — "Data-name-1 shall not be defined in the report section." The report
@@ -3743,7 +3741,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         // ByName. This arm gives SR2 its own rejection, asked only AFTER resolution failed —
                         // a name declared in ordinary storage TOO resolves there (§2023:8.4.2.1) and is not an SR2
                         // reference, which is the §2023:13.15.3 SR16 scan's own reasoning.
-                        if (IsReportSectionOnlyName(op.Name))
+                        if (IsReportSectionOnlyName(op.Operand.Name))
                             Edition.Error(DiagnosticCatalog.ReportControlOperandShape, $"RD '{model.Name}': CONTROL operand '{op}' names a "
                                 + "report section data item: data-name-1 shall not be defined in the report "
                                 + $"section (ISO {Edition.Edition.Cite("§1985:XIII.3.7.3 SR1", "§2023:13.18.16.3 SR2")})");
@@ -4206,7 +4204,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             ResolveRolledAddend(addend, term, sum, model);
             return;
         }
-        if (LookupQualified(addend.Name, addend.Qualifiers, $"RD '{model.Name}': SUM addend", out bool sumAmbiguous) is not { } item)
+        if (LookupQualified(addend.Operand, $"RD '{model.Name}': SUM addend", out bool sumAmbiguous) is not { } item)
         {
             if (sumAmbiguous) return;
             Edition.Error(DiagnosticCatalog.ReportSumAddendUnresolved, $"RD '{model.Name}': SUM addend '{addend.Written}' does not resolve "
@@ -4234,7 +4232,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// SR2 and §2023:13.15.3 SR16 use: a name ALSO declared in ordinary storage resolves THERE, §2023:8.4.2.1); so is one a
     /// REPORT-name qualifier points at an entry of (SR4 g) — the report-name says which report description's entry
     /// is meant, whatever else the word names).</summary>
-    private bool IsRolledAddendName(ReportSumAddend addend) => _d.Symbols.Declared.IsRolledAddendName(addend.Name, addend.Qualifiers);
+    private bool IsRolledAddendName(ReportSumAddend addend) => _d.Symbols.Declared.IsRolledAddendName(addend.Operand.Name, addend.Operand.Qualifiers);
 
     /// <summary>Per WRITTEN addend (its parse node), the entry its data-name-1 names — null when it was refused. A
     /// repeating SUM entry binds its clause once per occurrence of the counter, and each occurrence meets the same
@@ -4607,7 +4605,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         for (int i = 0; i < model.Controls.Count; i++)
             if (model.Controls[i].Operand is { } c && c.SameOperandAs(operand)) return i;
-        if (_d.QualifiedCandidates(operand.Name, operand.Qualifiers, Model.Scope.Program).Single is not { } named) return -1;
+        if (_d.Symbols.IdentifyDataName(operand.Operand, Model.Scope.Program).Single is not { } named) return -1;
         for (int i = 0; i < model.Controls.Count; i++)
             if (model.Controls[i] is { Item: { } item, Operand: { } c } && ReferenceEquals(item, named)
                 && c.RefModStart == operand.RefModStart && c.RefModLength == operand.RefModLength
@@ -4737,7 +4735,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// ambiguity's wording counts it too.</summary>
     internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
-        // Free for a unit with no report: the data-name lookup (DataBinder.QualifiedCandidates) asks it for EVERY reference (kb/Work PB5775).
+        // Free for a unit with no report: the data-name lookup (SymbolTable.IdentifyDataName) asks it for EVERY reference (kb/Work PB5775).
         if (_scope.Visible.Count == 0) return 0;
         var entries = _d.Symbols.Declared.ReportEntriesNamed(name, qualifiers);
         return entries.Count != 0 && dataItems.Any(item => _d.State.Forest.DeclaringDepth(item) == entries[0].Depth)
@@ -4781,11 +4779,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// declares is false and sends the reader hunting a declaration that is right there. Returns true having
     /// reported; false when the written reference names no report entry, or when it reaches several
     /// <paramref name="dataItems"/> (kb/Work PB3767: §2023:8.4.2.2.3 SR1's ambiguity is then the verdict), leaving the caller's
-    /// own verdict. ⛔ THE ORDER IS THE LOOKUP'S, NOT THIS METHOD'S (kb/Work PB4196): <see cref="DataBinder.QualifiedCandidates"/> leaves
+    /// own verdict. ⛔ THE ORDER IS THE LOOKUP'S, NOT THIS METHOD'S (kb/Work PB4196): <c>SymbolTable.IdentifyDataName</c> leaves
     /// no data item that a NEARER report entry hides (<see cref="SymbolTable.NearerEntryHides"/>, ISO §2023:8.4.6.2.1 3) a)), so the data
     /// items an arm passes are already the ones that rank with the report entries, and several of them are the ambiguity
     /// whichever report entries spell the same.</summary>
-    /// <param name="dataItems">The data items the written reference reaches (<see cref="DataBinder.QualifiedCandidates"/>, the
+    /// <param name="dataItems">The data items the written reference reaches (<c>SymbolTable.IdentifyDataName</c>, the
     /// nearest tier): none, or several when the caller found no unique one.</param>
     /// <param name="subject">The reference as the caller words it: <c>'PV OF DL'</c>, or <c>FILE STATUS 'PN'</c>.</param>
     /// <param name="inReportSection">The reference is an operand of a clause of the REPORT SECTION itself (an RD's
@@ -4842,7 +4840,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private ReportControlRef ControlOperandRef(
         Core.DataReferenceContext dref, DiagnosticDescriptor code, string where, EditionRule rule)
     {
-        var (name, quals) = DataBinder.KeyReference(dref);
+        var operand = DataBinder.KeyReference(dref);
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
         IReadOnlyList<int> subscripts = [];
         bool subscriptRefused = false;
@@ -4889,7 +4887,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.IntegerOperandBeyondLimit,
                 WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where,
                     $"the reference-modification of '{DataBinder.WrittenText(dref)}', a leftmost-position or length that", Edition.DialectLevel));
-        return new ReportControlRef(name, quals, subscripts, sfx.Start, sfx.Length, subscriptRefused);
+        return new ReportControlRef(operand, subscripts, sfx.Start, sfx.Length, subscriptRefused);
     }
 
     /// <summary>⛔ THE ONE SHAPE SCREEN FOR A CONTROL OPERAND — the syntax rules over data-name-1, one arm per
@@ -4949,16 +4947,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>Resolve a report clause's (possibly IN/OF-qualified) data-name — CONTROL, SOURCE, SUM — through the
-    /// ONE §2023:8.4.2.2 resolver (<see cref="DataBinder.QualifiedCandidates"/>) and the ONE ambiguity verdict
+    /// ONE §2023:8.4.2.2 resolver (<see cref="SymbolTable.IdentifyDataName(WrittenDataName, Model.Scope)"/>) and the ONE ambiguity verdict
     /// (<see cref="DataBinder.UniqueOrReportAmbiguous"/>). <paramref name="ambiguous"/> says the null was reported here as
     /// §2023:8.4.2.2.3 SR1's ambiguity; any other null names nothing, which the caller's own clause rule reports.
     /// <para>⛔ THIS WAS A PRIVATE FIRST-MATCH TWIN (kb/Work PB978): an unqualified name took <c>ByName[n][0]</c>
     /// and a qualified one the first candidate whose chain matched, so <c>RD RPT CONTROL IS K OF G</c> with both
     /// <c>A.G.K</c> and <c>B.G.K</c> declared compiled clean and broke control on whichever K came first. Its
     /// qualifier walk also knew nothing of the file-name qualifier (§2023:8.4.2.2.2 Format 1).</para></summary>
-    private DataItem? LookupQualified(string name, IReadOnlyList<string> qualifiers, string face, out bool ambiguous) =>
-        _d.UniqueOrReportAmbiguous(_d.QualifiedCandidates(name, qualifiers, Model.Scope.Program), face,
-            DataBinder.WrittenQualified(name, qualifiers), out ambiguous);
+    private DataItem? LookupQualified(WrittenDataName operand, string face, out bool ambiguous) =>
+        _d.UniqueOrReportAmbiguous(_d.Symbols.IdentifyDataName(operand, Model.Scope.Program), face, operand.Written, out ambiguous);
 
     /// <summary>The rule that a report OCCURS clause subordinate to another has no DEPENDING ON phrase, by edition: 2002's SR9 (and
     /// at COBOL-85, which has no report OCCURS, the edition gate reads 2002), 2014's and 2023's §2023:13.18.38.3 SR10 (kb/Work PB4950).</summary>

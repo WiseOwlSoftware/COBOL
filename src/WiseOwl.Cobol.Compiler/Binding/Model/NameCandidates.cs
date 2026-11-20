@@ -61,7 +61,7 @@ public readonly struct NameCandidates<T> where T : class
 
     /// <summary>The first survivor, in declaration order, that satisfies <paramref name="predicate"/>, or null: for a position that
     /// picks among the candidates BY KIND (a dynamic-capacity table, a FUNCTION-POINTER), always over this narrowed set
-    /// (<see cref="SymbolTable.TryResolveUnqualified"/>'s warning).</summary>
+    /// (<c>SymbolTable.TryResolveUnqualified</c>'s warning).</summary>
     internal T? FirstWhere(Func<T, bool> predicate) => _items?.Find(i => predicate(i));
 
     /// <summary>The one survivor that satisfies <paramref name="predicate"/>, or null when none or several do (the report

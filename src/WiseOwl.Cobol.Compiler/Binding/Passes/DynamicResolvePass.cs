@@ -137,7 +137,7 @@ internal sealed class DynamicResolvePass : IBindPass
             // required for uniqueness, it shall be treated as though implicitly defined at the same level as the
             // entry containing the OCCURS clause" — so its Parent is the OCCURS entry's Parent, making it a SIBLING
             // of the table. That one assignment is what lets the ONE §2023:8.4.2.2 qualifier matcher
-            // (DataBinder.QualifierChainMatches) answer `WS-CAP OF WS-TABLE`, and what makes the register of a table
+            // (SymbolTable.QualifierChainMatches) answer `WS-CAP OF WS-TABLE`, and what makes the register of a table
             // NESTED under another table answer SubscriptArity > 0 — the §2023:8.4.2.3.3 SR3/SR5-vs-§2023:13.18.38.3 SR31 conflict that
             // ReferenceResolver.CapacityRegisterFor reports, instead of the flat name-dictionary's false "not
             // defined". It is NOT added to Parent.Children: the register has no storage and takes no record slot.

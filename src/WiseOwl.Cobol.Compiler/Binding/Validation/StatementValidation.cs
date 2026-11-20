@@ -318,7 +318,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <returns>Always false: the operand is refused, HAVING REPORTED.</returns>
     public bool RejectProcedureName(string refText, string head, string verb, string rule, bool methodLocal)
     {
-        bool isDataName = data.Symbols.TryResolve(head, data.ActiveScope, out _);
+        bool isDataName = data.Symbols.DeclaresDataName(head, data.ActiveScope);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{verb} '{refText}' names no procedure: no paragraph or section in this source element carries "
             + $"that name, so the reference identifies no resource (ISO {data.Edition.Edition.QuotedDash()}; "

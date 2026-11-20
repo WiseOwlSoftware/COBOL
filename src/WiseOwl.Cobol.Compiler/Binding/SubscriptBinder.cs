@@ -862,7 +862,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             // token): it is the reference paren REF_LPAREN the lexer gives every '(' after a name (kb/Work PB2113).
             // The explicit-keyword form is caught by the FUNCTION test above and never reaches here.
             if (i + 1 >= tokens.Count || tokens[i + 1].Type != Core.REF_LPAREN) continue;
-            if (data.Symbols.TryResolve(w, data.ActiveScope, out _)) continue;   // a declared item wins
+            if (data.Symbols.DeclaresDataName(w, data.ActiveScope)) continue;   // a declared item wins
             // The REPOSITORY half is the ONE membership the declaration screen and KeywordOmittedFunction ask
             // (DataBinder.IsRepositoryIntrinsic — >>COBOL-WORDS and the edition window included; kb/Work PB1083).
             // An IDENTIFIER keeps its WRITTEN word (the lexer retypes only keyword-token words), so the directive is

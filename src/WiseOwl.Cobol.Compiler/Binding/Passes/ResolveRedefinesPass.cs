@@ -87,9 +87,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 // candidate is a redefinition is the nearest one named (SR7's own violation, reported below). A top-level
                 // entry's candidates are the roots of ITS OWN section: SR10's "entries defining the area of data-name-2"
                 // do not cross a section boundary.
-                var preceding = scope.TakeWhile(s => !ReferenceEquals(s, item))
-                    .Where(s => CobolNames.Same(s.CobolName, tname)
-                        && (item.Parent is not null || s.Section == item.Section)).ToList();
+                var preceding = binder.Symbols.RedefinitionCandidatesOf(item, scope);
                 item.SetRedefinition(DataItem.RedefinedEntry(preceding), RedefinitionKind.Clause);
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §2023:13.18.44.3 SR.
@@ -142,29 +140,28 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 // SR4 confines both operands to THIS record, so the candidate set is the record's; it is COUNTED
                 // (kb/Work PB978) — two same-named items there are §2023:8.4.2.2.3 SR1's ambiguity, not the first found.
                 // An operand the capture REFUSED (§2023:13.18.45.3 SR7 / §2023:8.4.2.2.2) was reported there — one fault, one verdict.
-                if (binder.State.Clauses.RefusedClauseOperands.Contains(info.FromName)
-                    || (info.ThruName is { } rt && binder.State.Clauses.RefusedClauseOperands.Contains(rt))) continue;
+                if (binder.State.Clauses.RefusedClauseOperands.Contains(info.FromOperand.Name)
+                    || (info.ThruOperand?.Name is { } rt && binder.State.Clauses.RefusedClauseOperands.Contains(rt))) continue;
                 using var __q = binder.Edition.At(ren);
                 string face = $"'{ren.CobolName ?? "FILLER"}' RENAMES";
-                info.From = binder.UniqueOrReportAmbiguous(binder.RegionClauseCandidates(root, info.FromName, info.FromQualifiers), face,
-                    DataBinder.WrittenQualified(info.FromName, info.FromQualifiers), out bool fromAmbiguous);
+                info.From = binder.UniqueOrReportAmbiguous(binder.Symbols.IdentifyRegionOperand(root, info.FromOperand), face,
+                    info.FromOperand.Written, out bool fromAmbiguous);
                 bool thruAmbiguous = false;
-                info.Thru = info.ThruName is { } t
-                    ? binder.UniqueOrReportAmbiguous(binder.RegionClauseCandidates(root, t, info.ThruQualifiers), face,
-                        DataBinder.WrittenQualified(t, info.ThruQualifiers), out thruAmbiguous)
+                info.Thru = info.ThruOperand is { } t
+                    ? binder.UniqueOrReportAmbiguous(binder.Symbols.IdentifyRegionOperand(root, t), face, t.Written, out thruAmbiguous)
                     : null;
                 // Below 2002 (kb/Work PB5165) the candidates are the whole scope's: a unique name outside this record is no operand.
                 if (info.From is { } from0 && !DataBinder.IsWithinRegion(from0, root)) info.From = null;
                 if (info.Thru is { } thru0 && !DataBinder.IsWithinRegion(thru0, root)) info.Thru = null;
                 if (fromAmbiguous || thruAmbiguous) continue;
-                if (info.From is null || (info.ThruName is not null && info.Thru is null))
+                if (info.From is null || (info.ThruOperand?.Name is not null && info.Thru is null))
                 {
                     // kb/Work PB93: an operand naming nothing in the record was skipped silently — the alias then had
                     // no picture and no span, and every reference to it failed downstream with an unrelated message.
                     using var __r = binder.Edition.At(ren);
-                    string missing = info.From is null ? info.FromName : info.ThruName!;
+                    string missing = info.From is null ? info.FromOperand.Name : info.ThruOperand?.Name!;
                     binder.Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
-                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn ? " THRU " + tn : "")}: "
+                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name}{(info.ThruOperand?.Name is { } tn ? " THRU " + tn : "")}: "
                         + $"'{missing}' does not name an item of the record (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR4", "§2023:13.18.45.3 SR4")}; "
                         + $"{binder.Edition.Edition.Citation()})");
                     continue;
@@ -181,7 +178,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 {
                     using var __s = binder.Edition.At(ren);
                     binder.Edition.Error(DiagnosticCatalog.RenamesRangeContent,
-                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName}{(info.ThruName is { } tn8 ? " THRU " + tn8 : "")}: "
+                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name}{(info.ThruOperand?.Name is { } tn8 ? " THRU " + tn8 : "")}: "
                         + $"{rangeFault}; none of the items within the range, including data-name-2 and data-name-3, "
                         + "shall be of class object, message-tag, or pointer, a variable-length data item, or an "
                         + $"occurs-depending table (ISO {binder.Edition.Edition.Cite("§1985:VI.5.11.3 SR6", "§2023:13.18.45.3 SR8")})");
@@ -237,7 +234,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 {
                     using var __b = binder.Edition.At(ren);
                     binder.Edition.Error(DiagnosticCatalog.RenamesAreaNotWholeBytes,
-                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName} THRU {info.ThruName}: the area is "
+                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name} THRU {info.ThruOperand?.Name}: the area is "
                         + $"{areaBits} bits, which is not a whole number of bytes; the area described by data-name-2 "
                         + "THROUGH data-name-3 shall define an integral number of bytes (ISO §2023:13.18.45.3 SR10)");
                     continue;
@@ -332,7 +329,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 {
                     using var __u = binder.Edition.At(ren);
                     binder.Edition.Error(DiagnosticCatalog.RenamesOperandUnresolved,
-                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName} THRU {info.ThruName}: the record's leaves do "
+                        $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name} THRU {info.ThruOperand?.Name}: the record's leaves do "
                         + "not tile the alias's storage window (kb/Work PB96)");
                     info.Span.Clear();
                     continue;
@@ -573,7 +570,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
         var (start3, end3) = extentOf(info.Thru!);
         if (start3 >= start2 && end3 > end2) return true;
         binder.Edition.Error(DiagnosticCatalog.RenamesEntryRule,
-            $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromName} THRU {info.ThruName}: "
+            $"'{ren.CobolName ?? "FILLER"}' RENAMES {info.FromOperand.Name} THRU {info.ThruOperand?.Name}: "
             + (start3 < start2
                 ? "the beginning of data-name-3 precedes the beginning of data-name-2"
                 : "the end of data-name-3 does not follow the end of data-name-2 (data-name-3 cannot be subordinate to, "

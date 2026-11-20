@@ -54,11 +54,14 @@ public sealed class NameTableOwnershipDriftTests
     /// screen-name tables of the element and of each method into the table: 1 table, 22 lookups, 70 sites; 86 at its end, with the end
     /// markers, the flag pass's file-name, the index-name pre-filter and the version pass's level-01 keys: 1 table, 22 lookups, 63 sites;
     /// 75 at remainder slice 1, branch listing-step-6b-r1, which identified the procedure division's data-names and condition-names
-    /// through SymbolTable.IdentifyDataName and IdentifyConditionName: 1 table, 11 lookups, 63 sites; 65 at remainder slice 2, branch
+    /// through SymbolTable.IdentifyDataName and IdentifyConditionName: 1 table, 11 lookups, 63 sites; 63 at remainder slice 2, branch
     /// listing-step-6b-r2, whose file clause operands keep their written name (WrittenDataName) for the table to resolve, with the
     /// record-key-names, the containing element's unseen files and an OMITTED condition's formal read by the table off their carriers:
-    /// 1 table, 7 lookups, 55 sites).</summary>
-    private const int BaselineCeiling = 63;
+    /// 1 table, 7 lookups, 55 sites; 52 at remainder slice 3, branch listing-step-6b-r3, which moved the data-name candidate sets and
+    /// the qualifier walk into the table, private, behind the written words (the data-entry clause operands, the report clause operands
+    /// and the procedure division's probes and counts), and had the REDEFINES target and the layout's overlay read off their carriers:
+    /// 1 table, 0 lookups, 51 sites).</summary>
+    private const int BaselineCeiling = 52;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an

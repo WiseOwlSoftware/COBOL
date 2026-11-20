@@ -66,11 +66,9 @@
       "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ActiveScope": [
-      "WiseOwl.Cobol.Binding.CounterResolver",
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
-      "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
@@ -206,9 +204,6 @@
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveTableValuesPass"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::ConditionQualifierChainMatches": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::ConformanceForest": [
       "WiseOwl.Cobol.Binding.Passes.CheckAlignedClausesPass",
       "WiseOwl.Cobol.Binding.Passes.CheckClauseSubjectsPass",
@@ -309,9 +304,6 @@
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::EntryClauseCandidates": [
-      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::EntryLevel": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
@@ -353,10 +345,8 @@
     "WiseOwl.Cobol.Binding.DataBinder::InTypeDeclaration": [
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
+      "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Binding.SymbolTableFinish"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::IndexQualifierChainMatches": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::InheritSignWalk": [
       "WiseOwl.Cobol.Binding.Passes.InheritSignClausesPass"
@@ -423,7 +413,6 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::KeyReference": [
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::LeapSecond": [
@@ -531,21 +520,6 @@
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
       "WiseOwl.Cobol.Validation.FlagConformancePass"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::QualifiedCandidates": [
-      "WiseOwl.Cobol.Binding.CounterResolver",
-      "WiseOwl.Cobol.Binding.NameResolution",
-      "WiseOwl.Cobol.Binding.ReportGroupResolution",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder",
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::QualifierChainMatches": [
-      "WiseOwl.Cobol.Binding.NameResolution",
-      "WiseOwl.Cobol.Binding.ReferenceResolver",
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::QualifierWalk": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::RawValueOperandText": [
       "WiseOwl.Cobol.Binding.FileControlBinder"
     ],
@@ -560,10 +534,6 @@
       "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.RefModBinder",
       "WiseOwl.Cobol.Compiler.Oo.OoDriver"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::RegionClauseCandidates": [
-      "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
-      "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::RegisterImpliedName": [
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder"
@@ -745,9 +715,6 @@
     "WiseOwl.Cobol.Binding.DataBinder::StoredShapeOf": [
       "WiseOwl.Cobol.Binding.Validation.StatementValidation"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::SubtreeCandidates": [
-      "WiseOwl.Cobol.Binding.Procedure.SortBinder"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::SumCounterRegisters": [
       "WiseOwl.Cobol.Binding.Passes.PlaceTablePass"
     ],
@@ -772,9 +739,11 @@
       "WiseOwl.Cobol.Binding.Passes.CheckCodeSetRecordItemsPass",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
+      "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveRecordFormatPass",
+      "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Procedure.AcceptDisplayBinder",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.CallBinder",
@@ -873,11 +842,7 @@
       "WiseOwl.Cobol.Binding.SpecialNamesBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::WrittenQualified": [
-      "WiseOwl.Cobol.Binding.Model.OccursKey",
-      "WiseOwl.Cobol.Binding.NameResolution",
-      "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
-      "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+      "WiseOwl.Cobol.Binding.NameResolution"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::WrittenText": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
@@ -1116,7 +1081,6 @@
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportEntriesInTierOf": [
-      "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.SymbolTable"
     ],

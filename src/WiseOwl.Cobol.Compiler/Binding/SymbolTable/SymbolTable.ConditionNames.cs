@@ -43,7 +43,7 @@ public sealed partial class SymbolTable
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION (kb/Work PB4219 review R1-1): the written qualifiers
     /// reach a level-88 of the spelling, but an ordinary data item of the spelling declared in a NEARER source element hides it, and
-    /// that data item is what the reference names (it survives <c>DataBinder.QualifiedCandidates</c>, so no report entry or
+    /// that data item is what the reference names (it survives <see cref="DataNameCandidates"/>, so no report entry or
     /// condition-name nearer still takes the reference from it). "If the name is declared in source element B, the item in source
     /// element B is the referenced item." Pure: it reports nothing.</summary>
     internal bool ConditionNameHiddenByNearerDataItem(WrittenQualifiedName written)
@@ -51,7 +51,7 @@ public sealed partial class SymbolTable
         var scope = _data.ActiveScope;
         return NearerDataItemHidesConditions(ConditionsUnderQualifiers(written.Name, written.QualifierWords, scope), written.Name,
                    written.QualifierWords)
-               && _data.QualifiedCandidates(written.Name, written.QualifierWords, scope).Count != 0;
+               && DataNameCandidates(written.Name, written.QualifierWords, scope).Count != 0;
     }
 
     /// <summary>The tier of <see cref="ConditionTier(WrittenQualifiedName)"/>, for a name the table already holds as its words
@@ -65,6 +65,6 @@ public sealed partial class SymbolTable
     private List<Condition88> ConditionsUnderQualifiers(string name, IReadOnlyList<string> qualifiers, Scope scope)
     {
         if (!TryResolveCondition(name, scope, out var list)) return [];
-        return qualifiers.Count == 0 ? list : list.Where(c => _data.ConditionQualifierChainMatches(c, qualifiers)).ToList();
+        return qualifiers.Count == 0 ? list : list.Where(c => ConditionQualifierChainMatches(c, qualifiers)).ToList();
     }
 }
