@@ -2,7 +2,7 @@
 
 > ⛔ **SUPERSEDED FOR DEPTH by `docs/DESIGN.md`** (the decision-complete SSOT — pipeline/bound-tree, data
 > model, numeric, control-flow PC-dispatcher, REDEFINES, strings, files, interprogram, OO, conditions/exceptions,
-> intrinsics, project reorg/rename, no-god-class structure, C# 14 usage, the §18 settled decisions, and the G0–G8
+> intrinsics, project reorg/rename, no-god-class structure, C# 15 usage, the §18 settled decisions, and the G0–G8
 > build order). This file remains the brief overview; where it conflicts, `DESIGN.md` wins — notably the
 > §3 numeric table below, which uses native `long`/`Int128`-unscaled (NO `decimal`).
 
@@ -130,7 +130,7 @@ subsets. (Task G4.)
 
 ## 7. Conventions
 
-- Latest .NET 11 / C# 14 — or later (a later .NET upgrade is pre-authorized when its features advance the goals) —
+- Latest .NET 11 / C# 15 — or later (a later .NET upgrade is pre-authorized when its features advance the goals) —
   idioms where they aid clarity (records, primary constructors, collection expressions,
   pattern matching, `using` scopes). Full XML doc comments on public surface + inline rationale on non-obvious code.
 - The generated C# is written to `<name>.g.cs` next to the assembly — always inspectable.

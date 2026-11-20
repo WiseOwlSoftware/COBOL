@@ -141,7 +141,7 @@ four (R69 §2), which is why R1 runs before zero GAP.
 
 ## .NET and C#
 
-Today: `net11.0`, C# 14 (`LangVersion` 14), and `global.json` pins SDK 11.0.100 (`latestMinor`; the owner moved the
+Today: `net11.0`, C# 15 (`LangVersion` 15), and `global.json` pins SDK 11.0.100 (`latestMinor`; the owner moved the
 repository from .NET 10 to .NET 11 on 2026-11-20, kb/Work PB5971). R4 targets the latest STABLE .NET at the time it runs, per
 `brent-tools:dotnet-engineering` → `references/modernization.md`. `WiseOwl.Cobol.Compiler.SourceGen` keeps
 `netstandard2.0`, because Roslyn hosts generators there.

@@ -440,7 +440,7 @@ without a noun that says what); a partial type splits only along named concerns.
 - A measured, not deduced, premise for every performance claim (`performance-diagnosis`).
 
 ### 5.5 .NET and C#
-- **Today:** `net11.0`, C# 14 (`LangVersion` 14); `global.json` pins SDK 11.0.100 with `latestMinor` roll-forward
+- **Today:** `net11.0`, C# 15 (`LangVersion` 15); `global.json` pins SDK 11.0.100 with `latestMinor` roll-forward
   (the owner moved the repository from .NET 10 to .NET 11 on 2026-11-20, kb/Work PB5971).
 - **Target: the latest STABLE .NET and its C# at the time R4 runs.** If .NET 11 is GA by then (its usual November
   release), that is `net11.0` with C# 15. Moving to a preview SDK is an owner decision (PB1754), never a default.

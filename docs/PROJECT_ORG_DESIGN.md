@@ -1,7 +1,7 @@
 # WiseOwl COBOL — Project Organization, Rename & Code-Structure (deep-dive design)
 
 > **Status: LIVE / authoritative.** The rename to WiseOwl COBOL / cobol.exe, target solution/folder/namespace
-> layout, front-end extraction, no-god-class discipline, and C# 14 usage. Condensed view: `DESIGN.md` §17.
+> layout, front-end extraction, no-god-class discipline, and C# 15 usage. Condensed view: `DESIGN.md` §17.
 
 > **Execution state.** The §1.1 project set, the front-end extraction (§1.4), and the split + rename of the compiler/CLI/runtime (§1.5 steps 1–5) are complete — `src/WiseOwl.Cobol.{Frontend,Compiler,Runtime,Cli}` and `tests/WiseOwl.Cobol.Tests.{Unit,Conformance}` exist and are green. The no-god-class decomposition of §2 is complete: both the emitter and the binder god classes are fully dissolved (§1.2 / §2 / §2.2 describe the resulting structure). The legacy engine is deleted (P15 Cut 2, `docs/rearchitecture/LEGACY-ARCHIVE.md`); the remaining G8 work is the runtime namespace flip (P15 Cut 3).
 
@@ -9,7 +9,7 @@
 
 # Project Organization & Code-Structure (deep-dive; condensed copy lives in `DESIGN.md` §17)
 
-> Scope of this section: the solution/project layout, the front-end extraction, the rename, the no-god-class structural rules, and the C# 14/.NET 11 usage guidelines. It expands `ARCHITECTURE.md` §5. Implementation: **G0 is DONE** (the layout below reflects the current tree, and the emitter and binder god classes are fully decomposed); the legacy engine is deleted (P15 Cut 2) and the runtime namespace flip lands with P15 Cut 3.
+> Scope of this section: the solution/project layout, the front-end extraction, the rename, the no-god-class structural rules, and the C# 15/.NET 11 usage guidelines. It expands `ARCHITECTURE.md` §5. Implementation: **G0 is DONE** (the layout below reflects the current tree, and the emitter and binder god classes are fully decomposed); the legacy engine is deleted (P15 Cut 2) and the runtime namespace flip lands with P15 Cut 3.
 
 
 ---
@@ -109,7 +109,7 @@ The G0 extraction is complete and the tree in §1.2 is the record. Nothing maps 
 ### 1.4 Front-end extraction — how, precisely
 
 The new `WiseOwl.Cobol.Frontend.csproj`:
-- Inherits TFM/lang from `Directory.Build.props` (net11.0 / C# 14) — **do not** re-declare.
+- Inherits TFM/lang from `Directory.Build.props` (net11.0 / C# 15) — **do not** re-declare.
 - `<PackageReference Include="Antlr4.Runtime.Standard" />` — **no `Version`** (central package management via `Directory.Packages.props`). It needs `Antlr4.Runtime`; it does **not** need `Mono.Cecil`.
 - `ProjectReference`s: `WiseOwl.Cobol.Editions` (edition metadata) and `WiseOwl.Cobol.Runtime` (since kb/Work PB1592). **Why the Runtime edge:** the compile-time expression evaluator (`>>DEFINE`/`>>IF`/`>>EVALUATE` and the CONSTANT binder) carries its values in the runtime's ONE SDIDI decimal engine (`CobolDec`) and selects its arithmetic mode through the ONE per-edition behaviour register (`DialectBehaviors`); ISO Annex E.2 6) and 21) prescribe standard arithmetic for compile-time arithmetic at 2002/2014. The alternative was a second copy of that engine in the front-end, which CLAUDE.md rule 5 rejects (one arithmetic engine). **Layering: `WiseOwl.Cobol.Editions` and `WiseOwl.Cobol.Runtime` are leaves (they reference nothing in the solution) → Frontend → Compiler → Cli. `WiseOwl.Cobol.Runtime` must NEVER reference `WiseOwl.Cobol.Frontend` (or the Compiler)**: the runtime is the assembly every generated program loads, and an edge back up would pull the parser into each compiled program's closure and close a cycle.
 - Carries the ANTLR generation: the `WriteAntlrGenerationStamp` + `EnsureGeneratedFiles` + `CleanGenerated` targets, the `AntlrGrammar` item (`Grammar/**/*.g4`) and the `AntlrNamespace`/`AntlrJar`/`AntlrGenerator` properties live in its csproj; `EnsureGeneratedFiles` is the one up-to-date decision over every generation input (kb/Work PB2719), and its `Inputs`/`Outputs` paths are relative.
@@ -169,9 +169,9 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `FirstToke
 
 ---
 
-## 3. C# 14+ / .NET 11+ feature usage guideline
+## 3. C# 15+ / .NET 11+ feature usage guideline
 
-> Toolchain floor: .NET 11 / C# 14 — **or later**. Upgrading (the move to .NET 11 landed 2026-11-20, kb/Work PB5971) is pre-authorized
+> Toolchain floor: .NET 11 / C# 15 — **or later**. Upgrading (the move to .NET 11 landed 2026-11-20, kb/Work PB5971) is pre-authorized
 > whenever newer features make the compiler clearer, safer, or more productive; the TFM/lang live in exactly one place
 > (`Directory.Build.props`), so the flip is a one-line change.
 

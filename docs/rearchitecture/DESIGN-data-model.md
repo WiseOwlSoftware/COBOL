@@ -14,7 +14,7 @@
 > are cross-referenced but owned elsewhere.
 > **Upholds the hard invariants:** typed-native data only (byte[] confined to a genuine Tier-C / file boundary);
 > spec-first (ISO/IEC 1989:2023, cited by §); battery stays green every phase; singular pattern; no-god-class;
-> C# 14 / .NET 11; four-editions-in-one.
+> C# 15 / .NET 11; four-editions-in-one.
 
 ---
 
