@@ -2221,6 +2221,12 @@ renderer. Naming it asks for a listing at any edition.
   the rows and the fix they point to (each renderer writing to the file's stream, not to a string; the instructions shown once).
   The `None` rows lie within the full compile's run-to-run spread of the parent's (0.37 to 1.86 MB): step 9 changes nothing a
   compilation without a listing runs.
+  (PB5947:) the table of flagged constructs changes every compilation's diagnostic records (a flag reference on each, null unless the
+  diagnostic is an edition flag), so it measures every row of the front end and bind against its parent `8dd07d2eab`, once each (the
+  benchmark README's PB5947 table): every `None` row lies within 0.07 MB of the parent's, SM201A's 0.26 MB below it, so the `None`
+  budget holds; the NIST programs flag nothing at the benchmark's edition, and the listing rows equal the parent's within 0.14 MB but
+  SM201A's, which move both ways (+0.40, -0.60, +1.82 MB), that program's noise (kb/Work PB5925's lead
+  `2026-11-18-full-compile-allocation-noise`).
 
 ## 10. Test plan
 
