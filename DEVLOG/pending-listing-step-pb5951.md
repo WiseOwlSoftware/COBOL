@@ -30,3 +30,8 @@ to fail: dropping the filter clauses in the reader, opening the innermost block 
 **Leads carried.** Every lead of the listing steps' review records was checked on origin/main: all but one were already fixed or
 belong to branches not yet landed. The one still true, step 7b's R1-1, was fixed here: the last `§2023:14.7.8 rule 1 / rule 2`
 comments now name GR1 and GR2. The same "rule N" form is written at 1544 other sites, which kb/Work PB4976's sweep now counts.
+
+**Measured** (section 9): nothing a compilation without a listing runs changed. The `all` request is +0.9 to +5.8 % over the
+parent's on a full compile, inside the run-to-run spread on three of the four programs; the first build wrote an indentation
+attribute on every instruction row of the HTML page, and writing it only where a region nests the row took 6.5 MB off IX113A. The
+`all` row stays over its budget, as before (kb/Work PB5941).

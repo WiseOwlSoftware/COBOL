@@ -2225,6 +2225,13 @@ renderer. Naming it asks for a listing at any edition.
   the rows and the fix they point to (each renderer writing to the file's stream, not to a string; the instructions shown once).
   The `None` rows lie within the full compile's run-to-run spread of the parent's (0.37 to 1.86 MB): step 9 changes nothing a
   compilation without a listing runs.
+  (PB5951:) the exception-handling regions, measured against the parent on a full compile, twice on the branch (the benchmark
+  README's PB5951 table): the `None` rows move by up to 8.5 MB between two runs of one tree, and PB5951 changes nothing a compilation
+  without a listing runs (the clauses are read only for `object-map` or `object-code`). The `All` row is +0.9 to +5.8 % over the
+  parent's, inside that spread on three programs (SM201A, with no clause, moves as much as NC218A, with 218 protected blocks) and about
+  5 MB beyond it on IX113A (320 protected blocks); the first build wrote a padding attribute on every instruction row of the page, and
+  writing it only where a region nests the row took 6.5 MB off IX113A's `All`. `All` is +54.6 to +77.2 % over `None` (the parent's
+  +43.4 to +69.8 %), over its 25 % budget as before: kb/Work PB5941's dated file `2026-11-19-pb5951-rows`.
 
 ## 10. Test plan
 

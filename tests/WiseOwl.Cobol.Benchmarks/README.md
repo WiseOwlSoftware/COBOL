@@ -603,6 +603,29 @@ page shows both under each statement (section 7.2) and in the object-code sectio
 step 9 (kb/Work PB5941) and is further over now; PB5941's dated file `2026-11-19-step-9-html-row` holds these rows and the fix
 they point to. Time rows are not shown (kb/Work PB5927).
 
+**kb/Work PB5951 (the object code's exception-handling regions): the `None` and `All` rows against the parent.** PB5951 reads each
+method body's exception-handling clauses beside its IL and prints them among the instructions; it changes no compilation without a
+listing (the reader runs only for `object-map` or `object-code`). Measured on 2026-11-19, Release, one Windows host, `dotnet run -c
+Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FullCompile*None*' '*CompileBenchmarks.FullCompile*All*'`
+on the `listing-step-pb5951` branch (run 1 at 4116fdf47c; run 2 after the page stopped writing a padding attribute on every
+instruction row, at b1294bb4ae's source) and on its parent `8dd07d2eab` (a detached worktree of it). Allocated bytes per full compile:
+
+| Program | None: parent / run 1 / run 2 | All: parent / run 1 / run 2 | All run 2 over the parent's All | All over None, parent / run 2 |
+|---|---|---|---|---|
+| IX113A | 189.79 / 189.04 / 197.54 MB | 301.49 / 321.84 / 315.31 MB | +13.8 MB (+4.6 %) | +58.9 % / +59.6 % |
+| NC105A | 118.73 / 114.86 / 118.62 MB | 181.62 / 189.56 / 183.34 MB | +1.7 MB (+0.9 %) | +53.0 % / +54.6 % |
+| NC218A | 112.27 / 119.91 / 112.15 MB | 190.63 / 194.40 / 194.48 MB | +3.9 MB (+2.0 %) | +69.8 % / +73.4 % |
+| SM201A | 46.44 / 47.39 / 39.76 MB | 66.61 / 70.98 / 70.45 MB | +3.8 MB (+5.8 %) | +43.4 % / +77.2 % |
+
+Reading them: the `None` rows of one tree move by up to 8.5 MB between runs (IX113A 189.04 and 197.54 MB on the branch, SM201A 47.39
+and 39.76), so the `All` rows' differences from the parent's lie inside the full compile's run-to-run spread on three programs:
+SM201A, whose code holds no exception-handling clause, reads +3.8 MB as NC218A, which holds 218 protected blocks, reads +3.9 MB.
+IX113A's +13.8 MB (320 protected blocks, 594 handlers) is beyond its own `None` spread by about 5 MB; the region lines are a few
+thousand rows of each format. Run 1's page wrote ` style="padding-left:0ch"` on every instruction row, twice per instruction (section
+7.2 shows the object code under each statement and in its section): IX113A's `All` fell 6.5 MB when the attribute was written only
+where a region nests the row. The `All` row stays over its 25 % budget, as it was before (kb/Work PB5941, whose dated file
+`2026-11-19-pb5951-rows` holds these rows). Time rows are not shown (kb/Work PB5927).
+
 **Step 6b, slice 1 (kb/Work PB5932, the cd-names and the file-names resolved by `SymbolTable.Identify`): the `None` row against
 the parent.** Slice 1 changes how every compilation resolves a cd-name or a file-name, with or without a listing, so it
 measures the no-listing path. Measured on 2026-11-18, Release, one Windows host,
