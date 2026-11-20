@@ -91,7 +91,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
     /// null at program/object scope: every user-defined word it declares lands in the method's own census (kb/Work PB2921),
     /// the one the class table keeps for the method's symbol (<see cref="OoClassTable.CensusOf(OoMethodSymbol)"/>), which a
     /// reference made anywhere in the compilation records into too.</summary>
-    internal UserWordCensus? BindingMethodWords { get; private set; }
+    internal SymbolTable.UserWordCensus? BindingMethodWords { get; private set; }
 
     /// <summary>The METHOD whose data entries are being bound (<see cref="BindMethodData"/>; cleared with the declaration
     /// scope, <see cref="MethodDeclarationScope"/>), null otherwise: every record and type declaration its entries open is
@@ -385,7 +385,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         int pos = 0;
         bool byValue = false;
         // The formals whose ADDRESS OF the body takes are AREA formals (FormalIsCarrierResident — the program arm's test).
-        var addressed = (pd is null ? [] : data.ClaimScans.AddressTargets(pd)).Select(t => t.Written.Name).ToHashSet(CobolNames.Comparer);
+        var addressed = pd is null ? SymbolTable.AddressedNames.None : SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd));
         var header = new ProcedureHeaderScreen(Edition, where);   // §2023:14.2.2 SR1/SR2/SR5/SR6 — the ONE header screen (kb/Work PB1145)
         foreach (var prm in pd?.usingClause()?.usingParameter() ?? [])
         {
@@ -401,8 +401,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             }
             else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
             string pname = dref.GetText();
-            var item = m.Binding!.LinkageRoots.FirstOrDefault(r =>
-                CobolNames.Same(r.CobolName, pname));
+            var item = SymbolTable.IdentifyHeaderOperand(m.Binding!.LinkageRoots, dref);
             if (item is null)
                 Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
@@ -428,8 +427,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         if (pd?.returningClause()?.dataReference() is { } rref)
         {
             using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
-            m.Binding!.Returning = m.Binding!.LinkageRoots.FirstOrDefault(r =>
-                CobolNames.Same(r.CobolName, rref.GetText()));
+            m.Binding!.Returning = SymbolTable.IdentifyHeaderOperand(m.Binding!.LinkageRoots, rref);
             if (m.Binding!.Returning is null)
                 Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
@@ -572,7 +570,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                     ? (ReferenceEquals(table, subject) ? "it is" : $"it is subordinate to '{table.CobolName ?? "FILLER"}', which is")
                       + " described with an OCCURS clause; the PROPERTY clause shall not be specified for data items "
                       + "subject to an OCCURS clause (ISO §2023:13.18.42.3 SR2)"
-                : objectItems.Count(i => CobolNames.Same(i.CobolName, subjName)) > 1
+                : SymbolTable.NeedsQualificationAmong(subject, objectItems)
                     ? $"the name '{subjName}' is not unique in the {(factory ? "factory" : "object")} data, so a "
                       + "reference to it requires qualification; the PROPERTY clause may be specified only for an "
                       + "elementary item whose name does not require qualification for uniqueness of reference "

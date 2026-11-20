@@ -5,6 +5,8 @@ using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
+using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
+
 /// <summary>How far a file-name lookup reaches: <see cref="Visible"/>, the element's own file-names and its containers'
 /// GLOBAL ones (§2023:13.18.27.4 GR1); <see cref="Own"/>, the element's own alone, for a position that names an entry of
 /// this element's own FILE-CONTROL (an FD or SD's file-name, §2023:13.4.5.3 SR1, §2023:13.4.6.3 SR1; the I-O-CONTROL
@@ -92,6 +94,44 @@ public sealed partial class SymbolTable
 
     /// <summary>The element's own files, one per file-name (the last declared of a spelling).</summary>
     internal IEnumerable<FileModel> OwnFiles => _ownFiles.Values;
+
+    /// <summary>The source position of each file-name's first file description entry or sort-merge file description entry,
+    /// across both kinds (<see cref="DeclareFileDescriptions"/>): the entry at that position is the one that stands.</summary>
+    private readonly Dictionary<CobolName, int> _firstFileDescriptions = [];
+
+    /// <summary>Declare where each file-name of the FILE SECTION <paramref name="fs"/> is first described, before any of its entries
+    /// binds (<c>FileControlBinder.BindFileSection</c>).</summary>
+    internal void DeclareFileDescriptions(Core.FileSectionContext fs)
+    {
+        void Note(Core.FileNameContext? name, Antlr4.Runtime.IToken start)
+        {
+            if (name is null) return;
+            var key = Key(name.GetText());
+            if (!_firstFileDescriptions.TryGetValue(key, out var at) || start.StartIndex < at) _firstFileDescriptions[key] = start.StartIndex;
+        }
+        foreach (var fd in fs.fileDescriptionEntry()) Note(fd.fileName(), fd.Start);
+        foreach (var sd in fs.sortMergeDescriptionEntry()) Note(sd.fileName(), sd.Start);
+    }
+
+    /// <summary>Is the entry starting at <paramref name="entryStart"/> a second description of the file-name it writes,
+    /// <paramref name="name"/>? No qualifier can tell two descriptions of one file-name apart (a declaration question; the first
+    /// stands).</summary>
+    internal bool DescribedEarlier(Core.FileNameContext name, Antlr4.Runtime.IToken entryStart) =>
+        _firstFileDescriptions[Key(name.GetText())] != entryStart.StartIndex;
+
+    /// <summary>How many distinct file-names the SAME clause <paramref name="same"/> writes, whatever each identifies: the
+    /// clause is defined over two or more files (§2023:12.4.6.4.2, §2023:12.4.6.4.4 GR1).</summary>
+    internal static int DistinctFileNamesWritten(Core.SameClauseContext same) =>
+        same.fileName().Select(f => Key(f.GetText())).Distinct().Count();
+
+    /// <summary>The level-01 record among <paramref name="records"/> (one file description entry's) that the DATA RECORDS clause's
+    /// data-name-1 <paramref name="written"/> names (§1985:VII.3.5.3 SR1); null when none does. The reference's occurrence is listing
+    /// step 7b's.</summary>
+    internal static DataItem? IdentifyDataRecord(IReadOnlyList<DataItem> records, Core.CobolWordContext written)
+    {
+        var key = Key(written.GetText());
+        return records.FirstOrDefault(r => r.Level == 1 && r.CobolName is { } n && Key(n) == key);
+    }
 
     /// <summary>The SELECTed files SR3 screens, with the file-name as the SELECT wrote it.</summary>
     internal IEnumerable<(string Name, FileModel File)> SelectedFiles => _selectedFiles.Select(p => (p.Key.Word, p.Value));

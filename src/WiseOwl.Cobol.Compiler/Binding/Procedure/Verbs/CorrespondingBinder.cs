@@ -154,12 +154,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         CorrAccess srcAcc, CorrAccess dstAcc, List<DataItem> sChain, List<DataItem> dChain,
         List<CorrespondingPair> pairs, CobolRounding rounding)
     {
-        var dstByName = new Dictionary<string, List<CorrMember>>(CobolNames.Comparer);
-        foreach (var d in CorrMembers(dst))
-        {
-            if (!dstByName.TryGetValue(d.Item.CobolName!, out var list)) dstByName[d.Item.CobolName!] = list = [];
-            list.Add(d);
-        }
+        var dstByName = new SymbolTable.CorrespondingMembers<CorrMember>(CorrMembers(dst), d => d.Item);
         // Rule 6 is SYMMETRIC ("the name … is unique after application of the implied qualifiers"): a duplicated
         // name on EITHER side makes the implied qualified reference ambiguous — excluded, not an error. The count is
         // over EVERY namesake the qualified reference could identify (kb/Work PB1111), not over the rule-1/4/5
@@ -172,9 +167,9 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         foreach (var sm in srcMembers)
         {
             DataItem s = sm.Item;
-            if (srcCount[s.CobolName!] > 1) continue;                          // rule 6, source side
-            if (!dstByName.TryGetValue(s.CobolName!, out var cands)) continue; // rule 1: no same-named target
-            if (dstCount[s.CobolName!] > 1) continue;                          // rule 6, target side
+            if (srcCount.Of(s) > 1) continue;                                  // rule 6, source side
+            if (dstByName.NamedAs(s) is not { } cands) continue;               // rule 1: no same-named target
+            if (dstCount.Of(s) > 1) continue;                                  // rule 6, target side
             CorrMember dm = cands[0];
             DataItem d = dm.Item;
 
@@ -317,15 +312,15 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// named group is a qualifier of its own subordinates, which therefore stand one level down. A THROUGH alias
     /// counts its included elementary items, the same universe <see cref="CorrMembers"/> filters. ONE reader for both
     /// operands, so the two sides of the rule answer alike.</summary>
-    private static Dictionary<string, int> NamesakeCounts(DataItem group)
+    private static SymbolTable.NamesakeCounts NamesakeCounts(DataItem group)
     {
-        var counts = new Dictionary<string, int>(CobolNames.Comparer);
+        var counts = new SymbolTable.NamesakeCounts();
         void Count(IEnumerable<DataItem> items)
         {
             foreach (var item in items)
             {
                 if (!(item.IsGroup || item.IsElementary || item.Renames is not null)) continue;   // not a data item
-                if (item.CobolName is { } name) counts[name] = counts.GetValueOrDefault(name) + 1;
+                if (item.CobolName is { } name) counts.Count(name);
                 else Count(item.Children);   // FILLER: no qualifier — its subordinates stand at this level
             }
         }

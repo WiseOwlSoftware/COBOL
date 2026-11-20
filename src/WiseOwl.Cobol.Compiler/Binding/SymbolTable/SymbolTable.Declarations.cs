@@ -5,6 +5,8 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
 
+using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
+
 public sealed partial class SymbolTable
 {
     /// <summary>The data division's DECLARATION questions (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Declarations
@@ -140,6 +142,11 @@ public sealed partial class SymbolTable
 
         /// <summary>Whether a SELECT of this element already names <paramref name="name"/> (§2023:12.4.5.2 SR2: one SELECT per
         /// file-name).</summary>
+        /// <summary>Does the data description entry <paramref name="entry"/> declare <paramref name="word"/> (its own data-name, never a
+        /// subordinate's)? Asked of the entry whose description is being bound (<c>DataBinder.IsBeingDescribed</c>, §2023:13.10.3 SR4).</summary>
+        public bool EntryDeclares(Core.DataDescriptionEntryContext entry, string word) =>
+            entry.dataName()?.GetText() is { } own && Key(own) == Key(word);
+
         public bool IsSelected(string name) => _table._selectedFiles.ContainsKey(Key(name));
 
         /// <summary>A container's GLOBAL file of the spelling, with its containment depth; hidden or not, since the question

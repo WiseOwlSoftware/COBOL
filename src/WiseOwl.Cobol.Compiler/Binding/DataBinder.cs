@@ -523,11 +523,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // program-specifier — "references … are to the named … definition and this … specifier is ignored"), so it
         // declares nothing: the unit's own PROGRAM-ID / FUNCTION-ID word is the one declaration of that name
         // (kb/Work PB990 — declaring both made one word a program-prototype-name AND a program-name).
-        string? ownName = UnitOwnName(program)?.Word;
         foreach (var (at, word, kind) in specifierWords)
         {
-            if (kind is UserWordKind.ProgramPrototypeName or UserWordKind.FunctionPrototypeName
-                && ownName is not null && CobolNames.Same(ownName, word)) continue;
+            if (kind is UserWordKind.ProgramPrototypeName or UserWordKind.FunctionPrototypeName && Symbols.NamesOwnUnit(word)) continue;
             using (Edition.At(at)) DeclareUserWord(word, kind);
         }
         DeclareUnitName(program);
@@ -549,11 +547,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // and a DISPLAY of the screen record printed its characters — a declined facility that produced output.
         if (program.dataDivision()?.screenSection() is { } scr)
         {
-            var screenNames = new HashSet<string>(CobolNames.Comparer);
+            List<string> screenNames = [];
             ScreenFacility.ReportSection(Edition, scr, screenNames);
-            Symbols.DeclareScreenNames(screenNames);
             // The section is refused, but its screen-names are declared all the same (§2023:8.3.2.2; kb/Work PB1083).
-            foreach (var sn in screenNames) DeclareUserWord(sn, UserWordKind.ScreenName);
+            foreach (var sn in Symbols.DeclareScreenNames(screenNames)) DeclareUserWord(sn, UserWordKind.ScreenName);
             // A constant entry among the screen entries (§2023:13.9.2, kb/Work PB4306) is a constant of this source element
             // like any other (§2023:13.10), bound as the report section binds its own (BindReportSectionEntries).
             foreach (var constant in scr.constantEntry())
@@ -1941,8 +1938,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Symbols.DeclareConditionName(cond, NameScopeOf(cond.Parent));
     }
 
-    private readonly HashSet<string> _repositoryNameReported = new(CobolNames.Comparer);
-
     /// <summary>⛔ THE ONE DECLARATION FUNNEL OF A USER-DEFINED WORD (ISO §2023:8.3.2.2; kb/Work PB1083): every
     /// declaration of every §2023:8.3.2.2 type announces its word here, and the rules about a user-defined word AS
     /// DECLARED are asked here once. Today that is §2023:8.3.2.1 rule 5 — intrinsic-function-names may be user-defined
@@ -1964,7 +1959,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (UserWordKinds.DeclaredUnqualifiable.Contains(kind)) CheckUnqualifiableDeclaration(word, kind);
         if (RepositoryIntrinsicSpecifier(FunctionWord.OfWrittenWord(word, CobolWords)) is not { } specifier) return false;
         bool named = specifier != AllIntrinsics;   // SR12 (a named specifier) or SR13 (ALL)
-        if (_repositoryNameReported.Add(word))
+        if (Symbols.FirstRefusal(SymbolTable.DeclarationRefusal.RepositoryIntrinsic, word))
             Edition.Error(DiagnosticCatalog.RepositoryIntrinsicNameAsUserWord,
                 $"{kind.Spelling()} '{word}': the intrinsic-function-name is identified in a function-specifier of the "
                 + $"REPOSITORY paragraph (FUNCTION {specifier} INTRINSIC), so it shall not be used as a user-defined "
@@ -2013,12 +2008,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// element's census from
     /// <see cref="Compiler.Oo.OoClassTable.CensusOf"/>, the object the element's class-name references record into too
     /// (kb/Work PB3132); the default serves a binder no driver made (a TYPE expansion's, a unit test's).</summary>
-    internal UserWordCensus OwnWords { get; init; } = new();
+    internal SymbolTable.UserWordCensus OwnWords { get; init; } = new();
 
     /// <summary>The census a declaration lands in: the METHOD whose words are being declared
     /// (<see cref="OoDataBinder.EnterMethodDeclarations"/> — its data entries, its METHOD-ID and its procedure-names), which is a
     /// source element of its own, else this binder's own (kb/Work PB2921).</summary>
-    internal UserWordCensus WordCensus => Oo.BindingMethodWords ?? OwnWords;
+    internal SymbolTable.UserWordCensus WordCensus => Oo.BindingMethodWords ?? OwnWords;
 
     /// <summary>The text-names and library-names of the COPY statements this program unit stands around, which are its
     /// user-defined words below COBOL-2002 (<see cref="CopyNameCensus"/>; kb/Work PB5482). Empty from 2002, and for a binder no driver
@@ -2049,7 +2044,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private void CheckOneTypePerWord(string word, UserWordKind kind)
     {
         if (WordCensus.Record(word, kind) is not { } first) return;
-        Edition.Error(DiagnosticCatalog.UserWordTypeConflict, UserWordCensus.ConflictMessage(word, first, kind, Edition.Edition));
+        Edition.Error(DiagnosticCatalog.UserWordTypeConflict, SymbolTable.UserWordCensus.ConflictMessage(word, first, kind, Edition.Edition));
     }
 
     /// <summary>⛔ THE ONE REFUSAL OF A SECOND UNQUALIFIABLE DECLARATION (ISO §2023:8.4.2.1; kb/Work PB3216): "In order to use a
@@ -2086,10 +2081,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         using (Edition.At(site as Antlr4.Runtime.ParserRuleContext)) CheckOneTypePerWord(word, kind);
     }
 
-    /// <summary>The letterless words already reported, so a repeated declaration of one (a TYPE expansion re-registers
-    /// a clone of its template's words) draws one refusal.</summary>
-    private readonly HashSet<string> _letterlessReported = new(CobolNames.Comparer);
-
     /// <summary>⛔ §2023:8.3.2.2: "<i>With the exception of section-names, paragraph-names, and level-numbers, each
     /// user-defined word shall contain at least one basic letter or extended letter</i>" (kb/Work PB1403). The lexer
     /// cannot ask it — a paragraph-name <c>1-2</c> is legal and a letterless word is the same IDENTIFIER token — so it
@@ -2100,7 +2091,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// such a character is not).</summary>
     private void CheckLetter(string word, UserWordKind kind)
     {
-        if (UserWordKinds.MayBeLetterless.Contains(kind) || word.Any(CobolCharacterRepertoire.IsLetter) || !_letterlessReported.Add(word)) return;
+        if (UserWordKinds.MayBeLetterless.Contains(kind) || word.Any(CobolCharacterRepertoire.IsLetter) || !Symbols.FirstRefusal(SymbolTable.DeclarationRefusal.Letterless, word)) return;
         Edition.Error(DiagnosticCatalog.UserWordWithoutLetter,
             $"the {kind.Spelling()} '{word}' contains no letter — with the exception of section-names, paragraph-names "
             + "and level-numbers, each user-defined word shall contain at least one basic letter or extended letter "

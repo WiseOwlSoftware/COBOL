@@ -884,9 +884,10 @@ missing edition in its COBOL1543 text; both read the row through `ConstructRegis
 
 **The same funnel is the one-type-per-word census (kb/Work PB990, §2023:8.3.2.2).** "*Within a source element, a given
 user-defined word may be used as only one type of user-defined word*" is asked at `DeclareUserWord` too
-(`CheckOneTypePerWord`): ONE `UserWordCensus` per source element keeps `word → the type it was first declared as`
+(`CheckOneTypePerWord`): ONE `SymbolTable.UserWordCensus` (a table of the element's names, so the symbol table's, keyed by
+`CobolName`) per source element keeps `word → the type it was first declared as`
 (a name a containing element passes down is inherited, not declared, and a contained element may re-declare it,
-§2023:8.4.6.1). A program's `DataBinder` is one element and owns one census (`_ownWords`); a class binder also hosts its
+§2023:8.4.6.1). A program's `DataBinder` is one element and owns one census (`OwnWords`); a class binder also hosts its
 METHODS, each a source element of its own (§2023:10.5), so each method has its own census, which the class table keeps for its
 symbol (`OoClassTable.CensusOf(OoMethodSymbol)`, binder state, kb/Work PB2402), and `DataBinder.WordCensus` selects it while `OoDataBinder.EnterMethodDeclarations` is open — around the method's data
 entries and METHOD-ID (`OoDataBinder.BindMethodData`) and its procedure-names (`StatementBinder.BindClassBody`). ⛔ A new

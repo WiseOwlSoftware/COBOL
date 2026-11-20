@@ -52,7 +52,7 @@ public sealed partial class FileControlBinder
     {
         var fs = program.dataDivision()?.fileSection();
         if (fs is null) return;
-        var firstDescription = FirstDescriptionPositions(fs);
+        _host.Symbols.DeclareFileDescriptions(fs);
         foreach (var fd in fs.fileDescriptionEntry())
         {
             using var _ = Edition.At(fd);
@@ -73,7 +73,7 @@ public sealed partial class FileControlBinder
                 file = new FileModel { CobolName = name, SelectName = name };
                 _host.Symbols.Declare(file, name, selected: false);
             }
-            if (DescriptionRepeated(firstDescription, fd.Start, name, "file description entry")) continue;
+            if (DescriptionRepeated(fdName, fd.Start, name, "file description entry")) continue;
             file.HasFd = true;
             file.Records.AddRange(records);
             // §2023:13.18.33.4 GR3: "Multiple level 1 entries subordinate to a FD or SD entry represent implicit
@@ -179,7 +179,7 @@ public sealed partial class FileControlBinder
                 sdFile = new FileModel { CobolName = sdName, SelectName = sdName };
                 _host.Symbols.Declare(sdFile, sdName, selected: false);
             }
-            if (DescriptionRepeated(firstDescription, sd.Start, sdName, "sort-merge file description entry")) continue;
+            if (DescriptionRepeated(sdNameCtx, sd.Start, sdName, "sort-merge file description entry")) continue;
             sdFile.HasFd = true;
             sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§2023:13.4.6 SR3/SR4)
             // ⛔ The SD arm does NOT inherit §2023:13.4.5.3 SR3's permission to omit the record descriptions — that is a
@@ -219,28 +219,13 @@ public sealed partial class FileControlBinder
     /// as storage, its clauses are not read). The SELECT half is <c>COBOL2634</c>. Both arms of
     /// <see cref="BindFileSection"/> ask it before they attach.</summary>
     private bool DescriptionRepeated(
-        Dictionary<string, int> firstDescription, Antlr4.Runtime.IToken entryStart, string name, string entry)
+        Core.FileNameContext written, Antlr4.Runtime.IToken entryStart, string name, string entry)
     {
-        if (firstDescription[name] == entryStart.StartIndex) return false;
+        if (!_host.Symbols.DescribedEarlier(written, entryStart)) return false;
         Edition.Error(DiagnosticCatalog.SpecialNameDeclaredTwice,
             $"the file-name '{name}' is described a second time by this {entry} — no qualifier can tell the two descriptions "
             + $"apart, so no reference to the file could uniquely identify one (ISO {Edition.Edition.Citation()}); the first stands");
         return true;
-    }
-
-    /// <summary>The source position of each file-name's first file description entry or sort-merge file description entry,
-    /// across both kinds (the entry at that position is the one that stands; see <see cref="DescriptionRepeated"/>).</summary>
-    private static Dictionary<string, int> FirstDescriptionPositions(Core.FileSectionContext fs)
-    {
-        var first = new Dictionary<string, int>(CobolNames.Comparer);   // the file model's key: a file-name is a COBOL word, case-folded (§2023:8.1.3.2 GR3)
-        void Note(string? name, Antlr4.Runtime.IToken start)
-        {
-            if (name is null) return;
-            if (!first.TryGetValue(name, out var at) || start.StartIndex < at) first[name] = start.StartIndex;
-        }
-        foreach (var fd in fs.fileDescriptionEntry()) Note(fd.fileName()?.GetText(), fd.Start);
-        foreach (var sd in fs.sortMergeDescriptionEntry()) Note(sd.fileName()?.GetText(), sd.Start);
-        return first;
     }
 
     /// <summary>Whether one written FD clause belongs in this entry, reporting it when it does not (kb/Work PB1238).

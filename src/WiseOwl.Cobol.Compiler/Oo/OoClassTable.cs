@@ -249,7 +249,7 @@ public sealed class OoClassTable
         if (_edition is null || CensusOf(site) is not { } elementWords) return false;
         if (elementWords.Record(name, kind) is not { } first) return true;
         using (_edition.At(site as Antlr4.Runtime.ParserRuleContext))
-            _edition.Error(DiagnosticCatalog.UserWordTypeConflict, UserWordCensus.ConflictMessage(name, first, kind, _edition.Edition));
+            _edition.Error(DiagnosticCatalog.UserWordTypeConflict, SymbolTable.UserWordCensus.ConflictMessage(name, first, kind, _edition.Edition));
         return true;
     }
 
@@ -263,13 +263,13 @@ public sealed class OoClassTable
     /// environment division and CLASS-ID declare their words in the class's census alone, and the factory and
     /// instance binders inherit those names, never re-declare them (<c>OoDriver.BindClassData</c>; kb/Work PB3154).
     /// Null for a site in no source element, or in a method that has no symbol (one refused as a duplicate).</summary>
-    internal UserWordCensus? CensusOf(Antlr4.Runtime.RuleContext? site)
+    internal SymbolTable.UserWordCensus? CensusOf(Antlr4.Runtime.RuleContext? site)
     {
         var element = SourceElementOf(site);
         if (element is null) return null;
         if (element is Core.MethodDefinitionContext) return MethodAt(site) is { } method ? CensusOf(method) : null;
         if (!_elementWords.TryGetValue(element, out var words))
-            _elementWords[element] = words = new UserWordCensus();
+            _elementWords[element] = words = new SymbolTable.UserWordCensus();
         return words;
     }
 
@@ -278,17 +278,17 @@ public sealed class OoClassTable
     /// whole compilation: the binder declaring the method's words (<c>OoDataBinder.EnterMethodDeclarations</c>) and every
     /// reference made inside it (<see cref="CensusOf(Antlr4.Runtime.RuleContext)"/>) record into this object. Binder working
     /// state, so it is kept here and not on the method's model scope (kb/Work PB2402).</summary>
-    internal UserWordCensus CensusOf(OoMethodSymbol method)
+    internal SymbolTable.UserWordCensus CensusOf(OoMethodSymbol method)
     {
-        if (!_methodWords.TryGetValue(method, out var words)) _methodWords[method] = words = new UserWordCensus();
+        if (!_methodWords.TryGetValue(method, out var words)) _methodWords[method] = words = new SymbolTable.UserWordCensus();
         return words;
     }
 
     // Keyed by parse-tree node IDENTITY, like _scopes.
-    private readonly Dictionary<Antlr4.Runtime.RuleContext, UserWordCensus> _elementWords = [];
+    private readonly Dictionary<Antlr4.Runtime.RuleContext, SymbolTable.UserWordCensus> _elementWords = [];
 
     // Keyed by symbol IDENTITY (a method symbol is a record), like every other per-method map of the bind.
-    private readonly Dictionary<OoMethodSymbol, UserWordCensus> _methodWords = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<OoMethodSymbol, SymbolTable.UserWordCensus> _methodWords = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>The method definition <paramref name="site"/> lies in, when its innermost source element is one: a
     /// class's instance or factory method, or an interface's method prototype, of this table's definitions or of a

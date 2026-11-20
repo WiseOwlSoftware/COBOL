@@ -602,12 +602,10 @@ public sealed partial class FileControlBinder
         // the clause that names a sort or merge file, in the sort-merge module (SAME RECORD/SORT/SORT-MERGE AREA, chapter XI).
         bool sortFamily = same.SORT() is not null || same.SORT_MERGE() is not null;
         var members = new List<FileModel>();
-        var seenNames = new HashSet<string>(CobolNames.Comparer);
         bool complete = true;
         foreach (var fn in same.fileName())
         {
             string name = fn.GetText();
-            seenNames.Add(name);
             using var _ = Edition.At(fn);
             if (_host.Symbols.Identify(fn, NameClass.File, report: true, NameReach.Own) is not { Symbol: FileModel file })
             {
@@ -633,11 +631,11 @@ public sealed partial class FileControlBinder
             }
             if (!members.Contains(file)) members.Add(file);
         }
-        if (seenNames.Count < 2)
+        if (SymbolTable.DistinctFileNamesWritten(same) is var distinct && distinct < 2)
         {
             using var _ = Edition.At(same);
             Edition.Error(DiagnosticCatalog.SameClauseRule,
-                $"{written} names {(seenNames.Count == 0 ? "no file" : "only one file")}: every SAME format prints "
+                $"{written} names {(distinct == 0 ? "no file" : "only one file")}: every SAME format prints "
                 + "\"file-name-1 { file-name-2 } …\" (ISO "
                 + Edition.Edition.Cite(sortFamily ? "§1985:XI.2.5.2" : "§1985:VII.2.13.2", "§2023:12.4.6.4.2")
                 + ") and the clause is defined over \"two or more "

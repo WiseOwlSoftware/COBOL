@@ -259,7 +259,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         // THE OCCURRENCE that repeats it (kb/Work PB5090): the clause or the series member the cursor stands on.
         void Record(CommunicationField field, string name)
         {
-            if (names.Any(n => n.Key != field && CobolNames.Same(n.Value, name)))
+            if (SymbolTable.CdEntryNamesElsewhere(names, field, name))
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}' names the data-name '{name}' more than once; "
                     + Edition.Edition.Cite("ISO §1985:XIV.2.2.3 ", "ISO/IEC 1989:2002 A.1.2.2 ")
                     + (format switch

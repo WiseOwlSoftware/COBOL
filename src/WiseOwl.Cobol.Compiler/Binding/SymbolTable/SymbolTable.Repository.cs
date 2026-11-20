@@ -61,7 +61,20 @@ public sealed partial class SymbolTable
     /// entry, at the unit's first token, is the program map's, and the one a program-prototype-name or function-prototype-name of a
     /// containing definition (§2023:8.4.6.8, §2023:8.4.6.6) answers. Made by <c>BinderDriver.BindUnitData</c> before the unit's
     /// containing definitions are declared, so the unit is its own.</summary>
-    internal void DeclareProgram(BoundUnit unit) => Enter(NameClass.Program, unit.Name, PositionOf(unit.DeclaredAt), unit);
+    internal void DeclareProgram(BoundUnit unit)
+    {
+        _ownUnitName = Key(unit.Name);
+        Enter(NameClass.Program, unit.Name, PositionOf(unit.DeclaredAt), unit);
+    }
+
+    /// <summary>The program-name or user-function-name <see cref="DeclareProgram"/> declared; none for a class, interface or method,
+    /// whose name the OO driver declares.</summary>
+    private CobolName? _ownUnitName;
+
+    /// <summary>Does a REPOSITORY specifier's <paramref name="word"/> name this unit itself? Such a specifier is ignored
+    /// (§2023:12.3.8.3 SR11 for a function-specifier, SR15 for a program-specifier, each of which says the specifier is ignored), so it declares no
+    /// user-defined word: the unit's own name is the one declaration of that word (kb/Work PB990).</summary>
+    internal bool NamesOwnUnit(string word) => _ownUnitName == Key(word);
 
     /// <summary>Declare a program-specifier as written (<c>DataBinder.BindProgramSpecifier</c>); a repeat of a name keeps the first. Its
     /// entry stands at the program-prototype-name the specifier writes (§2023:12.3.8.2).</summary>

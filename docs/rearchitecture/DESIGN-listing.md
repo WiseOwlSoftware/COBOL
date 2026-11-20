@@ -23,8 +23,9 @@
 > its id; remainder slice 2, branch `listing-step-6b-r2`: the file clauses' operands kept as a `WrittenDataName` and resolved by the
 > table, the record-key-names read off their file; remainder slice 3, branch `listing-step-6b-r3`: the data-name candidate sets and the
 > qualifier walk private to the table behind the written words, the data-entry and report clause operands kept as a `WrittenDataName`;
-> the declarations (with the data-names' and condition-names' entries), the census, the group tier's units and the parameterized
-> expansion remain, 52 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
+> remainder slice 4, branch `listing-step-6b-r4`: the data division's declarations, the §2023:8.3.2.2 census, the procedure division
+> header's operands and the CORRESPONDING pairing; the group tier's units, the parameterized expansion, the TURN file operand, the
+> refused record-key set and the data-names' and condition-names' entries remain, 24 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
 > PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); step 7b (the
 > occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
 > dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
@@ -1413,7 +1414,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       (§2023:8.4.6.7's search of the group by user-function-name), `BinderDriver.CheckFunctionUnits` (the same-word duplicate, COBOL1508)
       and `CheckDefinitionNameUniqueness`. They wait in the baseline for the run-unit tier the OO class names need, which is the same
       tier; `DataBinder._repositoryNameReported` (the once-per-word report of §2023:12.3.8.3 SR12 and SR13 in the user-word
-      declaration funnel) moves with the data-name class's declarations.
+      declaration funnel) moves with the data-name class's declarations (since step 6b's remainder slice 4, `SymbolTable.FirstRefusal`).
   - *(Step 6b, the OO names, branch `listing-step-6b-oo`, a lane beside the data-name lane.)* The object-class-names,
     interface-names and method rosters moved, and the PROPERTY specifiers; the lane lowers the baseline by 46 (rule (1) 8 tables,
     rule (3) 7 lookups, rule (5) 31 sites): 155 with slice 7's. `SymbolTable.ClassNames` (`SymbolTable.ClassNames.cs`) owns what `OoClassTable`,
@@ -1702,6 +1703,37 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       census (`UserWordCensus`, 4), the group tier's program and function units (`BinderDriver` (3),
       `GroupRepositoryProvider.FunctionsByWord`), the parameterized expansion (`OoExpansion`, 18) and `TurnState.Fold`; then D, the
       data-names' and condition-names' entries made where they are declared.
+  - *(Step 6b, remainder slice 4, branch `listing-step-6b-r4`; kb/Work PB5932's dated file `2026-11-20-step-6b-r4`.)* Part C's
+    first half, the declarations of the data division's binders: the baseline holds 24 (0 tables, 0 lookups, 24 sites), so no table
+    keyed by a COBOL name exists outside the table. As built, with the corrections the code proved:
+    - *The entry order's names are the table's, its places the binder's.* `DataBinder._dataEntryLocations` (a name to the places its
+      entries stand) was the last rule (1) table. A constant's length phrase that names an item described after it needs the entries
+      that declare the name (kb/Work PB1231); the names are the table's (`SymbolTable.DeclareDataEntry`, `DataEntriesDeclaring`, the
+      entries in declaration order: places in the source, never a symbol), and where each entry stands in its section's run is keyed
+      by the entry in the binder. "Is this name's description open" is the declaration question `Declarations.EntryDeclares(entry, word)`.
+    - *The §2023:8.3.2.2 census is a table of the element's names, so it is nested in the table.* `SymbolTable.UserWordCensus`, keyed by
+      `CobolName`, made per element as before (`OoClassTable.CensusOf`); the declaration funnel's once-per-word refusals (a letterless
+      word, a REPOSITORY intrinsic, §2023:8.3.2.1 rule 5) are `SymbolTable.FirstRefusal`, one per binder as before; a specifier that
+      names this unit is `SymbolTable.NamesOwnUnit`, read off the program entry `DeclareProgram` makes (§2023:12.3.8.3 SR11, SR15).
+    - *A declaration question of the data division's own entries is the table's.* The screen-names' distinct first spellings
+      (`DeclareScreenNames` answers them), the 1985 index-name uniqueness (`SymbolTable.RepeatedIndexNames`, §1985:VI.5.8.3 SR14), a
+      file-name described twice (`DeclareFileDescriptions`, `DescribedEarlier`), a SAME clause's distinct file-names
+      (`DistinctFileNamesWritten`), a CD entry's data-names (`CdEntryNamesElsewhere`, §1985:XIV.2.2.3 SR6), a PROPERTY subject that
+      needs qualification (`NeedsQualificationAmong`, §2023:13.18.42.3 SR3).
+    - *A name read before the element's tables are complete is resolved among the records handed in.* The procedure division header
+      binds inside the data division's bind, so its USING and RETURNING operands are identified among the element's LINKAGE records
+      (`SymbolTable.IdentifyHeaderOperand`, §2023:14.2.2 SR1), the formals an ADDRESS OF names are an `AddressedNames` set, and a linkage
+      REDEFINES is read off the redefiner's own written word among the records (`RedefinedAmong`, `IsRedefinedAmong`), before
+      `LinkRedefinitionsPass` links it; a DATA RECORDS data-name is identified among its file description's level-01 records
+      (`IdentifyDataRecord`, §1985:VII.3.5.3 SR1). Step 7b records each reference's occurrence there.
+    - *CORRESPONDING pairs by the table's key.* Two identified groups' subordinates are paired by their declared names
+      (`SymbolTable.CorrespondingMembers<T>`, `NamesakeCounts`, §2023:14.7.6); no written name is resolved.
+    - *The externalized-name uniqueness is EXTERNAL (classified, not moved).* `LinkageBinder.CheckExternalizedNameUniqueness` compares
+      the externalized names of EXTERNAL subjects as the run-unit store keys them (§2023:13.18.22.3 SR2): identity across the run unit.
+    - *What remains: 24 sites.* The compilation group's units (`BinderDriver.CheckFunctionUnits` (2), `CheckDefinitionNameUniqueness`,
+      `GroupRepositoryProvider.FunctionsByWord`), the parameterized expansion (`OoExpansion`, 18), a TURN directive's file operand
+      (`TurnState.Fold`), the refused record-key operands (`FileControlBinder.ResolveFiles`, a set of operand names the key screen skips);
+      then D, the data-names' and condition-names' entries made where they are declared.
   - *(Step 6b, the entry ids, branch `listing-step-6b-ids`, a lane beside the data-name lane; kb/Work PB5932's dated file
     `2026-11-19-step-6b-entry-ids`.)* Every class whose declaration is the table's makes its ENTRY where the binder declares the name,
     and every identification hands the entry back, so step 7b joins an occurrence to its entry by id for every class, never by the
@@ -1898,7 +1930,7 @@ superset: many take a C# identifier or a message, and step 7 classifies each). I
 
 | Name class | Tables found (owner.member) |
 |---|---|
-| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` (since step 6b's data-name lane, first slice, the type-name and CAPACITY register tables and the lapsed members are `SymbolTable`'s, in `SymbolTable.Types.cs`, `SymbolTable.CapacityRegisters.cs` and a method's `SymbolTable.MethodNames`; `ForestSlice.TypeDeclarations` and `OoMethodDataScope.TypeDeclarations` keep the declarations as lists; since step 6b's closing slice the data-name tables are `SymbolTable`'s too, `_dataNames` in `SymbolTable.DataNames.cs` and a method's `SymbolTable.MethodNames.DataNames`) |
+| Data, type, capacity register | `ForestSlice._byName`, `_typeDecls`, `_capacityRegisters` (public views `ByName`, `TypeDecls`, `CapacityRegisters`, `CapacityRegistersSoFar`); `OoMethodDataScope.ByName`, `TypeDecls`, `CapacityRegisters`; `InheritedGlobals._typeDecls` (`TypeDecls`); `ClauseFacts.LapsedTypeMembers`; `DataBinder._dataEntryLocations` (since step 6b's remainder slice 4 keyed by the entry, the names being `SymbolTable._dataEntries`; since step 6b's data-name lane, first slice, the type-name and CAPACITY register tables and the lapsed members are `SymbolTable`'s, in `SymbolTable.Types.cs`, `SymbolTable.CapacityRegisters.cs` and a method's `SymbolTable.MethodNames`; `ForestSlice.TypeDeclarations` and `OoMethodDataScope.TypeDeclarations` keep the declarations as lists; since step 6b's closing slice the data-name tables are `SymbolTable`'s too, `_dataNames` in `SymbolTable.DataNames.cs` and a method's `SymbolTable.MethodNames.DataNames`) |
 | Condition | `ForestSlice._conditions` (`Conditions`); `OoMethodDataScope.Conditions` (since step 6b's closing slice `SymbolTable._conditionNames` in `SymbolTable.DataNames.cs` and a method's `SymbolTable.MethodNames.ConditionNames`) |
 | Index | `IndexNameRegistry._byName` (since step 6b's data-name lane, first slice, `SymbolTable`'s private `IndexNameTable`, one per element and one per method; `IndexNameRegistry` is deleted) |
 | Procedure | `ProcedureNameMap<T>._first`, `_duplicated` (since step 6b slice 2, `SymbolTable`'s private `ProcedureNames<T>`) |
@@ -3003,7 +3035,13 @@ division a `WrittenQualifiedName`, the data-entry and report clause operands a `
 data-name answered by one rule, the REDEFINES target and the layout's overlay read off their carriers (section 6.7.1, "Step 6b,
 remainder slice 3"), `compare_oracle.py` IDENTICAL; the baseline is 52 (1 table, 0 lookups, 51 sites), and kb/Work PB5932's dated
 file `2026-11-20-step-6b-r3` holds what remains: C (the declarations, the census, the group tier's units, the parameterized
-expansion) and D (the data-names' and condition-names' entries).
+expansion) and D (the data-names' and condition-names' entries). (Step 6b, remainder slice 4, branch `listing-step-6b-r4`:) part C's
+first half: the data division's declarations into the table (the last rule (1) table, the entry order's names; the census, nested in
+the table; the declaration questions of the data division's own entries, the procedure division header's operands and the
+CORRESPONDING pairing by the table's key), the externalized-name uniqueness classified EXTERNAL (section 6.7.1, "Step 6b, remainder
+slice 4"), `compare_oracle.py` IDENTICAL; the baseline is 24 (0 tables, 0 lookups, 24 sites), and kb/Work PB5932's dated file
+`2026-11-20-step-6b-r4` holds what remains: the group tier's units, the parameterized expansion, the TURN file operand, the refused
+record-key set, then D.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had

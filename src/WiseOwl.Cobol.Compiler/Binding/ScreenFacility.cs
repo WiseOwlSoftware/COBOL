@@ -102,11 +102,12 @@ internal static class ScreenFacility
     /// description entry (§2023:13.17) that names a screen-name (the entry-name clause format 2, §2023:13.18.20), and each
     /// clause written inside one. One diagnostic per DISTINCT clause kind, not per occurrence — a fifty-item
     /// screen record should not print fifty copies of the same refusal, and the witness only needs the kind.
-    /// <para>Returns the declared screen-names so the reference sites can suppress the §2023:8.4.2.1 UNDEFINED report:
+    /// <para>Appends each screen-name an entry writes to <paramref name="screenNames"/>, in source order (the symbol table
+    /// declares them, <see cref="SymbolTable.DeclareScreenNames"/>), so the reference sites can suppress the §2023:8.4.2.1 UNDEFINED report:
     /// "declared in a refused section" and "not defined at all" are different verdicts, and only the first is
     /// true here (kb/Work R32 — the differential's <c>syn_screen:221</c> flip came from conflating them).</para>
     /// </summary>
-    public static void ReportSection(EditionContext edition, Core.ScreenSectionContext scr, ISet<string> screenNames)
+    public static void ReportSection(EditionContext edition, Core.ScreenSectionContext scr, ICollection<string> screenNames)
     {
         using (edition.At(scr))
             edition.Declined(DiagnosticCatalog.ScreenFacilityUnsupported,

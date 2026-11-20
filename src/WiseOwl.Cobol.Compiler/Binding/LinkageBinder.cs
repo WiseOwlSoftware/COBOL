@@ -379,10 +379,9 @@ internal sealed class LinkageBinder(DataBinder data)
         // division with no USING phrase would otherwise collect every contained program's names to read none of them.
         var formals = pd.usingClause()?.usingParameter() ?? [];
         var addressed = formals.Length == 0
-            ? new HashSet<string>(CobolNames.Comparer)
-            : data.ClaimScans.AddressTargets(pd)
-                .Concat(program.nestedProgram().SelectMany(data.ClaimScans.AddressTargets))
-                .Select(t => t.Written.Name).ToHashSet(CobolNames.Comparer);
+            ? SymbolTable.AddressedNames.None
+            : SymbolTable.AddressedBy(data.ClaimScans.AddressTargets(pd)
+                .Concat(program.nestedProgram().SelectMany(data.ClaimScans.AddressTargets)));
         foreach (var prm in formals)
         {
             using var _ = data.Edition.At(prm);
@@ -401,7 +400,7 @@ internal sealed class LinkageBinder(DataBinder data)
             // condition tests the carrier's presence — the staged OptionalFormal rejection is lifted.
 
             string pname = dref.GetText();
-            var item = FindLinkageRoot(pname);
+            var item = SymbolTable.IdentifyHeaderOperand(_roots, dref);
             if (item is null)
             {
                 // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
@@ -470,7 +469,7 @@ internal sealed class LinkageBinder(DataBinder data)
             using var returningAt = data.Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             // §2023:14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an
             // ordinary callee-local field; its value transfers out at termination (GR7, the Call copy-out).
-            Returning = FindLinkageRoot(rref.GetText());
+            Returning = SymbolTable.IdentifyHeaderOperand(_roots, rref);
             if (Returning is null)
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
@@ -565,10 +564,7 @@ internal sealed class LinkageBinder(DataBinder data)
         {
             // c): a REDEFINES whose object is a)-satisfying. The object is the ORIGINAL entry (§2023:13.18.44.3 SR11 refuses
             // a redefinition of a redefinition), so one step reaches it.
-            bool viaObject = root.RedefinesTargetName is { } target
-                && roots.FirstOrDefault(o => !ReferenceEquals(o, root)
-                    && CobolNames.Same(o.CobolName, target)) is { } original
-                && Satisfied(original);
+            bool viaObject = SymbolTable.RedefinedAmong(root, roots) is { } original && Satisfied(original);
             if (!Satisfied(root) && !viaObject) _unreferenceableLinkageRoots.Add(root);
         }
         if (function)
@@ -591,9 +587,6 @@ internal sealed class LinkageBinder(DataBinder data)
     /// phrase" when it means one, and SR5 does not.</summary>
     internal bool IsFunctionFormal(DataItem item) =>
         _functionFormals.Count != 0 && _functionFormals.Contains(item);
-
-    private DataItem? FindLinkageRoot(string name) =>
-        _roots.FirstOrDefault(r => CobolNames.Same(r.CobolName, name));
 
     /// <summary>
     /// Collect the roots whose EXTERNAL / GLOBAL clause the clause-placement screen ADMITTED
@@ -809,9 +802,9 @@ internal sealed class LinkageBinder(DataBinder data)
     /// as identifier-1 of ADDRESS OF, and §2023:8.4.3.11.4 GR1 makes the result "the address of identifier-1" — an address
     /// the BASED machinery dereferences to a StorageCell, which a carrier accessor does not have; so an addressed formal
     /// is an AREA formal and its address IS the argument's (§2023:14.2.3 GR8).</para></summary>
-    internal static bool FormalIsCarrierResident(DataItem item, IEnumerable<DataItem> linkageRoots, IReadOnlySet<string> addressed) =>
+    internal static bool FormalIsCarrierResident(DataItem item, IEnumerable<DataItem> linkageRoots, SymbolTable.AddressedNames addressed) =>
         item.Children.Count == 0 && item.IsElementary && item.Pic is { IsFloat: false }
-        && !addressed.Contains(item.CobolName ?? "")
-        && !linkageRoots.Any(r => !ReferenceEquals(r, item) && r.RedefinesTargetName is { } t && CobolNames.Same(t, item.CobolName));
+        && !addressed.Names(item)
+        && !SymbolTable.IsRedefinedAmong(item, linkageRoots);
 
 }

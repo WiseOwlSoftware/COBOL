@@ -60,8 +60,12 @@ public sealed class NameTableOwnershipDriftTests
     /// 1 table, 7 lookups, 55 sites; 52 at remainder slice 3, branch listing-step-6b-r3, which moved the data-name candidate sets and
     /// the qualifier walk into the table, private, behind the written words (the data-entry clause operands, the report clause operands
     /// and the procedure division's probes and counts), and had the REDEFINES target and the layout's overlay read off their carriers:
-    /// 1 table, 0 lookups, 51 sites).</summary>
-    private const int BaselineCeiling = 52;
+    /// 1 table, 0 lookups, 51 sites; 24 at remainder slice 4, branch listing-step-6b-r4, which moved the data division's declarations
+    /// into the table (the entry-order name table, the §2023:8.3.2.2 census and the declaration funnel's records, the screen-names, the
+    /// 1985 index-name uniqueness, the file descriptions and the SAME and DATA RECORDS operands, the CD entry's data-names, the procedure
+    /// division header's operands and the CORRESPONDING pairing) and classified the externalized-name uniqueness EXTERNAL: 0 tables,
+    /// 0 lookups, 24 sites).</summary>
+    private const int BaselineCeiling = 24;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -82,9 +86,11 @@ public sealed class NameTableOwnershipDriftTests
     /// the baseline that resolve no written name: five words of the standard or the implementor (KEYWORD) and five externalized or
     /// compilation-variable names (EXTERNAL). Remainder slice 2: 125 -> 128. <c>DataBinder.ResolveClauseOperand</c>,
     /// <c>ReportSectionBinder.ReportItemOperandRefused</c> and <c>SymbolTable.SumCounterOperand85</c> take the clause's written operand
-    /// (<c>WrittenDataName</c>) and keep the diagnostic's words (the clause face, the reference's subject): each left the baseline.)</summary>
+    /// (<c>WrittenDataName</c>) and keep the diagnostic's words (the clause face, the reference's subject): each left the baseline.
+    /// The comparisons, remainder slice 4: 91 -> 92, <c>LinkageBinder.CheckExternalizedNameUniqueness</c>'s comparer, which compares
+    /// the externalized names of EXTERNAL subjects as the run-unit store keys them (EXTERNAL), left the baseline.)</summary>
     private const int StringMembersCeiling = 128;
-    private const int ComparisonsCeiling = 91;
+    private const int ComparisonsCeiling = 92;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
     private static readonly string MeasuredFile = Path.Combine(AppContext.BaseDirectory, "name-table-ownership.measured.txt");
