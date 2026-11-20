@@ -171,4 +171,11 @@ public sealed partial class SymbolTable
             if (declaredNearerThan(name.Word, _data.State.Inherited.FileDepth(file)))
                 _hiddenFileNames.Add(name);
     }
+
+    /// <summary>Does the file-name a <c>&gt;&gt;TURN</c> directive's FILE phrase writes name <paramref name="file"/>, the file a
+    /// statement references (§2023:7.3.25.4 GR6, GR8: a file-scoped directive enables or disables checking for the statements that
+    /// reference that file)? The directive stands outside every source element, so its word is no reference this element's table
+    /// identifies; the statement's file is already identified, and the question is answered with the table's one name equality
+    /// (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Equality of COBOL names is private too"; step 6b's remainder slice 5).</summary>
+    internal static bool DirectiveNamesFile(string directiveWord, FileModel file) => Key(directiveWord) == Key(file.CobolName);
 }

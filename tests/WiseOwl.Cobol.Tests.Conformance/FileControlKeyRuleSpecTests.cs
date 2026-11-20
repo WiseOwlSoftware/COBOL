@@ -890,4 +890,31 @@ public sealed class FileControlKeyRuleSpecTests
             Assert.DoesNotContain(d, e => e.Contains("COBOL0863", StringComparison.Ordinal));
         }
     }
+
+    /// <summary>⛔ A REFUSAL IS A FACT ABOUT THE OPERAND, NOT ABOUT ITS SPELLING (kb/Work PB5932, listing step 6b remainder slice 5;
+    /// docs/rearchitecture/DESIGN-listing.md section 6.7.1). Two records of one file each hold a <c>F-K</c>, so the unqualified operand of
+    /// one key clause is refused as ambiguous (§2023:8.4.2.2.3 SR1, COBOL1639) and the screen raises no cascade on it; the other clause's
+    /// <c>F-K OF NOSUCH</c> is spelled the same but is ANOTHER operand, which identifies no item of the file's records, so its own clause's
+    /// SR2 ("within a record description entry" associated with the file: §2023:12.4.5.6.3 SR2 for the alternate key, §2023:12.4.5.12.3 SR2
+    /// for the prime key) is reported on it. The screen used to skip by a set of refused NAMES, which silenced the second operand too;
+    /// both orders are measured, so skipping the wrong operand is red as well.</summary>
+    [Theory]
+    [InlineData("        RECORD KEY IS F-K\n        ALTERNATE RECORD KEY IS F-K OF NOSUCH.", "RECORD KEY", "ALTERNATE RECORD KEY", "§2023:12.4.5.6.3 SR2")]
+    [InlineData("        RECORD KEY IS F-K OF NOSUCH\n        ALTERNATE RECORD KEY IS F-K.", "ALTERNATE RECORD KEY", "RECORD KEY", "§2023:12.4.5.12.3 SR2")]
+    public void ARefusedKeyOperand_SilencesOnlyItself_NotAnotherOperandOfItsSpelling(string keyClauses, string refusedFace, string otherFace, string sr2)
+    {
+        string source = Indexed(keyClauses,
+            "01 F-R1.\n   05 F-K PIC X(4).\n   05 F-D1 PIC X(4).\n01 F-R2.\n   05 F-K PIC X(4).\n   05 F-D2 PIC X(4).", "", EntryOnlyBody);
+        foreach (int edition in AllEditions)
+        {
+            var d = Diagnostics(source, edition);
+            var ambiguous = d.Where(e => e.Contains("COBOL1639", StringComparison.Ordinal)).ToList();
+            Assert.True(ambiguous.Count == 1 && ambiguous[0].Contains($": {refusedFace} 'F-K'", StringComparison.Ordinal),
+                $"@ {edition}: expected one COBOL1639 on the {refusedFace} operand: {string.Join(" | ", d)}");
+            var missing = d.Where(e => e.Contains("COBOL0863", StringComparison.Ordinal)).ToList();
+            Assert.True(missing.Count == 1 && missing[0].Contains($": {otherFace} 'F-K'", StringComparison.Ordinal)
+                    && missing[0].Contains(CitationAt(sr2, edition), StringComparison.Ordinal),
+                $"@ {edition}: expected one COBOL0863 citing {CitationAt(sr2, edition)} on the {otherFace} operand: {string.Join(" | ", d)}");
+        }
+    }
 }

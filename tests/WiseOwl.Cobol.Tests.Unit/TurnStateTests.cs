@@ -72,11 +72,25 @@ public sealed class TurnStateTests
     public void FileScopedEvent_AppliesOnlyToThatFile()
     {
         var ts = Build(new TurnEvent(5, [("EC-I-O-AT-END", "TF")], On: true, WithLocation: false));
-        Assert.True(ts.Enabled("EC-I-O-AT-END", "TF", 10));
-        Assert.True(ts.Enabled("EC-I-O-AT-END", "tf", 10));        // file-names compare case-insensitively
-        Assert.False(ts.Enabled("EC-I-O-AT-END", "OTHER", 10));
-        Assert.False(ts.Enabled("EC-I-O-AT-END", null, 10));       // an unscoped query does not match
+        Assert.True(ts.Enabled("EC-I-O-AT-END", File("TF"), 10));
+        Assert.True(ts.Enabled("EC-I-O-AT-END", File("tf"), 10));        // file-names compare by the Annex C fold (§2023:8.1.3.2 GR3)
+        Assert.False(ts.Enabled("EC-I-O-AT-END", File("OTHER"), 10));
+        Assert.False(ts.Enabled("EC-I-O-AT-END", null, 10));             // an unscoped query does not match
     }
+
+    [Fact]   // §2023:14.9.28.4 GR14: the implicit enable of a WHEN phrase's file-name applies to the file that file-name identified.
+    public void ImplicitEnable_OfAnIdentifiedFile_AppliesToThatFileAlone()
+    {
+        FileModel identified = File("TF"), other = File("TF");
+        var ts = Build().WithImplicitEnable([("EC-I-O-AT-END", identified)], withLocation: false, imp1Line: 10);
+        Assert.True(ts.Enabled("EC-I-O-AT-END", identified, 10));
+        Assert.False(ts.Enabled("EC-I-O-AT-END", other, 10));            // another file, though spelled the same
+        Assert.False(ts.Enabled("EC-I-O-AT-END", null, 10));
+        Assert.Same(EcCheckingProfile.None, ts.ProfileAt(11));           // a file-scoped event is no activating statement's
+    }
+
+    /// <summary>A file a statement references, named <paramref name="name"/>.</summary>
+    private static FileModel File(string name) => new() { CobolName = name, AssignTarget = name };
 
     [Fact]   // GR7: WITH LOCATION is a property of the ENABLING event.
     public void WithLocation_TracksTheEnablingEvent()

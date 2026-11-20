@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -40,6 +41,38 @@ public sealed partial class SymbolTable
         if (!table.TryGetValue(key, out var list)) table[key] = list = [];
         list.Add(item);
     }
+
+    /// <summary>
+    /// ⛔ THE ENTRY OF A DATA DESCRIPTION ENTRY, made where the binder declares it (docs/rearchitecture/DESIGN-listing.md section 6.7.1,
+    /// "Step 6b, the entry ids" and "Step 6b, remainder slice 5"): every entry the data division writes (FILLER included: the data map
+    /// lists it), every entry a TYPE or SAME AS clause copies in (§2023:13.18.57.4 GR1: as though coded in place) and every entry of a
+    /// description the standard defines implicitly (a CD's record area), each at the position the record places it
+    /// (<see cref="DataItem.ReferenceSite"/>'s entry). It enters an entry whether or not the name joins the data-name table (a type
+    /// declaration's subordinate names are referenceable only through the type, §2023:13.18.58.4 GR1, yet the declaration is listed
+    /// where it is written). A type declaration's root is its type-name's entry already (<see cref="DeclareType"/>), never a second.
+    /// </summary>
+    internal void EnterDataItem(DataItem item)
+    {
+        if (item.IsTypedef && _entries.IdOf(item).IsSet) return;
+        Enter(NameClass.Data, item.CobolName ?? "FILLER", PositionOf(item.ReferenceSite.DeclaredAt), item);
+    }
+
+    /// <summary>The entry of a level-88 condition-name, made where the binder declares it (<see cref="EnterDataItem"/>): at its own
+    /// level-number, or, for a copy a TYPE or SAME AS clause made, on the line of the entry that wrote the clause.</summary>
+    internal void EnterConditionName(Condition88 cond) =>
+        Enter(NameClass.Condition, cond.Name,
+            PositionOf(cond.ClonedFrom is null ? cond.DeclaredAt : cond.Parent.ReferenceSite.DeclaredAt), cond);
+
+    /// <summary>The entry of the data-name or the condition-name a reference identified, the ONE candidate of its set
+    /// (<see cref="IdentifyDataName(WrittenQualifiedName, bool)"/>, <see cref="IdentifyConditionName"/>): its declaration's
+    /// (<see cref="EnterDataItem"/>, <see cref="EnterConditionName"/>; an inherited GLOBAL item is the container's own object, so it
+    /// answers the container's entry). A member a TYPE clause's copy lapses to (§2023:8.4.2.2.1 SR4) stands in a type declaration,
+    /// whose entries are its own. Asked when an occurrence is recorded (a set of one), never by the lookup itself, as
+    /// <see cref="IndexEntryOf"/> is (section 9); a candidate whose declaration entered nothing fails loudly.</summary>
+    internal SymbolId DataEntryOf(object candidate) =>
+        candidate is DataItem or Condition88 && _entries.IdOf(candidate) is { IsSet: true } id ? id
+        : throw new InvalidOperationException($"SymbolTable identified a data-name or condition-name candidate ({candidate}) whose "
+            + "declaration entered no entry (DESIGN-listing.md section 6.7.1, \"Step 6b, remainder slice 5\")");
 
     /// <summary>Index a level-88 condition-name in the table of the source element that owns its conditional variable's record
     /// (<paramref name="method"/>'s when it is a method's; kb/Work PB3192).</summary>

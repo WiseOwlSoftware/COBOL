@@ -47,9 +47,12 @@ public sealed partial class FileControlBinder
             // file's records. The candidates come from the one resolver (kb/Work PB489), so the file-name qualifier
             // (§2023:8.4.2.2.2 Format 1's file-report-qualifier) works here too, and an operand that resolves
             // outside the file's records is the case SR2's own FileControlKeyRules row reports.
-            HashSet<string> refusedKeys = new(CobolNames.Comparer);
-            DataItem? InRecords(WrittenDataName key, string face, Editions.DiagnosticCursor at)
+            // An operand refused and reported here is marked on its own carrier (`refused`), never collected by name: two key
+            // operands may share a spelling and only one of them be refused, and the key screen's rows stay silent about that one
+            // alone (kb/Work PB5932, step 6b's remainder slice 5).
+            DataItem? InRecords(WrittenDataName key, string face, Editions.DiagnosticCursor at, out bool refused)
             {
+                refused = false;
                 string keyName = key.Name;
                 // ⛔ ALREADY REFUSED AT CAPTURE — one fault, one verdict (kb/Work PB481). ClauseDataName records a
                 // refused operand AS WRITTEN (`IX-KEY(1:3)`), which no data item is named, so the key screen's SR2
@@ -57,7 +60,7 @@ public sealed partial class FileControlBinder
                 // second verdict about an operand whose only fault is its shape. The RELATIVE KEY arm below never
                 // had the cascade because ResolveClauseOperand already asks this set; the two record-key arms
                 // resolve through their own SR2 selection and now ask it too (feedback_two_arm_dispatch).
-                if (_host.State.Clauses.RefusedClauseOperands.Contains(keyName)) { refusedKeys.Add(keyName); return null; }
+                if (_host.State.Clauses.RefusedClauseOperands.Contains(keyName)) { refused = true; return null; }
                 var cands = _host.Symbols.IdentifyDataName(key, Model.Scope.Program);
                 bool inFile = cands.Any(i => RecordLayout.IsInRecordOfFile(file, i));
                 using var __ = Edition.At(at);
@@ -75,13 +78,13 @@ public sealed partial class FileControlBinder
                 {
                     if (_host.ReportSection.ReportItemOperandRefused(cands, $"{face} '{written}'", key, out var counter))
                     {
-                        refusedKeys.Add(keyName);
+                        refused = true;
                         return null;
                     }
                     if (counter is not null) return counter;
                 }
                 var hit = _host.UniqueOrReportAmbiguous(cands, face, written, out bool ambiguous);
-                if (ambiguous && hit is null) refusedKeys.Add(keyName);
+                refused = ambiguous && hit is null;
                 return hit;
             }
             // ⛔ ONE RESOLUTION FOR BOTH KEY FORMS (kb/Work PB1099 Q1): data-name-1 is the key's one segment, and
@@ -89,41 +92,43 @@ public sealed partial class FileControlBinder
             // §2023:12.4.5.6.4 GR2), resolved by the same SR2 selection. A key any of whose operands references nothing
             // describable has no value to build, and that operand's SR2 row reports it.
             RecordKey? KeyOf(WrittenDataName key, IReadOnlyList<int> subscripts, RecordKeySource? source, string face,
-                             Editions.DiagnosticCursor at, Action<DataItem?> dataName1)
+                             Editions.DiagnosticCursor at, Action<DataItem?, bool> dataName1)
             {
                 if (source is null)
                 {
-                    var item = InRecords(key, face, at);
+                    var item = InRecords(key, face, at, out bool refused);
                     // COBOL-2002's key names the occurrence its integer-literal subscripts select (§2002:5.1.3), judged once the
                     // item is known (§2002:8.4.1.2.2 SR2/SR3/SR5, §2002:8.4.1.2.3 GR2); a refusal makes it no key, with no cascade (kb/Work PB5602).
                     if (!ScreenClauseOperandOccurrence(item, subscripts, face, key, at))
                     {
-                        refusedKeys.Add(key.Name);
+                        refused = true;
                         item = null;
                     }
-                    dataName1(item);
+                    dataName1(item, refused);
                     return item is null ? null : RecordKey.OfItem(item, subscripts);
                 }
                 foreach (var op in source.Operands)
                 {
-                    op.Item = InRecords(op.Operand, $"{face} SOURCE", op.At);
+                    op.Item = InRecords(op.Operand, $"{face} SOURCE", op.At, out bool refused);
                     if (!ScreenClauseOperandOccurrence(op.Item, op.Subscripts, $"{face} SOURCE", op.Operand, op.At))
                     {
-                        refusedKeys.Add(op.Operand.Name);
+                        refused = true;
                         op.Item = null;
                     }
+                    op.Refused = refused;
                 }
                 return source.Operands.All(o => o.Item is not null)
                     ? RecordKey.OfSource(source.Name, [.. source.Operands.Select(o => o.Item!)],
                         [.. source.Operands.Select(o => o.Subscripts)]) : null;
             }
             if (file.RecordKeyOperand is { } rk)
-                file.PrimeKey = KeyOf(rk, file.RecordKeySubscripts, file.RecordKeySource, "RECORD KEY", file.RecordKeyAt, _ => { });
+                file.PrimeKey = KeyOf(rk, file.RecordKeySubscripts, file.RecordKeySource, "RECORD KEY", file.RecordKeyAt,
+                    (_, refused) => file.RecordKeyRefused = refused);
             foreach (var clause in file.AlternateKeyNames)
             {
                 clause.SuppressWhen = ReadSuppressWhen(clause);
                 if (KeyOf(clause.Operand, clause.Subscripts, clause.Source, "ALTERNATE RECORD KEY", clause.At,
-                        item => clause.Item = item) is { } alt)
+                        (item, refused) => (clause.Item, clause.Refused) = (item, refused)) is { } alt)
                     file.AlternateKeys.Add((alt, clause.Duplicates, KeySuppressionOf(alt, clause.SuppressWhen), clause));
             }
             ResolveFileCollating(file);   // §2023:12.4.5.7 — per-key collating weights (needs the resolved keys)
@@ -143,7 +148,7 @@ public sealed partial class FileControlBinder
             // whatever the procedure division does with it. They used to run from KeyedIoBinder on the first keyed
             // VERB that named the file, so a program that only OPENed and CLOSEd a file whose keys break them
             // compiled clean (kb/Work PB699). One table, one screen: FileControlKeyRules.
-            FileControlKeyRules.Screen(file, Edition, refusedKeys);
+            FileControlKeyRules.Screen(file, Edition);
             // ⛔ The RECORD clause's own size syntax rules (ISO §2023:13.18.43.3 SR3/SR4/SR5/SR9), screened HERE for
             // the same reason and by the same shape: they are rules of the file description ENTRY, and SR3/SR4
             // compare the clause's integers against §2023:13.18.43.4 GR8's byte counts of the record descriptions,

@@ -81,11 +81,13 @@ internal enum FileKinds
 /// data-name-2 after the first.</para>
 /// <para><paramref name="Ordinal"/> is an ALTERNATE RECORD KEY clause's position among the entry's alternate
 /// clauses as written — what lets §2023:12.4.5.6.3 SR4's "another alternate record key" exclude the clause itself
-/// without excluding a SECOND clause that names the same item; 0 on every other role.</para></summary>
+/// without excluding a SECOND clause that names the same item; 0 on every other role.</para>
+/// <para><paramref name="Refused"/>: this operand was refused and reported while it was resolved, so no row speaks about it
+/// again (<see cref="FileControlKeyRules.Screen"/>).</para></summary>
 internal readonly record struct FileKeyOperand(
     FileKeyRole Role, string ClauseFace, string? Name, DataItem? Item, DiagnosticCursor At,
     SuppressWhenOperand? SuppressWhen = null, int Ordinal = 0, RecordKeySource? Source = null, int SourceIndex = -1,
-    IReadOnlyList<int>? Subscripts = null)
+    IReadOnlyList<int>? Subscripts = null, bool Refused = false)
 {
     /// <summary>The occurrence of <see cref="Item"/> the operand's integer-literal subscripts select (COBOL-2002, §2002:5.1.3;
     /// kb/Work PB5602): empty when none was written.</summary>
@@ -1078,12 +1080,12 @@ internal static class FileControlKeyRules
     /// <c>FileControlBinder.ResolveFiles</c>, so a file is reported once however many statements name it — the
     /// one-report-per-file property the old per-verb memo (<c>_keyedCheckedFiles</c>) existed to provide, now a
     /// consequence of WHERE the screen runs rather than a set the screen has to carry.</summary>
-    /// <param name="refusedOperands">Key operand names already REFUSED and reported, for which no rule here may
-    /// speak again: a §2023:8.4.2.2.3 SR1 ambiguity (kb/Work PB978 — two items ARE described), and an operand the
-    /// capture refused for its written SHAPE (a subscript or reference-modifier, COBOL2024 — kb/Work PB481),
-    /// recorded as written and so naming no item. Either has no item, and SR2's "references nothing described"
-    /// would be a false second verdict about it.</param>
-    public static void Screen(FileModel file, EditionContext edition, IReadOnlySet<string>? refusedOperands = null)
+    /// <remarks>A key operand already REFUSED and reported while it was resolved (<see cref="FileKeyOperand.Refused"/>) is one no
+    /// rule here may speak about again: a §2023:8.4.2.2.3 SR1 ambiguity (kb/Work PB978 — two items ARE described), and an operand the
+    /// capture refused for its written SHAPE (a subscript or reference-modifier, COBOL2024 — kb/Work PB481), recorded as written and
+    /// so naming no item. Either has no item, and SR2's "references nothing described" would be a false second verdict about it. The
+    /// mark is the operand's own, so of two operands that share a spelling only the refused one is skipped.</remarks>
+    public static void Screen(FileModel file, EditionContext edition)
     {
         // ⛔ A SORT-MERGE FILE IS SCREENED, and the rules that speak about it say so in their own ScreenedOn set.
         // This method used to open with `if (file.IsSortMerge) return;` and a comment observing that an SD whose
@@ -1139,7 +1141,7 @@ internal static class FileControlKeyRules
             if (!HasApplicableRule(rules, file, kind, role)) continue;   // a relative entry never enumerates a RECORD KEY
             foreach (var op in Operands(file, role))
             {
-                if (op is { Item: null, Name: { } refused } && refusedOperands?.Contains(refused) == true) continue;
+                if (op is { Item: null, Refused: true }) continue;
                 foreach (var rule in rules)
                 {
                     if (rule.Role != role || (rule.ScreenedOn & kind) == 0 || sortMerge1985
@@ -1181,7 +1183,8 @@ internal static class FileControlKeyRules
         {
             var op = source.Operands[k];
             yield return new FileKeyOperand(role, face, op.Operand.Name, op.Item, op.At,
-                SuppressWhen: k == 0 ? suppressWhen : null, Ordinal: ordinal, Source: source, SourceIndex: k, Subscripts: op.Subscripts);
+                SuppressWhen: k == 0 ? suppressWhen : null, Ordinal: ordinal, Source: source, SourceIndex: k, Subscripts: op.Subscripts,
+                Refused: op.Refused);
         }
     }
 
@@ -1201,7 +1204,7 @@ internal static class FileControlKeyRules
                     foreach (var op in SourceOperands(role, "RECORD KEY", pks, null, 0)) yield return op;
                 else
                     yield return new FileKeyOperand(role, "RECORD KEY", file.RecordKeyOperand?.Name, file.PrimeKey?.Item,
-                        file.RecordKeyAt, Subscripts: file.RecordKeySubscripts);
+                        file.RecordKeyAt, Subscripts: file.RecordKeySubscripts, Refused: file.RecordKeyRefused);
                 break;
             case FileKeyRole.AlternateRecordKey:
                 // The clauses AS WRITTEN, not FileModel.AlternateKeys: a clause whose data-name-1 resolved to
@@ -1213,7 +1216,7 @@ internal static class FileControlKeyRules
                         foreach (var op in SourceOperands(role, "ALTERNATE RECORD KEY", aks, alt.SuppressWhen, i)) yield return op;
                     else
                         yield return new FileKeyOperand(role, "ALTERNATE RECORD KEY", alt.Operand.Name, alt.Item, alt.At,
-                            SuppressWhen: alt.SuppressWhen, Ordinal: i, Subscripts: alt.Subscripts);
+                            SuppressWhen: alt.SuppressWhen, Ordinal: i, Subscripts: alt.Subscripts, Refused: alt.Refused);
                 }
                 break;
             case FileKeyRole.RelativeKey:

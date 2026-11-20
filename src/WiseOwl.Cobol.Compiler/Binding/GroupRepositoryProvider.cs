@@ -31,20 +31,24 @@ namespace WiseOwl.Cobol.Binding;
 /// times). The user-function table used to merge a prototype with a definition of the same WORD, which dropped the
 /// prototype's <c>AS literal-1</c> (§2023:11.5.4 GR2: literal-1 "is the name of the function prototype that is
 /// externalized to the operating environment") whenever a definition happened to share its word. The WORD has one
-/// job, for functions only: the candidates <see cref="FunctionsByWord"/> lists for D-R3 steps 2 and 3 (§2023:8.4.6.7).</para>
+/// job, for functions only: the candidates <see cref="FunctionsByWord"/> lists for D-R3 steps 2 and 3 (§2023:8.4.6.7), the units the
+/// group tier of the symbol table keys under the word (<see cref="SymbolTable.UnitNames.FunctionsNamed"/>), read here in the rule's
+/// order.</para>
 /// </summary>
 internal sealed class GroupRepositoryProvider : IRepositoryProvider
 {
     private readonly List<BoundUnit> _functions = [];
     private readonly List<BoundUnit> _programs = [];
     private readonly ElementBinders _binders;   // each unit's signature is its binder's linkage facts (kb/Work PB2361)
+    private readonly SymbolTable.UnitNames _unitNames;   // the group tier's function units by word: the one answer to which carry a word
 
     /// <summary>The group's FUNCTION-ID units (definitions and prototypes — §2023:9.4 puts them in the function namespace)
     /// and its OUTERMOST PROGRAM-ID units (a contained program is part of its container's definition and is reachable
     /// only through §2023:14.9.4.3 SR15's AS NESTED, which has its own table), in source order.</summary>
-    public GroupRepositoryProvider(IReadOnlyList<BoundUnit> units, ElementBinders binders)
+    public GroupRepositoryProvider(IReadOnlyList<BoundUnit> units, SymbolTable.UnitNames unitNames, ElementBinders binders)
     {
         _binders = binders;
+        _unitNames = unitNames;
         foreach (var u in units)
             if (u.IsFunction) _functions.Add(u);
             else if (u.Parent is null) _programs.Add(u);
@@ -54,8 +58,9 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     /// units <paramref name="matches"/> accepts that may supply a prototype's details, in the rule's own order — every
     /// definition that starts strictly before the element, then every prototype definition, each in source order. The
     /// first is the unit that supplies the details (<see cref="Find"/>); none is c). The predicate is the
-    /// externalized-name test for GR10 / GR11 and the user-function-name test for D-R3 steps 2 and 3.</summary>
-    private static IEnumerable<BoundUnit> Candidates(List<BoundUnit> units, Func<BoundUnit, bool> matches, int position)
+    /// externalized-name test for GR10 / GR11; for D-R3 steps 2 and 3, <paramref name="units"/> are already the units the symbol
+    /// table keys under the word (<see cref="SymbolTable.UnitNames.FunctionsNamed"/>) and every one matches.</summary>
+    private static IEnumerable<BoundUnit> Candidates(IReadOnlyList<BoundUnit> units, Func<BoundUnit, bool> matches, int position)
     {
         foreach (var u in units)
             if (!u.IsPrototype && u.SourcePosition < position && matches(u)) yield return u;
@@ -81,7 +86,7 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
 
     /// <inheritdoc/>
     public IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan) =>
-        Candidates(_functions, u => CobolNames.Same(u.Name, userFunctionName), position)
+        Candidates(_unitNames.FunctionsNamed(userFunctionName), static _ => true, position)
             .Where(u => otherThan is null || !ExternalizedNames.Same(u.ExternalizedName, otherThan))   // D-R3 step 3: a DIFFERENT function
             .Select(AnswerOf);
 

@@ -66,7 +66,9 @@ internal sealed record NameFinding(int Rule, string Key, string Where, string Wh
 /// collection of <c>DeclarationFact</c>, and has no <c>out</c> parameter of another type.</item>
 /// <item>No <c>CobolNames.Same</c> call, no <c>CobolNames.Comparer</c> use and no <c>==</c>, <c>!=</c> or
 /// <c>string.Equals</c> of a binder symbol's name property (or a <c>CobolNames.Fold</c> / <c>UpperFold</c> result)
-/// outside <c>SymbolTable</c>, unless the committed classification names the site with a non-resolution class.</item>
+/// outside <c>SymbolTable</c>, and no call there of one of the table's static <c>bool</c> equalities over a <c>string</c> that makes
+/// the comparison the caller's (<see cref="TableCallKind"/>), unless the committed classification names the site with a
+/// non-resolution class.</item>
 /// </list>
 /// "Inside <c>SymbolTable</c>" is a member of <c>SymbolTable</c> or of a type nested in it. Rules (2) and (3) ask about
 /// every member whose EFFECTIVE accessibility is not private, the table's own included: its one lookup is
@@ -462,7 +464,7 @@ internal static class NameTableOwnership
                     if (operands.Any(o => IsNameOperand(c, model, o)))
                         return "NAMEEQ";
                 }
-                return null;
+                return c.InsideSymbolTable(m) ? TableCallKind(c, model, call, m) : null;
             case IdentifierNameSyntax id when id.Identifier.ValueText == "Comparer"
                     && model.GetSymbolInfo(id).Symbol is IPropertySymbol p && IsCobolNamesMember(c, p, "Comparer"):
                 return "CMP";
@@ -471,6 +473,49 @@ internal static class NameTableOwnership
             default:
                 return null;
         }
+    }
+
+    /// <summary>A call, from outside <c>SymbolTable</c> (the caller skips the table's own), of one of the table's FREE-STANDING name
+    /// equalities, a static member that answers <c>bool</c> and takes a <c>string</c>, used so that the comparison is the caller's:
+    /// TABLEARG when a binder symbol's name property (<see cref="IsNameOperand"/>) is passed for a <c>string</c> parameter (the
+    /// equality then compares two names the caller chose, as <c>CobolNames.Same</c> would); TABLESEARCH when a lambda's parameter or a
+    /// <c>foreach</c> variable is passed for a binder-typed parameter (a per-symbol name equality applied to each symbol of a
+    /// collection is a lookup without a table). Neither: null. An instance member is the table's own question over its own state
+    /// (a declaration, a keyed lookup), never a bare equality, so it is neither. (kb/Work PB5932, listing step 6b-r5 review round 1,
+    /// lead R1-2.)</summary>
+    private static string? TableCallKind(Context c, SemanticModel model, InvocationExpressionSyntax call, IMethodSymbol m)
+    {
+        if (!m.IsStatic || m.ReturnType.SpecialType != SpecialType.System_Boolean
+            || !m.Parameters.Any(p => p.Type.SpecialType == SpecialType.System_String))
+            return null;
+        bool search = false;
+        for (int i = 0; i < call.ArgumentList.Arguments.Count; i++)
+        {
+            ArgumentSyntax argument = call.ArgumentList.Arguments[i];
+            IParameterSymbol? parameter = argument.NameColon is { } named
+                ? m.Parameters.FirstOrDefault(p => p.Name == named.Name.Identifier.ValueText)
+                : i < m.Parameters.Length ? m.Parameters[i] : null;
+            if (parameter is null)
+                continue;
+            if (parameter.Type.SpecialType == SpecialType.System_String && IsNameOperand(c, model, argument.Expression))
+                return "TABLEARG";
+            if (c.IsBinderType(parameter.Type) && IsEachElement(model, argument.Expression))
+                search = true;
+        }
+        return search ? "TABLESEARCH" : null;
+    }
+
+    /// <summary>The expression names a lambda's parameter or a <c>foreach</c> iteration variable: one element of a collection.</summary>
+    private static bool IsEachElement(SemanticModel model, ExpressionSyntax expression)
+    {
+        ExpressionSyntax e = expression is PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } bang
+            ? bang.Operand : expression;
+        return model.GetSymbolInfo(e).Symbol switch
+        {
+            IParameterSymbol { ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.AnonymousFunction or MethodKind.LambdaMethod } } => true,
+            ILocalSymbol local => local.DeclaringSyntaxReferences.Any(r => r.GetSyntax() is ForEachStatementSyntax),
+            _ => false,
+        };
     }
 
     private static bool IsCobolNamesMember(Context c, ISymbol member, string name) =>

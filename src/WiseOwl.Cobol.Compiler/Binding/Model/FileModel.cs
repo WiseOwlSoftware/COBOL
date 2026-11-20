@@ -77,6 +77,11 @@ public sealed class AlternateKeyClause
     /// references nothing describable — itself a §2023:12.4.5.6.3 SR2 violation — and always null for the SOURCE form,
     /// whose operands resolve on <see cref="Source"/>.</summary>
     public DataItem? Item { get; set; }
+
+    /// <summary>Whether data-name-1 was REFUSED and reported while it was resolved (an ambiguity, a report item, a written shape or
+    /// a subscript the rules refuse), so the key screen's rows say nothing more about it (<c>FileControlKeyRules.Screen</c>; kb/Work
+    /// PB481, PB978). Set by <c>FileControlBinder.ResolveFiles</c>.</summary>
+    public bool Refused { get; set; }
 }
 
 /// <summary>The SOURCE phrase of a RECORD KEY or ALTERNATE RECORD KEY clause AS WRITTEN — ISO §2023:12.4.5.12.2 /
@@ -106,6 +111,9 @@ public sealed class KeySourceOperand
     public IReadOnlyList<int> Subscripts { get; init; } = [];
     public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; init; }
     public DataItem? Item { get; set; }
+
+    /// <summary>Whether this data-name-2 was refused and reported while it was resolved (<see cref="AlternateKeyClause.Refused"/>).</summary>
+    public bool Refused { get; set; }
 }
 
 /// <summary>A PADDING CHARACTER clause as written (§1985:VII.2.7.2: <c>PADDING CHARACTER IS {data-name-1 | literal-1}</c>):
@@ -414,6 +422,10 @@ public sealed class FileModel
     /// set — resolved post-build to <see cref="PrimeKey"/>; null when the clause is absent (it is required for ORGANIZATION
     /// INDEXED, §2023:12.4.5.1 Format 1).</summary>
     public WrittenDataName? RecordKeyOperand { get; set; }
+
+    /// <summary>Whether the RECORD KEY clause's data-name-1 was refused and reported while it was resolved
+    /// (<see cref="AlternateKeyClause.Refused"/>).</summary>
+    public bool RecordKeyRefused { get; set; }
 
     /// <summary>The source position of the RECORD KEY clause's data-name-1 — where §2023:12.4.5.12.3's syntax rules
     /// report, since they are screened post-build (the operand resolves only once the data forest is indexed).</summary>

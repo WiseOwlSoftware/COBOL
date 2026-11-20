@@ -151,7 +151,7 @@ public sealed class OoClassTable
                     found = true;
                 else if (other.interfaceName() is { } inm && other.INTERFACE() is not null && scope.InterfaceTarget(inm.GetText(), out var ifcExt)
                     && (ifcExt is null ? Names.GroupInterfaceNamed(inm) ?? Names.FindInterfaceByExternalizedName(inm.GetText()) : Names.FindInterfaceByExternalizedName(ifcExt)) is { } ifc
-                    && Names.AllPrototypes(ifc).Any(p => SymbolTable.ClassNames.IsAccessorOf(p, identity)))
+                    && SymbolTable.ClassNames.AccessorAmong(Names.AllPrototypes(ifc), identity) != '\0')
                     found = true;
             }
             if (!found) report(entry, word, externalized);
@@ -161,9 +161,9 @@ public sealed class OoClassTable
     private bool ClassHasProperty(OoClassSymbol cls, string property)
     {
         foreach (var c in ClassLineage(cls))
-            if (c.Methods.Concat(c.FactoryMethods).Any(m => SymbolTable.ClassNames.IsAccessorOf(m, property))) return true;
+            if (SymbolTable.ClassNames.AccessorAmong(c.Methods.Concat(c.FactoryMethods), property) != '\0') return true;
         return ImplementsClosure(cls, factory: false).Concat(ImplementsClosure(cls, factory: true))
-            .Any(i => Names.AllPrototypes(i).Any(p => SymbolTable.ClassNames.IsAccessorOf(p, property)));
+            .Any(i => SymbolTable.ClassNames.AccessorAmong(Names.AllPrototypes(i), property) != '\0');
     }
 
     /// <summary>ISO §2023:12.3.8.3 SR9 for one interface-specifier without EXPANDS (the twin of
@@ -192,10 +192,9 @@ public sealed class OoClassTable
     /// lets <see cref="SymbolTable.ClassNames.Resolve"/> say WHY (ISO §2023:12.3.8.4 GR1: "If object-class-name-1 is a class
     /// described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY
     /// paragraph").</summary>
-    public bool IsParameterized(string name) => _parameterized.Contains(name);
-    private IReadOnlySet<string> _parameterized = EmptyNames;
+    public bool IsParameterized(string name) => _expansionNames.IsParameterized(name);
+    private SymbolTable.ExpansionNames _expansionNames = SymbolTable.ExpansionNames.None;
     private int _dialectLevel;   // the edition's year: the spelling the repository AS literals are read in (kb/Work PB2840)
-    private static readonly IReadOnlySet<string> EmptyNames = new HashSet<string>();
 
     /// <summary>The §2023:8.4.6.4 name scope visible at <paramref name="site"/> — memoized per SOURCE ELEMENT so the
     /// ancestor walk runs once per program / class / interface / method definition rather than once per
@@ -478,10 +477,10 @@ public sealed class OoClassTable
         var interfaces = expanded.Interfaces;
         var parameterizedClasses = expanded.ParameterizedClasses;
         var parameterizedInterfaces = expanded.ParameterizedInterfaces;
-        var expandedNames = expanded.ExpandedNames;
+        var expansionNames = expanded.Names;
         var table = new OoClassTable
         {
-            _parameterized = expanded.ParameterizedNames, _variables = variables,
+            _expansionNames = expanded.Names, _variables = variables,
             _dialectLevel = edition.Edition.Year, _edition = edition, _importer = importer, _sources = sources,
             Skeletons = expanded.Skeletons,
         };
@@ -530,10 +529,10 @@ public sealed class OoClassTable
         // The PARAMETERIZED interface definitions (kb/Work PB2051): out of the table and every lookup, but interface
         // definitions all the same — their INTERFACE-ID and prototype rules are asked here, their formals bound later.
         // A definition some expansion re-binds is asked through that expansion only (one fact, one diagnostic:
-        // OoExpansion.Result.ExpandedNames).
+        // SymbolTable.ExpansionNames.IsExpanded).
         foreach (var ictx in parameterizedInterfaces ?? [])
         {
-            if (expandedNames?.Contains(ictx.interfaceName(0).GetText()) == true) continue;
+            if (expansionNames.IsExpanded(ictx.interfaceName(0).GetText())) continue;
             using var atInterface = edition.At(ictx.interfaceName(0));
             var isym = NewInterfaceSymbol(ictx);
             AddPrototypes(isym);
@@ -880,9 +879,9 @@ public sealed class OoClassTable
             var id = skeleton.classIdParagraph();
             string name = id.className(0).GetText();
             // The definition binds as itself (PB2051) only when nothing expands it; an expanded one is asked through
-            // its expansions, which re-bind every line of it (one fact, one diagnostic: OoExpansion.Result.ExpandedNames).
+            // its expansions, which re-bind every line of it (one fact, one diagnostic: SymbolTable.ExpansionNames.IsExpanded).
             OoClassSymbol? sym = null;
-            if (expandedNames?.Contains(name) != true)
+            if (!expansionNames.IsExpanded(name))
                 using (edition.At(id.className(0)))
                 {
                     sym = NewClassSymbol(skeleton);

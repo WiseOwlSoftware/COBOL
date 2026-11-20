@@ -600,11 +600,11 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             // WITH NO SET says (kb/Work PB1503 — the rule used to be a by-product of an accessor-name COLLISION, so the
             // NO GET + explicit GET pair, which synthesizes no colliding accessor, compiled). The clause then defines no
             // accessor: the explicit method keeps the property.
-            if ((factory ? cls.FactoryMethods : cls.Methods).FirstOrDefault(m =>
-                    m.Origin is OoSymbolOrigin.Source && SymbolTable.ClassNames.IsAccessorOf(m, subjName)) is { } explicitAccessor)
+            if (SymbolTable.ClassNames.AccessorAmong((factory ? cls.FactoryMethods : cls.Methods).Where(m => m.Origin is OoSymbolOrigin.Source),
+                    subjName) is var explicitAccessor and not '\0')
             {
                 Edition.Error(DiagnosticCatalog.PropertyMethodRule, $"{where}: METHOD-ID "
-                    + $"{(explicitAccessor.Accessor == 'G' ? "GET" : "SET")} PROPERTY {subjName} names a data-name of the "
+                    + $"{(explicitAccessor == 'G' ? "GET" : "SET")} PROPERTY {subjName} names a data-name of the "
                     + $"{(factory ? "factory" : "object")} working-storage section that carries the PROPERTY clause; if "
                     + "property-name-1 is specified as a data-name in the working-storage section of the containing "
                     + "object definition, the PROPERTY clause shall not be specified in the data description entry of "

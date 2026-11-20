@@ -145,7 +145,7 @@ internal sealed class BinderDriver
         table.ResolveOverrides(edition);
         // The PARAMETERIZED definitions nothing expands bind as themselves, for their own rules, after every emitted
         // class (their uid bands follow) and outside every later pass: nothing emits a skeleton (kb/Work PB2051; OO
-        // deep-dive D12). An expanded one is bound through its expansions only (OoExpansion.Result.ExpandedNames).
+        // deep-dive D12). An expanded one is bound through its expansions only (SymbolTable.ExpansionNames.IsExpanded).
         foreach (var iface in table.ParameterizedInterfaces) oo.BindParameterized(iface);
         foreach (var cls in table.ParameterizedClasses) oo.BindParameterized(cls);
         // The checking slices of every class half and every method (kb/Work PB2296; CheckingFold), folded once every method
@@ -721,11 +721,14 @@ internal sealed class BinderDriver
         // is nonconforming source, and the search silently keeps the first definition and drops the
         // second — the shape §2023:8.3.2.2 exists to forbid.
         CheckDefinitionNameUniqueness(units, classes, session.OoClasses, session.Sources, session.Edition, session.Binders);
-        CheckFunctionUnits(units, session.Sources, session.Edition, session.Binders);
+        // The group tier's function units by word (§2023:8.4.6.7), the symbol table's (docs/rearchitecture/DESIGN-listing.md
+        // section 6.7.1, "Step 6b, remainder slice 5"): the same-word screen and the repository's word search both ask it.
+        var unitNames = new SymbolTable.UnitNames(units);
+        CheckFunctionUnits(units, unitNames, session.Sources, session.Edition, session.Binders);
         // kb/Work PB237 / PB894 / PB989 — the compilation group's program and function units, the search space
         // §2023:12.3.8.4 GR10 / GR11 a) and b) name. Built once; each source element searches it AS OF ITS OWN POSITION.
         // c) is the external repository's (kb/Work PB2103): it reads nothing until a specifier the group cannot answer.
-        return new RepositoryResolver(new GroupRepositoryProvider(units, session.Binders), session.External);
+        return new RepositoryResolver(new GroupRepositoryProvider(units, unitNames, session.Binders), session.External);
     }
 
     /// <summary>⛔ Give every restricted program- or function-pointer in the group its two restrictions — the prototype its
@@ -888,17 +891,17 @@ internal sealed class BinderDriver
         //     externalized name used to compile clean — each namespace policed only ITSELF; the EXTERNAL items
         //     were the same hole, one list further down the same clause).
         var externalized =
-            new Dictionary<string, (string Kind, string Spelling, string Word)>(WiseOwl.Cobol.Runtime.ExternalizedNames.Comparer);
-        foreach (var (kind, spelling, word, name, at, shared) in ExternalizedDefinitions(units, classes, oo, sources, binders))
+            new Dictionary<string, (string Kind, string Spelling)>(WiseOwl.Cobol.Runtime.ExternalizedNames.Comparer);
+        foreach (var (kind, spelling, name, at, shared) in ExternalizedDefinitions(units, classes, oo, sources, binders))
         {
             if (externalized.TryGetValue(name, out var first))
             {
                 // §2023:8.4.6.4 states its OWN compilation-group uniqueness for object-class-names and
-                // interface-names, and the OO class table enforces it on the declared WORD (COBOL0820,
-                // OoDefinitionNameNotUnique). A pair already reported THERE is skipped here rather than doubled — but only
-                // that pair: two class definitions whose words DIFFER and whose AS literals coincide are
-                // §2023:8.3.2.2's business alone, and nothing else in the compiler looks at them.
-                if (IsOo(kind) && IsOo(first.Kind) && CobolNames.Same(word, first.Word)) continue;
+                // interface-names, and the group tier enforces it on the declared WORD where it declares the second
+                // (COBOL0820, OoDefinitionNameNotUnique) and admits only the first: oo.Classes and oo.Interfaces hold one
+                // definition per word, so no pair this check sees was reported there. Two class definitions whose words
+                // DIFFER and whose AS literals coincide are §2023:8.3.2.2's business alone (kb/Work PB5932, listing step
+                // 6b-r5 review round 1: the skip of a same-word pair that stood here could not be reached).
                 // Two EXTERNAL items of ONE kind under one name are the SAME INSTANCE — that sharing is what the
                 // EXTERNAL clause is for ("they refer to the same instance"), and whether their descriptions agree is
                 // §2023:13.18.22.4 / EC-EXTERNAL-*'s question. Only a pair of DIFFERENT kinds conflicts.
@@ -921,7 +924,7 @@ internal sealed class BinderDriver
                     + $"'{name}' in this compilation group — {why}");
                 continue;   // the FIRST stays the survivor, so one duplicated name reports exactly once
             }
-            externalized[name] = (kind, spelling, word);
+            externalized[name] = (kind, spelling);
         }
 
         // (2) The per-OUTERMOST-PROGRAM contained namespace (§2023:8.4.6.3). "Directly or indirectly", so the
@@ -961,7 +964,7 @@ internal sealed class BinderDriver
         // report. The list's remaining members are not definitions in a compilation group: method-names and
         // property-names are the two §2023:8.3.2.2 EXEMPTS from the same-instance sentence by name, and a
         // function-prototype-name / program-prototype-name names a definition elsewhere (§2023:12.3.8.4 GR10).
-        static IEnumerable<(string Kind, string Spelling, string Word, string Name, DiagnosticCursor At, bool Shared)>
+        static IEnumerable<(string Kind, string Spelling, string Name, DiagnosticCursor At, bool Shared)>
             ExternalizedDefinitions(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes, OoClassTable oo, SourceMap sources,
                 ElementBinders binders)
         {
@@ -969,14 +972,14 @@ internal sealed class BinderDriver
             {
                 if (u.IsPrototype || u.Parent is not null) continue;
                 string kind = u.IsFunction ? "FUNCTION-ID" : "PROGRAM-ID";
-                yield return (kind, Spell(kind, u.Name, u.ExternalizedName), u.Name, u.ExternalizedName,
+                yield return (kind, Spell(kind, u.Name, u.ExternalizedName), u.ExternalizedName,
                               CursorOf(sources.NameOf(u)), false);
             }
             foreach (var c in oo.Classes)
-                yield return ("CLASS-ID", Spell("CLASS-ID", c.Name, c.ExternalizedName), c.Name,
+                yield return ("CLASS-ID", Spell("CLASS-ID", c.Name, c.ExternalizedName),
                               c.ExternalizedName, CursorOf(sources.Of(c)), false);
             foreach (var i in oo.Interfaces)
-                yield return ("INTERFACE-ID", Spell("INTERFACE-ID", i.Name, i.ExternalizedName), i.Name,
+                yield return ("INTERFACE-ID", Spell("INTERFACE-ID", i.Name, i.ExternalizedName),
                               i.ExternalizedName, CursorOf(sources.Of(i)), false);
             // §2023:8.3.2.2 list item 2 — the EXTERNAL data items, records and files of EVERY source element: a
             // contained program's and a class's (object and factory halves) included, since the clause names the
@@ -986,7 +989,7 @@ internal sealed class BinderDriver
                          .Concat(classes.SelectMany(cu => new[] { binders.ObjectOf(cu).Data, binders.FactoryOf(cu).Data })))
                 foreach (var s in data.Linkage.ExternalizedSubjects())
                     yield return (s.Kind == ExternalizedSubjectKind.File ? "EXTERNAL file" : "EXTERNAL data item",
-                                  $"EXTERNAL {s.Spelling}", s.Word, s.Name, s.At, true);
+                                  $"EXTERNAL {s.Spelling}", s.Name, s.At, true);
         }
 
         // A parse node's first token as a diagnostic position (an unset cursor leaves the current one standing).
@@ -994,10 +997,6 @@ internal sealed class BinderDriver
 
         // How a KIND reads in the cross-kind sentence: a definition of the unit kinds, or the EXTERNAL item itself.
         static string Noun(string kind) => kind.StartsWith("EXTERNAL", StringComparison.Ordinal) ? $"an {kind}" : $"a {kind} definition";
-
-        // The two kinds §2023:8.4.6.4 gives their own compilation-group uniqueness sentence, and whose check
-        // therefore already exists elsewhere (OoClassTable).
-        static bool IsOo(string kind) => kind is "CLASS-ID" or "INTERFACE-ID";
 
         // How a definition is named back to the user: the DECLARED word, plus the AS literal whenever one gave
         // the externalized name a different spelling (§2023:11.10.4 GR1 / §2023:11.5.4 GR1 / §2023:11.3.4 GR1 /
@@ -1078,15 +1077,13 @@ internal sealed class BinderDriver
     /// <see cref="GroupRepositoryProvider.FunctionsVisibleAt"/>). The §2023:14.2 procedure-division-header rule "The RETURNING phrase
     /// shall be specified in a function definition" (:23666) is checked HERE, once per unit — even an uncalled
     /// function without RETURNING is ill-formed — and so is the same-word duplicate (COBOL1508).</summary>
-    private static void CheckFunctionUnits(IReadOnlyList<BoundUnit> units, SourceMap sources, EditionContext edition,
-        ElementBinders binders)
+    private static void CheckFunctionUnits(IReadOnlyList<BoundUnit> units, SymbolTable.UnitNames unitNames, SourceMap sources,
+        EditionContext edition, ElementBinders binders)
     {
-        // Partition the group's FUNCTION-ID units by name into DEFINITIONS (a real body) and PROTOTYPES
-        // (signature-only, §2023:11.5 Format 2). A prototype precedes all other units (§2023:10.6.2 SR1), so a naive
-        // first-wins TryAdd would false-report the FOLLOWING same-name definition as a duplicate (1508) — the
-        // partition prevents that.
-        var defs = new Dictionary<string, BoundUnit>(CobolNames.Comparer);
-        var protos = new Dictionary<string, BoundUnit>(CobolNames.Comparer);
+        // The group's FUNCTION-ID units by name are DEFINITIONS (a real body) and PROTOTYPES (signature-only, §2023:11.5
+        // Format 2), each kind compared only with its own (SymbolTable.UnitNames.EarlierOfSameWord). A prototype precedes all
+        // other units (§2023:10.6.2 SR1), so comparing across the kinds would false-report the FOLLOWING same-name definition as
+        // a duplicate (1508).
         foreach (var u in units)
         {
             if (!u.IsFunction) continue;
@@ -1104,8 +1101,7 @@ internal sealed class BinderDriver
             // names the user-function-NAME, so two definitions sharing a word are ambiguous even when
             // their AS literals differ — and for PROTOTYPE units, which the externalized check excludes
             // (§2023:10.6.2 SR3 pairs a function prototype with a same-name definition on purpose).
-            var bucket = u.IsPrototype ? protos : defs;
-            if (bucket.TryGetValue(u.Name, out var firstSameWord))
+            if (unitNames.EarlierOfSameWord(u) is { } firstSameWord)
             {
                 if (u.IsPrototype || !WiseOwl.Cobol.Runtime.ExternalizedNames.Same(u.ExternalizedName, firstSameWord.ExternalizedName))
                     edition.Error(DiagnosticCatalog.FunctionIdDuplicated,
@@ -1115,7 +1111,6 @@ internal sealed class BinderDriver
                         + "user-function-name may be referenced in the REPOSITORY paragraph of any source element "
                         + "that follows that function definition within the compilation group\")");
             }
-            else bucket[u.Name] = u;
         }
     }
 

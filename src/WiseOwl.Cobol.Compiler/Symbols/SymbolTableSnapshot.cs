@@ -17,8 +17,7 @@ internal sealed record SymbolTableSnapshot(IReadOnlyList<SymbolEntry> Entries);
 
 /// <summary>The class of name an entry is (ISO §2023:8.3.2.2 lists the user-defined words by class). Every class is entered where the
 /// binder declares the name (<c>SymbolTable.EntryStore</c>; DESIGN-listing.md section 6.7.1, "Step 6b, the entry ids") and is an entry
-/// of the finished table; a data-name or condition-name of a data description entry is still declared by the finish from the frozen
-/// forest until its declaration enters it.</summary>
+/// of the finished table, a data-name, FILLER entry or condition-name of a data description entry included (step 6b's remainder slice 5).</summary>
 internal enum NameClass
 {
     /// <summary>A program-name or a user-function-name.</summary>

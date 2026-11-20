@@ -398,10 +398,17 @@ public sealed partial class SymbolTable
             return surface;
         }
 
-        /// <summary>Is <paramref name="method"/> a get or set property accessor of the property <paramref name="property"/> (the
-        /// name the declared classes know it by: a PROPERTY specifier's literal-4, or its property-name-1, §2023:12.3.8.3 SR16)?</summary>
-        internal static bool IsAccessorOf(OoMethodSymbol method, string property) =>
-            method.Accessor != '\0' && method.PropertyName is { } own && Key(own) == Key(property);
+        /// <summary>The accessor kind (<c>'G'</c> get, <c>'S'</c> set) of the first of <paramref name="methods"/> that is a property
+        /// accessor of the property <paramref name="property"/> (the name the declared classes know it by: a PROPERTY specifier's
+        /// literal-4, or its property-name-1, §2023:12.3.8.3 SR16); <c>'\0'</c> when none is. The search over a roster is the table's,
+        /// so no caller applies a name equality to each method (step 6b-r5 review round 1, lead R1-2).</summary>
+        internal static char AccessorAmong(IEnumerable<OoMethodSymbol> methods, string property)
+        {
+            var key = Key(property);
+            foreach (var m in methods)
+                if (m.Accessor != '\0' && m.PropertyName is { } own && Key(own) == key) return m.Accessor;
+            return '\0';
+        }
 
         /// <summary>Does the RETURNING reference graph lead from the class or interface named <paramref name="start"/> to the one
         /// named <paramref name="target"/> (the start itself counting — a DIRECT reference)? ISO §2023:9.3.8.2.3's closing sentence

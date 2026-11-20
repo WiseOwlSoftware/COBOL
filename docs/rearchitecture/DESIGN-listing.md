@@ -8,7 +8,7 @@
 > finished symbol table, the data map and file map, the program attributes and the margin, branch `listing-step-6`); STEP 7a
 > BUILT (every name slot of the grammar labelled and held by `GrammarNameSlotDriftTests`, branch `listing-step-7`); STEP 8 BUILT
 > (one sequence point per COBOL statement and a portable PDB from the Roslyn backend, the object-code map and the object code read
-> from the assembly and its PDB, branch `listing-step-8`); STEP 6b IN PROGRESS, LANDING BY NAME CLASS (the one store of names,
+> from the assembly and its PDB, branch `listing-step-8`); STEP 6b BUILT, LANDED BY NAME CLASS (the one store of names,
 > kb/Work PB5932; slice 1, branch `listing-step-6b`: the drift test, the table's place, `Identify`, `Declarations`, the cd-names
 > and the file-names, and the temporary shrink-only baseline of the classes not yet moved; slice 2, branch `listing-step-6b-2`: the
 > tables keyed by no COBOL user word re-keyed by types of their own, and the procedure-names; slice 3, branch `listing-step-6b-3`:
@@ -24,10 +24,12 @@
 > table, the record-key-names read off their file; remainder slice 3, branch `listing-step-6b-r3`: the data-name candidate sets and the
 > qualifier walk private to the table behind the written words, the data-entry and report clause operands kept as a `WrittenDataName`;
 > remainder slice 4, branch `listing-step-6b-r4`: the data division's declarations, the §2023:8.3.2.2 census, the procedure division
-> header's operands and the CORRESPONDING pairing; the group tier's units, the parameterized expansion, the TURN file operand, the
-> refused record-key set and the data-names' and condition-names' entries remain, 24 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
+> header's operands and the CORRESPONDING pairing; remainder slice 5, branch `listing-step-6b-r5`, the last: the group tier's function
+> units, the parameterized expansion's names in the group's tier, the TURN file operand, the refused record-key operands and every
+> data-name's and condition-name's entry made where it is declared, the baseline emptied and deleted; sections 6.7.1 "Step 6b, as
+> built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
 > PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); step 7b (the
-> occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
+> occurrences and the cross-reference, which stand on 6b and its entry ids, both built: section 11, "Step 7b,
 > dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
 > part of this design not yet built and why.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
@@ -1036,7 +1038,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     (`DeclareParagraph`, `DeclareSection`, `ConfigurationNames<T>`, `DeclareDataName`, ...) and returns no `SymbolId`; the entries are
     made after the bind by `SymbolTableFinish.Of`. The `SymbolId` made at declaration is what lets an occurrence join its entry: the
     identified answer is not the entry for most classes (a constant, an ordering-name, a paragraph, a report group), so it is owed by
-    step 6b's remaining slices, each class's declaration giving its entry id as it moves, before step 7b records.
+    step 6b's remaining slices, each class's declaration giving its entry id as it moves, before step 7b records. (Step 6b, remainder
+    slice 5:) the data-names and condition-names, the last classes, enter theirs where they are declared too
+    (`SymbolTable.EnterDataItem`, `EnterConditionName`), so every class's declaration makes its entry and the finish declares none.
   - **Declarations cannot answer a reference (R4-1).** The data division's declaration questions (does this name exist
     in this scope, does it conflict with another declaration, where was it declared, is its description still open) go
     to `SymbolTable.Declarations`, a nested class whose members return only `DeclarationFact` values: a
@@ -1073,7 +1077,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     therefore holds the binder's only comparison of names, and `NameTableOwnershipDriftTests` rule (5), through the
     `SemanticModel` (by symbol, not by text), is red on every invocation of `CobolNames.Same`, every use of
     `CobolNames.Comparer`, and every `==`, `!=` or `string.Equals` of which one operand is a binder symbol's `string`
-    name property or a `CobolNames.Fold` or `UpperFold` call, anywhere in `WiseOwl.Cobol.Compiler` outside `SymbolTable`,
+    name property or a `CobolNames.Fold` or `UpperFold` call, anywhere in `WiseOwl.Cobol.Compiler` outside `SymbolTable`, and every call there of one of the table's static `bool`
+    equalities over a `string` that is handed a binder symbol's name property for the string or, for a binder-typed parameter, a
+    lambda's parameter or a `foreach` variable (step 6b-r5 review round 1: an equality of the table made the caller's comparison),
     unless the site is in the shrink-only `tests/WiseOwl.Cobol.Tests.Unit/Listing/name-comparisons.json` with one of the
     non-resolution classes below and its reason. A resolution (class RESOLVE) moves into `Identify`; a declaration
     comparison (class DECLARE) moves into `Declarations`; the other classes stay where they are, classified:
@@ -1173,7 +1179,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     falls, holds no rule other than (1), (3) and (5), and shares no key with a classification (a site is either classified for
     good or waiting for its slice). Rules (2) and (4) take no baseline. At slice 1 it holds 325 entries: 56 tables, 63 lookups,
     206 comparison sites. It is not a permanent ratchet: the LAST slice empties it and deletes the file and the code that reads
-    it, and the test is again the five rules above, green with no exceptions.
+    it, and the test is again the five rules above, green with no exceptions. (Step 6b, remainder slice 5:) done: the slice emptied
+    the baseline and deleted the file, its ceiling and the code that read it; all five rules are green with no exceptions.
   - *(Step 6b, slice 2, branch `listing-step-6b-2`.)* Two classes moved, and the baseline holds 308 (47 tables, 61 lookups, 200
     sites):
     - **The tables keyed by no COBOL user word** (section 6.7.2's last row) are keyed by a type that says what the key is, so rule
@@ -1415,6 +1422,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       and `CheckDefinitionNameUniqueness`. They wait in the baseline for the run-unit tier the OO class names need, which is the same
       tier; `DataBinder._repositoryNameReported` (the once-per-word report of §2023:12.3.8.3 SR12 and SR13 in the user-word
       declaration funnel) moves with the data-name class's declarations (since step 6b's remainder slice 4, `SymbolTable.FirstRefusal`).
+      (Step 6b, remainder slice 5:) the first two moved into the group tier, `SymbolTable.UnitNames`; the third's comparison could
+      not be reached and was deleted (section "Step 6b, remainder slice 5" below).
   - *(Step 6b, the OO names, branch `listing-step-6b-oo`, a lane beside the data-name lane.)* The object-class-names,
     interface-names and method rosters moved, and the PROPERTY specifiers; the lane lowers the baseline by 46 (rule (1) 8 tables,
     rule (3) 7 lookups, rule (5) 31 sites): 155 with slice 7's. `SymbolTable.ClassNames` (`SymbolTable.ClassNames.cs`) owns what `OoClassTable`,
@@ -1461,7 +1470,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       text it substitutes: 18 rule (5) sites. Its names are class-names, interface-names and parameter-names, so they are the
       group tier's, but the tier is made with the table the expansion produces; whether the tier is made first (before the
       expansion) or the expansion's names get a tier of their own is the next sub-slice's design question, and the 18 sites stay
-      in the baseline until it is answered.
+      in the baseline until it is answered. (Decided by step 6b's remainder slice 5: a tier of their own, the group's,
+      `SymbolTable.ExpansionNames`; section "Step 6b, remainder slice 5" below.)
   - *(Step 6b, data-name lane, first slice, branch `listing-step-6b-data`.)* The DEBUG-ITEM register names, the type-names, the named
     CAPACITY registers and the index-names moved, each with its resolution, and the baseline fell by 33 (rule (1) 13 tables, rule (3)
     9 lookups, rule (5) 11 sites): 122 with slice 7's and the OO lane's. `SymbolTable.DebugRegisters.cs` keys the X3.23-1985 DEBUG-ITEM family (§1985:XV.3.2.4 GR10)
@@ -1548,7 +1558,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       `FlagConformancePass` keeps no unit walk of its own, and a method's own USE declaratives govern its FLAG-14 d test.
     - *A pass before the bind keys its facts by the table's key.* `VersionConformancePass` remembers each level-01 record's EXTERNAL
       clause by its name for a later REDEFINES; it keys the written word's `CobolName` (`SymbolTable.WordOf`, now internal), so its
-      equality is the table's, and a subscript's written word is pre-filtered against an INDEXED BY name by
+      equality is the table's, and a subscript's written word is pre-filtered against an INDEXED BY declaration by
       `SymbolTable.SpellsIndexName` before it is resolved by its declaration (kb/Work PB919).
     - *Rule (2)'s companion sees a copy (correction, review lead R2-1 of the OO lane).* It scanned only object creations, so a `with`
       expression made a new `IdentifiedName` or `OoNameResult` unseen. It refuses a `with` expression of every table-made type and a
@@ -1739,6 +1749,84 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       `GroupRepositoryProvider.FunctionsByWord`), the parameterized expansion (`OoExpansion`, 18), a TURN directive's file operand
       (`TurnState.Fold`), the refused record-key operands (`FileControlBinder.ResolveFiles`, a set of operand names the key screen skips);
       then D, the data-names' and condition-names' entries made where they are declared.
+  - *(Step 6b, remainder slice 5, branch `listing-step-6b-r5`, the last slice; kb/Work PB5932's dated file `2026-11-20-step-6b-r5`.)*
+    The rest of part C and part D: the baseline is empty, so the slice deleted it (the file, `BaselineCeiling` and the code that read
+    it), and `NameTableOwnershipDriftTests` is the five rules again, green with no exceptions. As built, with the corrections the code
+    proved:
+    - *The group's FUNCTION-ID units by word are the group tier's, `SymbolTable.UnitNames`.* A REPOSITORY `FUNCTION word` entry of
+      any element that follows a function definition names it by its user-function-name (§2023:8.4.6.7), so the words are the
+      group's. `UnitNames` keys the group's function units by word and answers the same-word screen
+      (`EarlierOfSameWord`: COBOL1508, a definition compared only with definitions and a prototype with prototypes, §2023:10.6.2 SR3)
+      and the provider's question which units carry the word (`FunctionsNamed`, the same keyed table; review round 1 lead R1-2: the
+      slice first built it as a per-unit equality, `NamesFunction`, which the provider applied in a linear scan, a second mechanism
+      beside the table that a change to how a unit's word is keyed would have had to follow). (Correction:) "the group tier gains the group's
+      program and function units by word" said too much: the group's PROGRAM units are searched by their externalized names
+      (§2023:12.3.8.4 GR10), the operating environment's names, so they are no table of COBOL words; and the word reaches the group
+      through the repository's providers as text (`IRepositoryProvider.FunctionsByWord`, classified with the external repository's
+      provider, whose answers are another compilation's records), so the tier's keyed answer to it takes the string and is classified
+      with the same reason (rule (3); `string-parameter-members.json`, ceiling 128 -> 129). The OO pair of
+      `CheckDefinitionNameUniqueness` (two class or interface definitions of one word, which §2023:8.4.6.4's uniqueness refuses and
+      the tier reports as COBOL0820) is no comparison at all (correction, review round 1): the tier admits one definition per word
+      (a repeated CLASS-ID or INTERFACE-ID, or a class named like an interface, is reported and not added), so `oo.Classes` and
+      `oo.Interfaces` never hold such a pair and the skip that compared their words could not be reached. It and its equality
+      (`ClassNames.DeclareOneWord`, a static equality of two arbitrary strings) are deleted, with the declared word the check carried
+      only for it (`ExternalizedSubject.Word`).
+    - *The parameterized expansion's names are the group's tier, a table of their own (the open tier question, decided).* A
+      parameterized definition and each expansion a REPOSITORY specifier asks for are class and interface definitions of the GROUP:
+      they share the group's one namespace of object-class-names and interface-names (§2023:8.4.6.4), and an expansion's name is its
+      identity in the group (§2023:9.3.12). The tier cannot be made first: `ClassNames` is built from the definitions the expansion
+      produces. So the expansion's names are `SymbolTable.ExpansionNames`, made by `OoExpansion.Expand`, handed to `OoClassTable` in
+      the expansion's result (`OoExpansion.Result.Names`; `ParameterizedNames` and `ExpandedNames`, two string sets under the name
+      comparer, are deleted) and asked thereafter only whether a word names a parameterized definition (§2023:12.3.8.4 GR1) or one
+      some expansion re-binds. A skeleton is looked up by the written word's context (an EXPANDS target, a specifier's declared
+      name), never by a string. The words of one definition, a formal parameter-name (scoped to its definition, §2023:11.3.4 GR6) and
+      a specifier's declared name (scoped to its REPOSITORY paragraph), are parse-tree questions asked before any element's table
+      exists, answered with the table's one equality as `EndMarkerAgrees` is: `SpecifierDeclaring`, `RepeatedFormals`, `IsFormal`,
+      `Substitution` (the formal-to-actual replacement of §2023:12.3.8.4 GR5 and GR8); the end marker is renamed with the header
+      when `EndMarkerAgrees`.
+    - *A `>>TURN` directive's file-name is matched against the statement's IDENTIFIED file.* The fold's query names the
+      `FileModel` the statement references (§2023:7.3.25.4 GR6, GR8: "checking is enabled only for exception conditions associated
+      with that file-name"), never its name; the directive stands outside every source element, so its written word is matched by
+      the table's equality (`SymbolTable.DirectiveNamesFile`), which reads the declared name off the `FileModel` itself, and the GR14
+      implicit enable of an exception-checking PERFORM (§2023:14.9.28.4 GR14) carries the file its WHEN phrase identified, matched by
+      identity.
+    - *A free-standing equality of the table is the table's in use, not only in name (correction, review round 1 lead R1-2).* A
+      static member of `SymbolTable` that answers `bool` and takes a `string` (`DirectiveNamesFile`, `SpellsIndexName`, `IsFormal`) is
+      callable from anywhere, so rule (5) as first written, which saw only `CobolNames.Same`, `CobolNames.Comparer` and `==` on a name
+      property, was green on a caller that made such an equality its own comparison. Rule (5) now also reports, outside the table, a
+      call of one that is handed a binder symbol's name property for a `string` (TABLEARG: two names the caller chose) or a lambda's
+      parameter or a `foreach` variable for a binder-typed parameter (TABLESEARCH: a per-symbol equality applied to each symbol of a
+      collection, a lookup without a table); the planted self-test shows each kind red and the same equality asked of one symbol the
+      caller holds green. An instance member is the table's own question over its own state (a declaration, a keyed lookup) and is
+      neither. The sweep the two kinds made: `ClassNames.IsAccessorOf(method, property)`, applied method by method in four searches of
+      `OoClassTable` and `OoDataBinder`, is `ClassNames.AccessorAmong(methods, property)`, the search inside the table; and
+      `SpellsIndexName` takes the `IndexDeclaration`, not its name, so no caller hands it a declared name of its own choosing.
+    - *A refused record-key operand is marked on itself, never collected by name.* `FileControlBinder.ResolveFiles` kept a set of
+      the NAMES of the key operands it refused, which the key screen skipped; two operands that share a spelling were skipped
+      together. Each carrier now says it was refused (`AlternateKeyClause.Refused`, `KeySourceOperand.Refused`,
+      `FileModel.RecordKeyRefused`, `FileKeyOperand.Refused`), so the screen skips exactly the operand refused (kb/Work PB481, PB978).
+      On the population the oracle is identical, so no program had two such operands; but it IS a user-visible change (correction,
+      review round 1 R1-1): a key clause whose operand shares a refused operand's spelling now hears its own clause's rule, e.g.
+      `RECORD KEY IS K1` (ambiguous, COBOL1639) beside `ALTERNATE RECORD KEY IS K1 OF NOSUCH` reports §2023:12.4.5.6.3 SR2 (COBOL0863)
+      on the alternate operand, which the name set had silenced.
+      `FileControlKeyRuleSpecTests.ARefusedKeyOperand_SilencesOnlyItself_NotAnotherOperandOfItsSpelling` pins both orders at every
+      edition; with the screen skipping every unresolved operand it is red.
+    - *Every data-name's and condition-name's entry is made where it is declared (part D).* `SymbolTable.EnterDataItem` and
+      `EnterConditionName` enter each data description entry (FILLER included, a type declaration's subordinate entries, each
+      level-66 entry), each entry a TYPE or SAME AS clause copies in (on the line of the entry that wrote the clause, §2023:13.18.57.4
+      GR1), each level-88 and each copy of one, and the entries the standard defines implicitly (a CD's record area, §1985:XIV.2.2;
+      an FD's implied record, §2023:14.9.30.4 GR6) at the position the record places it; a type declaration's root is its type-name's
+      entry already. `DataEntryOf(candidate)` answers a data-name's or condition-name's entry for the occurrence step 7b records, as
+      `IndexEntryOf` does. The finish requires the bind's entry for both classes (`SymbolTableFinish.DeclareEntered`): it only places
+      them, in the order a record is written. The one declaration the finish still declares itself is a CAPACITY register that
+      §2023:13.18.38.3 SR30 refused, which binds with an error.
+    - *Proved.* `compare_oracle.py` IDENTICAL on the 22651 cases before D, and again with D and the symbol table finished for EVERY
+      compilation (the listing's two gates forced on for the run, then restored): no data description entry of the population
+      lacks its entry or enters twice. `SymbolEntryDriftTests` gains a data-name's, a condition-name's and a TYPE copy's reference
+      answering its declaration's entry; with one declaration's `EnterConditionName` removed the planted programs fail ("the Condition
+      'N-ZERO' entered no entry"), and with `TurnState`'s comparison put back rule (5) is red. The finish lists only the entries it
+      writes itself, never a record's (`SymbolTableFinish.PlacedByARecord`: the measured `All` row, section 9), and the text and JSON
+      listings of the four benchmark programs with every section are identical to the parent's but for the output path and the instant.
   - *(Step 6b, the entry ids, branch `listing-step-6b-ids`, a lane beside the data-name lane; kb/Work PB5932's dated file
     `2026-11-19-step-6b-entry-ids`.)* Every class whose declaration is the table's makes its ENTRY where the binder declares the name,
     and every identification hands the entry back, so step 7b joins an occurrence to its entry by id for every class, never by the
@@ -1791,7 +1879,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       DEBUG-ITEM registers, VARYING counters and the group tier's names are entries of the finished table for the first time (with
       `NameAttributes`, which no view of the listing reads yet, so the data map and the program map are unchanged). The data
       description entries' DATA-NAMES and CONDITION-NAMES are still declared by the finish from the frozen forest, in the order a
-      record is written, until the data-name lane enters them; every other entry of a record (an index-name, a CAPACITY register, a
+      record is written, until the data-name lane enters them (step 6b's remainder slice 5: they enter where they are declared, and
+      the finish only places them; section "Step 6b, remainder slice 5"); every other entry of a record (an index-name, a CAPACITY register, a
       type-name) is the bind's, placed where the record places it, and a drift between the two positions fails loudly
       (`SymbolTableFinish.DeclareEntered`), which is also where a data-name's entry is adopted the day its declaration makes one. A
       type declaration's entry is its type-name's, so the data-name lane's declaration of a typedef root must answer that entry, not
@@ -2700,6 +2789,18 @@ renderer. Naming it asks for a listing at any edition.
   67.70 and 67.71 MB against 67.78 and 67.82, NC105A 34.39 and 34.42 against 34.40 and 34.68, NC218A 30.60 and 30.42 against 31.01
   and 30.42, SM201A 15.18 and 15.15 against 15.00 and 15.16. Every branch `None` row lies inside the parent's two runs or below them
   but SM201A's 15.18, 0.02 MB above; the `None` budget holds (the README's step-6b table, remainder slice 4).
+  Remainder slice 5, the last (the group tier's function units and the expansion's names, the TURN file operand, the refused key
+  operands, and every data-name's and condition-name's entry made where it is declared, section 6.7.1 "Step 6b, remainder slice 5"),
+  measured against its parent 111f7fd0f5 and against the parent of slice 1, bfb8500569, two runs each: IX113A's `None` rows lie 0.29 to
+  0.50 MB over the parent's (68.10 and 68.03 MB against 67.74 and 67.63), the entries of its data description entries now made for every
+  compilation, which this section's `None` budget names (one entry and one identity-index slot per declared name), so the budget holds;
+  NC105A's, NC218A's and SM201A's lie inside or near the parent's runs, within the programs' run-to-run spread. The first build's `All`
+  row was 0.84 to 0.94 MB over the parent's on IX113A, because the finish listed every entry an element's table made, the data entries
+  now among them, before choosing the few it writes itself; it lists those few only (`SymbolTableFinish.PlacedByARecord`), and `All` is
+  0.13 to 0.26 MB over. The whole step against the parent of slice 1: IX113A 68.10 and 68.03 MB against 68.91 and 68.88, SM201A 15.04 and
+  15.18 against 15.40 and 15.37, NC105A and NC218A within their spread of it (35.19 and 34.89 against 35.47 and 34.89; 31.04 and 30.44
+  against 30.79 and 31.36), the listing work landed between the two trees in the same rows (the README's step-6b table, remainder
+  slice 5).
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the
@@ -2963,7 +3064,7 @@ section 6.6 "What the table holds") and the occurrences of step 7 do. (Step 6 re
 only the program forests and claimed completeness by construction; the REPORT SECTION, the methods' own data, the type
 declarations, the CAPACITY registers and the CDs were missing, and step 6 now walks each. Step 6b lands before step 7 branches.
 
-**Step 6b - the one store of names (kb/Work PB5932).** The ONE store first: `NameTableOwnershipDriftTests` is written first on
+**Step 6b - the one store of names (kb/Work PB5932). BUILT, landed by name class (the last slice, branch `listing-step-6b-r5`).** The ONE store first: `NameTableOwnershipDriftTests` is written first on
 the step's branch and runs red, its failures matching the evidence of section 6.7.2 (a check that could fail); then
 `src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs` grows into the table (`SymbolEntry`, `CobolName`,
 `SymbolTable.Declare`, `SymbolTable.SetAttributes`, `SymbolTable.Identify` as the only lookup, `SymbolTable.Declarations`
@@ -3053,7 +3154,14 @@ the table; the declaration questions of the data division's own entries, the pro
 CORRESPONDING pairing by the table's key), the externalized-name uniqueness classified EXTERNAL (section 6.7.1, "Step 6b, remainder
 slice 4"), `compare_oracle.py` IDENTICAL; the baseline is 24 (0 tables, 0 lookups, 24 sites), and kb/Work PB5932's dated file
 `2026-11-20-step-6b-r4` holds what remains: the group tier's units, the parameterized expansion, the TURN file operand, the refused
-record-key set, then D.
+record-key set, then D. (Step 6b, remainder slice 5, branch `listing-step-6b-r5`, the last slice:) the rest of C and D: the group's
+FUNCTION-ID units by word in the group tier (`SymbolTable.UnitNames`), the parameterized expansion's names in the group tier, a table
+of their own (`SymbolTable.ExpansionNames`: the open tier question, decided), a `>>TURN` file-name matched against the statement's
+identified file, a refused record-key operand marked on itself, and every data-name's and condition-name's entry made where it is
+declared (section 6.7.1, "Step 6b, remainder slice 5"); `compare_oracle.py` IDENTICAL, also with the table finished for every
+compilation. The baseline is empty, so the slice deleted it with the code that read it: `NameTableOwnershipDriftTests` is the five
+rules, green with no exceptions, the design condition. It measured the whole step's `None` row against the parent of slice 1
+(section 9) and flipped kb/Work PB5932 to landed; kb/Work PB5932's dated file `2026-11-20-step-6b-r5` holds it.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had
@@ -3081,7 +3189,9 @@ ordering-name's string, a paragraph's per-lookup `ParagraphDefinition(Pc)`, a re
 remaining slices, which give each declared name its entry id as its declaration moves (section 6.7.1's `SymbolId`); step 7b then joins
 every occurrence to its entry by that id, never by the answer. (Step 6b, the entry ids, branch `listing-step-6b-ids`:) every class whose
 declaration was the table's then gives its entry id (section 6.7.1, "Step 6b, the entry ids"), and the finish reads the entries the bind
-made; the data-names and condition-names give theirs when their declarations move, in the shape that lane adopts unchanged. (Step 9:) when step 7b adds `ListingLine.Names` and
+made; the data-names and condition-names give theirs when their declarations move, in the shape that lane adopts unchanged. (Step 6b,
+remainder slice 5:) they do (`SymbolTable.EnterDataItem`, `EnterConditionName`, and `DataEntryOf` for a candidate's entry), so step 7b
+finds an entry for every class, and step 6b, which it stands on, is built. (Step 9:) when step 7b adds `ListingLine.Names` and
 `ListingCrossReference` to the model, it also adds their HTML (section 7.2): each name on a source line linked to its definition,
 each definition's references listed as links, and the cross-reference section's method in `IListingSectionVisitor<T>`, which the
 text and HTML renderers then must both implement to compile.

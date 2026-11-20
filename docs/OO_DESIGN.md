@@ -864,7 +864,7 @@ wrong kind. (5) A defect in a skeleton line that no formal touches is found once
 (6) The definition is still a class or interface DEFINITION, so every rule of its own text governs it whether or
 not anything expands it (kb/Work PB2051). An EXPANDED definition is asked through its expansions, which re-bind
 every line of it with the actuals substituted; one that nothing expands is asked as itself, and only then
-(`OoExpansion.Result.ExpandedNames`): a report naming the definition beside each expansion's report of the same
+(`SymbolTable.ExpansionNames.IsExpanded`, the expansion's names in the compilation group's tier of the symbol table): a report naming the definition beside each expansion's report of the same
 line would state one fact twice (train 1053 review). For an unexpanded definition `OoClassTable.Build` builds a symbol
 through the same `NewClassSymbol` / `NewInterfaceSymbol` and roster collection the table's classes use, kept in
 `ParameterizedClasses` / `ParameterizedInterfaces` and out of every name lookup, and asks it the header rules every
