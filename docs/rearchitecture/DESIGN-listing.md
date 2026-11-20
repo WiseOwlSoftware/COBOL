@@ -2459,6 +2459,11 @@ renderer. Naming it asks for a listing at any edition.
   (0.7 MB, slice 3) and below the parent on SM201A, where a paragraph's identification no longer makes a `ParagraphDefinition` per
   lookup. Like the line-kind arrays and the label fields, they are a fact the design records for every compilation so the listing can
   be exact, so the `None` budget now names them (above). The README's step-6b table, the entry-id lane, holds the four rows of each run.
+  Remainder slice 2 (the file clauses' operands kept as a `WrittenDataName` the table resolves, section 6.7.1 "Step 6b, remainder
+  slice 2"), measured against its parent 9682d2f88d, four runs each, alternating: the `None` medians agree within 0.08 MB on every
+  program (IX113A 67.83 MB on the parent against 67.81 on the branch, NC105A 34.43 against 34.45, NC218A 30.55 against 30.62, SM201A
+  15.17 against 15.18), inside each program's run-to-run spread on one tree; the `None` budget holds (the README's step-6b table,
+  remainder slice 2).
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the
