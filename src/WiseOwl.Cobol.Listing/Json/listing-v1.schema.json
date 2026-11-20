@@ -557,6 +557,41 @@
                 "locator"
               ]
             }
+          },
+          "flag": {
+            "description": "The edition flag the diagnostic is (an obsolete or removed construct, a nonstandard extension in use), as the compiler raised it; null for any other diagnostic.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "kind": {
+                "description": "Obsolete, removed or extension. Obsolete: The construct is obsolete or archaic in the edition compiled to: still conforming, flagged by a warning (COBOL0903). Removed: The edition compiled to removed the construct: an error, or under --permissive a warning that keeps the meaning the construct had before (COBOL0902, or the code its construct pins). Extension: The construct is a nonstandard extension the compiler accepts, flagged under --flag-extensions (COBOL2894).",
+                "enum": [
+                  "Obsolete",
+                  "Removed",
+                  "Extension"
+                ]
+              },
+              "construct": {
+                "description": "The identifier of the construct in the compiler's register of constructs or of nonstandard extensions (exit-program-archaic-2023, usage-comp-3).",
+                "type": "string"
+              },
+              "description": {
+                "description": "The construct as a user would name it.",
+                "type": "string"
+              },
+              "edition": {
+                "description": "The edition, as --std spells its year (85, 2002, 2014, 2023), that made the construct obsolete or removed it; for an extension, the edition compiled to, whose standard does not define it.",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "kind",
+              "construct",
+              "description",
+              "edition"
+            ]
           }
         },
         "required": [
@@ -565,6 +600,50 @@
           "severity",
           "message",
           "citations"
+        ]
+      }
+    },
+    "flaggedConstructs": {
+      "description": "The diagnostics section's table of flagged constructs by edition (DESIGN-listing.md section 6.11): one entry per construct an edition flag of Diagnostics names (Flag), by edition, kind and construct; empty when no diagnostic is an edition flag or the diagnostics section was not asked for.",
+      "type": "array",
+      "items": {
+        "description": "One row of the table of flagged constructs by edition (DESIGN-listing.md section 6.11): a construct, the edition and kind of its flag, and every diagnostic that flags it.",
+        "type": "object",
+        "properties": {
+          "edition": {
+            "description": "The edition of the flag (Edition).",
+            "type": "integer"
+          },
+          "kind": {
+            "description": "Obsolete, removed or extension. Obsolete: The construct is obsolete or archaic in the edition compiled to: still conforming, flagged by a warning (COBOL0903). Removed: The edition compiled to removed the construct: an error, or under --permissive a warning that keeps the meaning the construct had before (COBOL0902, or the code its construct pins). Extension: The construct is a nonstandard extension the compiler accepts, flagged under --flag-extensions (COBOL2894).",
+            "enum": [
+              "Obsolete",
+              "Removed",
+              "Extension"
+            ]
+          },
+          "construct": {
+            "description": "The construct's identifier (Construct).",
+            "type": "string"
+          },
+          "description": {
+            "description": "The construct as a user would name it.",
+            "type": "string"
+          },
+          "diagnostics": {
+            "description": "The Id of each diagnostic that flags the construct, in listing order; their number is the construct's count.",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "edition",
+          "kind",
+          "construct",
+          "description",
+          "diagnostics"
         ]
       }
     },
@@ -1386,6 +1465,7 @@
     "lines",
     "programs",
     "diagnostics",
+    "flaggedConstructs",
     "displays",
     "options",
     "sections"
