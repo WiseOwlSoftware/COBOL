@@ -494,7 +494,7 @@ the PERFORM is written in, and the CALL graph each program or function a stateme
 
 In the source section, the right margin of a line that references names and declares none lists the lines that define them
 (`DEF 13`), and on the HTML page each name on a source line is a link to the line that defines it, and the cross-reference's rows
-link each reference to its line. The JSON listing carries every reference with its line, column, length, use and verb.
+link the definition and each reference to its line, so a name leads to its definition and the definition's row leads back to every use. A name the standard declares implicitly (no definition line) links to its row of the cross-reference instead. The names are links only when the page holds the cross-reference (`--listing-sections xref` or `all`). The JSON listing carries every reference with its line, column, length, use and verb.
 
 A reference is recorded where the compiler identifies the name, so it is exactly what the compiler bound: a name the compiler did
 not bind (a statement it refused) has no reference. Two uses are not yet classified: the cell of an index-name (SET index-name UP

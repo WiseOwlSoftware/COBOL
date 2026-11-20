@@ -2917,7 +2917,7 @@ accepts the sections built so far (`source`, `programs`, `diagnostics`, `options
   +30.8 % (NC218A) and +28.4 % (SM201A) over `None` on a full compile (one run), over its 25 % budget on three programs; the front
   end and bind's `All` grows 8.5 to 12.1 MB over the parent's: kb/Work PB5953, filed before the step lands (the benchmark README's
   step-7b table).
-  (Step 9b:) the `All` row over 25 % with the cross-reference (kb/Work PB5953) is fixed at its roots, measured by the benchmark README's
+  (Step 9b:) the `All` row over 25 % with the cross-reference (kb/Work PB5953) had its cross-reference share cut at its roots (the rest: kb/Work PB5962), measured by the benchmark README's
   step-9b table: the classification (the cross-reference's largest part, 3.2 of 5.8 MB of the front end and bind: above, 6.7.1), the
   `ListingReference` made once with its symbol's id (not copied to take it), the rows of the text and the page written with no string
   per number or link (`CrossReferenceText.AppendReference`, `NumberLink`), a symbol's link made once, an integer or branch-target operand
@@ -3336,8 +3336,8 @@ model holds; `ListingLine.Names` and the cross-reference do not exist yet, so th
 
 **Step 9b - the listing's close-out. BUILT (branch `listing-step-9b`, on step 7b's branch; kb/Work PB5925 landed with it).** The HTML page's
 name links were built with step 7b (their model, `ListingLine.Names` and `ListingCrossReference`, came with it, so one change set held the
-model and the page); step 9b checks and holds them (section 7.2, `HtmlListingRendererTests.EveryKindOfName_...`), fixes the `All` row's budget
-(PB5953, section 9), checks every section of this document against the code (the list below), files each residue as a kb/Work item and
+model and the page); step 9b checks and holds them (section 7.2, `HtmlListingRendererTests.EveryKindOfName_...`), cuts the cross-reference's share of the `All` row's budget
+(PB5953, section 9; PB5962 holds the rest), checks every section of this document against the code (the list below), files each residue as a kb/Work item and
 records the decision that PB5925 is landed with them (kb/Work PB5954).
 
 **PB5947 - the table of flagged constructs by edition. BUILT (branch `listing-step-pb5947`; section 6.11, "As built").** The edition
@@ -3379,8 +3379,9 @@ is a kb/Work item, never a silent gap:
 - Section 7.2's colouring of a COPY or REPLACE statement's words, which the text stages remove before the lexer reads the text:
   kb/Work PB5952.
 - Section 7's `IListingRenderer`: not built by decision (section 7, step 9 correction; kb/Work PB5954).
-- Built, no longer open: section 9's `All` budget (kb/Work PB5941 met it at the merged tree of PB5941 and PB5951, and PB5953 met it again with
-  the cross-reference, step 9b), the table of flagged constructs (PB5947), the HTML page's name links (step 7b, held by step 9b).
+- Section 9's `All` budget: kb/Work PB5941 met it at the merged tree of PB5941 and PB5951; the cross-reference's share was cut at its roots
+  (PB5953, landed, step 9b), and some runs of NC218A and SM201A still lie over 25 % by a share that is not the cross-reference's: kb/Work PB5962.
+- Built, no longer open: the table of flagged constructs (PB5947), the HTML page's name links (step 7b, held by step 9b).
 
 ## 12. Documents and records that change with the listing
 

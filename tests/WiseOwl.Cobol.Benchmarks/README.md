@@ -1127,3 +1127,30 @@ Reading them: every branch `None` row lies within the parent's run-to-run spread
 15.04), so the `None` budget holds: recording is gated, and a compilation without the cross-reference makes no occurrence. The `All`
 row is over its 25 % budget on three programs, the cross-reference's occurrences, place links and model adding 8.5 to 12.1 MB to the
 front end and bind: kb/Work PB5953. Time rows are not shown (kb/Work PB5927).
+
+
+**Step 9b (kb/Work PB5925, PB5953): the `All` row with the cross-reference, after the roots were fixed.** Measured 2026-11-20, Release,
+one Windows host, `--filter '*CompileBenchmarks.FullCompile*None*' '*CompileBenchmarks.FullCompile*All*'`, each run built from the
+branch. Allocated bytes per full compile, `None` and `All`, and `All` over `None`. The step-7b-2 head `78b6b87f59` (the row over budget,
+run 1 by 7b-2's own measure, run 2 here), the step-9b head before the 7b-2 review round was merged in and before the three small records became structs (two runs), and the
+merged head (`7ffd4882ba`, two runs):
+
+| Program | 7b-2 head, 2 runs | 9b head before the merge, 2 runs | merged head, 2 runs |
+|---|---|---|---|
+| IX113A | 199.34 / 248.59 (+24.7 %); 191.82 / 248.19 (+29.4 %) | 195.55 / 229.42 (+17.3 %); 193.56 / 225.91 (+16.7 %) | 201.59 / 240.39 (+19.2 %); 200.05 / 238.84 (+19.4 %) |
+| NC105A | 113.79 / 149.27 (+31.2 %); 119.01 / 145.09 (+21.9 %) | 113.35 / 143.90 (+26.9 %); 118.87 / 146.55 (+23.3 %) | 117.70 / 145.15 (+23.3 %); 118.63 / 144.96 (+22.2 %) |
+| NC218A | 111.23 / 145.46 (+30.8 %); 110.94 / 142.77 (+28.7 %) | 115.59 / 141.10 (+22.1 %); 112.15 / 140.46 (+25.2 %) | 114.61 / 139.57 (+21.8 %); 110.84 / 143.06 (+29.1 %) |
+| SM201A | 42.25 / 54.26 (+28.4 %); 43.46 / 54.49 (+25.4 %) | 41.78 / 49.11 (+17.5 %); 42.08 / 51.35 (+22.0 %) | 39.85 / 56.81 (+42.6 %); 39.79 / 52.56 (+32.1 %) |
+
+Reading them: the `None` row of one program swings by up to 7 MB between runs of identical code (NC105A 113.35 to 122.82 MB), and the
+`All` row by up to 4 MB (SM201A, merged head), so a single run decides nothing; the means of the runs at the merged head are +19.3 %
+(IX113A), +22.8 % (NC105A), +25.5 % (NC218A) and +37.4 % (SM201A) over `None`. The cross-reference's share is what the step cut: on a
+thread-level probe (`GC.GetAllocatedBytesForCurrentThread`, minimum of twelve compiles after ten warm-ups, IX113A) the cross-reference's
+marginal cost in the `All` row went from 15.8 MB to 5.8 MB at the step's first cut, with the classification at 3.2 MB of the 5.8; at the
+merged head it is 0.25 MB on SM201A and 3.6 to 4.7 MB on NC105A and NC218A. The roots: the classification (one survey pass of the visitor
+and the kind of the places it asks, in place of a walk of every statement's fields and one visitor per place), `ListingReference` made
+once with its symbol's id (not copied to take it), no LINQ or boxed enumerator in the builder, a number or link written to the text and
+the page with no string of its own, a symbol's link made once, IL integer and branch-target operands named once, `ListingSpan`,
+`ListingNameUse` and `ListingInstruction` as structs. What remains over the budget at the merged head is not the cross-reference: on
+SM201A the thread-level `All` without the cross-reference is +29 % over `None`; kb/Work PB5962 holds it. Time rows are not shown
+(kb/Work PB5927).

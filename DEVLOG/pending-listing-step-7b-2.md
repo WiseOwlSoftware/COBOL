@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 7b - the occurrences and the cross-reference
+## PB5925: the source listing, steps 7b and 9b - the occurrences and the cross-reference, and the close-out
 
 Step 7b of `docs/rearchitecture/DESIGN-listing.md` is built on step 6b's one store of names and its entry ids (branch
 `listing-step-7b-2`, kb/Work PB5925's dated file `2026-11-20-step-7b-2-built`).
@@ -47,3 +47,18 @@ listing that asks, and a copy member's sort key is its folded text-name.
 
 **Left, each a lead in the dated file:** the special registers' entries, `BoundReferences` over a value tuple, the statistics' counts of
 names and uses, a `--permissive` first-declaration resolution, and an oracle corpus beyond 1985.
+
+**Step 9b, the close-out (kb/Work PB5925, PB5953, PB5954, PB5962).** The HTML page's name links, built with step 7b, are held by a test that
+reads every kind of name off `ListingSymbolKind` (mutation: red with the link removed), so a kind added later gets its links checked.
+The `All` row was over its 25 % budget with the cross-reference (+24.7 to +31.2 %); its share is cut at its roots: the statement funnel's
+classification asks the places the exhaustive visitor asks (`BoundStores.StorePositionsAmong`: one survey pass, then the kind of the
+places that stand for an occurrence still to classify) in place of a walk of every statement's fields and a visitor per place, with the old
+walk kept as the pairing test's behind `EditionContext.VerifiesStorePairing`; the classification of all 215,230 occurrences of the 374 NIST
+programs is byte-identical before and after. The builder makes each `ListingReference` once, the text and the page write numbers and links
+with no string of their own, a symbol's link is made once, IL integer and branch-target operands are named once, and `ListingSpan`,
+`ListingNameUse` and `ListingInstruction` are structs. The cross-reference's marginal share of the `All` row went from 15.8 to 5.8 MB (IX113A,
+thread-level) and stands at 0.25 to 4.7 MB at the merged head; `All` over `None` on a full compile is +19.3 % (IX113A), +22.8 % (NC105A),
++25.5 % (NC218A) and +37.4 % (SM201A) as the mean of two runs, and the part still over is not the cross-reference's: kb/Work PB5962 (the
+benchmark README's step-9b table). Every section of the design was checked against the code and the records; the parts the design leaves are
+each a filed item, PB5956, PB5957, PB5959, PB5960, PB5961 and PB5962 beside the older PB5930 and PB5952, and kb/Work PB5954 records the
+decision that PB5925 is landed with them. PB5925 and PB5953 are `landed`.
