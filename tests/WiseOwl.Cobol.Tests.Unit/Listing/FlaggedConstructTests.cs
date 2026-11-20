@@ -75,7 +75,7 @@ public sealed class FlaggedConstructTests
         [new ListingFile(1, "main.cob", ListingFileRole.Source, "00")], [],
         [.. Enumerable.Range(1, 11).Select(n => new ListingLine(n, 1, n, null, 0, ListingLineForm.Fixed, ListingLineKind.Source,
             "       DISPLAY 1.", false, true, false, null, ListingReplacement.None, null,
-            [.. diagnostics.Where(d => d.Line == n).Select(d => d.Id)], null))],
+            [.. diagnostics.Where(d => d.Line == n).Select(d => d.Id)], null, []))],
         [], diagnostics, DiagnosticSectionBuilder.FlaggedConstructs(diagnostics), [], [], null, null, null,
         [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
 

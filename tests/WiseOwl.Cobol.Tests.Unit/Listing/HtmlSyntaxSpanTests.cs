@@ -54,7 +54,7 @@ public sealed class HtmlSyntaxSpanTests
     {
         const string text = "MOVE AB TO C.";
         var document = Document(Line(text, [new ListingSpan(6, 2, ListingSpanClass.UserWord)], diagnostics: [1]))
-            with { Diagnostics = [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "e", 1, 1, 1, 7, [])] };
+            with { Diagnostics = [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "e", 1, 1, 1, 7, [], null)] };
         var tx = TextOf(HtmlListingRenderer.Render(document, new ListingRequest(Formats: ListingFormats.Html)));
         var word = Assert.Single(tx.Elements("span"));
         Assert.Equal("AB", word.Value);
