@@ -28,9 +28,9 @@ internal static class ListingJsonContract
     /// <summary>Assert <paramref name="document"/>'s JSON is valid against the schema and reads back, strictly, to itself.</summary>
     public static void AssertHolds(ListingDocument document)
     {
-        string text = JsonListingWriter.Write(document);
+        string text = ListingRendering.Json(document);
         Assert.Empty(JsonSchemaSubset.Validate(Schema, JsonNode.Parse(text)));
         var read = (ListingDocument)JsonSerializer.Deserialize(text, Strict.GetTypeInfo(typeof(ListingDocument)))!;
-        Assert.Equal(text, JsonListingWriter.Write(read));
+        Assert.Equal(text, ListingRendering.Json(read));
     }
 }

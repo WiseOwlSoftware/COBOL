@@ -120,7 +120,7 @@ public sealed class FlaggedConstructTests
     [Fact]
     public void ThePage_HoldsTheTable_LinkingEachLineToItsDiagnostic()
     {
-        var page = HtmlListingRendererTests.Read(HtmlListingRenderer.Render(Document(Six), new ListingRequest()));
+        var page = HtmlListingRendererTests.Read(WiseOwl.Cobol.Tests.Shared.ListingRendering.Html(Document(Six), new ListingRequest()));
         var title = page.Descendants("h3").Single(h => h.Value == FlaggedConstructText.Title);
         var table = title.ElementsAfterSelf("table").First();
         Assert.Equal(FlaggedConstructText.Headings, table.Descendants("th").Select(th => th.Value));
@@ -130,7 +130,7 @@ public sealed class FlaggedConstructTests
         Assert.Equal(["2023", "obsolete", "2", "the EXIT PROGRAM statement (exit-program-archaic-2023)", "5 -"], Cells(rows[1]));
         Assert.Equal(["#" + HtmlListingRenderer.DiagnosticId(2)], rows[1].Descendants("a").Select(a => (string?)a.Attribute("href")));
         Assert.Equal(["#" + HtmlListingRenderer.DiagnosticId(1)], rows[3].Descendants("a").Select(a => (string?)a.Attribute("href")));
-        var none = HtmlListingRendererTests.Read(HtmlListingRenderer.Render(Document([Diagnostic(1, 1, null)]), new ListingRequest()));
+        var none = HtmlListingRendererTests.Read(WiseOwl.Cobol.Tests.Shared.ListingRendering.Html(Document([Diagnostic(1, 1, null)]), new ListingRequest()));
         Assert.DoesNotContain(none.Descendants("h3"), h => h.Value == FlaggedConstructText.Title);
     }
 

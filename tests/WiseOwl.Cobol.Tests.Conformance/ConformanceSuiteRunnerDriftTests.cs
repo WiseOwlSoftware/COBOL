@@ -149,7 +149,7 @@ public abstract class BothRunnersVerdictDriftTestsBase<TSlot>
     [Fact]
     public void BothRunners_GiveThisPartitionsSuiteTestsTheSameVerdict()
     {
-        string cli = TestRepo.SrcBin("WiseOwl.Cobol.Cli", OperatingSystem.IsWindows() ? "cobol.exe" : "cobol");
+        string cli = TestRepo.CobolCommand;
         Assert.True(File.Exists(cli),
             $"{cli} does not exist: the Conformance project builds the cobol command (its ProjectReference to "
             + "WiseOwl.Cobol.Cli) so that run.py can drive it");

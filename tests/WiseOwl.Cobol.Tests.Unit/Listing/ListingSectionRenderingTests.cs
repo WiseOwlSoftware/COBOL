@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Building;
 using WiseOwl.Cobol.Listing.Text;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -83,7 +84,7 @@ public sealed class ListingSectionRenderingTests
         var document = Document([.. Enum.GetValues<ListingSection>().Select(Produced)],
             Statistics(new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [1, 6]), new ListingVerb("STOP", 1, [6])])),
             dataMap: new ListingDataMap([], []), objectCode: new ListingObjectCodeMap("p.dll", [], []));
-        string[] pages = TextListingRenderer.Render(document, new ListingRequest()).Split(PageComposer.FormFeed);
+        string[] pages = ListingRendering.Text(document, new ListingRequest()).Split(PageComposer.FormFeed);
         Assert.Equal(["OPTIONS", "SOURCE  /src/p.cob", "PROGRAMS", "DATA MAP", "STATISTICS", "OBJECT MAP", "OBJECT CODE", "DIAGNOSTICS"],
             pages.Select(p => p.Split('\n')[1]));
         Assert.All(pages.Where(p => !p.Split('\n')[1].StartsWith("SOURCE", StringComparison.Ordinal)),
@@ -132,7 +133,7 @@ public sealed class ListingSectionRenderingTests
     [Fact]
     public void OnlyTheSectionsTheDocumentHolds_ArePrinted()
     {
-        string text = TextListingRenderer.Render(Document([Produced(ListingSection.Programs)]), new ListingRequest());
+        string text = ListingRendering.Text(Document([Produced(ListingSection.Programs)]), new ListingRequest());
         Assert.DoesNotContain(PageComposer.FormFeed, text);
         string[] rows = text.Split('\n');
         Assert.Equal("PROGRAMS", rows[1]);
@@ -245,7 +246,7 @@ public sealed class ListingSectionRenderingTests
     [Fact]
     public void ASectionNotProduced_PrintsWhy()
     {
-        string text = TextListingRenderer.Render(Document([new ListingSectionStatus(ListingSection.Programs, false, "the source was not parsed")]),
+        string text = ListingRendering.Text(Document([new ListingSectionStatus(ListingSection.Programs, false, "the source was not parsed")]),
             new ListingRequest());
         string[] rows = text.Split('\n');
         Assert.Equal("PROGRAMS", rows[1]);

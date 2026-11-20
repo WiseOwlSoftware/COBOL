@@ -42,17 +42,16 @@ public static class TextListingRenderer
 
     /// <summary>Render <paramref name="document"/> as the paginated text listing <paramref name="request"/> asks for: each section
     /// the document holds (<see cref="ListingDocument.Sections"/>), in <see cref="ListingSections.Order"/>, each starting a page; a
-    /// section that could not be produced prints why. One buffer holds every section: the listing is never copied to join them.</summary>
-    public static string Render(ListingDocument document, ListingRequest request)
+    /// section that could not be produced prints why. Written to <paramref name="writer"/> page by page as the rows are produced
+    /// (kb/Work PB5941): neither a section nor the listing is ever held whole.</summary>
+    public static void Write(ListingDocument document, ListingRequest request, TextWriter writer)
     {
-        var listing = new StringBuilder();
         var sections = new Sections(document, request);
         var header = document.Header;
         int pages = 0;
         foreach (var section in ListingSections.Order)
         {
             if (document.Sections.FirstOrDefault(s => s.Section == section) is not { } status) continue;
-            if (pages > 0) listing.Append(PageComposer.FormFeed);
             string title = ListingSections.Title(section);
             IReadOnlyList<string> Heading(int page, string? program) => section == ListingSection.Source
                 ? [IdentificationLine(header, program, page, request.PageWidth),
@@ -60,9 +59,8 @@ public static class TextListingRenderer
                 : [IdentificationLine(header, program, page, request.PageWidth), title, ""];
             IEnumerable<ListingRow> rows = status.Produced ? sections.Visit(section)
                 : sections.Rows(Indented(ListingSections.NotProduced(status.Reason), 0, 2, request.PageWidth));
-            pages += PageComposer.Compose(listing, rows as IReadOnlyList<ListingRow> ?? [.. rows], request.PageLength, Heading, firstPage: pages + 1);
+            pages += PageComposer.Compose(writer, rows, request.PageLength, Heading, firstPage: pages + 1);
         }
-        return listing.ToString();
     }
 
     /// <summary>The text listing's rows of each produced section (DESIGN-listing.md section 7): the source section's here, the
@@ -99,7 +97,7 @@ public static class TextListingRenderer
 
     /// <summary>The source section's rows (DESIGN-listing.md section 6.2): each listed line, the banner of each inclusion, the
     /// compiled text under a replaced line, each diagnostic under its line and each DISPLAY transfer at its directive.</summary>
-    private static List<ListingRow> SourceRows(ListingDocument document, ListingRequest request)
+    private static IEnumerable<ListingRow> SourceRows(ListingDocument document, ListingRequest request)
     {
         var programs = document.Programs.ToDictionary(p => p.Id, p => p.Name);
         string? ProgramOf(ListingLine line) => line.Program is { } id ? programs[id] : null;
@@ -111,14 +109,13 @@ public static class TextListingRenderer
         var diagnostics = document.Diagnostics.ToDictionary(d => d.Id);
         var displays = document.Displays.ToLookup(d => d.Line);
 
-        var rows = new List<ListingRow>();
         foreach (var line in document.Lines)
         {
             // §2023:7.3.12.4 GR2: the transfer takes place "irrespective of whether it is suppressed by the LISTING directive".
             if (!line.Listed || line.Replacement == ListingReplacement.DateCompiledEntry)
             {
                 foreach (var display in displays[line.Number])
-                    rows.AddRange(DisplayRows(display).Select(row => new ListingRow(row, false, ProgramOf(line))));
+                    foreach (string row in DisplayRows(display)) yield return new ListingRow(row, false, ProgramOf(line));
                 continue;
             }
             bool breakBefore = line.PageBreakBefore;
@@ -129,8 +126,8 @@ public static class TextListingRenderer
                 bool firstPiece = true;
                 foreach (string piece in Wrap(Banner(inclusion, files)))
                 {
-                    rows.Add(new ListingRow(firstPiece ? new string(' ', TextColumn - 1) + piece : ContinuationRow(piece),
-                        firstPiece && breakBefore, ProgramOf(line)));
+                    yield return new ListingRow(firstPiece ? new string(' ', TextColumn - 1) + piece : ContinuationRow(piece),
+                        firstPiece && breakBefore, ProgramOf(line));
                     firstPiece = false;
                 }
                 breakBefore = false;
@@ -139,21 +136,20 @@ public static class TextListingRenderer
             int pieces = 0;
             foreach (string piece in Wrap(text))
             {
-                rows.Add(new ListingRow(pieces == 0 ? WithMargin(SourceRow(line, piece), line.Margin, request.PageWidth) : ContinuationRow(piece),
-                    pieces == 0 && breakBefore, ProgramOf(line)));
+                yield return new ListingRow(pieces == 0 ? WithMargin(SourceRow(line, piece), line.Margin, request.PageWidth) : ContinuationRow(piece),
+                    pieces == 0 && breakBefore, ProgramOf(line));
                 pieces++;
             }
             if (line.Replacement == ListingReplacement.Replacing)
-                rows.AddRange(ReplacedRows(line.Replaced ?? "").Select(row => new ListingRow(row, false, ProgramOf(line))));
+                foreach (string row in ReplacedRows(line.Replaced ?? "")) yield return new ListingRow(row, false, ProgramOf(line));
             // The caret stands under the column only where the row shows the line whole and as written.
             bool whole = pieces == 1 && line.Replacement is ListingReplacement.None or ListingReplacement.Replacing;
             foreach (int id in line.Diagnostics)
                 foreach (string row in DiagnosticRows(diagnostics[id], whole ? line.Text : null, request.PageWidth))
-                    rows.Add(new ListingRow(row, false, ProgramOf(line)));
+                    yield return new ListingRow(row, false, ProgramOf(line));
             foreach (var display in displays[line.Number])
-                rows.AddRange(DisplayRows(display).Select(row => new ListingRow(row, false, ProgramOf(line))));
+                foreach (string row in DisplayRows(display)) yield return new ListingRow(row, false, ProgramOf(line));
         }
-        return rows;
     }
 
     /// <summary>The 1-based column the embedded margin starts in (DESIGN-listing.md section 6.2: columns 100 to 132).</summary>
@@ -311,13 +307,26 @@ public static class TextListingRenderer
                 int space = text.LastIndexOf(' ', end, end - at);
                 if (space > at) end = space;
             }
-            yield return new string(' ', indent) + text[at..end].TrimEnd(' ');
+            yield return Row(indent, text, at, end);
             at = end;
             while (at < text.Length && text[at] == ' ') at++;
             indent = rest;
         }
         while (at < text.Length);
     }
+
+    /// <summary>One row of <see cref="Indented"/>: <paramref name="indent"/> spaces and <paramref name="text"/> from <paramref name="start"/>
+    /// up to <paramref name="end"/> without its trailing spaces, made in one allocation, or none when the row is the whole text as it
+    /// stands (kb/Work PB5941: the object code prints a row per IL instruction).</summary>
+    private static string Row(int indent, string text, int start, int end)
+    {
+        var piece = text.AsSpan(start, end - start).TrimEnd(' ');
+        if (indent == 0 && piece.Length == text.Length) return text;
+        return indent <= Blanks.Length ? string.Concat(Blanks.AsSpan(0, indent), piece) : new string(' ', indent) + piece.ToString();
+    }
+
+    /// <summary>The spaces a row is indented by, as wide as the widest page.</summary>
+    private static readonly string Blanks = new(' ', ListingRequest.MaximumPageWidth);
 
     /// <summary>The index in <paramref name="text"/> after <paramref name="positions"/> positions from <paramref name="start"/>
     /// (a supplementary-plane character is one position), or its length.</summary>
