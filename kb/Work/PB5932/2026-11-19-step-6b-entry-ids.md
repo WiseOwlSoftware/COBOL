@@ -34,7 +34,9 @@ the frozen forest and adopts their entries the day their declarations make them 
 bind's position against the record's.
 
 **Behaviour-neutral:** `python scripts/arch/compare_oracle.py --no-build` against the branch's base 8dd07d2eabd1 after the source
-changes: see the commit messages and the measurements below for each verdict line.
+changes: `=== ARCH-ORACLE: IDENTICAL — 22647 cases (baseline 8dd07d2eabd1, new 8dd07d2eabd1-dirty) ===` (commit a4799a5605; every
+compile of the oracle ran with the guard on, so no identification of the population lacked an entry). Unit 42190 and Conformance 28191
+passed, RepoDrift 187 passed, on that tree.
 
 **Drift tests:** `SymbolEntryDriftTests` (Unit): the guard (an identification without an entry, and a candidate set with a candidate
 without one, are refused), three planted programs (2023, 1985, OO) and a 2023 report program whose every class's entry is checked at
@@ -48,7 +50,18 @@ loses `SymbolTableFinish`; `DataBinder::OoClasses` gains `SymbolTable`; `DataBin
 `ListingOffDoesNoWorkDriftTests` (the finished table of its program holds the paragraph's entry), `SymbolTableConfigurationNamesTests`
 (a declaration takes its word).
 
-**Section 9** (the `None` row of the front end and bind, branch against its parent 8dd07d2eab, twice each, alternating): MEASUREMENT.
+**Section 9** (the `None` row of the front end and bind, branch a4799a5605 against its parent 8dd07d2eab, Release, branch, branch,
+parent, parent; a first parent run failed to build BenchmarkDotNet's boilerplate in its two-minute timeout and measured nothing):
+IX113A 68.45 and 68.74 MB against 68.29 and 68.43; NC105A 34.81 and 34.82 against 34.67 and 34.66; NC218A 30.75 and 30.78 against
+30.64 and 30.72; SM201A 15.12 and 15.12 against 15.23 and 15.28. The entries are a fixed cost per declared name (about 0.15 MB on
+NC105A), made for every compilation by the design, so section 9's `None` budget now names them, as step 7a's label fields were named;
+SM201A allocates less (a paragraph's identification no longer makes a `ParagraphDefinition` per lookup). The benchmark README's
+step-6b table, the entry-id lane.
+
+**The owed list, settled:** `2026-11-19-entry-ids-owed-to-step-7b`'s three items are built for every class the table declared on
+8dd07d2eab (declaration makes the entry, `Identify`, `ClassNames.Lookup` and `IndexEntryOf` answer the id, the finish reads the
+bind's entries); the data-names and condition-names owe theirs with their declarations (the data-name lane), in the shape
+`SymbolTableFinish.DeclareEntered` already adopts.
 
 **What enters no entry, and why it is left:** a REPOSITORY program-specifier whose literal-3 was refused, and a CAPACITY register SR30
 refused: each declares a word no reference resolves to and binds with an error, so step 7b's completeness oracle (clean binds only)
@@ -56,4 +69,22 @@ never meets one. The data-names and condition-names enter with their declaration
 
 ### Leads carried
 
-LEADS.
+Every LEAD of `python scripts/orchestrator/review_findings.py show` over the 21 `review-listing-step-*.jsonl` files (steps 1, 5, 6, 6b,
+6b-5, 6b-close, 6b-data, 8 and 9 hold none), and the two of `2026-11-19-review-leads-slices-2-and-3`, checked on this branch
+(origin/main 8dd07d2eab plus this lane):
+
+| Lead | State | Evidence |
+|---|---|---|
+| step 7b R1-1 (the 14.7.8 "rule 1"/"rule 2" sweep incomplete) | fixed here (81e1335eb9) | DataBinder.cs, DATA_MODEL_DESIGN.md:382, SpecialNamesBinder.Alphabets.cs, ConditionRenderer.cs:182, ec_range_invalid.cob and GR-8.8.4.5.3-1.json's "§§" were already fixed on main; the rest were still true and are fixed: ConditionRenderer.cs (2 comments), CollatingModel.cs, CONDITIONS_EXCEPTIONS_DESIGN.md (4 sentences), l1_value_thru_through_equivalent(_85).cob, pb401_range_invalid_by_class.cob, inventory DOC-A.1-203 and SR-14.9.13.3-1; `cite.py --check "§2023:14.7.8 GR1" "the range of values includes literal-1, literal-2"` and `"§2023:14.7.8 GR2" "the collating sequence used for range evaluation"` -> OK |
+| step 2 R2-1 (ListingRequest init accessors) | already fixed | `ListingRequest.WithDestination` (6 mentions in ListingRequest.cs) |
+| step 3 R1-1 (Column a UTF-16 index) | already fixed | `ListingDiagnostic`'s doc: "The 1-based character position in that line's text" |
+| step 3 R1-2 (SeverityWord restated) | already fixed | the close session's table; `TextListingRenderer.SeverityWord` reads the diagnostic's one word |
+| step 3 R1-3 (Result.Diagnostics coverage) | already fixed | the OO lane's dated file `2026-11-19-step-6b-oo` "Leads carried" |
+| step 4a R2-1 (DirectiveEncounter wording) | already fixed | `git grep "first direct" ConditionalCompilationResult.cs` finds nothing; the type is `StateEncounter` |
+| step 4b R1-1 (section 11 step 4b's twelve rows), R1-2 (Listing2023Tests' own Prologue) | already fixed | Listing2023Tests reads `_cases.Prologue` (lines 95, 222) |
+| step 6b-2 R1-1, step 6b-3 R1-1, review-leads-slices-2-and-3 items 1 and 2 | already fixed (slice 5) | DESIGN-listing.md section 6.7 names `ProcedureNames<T>`; slice 3's paragraph carries slice 5's correction |
+| step 6b-4 R2-1 (RangeCollationFields "rule 2") | already fixed | RangeCollationFields.cs's header cites §2023:14.7.8 GR2 |
+| step 6b-6 R1-1 (`ContainingDefinitionNames`), R1-2 (inventory prose) | already fixed (slice 7) | `git grep ContainingDefinitionNames -- src` finds nothing; SR-12.3.8.3-15 names `ProgramPrototypesOf` only as its retired witness |
+| step 6b-7 R1-1 (banner), R1-2 (PB2418) | already fixed (close session) | the banner names slice 7; `kb/Work/PB2418/2026-11-19-signature-tables-moved-into-symboltable.md` |
+| step 6b-oo R2-1 (rule (2)'s companion and with-expressions) | already fixed (close session) | NameTableOwnership.cs:350 refuses `WithExpressionSyntax` and `DefaultExpressionSyntax` |
+| step 7 R1-1 (the slot counter compares counts only) | already fixed (slice 7) | NameSlotFixture.g4's `misplaced` rule |

@@ -2143,8 +2143,9 @@ renderer. Naming it asks for a listing at any edition.
   COPY statement without a listing, the no-work drift test's own program first.
 - **Budgets, measured.** No listing: compile time within the run-to-run noise of the parent commit, and allocated bytes
   per compile no more than the parent's plus the line-kind arrays (one byte per physical line read), (step 7a) the
-  name-slot label fields (one reference field per label in each parse-tree context of its rule, section 6.7.1) and (step 8) the
-  backend's sequence points: a line directive pair per statement and the portable PDB (section 6.9). Standard text
+  name-slot label fields (one reference field per label in each parse-tree context of its rule, section 6.7.1), (step 8) the
+  backend's sequence points: a line directive pair per statement and the portable PDB (section 6.9), and (step 6b, the entry ids) the
+  symbol table's entries: one entry and one identity-index slot per declared name (section 6.7.1). Standard text
   listing: at most 10 % over the no-listing compile. Every section in every format: at most 25 %.
 - **The harness.** `tests/WiseOwl.Cobol.Benchmarks/Compile/CompileBenchmarks.cs` (BenchmarkDotNet, Release, run by
   `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*`) gains, in step 1,
@@ -2231,6 +2232,15 @@ renderer. Naming it asks for a listing at any edition.
   two runs or within 0.04 MB of them (IX113A 68.32 and 68.29 MB against 68.33 and 68.33); NC105A's lie one below both parent runs and
   one 0.55 MB above them (34.60 and 35.26 MB against 34.61 and 34.71), inside the program's run-to-run spread on one tree (slice 3's
   four runs each). The slice moves no measurable allocation; the `None` budget holds (the README's step-6b table, the closing slice).
+  The entry-id lane (every class the table declares enters its entry where it is declared, section 6.7.1 "Step 6b, the entry ids"),
+  measured against its parent 8dd07d2eab (branch, branch, parent, parent; the first parent run failed to build BenchmarkDotNet's
+  boilerplate in its two-minute timeout and is not counted): NC105A's `None` rows are 34.81 and 34.82 MB against 34.67 and 34.66,
+  IX113A's 68.45 and 68.74 against 68.29 and 68.43, NC218A's 30.75 and 30.78 against 30.64 and 30.72, SM201A's 15.12 and 15.12 against
+  15.23 and 15.28. The entries are a fixed cost per declared name, made for every compilation by design ("The table's entries exist for
+  every compilation"): an entry and an identity-index slot per name, about 0.15 MB on NC105A, inside its run-to-run spread on one tree
+  (0.7 MB, slice 3) and below the parent on SM201A, where a paragraph's identification no longer makes a `ParagraphDefinition` per
+  lookup. Like the line-kind arrays and the label fields, they are a fact the design records for every compilation so the listing can
+  be exact, so the `None` budget now names them (above). The README's step-6b table, the entry-id lane, holds the four rows of each run.
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the
