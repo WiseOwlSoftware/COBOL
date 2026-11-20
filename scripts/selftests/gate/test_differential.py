@@ -20,7 +20,7 @@ from gate_host import ONLY_CASES  # noqa: E402
 
 NAMES = FakeHost.DIFFERENTIAL_POPULATION
 HAND = "N.Conf.Hand"
-ABSENT = "<repo>/tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net10.0/T1LIB.cpy"
+ABSENT = "<repo>/tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net11.0/T1LIB.cpy"
 
 
 def _world():

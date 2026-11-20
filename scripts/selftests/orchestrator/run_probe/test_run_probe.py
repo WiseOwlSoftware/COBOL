@@ -16,6 +16,7 @@ from pathlib import Path
 import selftest_cases
 from scratch_repo import scratch_dir
 from standard_streams import ensure_utf8
+import toolchain
 
 rp = selftest_cases.subject(__file__)   # scripts/orchestrator/run_probe.py
 EXE = sys.executable
@@ -170,9 +171,9 @@ def case_055_the_run_has_the_suite_adapter_s_environment(expect):
 
 def case_060_a_tree_resolves_its_built_compiler(expect):
     d = scratch_dir("run-probe-tree-")
-    expect.equal("--tree <checkout> names src/WiseOwl.Cobol.Cli/bin/<configuration>/net10.0/<cobol>",
+    expect.equal("--tree <checkout> names src/WiseOwl.Cobol.Cli/bin/<configuration>/<the target framework>/<cobol>",
                  rp.compiler_of(d, "Release"),
-                 d / "src" / "WiseOwl.Cobol.Cli" / "bin" / "Release" / "net10.0" / rp.CLI_NAME)
+                 d / "src" / "WiseOwl.Cobol.Cli" / "bin" / "Release" / toolchain.target_framework() / rp.CLI_NAME)
     status, _, said = _run("--root", str(d / "runs"), "--std", "85", "--tree", str(d), "--configuration", "Release",
                            str(_plant(d, "p.cob", HELLO)))
     expect("an unbuilt configuration is refused, naming the path it looked for",

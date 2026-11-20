@@ -19,7 +19,7 @@
 #
 # What the VM lacks that this repo needs, every one at the version toolchain.env names (kb/Work PB4007: CI and every
 # host run the same, latest versions), installed the way CI installs it (scripts/install-tool.sh's block below):
-#   * the .NET SDK — the version CI builds with (global.json's 10.0.100 and rollForward latestMinor accept it)
+#   * the .NET SDK — the version CI builds with (global.json's 11.0.100 and rollForward latestMinor accept it)
 #   * the JDK      — the Frontend's ANTLR generation (the image's own java 21 stays behind it on PATH)
 #   * pwsh         — the ANTLR generation, fetch-gnucobol-tests.ps1
 #   * gh, jq       — the landing and orchestrator scripts
@@ -54,7 +54,7 @@ trap 'rm -rf "$WORK"' EXIT
 #    is cloned, so it cannot read toolchain.env or call scripts/install-tool.sh: the two blocks between the markers are
 #    copies of theirs, and toolchain.py's and toolchain_audit.py's self-tests keep each one identical. ──────────
 # >>> toolchain (kept byte-identical in toolchain.env and scripts/cloud/setup-env.sh)
-DOTNET_SDK_VERSION=10.0.404
+DOTNET_SDK_VERSION=11.0.100
 PYTHON_VERSION=3.15.2
 JDK_VERSION=27.0.1
 PWSH_VERSION=7.7.0

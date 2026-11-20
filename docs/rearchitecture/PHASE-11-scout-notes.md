@@ -1315,7 +1315,7 @@ unit-style golden if in doubt; the corpus golden stays within 8 bits.)
 - Optional: one `AssertSpec` fact in `IntrinsicFunctionDifferentialTests.cs` (dialect 2002) pinning T3/T5 values.
 
 ## 6. Verify (before the battery)
-- CLI spot-run: `dotnet build src/WiseOwl.Cobol.Cli && dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll
+- CLI spot-run: `dotnet build src/WiseOwl.Cobol.Cli && dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.dll
   <scratch>/intrinsics_boolean_conv.cob --std 2002 -o E:/Temp/claude/p11boolconv.dll --run` → expect the .out
   content EXACTLY (T3=128 proves MSB-first; T2 proves left-truncate + right-fill composition).
 - Negative spot: compile at --std 85 → COBOL1502 naming both functions.

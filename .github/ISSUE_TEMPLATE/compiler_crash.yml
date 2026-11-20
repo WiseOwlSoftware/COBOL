@@ -51,4 +51,4 @@ body:
     id: environment
     attributes:
       label: Environment
-      placeholder: Ubuntu 24.04 / .NET 10.0.100
+      placeholder: Ubuntu 24.04 / .NET 11.0.100

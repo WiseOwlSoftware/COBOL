@@ -29,7 +29,7 @@ def case_01_real_host_names_its_lock_and_default_audits(expect):
 
 def case_02_real_host_captures_in_the_test_hosts_working_directory(expect):
     """kb/Work PB4333 R2-1: the capture compiles where the Conformance test host runs, the directory of its BUILT
-    assembly (measured: `<project>/bin/Debug/net10.0`), never the project directory, which the fake host cannot see."""
+    assembly (measured: `<project>/bin/Debug/net11.0`), never the project directory, which the fake host cannot see."""
     host = Host(gate_mod.REPO)
     try:
         where = host.test_output_dir("Conformance")

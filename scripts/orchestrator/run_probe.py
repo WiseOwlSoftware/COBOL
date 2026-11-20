@@ -10,7 +10,7 @@ nothing (kb/Work PB5764; MANDATORY-PRACTICES P17).
                 caller (your own scratch directory, MANDATORY-PRACTICES P16). The run happens in
                 <root>/<program stem>-<nnn>/, the next free number; an earlier run's directory is never reused or removed.
 --std           the edition, passed to the compiler as `--std`. Required: no edition is assumed.
---exe / --tree  the compiler: its path, or the checkout whose `src/WiseOwl.Cobol.Cli/bin/<configuration>/net10.0/`
+--exe / --tree  the compiler: its path, or the checkout whose `src/WiseOwl.Cobol.Cli/bin/<configuration>/<tfm>/`
                 holds it (the configuration Debug unless named). Exactly one is required; a compiler that does not
                 exist is refused, never replaced by another.
 --with          a file the program needs beside it (a library text it copies, a data file it reads): copied in.
@@ -54,6 +54,7 @@ sys.path.insert(0, str(REPO / "scripts"))  # process_job, standard_streams
 sys.path.insert(0, str(SUITE / "harness"))  # the suite runner's adapter reader and its output rule
 import config as suite_config  # noqa: E402
 import run as suite_run  # noqa: E402
+import toolchain  # noqa: E402  (THE target framework, read from Directory.Build.props: kb/Work PB5971)
 from process_job import ProcessJob  # noqa: E402  (the one way to hold, and kill, a whole process tree; PB5098)
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -66,7 +67,7 @@ EXIT_DIFFERS = 1
 EXIT_TIMEOUT = 124
 #: The compiler's place in a built checkout (the CLI project's output; the apphost has no `.exe` off Windows).
 CLI_BIN = ("src", "WiseOwl.Cobol.Cli", "bin")
-CLI_TFM = "net10.0"
+CLI_TFM = toolchain.target_framework()
 CLI_NAME = "cobol.exe" if os.name == "nt" else "cobol"
 
 

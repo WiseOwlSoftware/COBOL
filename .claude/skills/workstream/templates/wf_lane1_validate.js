@@ -46,7 +46,7 @@ fixer rewrote the report, else read the writer report in ${SCRATCH}/reports/${sl
 refused program's refuse-at editions and expect text).
 RULES. Do NOT write anything inside E:\\COBOL; do NOT run dotnet build/test; do NOT edit any draft .out or refusal —
 the expected values are SPEC-DERIVED and refuter-upheld; if the compiler disagrees, the compiler is the suspect.
-Compiler: E:\\COBOL\\.claude\\worktrees\\lane3-pin-1d6cc442\\src\\WiseOwl.Cobol.Cli\\bin\\Debug\\net10.0\\cobol.exe (a PINNED build of battery-green tree 1d6cc442 — landings cannot move it under you; never use the main tree's exe).
+Compiler: E:\\COBOL\\.claude\\worktrees\\lane3-pin-1d6cc442\\src\\WiseOwl.Cobol.Cli\\bin\\Debug\\net11.0\\cobol.exe (a PINNED build of battery-green tree 1d6cc442 — landings cannot move it under you; never use the main tree's exe).
 EVERY RUN goes through the probe runner, which copies the program into a NEW directory under its root each time and
 deletes nothing (never a recursive delete of a path that holds a variable: MANDATORY-PRACTICES P17):
   python E:\\COBOL\\scripts\\orchestrator\\run_probe.py --root ${SCRATCH}/run/${slug} --std <edition> --exe <the Compiler above> [--with <a file it needs>] ...

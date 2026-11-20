@@ -11,7 +11,7 @@
 
     This is an ANALYZER assembly: it is loaded by Roslyn at BUILD time and is never a runtime dependency of the
     compiler (referenced with ReferenceOutputAssembly="false"). Analyzers load as netstandard2.0, so this project
-    overrides the repo-wide net10.0 from Directory.Build.props.
+    overrides the repo-wide net11.0 from Directory.Build.props.
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>

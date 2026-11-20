@@ -56,4 +56,4 @@ body:
     attributes:
       label: Environment
       description: OS and `dotnet --version`.
-      placeholder: Windows 11 / .NET 10.0.100
+      placeholder: Windows 11 / .NET 11.0.100

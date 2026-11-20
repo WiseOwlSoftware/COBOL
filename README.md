@@ -13,7 +13,7 @@ choice to the implementor, the conformance statement ([docs/conformance/](docs/c
 
 | Tool | Version | Why |
 |---|---|---|
-| .NET SDK | 10.0.100 or a later 10.0 release (`global.json`) | builds the solution; runs compiled programs |
+| .NET SDK | 11.0.100 or a later 11.0 release (`global.json`) | builds the solution; runs compiled programs |
 | PowerShell | 7 or later (`pwsh`) | the build regenerates the ANTLR parser through a PowerShell step; the gate scripts |
 | Java | 21 or later | runs the checked-in ANTLR 4.13.2 jar when a grammar changes |
 | Python | 3.14 or later | the gate driver, the specification tools, the work register |
@@ -36,7 +36,7 @@ keeps a merge from reporting conflicts that are only line endings. The first bui
 grammars under `src/WiseOwl.Cobol.Frontend`, so it takes a few minutes; later builds regenerate it only when a grammar
 changes.
 
-The build leaves the compiler at `src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol` (`cobol.exe` on Windows). Build the
+The build leaves the compiler at `src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol` (`cobol.exe` on Windows). Build the
 whole solution, not one project: the tests run against the compiler the solution build produced.
 
 ## Compile and run a program

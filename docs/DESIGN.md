@@ -255,7 +255,7 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
   diagnostic in every edition that LACKS it (not-yet-introduced or removed) — driven by
   `docs/VERSION_CHANGE_REFERENCE.md` (130-row edition-change checklist) and validated by
   `docs/VERSION_TEST_MATRIX_DESIGN.md` (the construct × edition matrix).
-- **Deploy:** fixed TFM from `Directory.Build.props` — `net10.0` today, with a **.NET 11 upgrade pre-authorized**
+- **Deploy:** fixed TFM from `Directory.Build.props` — `net11.0` today, with a **later .NET upgrade pre-authorized**
   when its features make the goals easier/more productive (owner, 2026-06-10); never `Environment.Version`-by-luck;
   one ConsoleApplication
   assembly per compilation (the run-unit); emit a PDB mapped to the `.g.cs`; write `.g.cs` next to the assembly.
@@ -1860,7 +1860,7 @@ follows §16.*
 
 ## 17. Project organization, rename & code-structure plan
 
-> Scope of this section: the solution/project layout, the front-end extraction, the rename, the no-god-class structural rules, and the C# 14/.NET 10 usage guidelines. It expands `ARCHITECTURE.md` §5. Implementation status: **G0 is DONE** — the tree IS `src/WiseOwl.Cobol.{Frontend,Compiler,Runtime,Cli}` + `tests/WiseOwl.Cobol.Tests.{Unit,Conformance,Characterization}`; the legacy engine is deleted (P15 Cut 2); the runtime namespace flip lands with P15 Cut 3.
+> Scope of this section: the solution/project layout, the front-end extraction, the rename, the no-god-class structural rules, and the C# 15/.NET 11 usage guidelines. It expands `ARCHITECTURE.md` §5. Implementation status: **G0 is DONE** — the tree IS `src/WiseOwl.Cobol.{Frontend,Compiler,Runtime,Cli}` + `tests/WiseOwl.Cobol.Tests.{Unit,Conformance,Characterization}`; the legacy engine is deleted (P15 Cut 2); the runtime namespace flip lands with P15 Cut 3.
 
 ---
 
@@ -1948,7 +1948,7 @@ The G0 extraction is complete and the tree in §1.2 is the record. Nothing maps 
 ### 1.4 Front-end extraction — how, precisely
 
 The new `WiseOwl.Cobol.Frontend.csproj`:
-- Inherits TFM/lang from `Directory.Build.props` (net10.0 / C# 14) — **do not** re-declare.
+- Inherits TFM/lang from `Directory.Build.props` (net11.0 / C# 15) — **do not** re-declare.
 - `<PackageReference Include="Antlr4.Runtime.Standard" />` — **no `Version`** (central package management via `Directory.Packages.props`; the pin is our fork's build of the 4.13.2 runtime from `nuget-feed/`, DESIGN-frontend-grammar.md §3.5 item 3a). It needs `Antlr4.Runtime`; it does **not** need `Mono.Cecil`.
 - No `ProjectReference` (the front-end is self-contained).
 - Carries the ANTLR generation: the `WriteAntlrGenerationStamp` + `EnsureGeneratedFiles` + `CleanGenerated` targets, the `AntlrGrammar` item (`Grammar/**/*.g4`) and the `AntlrNamespace`/`AntlrJar`/`AntlrGenerator` properties live in its csproj; `EnsureGeneratedFiles` is the one up-to-date decision over every generation input (kb/Work PB2719), and its `Inputs`/`Outputs` paths are relative.
@@ -2002,7 +2002,7 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `FirstToke
 
 ---
 
-### 3. C# 14+ / .NET 10+ feature usage guideline (.NET 11 upgrade pre-authorized when it pays for itself)
+### 3. C# 15+ / .NET 11+ feature usage guideline (a later .NET upgrade is pre-authorized when it pays for itself)
 
 **Principle: readability and correctness first, not feature golf.** A modern feature earns its place only when it makes the *emitter* code clearer or safer. Examples below are drawn from constructs already in this codebase.
 

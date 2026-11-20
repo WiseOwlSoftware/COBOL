@@ -2017,7 +2017,7 @@ result. Run the long legs ONE AT A TIME.
 - **There is no second compiler to differ against:** the legacy engine is deleted from `main` (P15 Cut 2, kb/Work PB2110);
   `docs/rearchitecture/LEGACY-ARCHIVE.md` names the tag that preserves it. `guard-fast.sh` is the WiseOwl COBOL NIST leg.
 - **GnuCOBOL external differential — USE IT (owner directive):** `python3 scripts/gnucobol_differential.py --exe
-  src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe --report <path>` over the fetched GPL corpus (1323 groups,
+  src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.exe --report <path>` over the fetched GPL corpus (1323 groups,
   git-ignored `tests/external/gnucobol/`; `python scripts/external_corpus.py ensure` fetches it when absent, the one
   rule `battery.sh` and every gate apply, kb/Work PB2611). It catches reference-format
   and grammar bugs the internal battery is blind to.
@@ -3449,7 +3449,7 @@ This phase is the load-bearing hinge between "the compiler works" and "we can sa
 Files created / changed by P14 (real paths):
 
 **Scripts / tooling**
-- `scripts/greenfield-guard.sh` — the in-repo greenfield census guard (bash). Drives `src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll` over the full NIST census (from `tests/nist/corpus.tsv`), compiles+runs every program, diffs golden-bearing ones against `tests/nist/valid/`, accepts golden-less run-only programs (census health), resolves producer→consumer chains, and carries the `LEGACY_DIVERGENT` set as expected-diff sourced from the LEDGER. Exit 0 iff no regression.
+- `scripts/greenfield-guard.sh` — the in-repo greenfield census guard (bash). Drives `src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.dll` over the full NIST census (from `tests/nist/corpus.tsv`), compiles+runs every program, diffs golden-bearing ones against `tests/nist/valid/`, accepts golden-less run-only programs (census health), resolves producer→consumer chains, and carries the `LEGACY_DIVERGENT` set as expected-diff sourced from the LEDGER. Exit 0 iff no regression.
 - `scripts/greenfield-guard.ps1` — Windows-parity wrapper (thin; may shell the same census-runner logic or a shared `dotnet` entry). Behavior-equivalent output vocabulary.
 - `scripts/gen-vcr.ps1` — (from P3; extended here) regenerates VCR status from `constructs/` + harness results so `TODO` can never be hand-ticked back in.
 
@@ -3659,7 +3659,7 @@ Expected: all golden programs byte-match at 2023-permissive.
 dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --filter DiagnosticRegistryCoverageTests
 dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --filter CorpusRunnerTests
 # spot-check a new negative case:
-dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll tests/conformance/negative/<new>.cob --std 2023 --check   # expect the .err code
+dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.dll tests/conformance/negative/<new>.cob --std 2023 --check   # expect the .err code
 ```
 Expected: coverage test green (no uncovered descriptor); corpus manifest drift green.
 
@@ -3701,7 +3701,7 @@ Expected: all green; sweep no `BREAKS`; strict breaks (if any) all edition-band-
 ```
 # build a tiny 5-program manifest and run it:
 printf 'tests/nist/programs/NC101A.cob\t85\tNC101A\t0\tgolden\t-\n' > /tmp/m.tsv
-dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll run-batch /tmp/m.tsv
+dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.dll run-batch /tmp/m.tsv
 ```
 Expected: `NC101A\tMATCH`. Add a run-only (golden-less) program and a chained consumer (e.g. `ST103A` with preds `ST101A ST102A`) and confirm `NO-GOLDEN` and `MATCH` respectively.
 
@@ -4314,8 +4314,8 @@ bash scripts/guard-fast.sh
 **Behavioral probe (prebuilt CLI, both backends):**
 
 ```bash
-dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll <source.cob> --std 2002 -o /tmp/r.dll --backend roslyn --run
-dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll <source.cob> --std 2002 -o /tmp/c.dll --backend cil    --run
+dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.dll <source.cob> --std 2002 -o /tmp/r.dll --backend roslyn --run
+dotnet src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.dll <source.cob> --std 2002 -o /tmp/c.dll --backend cil    --run
 diff <(dotnet /tmp/r.dll) <(dotnet /tmp/c.dll) && echo "BYTE-IDENTICAL"
 ```
 
@@ -4439,7 +4439,7 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
 - **Files:** create `src/WiseOwl.Cobol.Backend.Cil/WiseOwl.Cobol.Backend.Cil.csproj` (refs `WiseOwl.Cobol.Compiler`,
   `WiseOwl.Cobol.Runtime`, `Mono.Cecil` NuGet); `CilBackend.cs`; add the project to the solution and to the CLI's plug
   wiring (`BackendFactory.For(BackendId.Cil, new CilBackend())`).
-- **Change:** `CilBackend : ICodeGenBackend` with a `ModuleDefinition` targeting `net10.0`, a `Program`
+- **Change:** `CilBackend : ICodeGenBackend` with a `ModuleDefinition` targeting `net11.0`, a `Program`
   `TypeDefinition`, an empty `Main`; writes the PE + a portable PDB + `.runtimeconfig.json` (reuse the shared
   `AssemblyPackager.WriteRuntimeConfig` JSON shape, `AssemblyPackager.cs:40-54`). No statements yet — a
   non-DISPLAY program lowers to a loud `NotSupported`.

@@ -30,12 +30,23 @@
 #   GUARD_CLI_BIN       the built output directory
 #   GUARD_CLI_DLL       the managed entry point the guard invokes as `dotnet "$GUARD_CLI_DLL" ...`
 #   GUARD_RUNTIME_DLL   the COBOL runtime the compiled programs bind to (copied next to a program before it runs)
+# guard_target_framework  prints the target framework (`net11.0`), read from the repository-root Directory.Build.props:
+# THE one place it is written (scripts/toolchain.py target_framework is the Python reader; kb/Work PB5971).
+guard_target_framework() {
+    local props tfm
+    props="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/Directory.Build.props"
+    tfm="$(sed -n 's:.*<TargetFramework>\(net[0-9][0-9]*\.[0-9][0-9]*\)</TargetFramework>.*:\1:p' "$props")"
+    case "$tfm" in net*.*) printf '%s\n' "$tfm" ;; *) echo "guard_target_framework: no <TargetFramework> in $props" >&2; return 1 ;; esac
+}
+
 guard_select_compiler() {
+    local tfm
+    tfm="$(guard_target_framework)" || return 1
     GUARD_COMPILER="cobol"
     GUARD_CLI_PROJECT="src/WiseOwl.Cobol.Cli/WiseOwl.Cobol.Cli.csproj"
-    GUARD_CLI_BIN="src/WiseOwl.Cobol.Cli/bin/Debug/net10.0"
+    GUARD_CLI_BIN="src/WiseOwl.Cobol.Cli/bin/Debug/$tfm"
     GUARD_CLI_DLL="$GUARD_CLI_BIN/cobol.dll"
-    GUARD_RUNTIME_DLL="src/WiseOwl.Cobol.Runtime/bin/Debug/net10.0/WiseOwl.Cobol.Runtime.dll"
+    GUARD_RUNTIME_DLL="src/WiseOwl.Cobol.Runtime/bin/Debug/$tfm/WiseOwl.Cobol.Runtime.dll"
 }
 
 # ── The identity watchdog ─────────────────────────────────────────────────────────────────────────────────
@@ -93,7 +104,7 @@ guard_compiler_self_test() {
     d="$(mktemp -d -t guardcli.XXXXXX)"
     trap 'rm -rf "$d"' RETURN
 
-    local GREEN="$root/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll"
+    local GREEN="$root/src/WiseOwl.Cobol.Cli/bin/Debug/$(guard_target_framework)/cobol.dll"
 
     # want NAME EXPECTED-RC ACTUAL-RC OUTPUT [REQUIRED-SUBSTRING]
     # ⛔ The substring argument is the point: a refusal for some OTHER reason (a missing file, a typo in the
@@ -114,7 +125,7 @@ guard_compiler_self_test() {
 
     # (S) THE SELECTION ITSELF — a watchdog that checks the binary is no use if the SELECTION points elsewhere.
     out=$( ( guard_select_compiler; echo "$GUARD_COMPILER $GUARD_CLI_DLL $GUARD_RUNTIME_DLL" ) )
-    want "the selection is cobol" 0 0 "$out" "cobol src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll src/WiseOwl.Cobol.Runtime/"
+    want "the selection is cobol" 0 0 "$out" "cobol src/WiseOwl.Cobol.Cli/bin/Debug/$(guard_target_framework)/cobol.dll src/WiseOwl.Cobol.Runtime/"
 
     # (0) THE CONTROL. Without it the watchdog could refuse EVERYTHING and every case below would "pass".
     if [ -f "$GREEN" ]; then

@@ -46,7 +46,7 @@ The compile wrote four files beside `hello.dll`:
 | File | What it is |
 |---|---|
 | `hello.dll` | the program, a .NET assembly |
-| `hello.runtimeconfig.json` | the file `dotnet` reads to find the .NET 10 runtime |
+| `hello.runtimeconfig.json` | the file `dotnet` reads to find the .NET 11 runtime |
 | `WiseOwl.Cobol.Runtime.dll` | the COBOL runtime library the program calls |
 | `hello.g.cs` | the C# the compiler generated, which Roslyn built into `hello.dll` |
 

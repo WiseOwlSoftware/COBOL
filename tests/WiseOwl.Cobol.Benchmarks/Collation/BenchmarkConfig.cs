@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Benchmarks.Collation;
 /// The BenchmarkDotNet configuration every benchmark class in this assembly applies through
 /// <c>[Config(typeof(BenchmarkConfig))]</c>:
 /// <list type="bullet">
-/// <item><b>Runtime</b> — the host runtime, i.e. the project's TFM (net10.0, from the repository-root
+/// <item><b>Runtime</b> — the host runtime, i.e. the project's TFM (net11.0, from the repository-root
 /// Directory.Build.props). To pin another runtime, add <c>.WithRuntime(CoreRuntime.Core90)</c> (etc.) to the job;
 /// the referenced runtime assembly must be buildable for it.</item>
 /// <item><b>Counts</b> — 3 warm-up + 12 measured iterations, at least 250 ms of work per iteration, 1 launch.

@@ -21,7 +21,9 @@ set -u
 # cwd, so the manifest is portable across Linux CI and a Windows/git-bash checkout (where an absolute MSYS path
 # like /e/... is not a path the .NET runtime understands).
 cd "$(dirname "$0")/.." || exit 1
-CLI="src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.dll"
+. scripts/guard-compiler.sh
+guard_select_compiler || exit 1
+CLI="$GUARD_CLI_DLL"
 
 MANIFEST="$(mktemp)"
 RESULTS="$(mktemp)"

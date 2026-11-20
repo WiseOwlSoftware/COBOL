@@ -222,7 +222,7 @@ script, or the image's shell and utilities, so a new tool fails the test on the 
 version of their own.
 
 **⛔ The .NET SDK is installed one way, never through the aka.ms redirect (kb/Work PB3308;
-`scripts/toolchain_audit.py`).** `toolchain.env` pins the exact SDK version (one `global.json`'s `10.0.100` and
+`scripts/toolchain_audit.py`).** `toolchain.env` pins the exact SDK version (one `global.json`'s `11.0.100` and
 `rollForward: latestMinor` accept; the audit checks it), and `scripts/install-tool.sh` lists the SDK's feeds,
 `builds.dotnet.microsoft.com` first and `ci.dot.net/public` second. Every tool the script installs is downloaded from the
 first feed that serves it and its checksum file (the SDK's `.sha512`, the JDK's and uv's `.sha256`, or the release's
@@ -1802,7 +1802,7 @@ A differential gate writes no growth sample (it is not a whole-population measur
   scrubbed environment less every product variable (`COBOL*`, `WISEOWL_COBOL_*`: the sort budget, the fixed clock, key
   checks, collation and CLDR directories, the cache switch). That closes the hole for the whole-target store too: a shell
   variable can no longer make a pass stand for a run its key does not name. The installed .NET runtimes (a compiled
-  program's runtimeconfig rolls forward to the newest 10.0 patch) and the process's locale are in the harness key
+  program's runtimeconfig rolls forward to the newest 11.0 patch) and the process's locale are in the harness key
   (`Host.run_facts`); the whole-target key does not yet name the runtime, a residue registered with the landing. The
   calendar is in no key, for a carried case as for an up-to-date target: a verdict that depends on the day a case runs is
   that test's defect, and it reddens a whole run as well.
