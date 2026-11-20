@@ -8,8 +8,9 @@ no exceptions, and kb/Work PB5932 is landed.
 
 **What changed.**
 - The compilation group's FUNCTION-ID units are keyed by user-function-name in the group tier (`SymbolTable.UnitNames`). The same-word
-  duplicate (COBOL1508) and the repository search by word (§2023:8.4.6.7) ask it. The OO pair of the externalized-name check asks the
-  class-name tier (`ClassNames.DeclareOneWord`).
+  duplicate (COBOL1508) and the repository search by word (§2023:8.4.6.7) both read its one keyed table (`FunctionsNamed`). The
+  externalized-name check's skip of a class or interface pair of one word could not be reached, because the class-name tier admits one
+  definition per word, so it is deleted with the word it carried.
 - The parameterized expansion's names are a table of the group tier (`SymbolTable.ExpansionNames`). This settles the question the OO
   lane left open: the expansion's names belong to the group (§2023:8.4.6.4, §2023:9.3.12), but the class table is built from what the
   expansion makes, so they need a table of their own. The skeletons are looked up by the written word's context, and the formals and
@@ -18,7 +19,12 @@ no exceptions, and kb/Work PB5932 is landed.
   (§2023:7.3.25.4 GR6, GR8). The implicit enable of an exception-checking PERFORM carries the file its WHEN phrase identified
   (§2023:14.9.28.4 GR14).
 - A refused RECORD KEY or ALTERNATE RECORD KEY operand is marked on its own carrier. The key screen used to skip every operand that
-  shared the refused one's spelling.
+  shared the refused one's spelling. This is a user-visible change: `RECORD KEY IS K1` (ambiguous) beside
+  `ALTERNATE RECORD KEY IS K1 OF NOSUCH` now also reports §2023:12.4.5.6.3 SR2 on the alternate operand. A conformance case pins both
+  orders at every edition.
+- Rule (5) of `NameTableOwnershipDriftTests` now also sees a caller that makes one of the table's static name equalities its own
+  comparison: a symbol's name handed to it as a string, or the equality applied to each element of a collection. The sweep moved the
+  property-accessor search into the table (`ClassNames.AccessorAmong`) and made `SpellsIndexName` take the index declaration.
 - Every data description entry enters its symbol table entry where the binder declares it. That covers FILLER, type declarations,
   TYPE and SAME AS copies, level-66 and level-88 entries, a CD's record area and an FD's implied record. `DataEntryOf` answers a
   data-name's or condition-name's entry for the occurrences step 7b will record. The finish now only places these entries.

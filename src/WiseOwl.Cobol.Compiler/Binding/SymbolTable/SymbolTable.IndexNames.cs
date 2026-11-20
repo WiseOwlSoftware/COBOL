@@ -65,10 +65,11 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>Is the written word <paramref name="written"/> (one token of a subscript's token list, where no parse rule holds
-    /// the name alone) spelled as the index-name <paramref name="declared"/> an INDEXED BY phrase declares? The cheap pre-filter
-    /// before such a word is resolved, with its qualifiers, by the declaration it identifies (kb/Work PB919): only the table
-    /// compares a written word with a declared name (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
-    internal static bool SpellsIndexName(Antlr4.Runtime.IToken written, string declared) => Key(written.Text) == Key(declared);
+    /// the name alone) spelled as the index-name of <paramref name="declared"/>, the declaration an INDEXED BY phrase makes? The cheap
+    /// pre-filter before such a word is resolved, with its qualifiers, by the declaration it identifies (kb/Work PB919): only the table
+    /// compares a written word with a declared name, and it reads the declared name off the declaration itself, so no caller hands it
+    /// a name of its own choosing (docs/rearchitecture/DESIGN-listing.md section 6.7.1; step 6b-r5 review round 1).</summary>
+    internal static bool SpellsIndexName(Antlr4.Runtime.IToken written, IndexDeclaration declared) => Key(written.Text) == Key(declared.Name);
 
     /// <summary>Declares one INDEXED BY index-name in the scope that owns its table: <paramref name="method"/>'s when the table is a
     /// method's, else this element's, whose own declarations are also the cells it emits (<see cref="ForestSlice.OwnIndexes"/>).</summary>

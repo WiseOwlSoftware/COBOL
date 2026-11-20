@@ -722,13 +722,13 @@ internal sealed class BinderDriver
         // second — the shape §2023:8.3.2.2 exists to forbid.
         CheckDefinitionNameUniqueness(units, classes, session.OoClasses, session.Sources, session.Edition, session.Binders);
         // The group tier's function units by word (§2023:8.4.6.7), the symbol table's (docs/rearchitecture/DESIGN-listing.md
-        // section 6.7.1, "Step 6b, remainder slice 5"): the same-word screen asks it.
+        // section 6.7.1, "Step 6b, remainder slice 5"): the same-word screen and the repository's word search both ask it.
         var unitNames = new SymbolTable.UnitNames(units);
         CheckFunctionUnits(units, unitNames, session.Sources, session.Edition, session.Binders);
         // kb/Work PB237 / PB894 / PB989 — the compilation group's program and function units, the search space
         // §2023:12.3.8.4 GR10 / GR11 a) and b) name. Built once; each source element searches it AS OF ITS OWN POSITION.
         // c) is the external repository's (kb/Work PB2103): it reads nothing until a specifier the group cannot answer.
-        return new RepositoryResolver(new GroupRepositoryProvider(units, session.Binders), session.External);
+        return new RepositoryResolver(new GroupRepositoryProvider(units, unitNames, session.Binders), session.External);
     }
 
     /// <summary>⛔ Give every restricted program- or function-pointer in the group its two restrictions — the prototype its
@@ -891,17 +891,17 @@ internal sealed class BinderDriver
         //     externalized name used to compile clean — each namespace policed only ITSELF; the EXTERNAL items
         //     were the same hole, one list further down the same clause).
         var externalized =
-            new Dictionary<string, (string Kind, string Spelling, string Word)>(WiseOwl.Cobol.Runtime.ExternalizedNames.Comparer);
-        foreach (var (kind, spelling, word, name, at, shared) in ExternalizedDefinitions(units, classes, oo, sources, binders))
+            new Dictionary<string, (string Kind, string Spelling)>(WiseOwl.Cobol.Runtime.ExternalizedNames.Comparer);
+        foreach (var (kind, spelling, name, at, shared) in ExternalizedDefinitions(units, classes, oo, sources, binders))
         {
             if (externalized.TryGetValue(name, out var first))
             {
                 // §2023:8.4.6.4 states its OWN compilation-group uniqueness for object-class-names and
-                // interface-names, and the OO class table enforces it on the declared WORD (COBOL0820,
-                // OoDefinitionNameNotUnique). A pair already reported THERE is skipped here rather than doubled — but only
-                // that pair: two class definitions whose words DIFFER and whose AS literals coincide are
-                // §2023:8.3.2.2's business alone, and nothing else in the compiler looks at them.
-                if (IsOo(kind) && IsOo(first.Kind) && SymbolTable.ClassNames.DeclareOneWord(word, first.Word)) continue;
+                // interface-names, and the group tier enforces it on the declared WORD where it declares the second
+                // (COBOL0820, OoDefinitionNameNotUnique) and admits only the first: oo.Classes and oo.Interfaces hold one
+                // definition per word, so no pair this check sees was reported there. Two class definitions whose words
+                // DIFFER and whose AS literals coincide are §2023:8.3.2.2's business alone (kb/Work PB5932, listing step
+                // 6b-r5 review round 1: the skip of a same-word pair that stood here could not be reached).
                 // Two EXTERNAL items of ONE kind under one name are the SAME INSTANCE — that sharing is what the
                 // EXTERNAL clause is for ("they refer to the same instance"), and whether their descriptions agree is
                 // §2023:13.18.22.4 / EC-EXTERNAL-*'s question. Only a pair of DIFFERENT kinds conflicts.
@@ -924,7 +924,7 @@ internal sealed class BinderDriver
                     + $"'{name}' in this compilation group — {why}");
                 continue;   // the FIRST stays the survivor, so one duplicated name reports exactly once
             }
-            externalized[name] = (kind, spelling, word);
+            externalized[name] = (kind, spelling);
         }
 
         // (2) The per-OUTERMOST-PROGRAM contained namespace (§2023:8.4.6.3). "Directly or indirectly", so the
@@ -964,7 +964,7 @@ internal sealed class BinderDriver
         // report. The list's remaining members are not definitions in a compilation group: method-names and
         // property-names are the two §2023:8.3.2.2 EXEMPTS from the same-instance sentence by name, and a
         // function-prototype-name / program-prototype-name names a definition elsewhere (§2023:12.3.8.4 GR10).
-        static IEnumerable<(string Kind, string Spelling, string Word, string Name, DiagnosticCursor At, bool Shared)>
+        static IEnumerable<(string Kind, string Spelling, string Name, DiagnosticCursor At, bool Shared)>
             ExternalizedDefinitions(IReadOnlyList<BoundUnit> units, IReadOnlyList<OoClassUnit> classes, OoClassTable oo, SourceMap sources,
                 ElementBinders binders)
         {
@@ -972,14 +972,14 @@ internal sealed class BinderDriver
             {
                 if (u.IsPrototype || u.Parent is not null) continue;
                 string kind = u.IsFunction ? "FUNCTION-ID" : "PROGRAM-ID";
-                yield return (kind, Spell(kind, u.Name, u.ExternalizedName), u.Name, u.ExternalizedName,
+                yield return (kind, Spell(kind, u.Name, u.ExternalizedName), u.ExternalizedName,
                               CursorOf(sources.NameOf(u)), false);
             }
             foreach (var c in oo.Classes)
-                yield return ("CLASS-ID", Spell("CLASS-ID", c.Name, c.ExternalizedName), c.Name,
+                yield return ("CLASS-ID", Spell("CLASS-ID", c.Name, c.ExternalizedName),
                               c.ExternalizedName, CursorOf(sources.Of(c)), false);
             foreach (var i in oo.Interfaces)
-                yield return ("INTERFACE-ID", Spell("INTERFACE-ID", i.Name, i.ExternalizedName), i.Name,
+                yield return ("INTERFACE-ID", Spell("INTERFACE-ID", i.Name, i.ExternalizedName),
                               i.ExternalizedName, CursorOf(sources.Of(i)), false);
             // §2023:8.3.2.2 list item 2 — the EXTERNAL data items, records and files of EVERY source element: a
             // contained program's and a class's (object and factory halves) included, since the clause names the
@@ -989,7 +989,7 @@ internal sealed class BinderDriver
                          .Concat(classes.SelectMany(cu => new[] { binders.ObjectOf(cu).Data, binders.FactoryOf(cu).Data })))
                 foreach (var s in data.Linkage.ExternalizedSubjects())
                     yield return (s.Kind == ExternalizedSubjectKind.File ? "EXTERNAL file" : "EXTERNAL data item",
-                                  $"EXTERNAL {s.Spelling}", s.Word, s.Name, s.At, true);
+                                  $"EXTERNAL {s.Spelling}", s.Name, s.At, true);
         }
 
         // A parse node's first token as a diagnostic position (an unset cursor leaves the current one standing).
@@ -997,10 +997,6 @@ internal sealed class BinderDriver
 
         // How a KIND reads in the cross-kind sentence: a definition of the unit kinds, or the EXTERNAL item itself.
         static string Noun(string kind) => kind.StartsWith("EXTERNAL", StringComparison.Ordinal) ? $"an {kind}" : $"a {kind} definition";
-
-        // The two kinds §2023:8.4.6.4 gives their own compilation-group uniqueness sentence, and whose check
-        // therefore already exists elsewhere (OoClassTable).
-        static bool IsOo(string kind) => kind is "CLASS-ID" or "INTERFACE-ID";
 
         // How a definition is named back to the user: the DECLARED word, plus the AS literal whenever one gave
         // the externalized name a different spelling (§2023:11.10.4 GR1 / §2023:11.5.4 GR1 / §2023:11.3.4 GR1 /

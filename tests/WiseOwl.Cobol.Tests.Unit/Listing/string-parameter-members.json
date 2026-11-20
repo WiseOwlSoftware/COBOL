@@ -155,7 +155,7 @@
     },
     {
       "member": "WiseOwl.Cobol.Binding.GroupRepositoryProvider.FunctionsByWord(string, int, string?)",
-      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider asks the group tier of the symbol table whether each unit carries the word (SymbolTable.UnitNames.NamesFunction); no source element's table holds a function unit"
+      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider reads the units the group tier of the symbol table keys under the word (SymbolTable.UnitNames.FunctionsNamed); no source element's table holds a function unit"
     },
     {
       "member": "WiseOwl.Cobol.Binding.GroupRepositoryProvider.Program(string, int)",
@@ -167,7 +167,7 @@
     },
     {
       "member": "WiseOwl.Cobol.Binding.IRepositoryProvider.FunctionsByWord(string, int, string?)",
-      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider asks the group tier of the symbol table whether each unit carries the word (SymbolTable.UnitNames.NamesFunction); no source element's table holds a function unit"
+      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider reads the units the group tier of the symbol table keys under the word (SymbolTable.UnitNames.FunctionsNamed); no source element's table holds a function unit"
     },
     {
       "member": "WiseOwl.Cobol.Binding.IRepositoryProvider.Program(string, int)",
@@ -199,7 +199,7 @@
     },
     {
       "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.FunctionsByWord(string, int, string?)",
-      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider asks the group tier of the symbol table whether each unit carries the word (SymbolTable.UnitNames.NamesFunction); no source element's table holds a function unit"
+      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider reads the units the group tier of the symbol table keys under the word (SymbolTable.UnitNames.FunctionsNamed); no source element's table holds a function unit"
     },
     {
       "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.Interface(string, WiseOwl.Cobol.Compiler.Oo.OoClassTable)",
@@ -476,6 +476,10 @@
     {
       "member": "WiseOwl.Cobol.Binding.SymbolTable.SumCounterOperand85(WiseOwl.Cobol.Binding.Model.WrittenDataName, string, out bool)",
       "reason": "its strings word a diagnostic (the clause's face or the reference's subject): the operand is the clause's written data-name-n, a WrittenDataName the table resolves (listing step 6b, remainder slice 2)"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SymbolTable.UnitNames.FunctionsNamed(string)",
+      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), which reaches the compilation group's provider as text through IRepositoryProvider.FunctionsByWord: the group tier keys its function units by that word, and this is the tier's one keyed answer to which carry it (step 6b-r5 review round 1, lead R1-2: the provider's linear scan with a per-unit name equality is deleted)"
     },
     {
       "member": "WiseOwl.Cobol.Binding.Validation.StatementValidation.ResolveFile(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext, string, out WiseOwl.Cobol.Binding.Model.FileModel?, bool, string?)",

@@ -151,7 +151,7 @@ public sealed class OoClassTable
                     found = true;
                 else if (other.interfaceName() is { } inm && other.INTERFACE() is not null && scope.InterfaceTarget(inm.GetText(), out var ifcExt)
                     && (ifcExt is null ? Names.GroupInterfaceNamed(inm) ?? Names.FindInterfaceByExternalizedName(inm.GetText()) : Names.FindInterfaceByExternalizedName(ifcExt)) is { } ifc
-                    && Names.AllPrototypes(ifc).Any(p => SymbolTable.ClassNames.IsAccessorOf(p, identity)))
+                    && SymbolTable.ClassNames.AccessorAmong(Names.AllPrototypes(ifc), identity) != '\0')
                     found = true;
             }
             if (!found) report(entry, word, externalized);
@@ -161,9 +161,9 @@ public sealed class OoClassTable
     private bool ClassHasProperty(OoClassSymbol cls, string property)
     {
         foreach (var c in ClassLineage(cls))
-            if (c.Methods.Concat(c.FactoryMethods).Any(m => SymbolTable.ClassNames.IsAccessorOf(m, property))) return true;
+            if (SymbolTable.ClassNames.AccessorAmong(c.Methods.Concat(c.FactoryMethods), property) != '\0') return true;
         return ImplementsClosure(cls, factory: false).Concat(ImplementsClosure(cls, factory: true))
-            .Any(i => Names.AllPrototypes(i).Any(p => SymbolTable.ClassNames.IsAccessorOf(p, property)));
+            .Any(i => SymbolTable.ClassNames.AccessorAmong(Names.AllPrototypes(i), property) != '\0');
     }
 
     /// <summary>ISO §2023:12.3.8.3 SR9 for one interface-specifier without EXPANDS (the twin of

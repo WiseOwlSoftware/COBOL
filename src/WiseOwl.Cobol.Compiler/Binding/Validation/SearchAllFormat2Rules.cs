@@ -498,11 +498,12 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // by the DECLARATION it resolves to, never by its spelling alone (kb/Work PB919).
         var reference = WrittenQualifiedName.Of(toks, 0, SubscriptBinder.IsNameToken, out int last);
         int next = last + 1;
+        // identifier-1 is a registered item, so its INDEXED BY names are declarations (DataItem.Indexes, one per IndexNames entry).
+        var first = table.Indexes[0];
         if (!SubscriptBinder.IsNameToken(toks[0])
-            || !SymbolTable.SpellsIndexName(toks[0], firstIndex)
-            || (table.Indexes.Count > 0
-                && refs.Names.ResolveIndexName(reference, toks[0]) is { Outcome: IndexRefOutcome.Resolved } ix
-                && !ReferenceEquals(ix.Decl, table.Indexes[0])))
+            || !SymbolTable.SpellsIndexName(toks[0], first)
+            || (refs.Names.ResolveIndexName(reference, toks[0]) is { Outcome: IndexRefOutcome.Resolved } ix
+                && !ReferenceEquals(ix.Decl, first)))
             return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "
                 + $"(ISO {Rule(rule)})");

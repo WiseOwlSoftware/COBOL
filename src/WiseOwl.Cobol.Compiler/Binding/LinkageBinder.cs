@@ -82,10 +82,9 @@ internal enum ExternalizedSubjectKind { DataItem, File }
 
 /// <summary>One EXTERNAL file connector or record of a source element, as the externalized-name namespace sees it
 /// (<see cref="LinkageBinder.ExternalizedSubjects"/>). <paramref name="Name"/> is the externalized name (§2023:13.18.22.4
-/// GR5); <paramref name="Word"/> the entry's own user-defined word; <paramref name="Spelling"/> how a diagnostic
-/// names the entry back to the user.</summary>
+/// GR5); <paramref name="Spelling"/> how a diagnostic names the entry back to the user.</summary>
 internal readonly record struct ExternalizedSubject(
-    ExternalizedSubjectKind Kind, string Name, string Word, string Spelling, DiagnosticCursor At);
+    ExternalizedSubjectKind Kind, string Name, string Spelling, DiagnosticCursor At);
 
 /// <summary>One FUNCTION-ID unit's activation signature (ISO §2023:9.4 user-defined functions; M2-UDF-1): the
 /// registered function name, its PROCEDURE DIVISION RETURNING item (whose description the caller-side result
@@ -748,13 +747,11 @@ internal sealed class LinkageBinder(DataBinder data)
     {
         foreach (var file in data.State.Files.Declared)
             if (file is { IsExternal: true, ExternalName: { } extName })
-                yield return new ExternalizedSubject(ExternalizedSubjectKind.File, extName,
-                    file.CobolName ?? extName, $"file '{file.CobolName}'", file.EntryAt);
+                yield return new ExternalizedSubject(ExternalizedSubjectKind.File, extName, $"file '{file.CobolName}'", file.EntryAt);
         foreach (var backing in _externalBackings)
             if (!backing.ExternalName.StartsWith("FD::", StringComparison.Ordinal))
                 yield return new ExternalizedSubject(ExternalizedSubjectKind.DataItem, backing.ExternalName,
-                    backing.Record.CobolName ?? backing.ExternalName, $"data item '{backing.Record.CobolName}'",
-                    backing.Record.DeclaredAt);
+                    $"data item '{backing.Record.CobolName}'", backing.Record.DeclaredAt);
     }
 
     /// <summary>Re-base one EXTERNAL record onto the run-unit external cell (see

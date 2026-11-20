@@ -53,8 +53,10 @@ public sealed class NameTableOwnershipDriftTests
     /// <c>ReportSectionBinder.ReportItemOperandRefused</c> and <c>SymbolTable.SumCounterOperand85</c> take the clause's written operand
     /// (<c>WrittenDataName</c>) and keep the diagnostic's words (the clause face, the reference's subject): each left the baseline.
     /// The comparisons, remainder slice 4: 91 -> 92, <c>LinkageBinder.CheckExternalizedNameUniqueness</c>'s comparer, which compares
-    /// the externalized names of EXTERNAL subjects as the run-unit store keys them (EXTERNAL), left the baseline.)</summary>
-    private const int StringMembersCeiling = 128;
+    /// the externalized names of EXTERNAL subjects as the run-unit store keys them (EXTERNAL), left the baseline. Remainder slice 5,
+    /// review round 1: 128 -> 129, <c>SymbolTable.UnitNames.FunctionsNamed</c>, the group tier's keyed answer the repository's word
+    /// search now reads in place of a linear scan with a per-unit name equality.)</summary>
+    private const int StringMembersCeiling = 129;
     private const int ComparisonsCeiling = 92;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
@@ -149,7 +151,10 @@ public sealed class NameTableOwnershipDriftTests
 
     /// <summary>The planted failure: the same five rules over a small compilation report exactly the violations planted in
     /// it, one of each way a name can bypass the table, and nothing for the same code inside the table. So each rule is
-    /// shown able to fail.</summary>
+    /// shown able to fail. Rule (5) includes the two ways a caller can make one of the table's own equalities its comparison
+    /// (step 6b-r5 review round 1, lead R1-2): a binder symbol's name handed to it as a string (TABLEARG), and a per-symbol
+    /// equality applied to each element of a collection, in a lambda or a <c>foreach</c> (TABLESEARCH); <c>Outside.One</c>, the
+    /// same equality asked of one symbol the caller already holds, is no finding.</summary>
     [Fact]
     public void TheRules_ReportEachPlantedViolation_AndNothingInsideTheTable()
     {
@@ -179,6 +184,7 @@ public sealed class NameTableOwnershipDriftTests
                     private static CobolName Key(string word) => new(CobolNames.Fold(word));
                     private bool Equal(Item a, string b) => CobolNames.Same(a.Name, b) || a.Name == b;
                     public Item? Identify(object written) => Find(Key(written.ToString()!));
+                    public static bool Spells(Item item, string word) => CobolNames.Same(item.Name, word);
 
                     public sealed class Declarations
                     {
@@ -203,6 +209,10 @@ public sealed class NameTableOwnershipDriftTests
                     internal bool Clr(Item a, string b) => a.ClrText == b;
                     internal CobolName Copy(CobolName n) => n with { Folded = "x" };
                     internal CobolName Empty() => default;
+                    internal bool Arg(Item a, string b) => SymbolTable.Spells(a, a.Name);
+                    internal bool Search(List<Item> items, string w) => items.Exists(i => SymbolTable.Spells(i, w));
+                    internal bool Loop(List<Item> items, string w) { foreach (var i in items) if (SymbolTable.Spells(i, w)) return true; return false; }
+                    internal bool One(Item a, string w) => SymbolTable.Spells(a, w);
                 }
             }
             """;
@@ -228,6 +238,9 @@ public sealed class NameTableOwnershipDriftTests
             "(5) SAME Planted.cs P.Binding.Outside.Compare CobolNames.Same(a.Name, b)",
             "(5) CMP Planted.cs P.Binding.Outside.Words Comparer",
             "(5) NAMEEQ Planted.cs P.Binding.Outside.Equal a.Name == b",
+            "(5) TABLEARG Planted.cs P.Binding.Outside.Arg SymbolTable.Spells(a, a.Name)",
+            "(5) TABLESEARCH Planted.cs P.Binding.Outside.Search SymbolTable.Spells(i, w)",
+            "(5) TABLESEARCH Planted.cs P.Binding.Outside.Loop SymbolTable.Spells(i, w)",
         ];
         Assert.Equal(planted.Order(StringComparer.Ordinal), found.Order(StringComparer.Ordinal));
     }

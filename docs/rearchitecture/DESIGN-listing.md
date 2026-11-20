@@ -1077,7 +1077,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     therefore holds the binder's only comparison of names, and `NameTableOwnershipDriftTests` rule (5), through the
     `SemanticModel` (by symbol, not by text), is red on every invocation of `CobolNames.Same`, every use of
     `CobolNames.Comparer`, and every `==`, `!=` or `string.Equals` of which one operand is a binder symbol's `string`
-    name property or a `CobolNames.Fold` or `UpperFold` call, anywhere in `WiseOwl.Cobol.Compiler` outside `SymbolTable`,
+    name property or a `CobolNames.Fold` or `UpperFold` call, anywhere in `WiseOwl.Cobol.Compiler` outside `SymbolTable`, and every call there of one of the table's static `bool`
+    equalities over a `string` that is handed a binder symbol's name property for the string or, for a binder-typed parameter, a
+    lambda's parameter or a `foreach` variable (step 6b-r5 review round 1: an equality of the table made the caller's comparison),
     unless the site is in the shrink-only `tests/WiseOwl.Cobol.Tests.Unit/Listing/name-comparisons.json` with one of the
     non-resolution classes below and its reason. A resolution (class RESOLVE) moves into `Identify`; a declaration
     comparison (class DECLARE) moves into `Declarations`; the other classes stay where they are, classified:
@@ -1420,8 +1422,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       and `CheckDefinitionNameUniqueness`. They wait in the baseline for the run-unit tier the OO class names need, which is the same
       tier; `DataBinder._repositoryNameReported` (the once-per-word report of §2023:12.3.8.3 SR12 and SR13 in the user-word
       declaration funnel) moves with the data-name class's declarations (since step 6b's remainder slice 4, `SymbolTable.FirstRefusal`).
-      (Step 6b, remainder slice 5:) the three moved into the group tier, `SymbolTable.UnitNames` and `ClassNames.DeclareOneWord`
-      (section "Step 6b, remainder slice 5" below).
+      (Step 6b, remainder slice 5:) the first two moved into the group tier, `SymbolTable.UnitNames`; the third's comparison could
+      not be reached and was deleted (section "Step 6b, remainder slice 5" below).
   - *(Step 6b, the OO names, branch `listing-step-6b-oo`, a lane beside the data-name lane.)* The object-class-names,
     interface-names and method rosters moved, and the PROPERTY specifiers; the lane lowers the baseline by 46 (rule (1) 8 tables,
     rule (3) 7 lookups, rule (5) 31 sites): 155 with slice 7's. `SymbolTable.ClassNames` (`SymbolTable.ClassNames.cs`) owns what `OoClassTable`,
@@ -1556,7 +1558,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       `FlagConformancePass` keeps no unit walk of its own, and a method's own USE declaratives govern its FLAG-14 d test.
     - *A pass before the bind keys its facts by the table's key.* `VersionConformancePass` remembers each level-01 record's EXTERNAL
       clause by its name for a later REDEFINES; it keys the written word's `CobolName` (`SymbolTable.WordOf`, now internal), so its
-      equality is the table's, and a subscript's written word is pre-filtered against an INDEXED BY name by
+      equality is the table's, and a subscript's written word is pre-filtered against an INDEXED BY declaration by
       `SymbolTable.SpellsIndexName` before it is resolved by its declaration (kb/Work PB919).
     - *Rule (2)'s companion sees a copy (correction, review lead R2-1 of the OO lane).* It scanned only object creations, so a `with`
       expression made a new `IdentifiedName` or `OoNameResult` unseen. It refuses a `with` expression of every table-made type and a
@@ -1755,13 +1757,20 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       any element that follows a function definition names it by its user-function-name (§2023:8.4.6.7), so the words are the
       group's. `UnitNames` keys the group's function units by word and answers the same-word screen
       (`EarlierOfSameWord`: COBOL1508, a definition compared only with definitions and a prototype with prototypes, §2023:10.6.2 SR3)
-      and the provider's question whether a unit carries the word (`NamesFunction`). (Correction:) "the group tier gains the group's
+      and the provider's question which units carry the word (`FunctionsNamed`, the same keyed table; review round 1 lead R1-2: the
+      slice first built it as a per-unit equality, `NamesFunction`, which the provider applied in a linear scan, a second mechanism
+      beside the table that a change to how a unit's word is keyed would have had to follow). (Correction:) "the group tier gains the group's
       program and function units by word" said too much: the group's PROGRAM units are searched by their externalized names
       (§2023:12.3.8.4 GR10), the operating environment's names, so they are no table of COBOL words; and the word reaches the group
       through the repository's providers as text (`IRepositoryProvider.FunctionsByWord`, classified with the external repository's
-      provider, whose answers are another compilation's records), so the tier answers a yes/no question of a unit, never a unit by
-      a string (rule (3)). The OO pair of `CheckDefinitionNameUniqueness` (two class or interface definitions of one word, which
-      §2023:8.4.6.4's uniqueness refuses and the tier already reports as COBOL0820) is the tier's `ClassNames.DeclareOneWord`.
+      provider, whose answers are another compilation's records), so the tier's keyed answer to it takes the string and is classified
+      with the same reason (rule (3); `string-parameter-members.json`, ceiling 128 -> 129). The OO pair of
+      `CheckDefinitionNameUniqueness` (two class or interface definitions of one word, which §2023:8.4.6.4's uniqueness refuses and
+      the tier reports as COBOL0820) is no comparison at all (correction, review round 1): the tier admits one definition per word
+      (a repeated CLASS-ID or INTERFACE-ID, or a class named like an interface, is reported and not added), so `oo.Classes` and
+      `oo.Interfaces` never hold such a pair and the skip that compared their words could not be reached. It and its equality
+      (`ClassNames.DeclareOneWord`, a static equality of two arbitrary strings) are deleted, with the declared word the check carried
+      only for it (`ExternalizedSubject.Word`).
     - *The parameterized expansion's names are the group's tier, a table of their own (the open tier question, decided).* A
       parameterized definition and each expansion a REPOSITORY specifier asks for are class and interface definitions of the GROUP:
       they share the group's one namespace of object-class-names and interface-names (§2023:8.4.6.4), and an expansion's name is its
@@ -1778,13 +1787,30 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     - *A `>>TURN` directive's file-name is matched against the statement's IDENTIFIED file.* The fold's query names the
       `FileModel` the statement references (§2023:7.3.25.4 GR6, GR8: "checking is enabled only for exception conditions associated
       with that file-name"), never its name; the directive stands outside every source element, so its written word is matched by
-      the table's equality (`SymbolTable.DirectiveNamesFile`), and the GR14 implicit enable of an exception-checking PERFORM
-      (§2023:14.9.28.4 GR14) carries the file its WHEN phrase identified, matched by identity.
+      the table's equality (`SymbolTable.DirectiveNamesFile`), which reads the declared name off the `FileModel` itself, and the GR14
+      implicit enable of an exception-checking PERFORM (§2023:14.9.28.4 GR14) carries the file its WHEN phrase identified, matched by
+      identity.
+    - *A free-standing equality of the table is the table's in use, not only in name (correction, review round 1 lead R1-2).* A
+      static member of `SymbolTable` that answers `bool` and takes a `string` (`DirectiveNamesFile`, `SpellsIndexName`, `IsFormal`) is
+      callable from anywhere, so rule (5) as first written, which saw only `CobolNames.Same`, `CobolNames.Comparer` and `==` on a name
+      property, was green on a caller that made such an equality its own comparison. Rule (5) now also reports, outside the table, a
+      call of one that is handed a binder symbol's name property for a `string` (TABLEARG: two names the caller chose) or a lambda's
+      parameter or a `foreach` variable for a binder-typed parameter (TABLESEARCH: a per-symbol equality applied to each symbol of a
+      collection, a lookup without a table); the planted self-test shows each kind red and the same equality asked of one symbol the
+      caller holds green. An instance member is the table's own question over its own state (a declaration, a keyed lookup) and is
+      neither. The sweep the two kinds made: `ClassNames.IsAccessorOf(method, property)`, applied method by method in four searches of
+      `OoClassTable` and `OoDataBinder`, is `ClassNames.AccessorAmong(methods, property)`, the search inside the table; and
+      `SpellsIndexName` takes the `IndexDeclaration`, not its name, so no caller hands it a declared name of its own choosing.
     - *A refused record-key operand is marked on itself, never collected by name.* `FileControlBinder.ResolveFiles` kept a set of
       the NAMES of the key operands it refused, which the key screen skipped; two operands that share a spelling were skipped
       together. Each carrier now says it was refused (`AlternateKeyClause.Refused`, `KeySourceOperand.Refused`,
-      `FileModel.RecordKeyRefused`, `FileKeyOperand.Refused`), so the screen skips exactly the operand refused (kb/Work PB481, PB978);
-      on the population the oracle is identical, so no program had two such operands.
+      `FileModel.RecordKeyRefused`, `FileKeyOperand.Refused`), so the screen skips exactly the operand refused (kb/Work PB481, PB978).
+      On the population the oracle is identical, so no program had two such operands; but it IS a user-visible change (correction,
+      review round 1 R1-1): a key clause whose operand shares a refused operand's spelling now hears its own clause's rule, e.g.
+      `RECORD KEY IS K1` (ambiguous, COBOL1639) beside `ALTERNATE RECORD KEY IS K1 OF NOSUCH` reports §2023:12.4.5.6.3 SR2 (COBOL0863)
+      on the alternate operand, which the name set had silenced.
+      `FileControlKeyRuleSpecTests.ARefusedKeyOperand_SilencesOnlyItself_NotAnotherOperandOfItsSpelling` pins both orders at every
+      edition; with the screen skipping every unresolved operand it is red.
     - *Every data-name's and condition-name's entry is made where it is declared (part D).* `SymbolTable.EnterDataItem` and
       `EnterConditionName` enter each data description entry (FILLER included, a type declaration's subordinate entries, each
       level-66 entry), each entry a TYPE or SAME AS clause copies in (on the line of the entry that wrote the clause, §2023:13.18.57.4
