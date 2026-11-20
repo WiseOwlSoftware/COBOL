@@ -166,7 +166,7 @@ Each source line is one row:
 | 1-6 | the listing line number, unique in the listing |
 | 8 | the COPY depth: blank for the source file, `1` to `9` for library text, `+` deeper |
 | 9 | a marker: `/` page-eject comment line, `*` comment line, `D` debugging line, `-` continuation line, `>` compiler directive, `E` the DATE-COMPILED paragraph's replacement, `R` a line REPLACE or COPY REPLACING changed, `X` a line a false `>>IF` branch omitted |
-| 11-16 | the line's number in its own file |
+| 11-16 | the line's number in its own file, when it differs from the listing line number: blank until the first COPY statement's library text, since there the two are the same number |
 | 18-97 | the line as the file holds it (tabs expanded), all 80 positions of a fixed-form line; a longer line continues on rows marked `+` in column 9 |
 
 Lines are listed as written, so their indentation is the source's (section IV.7.4: "The entries on the output listing need
@@ -406,7 +406,8 @@ archived or opened offline. It holds the sections asked for, in the order of the
 document as the text and the JSON listing, so the three always agree.
 
 - **The source.** Every line of the source and of each library text is a row: its listing line number, its inclusion depth, its
-  marker (the same markers as the text listing), its line in its file and its text. A line where the text listing starts a page
+  marker (the same markers as the text listing), its line in its file (as in the text listing, only where it differs from the
+  listing line number) and its text. A line where the text listing starts a page
   carries a rule, and starts a page when the page is printed.
 - **Inclusions.** Each COPY library text is a block under the COPY statement's line, opened by the same banner as the text listing
   (`COPY text-name OF library-name -> file (depth n)`); click the banner to fold it. A library text copied with `SUPPRESS` is folded
