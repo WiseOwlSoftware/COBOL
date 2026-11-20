@@ -14,7 +14,7 @@ public static class ProgramMapText
     /// only the units the recovery kept.</summary>
     public static IEnumerable<string> Rows(IReadOnlyList<ListingProgram> programs, ListingParse parse, int width)
     {
-        yield return string.Create(CultureInfo.InvariantCulture, $"{"ID",6}  {"KIND",-9} {"FIRST",6}  {"LAST",6}  NAME");
+        yield return string.Create(CultureInfo.InvariantCulture, $"{Headings[0],6}  {Headings[1],-9} {Headings[2],6}  {Headings[3],6}  {Headings[4]}");
         foreach (var p in programs)
         {
             foreach (string row in TextListingRenderer.Indented(string.Create(CultureInfo.InvariantCulture,
@@ -28,7 +28,7 @@ public static class ProgramMapText
         }
         if (parse is not ListingParse.Recovered) yield break;
         yield return "";
-        foreach (string row in TextListingRenderer.Indented(TextListingRenderer.RecoveredNote("the source units"), 0, 2, width))
+        foreach (string row in TextListingRenderer.Indented(RecoveredNote, 0, 2, width))
             yield return row;
     }
 
@@ -45,6 +45,12 @@ public static class ProgramMapText
         words.Add($".NET {attributes.NativeType}");
         return string.Join("  ", words);
     }
+
+    /// <summary>The program map's headings: the unit's id, kind, first and last listing line, and name.</summary>
+    public static readonly IReadOnlyList<string> Headings = ["ID", "KIND", "FIRST", "LAST", "NAME"];
+
+    /// <summary>What the program map says after a parse that recovered from a syntax error.</summary>
+    public static readonly string RecoveredNote = TextListingRenderer.RecoveredNote("the source units");
 
     /// <summary>The 0-based column a program row's name starts at, before its nesting indent.</summary>
     public const int NameColumn = 34;

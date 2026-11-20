@@ -1939,8 +1939,11 @@ layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. W
   how many lines, why, and which (`HtmlListingRenderer.HiddenReason`), its lines greyed: section 7.2's "present but collapsed and
   greyed" read for all three, since an omitted line, which the text listing prints marked 'X' (open question 5), is the kind 7.2
   names. Inside a SUPPRESS block no run is made, the block itself being the collapse. A DISPLAY transfer stands outside any
-  collapsed block (§2023:7.3.12.4 GR2). Under a line: its compiled text when a replacing action changed it ('R' rows), each
-  diagnostic placed on it (`id="D<n>"`, the text listing's words) with the character its column names marked in the line's text
+  collapsed block (§2023:7.3.12.4 GR2: the transfer takes place "irrespective of whether it is suppressed by the LISTING
+  directive"), where the text listing prints it whether or not it prints its line: a run of hidden lines ends at a line with a
+  transfer, and (review round 1) a SUPPRESS block, which cannot end there, is closed before the transfer from its outermost SUPPRESS
+  block in; the next line of the inclusion reopens it as its continuation (its banner and "(continued)", no second id). Under a line: its compiled text when a replacing action changed it ('R' rows), each
+  diagnostic placed on it (`id="D<n>"`, `TextListingRenderer.DiagnosticText`) with the character its column names marked in the line's text
   (a supplementary-plane character one position), and each stretch of its object code (`ListingObjectRange`, by its `Line`) as a
   collapsed block naming its method and IL range, its instructions when the object-code section was asked for.
 - The links between the model's own records: a margin to its data map entry, a data map or file map entry's line and the entries its
@@ -1949,6 +1952,19 @@ layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. W
   source section is held; an entry, when the data map is), so no link dangles. The facts an entry names are one statement for both
   renderers: `DataMapText.DetailParts` and `FileDetailParts` give each fact's words and each entry it names as a `DataMapPart`; the
   text prints `#<id>`, the page links it.
+- (Step 9, review round 1:) ⛔ ONE SET OF WORDS. Every word the page shares with the text listing is the text listing's, read from
+  the helper that prints it there, never typed a second time: the identification (`TextListingRenderer.CompilerText`,
+  `EditionText`), a section not produced (`ListingSections.NotProduced`), the diagnostic rows (`DiagnosticText`, `CountsText`,
+  `PlaceText`), the DISPLAY rows (`DisplayText`), the 'R' rows (`ReplacedMarker`), each table's headings (`ProgramMapText.Headings`,
+  `OptionsText.Headings`, `DataMapText.ItemHeadings` and `FileHeadings`, `ObjectCodeText.MethodHeadings` and `RangeHeadings`,
+  `StatisticsText.VerbHeadings`), the notes (`ProgramMapText.RecoveredNote`, `StatisticsText.RecoveredNote` and `NotParsedNote`,
+  `ObjectCodeText.NoCodeNote`), the data and file map's numbers and words (`DataMapText.NumberText`, `LevelText`,
+  `OrganizationText`, `AccessText`, `FlagWords`), the object code's (`ObjectCodeText.Token`, `RangeText`, `StretchText`; the
+  disassembler's branch targets spell offsets through the same `Offset`), and the statistics' labels and counts (`StatisticsText`'s
+  labels, `CountsText`, `DiagnosticCountsText`). Only the page's own form is its own: the diagnostic summary's and the file table's
+  column headings, the DETAILS and ATTRIBUTES columns, the summaries of its collapsed blocks. The Unit assembly's
+  `HtmlListingRendererTests.EveryWordThePageSharesWithTheText_IsTheTextListings` renders one document holding every section both
+  ways and finds each shared word of the page in the text listing.
 - The markup is well-formed XML as well as HTML (every element closed, the five XML characters escaped by the one
   `HtmlListingRenderer.Escape`, the script in a CDATA section), so the tests read the page with `XmlReader` and find each row by the
   renderer's id functions (`LineId`, `DiagnosticId`, `InclusionId`, `DataItemId`, `FileEntryId`, `ProgramId`, `MethodId`,

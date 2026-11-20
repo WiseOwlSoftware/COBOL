@@ -19,32 +19,56 @@ public static class DataMapText
     /// access mode and records, and under it its keys, its reports and its connector (<see cref="FileDetails"/>).</summary>
     public static IEnumerable<string> Rows(ListingDataMap map, int width)
     {
+        var h = ItemHeadings;
         yield return string.Create(CultureInfo.InvariantCulture,
-            $"{"ID",6} {"LINE",6}  {"LVL",-3} {"KIND",-5}  {"NAME",-30} {"OFFSET",6} {"LENGTH",6} {"BYTES",6}  {"USAGE",-15} PICTURE");
+            $"{h[0],6} {h[1],6}  {h[2],-3} {h[3],-5}  {h[4],-30} {h[5],6} {h[6],6} {h[7],6}  {h[8],-15} {h[9]}");
         var depth = NestingOf(map.Items);
         foreach (var item in map.Items)
         {
             int nesting = depth[item.Id];
             string name = new string(' ', 2 * nesting) + item.Name;
             string row = string.Create(CultureInfo.InvariantCulture,
-                $"{item.Id,6} {Number(item.Line),6}  {Level(item.Level),-3} {KindWord(item.Kind),-5}  {name,-30} {Number(item.Offset),6} {Number(item.Length),6} {Number(item.Bytes),6}  {item.Usage ?? "",-15} {item.Picture ?? ""}");
+                $"{item.Id,6} {NumberText(item.Line),6}  {LevelText(item.Level),-3} {KindWord(item.Kind),-5}  {name,-30} {NumberText(item.Offset),6} {NumberText(item.Length),6} {NumberText(item.Bytes),6}  {item.Usage ?? "",-15} {item.Picture ?? ""}");
             foreach (string piece in TextListingRenderer.Indented(row.TrimEnd(), 0, NameColumn + 2 * nesting, width)) yield return piece;
             if (Details(item) is { Length: > 0 } details)
                 foreach (string piece in TextListingRenderer.Indented(details, NameColumn + 2 * nesting + 2, NameColumn + 2 * nesting + 4, width))
                     yield return piece;
         }
         yield return "";
-        yield return "FILES";
-        yield return string.Create(CultureInfo.InvariantCulture, $"{"ID",6} {"LINE",6}  {"NAME",-30} {"ORGANIZATION",-16} {"ACCESS",-10} RECORDS");
+        yield return FilesTitle;
+        var f = FileHeadings;
+        yield return string.Create(CultureInfo.InvariantCulture, $"{f[0],6} {f[1],6}  {f[2],-30} {f[3],-16} {f[4],-10} {f[5]}");
         foreach (var file in map.Files)
         {
             var row = new StringBuilder(string.Create(CultureInfo.InvariantCulture,
-                $"{file.Id,6} {Number(file.Line),6}  {file.Name,-30} {(file.SortMerge ? "SORT-MERGE" : file.Organization),-16} {(file.SortMerge ? "" : file.Access),-10} {string.Join(",", file.Records)}"));
-            if (file.External) row.Append("  EXTERNAL");
-            if (file.Global) row.Append("  GLOBAL");
+                $"{file.Id,6} {NumberText(file.Line),6}  {file.Name,-30} {OrganizationText(file),-16} {AccessText(file),-10} {string.Join(",", file.Records)}"));
+            foreach (string flag in FlagWords(file)) row.Append("  ").Append(flag);
             foreach (string piece in TextListingRenderer.Indented(row.ToString().TrimEnd(), 0, 16, width)) yield return piece;
             foreach (string piece in TextListingRenderer.Indented(FileDetails(file), 16, 18, width)) yield return piece;
         }
+    }
+
+    /// <summary>The data map's headings: the entry's id, listing line, level, kind, name, offset, length, bytes, usage and picture.</summary>
+    public static readonly IReadOnlyList<string> ItemHeadings = ["ID", "LINE", "LVL", "KIND", "NAME", "OFFSET", "LENGTH", "BYTES", "USAGE", "PICTURE"];
+
+    /// <summary>The title of the file map, under the data map.</summary>
+    public const string FilesTitle = "FILES";
+
+    /// <summary>The file map's headings: the entry's id, listing line, name, organization, access mode and records.</summary>
+    public static readonly IReadOnlyList<string> FileHeadings = ["ID", "LINE", "NAME", "ORGANIZATION", "ACCESS", "RECORDS"];
+
+    /// <summary>A file map entry's organization as both renderers print it: <c>SORT-MERGE</c> for a sort-merge file, which has no
+    /// organization of its own, else its organization.</summary>
+    public static string OrganizationText(ListingFileEntry file) => file.SortMerge ? "SORT-MERGE" : file.Organization;
+
+    /// <summary>A file map entry's access mode as both renderers print it: none for a sort-merge file, else its access mode.</summary>
+    public static string AccessText(ListingFileEntry file) => file.SortMerge ? "" : file.Access;
+
+    /// <summary>The words a file map entry's EXTERNAL and GLOBAL clauses print as, in that order, each one it has.</summary>
+    public static IEnumerable<string> FlagWords(ListingFileEntry file)
+    {
+        if (file.External) yield return "EXTERNAL";
+        if (file.Global) yield return "GLOBAL";
     }
 
     /// <summary>Each entry's nesting under the entries that own it (<see cref="ListingDataItem.Owner"/>): 0 for an entry with no owner
@@ -151,9 +175,11 @@ public static class DataMapText
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a data map entry kind with no word"),
     };
 
-    private static string Number(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "-";
+    /// <summary>A number of a data map or file map row as both renderers print it: a number the map does not hold is <c>-</c>.</summary>
+    public static string NumberText(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "-";
 
-    private static string Level(int? level) => level?.ToString("00", CultureInfo.InvariantCulture) ?? "";
+    /// <summary>A level-number as both renderers print it: two digits, none for an entry with no level-number.</summary>
+    public static string LevelText(int? level) => level?.ToString("00", CultureInfo.InvariantCulture) ?? "";
 }
 
 /// <summary>A piece of a data map row's facts (<see cref="DataMapText.DetailParts"/>, <see cref="DataMapText.FileDetailParts"/>): its

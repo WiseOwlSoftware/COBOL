@@ -8,9 +8,12 @@ namespace WiseOwl.Cobol.Listing.Html;
 
 /// <summary>
 /// The hyperlinked HTML listing (DESIGN-listing.md section 7.2): ONE self-contained page, its style and its small script inline and
-/// no external resource. It reads ONLY the model, as the text listing does, and prints the same words through the same helpers
-/// (the markers, the banners, the margin, the severity, kind and origin words, the data map's facts), so the two cannot disagree
-/// about a line; what differs is the form:
+/// no external resource. It reads ONLY the model, as the text listing does, and prints every word the text listing prints through
+/// the text listing's own helpers (the markers, the banners, the margin, the diagnostic and DISPLAY rows, the severity, kind and
+/// origin words, the section titles and notes, each table's headings, the data map's facts, the file map's organization, access
+/// and flags, the object code's token, range and stretch, the statistics' counts and notes), so the two cannot disagree; the Unit
+/// assembly's <c>HtmlListingRendererTests.EveryWordThePageSharesWithTheText_IsTheTextListings</c> reads both renderings of one
+/// document and holds it so. What differs is the form:
 /// <list type="bullet">
 /// <item>the page has no pages: a line the visibility pass starts a page before (<see cref="ListingLine.PageBreakBefore"/>) carries
 /// a rule on screen and a page break when printed;</item>
@@ -54,9 +57,7 @@ public static class HtmlListingRenderer
             if (status.Produced) sections.Visit(status.Section);
             else
             {
-                page.Append("<p class=\"np\">Not produced: ");
-                Escape(page, status.Reason ?? "");
-                page.Append("</p>\n");
+                        Note(page, ListingSections.NotProduced(status.Reason));
             }
             page.Append("</section>\n");
         }
@@ -101,11 +102,11 @@ public static class HtmlListingRenderer
     private static void Identification(StringBuilder page, ListingDocument document)
     {
         var header = document.Header;
-        page.Append("<header>\n<h1>WiseOwl COBOL ");
-        Escape(page, header.CompilerVersion);
+        page.Append("<header>\n<h1>");
+        Escape(page, TextListingRenderer.CompilerText(header));
         page.Append("</h1>\n<dl class=\"id\">");
         Term(page, "Source", header.MainSource);
-        Term(page, "Edition", string.Create(CultureInfo.InvariantCulture, $"{header.EditionName} (--std {header.Edition})"));
+        Term(page, "Edition", TextListingRenderer.EditionText(header));
         Term(page, "Compiled", ListingTimestamp.Format(header.CompiledAt));
         Term(page, "Outcome", header.Outcome.ToString());
         Term(page, "Parse", header.Parse.ToString());
@@ -161,7 +162,7 @@ public static class HtmlListingRenderer
 
         public StringBuilder Programs()
         {
-            page.Append("<table>\n<thead><tr><th>ID</th><th>KIND</th><th>FIRST</th><th>LAST</th><th>NAME</th><th>ATTRIBUTES</th></tr></thead>\n<tbody>\n");
+            Head(page, [.. ProgramMapText.Headings, "ATTRIBUTES"]);
             foreach (var program in document.Programs)
             {
                 page.Append("<tr id=\"").Append(ProgramId(program.Id)).Append("\">");
@@ -177,16 +178,16 @@ public static class HtmlListingRenderer
                 page.Append("</tr>\n");
             }
             page.Append("</tbody>\n</table>\n");
-            if (document.Header.Parse is ListingParse.Recovered) Note(page, TextListingRenderer.RecoveredNote("the source units"));
+            if (document.Header.Parse is ListingParse.Recovered) Note(page, ProgramMapText.RecoveredNote);
             return page;
         }
 
         public StringBuilder Diagnostics()
         {
-            int Count(ListingSeverity severity) => document.Diagnostics.Count(d => d.Severity == severity);
-            page.Append("<p class=\"counts\">").Append(string.Create(CultureInfo.InvariantCulture,
-                $"Errors: {Count(ListingSeverity.Error)}   Warnings: {Count(ListingSeverity.Warning)}   Information: {Count(ListingSeverity.Info)}"))
-                .Append("</p>\n<table>\n<thead><tr><th>LINE</th><th>SEVERITY</th><th>CODE</th><th>PLACE</th><th>MESSAGE</th></tr></thead>\n<tbody>\n");
+            page.Append("<p class=\"counts\">");
+            Escape(page, TextListingRenderer.CountsText(document.Diagnostics));
+            page.Append("</p>\n");
+            Head(page, ["LINE", "SEVERITY", "CODE", "PLACE", "MESSAGE"]);
             var files = document.Files.ToDictionary(f => f.Id, f => f.Path);
             foreach (var diagnostic in document.Diagnostics)
             {
@@ -197,8 +198,7 @@ public static class HtmlListingRenderer
                 page.Append("</td>");
                 Cell(page, TextListingRenderer.SeverityWord(diagnostic.Severity));
                 Cell(page, diagnostic.Code);
-                Cell(page, diagnostic is { File: { } file, FileLine: { } fileLine, Column: { } column }
-                    ? string.Create(CultureInfo.InvariantCulture, $"{files[file]}({fileLine},{column})") : "");
+                Cell(page, TextListingRenderer.PlaceText(diagnostic, files) ?? "");
                 Cell(page, diagnostic.Message, "msg");
                 page.Append("</tr>\n");
             }
@@ -208,7 +208,7 @@ public static class HtmlListingRenderer
 
         public StringBuilder Options()
         {
-            page.Append("<table>\n<thead><tr><th>OPTION</th><th>ORIGIN</th><th>VALUE</th></tr></thead>\n<tbody>\n");
+            Head(page, OptionsText.Headings);
             foreach (var option in document.Options)
             {
                 page.Append("<tr>");
@@ -225,18 +225,12 @@ public static class HtmlListingRenderer
         {
             var statistics = document.Statistics
                 ?? throw new InvalidOperationException("the statistics section is produced but the document holds no statistics");
-            page.Append("<table>\n<thead><tr><th>LINES</th><th>COUNT</th></tr></thead>\n<tbody>\n<tr>");
-            Cell(page, "lines");
-            Cell(page, statistics.Lines.Lines.ToString(CultureInfo.InvariantCulture), "n");
-            page.Append("</tr>\n");
-            foreach (var (name, count) in StatisticsText.CountsOf(statistics.Lines))
-            {
-                page.Append("<tr>");
-                Cell(page, name);
-                Cell(page, count.ToString(CultureInfo.InvariantCulture), "n");
-                page.Append("</tr>\n");
-            }
-            page.Append("</tbody>\n</table>\n<table>\n<thead><tr><th>FILE</th><th>LINES</th><th>PATH</th><th>BY KIND</th></tr></thead>\n<tbody>\n");
+            page.Append("<table>\n<tbody>\n");
+            Count(StatisticsText.LinesLabel, statistics.Lines.Lines);
+            foreach (var (name, count) in StatisticsText.CountsOf(statistics.Lines)) Count(name, count, "sub");
+            page.Append("</tbody>\n</table>\n<h3>");
+            Escape(page, StatisticsText.FilesTitle);
+            page.Append("</h3>\n<table>\n<tbody>\n");
             var paths = document.Files.ToDictionary(f => f.Id, f => f.Path);
             foreach (var file in statistics.Files)
             {
@@ -244,35 +238,25 @@ public static class HtmlListingRenderer
                 Cell(page, file.File.ToString(CultureInfo.InvariantCulture), "n");
                 Cell(page, file.Lines.Lines.ToString(CultureInfo.InvariantCulture), "n");
                 Cell(page, paths[file.File]);
-                Cell(page, string.Join(", ", StatisticsText.CountsOf(file.Lines).Select(c => string.Create(CultureInfo.InvariantCulture, $"{c.Name} {c.Count}"))));
-                page.Append("</tr>\n");
-            }
-            page.Append("</tbody>\n</table>\n<table>\n<tbody>\n");
-            if (statistics.Parse is { } parse)
-            {
-                page.Append("<tr>");
-                Cell(page, "programs");
-                Cell(page, parse.Programs.ToString(CultureInfo.InvariantCulture), "n");
-                page.Append("</tr>\n<tr>");
-                Cell(page, "statements");
-                Cell(page, parse.Statements.ToString(CultureInfo.InvariantCulture), "n");
-                page.Append("</tr>\n");
-            }
-            foreach (var severity in statistics.Diagnostics)
-            {
-                page.Append("<tr>");
-                Cell(page, TextListingRenderer.SeverityWord(severity.Severity) + " diagnostics");
-                Cell(page, severity.Count.ToString(CultureInfo.InvariantCulture), "n");
+                Cell(page, StatisticsText.CountsText(file.Lines));
                 page.Append("</tr>\n");
             }
             page.Append("</tbody>\n</table>\n");
-            if (statistics.Parse is not { } verbs)
+            if (statistics.Parse is { } parse)
             {
-                Note(page, "Programs and statements: not counted, the source was not parsed");
-                return page;
+                page.Append("<table>\n<tbody>\n");
+                Count(StatisticsText.ProgramsLabel, parse.Programs);
+                Count(StatisticsText.StatementsLabel, parse.Statements);
+                page.Append("</tbody>\n</table>\n");
+                if (document.Header.Parse is ListingParse.Recovered) Note(page, StatisticsText.RecoveredNote);
             }
-            if (document.Header.Parse is ListingParse.Recovered) Note(page, TextListingRenderer.RecoveredNote("the programs, statements and verbs"));
-            page.Append("<table>\n<thead><tr><th>VERB</th><th>COUNT</th><th>LINES</th></tr></thead>\n<tbody>\n");
+            else Note(page, StatisticsText.NotParsedNote);
+            page.Append("<table>\n<tbody>\n<tr>");
+            Cell(page, StatisticsText.DiagnosticsLabel);
+            Cell(page, StatisticsText.DiagnosticCountsText(statistics));
+            page.Append("</tr>\n</tbody>\n</table>\n");
+            if (statistics.Parse is not { } verbs) return page;
+            Head(page, StatisticsText.VerbHeadings);
             foreach (var verb in verbs.Verbs)
             {
                 page.Append("<tr>");
@@ -292,42 +276,52 @@ public static class HtmlListingRenderer
             return page;
         }
 
+        /// <summary>A row of the statistics: a count's label and the count.</summary>
+        private void Count(string label, int count, string? cssClass = null)
+        {
+            page.Append(cssClass is null ? "<tr>" : "<tr class=\"" + cssClass + "\">");
+            Cell(page, label);
+            Cell(page, count.ToString(CultureInfo.InvariantCulture), "n");
+            page.Append("</tr>\n");
+        }
+
         public StringBuilder DataMap()
         {
             var map = document.DataMap ?? throw new InvalidOperationException("the data map section is produced but the document holds no data map");
-            page.Append("<table class=\"map\">\n<thead><tr><th>ID</th><th>LINE</th><th>LVL</th><th>KIND</th><th>NAME</th><th>OFFSET</th>")
-                .Append("<th>LENGTH</th><th>BYTES</th><th>USAGE</th><th>PICTURE</th><th>DETAILS</th></tr></thead>\n<tbody>\n");
+            Head(page, [.. DataMapText.ItemHeadings, "DETAILS"], "map");
             var nesting = DataMapText.NestingOf(map.Items);
             foreach (var item in map.Items)
             {
                 page.Append("<tr id=\"").Append(DataItemId(item.Id)).Append("\">");
                 Cell(page, item.Id.ToString(CultureInfo.InvariantCulture), "n");
                 page.Append("<td class=\"n\">");
-                if (item.Line is { } line) LineLink(line); else page.Append('-');
+                if (item.Line is { } line) LineLink(line); else Escape(page, DataMapText.NumberText(null));
                 page.Append("</td>");
-                Cell(page, item.Level?.ToString("00", CultureInfo.InvariantCulture) ?? "");
+                Cell(page, DataMapText.LevelText(item.Level));
                 Cell(page, DataMapText.KindWord(item.Kind));
                 Indented(page, item.Name, nesting[item.Id]);
-                Cell(page, Number(item.Offset), "n");
-                Cell(page, Number(item.Length), "n");
-                Cell(page, Number(item.Bytes), "n");
+                Cell(page, DataMapText.NumberText(item.Offset), "n");
+                Cell(page, DataMapText.NumberText(item.Length), "n");
+                Cell(page, DataMapText.NumberText(item.Bytes), "n");
                 Cell(page, item.Usage ?? "");
                 Cell(page, item.Picture ?? "");
                 Parts(DataMapText.DetailParts(item));
                 page.Append("</tr>\n");
             }
-            page.Append("</tbody>\n</table>\n<h3>FILES</h3>\n<table class=\"map\">\n<thead><tr><th>ID</th><th>LINE</th><th>NAME</th>")
-                .Append("<th>ORGANIZATION</th><th>ACCESS</th><th>RECORDS</th><th>DETAILS</th></tr></thead>\n<tbody>\n");
+            page.Append("</tbody>\n</table>\n<h3>");
+            Escape(page, DataMapText.FilesTitle);
+            page.Append("</h3>\n");
+            Head(page, [.. DataMapText.FileHeadings, "DETAILS"], "map");
             foreach (var file in map.Files)
             {
                 page.Append("<tr id=\"").Append(FileEntryId(file.Id)).Append("\">");
                 Cell(page, file.Id.ToString(CultureInfo.InvariantCulture), "n");
                 page.Append("<td class=\"n\">");
-                if (file.Line is { } line) LineLink(line); else page.Append('-');
+                if (file.Line is { } line) LineLink(line); else Escape(page, DataMapText.NumberText(null));
                 page.Append("</td>");
-                Cell(page, file.Name + (file.External ? "  EXTERNAL" : "") + (file.Global ? "  GLOBAL" : ""));
-                Cell(page, file.SortMerge ? "SORT-MERGE" : file.Organization);
-                Cell(page, file.SortMerge ? "" : file.Access);
+                Cell(page, file.Name);
+                Cell(page, DataMapText.OrganizationText(file));
+                Cell(page, DataMapText.AccessText(file));
                 page.Append("<td>");
                 bool first = true;
                 foreach (int record in file.Records)
@@ -336,6 +330,8 @@ public static class HtmlListingRenderer
                     ItemLink(record, record.ToString(CultureInfo.InvariantCulture));
                     first = false;
                 }
+                // The text listing prints the EXTERNAL and GLOBAL words after the records.
+                foreach (string flag in DataMapText.FlagWords(file)) Escape(page, "  " + flag);
                 page.Append("</td>");
                 Parts(DataMapText.FileDetailParts(file));
                 page.Append("</tr>\n");
@@ -362,19 +358,21 @@ public static class HtmlListingRenderer
         public StringBuilder ObjectMap()
         {
             var map = document.ObjectCode ?? throw new InvalidOperationException("the object-code map section is produced but the document holds no object-code map");
-            page.Append("<p>ASSEMBLY ");
-            Escape(page, map.Assembly);
-            page.Append("</p>\n<table>\n<thead><tr><th>METHOD</th><th>TOKEN</th><th>SIZE</th><th>NAME</th></tr></thead>\n<tbody>\n");
+            page.Append("<p>");
+            Escape(page, ObjectCodeText.AssemblyLabel + "  " + map.Assembly);
+            page.Append("</p>\n");
+            Head(page, ObjectCodeText.MethodHeadings);
             foreach (var method in map.Methods)
             {
                 page.Append("<tr id=\"").Append(MethodId(method.Id)).Append("\">");
                 Cell(page, method.Id.ToString(CultureInfo.InvariantCulture), "n");
-                Cell(page, string.Create(CultureInfo.InvariantCulture, $"0x{method.Token:X8}"));
+                Cell(page, ObjectCodeText.Token(method.Token));
                 Cell(page, method.CodeSize.ToString(CultureInfo.InvariantCulture), "n");
                 Cell(page, ObjectCodeText.MethodName(method));
                 page.Append("</tr>\n");
             }
-            page.Append("</tbody>\n</table>\n<table>\n<thead><tr><th>LINE</th><th>COL</th><th>METHOD</th><th>IL RANGE</th></tr></thead>\n<tbody>\n");
+            page.Append("</tbody>\n</table>\n");
+            Head(page, ObjectCodeText.RangeHeadings);
             foreach (var range in map.Ranges)
             {
                 page.Append("<tr><td class=\"n\">");
@@ -384,7 +382,7 @@ public static class HtmlListingRenderer
                 page.Append("<td class=\"n\">");
                 Link(page, "#" + MethodId(range.Method), range.Method.ToString(CultureInfo.InvariantCulture));
                 page.Append("</td>");
-                Cell(page, ObjectCodeText.Offset(range.Start) + "-" + ObjectCodeText.Offset(range.End));
+                Cell(page, ObjectCodeText.RangeText(range));
                 page.Append("</tr>\n");
             }
             page.Append("</tbody>\n</table>\n");
@@ -394,14 +392,14 @@ public static class HtmlListingRenderer
         public StringBuilder ObjectCode()
         {
             var map = document.ObjectCode ?? throw new InvalidOperationException("the object-code section is produced but the document holds no object-code map");
-            if (map.Ranges.Count == 0) Note(page, "No statement of the listing compiled to object code.");
+            if (map.Ranges.Count == 0) Note(page, ObjectCodeText.NoCodeNote);
             var text = document.Lines.ToDictionary(l => l.Number, l => l.Text);
             foreach (var range in map.Ranges)
             {
                 page.Append("<div class=\"code\"><p>");
                 LineLink(range.Line);
-                page.Append(string.Create(CultureInfo.InvariantCulture, $" col {range.Column}  "));
-                Escape(page, ObjectCodeText.MethodName(_methods[range.Method]) + "  " + ObjectCodeText.Offset(range.Start) + "-" + ObjectCodeText.Offset(range.End));
+                page.Append(' ');
+                Escape(page, StretchHeading(range, _methods));
                 page.Append("</p>\n");
                 if (text.TryGetValue(range.Line, out string? source))
                 {
@@ -429,6 +427,7 @@ public static class HtmlListingRenderer
         private readonly ILookup<int, ListingObjectRange> _ranges =
             (document.ObjectCode?.Ranges ?? []).ToLookup(r => r.Line);
         private readonly List<int> _open = [];   // the inclusions whose blocks are open, outermost first
+        private readonly HashSet<int> _opened = [];   // the inclusions whose blocks have been opened once
 
         public void Write()
         {
@@ -474,13 +473,23 @@ public static class HtmlListingRenderer
             _open.RemoveRange(keep, _open.Count - keep);
             foreach (int id in chain.Skip(keep))
             {
-                var opened = _inclusions[id];
-                page.Append("<details class=\"inc").Append(opened.Suppress ? " sup\"" : "\" open=\"\"")
-                    .Append(" id=\"").Append(InclusionId(id)).Append("\"><summary>");
-                Escape(page, TextListingRenderer.Banner(opened, _files) + (opened.Suppress ? " SUPPRESS" : ""));
-                page.Append("</summary>\n");
+                Open(id);
                 _open.Add(id);
             }
+        }
+
+        /// <summary>Open inclusion <paramref name="id"/>'s block under its banner: collapsed when its COPY statement wrote SUPPRESS,
+        /// open otherwise. The block's first opening carries its id; a later one (the block reopened for the lines after a DISPLAY
+        /// transfer closed it, <see cref="Displays"/>) says it is continued and carries none.</summary>
+        private void Open(int id)
+        {
+            var inclusion = _inclusions[id];
+            bool continued = !_opened.Add(id);
+            page.Append("<details class=\"inc").Append(inclusion.Suppress ? " sup\"" : "\" open=\"\"");
+            if (!continued) page.Append(" id=\"").Append(InclusionId(id)).Append('"');
+            page.Append("><summary>");
+            Escape(page, TextListingRenderer.Banner(inclusion, _files) + (inclusion.Suppress ? " SUPPRESS" : "") + (continued ? " (continued)" : ""));
+            page.Append("</summary>\n");
         }
 
         private void Line(ListingLine line)
@@ -512,7 +521,7 @@ public static class HtmlListingRenderer
             if (line.Replacement == ListingReplacement.Replacing)
                 foreach (string resultant in (line.Replaced ?? "").Split('\n'))
                 {
-                    page.Append("<div class=\"rp\"><span class=\"mk\">R</span><span class=\"tx\">");
+                    page.Append("<div class=\"rp\"><span class=\"mk\">").Append(TextListingRenderer.ReplacedMarker).Append("</span><span class=\"tx\">");
                     Escape(page, resultant);
                     page.Append("</span></div>\n");
                 }
@@ -520,15 +529,13 @@ public static class HtmlListingRenderer
             {
                 var diagnostic = _diagnostics[id];
                 page.Append("<div class=\"dg ").Append(SeverityClass(diagnostic.Severity)).Append("\" id=\"").Append(DiagnosticId(id)).Append("\">");
-                string place = diagnostic.Column is { } column ? string.Create(CultureInfo.InvariantCulture, $" (col {column})") : "";
-                Escape(page, $"{TextListingRenderer.Arrow}{TextListingRenderer.SeverityWord(diagnostic.Severity)} {diagnostic.Code}{place}: {diagnostic.Message}");
+                Escape(page, TextListingRenderer.DiagnosticText(diagnostic));
                 page.Append("</div>\n");
             }
             foreach (var range in _ranges[line.Number])
             {
                 page.Append("<details class=\"obj\"><summary>");
-                Escape(page, string.Create(CultureInfo.InvariantCulture, $"col {range.Column}: ")
-                    + ObjectCodeText.MethodName(methods[range.Method]) + "  " + ObjectCodeText.Offset(range.Start) + "-" + ObjectCodeText.Offset(range.End));
+                Escape(page, StretchHeading(range, methods));
                 page.Append("</summary>\n");
                 if (range.Instructions is null) page.Append("<p class=\"np\">The object code section was not asked for.</p>\n");
                 else Instructions(page, range.Instructions);
@@ -537,13 +544,23 @@ public static class HtmlListingRenderer
         }
 
         /// <summary>The DISPLAY directive's transfers at <paramref name="line"/> (§2023:7.3.12.4 GR2: "irrespective of whether it is
-        /// suppressed by the LISTING directive"), outside any collapsed block.</summary>
+        /// suppressed by the LISTING directive"), outside any collapsed block, as the text listing prints them whether or not it prints
+        /// their line. A run of hidden lines ends at a line with a transfer (<see cref="Write"/>); a SUPPRESS block cannot end there, so
+        /// the open blocks from the outermost SUPPRESS one in are closed before the transfers, and the next line of those inclusions
+        /// reopens them (<see cref="Enter"/>), each as its continuation.</summary>
         private void Displays(ListingLine line)
         {
+            if (!_displays.Contains(line.Number)) return;
+            int collapsed = _open.FindIndex(id => _inclusions[id].Suppress);
+            if (collapsed >= 0)
+            {
+                for (int close = _open.Count - 1; close >= collapsed; close--) page.Append("</details>\n");
+                _open.RemoveRange(collapsed, _open.Count - collapsed);
+            }
             foreach (var display in _displays[line.Number])
             {
                 page.Append("<div class=\"dsp\">");
-                Escape(page, "DISPLAY: " + display.Text);
+                Escape(page, TextListingRenderer.DisplayText(display));
                 page.Append("</div>\n");
             }
         }
@@ -589,7 +606,22 @@ public static class HtmlListingRenderer
 
     private static string SeverityClass(ListingSeverity severity) => "sev-" + TextListingRenderer.SeverityWord(severity);
 
-    private static string Number(int? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "-";
+    /// <summary>The heading of a stretch of a statement's code: its column and the text listing's <see cref="ObjectCodeText.StretchText"/>.</summary>
+    private static string StretchHeading(ListingObjectRange range, IReadOnlyDictionary<int, ListingMethod> methods) =>
+        string.Create(CultureInfo.InvariantCulture, $"col {range.Column}  ") + ObjectCodeText.StretchText(range, methods[range.Method]);
+
+    /// <summary>Open a table whose head row is <paramref name="headings"/>, and its body.</summary>
+    private static void Head(StringBuilder page, IEnumerable<string> headings, string? cssClass = null)
+    {
+        page.Append(cssClass is null ? "<table>\n<thead><tr>" : "<table class=\"" + cssClass + "\">\n<thead><tr>");
+        foreach (string heading in headings)
+        {
+            page.Append("<th>");
+            Escape(page, heading);
+            page.Append("</th>");
+        }
+        page.Append("</tr></thead>\n<tbody>\n");
+    }
 
     private static void Term(StringBuilder page, string term, string value)
     {
@@ -670,6 +702,7 @@ public static class HtmlListingRenderer
         .ln .fl { display: inline-block; width: 6ch; text-align: right; color: var(--muted); margin-right: 1ch; }
         .rp { padding-left: 9ch; color: var(--muted); } .rp .mk { width: 9ch; margin-left: 0; }
         .ln .mg { margin-left: 2ch; color: var(--muted); }
+        tr.sub td:first-child { padding-left: 2em; }
         .k-comment .tx, .k-pageejectcomment .tx, .k-commententry .tx { color: var(--muted); font-style: italic; }
         .k-directive .tx { color: var(--info); }
         .pb { border-top: 1px dashed var(--rule); }

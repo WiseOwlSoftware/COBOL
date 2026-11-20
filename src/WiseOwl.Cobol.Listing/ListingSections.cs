@@ -105,6 +105,9 @@ public static class ListingSections
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no title"),
     };
 
+    /// <summary>What every renderer prints in place of a section asked for and not produced (DESIGN-listing.md section 4.3).</summary>
+    public static string NotProduced(string? reason) => "Not produced: " + reason;
+
     /// <summary>The order every renderer presents the sections in (DESIGN-listing.md sections 7.1 and 7.2): options, source with
     /// inline diagnostics, program map, data map, statistics and verbs, object-code map, object code, diagnostic summary. Every
     /// member of <see cref="ListingSection"/> once (the Unit assembly's

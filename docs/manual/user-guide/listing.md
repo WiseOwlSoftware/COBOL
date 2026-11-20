@@ -387,8 +387,9 @@ document as the text and the JSON listing, so the three always agree.
   to begin with.
 - **Lines the text listing does not print.** Lines a `>>LISTING OFF` or COPY `SUPPRESS` turned off, lines a false `>>IF` branch
   omitted, and the further lines of a replaced DATE-COMPILED comment-entry are on the page, greyed, in a folded block that says how
-  many lines it holds and why ("3 lines not listed (40-42)"). The DISPLAY directive's lines stay outside the block: they are listed
-  whatever a LISTING directive says.
+  many lines it holds and why ("3 lines not listed (40-42)"). What a `>>DISPLAY` directive prints (`DISPLAY: <data>`) stays outside
+  every folded block, a `SUPPRESS` block included: it is listed whatever a LISTING directive or `SUPPRESS` says, so the library
+  text's folded block ends before it and its further lines continue in a block whose banner ends "(continued)".
 - **Diagnostics.** Each diagnostic stands under its line, the column it names highlighted in the line's text; the diagnostic
   summary at the end lists them all and links each to its place.
 - **Object code.** With `object-map` or `object-code` in the sections, each statement's line holds a folded block per stretch of its

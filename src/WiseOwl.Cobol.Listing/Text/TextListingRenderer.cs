@@ -59,7 +59,7 @@ public static class TextListingRenderer
                    KeepEnd(title + "  ", header.MainSource, request.PageWidth), "", Ruler]
                 : [IdentificationLine(header, program, page, request.PageWidth), title, ""];
             IEnumerable<ListingRow> rows = status.Produced ? sections.Visit(section)
-                : sections.Rows(Indented("Not produced: " + status.Reason, 0, 2, request.PageWidth));
+                : sections.Rows(Indented(ListingSections.NotProduced(status.Reason), 0, 2, request.PageWidth));
             pages += PageComposer.Compose(listing, rows as IReadOnlyList<ListingRow> ?? [.. rows], request.PageLength, Heading, firstPage: pages + 1);
         }
         return listing.ToString();
@@ -197,7 +197,7 @@ public static class TextListingRenderer
             bool first = true;
             foreach (string piece in Wrap(resultant))
             {
-                yield return first ? new string(' ', 8) + "R" + new string(' ', TextColumn - 10) + piece : ContinuationRow(piece);
+                yield return first ? new string(' ', 8) + ReplacedMarker + new string(' ', TextColumn - 10) + piece : ContinuationRow(piece);
                 first = false;
             }
         }
@@ -208,12 +208,15 @@ public static class TextListingRenderer
     public static IEnumerable<string> DisplayRows(ListingDisplay display)
     {
         bool first = true;
-        foreach (string piece in Wrap("DISPLAY: " + display.Text))
+        foreach (string piece in Wrap(DisplayText(display)))
         {
             yield return first ? new string(' ', TextColumn - 1) + piece : ContinuationRow(piece);
             first = false;
         }
     }
+
+    /// <summary>One DISPLAY directive transfer as every renderer prints it: <c>DISPLAY: text</c>.</summary>
+    public static string DisplayText(ListingDisplay display) => "DISPLAY: " + display.Text;
 
     /// <summary>The rows of one diagnostic under its line (DESIGN-listing.md section 6.3): a caret under its column when
     /// <paramref name="wholeText"/> (the line's text, printed whole as written) is given, then <c>==&gt; severity CODE (col n):
@@ -222,9 +225,15 @@ public static class TextListingRenderer
     public static IEnumerable<string> DiagnosticRows(ListingDiagnostic diagnostic, string? wholeText, int width)
     {
         if (wholeText is not null && diagnostic.Column is { } column && CaretRow(wholeText, column) is { } caret) yield return caret;
+        foreach (string row in Indented(DiagnosticText(diagnostic), TextColumn - 1, TextColumn - 1 + Arrow.Length, width)) yield return row;
+    }
+
+    /// <summary>A diagnostic under its line as every renderer prints it: <c>==&gt; severity CODE (col n): message</c>, the column
+    /// when it has one.</summary>
+    public static string DiagnosticText(ListingDiagnostic diagnostic)
+    {
         string place = diagnostic.Column is { } col ? string.Create(CultureInfo.InvariantCulture, $" (col {col})") : "";
-        string text = $"{Arrow}{SeverityWord(diagnostic.Severity)} {diagnostic.Code}{place}: {diagnostic.Message}";
-        foreach (string row in Indented(text, TextColumn - 1, TextColumn - 1 + Arrow.Length, width)) yield return row;
+        return $"{Arrow}{SeverityWord(diagnostic.Severity)} {diagnostic.Code}{place}: {diagnostic.Message}";
     }
 
     /// <summary>The caret row of 1-based <paramref name="column"/> of <paramref name="text"/> (a character position of the line's
@@ -244,20 +253,31 @@ public static class TextListingRenderer
     /// order, its listing line (or '-') and its file, line and column ahead of its words.</summary>
     public static IEnumerable<string> SummaryRows(ListingDocument document, int width)
     {
-        int Count(ListingSeverity severity) => document.Diagnostics.Count(d => d.Severity == severity);
-        yield return string.Create(CultureInfo.InvariantCulture,
-            $"Errors: {Count(ListingSeverity.Error)}   Warnings: {Count(ListingSeverity.Warning)}   Information: {Count(ListingSeverity.Info)}");
+        yield return CountsText(document.Diagnostics);
         yield return "";
         var files = document.Files.ToDictionary(f => f.Id, f => f.Path);
         foreach (var d in document.Diagnostics)
         {
-            string place = d is { File: { } file, FileLine: { } fileLine, Column: { } column }
-                ? string.Create(CultureInfo.InvariantCulture, $" {files[file]}({fileLine},{column})") : "";
+            string place = PlaceText(d, files) is { } at ? " " + at : "";
             string lead = d.Line is { } line ? line.ToString(CultureInfo.InvariantCulture).PadLeft(6) : "     -";
             foreach (string row in Indented($"{lead}  {SeverityWord(d.Severity)} {d.Code}{place}: {d.Message}", 0, 8, width))
                 yield return row;
         }
     }
+
+    /// <summary>The summary's first row as every renderer prints it: the count of <paramref name="diagnostics"/> of each severity.</summary>
+    public static string CountsText(IReadOnlyList<ListingDiagnostic> diagnostics)
+    {
+        int Count(ListingSeverity severity) => diagnostics.Count(d => d.Severity == severity);
+        return string.Create(CultureInfo.InvariantCulture,
+            $"Errors: {Count(ListingSeverity.Error)}   Warnings: {Count(ListingSeverity.Warning)}   Information: {Count(ListingSeverity.Info)}");
+    }
+
+    /// <summary>Where a diagnostic stands as the summary prints it, <c>file(line,column)</c>, the file named by its path in
+    /// <paramref name="files"/>; null for a diagnostic with no file, line or column.</summary>
+    public static string? PlaceText(ListingDiagnostic diagnostic, IReadOnlyDictionary<int, string> files) =>
+        diagnostic is { File: { } file, FileLine: { } fileLine, Column: { } column }
+            ? string.Create(CultureInfo.InvariantCulture, $"{files[file]}({fileLine},{column})") : null;
 
     /// <summary>The word a severity is printed as: the word every diagnostic line of the compiler uses (<c>Diagnostic.SeverityWord</c>,
     /// which this assembly cannot reference; <c>DiagnosticRecordsTests.TheSeverityWords_AreTheCompilersWords</c> holds the two equal).</summary>
@@ -332,8 +352,8 @@ public static class TextListingRenderer
         // Each field and the order it yields in; the instant and the page label never yield.
         string[] fields =
         [
-            "WiseOwl COBOL " + header.CompilerVersion,
-            string.Create(CultureInfo.InvariantCulture, $"{header.EditionName} (--std {header.Edition})"),
+            CompilerText(header),
+            EditionText(header),
             program ?? "",
             ListingTimestamp.Format(header.CompiledAt),
         ];
@@ -346,6 +366,13 @@ public static class TextListingRenderer
         return string.Join(Separator, fields.Where(f => f.Length > 0)).PadRight(width - pageLabel.Length) + pageLabel;
     }
 
+    /// <summary>The compiler as every renderer names it: <c>WiseOwl COBOL</c> and its version.</summary>
+    public static string CompilerText(ListingHeader header) => "WiseOwl COBOL " + header.CompilerVersion;
+
+    /// <summary>The edition as every renderer names it: its name and its <c>--std</c> number.</summary>
+    public static string EditionText(ListingHeader header) =>
+        string.Create(CultureInfo.InvariantCulture, $"{header.EditionName} (--std {header.Edition})");
+
     /// <summary>The separator between the fields of a heading line.</summary>
     private const string Separator = "  ";
 
@@ -356,7 +383,7 @@ public static class TextListingRenderer
     {
         { Omitted: true } => 'X',
         { Replacement: ListingReplacement.DateCompiled } => 'E',
-        { Replacement: ListingReplacement.Replacing } => 'R',
+        { Replacement: ListingReplacement.Replacing } => ReplacedMarker,
         { Kind: ListingLineKind.PageEjectComment } => '/',
         { Kind: ListingLineKind.Comment } => '*',
         { Kind: ListingLineKind.DebuggingLine } => 'D',
@@ -364,6 +391,9 @@ public static class TextListingRenderer
         { Kind: ListingLineKind.Continuation } => '-',
         _ => ' ',
     };
+
+    /// <summary>The marker of a line a replacing action changed and of each row of its compiled text under it.</summary>
+    public const char ReplacedMarker = 'R';
 
     /// <summary>The depth column: blank for the source, 1-9, '+' beyond.</summary>
     public static char DepthMark(int depth) => depth switch { 0 => ' ', <= 9 => (char)('0' + depth), _ => '+' };

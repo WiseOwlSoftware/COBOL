@@ -12,18 +12,18 @@ public static class ObjectCodeText
     /// stretch of a statement's code in listing order (its listing line and column, its method and its IL offset range).</summary>
     public static IEnumerable<string> MapRows(ListingObjectCodeMap map, int width)
     {
-        foreach (string piece in TextListingRenderer.Indented("ASSEMBLY  " + map.Assembly, 0, 10, width)) yield return piece;
+        foreach (string piece in TextListingRenderer.Indented(AssemblyLabel + "  " + map.Assembly, 0, 10, width)) yield return piece;
         yield return "";
-        yield return string.Create(CultureInfo.InvariantCulture, $"{"METHOD",6} {"TOKEN",-10} {"SIZE",6}  NAME");
+        yield return string.Create(CultureInfo.InvariantCulture, $"{MethodHeadings[0],6} {MethodHeadings[1],-10} {MethodHeadings[2],6}  {MethodHeadings[3]}");
         foreach (var method in map.Methods)
             foreach (string piece in TextListingRenderer.Indented(string.Create(CultureInfo.InvariantCulture,
                 $"{method.Id,6} {Token(method.Token),-10} {method.CodeSize,6}  {MethodName(method)}"), 0, 26, width))
                 yield return piece;
         yield return "";
-        yield return string.Create(CultureInfo.InvariantCulture, $"{"LINE",6} {"COL",4} {"METHOD",6}  IL RANGE");
+        yield return string.Create(CultureInfo.InvariantCulture, $"{RangeHeadings[0],6} {RangeHeadings[1],4} {RangeHeadings[2],6}  {RangeHeadings[3]}");
         foreach (var range in map.Ranges)
             yield return string.Create(CultureInfo.InvariantCulture,
-                $"{range.Line,6} {range.Column,4} {range.Method,6}  {Offset(range.Start)}-{Offset(range.End)}");
+                $"{range.Line,6} {range.Column,4} {range.Method,6}  {RangeText(range)}");
     }
 
     /// <summary>The object code's rows: for each stretch of a statement's code in listing order, a row naming its listing line, column,
@@ -33,14 +33,13 @@ public static class ObjectCodeText
     {
         var methods = map.Methods.ToDictionary(m => m.Id);
         var text = lines.ToDictionary(l => l.Number, l => l.Text);
-        if (map.Ranges.Count == 0) yield return "No statement of the listing compiled to object code.";
+        if (map.Ranges.Count == 0) yield return NoCodeNote;
         bool first = true;
         foreach (var range in map.Ranges)
         {
             if (!first) yield return "";
             first = false;
-            string heading = string.Create(CultureInfo.InvariantCulture,
-                $"{range.Line,6} {range.Column,4}  {MethodName(methods[range.Method])}  {Offset(range.Start)}-{Offset(range.End)}");
+            string heading = string.Create(CultureInfo.InvariantCulture, $"{range.Line,6} {range.Column,4}  {StretchText(range, methods[range.Method])}");
             foreach (string piece in TextListingRenderer.Indented(heading, 0, 13, width)) yield return piece;
             if (text.TryGetValue(range.Line, out string? source))
                 foreach (string piece in TextListingRenderer.Indented(source.TrimEnd(), 13, 13, width)) yield return piece;
@@ -58,5 +57,24 @@ public static class ObjectCodeText
     /// <summary>An IL offset as an IL listing spells it: <c>IL_</c> and four or more hexadecimal digits.</summary>
     public static string Offset(int offset) => string.Create(CultureInfo.InvariantCulture, $"IL_{offset:X4}");
 
-    private static string Token(int token) => string.Create(CultureInfo.InvariantCulture, $"0x{token:X8}");
+    /// <summary>A method's metadata token as both renderers print it: <c>0x</c> and eight hexadecimal digits.</summary>
+    public static string Token(int token) => string.Create(CultureInfo.InvariantCulture, $"0x{token:X8}");
+
+    /// <summary>A stretch's IL offset range as both renderers print it: <c>IL_start-IL_end</c>.</summary>
+    public static string RangeText(ListingObjectRange range) => Offset(range.Start) + "-" + Offset(range.End);
+
+    /// <summary>A stretch of a statement's code as both renderers head it: its method (<see cref="MethodName"/>) and its IL range.</summary>
+    public static string StretchText(ListingObjectRange range, ListingMethod method) => MethodName(method) + "  " + RangeText(range);
+
+    /// <summary>The label of the assembly the object-code map was read from.</summary>
+    public const string AssemblyLabel = "ASSEMBLY";
+
+    /// <summary>The object-code map's method table headings: the method's id, metadata token, IL size and name.</summary>
+    public static readonly IReadOnlyList<string> MethodHeadings = ["METHOD", "TOKEN", "SIZE", "NAME"];
+
+    /// <summary>The object-code map's stretch table headings: the listing line, column, method and IL range.</summary>
+    public static readonly IReadOnlyList<string> RangeHeadings = ["LINE", "COL", "METHOD", "IL RANGE"];
+
+    /// <summary>What the object code section says when no statement compiled to object code.</summary>
+    public const string NoCodeNote = "No statement of the listing compiled to object code.";
 }

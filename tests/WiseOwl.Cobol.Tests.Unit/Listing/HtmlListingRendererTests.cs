@@ -1,9 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Html;
+using WiseOwl.Cobol.Listing.Text;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -164,12 +166,102 @@ public sealed class HtmlListingRendererTests
         for (int i = 0; i < ranges.Count; i++)
         {
             var method = document.ObjectCode.Methods.Single(m => m.Id == ranges[i].Method);
-            Assert.Equal($"col {ranges[i].Column}: {method.Type}::{method.Name}  IL_{ranges[i].Start:X4}-IL_{ranges[i].End:X4}",
+            Assert.Equal($"col {ranges[i].Column}  {method.Type}::{method.Name}  IL_{ranges[i].Start:X4}-IL_{ranges[i].End:X4}",
                 objectCode[i].Element("summary")!.Value);
             Assert.Equal(ranges[i].Instructions?.Count ?? 0, objectCode[i].Descendants("tr").Count());
         }
         Assert.Equal(document.ObjectCode.Ranges[0].Instructions!.Select(x => x.OpCode),
             objectCode[0].Descendants("tr").Select(tr => tr.Elements("td").ElementAt(1).Value));
+    }
+
+    /// <summary>Section 7.2: "A DISPLAY transfer stands outside any collapsed block (§2023:7.3.12.4 GR2)", which says the transfer takes
+    /// place "irrespective of whether it is suppressed by the LISTING directive". A transfer at a line of a COPY ... SUPPRESS inclusion
+    /// (line 3, inclusion 1's) is printed by the text listing though its line is not; on the page it stands outside the collapsed
+    /// block, which the next line of the inclusion (line 5 here) reopens as its continuation, without a second id.</summary>
+    [Fact]
+    public void ADisplayInASuppressedInclusion_StandsOutsideTheCollapsedBlock()
+    {
+        var document = JsonListingWriterTests.EveryMember();
+        var line3 = document.Lines[2];
+        document = document with
+        {
+            Inclusions = [document.Inclusions[0] with { Suppress = true }, document.Inclusions[1]],
+            Lines = [.. document.Lines, line3 with { Number = 5, FileLine = 2, Text = "*> after" }],
+            Displays = [new ListingDisplay(3, "BUILD 42")],
+            ObjectCode = null,
+            Sections = [new ListingSectionStatus(ListingSection.Source, true, null)],
+        };
+        var page = Page(document);
+        var display = page.Descendants("div").Single(e => HasClass(e, "dsp"));
+        Assert.Equal("DISPLAY: BUILD 42", display.Value);
+        Assert.DoesNotContain(display.Ancestors("details"), d => d.Attribute("open") is null);
+        Assert.Contains(TextListingRenderer.DisplayText(document.Displays[0]),
+            TextListingRenderer.Render(document, new ListingRequest()), StringComparison.Ordinal);
+        var first = ById(page, HtmlListingRenderer.InclusionId(1));
+        Assert.Same(first, ById(page, HtmlListingRenderer.LineId(3)).Parent);
+        Assert.Null(first.Attribute("open"));
+        var continued = ById(page, HtmlListingRenderer.LineId(5)).Parent!;
+        Assert.NotSame(first, continued);
+        Assert.True(HasClass(continued, "sup"));
+        Assert.Null(continued.Attribute("open"));
+        Assert.Null(continued.Attribute("id"));
+        Assert.EndsWith(" SUPPRESS (continued)", continued.Element("summary")!.Value, StringComparison.Ordinal);
+        Assert.Same(display, first.ElementsAfterSelf().First());
+    }
+
+    /// <summary>The page prints the text listing's words, never its own copy of them (DESIGN-listing.md section 7.2): over one
+    /// document holding every section, each word of the page that the text listing also prints is found in the text listing as the
+    /// page prints it: the identification, each table's headings, each cell of every section but the source, each note, and under
+    /// the source lines each compiled-text row, diagnostic and DISPLAY transfer. What only the page has (its diagnostic summary's
+    /// and file table's headings, the DETAILS and ATTRIBUTES columns, the object-code blocks under a line) is its form.</summary>
+    [Fact]
+    public void EveryWordThePageSharesWithTheText_IsTheTextListings()
+    {
+        foreach (var document in new[] { EverySectionProduced(), EverySectionProduced() with { Statistics = EverySectionProduced().Statistics! with { Parse = null } } })
+        {
+            var page = Page(document);
+            string text = TextListingRenderer.Render(document, new ListingRequest { PageWidth = ListingRequest.MaximumPageWidth });
+            var rows = text.Split('\n').Select(r => Regex.Replace(r, @"\s+", "")).ToHashSet(StringComparer.Ordinal);
+            void Shared(string words) => Assert.True(text.Contains(words, StringComparison.Ordinal), $"the text listing does not print '{words}'");
+
+            Shared(page.Descendants("h1").Single().Value);
+            foreach (var term in page.Descendants("dt").Where(t => t.Value is "Edition" or "Compiled"))
+                Shared(((XElement)term.NextNode!).Value);
+            foreach (var section in page.Descendants("section"))
+            {
+                bool source = (string?)section.Attribute("id") == HtmlListingRenderer.SectionId(ListingSection.Source);
+                bool summary = (string?)section.Attribute("id") == HtmlListingRenderer.SectionId(ListingSection.Diagnostics);
+                Shared(section.Element("h2")!.Value);
+                foreach (var note in section.Descendants("p").Where(p => !p.Ancestors("details").Any()))
+                {
+                    // An object code block's heading: its line, its column, then the text listing's stretch.
+                    if (note.Parent is { } block && HasClass(block, "code"))
+                    {
+                        var heading = Regex.Match(note.Value, @"^\d+ col \d+  (.+)$");
+                        Assert.True(heading.Success, note.Value);
+                        Shared(heading.Groups[1].Value);
+                    }
+                    else Shared(note.Value);
+                }
+                foreach (var head in section.Descendants("thead").Where(_ => !summary))
+                {
+                    string headings = string.Concat(head.Descendants("th").Select(th => th.Value).Where(h => h is not ("DETAILS" or "ATTRIBUTES")));
+                    Assert.True(rows.Contains(Regex.Replace(headings, @"\s+", "")), $"the text listing has no heading row '{headings}'");
+                }
+                foreach (var h3 in section.Descendants("h3")) Shared(h3.Value);
+                if (!source)
+                    foreach (var cell in section.Descendants("td")) Shared(cell.Value);
+            }
+            foreach (var row in page.Descendants("div").Where(d => HasClass(d, "rp") || HasClass(d, "dg") || HasClass(d, "dsp")))
+                Shared(HasClass(row, "rp") ? Span(row, "tx") : row.Value);
+        }
+    }
+
+    /// <summary><see cref="JsonListingWriterTests.EveryMember"/> with every section produced.</summary>
+    private static ListingDocument EverySectionProduced()
+    {
+        var document = JsonListingWriterTests.EveryMember();
+        return document with { Sections = [.. document.Sections.Select(s => s with { Produced = true, Reason = null })] };
     }
 
     /// <summary>The links between the listing's own records: a data description line's margin to its data map entry, an entry's facts
