@@ -21,7 +21,7 @@ public sealed partial class FileControlBinder
 {
     /// <summary>VALUE OF data-name-1 operands as written, resolved and screened once the data division is bound
     /// (<see cref="ResolveValueOfDataNames"/>): a Working-Storage item may be described after the FILE SECTION.</summary>
-    private readonly List<(string Name, IReadOnlyList<string> Qualifiers, Editions.DiagnosticCursor At)> _valueOfDataNames = [];
+    private readonly List<(WrittenDataName Operand, Editions.DiagnosticCursor At)> _valueOfDataNames = [];
 
     /// <summary>§1985:VII.3.5.3 SR1: "Data-name-1 is the name of a data record and must have an 01 level-number record
     /// description, with the same name, associated with it." Asked of each data-name against the 01 entries of THIS file
@@ -51,9 +51,9 @@ public sealed partial class FileControlBinder
         foreach (var entry in clause.valueOfEntry())
             if (entry.dataReference() is { } dref)
             {
-                var (name, quals) = _host.ClauseDataName(dref, "VALUE OF");   // §1985:VII.3.9.3 SR1 "cannot be subscripted"
+                var operand = _host.ClauseDataName(dref, "VALUE OF");   // §1985:VII.3.9.3 SR1 "cannot be subscripted"
                 using var _ = Edition.At(dref);
-                _valueOfDataNames.Add((name, quals, Edition.Cursor));
+                _valueOfDataNames.Add((operand, Edition.Cursor));
             }
     }
 
@@ -127,9 +127,9 @@ public sealed partial class FileControlBinder
     /// with the clause and is admitted.</summary>
     private void ResolveValueOfDataNames()
     {
-        foreach (var (name, quals, at) in _valueOfDataNames)
+        foreach (var (operand, at) in _valueOfDataNames)
         {
-            if (_host.ResolveClauseOperand(name, quals, "VALUE OF", at) is not { } item) continue;
+            if (_host.ResolveClauseOperand(operand, "VALUE OF", at) is not { } item) continue;
             string? fault = item.Pic is { Usage: Usage.Index } || item.OwnUsage is Usage.Index
                 ? "is described with the USAGE IS INDEX clause (ISO §1985:VII.3.9.3 SR1: \"nor can data-name-1 be an item "
                   + "described with the USAGE IS INDEX clause\")"
@@ -145,7 +145,7 @@ public sealed partial class FileControlBinder
             if (fault is null) continue;
             using var _ = Edition.At(at);
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseOperand,
-                $"the VALUE OF clause's data-name-1 '{DataBinder.WrittenQualified(name, quals)}' {fault}");
+                $"the VALUE OF clause's data-name-1 '{operand.Written}' {fault}");
         }
     }
 }

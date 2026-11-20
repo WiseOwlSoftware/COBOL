@@ -103,7 +103,7 @@ internal readonly record struct FileKeyOperand(
     /// <summary>The first data-name-2 as a message names it — the operand the same-category rows compare against:
     /// its name and what it is, or the bare phrase on an operand that carries no SOURCE phrase.</summary>
     public string FirstSourceFace => Source?.Operands[0] is { Item: { } first } op
-        ? $"'{op.Name}' is {ItemCategory.Face(first)}" : "the first data-name-2 is of another category";
+        ? $"'{op.Operand.Name}' is {ItemCategory.Face(first)}" : "the first data-name-2 is of another category";
 
     /// <summary>§2023:12.4.5.12.3 SR2 / §2023:12.4.5.6.3 SR2's last sentence — "All occurrences of data-name-2 shall be of the
     /// same category" — broken by this data-name-2 when its category differs from the FIRST data-name-2's (the one
@@ -664,12 +664,12 @@ internal static class FileControlKeyRules
     private static readonly EntryClause[] EntryClauses =
     [
         new("ORGANIZATION IS INDEXED", FileFormats.Format1, f => f.Organization is FileOrganization.Indexed),
-        new("a RECORD KEY clause", FileFormats.Format1, f => f.RecordKeyName is not null),
+        new("a RECORD KEY clause", FileFormats.Format1, f => f.RecordKeyOperand is not null),
         new("an ALTERNATE RECORD KEY clause", FileFormats.Format1, f => f.AlternateKeyNames.Count > 0),
         new("a COLLATING SEQUENCE clause", FileFormats.Format1,
             f => f.FileLevelCollating is not null || f.KeyLevelCollating.Count > 0),
         new("ORGANIZATION IS RELATIVE", FileFormats.Format2, f => f.Organization is FileOrganization.Relative),
-        new("a RELATIVE KEY clause", FileFormats.Format2, f => f.RelativeKeyName is not null),
+        new("a RELATIVE KEY clause", FileFormats.Format2, f => f.RelativeKeyOperand is not null),
         new("ORGANIZATION IS LINE SEQUENTIAL", FileFormats.Format3, f => f.LineSequentialPhraseWritten),
         new("a RECORD DELIMITER clause", FileFormats.Format3, f => f.RecordDelimiter is not null),
         // ⛔ A CLAUSE NO 2023 DIAGRAM PRINTS (kb/Work PB5565): §1985:VII.2.3.2 and §2002:12.3.4.1 Format 3 print PADDING CHARACTER,
@@ -683,7 +683,7 @@ internal static class FileControlKeyRules
             f => f.OrganizationWritten && f.Organization is FileOrganization.Sequential),
         new("ACCESS MODE IS SEQUENTIAL", Formats123, f => f.AccessModeWritten && f.AccessMode is FileAccessMode.Sequential),
         new("ACCESS MODE IS RANDOM or DYNAMIC", Formats12, f => f.AccessModeWritten && f.AccessMode is not FileAccessMode.Sequential),
-        new("a FILE STATUS clause", Formats123, f => f.FileStatusName is not null),
+        new("a FILE STATUS clause", Formats123, f => f.FileStatusOperand is not null),
         new("a LOCK MODE clause", Formats123, f => f.LockMode is { Multiple: false }),
         new("a LOCK MODE clause with WITH LOCK ON MULTIPLE RECORDS", Formats12, f => f.LockMode is { Multiple: true }),
         new("a RESERVE clause", Formats123, f => f.ReserveAreas is not null),
@@ -716,7 +716,7 @@ internal static class FileControlKeyRules
             f => f.HasSelect, f => f.AssignWritten),
         // The prime key of the indexed entry; an indexed file without an FD is the FD's own diagnostic. Either key
         // form (data-name-5, or record-key-name-2 SOURCE …) names the clause (kb/Work PB358, PB1099).
-        new("RECORD KEY", FileFormats.Format1, f => f.HasFd, f => f.RecordKeyName is not null),
+        new("RECORD KEY", FileFormats.Format1, f => f.HasFd, f => f.RecordKeyOperand is not null),
     ];
 
     // ⛔ THE CLAUSE LIST IS WRITTEN ONCE (EntryClauses). Each `…Marker` NAMES the first written clause of its kind — a
@@ -783,10 +783,10 @@ internal static class FileControlKeyRules
         if (op.Source is not null || RecordLayout.KeyWindowInFile(f, op.Item, op.Occurrence) is not { } mine) return null;
         bool Same(DataItem? other, IReadOnlyList<int> occurrence) =>
             RecordLayout.KeyWindowInFile(f, other, occurrence) is { } w && w.Offset == mine.Offset && w.FollowsVariable == mine.FollowsVariable;
-        if (Same(f.PrimeKey?.Item, f.PrimeKey?.Subscripts ?? [])) return $"the prime record key '{f.RecordKeyName}'";
+        if (Same(f.PrimeKey?.Item, f.PrimeKey?.Subscripts ?? [])) return $"the prime record key '{f.RecordKeyOperand?.Name}'";
         for (int i = 0; i < f.AlternateKeyNames.Count; i++)
             if (i != op.Ordinal && Same(f.AlternateKeyNames[i].Item, f.AlternateKeyNames[i].Subscripts))
-                return $"another alternate record key '{f.AlternateKeyNames[i].Name}'";
+                return $"another alternate record key '{f.AlternateKeyNames[i].Operand.Name}'";
         return null;
     }
 
@@ -1180,7 +1180,7 @@ internal static class FileControlKeyRules
         for (int k = 0; k < source.Operands.Count; k++)
         {
             var op = source.Operands[k];
-            yield return new FileKeyOperand(role, face, op.Name, op.Item, op.At,
+            yield return new FileKeyOperand(role, face, op.Operand.Name, op.Item, op.At,
                 SuppressWhen: k == 0 ? suppressWhen : null, Ordinal: ordinal, Source: source, SourceIndex: k, Subscripts: op.Subscripts);
         }
     }
@@ -1200,7 +1200,7 @@ internal static class FileControlKeyRules
                 if (file.RecordKeySource is { } pks)
                     foreach (var op in SourceOperands(role, "RECORD KEY", pks, null, 0)) yield return op;
                 else
-                    yield return new FileKeyOperand(role, "RECORD KEY", file.RecordKeyName, file.PrimeKey?.Item,
+                    yield return new FileKeyOperand(role, "RECORD KEY", file.RecordKeyOperand?.Name, file.PrimeKey?.Item,
                         file.RecordKeyAt, Subscripts: file.RecordKeySubscripts);
                 break;
             case FileKeyRole.AlternateRecordKey:
@@ -1212,12 +1212,12 @@ internal static class FileControlKeyRules
                     if (alt.Source is { } aks)
                         foreach (var op in SourceOperands(role, "ALTERNATE RECORD KEY", aks, alt.SuppressWhen, i)) yield return op;
                     else
-                        yield return new FileKeyOperand(role, "ALTERNATE RECORD KEY", alt.Name, alt.Item, alt.At,
+                        yield return new FileKeyOperand(role, "ALTERNATE RECORD KEY", alt.Operand.Name, alt.Item, alt.At,
                             SuppressWhen: alt.SuppressWhen, Ordinal: i, Subscripts: alt.Subscripts);
                 }
                 break;
             case FileKeyRole.RelativeKey:
-                yield return new FileKeyOperand(role, "RELATIVE KEY", file.RelativeKeyName, file.RelativeKeyItem,
+                yield return new FileKeyOperand(role, "RELATIVE KEY", file.RelativeKeyOperand?.Name, file.RelativeKeyItem,
                     file.RelativeKeyAt);
                 break;
             case FileKeyRole.Entry:

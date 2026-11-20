@@ -681,9 +681,9 @@ internal sealed class VersionConformancePass
         if (ini.Written is not { } written || ConstructRegistry.IsAvailable(_edition, Constructs.InitializeVariableOccurrence2002)) return;
         foreach (var d in DataItem.SelfAndDescendantsOf(written.Item))
         {
-            if (d.OccursSpec?.DependingName is null) continue;
+            if (d.OccursSpec?.DependingOperand is null) continue;
             Check(Constructs.InitializeVariableOccurrence2002,
-                $"INITIALIZE of '{written.Item.CobolName ?? "FILLER"}': '{d.CobolName ?? "FILLER"}' is described with OCCURS … DEPENDING ON {d.OccursSpec.DependingName}");
+                $"INITIALIZE of '{written.Item.CobolName ?? "FILLER"}': '{d.CobolName ?? "FILLER"}' is described with OCCURS … DEPENDING ON {d.OccursSpec.DependingOperand?.Name}");
             return;
         }
     }

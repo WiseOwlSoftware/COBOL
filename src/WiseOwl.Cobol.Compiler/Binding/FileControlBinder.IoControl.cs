@@ -330,8 +330,7 @@ public sealed partial class FileControlBinder
                     + "MULTIPLE RECORDS applied automatically\"");
                 continue;
             }
-            var (name, quals) = _host.ClauseDataName(operand, "APPLY COMMIT identifier-1");
-            clause.Identifiers.Add((name, quals, Edition.Cursor));
+            clause.Identifiers.Add((_host.ClauseDataName(operand, "APPLY COMMIT identifier-1"), Edition.Cursor));
         }
     }
 
@@ -346,10 +345,10 @@ public sealed partial class FileControlBinder
     {
         if (ApplyCommit is not { } clause) return;
         var listed = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        foreach (var (name, quals, at) in clause.Identifiers)
+        foreach (var (operand, at) in clause.Identifiers)
         {
-            if (ScreenEnclosingFileOperand(name, quals, at)) continue;
-            if (_host.ResolveClauseOperand(name, quals, "APPLY COMMIT identifier-1", at) is not { } item) continue;
+            if (ScreenEnclosingFileOperand(operand, at)) continue;
+            if (_host.ResolveClauseOperand(operand, "APPLY COMMIT identifier-1", at) is not { } item) continue;
             using var _ = Edition.At(at);
             if (item.Level is not (1 or 77) || item.Section is not (EntrySection.WorkingStorage
                     or EntrySection.LocalStorage or EntrySection.Linkage))
@@ -453,9 +452,10 @@ public sealed partial class FileControlBinder
     /// Anything else (a container's GLOBAL working-storage item, an ambiguous or undefined reference) resolves as written
     /// (<see cref="DataBinder.ResolveClauseOperand"/>).</summary>
     /// <returns>true after reporting — the operand is refused and goes no further.</returns>
-    private bool ScreenEnclosingFileOperand(string name, IReadOnlyList<string> quals, Editions.DiagnosticCursor at)
+    private bool ScreenEnclosingFileOperand(WrittenDataName operand, Editions.DiagnosticCursor at)
     {
-        var dataItems = _host.QualifiedCandidates(name, quals, Model.Scope.Program);
+        var (name, quals) = operand;
+        var dataItems = _host.Symbols.IdentifyDataName(operand, Model.Scope.Program);
         if (dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) == 0)) return false;   // the nearest tier is this element's own
         DeclarationFact? global = quals.Count == 0 ? _host.Symbols.Declared.InheritedFile(name) : null;
         int fileDepth = global?.Depth ?? int.MaxValue;
@@ -464,13 +464,13 @@ public sealed partial class FileControlBinder
         // container's GLOBAL table's INDEXED BY RELF used to beat a nearer container's GLOBAL file RELF).
         if (_host.Symbols.Declared.OtherThanData(name, quals, Model.Scope.Program) is { } declared
             && declared.Kind != DeclarationKind.FileName && declared.Depth <= fileDepth) return false;
-        string written = DataBinder.WrittenQualified(name, quals);
+        string written = operand.Written;
         using var reportAt = Edition.At(at);
         if (_host.Symbols.Declared.ReportEntriesNamed(name, quals) is [var entry, ..] && entry.Depth < fileDepth
             && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) <= entry.Depth))
             // At COBOL-85 a sum counter is a data-name, not refused (it returns false with its counter), and the operand then
             // resolves as written (kb/Work PB5361).
-            return _host.ReportSection.ReportItemOperandRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", name, quals, out _);
+            return _host.ReportSection.ReportItemOperandRefused(dataItems, $"APPLY COMMIT identifier-1 '{written}'", operand, out _);
         if (global is not null && !dataItems.Any(i => _host.State.Forest.DeclaringDepth(i) < fileDepth))
         {
             ApplyCommitRule($"'{global.Value.Spelling}' is a file of a containing source element declared with the GLOBAL clause, "
@@ -483,8 +483,7 @@ public sealed partial class FileControlBinder
                 + "containing source element", "SR11", Sr11Text);
             return true;
         }
-        if (dataItems.Count == 0 && quals.Count == 0
-            && _host.State.Inherited.ContainerLocalFiles.FirstOrDefault(f => CobolNames.Same(f.CobolName, name)) is { } local)
+        if (dataItems.Count == 0 && _host.Symbols.ContainerLocalFileSpelled(operand) is { } local)
         {
             ApplyCommitRule($"'{local.CobolName}' is a file of a containing source element, not specified in the "
                 + "FILE-CONTROL paragraph of this one (it has no GLOBAL clause, so it is not visible here)", "SR1",

@@ -509,7 +509,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// SOURCE phrase of a RECORD KEY or ALTERNATE RECORD KEY clause — and which key of <paramref name="file"/> it
     /// is (−1 = prime): one of this file's, one only ANOTHER visible file declares (the SR7 / SR11 violation), or
     /// none, when it is to be read as data-name-1 (kb/Work PB1099). The operand may carry §2023:8.4.2.2.2 Format 6's one
-    /// file-name qualifier, which <see cref="FileModel.RecordKeyNameCandidates"/> reads; the files asked are the
+    /// file-name qualifier, which <see cref="SymbolTable.RecordKeyNamesOf"/> reads; the files asked are the
     /// VISIBLE set (<c>SymbolTable.VisibleFiles</c>, a container's GLOBAL file included — §2023:8.4.6.2.4 gives a GLOBAL file's
     /// record-key-names its scope).
     /// <para>⛔ EVERY READING IS COUNTED, NONE IS "ASKED FIRST" (kb/Work PB1099 review R1-2). The KEY phrase admits
@@ -529,9 +529,10 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                                                                 string face)
     {
         var (word, quals) = DataBinder.KeyReference(dref);
-        var names = file.RecordKeyNameCandidates(word, quals);
+        var written = new WrittenDataName(word, quals);
+        var names = ctx.Data.Symbols.RecordKeyNamesOf(file, written);
         foreach (var other in ctx.Data.Symbols.VisibleFiles)
-            if (!ReferenceEquals(other, file)) names = names.Plus(other.RecordKeyNameCandidates(word, quals));
+            if (!ReferenceEquals(other, file)) names = names.Plus(ctx.Data.Symbols.RecordKeyNamesOf(other, written));
         if (names.Count == 0)
             return (RecordKeyNameUse.None, 0);
         // KeyReference keeps the qualifiers and DROPS a subscript or reference-modifier (kb/Work PB481), and a
@@ -542,9 +543,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         if (!DataBinder.ScreenDataNameShape(dref, "the KEY phrase's record-key-name", ctx.Edition,
                 "a record-key-name is qualified only by its file-name (ISO §2023:8.4.2.2.2 Format 6)"))
             return (RecordKeyNameUse.Refused, 0);
-        names = names.Plus(ctx.Data.QualifiedCandidates(word, quals, ctx.Data.ActiveScope)
+        names = names.Plus(ctx.Data.Symbols.IdentifyDataName(written, ctx.Data.ActiveScope)
             .Select(KeyNameReading (i) => new KeyNameReading.DataName(i)));
-        return ctx.Data.UniqueOrReportAmbiguous(names, face, DataBinder.WrittenQualified(word, quals), out _) switch
+        return ctx.Data.UniqueOrReportAmbiguous(names, face, written.Written, out _) switch
         {
             KeyNameReading.RecordKeyName rk when ReferenceEquals(rk.File, file) => (RecordKeyNameUse.ThisFile, rk.KeyIndex),
             KeyNameReading.RecordKeyName => (RecordKeyNameUse.OtherFile, 0),

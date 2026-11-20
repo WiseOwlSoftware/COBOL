@@ -56,8 +56,7 @@ public sealed partial class FileControlBinder
                 ReportPaddingLiteral(dref.GetText(), "");
                 return new PaddingCharacterSpec { Literal = dref.GetText(), At = Edition.Cursor };
             }
-            var (name, quals) = _host.ClauseDataName(dref, "PADDING CHARACTER");
-            return new PaddingCharacterSpec { DataName = name, Qualifiers = quals, At = Edition.Cursor };
+            return new PaddingCharacterSpec { DataName = _host.ClauseDataName(dref, "PADDING CHARACTER"), At = Edition.Cursor };
         }
         var lit = clause.literal();
         using var at = Edition.At(lit);
@@ -133,7 +132,7 @@ public sealed partial class FileControlBinder
         if (fault is null) return;
         using var _ = Edition.At(pad.At);
         Edition.Error(DiagnosticCatalog.PaddingCharacterOperand, $"PADDING CHARACTER IS "
-            + $"{DataBinder.WrittenQualified(pad.DataName!, pad.Qualifiers)}: data-name-1 {fault} "
+            + $"{pad.DataName!.Value.Written}: data-name-1 {fault} "
             + (table ? "" : Edition.Edition.Cite(
                 "(ISO §1985:VII.2.7.3 SR3: \"Data-name-1 must be defined in the Data Division as a one-character data item of "
                   + "the category alphanumeric and must not be defined in the Communication Section, the File Section, or the "

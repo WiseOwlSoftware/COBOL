@@ -601,7 +601,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// returns, so the order is the rule's own: freeze the length, then move the data), and the clone's
     /// <see cref="OccursSpec.Depending"/> is repointed at it — which is what <c>PlaceBuilder.WrapIfOdoGroup</c>
     /// reads to build the GR8 extent slice, so the temp's every use inherits the frozen length with no second
-    /// mechanism. The clone's <see cref="OccursSpec.DependingName"/> deliberately stays data-name-1 AS WRITTEN: it
+    /// mechanism. The clone's <see cref="OccursSpec.DependingOperand"/> deliberately stays data-name-1 AS WRITTEN: it
     /// is a description-clause fact (the temp's description IS identifier-1's, §2023:14.9.25.4 GR1), nothing re-resolves
     /// a name after <c>OdoResolvePass</c>, and the RESOLVED item is the only thing the extent is read from.</para>
     ///

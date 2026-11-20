@@ -2689,7 +2689,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     Add(new BoundBinary(new BoundNumRef(new CapacityRegisterPlace(tablePath, reg)), '*',
                                         new BoundNumLiteral(c.ByteWidth.ToString())));
                 }
-                else if (c.OccursSpec is { DependingName: not null } spec)
+                else if (c.OccursSpec is { DependingOperand: not null } spec)
                 {
                     // r4b / r2b — the ODO table's CURRENT extent: data-name-1's clamped count × the element
                     // width (EC-BOUND-ODO outside integer-1..integer-2, §2023:13.18.38.4 GR7). ByteWidth counted the

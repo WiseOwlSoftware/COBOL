@@ -293,7 +293,7 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
                     yield return kp;
                 break;
             case FileConnectorStore.Depending:
-                if (file is { Varying.DependingName: not null, VaryingDependingItem: { } d } && ResolveItem(d) is { } dp) yield return dp;
+                if (file is { Varying.DependingOperand: not null, VaryingDependingItem: { } d } && ResolveItem(d) is { } dp) yield return dp;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(store), store, "a file connector store this builder does not place");

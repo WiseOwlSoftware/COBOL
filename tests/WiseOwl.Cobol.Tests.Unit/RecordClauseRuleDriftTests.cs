@@ -316,7 +316,7 @@ public sealed class RecordClauseRuleDriftTests
         Assert.Null(fixedLen.RecordClause!.Value.Lower);
 
         var varying = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F",
-            Varying = new VaryingRecordInfo(0, 20, "L", VaryingClause: true) };
+            Varying = new VaryingRecordInfo(0, 20, new WrittenDataName("L"), VaryingClause: true) };
         Assert.Equal(RecordClauseFormat.Varying, varying.RecordClause!.Value.Format);
         Assert.Equal((0, 20), (varying.RecordClause!.Value.Lower, varying.RecordClause!.Value.Upper));
 

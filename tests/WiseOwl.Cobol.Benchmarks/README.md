@@ -944,6 +944,28 @@ budget holds. The NIST programs flag no construct at the benchmark's edition, so
 NC105A and NC218A equal the parent's within 0.14 MB. SM201A's listing rows move both ways on one run each (`Text` +0.40, `TextAndJson`
 -0.60, `All` +1.82 MB), the full compile's allocation noise this program shows (kb/Work PB5925's lead
 `2026-11-18-full-compile-allocation-noise`); the `All` row's budget is kb/Work PB5941's. Time rows are not shown (kb/Work PB5927).
+**Step 6b, remainder slice 2 (kb/Work PB5932, the file clauses' operands kept as a `WrittenDataName` the symbol table resolves, the
+record-key-names read off their file): the `None` row against the parent.** Every file description and OCCURS DEPENDING ON operand of
+every compilation is captured and resolved through the new path, so the slice measures the no-listing path. Measured on 2026-11-20,
+Release, one Windows host, the built `WiseOwl.Cobol.Benchmarks.exe --filter '*CompileBenchmarks.FrontEndAndBind*' --buildTimeout 900`
+on the parent `9682d2f88d` (a detached worktree) and the `listing-step-6b-r2` branch (c2495104b7), four runs each, alternating
+(parent, branch, branch, parent, branch, parent, branch, parent). Allocated bytes per front end and bind:
+
+| Program | Listing | Parent 9682d2f88d (4 runs) | Branch c2495104b7 (4 runs) |
+|---|---|---|---|
+| IX113A | None | 67.81, 67.85, 67.75, 67.84 MB | 67.74, 67.81, 67.81, 67.81 MB |
+| NC105A | None | 34.36, 34.41, 34.45, 34.46 MB | 35.00, 34.37, 34.41, 34.48 MB |
+| NC218A | None | 30.44, 30.61, 31.02, 30.48 MB | 31.02, 30.78, 30.42, 30.46 MB |
+| SM201A | None | 15.19, 15.19, 14.99, 15.14 MB | 15.20, 15.15, 15.14, 15.49 MB |
+| IX113A | Text | 72.82, 72.79, 73.02, 72.76 MB | 72.79, 72.63, 72.96, 72.69 MB |
+| IX113A | All | 82.23, 82.16, 82.22, 82.22 MB | 82.17, 82.23, 82.24, 82.20 MB |
+
+Reading them: the medians agree within 0.08 MB on every program (IX113A 67.83 against 67.81 MB, NC105A 34.43 against 34.45, NC218A
+30.55 against 30.62, SM201A 15.17 against 15.18), and every branch run but two lies inside the parent's four; the two outside (NC105A
+35.00, SM201A 15.49) are single runs as far from their tree's other runs as the parent's own NC218A 31.02 is from its. The operand is
+one value where it was two fields, and nothing it adds allocates, so the slice moves no measurable allocation; the `None` budget
+holds. Time rows are not shown (kb/Work PB5927).
+
 ---
 
 ## Not measured here

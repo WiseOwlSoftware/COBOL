@@ -171,7 +171,7 @@ internal static class VariableLengthCompatibility
                 // for an occurs-depending group passed by reference, and §2023:8.5.1.12.3 sentence 3's "its fixed
                 // number of occurrences or the value of the DEPENDING operand, as applicable" resolved
                 // statically (the DEPENDING operand's run-time value is not a compile-time quantity).
-                sink.Add(TableAtom(c, c.OccursSpec?.DependingName is null ? GroupAtomKind.Table : GroupAtomKind.OdoTable, n, sink), c);
+                sink.Add(TableAtom(c, c.OccursSpec?.DependingOperand is null ? GroupAtomKind.Table : GroupAtomKind.OdoTable, n, sink), c);
             }
             else if (c.IsDynamicLength)
                 sink.Add(new GroupAtom(GroupAtomKind.DynamicLength, 0, 0), c);

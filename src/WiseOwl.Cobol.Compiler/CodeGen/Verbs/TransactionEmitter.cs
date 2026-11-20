@@ -51,7 +51,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, PlaceTable places, Seq
                 using (w.Block($"if (__file == {FileKeyExpr(file)})"))
                 {
                     seqIo.EmitStoreFileStatus(file);
-                    w.Line($"return {(file.FileStatusName is not null ? "true" : "false")};");
+                    w.Line($"return {(file.FileStatusOperand is not null ? "true" : "false")};");
                 }
             w.Line("return false;");
         }

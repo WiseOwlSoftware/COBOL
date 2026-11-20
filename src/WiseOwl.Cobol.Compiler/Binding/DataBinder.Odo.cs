@@ -96,16 +96,14 @@ public sealed partial class DataBinder
         // data-name-1 — a QUALIFIED-DATA-NAME through the ONE data-name-n capture (kb/Work PB885). The whole
         // reference's GetText() stood here: `DEPENDING ON CNT OF G1` became the undefined name `CNTOFG1` (legal
         // source rejected), and `DEPENDING ON WS-TE (2)` drew "not defined" instead of §2023:13.18.38.3 SR2.
-        string? depName = null;
-        IReadOnlyList<string> depQuals = [];
+        WrittenDataName? dependingOperand = null;
         if (depending && occ.dataReference() is { } depRef)
-            (depName, depQuals) = ClauseDataName(depRef, $"{where}: OCCURS DEPENDING ON");
+            dependingOperand = ClauseDataName(depRef, $"{where}: OCCURS DEPENDING ON");
         var spec = new OccursSpec
         {
             Min = min,
             Max = max,
-            DependingName = depName,
-            DependingQualifiers = depQuals,
+            DependingOperand = dependingOperand,
         };
         spec.Keys.AddRange(keys);
         return spec;

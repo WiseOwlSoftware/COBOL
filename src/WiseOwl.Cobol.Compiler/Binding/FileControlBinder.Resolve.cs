@@ -28,11 +28,10 @@ public sealed partial class FileControlBinder
     {
         foreach (var file in _host.State.Files.Declared)
         {
-            if (file.FileStatusName is { } sn)
+            if (file.FileStatusOperand is { } sn)
             {
-                file.FileStatusItem = _host.ResolveClauseOperand(sn, file.FileStatusQualifiers, "FILE STATUS", file.FileStatusAt);
-                if (!ScreenClauseOperandOccurrence(file.FileStatusItem, file.FileStatusSubscripts, "FILE STATUS", sn, file.FileStatusQualifiers,
-                        file.FileStatusAt))
+                file.FileStatusItem = _host.ResolveClauseOperand(sn, "FILE STATUS", file.FileStatusAt);
+                if (!ScreenClauseOperandOccurrence(file.FileStatusItem, file.FileStatusSubscripts, "FILE STATUS", sn, file.FileStatusAt))
                     file.FileStatusItem = null;
                 ScreenFileStatusItem(file);   // §2023:12.4.5.8.3 — the clause's own syntax rules over the resolved item
             }
@@ -49,8 +48,9 @@ public sealed partial class FileControlBinder
             // (§2023:8.4.2.2.2 Format 1's file-report-qualifier) works here too, and an operand that resolves
             // outside the file's records is the case SR2's own FileControlKeyRules row reports.
             HashSet<string> refusedKeys = new(CobolNames.Comparer);
-            DataItem? InRecords(string keyName, IReadOnlyList<string> quals, string face, Editions.DiagnosticCursor at)
+            DataItem? InRecords(WrittenDataName key, string face, Editions.DiagnosticCursor at)
             {
+                string keyName = key.Name;
                 // ⛔ ALREADY REFUSED AT CAPTURE — one fault, one verdict (kb/Work PB481). ClauseDataName records a
                 // refused operand AS WRITTEN (`IX-KEY(1:3)`), which no data item is named, so the key screen's SR2
                 // row then added "references nothing described in this program" under COBOL0863 — a false
@@ -58,10 +58,10 @@ public sealed partial class FileControlBinder
                 // had the cascade because ResolveClauseOperand already asks this set; the two record-key arms
                 // resolve through their own SR2 selection and now ask it too (feedback_two_arm_dispatch).
                 if (_host.State.Clauses.RefusedClauseOperands.Contains(keyName)) { refusedKeys.Add(keyName); return null; }
-                var cands = _host.QualifiedCandidates(keyName, quals, Model.Scope.Program);
+                var cands = _host.Symbols.IdentifyDataName(key, Model.Scope.Program);
                 bool inFile = cands.Any(i => RecordLayout.IsInRecordOfFile(file, i));
                 using var __ = Edition.At(at);
-                string written = DataBinder.WrittenQualified(keyName, quals);
+                string written = key.Written;
                 // A name the REPORT SECTION declares is not "nothing described" either (kb/Work PB3768's sibling arm):
                 // §2023:13.8.6.2.3 bars the key clause from referring to a report item, the ONE refusal says so, and
                 // SR2's row stays silent about an operand already refused. It is asked before the ambiguity, which it
@@ -73,7 +73,7 @@ public sealed partial class FileControlBinder
                 // §1985:IX.2.7.3 SR2 / §1985:IX.2.5.3 SR2) reports it outside this file's records (kb/Work PB5361).
                 if (!inFile && cands.Count != 1)
                 {
-                    if (_host.ReportSection.ReportItemOperandRefused(cands, $"{face} '{written}'", keyName, quals, out var counter))
+                    if (_host.ReportSection.ReportItemOperandRefused(cands, $"{face} '{written}'", key, out var counter))
                     {
                         refusedKeys.Add(keyName);
                         return null;
@@ -88,17 +88,17 @@ public sealed partial class FileControlBinder
             // each data-name-2 of a SOURCE phrase is one segment of the concatenation (§2023:12.4.5.12.4 GR2 /
             // §2023:12.4.5.6.4 GR2), resolved by the same SR2 selection. A key any of whose operands references nothing
             // describable has no value to build, and that operand's SR2 row reports it.
-            RecordKey? KeyOf(string keyName, IReadOnlyList<string> quals, IReadOnlyList<int> subscripts, RecordKeySource? source, string face,
+            RecordKey? KeyOf(WrittenDataName key, IReadOnlyList<int> subscripts, RecordKeySource? source, string face,
                              Editions.DiagnosticCursor at, Action<DataItem?> dataName1)
             {
                 if (source is null)
                 {
-                    var item = InRecords(keyName, quals, face, at);
+                    var item = InRecords(key, face, at);
                     // COBOL-2002's key names the occurrence its integer-literal subscripts select (§2002:5.1.3), judged once the
                     // item is known (§2002:8.4.1.2.2 SR2/SR3/SR5, §2002:8.4.1.2.3 GR2); a refusal makes it no key, with no cascade (kb/Work PB5602).
-                    if (!ScreenClauseOperandOccurrence(item, subscripts, face, keyName, quals, at))
+                    if (!ScreenClauseOperandOccurrence(item, subscripts, face, key, at))
                     {
-                        refusedKeys.Add(keyName);
+                        refusedKeys.Add(key.Name);
                         item = null;
                     }
                     dataName1(item);
@@ -106,10 +106,10 @@ public sealed partial class FileControlBinder
                 }
                 foreach (var op in source.Operands)
                 {
-                    op.Item = InRecords(op.Name, op.Qualifiers, $"{face} SOURCE", op.At);
-                    if (!ScreenClauseOperandOccurrence(op.Item, op.Subscripts, $"{face} SOURCE", op.Name, op.Qualifiers, op.At))
+                    op.Item = InRecords(op.Operand, $"{face} SOURCE", op.At);
+                    if (!ScreenClauseOperandOccurrence(op.Item, op.Subscripts, $"{face} SOURCE", op.Operand, op.At))
                     {
-                        refusedKeys.Add(op.Name);
+                        refusedKeys.Add(op.Operand.Name);
                         op.Item = null;
                     }
                 }
@@ -117,26 +117,25 @@ public sealed partial class FileControlBinder
                     ? RecordKey.OfSource(source.Name, [.. source.Operands.Select(o => o.Item!)],
                         [.. source.Operands.Select(o => o.Subscripts)]) : null;
             }
-            if (file.RecordKeyName is { } rk)
-                file.PrimeKey = KeyOf(rk, file.RecordKeyQualifiers, file.RecordKeySubscripts, file.RecordKeySource, "RECORD KEY", file.RecordKeyAt, _ => { });
+            if (file.RecordKeyOperand is { } rk)
+                file.PrimeKey = KeyOf(rk, file.RecordKeySubscripts, file.RecordKeySource, "RECORD KEY", file.RecordKeyAt, _ => { });
             foreach (var clause in file.AlternateKeyNames)
             {
                 clause.SuppressWhen = ReadSuppressWhen(clause);
-                if (KeyOf(clause.Name, clause.Qualifiers, clause.Subscripts, clause.Source, "ALTERNATE RECORD KEY", clause.At,
+                if (KeyOf(clause.Operand, clause.Subscripts, clause.Source, "ALTERNATE RECORD KEY", clause.At,
                         item => clause.Item = item) is { } alt)
                     file.AlternateKeys.Add((alt, clause.Duplicates, KeySuppressionOf(alt, clause.SuppressWhen), clause));
             }
             ResolveFileCollating(file);   // §2023:12.4.5.7 — per-key collating weights (needs the resolved keys)
-            if (file.RelativeKeyName is { } rl)
+            if (file.RelativeKeyOperand is { } rl)
             {
-                file.RelativeKeyItem = _host.ResolveClauseOperand(rl, file.RelativeKeyQualifiers, "RELATIVE KEY", file.RelativeKeyAt);
-                if (!ScreenClauseOperandOccurrence(file.RelativeKeyItem, file.RelativeKeySubscripts, "RELATIVE KEY", rl, file.RelativeKeyQualifiers,
-                        file.RelativeKeyAt))
+                file.RelativeKeyItem = _host.ResolveClauseOperand(rl, "RELATIVE KEY", file.RelativeKeyAt);
+                if (!ScreenClauseOperandOccurrence(file.RelativeKeyItem, file.RelativeKeySubscripts, "RELATIVE KEY", rl, file.RelativeKeyAt))
                     file.RelativeKeyItem = null;
             }
             if (file.Padding is { DataName: { } pn } pad)
             {
-                pad.Item = _host.ResolveClauseOperand(pn, pad.Qualifiers, "PADDING CHARACTER", pad.At);
+                pad.Item = _host.ResolveClauseOperand(pn, "PADDING CHARACTER", pad.At);
                 ScreenPaddingDataName(pad);
             }
             ResolveAssignUsing(file);   // §2023:12.4.5.3 GR3 b + §2023:12.4.5.2 SR7
@@ -153,11 +152,10 @@ public sealed partial class FileControlBinder
             // RECORD VARYING … DEPENDING ON data-name-1 — the length register WRITE/REWRITE/RELEASE read and
             // READ/RETURN set (§2023:13.18.43.4) — is resolved FIRST, because SR6 (an elementary unsigned integer in the
             // working-storage, local-storage or linkage section) is one of the screen's rows (kb/Work PB858).
-            if (file.Varying?.DependingName is { } vn)
+            if (file.Varying?.DependingOperand is { } vn)
             {
-                file.VaryingDependingItem = _host.ResolveClauseOperand(
-                    vn, file.Varying.DependingQualifiers, "RECORD DEPENDING ON", file.Varying.DependingAt);
-                if (file.VaryingDependingItem is { } depending && !ScreenRecordDependingOccurs(file, depending, vn))
+                file.VaryingDependingItem = _host.ResolveClauseOperand(vn, "RECORD DEPENDING ON", file.Varying.DependingAt);
+                if (file.VaryingDependingItem is { } depending && !ScreenRecordDependingOccurs(file, depending, vn.Name))
                     file.VaryingDependingItem = null;
             }
             RecordClauseRules.Screen(file, Edition);
@@ -174,12 +172,12 @@ public sealed partial class FileControlBinder
     /// it once, by <see cref="DataBinder.ScreenOperandOccurrence"/>. A refusal makes the clause resolve to no item
     /// (<paramref name="clear"/>), so the rules judging the item stay silent and the refusal is the one verdict. Only an
     /// edition that admits the subscript asks (the others refused it at capture and reach the item as before).</summary>
-    private bool ScreenClauseOperandOccurrence(DataItem? item, IReadOnlyList<int> subscripts, string face, string name,
-        IReadOnlyList<string> quals, Editions.DiagnosticCursor at)
+    private bool ScreenClauseOperandOccurrence(DataItem? item, IReadOnlyList<int> subscripts, string face, WrittenDataName operand,
+        Editions.DiagnosticCursor at)
     {
         if (item is null || !Edition.SubscriptedClauseOperands) return true;
         using var _ = Edition.At(at);
-        return DataBinder.ScreenOperandOccurrence(item, subscripts, face, DataBinder.WrittenQualified(name, quals) + WrittenSubscripts(subscripts),
+        return DataBinder.ScreenOperandOccurrence(item, subscripts, face, operand.Written + WrittenSubscripts(subscripts),
             Edition);
     }
 
@@ -236,7 +234,7 @@ public sealed partial class FileControlBinder
     {
         if (file.FileStatusItem is not { } item) return;   // unresolved — reported by the resolution, one verdict
         using var _ = Edition.At(file.FileStatusAt);
-        string face = DataBinder.WrittenQualified(file.FileStatusName!, file.FileStatusQualifiers);
+        string face = file.FileStatusOperand!.Value.Written;
         // §2002:12.3.4.7.2 prints no such rule (SR1 "may be qualified", SR2 the two-character item): a COBOL-2002 FILE STATUS names the
         // occurrence its subscripts select (kb/Work PB5602), judged by DataBinder.ScreenOperandOccurrence.
         string? fault =
@@ -298,7 +296,7 @@ public sealed partial class FileControlBinder
     {
         if (!SuppressWhenOperands.TryGetValue(clause, out var op)) return null;
         using var _ = Edition.At(op);
-        if (_host.RawValueOperandText(op, $"ALTERNATE RECORD KEY '{clause.Name}'", DataBinder.LiteralPosition.SuppressWhen) is not { } raw)
+        if (_host.RawValueOperandText(op, $"ALTERNATE RECORD KEY '{clause.Operand.Name}'", DataBinder.LiteralPosition.SuppressWhen) is not { } raw)
             return null;
         string written = DataBinder.WrittenText(op);
         var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(raw, includeNull: false);
@@ -376,8 +374,9 @@ public sealed partial class FileControlBinder
         if (file.Linage is not { } lin) return;
         foreach (var op in lin.Operands)
         {
-            if (op.DataName is not { } name) continue;   // GR6 a) — a literal operand has no data item
-            op.Item = _host.ResolveClauseOperand(name, op.Qualifiers, "LINAGE clause operand", op.At);
+            if (op.DataName is not { } operand) continue;   // GR6 a) — a literal operand has no data item
+            string name = operand.Name;
+            op.Item = _host.ResolveClauseOperand(operand, "LINAGE clause operand", op.At);
             if (op.Item is not { } item) continue;   // unresolved — reported by the resolution, one verdict
             using var _ = Edition.At(op.At);
             if (RecordLayout.IsSubjectToOccurs(item))
@@ -432,14 +431,15 @@ public sealed partial class FileControlBinder
     /// </summary>
     private void ResolveAssignUsing(FileModel file)
     {
-        if (file.AssignUsingName is not { } dynName) return;
+        if (file.AssignUsingOperand is not { } operand) return;
+        string dynName = operand.Name;
         using var _ = Edition.At(file.AssignUsingAt);
         // The §2023:8.4.2.2 candidate set (kb/Work PB489 — one resolver); SR7's own verdict below speaks for a
         // reference that survives nothing, so this site reports the category sentence rather than a second
         // uniqueness one.
         // Counted (kb/Work PB978): two survivors are §2023:8.4.2.2.3 SR1's ambiguity, reported once by the ONE verdict.
-        var candidates = _host.QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program);
-        string written = DataBinder.WrittenQualified(dynName, file.AssignUsingQualifiers);
+        var candidates = _host.Symbols.IdentifyDataName(operand, Model.Scope.Program);
+        string written = operand.Written;
         // A name the REPORT SECTION declares is not undescribed (kb/Work PB3768): §2023:13.8.6.2.3 bars every clause of a
         // data division section other than the report section from referring to a report item, so the ONE refusal
         // speaks (as ResolveClauseOperand does for the other file clauses) before "no such data item is described",
@@ -449,7 +449,7 @@ public sealed partial class FileControlBinder
         // `ASSIGN . USING` on the console).
         DataItem? counter = null;
         if (candidates.Count != 1
-            && _host.ReportSection.ReportItemOperandRefused(candidates, $"ASSIGN USING '{written}'", dynName, file.AssignUsingQualifiers, out counter)) return;
+            && _host.ReportSection.ReportItemOperandRefused(candidates, $"ASSIGN USING '{written}'", operand, out counter)) return;
         bool ambiguous = false;
         DataItem? item = counter ?? _host.UniqueOrReportAmbiguous(candidates, "ASSIGN USING", written, out ambiguous);
         if (ambiguous && item is null) return;

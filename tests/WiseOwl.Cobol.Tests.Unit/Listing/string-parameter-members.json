@@ -122,6 +122,10 @@
       "reason": "its strings name the report item in a diagnostic (the RD's report-name and the entry's data-name, as the PICTURE screens word their site); it resolves no name: the item is the description it is given"
     },
     {
+      "member": "WiseOwl.Cobol.Binding.DataBinder.ResolveClauseOperand(WiseOwl.Cobol.Binding.Model.WrittenDataName, string, WiseOwl.Cobol.Editions.DiagnosticCursor, bool)",
+      "reason": "its strings word a diagnostic (the clause's face or the reference's subject): the operand is the clause's written data-name-n, a WrittenDataName the table resolves (listing step 6b, remainder slice 2)"
+    },
+    {
       "member": "WiseOwl.Cobol.Binding.DataBinder.SpecialNamesConstant(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext, System.Action<string>, string, string)",
       "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
     },
@@ -422,6 +426,10 @@
       "reason": "its name operand is the parser context, identified through SymbolTable.Identify (step 6b, slice 5 converted it from a string); its string words a diagnostic (the reference's site)"
     },
     {
+      "member": "WiseOwl.Cobol.Binding.ReportSectionBinder.ReportItemOperandRefused(WiseOwl.Cobol.Binding.Model.NameCandidates<WiseOwl.Cobol.Binding.Model.DataItem>, string, WiseOwl.Cobol.Binding.Model.WrittenDataName, out WiseOwl.Cobol.Binding.Model.DataItem?, bool)",
+      "reason": "its strings word a diagnostic (the clause's face or the reference's subject): the operand is the clause's written data-name-n, a WrittenDataName the table resolves (listing step 6b, remainder slice 2)"
+    },
+    {
       "member": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec.Of(string, string, bool, WiseOwl.Cobol.Binding.Model.SkeletonRecord)",
       "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
     },
@@ -464,6 +472,10 @@
     {
       "member": "WiseOwl.Cobol.Binding.SymbolTable.ClassNames.Resolve(WiseOwl.Cobol.Binding.EditionContext, Antlr4.Runtime.RuleContext?, Antlr4.Runtime.ParserRuleContext, WiseOwl.Cobol.Compiler.Oo.OoNameWant, string, string, string)",
       "reason": "its name operand is the parser context, resolved through the symbol table's compilation-group tier (SymbolTable.ClassNames; step 6b, the OO names, converted it from a string); its strings word a diagnostic (a site, a code, a rule citation)"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.SymbolTable.SumCounterOperand85(WiseOwl.Cobol.Binding.Model.WrittenDataName, string, out bool)",
+      "reason": "its strings word a diagnostic (the clause's face or the reference's subject): the operand is the clause's written data-name-n, a WrittenDataName the table resolves (listing step 6b, remainder slice 2)"
     },
     {
       "member": "WiseOwl.Cobol.Binding.Validation.StatementValidation.ResolveFile(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext, string, out WiseOwl.Cobol.Binding.Model.FileModel?, bool, string?)",

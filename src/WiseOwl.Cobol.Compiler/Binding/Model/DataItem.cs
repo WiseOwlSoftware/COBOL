@@ -1398,7 +1398,7 @@ public sealed class DataItem
     /// when it does not state its own (kb/Work PB2497; <c>PlaceRenderer.WriteVarGroupContiguous</c>).</summary>
     internal static bool HasOdoTableOfVariableLengthElements(DataItem g) =>
         g.IsGroup && g.Children.Any(c => c.RedefinesTargetName is null && c.IsGroup
-            && ((c.OccursSpec?.DependingName is not null && DataItem.HasVariableLengthSubordinate(c))
+            && ((c.OccursSpec?.DependingOperand is not null && DataItem.HasVariableLengthSubordinate(c))
                 || HasOdoTableOfVariableLengthElements(c)));
 
     private bool ComposesCurrentExtent(bool transfer) =>
@@ -1448,9 +1448,9 @@ public sealed class DataItem
           || (c.IsDynamicTable && !HasOdoOnOrBeneath(c)
               && ((transfer ? c.ElementTransferImageCapable : c.ElementImageCapable) || c.ComposesCurrentExtent(transfer)))
           || (c.IsGroup && !c.IsDynamicTable && c.Occurs is null && c.ComposesCurrentExtent(transfer))
-          || (c.IsGroup && !c.IsDynamicTable && c.Occurs is not null && c.OccursSpec?.DependingName is null
+          || (c.IsGroup && !c.IsDynamicTable && c.Occurs is not null && c.OccursSpec?.DependingOperand is null
               && !HasOdoOnOrBeneath(c) && c.ComposesCurrentExtent(transfer))
-          || (c.IsGroup && !c.IsDynamicTable && c.OccursSpec?.DependingName is not null
+          || (c.IsGroup && !c.IsDynamicTable && c.OccursSpec?.DependingOperand is not null
               && !c.Children.Any(m => m.RedefinesTargetName is null && HasOdoOnOrBeneath(m)) && c.ComposesCurrentExtent(transfer));
 
     /// <summary>The OCCURS DEPENDING table that is <paramref name="c"/> itself or lies beneath it, or null.
@@ -1458,7 +1458,7 @@ public sealed class DataItem
     /// subordinate to it, so at most one such table lies on any group's chain and it is the TRAILING storage of
     /// every group that contains it — the fact the current-extent composer's character-prefix law rests on.</summary>
     internal static DataItem? OdoTableOnOrBeneath(DataItem c) =>
-        c.OccursSpec?.DependingName is not null ? c
+        c.OccursSpec?.DependingOperand is not null ? c
         : c.IsGroup ? c.Children.Where(m => m.RedefinesTargetName is null).Select(OdoTableOnOrBeneath).FirstOrDefault(t => t is not null)
         : null;
 
@@ -1485,7 +1485,7 @@ public sealed class DataItem
     /// MEMBERS, where the clause may sit on the member itself; <see cref="HasOdoBeneath"/> is the question about a
     /// group's own subordinates.</summary>
     internal static bool HasOdoOnOrBeneath(DataItem c) =>
-        c.OccursSpec?.DependingName is not null || HasOdoBeneath(c);
+        c.OccursSpec?.DependingOperand is not null || HasOdoBeneath(c);
 
     /// <summary>An OCCURS DEPENDING clause on a SUBORDINATE of <paramref name="g"/> at any depth, REDEFINES subtrees
     /// aside - NOT on <paramref name="g"/> itself. Its extent varies at run time (§2023:8.5.1.8), so a group struct whose
@@ -1538,7 +1538,7 @@ public sealed class DataItem
     /// minimum record size (<c>FileModel.MinRecordSize</c>): <see cref="ImageWidth"/> deliberately uses the
     /// MAXIMUM, because §2023:8.5.1.8 fixes the allocated physical capacity at compile time.</summary>
     internal int MinimumOccurrences =>
-        OccursSpec is { DependingName: not null } or { IsDynamic: true } ? OccursSpec.Min
+        OccursSpec is { DependingOperand: not null } or { IsDynamic: true } ? OccursSpec.Min
         : RecordLayout.Occurrences(this);
 
     /// <summary>True when this subtree contains a <c>USAGE BIT</c> leaf — the gate that sends a group's width

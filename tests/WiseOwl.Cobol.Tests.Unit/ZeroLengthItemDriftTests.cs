@@ -36,7 +36,7 @@ public sealed class ZeroLengthItemDriftTests
     }
 
     private static OccursSpec Odo(int min, int max) =>
-        new() { Min = min, Max = max, DependingName = "N" };
+        new() { Min = min, Max = max, DependingOperand = new WrittenDataName("N") };
 
     /// <summary>§2023:8.5.4 item 1 — "A group data item containing only an occurs-depending table in which the number
     /// of occurrences is zero." integer-1 of the OCCURS is what makes the MINIMUM zero (§2023:13.18.38 SR16 permits

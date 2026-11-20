@@ -332,7 +332,7 @@
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },
     {
-      "site": "SAME Binding/Repository/RepositoryCodec.cs WiseOwl.Cobol.Binding.Repository.RepositoryCodec.Decoder.Root CobolNames.Same(word, spec.DependingName!)",
+      "site": "SAME Binding/Repository/RepositoryCodec.cs WiseOwl.Cobol.Binding.Repository.RepositoryCodec.Decoder.Root CobolNames.Same(word, spec.DependingOperand!.Value.Name)",
       "class": "EXTERNAL",
       "reason": "compares externalized names or repository-record names from compiled metadata: identity across compilations, not a reference written in this program"
     },

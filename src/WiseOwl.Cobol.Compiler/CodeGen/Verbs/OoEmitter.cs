@@ -289,9 +289,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // §2023:14.8.4.2: each reference is the item's identity key, compared at run time for equality only; a present item
                 // that is NOT external is marked in the descriptor's own NonExternalItem field, never by a token a reader would have to
                 // find in the text, since an AS literal-1 record name inside a key may hold any character (kb/Work PB5888 review R2-1).
-                var fsId = f.FileStatusName is null ? null : f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts);
-                var rkId = f.RelativeKeyName is null ? null : f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts);
-                bool nonExternal = (f.FileStatusName is not null && fsId is null) || (f.RelativeKeyName is not null && rkId is null)
+                var fsId = f.FileStatusOperand is null ? null : f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts);
+                var rkId = f.RelativeKeyOperand is null ? null : f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts);
+                bool nonExternal = (f.FileStatusOperand is not null && fsId is null) || (f.RelativeKeyOperand is not null && rkId is null)
                     || (f.Linage?.Operands.Any(op => op.DataName is not null && op.Item?.ExternalItemIdentity() is null) ?? false);
                 string ItemRef(string? clauseName, ExternalDataItemIdentity? identity) => clauseName is null ? "null"
                     : CsLiteral(identity?.Key ?? "!");   // "!" = the place of an item that is not external; NonExternalItem says so
@@ -301,8 +301,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         ? $"={op.Literal}"
                         : op.Item?.ExternalItemIdentity()?.Key ?? "!").Select(tok => $"{tok.Length}:{tok};")));
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
-                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, fsId)}, "
-                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, rkId)}, LinageRef: {linage}, "
+                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusOperand?.Name, fsId)}, "
+                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyOperand?.Name, rkId)}, LinageRef: {linage}, "
                     + $"SelectFingerprint: {CsLiteral(f.SelectFingerprint ?? throw new InvalidOperationException($"OoEmitter: the EXTERNAL file '{f.ExternalName}' has no bound entry identity (BackendAnswers writes one for every EXTERNAL file)"))}, "
                     + $"RecordDelimiter: {(f.RecordDelimiter is { } rd ? CsLiteral(rd) : "null")}, "
                     + $"NonExternalItem: {(nonExternal ? "true" : "false")}), {selfMask});   // §2023:14.8.4.2 / §2023:14.8.4.4 / §2023:12.4.5.3 GR1");

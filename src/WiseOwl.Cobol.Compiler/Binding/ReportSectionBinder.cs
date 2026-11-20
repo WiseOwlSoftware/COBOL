@@ -1954,7 +1954,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             var guards = new List<ReportRepetitionGuard>();
             foreach (var rep in Repetitions)
-                if (rep.Spec.DependingName is not null) guards.Add(new ReportRepetitionGuard(rep.Spec, rep.Ordinal));
+                if (rep.Spec.DependingOperand is not null) guards.Add(new ReportRepetitionGuard(rep.Spec, rep.Ordinal));
             return guards;
         }
     }
@@ -2088,7 +2088,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
         // §2023:13.18.35.4 GR9's equivalence, written as the spec writes it: a simple OCCURS of `ops` repetitions on
         // the VERTICAL axis. No STEP — GR9's "unequal vertical intervals" ARE the several LINE operands.
-        return new ReportOccursSpec(0, ops, null, [], null) { Axis = ReportRepetitionAxis.Vertical, FromMultipleLine = true };
+        return new ReportOccursSpec(0, ops, null, null) { Axis = ReportRepetitionAxis.Vertical, FromMultipleLine = true };
     }
 
     /// <summary>The operand count of this entry's MULTIPLE LINE clause (ISO §2023:13.18.35.3 SR10) with SR10 a/b/c
@@ -2285,31 +2285,30 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // subscript, and the bare KeyReference capture used here DROPPED it in silence — `DEPENDING ON WS-TE (2)`
         // bound to the unsubscripted name and printed the wrong number of repetitions. ClauseDataName is the ONE
         // data-name-n capture the data-division OCCURS clause, the FD clauses and the file-control keys share.
-        string? dn = null;
-        IReadOnlyList<string> dq = [];
+        WrittenDataName? dn = null;
         Editions.DiagnosticCursor dAt = default;
         if (depending is not null)
         {
-            (dn, dq) = _d.ClauseDataName(depending, $"{where}: OCCURS DEPENDING ON");
+            dn = _d.ClauseDataName(depending, $"{where}: OCCURS DEPENDING ON");
             using var _at = Edition.At(depending);
             dAt = Edition.Cursor;
         }
-        return new ReportOccursSpec(min, max, dn, dq, step) { Axis = axis, DependingAt = dAt };
+        return new ReportOccursSpec(min, max, dn, step) { Axis = axis, DependingAt = dAt };
     }
 
     /// <summary>Resolve one repeating entry's <c>DEPENDING ON data-name-1</c> (ISO §2023:13.18.38 Format 3) and apply
     /// §2023:13.18.38.3 SR17 — "Data-name-1 shall describe an integer". Reported once per repeating entry.</summary>
     private void ResolveReportOccursDepending(ReportOccursSpec spec, ReportModel model, HashSet<ReportOccursSpec> seen)
     {
-        if (spec.DependingName is null || !seen.Add(spec)) return;
+        if (spec.DependingOperand is not { } operand || !seen.Add(spec)) return;
         // The ONE clause-operand resolver (§2023:8.4.2.2 uniqueness; silent for an operand the capture refused).
-        spec.DependingItem = _d.ResolveClauseOperand(spec.DependingName, spec.DependingQualifiers,
-            $"RD '{model.Name}': OCCURS … DEPENDING ON", spec.DependingAt, inReportSection: true);
+        spec.DependingItem = _d.ResolveClauseOperand(operand, $"RD '{model.Name}': OCCURS … DEPENDING ON", spec.DependingAt,
+            inReportSection: true);
         if (spec.DependingItem is null) return;
         // SR17 read exactly as the data-division OCCURS reads it (an index item is NOT an integer data item).
         if (spec.DependingItem.Pic is not { IsIntegerDescription: true })
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"RD '{model.Name}': OCCURS … DEPENDING ON "
-                + $"'{spec.DependingName}' — data-name-1 shall describe an integer (ISO §2023:13.18.38.3 SR17)");
+                + $"'{spec.DependingOperand?.Name}' — data-name-1 shall describe an integer (ISO §2023:13.18.38.3 SR17)");
         // SR18 is a FORMATS 2 AND 3 rule (kb/Work PB1261): a report group entry is subordinate to its report
         // description entry, which §2023:13.18.27.3 SR1 e) lets carry the GLOBAL clause — the data-division twin is
         // Passes/OdoResolvePass.cs#DependingAttributeFault, over the same global-name answer (IsGlobalRecord).
@@ -2317,7 +2316,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             using var _ = Editions.DiagnosticCursorExtensions.At(Edition, spec.DependingAt);
             Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch, $"RD '{model.Name}': OCCURS … DEPENDING ON "
-                + $"'{spec.DependingName}' — the report is global and data-name-1 is described in the data division of a "
+                + $"'{spec.DependingOperand?.Name}' — the report is global and data-name-1 is described in the data division of a "
                 + "containing program: \"shall reference a data item that is described in the same data division\" "
                 + "(ISO §2023:13.18.38.3 SR18)");
         }
@@ -2325,7 +2324,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             using var _ = Editions.DiagnosticCursorExtensions.At(Edition, spec.DependingAt);
             Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch, $"RD '{model.Name}': OCCURS … DEPENDING ON "
-                + $"'{spec.DependingName}' — the report is global and data-name-1 is not a global name: \"If the OCCURS "
+                + $"'{spec.DependingOperand?.Name}' — the report is global and data-name-1 is not a global name: \"If the OCCURS "
                 + "clause is specified in an entry subordinate to one containing the GLOBAL clause, data-name-1, if "
                 + "specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)");
         }
@@ -4756,16 +4755,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <c>ReportItemOperandDriftTests</c> pins the callers of the raw refusal.</summary>
     /// <returns>True when the reference was refused (reported); otherwise <paramref name="counter"/> is the COBOL-85 sum counter
     /// or null, and the caller's own verdict stands.</returns>
-    internal bool ReportItemOperandRefused(NameCandidates<DataItem> survivors, string subject, string name,
-                                           IReadOnlyList<string> qualifiers, out DataItem? counter, bool inReportSection = false)
+    internal bool ReportItemOperandRefused(NameCandidates<DataItem> survivors, string subject, WrittenDataName operand,
+                                           out DataItem? counter, bool inReportSection = false)
     {
         counter = null;
         if (survivors.Count == 0 && !inReportSection)
         {
-            counter = _d.Symbols.SumCounterOperand85(name, qualifiers, subject, out bool ambiguityReported);
+            counter = _d.Symbols.SumCounterOperand85(operand, subject, out bool ambiguityReported);
             if (ambiguityReported) return true;
         }
-        return counter is null && ReportEntryReferenceRefused(survivors, subject, name, qualifiers, inReportSection);
+        return counter is null && ReportEntryReferenceRefused(survivors, subject, operand.Name, operand.Qualifiers, inReportSection);
     }
 
     /// <summary>⛔ THE ONE REFUSAL OF A REFERENCE TO A REPORT SECTION ENTRY WHERE NONE IS ADMITTED (kb/Work PB1046) — a

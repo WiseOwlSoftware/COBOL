@@ -28,14 +28,14 @@ internal static class FileEntryIdentity
     // entry in the order specified, since that order IS the key (§2023:12.4.5.12.4 GR2).
     private static string ClauseKey(string name, RecordKeySource? source, DataItem? item, IReadOnlyList<int> subscripts) => source is null
         ? KeyEntry(name, item, subscripts)
-        : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item, o.Subscripts)))}]";
+        : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Operand.Name, o.Item, o.Subscripts)))}]";
     // k) "the same SUPPRESS WHEN phrase" — the operand as the literal position read it (form, class, characters,
     // figurative kind), so `SUPPRESS WHEN "XX"` and `SUPPRESS WHEN SPACE` differ and an absent phrase is empty.
     private static string Suppress(SuppressWhenOperand? s) => s is null ? ""
         : $"{s.Form}/{s.Class}/{s.FigurativeKind}/{s.Characters.Length}:{s.Characters}";
 
     private static string AlternateEntry(AlternateKeyClause a) =>
-        $"{ClauseKey(a.Name, a.Source, a.Item, a.Subscripts)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}";
+        $"{ClauseKey(a.Operand.Name, a.Source, a.Item, a.Subscripts)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}";
 
     /// <summary>⛔ THE ONE §2023:12.4.5.3 GR1 IDENTITY of an external file connector's file control entry — the string two
     /// describers' <c>ExternalStore.Describe</c> registrations compare for EC-EXTERNAL-FILE-MISMATCH (§2023:14.8.4.4: "the
@@ -63,7 +63,7 @@ internal static class FileEntryIdentity
         {
             if (k.Key is not null && ReferenceEquals(f.PrimeKey, k.Key)) return "P";
             int i = k.Key is null ? -1 : f.AlternateKeys.FindIndex(a => ReferenceEquals(a.Key, k.Key));
-            return i >= 0 ? $"A:{CobolNames.UpperFold(k.Key!.Face)}" : CobolNames.UpperFold(k.Name);
+            return i >= 0 ? $"A:{CobolNames.UpperFold(k.Key!.Face)}" : CobolNames.UpperFold(k.Operand.Name);
         }
         string fileColl = f.FileLevelCollating is { } fc ? $"{(fc.Alnum is { } an ? CobolNames.UpperFold(an) : null)}/{(fc.Nat is { } nn ? CobolNames.UpperFold(nn) : null)}" : "";
         string keyColl = string.Join(",", f.KeyLevelCollating
@@ -78,7 +78,7 @@ internal static class FileEntryIdentity
             new("OPT", "the OPTIONAL phrase", $"{f.Optional}"),
             new("ASSIGN", "the ASSIGN clause", f.AssignTarget.ToUpperInvariant()),
             new("USING", "the ASSIGN clause's USING phrase",
-                CobolNames.UpperFold(string.Join(" OF ", new[] { f.AssignUsingName ?? "" }.Concat(f.AssignUsingQualifiers)))),
+                CobolNames.UpperFold(string.Join(" OF ", new[] { f.AssignUsingOperand?.Name ?? "" }.Concat(f.AssignUsingOperand?.Qualifiers ?? [])))),
             // c) "Either the STANDARD-1 phrase or a consistent value of feature-name-1" (§1985:VII.2.8.4 GR6: "the same
             // specifications"): the clause's WRITTEN arm, STANDARD-1 or the implementor-name, which names its method one to one
             // (RecordDelimiterNames; docs/CONFORMANCE.md DOC-A.1-149, kb/Work PB5844), or null when the entry writes no clause.
@@ -93,7 +93,7 @@ internal static class FileEntryIdentity
             new("ORG", "the organization", $"{f.Organization}"),
             new("ACC", "the access mode", $"{f.AccessMode}"),
             new("COLL", "the COLLATING SEQUENCE clauses", $"{fileColl};{keyColl}"),
-            new("KEY", "the RECORD KEY clause", f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item, f.RecordKeySubscripts) : ""),
+            new("KEY", "the RECORD KEY clause", f.RecordKeyOperand is { } rk ? ClauseKey(rk.Name, f.RecordKeySource, f.PrimeKey?.Item, f.RecordKeySubscripts) : ""),
             new("ALT", "the ALTERNATE RECORD KEY clauses",
                 // §2023:12.4.5.3 GR1 k) and §1985:IX.2.3.4 GR1 name the alternate keys' number, descriptions and DUPLICATES
                 // phrases, not their order, and §1985:IX.2.3.3 SR1 lets the clauses appear in any order: sorted like COLL.
@@ -107,7 +107,7 @@ internal static class FileEntryIdentity
             new("PAD", "the PADDING CHARACTER clause", f.Padding switch
             {
                 null => "",
-                { DataName: { } pn } p => "@" + (p.Item?.ExternalItemIdentity()?.Key ?? CobolNames.UpperFold(pn)),
+                { DataName: { } pn } p => "@" + (p.Item?.ExternalItemIdentity()?.Key ?? CobolNames.UpperFold(pn.Name)),
                 { Literal: { } lit } => "=" + lit,
                 _ => "",
             }),

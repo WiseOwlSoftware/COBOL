@@ -77,7 +77,7 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
         // occurs-depending table") is COBOL0855's, whose population is WIDER (an ODO table anywhere in
         // either definition, not merely on data-name-2's own entry) and which already rejects every entry
         // this arm would also match. One rule, four sentences, two disjoint screens.
-        if (target.IsTable && target.OccursSpec?.DependingName is null)
+        if (target.IsTable && target.OccursSpec?.DependingOperand is null)
             binder.Edition.Error(DiagnosticCatalog.RedefinesTargetOccurs,
                 $"'{item.CobolName ?? item.ClrName}' REDEFINES '{target.CobolName ?? target.ClrName}', "
                 + "whose data description entry contains an OCCURS clause: the data description entry for "

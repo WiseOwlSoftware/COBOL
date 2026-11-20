@@ -54,8 +54,11 @@ public sealed class NameTableOwnershipDriftTests
     /// screen-name tables of the element and of each method into the table: 1 table, 22 lookups, 70 sites; 86 at its end, with the end
     /// markers, the flag pass's file-name, the index-name pre-filter and the version pass's level-01 keys: 1 table, 22 lookups, 63 sites;
     /// 75 at remainder slice 1, branch listing-step-6b-r1, which identified the procedure division's data-names and condition-names
-    /// through SymbolTable.IdentifyDataName and IdentifyConditionName: 1 table, 11 lookups, 63 sites).</summary>
-    private const int BaselineCeiling = 75;
+    /// through SymbolTable.IdentifyDataName and IdentifyConditionName: 1 table, 11 lookups, 63 sites; 65 at remainder slice 2, branch
+    /// listing-step-6b-r2, whose file clause operands keep their written name (WrittenDataName) for the table to resolve, with the
+    /// record-key-names, the containing element's unseen files and an OMITTED condition's formal read by the table off their carriers:
+    /// 1 table, 7 lookups, 55 sites).</summary>
+    private const int BaselineCeiling = 63;
 
     /// <summary>The classes a comparison may stay outside the table with (section 6.7.1, "Equality of COBOL names is
     /// private too"); RESOLVE moves into <c>Identify</c> and DECLARE into <c>Declarations</c>, so neither is a class an
@@ -74,8 +77,10 @@ public sealed class NameTableOwnershipDriftTests
     /// <c>SymbolTable.ClassNames.Resolve</c> and <c>OoDataBinder.DescribeNamedReference</c> take the written word as its context and
     /// keep the diagnostic's strings (+2). The comparisons: 86 -> 81, the five the tier now makes. The closing slice: 81 -> 91, ten sites the first measurement left in
     /// the baseline that resolve no written name: five words of the standard or the implementor (KEYWORD) and five externalized or
-    /// compilation-variable names (EXTERNAL).)</summary>
-    private const int StringMembersCeiling = 125;
+    /// compilation-variable names (EXTERNAL). Remainder slice 2: 125 -> 128. <c>DataBinder.ResolveClauseOperand</c>,
+    /// <c>ReportSectionBinder.ReportItemOperandRefused</c> and <c>SymbolTable.SumCounterOperand85</c> take the clause's written operand
+    /// (<c>WrittenDataName</c>) and keep the diagnostic's words (the clause face, the reference's subject): each left the baseline.)</summary>
+    private const int StringMembersCeiling = 128;
     private const int ComparisonsCeiling = 91;
 
     /// <summary>Where every run writes its findings, one per line.</summary>

@@ -130,7 +130,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // (EmitPlainIoCheck) for this file and for another element's (EmitForeignFileIoCheck). The termination below
             // turns on whether a procedure ran, so the answer is captured when the file has no FILE STATUS clause.
             var plain = EmitPlainIoCheck(FileKeyExpr(file), Item8Question(), atEndHandled, invalidKeyHandled, useCompletedVar,
-                needRan: file.FileStatusName is null);
+                needRan: file.FileStatusOperand is null);
             if (plain.EcId is { } plainId)
             {
                 NotNormal(plainId);
@@ -156,7 +156,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // covers (the GIVING WRITE's boundary), so for it this hook RETURNS the condition rather than emitting it.
             UncoveredFatal? Uncovered(string? noProcedure)
             {
-                if (file.FileStatusName is not null || onExceptionHandled || successArm) return null;
+                if (file.FileStatusOperand is not null || onExceptionHandled || successArm) return null;
                 if (verbDisposes) return new UncoveredFatal(noProcedure);
                 EmitUncoveredFatalTermination(file, verb, noProcedure);
                 return null;
@@ -509,7 +509,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         EmitNationalAreaRegistration(w, file);   // §2023:14.9.30.4 GR15 (kb/Work PB327)
         // §2023:14.9.51.4 GR21 / GR22 (kb/Work PB1191): a RECORD clause WITH the DEPENDING phrase keeps a line sequential
         // record at data-name-1's length — the connector's trailing-space strip is off for it.
-        if (file.Varying is { DependingName: not null })
+        if (file.Varying is { DependingOperand: not null })
             w.Line($"{RuntimeApi.FileRegisterRecordLengthFromDepending(FileKeyExpr(file))};");
         EmitCodeSetRegistration(w, file);        // §2023:13.18.13.4 GR2/GR6 (kb/Work PB793)
         EmitReserveRegistration(w, file);        // §2023:12.4.5.14.3 GR1 (kb/Work PB643)
@@ -1051,7 +1051,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// (the length WRITTEN), GR15 (the length READ BACK) and GR16 a) (the INTO sending size) are three rules over
     /// the SAME data item, and they were re-spelling the same four-part pattern independently.</summary>
     public Place? VaryingDepending(FileModel file) =>
-        file is { Varying.DependingName: not null, VaryingDependingItem: { } d } ? places.Of(d) : null;
+        file is { Varying.DependingOperand: not null, VaryingDependingItem: { } d } ? places.Of(d) : null;
 
     /// <summary>The record-length argument for a WRITE/REWRITE on a RECORD VARYING … DEPENDING file (ISO
     /// §2023:13.18.43 GR13a — the DEPENDING item's content names the record length), or null when the statement
@@ -1522,7 +1522,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         // ISO §2023:12.4.5.8 / §2023:9.1.13.1 — the two-character status is stored into the FILE STATUS item as part of
         // the I/O statement's execution, BEFORE any exception processing.
-        if (file.FileStatusName is null) return;   // no FILE STATUS clause — nothing to store
+        if (file.FileStatusOperand is null) return;   // no FILE STATUS clause — nothing to store
         // An INHERITED GLOBAL file stores into the OWNER's status item (§2023:12.4.5.8.4 GR1 NOTE 1 - the item is updated by
         // contained-program references to the global file-name even though it is a LOCAL name of the owner): the item
         // is one of the file's clause operands, which the contained unit's table holds like every other (kb/Work PB4454).
@@ -1530,7 +1530,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (file.FileStatusItem is not { } item || place is null)
         {
             // §1.4 loud-guard doctrine: a DECLARED FILE STATUS name that did not resolve is never silent.
-            ctx.Writer.Line(LoudStmt($"FILE STATUS item '{file.FileStatusName}' is not resolvable to storage (ISO §2023:12.4.5.8)"));
+            ctx.Writer.Line(LoudStmt($"FILE STATUS item '{file.FileStatusOperand?.Name}' is not resolvable to storage (ISO §2023:12.4.5.8)"));
             return;
         }
         string status = RuntimeApi.StrStore(RuntimeApi.FileStatus(FileKeyExpr(file)), $"{item.Pic?.Length ?? item.ImageWidth}");

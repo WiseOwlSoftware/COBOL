@@ -520,11 +520,11 @@ public readonly record struct ReportColumnSpec(
 /// </summary>
 /// <param name="Min">integer-1 (the DEPENDING minimum); 0 when the TO phrase is absent.</param>
 /// <param name="Max">integer-2 — the number of repetitions the entry defines.</param>
-/// <param name="DependingName">data-name-1 of the DEPENDING phrase, else null.</param>
-/// <param name="DependingQualifiers">its IN/OF qualifier words (§2023:8.4.2.2).</param>
+/// <param name="DependingOperand">data-name-1 of the DEPENDING phrase as written, with its IN/OF qualifier words
+/// (§2023:8.4.2.2), else null.</param>
 /// <param name="Step">integer-3 of the STEP phrase, else null.</param>
 public sealed record ReportOccursSpec(
-    int Min, int Max, string? DependingName, IReadOnlyList<string> DependingQualifiers, int? Step)
+    int Min, int Max, WrittenDataName? DependingOperand, int? Step)
 {
     /// <summary>data-name-1, resolved post-build (the SOURCE-operand pattern) — the §2023:13.18.38.4 GR13 count.</summary>
     public DataItem? DependingItem { get; set; }

@@ -49,14 +49,11 @@ public sealed class OccursSpec
     /// table a maximum of zero (kb/Work PB2833).</summary>
     public int MaxCapacity => IsDynamic ? WiseOwl.Cobol.Runtime.CobolDynTable<byte>.MaxOccurrences : Max;
 
-    /// <summary>The <c>DEPENDING ON data-name-1</c> name as written, or <see langword="null"/> for a fixed
-    /// (Format 1) table.</summary>
-    public string? DependingName { get; init; }
-
-    /// <summary>data-name-1's IN/OF qualifier words as written, innermost first (ISO §2023:8.4.2.2.2 Format 1 — a
-    /// qualified-data-name). Before kb/Work PB885 the capture was the whole reference's <c>GetText()</c>, which
-    /// glued <c>CNT OF G1</c> into the undefined name <c>CNTOFG1</c> and rejected legal source.</summary>
-    public IReadOnlyList<string> DependingQualifiers { get; init; } = [];
+    /// <summary>The <c>DEPENDING ON data-name-1</c> operand as written, or <see langword="null"/> for a fixed (Format 1) table.
+    /// data-name-1 is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1), so the operand keeps its IN/OF qualifiers: before
+    /// kb/Work PB885 the capture was the whole reference's <c>GetText()</c>, which glued <c>CNT OF G1</c> into the undefined
+    /// name <c>CNTOFG1</c> and rejected legal source.</summary>
+    public WrittenDataName? DependingOperand { get; init; }
 
     /// <summary>The resolved data-name-1 item — set by the post-build <c>OdoResolvePass</c> pass
     /// (data-name-1 may legally be declared anywhere outside the span the table starts, §2023:13.18.38 SR20, so
@@ -159,7 +156,7 @@ public static class OdoModel
     {
         foreach (var c in group.Children)
         {
-            if (c.OccursSpec is { DependingName: not null }) return c;
+            if (c.OccursSpec is { DependingOperand: not null }) return c;
             if (TableUnder(c) is { } nested) return nested;
         }
         return null;
