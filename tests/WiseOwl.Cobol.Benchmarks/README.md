@@ -1013,6 +1013,29 @@ parent's higher run, 30.44, which the branch's other run equals); IX113A's is 0.
 table's list without a copy, as it did, and the qualified walk is the code it was, so the slice moves no measurable allocation; the
 `None` budget holds. Time rows are not shown (kb/Work PB5927).
 
+**Step 6b, remainder slice 4 (kb/Work PB5932, the data division's declarations moved into the symbol table): the `None` row against
+the parent.** Every data description entry of every compilation is declared into the table's entry order, and every declaration
+passes the census, so the slice measures the no-listing path. Measured on 2026-11-20, Release, one Windows host, the built
+`WiseOwl.Cobol.Benchmarks.exe --filter '*CompileBenchmarks.FrontEndAndBind*' --buildTimeout 900`, each run from its own tree's root,
+on the parent `75f9b4fd58` (a detached worktree) and the `listing-step-6b-r4` branch. First the slice's first build (ab52edae86),
+parent, branch, branch, parent; then the build after the fix (75936462ff), branch, parent, parent, branch. Allocated bytes per front
+end and bind:
+
+| Program | Listing | Parent 75f9b4fd58 (4 runs) | First build ab52edae86 (2 runs) | Branch 75936462ff (2 runs) |
+|---|---|---|---|---|
+| IX113A | None | 67.82, 67.79, 67.78, 67.82 MB | 67.97, 68.05 MB | 67.70, 67.71 MB |
+| NC105A | None | 34.37, 35.00, 34.40, 34.68 MB | 34.48, 34.53 MB | 34.39, 34.42 MB |
+| NC218A | None | 31.01, 30.44, 31.01, 30.42 MB | 30.44, 30.47 MB | 30.60, 30.42 MB |
+| SM201A | None | 15.03, 15.16, 15.00, 15.16 MB | 15.19, 15.54 MB | 15.18, 15.15 MB |
+| IX113A | Text | 77.27, 77.27, 77.27, 77.20 MB | 77.56, 77.56 MB | 77.11, 77.11 MB |
+| IX113A | All | 86.85, 86.88, 86.91, 86.86 MB | 87.22, 87.14 MB | 86.77, 86.77 MB |
+
+Reading them: the first build's IX113A rows sat 0.15 to 0.26 MB over every parent run, the same on every listing mode, so it was the
+no-listing path's: the entry order kept each entry's place in a second, entry-keyed dictionary beside the table's names and read each
+data-name twice, for IX113A's 1544 data description entries. With the place kept in the table and the name read once, IX113A is 0.07
+to 0.12 MB below the parent, and every other branch `None` row lies inside the parent's runs but SM201A's 15.18, 0.02 MB above its
+higher run. The `None` budget holds. Time rows are not shown (kb/Work PB5927).
+
 **The `All` row at the merged tree of kb/Work PB5941 and PB5951 (review lead pb5951 R4-1).** PB5951's rows above were measured before
 PB5941 landed, and PB5941's without PB5951's region rows, so no row showed the merged page. Measured on 2026-11-20 on `0c29eebc42`
 (main with both landed), Release, `--filter '*CompileBenchmarks.FullCompile*None*' '*CompileBenchmarks.FullCompile*All*'`, two runs.
