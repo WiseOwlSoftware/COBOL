@@ -7,15 +7,16 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 
-/// <summary>A <c>dataAddressIdentifier</c> head (ISO §2023:8.4.3.11): the data-name and the OF/IN qualifiers written after it.</summary>
-internal readonly record struct AddressTarget(string Name, List<string> Qualifiers);
+/// <summary>A <c>dataAddressIdentifier</c> head (ISO §2023:8.4.3.11): the data-name and the OF/IN qualifiers written after it, as
+/// written (<see cref="WrittenQualifiedName"/>: the symbol table identifies it, docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
+internal readonly record struct AddressTarget(WrittenQualifiedName Written);
 
 /// <summary>The data-name head of one operand an activation may pass BY REFERENCE (or, <paramref name="SlotsOnly"/>, a BY CONTENT
 /// operand or RETURNING receiver claimed only when its values ride managed slots). <paramref name="UserFunction"/> names the
 /// function a function-call argument belongs to — it is an operand only when THAT function is a user-defined one, a fact the
 /// asking element decides (<see cref="StorageClaimScan.ByReferenceOperands"/>) — and is null for every other operand.</summary>
 internal readonly record struct ByReferenceOperand(
-    string Name, List<string> Qualifiers, bool Invoke, bool SlotsOnly, string? UserFunction = null);
+    WrittenQualifiedName Written, bool Invoke, bool SlotsOnly, string? UserFunction = null);
 
 /// <summary>⛔ THE ONE WALK OF A COMPILATION'S PARSE TREE FOR THE STORAGE-CLAIM OPERANDS (kb/Work PB4302). The pointer pass
 /// (<c>PtrBindBasedAndAddressablesPass</c>) and the linkage pass (<c>LinkageBinder.CallBindLinkage</c>) ask, of each source
@@ -121,7 +122,7 @@ internal sealed class StorageClaimScan
                 case Core.DataAddressIdentifierContext { } dai when dai.dataReference() is { } target:
                     // The head name + its OF/IN qualifiers for EVERY operand shape: a subscripted operand forces the same containing
                     // record — the occurrence displacement is a bind-time offset over the ONE cell, never separate storage.
-                    if (HeadOf(target) is { } head) Addresses.Add(new AddressTarget(head.Name, head.Qualifiers));
+                    if (WrittenQualifiedName.Of(target) is { } head) Addresses.Add(new AddressTarget(head));
                     break;
 
                 // An INVOKE argument (§2023:14.9.23.2): BY REFERENCE, or written with no BY phrase — which §2023:14.9.23.4 GR6 a) 1.
@@ -132,7 +133,7 @@ internal sealed class StorageClaimScan
                         IParseTree? operand = ia.REFERENCE() is not null ? ia.receivingIdentifier()?.dataReference()
                             : ia.CONTENT() is null && ia.VALUE() is null ? ia.arithmeticExpression() : null;
                         if (operand is not null && OperandIdentifier(operand) is { } ih)
-                            Operands.Add(new ByReferenceOperand(ih.Name, ih.Qualifiers, Invoke: true, SlotsOnly: false));
+                            Operands.Add(new ByReferenceOperand(ih, Invoke: true, SlotsOnly: false));
                     }
                     break;
 
@@ -140,12 +141,12 @@ internal sealed class StorageClaimScan
                     string function = fname.GetText();
                     foreach (var farg in fargs.functionArgument())
                         if (OperandIdentifier(farg) is { } h)
-                            Operands.Add(new ByReferenceOperand(h.Name, h.Qualifiers, Invoke: false, SlotsOnly: false, function));
+                            Operands.Add(new ByReferenceOperand(h, Invoke: false, SlotsOnly: false, function));
                     break;
 
                 case Core.CallReturningPhraseContext ret:
-                    if (ret.receivingIdentifier().dataReference() is { } rd && HeadOf(rd) is { } rh)
-                        Operands.Add(new ByReferenceOperand(rh.Name, rh.Qualifiers, Invoke: false, SlotsOnly: true));
+                    if (ret.receivingIdentifier().dataReference() is { } rd && WrittenQualifiedName.Of(rd) is { } rh)
+                        Operands.Add(new ByReferenceOperand(rh, Invoke: false, SlotsOnly: true));
                     break;
 
                 case Core.CallUsingPhraseContext phrase:
@@ -159,7 +160,7 @@ internal sealed class StorageClaimScan
                         else if (arg.callByValue() is not null) { byReference = null; operand = null; }
                         else operand = byReference is null ? null : arg.arithmeticExpression();
                         if (operand is not null && OperandIdentifier(operand) is { } h)
-                            Operands.Add(new ByReferenceOperand(h.Name, h.Qualifiers, Invoke: false, SlotsOnly: byReference is false));
+                            Operands.Add(new ByReferenceOperand(h, Invoke: false, SlotsOnly: byReference is false));
                     }
                     break;
             }
@@ -167,19 +168,10 @@ internal sealed class StorageClaimScan
 
         /// <summary>The identifier an operand consists of, or null when the operand is anything more (an expression, a literal):
         /// the OUTERMOST data reference under it, when its text is the whole operand's.</summary>
-        private static (string Name, List<string> Qualifiers)? OperandIdentifier(IParseTree operand) =>
+        private static WrittenQualifiedName? OperandIdentifier(IParseTree operand) =>
             ParseTreeWalk.SelfAndDescendants(operand).OfType<Core.DataReferenceContext>().FirstOrDefault() is { } dref
             && dref.GetText() == operand.GetText()
-                ? HeadOf(dref)
+                ? WrittenQualifiedName.Of(dref)
                 : null;
-
-        private static (string Name, List<string> Qualifiers)? HeadOf(Core.DataReferenceContext dref)
-        {
-            if (dref.cobolWord() is not { } head) return null;
-            var quals = new List<string>();
-            foreach (var suffix in dref.dataReferenceSuffix())
-                if (suffix.qualification() is { } q) quals.Add(q.cobolWord().GetText());
-            return (head.GetText(), quals);
-        }
     }
 }

@@ -29,7 +29,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     private MethodLocal NextLoopVar() => new StatementLocal(StatementLocalRole.InitializeOccurrence, _initializeLoopVar++);
 
     /// <summary>What the statement's phrases select, threaded through the expansion: the receiver filter
-    /// (ISO §2023:14.9.20 GR5c) and the sending-operand precedence VALUE → REPLACING → category default (GR6).
+    /// (ISO §2023:14.9.20.4 GR5c) and the sending-operand precedence VALUE → REPLACING → category default (GR6).
     /// <para>⛔ EVERY CATEGORY SLOT IS A <see cref="InitializeCategorySet"/>, BECAUSE category-name IS A SET
     /// (§2023:14.9.20.2's choice-indicator brace; §2023:5.2.6.4). <paramref name="ValueCategories"/> EMPTY with
     /// <paramref name="ToValue"/> means <c>ALL TO VALUE</c> — §2023:14.9.20.4 GR2's "if ALL is specified in the VALUE
@@ -195,7 +195,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return new BoundInitialize(actions) { AllocateImplicit = true };
     }
 
-    /// <summary>Expand one identifier-1 (ISO §2023:14.9.20 GR5): resolve its FULL data reference (qualification +
+    /// <summary>Expand one identifier-1 (ISO §2023:14.9.20.4 GR5): resolve its FULL data reference (qualification +
     /// subscripts), then walk its subtree in
     /// definition order (GR8) collecting the per-elementary stores. identifier-1 itself MAY have / sit under a
     /// REDEFINES (GR5a3's exclusion applies only BELOW it).</summary>
@@ -206,16 +206,23 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     private void BindInitializeTarget(Core.DataReferenceContext dref, in InitializeSpec spec, List<InitializeAction> actions, out Place? written)
     {
         written = null;
-        // INITIALIZE of a WHOLE OCCURS DYNAMIC table (ISO §2023:14.9.20 GR10; data-model D9): the whole-table reference
+        // INITIALIZE of a WHOLE OCCURS DYNAMIC table (ISO §2023:14.9.20.4 GR10; data-model D9): the whole-table reference
         // does not resolve to an element Place (it is guarded loud), so detect it by name and expand the element's
         // stores under a RUN-TIME loop 1‥Capacity (RefReceiving within bounds does not grow). The stores are the
         // INITIALIZE statement's own (category defaults / REPLACING / VALUE-phrase) — NOT the OCCURS grow-seed.
         // The candidates are the nearest declaring source element's (§2023:8.4.6.2.1 3)): a contained program's own
-        // item hides a container's GLOBAL dynamic table of the same name (SymbolTable.TryResolveUnqualified).
-        if (dref.dataReferenceSuffix().Length == 0
-            && ctx.Symbols.TryResolveUnqualified(dref.cobolWord()?.GetText() ?? dref.GetText(), ctx.ActiveScope, out var dyns)
-            && dyns.FirstOrDefault(i => i.IsDynamicTable) is { } dtbl && PlaceBuilder.BuildTablePath(dtbl) is { } tblPath)
+        // item hides a container's GLOBAL dynamic table of the same name. The name is the one the reference writes, through
+        // the symbol table's identification (SymbolTable.IdentifyDataName), never the reference's glued text (kb/Work PB2040):
+        // a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER register writes no data-name. Asked as a probe (report: false): an
+        // operand that names no dynamic table is identified again by ResolveReceiving below, which records it.
+        if (dref.dataReferenceSuffix().Length == 0 && WrittenQualifiedName.Of(dref) is { } writtenName
+            && ctx.Symbols.IdentifyDataName(writtenName, report: false).FirstWhere(static i => i.IsDynamicTable) is { } dtbl
+            && PlaceBuilder.BuildTablePath(dtbl) is { } tblPath)
         {
+            // This arm IS identifier-1's identification (it never reaches ResolveReceiving), so it asks the procedure
+            // division's LINKAGE screen itself (§1985:X.5.1 GR4, §2023:13.7.3 SR4; kb/Work PB5846): `INITIALIZE L-TAB` over
+            // a dynamic table of a record the header does not admit used to compile clean.
+            ctx.Refs.Names.ScreenLinkageReference(dref, dtbl);
             // identifier-1 is the whole table, every current occurrence of it (kb/Work PB4855): the operand the statement references
             // and stores, while the element stores below are what it means.
             written = ctx.Refs.Places.WholeTable(dtbl, []);
@@ -386,7 +393,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             ? (table.Occurs is { } max ? new AllCount.Fixed(max) : null)                // GR8b — the maximum
             : OccurrenceCounts.Current(table, tablePath, ctx.Refs.Places);                      // GR4 / GR8a / GR10
 
-    /// <summary>The recursive receiver walk (ISO §2023:14.9.20 GR5), in definition order (GR8). Exclusions: GR5a2 —
+    /// <summary>The recursive receiver walk (ISO §2023:14.9.20.4 GR5), in definition order (GR8). Exclusions: GR5a2 —
     /// an explicit-or-implicit FILLER elementary item (a null <see cref="DataItem.CobolName"/>) unless WITH FILLER
     /// (identifier-1 itself is always named, so the test applies only to contained items); GR5a3 — a subordinate
     /// whose entry has REDEFINES, and with it its whole subtree (level-66 entries are not storage children,

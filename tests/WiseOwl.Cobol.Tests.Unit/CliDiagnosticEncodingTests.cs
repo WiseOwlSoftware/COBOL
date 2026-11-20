@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Diagnostics;
 using System.Text;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
@@ -29,7 +28,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>
 /// ⚠ AND THE PROBE ASSERTS ITS OWN PREMISE. A child launched with no console inherits .NET's UTF-8 default, so
 /// a naive spawn would pass on the BROKEN build too — the shape the subject hides
-/// (<c>feedback_probe_the_shape_the_subject_hides</c>). On Windows the CLI is therefore driven from a
+/// (<c>feedback_probe_the_shape_the_subject_hides</c>). On Windows the CLI is therefore driven (<see cref="OemConsoleCli"/>) from a
 /// <c>cmd.exe</c> that first sets its own console to cp437 (<c>CreateNoWindow</c> gives the child its own
 /// console, so the developer's terminal is untouched — measured), and the test FAILS if that code page was not
 /// actually in force. Elsewhere there is no console code page to force and the byte assertion stands alone.
@@ -42,23 +41,6 @@ public sealed class CliDiagnosticEncodingTests
 
     /// <summary>U+2013 EN DASH as UTF-8. Best-fitted to '-' by every single-byte code page.</summary>
     private static readonly byte[] EnDashUtf8 = [0xE2, 0x80, 0x93];
-
-    /// <summary>The built <c>cobol</c> driver, in the SAME configuration and framework this test assembly was
-    /// built for — never a guess at "Debug", which would test a stale binary on a Release CI leg.</summary>
-    private static string CliCommand()
-    {
-        // TestRepo.SrcBin resolves the SAME configuration this assembly was built in — a hard-coded "Debug"
-        // would make a Release CI leg measure a stale binary.
-        string host = TestRepo.SrcBin("WiseOwl.Cobol.Cli", OperatingSystem.IsWindows() ? "cobol.exe" : "cobol");
-        if (File.Exists(host)) return host;
-
-        string dll = TestRepo.SrcBin("WiseOwl.Cobol.Cli", "cobol.dll");
-        Assert.True(File.Exists(dll),
-            $"the cobol driver is not built at {Path.GetDirectoryName(dll)} — this assembly references "
-            + "WiseOwl.Cobol.Cli, so building it builds the driver; a missing one means the observation cannot be "
-            + "taken at all, which is not a pass.");
-        return dll;
-    }
 
     /// <summary>⛔ THE INVARIANT: a diagnostic's non-ASCII characters reach a redirected stream as UTF-8,
     /// whatever the console code page is.</summary>
@@ -77,59 +59,18 @@ public sealed class CliDiagnosticEncodingTests
                 + "       PROCEDURE DIVISION.\n"
                 + "           STOP RUN.\n");
 
-            string captured = Path.Combine(work, "diag.txt");
-            string codePage = Path.Combine(work, "codepage.txt");
-            string command = CliCommand();
-            string invocation = command.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
-                ? $"dotnet \"{command}\""
-                : $"\"{command}\"";
-
-            ProcessStartInfo psi;
-            if (OperatingSystem.IsWindows())
-            {
-                string script = Path.Combine(work, "probe.cmd");
-                File.WriteAllText(script,
-                    "@echo off\r\n"
-                    + $"chcp 437 > \"{codePage}\"\r\n"
-                    + $"{invocation} \"{source}\" --std 2023 > \"{captured}\" 2>&1\r\n");
-                psi = new ProcessStartInfo("cmd.exe") { WorkingDirectory = work };
-                psi.ArgumentList.Add("/c");
-                psi.ArgumentList.Add(script);
-            }
-            else
-            {
-                string script = Path.Combine(work, "probe.sh");
-                File.WriteAllText(script,
-                    "#!/bin/sh\n"
-                    + $"echo 'no console code page on this platform' > \"{codePage}\"\n"
-                    + $"{invocation} \"{source}\" --std 2023 > \"{captured}\" 2>&1\n");
-                psi = new ProcessStartInfo("/bin/sh") { WorkingDirectory = work };
-                psi.ArgumentList.Add(script);
-            }
-
-            var r = ProcessObserver.ObserveOrThrow(psi);
-            Assert.True(File.Exists(captured),
-                $"the driver produced no capture at all.\nstdout:\n{r.Stdout}\nstderr:\n{r.Stderr}");
-
-            if (OperatingSystem.IsWindows())
-            {
-                // The premise, measured: without cp437 in force this probe would pass on the broken build too.
-                string cp = File.ReadAllText(codePage);
-                Assert.True(cp.Contains("437", StringComparison.Ordinal),
-                    "the probe could not put its own console into cp437, so it was NOT exercising the defect "
-                    + $"and its green means nothing (feedback_green_gates_arent_evidence). chcp said: {cp}");
-            }
-
-            byte[] bytes = File.ReadAllBytes(captured);
+            // The diagnostics go to standard error; both streams are read, as a user reading a console reads them.
+            var capture = OemConsoleCli.Run(work, source, "--std", "2023");
+            byte[] bytes = [.. capture.Output, .. capture.Error];
             string decoded = Encoding.UTF8.GetString(bytes);
             Assert.True(decoded.Contains("COBOL0886", StringComparison.Ordinal),
                 $"the probe did not produce the expected diagnostic, so nothing was measured: {decoded}");
 
-            Assert.True(IndexOf(bytes, SectionSignUtf8) >= 0,
+            Assert.True(bytes.AsSpan().IndexOf(SectionSignUtf8) >= 0,
                 "the diagnostic's section sign did not reach redirected output as UTF-8 (C2 A7). The CLI is "
                 + "writing at the OS code page again — in cp437 U+00A7 is the single byte 0x15 (PB899).\n"
                 + $"bytes: {Hex(bytes)}");
-            Assert.True(IndexOf(bytes, EnDashUtf8) >= 0,
+            Assert.True(bytes.AsSpan().IndexOf(EnDashUtf8) >= 0,
                 "the diagnostic's en dash did not reach redirected output as UTF-8 (E2 80 93) — a single-byte "
                 + $"code page best-fits it to '-' without error, which is the silent half of PB899.\nbytes: {Hex(bytes)}");
             Assert.DoesNotContain((byte)0x15, bytes);
@@ -138,17 +79,6 @@ public sealed class CliDiagnosticEncodingTests
         {
             ScratchDirectory.Remove(work);
         }
-    }
-
-    private static int IndexOf(byte[] haystack, byte[] needle)
-    {
-        for (int i = 0; i + needle.Length <= haystack.Length; i++)
-        {
-            int j = 0;
-            while (j < needle.Length && haystack[i + j] == needle[j]) j++;
-            if (j == needle.Length) return i;
-        }
-        return -1;
     }
 
     private static string Hex(byte[] bytes) => Convert.ToHexString(bytes);

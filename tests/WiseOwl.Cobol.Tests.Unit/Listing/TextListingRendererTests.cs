@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -114,7 +115,7 @@ public sealed class TextListingRendererTests
              new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);
         var request = new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth);
         // A form feed opens each page after the first; it is no column.
-        string[] rows = [.. TextListingRenderer.Render(document, request).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
+        string[] rows = [.. ListingRendering.Text(document, request).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
         Assert.All(rows, r => Assert.True(r.Length <= request.PageWidth, $"{r.Length} columns: {r}"));
         Assert.StartsWith("SOURCE  ...", rows[1], StringComparison.Ordinal);
         Assert.EndsWith("/directory19/main.cob", rows[1], StringComparison.Ordinal);
@@ -144,7 +145,7 @@ public sealed class TextListingRendererTests
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 4, null)],
             [], [], [], [], null, null, null,
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null)]);
-        string[] rows = [.. TextListingRenderer.Render(document, new ListingRequest()).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
+        string[] rows = [.. ListingRendering.Text(document, new ListingRequest()).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
         string Row(string text) => Assert.Single(rows, r => r.EndsWith(text, StringComparison.Ordinal));
         // Columns 1-6 the listing number, 11-16 the file line: blank, blank, the library's line 1, the source's line 3.
         Assert.Equal("     1           ", Row("WORKING-STORAGE SECTION.")[..17]);
@@ -213,7 +214,7 @@ public sealed class TextListingRendererTests
             "     -  warning COBOL0001: g",
         ], TextListingRenderer.SummaryRows(document, 132));
         // In the whole listing the summary starts a page after the source section, whose line carries both diagnostics.
-        string[] pages = TextListingRenderer.Render(document, new ListingRequest()).Split(PageComposer.FormFeed);
+        string[] pages = ListingRendering.Text(document, new ListingRequest()).Split(PageComposer.FormFeed);
         Assert.Equal(2, pages.Length);
         Assert.Contains("==> error COBOL0001 (col 8): e", pages[0], StringComparison.Ordinal);
         Assert.Contains("==> warning COBOL0001 (col 8): w", pages[0], StringComparison.Ordinal);

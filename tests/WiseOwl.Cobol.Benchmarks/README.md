@@ -603,6 +603,30 @@ page shows both under each statement (section 7.2) and in the object-code sectio
 step 9 (kb/Work PB5941) and is further over now; PB5941's dated file `2026-11-19-step-9-html-row` holds these rows and the fix
 they point to. Time rows are not shown (kb/Work PB5927).
 
+**kb/Work PB5941 (every format streamed to its file, each instruction once on the page): the `All` row against the parent.**
+Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FullCompile*None*' '*CompileBenchmarks.FullCompile*All*'` twice on the parent `8dd07d2eab` (a detached
+worktree of it) and twice on the `listing-step-pb5941` branch (commit ff0b71271f), alternating parent, branch, parent, branch.
+Allocated bytes per full compile, the two runs of each tree:
+
+| Program | Parent None | Parent All | Parent All over None | Branch None | Branch All | Branch All over None |
+|---|---|---|---|---|---|---|
+| IX113A | 192.63, 200.14 MB | 307.54, 300.62 MB | +59.7, +50.2 % | 198.89, 195.88 MB | 233.70, 228.24 MB | +17.5, +16.5 % |
+| NC105A | 114.46, 114.15 MB | 184.33, 193.30 MB | +61.0, +69.3 % | 115.28, 114.00 MB | 135.48, 134.83 MB | +17.5, +18.3 % |
+| NC218A | 116.42, 112.26 MB | 184.16, 182.13 MB | +58.2, +62.2 % | 111.42, 112.29 MB | 132.61, 133.31 MB | +19.0, +18.7 % |
+| SM201A | 42.17, 45.46 MB | 64.94, 68.26 MB | +54.0, +50.2 % | 41.39, 44.55 MB | 49.94, 52.81 MB | +20.7, +18.5 % |
+
+Reading them: `All` is inside its 25 % budget on every program and run, and allocates 15.0 to 73.8 MB less than the parent's.
+The `None` rows of the two trees lie inside one another's run-to-run spread (the change touches only what a listing runs). The
+measurement first found the mechanism, with a Release probe of each part of the `all` listing (a temporary entry point, not
+committed; GC.GetTotalAllocatedBytes around each step, after three warm compiles): on IX113A the document cost +14.6 MB over no
+listing, and writing it 99.7 MB, the text listing 33.2 MB for a 2.6 MB file, the JSON 27.0 MB for 6.7 MB and the page 39.5 MB
+for 6.6 MB, because each format was held whole (a buffer, a string copied from it, the string encoded into the file) and the
+page printed each instruction twice. After the change the probe reads 13.3 MB (text), 0.16 MB (JSON) and 8.3 MB (the page,
+now 4.9 MB). The witness now reads the full compile's listing files before the check-only compile overwrites them, and holds the
+`All` case to an object code with instructions: the step-8 and step-9 witness lines quoted the check-only compile's listing (no
+object code), 0.9 MB for IX113A where the full compile writes 2.6 MB. Time rows are not shown (kb/Work PB5927).
+
 **PB5949 (the source's syntax colouring): every row against the parent.** PB5949 changes every compilation a little (the
 logical conversion's per-line record is an object holding the kinds array; the lexer's comment rules call an action that records
 nothing without a listing) and adds the spans to every listing that holds the source section. Measured on 2026-11-19, Release, one
@@ -624,8 +648,9 @@ what the source section holds: the standard text listing, which prints none of t
 +9.3 MB on IX113A over the parent's `Text` (+4.8 %), +3.6 MB on NC218A, and within the spread on the other two; `Text` over the same
 run's `None` is +7.1 % (IX113A), +2.5 %, +0.1 % and +15.6 % (SM201A, whose branch `None` row is 5.7 MB under the parent's; over the
 parent's `None`, +1.8 %), so the standard listing stays inside its 10 % budget. `TextAndJson` grows +4.9 to +14.5 MB (each span is a
-JSON object), and `All` (with the HTML page, each span an element) +5.6 to +30.7 MB (+8.2 to +10.1 %): the `All` row was over its
-25 % budget before (kb/Work PB5941) and is further over; PB5941's dated file `2026-11-19-pb5949-spans` records these rows. Time rows are
+JSON object), and `All` (with the HTML page, each span an element) +5.6 to +30.7 MB (+8.2 to +10.1 %): these rows were measured before
+kb/Work PB5941 landed (the paragraph above), so their `All` row predates its streaming; PB5941's dated file
+`2026-11-19-pb5949-spans` records them. Time rows are
 not shown (kb/Work PB5927).
 
 **Step 6b, slice 1 (kb/Work PB5932, the cd-names and the file-names resolved by `SymbolTable.Identify`): the `None` row against
@@ -847,6 +872,27 @@ own run-to-run spread on one tree (slice 3 measured NC105A's `None` row from 34.
 its parent). The moves replace a dictionary per name class with one of the same shape in another type and allocate nothing per
 reference, so the slice moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
 
+**Step 6b, remainder slice 1 (kb/Work PB5932, the procedure division's data-names and condition-names identified by
+`SymbolTable.IdentifyDataName` and `IdentifyConditionName`): the `None` row against the parent.** Every data reference of every
+compilation is identified through the new path, so the slice measures the no-listing path. Measured on 2026-11-19, Release, one
+Windows host, the built `WiseOwl.Cobol.Benchmarks.exe --filter '*CompileBenchmarks.FrontEndAndBind*'` on the parent `8dd07d2eab` and
+the `listing-step-6b-r1` branch, alternating (parent, branch, branch, parent, then branch, branch, parent). The first build
+(0b3ea76906) read the reference's head word twice and a qualified reference's qualifier words twice; the measured branch (8e36bf0de5)
+reads each once (`WrittenQualifiedName.OfRead`). Allocated bytes per front end and bind:
+
+| Program | Listing | Parent 8dd07d2eab (3 runs) | First build 0b3ea76906 | Branch 8e36bf0de5 |
+|---|---|---|---|---|
+| IX113A | None | 68.23, 68.32, 68.30 MB | 68.51, 68.37 MB | 67.61, 67.66 MB |
+| NC105A | None | 34.59, 34.66, 34.59 MB | 35.37, 34.75 MB | 34.21, 34.22 MB |
+| NC218A | None | 30.61, 30.69, 30.85 MB | 30.93, 30.81 MB | 30.28, 30.30 MB |
+| SM201A | None | 15.06, 15.11, 15.27 MB | 15.11, 15.26 MB | 14.94, 15.12 MB |
+| IX113A | Text | 76.08, 76.19, 76.07 MB | 76.28, 76.35 MB | 75.48, 75.44 MB |
+| IX113A | All | 110.21, 110.13, 110.13 MB | 110.37, 110.47 MB | 109.51, 109.50 MB |
+
+Reading them: the first build was over the parent on every program (IX113A by 0.05 to 0.28 MB), the cost of reading a written word
+twice; with each word read once, every branch row lies below all three parent runs (IX113A by 0.6 MB: the condition binder no longer
+copies the qualifier words into a fresh list at every condition-name ask, and the storage-claim scan none at every operand). The
+`None` budget holds. Time rows are not shown (kb/Work PB5927).
 **Step 6b, the entry-id lane (kb/Work PB5932, every class the symbol table declares enters its entry where it is declared, and every
 identification carries its id): the `None` row against the parent.** The lane adds work to every compilation (an entry per declared
 name), so it measures the no-listing path. Measured on 2026-11-19, Release, one Windows host, `WiseOwl.Cobol.Benchmarks.exe --filter

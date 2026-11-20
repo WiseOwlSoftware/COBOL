@@ -4,7 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Html;
-using WiseOwl.Cobol.Listing.Text;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -41,12 +41,12 @@ public sealed class HtmlSyntaxSpanTests
             new ListingSpan(22, 3, ListingSpanClass.UserWord), new ListingSpan(25, 1, ListingSpanClass.Separator),
         };
         var document = Document(Line(text, spans));
-        var tx = TextOf(HtmlListingRenderer.Render(document, new ListingRequest(Formats: ListingFormats.Html)));
+        var tx = TextOf(ListingRendering.Html(document, new ListingRequest(Formats: ListingFormats.Html)));
         Assert.Equal(text, tx.Value);
         Assert.Equal(spans.Select(s => (HtmlListingRenderer.SpanClass(s.Class), text.Substring(s.Column - 1, s.Length))),
             tx.Elements("span").Select(e => ((string)e.Attribute("class")!, e.Value)));
         // The text listing ignores the spans: the row is the line as written.
-        Assert.Contains(text, TextListingRenderer.Render(document, new ListingRequest()), StringComparison.Ordinal);
+        Assert.Contains(text, ListingRendering.Text(document, new ListingRequest()), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public sealed class HtmlSyntaxSpanTests
         const string text = "MOVE AB TO C.";
         var document = Document(Line(text, [new ListingSpan(6, 2, ListingSpanClass.UserWord)], diagnostics: [1]))
             with { Diagnostics = [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "e", 1, 1, 1, 7, [], null)] };
-        var tx = TextOf(HtmlListingRenderer.Render(document, new ListingRequest(Formats: ListingFormats.Html)));
+        var tx = TextOf(ListingRendering.Html(document, new ListingRequest(Formats: ListingFormats.Html)));
         var word = Assert.Single(tx.Elements("span"));
         Assert.Equal("AB", word.Value);
         Assert.Equal("B", Assert.Single(word.Elements("mark")).Value);

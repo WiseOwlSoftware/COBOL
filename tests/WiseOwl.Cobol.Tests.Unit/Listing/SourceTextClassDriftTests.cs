@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Building;
 using WiseOwl.Cobol.Listing.Html;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -85,7 +86,7 @@ public sealed class SourceTextClassDriftTests
     [Fact]
     public void ThePage_ColoursEveryClass_ForALightAndADarkPage()
     {
-        string page = HtmlListingRenderer.Render(JsonListingWriterTests.EveryMember(), new ListingRequest(Formats: ListingFormats.Html));
+        string page = ListingRendering.Html(JsonListingWriterTests.EveryMember(), new ListingRequest(Formats: ListingFormats.Html));
         string style = page[(page.IndexOf("<style>", StringComparison.Ordinal) + 7)..page.IndexOf("</style>", StringComparison.Ordinal)];
         foreach (var cls in Enum.GetValues<ListingSpanClass>())
             Assert.Matches($@"\.{Regex.Escape(HtmlListingRenderer.SpanClass(cls))}\b[^{{]*\{{[^}}]*color:", style);

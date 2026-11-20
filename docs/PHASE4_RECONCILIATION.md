@@ -662,7 +662,7 @@ both ways); negative corpus +1 (based-level-05).
   sequence, right-extend national spaces (§2023:8.8.4.2.9/10 :9692–9715); AN-vs-national converts AN to a national
   temp (§2023:8.8.4.2.6 :9645). DISPLAY §2023:14.9.11 SR1 admits both; device conversion implementor-defined (GR1 :26893).
   VALUE §2023:13.18.63 SR5 national literal for national items (:23232), SR10 boolean literal ≤ size (:23254),
-  SR29 no THROUGH for boolean (:23327). INITIALIZE §2023:14.9.20 GR6c fill table: Boolean → ZEROES, National →
+  SR29 no THROUGH for boolean (:23327). INITIALIZE §2023:14.9.20.4 GR6c fill table: Boolean → ZEROES, National →
   national SPACES (:27995–28009). Figuratives §2023:8.3.3.6: GR4 ZERO is boolean '0's by context (:6375); GR1/6/7
   national SPACE/QUOTE/HIGH/LOW (:6350, :6383–6407); no boolean SPACE/QUOTE/HIGH/LOW (MOVE SR7). Ref-mod
   §2023:8.4.3.3: positions are boolean/national positions, never bytes (GR1 :7073; GR5a bit positions :7083).

@@ -74,8 +74,7 @@
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
-      "WiseOwl.Cobol.Binding.Validation.StatementValidation",
-      "WiseOwl.Cobol.Validation.FlagConformancePass"
+      "WiseOwl.Cobol.Binding.Validation.StatementValidation"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::AllItems": [
       "WiseOwl.Cobol.Binding.Passes.CheckStrongTypeDeclarationsPass",
@@ -207,15 +206,7 @@
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Passes.ResolveTableValuesPass"
     ],
-    "WiseOwl.Cobol.Binding.DataBinder::ConditionNameHiddenByNearerDataItem": [
-      "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
-      "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules"
-    ],
     "WiseOwl.Cobol.Binding.DataBinder::ConditionQualifierChainMatches": [
-      "WiseOwl.Cobol.Binding.SymbolTable"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::ConditionTier": [
-      "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
       "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ConformanceForest": [
@@ -545,11 +536,8 @@
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.ReportGroupResolution",
-      "WiseOwl.Cobol.Binding.ReportSectionBinder"
-    ],
-    "WiseOwl.Cobol.Binding.DataBinder::QualifiedConditionCandidates": [
-      "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
-      "WiseOwl.Cobol.Validation.FlagConformancePass"
+      "WiseOwl.Cobol.Binding.ReportSectionBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::QualifierChainMatches": [
       "WiseOwl.Cobol.Binding.NameResolution",
@@ -610,7 +598,8 @@
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.ResolveReportsPass",
-      "WiseOwl.Cobol.Binding.Procedure.ConditionBinder"
+      "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ReserveInheritedMemberNames": [
       "WiseOwl.Cobol.Binding.InheritStep"
@@ -1132,7 +1121,8 @@
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportEntriesInTierOf": [
       "WiseOwl.Cobol.Binding.DataBinder",
-      "WiseOwl.Cobol.Binding.NameResolution"
+      "WiseOwl.Cobol.Binding.NameResolution",
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportEntryReferenceRefused": [
       "WiseOwl.Cobol.Binding.NameResolution",

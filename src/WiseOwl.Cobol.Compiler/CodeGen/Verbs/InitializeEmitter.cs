@@ -60,7 +60,7 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move, Debug
                     + "   // INITIALIZE TO VALUE — the VALUE clause's initial value (ISO §2023:14.9.20.4 GR6 a) 3.)");
                 break;
             case InitializeSetNull s:
-                // §2023:14.9.20 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,
+                // §2023:14.9.20.4 GR4/GR6c: an implicit SET Target TO the predefined NULL (data-pointer → ManagedPointer.Null,
                 // program-pointer → ProgramPointer.Null, object-reference → null). A SET, NOT a MOVE — reuses the
                 // item's DefaultInitializer, matching SetEmitter.EmitSetPointer / OoEmitter.EmitSetObjectRef.
                 w.Line(PlaceRenderer.Write(s.Target, s.Target.Item.Pic!.DefaultInitializer));

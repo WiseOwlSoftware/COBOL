@@ -71,11 +71,16 @@ internal readonly record struct WrittenWord(IToken Token, int Start, int Length)
 internal readonly record struct WrittenQualifiedName
 {
     public WrittenQualifiedName(IToken head, IReadOnlyList<IToken> qualifiers)
+        : this(head, head.Text, qualifiers, qualifiers.Count == 0 ? [] : [.. qualifiers.Select(static q => q.Text)])
+    {
+    }
+
+    private WrittenQualifiedName(IToken head, string name, IReadOnlyList<IToken> qualifiers, IReadOnlyList<string> qualifierWords)
     {
         Head = head;
-        Name = head.Text;
+        Name = name;
         Qualifiers = qualifiers;
-        QualifierWords = qualifiers.Count == 0 ? [] : [.. qualifiers.Select(static q => q.Text)];
+        QualifierWords = qualifierWords;
     }
 
     /// <summary>The name's token.</summary>
@@ -88,13 +93,35 @@ internal readonly record struct WrittenQualifiedName
     public IReadOnlyList<string> QualifierWords { get; }
 
     /// <summary>A <c>dataReference</c>'s name and the words of its qualifications (its subscripts and reference modifiers are not
-    /// read).</summary>
-    public static WrittenQualifiedName Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref)
+    /// read), or null when the reference writes no name: a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER register, whose
+    /// <c>cobolWord</c> is its file-name or report-name QUALIFIER (§2023:8.4.2.2.2 Formats 7 and 8), and a recovery node with no word.
+    /// The name is never the reference's glued text (kb/Work PB2040).</summary>
+    public static WrittenQualifiedName? Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref)
     {
+        if (dref.LINAGE_COUNTER() is not null || dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null
+            || dref.cobolWord() is not { } word)
+            return null;
         List<IToken>? qualifiers = null;
         foreach (var suffix in dref.dataReferenceSuffix())
             if (suffix.qualification() is { } q) (qualifiers ??= []).Add(q.cobolWord().Start);
-        return new(dref.cobolWord().Start, qualifiers ?? (IReadOnlyList<IToken>)[]);
+        return new(word.Start, qualifiers ?? (IReadOnlyList<IToken>)[]);
+    }
+
+    /// <summary>A <c>dataReference</c> whose qualifier words the caller has ALREADY read off their tokens (its
+    /// <c>ReferenceResolver.ReadWritten</c> decomposition): the name keeps that list, so the words are read once per reference,
+    /// never again here (section 9's budget: every data reference is identified so), and only a qualified reference walks its
+    /// qualifications again, for their tokens. <paramref name="dref"/> writes a name (the caller has screened the counter
+    /// registers).</summary>
+    internal static WrittenQualifiedName OfRead(Frontend.Generated.CobolParserCore.DataReferenceContext dref,
+        IReadOnlyList<string> qualifierWords)
+    {
+        var head = dref.cobolWord().Start;
+        string name = head.Text;
+        if (qualifierWords.Count == 0) return new(head, name, [], qualifierWords);
+        List<IToken> qualifiers = new(qualifierWords.Count);
+        foreach (var suffix in dref.dataReferenceSuffix())
+            if (suffix.qualification() is { } q) qualifiers.Add(q.cobolWord().Start);
+        return new(head, name, qualifiers, qualifierWords);
     }
 
     /// <summary>The name at <paramref name="at"/> of a token list and the qualifiers written after it (<c>OF</c> or <c>IN</c>, then a

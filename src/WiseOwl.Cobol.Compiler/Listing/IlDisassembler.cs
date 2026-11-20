@@ -28,7 +28,7 @@ internal static class IlDisassembler
     /// <summary>The instructions of <paramref name="il"/> (a method body's IL) from offset <paramref name="start"/> up to
     /// <paramref name="end"/>, their operands named through <paramref name="metadata"/>. <paramref name="names"/>, when given, holds each
     /// token's text once for every body of one assembly (a program's code names the same fields and methods thousands of times).</summary>
-    public static IReadOnlyList<ListingInstruction> Decode(MetadataReader metadata, ImmutableArray<byte> il, int start, int end,
+    public static ListingInstruction[] Decode(MetadataReader metadata, ImmutableArray<byte> il, int start, int end,
         Dictionary<int, string>? names = null)
     {
         names ??= [];
@@ -44,7 +44,7 @@ internal static class IlDisassembler
             string? operand = Operand(metadata, il, ref at, opCode.OperandType, names);
             if (offset >= start) instructions.Add(new ListingInstruction(offset, opCode.Name!, operand));
         }
-        return instructions;
+        return [.. instructions];
     }
 
     /// <summary>The operand of an instruction of <paramref name="type"/> at <paramref name="at"/>, which it moves past the operand.</summary>

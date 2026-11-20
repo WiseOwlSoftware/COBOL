@@ -228,7 +228,7 @@ public sealed class WindowsConsoleDeviceTests
             NonCobolElement.CompileCSharp(dir, "CPPROBE", CodePageProbe, "CONDISP");
             string source = Path.Combine(dir, "conbad.cob");
             File.WriteAllText(source, RejectedProgram);
-            string cli = TestRepo.SrcBin("WiseOwl.Cobol.Cli", "cobol.exe");
+            string cli = TestRepo.CobolCommand;
             Assert.True(File.Exists(cli), $"the cobol driver is not built at {cli}");
 
             var (text, probes) = RunOnConsole(dir, $"\"{cli}\" \"{source}\" --std 2023 <nul", "");
@@ -237,6 +237,38 @@ public sealed class WindowsConsoleDeviceTests
             Assert.Contains("COBOL0886", text);
             Assert.Contains("§", text);
             Assert.Contains("–", text);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    // DESIGN-listing.md section 8 (kb/Work PB5941 review R1-1): `--listing-output -` writes the listing through the process's
+    // standard output writer, so a listing read on a console shows its characters as themselves whatever the console's code
+    // page. The listing's UTF-8 bytes written past that writer, to the raw handle, were read as UTF-16 by a console whose output
+    // encoding StandardStreams set to it, and the whole listing showed as CJK characters (measured: red on that shape). Text and
+    // HTML carry the comment's characters as themselves; the JSON document escapes every character outside ASCII, so it has none.
+    [Theory]
+    [InlineData("text")]
+    [InlineData("html")]
+    public void The_cobol_commands_listing_on_the_console_shows_its_characters_as_themselves(string format)
+    {
+        if (!OperatingSystem.IsWindows()) return;   // no console code page elsewhere (see the class remarks)
+        string dir = ScratchDirectory.Create("conlst");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "CONDISP", DisplayProgram);
+            NonCobolElement.CompileCSharp(dir, "CPPROBE", CodePageProbe, "CONDISP");
+            string source = Path.Combine(dir, "conlst.cob");
+            File.WriteAllText(source, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. CONLST.\n      * café €\n"
+                + "       PROCEDURE DIVISION.\n           STOP RUN.\n", new UTF8Encoding(false));
+            string cli = TestRepo.CobolCommand;
+            Assert.True(File.Exists(cli), $"the cobol driver is not built at {cli}");
+
+            var (text, probes) = RunOnConsole(dir,
+                $"\"{cli}\" \"{source}\" --std 2023 --listing-output - --listing-format {format} <nul", "");
+
+            Assert.Equal((437, 437), probes[1]);
+            Assert.True(text.Contains("café €", StringComparison.Ordinal),
+                $"the listing's comment line did not show as itself on a code page 437 console; console text:\n{text}");
         }
         finally { ScratchDirectory.Remove(dir); }
     }

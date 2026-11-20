@@ -77,7 +77,7 @@ public sealed class ListingHtmlTests : IDisposable
         Assert.True(result.Success, string.Join("\n", result.Errors));
         Assert.Contains(html, result.OutputFiles);
         Assert.False(File.Exists(Path.Combine(_dir, "html85.lst")));   // html alone writes no text listing
-        Assert.Equal(HtmlListingRenderer.Render(result.Listing!, request), File.ReadAllText(html));
+        Assert.Equal(ListingRendering.Html(result.Listing!, request), File.ReadAllText(html));
 
         var page = Read(html);
         var rows = page.Descendants("div").Where(IsRow).ToList();

@@ -16,11 +16,15 @@ public static class JsonListingWriter
 {
     private const string SchemaVersionProperty = "schemaVersion";
 
-    /// <summary>The JSON text of <paramref name="document"/>, ending in a line feed.</summary>
+    /// <summary>Write the JSON text of <paramref name="document"/>, in UTF-8 and ending in a line feed, to <paramref name="output"/>
+    /// as it serializes (kb/Work PB5941: the text is never held whole).</summary>
     /// <exception cref="JsonException">An enum member of the document holds a value that is no member (such as
     /// <see cref="ListingJson.UnknownEnumValue"/>, read from a later minor), which has no name to write.</exception>
-    public static string Write(ListingDocument document) =>
-        JsonSerializer.Serialize(document, ListingJson.Document) + "\n";
+    public static void Write(ListingDocument document, Stream output)
+    {
+        JsonSerializer.Serialize(output, document, ListingJson.Document);
+        output.WriteByte((byte)'\n');
+    }
 
     /// <summary>
     /// Read a JSON listing written by any compiler of schema major 1 (DESIGN-listing.md section 7.3, the compatibility policy):

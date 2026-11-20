@@ -109,7 +109,7 @@ public sealed partial class SymbolTable
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A DATA-NAME OR CONDITION-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in
     /// every lookup that has one (<see cref="TryResolveUnqualified"/>; <c>DataBinder.QualifiedCandidates</c> and
-    /// <c>QualifiedConditionCandidates</c>, which own the qualifier walk and pass the survivors):
+    /// <see cref="IdentifyConditionName"/>, which apply the qualifier walk and pass the survivors):
     /// <see cref="NearestDeclaring{T}"/> keeps the survivors of the nearest declaring source element, and the report
     /// entries that element declares take part in the same ranking (kb/Work PB4196). A REPORT SECTION entry is a
     /// data-name of the source element that declares its report (§2023:8.4.2.2.3 SR1 counts it with the ordinary ones), so "if
@@ -141,7 +141,7 @@ public sealed partial class SymbolTable
     /// ranking <c>IndexCandidates</c> and <c>ReferenceResolver.CapacityRegisterFor</c> already apply to a condition-name
     /// beside them. (A nearer CAPACITY register is asked by <c>ConditionBinder.ConditionOf</c> of the register's one lookup.)
     /// The caller's own verdict then says what the name is declared as.</summary>
-    public List<Condition88> NearestDeclaringConditions(
+    private List<Condition88> NearestDeclaringConditions(
         List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers, Scope scope)
     {
         var tier = NearestDeclaring(candidates, static c => c.Parent);
@@ -157,7 +157,7 @@ public sealed partial class SymbolTable
     /// declared in a nearer source element (ISO §2023:8.4.6.2.1 3) a))? A condition-only position then meets a reference that
     /// names a data item, which is neither a misqualified condition-name nor an undeclared one (kb/Work PB4219 review
     /// R1-1).</summary>
-    public bool NearerDataItemHidesConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
+    private bool NearerDataItemHidesConditions(List<Condition88> candidates, string name, IReadOnlyList<string> qualifiers)
     {
         var tier = NearestDeclaring(candidates, static c => c.Parent);
         return tier.Count != 0 && NearerDataItemHides(name, qualifiers, _data.State.Forest.DeclaringDepth(tier[0].Parent));
@@ -196,7 +196,7 @@ public sealed partial class SymbolTable
     /// unit's global multimap (the same §2023:8.4.6.2.1 rule-3a precedence the data-name lookup applies). A method-local
     /// name of the spelling in any other class hides the object's condition-name (§2023:11.7.4 GR5, as in
     /// <see cref="TryResolve"/>).</summary>
-    public bool TryResolveCondition(string name, Scope scope, out List<Condition88> conds)
+    private bool TryResolveCondition(string name, Scope scope, out List<Condition88> conds)
     {
         var key = Key(name);
         if (scope.Method is { } m)

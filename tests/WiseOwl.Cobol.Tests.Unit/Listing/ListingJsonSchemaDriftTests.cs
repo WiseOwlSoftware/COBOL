@@ -101,7 +101,7 @@ public sealed class ListingJsonSchemaDriftTests
     public void AWrittenDocument_IsValid_AndAWrongEnumValueIsNot()
     {
         var schema = JsonNode.Parse(ListingJsonSchema.Committed())!;
-        var written = JsonNode.Parse(JsonListingWriter.Write(JsonListingWriterTests.EveryMember()))!;
+        var written = JsonNode.Parse(ListingRendering.Json(JsonListingWriterTests.EveryMember()))!;
         Assert.Empty(JsonSchemaSubset.Validate(schema, written));
         written["lines"]![0]!["kind"] = "NoSuchKind";
         Assert.Contains(JsonSchemaSubset.Validate(schema, written), e => e.Contains("$.lines[0].kind", StringComparison.Ordinal));

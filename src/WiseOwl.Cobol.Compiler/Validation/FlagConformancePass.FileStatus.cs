@@ -31,7 +31,7 @@ namespace WiseOwl.Cobol.Validation;
 /// value depends on the collating sequence it is ordered in, and it names no status.
 /// <para>⛔ A REFERENCE IS RESOLVED, NEVER MATCHED BY SPELLING (kb/Work PB3288). "A data item specified in a FILE STATUS
 /// clause" is a data item, not a word: the operand is resolved in the current unit's name scope (qualifiers honoured,
-/// <c>ResolveItem</c> for a data-name, <c>DataBinder.QualifiedConditionCandidates</c> for a condition-name) and is the
+/// <c>ResolveItem</c> for a data-name, <c>SymbolTable.IdentifyConditionName</c> for a condition-name) and is the
 /// reference exactly when the item it resolves to IS (reference identity) some visible file's FILE STATUS item, or the
 /// condition-name's conditional variable is. A same-named item of another program, or of another group, is not.</para>
 /// <para>The value tested for is the operand literal's VALUE, decoded once by <see cref="CobolLiteral.Decode"/>
@@ -194,14 +194,13 @@ internal sealed partial class FlagConformancePass
         => SoleReference(operand) is { } dref ? ResolveItem(dref) : null;
 
     /// <summary>The level-88 condition-name a SOLE data reference operand names in the current unit's scope, else
-    /// null — one candidate of <see cref="DataBinder.QualifiedConditionCandidates"/> (the resolution the condition
+    /// null — one candidate of <see cref="SymbolTable.IdentifyConditionName"/> (the resolution the condition
     /// binder reads); several is an ambiguity the binder has already refused, so no condition is named.</summary>
     private Condition88? BareCondition(CobolParserCore.ValueOperandContext? operand)
     {
         if (_currentData is null || SoleReference(operand) is not { } dref
-            || dref.cobolWord()?.GetText() is not { } name) return null;
-        return _currentData.QualifiedConditionCandidates(name, ConditionBinder.QualifiersOf(dref), _currentData.ActiveScope)
-            is [var only] ? only : null;
+            || WrittenQualifiedName.Of(dref) is not { } written) return null;
+        return _currentData.Symbols.IdentifyConditionName(written, report: false) is [var only] ? only : null;
     }
 
     private static CobolParserCore.DataReferenceContext? SoleReference(CobolParserCore.ValueOperandContext? operand)

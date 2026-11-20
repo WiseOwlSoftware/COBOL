@@ -121,11 +121,10 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <c>ProcedureTableBuilder</c> are such callers. Null for a special register, a name nothing declares and an ambiguous reference.</summary>
     internal DataItem? ProbeDeclaration(Core.DataReferenceContext dref)
     {
-        DataReferenceCst written = dref;
-        if (written.Register != SpecialRegister.None || written.BaseName is not { } name) return null;
+        if (WrittenQualifiedName.Of(dref) is not { } written) return null;   // a special register, or no name
         bool savedProbing = Probing;
         Probing = true;
-        try { return Names.FindItem(name, ReadWritten(dref).Qualifiers); }
+        try { return Names.DataItemNamed(written); }
         finally { Probing = savedProbing; }
     }
 
@@ -367,7 +366,13 @@ public sealed class ReferenceResolver(DataBinder data)
         // r.BaseName is the FILE-/REPORT-NAME qualifier and would otherwise mis-resolve here as a base data-name.
         if (r.Register != SpecialRegister.None) return Ends(Deferred(DeferredShape.UnroutedSpecialRegister));
         // No base word outside a special register is a parse-error recovery node: the parser reported it.
-        if (r.BaseName is not { } name) return Ends(Refused());
+        if (dref.cobolWord() is null) return Ends(Refused());
+        // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference), and its name and
+        // qualifiers as the symbol table keys them, each word read off its token once, here, for every arm below.
+        var written = ReadWritten(dref);
+        var qualifiers = written.Qualifiers;
+        var named = WrittenQualifiedName.OfRead(dref, qualifiers);
+        string name = named.Name;
 
         // The OCCURS DYNAMIC CAPACITY register (ISO §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9): an implicitly-
         // defined VIEW over the owning dynamic table's current capacity — never a storage item, so it is not in
@@ -405,9 +410,8 @@ public sealed class ReferenceResolver(DataBinder data)
         if (data.State.Implicit.DebugRegisters.Count > 0 && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
             && data.Symbols.Identify(dref.cobolWord(), NameClass.DebugRegister, report) is { Symbol: DebugRegisterPlace dbg })
         {
-            var debugWritten = ReadWritten(dref);
-            if (!RefMods.ScreenRefModCount(dref, debugWritten, name)) return Ends(Refused());
-            return new Identified(null, dbg.RegisterItem, debugWritten, [], dbg);
+            if (!RefMods.ScreenRefModCount(dref, written, name)) return Ends(Refused());
+            return new Identified(null, dbg.RegisterItem, written, [], dbg);
         }
 
         // A REPORT SECTION SUM COUNTER (ISO §2023:13.18.54.4 GR5 — the data-name after the level number names the
@@ -419,9 +423,6 @@ public sealed class ReferenceResolver(DataBinder data)
         // counter is a table and takes the ordinary subscripts (kb/Work PB1271).
         if (Counters.SumCounterFor(dref, report) is { } sumCounter) return Ends(sumCounter);
 
-        // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference).
-        var written = ReadWritten(dref);
-        var qualifiers = written.Qualifiers;
 
         // ISO §2023:8.4.3.3.3 SR3 — "Identifier-1 shall not be a reference-modification format identifier." The
         // grammar cannot express this (dataReferenceSuffix* and qualification's own (subscriptPart|refModPart)*
@@ -433,7 +434,7 @@ public sealed class ReferenceResolver(DataBinder data)
 
         // A reference whose chain ends in a non-word object (SELF, SUPER, a view, a function, NULL) is never a data name.
         DataItem? item = written.PropertyObject is not null ? null
-            : qualifiers.Count > 0 ? Names.ResolveQualified(name, qualifiers) : Names.ResolveUnqualified(name);
+            : Names.DataItemNamed(named);
         // §2023:8.4.3.1.2 Format 7 (kb/Work PB1425): `property-name-1 OF identifier-3` is textually a qualified data
         // reference, so it legitimately FAILS normal qualification. ResolveObjectProperty splits the chain — identifier-3
         // takes the qualifiers and the subscripts (§2023:8.4.3.1.4 GR1 a) before d)) — and synthesizes the §2023:8.4.3.9.4 GR1–GR3
@@ -454,7 +455,7 @@ public sealed class ReferenceResolver(DataBinder data)
         if (item is null)
         {
             if (ObjectProperties.ViewOfQualifiedItem(dref, report) is { } viewOfItem) return Ends(viewOfItem);
-            var (temp, final) = ObjectProperties.ResolveObjectProperty(dref, name, written);
+            var (temp, final) = ObjectProperties.ResolveObjectProperty(dref, written);
             if (final is not null) return Ends(final);
             objectProperty = (item = temp) is not null;
         }
@@ -580,9 +581,10 @@ public sealed class ReferenceResolver(DataBinder data)
     public TableOperand? ResolveTableOperand(Core.DataReferenceContext dref)
     {
         DataReferenceCst r = dref;
-        if (r.Register != SpecialRegister.None || r.BaseName is not { } name) return null;
+        if (r.Register != SpecialRegister.None || dref.cobolWord() is null) return null;
         var written = ReadWritten(dref);
-        if (Names.FindReportedItem(dref, name, written.Qualifiers) is not { } item) return null;
+        var named = WrittenQualifiedName.OfRead(dref, written.Qualifiers);
+        if (Names.FindReportedItem(dref, named) is not { } item) return null;
         // The subscripts AS WRITTEN, split by the ONE declaration-informed splitter (kb/Work PB136) — the same
         // reading SR8/SR9 already demand of a Format-2 key subscript, for the same reason: the RENDERED index
         // expression has erased how many operands the programmer wrote.
@@ -594,8 +596,8 @@ public sealed class ReferenceResolver(DataBinder data)
     /// (one per OCCURS level, outermost first). A level-66 RENAMES entry is built by the same
     /// <see cref="PlaceForItem"/> as every other item (kb/Work PB1380); it is never a table element, so a written
     /// subscript on one builds no place.</summary>
-    internal Place? ResolveByName(string name, IReadOnlyList<string> qualifiers, IReadOnlyList<Position> indexExprs) =>
-        Names.FindItem(name, qualifiers) is { } item ? Places.PlaceForItem(item, indexExprs) : null;
+    internal Place? ResolveByName(WrittenQualifiedName written, IReadOnlyList<Position> indexExprs) =>
+        Names.DataItemNamed(written) is { } item ? Places.PlaceForItem(item, indexExprs) : null;
 
     /// <summary>Resolve an <c>ADDRESS OF</c> operand (ISO §2023:8.4.3.11) to its item plus the OCCURS displacement
     /// of its subscripts — the <c>(idx − 1) × width</c> character-position terms (<see cref="OffsetTerm"/>) within
@@ -936,7 +938,7 @@ internal readonly record struct WrittenReference(
     Core.PropertyObjectContext? PropertyObject)
 {
     /// <summary>The shared empty qualifier list for an unqualified reference. Read-only by contract: every
-    /// consumer (<see cref="ResolveQualified"/>, <see cref="ReportUnidentified"/>) only enumerates it.</summary>
+    /// consumer (<see cref="NameResolution.ReportUnidentified"/>) only enumerates it.</summary>
     private static readonly List<string> NoQualifiers = [];
 
     /// <summary>The OF/IN qualifiers, inner → outer; empty for an unqualified reference.</summary>

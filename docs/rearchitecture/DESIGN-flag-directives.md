@@ -100,7 +100,7 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | a ALL | fan-out to b–f | directive parse | 0 | |
 | b EC-PROGRAM-EXCEPTIONS | a `>>TURN` for EC-ALL/EC-PROGRAM/EC-PROGRAM-ARG-OMITTED/EC-PROGRAM-NOT-FOUND in a source element (§2023:3.164) that calls any function or invokes any method | `[B]` DONE — `TurnState.DirectiveLinesNaming` (post-walk) + the SOURCE-ELEMENT model (`_elements`) with calls from `VisitFunctionCall`/`VisitInvokeStatement`/`VisitInlineMethodInvocation` and the binder-recorded `DataBindState.ActivationSites` | 4 | GR4 normative (no Annex-E re-item); CALL of a program is NOT a trigger |
 | c I-O-STATUS-07 | a CLOSE with WITH NO REWIND or the UNIT phrase | `[B]` `BoundClose` — **needs a NoRewind model bit** (`BoundCloseKind` has ReelUnit but not NoRewind) | 3 | E.2 item 16. `CobolIO.g4 closeOption` already parses both |
-| d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) the OPERANDS are category alphanumeric-edited (a reference-modified operand is alphanumeric, §2023:8.4.3.3.4 GR6 a), or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` parse-tree visitor + per-unit `NameResolution.FindItem` (same-DDE = `ReferenceEquals`) | 3 | GR4 normative (no Annex-E re-item) |
+| d MOVE-TO-SAME-NAME | a MOVE whose send/receive resolve to the SAME DDE, and (1) the OPERANDS are category alphanumeric-edited (a reference-modified operand is alphanumeric, §2023:8.4.3.3.4 GR6 a), or (2) a subordinate OCCURS…DEPENDING whose DEPENDING item is subordinate to that DDE | `[B]` parse-tree visitor + per-unit `ReferenceResolver.ProbeDeclaration` (the silent identification, `NameResolution.DataItemNamed` over `SymbolTable.IdentifyDataName`; same-DDE = `ReferenceEquals`) | 3 | GR4 normative (no Annex-E re-item) |
 | e RANGE-EXCEPTION-FOR-INDEX | an index-assignment/arithmetic SET whose receiver is an **index-name** (NOT a class-index DATA item — §2023:14.9.39.4 Format-1 GR2b copies it unchanged, no range check), when EC-RANGE-INDEX checking is enabled | `[B]` parse-tree visitor: `ForestSlice.IndexNames` + `TurnState` | 3 | GR4 normative |
 | f TERMINATE-WITH-VARYING | a TERMINATE of a report whose RD contains a VARYING clause | `[B]` `ReportWriterBinder` BindTerminate + ReportModel `Varyings` | 1 | GR4 normative |
 
@@ -239,7 +239,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 * **Incr 3 — the state-coupled options (COMPLETE).**
   * **i REF-MOD-ZERO-LENGTH** — tri-state `RefModZeroLengthState` extension + EC-BOUND-REF-MOD `TurnState` read.
   * **d MOVE-TO-SAME-NAME** — same-DDE by **exact `ReferenceEquals`** of the two operands resolved with
-    `NameResolution.FindItem` (the description entry — subscript/ref-mod-agnostic), then (1) alphanumeric-edited
+    `ReferenceResolver.ProbeDeclaration` (the description entry — subscript/ref-mod-agnostic), then (1) alphanumeric-edited
     `{ Category: PicCategory.Alphanumeric, EditMask: not null }` (there is **no** `PicCategory.AlphanumericEdited`
     member) or (2) `OdoModel.TableUnder(item) is { OccursSpec.Depending: {} dep } && OdoModel.IsWithin(dep, item)`.
     Both MOVE forms; a literal/function sender is skipped. Introduced **per-unit name resolution** to the pass — a
@@ -264,7 +264,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     and the nonnumeric literal '04'/'07' on the other); an **abbreviated combined relation** (`FS = "00" OR "04"`,
     `AND NOT = "04"` — §2023:8.8.4.12.4 GR1 inserts the last preceding stated subject, so the scan of a `condition`'s tiers
     carries the leftmost operand of the last relation in source order, and a parenthesised condition restarts it); a
-    bare **level-88 condition-name** (resolved through `DataBinder.QualifiedConditionCandidates`, the one
+    bare **level-88 condition-name** (resolved through `SymbolTable.IdentifyConditionName`, the one
     resolution the condition binder also reads) whose singleton `Condition88.Values` DECODE (`CobolLiteral.Decode`;
     `X"3034"` is '04', `"0'4"` is three characters) to '04'/'07' and whose conditional variable is the FILE-STATUS
     item; and an **EVALUATE** selection subject/object pair (§2023:14.9.13.3 SR2 pairs them by position, SR8 reads a

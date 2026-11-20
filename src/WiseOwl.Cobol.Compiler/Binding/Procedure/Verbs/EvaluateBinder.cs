@@ -797,9 +797,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// screened the range's operands: a pointer pair answered ALPHANUMERIC, turned EC-RANGE-INVALID checking on, and had
     /// the emitter order raw addresses. The screen makes that remark true again, one phase earlier.</para>
     /// <para>⛔ THE RANGE'S CLASS, ASKED ONCE, OF BOTH ENDS (§2023:14.9.13.3 SR4 gives the pair one class to have) — and it
-    /// is what BOTH of §2023:14.7.8's halves are keyed on: rule 1 (numeric) is algebraic, names no sequence and sets no
-    /// exception; rule 2 (alphanumeric or national) has the sequence, the IN alphabet-name-1 phrase AND the EC. Two
-    /// separately-written tests of one antecedent is how the two halves of rule 2 came to disagree about the same
+    /// is what BOTH of §2023:14.7.8's halves are keyed on: GR1 (numeric) is algebraic, names no sequence and sets no
+    /// exception; GR2 (alphanumeric or national) has the sequence, the IN alphabet-name-1 phrase AND the EC. Two
+    /// separately-written tests of one antecedent is how the two halves of GR2 came to disagree about the same
     /// range (kb/Work PB401).</para>
     /// <para>§2023:14.9.13.2's range-expression ends `[ IN alphabet-name-1 ]`, and §2023:14.7.8 GR2 makes that alphabet THE
     /// collating sequence the range is evaluated in — overriding the no-phrase arm's "defined by the implementor"
