@@ -79,10 +79,6 @@ public class CompileBenchmarks
         if (!full.Success || new FileInfo(full.OutputDll).Length == 0)
             throw new InvalidOperationException(
                 $"{Program}: the full compile did not produce an assembly ({full.Status}): {string.Join("; ", full.Errors)}");
-        var checkOnly = CompilerDriver.Compile(_checkOnly);
-        if (!checkOnly.Success)
-            throw new InvalidOperationException(
-                $"{Program}: the check-only compile failed ({checkOnly.Status}): {string.Join("; ", checkOnly.Errors)}");
 
         // The copybook witness: the source plus at least one library text per COPY-making program.
         int copybooksRead = full.Inputs.FilesRead.Count(f => !string.Equals(Path.GetFullPath(f),
@@ -102,6 +98,9 @@ public class CompileBenchmarks
             throw new InvalidOperationException($"{Program}: the {Listing} case wrote no JSON listing of every line");
         if (Listing == ListingMode.All && full.Listing!.DataMap is not { Items.Count: > 0 })
             throw new InvalidOperationException($"{Program}: the All case holds no data map");
+        if (Listing == ListingMode.All && !(full.Listing!.ObjectCode is { Ranges.Count: > 0 } objectCode
+                && objectCode.Ranges.Any(r => r.Instructions is { Count: > 0 })))
+            throw new InvalidOperationException($"{Program}: the All case holds no object code");
         string html = Path.ChangeExtension(full.OutputDll, null) + WiseOwl.Cobol.Listing.ListingOutput.Extension(WiseOwl.Cobol.Listing.ListingFormats.Html);
         if (Listing == ListingMode.All && (!File.Exists(html) || !File.ReadAllText(html).Contains($"id=\"L{full.Listing!.Lines[^1].Number}\"", StringComparison.Ordinal)))
             throw new InvalidOperationException($"{Program}: the All case wrote no HTML listing of every line");
@@ -111,6 +110,12 @@ public class CompileBenchmarks
             throw new InvalidOperationException($"{Program}: the {Listing} case wrote a JSON listing");
         if (Listing == ListingMode.None && (full.Listing is not null || File.Exists(listing)))
             throw new InvalidOperationException($"{Program}: the None case wrote a listing");
+        // The check-only compile writes its own listing to the same files (no object code: it writes no assembly), so it runs after
+        // the full compile's files were read.
+        var checkOnly = CompilerDriver.Compile(_checkOnly);
+        if (!checkOnly.Success)
+            throw new InvalidOperationException(
+                $"{Program}: the check-only compile failed ({checkOnly.Status}): {string.Join("; ", checkOnly.Errors)}");
         Console.WriteLine($"// witness {Program} {Listing}: {full.Inputs.FilesRead.Count} files read ({copybooksRead} library "
                           + $"texts), assembly {new FileInfo(full.OutputDll).Length} bytes"
                           + (Listing != ListingMode.None ? $", listing {new FileInfo(listing).Length} bytes" : "")

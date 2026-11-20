@@ -220,15 +220,15 @@ internal static class Program
         listingOption.Validators.Add(result => ValidateOnOff(result, "--listing"));
         var listingOutputOption = new Option<string?>("--listing-output")
         {
-            Description = "Where the listing goes: BASE.lst; - writes the text listing to standard output (default: the output "
-                + "assembly's path without its extension). Implies --listing on.",
+            Description = "Where the listing goes: BASE plus each format's extension; - writes the one format requested to standard "
+                + "output (default: the output assembly's path without its extension). Implies --listing on.",
             HelpName = "BASE",
         };
         var listingFormatOption = new Option<string[]>("--listing-format")
         {
             Description = $"A listing format to write ({WiseOwl.Cobol.Listing.ListingOutput.Spellings}): text is BASE.lst, json is "
-                + "BASE.lst.json (the versioned JSON document, with its published schema). Repeatable; default text. Implies "
-                + "--listing on.",
+                + "BASE.lst.json (the versioned JSON document, with its published schema), html is BASE.lst.html (the hyperlinked "
+                + "page). Repeatable; default text. Implies --listing on.",
             Arity = ArgumentArity.OneOrMore,
             AllowMultipleArgumentsPerToken = false,   // one format per occurrence: `--listing-format json a.cob` keeps the source
             HelpName = WiseOwl.Cobol.Listing.ListingOutput.Spellings,

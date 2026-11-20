@@ -603,6 +603,30 @@ page shows both under each statement (section 7.2) and in the object-code sectio
 step 9 (kb/Work PB5941) and is further over now; PB5941's dated file `2026-11-19-step-9-html-row` holds these rows and the fix
 they point to. Time rows are not shown (kb/Work PB5927).
 
+**kb/Work PB5941 (every format streamed to its file, each instruction once on the page): the `All` row against the parent.**
+Measured on 2026-11-19, Release, one Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter
+'*CompileBenchmarks.FullCompile*None*' '*CompileBenchmarks.FullCompile*All*'` twice on the parent `8dd07d2eab` (a detached
+worktree of it) and twice on the `listing-step-pb5941` branch (commit ff0b71271f), alternating parent, branch, parent, branch.
+Allocated bytes per full compile, the two runs of each tree:
+
+| Program | Parent None | Parent All | Parent All over None | Branch None | Branch All | Branch All over None |
+|---|---|---|---|---|---|---|
+| IX113A | 192.63, 200.14 MB | 307.54, 300.62 MB | +59.7, +50.2 % | 198.89, 195.88 MB | 233.70, 228.24 MB | +17.5, +16.5 % |
+| NC105A | 114.46, 114.15 MB | 184.33, 193.30 MB | +61.0, +69.3 % | 115.28, 114.00 MB | 135.48, 134.83 MB | +17.5, +18.3 % |
+| NC218A | 116.42, 112.26 MB | 184.16, 182.13 MB | +58.2, +62.2 % | 111.42, 112.29 MB | 132.61, 133.31 MB | +19.0, +18.7 % |
+| SM201A | 42.17, 45.46 MB | 64.94, 68.26 MB | +54.0, +50.2 % | 41.39, 44.55 MB | 49.94, 52.81 MB | +20.7, +18.5 % |
+
+Reading them: `All` is inside its 25 % budget on every program and run, and allocates 15.0 to 73.8 MB less than the parent's.
+The `None` rows of the two trees lie inside one another's run-to-run spread (the change touches only what a listing runs). The
+measurement first found the mechanism, with a Release probe of each part of the `all` listing (a temporary entry point, not
+committed; GC.GetTotalAllocatedBytes around each step, after three warm compiles): on IX113A the document cost +14.6 MB over no
+listing, and writing it 99.7 MB, the text listing 33.2 MB for a 2.6 MB file, the JSON 27.0 MB for 6.7 MB and the page 39.5 MB
+for 6.6 MB, because each format was held whole (a buffer, a string copied from it, the string encoded into the file) and the
+page printed each instruction twice. After the change the probe reads 13.3 MB (text), 0.16 MB (JSON) and 8.3 MB (the page,
+now 4.9 MB). The witness now reads the full compile's listing files before the check-only compile overwrites them, and holds the
+`All` case to an object code with instructions: the step-8 and step-9 witness lines quoted the check-only compile's listing (no
+object code), 0.9 MB for IX113A where the full compile writes 2.6 MB. Time rows are not shown (kb/Work PB5927).
+
 **Step 6b, slice 1 (kb/Work PB5932, the cd-names and the file-names resolved by `SymbolTable.Identify`): the `None` row against
 the parent.** Slice 1 changes how every compilation resolves a cd-name or a file-name, with or without a listing, so it
 measures the no-listing path. Measured on 2026-11-18, Release, one Windows host,

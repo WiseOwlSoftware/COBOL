@@ -322,7 +322,7 @@ know. A new major is announced in the release notes of the
 release that ships it.
 
 With `--listing-output -` the one format requested goes to standard output, before the diagnostics (which go to standard
-error). A `>>DISPLAY ... UPON LISTING` is in the listing itself; one `UPON CONSOLE` or `SYSOUT` follows the listing on
+error), as the same UTF-8 bytes its file would hold, whatever the console's code page. A `>>DISPLAY ... UPON LISTING` is in the listing itself; one `UPON CONSOLE` or `SYSOUT` follows the listing on
 standard output.
 
 ## The object-code map and the object code
@@ -393,7 +393,9 @@ document as the text and the JSON listing, so the three always agree.
 - **Diagnostics.** Each diagnostic stands under its line, the column it names highlighted in the line's text; the diagnostic
   summary at the end lists them all and links each to its place.
 - **Object code.** With `object-map` or `object-code` in the sections, each statement's line holds a folded block per stretch of its
-  code: its method and IL range, and with `object-code` its instructions.
+  code: its method and IL range, and with `object-code` its instructions. Each instruction is on the page once: the object code
+  section lists each stretch with its line and source text and links to the block under the line that holds its instructions; only
+  a page without the source section holds the instructions in the object code section itself.
 - **Links.** A data description line's margin links to its data map entry; a data map entry's line, and each entry its facts name
   (`REDEFINES #3`, `INDEXED BY #5`, a file's keys and records), are links; so are the program map's first and last lines, the
   object-code map's lines and methods, and each verb's lines in the statistics.

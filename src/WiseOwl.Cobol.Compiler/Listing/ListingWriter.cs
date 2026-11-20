@@ -27,7 +27,7 @@ internal static class ListingWriter
             string path = outputBase + ListingOutput.Extension(format);
             try
             {
-                using (var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, FileBufferSize))
+                using (var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, FileBufferSize))   // not a compilation input: the listing the compilation writes
                     ListingOutput.Write(format, document, facts.Request, file);
                 files.Add(Path.GetFullPath(path));
             }
