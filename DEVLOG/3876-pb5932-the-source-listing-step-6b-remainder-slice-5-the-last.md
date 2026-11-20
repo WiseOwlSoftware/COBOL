@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b remainder slice 5: the last names move into the symbol table, every data entry is made where it is declared, and the baseline is gone
+## Entry 3876 — 2026-11-20 08:24 PST — PB5932: the source listing, step 6b remainder slice 5: the last names move into the symbol table, every data entry is made where it is declared, and the baseline is gone
 
 Step 6b moves every name the compiler resolves into the one symbol table (docs/rearchitecture/DESIGN-listing.md section 6.7.1; kb/Work
 PB5932). It landed by name class behind a shrink-only baseline of what had not moved. This slice is the last. It moves the 24
@@ -48,3 +48,4 @@ NC218A.
 **Leads.** Every LEAD of the 32 review files, and the two of kb/Work PB5932's `2026-11-19-review-leads-slices-2-and-3`, was already
 fixed on this tree (kb/Work PB5932's dated file `2026-11-20-step-6b-r5` holds the table). Step 7b, the occurrences and the
 cross-reference, now finds an entry for every class.
+
