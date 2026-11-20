@@ -32,6 +32,12 @@ public sealed class HtmlListingRendererTests
     private static string Span(XElement line, string cssClass) =>
         line.Elements("span").Single(e => (string?)e.Attribute("class") == cssClass).Value;
 
+    /// <summary>An object-code cell's nesting depth: its left padding in columns, two a level, none at depth 0.</summary>
+    private static int DepthOf(XElement cell) => cell.Attribute("style")?.Value is { } style
+        ? int.Parse(style.Replace("padding-left:", "", StringComparison.Ordinal).Replace("ch", "", StringComparison.Ordinal),
+            System.Globalization.CultureInfo.InvariantCulture) / 2
+        : 0;
+
     private static bool HasClass(XElement element, string cssClass) =>
         ((string?)element.Attribute("class") ?? "").Split(' ').Contains(cssClass);
 
@@ -176,15 +182,12 @@ public sealed class HtmlListingRendererTests
         // The method's exception-handling lines among the instructions (kb/Work PB5951), as ILDASM prints them (ECMA-335 II.19), in the
         // order the stretch holds them: each before the first instruction at or after its offset (the fixture's marks, by hand: two
         // .try at 0, the catch's end of try and handler at 6, the handler's and the filter clause's try end and its filter at 11), the
-        // ones past the last instruction after it; each indented by its depth.
+        // ones past the last instruction after it; each row indented by its depth (two columns a level, none at depth 0), an
+        // instruction one level inside the last line that opened a block.
         Assert.Equal(
-            ["0 .try {", "1 .try {", "op", "op", "1 } // end .try", "1 catch System.Exception {", "op", "1 } // end handler",
-             "0 } // end .try", "0 filter {", "op", "0 } // end filter", "0 { // handler", "0 } // end handler"],
-            objectCode[0].Descendants("tr").Select(tr => HasClass(tr, "rg")
-                ? tr.Element("td")!.Attribute("style")!.Value.Replace("padding-left:", "").Replace("ch", "") is var ch
-                    ? (int.Parse(ch, System.Globalization.CultureInfo.InvariantCulture) / 2).ToString(System.Globalization.CultureInfo.InvariantCulture)
-                      + " " + tr.Value : ""
-                : "op"));
+            ["0 .try {", "1 .try {", "2 op", "2 op", "1 } // end .try", "1 catch System.Exception {", "2 op", "1 } // end handler",
+             "0 } // end .try", "0 filter {", "1 op", "0 } // end filter", "0 { // handler", "0 } // end handler"],
+            objectCode[0].Descendants("tr").Select(tr => DepthOf(tr.Element("td")!) + " " + (HasClass(tr, "rg") ? tr.Value : "op")));
     }
 
     /// <summary>Section 7.2: "A DISPLAY transfer stands outside any collapsed block (§2023:7.3.12.4 GR2)", which says the transfer takes

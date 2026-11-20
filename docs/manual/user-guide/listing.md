@@ -370,6 +370,34 @@ offset, the instruction and its operand (a number, a quoted string, a branch tar
              IL_0014  ldfld        Cobol.prog._PRG_PROG::A
 ```
 
+The compiled code protects some statements with .NET exception handling: an OPEN or CLOSE restores the file's mode in a
+`finally`, a size check catches the overflow it reports, a statement under `>>TURN ... CHECKING ON` filters the exception
+conditions it handles. A method's exception-handling clauses are part of its object code, so the object code prints them where
+ILDASM does, among the instructions at their IL offsets: `.try {` where a protected block begins and `} // end .try` where it
+ends, then each handler of the block, `catch <type> {` (the type named as an instruction's operand names one), `finally {`,
+`fault {`, or a filter's `filter {`, `} // end filter` and `{ // handler`, each closed by `} // end handler`. Several clauses that
+protect one block share one `.try`. Blocks nest, and each level indents two columns, the instructions inside it too:
+
+```text
+    16   12  Cobol.prog._PRG_PROG::__Dispatch  IL_0064-IL_00A2
+                        ADD 1 TO N ON SIZE ERROR DISPLAY "SIZE" END-ADD
+             .try {
+               .try {
+                 IL_0064  ldarg.0
+                 ...
+                 IL_008B  leave.s      IL_0094
+               } // end .try
+               catch WiseOwl.Cobol.Runtime.CobolSizeError {
+                 IL_008D  pop
+                 IL_008E  leave.s      IL_0094
+               } // end handler
+```
+
+A boundary prints in the range that holds its offset, so a block that ends where the next statement's code begins closes at the top
+of that statement's range; one at the end of the method prints after the last instruction. The JSON listing holds each method's
+clauses (`regions`: the kind, the protected block's and the handler's offsets, a filter's start, a catch's type) and, in each range
+with instructions, the lines it prints among them, each with its offset, its depth and the clause it belongs to.
+
 Both sections need an assembly: a check-only compilation, or one the compiler refused, prints why they are absent.
 
 ## The HTML listing
@@ -393,7 +421,8 @@ document as the text and the JSON listing, so the three always agree.
 - **Diagnostics.** Each diagnostic stands under its line, the column it names highlighted in the line's text; the diagnostic
   summary at the end lists them all and links each to its place.
 - **Object code.** With `object-map` or `object-code` in the sections, each statement's line holds a folded block per stretch of its
-  code: its method and IL range, and with `object-code` its instructions.
+  code: its method and IL range, and with `object-code` its instructions with the method's exception-handling lines among them,
+  as the text listing prints them.
 - **Links.** A data description line's margin links to its data map entry; a data map entry's line, and each entry its facts name
   (`REDEFINES #3`, `INDEXED BY #5`, a file's keys and records), are links; so are the program map's first and last lines, the
   object-code map's lines and methods, and each verb's lines in the statistics.

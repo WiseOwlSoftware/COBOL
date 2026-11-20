@@ -597,10 +597,11 @@ public static class HtmlListingRenderer
         page.Append("<table class=\"il\">\n<tbody>\n");
         foreach (var line in ObjectCodeText.CodeLines(range))
         {
-            string indent = string.Create(CultureInfo.InvariantCulture, $" style=\"padding-left:{line.Depth * ObjectCodeText.RegionIndent}ch\"");
             if (line.Instruction is { } instruction)
             {
-                page.Append("<tr><td").Append(indent).Append('>');
+                page.Append("<tr><td");
+                Indent(page, line.Depth);
+                page.Append('>');
                 Escape(page, ObjectCodeText.Offset(instruction.Offset));
                 page.Append("</td>");
                 Cell(page, instruction.OpCode);
@@ -608,13 +609,22 @@ public static class HtmlListingRenderer
             }
             else
             {
-                page.Append("<tr class=\"rg\"><td colspan=\"3\"").Append(indent).Append('>');
+                page.Append("<tr class=\"rg\"><td colspan=\"3\"");
+                Indent(page, line.Depth);
+                page.Append('>');
                 Escape(page, ObjectCodeText.RegionText(line.Mark!, method.Regions));
                 page.Append("</td>");
             }
             page.Append("</tr>\n");
         }
         page.Append("</tbody>\n</table>\n");
+    }
+
+    /// <summary>A cell's indentation for a line of object code <paramref name="depth"/> levels deep: none at depth 0 (most rows), so the
+    /// page carries the attribute only where a region nests the row.</summary>
+    private static void Indent(StringBuilder page, int depth)
+    {
+        if (depth > 0) page.Append(" style=\"padding-left:").Append(depth * ObjectCodeText.RegionIndent).Append("ch\"");
     }
 
     private static string SeverityClass(ListingSeverity severity) => "sev-" + TextListingRenderer.SeverityWord(severity);
