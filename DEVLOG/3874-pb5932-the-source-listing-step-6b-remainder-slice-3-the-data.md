@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b remainder slice 3: the data-name candidate sets become the symbol table's, and every caller hands it the written words
+## Entry 3874 — 2026-11-20 04:13 PST — PB5932: the source listing, step 6b remainder slice 3: the data-name candidate sets become the symbol table's, and every caller hands it the written words
 
 Step 6b moves every name the compiler resolves into the one symbol table (docs/rearchitecture/DESIGN-listing.md section 6.7.1; kb/Work
 PB5932). It lands by name class behind a shrink-only baseline of what has not moved. Remainder slices 1 and 2 moved the procedure
@@ -55,3 +55,4 @@ and by the sweep one in `ReportModel.cs` (`ReportSumAddend`), the only two unres
 
 **What remains.** Part C (the declarations, the §2023:8.3.2.2 census, the group tier's program and function units, the parameterized
 expansion) and part D (the data-names' and condition-names' entries).
+
