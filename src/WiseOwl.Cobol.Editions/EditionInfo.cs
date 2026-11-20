@@ -122,6 +122,13 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// user-defined words, and do not have to be different from user-defined words" (§2002:F.2, item 135).</summary>
     public bool CopyNamesAreUserDefinedWords => Year < 2002;
 
+    /// <summary>Whether condition-names, data-names and record-names are ONE disjoint set of user-defined words (kb/Work PB5972): at
+    /// COBOL-85 the fourth of §1985:IV.4.2.2.1.1's disjoint sets is "condition-names, data-names, and record-names", whose duplicates
+    /// qualification makes unique (§1985:IV.4.3.8.1 SRL2.1). From 2002 a condition-name is a type of user-defined word of its own,
+    /// outside the exception that lets a data-name, a record-name and three other types share one word (§2002:8.3.1.1.1;
+    /// §2023:8.3.2.2).</summary>
+    public bool ConditionNamesShareTheDataNameSet => Year < 2002;
+
     /// <summary>The name of the standard this edition is, as its document is titled: what the source listing's page heading
     /// prints beside <c>--std</c> (DESIGN-listing.md section 6.1).</summary>
     public string StandardName => Year switch

@@ -1987,10 +1987,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // pair, kb/Work PB3347 review R1-1), and an 88 of a NEARER element is the item the reference names (§2023:8.4.6.2.1 3 a,
         // §2023:8.4.6.1): both in the one predicate.
         bool switchCompetes = ctx.Data.SwitchConditionCompetes(dref, matches);
-        int candidates = matches.Count + (switchCompetes ? 1 : 0);
+        // ⛔ AT COBOL-85 A DATA ITEM OF THE TIER IS ONE MORE CANDIDATE (kb/Work PB5972): condition-names, data-names and record-names
+        // are one disjoint set (§1985:IV.4.2.2.1.1), so `IF X` over a level-88 X and a data item X is nonunique (SRL2.1); `X OF F`
+        // that reaches the level-88 alone is not. Zero at every later edition, where the pair is refused at declaration (COBOL2692).
+        int dataRivals = ctx.Symbols.DataItemsRivalingCondition(written, matches);
+        int candidates = matches.Count + (switchCompetes ? 1 : 0) + dataRivals;
         if (candidates > 1 && _condDiagnosed.Add(dref))
         {
-            string others = switchCompetes ? " and a SPECIAL-NAMES switch condition-name" : "";
+            string others = (switchCompetes ? " and a SPECIAL-NAMES switch condition-name" : "")
+                + (dataRivals == 0 ? "" : $" and {dataRivals} data item{(dataRivals == 1 ? "" : "s")} (§1985:IV.4.2.2.1.1: one disjoint set)");
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.UndefinedReference,
                     $"the condition-name '{DataBinder.WrittenText(dref)}' matches {matches.Count} level-88 declarations{others} "
@@ -2000,6 +2005,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                     $"the condition-name '{DataBinder.WrittenText(dref)}' does not uniquely identify a level-88 — "
                     + $"{candidates} declarations match{(switchCompetes ? " (the level-88 and a SPECIAL-NAMES switch condition-name, which takes no qualifier, ISO §2023:8.8.4.6.2)" : "")}"
+                    + (dataRivals == 0 ? "" : $" ({matches.Count} level-88 and {dataRivals} data item{(dataRivals == 1 ? "" : "s")}: condition-names, data-names and record-names are one disjoint set, ISO §1985:IV.4.2.2.1.1)")
                     + $" (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.1", "§2023:8.4.2.2 Format 2")} — qualification shall establish uniqueness). Qualify by the conditional "
                     + "variable or its containing groups");
         }

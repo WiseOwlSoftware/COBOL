@@ -23,6 +23,7 @@ public readonly struct NameCandidates<T> where T : class
 {
     private readonly List<T>? _items;
     private readonly int _reportEntries;
+    private readonly int _conditionNames;
 
     internal NameCandidates(List<T> items) => _items = items;
 
@@ -35,16 +36,30 @@ public readonly struct NameCandidates<T> where T : class
         _reportEntries = reportEntries;
     }
 
+    /// <summary>The survivors, the REPORT SECTION entries beside them, and <paramref name="conditionNames"/> condition-names of the
+    /// same spelling the qualifiers reach in the same source element where the edition puts condition-names in the data-names' disjoint
+    /// set (§1985:IV.4.2.2.1.1's fourth set; kb/Work PB5972): names SRL2.1 counts with the data items, which no member stands for
+    /// (<see cref="ConditionNameCount"/>).</summary>
+    internal NameCandidates(List<T> items, int reportEntries, int conditionNames)
+    {
+        _items = items;
+        _reportEntries = reportEntries;
+        _conditionNames = conditionNames;
+    }
+
     /// <summary>How many declarations survive the reference's qualification, the REPORT SECTION entries of the same spelling
     /// included: a report entry's data-name is a user-defined name like any other (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1),
     /// so a data item that shares its name with one is not unique and the reference is the ambiguity.</summary>
-    public int Count => (_items?.Count ?? 0) + _reportEntries;
+    public int Count => (_items?.Count ?? 0) + _reportEntries + _conditionNames;
 
     /// <summary>How many survivors are ITEMS (<see cref="Count"/> less the report entries, which resolve to no <typeparamref name="T"/>).</summary>
     public int ItemCount => _items?.Count ?? 0;
 
     /// <summary>How many of <see cref="Count"/> are REPORT SECTION entries (kb/Work PB5775).</summary>
     public int ReportEntryCount => _reportEntries;
+
+    /// <summary>How many of <see cref="Count"/> are condition-names of COBOL-85's shared disjoint set (kb/Work PB5972).</summary>
+    public int ConditionNameCount => _conditionNames;
 
     /// <summary>The declaration the reference identifies — non-null only when exactly one survives.</summary>
     public T? Single => Count == 1 ? _items![0] : null;
@@ -86,17 +101,18 @@ public readonly struct NameCandidates<T> where T : class
     /// uniqueness verdict (ISO §2023:8.4.2.2.1 SR4's lapsed type-declaration members); the existing survivors keep
     /// their places, so <see cref="FirstDeclaredForPermissive"/> is unchanged.</summary>
     internal NameCandidates<T> Including(IReadOnlyCollection<T> more) =>
-        more.Count == 0 ? this : new([.. _items ?? [], .. more], _reportEntries);
+        more.Count == 0 ? this : new([.. _items ?? [], .. more], _reportEntries, _conditionNames);
 
     /// <summary>The survivors followed by another set's — one count over declarations of different origin that the
     /// same reference can name (the record-key-names of several files, kb/Work PB1099 review R1-2).</summary>
     internal NameCandidates<T> Plus(NameCandidates<T> other) =>
-        other.Count == 0 ? this : Count == 0 ? other : new([.. _items ?? [], .. other._items ?? []], _reportEntries + other._reportEntries);
+        other.Count == 0 ? this : Count == 0 ? other : new([.. _items ?? [], .. other._items ?? []], _reportEntries + other._reportEntries,
+            _conditionNames + other._conditionNames);
 
     /// <summary>The survivors as another member type, in the same order — so a position whose format admits TWO
     /// name classes (data-name-1 or record-key-name-1) counts both in one set and meets the one verdict.</summary>
     internal NameCandidates<TOut> Select<TOut>(Func<T, TOut> map) where TOut : class =>
-        new(_items is null ? [] : _items.ConvertAll(i => map(i)), _reportEntries);
+        new(_items is null ? [] : _items.ConvertAll(i => map(i)), _reportEntries, _conditionNames);
 
     /// <summary>The first-declared survivor — read ONLY by <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>'s
     /// <c>--permissive</c> arm (<c>DataNameResolutionDriftTests</c> holds every other reader out).</summary>
