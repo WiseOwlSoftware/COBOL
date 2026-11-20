@@ -1542,6 +1542,11 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       which also drops a set of lapsed type-declaration members alone. `IdentifyDataName` keeps both, so the move is behaviour-neutral;
       whether an unqualified reference to a type-declaration member alone should be dropped the same way is kb/Work PB5932's dated file
       `2026-11-19-step-6b-r1`'s lead, with the sum-counter funnel that still asks the qualified set for an unqualified name.
+    - *Each written word is read once (correction, section 9).* The first build answered the `None` row 0.05 to 0.32 MB over its
+      parent: the identification step read the head word for its arms and again to make the `WrittenQualifiedName`, and a qualified
+      reference's qualifier words in `ReferenceResolver.ReadWritten` and again in the name. `WrittenQualifiedName.OfRead(dataReference,
+      qualifierWords)` makes the name from the words `ReadWritten` already read, reading the head once, and the identification step reads
+      the reference once before its arms; every `None` row is then below the parent's (section 9).
     - *What remains of the class: the data division's operands.* The clause operands the data division keeps as `(name, qualifiers)`
       text (FILE STATUS, RELATIVE and RECORD KEY, PADDING, LINAGE, ASSIGN USING, APPLY COMMIT, VALUE OF, OCCURS DEPENDING ON and KEY,
       REDEFINES, RENAMES, SAME AS, a report clause's operands, a BASED claim) still reach `QualifiedCandidates`, `EntryClauseCandidates`,
@@ -2205,6 +2210,12 @@ renderer. Naming it asks for a listing at any edition.
   two runs or within 0.04 MB of them (IX113A 68.32 and 68.29 MB against 68.33 and 68.33); NC105A's lie one below both parent runs and
   one 0.55 MB above them (34.60 and 35.26 MB against 34.61 and 34.71), inside the program's run-to-run spread on one tree (slice 3's
   four runs each). The slice moves no measurable allocation; the `None` budget holds (the README's step-6b table, the closing slice).
+  Remainder slice 1 (the procedure division's data-names and condition-names through `IdentifyDataName` and `IdentifyConditionName`),
+  measured against its parent 8dd07d2eab, alternating: the first build was over the budget on every program (IX113A 68.51 and 68.37 MB
+  against 68.23 and 68.32), because the identification step read the head word twice and a qualified reference's qualifier words twice.
+  With each word read once (`WrittenQualifiedName.OfRead`, section 6.7.1), every branch `None` row lies below all three parent runs
+  (IX113A 67.61 and 67.66 MB against 68.23, 68.32 and 68.30; NC105A 34.21 and 34.22 against 34.59 to 34.66); the `None` budget holds
+  (the README's step-6b table, remainder slice 1).
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the

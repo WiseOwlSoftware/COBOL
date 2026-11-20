@@ -821,6 +821,28 @@ above, SM201A's second); NC105A's first branch run is below both parent runs and
 own run-to-run spread on one tree (slice 3 measured NC105A's `None` row from 34.90 to 35.64 MB on one branch, and 35.15 to 35.78 MB on
 its parent). The moves replace a dictionary per name class with one of the same shape in another type and allocate nothing per
 reference, so the slice moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, remainder slice 1 (kb/Work PB5932, the procedure division's data-names and condition-names identified by
+`SymbolTable.IdentifyDataName` and `IdentifyConditionName`): the `None` row against the parent.** Every data reference of every
+compilation is identified through the new path, so the slice measures the no-listing path. Measured on 2026-11-19, Release, one
+Windows host, the built `WiseOwl.Cobol.Benchmarks.exe --filter '*CompileBenchmarks.FrontEndAndBind*'` on the parent `8dd07d2eab` and
+the `listing-step-6b-r1` branch, alternating (parent, branch, branch, parent, then branch, branch, parent). The first build
+(0b3ea76906) read the reference's head word twice and a qualified reference's qualifier words twice; the measured branch (8e36bf0de5)
+reads each once (`WrittenQualifiedName.OfRead`). Allocated bytes per front end and bind:
+
+| Program | Listing | Parent 8dd07d2eab (3 runs) | First build 0b3ea76906 | Branch 8e36bf0de5 |
+|---|---|---|---|---|
+| IX113A | None | 68.23, 68.32, 68.30 MB | 68.51, 68.37 MB | 67.61, 67.66 MB |
+| NC105A | None | 34.59, 34.66, 34.59 MB | 35.37, 34.75 MB | 34.21, 34.22 MB |
+| NC218A | None | 30.61, 30.69, 30.85 MB | 30.93, 30.81 MB | 30.28, 30.30 MB |
+| SM201A | None | 15.06, 15.11, 15.27 MB | 15.11, 15.26 MB | 14.94, 15.12 MB |
+| IX113A | Text | 76.08, 76.19, 76.07 MB | 76.28, 76.35 MB | 75.48, 75.44 MB |
+| IX113A | All | 110.21, 110.13, 110.13 MB | 110.37, 110.47 MB | 109.51, 109.50 MB |
+
+Reading them: the first build was over the parent on every program (IX113A by 0.05 to 0.28 MB), the cost of reading a written word
+twice; with each word read once, every branch row lies below all three parent runs (IX113A by 0.6 MB: the condition binder no longer
+copies the qualifier words into a fresh list at every condition-name ask, and the storage-claim scan none at every operand). The
+`None` budget holds. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here
