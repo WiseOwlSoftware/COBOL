@@ -77,14 +77,18 @@ public static class CobolWordRule
     /// <summary>Every §2023:8.3.2.1 violation of a DIRECTIVE-carried word (a <c>&gt;&gt;DEFINE</c> name, a <c>&gt;&gt;TURN</c>
     /// operand) — the length and the Annex B characters — as (code, message), for the directive stages to report on
     /// their own channels. Every directive is itself a COBOL-2002 introduction, so the below-2002 extended-letter gate
-    /// never applies to one. A 2023 removal (<see cref="RemovedAt2023"/>) carries the removed-construct code, as the
-    /// word screen's does (<see cref="Parsing.WordCharacterScreen"/>); the directive channels report errors only.</summary>
-    public static IEnumerable<(string Code, string Message)> DirectiveWordViolations(string word, int dialectLevel)
+    /// never applies to one. A 2023 removal (<see cref="RemovedAt2023"/>) carries the code and the edition flag of the verdict of
+    /// registry row <c>user-word-character-removed-2023</c> (<see cref="ConstructRegistry.VerdictAt"/>), as the word screen's
+    /// does (<see cref="Parsing.WordCharacterScreen"/>); the directive channels report errors only.</summary>
+    public static IEnumerable<(string Code, string Message, EditionFlag? Flag)> DirectiveWordViolations(string word, int dialectLevel)
     {
         if (LengthViolation(word, dialectLevel) is { } length)
-            yield return (DiagnosticCatalog.WordLengthExceeded.Code, length);
-        if (CharacterViolation(word, dialectLevel) is { } character)
-            yield return (RemovedAt2023(word, dialectLevel) ? EditionCodes.RemovedConstruct : DiagnosticCatalog.WordCharacterNotPermitted.Code,
-                character);
+            yield return (DiagnosticCatalog.WordLengthExceeded.Code, length, null);
+        if (CharacterViolation(word, dialectLevel) is not { } character) yield break;
+        if (RemovedAt2023(word, dialectLevel)
+            && ConstructRegistry.VerdictAt(EditionInfo.Of(dialectLevel), Constructs.UserWordCharacterRemoved2023) is { } removed)
+            yield return (removed.Code, character, removed.Flag);
+        else
+            yield return (DiagnosticCatalog.WordCharacterNotPermitted.Code, character, null);
     }
 }

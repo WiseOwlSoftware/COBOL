@@ -218,7 +218,41 @@ public static class HtmlListingRenderer
                 page.Write("</tr>\n");
             }
             page.Write("</tbody>\n</table>\n");
+            FlaggedConstructs();
             return page;
+        }
+
+        /// <summary>The table of flagged constructs by edition (DESIGN-listing.md section 6.11) in the text listing's words
+        /// (<see cref="FlaggedConstructText"/>), each listing line a link to its diagnostic under its line where the page holds that
+        /// line; nothing when no diagnostic is an edition flag.</summary>
+        private void FlaggedConstructs()
+        {
+            if (document.FlaggedConstructs.Count == 0) return;
+            page.Write("<h3>");
+            Escape(page, FlaggedConstructText.Title);
+            page.Write("</h3>\n");
+            Head(page, FlaggedConstructText.Headings);
+            var diagnostics = document.Diagnostics.ToDictionary(d => d.Id);
+            foreach (var construct in document.FlaggedConstructs)
+            {
+                page.Write("<tr>");
+                Cell(page, FlaggedConstructText.EditionText(construct.Edition), "n");
+                Cell(page, FlaggedConstructText.KindWord(construct.Kind));
+                Cell(page, FlaggedConstructText.CountText(construct), "n");
+                Cell(page, FlaggedConstructText.ConstructText(construct));
+                page.Write("<td>");
+                bool first = true;
+                foreach (int id in construct.Diagnostics)
+                {
+                    if (!first) page.Write(' ');
+                    first = false;
+                    if (diagnostics[id].Line is { } line && _lines.Contains(line))
+                        Link(page, "#" + DiagnosticId(id), line.ToString(CultureInfo.InvariantCulture));
+                    else page.Write(diagnostics[id].Line?.ToString(CultureInfo.InvariantCulture) ?? "-");
+                }
+                page.Write("</td></tr>\n");
+            }
+            page.Write("</tbody>\n</table>\n");
         }
 
         public TextWriter Options()

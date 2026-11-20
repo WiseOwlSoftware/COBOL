@@ -57,7 +57,7 @@ public sealed class ListingSectionRenderingTests
         Lines,
         [new ListingProgram(0, "OUTER", ListingProgramKind.Program, null, 0, 1, 6, null),
          new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 4, 5, null)],
-        [], [],
+        [], [], [],
         options ?? [new ListingOption("--std", "2023 (ISO/IEC 1989:2023)", ListingOptionOrigin.Default),
                     new ListingOption("--copy", "/a/very/long/library/directory/" + new string('x', 120), ListingOptionOrigin.Specified),
                     new ListingOption("compiler", "30.0.0", ListingOptionOrigin.Host)],
