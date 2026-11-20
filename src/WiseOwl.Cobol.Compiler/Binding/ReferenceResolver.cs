@@ -795,7 +795,7 @@ public sealed class ReferenceResolver(DataBinder data)
         int depth = data.State.Forest.DeclaringDepth(table);
         reached.RemoveAll(t => data.State.Forest.DeclaringDepth(t) != depth);
         if (table.OccursSpec?.CapacityRegister is not { } reg
-            || data.Symbols.NearerDataOrConditionNameHides(name, written.Qualifiers, depth)) return null;
+            || data.Symbols.NearerNameOfAnotherClassHides(name, written.Qualifiers, depth)) return null;
         var place = CapacityRegisterPlaceOf(table);
         var fault =
               written.SubscriptGroup is not null                     ? CapacityRefFault.Subscripted

@@ -129,7 +129,7 @@ public sealed partial class SymbolTable
         if (tier.Count == 0) return tier;
         int depth = _data.State.Forest.DeclaringDepth(tier[0]);
         return NearerEntryHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
-            || Declared.NearerFileNameHides(name, qualifiers, depth)
+            || Declared.NearerFileOrReportNameHides(name, qualifiers, depth)
             ? []
             : tier;
     }
@@ -234,15 +234,17 @@ public sealed partial class SymbolTable
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A NAME CLASS THAT THE ORDINARY LOOKUPS DO NOT RANK — an index-name
     /// (<c>IndexCandidates</c>) or a named CAPACITY register (<c>ReferenceResolver.CapacityRegisterFor</c>) — against
-    /// EVERY other class that is a name of the reference's own position: does a data-name
-    /// (<see cref="NearerDataNameHides"/>) or a condition-name (<see cref="NearerConditionNameHides"/>) of the spelling,
-    /// reached by the written <paramref name="qualifiers"/>, sit in a source element NEARER than <paramref name="depth"/>?
-    /// "If the name is declared in source element B, the item in source element B is the referenced item", whichever
-    /// class B declares it as, so a contained program's own level-88 hides its container's GLOBAL index-name exactly as
-    /// its own data item does (kb/Work PB4432, PB4219's index-name sibling). One question for the classes resolved
-    /// before the data-name lookup, never a data-name test a successor extends to one class and forgets in the other.</summary>
-    public bool NearerDataOrConditionNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
-        NearerDataNameHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth);
+    /// EVERY other class of §1985:X.1.3.8.2's set: does a data-name (<see cref="NearerDataNameHides"/>), a condition-name
+    /// (<see cref="NearerConditionNameHides"/>), or, for an unqualified reference, a file-name or report-name
+    /// (<see cref="Declarations.NearerFileOrReportNameHides"/>, kb/Work PB5973) of the spelling, reached by the written
+    /// <paramref name="qualifiers"/>, sit in a source element NEARER than <paramref name="depth"/>? "If the name is declared in
+    /// source element B, the item in source element B is the referenced item", whichever class B declares it as, so a contained
+    /// program's own level-88 or RD hides its container's GLOBAL index-name exactly as its own data item does (kb/Work PB4432,
+    /// PB4219's index-name sibling). One question for the classes resolved before the data-name lookup, never a data-name test a
+    /// successor extends to one class and forgets in the other.</summary>
+    public bool NearerNameOfAnotherClassHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
+        NearerDataNameHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
+        || Declared.NearerFileOrReportNameHides(name, qualifiers, depth);
 
     /// <summary>The ordinary-data-item half of <see cref="NearerDataNameHides"/>: a data description entry of this
     /// spelling (no report entry), reached by the written <paramref name="qualifiers"/>, in a source element NEARER than

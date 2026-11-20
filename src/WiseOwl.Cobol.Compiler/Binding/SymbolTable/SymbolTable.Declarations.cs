@@ -112,6 +112,10 @@ public sealed partial class SymbolTable
                     Depth: indexes.Count > 0 ? indexes.NearestDepth(i => _data.State.Forest.DeclaringDepth(i.Table)) : int.MaxValue);
             if (!dataName && qualifiers.Count == 0 && _table.FileNamed(Key(name), NameReach.Visible) is { } file)
                 yield return new(DeclarationKind.FileName, Depth: _data.State.Inherited.FileDepth(file));
+            // A report-name: this element's own RD, or a containing element's GLOBAL one a nearer declaration does not hide
+            // (§1985:X.1.3.8.2 GR3a; kb/Work PB5973). It takes no qualifier.
+            if (!dataName && qualifiers.Count == 0 && _table.ReportNameDepth(Key(name)) is { } reportDepth)
+                yield return new(DeclarationKind.ReportName, Depth: reportDepth);
             // A cd-name is this element's own (2002 8.4.5), so it ranks at depth 0 (kb/Work PB4713).
             if (!dataName && qualifiers.Count == 0 && _table._cds.ContainsKey(Key(name)))
                 yield return new(DeclarationKind.CdName);
@@ -156,17 +160,19 @@ public sealed partial class SymbolTable
                 ? new DeclarationFact(DeclarationKind.FileName, Depth: _data.State.Inherited.FileDepth(file), Spelling: file.CobolName)
                 : null;
 
-        /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A DATA-NAME AGAINST A NEARER FILE-NAME (kb/Work PB5786; §1985:X.1.3.8.2 GR3a): a
-        /// reference is "to the object which that program describes" even when the name there is "a different type of
-        /// user-defined word" (§1985:X.1.3.8), so a contained program's own file-name FX is what `FX` names there, never its
-        /// container's GLOBAL data item FX. True when an unqualified spelling names a file-name (this element's own SELECT, or a
-        /// containing element's GLOBAL file) declared in a source element NEARER than <paramref name="depth"/>; a file-name takes no
-        /// qualifier, so a qualified reference is never hidden by one. The caller meets an unidentified reference, and
-        /// <see cref="OtherThanData"/> words it as "declared as a file-name". The reverse arm — an own data-name hiding
-        /// a container's GLOBAL file — is <see cref="SymbolTable.HideShadowedFiles"/>'s.</summary>
-        public bool NearerFileNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
-            depth != 0 && qualifiers.Count == 0 && _table.FileNamed(Key(name), NameReach.Visible) is { } file
-            && _data.State.Inherited.FileDepth(file) < depth;
+        /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A DATA-NAME AGAINST A NEARER FILE-NAME OR REPORT-NAME (kb/Work PB5786, PB5973;
+        /// §1985:X.1.3.8.2 GR3a): a reference is "to the object which that program describes" even when the name there is "a different
+        /// type of user-defined word" (§1985:X.1.3.8), so a contained program's own file-name FX or report-name FX is what `FX` names
+        /// there, never its container's GLOBAL data item FX. True when an unqualified spelling names a file-name (this element's own
+        /// SELECT, or a containing element's GLOBAL file) or a report-name (its own RD, or a containing element's GLOBAL report) declared
+        /// in a source element NEARER than <paramref name="depth"/>; neither takes a qualifier, so a qualified reference is never hidden
+        /// by one (GR1 qualifies over the whole set first). The caller meets an unidentified reference, and <see cref="OtherThanData"/>
+        /// words it as "declared as a file-name" or "a report-name". The reverse arms — an own declaration hiding a container's GLOBAL
+        /// file or report — are <see cref="SymbolTable.HideShadowedFiles"/>' and <see cref="SymbolTable.HideShadowedReports"/>'.</summary>
+        public bool NearerFileOrReportNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
+            depth != 0 && qualifiers.Count == 0
+            && (_table.FileNamed(Key(name), NameReach.Visible) is { } file && _data.State.Inherited.FileDepth(file) < depth
+                || _table.ReportNameDepth(Key(name)) is { } reportDepth && reportDepth < depth);
 
         /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
         /// (kb/Work PB4432 review R1-1, the class twin of <see cref="SymbolTable.ConditionNameHiddenByNearerDataItem"/>): the written
@@ -203,6 +209,9 @@ public sealed partial class SymbolTable
             if (_table.CapacityRegisterDeclaredNearerThan(name, depth)) return true;
             if (_table._sumCounters.TryGetValue(Key(name), out var counters) && counters.Any(c => _data.State.Reports.Depth(c.Report) < depth)) return true;
             if (_table.NearerEntryHides(name, [], depth)) return true;   // every other named report entry (kb/Work PB4196)
+            // The file-names and the report-names of §1985:X.1.3.8.2's set (kb/Work PB5973): a contained program's own SELECT or RD of
+            // the spelling hides a container's GLOBAL name of any class, as its own data-name does.
+            if (_table.FileNameDeclaredNearerThan(name, depth) || _table.ReportNameDeclaredNearerThan(name, depth)) return true;
             return _table.IndexNameDeclaredNearerThan(name, depth);
         }
 

@@ -36,6 +36,9 @@ internal enum DeclarationKind
     ReportEntry,
     /// <summary>The data-name of a SUM entry, which names its sum counter (ISO §2023:13.18.54.4 GR5).</summary>
     ReportSumCounter,
+    /// <summary>A report-name: a report description entry of this source element, or the GLOBAL report of a containing one
+    /// (§2023:13.18.27.4 GR1; kb/Work PB5973).</summary>
+    ReportName,
 }
 
 /// <summary>A declaration that gives a name although it declares no data item: its kind, for a type declaration's
@@ -61,7 +64,7 @@ internal readonly record struct DeclarationFact(
         DeclarationKind.ScreenEntry => "is declared as a SCREEN SECTION entry, not as a data item",
         DeclarationKind.AlphabetName => "is declared as an alphabet-name in the SPECIAL-NAMES paragraph, not as a data item",
         DeclarationKind.ConstantName or DeclarationKind.IndexName or DeclarationKind.ConditionName
-            or DeclarationKind.FileName or DeclarationKind.CdName => $"is declared as {ClassPhrase}, not as a data item",
+            or DeclarationKind.FileName or DeclarationKind.CdName or DeclarationKind.ReportName => $"is declared as {ClassPhrase}, not as a data item",
         DeclarationKind.TypeName => "is declared as a type-name (a TYPEDEF entry), not as a data item: a type "
             + "declaration has no storage associated with it (ISO §2023:13.18.58.4 GR2)",
         DeclarationKind.TypeDeclarationMember =>
@@ -88,6 +91,7 @@ internal readonly record struct DeclarationFact(
         DeclarationKind.ConditionName => "a condition-name (a level-88 entry)",
         DeclarationKind.FileName => "a file-name (a file control entry, ISO §2023:12.4.5)",
         DeclarationKind.CdName => "a cd-name (a communication description entry, ISO/IEC 1989:2002 A.1.2)",
+        DeclarationKind.ReportName => "a report-name (a report description entry, ISO §2023:13.14)",
         _ => throw new System.Diagnostics.UnreachableException(Kind.ToString()),
     };
 }

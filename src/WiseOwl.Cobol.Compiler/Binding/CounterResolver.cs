@@ -133,9 +133,12 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         }
         // §2023:8.4.6.2.1 3) b) ACROSS NAME CLASSES (kb/Work PB3154 review R3-1): a counter of a container's GLOBAL report
         // is a global name of THAT container (§2023:13.18.27.4 GR1), so a same-spelled name a NEARER source element
-        // declares — a nearer container's GLOBAL data item, condition-name or index-name — is the referenced item, and
-        // ordinary resolution takes it. (This element's own declarations never reach here: SymbolTable.InheritReport keeps
-        // a counter its own data hides out of the table's sum counters.) Every candidate left shares one report depth.
+        // declares — this element's own or a nearer container's GLOBAL data item, condition-name, index-name, file-name or
+        // report-name — is the referenced item, and ordinary resolution takes it. A qualified reference is hidden only by a
+        // nearer data item its qualifiers reach: qualification is applied over the whole set first (§1985:X.1.3.8.2 GR1, GR2),
+        // so `TOT OF CFG` in a program that declares its own TOT names the container's counter (kb/Work PB5973, which made
+        // SymbolTable.InheritReport keep every counter and this the one place a nearer declaration hides one). Every candidate
+        // left shares one report depth.
         int counterDepth = data.State.Reports.Depth(matches[0].Report);
         if (counterDepth > 0
             && (qualifiers.Count == 0
