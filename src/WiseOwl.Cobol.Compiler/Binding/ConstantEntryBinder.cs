@@ -83,16 +83,6 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// finds the declaration it has reached.</summary>
     private readonly Dictionary<Core.ConstantEntryBodyContext, DeclaredConstant> _constantByBody = [];
 
-    /// <summary>Every NAMED constant entry this binder declared, its methods' included, in source order: its name, the position of
-    /// its level-number, its specification as written (null when the entry was refused) and its GLOBAL phrase. The finished
-    /// symbol table's constant entries (<c>SymbolTable.Finish</c>; docs/rearchitecture/DESIGN-listing.md section 6.6).</summary>
-    internal IEnumerable<(string Name, int Line, int Column, string? Value, bool Global)> DeclaredConstants() =>
-        _constantByBody.Values
-            .Where(static d => d.NameCtx is not null)
-            .OrderBy(static d => d.Level.Start.StartIndex)
-            .Select(static d => (d.NameCtx!.GetText(), d.Level.Start.Line, d.Level.Start.Column, d.Def?.Specification,
-                d.Def?.IsGlobal ?? false));
-
     /// <summary>The constant entries being evaluated, outermost first: the demand chain a circular reference closes.</summary>
     private readonly List<DeclaredConstant> _constantsInProgress = [];
 
@@ -143,8 +133,10 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         if (_constantByBody.TryGetValue(body, out var known)) return known;
         var d = new DeclaredConstant(entry, level, nameCtx, body, owner.Oo.BindingMethodScope);
         _constantByBody[body] = d;
-        if (nameCtx?.GetText() is { } name && !CobolNames.Same(name, "FILLER"))
-            owner.Symbols.Declare(d);
+        // Every entry that writes a name is a declaration the symbol table enters (a FILLER one too: the data map lists it); only a
+        // constant-name joins the table's names (DESIGN-listing.md section 6.7.1, "Step 6b, the entry ids").
+        if (nameCtx?.GetText() is { } name)
+            owner.Symbols.Declare(d, named: !CobolNames.Same(name, "FILLER"));
         return d;
     }
 
@@ -214,7 +206,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         }
         d.State = ConstantBindState.Finished;
         if (def is null) return;
-        d.Def = def;   // what the entry stands for, which the finished symbol table reads (DeclaredConstants)
+        d.Def = def;   // what the entry stands for, which the finished symbol table reads off the entry's symbol (SymbolTableFinish)
 
         // §2023:13.10.3 SR9: "If constant-name-1 duplicates another constant-name, the specification of
         // arithmetic-expression-1, literal-1, data-name-1, data-name-2, or compilation-variable-name-1 shall be the

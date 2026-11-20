@@ -64,7 +64,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // unambiguous lookup returns; what changed is that the map now knows there was a second.
         // Method-local inside a method body (§2023:8.4.6.1 / §2023:3.164), else program-wide; and in its section's own map, for a
         // qualified or same-section reference.
-        ctx.Symbols.DeclareParagraph(name, _paras.Count, section, ctx.CurrentMethodScope);
+        ctx.Symbols.DeclareParagraph(name, header, _paras.Count, section, ctx.CurrentMethodScope);
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
         _paraLine.Add(sentences.Length > 0 ? ctx.SourceLine(sentences[0]) : 0);   // DEBUG-LINE source line (VCR 7.17)
@@ -191,7 +191,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // collected first, so _pendingDebug is complete here.
             if (_paras.Count == info.StartPc && _pendingDebug.Count > 0) AddEmptyAnonymousParagraph(info, used);
             info.CloseAt(_paras.Count - 1);
-            ctx.Symbols.DeclareSection(info, ctx.CurrentMethodScope);
+            ctx.Symbols.DeclareSection(info, section.sectionName().procedureName(), ctx.CurrentMethodScope);
         }
     }
 
@@ -525,7 +525,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // A METHOD's declarative section is a name in the METHOD's procedure division (§2023:8.3.2.2.28 — "A section-name
         // identifies a section in the procedure division"), declared where the method's other sections are — the
         // same split AddParagraph makes for paragraph-names (kb/Work PB1010).
-        ctx.Symbols.DeclareSection(info, ctx.CurrentMethodScope);
+        ctx.Symbols.DeclareSection(info, sec.sectionName().procedureName(), ctx.CurrentMethodScope);
 
         if (scope is { } s)
             // ISO §2023:14.9.49.3 SR1: "The remainder of the section shall consist of zero, one, or more procedural

@@ -1,0 +1,4 @@
+## Entry 3868 — 2026-11-19 22:02 PST — PB5950: a source line's number is printed once in the listing
+
+The owner found every source line's number printed twice in NC105A's listing: the listing line number and the line's number in its own file, which are the same until a program's first library text. The text and HTML listings now print the file-line column only where it differs from the listing number (`TextListingRenderer.FileLineColumn`, used by both renderers), so after an inclusion and inside a library text it still names the line in the file the programmer edits. The model and the JSON listing keep `FileLine` on every line. Witness `HtmlListingRendererTests.EveryLine_IsARow_WithItsText`; the user guide's listing page says it. Listing tests: Unit 647/647, Conformance 76/76.
+
