@@ -426,12 +426,11 @@ public sealed partial class FileControlBinder
         int? lo = lits.Length > 0 ? _host.Constants.IntegerOperandValue(lits[0], recWhere) : null;
         int? hi = lits.Length > 1 ? _host.Constants.IntegerOperandValue(lits[1], recWhere) : null;
         if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
-        string? dep = null;
-        IReadOnlyList<string> depQuals = [];
+        WrittenDataName? dep = null;
         Editions.DiagnosticCursor depAt = default;
         if (rc.dataReference() is { } d)
         {
-            (dep, depQuals) = _host.ClauseDataName(d, "RECORD DEPENDING ON");
+            dep = _host.ClauseDataName(d, "RECORD DEPENDING ON");
             // The OPERAND's own position, inside the clause cursor kb/Work PB721 pushed at the method top.
             using var _dep = Edition.At(d);
             depAt = Edition.Cursor;
@@ -442,7 +441,7 @@ public sealed partial class FileControlBinder
         bool varyingClause = rc.VARYING() is not null;
         file.Varying = new VaryingRecordInfo(lo, hi, dep, VaryingClause: varyingClause)
         {
-            DependingQualifiers = depQuals, DependingAt = depAt,
+            DependingAt = depAt,
             // Format 3's integers bound a WRITE/REWRITE only where the edition states GR19 (2002 on) (kb/Work PB5197).
             BoundsEnforced = varyingClause
                 || DialectBehaviors.IsActive(DialectBehavior.RecordContainsRangeBindsRecordSize, Edition.DialectLevel),
@@ -512,9 +511,9 @@ public sealed partial class FileControlBinder
                 return new LinageOperand(
                     _host.Constants.ConstantOperandValue(d!, "LINAGE clause operand") ?? ConstantEntryBinder.RecoveredIntegerOperand, null) { At = Edition.Cursor };
             }
-            var (name, quals) = _host.ClauseDataName(d!, "LINAGE clause operand");
+            var name = _host.ClauseDataName(d!, "LINAGE clause operand");
             using var _ = Edition.At(d!);
-            return new LinageOperand(null, name) { Qualifiers = quals, At = Edition.Cursor };
+            return new LinageOperand(null, name) { At = Edition.Cursor };
         }
         file.Linage = new LinageInfo(
             Operand(lc.dataReference(), lc.integerLiteral()),

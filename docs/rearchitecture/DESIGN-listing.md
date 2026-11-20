@@ -20,7 +20,9 @@
 > the USE and WHEN file registers, the end markers; remainder slice 1, branch `listing-step-6b-r1`: every procedure-division data-name
 > and condition-name whose item is used identified through `IdentifyDataName` and `IdentifyConditionName`; the entry-id lane, branch
 > `listing-step-6b-ids`: every class the table declares enters its entry where it is declared and every identification hands back
-> its id; the procedure division's word probes and ambiguity counts, the data division's clause operands, the
+> its id; remainder slice 2, branch `listing-step-6b-r2`: the file clauses' operands kept as a `WrittenDataName` and resolved by the
+> table, the record-key-names read off their file; the procedure division's word probes and ambiguity counts, the rest of the data
+> division's clause operands, the
 > declarations (with the data-names' and condition-names' entries), the census, the group tier's units and the parameterized expansion
 > remain, 75 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
 > PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); step 7b (the
@@ -1043,7 +1045,7 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     `Identify` hands one out (inside an `IdentifiedName`; a class or interface, `ClassNames.Lookup` inside an `OoNameResult`).
     Every position the programmer wrote a name in to USE it goes through `Identify` (an object-class-name or interface-name
     through `ClassNames.Lookup`) and records, whatever division it is in: a RECORD KEY or ALTERNATE RECORD KEY name
-    (`FileModel.RecordKeyNameCandidates` today), an ASSIGN USING data-name, a KEY phrase of SORT, MERGE or READ, an
+    (`SymbolTable.RecordKeyNamesOf` since step 6b's remainder slice 2), an ASSIGN USING data-name, a KEY phrase of SORT, MERGE or READ, an
     OCCURS DEPENDING ON or INDEXED BY operand, a REDEFINES or RENAMES object, a CONSTANT FROM or LENGTH OF operand, and
     every caller of today's `DataBinder.QualifiedCandidates` (which asks for symbols, so it is a resolution).
     `NameTableOwnershipDriftTests` rule (4) holds this: every non-private member of `SymbolTable.Declarations` returns
@@ -1611,6 +1613,36 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       `RegionClauseCandidates`, `SubtreeCandidates`, `ResolveClauseOperand`, `RecordKeyNameCandidates`, `ReportItemOperandRefused`,
       `SumCounterOperand85` and, through them, `TryResolve`, `TryResolveUnqualified` and `NearestDeclaringData`: the remainder's
       part B, then the declarations (C) and the entry ids (D).
+  - *(Step 6b, remainder slice 2, branch `listing-step-6b-r2`; kb/Work PB5932's dated file `2026-11-19-step-6b-r2`.)* Part B's
+    first half: the data division's FILE clause operands, the record-key-names and two comparisons read off their carriers, and the
+    baseline holds 63 (1 table, 7 lookups, 55 sites). As built, with the corrections the code proved:
+    - *A clause operand keeps a `WrittenDataName`, not a `WrittenQualifiedName` (correction of the remainder's brief).* The brief
+      said "the clause operands keep a `WrittenQualifiedName` instead of (name, qualifiers)". A clause operand is resolved after the
+      data division is declared, from the MODEL (`FileModel`, `OccursSpec`, ...), which holds no parse tree: no model type references
+      a parser type, and a published entry decoded from a repository (`RepositoryCodec`) has no tokens at all. So the model keeps the
+      operand as a `Binding.Model.WrittenDataName(Name, Qualifiers)`, the written words of data-name-n innermost qualifier first, one
+      value where every clause kept a `(name, qualifiers)` pair; it is made by the one capture of a data-name-n operand
+      (`DataBinder.ClauseDataName`, `ClauseDataNameSubscripted`, which now answer it) and by the codec, and only the table resolves it:
+      `SymbolTable.IdentifyDataName(WrittenDataName, Scope)` beside the procedure division's `IdentifyDataName(WrittenQualifiedName,
+      report)`. The clause's own position is the model's cursor beside the operand (`FileStatusAt`, `DependingAt`, ...), where step
+      7b records the occurrence. `NameTableOwnershipDriftTests` treats `WrittenDataName` as carrying no symbol (the shape's opaque
+      types, beside `SymbolId`), so a member that takes or makes one is no lookup by that fact alone.
+    - *What moved.* FILE STATUS, RELATIVE KEY, RECORD KEY and ALTERNATE RECORD KEY (data-name-1 and each SOURCE data-name-2), the
+      key-level COLLATING SEQUENCE operands, ASSIGN USING, PADDING CHARACTER, each LINAGE operand, RECORD VARYING DEPENDING ON, APPLY
+      COMMIT identifier-1, VALUE OF, and OCCURS DEPENDING ON (the data division's `OccursSpec` and the report section's
+      `ReportOccursSpec`) keep a `WrittenDataName`; `DataBinder.ResolveClauseOperand`, `ReportSectionBinder.ReportItemOperandRefused`
+      and `SymbolTable.SumCounterOperand85` take it (each keeps the diagnostic's words as a string, classified in
+      `string-parameter-members.json` with that reason). The record-key-names (§2023:8.3.2.2.24, scoped by the file control entry,
+      §2023:8.4.6.2.4) are read off the file that declares them: `SymbolTable.RecordKeyNamesOf(FileModel, WrittenDataName)` and
+      `DeclaresUnresolvedKeyNamed(FileModel, WrittenDataName)` replace `FileModel.RecordKeyNameCandidates` and its four comparisons;
+      `ContainerLocalFileSpelled` answers APPLY COMMIT's containing-element file (§2023:12.4.6.3.3 SR1), and `FormalSpelled` the
+      formal an OMITTED condition's data-name-1 spells (§2023:8.8.4.8.3 SR1), each comparison now the table's.
+    - *What remains of part B.* The data-entry clause operands still kept as text (OCCURS KEY, REDEFINES, RENAMES, SAME AS, a
+      DYNAMIC CAPACITY IN name) and the lookups that read them (`DataBinder.QualifiedCandidates`, `EntryClauseCandidates`,
+      `RegionClauseCandidates`, `SubtreeCandidates`, `QualifierWalk`; `SymbolTable.TryResolve`, `TryResolveUnqualified`,
+      `NearestDeclaringData`); `IdentifyDataName(WrittenDataName, Scope)` still asks `QualifiedCandidates` until those move into the
+      table, private. The procedure division's word probes and ambiguity counts (section "Step 6b, remainder slice 1", "What remains
+      of the class") are part B's second half with them.
   - *(Step 6b, the entry ids, branch `listing-step-6b-ids`, a lane beside the data-name lane; kb/Work PB5932's dated file
     `2026-11-19-step-6b-entry-ids`.)* Every class whose declaration is the table's makes its ENTRY where the binder declares the name,
     and every identification hands the entry back, so step 7b joins an occurrence to its entry by id for every class, never by the
@@ -2128,7 +2160,7 @@ table is not built, and no step of section 11 named it: kb/Work PB5947.
   (§2023:4.2.13) share the kind Obsolete, as they share COBOL0903. A removed construct is counted whatever its severity: strict, it is
   an error and still names the edition that removed it.
 - **What is not a flagged construct (decision).** A rule a later edition ADDED that `--permissive` relaxes (`EditionContext.Removed`'s
-  documented-dialect-leniency callers, the 2023 EXTERNAL file-connector rule that takes the removed-construct severity) reports under
+  documented-dialect-leniency callers, the 2023 EXTERNAL file-connector rules that take the removed-construct severity) reports under
   the rule's own code; it flags no construct of a register, and carries no flag. (PB5949, correcting PB5947's review lead R1-2:) the
   MERGE placement rule is not such a rule: the registry names it (`merge-in-sort-merge-proc-removed-2023`, removed in 2023, pinning
   COBOL1572), so `VersionConformancePass` reports it through that row's `ConstructRegistry.VerdictAt` (code, severity and flag) and
@@ -2556,6 +2588,11 @@ renderer. Naming it asks for a listing at any edition.
   (0.7 MB, slice 3) and below the parent on SM201A, where a paragraph's identification no longer makes a `ParagraphDefinition` per
   lookup. Like the line-kind arrays and the label fields, they are a fact the design records for every compilation so the listing can
   be exact, so the `None` budget now names them (above). The README's step-6b table, the entry-id lane, holds the four rows of each run.
+  Remainder slice 2 (the file clauses' operands kept as a `WrittenDataName` the table resolves, section 6.7.1 "Step 6b, remainder
+  slice 2"), measured against its parent 9682d2f88d, four runs each, alternating: the `None` medians agree within 0.08 MB on every
+  program (IX113A 67.83 MB on the parent against 67.81 on the branch, NC105A 34.43 against 34.45, NC218A 30.55 against 30.62, SM201A
+  15.17 against 15.18), inside each program's run-to-run spread on one tree; the `None` budget holds (the README's step-6b table,
+  remainder slice 2).
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the
@@ -2892,7 +2929,12 @@ class's entry id (D). (Step 6b, the entry ids, branch `listing-step-6b-ids`, a
 lane beside the data-name lane, controller 2026-11-19:) the classes already in the table make their entries where they are declared and
 every identification carries its id (section 6.7.1, "Step 6b, the entry ids"); the lane moves no table, so the baseline is unchanged, and
 kb/Work PB5932's dated file `2026-11-19-step-6b-entry-ids` holds what it built and measured: with remainder slice 1 merged the baseline is 75, and of D
-the data-names' and condition-names' entries remain, which their declarations (C) make.
+the data-names' and condition-names' entries remain, which their declarations (C) make. (Step 6b, remainder slice 2, branch
+`listing-step-6b-r2`:) part B's first half, the file clauses' operands kept as a `WrittenDataName` the table resolves (correction: the
+model holds no parse tree, so the operand is the written words, not a `WrittenQualifiedName`), the record-key-names read off their file,
+`compare_oracle.py` IDENTICAL; the baseline is 63, and kb/Work PB5932's dated file `2026-11-19-step-6b-r2` holds what remains: part B's
+second half (the data-entry clause operands, the qualification walks moved into the table, the procedure division's probes and
+counts), then C and D.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had

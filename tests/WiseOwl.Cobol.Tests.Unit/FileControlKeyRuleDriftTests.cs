@@ -364,8 +364,8 @@ public sealed class FileControlKeyRuleDriftTests
             var source = new RecordKeySource
             {
                 Name = "RK",
-                Operands = [new KeySourceOperand { Name = "K0", Qualifiers = [], Item = item },
-                            new KeySourceOperand { Name = "K", Qualifiers = [], Item = item }],
+                Operands = [new KeySourceOperand { Operand = new WrittenDataName("K0"), Item = item },
+                            new KeySourceOperand { Operand = new WrittenDataName("K"), Item = item }],
             };
             string sourced = rule.Message(file, op with { Source = source, SourceIndex = 1 });
             Assert.Contains(rule.Citation, sourced);

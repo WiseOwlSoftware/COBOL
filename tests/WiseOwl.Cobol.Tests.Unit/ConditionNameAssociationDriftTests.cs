@@ -212,7 +212,7 @@ public sealed class ConditionNameAssociationDriftTests
         var odo = new DataItem
         {
             Level = 5, CobolName = "E", ClrName = "E", Pic = Alnum(),
-            OccursSpec = new OccursSpec { Min = 1, Max = 3, DependingName = "N" },
+            OccursSpec = new OccursSpec { Min = 1, Max = 3, DependingOperand = new WrittenDataName("N") },
         };
         var g = Group("G", 1, Elem("N", new PicInfo(PicCategory.Numeric, Usage.Display, 1, 1, 0, false), 5), odo);
         Assert.Null(CheckConditionNameAssociationsPass.ConditionalVariableExclusion(g));

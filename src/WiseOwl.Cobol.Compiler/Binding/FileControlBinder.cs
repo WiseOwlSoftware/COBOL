@@ -119,7 +119,7 @@ public sealed partial class FileControlBinder
                         : "";   // bare `ASSIGN USING …`: no device-name-1/literal-1 exists — UNASSOCIATED until an OPEN
                     if (asg.dataReference() is { } dyn)
                     {
-                        (file.AssignUsingName, file.AssignUsingQualifiers) = _host.ClauseDataName(dyn, "ASSIGN USING");
+                        file.AssignUsingOperand = _host.ClauseDataName(dyn, "ASSIGN USING");
                         using var __ = Edition.At(dyn);
                         file.AssignUsingAt = Edition.Cursor;   // §2023:12.4.5.2 SR7 reports here, from ResolveFiles
                     }
@@ -131,7 +131,7 @@ public sealed partial class FileControlBinder
                 // resolved the first same-named declaration in order (kb/Work PB489).
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs)
                 {
-                    (file.FileStatusName, file.FileStatusQualifiers, file.FileStatusSubscripts) = _host.ClauseDataNameSubscripted(fs, "FILE STATUS");
+                    (file.FileStatusOperand, file.FileStatusSubscripts) = _host.ClauseDataNameSubscripted(fs, "FILE STATUS");
                     using var __ = Edition.At(fs);
                     file.FileStatusAt = Edition.Cursor;   // where its post-build resolution reports
                 }
@@ -143,13 +143,13 @@ public sealed partial class FileControlBinder
                     if (rkc.recordKeySourcePhrase() is { } rks)
                     {
                         file.RecordKeySource = CaptureRecordKeySource(rks, "RECORD KEY");
-                        file.RecordKeyName = file.RecordKeySource.Name;
+                        file.RecordKeyOperand = new WrittenDataName(file.RecordKeySource.Name);
                         using var __ = Edition.At(rks.recordKeyName());
                         file.RecordKeyAt = Edition.Cursor;
                     }
                     else if (rkc.dataReference() is { } rk)
                     {
-                        (file.RecordKeyName, file.RecordKeyQualifiers, file.RecordKeySubscripts) = _host.ClauseDataNameSubscripted(rk, "RECORD KEY");
+                        (file.RecordKeyOperand, file.RecordKeySubscripts) = _host.ClauseDataNameSubscripted(rk, "RECORD KEY");
                         using var __ = Edition.At(rk);
                         file.RecordKeyAt = Edition.Cursor;   // §2023:12.4.5.12.3 reports here, from ResolveFiles
                     }
@@ -164,12 +164,12 @@ public sealed partial class FileControlBinder
                     if (aks is not null || ak.dataReference() is not null)
                     {
                         var source = aks is null ? null : CaptureRecordKeySource(aks, "ALTERNATE RECORD KEY");
-                        var (an, aq, asub) = source is null ? _host.ClauseDataNameSubscripted(ak.dataReference(), "ALTERNATE RECORD KEY")
-                            : (source.Name, (IReadOnlyList<string>)[], (IReadOnlyList<int>)[]);
+                        var (an, asub) = source is null ? _host.ClauseDataNameSubscripted(ak.dataReference(), "ALTERNATE RECORD KEY")
+                            : (new WrittenDataName(source.Name), (IReadOnlyList<int>)[]);
                         using var __ = Edition.At(aks?.recordKeyName() ?? (Antlr4.Runtime.ParserRuleContext)ak.dataReference());
                         var clause = new AlternateKeyClause
                         {
-                            Name = an, Qualifiers = aq, Subscripts = asub, Duplicates = ak.DUPLICATES() is not null, Source = source,
+                            Operand = an, Subscripts = asub, Duplicates = ak.DUPLICATES() is not null, Source = source,
                             At = Edition.Cursor,   // §2023:12.4.5.6.3 reports here, from ResolveFiles
                         };
                         file.AlternateKeyNames.Add(clause);
@@ -181,7 +181,7 @@ public sealed partial class FileControlBinder
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                 {
-                    (file.RelativeKeyName, file.RelativeKeyQualifiers, file.RelativeKeySubscripts) = _host.ClauseDataNameSubscripted(rlk, "RELATIVE KEY");   // ISO §2023:12.4.5.13.3 SR3 — outside the record
+                    (file.RelativeKeyOperand, file.RelativeKeySubscripts) = _host.ClauseDataNameSubscripted(rlk, "RELATIVE KEY");   // ISO §2023:12.4.5.13.3 SR3 — outside the record
                     using var __ = Edition.At(rlk);
                     file.RelativeKeyAt = Edition.Cursor;   // §2023:12.4.5.13.3 reports here, from ResolveFiles
                 }
@@ -409,9 +409,9 @@ public sealed partial class FileControlBinder
         var operands = new List<KeySourceOperand>();
         foreach (var dref in src.dataReference())
         {
-            var (n, q, subscripts) = _host.ClauseDataNameSubscripted(dref, $"{clause} SOURCE");
+            var (operand, subscripts) = _host.ClauseDataNameSubscripted(dref, $"{clause} SOURCE");
             using var _ = Edition.At(dref);
-            operands.Add(new KeySourceOperand { Name = n, Qualifiers = q, Subscripts = subscripts, At = Edition.Cursor });
+            operands.Add(new KeySourceOperand { Operand = operand, Subscripts = subscripts, At = Edition.Cursor });
         }
         return new RecordKeySource { Name = keyName, Operands = operands };
     }
@@ -428,7 +428,7 @@ public sealed partial class FileControlBinder
             // and SR6's "shall not be subscripted" is refused by name there.
             var keys = ctx.dataReference()
                 .Select(d => _host.ClauseDataNameSubscripted(d, "COLLATING SEQUENCE OF"))
-                .Select(k => new CollatingKeyOperand { Name = k.Base, Qualifiers = k.Quals, Subscripts = k.Subscripts })
+                .Select(k => new CollatingKeyOperand { Operand = k.Name, Subscripts = k.Subscripts })
                 .ToList();
             var clause = new KeyLevelCollatingClause(keys, ctx.cobolWord(0).GetText(), Edition.Cursor);
             file.KeyLevelCollating.Add(clause);
@@ -509,8 +509,8 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(at);
             foreach (var k in keys)
             {
-                string written = DataBinder.WrittenQualified(k.Name, k.Qualifiers);
-                if (_host.State.Clauses.RefusedClauseOperands.Contains(k.Name)) continue;   // SR6 / shape — refused at capture
+                string written = k.Operand.Written;
+                if (_host.State.Clauses.RefusedClauseOperands.Contains(k.Operand.Name)) continue;   // SR6 / shape — refused at capture
                 k.Key = CollatingKeyNamed(file, k, fileKeys, written);
                 if (k.Key is null) continue;
                 if (namedIn.Register(k.Key) is ConstructOperand.Duplicate)   // an EARLIER clause named it
@@ -525,7 +525,7 @@ public sealed partial class FileControlBinder
             if (!alphabet3.IsAlphabetName)
             {
                 Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
-                    + $"OF {string.Join(' ', keys.Select(k => DataBinder.WrittenQualified(k.Name, k.Qualifiers)))} IS '{alphabet3.Name}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
+                    + $"OF {string.Join(' ', keys.Select(k => k.Operand.Written))} IS '{alphabet3.Name}' — alphabet-name-3 names no alphabet declared in SPECIAL-NAMES "
                     + "(ISO §2023:12.4.5.7.3 SR7)");
                 continue;
             }
@@ -533,8 +533,8 @@ public sealed partial class FileControlBinder
                 if (k.Key is { } key && ItemCategory.IsAlphanumericOrNational(key.CategorySource)
                     && SpecialNamesBinder.CollatingAlphabetFault(alphabet3, IsNationalKey(key)) is { } fault)
                     Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING "
-                        + $"SEQUENCE OF '{DataBinder.WrittenQualified(k.Name, k.Qualifiers)}' IS '{alphabet3.Name}' — "
-                        + $"'{DataBinder.WrittenQualified(k.Name, k.Qualifiers)}' is of class "
+                        + $"SEQUENCE OF '{k.Operand.Written}' IS '{alphabet3.Name}' — "
+                        + $"'{k.Operand.Written}' is of class "
                         + $"{(IsNationalKey(key) ? "national" : "alphanumeric")}, so alphabet-name-3 shall reference an "
                         + $"alphabet that defines {(IsNationalKey(key) ? "a national" : "an alphanumeric")} collating "
                         + $"sequence; {fault} (ISO §2023:12.4.5.7.3 SR7)");
@@ -571,18 +571,18 @@ public sealed partial class FileControlBinder
     /// null, REPORTED, when it names none (kb/Work PB1075, PB1099).
     /// <para>⛔ BOTH READINGS IN ONE COUNTED SET (kb/Work PB1099 review R1-2). The operand position admits
     /// data-name-1 or record-key-name-1, and §2023:8.3.2.2 lets one word be both, so the record-key-names this entry
-    /// declares (<see cref="FileModel.RecordKeyNameCandidates"/>, which reads §2023:8.4.2.2.2 Format 6's file-name
+    /// declares (<see cref="SymbolTable.RecordKeyNamesOf"/>, which reads §2023:8.4.2.2.2 Format 6's file-name
     /// qualifier) and the qualified data-names resolved by §2023:8.4.2.2 and narrowed to this file's data-name-1 key
     /// items are ONE candidate set: qualification is what separates two files' same-named keys (the case that used
     /// to be a parse error), and a reference that still leaves two readings is ambiguous (§2023:8.4.2.2.3 SR1) — never
     /// "the record-key-name first". A key clause whose own operand failed to resolve has already been reported, so
     /// an operand naming it is not reported a second time as "not a key"
-    /// (<see cref="FileModel.DeclaresUnresolvedKeyNamed"/>: one fault, one verdict).</para></summary>
+    /// (<see cref="SymbolTable.DeclaresUnresolvedKeyNamed"/>: one fault, one verdict).</para></summary>
     private RecordKey? CollatingKeyNamed(FileModel file, CollatingKeyOperand k, IReadOnlyList<RecordKey> keys,
                                          string written)
     {
-        var readings = file.RecordKeyNameCandidates(k.Name, k.Qualifiers)
-            .Plus(_host.QualifiedCandidates(k.Name, k.Qualifiers, Model.Scope.Program)
+        var readings = _host.Symbols.RecordKeyNamesOf(file, k.Operand)
+            .Plus(_host.Symbols.IdentifyDataName(k.Operand, Model.Scope.Program)
                 .Where(i => keys.Any(key => key.Names(i, k.Subscripts)))
                 .Select(KeyNameReading (i) => new KeyNameReading.DataName(i)));
         if (readings.Count > 0)
@@ -592,7 +592,7 @@ public sealed partial class FileControlBinder
                 KeyNameReading.DataName dn => keys.Single(key => key.Names(dn.Item, k.Subscripts)),
                 _ => null,
             };
-        if (!file.DeclaresUnresolvedKeyNamed(k.Name, k.Qualifiers))
+        if (!_host.Symbols.DeclaresUnresolvedKeyNamed(file, k.Operand))
             Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': COLLATING SEQUENCE OF "
                 + $"'{written}' — '{written}' is not a RECORD KEY or ALTERNATE RECORD KEY of this file "
                 + "(ISO §2023:12.4.5.7.3 SR4/SR5)");

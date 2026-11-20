@@ -374,7 +374,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 return $"{name} is a variable-length data item — "
                     + (d.IsDynamicTable ? "a dynamic-capacity table" : "a dynamic-length elementary item")
                     + " (ISO §2023:8.5.1.11.1)";
-            if (d.OccursSpec is { DependingName: not null })
+            if (d.OccursSpec is { DependingOperand: not null })
                 return $"{name} is an occurs-depending table";
             if (!d.IsGroup
                 && (ItemCategory.Sr14PhraseOf(d.Pic?.Usage) ?? ItemCategory.Sr14PhraseOf(d.OwnUsage)) is { } phrase)

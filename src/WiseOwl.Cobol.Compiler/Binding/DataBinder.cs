@@ -1008,10 +1008,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// permit a reference-modifier, so the data-name-n screen would reject source their own rules allow. Those
     /// three capture with <see cref="KeyReference"/> and apply their own operand rules (kb/Work PB205).</para>
     /// </summary>
-    internal (string Base, IReadOnlyList<string> Quals) ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
+    internal WrittenDataName ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
     {
-        if (ScreenClauseOperandShape(dref, clauseFace)) return KeyReference(dref);
-        return RefuseClauseOperand(dref);
+        if (!ScreenClauseOperandShape(dref, clauseFace)) return RefuseClauseOperand(dref);
+        var (word, quals) = KeyReference(dref);
+        return new WrittenDataName(word, quals);
     }
 
     /// <summary>⛔ THE CAPTURE OF A data-name-n OPERAND WHOSE COBOL-2002 RULE SAYS ONLY "MAY BE QUALIFIED" (kb/Work PB5602):
@@ -1021,19 +1022,16 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// refused. The caller screens them against the item they select from once the operand resolves
     /// (<see cref="ScreenOperandOccurrence"/>). The other editions refuse a subscript exactly as <see cref="ClauseDataName"/>
     /// does, and the subscripts come back empty.</summary>
-    internal (string Base, IReadOnlyList<string> Quals, IReadOnlyList<int> Subscripts) ClauseDataNameSubscripted(
+    internal (WrittenDataName Name, IReadOnlyList<int> Subscripts) ClauseDataNameSubscripted(
         Core.DataReferenceContext dref, string clauseFace)
     {
-        if (!ScreenClauseOperandShape(dref, clauseFace, admitsSubscript2002: true))
-        {
-            var (written, none) = RefuseClauseOperand(dref);
-            return (written, none, []);
-        }
+        if (!ScreenClauseOperandShape(dref, clauseFace, admitsSubscript2002: true)) return (RefuseClauseOperand(dref), []);
         var (word, quals) = KeyReference(dref);
-        return (word, quals, Edition.SubscriptedClauseOperands ? RefModBinder.ReadOperandSuffixes(dref).Subscript.Values : []);
+        return (new WrittenDataName(word, quals),
+            Edition.SubscriptedClauseOperands ? RefModBinder.ReadOperandSuffixes(dref).Subscript.Values : []);
     }
 
-    private (string Base, IReadOnlyList<string> Quals) RefuseClauseOperand(Core.DataReferenceContext dref)
+    private WrittenDataName RefuseClauseOperand(Core.DataReferenceContext dref)
     {
         // REFUSED. The operand is recorded AS WRITTEN — never reduced to a word the programmer did not use as a
         // data-name, which is the mis-report PB489 measured (`LINAGE IS LINAGE-COUNTER OF LPF LINES` named the
@@ -1043,7 +1041,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // data-name cannot, so the key can never collide with a real one.
         string written = WrittenText(dref);
         State.Clauses.RecordRefusedClauseOperand(written);
-        return (written, []);
+        return new WrittenDataName(written);
     }
 
     /// <summary>A reference AS THE PROGRAMMER WROTE IT. <c>GetText()</c> concatenates tokens with no separators
@@ -1296,14 +1294,15 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <para>It reports under the SAME descriptor as the procedure division's own unidentified reference
     /// (COBOL1639): the rule broken is §2023:8.4.2.1/§2023:8.4.2.2, not a rule of the clause, and a user who mis-qualifies
     /// a name in a WRITE and in a LINAGE clause has broken one rule and should read one verdict.</para></summary>
-    internal DataItem? ResolveClauseOperand(string name, IReadOnlyList<string> quals, string clauseFace,
+    internal DataItem? ResolveClauseOperand(WrittenDataName operand, string clauseFace,
                                            Editions.DiagnosticCursor at, bool inReportSection = false)
     {
-        var survivors = QualifiedCandidates(name, quals, Model.Scope.Program);
+        var survivors = Symbols.IdentifyDataName(operand, Model.Scope.Program);
         if (survivors.Single is { } one) return one;
+        var (name, quals) = operand;
         if (State.Clauses.RefusedClauseOperands.Contains(name)) return null;   // already refused at capture — one fault, one verdict
         using var __ = Edition.At(at);
-        string written = WrittenQualified(name, quals);
+        string written = operand.Written;
         // A name the REPORT SECTION declares is not undefined (kb/Work PB1046): §2023:13.8.6.2.3 bars every clause of a data
         // division section other than the report section from referring to a report item, and §2023:13.15.3 SR7 bars the report
         // section's own clauses from naming an entry's data-name in any way it does not list (kb/Work PB4226: an RD's
@@ -1312,7 +1311,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // ambiguity (kb/Work PB3767) or nothing.
         // At COBOL-85 that section rule is not the edition's: §1985:XIII.3.9.3 SR10d lets a sum counter be referenced wherever the
         // reference is written, so it is the clause's data-name, and the clause's own rules judge it (kb/Work PB5310).
-        if (ReportSection.ReportItemOperandRefused(survivors, $"{clauseFace} '{written}'", name, quals, out var counter, inReportSection)) return null;
+        if (ReportSection.ReportItemOperandRefused(survivors, $"{clauseFace} '{written}'", operand, out var counter, inReportSection)) return null;
         if (counter is not null) return counter;
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
@@ -1323,7 +1322,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             $"{clauseFace} '{written}': the clause's data-name references no data item — "
               + (nonData is { } declared
                   ? $"'{written}' {declared.DeclaredAs(written, name)} ({Edition.Edition.Quoted()})"
-                  : Symbols.TryResolve(name, Model.Scope.Program, out _)
+                  : Symbols.DeclaresDataNameSpelled(operand, Model.Scope.Program)
                   ? $"'{name}' is declared, but not under the given qualifier{(quals.Count == 1 ? "" : "s")} "
                     + "(ISO §2023:8.4.2.2 — qualification shall establish uniqueness)"
                   : $"no declaration in this source element gives the name '{name}' ({Edition.Edition.Quoted()})"));
@@ -2740,7 +2739,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         var c = new OccursSpec
         {
-            Min = s.Min, Max = s.Max, DependingName = s.DependingName, DependingQualifiers = s.DependingQualifiers,
+            Min = s.Min, Max = s.Max, DependingOperand = s.DependingOperand,
             IsDynamic = s.IsDynamic,
             CapacityName = s.CapacityName, InitialCap = s.InitialCap, ExpectedMax = s.ExpectedMax,
             Initialized = s.Initialized,
@@ -3073,8 +3072,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // subscript in silence (kb/Work PB978's sweep).
         var (fromBase, fromQuals) = ClauseDataName(rc.dataReference(0), $"'{name}' RENAMES");
         var (thruBase, thruQuals) = thru && rc.dataReference().Length > 1
-            ? ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU")
-            : (null, []);
+                && ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU") is var thruOperand
+            ? (thruOperand.Name, thruOperand.Qualifiers)
+            : ((string?)null, (IReadOnlyList<string>)[]);
         var item = new DataItem
         {
             Level = 66,

@@ -243,7 +243,7 @@ internal static class RepositoryCodec
         private static OccursRecord Table(OccursSpec spec, DataItem root)
         {
             int? entry = spec.Depending is { } dep ? PreorderIndex(root, dep) : null;
-            string? depending = spec.DependingName is null ? null : entry is not null ? spec.DependingName : OccursRecord.OutsideTheRecord;
+            string? depending = spec.DependingOperand is null ? null : entry is not null ? spec.DependingOperand?.Name : OccursRecord.OutsideTheRecord;
             return new(spec.Min, spec.Max, depending, entry, spec.IsDynamic, spec.CapacityName, spec.InitialCap, spec.ExpectedMax,
                 spec.Initialized);
         }
@@ -402,10 +402,10 @@ internal static class RepositoryCodec
                 // SR17 / SR2 / SR20 admit it (kb/Work PB3510): a record naming any other object is malformed, never a cycle
                 // for a consumer to follow.
                 var dep = At(entries, entry, $"'{table.CobolName}' DEPENDING ON entry");
-                if (dep.CobolName is not { } word || !CobolNames.Same(word, spec.DependingName!))
-                    throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingName}', which entry {entry} ('{dep.CobolName}') is not");
+                if (dep.CobolName is not { } word || !CobolNames.Same(word, spec.DependingOperand!.Value.Name))
+                    throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingOperand?.Name}', which entry {entry} ('{dep.CobolName}') is not");
                 spec.Depending = DependingAdmission.Of(table, dep).Admitted ? dep
-                    : throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingName}', which ISO §2023:13.18.38.3 SR17 / SR2 / SR20 refuse");
+                    : throw Malformed($"'{table.CobolName}' DEPENDING ON '{spec.DependingOperand?.Name}', which ISO §2023:13.18.38.3 SR17 / SR2 / SR20 refuse");
             }
             return root;
         }
@@ -425,7 +425,7 @@ internal static class RepositoryCodec
                 HasExternalClause = r.External, Occurs = r.Occurs,
                 OccursSpec = r.Table is { } t ? new OccursSpec
                 {
-                    Min = t.Min, Max = t.Max, DependingName = t.Depending, IsDynamic = t.Dynamic, CapacityName = t.Capacity,
+                    Min = t.Min, Max = t.Max, DependingOperand = t.Depending is { } depending ? new WrittenDataName(depending) : null, IsDynamic = t.Dynamic, CapacityName = t.Capacity,
                     InitialCap = t.InitialCapacity, ExpectedMax = t.ExpectedMax, Initialized = t.Initialized,
                 } : null,
                 Parent = parent,

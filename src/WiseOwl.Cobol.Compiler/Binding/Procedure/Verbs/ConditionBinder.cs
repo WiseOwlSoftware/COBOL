@@ -1286,15 +1286,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // unit's; elsewhere the program/function formals are. Either way the test renders the formal's ONE
             // presence fact (OmittedProbe): spelled, trailing and GR1c-transitive omission all arrive there.
             string fname = operands.Length >= 1 ? operands[0].GetText().Trim() : "";
-            OmittedProbe? formal = null;
-            if (ctx.CurrentMethodScope is { } ms)
-            {
-                foreach (var f in ms.Formals)
-                    if (CobolNames.Same(f.Item.CobolName, fname)) { formal = f.Probe; break; }
-            }
-            else
-                foreach (var f in ctx.Data.Linkage.Formals)
-                    if (CobolNames.Same(f.Item.CobolName, fname)) { formal = f.Probe; break; }
+            OmittedProbe? formal = operands.Length >= 1 ? ctx.Symbols.FormalSpelled(operands[0], ctx.CurrentMethodScope?.Formals) : null;
             if (formal is null)
             {
                 ctx.Edition.Error(DiagnosticCatalog.OmittedConditionOperand,

@@ -22,29 +22,29 @@ public sealed class ExternalFileEntryIdentityTests
         var f = new FileModel
         {
             CobolName = "XF", AssignTarget = "x.dat", Organization = FileOrganization.Indexed,
-            OrganizationWritten = true, AccessMode = FileAccessMode.Dynamic, RecordKeyName = "XK",
+            OrganizationWritten = true, AccessMode = FileAccessMode.Dynamic, RecordKeyOperand = new WrittenDataName("XK"),
         };
-        f.AlternateKeyNames.Add(new AlternateKeyClause { Name = "XA", Qualifiers = [], Duplicates = true });
+        f.AlternateKeyNames.Add(new AlternateKeyClause { Operand = new WrittenDataName("XA"), Duplicates = true });
         return f;
     }
 
     /// <summary>A key-level clause naming one key by its bare data-name, unresolved (no record items in this model),
     /// so the fingerprint keys the operand by its spelling.</summary>
     private static KeyLevelCollatingClause KeyClause(string key, string alphabet) =>
-        new([new CollatingKeyOperand { Name = key, Qualifiers = [] }], alphabet, default);
+        new([new CollatingKeyOperand { Operand = new WrittenDataName(key) }], alphabet, default);
 
     public static TheoryData<string, Action<FileModel>> Items => new()
     {
         { "a) OPTIONAL", f => f.Optional = true },
         { "b) ASSIGN literal-1", f => f.AssignTarget = "y.dat" },
-        { "b) ASSIGN USING data-name-1", f => f.AssignUsingName = "FNAME" },
+        { "b) ASSIGN USING data-name-1", f => f.AssignUsingOperand = new WrittenDataName("FNAME") },
         // c) RECORD DELIMITER is not an equality item, so it has its own facts below (RecordDelimiter_*).
         { "d) RESERVE integer-1", f => f.ReserveAreas = 3 },
         { "e) organization", f => f.Organization = FileOrganization.Relative },
         { "f) access mode", f => f.AccessMode = FileAccessMode.Random },
         { "g) file-level COLLATING SEQUENCE", f => f.FileLevelCollating = ("REV", null) },
         { "g) key-level COLLATING SEQUENCE", f => f.KeyLevelCollating.Add(KeyClause("XA", "REV")) },
-        { "k) DUPLICATES phrase", f => f.AlternateKeyNames[0] = new AlternateKeyClause { Name = "XA", Qualifiers = [], Duplicates = false } },
+        { "k) DUPLICATES phrase", f => f.AlternateKeyNames[0] = new AlternateKeyClause { Operand = new WrittenDataName("XA"), Duplicates = false } },
         { "k) number of alternate record keys", f => f.AlternateKeyNames.Clear() },
         { "k) SUPPRESS WHEN phrase", f => f.AlternateKeyNames[0].SuppressWhen =
             new SuppressWhenOperand("\"XX\"", SuppressWhenForm.Literal, WiseOwl.Cobol.Common.LiteralClass.Alphanumeric, "XX", null) },
@@ -52,7 +52,7 @@ public sealed class ExternalFileEntryIdentityTests
         // PB1099; review R1-3 found no witness that the identity carries them).
         { "j) RECORD KEY SOURCE phrase", f => f.RecordKeySource = Source("XK", "XB", "XC") },
         { "k) ALTERNATE RECORD KEY SOURCE phrase", f => f.AlternateKeyNames[0] =
-            new AlternateKeyClause { Name = "XA", Qualifiers = [], Duplicates = true, Source = Source("XA", "XB") } },
+            new AlternateKeyClause { Operand = new WrittenDataName("XA"), Duplicates = true, Source = Source("XA", "XB") } },
         { "l) sharing mode", f => f.Sharing = SharingMode.NoOther },
         { "m) lock mode", f => f.LockMode = new LockModeInfo(LockKind.Manual, false) },
     };
@@ -158,7 +158,7 @@ public sealed class ExternalFileEntryIdentityTests
     private static RecordKeySource Source(string recordKeyName, params string[] operands) => new()
     {
         Name = recordKeyName,
-        Operands = [.. operands.Select(o => new KeySourceOperand { Name = o, Qualifiers = [] })],
+        Operands = [.. operands.Select(o => new KeySourceOperand { Operand = new WrittenDataName(o) })],
     };
 
     [Fact]

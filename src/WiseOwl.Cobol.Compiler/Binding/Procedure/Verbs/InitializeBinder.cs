@@ -388,7 +388,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <see langword="null"/> when the count cannot be modelled (a dynamic table with no reachable capacity
     /// register, or an unresolvable data-name-1) — the caller stages the named loud.</summary>
     private AllCount? TableCount(DataItem table, DataItem? identifier1, AccessPath? tablePath) =>
-        !table.IsDynamicTable && table.OccursSpec is { DependingName: not null, Depending: { } dep }
+        !table.IsDynamicTable && table.OccursSpec is { DependingOperand: not null, Depending: { } dep }
             && (identifier1 is null || OdoModel.IsWithin(dep, identifier1))
             ? (table.Occurs is { } max ? new AllCount.Fixed(max) : null)                // GR8b — the maximum
             : OccurrenceCounts.Current(table, tablePath, ctx.Refs.Places);                      // GR4 / GR8a / GR10

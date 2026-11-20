@@ -60,7 +60,8 @@ internal sealed class OdoResolvePass : IBindPass
 
         foreach (var item in binder.ClauseResolutionForest())
         {
-            if (item.OccursSpec is not { DependingName: { } depName } spec) continue;
+            if (item.OccursSpec is not { DependingOperand: { } dependingOperand } spec) continue;
+            string depName = dependingOperand.Name;
             using var _ = binder.Edition.At(item);
             string subject = item.CobolName ?? item.ClrName;
             // ⛔ A TYPE DECLARATION IS SCREENED, NOT PLACED (kb/Work PB2548). Its OCCURS DEPENDING ON phrase is source (§2023:4.3),
@@ -95,9 +96,9 @@ internal sealed class OdoResolvePass : IBindPass
             // ⛔ THE SET IS COUNTED (kb/Work PB978) — one survivor, or §2023:8.4.2.2.3 SR1's ambiguity through the ONE
             // verdict; never the first declared, which the unqualified fallback here used to take (`cands[0]`): with
             // CNT declared under two groups `OCCURS 1 TO 9 DEPENDING ON CNT` compiled clean and ran on the first.
-            string writtenDep = DataBinder.WrittenQualified(depName, spec.DependingQualifiers);
+            string writtenDep = dependingOperand.Written;
             string depFace = $"OCCURS DEPENDING ON data-name-1 of '{subject}'";
-            var tier = binder.EntryClauseCandidates(item, depName, spec.DependingQualifiers, binder.ScopeOf(item.Root));
+            var tier = binder.EntryClauseCandidates(item, depName, dependingOperand.Qualifiers, binder.ScopeOf(item.Root));
             // A declaration's counter is judged here only when the DECLARATION defines it: an item of the same name
             // elsewhere in the program is not where a use site will find it (§2023:8.4.2.2.1 SR5 qualifies from the
             // placement), so neither its ambiguity nor its SR17 category is a fact of the declaration (train 1055
@@ -129,23 +130,23 @@ internal sealed class OdoResolvePass : IBindPass
             DataItem? counter = null;
             bool counterAmbiguityReported = false;
             if (!declaration && tier.Count == 0)
-                counter = binder.Symbols.SumCounterOperand85(depName, spec.DependingQualifiers,
+                counter = binder.Symbols.SumCounterOperand85(dependingOperand,
                     $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", out counterAmbiguityReported);
             if (counterAmbiguityReported) continue;   // the ONE verdict of the reference (kb/Work PB5627)
             if (counter is null && !declaration && tier.Count != 1
-                && binder.ReportSection.ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
+                && binder.ReportSection.ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, dependingOperand.Qualifiers))
                 continue;
             if (counter is null && tier.Count == 0)
             {
                 if (declaration) continue;   // placed, and so checked, by each clone (above)
                 // Nor is a name declared as something other than a data item (kb/Work PB1906): the one query of what it is.
                 // A refused declaration was reported at its entry.
-                var nonData = binder.Symbols.Declared.OtherThanData(depName, spec.DependingQualifiers, binder.ScopeOf(item.Root));
+                var nonData = binder.Symbols.Declared.OtherThanData(depName, dependingOperand.Qualifiers, binder.ScopeOf(item.Root));
                 if (nonData is { DeclarationRefused: true }) continue;
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectUndefined, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (nonData is { } declared
                         ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} ({binder.Edition.Edition.Quoted()})"
-                        : spec.DependingQualifiers.Count > 0
+                        : dependingOperand.Qualifiers.Count > 0
                         ? "is not defined under the given qualifiers (ISO §2023:8.4.2.2.1: uniqueness shall be established "
                           + "through qualification)"
                         : "is not defined (ISO §2023:13.18.38 Format 2)") + via);

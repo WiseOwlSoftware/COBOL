@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// <summary>What the five rules of <see cref="NameTableOwnership"/> read from a compilation: which namespaces hold the
 /// binder's symbol types, and the full names of the one store (<c>SymbolTable</c>), its name key (<c>CobolName</c>), the
 /// declaration answer (<c>DeclarationFact</c>), the name-equality helper (<c>CobolNames</c>) and the binder types that carry
-/// no symbol (<see cref="Opaque"/>: an entry's opaque number). The product's shape is
+/// no symbol (<see cref="Opaque"/>: an entry's opaque number, a clause operand's written words). The product's shape is
 /// <see cref="Product"/>; the planted self-test names its own.</summary>
 internal sealed record NameTableShape(
     IReadOnlyList<string> BinderNamespaces,
@@ -35,7 +35,7 @@ internal sealed record NameTableShape(
         "WiseOwl.Cobol.Binding.CobolName",
         "WiseOwl.Cobol.Binding.DeclarationFact",
         "WiseOwl.Cobol.Runtime.CobolNames",
-        ["WiseOwl.Cobol.Binding.SymbolId"])
+        ["WiseOwl.Cobol.Binding.SymbolId", "WiseOwl.Cobol.Binding.Model.WrittenDataName"])
     {
         MadeOnlyByTable = ["WiseOwl.Cobol.Binding.CobolName", "WiseOwl.Cobol.Binding.IdentifiedName", "WiseOwl.Cobol.Compiler.Oo.OoNameResult"],
     };

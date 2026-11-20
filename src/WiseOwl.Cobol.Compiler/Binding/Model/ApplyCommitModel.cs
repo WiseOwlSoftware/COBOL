@@ -24,7 +24,7 @@ public sealed class ApplyCommitModel
 
     /// <summary>The identifier-1 operands as written, resolved post-build (<c>FileControlBinder.ResolveApplyCommit</c>): the
     /// data division is not bound when the I-O-CONTROL paragraph is.</summary>
-    internal List<(string Name, IReadOnlyList<string> Qualifiers, WiseOwl.Cobol.Editions.DiagnosticCursor At)> Identifiers { get; } = [];
+    internal List<(WrittenDataName Operand, WiseOwl.Cobol.Editions.DiagnosticCursor At)> Identifiers { get; } = [];
 
     /// <summary>The 01 and 77 items the facility saves and restores: the identifier-1 operands, then SR9's implicit items.</summary>
     public List<DataItem> Items { get; } = [];

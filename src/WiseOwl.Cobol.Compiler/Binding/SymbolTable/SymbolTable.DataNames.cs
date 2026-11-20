@@ -114,4 +114,42 @@ public sealed partial class SymbolTable
         if (!TryResolveUnqualified(written.Name, _data.ActiveScope, out var items)) return new([]);
         return new(items, _data.ReportSection.ReportEntriesInTierOf(new NameCandidates<DataItem>(items), written.Name, []));
     }
+
+    /// <summary>
+    /// ⭐ THE LOOKUP OF A DATA DIVISION CLAUSE'S WRITTEN DATA-NAME (§2023:8.4.2.2.2 Format 1; docs/rearchitecture/DESIGN-listing.md
+    /// section 6.7.1, "Step 6b, remainder slice 2"): the §2023:8.4.2.2 candidate set of <paramref name="operand"/>, the clause's
+    /// data-name-n as the model keeps it (<see cref="WrittenDataName"/>), in <paramref name="scope"/>. Every written qualifier is
+    /// applied over the whole visible set, then the nearest declaring source element's survivors are kept (§2023:8.4.6.2.1 3)),
+    /// counted with the REPORT SECTION entries of that element (kb/Work PB5775), so the count is the caller's uniqueness verdict
+    /// (<see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>, <c>DataBinder.ResolveClauseOperand</c>). A clause operand is resolved
+    /// after the data division is declared, from the model, which holds no parse tree: the written words are the operand's.
+    /// Pure: it reports nothing.
+    /// </summary>
+    internal NameCandidates<DataItem> IdentifyDataName(WrittenDataName operand, Scope scope) =>
+        _data.QualifiedCandidates(operand.Name, operand.Qualifiers, scope);
+
+    /// <summary>Whether a data item of <paramref name="operand"/>'s spelling is visible in <paramref name="scope"/> at all, its
+    /// qualifiers not applied: the question a clause's unidentified-operand diagnostic asks to say "declared, but not under the
+    /// given qualifiers" rather than "no declaration" (a declaration question: no symbol answers).</summary>
+    internal bool DeclaresDataNameSpelled(WrittenDataName operand, Scope scope) => TryResolve(operand.Name, scope, out _);
+
+    /// <summary>The presence fact of the formal parameter <paramref name="written"/> spells (§2023:8.8.4.8.3 SR1: data-name-1 of an
+    /// omitted-argument condition "shall be a formal parameter defined in the source element in which this condition is
+    /// specified"), or null when it spells none: inside a METHOD the method's own formals (<paramref name="methodFormals"/>,
+    /// §2023:14.9.23.4 GR9), elsewhere the program's or function's (<c>LinkageBinder.Formals</c>). The formals are the source
+    /// element's USING operands, so the condition's word is matched against their data-names here, where every comparison of
+    /// names is the table's (section 6.7.1, rule (5)); kb/Work PB133, PB757.</summary>
+    internal OmittedProbe? FormalSpelled(Antlr4.Runtime.ParserRuleContext written, IReadOnlyList<OoFormal>? methodFormals)
+    {
+        var key = Key(written.GetText().Trim());
+        if (methodFormals is not null)
+        {
+            foreach (var f in methodFormals)
+                if (f.Item.CobolName is { } name && Key(name) == key) return f.Probe;
+            return null;
+        }
+        foreach (var f in _data.Linkage.Formals)
+            if (f.Item.CobolName is { } name && Key(name) == key) return f.Probe;
+        return null;
+    }
 }

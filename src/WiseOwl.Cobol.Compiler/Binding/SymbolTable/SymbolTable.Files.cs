@@ -96,6 +96,19 @@ public sealed partial class SymbolTable
     /// <summary>The SELECTed files SR3 screens, with the file-name as the SELECT wrote it.</summary>
     internal IEnumerable<(string Name, FileModel File)> SelectedFiles => _selectedFiles.Select(p => (p.Key.Word, p.Value));
 
+    /// <summary>The file of a CONTAINING source element, described with no GLOBAL clause, that an unqualified clause operand spells
+    /// (§2023:12.4.6.3.3 SR1: the APPLY COMMIT clause's file-name-1 "shall be specified in the FILE-CONTROL paragraph of the source
+    /// element that contains this clause"), or null. Such a file is not visible here (§2023:8.4.6.2.2), so it names nothing: the
+    /// question only words the refusal of an operand that reached no data item.</summary>
+    internal FileModel? ContainerLocalFileSpelled(WrittenDataName operand)
+    {
+        if (operand.Qualifiers.Count != 0) return null;
+        var key = Key(operand.Name);
+        foreach (var f in _data.State.Inherited.ContainerLocalFiles)
+            if (Key(f.CobolName) == key) return f;
+        return null;
+    }
+
     /// <summary>Whether <paramref name="qualifier"/>, the outermost qualifier of a data reference, is a visible file-name whose
     /// file holds the record <paramref name="root"/> (the file-report-qualifier, §2023:8.4.2.2.2 Format 1).</summary>
     internal bool FileQualifies(string qualifier, DataItem root) =>

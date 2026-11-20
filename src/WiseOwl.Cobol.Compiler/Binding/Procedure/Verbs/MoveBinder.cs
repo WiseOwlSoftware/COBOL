@@ -595,7 +595,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         ctx.Validation.CheckIntoReceiver(file, receiver, rules);
         // §2023:13.18.43.4 GR16 a) reads the DEPENDING item; GR16 b) applies when the phrase is absent. Resolved
         // HERE, once, for all three INTO arms — the sequential READ, the keyed READ and the sort RETURN.
-        Place? depending = file is { Varying.DependingName: not null, VaryingDependingItem: { } d }
+        Place? depending = file is { Varying.DependingOperand: not null, VaryingDependingItem: { } d }
             ? ctx.Refs.Places.ResolveItem(d) : null;
         // A FIXED-length file keeps the plain record-area operand: its current record IS the whole area
         // (§2023:13.18.43.4 GR6 — integer-1 bytes in every record), including the short-final-record '04' case of
