@@ -821,6 +821,36 @@ above, SM201A's second); NC105A's first branch run is below both parent runs and
 own run-to-run spread on one tree (slice 3 measured NC105A's `None` row from 34.90 to 35.64 MB on one branch, and 35.15 to 35.78 MB on
 its parent). The moves replace a dictionary per name class with one of the same shape in another type and allocate nothing per
 reference, so the slice moves no measurable allocation; the `None` budget holds. Time rows are not shown (kb/Work PB5927).
+
+**PB5947 (the table of flagged constructs by edition, DESIGN-listing.md section 6.11): every row against the parent.** The change
+touches every compilation's diagnostic records (each `Diagnostic` and `EditionDiagnostic` carries a flag reference, null unless the
+diagnostic is an edition flag; the construct registry's verdict is one value, `EditionVerdict`) and adds the table to every listing
+with its diagnostics section, so it measures every row of the front end and bind. Measured on 2026-11-19, Release, one Windows host,
+`dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FrontEndAndBind*'` once on the parent
+`8dd07d2eab` (a detached worktree) and then once on the `listing-step-pb5947` branch (b608bad228's sources). Allocated bytes per front
+end and bind:
+
+| Program | Listing | Parent 8dd07d2eab | Branch b608bad228 |
+|---|---|---|---|
+| IX113A | None | 68.30 MB | 68.31 MB |
+| NC105A | None | 34.58 MB | 34.63 MB |
+| NC218A | None | 30.67 MB | 30.74 MB |
+| SM201A | None | 15.28 MB | 15.02 MB |
+| IX113A | Text | 76.08 MB | 76.08 MB |
+| NC105A | Text | 38.95 MB | 38.95 MB |
+| NC218A | Text | 35.01 MB | 35.00 MB |
+| SM201A | Text | 17.08 MB | 17.48 MB |
+| IX113A | All | 110.06 MB | 110.20 MB |
+| NC105A | All | 51.74 MB | 51.77 MB |
+| NC218A | All | 46.49 MB | 46.51 MB |
+| SM201A | All | 23.83 MB | 25.65 MB |
+
+Reading them: every branch `None` row lies within 0.07 MB of the parent's (SM201A's 0.26 MB below it), inside the run-to-run spread the
+earlier tables show on one tree (0.5 MB on NC105A), so the change moves no measurable allocation on the no-listing path; the `None`
+budget holds. The NIST programs flag no construct at the benchmark's edition, so the table is empty and the listing rows of IX113A,
+NC105A and NC218A equal the parent's within 0.14 MB. SM201A's listing rows move both ways on one run each (`Text` +0.40, `TextAndJson`
+-0.60, `All` +1.82 MB), the full compile's allocation noise this program shows (kb/Work PB5925's lead
+`2026-11-18-full-compile-allocation-noise`); the `All` row's budget is kb/Work PB5941's. Time rows are not shown (kb/Work PB5927).
 ---
 
 ## Not measured here

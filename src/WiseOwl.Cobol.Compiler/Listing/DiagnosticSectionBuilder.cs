@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
 
@@ -42,10 +43,30 @@ internal static class DiagnosticSectionBuilder
             int id = diagnostics.Count + 1;
             var draft = line is { } number ? drafts[number - 1] : null;
             diagnostics.Add(new ListingDiagnostic(id, d.Code, SeverityOf(d.Severity), d.Message, line, draft?.File, draft?.FileLine,
-                draft is null ? null : column, ListingCitation.Scan(d.Message)));
+                draft is null ? null : column, ListingCitation.Scan(d.Message), FlagOf(d.Flag)));
         }
         return diagnostics;
     }
+
+    /// <summary>The table of flagged constructs by edition (DESIGN-listing.md section 6.11): the edition flags of
+    /// <paramref name="diagnostics"/> as the compiler raised them (<see cref="ListingDiagnostic.Flag"/>), never re-derived from a code or
+    /// a message, one entry per edition, kind and construct, in that order, each naming its diagnostics in listing order.</summary>
+    public static List<ListingFlaggedConstruct> FlaggedConstructs(IReadOnlyList<ListingDiagnostic> diagnostics) =>
+        [.. diagnostics.Where(d => d.Flag is not null)
+            .GroupBy(d => (d.Flag!.Edition, d.Flag.Kind, d.Flag.Construct))
+            .OrderBy(g => g.Key.Edition).ThenBy(g => g.Key.Kind).ThenBy(g => g.Key.Construct, StringComparer.Ordinal)
+            .Select(g => new ListingFlaggedConstruct(g.Key.Edition, g.Key.Kind, g.Key.Construct, g.First().Flag!.Description,
+                [.. g.Select(d => d.Id)]))];
+
+    /// <summary>The listing's edition flag of a compiler's: every kind by its own name (the Unit assembly's
+    /// <c>DiagnosticRecordsTests.TheFlagKindMap_IsTotal</c> holds the map total).</summary>
+    internal static ListingFlag? FlagOf(EditionFlag? flag) => flag is null ? null : new ListingFlag(flag.Kind switch
+    {
+        EditionFlagKind.Obsolete => ListingFlagKind.Obsolete,
+        EditionFlagKind.Removed => ListingFlagKind.Removed,
+        EditionFlagKind.Extension => ListingFlagKind.Extension,
+        _ => throw new ArgumentOutOfRangeException(nameof(flag), flag.Kind, "an edition flag kind with no listing kind"),
+    }, flag.Construct, flag.Description, flag.Edition);
 
     /// <summary><paramref name="at"/> naming its file as the listing lists it: as it stands when the listing lists that name, else by its
     /// full path; null when the listing lists no such file.</summary>
