@@ -385,7 +385,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         int pos = 0;
         bool byValue = false;
         // The formals whose ADDRESS OF the body takes are AREA formals (FormalIsCarrierResident — the program arm's test).
-        var addressed = (pd is null ? [] : data.ClaimScans.AddressTargets(pd)).Select(t => t.Name).ToHashSet(CobolNames.Comparer);
+        var addressed = (pd is null ? [] : data.ClaimScans.AddressTargets(pd)).Select(t => t.Written.Name).ToHashSet(CobolNames.Comparer);
         var header = new ProcedureHeaderScreen(Edition, where);   // §2023:14.2.2 SR1/SR2/SR5/SR6 — the ONE header screen (kb/Work PB1145)
         foreach (var prm in pd?.usingClause()?.usingParameter() ?? [])
         {

@@ -17,8 +17,10 @@
 > function-prototype-names; the OO lane, branch `listing-step-6b-oo`: the object-class-names, interface-names and method rosters in the
 > compilation group's tier; the data-name lane's first slice, branch `listing-step-6b-data`: the DEBUG-ITEM, type, CAPACITY register and
 > index-names; the closing slice's first session, branch `listing-step-6b-close`: the data-name, condition-name and screen-name tables,
-> the USE and WHEN file registers, the end markers; the data-name and condition-name RESOLUTION remains, 86 baseline entries; sections
-> 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); step 7b (the
+> the USE and WHEN file registers, the end markers; remainder slice 1, branch `listing-step-6b-r1`: every procedure-division data-name
+> and condition-name identified through `IdentifyDataName` and `IdentifyConditionName`; the data division's clause operands, the
+> declarations, the census, the group tier's units, the parameterized expansion and the entry ids remain, 75 baseline entries;
+> sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); step 7b (the
 > occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
 > dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
 > part of this design not yet built and why.** Where building a step proved this document wrong it was
@@ -1512,6 +1514,40 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       typed `IdentifyDataName(WrittenQualifiedName, ...)` the data-name lane named, with the clause operands carrying their written
       words or resolved from their carrier, is the next slices' work, with the declaration sites, the census, the group tier's
       function units and the parameterized expansion (kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the table).
+  - *(Step 6b, remainder slice 1, branch `listing-step-6b-r1`.)* The procedure division's data-names and condition-names are
+    identified by the table, and the baseline holds 75 (1 table, 11 lookups, 63 sites): eleven text lookups are deleted
+    (`NameResolution.FindItem`, `ResolveQualified`, `ResolveUnqualified`, `FindReportedItem(dref, string, ...)`,
+    `DeclarationOf(dref, string)`, `ReferenceResolver.ResolveByName(string, ...)`, `ObjectPropertyResolver.ResolveObjectProperty(dref,
+    string, ...)`, `DataBinder.QualifiedConditionCandidates`, `ConditionTier`, and the table's public `TryResolveCondition` and
+    `NearestDeclaringConditions`, private now). Every reference written in the procedure division, and the operands a
+    procedure-division scan collects for the data division (the storage-claim heads of ADDRESS OF and BY REFERENCE, a LENGTH OF
+    operand of a constant entry), hands the table the written words: `SymbolTable.IdentifyDataName(WrittenQualifiedName, report)`
+    answers the §2023:8.4.2.2 candidate set (`NameCandidates<DataItem>`), and `IdentifyConditionName(WrittenQualifiedName, report)`
+    the condition-names' (`List<Condition88>`); `NameResolution.DataItemNamed(WrittenQualifiedName)` is the procedure division's one
+    verdict over the set, as `ResolveIndexName` is the index-name's. The corrections the code proved:
+    - *A qualifiable class's typed method, not `SymbolNamed`'s arm (correction of the remainder's brief).* The remainder was written
+      as "`SymbolNamed` gaining its Data and Condition arms" beside the typed `IdentifyDataName`. `SymbolNamed` is the boxed
+      `Identify` arm, which answers an `IdentifiedName` around the symbol; this section's own correction (the data-name lane, review
+      round 1) measured that boxing a qualifiable name's candidate set costs every compilation two objects per ask, over section 9's
+      `None` budget. A data-name and a condition-name are qualifiable names whose identification IS the candidate set, so each class
+      has its own typed method beside `IdentifyIndexName`, and `SymbolNamed` gains no arm for them: one rule for the three
+      qualifiable classes.
+    - *A reference that writes no name is no name (correction).* `WrittenQualifiedName.Of(dataReference)` answers null for a
+      LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER reference, whose `cobolWord` is its file-name or report-name QUALIFIER
+      (§2023:8.4.2.2.2 Formats 7 and 8), and for a recovery node with no word. Several callers had read that qualifier as the referenced name,
+      or the reference's glued text (`dref.GetText()`, kb/Work PB2040's shape): the condition binder, the SEARCH ALL screens, the
+      storage-claim scan, the subscript reader, the table(ALL) argument and the flag pass. Each now asks the one maker.
+    - *The two arms of a data-name keep the two answers the procedure division gave (a lead, not a change).* An unqualified
+      reference names the nearest declaring element's items (`TryResolveUnqualified`); a qualified one is `DataBinder.QualifiedCandidates`,
+      which also drops a set of lapsed type-declaration members alone. `IdentifyDataName` keeps both, so the move is behaviour-neutral;
+      whether an unqualified reference to a type-declaration member alone should be dropped the same way is kb/Work PB5932's dated file
+      `2026-11-19-step-6b-r1`'s lead, with the sum-counter funnel that still asks the qualified set for an unqualified name.
+    - *What remains of the class: the data division's operands.* The clause operands the data division keeps as `(name, qualifiers)`
+      text (FILE STATUS, RELATIVE and RECORD KEY, PADDING, LINAGE, ASSIGN USING, APPLY COMMIT, VALUE OF, OCCURS DEPENDING ON and KEY,
+      REDEFINES, RENAMES, SAME AS, a report clause's operands, a BASED claim) still reach `QualifiedCandidates`, `EntryClauseCandidates`,
+      `RegionClauseCandidates`, `SubtreeCandidates`, `ResolveClauseOperand`, `RecordKeyNameCandidates`, `ReportItemOperandRefused`,
+      `SumCounterOperand85` and, through them, `TryResolve`, `TryResolveUnqualified` and `NearestDeclaringData`: the remainder's
+      part B, then the declarations (C) and the entry ids (D).
 - **Cost.** The table's entries exist for every compilation (they are the binder's one store of names). What only a
   listing needs is gated: `EditionContext.RecordsSymbols` (data map or cross-reference requested) gates the attribute
   records of section 6.6, and `EditionContext.RecordsReferences` (cross-reference requested) gates the occurrences
@@ -2445,7 +2481,12 @@ shown behaviour-neutral by `compare_oracle.py`, and lowered the baseline 122 -> 
 data-names' and condition-names' resolution by text (22 lookups, about 100 call sites), their declaration sites, the census, the group
 tier's function units and the parameterized expansion, so the step lands one more slice at least, by the same rule: the slice that
 empties the baseline deletes it with the code that reads it, measures the whole step against the parent of slice 1, and flips PB5932;
-kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the remainder by class.
+kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the remainder by class. (Step 6b, remainder slice 1, branch
+`listing-step-6b-r1`:) the procedure division's data-names and condition-names are identified by `SymbolTable.IdentifyDataName` and
+`IdentifyConditionName` (section 6.7.1, "Step 6b, remainder slice 1"), eleven text lookups deleted, `compare_oracle.py` IDENTICAL; the
+baseline is 75, and kb/Work PB5932's dated file `2026-11-19-step-6b-r1` holds what remains in the remainder's order: the data
+division's clause operands (B), the declarations, the census, the group tier's units and the parameterized expansion (C), and every
+class's entry id (D).
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had

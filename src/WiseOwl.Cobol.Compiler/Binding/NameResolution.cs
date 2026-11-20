@@ -42,7 +42,7 @@ internal readonly record struct IndexRef(IndexRefOutcome Outcome, IndexDeclarati
 /// user-defined name belongs" (§2023:8.4.2.2.1); a reference shall "uniquely identify" its resource, and §2023:8.4.2.2.3 SR1 makes the
 /// written qualifiers establish that. This type asks the candidates of a spelling from <see cref="DataBinder"/>'s symbol tables
 /// (<c>QualifiedCandidates</c>, <c>Symbols</c>), decides uniqueness, and says why when it cannot: the unqualified and qualified
-/// data-name lookups (<see cref="ResolveUnqualified"/>, <see cref="ResolveQualified"/>), the index-name lookup
+/// data-name verdict (<see cref="DataItemNamed"/>, over <see cref="SymbolTable.IdentifyDataName"/>'s candidate set), the index-name lookup
 /// (§2023:8.4.2.2.3 SR6, <see cref="ResolveIndexName"/>), the one COBOL1639 report (<see cref="ReportUnidentified"/>, with the
 /// misqualified- and hidden-condition-name wordings) and the §2023:13.7.3 SR4 LINKAGE screens every identifier entry asks.
 /// <para>It holds no place and no subscript: <see cref="ReferenceResolver"/>'s identification step calls it first and the place
@@ -280,113 +280,82 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             + (why is null ? "" : $" ({why})") + "; see the error at the declaration. The reference cannot be bound.");
     }
 
-    /// <summary>Resolve a (possibly OF/IN-qualified) data-name to its <see cref="DataItem"/>, or null. Used by
-    /// the table(ALL) expansion (§2023:15.3) to read the OCCURS counts before building per-occurrence places.</summary>
-    internal DataItem? FindItem(string name, IReadOnlyList<string> qualifiers) =>
-        qualifiers.Count == 0 ? ResolveUnqualified(name)
-            : ResolveQualified(name, qualifiers as List<string> ?? [.. qualifiers]);
+    /// <summary>⛔ THE ONE VERDICT OVER A WRITTEN DATA-NAME'S CANDIDATE SET (ISO §2023:8.4.2.2): the <see cref="DataItem"/>
+    /// <paramref name="written"/> identifies, or null. The set is the symbol table's (<see cref="SymbolTable.IdentifyDataName"/>,
+    /// the index-name's twin <see cref="ResolveIndexName"/>); this decides what its count means.
+    /// <para>A QUALIFIED reference resolves only when exactly one declaration survives the qualifiers (CANDIDATE-SET matching, inner
+    /// to outer, §2023:8.4.2.2.2 Format 1, the outermost qualifier optionally the owning FILE, SQ207M's <c>WRITE PRINT-REC IN
+    /// PRINT-FILE</c>). ⛔ THE UNIQUENESS DEMANDED IS OF THE MATCH, NEVER OF A QUALIFIER NAME IN ISOLATION (kb/Work R31):
+    /// §2023:8.4.2.2.1 — "Identical user-defined names may be specified in a source unit; however, uniqueness shall be established
+    /// through qualification", so legal <c>Z IN X</c> (two Xs, exactly one holding a Z) resolves. Zero or several survivors is a
+    /// resolution failure the caller reports (kb/Work R30).</para>
+    /// <para>An UNQUALIFIED reference names the nearest declaring source element's items (§2023:8.4.6.2.1 3), kb/Work PB1047 /
+    /// PB1243), and a REPORT SECTION entry of the same spelling and element counts with them (kb/Work PB5775). Several is
+    /// §2023:8.4.2.2.1's ambiguity (kb/Work R33): "Qualification of a user-defined name is required unless … 1) No other name has
+    /// the identical spelling." Strict: null, and the caller's <see cref="ReportUnidentified"/> words it. <c>--permissive</c>: the
+    /// traditional first-declared match through the ONE ambiguity verdict (<see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>), warned
+    /// here once per committing resolution (R30 purity: a probe warns nothing, kb/Work PB157).</para>
+    /// <para>Used by every procedure-division reference (<see cref="ReferenceResolver"/>), the table(ALL) expansion (§2023:15.3) and
+    /// the LENGTH OF and storage-claim operands, which read the OCCURS counts or the record before building any place.</para></summary>
+    internal DataItem? DataItemNamed(WrittenQualifiedName written)
+    {
+        var candidates = data.Symbols.IdentifyDataName(written, report: !refs.Probing);
+        if (written.QualifierWords.Count > 0 || candidates.Count <= 1) return candidates.Single;
+        if (!data.Edition.Permissive) return null;
+        var first = data.UniqueOrReportAmbiguous(candidates, "", written.Name, out _, report: false);
+        if (!refs.Probing)
+            data.Edition.Warning(DiagnosticCatalog.UndefinedReference,
+                $"'{written.Name}' is declared {candidates.Count} times and referenced without qualification — "
+                + "ISO §2023:8.4.2.2.1 requires qualification when spellings collide; --permissive resolves to "
+                + "the first declaration");
+        return first;
+    }
 
-    /// <summary>⛔ THE LOOKUP OF A WRITTEN NAME THAT NAMES A TABLE, REPORTED (kb/Work PB3287): <see cref="FindItem"/>, then
+    /// <summary>⛔ THE LOOKUP OF A WRITTEN NAME THAT NAMES A TABLE, REPORTED (kb/Work PB3287): <see cref="DataItemNamed"/>, then
     /// the one §2023:8.4.2.2 report when no item is identified (<see cref="ReportUnidentified"/>) and the §2023:13.7.3 SR4 screen
     /// when one is (<see cref="ScreenLinkageReference"/>) — what <see cref="Identify"/> asks for every identifier, for the
     /// two references that name a TABLE and not a place (the SEARCH / SORT table operand and the table(ALL) intrinsic
-    /// argument), which read their own subscripts. Both used to call <see cref="FindItem"/> and stop, so `SEARCH L-TABLE`
+    /// argument), which read their own subscripts. Both used to resolve and stop, so `SEARCH L-TABLE`
     /// and `FUNCTION SUM (L-TABLE (ALL))` over a LINKAGE table the procedure division may not reference compiled clean
-    /// while `MOVE L-TABLE (1) TO X` drew COBOL2746. Null having reported.</summary>
-    internal DataItem? FindReportedItem(Core.DataReferenceContext dref, string name, List<string> qualifiers)
+    /// while `MOVE L-TABLE (1) TO X` drew COBOL2746. Null having reported; null without a report for a reference that writes no
+    /// name (a counter register).</summary>
+    internal DataItem? FindReportedItem(Core.DataReferenceContext dref)
     {
-        if (FindItem(name, qualifiers) is not { } item)
+        if (WrittenQualifiedName.Of(dref) is not { } written) return null;
+        if (DataItemNamed(written) is not { } item)
         {
-            ReportUnidentified(dref, name, qualifiers);
+            ReportUnidentified(dref, written.Name, [.. written.QualifierWords]);
             return null;
         }
         ScreenLinkageReference(dref, item);
         return item;
     }
 
-    /// <summary>The item an unqualified name resolves to (first match; COBOL requires qualification to
-    /// disambiguate) — through the ONE scope-aware <see cref="SymbolTable"/> (P7 Step 10a, the DEVLOG-773
-    /// pickup): the §2023:11.7 GR5 method-overlay-first precedence (a method-local name shadows object data; sibling
-    /// methods' names are invisible) lives in <c>TryResolve</c>, no longer duplicated here.</summary>
-    internal DataItem? ResolveUnqualified(string name)
-    {
-        // §2023:8.4.6.2.1 3) — a contained program's own declaration hides a container's global one, and a nearer
-        // container's hides a farther one (kb/Work PB1047 / PB1243): the unit map holds every tier, and the ONE
-        // nearest-tier rule narrows it before ambiguity is asked.
-        if (!data.Symbols.TryResolveUnqualified(name, data.ActiveScope, out var list)) return null;
-        // ⛔ A REPORT SECTION ENTRY OF THE SAME SPELLING AND SOURCE ELEMENT COUNTS WITH THE ITEMS (kb/Work PB5775), as the qualified
-        // lookup counts it (DataBinder.QualifiedCandidates): a data item that shares its name with a report group is not unique, so
-        // the unqualified reference is the ambiguity (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1).
-        int reportEntries = data.ReportSection.ReportEntriesInTierOf(new NameCandidates<DataItem>(list), name, []);
-        if (list.Count + reportEntries > 1)
-        {
-            // §2023:8.4.2.2.1 (kb/Work R33): "Qualification of a user-defined name is required unless … 1) No
-            // other name has the identical spelling." TryResolve returns ONE namespace — the §2023:8.4.6.2.1
-            // rule-3a method overlay OR the unit map, never a mix — and NearestDeclaring has narrowed the unit map
-            // to one source element, so a plural list is genuine same-element ambiguity, not legal scope
-            // shadowing. Measured before enforcing: ZERO of 762 corpus+NIST
-            // programs hit this (the note's blast-radius sweep). Strict: null → ReportUnidentified's
-            // N-declarations arm (dead until now — R30 built it, this makes it reachable).
-            // --permissive: the traditional first-declared match, warned (the DA6/R29 disposition shape).
-            if (!data.Edition.Permissive) return null;
-            if (refs.Probing) return list[0];   // R30 purity: the committing resolution warns (kb/Work PB157)
-            data.Edition.Warning(DiagnosticCatalog.UndefinedReference,
-                $"'{name}' is declared {list.Count + reportEntries} times and referenced without qualification — "
-                + "ISO §2023:8.4.2.2.1 requires qualification when spellings collide; --permissive resolves to "
-                + "the first declaration");
-        }
-        return list[0];
-    }
-
     /// <summary>⛔ THE DECLARATION AN UNQUALIFIED DATA-NAME NAMES, IN THE REFERENCE'S OWN SCOPE (kb/Work PB467) —
     /// for the verbs whose operand is a <i>data-name</i> and whose rule is a predicate over the DECLARATION
     /// rather than over a storage place (SET ADDRESS OF / ALLOCATE's §2023:14.9.39.3 SR18 and §2023:14.9.3.3 SR1 based-item
-    /// screen). It is <see cref="ResolveUnqualified"/> plus this resolver's own §2023:8.4.2.1 report, so such a verb
+    /// screen). It is <see cref="DataItemNamed"/> plus this resolver's own §2023:8.4.2.1 report, so such a verb
     /// inherits EVERY scoping rule the resolver knows — now and later — instead of restating one.
     /// <para>⛔ THE BYPASS THIS REPLACED ANSWERED A SCOPED QUESTION FROM THE FLAT MAP. <c>PtrResolveBased</c> read
     /// <c>ctx.Data.ByName</c> directly, which has no notion of a reference's scope, and the based-item verdict
     /// went wrong in BOTH directions inside a method: a legal method-local <c>01 MB BASED</c> was refused as
     /// not-BASED (the method's own declaration was invisible), and a method-local NON-based item that legally
     /// shadows an object-level BASED one was ACCEPTED for rebasing (the object declaration was visible when it
-    /// must not be). Moving the same declaration between the object's data division and the method's flipped the
-    /// verdict — the proof that scope, not the declaration, was deciding. §2023:11.7.4 GR5 is the rule: "If a given
-    /// user-defined word is defined in the data division of this method definition and in the data division of
-    /// the containing object definition, the use of that word in this method refers to the declaration in this
-    /// method. The declaration in the containing object definition is inaccessible to this method" — which
-    /// <see cref="SymbolTable.TryResolve"/> already implements, one file away.</para>
-    /// <para>Returns null having REPORTED (COBOL1639) when no declaration in scope carries the name or when
-    /// several do — §2023:8.4.2.2.1's ambiguity is the ordinary qualification question and gets the ordinary
-    /// diagnostic, never the silent first-wins the bypass took. A caller distinguishes "reported" from "resolved
-    /// to the wrong kind of item" with <see cref="WasDiagnosed"/>.</para></summary>
-    internal DataItem? DeclarationOf(Core.DataReferenceContext dref, string name)
+    /// must not be). §2023:11.7.4 GR5 is the rule: "If a given user-defined word is defined in the data division of this method
+    /// definition and in the data division of the containing object definition, the use of that word in this method refers to the
+    /// declaration in this method. The declaration in the containing object definition is inaccessible to this method" — which
+    /// the symbol table's lookup (<see cref="SymbolTable.IdentifyDataName"/>) implements.</para>
+    /// <para><paramref name="dref"/> is one word (the caller's own data-name screen). Returns null having REPORTED (COBOL1639) when
+    /// no declaration in scope carries the name or when several do — §2023:8.4.2.2.1's ambiguity is the ordinary qualification
+    /// question and gets the ordinary diagnostic, never the silent first-wins the bypass took. A caller distinguishes "reported"
+    /// from "resolved to the wrong kind of item" with <see cref="WasDiagnosed"/>.</para></summary>
+    internal DataItem? DeclarationOf(Core.DataReferenceContext dref)
     {
-        if (ResolveUnqualified(name) is { } item) return item;
-        if (!refs.Probing) ReportUnidentified(dref, name, []);
+        var written = WrittenQualifiedName.Of(dref);
+        if (written is { } named && DataItemNamed(named) is { } item) return item;
+        // A special register names no data item: it is unidentified as written (its word is a qualifier, or none).
+        if (!refs.Probing) ReportUnidentified(dref, written?.Name ?? dref.GetText(), written is { } w ? [.. w.QualifierWords] : []);
         return null;
-    }
-
-    /// <summary>
-    /// Resolve a qualified reference <c>name OF q[0] OF q[1] …</c> (ISO §2023:8.4.2.2) by CANDIDATE-SET matching:
-    /// every in-scope declaration of <paramref name="name"/> whose ancestor chain carries each written
-    /// qualifier in order (inner → outer, §2023:8.4.2.2.2 Format 1 — qualifiers need not be consecutive levels),
-    /// the OUTERMOST qualifier optionally the owning FILE's name (§2023:8.4.2.2 — the FD/SD is the highest
-    /// permissible qualifier; SQ207M's <c>WRITE PRINT-REC IN PRINT-FILE</c>). Exactly ONE survivor resolves;
-    /// zero or several is a resolution failure the caller reports (kb/Work R30).
-    /// <para>⛔ THE UNIQUENESS DEMANDED IS OF THE MATCH, NEVER OF A QUALIFIER NAME IN ISOLATION (kb/Work
-    /// R31): §2023:8.4.2.2.1 — "Identical user-defined names may be specified in a source unit; however,
-    /// uniqueness shall be established through qualification". The prior walk resolved the outermost
-    /// qualifier as a unique unqualified name FIRST, so legal <c>Z IN X</c> — two Xs, exactly one holding a
-    /// Z — was rejected (the differential's syn_definition:931 flip, GnuCOBOL's own "Unique reference with
-    /// ambiguous qualifiers" case). Level-66 RENAMES aliases are registered names with the owning record as
-    /// <see cref="DataItem.Parent"/>, so <c>HARRY OF A-GLOB</c> (NC209A) matches through the same chain.</para>
-    /// </summary>
-    /// <para>⛔ THE MATCHING ITSELF LIVES ON <see cref="DataBinder.QualifiedCandidates"/> — ONE §2023:8.4.2.2 resolver
-    /// for the procedure division AND the file-description / file-control clauses, which used to carry a weaker
-    /// private copy of it (kb/Work PB489). What stays here is only this format's decision about the survivors:
-    /// exactly one resolves.</para>
-    internal DataItem? ResolveQualified(string name, List<string> qualifiers)
-    {
-        return data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Single;
     }
 
     /// <summary>Written index-name references already reported, keyed by the written node (a

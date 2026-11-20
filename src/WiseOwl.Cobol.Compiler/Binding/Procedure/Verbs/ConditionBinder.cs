@@ -1938,11 +1938,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// first) — duplicate 88 names across tables select by the qualifier chain.</summary>
     public Condition88? ConditionOf(Core.DataReferenceContext dref)
     {
-        string name = dref.cobolWord()?.GetText() ?? dref.GetText();
+        if (WrittenQualifiedName.Of(dref) is not { } written) return null;   // a register names no condition-name
         // §2023:11.7 GR5 — a method-local 88 shadows object data; the overlay-first precedence lives in the ONE
         // scope-aware SymbolTable (P7 Step 10a, the DEVLOG-773 pickup), no longer duplicated inline here.
         // §2023:8.4.2.2 Format 2 (kb/Work R33's sweep — the condition-name sibling of the data-name fix): the
-        // reference must identify EXACTLY ONE level-88. The candidate set is DataBinder.QualifiedConditionCandidates,
+        // reference must identify EXACTLY ONE level-88. The candidate set is SymbolTable.IdentifyConditionName,
         // the ONE resolution this and FlagConformancePass read (kb/Work PB3288): one namespace tier, narrowed by the
         // written qualifiers, then by §2023:8.4.6.2.1 3) after qualification (a condition-name of this source element hides
         // a container's global one, a nearer container's a farther one, kb/Work PB1047), and EMPTY for a lapsed
@@ -1951,7 +1951,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // more than one — is genuine ambiguity, previously resolved silently to the first declaration. Strict: report
         // and bind the first anyway (the compile already fails; no caller fallback runs a different reading).
         // --permissive: the traditional first match, warned.
-        var matches = ctx.Data.QualifiedConditionCandidates(name, QualifiersOf(dref), ctx.ActiveScope);
+        var matches = ctx.Symbols.IdentifyConditionName(written, report: true);
         // The NEGATIVE side of §2023:13.16.3 SR23 (kb/Work PB567): no condition-name of this spelling is subordinate to
         // the written qualifiers, so this reference names no condition-name. It is not reported HERE because the
         // same word may still be a DATA-name those qualifiers do reach; the caller falls through to the data
@@ -2027,10 +2027,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// entry, and the report then names THAT item.</summary>
     public bool ReportMisqualifiedCondition(Core.DataReferenceContext dref)
     {
-        string name = WrittenWord(dref);
-        if (!ctx.Symbols.TryResolveCondition(name, ctx.ActiveScope, out _)) return false;
+        if (WrittenQualifiedName.Of(dref) is not { } written || !ctx.Symbols.DeclaresConditionName(written)) return false;
         if (!_condDiagnosed.Add(dref)) return true;
-        var qualifiers = QualifiersOf(dref);
+        string name = written.Name;
+        var qualifiers = written.QualifierWords;
         string text = DataBinder.WrittenText(dref);
         // A data item of a NEARER source element than the condition-name is the referenced item (ISO §2023:8.4.6.2.1 3) a),
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
@@ -2054,7 +2054,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// fact about the reference; what to do with it is the POSITION's: a condition-only position refuses the data item
     /// (<see cref="ReportMisqualifiedCondition"/>), a bare operand position takes it as the data item it is.</summary>
     private bool NamesHidingDataItem(Core.DataReferenceContext dref) =>
-        ctx.Data.ConditionNameHiddenByNearerDataItem(WrittenWord(dref), QualifiersOf(dref), ctx.ActiveScope);
+        WrittenQualifiedName.Of(dref) is { } written && ctx.Symbols.ConditionNameHiddenByNearerDataItem(written);
 
     /// <summary>What hides the level-88 <paramref name="dref"/> names, when it is a declaration of another name class than
     /// a data item — a constant-name, index-name or file-name (<see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>)
@@ -2063,10 +2063,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="NamesHidingDataItem"/>.</summary>
     private string? HidingClassPhrase(Core.DataReferenceContext dref)
     {
-        string name = WrittenWord(dref);
-        var qualifiers = QualifiersOf(dref);
-        if (ctx.Data.Symbols.Declared.ConditionNameHiddenByNearerNonDataName(name, qualifiers, ctx.ActiveScope) is { } hider) return hider.ClassPhrase;
-        return CapacityRegisterHides(dref, ctx.Data.ConditionTier(name, qualifiers, ctx.ActiveScope))
+        if (WrittenQualifiedName.Of(dref) is not { } written) return null;
+        if (ctx.Data.Symbols.Declared.ConditionNameHiddenByNearerNonDataName(written.Name, written.QualifierWords, ctx.ActiveScope) is { } hider)
+            return hider.ClassPhrase;
+        return CapacityRegisterHides(dref, ctx.Symbols.ConditionTier(written))
             ? NameResolution.CapacityRegisterClassPhrase
             : null;
     }
@@ -2082,11 +2082,6 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         tier.Count != 0 && ctx.Refs.CapacityRegisterFor(dref, report: false) is { Reached.Count: > 0 } cap
         && ctx.Data.State.Forest.DeclaringDepth(cap.Table) < ctx.Data.State.Forest.DeclaringDepth(tier[0].Parent);
 
-    private static string WrittenWord(Core.DataReferenceContext dref) => dref.cobolWord()?.GetText() ?? dref.GetText();
-
-    /// <summary>The written qualifier words of <paramref name="dref"/>, innermost first.</summary>
-    internal static List<string> QualifiersOf(Core.DataReferenceContext dref) =>
-        dref.dataReferenceSuffix().Select(sfx => sfx.qualification()?.cobolWord().GetText()).OfType<string>().ToList();
 
     // ── Operator mapping + helpers (ported from the former emitter) ──────────────────────────────────────────
 

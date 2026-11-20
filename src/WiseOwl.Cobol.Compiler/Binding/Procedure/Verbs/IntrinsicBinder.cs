@@ -3349,8 +3349,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// </summary>
     private bool TryBindAllArgument(IntrinsicSig sig, Core.FunctionArgumentContext a, List<BoundOperand> args)
     {
-        if (SoleDataReference(a) is not { } dref || dref.cobolWord() is not { } cw) return false;
-        string name = cw.GetText();
+        if (SoleDataReference(a) is not { } dref || WrittenQualifiedName.Of(dref) is not { } named) return false;
+        string name = named.Name;
         var before = host.ArgOrder.Mark;   // the pre-ops its subscripts register are the argument's own (§2023:8.4.3.2.4 GR2, recorded below)
 
         // Collect OF/IN qualifiers and the ONE trailing subscript group — which the grammar hangs off the LAST
@@ -3418,7 +3418,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // sum counter"; kb/Work PB1271): it is asked of the ONE counter resolver FIRST, in the order
         // ReferenceResolver.Resolve asks it, and its register carries the OCCURS levels the walk below reads.
         var counter = ctx.Refs.Counters.SumCounterFamilyFor(dref, report: true);
-        if ((counter?.Family.Register ?? ctx.Refs.Names.FindReportedItem(dref, name, quals)) is not { } item)
+        if ((counter?.Family.Register ?? ctx.Refs.Names.FindReportedItem(dref)) is not { } item)
         {
             // The resolver's ONE reported lookup (kb/Work PB1029 — this arm refused silently; kb/Work PB3287 — and it
             // asked no §2023:13.7.3 SR4 screen of a LINKAGE table the procedure division may not reference): the §2023:8.4.2.1 /
@@ -3481,7 +3481,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         ctx.Refs.Names.ScreenImplicitLinkageCounts(dref, counts);
         if ((counter is ({ } counterReport, { } counterFamily)
                 ? ctx.Refs.Counters.SumCounterPlace(counterReport, counterFamily, exprs)
-                : ctx.Refs.ResolveByName(name, quals, exprs)) is not { } element)
+                : ctx.Refs.ResolveByName(named, exprs)) is not { } element)
         {
             args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) occurrence of '{name}'"));
             return true;

@@ -120,7 +120,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             // (`TOT OF WS-GROUP`, the counter's name reused as a data item), the reference is that item's and
             // resolution carries on; otherwise the name IS a sum counter and the ordinary resolver would only say
             // "not defined", so name the real rule (§2023:8.4.2.2.2 / §2023:8.4.2.2.3 SR4).
-            if (refs.Names.ResolveQualified(name, qualifiers) is not null) return null;
+            if (data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Single is not null) return null;
             if (report && refs.Diagnosed.Add(dref))
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': '{name}' is a sum counter "
                     + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5")}), "
@@ -139,7 +139,8 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         if (counterDepth > 0
             && (qualifiers.Count == 0
                 ? data.Symbols.Declared.DeclaredNearerThan(name, counterDepth)
-                : refs.Names.ResolveQualified(name, qualifiers) is { } nearer && data.State.Forest.DeclaringDepth(nearer) < counterDepth))
+                : data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Single is { } nearer
+                  && data.State.Forest.DeclaringDepth(nearer) < counterDepth))
             return null;
         // ⛔ THE COUNTER IS ONE CANDIDATE AMONG ALL THE DATA-NAMES OF ITS SPELLING (kb/Work PB3232). §2023:13.18.54.4 GR5 makes a
         // SUM entry's data-name the name of its sum counter, so the counter is a data-name like the ordinary data items
@@ -147,7 +148,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of
         // reference" — counts them TOGETHER. The ordinary items asked about are the ones the SAME written qualifiers
         // reach in the SAME source element as the counters (§2023:8.4.6.2.1 3): the one candidate set
-        // DataBinder.QualifiedCandidates, which the ordinary lookup (ResolveUnqualified / ResolveQualified) reads too.
+        // DataBinder.QualifiedCandidates, which the ordinary lookup (SymbolTable.IdentifyDataName) reads too.
         // Asking only the counters, as this method did, let the counter win every collision with a WORKING-STORAGE item
         // that had no qualifier to tell them apart: a MOVE to the name altered the report total, silently.
         int sameSpelling = matches.Count + data.QualifiedCandidates(name, qualifiers, data.ActiveScope)

@@ -121,11 +121,10 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <c>ProcedureTableBuilder</c> are such callers. Null for a special register, a name nothing declares and an ambiguous reference.</summary>
     internal DataItem? ProbeDeclaration(Core.DataReferenceContext dref)
     {
-        DataReferenceCst written = dref;
-        if (written.Register != SpecialRegister.None || written.BaseName is not { } name) return null;
+        if (WrittenQualifiedName.Of(dref) is not { } written) return null;   // a special register, or no name
         bool savedProbing = Probing;
         Probing = true;
-        try { return Names.FindItem(name, ReadWritten(dref).Qualifiers); }
+        try { return Names.DataItemNamed(written); }
         finally { Probing = savedProbing; }
     }
 
@@ -432,8 +431,8 @@ public sealed class ReferenceResolver(DataBinder data)
         if (!RefMods.ScreenRefModCount(dref, written, name)) return Ends(Refused());
 
         // A reference whose chain ends in a non-word object (SELF, SUPER, a view, a function, NULL) is never a data name.
-        DataItem? item = written.PropertyObject is not null ? null
-            : qualifiers.Count > 0 ? Names.ResolveQualified(name, qualifiers) : Names.ResolveUnqualified(name);
+        DataItem? item = written.PropertyObject is not null || WrittenQualifiedName.Of(dref) is not { } named ? null
+            : Names.DataItemNamed(named);
         // §2023:8.4.3.1.2 Format 7 (kb/Work PB1425): `property-name-1 OF identifier-3` is textually a qualified data
         // reference, so it legitimately FAILS normal qualification. ResolveObjectProperty splits the chain — identifier-3
         // takes the qualifiers and the subscripts (§2023:8.4.3.1.4 GR1 a) before d)) — and synthesizes the §2023:8.4.3.9.4 GR1–GR3
@@ -454,7 +453,7 @@ public sealed class ReferenceResolver(DataBinder data)
         if (item is null)
         {
             if (ObjectProperties.ViewOfQualifiedItem(dref, report) is { } viewOfItem) return Ends(viewOfItem);
-            var (temp, final) = ObjectProperties.ResolveObjectProperty(dref, name, written);
+            var (temp, final) = ObjectProperties.ResolveObjectProperty(dref, written);
             if (final is not null) return Ends(final);
             objectProperty = (item = temp) is not null;
         }
@@ -580,9 +579,9 @@ public sealed class ReferenceResolver(DataBinder data)
     public TableOperand? ResolveTableOperand(Core.DataReferenceContext dref)
     {
         DataReferenceCst r = dref;
-        if (r.Register != SpecialRegister.None || r.BaseName is not { } name) return null;
+        if (r.Register != SpecialRegister.None || r.BaseName is null) return null;
         var written = ReadWritten(dref);
-        if (Names.FindReportedItem(dref, name, written.Qualifiers) is not { } item) return null;
+        if (Names.FindReportedItem(dref) is not { } item) return null;
         // The subscripts AS WRITTEN, split by the ONE declaration-informed splitter (kb/Work PB136) — the same
         // reading SR8/SR9 already demand of a Format-2 key subscript, for the same reason: the RENDERED index
         // expression has erased how many operands the programmer wrote.
@@ -594,8 +593,8 @@ public sealed class ReferenceResolver(DataBinder data)
     /// (one per OCCURS level, outermost first). A level-66 RENAMES entry is built by the same
     /// <see cref="PlaceForItem"/> as every other item (kb/Work PB1380); it is never a table element, so a written
     /// subscript on one builds no place.</summary>
-    internal Place? ResolveByName(string name, IReadOnlyList<string> qualifiers, IReadOnlyList<Position> indexExprs) =>
-        Names.FindItem(name, qualifiers) is { } item ? Places.PlaceForItem(item, indexExprs) : null;
+    internal Place? ResolveByName(WrittenQualifiedName written, IReadOnlyList<Position> indexExprs) =>
+        Names.DataItemNamed(written) is { } item ? Places.PlaceForItem(item, indexExprs) : null;
 
     /// <summary>Resolve an <c>ADDRESS OF</c> operand (ISO §2023:8.4.3.11) to its item plus the OCCURS displacement
     /// of its subscripts — the <c>(idx − 1) × width</c> character-position terms (<see cref="OffsetTerm"/>) within
@@ -936,7 +935,7 @@ internal readonly record struct WrittenReference(
     Core.PropertyObjectContext? PropertyObject)
 {
     /// <summary>The shared empty qualifier list for an unqualified reference. Read-only by contract: every
-    /// consumer (<see cref="ResolveQualified"/>, <see cref="ReportUnidentified"/>) only enumerates it.</summary>
+    /// consumer (<see cref="NameResolution.ReportUnidentified"/>) only enumerates it.</summary>
     private static readonly List<string> NoQualifiers = [];
 
     /// <summary>The OF/IN qualifiers, inner → outer; empty for an unqualified reference.</summary>

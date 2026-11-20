@@ -75,13 +75,18 @@ internal readonly record struct WrittenQualifiedName
     public IReadOnlyList<string> QualifierWords { get; }
 
     /// <summary>A <c>dataReference</c>'s name and the words of its qualifications (its subscripts and reference modifiers are not
-    /// read).</summary>
-    public static WrittenQualifiedName Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref)
+    /// read), or null when the reference writes no name: a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER register, whose
+    /// <c>cobolWord</c> is its file-name or report-name QUALIFIER (§2023:8.4.2.2.2 Formats 7 and 8), and a recovery node with no word.
+    /// The name is never the reference's glued text (kb/Work PB2040).</summary>
+    public static WrittenQualifiedName? Of(Frontend.Generated.CobolParserCore.DataReferenceContext dref)
     {
+        if (dref.LINAGE_COUNTER() is not null || dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null
+            || dref.cobolWord() is not { } word)
+            return null;
         List<IToken>? qualifiers = null;
         foreach (var suffix in dref.dataReferenceSuffix())
             if (suffix.qualification() is { } q) (qualifiers ??= []).Add(q.cobolWord().Start);
-        return new(dref.cobolWord().Start, qualifiers ?? (IReadOnlyList<IToken>)[]);
+        return new(word.Start, qualifiers ?? (IReadOnlyList<IToken>)[]);
     }
 
     /// <summary>The name at <paramref name="at"/> of a token list and the qualifiers written after it (<c>OF</c> or <c>IN</c>, then a

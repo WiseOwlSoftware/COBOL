@@ -194,14 +194,13 @@ internal sealed partial class FlagConformancePass
         => SoleReference(operand) is { } dref ? ResolveItem(dref) : null;
 
     /// <summary>The level-88 condition-name a SOLE data reference operand names in the current unit's scope, else
-    /// null — one candidate of <see cref="DataBinder.QualifiedConditionCandidates"/> (the resolution the condition
+    /// null — one candidate of <see cref="SymbolTable.IdentifyConditionName"/> (the resolution the condition
     /// binder reads); several is an ambiguity the binder has already refused, so no condition is named.</summary>
     private Condition88? BareCondition(CobolParserCore.ValueOperandContext? operand)
     {
         if (_currentData is null || SoleReference(operand) is not { } dref
-            || dref.cobolWord()?.GetText() is not { } name) return null;
-        return _currentData.QualifiedConditionCandidates(name, ConditionBinder.QualifiersOf(dref), _currentData.ActiveScope)
-            is [var only] ? only : null;
+            || WrittenQualifiedName.Of(dref) is not { } written) return null;
+        return _currentData.Symbols.IdentifyConditionName(written, report: false) is [var only] ? only : null;
     }
 
     private static CobolParserCore.DataReferenceContext? SoleReference(CobolParserCore.ValueOperandContext? operand)

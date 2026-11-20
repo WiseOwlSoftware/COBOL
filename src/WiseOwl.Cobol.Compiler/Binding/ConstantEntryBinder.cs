@@ -656,8 +656,9 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         waits = false;
         // A subordinate a TYPE or SAME AS clause supplies exists once its subject is composed (kb/Work PB2844):
         // `M OF V` with `01 V TYPE T.` names T's M, copied under V only when V's clause is expanded.
-        DataItem? FindComposed() => resolver.Names.FindItem(baseName, qualifiers)
-            ?? (owner.ComposePendingSubjectsAhead() ? resolver.Names.FindItem(baseName, qualifiers) : null);
+        var reference = WrittenQualifiedName.Of(dref);
+        DataItem? FindComposed() => reference is not { } named ? null
+            : resolver.Names.DataItemNamed(named) ?? (owner.ComposePendingSubjectsAhead() ? resolver.Names.DataItemNamed(named) : null);
         DataItem? item = FindComposed();
         if (item is null && owner.Symbols.Identify(dref, NameClass.ReportEntry, report: true)?.Symbol
                 is ReportCandidates<DataBinder.ReportEntryLocation> reportEntries)
