@@ -1706,11 +1706,15 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
   - *(Step 6b, remainder slice 4, branch `listing-step-6b-r4`; kb/Work PB5932's dated file `2026-11-20-step-6b-r4`.)* Part C's
     first half, the declarations of the data division's binders: the baseline holds 24 (0 tables, 0 lookups, 24 sites), so no table
     keyed by a COBOL name exists outside the table. As built, with the corrections the code proved:
-    - *The entry order's names are the table's, its places the binder's.* `DataBinder._dataEntryLocations` (a name to the places its
-      entries stand) was the last rule (1) table. A constant's length phrase that names an item described after it needs the entries
-      that declare the name (kb/Work PB1231); the names are the table's (`SymbolTable.DeclareDataEntry`, `DataEntriesDeclaring`, the
-      entries in declaration order: places in the source, never a symbol), and where each entry stands in its section's run is keyed
-      by the entry in the binder. "Is this name's description open" is the declaration question `Declarations.EntryDeclares(entry, word)`.
+    - *The entry order is the table's: a name to the places its entries stand.* `DataBinder._dataEntryLocations` was the last rule (1)
+      table. A constant's length phrase that names an item described after it needs the entries that declare the name (kb/Work
+      PB1231): `SymbolTable.DeclareDataEntry(name, place)` and `DataEntriesDeclaring(word)` answer each entry's `DataEntryPlace` (its
+      section run, its index there, its section: a place in the source, never a symbol, so `NameTableOwnershipDriftTests` names it
+      among the shape's opaque types beside `SymbolId` and `WrittenDataName`). (Correction, measured:) a first build kept the names in
+      the table and each entry's place in a second, entry-keyed dictionary of the binder, and read each entry's data-name twice; every
+      data description entry of every compilation paid both, and IX113A's 1544 entries put its front end and bind 0.15 to 0.26 MB over
+      its parent, over section 9's `None` budget, so the table keeps the place itself and the name is read once. "Is this name's
+      description open" is the declaration question `Declarations.EntryDeclares(entry, word)`.
     - *The §2023:8.3.2.2 census is a table of the element's names, so it is nested in the table.* `SymbolTable.UserWordCensus`, keyed by
       `CobolName`, made per element as before (`OoClassTable.CensusOf`); the declaration funnel's once-per-word refusals (a letterless
       word, a REPOSITORY intrinsic, §2023:8.3.2.1 rule 5) are `SymbolTable.FirstRefusal`, one per binder as before; a specifier that

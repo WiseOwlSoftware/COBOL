@@ -74,7 +74,8 @@ public sealed class SymbolTableDeclarationsTests
             """));
         var entries = data.Symbols.DataEntriesDeclaring("fld");
         Assert.Equal(2, entries.Count);
-        Assert.True(entries[0].Start.Line < entries[1].Start.Line);
+        Assert.True(entries[0].Entry.Start.Line < entries[1].Entry.Start.Line);
+        Assert.All(entries, p => Assert.Same(p.Entry, p.Run[p.Index]));
         Assert.Empty(data.Symbols.DataEntriesDeclaring("FLD-ON"));
         Assert.Empty(data.Symbols.DataEntriesDeclaring("K"));
         Assert.Empty(data.Symbols.DataEntriesDeclaring("FILLER"));
