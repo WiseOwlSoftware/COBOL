@@ -16,9 +16,9 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// </summary>
 public static partial class GrammarSource
 {
-    /// <summary>A name-slot label: a classifying prefix (<c>ref</c>, <c>qual</c>, <c>def</c>, <c>nn</c>, <c>name</c>),
-    /// a capitalized name and an ordinal, so no two elements of one rule share one.</summary>
-    public const string LabelPattern = "(?:ref|qual|def|nn|name)[A-Z][A-Za-z]*[0-9]+";
+    /// <summary>A name-slot label: a classifying prefix (<c>ref</c>, <c>qual</c>, <c>def</c>, <c>nn</c>, <c>name</c>, and <c>lit</c>, a
+    /// literal that names a symbol), a capitalized name and an ordinal, so no two elements of one rule share one.</summary>
+    public const string LabelPattern = "(?:ref|qual|def|nn|name|lit)[A-Z][A-Za-z]*[0-9]+";
 
     /// <summary>A name-slot label in grammar text, with the <c>=</c> that binds it to its element.</summary>
     [GeneratedRegex(@"\b" + LabelPattern + @"=(?=[A-Za-z_(])", RegexOptions.CultureInvariant)]

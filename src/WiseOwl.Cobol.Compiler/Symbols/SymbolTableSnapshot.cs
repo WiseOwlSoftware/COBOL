@@ -74,6 +74,11 @@ internal enum NameClass
     /// <summary>A program-prototype-name (ISO §2023:8.4.6.8): a REPOSITORY program-specifier's name, or the program-name of a containing
     /// program definition. Its entry stands at the specifier's word; a containing definition's name is that program's own entry.</summary>
     ProgramPrototype,
+    /// <summary>A program no source element of the compilation group defines, named by the literal of a CALL or CANCEL (§2023:14.9.4.3 SR2,
+    /// §2023:14.9.5.3 SR2; §1985:X.5.2.3 SR1, §1985:X.5.3.3 SR1): a program compiled elsewhere, entered once per name where the first literal
+    /// that names it is bound. It is declared nowhere, so its entry stands at no position (DESIGN-listing.md section 6.7.1, "The
+    /// program-name literal").</summary>
+    ExternalProgram,
     /// <summary>A function-prototype-name (ISO §2023:8.4.6.6): a REPOSITORY user-defined-function specifier's name, or the
     /// user-function-name of the containing function definition. Its entry stands at the specifier's word; the containing function
     /// definition's name is that function's own entry.</summary>

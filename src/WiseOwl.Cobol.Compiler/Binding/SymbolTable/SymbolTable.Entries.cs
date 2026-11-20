@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
@@ -56,6 +57,20 @@ public sealed partial class SymbolTable
             if (!_bySymbol.TryAdd(symbol, id))
                 throw new InvalidOperationException($"the symbol table entered '{name}' ({@class}) twice");
             _entries.Add(new Entry(element, @class, name, at, symbol));
+            return id;
+        }
+
+        // The external programs a CALL or CANCEL literal named, one entry per externalized name (the Annex C fold, §2023:8.3.2.2 2)).
+        private readonly Dictionary<ExternalizedProgramName, SymbolId> _external = [];
+
+        /// <summary>The entry of the program <paramref name="name"/>, which no source element of the group defines (a program compiled
+        /// elsewhere that a literal names), made by <paramref name="element"/>'s table where its first literal is bound; it is declared
+        /// nowhere, so it stands at no position.</summary>
+        internal SymbolId ExternalProgram(SymbolTable element, ExternalizedProgramName name)
+        {
+            if (_external.TryGetValue(name, out var known)) return known;
+            var id = Enter(element, NameClass.ExternalProgram, name.ToString(), default, new object());
+            _external.Add(name, id);
             return id;
         }
 

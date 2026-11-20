@@ -92,7 +92,8 @@ internal static class ListingBuilder
             }, i.Suppress)).ToList();
         // The cross-reference (DESIGN-listing.md section 6.7), a view of the finished table's occurrences, and its joins onto the lines.
         var crossReference = wanted.Contains(ListingSection.CrossReference) && facts.Symbols is { } referenced
-            ? CrossReferenceBuilder.Build(referenced, copyLines, index, frontend, drafts,
+            ? CrossReferenceBuilder.Build(referenced, copyLines, inclusions.ToDictionary(static i => i.Id, static i => (i.MemberName, i.MemberFold)),
+                index, frontend, drafts,
                 dataMap is null ? null : DataMapBuilder.ItemIds(referenced))
             : null;
         if (crossReference is not null) CrossReferenceBuilder.MarkLines(crossReference, drafts);

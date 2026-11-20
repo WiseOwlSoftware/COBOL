@@ -131,7 +131,7 @@ public sealed partial class SymbolTable
     {
         var key = Key(written.GetText());
         var item = records.FirstOrDefault(r => r.Level == 1 && r.CobolName is { } n && Key(n) == key);
-        if (item is not null) Record(DataEntryOf(item), written, report: true);
+        if (item is not null) RecordData(item, written, report: true);
         return item;
     }
 

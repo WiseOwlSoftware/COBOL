@@ -993,7 +993,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // Nothing to classify when every occurrence since the mark is a nested statement's: its own funnel classified them.
         if (!store.AnyToClassify(mark.Occurrences)) return;
         store.Classify(mark.Occurrences, at, verbText,
-            Bound.BoundStores.StorePositionsAmong(bound, place => store.Awaits(place, mark.Occurrences)));
+            Bound.BoundStores.StorePositionsAmong(bound, site => store.Awaits(site, mark.Occurrences)));
     }
 
     /// <summary>A FILE-CONTROL key reference: the base word plus its IN/OF qualifier words in written order

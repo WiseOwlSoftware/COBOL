@@ -26,7 +26,7 @@ public sealed partial class SymbolTable
         var matches = NearestDeclaringConditions(ConditionsUnderQualifiers(written.Name, written.QualifierWords, scope), written.Name,
             written.QualifierWords, scope);   // kb/Work PB4196, PB4219, PB4432
         if (matches.TrueForAll(DataBinder.IsTypeDeclarationCondition)) return [];
-        if (report && matches is [var one]) Record(DataEntryOf(one), written, report);
+        if (report && matches is [var one]) RecordData(one, written, report);
         return matches;
     }
 

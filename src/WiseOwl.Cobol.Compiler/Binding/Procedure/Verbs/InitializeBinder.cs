@@ -225,7 +225,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             ctx.Refs.Names.ScreenLinkageReference(dref, dtbl);
             // identifier-1 is the whole table, every current occurrence of it (kb/Work PB4855): the operand the statement references
             // and stores, while the element stores below are what it means.
-            written = ctx.Refs.Places.WholeTable(dtbl, []);
+            ctx.Symbols.IdentifyDataName(writtenName, report: true);   // this arm is the reference's committing identification: the probe above recorded none
+            written = ctx.Refs.WholeTable(dtbl, [], dref.Start);
             if (written is null)
             {
                 actions.Add(new InitializeErrorAction(

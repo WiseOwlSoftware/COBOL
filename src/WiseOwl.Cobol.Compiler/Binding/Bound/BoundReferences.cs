@@ -97,6 +97,9 @@ internal static class BoundReferences
                 // never because the program wrote them (AllCount.Places): only the positions inside them are references.
                 foreach (var counted in count.Places) VisitFields(counted, found, skip, yieldPlace: false, statementsAreDirect: false);
                 return;
+            case SetIndexTarget indexTarget:
+                found.AddIndexTarget(indexTarget);   // an index-name receiver holds its cell by name: no place stands for it
+                return;
             case BoundLinageCounterRef or BoundReportCounterRef:
                 found.AddRegister((BoundExpr)node);   // a runtime-sourced register no place stands for, referenced where it is read
                 return;
@@ -151,13 +154,16 @@ internal static class BoundReferences
 /// <see cref="BoundReportCounterRef"/> because the report writer and the I-O control system own their storage (kb/Work PB4858).</summary>
 /// <param name="Places">The places, in source order.</param>
 /// <param name="Registers">The register reads, in source order.</param>
-internal sealed record Reach(IReadOnlyList<Place> Places, IReadOnlyList<BoundExpr> Registers)
+/// <param name="IndexTargets">The index-name receivers (SET, a VARYING phrase), in source order: an index-name's cell is a field name, never a
+/// place, so its reference is the receiver node itself (DESIGN-listing.md section 6.7.1, "Store kind").</param>
+internal sealed record Reach(IReadOnlyList<Place> Places, IReadOnlyList<BoundExpr> Registers, IReadOnlyList<SetIndexTarget> IndexTargets)
 {
     /// <summary>The accumulator a walk fills; handed down as a parameter so the walk itself holds no state.</summary>
     internal sealed class Builder
     {
         private readonly List<Place> _places = [];
         private readonly List<BoundExpr> _registers = [];
+        private readonly List<SetIndexTarget> _indexTargets = [];
 
         /// <summary>Record a place reference.</summary>
         public void AddPlace(Place place) => _places.Add(place);
@@ -165,7 +171,10 @@ internal sealed record Reach(IReadOnlyList<Place> Places, IReadOnlyList<BoundExp
         /// <summary>Record a counter-register reference.</summary>
         public void AddRegister(BoundExpr register) => _registers.Add(register);
 
+        /// <summary>Record an index-name receiver reference.</summary>
+        public void AddIndexTarget(SetIndexTarget target) => _indexTargets.Add(target);
+
         /// <summary>The finished reach.</summary>
-        public Reach Build() => new(_places, _registers);
+        public Reach Build() => new(_places, _registers, _indexTargets);
     }
 }

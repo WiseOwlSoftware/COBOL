@@ -64,6 +64,7 @@ public static class CrossReferenceText
         ListingSymbolKind.ReportEntry => "RPT-ENTRY",
         ListingSymbolKind.ReportSumOperand => "SUM-OPND",
         ListingSymbolKind.ProgramPrototype => "PROG-PROTO",
+        ListingSymbolKind.ExternalProgram => "EXTERNAL",
         ListingSymbolKind.FunctionPrototype => "FUNC-PROTO",
         ListingSymbolKind.DebugRegister => "DEBUG-REG",
         ListingSymbolKind.TypeName => "TYPE",

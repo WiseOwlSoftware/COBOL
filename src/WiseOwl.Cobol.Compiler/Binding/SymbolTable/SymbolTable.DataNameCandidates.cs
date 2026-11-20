@@ -24,7 +24,7 @@ public sealed partial class SymbolTable
     internal NameCandidates<DataItem> IdentifyDataName(WrittenQualifiedName written, Scope scope, bool report)
     {
         var candidates = DataNameCandidates(written.Name, written.QualifierWords, scope);
-        if (report && candidates.Single is { } one) Record(DataEntryOf(one), written, report);
+        if (report && candidates.Single is { } one) RecordData(one, written, report);
         return candidates;
     }
 
@@ -75,7 +75,7 @@ public sealed partial class SymbolTable
     internal NameCandidates<DataItem> IdentifyWithin(DataItem root, WrittenQualifiedName written, bool report)
     {
         var candidates = SubtreeCandidates(root, written.Name, written.QualifierWords);
-        if (report && candidates.Single is { } one) Record(DataEntryOf(one), written, report);
+        if (report && candidates.Single is { } one) RecordData(one, written, report);
         return candidates;
     }
 

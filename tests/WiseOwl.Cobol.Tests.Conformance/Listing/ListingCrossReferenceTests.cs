@@ -111,10 +111,9 @@ public sealed class ListingCrossReferenceTests : IDisposable
             (25, At(25, "T-N", 2).Column, ListingUse.Read), (25, At(25, "T-N", 3).Column, ListingUse.Written)], Uses(Symbol(xref, "T-N")));
         Assert.Equal([(15, At(15, "88").Column, ListingUse.Defined), (26, At(26, "FLAG-ON").Column, ListingUse.Written),
             (27, At(27, "FLAG-ON").Column, ListingUse.Read)], Uses(Symbol(xref, "FLAG-ON")));
-        // SET index-name UP BY: the reference stands where it is written. (Its use is READ for now: an index-name's cell is held as a
-        // field name, no place, so its store position cannot pair with its occurrence; kb/Work PB5925's dated file
-        // 2026-11-20-step-7b-2-built, lead 1.)
-        Assert.Equal((28, At(28, "IX").Column), (Uses(Symbol(xref, "IX"))[^1].Line, Uses(Symbol(xref, "IX"))[^1].Column));
+        // SET index-name UP BY changes the index-name by the increment (§2023:14.9.39.4 GR3): the reference stands where it is written and
+        // is MODIFIED, whatever holds the store (the index-name's cell is a field name, no place; section 6.7.1, "Store kind").
+        Assert.Equal((28, At(28, "IX").Column, ListingUse.Modified), Uses(Symbol(xref, "IX"))[^1]);
         Assert.Equal((29, At(29, "INTO S").Column + 5, ListingUse.Written), Uses(Symbol(xref, "S"))[^1]);
         Assert.Equal((29, At(29, "POINTER P").Column + 8, ListingUse.Modified), Uses(Symbol(xref, "P"))[^1]);
         // A file's references carry their verb; a procedure's its transfer.
@@ -134,7 +133,7 @@ public sealed class ListingCrossReferenceTests : IDisposable
         int main = Symbol(xref, "MAIN-P").Id;
         Assert.Equal([(main, Symbol(xref, "P1").Id, 27), (main, Symbol(xref, "P2").Id, 27)],
             xref.Performs.Select(e => (e.From ?? 0, e.To, e.Line ?? 0)));
-        Assert.Empty(xref.Calls);
+        Assert.Empty(xref.Calls);   // this program writes no CALL or CANCEL (ListingCallGraphTests holds the graph of one that does)
     }
 
     [Fact]

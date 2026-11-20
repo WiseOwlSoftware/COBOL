@@ -1708,7 +1708,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="SetFormatSelection"/> has already established that every receiver belongs to Format 1's or
     /// Format 2's brace.</para></summary>
     public BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
-        host.Expr.IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
+        host.Expr.IndexTargetOf(dref) is { } ix ? ix
         : host.Expr.ResolveReceivingAtStore(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand, identified as it is set (GR2; PB5386)
         : null;
 

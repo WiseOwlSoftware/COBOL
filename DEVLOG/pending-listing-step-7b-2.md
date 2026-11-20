@@ -36,6 +36,14 @@ answer typed candidate sets and `PlaceBuilder` names no binder type; `StorePosit
 since `BoundReferences` does not enter a tuple (`BoundSetConditions`); the oracle is in the Unit assembly over the NIST corpus; a
 definition's reference stands at its entry.
 
-**Left, each a lead in the dated file:** an index-name's store (no `Place`), the special registers' entries, a whole table's store, a
-literal CALL target, the statistics' counts of names and uses, a `--permissive` first-declaration resolution, and an oracle corpus
-beyond 1985.
+**Review round 1** (kb/Work PB5925's `2026-11-20-listing-step-7b-2-review-r1`): every store occurrence carries its true kind. An
+index-name's store (SET UP BY, SET TO, a PERFORM's or a SEARCH's VARYING index) is found through the receiver node, which
+`ExpressionBinder.IndexTargetOf` links to the index-name's occurrence, and a whole table's store (a table SORT, INITIALIZE of a dynamic
+table) through the place `ReferenceResolver.WholeTable` links; `StorePositionsOf` asks every site the tree holds, so a store with no
+linked occurrence turns the pairing red (shown by mutation for both). A CALL or CANCEL literal-1 is a reference slot the grammar labels
+`lit`: its occurrence stands at the literal, of the program it reaches by the scope of a program-name or of the external program of that
+name (`ExternalProgram`), and is the CALL graph's edge (a 1985 CALL had none). An identification funnel asks a data entry only for a
+listing that asks, and a copy member's sort key is its folded text-name.
+
+**Left, each a lead in the dated file:** the special registers' entries, `BoundReferences` over a value tuple, the statistics' counts of
+names and uses, a `--permissive` first-declaration resolution, and an oracle corpus beyond 1985.

@@ -14,10 +14,11 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// </summary>
 internal static class CrossReferenceBuilder
 {
-    /// <summary>The cross-reference of <paramref name="symbols"/> and <paramref name="inclusions"/>; <paramref name="dataItems"/> is the
+    /// <summary>The cross-reference of <paramref name="symbols"/> and <paramref name="inclusions"/>, each of which <paramref name="members"/> gives
+    /// its copy member's name and sort key by <see cref="ListingInclusion.Id"/>; <paramref name="dataItems"/> is the
     /// data map's numbering when the listing holds the data map (each symbol it lists links to its entry), else null.</summary>
     public static ListingCrossReference Build(SymbolTableSnapshot symbols, IReadOnlyList<ListingInclusion> inclusions,
-        ListingLineIndex index, FrontendFacts frontend, IReadOnlyList<LineDraft> drafts, IReadOnlyDictionary<int, int>? dataItems)
+        IReadOnlyDictionary<int, (string Name, string Fold)> members, ListingLineIndex index, FrontendFacts frontend, IReadOnlyList<LineDraft> drafts, IReadOnlyDictionary<int, int>? dataItems)
     {
         // The symbols in their final order first, then each symbol's references made once with its id (a reference is immutable, so
         // none is copied to take the id: DESIGN-listing.md section 9).
@@ -36,8 +37,9 @@ internal static class CrossReferenceBuilder
         foreach (var member in inclusions.GroupBy(static i => (i.File, Written: i.File is null ? (i.TextName, i.LibraryName) : default)))
         {
             var first = member.First();
-            string name = first.LibraryName is { } library ? first.TextName + " OF " + library : first.TextName;
-            drafted.Add(new Draft(name, null, name, ListingSymbolKind.CopyMember, null, null, null, [.. member], false, drafted.Count));
+            // Its sort key is the fold of its text-name like every symbol's (Annex C, section 6.7): `payrec` and `PAYREC` are one text-name.
+            var (name, fold) = members[first.Id];
+            drafted.Add(new Draft(fold, null, name, ListingSymbolKind.CopyMember, null, null, null, [.. member], false, drafted.Count));
         }
         drafted.Sort(static (a, b) =>
         {
@@ -110,6 +112,7 @@ internal static class CrossReferenceBuilder
         NameClass.ReportEntry => ListingSymbolKind.ReportEntry,
         NameClass.ReportSumOperand => ListingSymbolKind.ReportSumOperand,
         NameClass.ProgramPrototype => ListingSymbolKind.ProgramPrototype,
+        NameClass.ExternalProgram => ListingSymbolKind.ExternalProgram,
         NameClass.FunctionPrototype => ListingSymbolKind.FunctionPrototype,
         NameClass.DebugRegister => ListingSymbolKind.DebugRegister,
         NameClass.TypeName => ListingSymbolKind.TypeName,
@@ -171,8 +174,9 @@ internal static class CrossReferenceBuilder
         return edges;
     }
 
-    /// <summary>The CALL graph: each reference to a program, program-prototype or function-prototype name written in a CALL or
-    /// CANCEL statement or activating a function, from the source unit the line stands in.</summary>
+    /// <summary>The CALL graph: each reference to a program (one of the compilation group's, or the external program a literal names),
+    /// program-prototype or function-prototype name written in a CALL or CANCEL statement or activating a function, from the source unit
+    /// the line stands in. A literal target is the occurrence the bind recorded at the literal (section 6.7.1, "The program-name literal").</summary>
     private static List<ListingEdge> Calls(IReadOnlyList<ListingSymbol> symbols, IReadOnlyList<LineDraft> drafts)
     {
         var unitSymbol = new Dictionary<int, int>();
@@ -180,7 +184,8 @@ internal static class CrossReferenceBuilder
             if (s.Kind == ListingSymbolKind.Program && s.Program is { } program) unitSymbol.TryAdd(program, s.Id);
         var edges = new List<ListingEdge>();
         foreach (var symbol in symbols)
-            if (symbol.Kind is ListingSymbolKind.Program or ListingSymbolKind.ProgramPrototype or ListingSymbolKind.FunctionPrototype)
+            if (symbol.Kind is ListingSymbolKind.Program or ListingSymbolKind.ExternalProgram or ListingSymbolKind.ProgramPrototype
+                or ListingSymbolKind.FunctionPrototype)
                 for (int i = 0; i < symbol.References.Count; i++)
                     if (symbol.References[i] is { Use: not ListingUse.Defined, Line: { } line, Verb: { } verb }
                         && (symbol.Kind == ListingSymbolKind.FunctionPrototype || verb is "CALL" or "CANCEL"))
