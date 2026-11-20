@@ -47,13 +47,18 @@ public sealed partial class SymbolTable
             for (int i = mark; i < (_linkOrder?.Count ?? 0); i++) yield return _linkOrder![i];
         }
 
+        /// <summary>Whether the statement funnel also checks that every store position pairs with an occurrence
+        /// (<see cref="VerifyPairing"/>); only the completeness oracle asks (<c>EditionContext.VerifiesStorePairing</c>).</summary>
+        internal bool VerifiesPairing { get; private set; }
+
         /// <summary>Whether the group's identifications record occurrences (<c>EditionContext.RecordsReferences</c>).</summary>
         internal bool RecordsReferences => _occurrences is not null;
 
         /// <summary>Record occurrences from now on: the bind sets it once, before any element binds, when the listing reads the
         /// cross-reference (DESIGN-listing.md section 9).</summary>
-        internal void RecordReferences()
+        internal void RecordReferences(bool verifyPairing = false)
         {
+            VerifiesPairing = verifyPairing;
             _occurrences ??= [];
             _byPosition ??= [];
             _linked ??= new(ReferenceEqualityComparer.Instance);
@@ -106,6 +111,21 @@ public sealed partial class SymbolTable
             return default;
         }
 
+        /// <summary>Whether the statement that took <paramref name="mark"/> has an occurrence to classify: one appended since that no
+        /// nested statement classified.</summary>
+        internal bool AnyToClassify(int mark)
+        {
+            if (_occurrences is null) return false;
+            for (int i = mark; i < _occurrences.Count; i++)
+                if (!_occurrences[i].Classified) return true;
+            return false;
+        }
+
+        /// <summary>Whether <paramref name="place"/> stands for an occurrence still to classify: its linked occurrence was appended since
+        /// <paramref name="mark"/> and no nested statement classified it.</summary>
+        internal bool Awaits(Place place, int mark) =>
+            LinkedOccurrence(place) is { IsSet: true } id && id.Value > mark && !_occurrences![id.Value - 1].Classified;
+
         /// <summary>
         /// ⛔ THE STATEMENT FUNNEL'S CLASSIFICATION (DESIGN-listing.md section 6.7.1, "Store kind"): every occurrence appended since
         /// <paramref name="mark"/> and not yet classified (a nested statement classified its own first) is
@@ -118,7 +138,6 @@ public sealed partial class SymbolTable
         {
             if (_occurrences is null) return;
             foreach (var (place, kind) in storePositions)
-            {
                 if (LinkedOccurrence(place) is { IsSet: true } id && id.Value > mark && _occurrences[id.Value - 1] is { Classified: false } o)
                     o.Use = kind switch
                     {
@@ -126,11 +145,6 @@ public sealed partial class SymbolTable
                         StoreKind.ReadWrite => SymbolUse.Modified,
                         _ => o.Use,
                     };
-                else
-                    // A store position of a written operand that pairs with no occurrence of this statement: a binder rebuilt the
-                    // linked place by value, or built it with no link (the pairing test, ReferenceOccurrenceDriftTests, holds it empty).
-                    _unpaired.Add((PositionOf(statement), verb, place.NamedItem?.CobolName ?? place.GetType().Name));
-            }
             for (int i = mark; i < _occurrences.Count; i++)
                 if (_occurrences[i] is { Classified: false } o)
                 {
@@ -140,11 +154,23 @@ public sealed partial class SymbolTable
                 }
         }
 
+        /// <summary>THE PAIRING TEST's check (only when <see cref="VerifiesPairing"/>): each of <paramref name="storePositions"/>, the
+        /// places the statement's own operands hold that it stores through, must pair with an occurrence of the statement
+        /// (<see cref="Awaits"/>); one that does not is a written operand whose place a binder rebuilt by value or built with no link, kept in
+        /// <see cref="UnpairedStorePositions"/>. Asked before the statement classifies.</summary>
+        internal void VerifyPairing(int mark, WiseOwl.Cobol.Editions.DiagnosticCursor statement, string verb,
+            IEnumerable<(Place Place, StoreKind Kind)> storePositions)
+        {
+            foreach (var (place, _) in storePositions)
+                if (!Awaits(place, mark))
+                    _unpaired.Add((PositionOf(statement), verb, place.NamedItem?.CobolName ?? place.GetType().Name));
+        }
+
         private readonly List<(SymbolPosition Statement, string Verb, string Operand)> _unpaired = [];
 
         /// <summary>Each store position a classified statement's written operands occupy that pairs with no occurrence of the statement
         /// (DESIGN-listing.md section 6.7.1, the pairing test): the statement's position and verb and the operand's name. Empty when every
-        /// store position's place is linked to its reference's occurrence.</summary>
+        /// store position's place is linked to its reference's occurrence; filled only when <see cref="VerifiesPairing"/>.</summary>
         internal IReadOnlyList<(SymbolPosition Statement, string Verb, string Operand)> UnpairedStorePositions => _unpaired;
 
         /// <summary>Every occurrence of <paramref name="entry"/>, in the order recorded, as the finished table holds it.</summary>

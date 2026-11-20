@@ -99,14 +99,15 @@ public static class HtmlListingRenderer
     public static string MethodId(int method) => "X" + method.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>The id of a cross-reference symbol's row (<see cref="ListingSymbol.Id"/>).</summary>
-    public static string SymbolId(int symbol) => "Y" + symbol.ToString(CultureInfo.InvariantCulture);
+    public static string SymbolId(int symbol) => SymbolPrefix + symbol.ToString(CultureInfo.InvariantCulture);
+
+    private const string SymbolPrefix = "Y";
 
     /// <summary>⛔ WHERE A NAME ON A SOURCE LINE LINKS (DESIGN-listing.md section 7.2): a reference to the line its symbol is defined
     /// on when the page holds that line, else to the symbol's cross-reference row; the definition itself to that row, which lists the
     /// symbol's references as links. Null when the page holds neither (a link is written only to an element the page holds).</summary>
     internal static string? NameHref(ListingSymbol symbol, ListingUse use, IReadOnlySet<int> lines, bool rowsHeld) =>
-        use != ListingUse.Defined
-        && symbol.References.FirstOrDefault(static r => r.Use == ListingUse.Defined) is { Line: { } line } && lines.Contains(line)
+        use != ListingUse.Defined && CrossReferenceText.DefinedLine(symbol) is { } line && lines.Contains(line)
             ? "#" + LineId(line)
             : rowsHeld ? "#" + SymbolId(symbol.Id) : null;
 
@@ -172,9 +173,8 @@ public static class HtmlListingRenderer
         /// <summary>A link to a listing line when the page holds it, else the number.</summary>
         private void LineLink(int line)
         {
-            string number = line.ToString(CultureInfo.InvariantCulture);
-            if (_lines.Contains(line)) Link(page, "#" + LineId(line), number);
-            else page.Write(number);
+            if (_lines.Contains(line)) NumberLink(page, LinePrefix, line);
+            else Number(page, line);
         }
 
         public TextWriter Source()
@@ -427,19 +427,22 @@ public static class HtmlListingRenderer
             foreach (var symbol in xref.Symbols)
             {
                 page.Write("<tr id=\"");
-                page.Write(SymbolId(symbol.Id));
-                page.Write("\">");
-                Cell(page, symbol.Id.ToString(CultureInfo.InvariantCulture), "n");
+                page.Write(SymbolPrefix);
+                Number(page, symbol.Id);
+                page.Write("\"><td class=\"n\">");
+                Number(page, symbol.Id);
+                page.Write("</td>");
                 Cell(page, CrossReferenceText.KindWord(symbol.Kind));
                 page.Write("<td>");
                 if (symbol.DataItem is { } item) ItemLink(item, symbol.Name); else Escape(page, symbol.Name);
                 page.Write("</td><td class=\"n\">");
-                if (symbol.References.FirstOrDefault(static r => r.Use == ListingUse.Defined) is { Line: { } defined }) LineLink(defined);
+                if (CrossReferenceText.DefinedLine(symbol) is { } defined) LineLink(defined);
                 else Escape(page, CrossReferenceText.DefinedText(symbol));
                 page.Write("</td><td>");
                 bool first = true;
-                foreach (var reference in symbol.References)
+                for (int r = 0; r < symbol.References.Count; r++)
                 {
+                    var reference = symbol.References[r];
                     if (reference.Use == ListingUse.Defined) continue;
                     if (!first) page.Write(' ');
                     first = false;
@@ -684,9 +687,8 @@ public static class HtmlListingRenderer
                     for (int i = 0; i < margin.Definitions.Count; i++)
                     {
                         if (i > 0) page.Write(' ');
-                        string number = margin.Definitions[i].ToString(CultureInfo.InvariantCulture);
-                        if (lines.Contains(margin.Definitions[i])) Link(page, "#" + LineId(margin.Definitions[i]), number);
-                        else page.Write(number);
+                        if (lines.Contains(margin.Definitions[i])) NumberLink(page, LinePrefix, margin.Definitions[i]);
+                        else Number(page, margin.Definitions[i]);
                     }
                     page.Write("</span>");
                 }
@@ -759,12 +761,24 @@ public static class HtmlListingRenderer
         private Dictionary<int, string>? NameLinks(ListingLine line)
         {
             if (line.Names.Count == 0 || _symbols.Count == 0) return null;
-            var links = new Dictionary<int, string>();
+            _links.Clear();
             foreach (var name in line.Names)
-                if (name.Symbol >= 1 && name.Symbol <= _symbols.Count
-                    && NameHref(_symbols[name.Symbol - 1], name.Use, lines, _rowsHeld) is { } href)
-                    links.TryAdd(name.Column, href);
-            return links;
+                if (name.Symbol >= 1 && name.Symbol <= _symbols.Count && HrefOf(name.Symbol, name.Use) is { } href)
+                    _links.TryAdd(name.Column, href);
+            return _links;
+        }
+
+        // The link of a symbol's references and of its definition, each made once (a name is written many times, a link made per
+        // written name was the page's largest allocation of the cross-reference, DESIGN-listing.md section 9).
+        private readonly Dictionary<int, string?> _hrefs = [];
+        private readonly Dictionary<int, string> _links = [];
+
+        private string? HrefOf(int symbol, ListingUse use)
+        {
+            int key = symbol * 2 + (use == ListingUse.Defined ? 1 : 0);
+            if (!_hrefs.TryGetValue(key, out var href))
+                _hrefs[key] = href = NameHref(_symbols[symbol - 1], use, lines, _rowsHeld);
+            return href;
         }
 
         /// <summary><paramref name="text"/>, each of its <paramref name="spans"/> in an element of its class (<see cref="SpanClass"/>,
@@ -888,6 +902,18 @@ public static class HtmlListingRenderer
     /// <summary>A number as the page prints it, written without a string of its own (kb/Work PB5941: a number per line and per
     /// instruction).</summary>
     private static void Number(TextWriter page, int value) => Formatted(page, value);
+
+    /// <summary>A link to the element <paramref name="prefix"/> and <paramref name="number"/> name (an element id made of a prefix and a
+    /// number: <see cref="LineId"/>), whose text is that number, written without a string of its own.</summary>
+    private static void NumberLink(TextWriter page, string prefix, int number)
+    {
+        page.Write("<a href=\"#");
+        page.Write(prefix);
+        Number(page, number);
+        page.Write("\">");
+        Number(page, number);
+        page.Write("</a>");
+    }
 
     /// <summary><paramref name="value"/> formatted in the invariant culture straight to <paramref name="page"/>: for a value whose text
     /// holds no markup character (a number, an IL offset).</summary>

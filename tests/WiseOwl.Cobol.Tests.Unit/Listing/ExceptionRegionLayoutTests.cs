@@ -223,6 +223,6 @@ public sealed class ExceptionRegionLayoutTests
     public void AStretchInsideABlock_StartsAtItsDepth()
     {
         var range = new ListingObjectRange(1, 12, 1, 4, 6, [new ListingInstruction(4, "nop", null)], [], 2);
-        Assert.Equal([(2, "nop")], ObjectCodeText.CodeLines(range).Select(l => (l.Depth, l.Instruction!.OpCode)));
+        Assert.Equal([(2, "nop")], ObjectCodeText.CodeLines(range).Select(l => (l.Depth, l.Instruction!.Value.OpCode)));
     }
 }

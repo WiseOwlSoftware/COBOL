@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Listing.Text;
 using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Listing.Building;
@@ -18,24 +19,17 @@ internal static class CrossReferenceBuilder
     public static ListingCrossReference Build(SymbolTableSnapshot symbols, IReadOnlyList<ListingInclusion> inclusions,
         ListingLineIndex index, FrontendFacts frontend, IReadOnlyList<LineDraft> drafts, IReadOnlyDictionary<int, int>? dataItems)
     {
-        var drafted = new List<(string Fold, int? DefinedLine, string Name, ListingSymbolKind Kind, int? Program, int? DataItem,
-            List<ListingReference> References, bool Unreferenced)>();
+        // The symbols in their final order first, then each symbol's references made once with its id (a reference is immutable, so
+        // none is copied to take the id: DESIGN-listing.md section 9).
+        var drafted = new List<Draft>(symbols.Entries.Count);
         foreach (var entry in symbols.Entries)
         {
             // A FILLER entry has no name to cross-reference (no reference can name it).
             if (entry.Class == NameClass.Data && entry.Occurrences.Count == 0 && entry.Fold == Filler) continue;
-            var references = new List<ListingReference>();
             var defined = DataMapBuilder.Place(entry.DeclaredAt, index, frontend, drafts);
-            if (entry.DeclaredAt.IsSet) references.Add(new ListingReference(0, defined.Line, defined.Column, entry.Name.Length, ListingUse.Defined, null));
-            foreach (var occurrence in entry.Occurrences)
-            {
-                var at = DataMapBuilder.Place(occurrence.At, index, frontend, drafts);
-                references.Add(new ListingReference(0, at.Line, at.Column, occurrence.Length, UseOf(occurrence.Use), occurrence.Verb));
-            }
-            references.Sort(static (a, b) => (a.Line ?? int.MaxValue, a.Column ?? 0).CompareTo((b.Line ?? int.MaxValue, b.Column ?? 0)));
-            drafted.Add((entry.Fold, defined.Line, entry.Name, KindOf(entry.Class), defined.Program,
-                dataItems is not null && dataItems.TryGetValue(entry.Id, out int item) ? item : null, references,
-                entry.DeclaredAt.IsSet && entry.Occurrences.Count == 0));
+            drafted.Add(new Draft(entry.Fold, defined.Line, entry.Name, KindOf(entry.Class), defined.Program,
+                dataItems is not null && dataItems.TryGetValue(entry.Id, out int item) ? item : null, entry, null,
+                entry.DeclaredAt.IsSet && entry.Occurrences.Count == 0, drafted.Count));
         }
         // The copy members: a library text each COPY statement names (DESIGN-listing.md section 6.7), its references the COPY lines.
         // A member is the library text the compiler read (its file), or, when none was found, the text-name and library as written.
@@ -43,19 +37,50 @@ internal static class CrossReferenceBuilder
         {
             var first = member.First();
             string name = first.LibraryName is { } library ? first.TextName + " OF " + library : first.TextName;
-            drafted.Add((name, null, name, ListingSymbolKind.CopyMember, null, null,
-                [.. member.Select(static i => new ListingReference(0, i.CopyLine, null, 0, ListingUse.Read, "COPY"))], false));
+            drafted.Add(new Draft(name, null, name, ListingSymbolKind.CopyMember, null, null, null, [.. member], false, drafted.Count));
         }
-        var ordered = drafted.OrderBy(static d => d.Fold, StringComparer.Ordinal).ThenBy(static d => d.DefinedLine ?? int.MaxValue).ToList();
-        var listed = new List<ListingSymbol>(ordered.Count);
-        foreach (var d in ordered)
+        drafted.Sort(static (a, b) =>
+        {
+            int byFold = string.CompareOrdinal(a.Fold, b.Fold);
+            if (byFold != 0) return byFold;
+            int byLine = (a.DefinedLine ?? int.MaxValue).CompareTo(b.DefinedLine ?? int.MaxValue);
+            return byLine != 0 ? byLine : a.Order.CompareTo(b.Order);   // a stable order: names of one fold and line stay as declared
+        });
+        var listed = new List<ListingSymbol>(drafted.Count);
+        foreach (var d in drafted)
         {
             int id = listed.Count + 1;
-            listed.Add(new ListingSymbol(id, d.Name, d.Kind, d.Program, d.DataItem,
-                [.. d.References.Select(r => r with { Symbol = id })], d.Unreferenced));
+            listed.Add(new ListingSymbol(id, d.Name, d.Kind, d.Program, d.DataItem, d.Entry is { } e
+                ? ReferencesOf(e, id, index, frontend, drafts) : [.. d.Copies!.Select(i => new ListingReference(id, i.CopyLine, null, 0, ListingUse.Read, "COPY"))],
+                d.Unreferenced));
         }
         return new ListingCrossReference(listed,
             Performs(listed, ProcedureAt(listed), line => drafts[line - 1].Program), Calls(listed, drafts));
+    }
+
+    /// <summary>A symbol before its id: what orders it, and what makes its references (an entry's, or a copy member's inclusions).</summary>
+    private readonly record struct Draft(string Fold, int? DefinedLine, string Name, ListingSymbolKind Kind, int? Program, int? DataItem,
+        SymbolEntry? Entry, ListingInclusion[]? Copies, bool Unreferenced, int Order);
+
+    /// <summary>An entry's definition and occurrences as the references of symbol <paramref name="id"/>, in listing order.</summary>
+    private static ListingReference[] ReferencesOf(SymbolEntry entry, int id, ListingLineIndex index, FrontendFacts frontend,
+        IReadOnlyList<LineDraft> drafts)
+    {
+        int definition = entry.DeclaredAt.IsSet ? 1 : 0;
+        var references = new ListingReference[definition + entry.Occurrences.Count];
+        if (definition == 1)
+        {
+            var defined = DataMapBuilder.Place(entry.DeclaredAt, index, frontend, drafts);
+            references[0] = new ListingReference(id, defined.Line, defined.Column, entry.Name.Length, ListingUse.Defined, null);
+        }
+        for (int i = 0; i < entry.Occurrences.Count; i++)
+        {
+            var occurrence = entry.Occurrences[i];
+            var at = DataMapBuilder.Place(occurrence.At, index, frontend, drafts);
+            references[definition + i] = new ListingReference(id, at.Line, at.Column, occurrence.Length, UseOf(occurrence.Use), occurrence.Verb);
+        }
+        Array.Sort(references, static (a, b) => (a.Line ?? int.MaxValue, a.Column ?? 0).CompareTo((b.Line ?? int.MaxValue, b.Column ?? 0)));
+        return references;
     }
 
     /// <summary>The one map from the symbol table's class to the listing's kind, total both ways (<c>CrossReferenceKindDriftTests</c>).</summary>
@@ -111,9 +136,11 @@ internal static class CrossReferenceBuilder
     /// <summary>The procedure a listing line stands in: the procedure defined last at or before it in the same program.</summary>
     private static Func<int?, int?, int?> ProcedureAt(IReadOnlyList<ListingSymbol> symbols)
     {
-        var procedures = symbols.Where(static s => s.Kind == ListingSymbolKind.Procedure)
-            .Select(static s => (s.Id, s.Program, Line: s.References.FirstOrDefault(static r => r.Use == ListingUse.Defined)?.Line))
-            .Where(static p => p.Line is not null).OrderBy(static p => p.Line).ToList();
+        var procedures = new List<(int Id, int? Program, int Line)>();
+        foreach (var symbol in symbols)
+            if (symbol.Kind == ListingSymbolKind.Procedure && CrossReferenceText.DefinedLine(symbol) is { } line)
+                procedures.Add((symbol.Id, symbol.Program, line));
+        procedures.Sort(static (a, b) => (a.Line, a.Id).CompareTo((b.Line, b.Id)));
         return (line, program) =>
         {
             int? found = null;
@@ -133,10 +160,13 @@ internal static class CrossReferenceBuilder
         Func<int, int?> programOf)
     {
         var edges = new List<ListingEdge>();
-        foreach (var symbol in symbols.Where(static s => s.Kind == ListingSymbolKind.Procedure))
-            foreach (var reference in symbol.References)
-                if (reference is { Verb: "PERFORM", Line: { } line })
+        foreach (var symbol in symbols)
+        {
+            if (symbol.Kind != ListingSymbolKind.Procedure) continue;
+            for (int i = 0; i < symbol.References.Count; i++)
+                if (symbol.References[i] is { Verb: "PERFORM", Line: { } line })
                     edges.Add(new ListingEdge(procedureAt(line, programOf(line)), symbol.Id, line, "PERFORM"));
+        }
         edges.Sort(static (a, b) => (a.Line ?? int.MaxValue).CompareTo(b.Line ?? int.MaxValue));
         return edges;
     }
@@ -151,8 +181,8 @@ internal static class CrossReferenceBuilder
         var edges = new List<ListingEdge>();
         foreach (var symbol in symbols)
             if (symbol.Kind is ListingSymbolKind.Program or ListingSymbolKind.ProgramPrototype or ListingSymbolKind.FunctionPrototype)
-                foreach (var reference in symbol.References)
-                    if (reference is { Use: not ListingUse.Defined, Line: { } line, Verb: { } verb }
+                for (int i = 0; i < symbol.References.Count; i++)
+                    if (symbol.References[i] is { Use: not ListingUse.Defined, Line: { } line, Verb: { } verb }
                         && (symbol.Kind == ListingSymbolKind.FunctionPrototype || verb is "CALL" or "CANCEL"))
                         edges.Add(new ListingEdge(drafts[line - 1].Program is { } p && unitSymbol.TryGetValue(p, out int unit) ? unit : null,
                             symbol.Id, line, verb));
@@ -168,22 +198,26 @@ internal static class CrossReferenceBuilder
     /// </summary>
     public static void MarkLines(ListingCrossReference xref, IReadOnlyList<LineDraft> drafts)
     {
+        var definedOn = new int?[xref.Symbols.Count + 1];
         foreach (var symbol in xref.Symbols)
-            foreach (var reference in symbol.References)
-                if (reference is { Line: { } line, Column: { } column, Use: not ListingUse.Defined } && symbol.Kind != ListingSymbolKind.CopyMember)
+        {
+            definedOn[symbol.Id] = CrossReferenceText.DefinedLine(symbol);
+            if (symbol.Kind == ListingSymbolKind.CopyMember) continue;
+            for (int i = 0; i < symbol.References.Count; i++)
+                if (symbol.References[i] is { Line: { } line, Column: { } column, Use: not ListingUse.Defined } reference)
                     drafts[line - 1].AddName(new ListingNameUse(column, reference.Length, symbol.Id, reference.Use));
-        var definedOn = xref.Symbols.ToDictionary(static s => s.Id,
-            static s => s.References.FirstOrDefault(static r => r.Use == ListingUse.Defined)?.Line);
+        }
         foreach (var draft in drafts)
         {
             if (draft.Names is not { Count: > 0 } names) continue;
             names.Sort(static (a, b) => a.Column.CompareTo(b.Column));
             if (draft.Margin is not null) continue;
-            var definitions = new List<int>();
+            List<int>? definitions = null;
             foreach (var name in names)
-                if (name.Use != ListingUse.Defined && definedOn[name.Symbol] is { } at && at != draft.Number && !definitions.Contains(at))
-                    definitions.Add(at);
-            if (definitions.Count > 0) draft.Margin = new ListingMargin(null, null, null, null, definitions);
+                if (name.Use != ListingUse.Defined && definedOn[name.Symbol] is { } at && at != draft.Number
+                    && (definitions is null || !definitions.Contains(at)))
+                    (definitions ??= []).Add(at);
+            if (definitions is not null) draft.Margin = new ListingMargin(null, null, null, null, definitions);
         }
     }
 }

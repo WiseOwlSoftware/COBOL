@@ -75,13 +75,28 @@ public static class CrossReferenceText
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a symbol kind"),
     };
 
-    /// <summary>A reference's text in a symbol's list: its listing line (<c>-</c> when no listed line holds it) and its use's mark.</summary>
-    public static string ReferenceText(ListingReference reference) =>
-        DataMapText.NumberText(reference.Line) + UseMark(reference.Use);
+    /// <summary>A reference as a symbol's list prints it, appended to <paramref name="row"/> with no string of its own: its listing line
+    /// (<c>-</c> when no listed line holds it) and its use's mark.</summary>
+    public static void AppendReference(StringBuilder row, ListingReference reference)
+    {
+        if (reference.Line is { } line) row.Append(CultureInfo.InvariantCulture, $"{line}");
+        else row.Append(DataMapText.NumberText(null));
+        row.Append(UseMark(reference.Use));
+    }
 
     /// <summary>The line a symbol is defined on, as its row prints it.</summary>
-    public static string DefinedText(ListingSymbol symbol) =>
-        symbol.References.FirstOrDefault(static r => r.Use == ListingUse.Defined) is { } defined ? DataMapText.NumberText(defined.Line) : "-";
+    public static string DefinedText(ListingSymbol symbol) => Definition(symbol) is { } defined ? DataMapText.NumberText(defined.Line) : "-";
+
+    /// <summary>The reference that is the symbol's definition, or null for a name the standard declares implicitly.</summary>
+    public static ListingReference? Definition(ListingSymbol symbol)
+    {
+        for (int i = 0; i < symbol.References.Count; i++)
+            if (symbol.References[i].Use == ListingUse.Defined) return symbol.References[i];
+        return null;
+    }
+
+    /// <summary>The listing line a symbol is defined on, or null when it has no definition or no listed line holds it.</summary>
+    public static int? DefinedLine(ListingSymbol symbol) => Definition(symbol)?.Line;
 
     /// <summary>The cross-reference's rows: a heading, then one row per symbol (its id, kind, name, definition line, then each
     /// reference's line and use mark, wrapped under the references column, and <see cref="UnreferencedFlag"/> for a name never
@@ -90,14 +105,16 @@ public static class CrossReferenceText
     {
         var h = SymbolHeadings;
         yield return string.Create(CultureInfo.InvariantCulture, $"{h[0],6}  {h[1],-10} {h[2],-30} {h[3],7}  {h[4]}");
+        var text = new StringBuilder();   // one builder for every symbol: each row is made in it and cut as a string once
         foreach (var symbol in xref.Symbols)
         {
-            var row = new StringBuilder(string.Create(CultureInfo.InvariantCulture,
-                $"{symbol.Id,6}  {KindWord(symbol.Kind),-10} {symbol.Name,-30} {DefinedText(symbol),7} "));
-            foreach (var reference in symbol.References)
-                if (reference.Use != ListingUse.Defined) row.Append(' ').Append(ReferenceText(reference));
-            if (symbol.Unreferenced) row.Append("  ").Append(UnreferencedFlag);
-            foreach (string piece in TextListingRenderer.Indented(row.ToString().TrimEnd(), 0, 57, width)) yield return piece;
+            text.Clear();
+            text.Append(CultureInfo.InvariantCulture, $"{symbol.Id,6}  {KindWord(symbol.Kind),-10} {symbol.Name,-30} {DefinedText(symbol),7} ");
+            for (int i = 0; i < symbol.References.Count; i++)
+                if (symbol.References[i].Use != ListingUse.Defined) AppendReference(text.Append(' '), symbol.References[i]);
+            if (symbol.Unreferenced) text.Append("  ").Append(UnreferencedFlag);
+            while (text.Length > 0 && text[^1] == ' ') text.Length--;
+            foreach (string piece in TextListingRenderer.Indented(text.ToString(), 0, 57, width)) yield return piece;
         }
         foreach (var row in Graph(PerformsTitle, xref.Performs, xref, width)) yield return row;
         foreach (var row in Graph(CallsTitle, xref.Calls, xref, width)) yield return row;

@@ -138,7 +138,9 @@ public static class BoundStores
     /// statement funnel reads it to classify each occurrence (<c>SymbolTable.EntryStore.Classify</c>). <paramref name="linked"/> are the
     /// places the statement's references were built as (the symbol table's links since the statement's mark), asked beside the places
     /// <see cref="BoundReferences.Of"/> finds, since a node may hold an operand's place where that walk does not enter (a tuple of
-    /// <see cref="BoundSetConditions"/>: kb/Work PB5925's dated file <c>2026-11-20-step-7b-2-built</c>).</summary>
+    /// <see cref="BoundSetConditions"/>: kb/Work PB5925's dated file <c>2026-11-20-step-7b-2-built</c>). This is the PAIRING TEST's walk (the symbol table asks it only when
+    /// a test asks it to verify pairing, <c>SymbolTable.EntryStore.VerifyPairing</c>): the classification itself is
+    /// <see cref="StorePositionsAmong"/>.</summary>
     internal static IEnumerable<(Place Place, StoreKind Kind)> StorePositionsOf(BoundStatement s, IEnumerable<Place>? linked = null)
     {
         var asked = new HashSet<Place>(ReferenceEqualityComparer.Instance);
@@ -148,6 +150,37 @@ public static class BoundStores
             if (place.NamedItem.IsCompilerTemp) continue;   // a temporary the binder made is no operand the program wrote
             var at = place;
             var visitor = new StoreKindVisitor(p => ReferenceEquals(p, at), StoreView.Operands, crossingsStore: true, direct: true);
+            var kind = s.Accept(visitor);
+            if (kind == StoreKind.Write && visitor.StoredThroughWindow) kind = StoreKind.WriteInPart;
+            if (kind is not StoreKind.None) yield return (place, kind);
+        }
+    }
+
+    /// <summary>⛔ THE STORE POSITIONS AMONG THE PLACES <paramref name="wanted"/> NAMES (the classification's question, DESIGN-listing.md
+    /// section 6.7.1, "Store kind"; section 9): each place instance <paramref name="s"/> stores through, with the kind of the store, asked
+    /// of the instances the exhaustive visitor ITSELF asks about. One survey pass notes every wanted place an arm asks (the survey
+    /// answers no, so no arm stops early), and only those are asked their kind, so a statement's reads cost nothing beyond the survey and
+    /// no walk of the node's fields is made. Where <see cref="StorePositionsOf"/> starts from the places the statement holds, this starts
+    /// from the places the visitor asks.</summary>
+    internal static IEnumerable<(Place Place, StoreKind Kind)> StorePositionsAmong(BoundStatement s, Func<Place, bool> wanted)
+    {
+        List<Place>? asked = null;
+        s.Accept(new StoreKindVisitor(p =>
+        {
+            if (!wanted(p)) return false;
+            asked ??= [];
+            foreach (var known in asked)
+                if (ReferenceEquals(known, p)) return false;
+            asked.Add(p);
+            return false;
+        }, StoreView.Operands, crossingsStore: true, direct: true));
+        if (asked is null) yield break;
+        Place? at = null;
+        var visitor = new StoreKindVisitor(p => ReferenceEquals(p, at), StoreView.Operands, crossingsStore: true, direct: true);
+        foreach (var place in asked)
+        {
+            at = place;
+            visitor.Reset();
             var kind = s.Accept(visitor);
             if (kind == StoreKind.Write && visitor.StoredThroughWindow) kind = StoreKind.WriteInPart;
             if (kind is not StoreKind.None) yield return (place, kind);
@@ -179,6 +212,9 @@ public static class BoundStores
         /// <summary>True once a matching store went through a window of the item (see <see cref="Hit"/>); the visitor is
         /// one query's, single-threaded.</summary>
         public bool StoredThroughWindow { get; private set; }
+
+        /// <summary>Start the next question of the same visitor afresh (<see cref="StorePositionsAmong"/> asks one visitor of each place).</summary>
+        public void Reset() { FirstHit = null; StoredThroughWindow = false; }
         private bool TargetHit(BoundSetTarget? t) => t is SetPlaceTarget sp && Hit(sp.Place);
         /// <summary>The RECEIVER of a bound <c>… INTO</c> implicit move (kb/Work PB348 — identifier-1 now rides
         /// the move rather than the I-O node). Asked of the move's own target list, which is the same single

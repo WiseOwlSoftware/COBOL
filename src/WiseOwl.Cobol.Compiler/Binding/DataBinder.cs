@@ -981,14 +981,19 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Classify the occurrences recorded since <paramref name="mark"/> as the statement <paramref name="bound"/>'s, written at
     /// <paramref name="at"/> with the verb its first token <paramref name="verb"/> writes: each at the store position its linked place
-    /// stands at (<see cref="Bound.BoundStores.StorePositionsOf"/>), the rest read. Nothing when no listing records references.</summary>
+    /// stands at (<see cref="Bound.BoundStores.StorePositionsAmong"/>), the rest read. Nothing when no listing records references.</summary>
     internal void ClassifyOccurrences((int Occurrences, int Links) mark, DiagnosticCursor at, Antlr4.Runtime.IToken verb,
         Bound.BoundStatement bound)
     {
         var store = Symbols.GroupEntries;
-        if (store.RecordsReferences)
-            store.Classify(mark.Occurrences, at, verb.Text.ToUpperInvariant(),
-                Bound.BoundStores.StorePositionsOf(bound, store.LinkedSince(mark.Links)));
+        if (!store.RecordsReferences) return;
+        string verbText = verb.Text.ToUpperInvariant();
+        if (store.VerifiesPairing)
+            store.VerifyPairing(mark.Occurrences, at, verbText, Bound.BoundStores.StorePositionsOf(bound, store.LinkedSince(mark.Links)));
+        // Nothing to classify when every occurrence since the mark is a nested statement's: its own funnel classified them.
+        if (!store.AnyToClassify(mark.Occurrences)) return;
+        store.Classify(mark.Occurrences, at, verbText,
+            Bound.BoundStores.StorePositionsAmong(bound, place => store.Awaits(place, mark.Occurrences)));
     }
 
     /// <summary>A FILE-CONTROL key reference: the base word plus its IN/OF qualifier words in written order

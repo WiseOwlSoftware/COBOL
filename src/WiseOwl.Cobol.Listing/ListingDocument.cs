@@ -250,7 +250,7 @@ public sealed record ListingLine(int Number, int File, int FileLine, int? Inclus
 /// first character.</param>
 /// <param name="Length">How many characters it covers.</param>
 /// <param name="Class">What the compiler read the stretch as.</param>
-public sealed record ListingSpan(int Column, int Length, ListingSpanClass Class);
+public readonly record struct ListingSpan(int Column, int Length, ListingSpanClass Class);
 
 /// <summary>What the compiler read a stretch of source text as (DESIGN-listing.md section 7.2): the reference-format areas and the
 /// kinds of line as the reference format decided them, and each word, literal and separator as the lexer and the parse read it at

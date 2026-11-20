@@ -135,4 +135,4 @@ public sealed record ListingEdge(int? From, int To, int? Line, string Verb);
 /// <param name="Length">The characters it is written in on this line.</param>
 /// <param name="Symbol">The <see cref="ListingSymbol.Id"/> it uses.</param>
 /// <param name="Use">How it uses the name.</param>
-public sealed record ListingNameUse(int Column, int Length, int Symbol, ListingUse Use);
+public readonly record struct ListingNameUse(int Column, int Length, int Symbol, ListingUse Use);

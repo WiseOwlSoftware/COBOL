@@ -133,7 +133,7 @@ public sealed class ReferenceOccurrenceDriftTests
         var tree = frontend.Parse(options.SourcePath, diagnostics);
         Assert.NotNull(tree);
         Assert.False(diagnostics.HasErrors, string.Join("\n", diagnostics.Diagnostics));
-        var edition = new EditionContext(options.DialectLevel, options.Permissive) { RecordsReferences = true };
+        var edition = new EditionContext(options.DialectLevel, options.Permissive) { RecordsReferences = true, VerifiesStorePairing = true };
         var binder = new BinderDriver();
         binder.Bind(tree!, edition, frontend.Directives);
         var store = binder.Session.OoClasses.Entries;

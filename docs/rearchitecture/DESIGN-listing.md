@@ -28,12 +28,13 @@
 > units, the parameterized expansion's names in the group's tier, the TURN file operand, the refused record-key operands and every
 > data-name's and condition-name's entry made where it is declared, the baseline emptied and deleted; sections 6.7.1 "Step 6b, as
 > built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
-> PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); STEP 7b BUILT (the
+> PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); STEP 9b BUILT (the close-out: the name links held, the
+> `All` budget met with the cross-reference, every section checked, kb/Work PB5925 landed, branch `listing-step-9b`); STEP 7b BUILT (the
 > occurrences, the cross-reference and the HTML page's name links, branch `listing-step-7b-2`; section 6.7.1, "Step 7b, as
 > built"). Section 11, "What is not built", lists every
 > part of this design not yet built and why.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
-> "(step 6)", "(step 6b)", "(step 7a)", "(step 7b)", "(step 8)", "(step 9)" or "(PB5951)" in the section it changed.
+> "(step 6)", "(step 6b)", "(step 7a)", "(step 7b)", "(step 8)", "(step 9)", "(step 9b)" or "(PB5951)" in the section it changed.
 > PB5947 BUILT (the diagnostic summary's table of flagged constructs by edition, section 6.11, branch `listing-step-pb5947`).
 > kb/Work PB5941 (branch `listing-step-pb5941`, the `all` row's budget): every format streams to its file, the page shows each IL
 > instruction once, the object code is decoded into one array per method; corrections marked "(PB5941)" in sections 4.2, 7, 7.1,
@@ -2040,6 +2041,18 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     lead 3). `StatementBinder.BindStatement` holds both marks and classifies through `DataBinder.ClassifyOccurrences` and `EntryStore.Classify`
     (the bound layer names no symbol-table type: `ArchitectureEdgesDriftTests` refused the first build's direct use), which also records each
     store position that pairs with no occurrence of the statement (`UnpairedStorePositions`, the pairing test's input).
+  - *The classification asks the places the visitor asks, `StorePositionsAmong` (correction, step 9b).* Walking every statement's fields
+    for its places (`BoundReferences.Of`, reflection over the bound tree, a node's fields found by the runtime on every visit) and asking
+    one visitor per place was 3.2 MB of IX113A's 5.8 MB of cross-reference allocation (section 9). The classification now runs ONE survey
+    pass of the exhaustive visitor whose match answers no (so no arm stops early) and notes each place an arm asks about that stands for an
+    occurrence still to classify (`EntryStore.Awaits`: linked since the statement's mark, not yet classified), then asks the kind of those
+    places only; a statement every occurrence of which a nested statement classified is not asked at all (`EntryStore.AnyToClassify`).
+    The two answers are the same: the classification of all 215,230 occurrences of the 374 NIST programs is byte-identical before and after
+    (the uses by position, statement and verb: 129,225 read, 76,621 written, 9,384 modified). `StorePositionsOf`, the walk from the
+    statement's own places, stays as the PAIRING TEST's walk: `EditionContext.VerifiesStorePairing` (internal, set only by
+    `ReferenceOccurrenceDriftTests`) makes the funnel also run it and record each store position of a written operand that pairs with no
+    occurrence (`EntryStore.VerifyPairing`), so a compilation but the oracle's does not walk a statement's fields. `BoundReferences` finds
+    a node type's operand-bearing fields once (`FieldsOf`), not on each visit.
   - *The transfer kind and the verb are one fact.* An occurrence carries its statement's verb as written (`SymbolOccurrence.Verb`:
     `PERFORM`, `GO`, `ALTER`, `SORT`, `CALL`, `READ`, ...), which is the transfer kind of a procedure reference and the verb of a
     file or program reference; no enum of transfers is kept beside it.
@@ -2594,6 +2607,11 @@ unchanged: it has one copy (the object-code section). `HtmlListingRendererTests.
 holds both cases. The page is written as it is rendered (section 4.2): `Escape` writes the runs between the five markup characters
 whole, and a number or an IL offset (`IlOffset`, the one spelling of `IL_xxxx`, a value that formats itself) is formatted into the
 writer with no string of its own.
+(Step 9b, checked and held:) `HtmlListingRendererTests.EveryKindOfName_LinksToItsDefinition_AndItsRowListsItsReferencesAsLinks` reads
+`ListingSymbolKind` off the enum, so every kind of name (and a name with no listed definition, which links to its row) is held to
+the rule the day it exists, with each expected link computed from the document's own references; shown red by removing the link
+(the test failed, the source restored). A link's address is made once for each symbol (`SourceWriter.HrefOf`), never for each name
+written, and a number or an element id is written without a string of its own (`NumberLink`).
 (Step 7b, built:) each reference on a source line (`ListingLine.Names`) links its WORD (the span that starts at its column) to the
 line its symbol is defined on, or to the symbol's cross-reference row when the page does not hold that line
 (`HtmlListingRenderer.NameHref`), so a link holds one span whole and links never nest when one reference is written inside another;
@@ -2870,6 +2888,11 @@ accepts the sections built so far (`source`, `programs`, `diagnostics`, `options
   +30.8 % (NC218A) and +28.4 % (SM201A) over `None` on a full compile (one run), over its 25 % budget on three programs; the front
   end and bind's `All` grows 8.5 to 12.1 MB over the parent's: kb/Work PB5953, filed before the step lands (the benchmark README's
   step-7b table).
+  (Step 9b:) the `All` row over 25 % with the cross-reference (kb/Work PB5953) is fixed at its roots, measured by the benchmark README's
+  step-9b table: the classification (the cross-reference's largest part, 3.2 of 5.8 MB of the front end and bind: above, 6.7.1), the
+  `ListingReference` made once with its symbol's id (not copied to take it), the rows of the text and the page written with no string
+  per number or link (`CrossReferenceText.AppendReference`, `NumberLink`), a symbol's link made once, an integer or branch-target operand
+  of the object code named once (`IlDisassembler.Number`, `Target`).
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the
@@ -3247,7 +3270,7 @@ appends each `SymbolOccurrence`
 to its entry (Identify's register arms included), and so does the group tier's recording point, `SymbolTable.ClassNames.Lookup`,
 for each written object-class-name and interface-name (section 6.7.1, "The compilation group's tier"), `PlaceBuilder.PlaceForItem` / `PlaceBuilder.WholeTable` take
 `IdentifiedName`, `StatementBinder.BindStatement` classifies the occurrences since its mark through the new
-`BoundStores.StorePositionsOf`, all gated by `EditionContext.RecordsReferences`. Step 7b lands with the grammar test,
+`BoundStores.StorePositionsOf` (step 9b: `StorePositionsAmong`, section 6.7.1), all gated by `EditionContext.RecordsReferences`. Step 7b lands with the grammar test,
 the completeness oracle and the pairing test green. Then `CrossReferenceBuilder` (a view of the entries and their
 occurrences), the PERFORM and CALL graphs, `LineAnnotationBuilder`'s `ListingLine.Names` and statement-line `Margin`;
 the `All` row. (Step 7b, dispatched early, branch `listing-step-7b`, correction: kb/Work PB5925's dated file
@@ -3282,6 +3305,12 @@ COBOL positions; the `All` row.
 `FileDetailParts`; `--listing-format html`; the benchmark's `All` mode writes every format (section 9). The page reads what the
 model holds; `ListingLine.Names` and the cross-reference do not exist yet, so the name links join with them in step 7b.
 
+**Step 9b - the listing's close-out. BUILT (branch `listing-step-9b`, on step 7b's branch; kb/Work PB5925 landed with it).** The HTML page's
+name links were built with step 7b (their model, `ListingLine.Names` and `ListingCrossReference`, came with it, so one change set held the
+model and the page); step 9b checks and holds them (section 7.2, `HtmlListingRendererTests.EveryKindOfName_...`), fixes the `All` row's budget
+(PB5953, section 9), checks every section of this document against the code (the list below), files each residue as a kb/Work item and
+records the decision that PB5925 is landed with them (kb/Work PB5954).
+
 **PB5947 - the table of flagged constructs by edition. BUILT (branch `listing-step-pb5947`; section 6.11, "As built").** The edition
 flag as a fact on the diagnostic (`EditionFlag`, `Diagnostic.Flag`, made by `ConstructRegistry.VerdictAt` and
 `EditionContext.Extension`), `ListingDiagnostic.Flag` and `ListingDocument.FlaggedConstructs`, the table in the text summary, the
@@ -3309,21 +3338,21 @@ stretch (`ListingObjectRange.Regions`, `Depth`); `ObjectCodeText.CodeLines` and 
 code; the JSON schema regenerated within 1.0 (section 7.3) and its drift test declared a preflight class; `ExceptionRegionLayoutTests`
 and `ListingExceptionRegionTests`; the `All` row measured (section 9).
 
-**What is not built (checked at step 9 against every section of this document).** Each part below is a kb/Work item, never a silent
-gap:
-- (Step 7b:) section 9's `All` budget, over 25 % with the cross-reference: kb/Work PB5953.
-- (Step 7b:) the uses and references step 7b left, each a lead of kb/Work PB5925's dated file `2026-11-20-step-7b-2-built` (section
-  6.7.1, "Step 7b, as built"): an index-name's store, the special registers' entries, a whole table's store, a literal CALL target
-  in the CALL graph, and the statistics' counts of names and uses (section 4.1's table).
+**What is not built (checked at step 9b against every section of this document; kb/Work PB5954 records the decision).** Each part below
+is a kb/Work item, never a silent gap:
+- Section 6.7.1, "Step 7b, as built": an index-name's store and a whole table's store are classified `Read` (kb/Work PB5955); the special
+  registers LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER and EXCEPTION-OBJECT have no entry (PB5956); `BoundReferences` does not enter a value
+  tuple (PB5957); a `--permissive` first-declaration resolution records no occurrence (PB5960).
+- Section 6.7: a CALL by literal is no edge of the CALL graph (kb/Work PB5958).
+- Section 4.1's table: the statistics' counts of names and uses (kb/Work PB5959).
+- Section 10: the occurrence oracle's corpus is the NIST programs (an analysis of a per-edition corpus: kb/Work PB5961).
 - Section 2.2's two 2002 DOC rows (`2002-DOC-B.1-90`, `-165`): documented in DOC-A.1-117 and DOC-A.1-200 but held at GAP by kb/Work
   PB5930.
-- (PB5941:) section 9's `All` budget, over 25 % since step 8, is met (measured at the merged tree of PB5941 and PB5951, `0c29eebc42`,
-  two runs: `All` is +13.8 to +23.5 % over `None` on a full compile, the benchmark README's "The `All` row at the merged tree"; review
-  lead pb5951 R4-1): every format streams to its file and the page shows each
-  instruction once (section 9, PB5941; kb/Work PB5941 landed with this branch, `listing-step-pb5941`).
-- Section 7's `IListingRenderer`: not built by decision (section 7, step 9 correction).
 - Section 7.2's colouring of a COPY or REPLACE statement's words, which the text stages remove before the lexer reads the text:
   kb/Work PB5952.
+- Section 7's `IListingRenderer`: not built by decision (section 7, step 9 correction; kb/Work PB5954).
+- Built, no longer open: section 9's `All` budget (kb/Work PB5941 met it at the merged tree of PB5941 and PB5951, and PB5953 met it again with
+  the cross-reference, step 9b), the table of flagged constructs (PB5947), the HTML page's name links (step 7b, held by step 9b).
 
 ## 12. Documents and records that change with the listing
 

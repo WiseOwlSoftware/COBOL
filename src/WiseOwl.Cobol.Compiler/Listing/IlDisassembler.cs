@@ -32,7 +32,8 @@ internal static class IlDisassembler
         Dictionary<int, string>? names = null)
     {
         names ??= [];
-        var instructions = new List<ListingInstruction>();
+        // The instructions of the span: a body's IL averages three bytes an instruction, so the list starts near its final size.
+        var instructions = new List<ListingInstruction>(Math.Max(4, (Math.Min(end, il.Length) - start) / 3));
         int at = 0;
         while (at < end && at < il.Length)
         {
@@ -57,25 +58,25 @@ internal static class IlDisassembler
             case OperandType.ShortInlineBrTarget:
             {
                 int delta = unchecked((sbyte)il[at++]);
-                return ObjectCodeText.Offset(at + delta);
+                return Target(at + delta, names);
             }
             case OperandType.InlineBrTarget:
             {
                 int delta = ReadInt32(il, ref at);
-                return ObjectCodeText.Offset(at + delta);
+                return Target(at + delta, names);
             }
             case OperandType.ShortInlineI:
-                return unchecked((sbyte)il[at++]).ToString(CultureInfo.InvariantCulture);
+                return Number(unchecked((sbyte)il[at++]));
             case OperandType.ShortInlineVar:
-                return il[at++].ToString(CultureInfo.InvariantCulture);
+                return Number(il[at++]);
             case OperandType.InlineVar:
             {
                 int index = il[at] | (il[at + 1] << 8);
                 at += 2;
-                return index.ToString(CultureInfo.InvariantCulture);
+                return Number(index);
             }
             case OperandType.InlineI:
-                return ReadInt32(il, ref at).ToString(CultureInfo.InvariantCulture);
+                return Number(ReadInt32(il, ref at));
             case OperandType.InlineI8:
             {
                 long low = (uint)ReadInt32(il, ref at), high = ReadInt32(il, ref at);
@@ -102,7 +103,7 @@ internal static class IlDisassembler
                 int count = ReadInt32(il, ref at);
                 int origin = at + 4 * count;
                 var targets = new string[count];
-                for (int i = 0; i < count; i++) targets[i] = ObjectCodeText.Offset(origin + ReadInt32(il, ref at));
+                for (int i = 0; i < count; i++) targets[i] = Target(origin + ReadInt32(il, ref at), names);
                 return "(" + string.Join(", ", targets) + ")";
             }
             case OperandType.InlineField or OperandType.InlineMethod or OperandType.InlineType or OperandType.InlineTok
@@ -113,6 +114,24 @@ internal static class IlDisassembler
             default:
                 throw new BadImageFormatException($"an IL operand of type {type}");
         }
+    }
+
+    /// <summary>An integer operand's text, made once for each small number a body writes thousands of times (a local's index, a short
+    /// constant): the object code of a program is mostly such operands (DESIGN-listing.md section 9).</summary>
+    private static string Number(int value) =>
+        value >= SmallMin && value < SmallMin + s_small.Length ? s_small[value - SmallMin] : value.ToString(CultureInfo.InvariantCulture);
+
+    private const int SmallMin = -128;
+
+    private static readonly string[] s_small = [.. Enumerable.Range(SmallMin, 1152).Select(n => n.ToString(CultureInfo.InvariantCulture))];
+
+    /// <summary>A branch target's text, made once for each offset of the assembly's bodies named so far: the targets of a body's
+    /// branches are its own offsets, and a label is named by many branches. A target shares <paramref name="names"/> with the tokens
+    /// under a key no token has (a token's high byte is its table, never 0xFF).</summary>
+    private static string Target(int offset, Dictionary<int, string> names)
+    {
+        int key = unchecked((int)0xFF000000) | offset;
+        return names.TryGetValue(key, out string? text) ? text : names[key] = ObjectCodeText.Offset(offset);
     }
 
     /// <summary>⛔ THE ONE NAMING OF A METADATA TOKEN the object code prints: an instruction's field, method, type, token or signature

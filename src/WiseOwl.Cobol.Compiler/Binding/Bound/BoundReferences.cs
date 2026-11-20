@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using WiseOwl.Cobol.Binding.Model;
@@ -122,15 +123,26 @@ internal static class BoundReferences
     /// property has none of, so the walk reads state and never derived answers — over the whole base chain.</summary>
     private static void VisitFields(object node, Reach.Builder found, HashSet<object> skip, bool yieldPlace, bool statementsAreDirect)
     {
-        for (var c = node.GetType(); c is not null && c != typeof(object); c = c.BaseType)
-            foreach (var field in c.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
-            {
-                if (field.FieldType.IsPrimitive || field.FieldType.IsEnum || field.FieldType == typeof(string)) continue;
-                // A single BoundMove-typed field is the implicit move a verb's FROM or INTO phrase performs (WRITE ... FROM x, READ ... INTO x):
-                // part of the verb's own statement, whose operands the verb explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5 a).
-                Visit(field.GetValue(node), found, skip, yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
-            }
+        foreach (var field in FieldsOf(node.GetType()))
+        {
+            // A single BoundMove-typed field is the implicit move a verb's FROM or INTO phrase performs (WRITE ... FROM x, READ ... INTO x):
+            // part of the verb's own statement, whose operands the verb explicitly references (X3.23-1985 USE FOR DEBUGGING general rule 5 a).
+            Visit(field.GetValue(node), found, skip, yieldPlace, statementsAreDirect || field.FieldType == typeof(BoundMove));
+        }
     }
+
+    // The operand-bearing fields of each node type, found once: a walk runs per statement (the listing's classification runs one for every
+    // statement of the program, DESIGN-listing.md section 9), and asking the runtime for a type's fields allocates their array each time.
+    private static readonly ConcurrentDictionary<Type, FieldInfo[]> s_fields = new();
+
+    private static FieldInfo[] FieldsOf(Type type) => s_fields.GetOrAdd(type, static t =>
+    {
+        var fields = new List<FieldInfo>();
+        for (var c = t; c is not null && c != typeof(object); c = c.BaseType)
+            foreach (var field in c.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
+                if (!(field.FieldType.IsPrimitive || field.FieldType.IsEnum || field.FieldType == typeof(string))) fields.Add(field);
+        return [.. fields];
+    });
 }
 
 /// <summary>⛔ THE REFERENCES A BOUND STATEMENT OR OPERAND MAKES, of the two kinds a USE FOR DEBUGGING identifier-1 can be (X3.23-1985 USE FOR DEBUGGING
