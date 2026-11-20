@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -46,6 +47,9 @@ public sealed partial class SymbolTable
         var method = scope.Method;
         var table = method is null ? _ownTypeNames : MethodNamesOf(method).TypeNames;
         if (!table.TryAdd(Key(name), template)) return false;
+        // The type declaration's entry is its type-name's (§2023:8.3.2.2 lists type-name as a word of its own): the data map lists it
+        // where it is written, as the data description entry it is.
+        Enter(NameClass.TypeName, name, PositionOf(template.ReferenceSite.DeclaredAt), template);
         if (method is null) _data.State.Forest.AddTypeDeclaration(template);
         else method.AddTypeDeclaration(template);
         return true;

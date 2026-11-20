@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Preprocessor;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -59,6 +60,19 @@ public sealed partial class SymbolTable
 
         internal ClassNames(OoClassTable table) => _table = table;
 
+        /// <summary>The standard class BASE, entered the first time the group names it: the standard declares it, not the source, so
+        /// its entry stands at no position, and a group that never names it has none (as an imported class is entered when it is
+        /// imported).</summary>
+        private OoClassSymbol StandardBase
+        {
+            get
+            {
+                if (!_table.Entries.IdOf(_table.StandardBase).IsSet)
+                    _table.Entries.Enter(null, NameClass.ObjectClass, _table.StandardBase.Name, default, _table.StandardBase);
+                return _table.StandardBase;
+            }
+        }
+
         // ---- declarations (OoClassTable.Build, the importer) ------------------------------------------------------------
 
         /// <summary>Whether a class of the group carries the name <paramref name="word"/> (a duplicate CLASS-ID or an interface
@@ -68,11 +82,32 @@ public sealed partial class SymbolTable
         /// <summary>Whether an interface of the group carries the name <paramref name="word"/>.</summary>
         internal bool NamesInterface(string word) => _interfaces.ContainsKey(Key(word));
 
-        /// <summary>Declare a class of the group under its object-class-name; false when one is already declared.</summary>
-        internal bool TryDeclareClass(OoClassSymbol symbol) => _classes.TryAdd(Key(symbol.Name), symbol);
+        /// <summary>Declare a class of the group under its object-class-name, written at <paramref name="word"/> (its CLASS-ID's), where
+        /// its entry stands; false (and no entry) when one is already declared.</summary>
+        internal bool TryDeclareClass(OoClassSymbol symbol, IToken word)
+        {
+            if (!_classes.TryAdd(Key(symbol.Name), symbol)) return false;
+            _table.Entries.Enter(null, NameClass.ObjectClass, symbol.Name, new(word.Line, word.Column), symbol);
+            return true;
+        }
 
-        /// <summary>Declare an interface of the group under its interface-name (the caller has refused a duplicate).</summary>
-        internal void DeclareInterface(OoInterfaceSymbol symbol) => _interfaces.Add(Key(symbol.Name), symbol);
+        /// <summary>Declare an interface of the group under its interface-name, written at <paramref name="word"/> (its INTERFACE-ID's),
+        /// where its entry stands (the caller has refused a duplicate).</summary>
+        internal void DeclareInterface(OoInterfaceSymbol symbol, IToken word)
+        {
+            _interfaces.Add(Key(symbol.Name), symbol);
+            _table.Entries.Enter(null, NameClass.Interface, symbol.Name, new(word.Line, word.Column), symbol);
+        }
+
+        /// <summary>Declare the parameter-names of a parameterized class or interface definition bound as itself (§2023:11.3.2 /
+        /// §2023:11.6.2 <c>USING parameter-name-1</c>): each is an entry at its word, which a reference to the formal answers
+        /// (<see cref="Lookup"/>'s third outcome).</summary>
+        internal void DeclareParameterNames(IEnumerable<Core.OoParameterNameContext> formals)
+        {
+            foreach (var formal in formals)
+                if (!_table.Entries.IdOf(formal).IsSet)
+                    _table.Entries.Enter(null, NameClass.ParameterName, formal.GetText(), new(formal.Start.Line, formal.Start.Column), formal);
+        }
 
         // ---- the external repository's identities ------------------------------------------------------------------------
 
@@ -84,7 +119,7 @@ public sealed partial class SymbolTable
         {
             var key = Key(externalized);
             return _table.Classes.FirstOrDefault(c => Key(c.ExternalizedName) == key)
-                ?? (Key(_table.StandardBase.ExternalizedName) == key ? _table.StandardBase : _importedClasses.GetValueOrDefault(key));
+                ?? (Key(_table.StandardBase.ExternalizedName) == key ? StandardBase : _importedClasses.GetValueOrDefault(key));
         }
 
         /// <summary>The interface twin of <see cref="FindByExternalizedName"/> (literal-2).</summary>
@@ -108,6 +143,8 @@ public sealed partial class SymbolTable
             // Registered BEFORE it is completed: a method of the class that takes the class itself, or a class that takes it,
             // names this identity, which must answer with the symbol under construction rather than ask again.
             var symbol = found.Symbol;
+            // Imported from the external repository: declared by no source text of this group, so its entry stands at no position.
+            _table.Entries.Enter(null, NameClass.ObjectClass, symbol.Name, default, symbol);
             _importedClasses[Key(symbol.ExternalizedName)] = symbol;
             _table.AddImported(symbol);
             _classes[Key(symbol.Name)] = symbol;
@@ -124,6 +161,7 @@ public sealed partial class SymbolTable
             if (_table.Importer is not { } importer || !_interfaceImportsAsked.Add(Key(identity))) return null;
             if (importer.Interface(identity, _table) is not { } found) return null;
             var symbol = found.Symbol;
+            _table.Entries.Enter(null, NameClass.Interface, symbol.Name, default, symbol);
             _importedInterfaces[Key(symbol.ExternalizedName)] = symbol;
             _table.AddImported(symbol);
             _interfaces[Key(symbol.Name)] = symbol;
@@ -213,9 +251,21 @@ public sealed partial class SymbolTable
             if (WordOf(written) is not { } key) return default;
             var found = Find(site, key, want);
             if (found.IsFormal || found.Ok)
+            {
                 _table.RecordReferenceUse(site, written.GetText(),
                     found.Class is not null || found.IsFormal && _table.RepositoryScopeFor(site).DeclaresClass(key.Word)
                         ? UserWordKind.ObjectClassName : UserWordKind.InterfaceName);
+                // The answer carries the entry its declaration made (section 6.7.1, "Step 6b, the entry ids").
+                found = found with
+                {
+                    Entry = _table.Entries.IdOf(found.Class ?? (object?)found.Interface
+                        ?? _table.RepositoryScopeFor(site).FormalDeclaration(key.Word)
+                        ?? throw new InvalidOperationException($"the formal '{key.Word}' has no declaration")),
+                };
+                if (!found.Entry.IsSet)
+                    throw new InvalidOperationException($"SymbolTable.ClassNames.Lookup answered '{key.Word}', whose declaration entered no "
+                        + "entry: every declaring path enters its name (DESIGN-listing.md section 6.7.1, \"Step 6b, the entry ids\")");
+            }
             return found;
         }
 
@@ -305,7 +355,7 @@ public sealed partial class SymbolTable
         private OoClassSymbol? ClassKeyed(string name)
         {
             var key = Key(name);
-            return _classes.GetValueOrDefault(key) ?? (key == Key(OoStandardClasses.BaseName) ? _table.StandardBase : null);
+            return _classes.GetValueOrDefault(key) ?? (key == Key(OoStandardClasses.BaseName) ? StandardBase : null);
         }
 
         /// <summary>An interface of the group by its table key.</summary>
@@ -440,10 +490,10 @@ public sealed partial class SymbolTable
         private readonly Dictionary<CobolName, string?> _classes;
         private readonly Dictionary<CobolName, string?> _interfaces;
         // The parameter-names of a containing PARAMETERIZED class or interface definition (its USING clause).
-        private readonly HashSet<CobolName> _formals;
+        private readonly Dictionary<CobolName, Core.OoParameterNameContext> _formals;
 
         private RepositoryScope(Dictionary<CobolName, string?> classes, Dictionary<CobolName, string?> interfaces,
-            HashSet<CobolName> formals)
+            Dictionary<CobolName, Core.OoParameterNameContext> formals)
         {
             _classes = classes;
             _interfaces = interfaces;
@@ -456,7 +506,11 @@ public sealed partial class SymbolTable
         /// <summary>Whether <paramref name="name"/> is a parameter-name of the parameterized class or interface definition this
         /// scope lies in (§2023:11.3.2 / §2023:11.6.2 `USING parameter-name-1`). Only the written skeleton has one: an expansion's
         /// re-parsed text has its USING clause dropped and every formal replaced (kb/Work PB759).</summary>
-        internal bool IsFormal(string name) => _formals.Contains(Key(name));
+        internal bool IsFormal(string name) => _formals.ContainsKey(Key(name));
+
+        /// <summary>The parameter-name of the definition this scope lies in that <paramref name="name"/> spells: its declaration, the
+        /// symbol of its entry (<see cref="ClassNames.DeclareParameterNames"/>).</summary>
+        internal Core.OoParameterNameContext? FormalDeclaration(string name) => _formals.GetValueOrDefault(Key(name));
 
         /// <summary>Whether <paramref name="name"/> is a class-name in this scope, and the externalized name its specifier's AS
         /// phrase gave it (null: resolve by the declared word).</summary>
@@ -475,7 +529,7 @@ public sealed partial class SymbolTable
         {
             var classes = new Dictionary<CobolName, string?>();
             var interfaces = new Dictionary<CobolName, string?>();
-            var formals = new HashSet<CobolName>();
+            var formals = new Dictionary<CobolName, Core.OoParameterNameContext>();
             for (RuleContext? c = site; c is not null; c = c.Parent)
             {
                 switch (c)
@@ -485,11 +539,11 @@ public sealed partial class SymbolTable
                         // `[ INHERITS FROM { object-class-name-2 } … ]`), which are REFERENCES. §2023:12.3.8.3 SR5/SR8: a specifier
                         // naming the containing definition "is ignored" — its own name resolves to it, whatever an inner entry wrote.
                         if (cd.classIdParagraph()?.className().FirstOrDefault() is { } cn) classes[Key(cn.GetText())] = null;
-                        foreach (var p in cd.classIdParagraph()?.ooParameterName() ?? []) formals.Add(Key(p.GetText()));
+                        foreach (var p in cd.classIdParagraph()?.ooParameterName() ?? []) formals.TryAdd(Key(p.GetText()), p);
                         break;
                     case Core.InterfaceDefinitionContext idf:
                         if (idf.interfaceName().FirstOrDefault() is { } inm) interfaces[Key(inm.GetText())] = null;
-                        foreach (var p in idf.ooParameterName()) formals.Add(Key(p.GetText()));
+                        foreach (var p in idf.ooParameterName()) formals.TryAdd(Key(p.GetText()), p);
                         break;
                 }
                 // The environment division of THIS context, when it directly carries one. Only a source-element context does; a

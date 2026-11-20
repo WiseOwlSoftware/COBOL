@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
@@ -20,7 +21,7 @@ public sealed partial class SymbolTable
 {
     /// <summary>The function-prototype-names the REPOSITORY paragraph in scope DECLARES (every user-defined-function specifier,
     /// a refused one included), the container's first.</summary>
-    private readonly HashSet<CobolName> _functionWords = [];
+    private readonly Dictionary<CobolName, SymbolId> _functionWords = [];
 
     /// <summary>The user-defined-function specifiers in scope, in the order written: the container's first, and this element's own
     /// specifier of a name replacing the container's in its place (§2023:12.3.8.3 SR15's shape for a contained element).</summary>
@@ -39,10 +40,12 @@ public sealed partial class SymbolTable
     /// <summary>Declare a user-defined-function specifier's word (<c>DataBinder</c>'s REPOSITORY loop). <paramref name="specifier"/>
     /// is the specifier, or null when its <c>AS literal-5</c> was refused (§2023:12.3.8.3 SR2): the word is still declared, but it
     /// registers no specifier, so a reference resolves to no prototype and is that refusal's cascade (kb/Work PB4773, PB4822).</summary>
-    internal void DeclareFunctionSpecifier(string word, FunctionSpecifier? specifier)
+    internal void DeclareFunctionSpecifier(ParserRuleContext word, FunctionSpecifier? specifier)
     {
-        var key = Key(word);
-        _functionWords.Add(key);
+        var key = Key(word.GetText());
+        // The specifier's word is the declaration, refused literal or not (its entry, at the word, is what each reference answers).
+        var id = Enter(NameClass.FunctionPrototype, word.GetText(), PositionOf(word.Start), word);
+        _functionWords.TryAdd(key, id);
         if (specifier is not null) _functionSpecifiers[key] = specifier;
         else _refusedFunctionSpecifiers.Add(key);
     }
@@ -51,7 +54,7 @@ public sealed partial class SymbolTable
     /// its own bind; the container's order is kept.</summary>
     private void InheritFunctionSpecifiers(SymbolTable container)
     {
-        _functionWords.UnionWith(container._functionWords);
+        foreach (var (key, id) in container._functionWords) _functionWords.TryAdd(key, id);
         foreach (var (key, specifier) in container._functionSpecifiers) _functionSpecifiers.TryAdd(key, specifier);
         _refusedFunctionSpecifiers.UnionWith(container._refusedFunctionSpecifiers);
     }
@@ -122,14 +125,21 @@ public sealed partial class SymbolTable
     /// REPOSITORY paragraph declares or the containing function definition's own name (§2023:8.4.6.6), with the function it
     /// resolved to (none when no definition, prototype or repository entry answers it, or before the table is resolved) and whether
     /// its specifier's <c>AS literal-5</c> was refused.</summary>
-    private FunctionPrototypeReference? FunctionPrototypeNamed(CobolName key) =>
+    private (object? Symbol, SymbolId Id) FunctionPrototypeNamed(CobolName key) =>
         DeclaresFunction(key)
-            ? new FunctionPrototypeReference(key.Word, _userFunctions.GetValueOrDefault(key), _refusedFunctionSpecifiers.Contains(key))
-            : null;
+            ? (new FunctionPrototypeReference(key.Word, _userFunctions.GetValueOrDefault(key), _refusedFunctionSpecifiers.Contains(key)),
+                FunctionEntryOf(key))
+            : default;
 
     /// <summary>Whether <paramref name="key"/> is a function-prototype-name in this element's scope (§2023:8.4.6.6): declared by a
     /// REPOSITORY function-specifier, or the user-function-name of the containing function definition.</summary>
-    private bool DeclaresFunction(CobolName key) => _functionWords.Contains(key) || (_containingAreFunctions && _containingDefinitions.Contains(key));
+    private bool DeclaresFunction(CobolName key) => _functionWords.ContainsKey(key) || (_containingAreFunctions && _containingDefinitions.ContainsKey(key));
+
+    /// <summary>The entry of the function-prototype-name <paramref name="key"/>: the containing function definition's name, to which a
+    /// reference goes even when a specifier writes the name (§2023:12.3.8.3 SR11), else the specifier's word.</summary>
+    private SymbolId FunctionEntryOf(CobolName key) =>
+        _containingAreFunctions && _containingDefinitions.TryGetValue(key, out var definition) ? _entries.IdOf(definition)
+        : _functionWords.GetValueOrDefault(key);
 
     /// <summary>The key of a function-prototype-name written as <paramref name="written"/>: the word the &gt;&gt;COBOL-WORDS directive
     /// made of the token (<see cref="FunctionWord.Name"/>; kb/Work PB1372: resolved once, from the token, never from its text a second

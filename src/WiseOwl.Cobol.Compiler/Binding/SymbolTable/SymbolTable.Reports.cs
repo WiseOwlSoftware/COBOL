@@ -26,7 +26,7 @@ internal readonly record struct ReportSite(ReportModel? Report, IReadOnlyList<Re
 /// to the nearest declaring source element where the class is ranked so (§2023:8.4.6.2.1 3)). The class's own funnel decides what
 /// two or more candidates mean (§2023:8.4.2.2.3 SR1's ambiguity, worded at the reference), so it is no identification until the funnel
 /// has one, and listing step 7b records an occurrence only for a single candidate (as for <see cref="ProcedureCandidates"/>).</summary>
-internal sealed record ReportCandidates<T>(IReadOnlyList<T> Hits);
+internal sealed record ReportCandidates<T>(IReadOnlyList<T> Hits, IReadOnlyList<SymbolId> Ids) : ICandidateEntries;
 
 /// <summary>What a VARYING clause's data-name-1 is, declared in one report group description entry (ISO §2023:13.18.64.3 SR2).</summary>
 internal enum VaryingCounterDeclaration
@@ -74,6 +74,8 @@ public sealed partial class SymbolTable
     /// the report the scope, in the order written.</summary>
     internal void Declare(ReportModel model)
     {
+        Enter(NameClass.Report, model.Name, PositionOf(model.At), model);
+        EnterReportEntries(model.WrittenEntries);
         _data.State.Reports.Declare(model);
         _ownReports.TryAdd(Key(model.Name), model);
         _visibleReports.TryAdd(Key(model.Name), model);
@@ -110,6 +112,7 @@ public sealed partial class SymbolTable
     /// the data division binds, so a constant's length phrase can name one.</summary>
     internal void DeclareReportEntries(Core.ReportDescriptionEntryContext rd)
     {
+        EnterReportEntries(rd.reportGroupEntry());
         if (rd.reportName()?.GetText() is not { } report) return;
         var entries = rd.reportGroupEntry();
         for (int i = 0; i < entries.Length; i++)
@@ -121,23 +124,53 @@ public sealed partial class SymbolTable
         }
     }
 
+    /// <summary>Enter each report group description entry of one RD entry, named or FILLER, once (both the pre-bind walk of the data
+    /// division and the report's declaration reach them): its entry stands at the entry's level-number, where the data map places it.
+    /// A reference to a report group description entry's data-name competes with the ordinary data-names for uniqueness
+    /// (§2023:8.4.2.2.3 SR1, kb/Work PB5775), so its class is <see cref="NameClass.Data"/>; the entry's symbol is the written entry, of which the report
+    /// group, a sum counter's family, a report entry's location and a SUM operand's family are each a view.</summary>
+    private void EnterReportEntries(IReadOnlyList<Core.ReportGroupEntryContext> entries)
+    {
+        foreach (var entry in entries)
+            if (!_entries.IdOf(entry).IsSet)
+                Enter(NameClass.Data, entry.dataName().NameOrNull() ?? "FILLER", PositionOf(entry.Start), entry);
+    }
+
     /// <summary>The classes of the REPORT SECTION's names, which <see cref="Identify(ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>
     /// resolves from the written context (a qualified reference is read from the context's children, never its glued text).</summary>
     private static bool IsReportClass(NameClass @class) => @class is NameClass.Report or NameClass.ReportGroup
         or NameClass.SumCounter or NameClass.ReportVarying or NameClass.ReportEntry or NameClass.ReportSumOperand;
 
     /// <summary>The symbol of a report-section class the written context names here, or null.</summary>
-    private object? ReportSymbolNamed(ParserRuleContext written, NameClass wanted, NameReach reach, ReportSite site) => wanted switch
+    private (object? Symbol, SymbolId Id) ReportSymbolNamed(ParserRuleContext written, NameClass wanted, NameReach reach, ReportSite site) => wanted switch
     {
         NameClass.Report => WordOf(written) is { } key
-            ? (reach == NameReach.Own ? _ownReports : _visibleReports).GetValueOrDefault(key) : null,
-        NameClass.ReportGroup => ReportGroupsNamed(written, reach),
-        NameClass.SumCounter => written is Core.DataReferenceContext dref ? SumCountersReached(dref, site.Report) : null,
-        NameClass.ReportVarying => WordOf(written) is { } key && site.Varyings is { } varyings ? VaryingCounterNamed(key, varyings) : null,
-        NameClass.ReportEntry => written is Core.DataReferenceContext dref ? ReportEntriesWritten(dref) : null,
-        NameClass.ReportSumOperand => written is Core.DataReferenceContext dref ? RolledEntriesNamed(dref) : null,
+            ? Entered((reach == NameReach.Own ? _ownReports : _visibleReports).GetValueOrDefault(key)) : default,
+        NameClass.ReportGroup => (ReportGroupsNamed(written, reach), default),
+        NameClass.SumCounter => written is Core.DataReferenceContext dref ? (SumCountersReached(dref, site.Report), default) : default,
+        NameClass.ReportVarying => WordOf(written) is { } key && site.Varyings is { } varyings
+            && VaryingCounterNamed(key, varyings) is { } counter ? (counter, VaryingCounterEntry(counter)) : default,
+        NameClass.ReportEntry => written is Core.DataReferenceContext dref ? (ReportEntriesWritten(dref), default) : default,
+        NameClass.ReportSumOperand => written is Core.DataReferenceContext dref ? (RolledEntriesNamed(dref), default) : default,
         _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not a report-section class"),
     };
+
+    /// <summary>The candidates <paramref name="hits"/>, each with the entry of the written entry it is a view of.</summary>
+    private ReportCandidates<T>? CandidatesOf<T>(IReadOnlyList<T> hits, Func<T, Core.ReportGroupEntryContext> written) =>
+        hits.Count == 0 ? null : new(hits, [.. hits.Select(h => _entries.IdOf(written(h)))]);
+
+    /// <summary>The entry of a VARYING counter: its declaring word, data-name-1 of the VARYING clause of the entry that declares it
+    /// (<see cref="VaryingCounterNames.Declare"/>). A counter is made per enclosing occurrence, so the declaration is its word.</summary>
+    private SymbolId VaryingCounterEntry(ReportVaryingModel counter)
+    {
+        var key = Key(counter.Name);
+        foreach (var clause in counter.Entry.reportGroupBody().reportGroupClause())
+            if (clause.reportVaryingClause() is { } varying)
+                foreach (var spec in varying.reportVaryingSpec())
+                    if (spec.cobolWord() is { } word && Key(word.GetText()) == key)
+                        return _entries.IdOf(word);
+        return default;
+    }
 
     /// <summary>⛔ THE ONE LOOKUP OF A WRITTEN REPORT-GROUP REFERENCE (kb/Work PB365): every report group the written head names
     /// (a qualified reference restricts the candidate reports to the one its report-name qualifier names, §2023:8.4.2.2.2 Format 1's
@@ -160,7 +193,7 @@ public sealed partial class SymbolTable
                     found.Add((r, g));
         }
         if (reach == NameReach.Visible) found = _data.State.Reports.NearestInScope(found, f => f.Report);
-        return found.Count == 0 ? null : new(found);
+        return CandidatesOf(found, static f => f.Group.Entry!);
     }
 
     /// <summary>⛔ THE ONE NAME-AND-QUALIFIER LOOKUP OF A SUM COUNTER REFERENCE (kb/Work PB5310 review R1-1), behind the P6 Step-6
@@ -179,7 +212,9 @@ public sealed partial class SymbolTable
     {
         _data.State.Require(PassPhase.FilesResolved, "SumCounters");
         if (_sumCounters.Count == 0 || ReferenceResolver.WrittenWordOf(dref) is not { } name || !_sumCounters.ContainsKey(Key(name))) return null;
-        return SumCountersNamed(name, ReferenceResolver.ReadWritten(dref).Qualifiers, within) is { } hits ? new(hits) : null;
+        return SumCountersNamed(name, ReferenceResolver.ReadWritten(dref).Qualifiers, within) is { } hits
+            ? CandidatesOf(hits, static h => h.Family.Entry) ?? new([], [])
+            : null;
     }
 
     /// <summary>The walk of <see cref="SumCountersReached"/> over a name and its qualifiers as read.</summary>
@@ -242,14 +277,14 @@ public sealed partial class SymbolTable
     {
         if (dref.cobolWord()?.GetText() is not { } name || !_reportEntryLocations.TryGetValue(Key(name), out var locs)) return null;
         var qualifiers = ReferenceResolver.ReadWritten(dref).Qualifiers;
-        List<ReportEntryLocation> hits = [.. locs.Where(l =>
+        List<ReportEntryLocation> located = [.. locs.Where(l =>
         {
             int q = 0;
             foreach (var outer in l.Qualification)
                 if (q < qualifiers.Count && CobolNames.Same(outer, qualifiers[q])) q++;
             return q == qualifiers.Count;
         })];
-        return hits.Count == 0 ? null : new(hits);
+        return CandidatesOf(located, static l => l.Entry);
     }
 
     /// <summary>⛔ A SUM CLAUSE'S DATA-NAME-1 — A ROLLED TOTAL (ISO §2023:13.18.54.3 SR4; kb/Work PB1294): the entries of this element's
@@ -264,7 +299,7 @@ public sealed partial class SymbolTable
         List<ReportEntryFamily> hits = [.. _data.State.Reports.Declared.SelectMany(r => r.EntryFamilies)
             .Where(f => CobolNames.Same(f.Name, name)
                 && DataBinder.QualifierWalk(f.Qualification, qualifiers, q => CobolNames.Same(q, f.Report.Name)))];
-        return hits.Count == 0 ? null : new(hits);
+        return CandidatesOf(hits, static f => f.Entry);
     }
 
     /// <summary>⛔ THE ONE LOOKUP OF A WRITTEN NAME AMONG THE REPORT SECTION'S ENTRIES, for the references §2023:13.8.6.2.3 bars
@@ -331,11 +366,11 @@ public sealed partial class SymbolTable
     /// <summary>The VARYING counters one report's entries declare, walked in entry order (ISO §2023:13.18.64.3 SR2): each counter's
     /// data-name-1 "shall not be defined elsewhere in the source element, except as data-name-1 in another VARYING clause of an entry
     /// not subordinate to the subject of the current entry".</summary>
-    internal VaryingCounterNames VaryingCountersOf(ReportModel model) => new(model);
+    internal VaryingCounterNames VaryingCountersOf(ReportModel model) => new(this, model);
 
     /// <summary>The walk of <see cref="VaryingCountersOf"/>: the counters of the entries above the current one, and of the current
     /// one, by name. A counter declared without conflict joins <see cref="ReportModel.VaryingNames"/> once.</summary>
-    internal sealed class VaryingCounterNames(ReportModel model)
+    internal sealed class VaryingCounterNames(SymbolTable table, ReportModel model)
     {
         private readonly List<(int Level, CobolName Name)> _enclosing = [];
         private readonly List<CobolName> _own = [];
@@ -347,9 +382,12 @@ public sealed partial class SymbolTable
             _own.Clear();
         }
 
-        /// <summary>Declare one data-name-1 of the current entry's VARYING clause.</summary>
-        public VaryingCounterDeclaration Declare(string name)
+        /// <summary>Declare one data-name-1 of the current entry's VARYING clause, <paramref name="word"/>: the counter's entry stands at
+        /// it (a refused second declaration is a declaration too, and is entered).</summary>
+        public VaryingCounterDeclaration Declare(Core.CobolWordContext word)
         {
+            string name = word.GetText();
+            table.Enter(NameClass.ReportVarying, name, PositionOf(word.Start), word);
             var key = Key(name);
             var verdict = _own.Contains(key) ? VaryingCounterDeclaration.TwiceInEntry
                 : _enclosing.Any(c => c.Name == key) ? VaryingCounterDeclaration.DeclaredAbove
