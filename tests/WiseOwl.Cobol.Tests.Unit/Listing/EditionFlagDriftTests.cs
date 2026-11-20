@@ -26,6 +26,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// </list>
 /// A row added to either register is checked with no change here. Expected values are the registers' own rows (the inputs).
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class EditionFlagDriftTests
 {
     /// <summary>A sink that keeps what it is given.</summary>
