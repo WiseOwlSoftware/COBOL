@@ -15,6 +15,8 @@ namespace WiseOwl.Cobol.Editions;
 /// <param name="Message">The fully-rendered human message.</param>
 /// <param name="Where">Localizer text ("FD OUT-FILE", "paragraph P1", …).</param>
 /// <param name="Citation">ISO § / VCR-row citation.</param>
+/// <param name="Flag">The edition flag the diagnostic is (an obsolete or removed construct, <see cref="ConstructRegistry.VerdictAt"/>),
+/// carried onto the front end's or the binder's diagnostic record (DESIGN-listing.md section 6.11); null for any other.</param>
 /// <remarks>
 /// No source <c>Location</c> is carried in PHASE 02: <c>WiseOwl.Cobol.Editions</c> is BELOW
 /// <c>WiseOwl.Cobol.Frontend</c> and cannot reference the frontend's <c>SourceLocation</c>; the compiler-side
@@ -26,4 +28,5 @@ public readonly record struct EditionDiagnostic(
     string ConstructId,
     string Message,
     string Where,
-    string Citation);
+    string Citation,
+    EditionFlag? Flag = null);

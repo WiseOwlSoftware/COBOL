@@ -96,6 +96,7 @@ internal static class ListingBuilder
             wanted.Contains(ListingSection.Source) ? lines : [],
             programs,
             wanted.Contains(ListingSection.Diagnostics) ? diagnostics : [],
+            wanted.Contains(ListingSection.Diagnostics) ? DiagnosticSectionBuilder.FlaggedConstructs(diagnostics) : [],
             wanted.Contains(ListingSection.Source) ? displays : [],
             wanted.Contains(ListingSection.Options) ? facts.Options : [],
             wanted.Contains(ListingSection.Statistics)

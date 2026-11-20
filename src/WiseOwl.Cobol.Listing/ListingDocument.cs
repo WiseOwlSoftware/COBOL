@@ -25,6 +25,9 @@ namespace WiseOwl.Cobol.Listing;
 /// <param name="Programs">Every source unit, in text order, with its nesting and listing line range.</param>
 /// <param name="Diagnostics">Every diagnostic the compilation reported of its source, in listing order: those placed on a line by
 /// line and column, then those placed on none in the order they were reported.</param>
+/// <param name="FlaggedConstructs">The diagnostics section's table of flagged constructs by edition (DESIGN-listing.md section 6.11):
+/// one entry per construct an edition flag of <paramref name="Diagnostics"/> names (<see cref="ListingDiagnostic.Flag"/>), by
+/// edition, kind and construct; empty when no diagnostic is an edition flag or the diagnostics section was not asked for.</param>
 /// <param name="Displays">Every transfer of a DISPLAY directive to the listing, in the order the directives were processed.</param>
 /// <param name="Options">The options section: every option of the compilation with its value and whether it is the default,
 /// then the compiler and the host it ran on; empty when the section was not asked for.</param>
@@ -46,6 +49,7 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingLine> Lines,
     IReadOnlyList<ListingProgram> Programs,
     IReadOnlyList<ListingDiagnostic> Diagnostics,
+    IReadOnlyList<ListingFlaggedConstruct> FlaggedConstructs,
     IReadOnlyList<ListingDisplay> Displays,
     IReadOnlyList<ListingOption> Options,
     ListingStatistics? Statistics,
@@ -313,8 +317,45 @@ public enum ListingSeverity
 /// <param name="Column">The 1-based character position in that line's text (<see cref="ListingLine.Text"/>, tabs expanded),
 /// or null when <paramref name="Line"/> is.</param>
 /// <param name="Citations">Each citation of the standard the message makes, in the order written.</param>
+/// <param name="Flag">The edition flag the diagnostic is (an obsolete or removed construct, a nonstandard extension in use), as the
+/// compiler raised it; null for any other diagnostic.</param>
 public sealed record ListingDiagnostic(int Id, string Code, ListingSeverity Severity, string Message, int? Line, int? File,
-    int? FileLine, int? Column, IReadOnlyList<ListingCitation> Citations);
+    int? FileLine, int? Column, IReadOnlyList<ListingCitation> Citations, ListingFlag? Flag);
+
+/// <summary>What an edition flag says of the construct it names (DESIGN-listing.md section 6.11).</summary>
+public enum ListingFlagKind
+{
+    /// <summary>The construct is obsolete or archaic in the edition compiled to: still conforming, flagged by a warning
+    /// (COBOL0903).</summary>
+    Obsolete,
+    /// <summary>The edition compiled to removed the construct: an error, or under <c>--permissive</c> a warning that keeps the
+    /// meaning the construct had before (COBOL0902, or the code its construct pins).</summary>
+    Removed,
+    /// <summary>The construct is a nonstandard extension the compiler accepts, flagged under <c>--flag-extensions</c>
+    /// (COBOL2894).</summary>
+    Extension,
+}
+
+/// <summary>An edition flag: what a diagnostic says of the construct it names, as the compiler raised it (DESIGN-listing.md
+/// section 6.11).</summary>
+/// <param name="Kind">Obsolete, removed or extension.</param>
+/// <param name="Construct">The identifier of the construct in the compiler's register of constructs or of nonstandard
+/// extensions (<c>exit-program-archaic-2023</c>, <c>usage-comp-3</c>).</param>
+/// <param name="Description">The construct as a user would name it.</param>
+/// <param name="Edition">The edition, as <c>--std</c> spells its year (85, 2002, 2014, 2023), that made the construct obsolete or
+/// removed it; for an extension, the edition compiled to, whose standard does not define it.</param>
+public sealed record ListingFlag(ListingFlagKind Kind, string Construct, string Description, int Edition);
+
+/// <summary>One row of the table of flagged constructs by edition (DESIGN-listing.md section 6.11): a construct, the edition and
+/// kind of its flag, and every diagnostic that flags it.</summary>
+/// <param name="Edition">The edition of the flag (<see cref="ListingFlag.Edition"/>).</param>
+/// <param name="Kind">Obsolete, removed or extension.</param>
+/// <param name="Construct">The construct's identifier (<see cref="ListingFlag.Construct"/>).</param>
+/// <param name="Description">The construct as a user would name it.</param>
+/// <param name="Diagnostics">The <see cref="ListingDiagnostic.Id"/> of each diagnostic that flags the construct, in listing order;
+/// their number is the construct's count.</param>
+public sealed record ListingFlaggedConstruct(int Edition, ListingFlagKind Kind, string Construct, string Description,
+    IReadOnlyList<int> Diagnostics);
 
 /// <summary>One transfer of a DISPLAY directive to the listing (§2023:7.3.12.4 GR1, GR5 a), GR6; DESIGN-listing.md section
 /// 6.10): printed at its directive's place whether or not a LISTING directive suppresses that line (GR2).</summary>

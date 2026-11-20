@@ -29,11 +29,19 @@ public sealed class DiagnosticBag
     /// compilation's).</summary>
     public void AddCompileOutput(IEnumerable<CompileOutputLine> lines) => _compileOutput.AddRange(lines);
 
+    /// <summary>Record a diagnostic; <paramref name="flag"/> is the edition flag it is, when it is one (an obsolete or removed
+    /// construct's, from <see cref="Editions.ConstructRegistry.VerdictAt"/>; DESIGN-listing.md section 6.11).</summary>
     public void Report(string code, DiagnosticSeverity severity, string message,
-        SourceLocation location, TextSpan span)
+        SourceLocation location, TextSpan span, Editions.EditionFlag? flag = null)
     {
-        _diagnostics.Add(new Diagnostic(code, severity, message, location, span));
+        _diagnostics.Add(new Diagnostic(code, severity, message, location, span) { Flag = flag });
     }
+
+    /// <summary>Record the report of construct verdict <paramref name="verdict"/> (<see cref="Editions.ConstructRegistry.VerdictAt"/>)
+    /// in words of the reporting stage's own: its severity, its code and its flag are the verdict's.</summary>
+    public void Report(Editions.EditionVerdict verdict, string message, SourceLocation location, TextSpan span) =>
+        Report(verdict.Code, verdict.Severity == Editions.EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
+            message, location, span, verdict.Flag);
 
     public void ReportError(string code, string message, SourceLocation location, TextSpan span)
     {
