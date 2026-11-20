@@ -844,7 +844,7 @@ public static partial class ConditionalCompilationProcessor
         // §2023:8.3.2.1 applies to the compilation-variable-name — a word the tree-walk funnel never sees. Checked at
         // the DEFINITION site (the root: an over-long word can never become defined, so a reference-site spelling
         // is already diagnosed as an unknown variable). Report and continue, matching the funnel's posture.
-        foreach (var (code, violation) in CobolWordRule.DirectiveWordViolations(name, dialectLevel)) diag.WordRule(code, violation);
+        foreach (var (code, violation, flag) in CobolWordRule.DirectiveWordViolations(name, dialectLevel)) diag.WordRule(code, violation, flag);
         if (!apply)
         {
             // A DEFINE in an omitted branch changes nothing, but it is still a directive in the initial source text, so its
@@ -1213,7 +1213,8 @@ public static partial class ConditionalCompilationProcessor
 
         /// <summary>COBOL1567 / COBOL2773 — the §2023:8.3.2.1 word length and word characters of a directive-carried
         /// word, the SAME codes and text the tree-walk funnel emits (CobolWordRule owns both).</summary>
-        public void WordRule(string code, string violation) => Emit(code, violation);
+        public void WordRule(string code, string violation, EditionFlag? flag) =>
+            bag?.Report(code, DiagnosticSeverity.Error, violation, At, default, flag);
 
         private void Emit(string code, string message) =>
             bag?.ReportError(code, message, At, default);

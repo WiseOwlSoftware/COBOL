@@ -60,6 +60,21 @@ public sealed class HtmlListingRendererTests
         Assert.DoesNotContain("@import", style, StringComparison.Ordinal);
     }
 
+    /// <summary>The navigation bar is sticky, so a link's target scrolled to the top of the window would sit under it: the page
+    /// reserves the bar's rendered height above every target (the style's scroll padding reads <c>--navh</c>, and the script sets
+    /// <c>--navh</c> from the bar's height whenever the bar resizes, since it wraps to more lines as the window narrows).</summary>
+    [Fact]
+    public void ALinkTarget_ScrollsBelowTheStickyNavigation()
+    {
+        var page = Page(JsonListingWriterTests.EveryMember());
+        string style = page.Descendants("style").Single().Value;
+        Assert.Matches(@"nav\s*\{[^}]*position:\s*sticky", style);
+        Assert.Matches(@"html\s*\{[^}]*scroll-padding-top:\s*var\(--navh", style);
+        string script = page.Descendants("script").Single().Value;
+        Assert.Contains("setProperty('--navh', (nav.offsetHeight", script, StringComparison.Ordinal);
+        Assert.Contains("new ResizeObserver(clear).observe(nav)", script, StringComparison.Ordinal);
+    }
+
     /// <summary>Every line of the document is a row with its own id, its number, its file line and its text as the model holds it:
     /// the written text, or for the DATE-COMPILED paragraph's first line the replacement printed in its place (§1985:VI.3.4.4 GR1).</summary>
     [Fact]
