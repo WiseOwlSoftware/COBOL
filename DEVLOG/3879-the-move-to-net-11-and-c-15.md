@@ -1,4 +1,4 @@
-## The move to .NET 11 and C# 15
+## Entry 3879 — 2026-11-20 15:04 PST — The move to .NET 11 and C# 15
 
 The owner decided on 2026-11-20 to move the repository from .NET 10 to .NET 11 (SDK 11.0.100, GA), and the move landed as one change
 (kb/Work PB5971). The manifest, `global.json`, the target framework and the packages that ride the release train moved together:
@@ -14,3 +14,4 @@ props do not name the manifest SDK's major, or if a script spells a framework ot
 files and the audit names whatever it missed. `guard-run-group.sh` lost its default runtime path, which had been a second copy of the answer.
 
 The owner still has to paste the changed toolchain block into the cloud environment's setup script and refresh WSL.
+
