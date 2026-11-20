@@ -416,8 +416,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         int identificationMark = data.Procedure.ReceiverIdentifications.Mark();
         // The symbol table's occurrences this statement's names record (DESIGN-listing.md section 6.7.1, "Store kind"): its MARK in
         // the table's append order, classified below once the statement is bound; a nested statement classifies its own first.
-        var occurrences = data.Symbols.GroupEntries;
-        int occurrenceMark = occurrences.OccurrenceMark, linkMark = occurrences.LinkMark;
+        var occurrenceMark = data.OccurrenceMark;
         // The operand-activation scope (kb/Work PB892): THIS statement's line is the one whose §2023:7.3.25 profile an
         // operand activation carries, and THIS statement counts only the activations it drains itself — both are
         // saved around a nested statement's bind and restored after it.
@@ -540,9 +539,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         bound.Span ??= SpanOf(s);
         // ⛔ THE ONE CLASSIFICATION OF A STATEMENT'S OCCURRENCES (DESIGN-listing.md section 6.7.1): each occurrence its names recorded
         // since the mark is this statement's, read or at the store position its linked place stands at.
-        if (occurrences.RecordsReferences)
-            occurrences.Classify(occurrenceMark, core.At, s.Start.Text.ToUpperInvariant(),
-                BoundStores.StorePositionsOf(bound, occurrences.LinkedSince(linkMark)));
+        data.ClassifyOccurrences(occurrenceMark, core.At, s.Start, bound);
         return bound;
     }
 

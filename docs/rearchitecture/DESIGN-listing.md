@@ -2037,7 +2037,8 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     statement alone (`direct`), a store into a window `WriteInPart`; a binder's temporary is no written operand and is skipped.
     The linked places are asked too because a node may hold an operand's place where `BoundReferences` does not enter: a
     `BoundSetConditions` holds each conditional variable in a tuple (kb/Work PB5925's dated file `2026-11-20-step-7b-2-built`,
-    lead 3). `StatementBinder.BindStatement` holds both marks and classifies through `EntryStore.Classify`, which also records each
+    lead 3). `StatementBinder.BindStatement` holds both marks and classifies through `DataBinder.ClassifyOccurrences` and `EntryStore.Classify`
+    (the bound layer names no symbol-table type: `ArchitectureEdgesDriftTests` refused the first build's direct use), which also records each
     store position that pairs with no occurrence of the statement (`UnpairedStorePositions`, the pairing test's input).
   - *The transfer kind and the verb are one fact.* An occurrence carries its statement's verb as written (`SymbolOccurrence.Verb`:
     `PERFORM`, `GO`, `ALTER`, `SORT`, `CALL`, `READ`, ...), which is the transfer kind of a procedure reference and the verb of a

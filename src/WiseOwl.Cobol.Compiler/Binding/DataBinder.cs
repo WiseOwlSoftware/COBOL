@@ -975,6 +975,22 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     // ── FILE-CONTROL clause operands + FILE SECTION (the SELECT entry is FileControlBinder; ISO §2023:12.4.5 / §2023:13.18; DESIGN §8) ─────────────────────────────────
 
+    /// <summary>The statement funnel's MARK in the symbol table's occurrences and place links (docs/rearchitecture/DESIGN-listing.md
+    /// section 6.7.1, "Store kind"): <c>StatementBinder.BindStatement</c> holds it on entry and classifies what was recorded since.</summary>
+    internal (int Occurrences, int Links) OccurrenceMark => (Symbols.GroupEntries.OccurrenceMark, Symbols.GroupEntries.LinkMark);
+
+    /// <summary>Classify the occurrences recorded since <paramref name="mark"/> as the statement <paramref name="bound"/>'s, written at
+    /// <paramref name="at"/> with the verb its first token <paramref name="verb"/> writes: each at the store position its linked place
+    /// stands at (<see cref="Bound.BoundStores.StorePositionsOf"/>), the rest read. Nothing when no listing records references.</summary>
+    internal void ClassifyOccurrences((int Occurrences, int Links) mark, DiagnosticCursor at, Antlr4.Runtime.IToken verb,
+        Bound.BoundStatement bound)
+    {
+        var store = Symbols.GroupEntries;
+        if (store.RecordsReferences)
+            store.Classify(mark.Occurrences, at, verb.Text.ToUpperInvariant(),
+                Bound.BoundStores.StorePositionsOf(bound, store.LinkedSince(mark.Links)));
+    }
+
     /// <summary>A FILE-CONTROL key reference: the base word plus its IN/OF qualifier words in written order
     /// (innermost first, ISO §2023:8.4.2.2). A raw <c>GetText()</c> would glue qualifiers into the lookup key
     /// (<c>IX-FD3-KEYINIX-FD3-RECKEY-AREA</c>) and the name could never resolve — the FILE STATUS / RENAMES

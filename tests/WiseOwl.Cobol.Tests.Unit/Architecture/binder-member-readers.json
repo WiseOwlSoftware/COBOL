@@ -148,6 +148,9 @@
     "WiseOwl.Cobol.Binding.DataBinder::ClaimTemporarySlotCarriedCell": [
       "WiseOwl.Cobol.Binding.Procedure.UdfBinder"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::ClassifyOccurrences": [
+      "WiseOwl.Cobol.Binding.Bound.StatementBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::ClauseDataName": [
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
@@ -458,6 +461,9 @@
     "WiseOwl.Cobol.Binding.DataBinder::NextUid": [
       "WiseOwl.Cobol.Binding.CompilerTemps"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::OccurrenceMark": [
+      "WiseOwl.Cobol.Binding.Bound.StatementBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::Oo": [
       "WiseOwl.Cobol.Binding.Bound.StatementBinder",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
@@ -729,7 +735,6 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::Symbols": [
       "WiseOwl.Cobol.Binding.BinderDriver",
-      "WiseOwl.Cobol.Binding.Bound.StatementBinder",
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.ConfigurationStep",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
