@@ -108,8 +108,8 @@ internal static class FileDescriptionIdentity
 
     private static string Shown(LinageOperand o) =>
         o.Literal is { } n ? n.ToString(System.Globalization.CultureInfo.InvariantCulture)
-        : o.Item?.ExternalItemIdentity() is { } id ? $"{o.DataName} (external record {id.Record}, offset {id.Offset?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"})"
-        : o.DataName ?? "";
+        : o.Item?.ExternalItemIdentity() is { } id ? $"{o.DataName?.Name} (external record {id.Record}, offset {id.Offset?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"})"
+        : o.DataName?.Name ?? "";
 
     /// <summary>"All record description entries associated with this file connector must be the same length": both values are one size (a Format 1 shape, no lower
     /// operand) and the same one. An entry whose own descriptions differ agrees with nothing, itself included (the loop asks every entry against itself).</summary>

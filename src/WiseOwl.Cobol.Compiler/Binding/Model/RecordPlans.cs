@@ -36,7 +36,7 @@ internal static class RecordPlans
     /// image then has no fixed layout a plan can describe.</summary>
     public static bool HasVariableLayout(DataItem record) =>
         FileModel.IsVariableLengthRecord(record)
-        || Descendants(record).Any(d => d.OccursSpec is { IsDynamic: true } or { DependingName: not null } || d.IsDynamicTable);
+        || Descendants(record).Any(d => d.OccursSpec is { IsDynamic: true } or { DependingOperand: not null } || d.IsDynamicTable);
 
     private static IEnumerable<DataItem> Descendants(DataItem item)
     {

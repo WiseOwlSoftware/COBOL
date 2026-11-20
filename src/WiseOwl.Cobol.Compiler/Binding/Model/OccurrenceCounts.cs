@@ -22,7 +22,7 @@ internal static class OccurrenceCounts
     /// cannot be modelled — a dynamic table with no path, or an unresolvable data-name-1.</summary>
     public static AllCount? Current(DataItem table, AccessPath? tablePath, PlaceBuilder places) =>
         table.IsDynamicTable ? (tablePath is null ? null : Capacity(table, tablePath))
-        : table.OccursSpec is { DependingName: not null, Depending: { } dep } odo
+        : table.OccursSpec is { DependingOperand: not null, Depending: { } dep } odo
             ? (places.ResolveItem(dep) is { } depPlace
                 ? new AllCount.Odo(depPlace, odo.Min, table.Occurs ?? odo.Max) : null)
         : table.Occurs is { } n ? new AllCount.Fixed(n)

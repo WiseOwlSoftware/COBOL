@@ -619,7 +619,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             parts.Add(d.IsDynamicLength ? new VarPart(VarPartKind.DynLeaf, f, d, 0, 1)
                 : d.IsDynamicTable ? new VarPart(d.ElementTransferImageCapable ? VarPartKind.DynTable : VarPartKind.DynGroupTable, f, d, 0, 1)
                 : d.TransferImageCapable ? new VarPart(VarPartKind.OdoFixed, f, d, f.Width, 0)
-                : d.OccursSpec?.DependingName is not null
+                : d.OccursSpec?.DependingOperand is not null
                     ? new VarPart(VarPartKind.OdoTable, f, d, RecordLayout.ItemSize(RecordLayout.Times(VarFixedWidth(d), d)),
                         RecordLayout.ItemSize(RecordLayout.Times(VarComponentCount(d), d)), RecordLayout.Occurrences(d))
                 : d.Occurs is { } n ? new VarPart(VarPartKind.NestedTable, f, d, RecordLayout.ItemSize(RecordLayout.Times(VarFixedWidth(d), d)),

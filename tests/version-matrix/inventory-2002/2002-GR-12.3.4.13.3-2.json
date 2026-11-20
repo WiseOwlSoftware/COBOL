@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-12.3.4.13.3-2",
  "rule-digest": "88304ce629cc",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RelativeKeyName; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RelativeKeyOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
  "test-ref": "conformance:cases/12.4.5.13-RELATIVE-KEY/l1_read_relative_key_moved",
  "notes": "Own verdict from the read lineage-reads-2002/u-11.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.4.5.13.4-2, witnessed at 2002 by the cases test-ref names. The read: 2023 drops only the abbreviation '(MSCS)'. Same statements use the relative key in both. Cited: §2002:12.3.4.13.3 GR2."
 }

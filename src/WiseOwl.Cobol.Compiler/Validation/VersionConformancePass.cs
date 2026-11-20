@@ -466,7 +466,10 @@ internal sealed class VersionConformancePass
         // Pass B — flag every barred statement whose ENCLOSING paragraph pc falls within a prohibited range (a statement
         // nested in an IF/inline-PERFORM is still in that paragraph). The owning SORT/MERGE's own paragraph is never in
         // its own procedure range (a distinct named procedure), so a statement never false-flags itself.
-        var mergeSeverity = EditionSeverityPolicy.For(ConstructAvailability.Removed, _edition);
+        // The MERGE placement is a construct of the register (row merge-in-sort-merge-proc-removed-2023, removed at 2023): its
+        // code, severity and edition flag are the row's one verdict (ConstructRegistry.VerdictAt; DESIGN-listing.md section 6.11),
+        // so the listing counts it among the flagged constructs like every other removal.
+        var mergeVerdict = ConstructRegistry.VerdictAt(_edition, Constructs.MergeInSortMergeProcRemoved2023);
         bool InProcedure(int paraPc) => prohibited.Any(r => r.Spans(paraPc));
         void Flag(BoundStatement s, int paraPc)
         {
@@ -481,13 +484,13 @@ internal sealed class VersionConformancePass
                         + "or MERGE statement (ISO §2023:14.9.40.3 SR3)",
                         $"SORT '{so.File.CobolName}'", "ISO §2023:14.9.40.3 SR3"));
                 }
-                if (s is BoundMerge m && InProcedure(paraPc))
+                if (s is BoundMerge m && InProcedure(paraPc) && mergeVerdict is { } removed)
                 {
-                    _sink.Report(new EditionDiagnostic(DiagnosticCatalog.MergeInSortMergeProc.Code, mergeSeverity,
+                    _sink.Report(new EditionDiagnostic(removed.Code, removed.Severity,
                         DiagnosticCatalog.MergeInSortMergeProc.Id,
                         $"MERGE '{m.File.CobolName}' is prohibited in the output procedure of another MERGE or the input "
                         + "or output procedure of a file SORT (ISO §2023:14.9.24; COBOL-2023, Annex E.2 item 20)",
-                        $"MERGE '{m.File.CobolName}'", "ISO §2023:14.9.24; Annex E.2 item 20"));
+                        $"MERGE '{m.File.CobolName}'", "ISO §2023:14.9.24; Annex E.2 item 20", removed.Flag));
                 }
                 // kb/Work PB137 — the batch-8 finding verbatim: this pass implemented exactly the SR2 ban with a
                 // MERGE-only predicate; COMMIT (§2023:14.9.7.3 SR2) and ROLLBACK (§2023:14.9.36.3 SR2) are its siblings,
@@ -679,9 +682,9 @@ internal sealed class VersionConformancePass
         if (ini.Written is not { } written || ConstructRegistry.IsAvailable(_edition, Constructs.InitializeVariableOccurrence2002)) return;
         foreach (var d in DataItem.SelfAndDescendantsOf(written.Item))
         {
-            if (d.OccursSpec?.DependingName is null) continue;
+            if (d.OccursSpec?.DependingOperand is null) continue;
             Check(Constructs.InitializeVariableOccurrence2002,
-                $"INITIALIZE of '{written.Item.CobolName ?? "FILLER"}': '{d.CobolName ?? "FILLER"}' is described with OCCURS … DEPENDING ON {d.OccursSpec.DependingName}");
+                $"INITIALIZE of '{written.Item.CobolName ?? "FILLER"}': '{d.CobolName ?? "FILLER"}' is described with OCCURS … DEPENDING ON {d.OccursSpec.DependingOperand?.Name}");
             return;
         }
     }

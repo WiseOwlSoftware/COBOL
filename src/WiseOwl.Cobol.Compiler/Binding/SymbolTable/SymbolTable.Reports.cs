@@ -237,12 +237,12 @@ public sealed partial class SymbolTable
     /// one walk a procedure division reference takes (<see cref="SumCountersNamed"/>: the qualifier walk, then the nearest declaring
     /// program, §1985:X.1.3.8.2 GR3a); null otherwise, leaving the caller's own verdict. Two counters of one program the qualifiers do not
     /// tell apart are §2023:8.4.2.2.3 SR1's ambiguity, reported here. Asked only where the ordinary lookup found no data item.
-    /// <para>The operand reaches the table as TEXT because the data division's clause operands are held as text (the clause models,
-    /// <c>DataBinder.ResolveClauseOperand</c>'s callers): it becomes a <see cref="Identify(ParserRuleContext, NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/>
-    /// reference when the data-name class carries the written word (kb/Work PB5932's dated file <c>2026-11-19-step-6b-slice-5</c>).</para></summary>
-    internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject, out bool ambiguityReported)
+    /// <para>The operand is the clause's written name as the model keeps it (<see cref="WrittenDataName"/>; DESIGN-listing.md section
+    /// 6.7.1, "Step 6b, remainder slice 2").</para></summary>
+    internal DataItem? SumCounterOperand85(WrittenDataName operand, string subject, out bool ambiguityReported)
     {
         ambiguityReported = false;
+        var (name, qualifiers) = operand;
         var edition = _data.Edition;
         if (edition.DialectLevel >= 2002 || SumCountersNamed(name, qualifiers, null) is not { } matches) return null;
         if (matches.Count > 1)

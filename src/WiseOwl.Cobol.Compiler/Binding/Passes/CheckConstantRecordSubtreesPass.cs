@@ -78,7 +78,7 @@ internal sealed class CheckConstantRecordSubtreesPass : IBindPass
                     $"'{name}': the dynamic-capacity-table format of the OCCURS clause shall not be specified in any data "
                     + "item described with the CONSTANT RECORD clause or any data item subordinate to one "
                     + "(ISO §2023:13.18.38.3 SR33)");
-            else if (subordinate && occurs.DependingName is not null)
+            else if (subordinate && occurs.DependingOperand is not null)
                 binder.Edition.Error(DiagnosticCatalog.ConstantRecordRule,
                     $"'{name}': a format 2 OCCURS clause, and the DEPENDING phrase of any OCCURS format, shall not be "
                     + "specified in any data item subordinate to a data item described with the CONSTANT RECORD clause "

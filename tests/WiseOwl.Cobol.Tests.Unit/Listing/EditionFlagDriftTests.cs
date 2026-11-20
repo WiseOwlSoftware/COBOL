@@ -140,6 +140,7 @@ public sealed class EditionFlagDriftTests
                     edition.Warning("COBOL2894", "m");
                     edition.Warning("COBOL0903", "m");
                     edition.Warning("COBOL0901", "m");
+                    sink.Report(new EditionDiagnostic(DiagnosticCatalog.MergeInSortMergeProc.Code, default, DiagnosticCatalog.MergeInSortMergeProc.Id, "m", "w", "c"));
                 }
             }
             """;
@@ -153,6 +154,7 @@ public sealed class EditionFlagDriftTests
             "Planted.cs:12: EditionRemovedConstruct",
             "Planted.cs:13: \"COBOL2894\"",
             "Planted.cs:14: \"COBOL0903\"",
+            "Planted.cs:16: DiagnosticCatalog.MergeInSortMergeProc.Code",
         ], FlagCodeNames("Planted.cs", planted));
     }
 
@@ -160,6 +162,32 @@ public sealed class EditionFlagDriftTests
     private static readonly HashSet<string> Descriptors = new(StringComparer.Ordinal)
         { "EditionRemovedConstruct", "EditionObsoleteFlag", "NonstandardExtensionUsed" };
     private static readonly HashSet<string> CodeConstants = new(StringComparer.Ordinal) { "RemovedConstruct", "ObsoleteFlag" };
+
+    /// <summary>The catalog descriptors whose code a register row PINS for its removal or obsolescence (review lead pb5947 R1-2): a
+    /// removed or obsolete construct reported under one of these codes by hand carries no flag, so only <c>VerdictAt</c> reports it.
+    /// Read from the register and the catalog, so a new row-pinned code is in the scan by construction. COBOL0901 is not one: the
+    /// reserved-word check refuses a spelling, not a construct (DESIGN-listing.md section 6.11).</summary>
+    private static readonly HashSet<string> RowPinnedDescriptors = RowPinnedDescriptorNames();
+
+    private static HashSet<string> RowPinnedDescriptorNames()
+    {
+        var pinned = ConstructRegistry.Entries
+            .Where(e => e.RemovedIn is not null || e.ObsoleteIn is not null)
+            .Select(e => e.DiagnosticCode)
+            .Where(c => !Codes.Contains(c) && c is not "COBOL0900" and not "COBOL0901")
+            .ToHashSet(StringComparer.Ordinal);
+        return typeof(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog)
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(f => f.GetValue(null) is WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor d && pinned.Contains(d.Code))
+            .Select(f => f.Name)
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
+    /// <summary>The scan's row-pinned set is not empty: the register pins COBOL1572 for the 2023 MERGE placement, and its descriptor
+    /// is found (so the scan above has something to refuse).</summary>
+    [Fact]
+    public void TheRowPinnedDescriptors_AreReadFromTheRegister() =>
+        Assert.Contains("MergeInSortMergeProc", RowPinnedDescriptors);
 
     /// <summary>Each place <paramref name="text"/> names a flag's code in code (never in a comment): a string literal of the code, a
     /// descriptor of it, or its <c>EditionCodes</c> constant; as <c>file:line: what</c>.</summary>
@@ -176,6 +204,9 @@ public sealed class EditionFlagDriftTests
                 IdentifierNameSyntax name when CodeConstants.Contains(name.Identifier.ValueText)
                     && name.Parent is MemberAccessExpressionSyntax access && access.Name == name
                     && access.Expression.ToString().EndsWith("EditionCodes", StringComparison.Ordinal) => "EditionCodes." + name.Identifier.ValueText,
+                MemberAccessExpressionSyntax { Name.Identifier.ValueText: "Code", Expression: MemberAccessExpressionSyntax descriptor }
+                    when RowPinnedDescriptors.Contains(descriptor.Name.Identifier.ValueText)
+                    && descriptor.Expression.ToString().EndsWith("DiagnosticCatalog", StringComparison.Ordinal) => descriptor + ".Code",
                 _ => null,
             };
             if (what is not null) yield return $"{file}:{node.GetLocation().GetLineSpan().StartLinePosition.Line + 1}: {what}";

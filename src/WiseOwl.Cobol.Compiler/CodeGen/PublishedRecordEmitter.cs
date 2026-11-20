@@ -84,7 +84,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// table — or null: a fixed table, or one whose data-name-1 is outside the record, whose property then holds the
     /// table's whole area, every occurrence the storage has (§2023:8.5.1.8; the image the boundary carries).</summary>
     private static DataItem? DependingInRecord(DataItem root, DataItem table) =>
-        table.OccursSpec is { DependingName: not null, Depending: { } dep } && RelativeBits(root, dep) >= 0 ? dep : null;
+        table.OccursSpec is { DependingOperand: not null, Depending: { } dep } && RelativeBits(root, dep) >= 0 ? dep : null;
 
     /// <summary>The bit offset of <paramref name="item"/> from the start of its ancestor <paramref name="ancestor"/>
     /// (0 for the ancestor itself), summed along the parent chain over the one placement walk

@@ -54,8 +54,7 @@ public sealed class AlternateKeyClause
 {
     /// <summary>The clause's key name as written: data-name-1, or record-key-name-1 when <see cref="Source"/> is
     /// set.</summary>
-    public required string Name { get; init; }
-    public required IReadOnlyList<string> Qualifiers { get; init; }
+    public required WrittenDataName Operand { get; init; }
 
     /// <summary>The integer-literal subscripts written on data-name-1 (COBOL-2002, §2002:12.3.4.5.2 SR1; kb/Work PB5602); empty
     /// for the SOURCE form and at every other edition.</summary>
@@ -99,8 +98,8 @@ public sealed class RecordKeySource
 /// resolved to post-build (null when it references nothing describable).</summary>
 public sealed class KeySourceOperand
 {
-    public required string Name { get; init; }
-    public required IReadOnlyList<string> Qualifiers { get; init; }
+    /// <summary>data-name-2 as written.</summary>
+    public required WrittenDataName Operand { get; init; }
 
     /// <summary>The integer-literal subscripts written on this data-name-2 (COBOL-2002, §2002:12.3.4.12.2 SR1 "may be qualified" with
     /// §2002:5.1.3's subscription; kb/Work PB5602); empty at every other edition.</summary>
@@ -110,14 +109,13 @@ public sealed class KeySourceOperand
 }
 
 /// <summary>A PADDING CHARACTER clause as written (§1985:VII.2.7.2: <c>PADDING CHARACTER IS {data-name-1 | literal-1}</c>):
-/// exactly one of <see cref="Literal"/> (literal-1's characters) and <see cref="DataName"/> (data-name-1's base word, with
-/// its IN/OF qualifiers innermost first, and the item it resolved to post-build). <see cref="At"/> is the operand's
+/// exactly one of <see cref="Literal"/> (literal-1's characters) and <see cref="DataName"/> (data-name-1 as written, with
+/// the item it resolved to post-build). <see cref="At"/> is the operand's
 /// position, where its syntax rules report.</summary>
 public sealed class PaddingCharacterSpec
 {
     public string? Literal { get; init; }
-    public string? DataName { get; init; }
-    public IReadOnlyList<string> Qualifiers { get; init; } = [];
+    public WrittenDataName? DataName { get; init; }
     public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; init; }
     public DataItem? Item { get; set; }
 
@@ -266,7 +264,7 @@ public sealed class FileModel
     /// clause unbracketed in all four formats), and a target invented from the file-name is what made a file bind
     /// to <c>&lt;file-name&gt;.txt</c> (kb/Work PB4236). EMPTY for the bare <c>ASSIGN USING data-name-1</c> form,
     /// which specifies no device-name-1/literal-1 at all: the connector then registers UNASSOCIATED and
-    /// <see cref="AssignUsingName"/>'s content associates it at each OPEN/SORT/MERGE (GR3 b). Defaulting it to the
+    /// <see cref="AssignUsingOperand"/>'s content associates it at each OPEN/SORT/MERGE (GR3 b). Defaulting it to the
     /// file-name there is what made a bare-USING file's records land in <c>&lt;file-name&gt;.txt</c>.</summary>
     public string AssignTarget { get; set; } = "";
 
@@ -285,12 +283,9 @@ public sealed class FileModel
     /// Present on BOTH general-format arms: <c>ASSIGN TO device-name-1 … USING data-name-1</c> and the bare
     /// <c>ASSIGN USING data-name-1</c> — GR3 b applies "when the USING phrase … is specified", with no condition on
     /// the TO phrase, so the USING content wins over literal-1 whenever both are written.</summary>
-    public string? AssignUsingName { get; set; }
-
-    /// <summary>The USING data-name-1 reference's IN/OF qualifier words, written order (innermost first); empty when
-    /// unqualified. §2023:12.4.5.2 SR7 lets data-name-1 be any alphanumeric item outside this file's FD, so it can need
-    /// qualification exactly as a RECORD KEY reference can (§2023:8.4.2.2).</summary>
-    public IReadOnlyList<string> AssignUsingQualifiers { get; set; } = [];
+    /// <para>§2023:12.4.5.2 SR7 lets data-name-1 be any alphanumeric item outside this file's FD, so it can need
+    /// qualification exactly as a RECORD KEY reference can (§2023:8.4.2.2): the operand keeps its qualifiers.</para>
+    public WrittenDataName? AssignUsingOperand { get; set; }
 
     /// <summary>The resolved ASSIGN … USING data item (set post-build, the <see cref="FileStatusItem"/> pattern);
     /// null when the clause has no USING phrase or the name resolves to nothing.</summary>
@@ -359,14 +354,11 @@ public sealed class FileModel
     public List<(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor Code, WiseOwl.Cobol.Editions.DiagnosticCursor At, string Message)>
         EntryShapeFindings { get; } = [];
 
-    /// <summary>The FILE STATUS data-name as written, resolved to <see cref="FileStatusItem"/> post-build; null if none.</summary>
-    public string? FileStatusName { get; set; }
-
-    /// <summary>The FILE STATUS data-name's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2). Kept because
-    /// the clause's operand is a qualified-data-name and a same-named item elsewhere in the source element makes
-    /// the qualifier the ONLY thing that identifies it — dropping it resolved the first declaration in order
+    /// <summary>The FILE STATUS data-name as written, resolved to <see cref="FileStatusItem"/> post-build; null if none. Its
+    /// qualifiers are kept because the clause's operand is a qualified-data-name and a same-named item elsewhere in the source
+    /// element makes the qualifier the ONLY thing that identifies it — dropping it resolved the first declaration in order
     /// (kb/Work PB489, the shape measured on the LINAGE clause).</summary>
-    public IReadOnlyList<string> FileStatusQualifiers { get; set; } = [];
+    public WrittenDataName? FileStatusOperand { get; set; }
 
     /// <summary>The integer-literal subscripts written on the FILE STATUS data-name, outermost table level first — COBOL-2002 only
     /// (§2002:5.1.3: data-name-n "including qualification and subscription if needed"; §2002:12.3.4.7.2 SR1 says only "may be
@@ -416,10 +408,12 @@ public sealed class FileModel
     public WiseOwl.Cobol.Editions.DiagnosticCursor ClauseOrEntryAt(WiseOwl.Cobol.Editions.DiagnosticCursor clause) =>
         clause.IsSet ? clause : EntryAt;
 
-    /// <summary>The RECORD KEY clause's key name as written (ISO §2023:12.4.5.12) — data-name-1, or record-key-name-1
-    /// when <see cref="RecordKeySource"/> is set — resolved post-build to <see cref="PrimeKey"/>; null when the
-    /// clause is absent (it is required for ORGANIZATION INDEXED, §2023:12.4.5.1 Format 1).</summary>
-    public string? RecordKeyName { get; set; }
+    /// <summary>The RECORD KEY clause's key name as written (ISO §2023:12.4.5.12) — data-name-1 with its IN/OF qualifiers
+    /// (identically named key items under different areas of the record are legal and selected by qualification, ISO
+    /// §2023:8.4.2.2; IX215A's three IX-FD3-KEY items), or record-key-name-1, unqualified, when <see cref="RecordKeySource"/> is
+    /// set — resolved post-build to <see cref="PrimeKey"/>; null when the clause is absent (it is required for ORGANIZATION
+    /// INDEXED, §2023:12.4.5.1 Format 1).</summary>
+    public WrittenDataName? RecordKeyOperand { get; set; }
 
     /// <summary>The source position of the RECORD KEY clause's data-name-1 — where §2023:12.4.5.12.3's syntax rules
     /// report, since they are screened post-build (the operand resolves only once the data forest is indexed).</summary>
@@ -428,11 +422,6 @@ public sealed class FileModel
     /// <summary>The RECORD KEY clause's SOURCE phrase (§2023:12.4.5.12.2's second key form), or null for the
     /// data-name-1 form.</summary>
     public RecordKeySource? RecordKeySource { get; set; }
-
-    /// <summary>The RECORD KEY reference's IN/OF qualifier words, written order (innermost first) — identically
-    /// named key items under different areas of the record are legal and selected by qualification (ISO
-    /// §2023:8.4.2.2; IX215A's three IX-FD3-KEY items). Empty = unqualified, and always empty for the SOURCE form.</summary>
-    public IReadOnlyList<string> RecordKeyQualifiers { get; set; } = [];
 
     /// <summary>The integer-literal subscripts written on the RECORD KEY data-name, outermost table level first — COBOL-2002 only
     /// (§2002:5.1.3; §2002:12.3.4.12.2 SR1 "may be qualified"); empty at every other edition and for the SOURCE form
@@ -453,56 +442,6 @@ public sealed class FileModel
     /// <c>Suppress</c> is the §2023:12.4.5.6.4 GR6 key suppression value sized to the key (null = no SUPPRESS WHEN
     /// phrase, or an operand §2023:12.4.5.6.3 SR7 refused).</summary>
     public List<(RecordKey Key, bool Duplicates, KeySuppression? Suppress, AlternateKeyClause Clause)> AlternateKeys { get; } = [];
-
-    /// <summary>The SOURCE-form keys of this file that a reference <paramref name="recordKeyName"/>
-    /// <paramref name="qualifiers"/> names — the ONE answer to ISO §2023:14.9.30.3 SR11 / §2023:14.9.41.3 SR7 / §2023:12.4.5.7.3
-    /// SR5's "specified as a record-key-name … in the file control entry", as a COUNTED set (prime key first, then
-    /// the alternates in declaration order). <paramref name="qualifiers"/> is the reference's IN/OF list:
-    /// §2023:8.4.2.2.2 Format 6 (qualified-record-key-name) qualifies a record-key-name by ONE file-name, so a reference
-    /// qualified by anything but this file's own name names no key of it.
-    /// <para>⛔ A SET, NEVER "THE FIRST MATCH" (kb/Work PB1099 review R1-2). Nothing forbids two of this entry's
-    /// clauses declaring the same record-key-name (§2023:8.3.2.2), and Format 6's only qualifier is the file-name both
-    /// share, so no reference can single either out: §2023:8.4.2.2.3 SR1's error, reported by the caller's one
-    /// ambiguity verdict. Returning the first match bound such a reference silently to the prime key.</para></summary>
-    public NameCandidates<KeyNameReading> RecordKeyNameCandidates(string recordKeyName, IReadOnlyList<string> qualifiers)
-    {
-        List<KeyNameReading> named = [];
-        if (!RecordKeyNameQualifiersAdmit(qualifiers)) return new(named);
-        if (PrimeKey is { IsSourceForm: true } pk && WiseOwl.Cobol.Runtime.CobolNames.Same(pk.RecordKeyName, recordKeyName))
-            named.Add(new KeyNameReading.RecordKeyName(this, -1));
-        for (int i = 0; i < AlternateKeys.Count; i++)
-            if (AlternateKeys[i].Key.IsSourceForm
-                && WiseOwl.Cobol.Runtime.CobolNames.Same(AlternateKeys[i].Key.RecordKeyName, recordKeyName))
-                named.Add(new KeyNameReading.RecordKeyName(this, i));
-        return new(named);
-    }
-
-    /// <summary>Whether a record-key-name reference's IN/OF list can name a key of this file: none, or §2023:8.4.2.2.2
-    /// Format 6's one file-name qualifier naming this file.</summary>
-    private bool RecordKeyNameQualifiersAdmit(IReadOnlyList<string> qualifiers) =>
-        qualifiers.Count == 0
-        || qualifiers.Count == 1 && (WiseOwl.Cobol.Runtime.CobolNames.Same(qualifiers[0], SelectName)
-                                     || WiseOwl.Cobol.Runtime.CobolNames.Same(qualifiers[0], CobolName));
-
-    /// <summary>Whether a key clause of this entry that did NOT resolve (an operand referencing nothing describable,
-    /// already reported by that clause's own SR2 row) is the one a key-level COLLATING SEQUENCE operand
-    /// <paramref name="name"/> <paramref name="qualifiers"/> was written to name — so the operand is not reported a
-    /// second time as "not a key of this file" (one fault, one verdict). A data-name-1 clause matches by spelling (its
-    /// operand names nothing, so no qualification can be judged); a SOURCE-form clause matches its record-key-name
-    /// under Format 6's qualifier rule. ⛔ A SOURCE-form clause is unresolved when one of ITS OPERANDS is — never
-    /// because <see cref="AlternateKeyClause.Item"/> is null, which it always is for that form (kb/Work PB1099 review
-    /// R1-1: every SOURCE alternate read as unresolved, so <c>COLLATING SEQUENCE OF AK IN another-file</c> was
-    /// dropped unreported).</summary>
-    public bool DeclaresUnresolvedKeyNamed(string name, IReadOnlyList<string> qualifiers)
-    {
-        bool Matches(string clauseName, RecordKeySource? source) =>
-            WiseOwl.Cobol.Runtime.CobolNames.Same(clauseName, name)
-            && (source is null || RecordKeyNameQualifiersAdmit(qualifiers));
-        bool Unresolved(DataItem? item, RecordKeySource? source) =>
-            source is null ? item is null : source.Operands.Any(o => o.Item is null);
-        return RecordKeyName is { } rk && PrimeKey is null && Matches(rk, RecordKeySource)
-            || AlternateKeyNames.Any(a => Unresolved(a.Item, a.Source) && Matches(a.Name, a.Source));
-    }
 
     /// <summary>The resolved key at <paramref name="keyIndex"/> (−1 = prime), or null.</summary>
     public RecordKey? KeyAt(int keyIndex) =>
@@ -581,11 +520,8 @@ public sealed class FileModel
 
     /// <summary>The RELATIVE KEY data-name as written (ISO §2023:12.4.5.13), resolved post-build; the item lives OUTSIDE
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>
-    public string? RelativeKeyName { get; set; }
-
-    /// <summary>The RELATIVE KEY data-name's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2) — see
-    /// <see cref="FileStatusQualifiers"/> for why a clause operand keeps them (kb/Work PB489).</summary>
-    public IReadOnlyList<string> RelativeKeyQualifiers { get; set; } = [];
+    /// <para>Its qualifiers are kept for the reason <see cref="FileStatusOperand"/> gives (kb/Work PB489).</para>
+    public WrittenDataName? RelativeKeyOperand { get; set; }
 
     /// <summary>The integer-literal subscripts written on the RELATIVE KEY data-name, outermost table level first — COBOL-2002
     /// only (§2002:5.1.3; §2002:12.3.4.13.2 SR1 "may be qualified"); see <see cref="FileStatusSubscripts"/> (kb/Work PB5602).</summary>
@@ -1134,7 +1070,7 @@ public sealed class FileModel
     /// <see cref="MaxDynamicExtent"/> (§2023:8.5.1.9.1 3), COBOL1526).</summary>
     private static bool HasVaryingTableBeneath(DataItem item) =>
         item.Children.Any(c => c.RedefinesTargetName is null
-            && (c.OccursSpec is { DependingName: not null } || HasVaryingTableBeneath(c)));
+            && (c.OccursSpec is { DependingOperand: not null } || HasVaryingTableBeneath(c)));
 
     /// <summary>⛔ THE RECORD AREA'S WIDTH IN BYTES — what every connector registration, the SORT/MERGE record
     /// length and the fixed-file attributes read (ISO §2023:13.18.43.4 GR2: "The implicit or explicit RECORD clause
@@ -1247,7 +1183,7 @@ public sealed class FileModel
         Records.Contains(record) && Organization != FileOrganization.LineSequential && !IsOutOfLineRecord(record)
         && AreaRecord is { } area
         && (Model.RecordLayout.PhysicalWidth(area) > Model.RecordLayout.PhysicalWidth(record) || HasVaryingTableBeneath(record))
-        && (Varying?.DependingName is not null || !RecordSizeVaries);
+        && (Varying?.DependingOperand is not null || !RecordSizeVaries);
 
     /// <summary>True for either sequential shape (the only organizations this slice can OPEN/READ/WRITE).</summary>
     public bool IsSequential => Organization is FileOrganization.Sequential or FileOrganization.LineSequential;
@@ -1264,7 +1200,7 @@ public sealed class FileModel
 /// is instead "completely defined in the record description entry" (GR18) and its move is classified normally.
 /// The two formats were indistinguishable here until kb/Work PB339, which is why a rule keyed on the WORD
 /// VARYING had nothing to key on.</param>
-public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName, bool VaryingClause)
+public sealed record VaryingRecordInfo(int? Min, int? Max, WrittenDataName? DependingOperand, bool VaryingClause)
 {
     /// <summary>⛔ DO THE CLAUSE'S INTEGERS BOUND THE RECORDS A WRITE OR REWRITE MAY SEND (kb/Work PB5197)? Always for
     /// Format 2 (§2023:13.18.43.4 GR14; §1985:VII.1.3.5 names "the RECORD IS VARYING clause"). For Format 3
@@ -1276,10 +1212,6 @@ public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName
     /// the one answer an unstated integer already gets (GR9/GR10), so the connector needs no second arm.
     /// Decided ONCE, by <c>FileControlBinder.BindRecordClause</c>.</summary>
     public bool BoundsEnforced { get; init; } = true;
-
-    /// <summary>The DEPENDING ON data-name's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2) — see
-    /// <see cref="FileModel.FileStatusQualifiers"/> for why a clause operand keeps them (kb/Work PB489).</summary>
-    public IReadOnlyList<string> DependingQualifiers { get; set; } = [];
 
     /// <summary>The source position of the DEPENDING ON data-name — where its post-build resolution reports.
     /// The RECORD clause is a FILE DESCRIPTION entry clause, so the file control entry's cursor would point at
@@ -1344,17 +1276,10 @@ public sealed record ReportClauseName(string Name, WiseOwl.Cobol.Editions.Diagno
 /// content is read at the GR6b evaluation points (OPEN OUTPUT / WRITE ADVANCING PAGE / page overflow), resolved
 /// post-build to <see cref="Item"/> (SR1/SR2 — an elementary unsigned integer not under OCCURS, so a plain
 /// name lookup suffices).</summary>
-public sealed record LinageOperand(int? Literal, string? DataName)
+public sealed record LinageOperand(int? Literal, WrittenDataName? DataName)
 {
     /// <summary>The resolved data item for the <see cref="DataName"/> form (set post-build); null for a literal.</summary>
     public DataItem? Item { get; set; }
-
-    /// <summary>The operand's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2). §2023:13.18.34.2 prints
-    /// <i>data-name-1</i>, which is a qualified-data-name (§2023:8.4.2.2.2 Format 1), so <c>LINAGE IS SZ OF GRP-B
-    /// LINES</c> is a legal — and, with two SZs, the ONLY legal — spelling. The binder used to keep the base word
-    /// alone and resolve it by first match, so that clause silently built the whole logical page on GRP-A's SZ
-    /// (kb/Work PB489, measured: EOP / LINAGE-COUNTER 1 where the standard requires NO-EOP / 5).</summary>
-    public IReadOnlyList<string> Qualifiers { get; set; } = [];
 
     /// <summary>The source position of this operand — where §2023:13.18.34.3's syntax rules and the operand's own
     /// resolution report (both run post-build, once the data forest is indexed).</summary>
@@ -1367,11 +1292,8 @@ public sealed record LinageOperand(int? Literal, string? DataName)
 /// </summary>
 public sealed class CollatingKeyOperand
 {
-    /// <summary>The operand's base word as written.</summary>
-    public required string Name { get; init; }
-
-    /// <summary>The operand's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2).</summary>
-    public required IReadOnlyList<string> Qualifiers { get; init; }
+    /// <summary>The operand as written, its IN/OF qualifiers innermost first (ISO §2023:8.4.2.2).</summary>
+    public required WrittenDataName Operand { get; init; }
 
     /// <summary>The integer-literal subscripts written on the operand (COBOL-2002, §2002:5.1.3; kb/Work PB5602) — the key it names is
     /// the one written with the same subscripts. Empty at every other edition.</summary>
