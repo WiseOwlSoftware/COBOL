@@ -41,9 +41,6 @@
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.OoDataBinder"
     ],
-    "WiseOwl.Cobol.Binding.ConstantEntryBinder::DeclaredConstants": [
-      "WiseOwl.Cobol.Binding.SymbolTableFinish"
-    ],
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::ExpandPicConstants": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
@@ -235,8 +232,7 @@
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
-      "WiseOwl.Cobol.Binding.SymbolTable",
-      "WiseOwl.Cobol.Binding.SymbolTableFinish"
+      "WiseOwl.Cobol.Binding.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::CopyDescriptionToTemp": [
       "WiseOwl.Cobol.Binding.CompilerTemps"
@@ -495,6 +491,7 @@
       "WiseOwl.Cobol.Binding.OoDataBinder",
       "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
       "WiseOwl.Cobol.Binding.Repository.RepositoryCodec",
+      "WiseOwl.Cobol.Binding.SymbolTable",
       "WiseOwl.Cobol.Compiler.Oo.OoDriver"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::OoRole": [
@@ -792,6 +789,7 @@
       "WiseOwl.Cobol.Binding.ReportSectionBinder",
       "WiseOwl.Cobol.Binding.SpecialNamesBinder",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
+      "WiseOwl.Cobol.Binding.SymbolTableFinish",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
       "WiseOwl.Cobol.Compiler.Oo.OoDriver",

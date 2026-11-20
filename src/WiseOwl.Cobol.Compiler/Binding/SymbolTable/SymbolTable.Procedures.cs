@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -15,16 +16,19 @@ using Core = CobolParserCore;
 /// ambient cursor stands where the reference was written.</summary>
 internal readonly record struct ProcedureSite(OoMethodScope? Method, SectionInfo? Section);
 
-/// <summary>A paragraph a procedure-name identified: its pc, the paragraph's identity in the procedure table.</summary>
+/// <summary>A paragraph a procedure-name identified: its pc, the paragraph's identity in the procedure table. The table makes one per
+/// paragraph-name it declares, which is the symbol of the name's entry (section 6.7.1, "Step 6b, the entry ids").</summary>
 internal sealed record ParagraphDefinition(int Pc);
 
 /// <summary>What a procedure-name identified when it identified MORE THAN ONE procedure (kb/Work PB466): the rule the reference
 /// broke, the spelling it broke it with (the head, or the qualifier when the qualifier is what is duplicated), every candidate in
 /// declaration order (paragraphs by pc, then sections), and, for §2023:8.4.2.2.3 SR7, the section that declares the paragraph twice.
 /// It names candidates, not one symbol, so it is no identification: the procedure table describes the candidates for the message
-/// (<c>ProcedureTableBuilder</c>) and listing step 7b records no occurrence for it.</summary>
+/// (<c>ProcedureTableBuilder</c>) and listing step 7b records no occurrence for it. <see cref="Ids"/> are the candidates' entries,
+/// the paragraphs' then the sections'.</summary>
 internal sealed record ProcedureCandidates(
-    ProcedureAmbiguityRule Rule, string Name, IReadOnlyList<int> Paragraphs, IReadOnlyList<SectionInfo> Sections, SectionInfo? Section);
+    ProcedureAmbiguityRule Rule, string Name, IReadOnlyList<int> Paragraphs, IReadOnlyList<SectionInfo> Sections, SectionInfo? Section,
+    IReadOnlyList<SymbolId> Ids) : ICandidateEntries;
 
 public sealed partial class SymbolTable
 {
@@ -35,8 +39,9 @@ public sealed partial class SymbolTable
     /// by rule 6, "the section containing the reference also contains the named paragraph"). The first declaration lives in
     /// <see cref="_first"/>; a repeated spelling also lands in <see cref="_duplicated"/>, which is empty for every well-formed source
     /// unit, so the ordinary path costs one probe and <see cref="Definitions"/> allocates nothing until a program collides.</summary>
-    /// <typeparam name="T">What a declaration denotes: a pc for a paragraph, a <see cref="SectionInfo"/> for a section.</typeparam>
-    private sealed class ProcedureNames<T>
+    /// <typeparam name="T">What a declaration denotes: a <see cref="ParagraphDefinition"/> for a paragraph, a <see cref="SectionInfo"/>
+    /// for a section; each is its entry's symbol.</typeparam>
+    private sealed class ProcedureNames<T> where T : class
     {
         private readonly Dictionary<CobolName, T> _first = [];
 
@@ -72,7 +77,7 @@ public sealed partial class SymbolTable
     /// <summary>One source element's procedure-names: the program's (or function's), or one method's.</summary>
     private sealed class ProcedureScope
     {
-        public ProcedureNames<int> Paragraphs { get; } = new();
+        public ProcedureNames<ParagraphDefinition> Paragraphs { get; } = new();
         public ProcedureNames<SectionInfo> Sections { get; } = new();
     }
 
@@ -86,7 +91,7 @@ public sealed partial class SymbolTable
 
     /// <summary>Each section's own paragraph-names, for a reference qualified by the section (§2023:8.4.2.2.2 format 4) and for
     /// rule 6's in-section answer.</summary>
-    private readonly Dictionary<SectionInfo, ProcedureNames<int>> _sectionParagraphs = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<SectionInfo, ProcedureNames<ParagraphDefinition>> _sectionParagraphs = new(ReferenceEqualityComparer.Instance);
 
     private ProcedureScope ProceduresOf(OoMethodScope? method)
     {
@@ -95,22 +100,35 @@ public sealed partial class SymbolTable
         return scope;
     }
 
-    private ProcedureNames<int>? ParagraphsIn(SectionInfo section) => _sectionParagraphs.GetValueOrDefault(section);
+    private ProcedureNames<ParagraphDefinition>? ParagraphsIn(SectionInfo section) => _sectionParagraphs.GetValueOrDefault(section);
 
     /// <summary>Declares the paragraph-name <paramref name="name"/> at <paramref name="pc"/>: in its method's scope when it is in a
-    /// method body (else the program's), and in its section's own map when it is in one. A repeated spelling is kept (kb/Work PB466).</summary>
-    internal void DeclareParagraph(string name, int pc, SectionInfo? section, OoMethodScope? method)
+    /// method body (else the program's), and in its section's own map when it is in one. A repeated spelling is kept (kb/Work PB466).
+    /// Each declaration is an entry of its own, at the header's word (<paramref name="header"/>).</summary>
+    internal void DeclareParagraph(string name, Core.ProcedureNameContext header, int pc, SectionInfo? section, OoMethodScope? method)
     {
         CobolName key = Key(name);
-        ProceduresOf(method).Paragraphs.Declare(key, pc);
+        var paragraph = new ParagraphDefinition(pc);
+        Enter(NameClass.Procedure, name, PositionOf(header.Start), paragraph);
+        ProceduresOf(method).Paragraphs.Declare(key, paragraph);
         if (section is null) return;
         if (!_sectionParagraphs.TryGetValue(section, out var paragraphs)) _sectionParagraphs[section] = paragraphs = new();
-        paragraphs.Declare(key, pc);
+        paragraphs.Declare(key, paragraph);
     }
 
-    /// <summary>Declares the section-name of <paramref name="section"/>, in its method's scope when it is in a method body.</summary>
-    internal void DeclareSection(SectionInfo section, OoMethodScope? method) =>
+    /// <summary>Declares the section-name of <paramref name="section"/>, written at <paramref name="header"/>, in its method's scope when
+    /// it is in a method body.</summary>
+    internal void DeclareSection(SectionInfo section, Core.ProcedureNameContext header, OoMethodScope? method)
+    {
+        Enter(NameClass.Procedure, section.Name, PositionOf(header.Start), section);
         ProceduresOf(method).Sections.Declare(Key(section.Name), section);
+    }
+
+    /// <summary>The candidates several procedures carry, with each one's entry (the paragraphs', then the sections').</summary>
+    private ProcedureCandidates Candidates(ProcedureAmbiguityRule rule, string name, IReadOnlyList<ParagraphDefinition> paragraphs,
+        IReadOnlyList<SectionInfo> sections, SectionInfo? section) =>
+        new(rule, name, [.. paragraphs.Select(static p => p.Pc)], sections, section,
+            [.. paragraphs.Select(p => _entries.IdOf(p)), .. sections.Select(s => _entries.IdOf(s))]);
 
     /// <summary>The procedure-name <paramref name="written"/> denotes from <paramref name="site"/>: a <see cref="ParagraphDefinition"/>
     /// or a <see cref="SectionInfo"/>, the <see cref="ProcedureCandidates"/> when it denotes several, or null when it denotes none.
@@ -121,35 +139,35 @@ public sealed partial class SymbolTable
     /// "If explicitly referenced, a paragraph-name shall not be duplicated within a section", tested here at the reference because
     /// an unreferenced duplicate is legal), then the whole source element, where rule 1 decides over paragraphs and sections
     /// together, because §2023:14.4.1 makes a procedure-name "a word used to refer to a paragraph or section".</summary>
-    private object? ProcedureNamed(ParserRuleContext written, ProcedureSite site)
+    private (object? Symbol, SymbolId Id) ProcedureNamed(ParserRuleContext written, ProcedureSite site)
     {
-        if (ProcedureWords(written) is not var (head, qualifier)) return null;
+        if (ProcedureWords(written) is not var (head, qualifier)) return default;
         var scope = ProceduresOf(site.Method);
         CobolName name = Key(head);
         if (qualifier is not null)
         {
             CobolName q = Key(qualifier);
-            if (!scope.Sections.TryResolve(q, out var section)) return null;
+            if (!scope.Sections.TryResolve(q, out var section)) return default;
             if (scope.Sections.IsDuplicated(q))
-                return new ProcedureCandidates(ProcedureAmbiguityRule.Qualification, qualifier, [], scope.Sections.Definitions(q), null);
-            if (ParagraphsIn(section) is not { } inSection || !inSection.TryResolve(name, out int qpc)) return null;
+                return (Candidates(ProcedureAmbiguityRule.Qualification, qualifier, [], scope.Sections.Definitions(q), null), default);
+            if (ParagraphsIn(section) is not { } inSection || !inSection.TryResolve(name, out var qualified)) return default;
             return inSection.IsDuplicated(name)
-                ? new ProcedureCandidates(ProcedureAmbiguityRule.InSectionDuplicate, head, inSection.Definitions(name), [], section)
-                : new ParagraphDefinition(qpc);
+                ? (Candidates(ProcedureAmbiguityRule.InSectionDuplicate, head, inSection.Definitions(name), [], section), default)
+                : Entered(qualified);
         }
 
-        if (site.Section is { } containing && ParagraphsIn(containing) is { } local && local.TryResolve(name, out int localPc))
+        if (site.Section is { } containing && ParagraphsIn(containing) is { } local && local.TryResolve(name, out var inContaining))
             return local.IsDuplicated(name)
-                ? new ProcedureCandidates(ProcedureAmbiguityRule.InSectionDuplicate, head, local.Definitions(name), [], containing)
-                : new ParagraphDefinition(localPc);
+                ? (Candidates(ProcedureAmbiguityRule.InSectionDuplicate, head, local.Definitions(name), [], containing), default)
+                : Entered(inContaining);
 
         int candidates = scope.Paragraphs.CountOf(name) + scope.Sections.CountOf(name);
-        if (candidates == 0) return null;
+        if (candidates == 0) return default;
         if (candidates > 1)
-            return new ProcedureCandidates(ProcedureAmbiguityRule.Qualification, head,
-                scope.Paragraphs.Definitions(name), scope.Sections.Definitions(name), null);
-        if (scope.Paragraphs.TryResolve(name, out int pc)) return new ParagraphDefinition(pc);
-        return scope.Sections.TryResolve(name, out var named) ? named : null;
+            return (Candidates(ProcedureAmbiguityRule.Qualification, head,
+                scope.Paragraphs.Definitions(name), scope.Sections.Definitions(name), null), default);
+        if (scope.Paragraphs.TryResolve(name, out var paragraph)) return Entered(paragraph);
+        return scope.Sections.TryResolve(name, out var named) ? Entered(named) : default;
     }
 
     /// <summary>The head and the qualifier of a written procedure-name, read from the context's CHILDREN, never its glued text

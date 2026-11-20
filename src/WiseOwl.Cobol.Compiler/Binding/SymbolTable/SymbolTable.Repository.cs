@@ -42,7 +42,7 @@ public sealed partial class SymbolTable
     /// containing function definition" as a function-prototype-name and §2023:8.4.6.8 "the program-name of a containing program
     /// definition" as a program-prototype-name (kb/Work PB452, PB817, PB3121). Empty for a class, factory or interface forest: a class
     /// is neither definition kind. Declared before the element's data binds, so its USAGE TO screen reads them.</summary>
-    private readonly HashSet<CobolName> _containingDefinitions = [];
+    private readonly Dictionary<CobolName, BoundUnit> _containingDefinitions = [];
 
     /// <summary>Whether <see cref="_containingDefinitions"/> are function definitions (the element is one) or program definitions.</summary>
     private bool _containingAreFunctions;
@@ -54,11 +54,23 @@ public sealed partial class SymbolTable
     internal void DeclareContainingDefinitions(BoundUnit? unit)
     {
         _containingAreFunctions = unit?.IsFunction == true;
-        foreach (var u in BinderDriver.ContainingDefinitions(unit)) _containingDefinitions.Add(Key(u.Name));
+        foreach (var u in BinderDriver.ContainingDefinitions(unit)) _containingDefinitions.TryAdd(Key(u.Name), u);
     }
 
-    /// <summary>Declare a program-specifier as written (<c>DataBinder.BindProgramSpecifier</c>); a repeat of a name keeps the first.</summary>
-    internal void DeclareProgramSpecifier(ProgramSpecifier specifier) => _programSpecifiers.TryAdd(Key(specifier.Name), specifier);
+    /// <summary>Declare the program-name or user-function-name of <paramref name="unit"/>, this source element (§2023:8.3.2.2): its
+    /// entry, at the unit's first token, is the program map's, and the one a program-prototype-name or function-prototype-name of a
+    /// containing definition (§2023:8.4.6.8, §2023:8.4.6.6) answers. Made by <c>BinderDriver.BindUnitData</c> before the unit's
+    /// containing definitions are declared, so the unit is its own.</summary>
+    internal void DeclareProgram(BoundUnit unit) => Enter(NameClass.Program, unit.Name, PositionOf(unit.DeclaredAt), unit);
+
+    /// <summary>Declare a program-specifier as written (<c>DataBinder.BindProgramSpecifier</c>); a repeat of a name keeps the first. Its
+    /// entry stands at the program-prototype-name the specifier writes (§2023:12.3.8.2).</summary>
+    internal void DeclareProgramSpecifier(ProgramSpecifier specifier)
+    {
+        Enter(NameClass.ProgramPrototype, specifier.Name,
+            PositionOf(((Frontend.Generated.CobolParserCore.RepositoryEntryContext)specifier.At).programPrototypeName().Start), specifier);
+        _programSpecifiers.TryAdd(Key(specifier.Name), specifier);
+    }
 
     /// <summary>Record that the specifier of <paramref name="word"/> registers no prototype, and why; the first reason stays.</summary>
     internal void RefuseProgramSpecifier(string word, ProgramSpecifierRefusal why) => _refusedProgramSpecifiers.TryAdd(Key(word), why);
@@ -130,7 +142,7 @@ public sealed partial class SymbolTable
             // is REPO-1 (SR14), at the specifier, and registers no prototype: a CALL through it is COBOL1760.
             using var _ = _data.Edition.At(spec.At);
             if (repository.ResolveProgram(spec.ExternalizedName, position) is { } details)
-                map[key] = new ProgramPrototype(spec.Name, spec.ExternalizedName, details);
+                _entries.Answer(map[key] = new ProgramPrototype(spec.Name, spec.ExternalizedName, details), _entries.IdOf(spec));
             else
             {
                 repository.ReportUnanswered(spec, function: false, spec.Name, spec.ExternalizedName, _data.Edition);
@@ -142,10 +154,11 @@ public sealed partial class SymbolTable
         }
         // §2023:8.4.6.8's other spelling, registered LAST (it also realizes SR15's "ignored", kb/Work PB3121). The prototype NAME
         // is the referable word, its EXTERNALIZED name what a CALL activates (kb/Work PB303).
+        // Each prototype answers the entry of what declared its name: the specifier, or the containing definition's program-name.
         foreach (var u in BinderDriver.ContainingDefinitions(unit))
             if (!u.IsFunction)
-                map[Key(u.Name)] = new ProgramPrototype(u.Name, u.ExternalizedName,
-                    new ProgramAnswer(binders.SignatureOf(u), new GroupUnitOrigin(u)));
+                _entries.Answer(map[Key(u.Name)] = new ProgramPrototype(u.Name, u.ExternalizedName,
+                    new ProgramAnswer(binders.SignatureOf(u), new GroupUnitOrigin(u))), _entries.IdOf(u));
         _programPrototypes = map;
     }
 
@@ -203,7 +216,7 @@ public sealed partial class SymbolTable
     internal bool DeclaresPrototypeName(string name, bool function) =>
         function
             ? DeclaresFunction(Key(name))
-            : (!_containingAreFunctions && _containingDefinitions.Contains(Key(name))) || DeclaresProgramSpecifier(name);
+            : (!_containingAreFunctions && _containingDefinitions.ContainsKey(Key(name))) || DeclaresProgramSpecifier(name);
 
     /// <summary>Whether a reference to <paramref name="name"/> is the cascade of a PROGRAM specifier whose <c>AS literal-3</c> was
     /// refused (§2023:12.3.8.3 SR2) and reported where it is written (kb/Work PB4936): then the reference adds no diagnostic and

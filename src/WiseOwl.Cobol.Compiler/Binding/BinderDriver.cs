@@ -324,7 +324,8 @@ internal sealed class BinderDriver
         // by its run-unit external name, exactly like a program's.
         foreach (var cls in classes) QualifyClassFiles(cls);
         // The finished symbol table, once every file connector has its run-unit name (DESIGN-listing.md sections 6.6 and 6.7.1).
-        if (edition.RecordsSymbols) Symbols = SymbolTableFinish.Of(units, classes, interfaceData, session.Binders, edition.RecordsNames);
+        if (edition.RecordsSymbols) Symbols = SymbolTableFinish.Of(units, classes, interfaceData, session.Binders, session.OoClasses.Entries,
+            edition.RecordsNames);
 
         // Declaratives emit the __IoCheck/__RunUse machinery, which reads CobolFile even when the unit declares
         // NO files (IC401M: mode-scoped USE procedures in a file-less flagging program) — the IO using must
@@ -658,6 +659,7 @@ internal sealed class BinderDriver
         // §2023:8.4.6.6 / §2023:8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the prototype
         // tables read (ContainingDefinitions; kb/Work PB452/PB817, PB3121), the symbol table's (DESIGN-listing.md section 6.7.1,
         // step 6b slice 7), declared before the unit's data binds so its USAGE TO screen reads it.
+        data.Symbols.DeclareProgram(unit);   // the unit's own name is an entry of the table (section 6.7.1), and a containing definition
         data.Symbols.DeclareContainingDefinitions(unit);
         data.CallSeedUids(session.TakeUidBand());
 

@@ -25,6 +25,11 @@ public sealed class OoClassTable
 {
     private OoClassTable() => Names = new SymbolTable.ClassNames(this);
 
+    /// <summary>The compilation group's symbol-table entries (<see cref="SymbolTable.EntryStore"/>; docs/rearchitecture/DESIGN-listing.md
+    /// section 6.7.1, "Step 6b, the entry ids"): every element's table and the group tier enter the names they declare here, so an
+    /// entry id is unique in the group. This table is the one object every binder of the group reaches (<c>DataBinder.OoClasses</c>).</summary>
+    internal SymbolTable.EntryStore Entries { get; } = new();
+
     /// <summary>The group's object-class-names and interface-names: the symbol table's compilation-group tier
     /// (<see cref="SymbolTable.ClassNames"/>; docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, the OO names"), where
     /// every class and interface this table builds is declared and every written or carried name of one resolves.</summary>
@@ -517,7 +522,7 @@ public sealed class OoClassTable
                     + "shall have unique interface-names (ISO §2023:8.4.6.4)");
                 continue;
             }
-            table.Names.DeclareInterface(isym);
+            table.Names.DeclareInterface(isym, ictx.interfaceName(0).Start);
             table._interfaces.Add(isym);
             // The END INTERFACE and END METHOD names are §2023:10.7.3 SR6 / SR5, asked by Validation.EndMarkerPass.
             AddPrototypes(isym);
@@ -533,6 +538,7 @@ public sealed class OoClassTable
             var isym = NewInterfaceSymbol(ictx);
             AddPrototypes(isym);
             table._parameterizedInterfaces.Add(isym);
+            table.Names.DeclareParameterNames(ictx.ooParameterName());   // bound as itself: its formals are entries (section 6.7.1)
         }
 
         // One interface definition's symbol (the table's and the parameterized ones); §2023:11.6.3 SR1 screens the AS literal.
@@ -697,7 +703,7 @@ public sealed class OoClassTable
                     + "externalized name (ISO §2023:8.3.2.2)");
                 continue;
             }
-            if (!table.Names.TryDeclareClass(sym) || !usedCsNames.Add(csName))
+            if (!table.Names.TryDeclareClass(sym, id.className(0).Start) || !usedCsNames.Add(csName))
             {
                 edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
                     $"duplicate class definition '{name}' — object class definitions within a compilation group shall "
@@ -882,6 +888,7 @@ public sealed class OoClassTable
                     sym = NewClassSymbol(skeleton);
                     AddMethods(sym);
                     table._parameterizedClasses.Add(sym);
+                    table.Names.DeclareParameterNames(id.ooParameterName());   // bound as itself: its formals are entries (section 6.7.1)
                 }
             ScreenInheritsNames(id, name, edition);
             if (id.className().Length < 2) continue;

@@ -163,13 +163,15 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
         Assert.False(ListingFacts.ReadsSymbols(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.Source) }));
     }
 
-    /// <summary>The control: asked, the same bind finishes the table, the program and the copied item X declared in it.</summary>
+    /// <summary>The control: asked, the same bind finishes the table, the program, the copied item X and the paragraph MAIN-PARA
+    /// declared in it (each an entry of the bind's, DESIGN-listing.md section 6.7.1, "Step 6b, the entry ids").</summary>
     [Fact]
     public void WithASymbolTableSection_TheBindFinishesTheSymbolTable()
     {
         var symbols = Bind(recordsSymbols: true).Symbols;
         Assert.NotNull(symbols);
-        Assert.Equal([(WiseOwl.Cobol.Symbols.NameClass.Program, "NOWORK"), (WiseOwl.Cobol.Symbols.NameClass.Data, "X")],
+        Assert.Equal([(WiseOwl.Cobol.Symbols.NameClass.Program, "NOWORK"), (WiseOwl.Cobol.Symbols.NameClass.Data, "X"),
+                (WiseOwl.Cobol.Symbols.NameClass.Procedure, "MAIN-PARA")],
             symbols.Entries.Select(e => (e.Class, e.Name)));
         Assert.True(ListingFacts.ReadsSymbols(new ListingRequest { Sections = ListingSectionSet.Of(ListingSection.DataMap) }));
         Assert.True(ListingFacts.ReadsSymbols(new ListingRequest()));   // the standard sections hold the program map

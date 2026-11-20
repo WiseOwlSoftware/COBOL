@@ -12,17 +12,30 @@ namespace WiseOwl.Cobol.Binding;
 /// bool, NameReach, ProcedureSite?, ReportSite)"/>, or, for an object-class-name or interface-name, the compilation group tier's
 /// <see cref="SymbolTable.ClassNames.Lookup"/>, whose answer is a <see cref="Compiler.Oo.OoNameResult"/>
 /// (docs/rearchitecture/DESIGN-listing.md section 6.7.1).
-/// Listing step 7b adds the occurrence it records.</summary>
+/// It carries the ENTRY the name's declaration made (<see cref="Id"/>, section 6.7.1 "Step 6b, the entry ids"), so listing step 7b
+/// joins the occurrence it records to its entry by id, never by the answer. An answer with no entry cannot be made: the
+/// constructor refuses one (a declaring path that entered nothing fails loudly at its first reference).</summary>
 internal sealed record IdentifiedName
 {
-    internal IdentifiedName(NameClass @class, object symbol)
+    internal IdentifiedName(NameClass @class, object symbol, SymbolId id)
     {
+        if (symbol is ICandidateEntries candidates
+                ? id.IsSet || !candidates.Ids.All(static c => c.IsSet)
+                : !id.IsSet)
+            throw new InvalidOperationException(
+                $"SymbolTable identified a {@class} ({symbol.GetType().Name}) whose declaration entered no entry: every declaring "
+                + "path enters its name (DESIGN-listing.md section 6.7.1, \"Step 6b, the entry ids\")");
         Class = @class;
         Symbol = symbol;
+        Id = id;
     }
 
     /// <summary>The class of the symbol.</summary>
     public NameClass Class { get; }
+
+    /// <summary>The entry the identified name's declaration made; none when <see cref="Symbol"/> is a candidate set
+    /// (<see cref="ICandidateEntries"/>), which carries each candidate's.</summary>
+    public SymbolId Id { get; }
 
     /// <summary>The symbol: a <see cref="Model.CommunicationDescription"/> for a cd-name, a <see cref="Model.FileModel"/> for a
     /// file-name, a <see cref="ConstantDef"/> for a constant-name, a <see cref="ParagraphDefinition"/> or a <see cref="Procedure.SectionInfo"/> for a procedure-name, the definition a
@@ -159,28 +172,28 @@ public sealed partial class SymbolTable
     internal IdentifiedName? Identify(ParserRuleContext written, NameClass wanted, bool report, NameReach reach = NameReach.Visible,
         ProcedureSite? site = null, ReportSite reportSite = default)
     {
-        object? symbol;
+        (object? Symbol, SymbolId Id) answer;
         if (wanted == NameClass.Procedure)
-            symbol = ProcedureNamed(written,
+            answer = ProcedureNamed(written,
                 site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written"));
         else if (IsReportClass(wanted))
-            symbol = ReportSymbolNamed(written, wanted, reach, reportSite);   // the occurrence `report` gates is listing step 7b's
+            answer = ReportSymbolNamed(written, wanted, reach, reportSite);   // the occurrence `report` gates is listing step 7b's
         else if (wanted == NameClass.FunctionPrototype)
-            symbol = written.Start is { } only && written.Stop is { } last && only.TokenIndex == last.TokenIndex
+            answer = written.Start is { } only && written.Stop is { } last && only.TokenIndex == last.TokenIndex
                 ? FunctionPrototypeNamed(FunctionKey(WrittenWord.Of(only)))   // the occurrence `report` gates is listing step 7b's
-                : null;
+                : default;
         else if (WordOf(written) is not { } key)
-            symbol = null;
+            answer = default;
         else if (IsConfigurationClass(wanted))
         {
             // A configuration-section name's reference is a §2023:8.3.2.2 USE of the word in the element it is written in
             // (kb/Work PB3153); a probe uses nothing. (Listing step 7b records the occurrence under the same flag.)
-            (symbol, var kind) = ConfigurationNamed(key, wanted);
-            if (symbol is not null && report) _data.RecordConfigurationNameUse(written, key.Word, kind);
+            (answer, var kind) = ConfigurationNamed(key, wanted);
+            if (answer.Symbol is not null && report) _data.RecordConfigurationNameUse(written, key.Word, kind);
         }
         else
-            symbol = SymbolNamed(key, wanted, reach);   // the occurrence `report` gates is listing step 7b's
-        return symbol is null ? null : new IdentifiedName(wanted, symbol);
+            answer = SymbolNamed(key, wanted, reach);   // the occurrence `report` gates is listing step 7b's
+        return answer.Symbol is null ? null : new IdentifiedName(wanted, answer.Symbol, answer.Id);
     }
 
     /// <summary>
@@ -201,10 +214,10 @@ public sealed partial class SymbolTable
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a configuration-section name is one word: identify its context");
         if (IsReportClass(wanted))
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a report-section name is written in a context: identify it");
-        object? symbol = wanted == NameClass.FunctionPrototype
+        var (symbol, id) = wanted == NameClass.FunctionPrototype
             ? FunctionPrototypeNamed(FunctionKey(written))
             : SymbolNamed(Key(written.Text), wanted, reach);
-        return symbol is null ? null : new IdentifiedName(wanted, symbol);
+        return symbol is null ? null : new IdentifiedName(wanted, symbol, id);
     }
 
     /// <summary>
@@ -223,18 +236,21 @@ public sealed partial class SymbolTable
         return IndexCandidates(written.Name, written.QualifierWords, _data.ActiveScope);
     }
 
-    /// <summary>The symbol of class <paramref name="wanted"/> one word names here, or null.</summary>
-    private object? SymbolNamed(CobolName key, NameClass wanted, NameReach reach) => wanted switch
+    /// <summary>The symbol of class <paramref name="wanted"/> one word names here and the entry its declaration made, or null.</summary>
+    private (object? Symbol, SymbolId Id) SymbolNamed(CobolName key, NameClass wanted, NameReach reach) => wanted switch
     {
-        NameClass.CommunicationDescription => _cds.GetValueOrDefault(key),
-        NameClass.File => FileNamed(key, reach),
-        NameClass.Constant => ConstantNamed(key),
-        NameClass.ProgramPrototype => ProgramPrototypeNamed(key),
+        NameClass.CommunicationDescription => Entered(_cds.GetValueOrDefault(key)),
+        NameClass.File => Entered(FileNamed(key, reach)),
+        NameClass.Constant => Entered(ConstantNamed(key)),
+        NameClass.ProgramPrototype => Entered(ProgramPrototypeNamed(key)),
         NameClass.DebugRegister => DebugRegisterNamed(key),
-        NameClass.TypeName => TypeDeclarationNamed(key, _data.ActiveScope),
-        NameClass.CapacityRegister => CapacityRegisterNamed(key, _data.ActiveScope),
+        NameClass.TypeName => Entered(TypeDeclarationNamed(key, _data.ActiveScope)),
+        NameClass.CapacityRegister => (CapacityRegisterNamed(key, _data.ActiveScope), default),
         _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not yet a class SymbolTable.Identify resolves"),
     };
+
+    /// <summary>A symbol that is its declaration's own object, with the entry the declaration made.</summary>
+    private (object? Symbol, SymbolId Id) Entered(object? symbol) => symbol is null ? default : (symbol, _entries.IdOf(symbol));
 
     /// <summary>The name key of a written word: the table's one maker of a <see cref="CobolName"/>.</summary>
     private static CobolName Key(string word) => new(word);

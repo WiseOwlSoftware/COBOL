@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -10,7 +11,7 @@ namespace WiseOwl.Cobol.Binding;
 /// of one written entry reproduces its register (kb/Work PB2988), so the reference's qualifiers tell the copies apart; its funnel
 /// (<c>ReferenceResolver.CapacityRegisterFor</c>) applies them and words the ambiguity, so it is no identification until the funnel
 /// has one table, and listing step 7b records an occurrence only then (as for <see cref="ReportCandidates{T}"/>).</summary>
-internal sealed record CapacityRegisterCandidates(IReadOnlyList<DataItem> Tables);
+internal sealed record CapacityRegisterCandidates(IReadOnlyList<DataItem> Tables, IReadOnlyList<SymbolId> Ids) : ICandidateEntries;
 
 public sealed partial class SymbolTable
 {
@@ -32,6 +33,10 @@ public sealed partial class SymbolTable
     {
         var registers = method is null ? _capacityRegisters : MethodNamesOf(method).CapacityRegisters;
         if (!registers.TryGetValue(Key(name), out var tables)) registers[Key(name)] = tables = [];
+        // The register's entry, made by the element that defines it, on its table's line (SR30: "as though implicitly defined at the
+        // same level as the entry containing the OCCURS clause"); a container's GLOBAL register, inherited here, is the container's.
+        if (table.OccursSpec?.CapacityRegister is { } register && !_entries.IdOf(register).IsSet)
+            Enter(NameClass.CapacityRegister, name, PositionOf(table.ReferenceSite.DeclaredAt), register);
         int depth = _data.State.Forest.DeclaringDepth(table);
         int at = tables.Count;
         while (at > 0 && _data.State.Forest.DeclaringDepth(tables[at - 1]) > depth) at--;
@@ -72,12 +77,16 @@ public sealed partial class SymbolTable
     {
         if (scope.Method is { } m)
         {
-            if (_methodNames.TryGetValue(m, out var own) && own.CapacityRegisters.TryGetValue(key, out var tables)) return new(tables);
+            if (_methodNames.TryGetValue(m, out var own) && own.CapacityRegisters.TryGetValue(key, out var tables)) return RegistersOf(tables);
             if (MethodDeclaresWord(m, key.Word)) return null;   // any other method-local name of the spelling wins (GR5 covers every name class)
         }
         _data.State.Require(Passes.PassPhase.OccursResolved, "CapacityRegisters");
-        return _capacityRegisters.TryGetValue(key, out var registers) ? new(registers) : null;
+        return _capacityRegisters.TryGetValue(key, out var registers) ? RegistersOf(registers) : null;
     }
+
+    /// <summary>The registers of <paramref name="tables"/>, each with its entry.</summary>
+    private CapacityRegisterCandidates RegistersOf(List<DataItem> tables) =>
+        new(tables, [.. tables.Select(t => _entries.IdOf(t.OccursSpec!.CapacityRegister!))]);
 
     /// <summary>Whether a CAPACITY register of <paramref name="name"/>, minted so far, is declared in a source element nearer than
     /// <paramref name="depth"/> (<see cref="Declarations.DeclaredNearerThan"/>, which runs while they are still being minted).</summary>
