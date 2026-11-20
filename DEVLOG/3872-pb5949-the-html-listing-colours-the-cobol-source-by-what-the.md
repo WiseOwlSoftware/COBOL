@@ -1,4 +1,4 @@
-## PB5949: the HTML listing colours the COBOL source by what the compiler read it as
+## Entry 3872 — 2026-11-20 00:51 PST — PB5949: the HTML listing colours the COBOL source by what the compiler read it as
 
 The owner asked (2026-11-19) for syntax colouring of the source in the HTML listing. PB5949 decided the colours come from the
 compiler's own reading at the edition in force, never from a published pattern grammar, and this step builds it
@@ -29,3 +29,4 @@ Review round 1 found two stretches left uncoloured, both fixed at the root: a ca
 REPLACE) now records where its entry begins when it is carried, read only of a candidate the parse settled as a header; and a stretch
 is placed from the expanded index of its span's first unit, so a literal holding a supplementary-plane character or a tab is classed
 whole (kb/Work PB5949's dated file `2026-11-19-listing-step-pb5949-review-r1`).
+
