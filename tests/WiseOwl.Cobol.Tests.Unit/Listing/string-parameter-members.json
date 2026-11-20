@@ -155,7 +155,7 @@
     },
     {
       "member": "WiseOwl.Cobol.Binding.GroupRepositoryProvider.FunctionsByWord(string, int, string?)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider asks the group tier of the symbol table whether each unit carries the word (SymbolTable.UnitNames.NamesFunction); no source element's table holds a function unit"
     },
     {
       "member": "WiseOwl.Cobol.Binding.GroupRepositoryProvider.Program(string, int)",
@@ -167,7 +167,7 @@
     },
     {
       "member": "WiseOwl.Cobol.Binding.IRepositoryProvider.FunctionsByWord(string, int, string?)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider asks the group tier of the symbol table whether each unit carries the word (SymbolTable.UnitNames.NamesFunction); no source element's table holds a function unit"
     },
     {
       "member": "WiseOwl.Cobol.Binding.IRepositoryProvider.Program(string, int)",
@@ -199,7 +199,7 @@
     },
     {
       "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.FunctionsByWord(string, int, string?)",
-      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+      "reason": "its string is the user-function-name a REPOSITORY FUNCTION specifier writes (§2023:8.4.6.7), asked of every provider of compilation units: the external repository's answers are another compilation's records, and the group's provider asks the group tier of the symbol table whether each unit carries the word (SymbolTable.UnitNames.NamesFunction); no source element's table holds a function unit"
     },
     {
       "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.Interface(string, WiseOwl.Cobol.Compiler.Oo.OoClassTable)",
