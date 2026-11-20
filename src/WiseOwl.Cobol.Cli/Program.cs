@@ -467,14 +467,11 @@ internal static class Program
             ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck, Listing: options.Listing));
 
         // `--listing-output -`: the one format requested goes to standard output (DESIGN-listing.md section 8), before the
-        // diagnostics; the request admits exactly one format there (ListingRequest.FormatsProblem). It is streamed in UTF-8, the
-        // bytes its file would hold (ListingOutput.Write, kb/Work PB5941), whatever the console's code page.
+        // diagnostics; the request admits exactly one format there (ListingRequest.FormatsProblem). It is streamed (kb/Work PB5941)
+        // through Console.Out, the process's one standard output writer, whose encoding StandardStreams.EnsureUtf8 set from Main:
+        // UTF-8 when redirected (the bytes the format's file would hold), the console's wide characters otherwise (PB5941 review R1-1).
         if (options.Listing is { WritesFiles: false } request && result.Listing is { } document)
-        {
-            Console.Out.Flush();
-            using var standardOutput = Console.OpenStandardOutput();
-            WiseOwl.Cobol.Listing.ListingOutput.Write(request.Formats, document, request, standardOutput);
-        }
+            WiseOwl.Cobol.Listing.ListingOutput.Write(request.Formats, document, request, Console.Out);
 
         // What the compilation itself transferred — the lines of its DISPLAY directives (ISO §2023:7.3.12.4 GR1, DOC-A.1-53,
         // kb/Work PB1538) — each to the compiler stream it names, in the order the directives were met.

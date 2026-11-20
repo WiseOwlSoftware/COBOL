@@ -12,8 +12,10 @@ paginated it, and the page printed every IL instruction twice.
 
 **Fixed at the root.** `ListingOutput.Write(format, document, request, Stream)` replaces `ListingOutput.Render`: each renderer writes
 to the stream as it renders, in UTF-8 with no byte order mark. The paginator reads rows as they are made and writes each page when it
-closes. The listing's exit streams each format into its file; `--listing-output -` streams the one format to standard output as the
-bytes its file would hold, UTF-8 whatever the console's code page. The HTML page shows each instruction once, under its statement's
+closes. The listing's exit streams each format into its file; `--listing-output -` streams the one format through the process's standard
+output writer: redirected, the bytes its file would hold, UTF-8 whatever the console's code page; on a console, its characters as
+themselves. (Review round 1, R1-1: the branch first wrote the bytes to the raw standard output handle, which a Windows console read
+as UTF-16; a pseudoconsole witness found it, and `ListingOutput.Write` gained a character entry the command line uses.) The HTML page shows each instruction once, under its statement's
 line, and the object-code section links to that block (it holds the instructions itself only when the page has no source section).
 The object code is decoded into one array per method and each statement's stretch is a slice of it.
 

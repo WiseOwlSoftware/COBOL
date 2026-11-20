@@ -26,7 +26,7 @@
 > "(step 6)", "(step 6b)", "(step 7a)", "(step 8)" or "(step 9)" in the section it changed.
 > kb/Work PB5941 (branch `listing-step-pb5941`, the `all` row's budget): every format streams to its file, the page shows each IL
 > instruction once, the object code is decoded into one array per method; corrections marked "(PB5941)" in sections 4.2, 7, 7.1,
-> 7.2, 7.3, 8, 9, 10, 11 and 13.
+> 7.2, 7.3, 8, 9, 10, 11 and 13; review round 1 (R1-1) corrected sections 4.2, 8 and 10 (marked "PB5941 review R1-1").
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -351,10 +351,15 @@ beside the positional ones so a reader sees the version the file was WRITTEN at,
 (PB5941:) `ListingOutput.Render`, which returned a format as a string, is replaced by `ListingOutput.Write(format, document, request,
 Stream)`: each format is WRITTEN to a stream as it is rendered, in `ListingOutput.Utf8` (UTF-8, no byte order mark), and the stream is
 flushed and left open for its owner. A format is never held whole: the listing's exit (`ListingWriter`) opens each file as a
-`FileStream` and the command line's `-` passes standard output (section 8). Holding a format whole cost three times its size
+`FileStream`. Holding a format whole cost three times its size
 (the buffer, the string copied from it, the encoding of the string), and an `all` listing is several times the source's size
 (section 9, PB5941). The table's one switch still dispatches every format to its renderer: the text and HTML renderers write
 characters to a `TextWriter` (a `StreamWriter` the table makes over the stream), the JSON writer serializes bytes to the stream itself.
+(PB5941 review R1-1, correction:) the table has a second entry, `ListingOutput.Write(format, document, request, TextWriter)`, which
+writes a format as CHARACTERS, streamed the same way: the text and HTML renderers write to the writer directly, and the JSON
+serializer's bytes are decoded into it as they arrive (a private write-only stream with a UTF-8 decoder, so no format is held
+whole there either). The `Stream` entry is a format's file; the `TextWriter` entry is the command line's `-`, which writes through
+the process's standard output writer (section 8). `ListingOutputTests.EveryFormat_WrittenAsCharacters_IsWhatItsFileHolds` ties them.
 A test reads a format as text through the same one call (`tests/_shared/ListingRendering.cs`).
 
 ### 4.3 Who fills what, at which stage
@@ -2082,10 +2087,21 @@ validator on the root command applies `ListingRequest.FormatsProblem` to the two
 an argument error). With `-`, `RunCompile` prints `ListingOutput.Render` of the one format before the diagnostics; the
 `>>DISPLAY` lines that go to standard output follow it there, so a JSON listing on standard output is followed by them
 (step 4a sends DISPLAY UPON LISTING into the listing itself, so only UPON CONSOLE or SYSOUT follow it).
-(PB5941, correction:) `RunCompile` no longer prints a rendered string through `Console.Out`: it flushes `Console.Out` and writes the
-one format with `ListingOutput.Write` to `Console.OpenStandardOutput()`, so standard output receives the bytes the format's file would
-hold, UTF-8 whatever the console's code page (section 7.1's text listing is UTF-8, a JSON text exchanged is UTF-8 by RFC 8259 section
-8.1, and the page declares `charset="utf-8"`); through `Console.Out` a Windows console's OEM code page re-encoded it.
+(PB5941:) `RunCompile` no longer prints a rendered string: it streams the one format with section 4.2's character entry,
+`ListingOutput.Write(format, document, request, Console.Out)`, through the process's one standard output writer. That writer's
+encoding is `StandardStreams.EnsureUtf8`'s rule, set from `Main` for every line the command prints (kb/Work PB899, PB3294): on a
+redirected handle a BOM-less UTF-8 writer, so standard output receives the bytes the format's file would hold (section 7.1's text
+listing is UTF-8, a JSON text exchanged is UTF-8 by RFC 8259 section 8.1, and the page declares `charset="utf-8"`); on a Windows
+console the console's wide-character interface, so a listing read there shows its characters as themselves whatever the console's
+code page. The `>>DISPLAY` lines that follow are written through the same writer, so they follow the listing in order.
+(PB5941 review R1-1, correction:) the first PB5941 shape wrote the listing's UTF-8 bytes to `Console.OpenStandardOutput()`, past that
+writer, on the claim that `Console.Out` re-encoded through the console's OEM code page. The claim was wrong (since PB899 a redirected
+`Console.Out` is UTF-8), and the bypass was the defect: a Windows console whose standard output encoding `EnsureUtf8` set to UTF-16
+read the bytes as UTF-16 and showed CJK characters for the whole listing, measured on a code page 437 pseudoconsole. Two witnesses
+hold the path, each run as a process: `ListingCliTests.ToStandardOutput_TheListingIsUtf8_AndTheDisplayLinesFollowIt` (redirected
+under a cp437 console: UTF-8 with no byte order mark, the DISPLAY line after the listing; red when the listing is written after the
+DISPLAY lines) and `WindowsConsoleDeviceTests.The_cobol_commands_listing_on_the_console_shows_its_characters_as_themselves` (on a cp437
+pseudoconsole; red on the bypass).
 `Resolve` builds a `ListingRequest` on `CliOptions`; `RunCompile` passes it as `CompilerDriver.Options.Listing`. The
 library default is null (no listing), so every caller that builds `Options` itself (the test suites, `check-batch`, an
 expansion's own compilation in `ExpansionAssemblies`) does no listing work; the per-edition default is a CLI decision.
@@ -2295,6 +2311,8 @@ captured listing.
    (`HtmlListingRendererTests.EachInstruction_StandsOnce_UnderItsLine_AndTheObjectCodeSectionLinksToIt`). Each was mutated red (the
    paginator materializing its rows, the object-code section printing the instructions of a held line, a byte order mark) and
    restored green. No guard is a wall-clock or allocation limit: the API holds the structure (no renderer returns a string).
+   (PB5941 review R1-1:) the command line's `-` is held by the two process witnesses section 8 names, and the character entry by
+   `ListingOutputTests.EveryFormat_WrittenAsCharacters_IsWhatItsFileHolds`.
 7. **Unit tests** of `ListingVisibility` and `PageComposer` over hand-built line lists (one per rule above), and of
    `ListingLineIndex` over hand-built maps (step 1: `ListingLineIndexTests`, a copybook copied at two depths, framing
    lines, a file no inclusion holds, omission); `PhysicalLineKindDriftTests` (section 4.4.1).

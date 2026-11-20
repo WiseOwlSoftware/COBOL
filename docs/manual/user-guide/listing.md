@@ -322,7 +322,8 @@ know. A new major is announced in the release notes of the
 release that ships it.
 
 With `--listing-output -` the one format requested goes to standard output, before the diagnostics (which go to standard
-error), as the same UTF-8 bytes its file would hold, whatever the console's code page. A `>>DISPLAY ... UPON LISTING` is in the listing itself; one `UPON CONSOLE` or `SYSOUT` follows the listing on
+error). Redirected to a file or a pipe, it is the same UTF-8 bytes its file would hold, whatever the console's code page; on a
+console it shows its characters as themselves. A `>>DISPLAY ... UPON LISTING` is in the listing itself; one `UPON CONSOLE` or `SYSOUT` follows the listing on
 standard output.
 
 ## The object-code map and the object code

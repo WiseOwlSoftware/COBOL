@@ -78,6 +78,24 @@ public sealed class ListingOutputTests
         else Assert.Contains(Written[23..], text, StringComparison.Ordinal);   // the words with no markup character
     }
 
+    /// <summary>Written as characters (the command line's standard output, DESIGN-listing.md section 8, kb/Work PB5941 review R1-1),
+    /// each format is the characters its file's bytes decode to, and the writer is left open.</summary>
+    [Theory]
+    [MemberData(nameof(EveryFormat))]
+    public void EveryFormat_WrittenAsCharacters_IsWhatItsFileHolds(ListingFormats format)
+    {
+        var everyMember = JsonListingWriterTests.EveryMember();
+        var document = everyMember with
+        {
+            Lines = [.. everyMember.Lines.Select(l => l.Number == 1 ? l with { Text = "000100 ID DIVISION. *> été \U0001D11E" } : l)],
+        };
+        var request = new ListingRequest(Formats: format);
+        using var writer = new StringWriter();
+        ListingOutput.Write(format, document, request, writer);
+        writer.Write('.');   // left open
+        Assert.Equal(ListingRendering.Of(format, document, request) + ".", writer.ToString());
+    }
+
     [Fact]
     public void ARequest_IsTextByDefault() => Assert.Equal(ListingFormats.Text, new ListingRequest().Formats);
 

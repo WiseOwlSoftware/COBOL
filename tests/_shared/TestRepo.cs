@@ -76,6 +76,12 @@ internal static class TestRepo
     public static string SrcBin(string project, params string[] segments) =>
         Src([project, "bin", Configuration, TargetFramework, .. segments]);
 
+    /// <summary>The built <c>cobol</c> command (the CLI's application host, <c>cobol.exe</c> on Windows) of THIS
+    /// configuration and framework: the one place a test that drives the command as a process finds it (kb/Work PB5941
+    /// review R1-1, which found three tests each spelling the path). A test project that runs it references
+    /// <c>WiseOwl.Cobol.Cli</c>, so building the test builds the command; the caller asserts it exists.</summary>
+    public static string CobolCommand { get; } = SrcBin("WiseOwl.Cobol.Cli", OperatingSystem.IsWindows() ? "cobol.exe" : "cobol");
+
     /// <summary><c>tests/</c> — the corpora, the goldens and the test projects.</summary>
     public static string Tests(params string[] segments) => At(["tests", .. segments]);
 
