@@ -110,17 +110,18 @@ public class CompileBenchmarks
             throw new InvalidOperationException($"{Program}: the {Listing} case wrote a JSON listing");
         if (Listing == ListingMode.None && (full.Listing is not null || File.Exists(listing)))
             throw new InvalidOperationException($"{Program}: the None case wrote a listing");
-        // The check-only compile writes its own listing to the same files (no object code: it writes no assembly), so it runs after
-        // the full compile's files were read.
-        var checkOnly = CompilerDriver.Compile(_checkOnly);
-        if (!checkOnly.Success)
-            throw new InvalidOperationException(
-                $"{Program}: the check-only compile failed ({checkOnly.Status}): {string.Join("; ", checkOnly.Errors)}");
         Console.WriteLine($"// witness {Program} {Listing}: {full.Inputs.FilesRead.Count} files read ({copybooksRead} library "
                           + $"texts), assembly {new FileInfo(full.OutputDll).Length} bytes"
                           + (Listing != ListingMode.None ? $", listing {new FileInfo(listing).Length} bytes" : "")
                           + (writesJson ? $", JSON {new FileInfo(json).Length} bytes" : "")
-                          + (Listing == ListingMode.All ? $", data map {full.Listing!.DataMap!.Items.Count} names" : ""));
+                          + (Listing == ListingMode.All ? $", HTML {new FileInfo(html).Length} bytes, data map {full.Listing!.DataMap!.Items.Count} names" : ""));
+
+        // The check-only compile writes its own listing to the same files (no object code: it writes no assembly), so it runs after
+        // the full compile's files were read and reported (kb/Work PB5941).
+        var checkOnly = CompilerDriver.Compile(_checkOnly);
+        if (!checkOnly.Success)
+            throw new InvalidOperationException(
+                $"{Program}: the check-only compile failed ({checkOnly.Status}): {string.Join("; ", checkOnly.Errors)}");
     }
 
     [GlobalCleanup]
