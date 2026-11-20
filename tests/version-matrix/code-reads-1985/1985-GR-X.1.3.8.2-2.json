@@ -2,57 +2,70 @@
  "rule-id": "1985-GR-X.1.3.8.2-2",
  "rule-digest": "948f709f3a0c",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-139",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m03",
   "sources": {
-   "reader": "8b7eb4b4f4c233fc9bfb0a7a1fdbe7fe8a3325f9bd89535c63f50860cc39bd1f",
-   "refuter": "f4df25706caf73949493e1a6a03355d84423508379155471e02b2451d758c4dc"
+   "reader": "50301e8c2c28f44e33bbedb50d51e6fb23077f024502d63116148dae1b74f56e",
+   "refuter": "85756383dc96cad17f5ef5a81cd1be1d0e43ad5574f8ba91649d778bd3bb79c3"
   },
   "imported": {
-   "reader": "02711ba2637962b809f33e56f7a25a6dcdcfe613b053eaa71c973b9e863099c4",
-   "refuter": "d476717d3df6b004ef4b033fad58314e058286fc60e17622b4818174c8801713"
+   "reader": "95244c1a81a6951feaf94e9a2cb0704d145c57727acac5101586baec9d0ee93f",
+   "refuter": "1ea9d9a68dcf289f054a0e4cc82afe28e5b46ec4073c7175f215d7134edefaea"
   }
  },
  "reader": {
   "rule-id": "1985-GR-X.1.3.8.2-2",
   "verdict": "CONFORMS",
-  "requirement": "When a contained program B references a condition-name, data-name, file-name, record-name or report-name and the GR1 set (B's own names plus the global names of every containing program) with qualification identifies exactly one object, that object is the one referenced, at any containment depth; a name in no such set (a container's non-global name, a contained program's name) identifies nothing and is refused.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritContainerGlobalData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolveCondition; src/WiseOwl.Cobol.Compiler/Binding/ReportScope.cs#NearestInScope",
-  "edition-consulted": [],
-  "edition-search": "grep Edition|CobolVersion|Dialect|Constructs over SymbolTable.cs (0 hits), ReportScope.cs (0 hits), DataBinder InheritContainerGlobalData/InheritGlobalSubtree and BinderDriver BindUnitData; the only edition read nearby is the --permissive UndefinedReference downgrade in DataBinder, which is not an edition switch; GLOBAL has no ConstructRegistry row (1985-continuous)",
+  "requirement": "When the qualified search over GR1's set identifies exactly one object, a contained program's reference names that object, whichever program declares it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#TryResolveUnqualified; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaring; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#TryResolveCondition; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFamilyFor; src/WiseOwl.Cobol.Compiler/Binding/ReportScope.cs#NearestInScope; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+    "switches": "hands session.Edition to the unit's DataBinder (EditionContext): diagnostics wording and edition-gated clause checks; the inheritance seed (InheritStep.Seed) and InheritContainerGlobalData take no edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "below 2002 a data-description clause operand (ODO, KEY, RENAMES) takes no implicit qualifiers; not on the procedure-division reference path these rules govern",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition|CobolVersion|Cobol1985|Cobol85|IsAtLeast|DialectBehavior' over InheritStep.cs, SymbolTable/SymbolTable.cs, SymbolTable.Reports.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.Declarations.cs, SymbolTable.Files.cs, SymbolTable.IndexNames.cs, SymbolTable.ConditionNames.cs, ReportScope.cs and DataBinder.cs: TryResolve, TryResolveUnqualified, NearestDeclaring, NearestDeclaringData, NearestDeclaringConditions, NearerConditionNameHides, InheritGlobalSubtree and InheritReport consult no edition; the only hits are message citations (Edition.Edition.Cite), SumCounterOperand85 and ClauseOperandsTakeImplicitQualifiers",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_bf32_02 resolves data-names one containment level deep; not condition-names, file-names, record-names, report-names, qualification through two group levels, a depth of two, or the refusal of a name outside the set",
+  "witnesses-cover": "part: g85_bf32_02 covers a data item; the probes add condition-names, a global FD record, a global report's counters and sum counters, and a global ODO record",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x5scope.cob",
-    "printed": "C GC-THREE TRUE / C LEAF=LA / A GC=4 LEAF=LC / A READ CWROT",
-    "expected": "program C, two levels inside A, resolves A's global condition-names (IF, SET TO TRUE), a doubly qualified global leaf, and A's GLOBAL FD file-name and record-name, each the one object identified; stores reach A's items and file"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope1.cob",
+    "printed": "I X=MID / I Y=INY / I YG=OUY / I XG=OUX / I Z=OUZ / I C=FALSE / I CCV=TRUE / J X=MID Z=OUZ / J C=FALSE / 3 X=OUX / 3 C=TRUE / O REC=IREC1 / O Y=NEW N=4 V=4AB**",
+    "expected": "B's own Y (GR3a); unqualified X and C in SCOPEI/SCOPEJ the middle program's (GR3b1), in SCOPE3 the outer's; Y OF G, X OF G, C OF CV and Z the one object qualification identifies (GR1, GR2); the global FD and its record written from the contained program; the ODO record and reference modification of a global group altered from the contained program"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x5rpt3.cob",
-    "printed": "B GENERATED / A DONE; report file holds HELLO",
-    "expected": "contained B's INITIATE/GENERATE/TERMINATE resolve A's GLOBAL RD report-name and detail group"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope3.cob",
+    "printed": "I TOT=55 / I TOTCFG=04",
+    "expected": "middle program's GLOBAL TOT is nearer for unqualified TOT (GR3b1); TOT OF CFG OF R1 the outer's sum counter (GR1/GR2)"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x5bad.cob",
-    "printed": "COBOL1639 'B-ONLY' is not defined (container referencing contained program's global); COBOL1639 'A-PRIV' is not defined (contained referencing container's non-global)",
-    "expected": "zero objects identified: X.1.3.8.2 forbids a reference to a name declared in a contained program, and A-PRIV is not in GR1's set"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/rpt1.cob",
+    "printed": "O T1=03 / O T2=01 / O LC1=03 / O LC2=01 / I LC=04 / I PC=01 / I T1=07 / I T2=03 / O LC1B=04 / O PC1B=09 / O T1B=50",
+    "expected": "contained program reads unqualified LINE-COUNTER and PAGE-COUNTER OF R1 of the container's GLOBAL report (its only visible report), alters PAGE-COUNTER and sum counter T OF LN1, and the container sees the same registers"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope2.cob",
+    "printed": "--std 85 EXIT 65: scope2.cob(52,17) error COBOL5092: 'TOT OF CFG' names the report group description entry 'TOT' of report 'R1', which a reference here may not name. ISO §2023:13.8.6.2.3: ...",
+    "expected": "SC2I declares 01 TOT; the container's GLOBAL report R1 has sum counter TOT under CFG. TOT OF CFG identifies only the sum counter after qualification over B's names and the containers' global names (GR1), so it is the referenced object (GR2); expected I TOTCFG=04"
    }
   ],
   "citations": [
    {
     "cite": "§1985:X.1.3.8.2 GR2",
-    "check": "OK  §1985:X.1.3.8.2 GR2  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR2"
-   },
-   {
-    "cite": "§1985:X.1.3.8.2 GR1",
-    "check": "OK  §1985:X.1.3.8.2 GR1  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR1"
+    "check": "OK  §1985:X.1.3.8.2 GR2  (python scripts/spec/cite.py --check \"§1985:X.1.3.8.2 GR2\" \"If only one object is identified, it is the referenced object\")"
    }
   ],
-  "notes": "Each container's global roots are inherited, with their depth, after the unit's own names are declared, so resolution sees exactly GR1's set and a single match is taken. All five name classes the rule ranges over resolved to the one object at --std 85. Probe x5rpt needed a relative LINE (COBOL2199 at LINE 1 without PAGE), which is a separate rule.",
+  "notes": "Every single-object identification probed binds that object and reads and writes its storage (Y OF G, X OF G, C OF CV, Z, F-REC, T OF LN1, TOT OF CFG OF R1). The one failure seen, TOT OF CFG refused when B declares TOT (scope2.cob), arises because GR1's set omits the sum counter, so it is recorded on 1985-GR-X.1.3.8.2-1; once the set is right this rule's step holds.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -64,10 +77,19 @@
  },
  "refuter": {
   "rule-id": "1985-GR-X.1.3.8.2-2",
-  "refutation": "UPHELD",
-  "classes": "d,e",
-  "evidence": "Read §1985:X.1.3.8 and X.1.3.8.2 GR1-GR3, X.1.3.8.3, X.4.2.4 GR1. The reader probed names that exist only in the container; the sharper GR2 case is a name present in BOTH B and A's global set where qualification leaves exactly one. p5.cob at --std 85 (runs/p5-002; runs/p5-001 was my margin-R line overrun): B, with its own R-B.X/FLG/88 ON-F, resolves 'X OF R-A' and 'X OF R-B' to their own objects ('B X OF R-A AAX X OF R-B BBX'), the qualified condition-names 'ON-F OF FLG OF R-A' and 'ON-F OF R-B' to A's and B's ('B A-ON TRUE', 'B B-ON FALSE'), and stores 'MOVE QQQ TO X OF R-A' / 'SET OFF-F OF R-A TO TRUE' reach A ('A X QQQ FLG 0'); unqualified X goes to B's own (GR3a, 'B UNQUAL X BBX'); 'LINAGE-COUNTER OF GA' (A's GLOBAL LINAGE file, a global special register by X.4.2.4 GR1) beside B's own LINAGE file: 'B LC GA 02 LC LB 01'; the index-name of a GLOBAL table set in A and stepped in contained P5C: 'A TB aZc' (X.1.3.8.3). cite.py: 'OK  §1985:X.1.3.8.2 GR2 ... the text is in GR2'; 'OK  §1985:X.1.3.8.2 GR1 ... the text is in GR1'; 'OK  §1985:X.1.3.8.2 GR3a ... the text is in GR3a'; 'OK  §1985:X.1.3.8.3 ... the text is in the clause'.",
-  "edition-sites-missed": [],
-  "corrected": ""
- }
+  "refutation": "OVERTURNED",
+  "classes": "b,d,e",
+  "evidence": "Probe one1.cob (container ON1O: FD FA GLOBAL with 01 FREC. 05 FX; 01 G GLOBAL. 05 X; 01 CV GLOBAL 88 C. Contained ON1I declares its OWN FD FA (01 BREC), its own 01 G PIC X(3) and its own 01 CV PIC X, and writes MOVE 'QQQ' TO FX OF FREC OF FA): --std 85 EXIT 65, 'one1.cob(45,26): error COBOL1639: 'FX OF FREC OF FA' does not uniquely identify a data item - 'FX' is declared, but not under the given qualifiers (FREC OF FA)'. Over GR1's set (ON1I's names plus the container's global names: FA twice, FREC and FX once) the qualified reference FX OF FREC OF FA identifies exactly one object, the container's FX, so by GR2 it is the referenced object. The compiler applies that very reading to a data-name qualifier: one2.cob (the same program with that line replaced) runs EXIT 0 and prints 'I G=LOC / I XG=OUX / I C OF CV TRUE / I C TRUE / I FX= / O X=NEW': X OF G and C OF CV, whose qualifiers G and CV ON1I also declares, reach the container's single object. Only the file-name qualifier is decided by spelling first: SymbolTable.DataNameCandidates.cs#QualifierChainMatchesFrom asks SymbolTable.Files.cs#FileQualifies, which looks the qualifier up with FileNamed(..., NameReach.Visible); HideShadowedFiles (via InheritStep.DropShadowed) has already put the container's FA in _hiddenFileNames, so the lookup returns ON1I's own FA, whose Records do not hold FREC. The two qualifier arms cannot both be right under one reading of X.1.3.8.2: either G/CV must be refused or FA must qualify; GR1/GR2's text ('Using this set of names, the normal rules for qualification ... are applied until one or more objects is identified'; 'If only one object is identified, it is the referenced object') makes FA qualify. At --std 2023 the same refusal (one1-002, citing §2023:8.4.2.2). The reader's own sum counter case (TOT OF CFG) is the same mechanism (a spelling-based hide before qualification) in another name class; the reader booked it to GR1, but GR2's outcome fails on it as well. kb/Work: searched (FileQualifies, file-name qualifier, PB5786, PB3557): none owns a hidden GLOBAL file-name as a record qualifier. Citations: OK §1985:X.1.3.8.2 GR1 ('the normal rules for qualification and any other rules for uniqueness of reference are applied until one or more objects is identified'); OK §1985:X.1.3.8.2 GR2 ('If only one object is identified, it is the referenced object').",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Files.cs#FileQualifies: no edition switch; resolves the file-name qualifier through the hidden-name table instead of the record's own file",
+   "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Files.cs#HideShadowedFiles: no edition switch; hides by spelling before qualification"
+  ],
+  "corrected": "NOT CONFORMING (rejects-legal-source): when the contained program declares a file-name that a container's GLOBAL file also has, a reference to the container's record item qualified by that file-name (FX OF FREC OF FA) identifies one object over GR1's set and must bind it (GR2); the compiler refuses it with COBOL1639 at every edition (cause b), while the same shape with a data-name qualifier (X OF G) is accepted. Repro E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m03/src/one1.cob."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Refuter upheld by the Mythos session: over §1985:X.1.3.8.2 GR1's set FX OF FREC OF FA identifies only the container's FX (GR2), yet one1.cob is refused COBOL1639 at --std 85 because a hidden GLOBAL file-name cannot qualify (re-run at 832bc39c61)",
+  "ref": "kb/Work/PB5973.md"
+ },
+ "work": "PB5973"
 }

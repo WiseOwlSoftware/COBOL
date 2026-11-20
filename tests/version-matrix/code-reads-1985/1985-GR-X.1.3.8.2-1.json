@@ -2,80 +2,93 @@
  "rule-id": "1985-GR-X.1.3.8.2-1",
  "rule-digest": "e621188ec6e7",
  "read": {
-  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
-  "slice": "1985-233",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m03",
   "sources": {
-   "reader": "d5767a4d1b8f183c1b26f5da0e39f022e8e9cd05a366a0ffb799105169a627dc",
-   "refuter": "0791f68cd40c59737f5d0cc5aedbe62476dc3b7f692de925a6495b580da8532f"
+   "reader": "50301e8c2c28f44e33bbedb50d51e6fb23077f024502d63116148dae1b74f56e",
+   "refuter": "85756383dc96cad17f5ef5a81cd1be1d0e43ad5574f8ba91649d778bd3bb79c3"
   },
   "imported": {
-   "reader": "5741511fd745d0506588d0203d65c73054884f1aea939b67140f0b12911f8782",
-   "refuter": "a999fbd965373bb1a84b8c4c6eb13de6eea2af11ecdb25ac81eb5883114e00d2"
+   "reader": "e9d398de5f923d622f888306ff88645d7a5057bdd3481d498fbd6b7de7c6f0a6"
   }
  },
  "reader": {
   "rule-id": "1985-GR-X.1.3.8.2-1",
-  "verdict": "CONFORMS",
-  "requirement": "In a contained program B, the candidate set for a condition-name, data-name, file-name, record-name or report-name reference is B's own names plus the GLOBAL names of every directly or indirectly containing program (never a container's non-global names), and qualification is applied over that whole set.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#Seed; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#ContainerGlobalRootsOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritContainerGlobalData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#NearestDeclaring; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnidentified",
+  "verdict": "PARTIAL",
+  "requirement": "In contained program B a reference to a condition-name, data-name, file-name, record-name or report-name is resolved over the set of all names B declares plus every GLOBAL name of A and of each program containing A, with qualification applied over that whole set until one or more objects is identified.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Reports.cs#InheritReport; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFamilyFor; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaring; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs#NearestDeclaringData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#InheritContainerReports",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnidentified",
-    "switches": "only the citation text of the ambiguity diagnostic (DialectLevel < 2002 cites §1985:IV.4.3.8.1 SRL2.1); the candidate set and the refusal are the same code",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+    "switches": "hands session.Edition to the unit's DataBinder (EditionContext): diagnostics wording and edition-gated clause checks; the inheritance seed (InheritStep.Seed) and InheritContainerGlobalData take no edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "below 2002 a data-description clause operand (ODO, KEY, RENAMES) takes no implicit qualifiers; not on the procedure-division reference path these rules govern",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep EditionContext|CobolVersion|DialectLevel|ConstructRegistry in SymbolTable.cs, InheritStep.cs, InheritedGlobals.cs, DataBinder.NonDataNames.cs, ReportScope.cs: none; the inheritance and nearest-tier narrowing are edition-free. The GLOBAL clause itself is admitted at --std 85 (every probe compiled).",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: pb1047 covers data-names, condition-names and index-names inherited from two container levels; not exercised: a container's NON-global name of the same spelling (excluded from the set), a global FILE-name and record-name against a contained program's own file of the same name, and the refusal of a reference to a container's non-global name",
+  "edition-search": "grep -n 'Edition|CobolVersion|Cobol1985|Cobol85|IsAtLeast|DialectBehavior' over InheritStep.cs, SymbolTable/SymbolTable.cs, SymbolTable.Reports.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.Declarations.cs, SymbolTable.Files.cs, SymbolTable.IndexNames.cs, SymbolTable.ConditionNames.cs, ReportScope.cs and DataBinder.cs: TryResolve, TryResolveUnqualified, NearestDeclaring, NearestDeclaringData, NearestDeclaringConditions, NearerConditionNameHides, InheritGlobalSubtree and InheritReport consult no edition; the only hits are message citations (Edition.Edition.Cite), SumCounterOperand85 and ClauseOperandsTakeImplicitQualifiers",
+  "behaviour-differs-by-edition": "no: the inheritance and the nearest-declaring narrowing are one path at every edition; only message citations differ",
+  "witnesses-cover": "part: pb1047 covers data-names, condition-names and index-names; not file-names, record-names, report-names, or a container's GLOBAL report's sum counter whose spelling B also declares",
   "probes": [
    {
-    "class": "b,c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/g1set.cob",
-    "printed": "M X=MNX K=MNK / I X=OGX / I YG=OGY / I K=OHK / I KH=OHK / I ZG=IGZ / O Y=NEW K=NWK",
-    "expected": "the middle program's non-global X and H.K are not in the inner program's set, so X and K name the outer GLOBAL items; Y OF G is qualified over the whole set (the inner G holds no Y) and names the outer Y; the MOVEs write the outer items"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope1.cob",
+    "printed": "I X=MID / I Y=INY / I YG=OUY / I XG=OUX / I Z=OUZ / I C=FALSE / I CCV=TRUE / J X=MID Z=OUZ / J C=FALSE / 3 X=OUX / 3 C=TRUE / O REC=IREC1 / O Y=NEW N=4 V=4AB**",
+    "expected": "B's own Y (GR3a); unqualified X and C in SCOPEI/SCOPEJ the middle program's (GR3b1), in SCOPE3 the outer's; Y OF G, X OF G, C OF CV and Z the one object qualification identifies (GR1, GR2); the global FD and its record written from the contained program; the ODO record and reference modification of a global group altered from the contained program"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/g1nonglobal.cob",
-    "printed": "error COBOL1639: 'Q' is not defined",
-    "expected": "the outer program's non-global Q is not in the contained program's set: the reference identifies nothing and is refused"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scoperef.cob",
+    "printed": "COBOL1639 at 12 'IG' not defined (outer naming a contained program's GLOBAL item); 22 'NG' not defined (non-global item of the container); 23 'X' does not uniquely identify (two GLOBAL X in the container); 30 'IG' not defined (sibling's GLOBAL item)",
+    "expected": "all four refused: the set is B's names plus the containers' GLOBAL names only (GR1); two objects in A with none in B is not unique (GR3b1); a program cannot reference names declared in a program it contains (X.1.3.8.2)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope2.cob",
+    "printed": "--std 85 EXIT 65: scope2.cob(52,17) error COBOL5092: 'TOT OF CFG' names the report group description entry 'TOT' of report 'R1', which a reference here may not name. ISO §2023:13.8.6.2.3: ...",
+    "expected": "SC2I declares 01 TOT; the container's GLOBAL report R1 has sum counter TOT under CFG. TOT OF CFG identifies only the sum counter after qualification over B's names and the containers' global names (GR1), so it is the referenced object (GR2); expected I TOTCFG=04"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope2b.cob",
+    "printed": "I NOLOCAL / I TOTCFG=04 / O TOT=04",
+    "expected": "control: without the local TOT the same qualified reference resolves to the global sum counter"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/g1file.cob",
-    "printed": "O R=GLBJ / O R=EOF; g1fi.dat holds LOCI, g1fo.dat holds GLBJ",
-    "expected": "the contained program with its own FD F writes its own file; the one without writes the container's GLOBAL F and its record R"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope2c.cob",
+    "printed": "I TOT=77 / I TOTCFG=00 / O TOT=04; sc2cout.dat=OUT, sc2cin.dat=INN",
+    "expected": "GR3a: B's own TOT and B's own FD F hide the container's global sum counter and GLOBAL FD F of the same spelling for an unqualified reference"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/g3amb.cob",
-    "printed": "error COBOL1639: 'X' does not uniquely identify a data item (ISO §1985:IV.4.3.8.1 SRL2.1)",
-    "expected": "two local X plus a global X: qualification over the set leaves more than one object local to B, so the reference is not unique"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/globalarm.cob",
+    "printed": "COBOL2404 on 77 W77 GLOBAL and 05 SUBG GLOBAL (cites §1985:X.4.3.3 SR4); COBOL0900 on LINKAGE 01 LK GLOBAL: 'requires COBOL-2002 (targeting COBOL-85)'",
+    "expected": "§1985:X.4.6.3 SR1: GLOBAL only on 01 entries of the File or Working-Storage Section, FDs and RDs; the later editions' LINKAGE GLOBAL refused at 85"
    }
   ],
   "citations": [
    {
     "cite": "§1985:X.1.3.8.2 GR1",
-    "check": "OK  §1985:X.1.3.8.2 GR1  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR1"
+    "check": "OK  §1985:X.1.3.8.2 GR1  (python scripts/spec/cite.py --check \"§1985:X.1.3.8.2 GR1\" \"all global names which are defined in program A\")"
+   },
+   {
+    "cite": "§1985:X.4.6.4 GR1",
+    "check": "OK  §1985:X.4.6.4 GR1  (python scripts/spec/cite.py --check \"§1985:X.4.6.4 GR1\" \"All data-names subordinate to a global name are global names\")"
    }
   ],
-  "notes": "Every container's GLOBAL roots (and their subordinates, condition-names, RENAMES and index-names) are inherited with their containment depth after the unit's own names; a container's non-global names never enter the set. Qualification runs over the whole set before the nearest-tier narrowing (GR3), so Y OF G reaches the outer G's Y past a local G without it. The only edition consultation is the citation in the ambiguity text.",
+  "notes": "Data, condition, file, record and report names behave as the rule says (scope1, scoperef, scope2c). One name class is left out of the set: SymbolTable.InheritReport skips a container GLOBAL report's sum counter whenever B's own _dataNames holds the spelling (`if (family.Name is not { } sn || _dataNames.ContainsKey(Key(sn))) continue;`), deciding the hiding at inheritance by spelling alone, before qualification. So TOT OF CFG, which only the inherited sum counter satisfies, finds no counter and ReportEntryReferenceRefused refuses it, at --std 85 with a §2023:13.8.6.2.3 citation that 1985 does not have and that itself admits sum counters in the procedure division. A middle container's GLOBAL TOT does not trigger it (scope3).",
   "seeded": true,
-  "harm": "",
-  "cause": "",
-  "at-2023": "",
-  "repro": "",
-  "expected": "",
-  "observed": "",
-  "known_note": ""
+  "harm": "rejects-legal-source",
+  "cause": "b",
+  "at-2023": "the same refusal: scope2.cob(52,17) error COBOL5092 'TOT OF CFG' names the report group description entry 'TOT' of report 'R1' (ISO §2023:13.8.6.2.3 ...)",
+  "repro": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m03/src/scope2.cob (outer: FD RPF GLOBAL REPORT IS R1; RD R1 GLOBAL CONTROL FINAL; 01 CFG TYPE CF FINAL LINE PLUS 1. 02 TOT COLUMN 1 PIC 99 SUM WS-N. Contained SC2I: 01 TOT PIC 99 VALUE 77. ... MOVE TOT OF CFG TO WS-T)",
+  "expected": "§1985:X.1.3.8.2 GR1 'Using this set of names, the normal rules for qualification and any other rules for uniqueness of reference are applied until one or more objects is identified' and GR2 'If only one object is identified, it is the referenced object': TOT OF CFG is the global sum counter; I TOTCFG=04",
+  "observed": "--std 85: error COBOL5092 at (52,17), nothing runs; with SC2I's local TOT removed (scope2b.cob) the same statement prints I TOTCFG=04",
+  "known_note": "none (searched kb/Work for InheritReport, and sum counter + global + hide/shadow: PB3154, PB3232, PB4196, PB369, PB372, PB4226 are other cases)"
  },
- "refuter": {
-  "rule-id": "1985-GR-X.1.3.8.2-1",
-  "refutation": "UPHELD",
-  "classes": "b,c,d",
-  "evidence": "Probes at --std 85 (E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-233/src): g_rpt2.cob: a container's GLOBAL RD RPT (with GLOBAL FD) is reached by INITIATE/GENERATE/TERMINATE in a contained program with no RD (gro.txt holds OUTR), and a sibling's local RD RPT is its own (grl.txt holds LOCL): report-names are in the set. g_sib.cob: a GLOBAL item of a sibling (not a container) is refused COBOL1639 'SX' is not defined. g_down.cob: the container cannot reference its contained program's GLOBAL item (COBOL1639). g_cond.cob: B's local record-name R (FD record) hides the container's global data-name R (MOVE writes B's, outer R stays OWR). The reader's g1set/g1nonglobal/g1file cover non-global exclusion and file-names. cite.py: OK §1985:X.1.3.8.2 GR1 the text is in GR1; OK §1985:IV.4.2.2.1.1 the text is in the clause (condition-names, data-names, and record-names form one set). Wording only: COBOL1639 at --std 85 cites §2023:8.4.2.1, not a 1985 rule.",
-  "edition-sites-missed": [],
-  "corrected": ""
- }
+ "work": "PB5973"
 }

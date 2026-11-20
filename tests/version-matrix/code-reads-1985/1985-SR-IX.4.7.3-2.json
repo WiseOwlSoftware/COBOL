@@ -2,74 +2,79 @@
  "rule-id": "1985-SR-IX.4.7.3-2",
  "rule-digest": "7fd21581dbe8",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-155",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m02",
   "sources": {
-   "reader": "0de8f709c2b4ee3ffec721fd32c4bd152a11c5331bcb981f9d433bcb8682d5a8",
-   "refuter": "61677f953081c0603a4306d57d35c598bc4ebcb6f35cb94ba979f66aba39782c"
+   "reader": "efbf4963ccaa70131f8f8bd96cc5574940d470d98b4586024b70a14899215724",
+   "refuter": "9628720596d1587ba881cafe02b94091f98cef25959c1b296af5e372e4c3d705"
   },
   "imported": {
-   "reader": "ac30cda147384bc71ab2c9d8a925a8a958a74e54ff93c696f502f813076ff9f5",
-   "refuter": "3804b03d4f1b6244e03c94d06614f1d5dac4e89b675945de41f91994a1a3b5c6"
+   "reader": "08d76ffcc9e78c39c71ac20bbfd652efc2e8c86c5c10ca0bcd4ef6635a6890e6",
+   "refuter": "406d95b58d0d0d0ad2c374481901f57203d10f104bda3cca79b82f7e10add1aa"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IX.4.7.3-2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 data-name-1 of START ... KEY may be written qualified (by any chain of containing group or record names, IN or OF, and by the file-name), and the qualified reference must resolve to the unique item it names, an unqualified or wrongly qualified ambiguous reference being refused.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#RecordKeyNameOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
+  "requirement": "At 1985 the indexed START KEY phrase's data-name-1 may be written qualified (group, record, file-name), for both SR4 forms (a record key, or an alphanumeric item at a key's leftmost position no longer than it), and must identify one item uniquely.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#RecordKeyNameOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#ScreenKeyOperandShape; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
-    "switches": "InForce (Year < 2002): the 1985-only mandatory INVALID KEY of START (§1985:IX.4.7.3 SR3); not the qualification",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#ScreenKeyOperandShape",
+    "switches": "admitsSubscript2002: only COBOL-2002 admits a subscripted key operand; at 85 a subscript or reference modifier is refused, as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#StartKeyShapeRule",
+    "switches": "Edition.Cite chooses the §1985 VIII/IX or §2023 rule text, message only",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+    "switches": "the SOURCE phrase (record-key-name) is a 2002+ construct, refused at 85 with COBOL0900",
     "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#SubscriptedClauseOperands",
-    "switches": "2002-only admission of a subscripted operand under OCCURS; false at 85 as at 2023",
-    "same-arm-as-latest": true
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
-    "switches": "START FIRST/LAST 2002 gate, only when written",
-    "same-arm-as-latest": true
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
-    "switches": "Edition.Permissive (a mode, not the edition): first-declared under --permissive, else error",
-    "same-arm-as-latest": true
    }
   ],
   "edition-search": "",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_bf10_11 covers a one-level record-name qualifier against a same-named working-storage item; not a multi-level chain, the file-name qualifier, IN, a generic-key operand qualified through another record of the file, or the refusal of an ambiguous or wrongly qualified operand",
+  "witnesses-cover": "part: the witness qualifies a record key; not exercised are the file-name qualifier, the SR4b item qualified through another record, an ambiguous unqualified operand and a qualification reaching a WS item",
   "probes": [
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/runs/g85_bf10_11-001",
-    "printed": "EXPECT: MATCH (g85_bf10_11.out)",
-    "expected": "the witness .out"
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/key_qual_ix.cob",
+    "printed": "ALT1 0002BRAVO rest2 / ALT2 0003CHARLYrest3 / PRI1 0003CHARLYrest3 / START3 INVALID FS=23",
+    "expected": "START KEY NOT LESS THAN K-NAME OF K-AREA OF IX-REC positions at BRAVO; KEY > K-ID IN IX-REC IN IXF at 0003; KEY = K-ID OF IXF ('0009') invalid key"
    },
    {
-    "class": "a,c,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p4start.cob",
-    "printed": "Q3 00 K002V002 / QF 00 K002V002 / QG 00 K101V101 / INV-4 23",
-    "expected": "IK OF IGRP OF IREC > K001 -> K002; IK OF IF1 NOT < K002 -> K002; generic GK OF IREC2 OF IF1 = K1 -> K101 (§1985:IX.4.7.3 SR4b, GR10c); IK IN IREC = K005 -> invalid key 23"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/ix_partial.cob",
+    "printed": "GOT BB01BBBB FS=00",
+    "expected": "START KEY = K-PFX OF IX-ALT OF IXF (two-character item at the prime key's leftmost position in another record, SR4b; K-PFX also in WS) positions at the first BB key"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p5stamb.cob",
-    "printed": "COBOL1639 'IK' does not uniquely identify a data item; COBOL0862 'IKOFWGRP' is neither a record key of the file nor ...; COBOL1639 'GK OF NOSUCH' ... not under the given qualifier",
-    "expected": "unqualified IK (two declarations) refused as non-unique; IK OF WGRP refused by SR4 (not a key of the file); a qualifier naming nothing refused"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/kq_st_ambig.cob",
+    "printed": "error COBOL1639: 'K-NAME' does not uniquely identify a data item — 2 declarations share the name ...",
+    "expected": "unqualified K-NAME is not unique: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/kq_st_badq.cob",
+    "printed": "error COBOL0862: START on 'IXF': 'K-NAMEOFWS-K' is neither a record key of the file nor an item that begins at the leftmost character position of one ... (ISO §1985:IX.4.7.3 SR4)",
+    "expected": "K-NAME OF WS-K is no record key nor an item of the file's record: refused"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IX.4.7.3 SR2",
     "check": "OK  §1985:IX.4.7.3 SR2  (║4.7.3 Syntax Rules║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.1 SRL2.1",
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.1  (4.3.8.1 Qualification)  the text is in SRL2.1"
    }
   ],
-  "notes": "BindStart resolves data-name-1 through the shared qualified resolver (ResolveSending, QualifierWalk with the file-name arm) and RecordKeyNameOf; every qualification form 1985 prints resolves and both refusal forms are diagnosed. The edition is consulted on the path only for neighbouring rules (85-only INVALID KEY requirement, 2002-only subscripted operands). The ambiguity and SR4 messages cite 2023 clause numbers (cosmetic).",
+  "notes": "The operand is shape-screened, asked as a record-key-name (none exist at 85, the SOURCE phrase being refused) and then resolved as a qualified data-name; every qualified form probed binds and positions correctly. The SR4 refusal message prints the operand with its qualifier glued ('K-NAMEOFWS-K'), a diagnostic-text matter outside this rule's verdict.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -83,11 +88,8 @@
   "rule-id": "1985-SR-IX.4.7.3-2",
   "refutation": "UPHELD",
   "classes": "b,c,d,e",
-  "evidence": "Probe r3start-001 at --std 85 (two indexed files sharing key names KEYF/ALTK, keys declared qualified in the SELECT, a second record REC1B redefining the prime key with a shorter KEYF): START IF1 KEY = ALTK OF G1 OF REC1 -> A1 00 K003MM03 (alternate key qualified by two levels); START IF1 KEY > KEYF OF G1 OF REC1B with K00 -> INV-2 23 (truncated comparison makes no key greater, §1985:IX.4.7.4 GR4); NOT LESS -> A2 00 K001ZZ01; START IF2 KEY NOT < ALTK OF IF2 (file-name qualifier, sequential access) -> A3 00 J002AA02; KEYF IN REC2 -> A4 00 J002AA02. r3dgrp-001: a 3-byte group GK OF REC1D OF IF1 at the key's leftmost position -> G1 00 K001ZZ01 (SR4b, 1985 group is alphanumeric). r3bref-001 refusals: KEYF OF G1 (ambiguous) COBOL1639; ALTK OF IF2 and KEYF OF REC2 in START IF1 COBOL0862; subscripted GT (1) and GT OF REC1B (1) COBOL0862 (data-name-1 is a data-name at 85); KEYF OF IF1 in START IF2 COBOL1639. r3clate-001 class c: WITH LENGTH, KEY IS LESS THAN, KEY <=, START FIRST each refused COBOL0900 requires COBOL-2002. cite.py: OK §1985:IX.4.7.3 SR2; OK §1985:IX.4.7.4 GR4; OK §1985:IX.4.7.3 SR4b.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartWithLength: WITH LENGTH 2002 gate, refused at 85",
-   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs: the reverse-search START operator gate (LESS, NOT GREATER, LESS OR EQUAL) 2002, refused at 85"
-  ],
+  "evidence": "At --std 85 (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_ix.cob, runs/ks_ix-001): the 1985 (amended) form 'START IXF KEY IS GREATER THAN OR EQUAL TO AK IN AG IN IXF' (§1985:IX.4.7.2 prints it) on a qualified alternate key positions at 0002YYYbbb; 'KEY >= K2 OF IXF' (file-name qualifier only) on the prime key at 0002; 'KEY = K1 OF REC1', an SR4b item qualified through the FD's other record, at 0003XXXccc. The refusal half: 'START IX1 KEY = KX OF IX2', a qualifier that reaches another file's key, is refused (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_st_wrongfile.cob: COBOL0862 ... ISO §1985:IX.4.7.3 SR4); a reference-modified key is refused (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_sub.cob: COBOL2024). cite.py: 'OK  §1985:IX.4.7.3 SR2', 'OK  §1985:IX.4.7.3 SR4b', 'OK  §1985:IX.4.7.2 ... the text is in the clause'. (The SR4 message prints the operand with its qualifier run together, 'KXOFIX2', as the reader saw: diagnostic text only.)",
+  "edition-sites-missed": [],
   "corrected": ""
  }
 }

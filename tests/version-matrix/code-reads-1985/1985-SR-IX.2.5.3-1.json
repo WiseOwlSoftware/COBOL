@@ -2,78 +2,61 @@
  "rule-id": "1985-SR-IX.2.5.3-1",
  "rule-digest": "7fd21581dbe8",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-154",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m02",
   "sources": {
-   "reader": "d6d8b0b0f17a94669df01f8e0e63b46be19f274694e886e4d79820e9005e7cb5",
-   "refuter": "8ebd24c079ba77d212b3d6985ce997d85c8b423c1554ac6f225bf8d122755c1b"
+   "reader": "efbf4963ccaa70131f8f8bd96cc5574940d470d98b4586024b70a14899215724",
+   "refuter": "9628720596d1587ba881cafe02b94091f98cef25959c1b296af5e372e4c3d705"
   },
   "imported": {
-   "reader": "4a17495e2337dfb95fc9e1839958c378b1a56bb0b88495172755ee97199a3f48",
-   "refuter": "5550b1a55a2c5891169d126e23f5ddfac7f9694fc13232a878b64d607c70c62a"
+   "reader": "339a71e28413a0aa2ba5ada020efe20969c3897362e62eb05fe7533eeecabfdf",
+   "refuter": "2b0ebbef42ce42b7d417bf45ad14544b107cc8e863c30fb204535de9ecbfbdc5"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IX.2.5.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At 1985 the ALTERNATE RECORD KEY clause's data-name-1 may be written with qualifiers (IN/OF data-names and/or the file-name, per §1985:IV.4.3.8.1 Format 1), must resolve uniquely, and admits no subscript (2002's subscripted operand) nor the later SOURCE or SUPPRESS WHEN phrases.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#alternateKeyClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenClauseOperandOccurrence; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordKeyNameCandidates; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlternateKeySuppressWhen; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+  "requirement": "At 1985 the ALTERNATE RECORD KEY clause's data-name-1 may be written qualified by group, record and file-name qualifiers (§1985:IV.4.3.8.1 format 1), must then identify one item uniquely, and must lie in a record of the file (SR2).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#IdentifyDataName; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenClauseOperandOccurrence",
-    "switches": "Edition.SubscriptedClauseOperands (Year == 2002) admits a subscripted key operand; 1985 and 2023 refuse it (COBOL2024)",
+    "site": "src/WiseOwl.Cobol.Editions/EditionInfo.cs#SubscriptedClauseOperands",
+    "switches": "Year == 2002 admits subscripted file-clause operands (FileControlBinder.Resolve ScreenClauseOperandOccurrence); false at 85 and 2023",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlternateKeySuppressWhen",
-    "switches": "ConstructRegistry: SUPPRESS WHEN refused below 2023",
-    "same-arm-as-latest": false
-   },
-   {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
-    "switches": "ConstructRegistry: SOURCE phrase refused below 2002",
+    "switches": "the SOURCE phrase (record-key-name) is a 2002+ construct, refused at 85 with COBOL0900",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: SUPPRESS WHEN and SOURCE are refused at 1985; the qualified-name resolution itself is the same code",
-  "witnesses-cover": "part: g85_bf21_08 covers OF/IN data-name qualification; not covered: file-name as qualifier, the ambiguous unqualified refusal, a qualifier that names nothing or an item outside the file",
+  "edition-search": "grep DialectLevel|CobolVersion|Edition. in FileControlBinder.Resolve.cs: only SubscriptedClauseOperands and Edition.Cite (message text); the 85 sum-counter arm (kb/Work PB5361) applies only to a report sum counter",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness qualifies the alternate key in a passing program; not exercised are the file-name qualifier, an unqualified name declared twice, and a qualifier that reaches an item outside the file's records",
   "probes": [
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k1.cob",
-    "printed": "ALT 002 dat2/PRI AAA dat1/G 009 gdat FS 0000/WS WWWVVV",
-    "expected": "ALTERNATE RECORD KEY IS K2 IN GRP OF REC-F and K2 OF IX-G (file-name qualifier) both resolve; READ KEY by the alternate key returns the right record"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/key_qual_ix.cob",
+    "printed": "ALT1 0002BRAVO rest2 FS=00 / ALT2 0003CHARLYrest3 FS=00 / PRI1 0003CHARLYrest3 FS=00 / START3 INVALID FS=23 / DONE",
+    "expected": "ALTERNATE RECORD KEY IS K-NAME IN K-AREA OF IX-REC (two levels) and K-NAME OF IGF (file-name qualifier) accepted; the alternate key orders START/READ NEXT"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k3.cob",
-    "printed": "error COBOL1639 ALTERNATE RECORD KEY 'K2' does not uniquely identify a data item (3 declarations)",
-    "expected": "refused: unqualified non-unique name"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/kq_ak_ambig.cob",
+    "printed": "error COBOL1639: ALTERNATE RECORD KEY 'K-NAME' does not uniquely identify a data item — 2 declarations match",
+    "expected": "K-NAME declared in IX-REC and WS-K: must be qualified"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k4.cob",
-    "printed": "error COBOL0863 'K2' references nothing described in this program (§1985:IX.2.5.3 SR2)",
-    "expected": "refused: K2 OF NOSUCH"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k5.cob",
-    "printed": "error COBOL0863 'K2' references an item outside this file's record descriptions",
-    "expected": "refused: K2 OF WS resolves outside the file"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/kq_ak_ws.cob",
+    "printed": "error COBOL0863: ALTERNATE RECORD KEY 'K-NAME' references an item outside this file's record descriptions ... (ANSI §1985:IX.2.5.3 SR2)",
+    "expected": "K-NAME IN WS-K qualifies to a WS item: refused by SR2"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k8.cob",
-    "printed": "error COBOL2024 ALTERNATE RECORD KEY 'K2 IN GRP OF REC-F (1)' is written with a subscript",
-    "expected": "refused at 1985: data-name-1, qualified only"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k6.cob",
-    "printed": "error COBOL0900 SUPPRESS WHEN phrase requires COBOL-2023 (targeting COBOL-85)",
-    "expected": "refused at 1985"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/kq_c_source.cob",
+    "printed": "error COBOL0900: the SOURCE phrase of the RECORD KEY or ALTERNATE RECORD KEY clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "a later edition's key form refused at 85"
    }
   ],
   "citations": [
@@ -82,11 +65,11 @@
     "check": "OK  §1985:IX.2.5.3 SR1  (║2.5.3 Syntax Rules║)  the text is in SR1"
    },
    {
-    "cite": "§1985:IV.4.3.8.1",
-    "check": "OK  §1985:IV.4.3.8.1  (4.3.8.1 Qualification)  the text is in the clause; it lies in SR3"
+    "cite": "§1985:IV.4.3.8.1 SRL2.1",
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.1  (4.3.8.1 Qualification)  the text is in SRL2.1"
    }
   ],
-  "notes": "Key operands resolve through the one qualified-reference resolver (QualifiedCandidates then UniqueOrReportAmbiguous) inside ResolveFiles' InRecords local, so the file-name qualifier works. COBOL1639 and COBOL2024 cite §2023 clauses at --std 85 (diagnostic wording only).",
+  "notes": "Both key clauses capture the IN/OF chain through ClauseDataNameSubscripted and resolve it with IdentifyDataName over the program scope, then SR2 judges the item; group, record and file-name qualifiers resolve, and an ambiguous or out-of-file operand is refused at --std 85.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -99,8 +82,8 @@
  "refuter": {
   "rule-id": "1985-SR-IX.2.5.3-1",
   "refutation": "UPHELD",
-  "classes": "e,b",
-  "evidence": "q1.cob --std 85 (runs/q1-001): ALTERNATE RECORD KEY IS K2 OF REC-F2 WITH DUPLICATES, the key described only in the file's SECOND record description (GR4) and qualified by that record-name while a same-named WORKING-STORAGE K2 exists, skipping the intermediate group GRP (partial qualification): READ KEY IS K2 OF REC-F2 -> ALT 002 BBBdat2 02 (first-written duplicate, status 02); ALTERNATE RECORD KEY IS K3 OF REC-G (two levels skipped) and READ KEY IS K3 OF SUB -> G 009 gdat 00. Together with the reader's k1/k3/k4/k5/k6/k8 this covers qualification by record-name, intermediate group and file-name, and the refusals. cite.py: 'OK  §1985:IX.2.5.3 SR1  (║2.5.3 Syntax Rules║)  the text is in SR1'.",
+  "classes": "b,c,d,e",
+  "evidence": "At --std 85: 'ALTERNATE RECORD KEY IS AK OF AG OF REC2 IN IXF WITH DUPLICATES', with AK also in REC1 and in WS, the key in the FD's second record (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_ix.cob, runs/ks_ix-001: START KEY >= AK IN AG IN IXF 'YYY' then READ NEXT gives 0002YYYbbb, FS=00); a qualifier that names another file is refused by SR2 (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_ix_wrongfile.cob: COBOL0863 'ALTERNATE RECORD KEY AX references an item outside this file's record descriptions ... (ANSI §1985:IX.2.5.3 SR2)' for 'AX OF IX1' under IX2); a subscripted key, which the 1985 format (data-name-1, not identifier) does not admit, is refused (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_sub.cob: COBOL2024 'KA OF R1 (1)' is written with a subscript). cite.py: 'OK  §1985:IX.2.5.3 SR1', 'OK  §1985:IX.2.5.3 SR2'.",
   "edition-sites-missed": [],
   "corrected": ""
  }

@@ -2,67 +2,60 @@
  "rule-id": "1985-SR-VIII.4.7.3-2",
  "rule-digest": "7fd21581dbe8",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-163",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m02",
   "sources": {
-   "reader": "4b088dead2719e1fc593abf6e485ec7a48bf6bcc65261226c2ca26427d8bbf3e",
-   "refuter": "c21732898f741fa02834aa321ab3abb1732b605ad488443c012cc311b90ba757"
+   "reader": "efbf4963ccaa70131f8f8bd96cc5574940d470d98b4586024b70a14899215724",
+   "refuter": "9628720596d1587ba881cafe02b94091f98cef25959c1b296af5e372e4c3d705"
   },
   "imported": {
-   "reader": "0a0efff5beadca8c0025107cfcd9eba1aaf5ea626eaf7c7fb3461292915f3f84",
-   "refuter": "56498b4b029fc0cc10fd0de6bc39d5b6c602ad859206546fed1a1b6f4635cb76"
+   "reader": "9c78b652d3891f9d40b93797c393f2e4cfdc910c9417dbe517c9a7332a7e6be6",
+   "refuter": "db03014f024fe59db822bcd5e99da3089c80abe782dcca61c546a60fb5378657"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VIII.4.7.3-2",
   "verdict": "CONFORMS",
-  "requirement": "At 85 the KEY phrase operand data-name-1 of a relative-file START may be written qualified (OF or IN, any number of levels, partial qualification while unique), and the qualified reference must resolve to the RELATIVE KEY item (SR4), an ambiguous or unresolvable qualified name being refused.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#RecordKeyNameOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveSending; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
+  "requirement": "At 1985 the KEY phrase's data-name-1 of a relative-file START may be written qualified (group and record qualifiers per §1985:IV.4.3.8.1) and must then identify the RELATIVE KEY item uniquely; a name declared more than once must be qualified.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#RecordKeyNameOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#ScreenKeyOperandShape; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
-    "switches": "ctx.Edition.SubscriptedClauseOperands (true only at 2002) decides whether an operand under OCCURS is refused; 85 takes the same refusing arm as 2023",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#ScreenKeyOperandShape",
+    "switches": "admitsSubscript2002: only COBOL-2002 admits a subscripted key operand; at 85 a subscript or reference modifier is refused, as at 2023",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
-    "switches": "ctx.ExceptionPhrases.Require: the 1985 mandatory INVALID KEY (SR3, kb/Work PB5076), not qualification",
-    "same-arm-as-latest": false
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#StartKeyShapeRule",
+    "switches": "Edition.Cite chooses the §1985 VIII/IX or §2023 rule text, message only",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#StartRule",
+    "switches": "cites §1985:VIII.4.7.3 for a relative file at 85, §2023:14.9.41.3 later; message text only",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of Edition/DialectLevel in KeyedIoBinder.cs; qualification resolution (ResolveSending, QualifierWalk) carries no edition test",
-  "behaviour-differs-by-edition": "no: the qualified operand resolves and is identity-checked against the RELATIVE KEY item by the same code at 85 and 2023 (p2qual prints the same five lines at both)",
-  "witnesses-cover": "part: g85_bf10_09 uses one OF level with a same-named sibling; multi-level, IN, partial qualification and the refusal half (ambiguous, wrong item, unknown qualifier) are not exercised",
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness qualifies the key in a passing program; not exercised are an unqualified name declared twice and a qualification that reaches a different item",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2qual.cob",
-    "printed": "GT 2 -> R3 RK=03 / NLT OK / NLT 1 -> R1 ST=00 / GE 2 -> R2 / EQ 9 -> INVALID ST=23",
-    "expected": "RELATIVE KEY IS RK IN G2 OF TOPG; START KEY written RK OF G2 IN TOPG, RK IN G2 OF TOPG, RK OF G2 OF TOPG all resolve to the relative key and position per §1985:VIII.4.7.4 GR4 a/b"
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/rl_qual.cob",
+    "printed": "GOT REC003 RK=0003 FS=00 / GOT REC005 RK=0005 FS=00 / START3 INVALID 23",
+    "expected": "RELATIVE KEY IS RK OF WS-A, RK also in WS-B; START KEY NOT LESS THAN RK OF WS-A (2) positions at 3, KEY > RK IN WS-A (4) at 5, KEY = RK OF WS-A (6) invalid key with status 23"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2ambig.cob",
-    "printed": "error COBOL1639: 'RK OF G2' does not uniquely identify a data item — 2 declarations of 'RK' match",
-    "expected": "qualification insufficient for uniqueness is refused"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/rl_ambig.cob",
+    "printed": "error COBOL1639: 'RK' does not uniquely identify a data item — 2 declarations share the name ...",
+    "expected": "unqualified RK is not unique: refused (§1985:IV.4.3.8.1)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2wrong2.cob",
-    "printed": "error COBOL0862: START on 'RELF': data-name-1 shall be the RELATIVE KEY item 'RK'",
-    "expected": "a uniquely qualified RK OF G2 IN OTHER-TOPG that is not the RELATIVE KEY item violates §1985:VIII.4.7.3 SR4"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2g1.cob",
-    "printed": "error COBOL0862: START on 'RELF': data-name-1 shall be the RELATIVE KEY item 'RK'",
-    "expected": "RK OF G1 IN TOPG is another item: refused under SR4"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2none.cob",
-    "printed": "error COBOL1639: 'RK OF NOSUCH' does not uniquely identify a data item — 'RK' is declared, but not under the given qualifier (NOSUCH)",
-    "expected": "an unknown qualifier is refused"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m02/src/rl_wrong.cob",
+    "printed": "error COBOL0862: START on 'RLF': data-name-1 shall be the RELATIVE KEY item 'RK' (ISO §1985:VIII.4.7.3 SR4)",
+    "expected": "qualified to the other RK: not the RELATIVE KEY item, refused"
    }
   ],
   "citations": [
@@ -73,9 +66,13 @@
    {
     "cite": "§1985:VIII.4.7.3 SR4",
     "check": "OK  §1985:VIII.4.7.3 SR4  (║4.7.3 Syntax Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.1 SRL2.1",
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.1  (4.3.8.1 Qualification)  the text is in SRL2.1"
    }
   ],
-  "notes": "BindStart resolves the KEY operand through ResolveSending (the shared qualified-name resolver), then the relative arm compares the denoted item to file.RelativeKeyItem by identity, so qualification is honoured and a qualified name of another item is refused. RecordKeyNameOf returns None at 85 because no 1985 file declares a SOURCE-form record-key-name. The diagnostics cite 2023 clause numbers, a message-text matter only.",
+  "notes": "The START operand is shape-screened, then resolved through the one qualified-reference resolution (ResolveSending) and compared by identity with the RELATIVE KEY item; the qualified forms bind and position correctly at --std 85 and the unqualified ambiguous form is refused.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -88,8 +85,8 @@
  "refuter": {
   "rule-id": "1985-SR-VIII.4.7.3-2",
   "refutation": "UPHELD",
-  "classes": "b,c",
-  "evidence": "Read §1985:VIII.4.7.3 SR2/SR4 and §1985:VIII.2.4.3 SR1/SR3 (RELATIVE KEY may be qualified and must not be in that file's own record, so it may sit in ANOTHER file's record and be qualified by a file-name). r2fq-001: RELATIVE KEY IS RK OF FOTHER (RK also in FTHIRD's record and in WORKING-STORAGE); START KEY > RK OF FOTHER, NOT LESS THAN RK OF O-REC IN FOTHER, EQUAL RK IN O-REC printed GT 2 -> R3 RK=03 / NLT 1 -> R1 ST=00 / EQ 2 -> R2 (file-name qualifier and mixed OF/IN resolve). r2fqw-001: KEY EQUAL RK IN FTHIRD refused COBOL0862 (SR4). r2fqa-001: unqualified RK refused COBOL1639 (3 declarations). Class c: r2fql-001 KEY IS < refused COBOL0900 (reverse operators require 2002); r2fqf-001 START FIRST refused COBOL0900. Grep of KeyedIoBinder.BindStart edition uses: SubscriptedClauseOperands, ExceptionPhrases, error reporting only, as the reader listed. Diagnostics at 85 cite §2023 clause numbers (message text, not acceptance). cite.py: OK §1985:VIII.4.7.3 SR2; OK §1985:VIII.4.7.3 SR4; OK §1985:VIII.2.4.3 SR3.",
+  "classes": "b,c,e",
+  "evidence": "At --std 85 (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_rel.cob, runs/ks_rel-001): RELATIVE KEY IS RK OF WS-A with RK also in WS-B; the 1985 (amended) forms 'START RLF KEY IS GREATER THAN OR EQUAL TO RK OF WS-A' and 'KEY >= RK IN WS-A' (§1985:VIII.4.7.2 prints them) bind and position (GE REC003, GE2 REC004); a contained program, whose own WS-B also holds an RK, starts the container's GLOBAL relative file with 'KEY = RK OF WS-A' through the container's GLOBAL WS-A, and the container's READ NEXT continues from it (INNER START FS=00 / AFTER INNER REC005). The refusal half: when the contained program declares its own WS-A, 'RK OF WS-A' there names its own item, not the RELATIVE KEY, and is refused (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_rel_innerwrong.cob: COBOL0862 '... shall be the RELATIVE KEY item RK (ISO §1985:VIII.4.7.3 SR4)'); a reference-modified key is refused (E:/COBOL-coord/scratch/reread-1985-moved/out/refute-1985-m02/src/ks_sub.cob: COBOL2024). cite.py: 'OK  §1985:VIII.4.7.3 SR2', 'OK  §1985:VIII.4.7.3 SR4'.",
   "edition-sites-missed": [],
   "corrected": ""
  }

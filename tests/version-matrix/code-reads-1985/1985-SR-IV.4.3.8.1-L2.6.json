@@ -2,59 +2,77 @@
  "rule-id": "1985-SR-IV.4.3.8.1-L2.6",
  "rule-digest": "8cc54f61181a",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-044",
+  "pin": "832bc39c61395c388d20b4b9f1abfd5a4586e5ae",
+  "slice": "1985-m01",
   "sources": {
-   "reader": "9735a152d696acce46a8d78dcde413582093c750e9fd8371e69ca236057fce49",
-   "refuter": "9b073a18b4097e884b2394934b4f4cbf8063a47e6be7e3bca9a610af9bd16c35"
+   "reader": "7dca8738df1eef999039af91f9e658b8f88eab2f9cb9b139e01adbdc4f6035f3",
+   "refuter": "0afe07775dfc140e2155ea435ec895ea8284ad18ecc3a53a279bb67c78e15ef2"
   },
   "imported": {
-   "reader": "625bc2f1867591ddea5ffd9741501e1a922048075e94be94b3de80ff44441005",
-   "refuter": "357c68c69d467301ad21034d758b2a27a38d7a01ef21dfa7ffa5f45a79776a62"
+   "reader": "f343a7df02c99ae4872841a058e26796ce211bee6ad96c460c936870cf140303",
+   "refuter": "f179e7ca4ec564c1312537bbe676f2db1ac8cc6edbdafb1c655acf4f9037daae"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IV.4.3.8.1-L2.6",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 an explicitly referenced paragraph-name duplicated within its section must be refused, a paragraph qualified by section-name must not admit the word SECTION, an unqualified paragraph-name must resolve to its own section's paragraph when referenced from within that section, and a paragraph or section of another (containing or contained) program must not be referenceable.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureNameMap.cs#IsDuplicated; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName",
-  "edition-consulted": [],
-  "edition-search": "grep of ProcedureTableBuilder.cs, ProcedureNameMap.cs and StatementValidation.cs#RejectAmbiguousProcedureName for CobolVersion|DialectLevel|Edition.Edition|Year|ConstructRegistry: only Edition.At (diagnostic cursor). The grammar's procedureName admits reservedGatedWord (the per-edition reserved-word gate, not specific to this rule).",
+  "requirement": "An explicitly referenced paragraph-name must not be duplicated within its section; a paragraph is qualified by its section-name without the word SECTION; an unqualified paragraph-name resolves within the referencing section; no program may reference another program's paragraph or section.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Procedures.cs#ProcedureNamed; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectProcedureName; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureName",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName",
+    "switches": "Edition.Cite: only the message text of COBOL2121/COBOL2122; the refusal is the same code",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for DialectLevel, Edition.Year, EditionContext, CobolVersion, Permissive and ConstructRegistry in NameResolution.cs, SymbolTable.DataNameCandidates.cs, SymbolTable.IndexNames.cs, SymbolTable.Procedures.cs, SymbolTable.ConditionNames.cs, QualifiedNameClasses.cs, OccursKeyResolvePass.cs, OdoResolvePass.cs, StatementValidation.cs, DataBinder.cs#UniqueOrReportAmbiguous; the grammar rules qualification, dataReference, procedureName and reportGroupReference carry no version predicate; ProcedureNamed consults no edition",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: witnesses exercise legal qualified and in-section unqualified references and an unreferenced duplicate; not exercised at 85: refusal of a referenced in-section duplicate, the SECTION word after the qualifier, and cross-program procedure references",
+  "witnesses-cover": "part: duplicate procedure names and qualification; SECTION after the qualifier, an unreferenced in-section duplicate and a nested program's reference are not exercised",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pn.cob",
-    "printed": "B-X B-Y C-X A-Y B-X B-Y B-Y B-Z END",
-    "expected": "P-X IN S-B / OF S-C reach each copy; unqualified P-Y inside S-B reaches B-Y and inside S-A reaches A-Y; THRU and GO TO qualified"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ppos.cob",
+    "printed": "exit 0: S1-P1 / S2-P1 x3 / S1-P2 / S1-P1 / S1-P2 / LC 03 02 / END",
+    "expected": "P1 OF S1, P1 IN S2, unqualified P1 from within S2, PERFORM P1 OF S1 THRU P2 IN S1, GO TO FIN OF S9, LINAGE-COUNTER OF/IN file all resolve"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pndup.cob",
-    "printed": "COBOL2122 PERFORM 'P-DUP': that paragraph-name is declared 2 times within section 'S-B' ... explicitly referenced here",
-    "expected": "refused: a referenced paragraph-name must not be duplicated within a section"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/ppos2.cob",
+    "printed": "exit 0: S1-P1-A / S1-P1-B",
+    "expected": "a paragraph duplicated within a section but never explicitly referenced is legal"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pnsec.cob",
-    "printed": "85 and 2023: COBOL0307 unexpected 'SECTION' at PERFORM P-OK OF S-B SECTION",
-    "expected": "refused: the word SECTION must not appear"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/pneg1.cob",
+    "printed": "exit 65: COBOL2121 PERFORM 'P1': the reference is not unique ... 2 times (S1, S2)",
+    "expected": "unqualified P1 from a third section is ambiguous (SRL2.1/SRL2.6)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pnx.cob",
-    "printed": "COBOL1639 PERFORM 'INNER-P' names no procedure (line 6); GO TO 'OUTER-P' names no procedure (line 14)",
-    "expected": "refused: a paragraph-name of another program may not be referenced"
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/pneg2.cob",
+    "printed": "exit 65: COBOL0307 unexpected 'SECTION'",
+    "expected": "When a paragraph-name is qualified by a section-name, the word SECTION must not appear"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/pneg3.cob",
+    "printed": "exit 65: COBOL2122 PERFORM 'P1': that paragraph-name is declared 2 times within section 'S1' ... (1985 IV.4.3.8.1 SRL2.6)",
+    "expected": "an explicitly referenced paragraph-name duplicated within a section is refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/reread-1985-moved/out/work-1985-m01/src/pneg4.cob",
+    "printed": "exit 65: COBOL1639 PERFORM 'OUTER-OTHER' names no procedure ... may not be referenced from any other program",
+    "expected": "a nested program cannot reference its container's paragraph"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IV.4.3.8.1 SRL2.6",
-    "check": "OK  §1985:IV.4.3.8.1 SRL2.6  (4.3.8.1 Qualification)  the text is in SRL2.6"
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.6  the text is in SRL2.6 (quoted: a paragraph-name must not be duplicated within a section)"
    }
   ],
-  "notes": "ResolveProcedureWord is the one resolution for every procedure-name operand: qualified looks in the named section's map, unqualified prefers the current section, and an in-section duplicate returns an ambiguity reported as COBOL2122; the maps are per source element so another program's names resolve to nothing. The grammar has no SECTION after the qualifier, so it is a parse refusal at every edition.",
+  "notes": "ProcedureNamed resolves the containing section first, then the whole source element; duplicates are kept and refused only at a reference (COBOL2122 in-section, COBOL2121 across sections), so an unreferenced duplicate compiles. The grammar has no SECTION after the qualifier, and procedure-names are per source element, so a nested program's reference to its container's paragraph is refused.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -68,7 +86,7 @@
   "rule-id": "1985-SR-IV.4.3.8.1-L2.6",
   "refutation": "UPHELD",
   "classes": "b,c",
-  "evidence": "r5pn at 85 gave these results. PERFORM P-D from SA, where P-D is in SB and SC: COBOL2121 (not unique). PERFORM P-E OF SB, written qualified but duplicated within SB: COBOL2122. PERFORM IN-S, a section of the contained program, and PERFORM SC from the contained program, a section of the containing program: COBOL1639 'names no procedure'. The reader probed paragraphs only; I probed section-names. r6nosec: duplicated paragraphs in a Procedure Division with no sections, explicitly referenced, drew COBOL2121. r2sup: unqualified PY inside SB, and PX IN SA, both reached the right copies. cite.py: 'OK  §1985:IV.4.3.8.1 SRL2.6 ... the text is in SRL2.6'.",
+  "evidence": "pn1.cob: PERFORM P1 OF S1 and ALTER TO PROCEED TO P1 OF S1 with P1 twice in S1 -> COBOL2122; P1 OF S2 and GO TO P2 OF S1 naming a paragraph not in that section -> COBOL1639. pn2.cob: duplicate paragraphs with no sections -> COBOL2121. pn3.cob: USE FOR DEBUGGING ON P1 and GO TO P9 DEPENDING across sections -> COBOL2121. pn4.cob: P1 IN S1 THRU P2 OF S1 and ALTER X1 OF S3 TO PROCEED TO P2 IN S1 run correctly (S1-P1 S1-P2 S2-P1 S1-P2 S2-P1 S2-P9). sib.cob: a sibling program's paragraph PA -> COBOL1639. cite: OK  §1985:IV.4.3.8.1 SRL2.6  the text is in SRL2.6.",
   "edition-sites-missed": [],
   "corrected": ""
  }
