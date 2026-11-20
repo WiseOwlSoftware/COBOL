@@ -91,6 +91,63 @@ public sealed class ListingFlaggedConstructsTests : IDisposable
         return result;
     }
 
+    /// <summary>A removal its registry row pins a code of its own for (COBOL1572, not the band's COBOL0902) is flagged like every other:
+    /// a MERGE in a SORT's input procedure, which §2023:14.9.24 prohibits and Annex E.2 item 20 lists as a change from the prior
+    /// standard, is removed at 2023 (row <c>merge-in-sort-merge-proc-removed-2023</c>) and, under <c>--permissive</c>, a warning the
+    /// table lists on the MERGE's line (listing step pb5947's review lead R1-2: the report was made by hand and carried no flag).</summary>
+    [Fact]
+    public void ARemovalWithAPinnedCode_IsInTheTable()
+    {
+        string[] source =
+        [
+            "       IDENTIFICATION DIVISION.",
+            "       PROGRAM-ID. FLAGS2.",
+            "       ENVIRONMENT DIVISION.",
+            "       INPUT-OUTPUT SECTION.",
+            "       FILE-CONTROL.",
+            "           SELECT S1 ASSIGN TO \"s1.tmp\".",
+            "           SELECT S2 ASSIGN TO \"s2.tmp\".",
+            "           SELECT I1 ASSIGN TO \"i1.dat\".",
+            "           SELECT I2 ASSIGN TO \"i2.dat\".",
+            "           SELECT O1 ASSIGN TO \"o1.dat\".",
+            "           SELECT O2 ASSIGN TO \"o2.dat\".",
+            "       DATA DIVISION.",
+            "       FILE SECTION.",
+            "       SD S1.",
+            "       01 S1-REC PIC X(4).",
+            "       SD S2.",
+            "       01 S2-REC PIC X(4).",
+            "       FD I1.",
+            "       01 I1-REC PIC X(4).",
+            "       FD I2.",
+            "       01 I2-REC PIC X(4).",
+            "       FD O1.",
+            "       01 O1-REC PIC X(4).",
+            "       FD O2.",
+            "       01 O2-REC PIC X(4).",
+            "       PROCEDURE DIVISION.",
+            "       MAIN-P.",
+            "           SORT S1 ON ASCENDING KEY S1-REC",
+            "               INPUT PROCEDURE IS FEED GIVING O1.",
+            "           STOP RUN.",
+            "       FEED.",
+            "           MERGE S2 ON ASCENDING KEY S2-REC USING I1 I2 GIVING O2.",
+        ];
+        string path = Path.Combine(_dir, "flags2.cob");
+        File.WriteAllText(path, string.Join("\n", source) + "\n");
+        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(path, Path.Combine(_dir, "flags2.dll"),
+            DialectLevel: 2023, Permissive: true, CheckOnly: true,
+            Listing: new ListingRequest(Formats: ListingFormats.Json)));
+        var listing = Assert.IsType<ListingDocument>(result.Listing);
+        ListingJsonContract.AssertHolds(listing);
+        var row = ConstructRegistry.Find(Constructs.MergeInSortMergeProcRemoved2023)!;
+        int mergeLine = Array.FindIndex(source, l => l.TrimStart().StartsWith("MERGE ", StringComparison.Ordinal)) + 1;
+        var entry = Assert.Single(listing.FlaggedConstructs, c => c.Construct == row.Id);
+        Assert.Equal((row.RemovedIn!.Value, ListingFlagKind.Removed, row.Display), (entry.Edition, entry.Kind, entry.Description));
+        var diagnostic = Assert.Single(listing.Diagnostics, d => d.Id == Assert.Single(entry.Diagnostics));
+        Assert.Equal((row.DiagnosticCode, mergeLine, ListingSeverity.Warning), (diagnostic.Code, diagnostic.FileLine, diagnostic.Severity));
+    }
+
     [Fact]
     public void TheTable_CountsEachFlaggedConstruct_ByEdition()
     {

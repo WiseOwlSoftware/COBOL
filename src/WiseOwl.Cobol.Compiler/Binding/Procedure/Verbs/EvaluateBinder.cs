@@ -737,7 +737,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // ends.
             // ⛔ THIS GATE USED TO READ `lo is BoundStringLiteral{…} && hi is BoundStringLiteral` (kb/Work PB401),
             // which raised the exception ONLY where a reader of the source can already see the inversion and NEVER
-            // in the run-time case rule 2's own "in the collating sequence in effect at runtime" is written for:
+            // in the run-time case §2023:14.7.8 GR2's own "in the collating sequence in effect at runtime" is written for:
             // `EVALUATE X WHEN WS-M THRU WS-A` set nothing while `EVALUATE X WHEN "M" THRU "A"` over the identical
             // values set EC-RANGE-INVALID, and the level-88 VALUE range — the OTHER clause §2023:14.7.8's first sentence
             // governs — already asked the CLASS. One rule, one antecedent, both clauses.

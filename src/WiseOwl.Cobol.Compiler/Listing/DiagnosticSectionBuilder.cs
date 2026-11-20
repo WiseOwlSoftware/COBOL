@@ -59,7 +59,7 @@ internal static class DiagnosticSectionBuilder
                 [.. g.Select(d => d.Id)]))];
 
     /// <summary>The listing's edition flag of a compiler's: every kind by its own name (the Unit assembly's
-    /// <c>DiagnosticRecordsTests.TheFlagKindMap_IsTotal</c> holds the map total).</summary>
+    /// <c>FlaggedConstructTests.TheFlagKindMap_IsTotal</c> holds the map total).</summary>
     internal static ListingFlag? FlagOf(EditionFlag? flag) => flag is null ? null : new ListingFlag(flag.Kind switch
     {
         EditionFlagKind.Obsolete => ListingFlagKind.Obsolete,
