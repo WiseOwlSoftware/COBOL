@@ -20,8 +20,8 @@ public sealed class StorageClaimHeadDriftTests
     public void BothClaimArms_AskTheOneResolver_WithTheirContainedFlag()
     {
         string text = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Passes", "PtrBindBasedAndAddressablesPass.cs"));
-        Assert.Contains("ResolveStorageClaimHead(binder, name, quals, method, contained, firstOfSeveral: true)", text);
-        Assert.Contains("ResolveStorageClaimHead(binder, name, quals, method, contained, firstOfSeveral: false)", text);
+        Assert.Contains("ResolveStorageClaimHead(binder, written, method, contained, firstOfSeveral: true)", text);
+        Assert.Contains("ResolveStorageClaimHead(binder, written, method, contained, firstOfSeveral: false)", text);
         Assert.DoesNotContain("ResolveByReferenceOperand(", text);
         Assert.DoesNotContain("PtrResolveAddressOfTarget(", text);
     }

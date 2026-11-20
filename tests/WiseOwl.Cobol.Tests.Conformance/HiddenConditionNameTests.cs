@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// condition-name (SET Format 4's condition-name-1, SEARCH ALL's bare WHEN, §2023:14.9.37.2 Format 2) then asked the RAW
 /// condition table and told the user the word "is a condition-name (a level-88 entry), which identifies no data item" —
 /// the inverse of both facts. <c>ConditionBinder.ReportMisqualifiedCondition</c> now asks
-/// <c>DataBinder.ConditionNameHiddenByNearerDataItem</c> and says the reference names a data item; the SEARCH ALL
+/// <c>SymbolTable.ConditionNameHiddenByNearerDataItem</c> and says the reference names a data item; the SEARCH ALL
 /// relation screen's "is a condition-name" arm asks the same predicate and leaves the operand to SR8. The codes are pinned
 /// by the <c>pb4219_*_names_own_data_item_hiding_container_global_condition_name</c> goldens; this pins the wording, which
 /// the code alone does not distinguish.

@@ -4,7 +4,6 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Binding;              // IntrinsicCatalog
 using WiseOwl.Cobol.Binding.Model;        // DataItem / PicInfo / Usage / OdoModel
-using WiseOwl.Cobol.Binding.Procedure;    // ConditionBinder.QualifiersOf
 using WiseOwl.Cobol.Common;               // CobolLiteral
 using WiseOwl.Cobol.Editions;             // CobolKeywords
 using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
@@ -202,8 +201,8 @@ internal sealed partial class FlagConformancePass
         int line = ctx.Start.Line;
         if (_flag.IsOnAt(line, FlagOption.Flag85Set) && _currentData is { } data
             && ctx.setConditionPhrase().SelectMany(p => p.dataReference()).Any(dref =>
-                dref.cobolWord()?.GetText() is { } name
-                && data.QualifiedConditionCandidates(name, ConditionBinder.QualifiersOf(dref), data.ActiveScope) is [{ } condition]
+                WrittenQualifiedName.Of(dref) is { } written
+                && data.Symbols.IdentifyConditionName(written, report: false) is [{ } condition]
                 && IsVariableLengthGroup(condition.Parent)))
             Flag(FlagOption.Flag85Set, line, "the condition-setting SET of a variable-length group item");
         return base.VisitChildren(ctx);

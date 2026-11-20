@@ -88,17 +88,17 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         // `Linkage.GlobalRoots.Contains(root)`), so a unit that declares none can claim nothing from any program it contains — and
         // the question is not asked of them, instead of resolving every contained operand to throw it away.
         Core.NestedProgramContext[] containedPrograms = binder.Linkage.GlobalRoots.Count == 0 ? [] : program.nestedProgram();
-        var targets = PtrScanAddressOfTargets(binder, program).Select(t => (t.Name, t.Qualifiers, t.Method, Contained: false))
+        var targets = PtrScanAddressOfTargets(binder, program).Select(t => (t.Written, t.Method, Contained: false))
             .Concat(containedPrograms.SelectMany(binder.ClaimScans.AddressTargets)
-                .Select(t => (t.Name, t.Qualifiers, Method: (OoMethodSymbol?)null, Contained: true)));
-        foreach (var (name, quals, method, contained) in targets)
+                .Select(t => (t.Written, Method: (OoMethodSymbol?)null, Contained: true)));
+        foreach (var (written, method, contained) in targets)
         {
             // An unqualified head keeps the historical first-candidate pick (a duplicate-name mis-force is
             // loud-caught at the SET bind's cell check); a QUALIFIED head resolves through the ONE §2023:8.4.2.2
             // qualification machinery so the RIGHT record is forced. Inside a METHOD both lookups run in the
             // method's own scope (§2023:11.7.4 GR5 — a method-local name shadows object data and was never in the
             // unit-wide maps, kb/Work PB3192), exactly as the SET bind will resolve it.
-            DataItem? hit = ResolveStorageClaimHead(binder, name, quals, method, contained, firstOfSeveral: true);
+            DataItem? hit = ResolveStorageClaimHead(binder, written, method, contained, firstOfSeveral: true);
             if (hit is null)
                 continue;   // unresolved or ambiguous (the SET bind reports 0869 with the source text), or a container's GLOBAL item (declined, the container claims it; no 0869 follows)
             DataItem root = hit;
@@ -129,16 +129,16 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         bool IsUserFunction(string fn) => binder.Symbols.DeclaresFunctionPrototype(fn);
         var own = binder.Oo.IsClassUnit
             ? binder.Oo.BoundMethods.Select(m => (Method: m, Body: binder.Oo.BodyOf(m))).Where(b => b.Body is not null)
-                .SelectMany(b => binder.ClaimScans.ByReferenceOperands(b.Body!, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)b.Method)))
+                .SelectMany(b => binder.ClaimScans.ByReferenceOperands(b.Body!, IsUserFunction).Select(t => (t.Written, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)b.Method)))
             : program.procedureDivision() is { } opd
-                ? binder.ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
+                ? binder.ClaimScans.ByReferenceOperands(opd, IsUserFunction).Select(t => (t.Written, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null))
                 : [];
-        var operands = own.Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, t.Method, Contained: false))
+        var operands = own.Select(t => (t.Written, t.Invoke, t.SlotsOnly, t.Method, Contained: false))
             .Concat(containedPrograms.SelectMany(n => binder.ClaimScans.ByReferenceOperands(n, IsUserFunction))
-                .Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null, Contained: true)));
-        foreach (var (name, quals, invoke, slotsOnly, method, contained) in operands)
+                .Select(t => (t.Written, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null, Contained: true)));
+        foreach (var (written, invoke, slotsOnly, method, contained) in operands)
         {
-            if (ResolveStorageClaimHead(binder, name, quals, method, contained, firstOfSeveral: false) is not { } hit) continue;
+            if (ResolveStorageClaimHead(binder, written, method, contained, firstOfSeveral: false) is not { } hit) continue;
             // ⛔ A GROUP WHOSE VALUES RIDE MANAGED SLOTS CROSSES ONLY AS AN AREA (kb/Work PB1940): a strongly-typed group
             // with an object-reference or pointer leaf has no character image, so its BY CONTENT record (§2023:14.2.3 GR9) is
             // a detached copy of its area and a CALL's RETURNING delivery (§2023:14.6.5) is a store into its receiver's area.
@@ -182,21 +182,21 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
     /// record's cell and backing a second time in this unit's C# type beside the GLOBAL bridge to the container's
     /// (CS0102 on <c>_scell_R2</c> / <c>_redef_R2</c>, merge group 41183181188), so the answer is the head's own
     /// element only: <see cref="ForestSlice.DeclaringDepth"/> 0.</para></summary>
-    private static DataItem? ResolveStorageClaimHead(DataBinder binder, string name, List<string> quals, OoMethodSymbol? method, bool contained,
+    private static DataItem? ResolveStorageClaimHead(DataBinder binder, WrittenQualifiedName written, OoMethodSymbol? method, bool contained,
         bool firstOfSeveral)
     {
         var scope = method is null ? Model.Scope.Program : new Model.Scope(method.DataScope);
         DataItem? hit;
-        if (quals.Count == 0)
+        if (written.QualifierWords.Count == 0)
         {
-            if (!binder.Symbols.TryResolveUnqualified(name, scope, out var candidates)) return null;
+            if (!binder.Symbols.TryResolveUnqualified(written.Name, scope, out var candidates)) return null;
             if (contained) candidates = candidates.FindAll(c => binder.Linkage.GlobalRoots.Contains(c.Root));
             hit = candidates.Count == 1 || (firstOfSeveral && candidates.Count > 0) ? candidates[0] : null;
         }
         else
         {
             using (binder.Procedure.ActiveMethodScope.Enter(method?.DataScope))
-                hit = new ReferenceResolver(binder).Names.FindItem(name, quals);
+                hit = new ReferenceResolver(binder).Names.DataItemNamed(written);
         }
         return hit is not null && binder.State.Forest.DeclaringDepth(hit) == 0 ? hit : null;
     }
@@ -212,7 +212,7 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
     /// of them is forced here by construction. The receiving <c>ADDRESS OF data-name-1</c> of SET Format 7 is a
     /// different rule (<c>setToReceiver</c>) and is never forced: it names a BASED item (kb/Work PB450).
     /// </para></summary>
-    private static IEnumerable<(string Name, List<string> Qualifiers, OoMethodSymbol? Method)> PtrScanAddressOfTargets(DataBinder binder, Core.ProgramUnitContext program)
+    private static IEnumerable<(WrittenQualifiedName Written, OoMethodSymbol? Method)> PtrScanAddressOfTargets(DataBinder binder, Core.ProgramUnitContext program)
     {
         // A CLASS unit's statements live in its METHODS' procedure divisions — the synthetic unit OoDriver
         // binds carries the data divisions only — so each method body is scanned and its targets carry the
@@ -221,12 +221,12 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         {
             foreach (var m in binder.Oo.BoundMethods)
                 if (binder.Oo.BodyOf(m) is { } mpd)
-                    foreach (var (n, q) in binder.ClaimScans.AddressTargets(mpd))
-                        yield return (n, q, m);
+                    foreach (var target in binder.ClaimScans.AddressTargets(mpd))
+                        yield return (target.Written, m);
             yield break;
         }
         if (program.procedureDivision() is not { } pd) yield break;
-        foreach (var (n, q) in binder.ClaimScans.AddressTargets(pd))
-            yield return (n, q, null);
+        foreach (var target in binder.ClaimScans.AddressTargets(pd))
+            yield return (target.Written, null);
     }
 }

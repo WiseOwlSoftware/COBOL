@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-8.4.1.2.2-1",
  "rule-digest": "96daecabc503",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#FindItem; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#DataItemNamed; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification",
  "test-ref": "conformance:cases/8.4.1.1@2002-Qualification/g2-qual-cd-name-two-cds",
- "notes": "§2002:8.4.1.2.2 SR1: the subscripted base is a qualified-data-name per 8.4.1.1, so TAB OF CDA (TX OF TAB OF CDA) and TAB IN RECB OF CDB (TX IN CDB) address the right CD element at --std 2002 (Q4 [NO PQ.][YESS.R], matched)."
+ "notes": "§2002:8.4.1.2.2 SR1: the subscripted base is a qualified-data-name per 8.4.1.1, so TAB OF CDA (TX OF TAB OF CDA) and TAB IN RECB OF CDB (TX IN CDB) address the right CD element at --std 2002 (Q4 [NO PQ.][YESS.R], matched). retired-witness: src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#FindItem (listing step 6b remainder slice 1, kb/Work PB5932, identifies the procedure division's data-names and condition-names through the symbol table: the text lookups are deleted and the one verdict over the candidate set is NameResolution.DataItemNamed; the row cites src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#DataItemNamed)"
 }

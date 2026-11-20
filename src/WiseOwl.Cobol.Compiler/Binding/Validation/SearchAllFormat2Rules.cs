@@ -239,14 +239,13 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // which sends a reader looking for a KEY phrase edit that would not help. A level-88 that a NEARER data item of
         // the spelling hides is not what the operand names (ISO §2023:8.4.6.2.1 3) a), kb/Work PB4219 review R1-1): the
         // operand is that data item, and SR8 is its verdict.
-        string word = ReferenceResolver.WrittenWordOf(dref) ?? "";   // a register names no condition-name (kb/Work PB4154)
         if (item is null
-            && data.Symbols.TryResolveCondition(word, data.ActiveScope, out var cn)
-            && cn.Count > 0
-            && !data.ConditionNameHiddenByNearerDataItem(word, ConditionBinder.QualifiersOf(dref), data.ActiveScope)
-            && data.Symbols.Declared.ConditionNameHiddenByNearerNonDataName(word, ConditionBinder.QualifiersOf(dref), data.ActiveScope) is null)
+            && WrittenQualifiedName.Of(dref) is { } written   // a register names no condition-name (kb/Work PB4154)
+            && data.Symbols.DeclaresConditionName(written)
+            && !data.Symbols.ConditionNameHiddenByNearerDataItem(written)
+            && data.Symbols.Declared.ConditionNameHiddenByNearerNonDataName(written.Name, written.QualifierWords, data.ActiveScope) is null)
             return validation.RejectStatementOperand(
-                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(dref)} … — '{word}' is a "
+                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(dref)} … — '{written.Name}' is a "
                 + "condition-name, and Format 2 prints condition-name-1 as an ALTERNATIVE to the whole "
                 + $"`data-name-1 IS EQUAL TO …` comparison, never as its receiving operand (ISO {Format2}). "
                 + $"Write `WHEN {DataBinder.WrittenText(dref)}` alone, or compare the key data-name itself.");
@@ -296,8 +295,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         }
 
         // WrittenWordOf: a counter register's cobolWord() is its QUALIFIER, so `WHEN LINAGE-COUNTER OF F` would name F (kb/Work PB4154, PB4947).
-        string name = ReferenceResolver.WrittenWordOf(dref) ?? DataBinder.WrittenText(dref);
-        if (!data.Symbols.TryResolveCondition(name, data.ActiveScope, out var conds) || conds.Count == 0)
+        var reference = WrittenQualifiedName.Of(dref);
+        string name = reference?.Name ?? DataBinder.WrittenText(dref);
+        if (reference is not { } conditionName || !data.Symbols.DeclaresConditionName(conditionName))
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(operand)} — '{name}' is not a condition-name, and "
                 + "a WHEN phrase written without a relational operator is Format 2's condition-name-1 alternative "

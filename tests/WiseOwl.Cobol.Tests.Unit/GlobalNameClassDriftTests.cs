@@ -289,7 +289,7 @@ public sealed class GlobalNameClassDriftTests
         string table = File.ReadAllText(symbolTable);
         AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerEntryHides(");
         AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerConditionNameHides(");
-        AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NearerDataNameHides(");
+        AssertBodyAsks(table, @"private List<Condition88> NearestDeclaringConditions\(", "NearerDataNameHides(");
         AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerEntryHides(");
         string declarations = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs"));
         AssertBodyAsks(declarations, @"public bool DeclaredNearerThan\(", "NearerEntryHides(", Nested);
@@ -315,7 +315,7 @@ public sealed class GlobalNameClassDriftTests
         // level-88 as its own data item does. One list (NonConditionDeclarationsOf) serves both directions, so a class
         // added to it ranks in both. The CAPACITY register has its own one lookup (CapacityRegisterReferenceDriftTests), so
         // the condition lookup asks CapacityRegisterFor of it.
-        AssertBodyAsks(table, @"public List<Condition88> NearestDeclaringConditions\(", "NonConditionDeclarationHides(");
+        AssertBodyAsks(table, @"private List<Condition88> NearestDeclaringConditions\(", "NonConditionDeclarationHides(");
         AssertBodyAsks(nonData, @"private DeclarationFact\? NonConditionDeclarationNearerThan\(", "NonConditionDeclarationsOf(", Nested);
         Assert.Contains("NonConditionDeclarationsOf(", ranked);
         string conditionBinder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "ConditionBinder.cs"));

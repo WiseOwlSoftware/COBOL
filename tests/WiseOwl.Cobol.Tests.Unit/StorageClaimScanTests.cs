@@ -73,10 +73,10 @@ public sealed class StorageClaimScanTests
         finally { FileHarness.TryDelete(path); }
     }
 
-    private static string Show(AddressTarget t) => string.Join(" OF ", t.Qualifiers.Prepend(t.Name));
+    private static string Show(AddressTarget t) => string.Join(" OF ", t.Written.QualifierWords.Prepend(t.Written.Name));
 
     private static string Show(ByReferenceOperand o) =>
-        string.Join(" OF ", o.Qualifiers.Prepend(o.Name)) + (o.SlotsOnly ? "[slots]" : "") + (o.Invoke ? "[invoke]" : "");
+        string.Join(" OF ", o.Written.QualifierWords.Prepend(o.Written.Name)) + (o.SlotsOnly ? "[slots]" : "") + (o.Invoke ? "[invoke]" : "");
 
     [Fact]
     public void AnAddressOfHeadIsFoundUnderTheRegionThatWritesIt_AndUnderEveryRegionAboveIt()
