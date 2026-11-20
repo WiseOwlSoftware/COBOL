@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Frontend;
+namespace WiseOwl.Cobol.Frontend.Common;
 
 /// <summary>
 /// What a stretch of source text IS to the compiler that read it (DESIGN-listing.md section 7.2; kb/Work PB5949): the classes the

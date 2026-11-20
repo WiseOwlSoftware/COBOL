@@ -49,6 +49,11 @@ public sealed class EditionGateArmDriftTests
     // StartFirstLast2002, StartWithLength2002) are gone because none of them had an answer to fill in.
     private static readonly Dictionary<string, string> BoundArmResolvedFact = new(StringComparer.Ordinal)
     {
+        ["MergeInSortMergeProcRemoved2023"] =
+            "the PROCEDURE-RANGE cross-pass: a MERGE is barred only where it stands inside the input or output procedure of "
+            + "another MERGE or a file SORT (ISO §2023:14.9.24.3 SR1), which the BOUND procedure table's paragraph ranges decide "
+            + "after every SORT and MERGE has named its procedures; the MERGE statement's parse rule is the same wherever it "
+            + "stands (listing PB5947 review lead R1-2: the row's verdict now carries its flag, kb/Work PB5949)",
         ["SetObjectReference2002"] =
             "the Format-5 RE-ROUTE: `SET a TO b` reaches OoBinder as an object-reference SET only when both "
             + "operands RESOLVE to PicCategory.ObjectReference — setToStatement is the one shape every SET … TO "

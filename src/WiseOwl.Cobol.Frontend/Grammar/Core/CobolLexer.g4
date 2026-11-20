@@ -36,7 +36,17 @@ tokens { FNARG_LPAREN, FNARG_RPAREN, REF_LPAREN, REF_RPAREN, SIGNED_INTEGERLIT, 
 channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
 
 @members {
-    // OnCommentStart and CommentStarts: Parsing/CobolLexer.CommentStarts.cs (kb/Work PB5949).
+    // Where each inline comment the lexer met begins, its 1-based resultant line and 0-based column, for the source listing
+    // (DESIGN-listing.md section 7.2; kb/Work PB5949): a comment is SKIPPED, so no token says where it stands, and the listing
+    // colours it from this record, which the comment rules write, never from a pattern over the text. Null, the default, records
+    // nothing, so a compilation without a listing does no work for it (section 9). Generated code has no nullable context of its
+    // own, so the annotation states one.
+#nullable enable
+    internal System.Collections.Generic.List<(int Line, int Column)>? CommentStarts { get; set; }
+#nullable disable
+
+    // The action of the comment rules: record the comment's start when a record is kept.
+    private void OnCommentStart() => CommentStarts?.Add((TokenStartLine, TokenStartColumn));
 
     // Track the types of the last TWO non-WS tokens emitted: one for the reference-paren decision, two for the
     // FUNCTION-argument suppression (P7 Step 12 — '(' after "FUNCTION name" opens an ARGUMENT list, ISO
