@@ -105,7 +105,7 @@ public sealed class ReferenceFormatMap
             lines, kinds, discarded);
 
     /// <summary>Where the §2023:6.5 logical conversion discarded the rest of the program text of 1-based physical
-    /// <paramref name="line"/>, and as what: the 0-based physical column an inline comment (§2023:6.5 3)) or the comment-entry of
+    /// <paramref name="line"/>, and as what: the 0-based physical column an inline comment (§2023:6.5 GR3) or the comment-entry of
     /// the paragraph the line heads begins at. Null when it discarded none, and always when the conversion was not asked to record
     /// it, which only a compilation producing a source listing asks (DESIGN-listing.md section 7.2).</summary>
     public (int Column, SourceTextClass Class)? DiscardedAt(int line) =>

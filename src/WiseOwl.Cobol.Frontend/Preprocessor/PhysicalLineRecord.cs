@@ -5,7 +5,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// <summary>
 /// What the §2023:6.5 logical conversion decided of each physical line of one text, recorded where it decides it
 /// (DESIGN-listing.md sections 4.4.1 and 7.2): the KIND of every line, for every compilation (one byte per line), and, only when
-/// a source listing is produced, where on a line the conversion DISCARDED program text as an inline comment (§2023:6.5 3)) or as
+/// a source listing is produced, where on a line the conversion DISCARDED program text as an inline comment (§2023:6.5 GR3) or as
 /// a comment-entry (kb/Work PB5949). Discarded text never reaches the lexer, so the listing would otherwise have no reading of it
 /// but a pattern of its own.
 /// </summary>

@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Tests.Conformance.Listing;
 /// <item>the fixed-form areas (§2023:6.3.1: "The sequence number occupies six character positions"; the indicator area is the 7th
 /// position; the text past margin R is ignored, DOC-A.1-158);</item>
 /// <item>the character-strings (§2023:8.3.1: "forms a COBOL word, a literal, or a picture character-string"; §1985:IV.4.2.2 adds
-/// the comment-entry) and the categories of a COBOL word (§2023:8.3.2.1), reserved words being the EDITION's (§2023:8.3.2.1 rule 1:
+/// the comment-entry) and the categories of a COBOL word (§2023:8.3.2.1), reserved words being the EDITION's (§2023:8.3.2.1 SR1:
 /// "Reserved words shall not be used as user-defined words"): a word §2002:8.9 reserves and the 1985 list does not (GOBACK) is a
 /// user-defined word in a 1985 program and a reserved word at 2023.</item>
 /// </list>

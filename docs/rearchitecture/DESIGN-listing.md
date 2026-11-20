@@ -25,6 +25,8 @@
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)", "(step 8)" or "(step 9)" in the section it changed.
 > PB5947 BUILT (the diagnostic summary's table of flagged constructs by edition, section 6.11, branch `listing-step-pb5947`).
+> PB5949 BUILT (the source's syntax colouring in the HTML page, from the compiler's own reading of the text, section 7.2, branch
+> `listing-step-pb5949`; corrections marked "(PB5949)").
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -289,8 +291,10 @@ public sealed record ListingLine(
     IReadOnlyList<int> Diagnostics,  // ListingDiagnostic ids anchored on this line
     ListingMargin? Margin,      // the embedded margin, computed ONCE by the builder (section 6.2): a definition line's
                                 //   offset, length and usage, or a statement line's defining listing lines
-    IReadOnlyList<ListingNameUse> Names); // each name occurrence on the line: (Column, Length, Symbol, Use), the text
+    IReadOnlyList<ListingNameUse> Names, // each name occurrence on the line: (Column, Length, Symbol, Use), the text
                                 //   margin's and the HTML links' one input
+    IReadOnlyList<ListingSpan> Spans); // (PB5949) what the compiler read each stretch of Text as: (Column, Length, Class),
+                                //   made once by SyntaxSpanBuilder (section 7.2); the HTML colours by it, the text ignores it
 ```
 
 `ListingMargin` and `ListingNameUse` are joins of the data map and the cross-reference onto lines. They are made ONCE,
@@ -501,6 +505,12 @@ away; the design keeps it:
   paragraph the parse read are `CommentEntry`, the rest `Source`.
 - `PhysicalLineKindDriftTests` (Unit, which sees the internals): for a corpus of fixed and free lines, each kind equals
   the classification `FixedFormLine.Indicator` gives, so the recorded kind and the one reader cannot drift.
+- (PB5949) The kinds travel in a `PhysicalLineRecord` (one per text the conversion reads) instead of a bare array, beside which,
+  only when a listing is produced (`NormalizeToFreeFormMapped`'s `recordsDiscarded`), the conversion records where it DISCARDED a
+  line's program text as an inline comment (§2023:6.5 GR3, at the one place the literal-aware scan stops on a comment indicator) or as
+  the comment-entry of the paragraph the line heads (`CommentEntryHeader`); `ReferenceFormatMap.DiscardedAt` answers it, and
+  `ReferenceFormatMap.RegionsAt` answers where a fixed-form line's areas begin and end, read by `FixedFormLine`, the one reader of
+  its columns. Section 7.2 colours by both: discarded text never reaches the lexer.
 - (Step 1) A physical line is what the line-entry stage says (DOC-A.1-156: a text with n LINE FEEDs has n + 1 lines), so a
   file that ends in a LINE FEED lists an empty last line, as its reference-format map holds it.
 
@@ -2020,6 +2030,46 @@ layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. W
   `HtmlListingRenderer.Escape`, the script in a CDATA section), so the tests read the page with `XmlReader` and find each row by the
   renderer's id functions (`LineId`, `DiagnosticId`, `InclusionId`, `DataItemId`, `FileEntryId`, `ProgramId`, `MethodId`,
   `SectionId`).
+(PB5949) **Syntax colouring of the source, from the compiler's own reading (owner, 2026-11-19: "it would be great for the HTML
+version to syntax color the COBOL source code").** Decided in kb/Work PB5949: no published pattern grammar (the TextMate grammar
+VS Code's COBOL extensions use, highlight.js's or Prism's `cobol`): the page loads nothing, a pattern guesses where the compiler
+knows, and "the renderer joins nothing and computes nothing". So each `ListingLine` carries `Spans`, `ListingSpan(Column, Length,
+Class)` in 1-based character positions of `Text`, in column order and never overlapping, made once by `SyntaxSpanBuilder`
+(Compiler, `Listing/`) for the source section only; `ListingSpanClass` is the front end's `SourceTextClass`, mapped by the one
+switch `ListingSpanClasses.Of`. The HTML renderer wraps each span in `<span class="s-<class>">` (`HtmlListingRenderer.SpanClass`,
+the member's name in lower case) and the style colours every class for a light and a dark page; a diagnostic's marked column nests
+inside its span; the text listing ignores the spans; the JSON carries them. As built, with the corrections the code proved:
+- **Two readers, not one (correction).** The decision said the classes come "from the token stream"; three kinds of text never reach
+  the lexer, so they come from the reference format, which decides them: the fixed-form areas (`ReferenceFormatMap.RegionsAt`: the
+  sequence number area, the indicator, the text past margin R), the whole program text of a comment line, a comment-entry line or a
+  directive line (`KindAt`), and the inline comment or comment-entry the logical conversion discards from a line (`DiscardedAt`,
+  section 4.4.1; §2023:6.5 GR3 replaces an inline comment by spaces before the lexer reads the text). The lexer's own skipped
+  comments (a `*>` the text stages leave, COBOL-85's surviving floating indicator) are recorded by the lexer's comment rules
+  (`CobolLexer.CommentStarts`, null without a listing).
+- **The tokens are the listed pass's FINAL stream, classed by the parse that read them, at the edition in force.**
+  `SourceTextClassifier` (Frontend, `Parsing/`; `Frontend.TextClasses`, built only when `RecordsListing`) classes each token after
+  every retype (the §2023:8.9 reservation gate's, COBOL-WORDS', the debugging lines', the embedded blocks'): by its TYPE
+  (`FixedClassOf`: the literals, the picture character-string, the separators and operators, the figurative ZERO_ARITH, the
+  embedded block), refined by the rule that holds it (a `cobolWord` name slot is a user-defined word, a FUNCTION reference's name a
+  function-name, a figurative constant's word and its ALL a figurative constant, a `levelNumber` a level-number, a digits
+  procedure-name a user-defined word, a comment-entry's tokens comment-entry), and for a word read as a keyword by the edition's
+  effective reserved words (`ReservedWordSet.Compose(group's COBOL-WORDS).RejectsAt(word, edition)`): reserved, else a context
+  word. So a word §2002:8.9 reserves and the 1985 list does not, written as a name in a 1985 program, is the gate's `IDENTIFIER` in a
+  name slot and is a user-defined word, and the same word read as a keyword at 2023 is reserved (`ListingSyntaxSpanTests`).
+- **Placed through the one index.** Each classified stretch of the resultant text is cut at line ends and mapped through the line
+  map's origin spans (`SourceLineMap.SpansAt`) to each physical line it came from, through `ListingLineIndex.Of(int, SourceOrigin)`
+  (a token in the second copy of a copybook colours the second block; a continued literal colours both lines), and kept only where
+  the written characters ARE the lexed ones: text a REPLACE or COPY REPLACING placed (a span with a layout of its own) or the text
+  stages wrote (the period that closes an emptied comment-entry paragraph) stands at a place whose written text was not lexed.
+- **The JSON version stays 1.0 (correction of the note's "a schema minor").** Section 7.3: no release has shipped the JSON listing,
+  so `spans` (required, never null) completes 1.0 as every member since step 3 did.
+- **Not coloured: a COPY or REPLACE statement.** The text stages read and remove it; the lexer never sees its words and no stage
+  records their positions, so the listing has no reading of them but a pattern: kb/Work PB5952.
+- **Drift tests.** `SourceTextClassDriftTests` (Unit): every token type of the parser's vocabulary (the lexer's and the rewriters')
+  is a fixed class or a word proved a keyword from the vocabulary (shown red on a classifier that forgets STRINGLIT and on a word list
+  that forgets DEFINED); `ListingSpanClasses.Of` total both ways; the style colours every class in both schemes.
+  `HtmlSyntaxSpanTests` (Unit) and `ListingSyntaxSpanTests` (Conformance) are the witnesses.
+
 (Step 9, not built:) every NAME on a source line linking to its definition, and every definition listing its references, stand on
 `ListingLine.Names` and `ListingCrossReference`, which step 7b adds to the model with the occurrences (section 11, "Step 7b,
 dispatched early"); neither member exists, so the page links what the model holds and step 7b adds the name links with them.
@@ -2227,6 +2277,12 @@ renderer. Naming it asks for a listing at any edition.
   the rows and the fix they point to (each renderer writing to the file's stream, not to a string; the instructions shown once).
   The `None` rows lie within the full compile's run-to-run spread of the parent's (0.37 to 1.86 MB): step 9 changes nothing a
   compilation without a listing runs.
+  (PB5949:) the source's syntax colouring touches every compilation a little (the conversion's per-line record object, the lexer's
+  comment action that records nothing without a listing), so it measures the `None` row of the front end and bind against its parent:
+  within 0.14 MB on all four programs, so the `None` budget holds. The spans are built for every listing that holds the source
+  section: the standard text listing, which prints none, is +7.1 % over `None` on IX113A (+4.8 % over the parent's `Text`), inside its
+  10 %; `All` grows +8.2 to +10.1 % over the parent's `All`, further over its 25 % (kb/Work PB5941's dated file
+  `2026-11-19-pb5949-spans`). The benchmark README's PB5949 table holds every row.
   (PB5947:) the table of flagged constructs changes every compilation's diagnostic records (a flag reference on each, null unless the
   diagnostic is an edition flag), so it measures every row of the front end and bind against its parent `8dd07d2eab`, once each (the
   benchmark README's PB5947 table): every `None` row lies within 0.07 MB of the parent's, SM201A's 0.26 MB below it, so the `None`
@@ -2334,6 +2390,10 @@ captured listing.
    `ObjectCode` arm removed, the `html` spelling removed, the `<` escape removed, the collapsed run disabled) and green restored.
 7e. **Flagged constructs (PB5947).** `FlaggedConstructTests` and `EditionFlagDriftTests` (Unit), `ListingFlaggedConstructsTests`
    (Conformance); section 6.11 names each and the mutation that showed it red.
+7e. **Syntax colouring (PB5949).** `SourceTextClassDriftTests` and `HtmlSyntaxSpanTests` (Unit), `ListingSyntaxSpanTests`
+   (Conformance: the fixed-form areas, comment and comment-entry, a continued literal, each word's, literal's and picture
+   character-string's category, the 1985 witness, a library text copied twice and a REPLACING-changed word, the page's markup),
+   section 7.2.
 8. **Failed compilations.** One test per kind of outcome (section 4.6): the sections present and the
    `ListingSectionStatus` of each absent one; the failed-parse test of section 4.4 (the listed pass). (Step 1:)
    `tests/WiseOwl.Cobol.Tests.Conformance/Listing/ListingOutcomeTests.cs`, beside the 1985 class's failed-compilation
@@ -2554,6 +2614,12 @@ flag as a fact on the diagnostic (`EditionFlag`, `Diagnostic.Flag`, made by `Con
 `EditionContext.Extension`), `ListingDiagnostic.Flag` and `ListingDocument.FlaggedConstructs`, the table in the text summary, the
 JSON and the HTML page; `EditionFlagDriftTests`, `FlaggedConstructTests`, `ListingFlaggedConstructsTests`.
 
+**PB5949 - syntax colouring of the source. BUILT (branch `listing-step-pb5949`; section 7.2, "(PB5949)").** `SourceTextClass`,
+`SourceTextSpan`, `SourceTextClassifier`, `Frontend.TextClasses`, `CobolLexer.CommentStarts`, `PhysicalLineRecord`,
+`ReferenceFormatMap.RegionsAt` and `DiscardedAt`, `SourceLineMap.SpansAt`, `SyntaxSpanBuilder`, `ListingSpanClasses`, `ListingSpan`,
+`ListingSpanClass`, `ListingLine.Spans`, the page's span markup and colours, the schema; the drift tests and witnesses of section 10
+item 7e; the measurement in section 9.
+
 **What is not built (checked at step 9 against every section of this document).** Each part below is a kb/Work item, never a silent
 gap:
 - Section 6.7 and 6.7.1's occurrences, the cross-reference section (`xref`), `ListingLine.Names`, the statement line's margin
@@ -2565,6 +2631,8 @@ gap:
   PB5930.
 - Section 9's `All` budget: over 25 % since step 8 (kb/Work PB5941); step 9's HTML adds to it (section 9, step 9).
 - Section 7's `IListingRenderer`: not built by decision (section 7, step 9 correction).
+- Section 7.2's colouring of a COPY or REPLACE statement's words, which the text stages remove before the lexer reads the text:
+  kb/Work PB5952.
 
 ## 12. Documents and records that change with the listing
 
