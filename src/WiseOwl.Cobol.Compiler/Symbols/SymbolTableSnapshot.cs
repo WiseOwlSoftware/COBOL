@@ -15,8 +15,10 @@ namespace WiseOwl.Cobol.Symbols;
 /// <param name="Entries">Every entry, in declaration order; an entry's <see cref="SymbolEntry.Id"/> is its 1-based index here.</param>
 internal sealed record SymbolTableSnapshot(IReadOnlyList<SymbolEntry> Entries);
 
-/// <summary>The class of name an entry is (ISO §2023:8.3.2.2 lists the user-defined words by class). The table holds these
-/// classes today; a class joins with the entries that declare it.</summary>
+/// <summary>The class of name an entry is (ISO §2023:8.3.2.2 lists the user-defined words by class). Every class is entered where the
+/// binder declares the name (<c>SymbolTable.EntryStore</c>; DESIGN-listing.md section 6.7.1, "Step 6b, the entry ids") and is an entry
+/// of the finished table; a data-name or condition-name of a data description entry is still declared by the finish from the frozen
+/// forest until its declaration enters it.</summary>
 internal enum NameClass
 {
     /// <summary>A program-name or a user-function-name.</summary>
@@ -35,11 +37,10 @@ internal enum NameClass
     Report,
     /// <summary>A cd-name (a communication description entry).</summary>
     CommunicationDescription,
-    /// <summary>A paragraph-name or a section-name. <c>SymbolTable.Identify</c> resolves it; the finished table holds no procedure
-    /// entry yet (the cross-reference of listing step 7b adds them).</summary>
+    /// <summary>A paragraph-name or a section-name, an entry per declaration (a paragraph-name declared twice is two entries).</summary>
     Procedure,
-    /// <summary>A SPECIAL-NAMES switch-status condition-name (ISO §2023:12.3.7.2). <c>SymbolTable.Identify</c> resolves it, like
-    /// every configuration-section name below; the finished table holds no entry for them yet (listing step 7b).</summary>
+    /// <summary>A SPECIAL-NAMES switch-status condition-name (ISO §2023:12.3.7.2). Like every configuration-section name below, its
+    /// entry stands at the declaring word.</summary>
     SwitchCondition,
     /// <summary>A class-name of a SPECIAL-NAMES CLASS clause.</summary>
     ClassName,
@@ -58,12 +59,13 @@ internal enum NameClass
     /// <summary>A mnemonic-name of a SPECIAL-NAMES implementor-name entry.</summary>
     Mnemonic,
     /// <summary>The data-name of a report group (ISO §2023:13.15.3 SR7: GENERATE, USE BEFORE REPORTING, a SUM clause's UPON phrase).
-    /// <c>SymbolTable.Identify</c> resolves it, like every report-section name below; the finished table holds no entry for them yet
-    /// (listing step 7b).</summary>
+    /// The class a reference's position admits: the entry it identifies, like a sum counter's, a report entry's and a SUM operand's
+    /// below, is the report group description entry's (<see cref="Data"/>, at its level-number).</summary>
     ReportGroup,
     /// <summary>The data-name of a SUM entry, which names its sum counter (ISO §2023:13.18.54.4 GR5).</summary>
     SumCounter,
-    /// <summary>The data-name-1 of a report VARYING clause (ISO §2023:13.18.64), a counter of the entry and those subordinate to it.</summary>
+    /// <summary>The data-name-1 of a report VARYING clause (ISO §2023:13.18.64), a counter of the entry and those subordinate to it;
+    /// its entry stands at that word.</summary>
     ReportVarying,
     /// <summary>The data-name of a report group description entry as the RD entries write it, named before the report section binds
     /// (a constant entry's length phrase, ISO §2023:13.10.3 SR11).</summary>
@@ -71,24 +73,31 @@ internal enum NameClass
     /// <summary>A SUM clause's data-name-1 (ISO §2023:13.18.54.3 SR4): an entry of the report section that carries a value.</summary>
     ReportSumOperand,
     /// <summary>A program-prototype-name (ISO §2023:8.4.6.8): a REPOSITORY program-specifier's name, or the program-name of a containing
-    /// program definition. <c>SymbolTable.Identify</c> resolves it; the finished table holds no entry for it yet (listing step 7b).</summary>
+    /// program definition. Its entry stands at the specifier's word; a containing definition's name is that program's own entry.</summary>
     ProgramPrototype,
     /// <summary>A function-prototype-name (ISO §2023:8.4.6.6): a REPOSITORY user-defined-function specifier's name, or the
-    /// user-function-name of the containing function definition. <c>SymbolTable.Identify</c> resolves it; the finished table holds no
-    /// entry for it yet (listing step 7b).</summary>
+    /// user-function-name of the containing function definition. Its entry stands at the specifier's word; the containing function
+    /// definition's name is that function's own entry.</summary>
     FunctionPrototype,
     /// <summary>The X3.23-1985 DEBUG-ITEM special register or one of its members (DEBUG-LINE, DEBUG-NAME, DEBUG-SUB-1 to -3,
     /// DEBUG-CONTENTS), implicitly described when a debugging section is active (§1985:XV.3.2.4 GR10: "DEBUG-ITEM has the following implicit
-    /// description").
-    /// <c>SymbolTable.Identify</c> resolves it; the finished table holds no entry for it yet (listing step 7b).</summary>
+    /// description"). The standard declares the names, so the entries stand at no position of the source.</summary>
     DebugRegister,
     /// <summary>A type-name (a TYPEDEF entry, §2023:13.18.58), named where a TYPE clause or a function argument writes it.
-    /// <c>SymbolTable.Identify</c> resolves it; the finished table declares the type declaration as a data entry.</summary>
+    /// The type declaration's entry is its type-name's, listed by the data map where it is written.</summary>
     TypeName,
     /// <summary>A named OCCURS DYNAMIC CAPACITY register (§2023:13.18.38.3 SR30: data-name-3 "is treated as though implicitly
-    /// defined at the same level as the entry containing the OCCURS clause"). <c>SymbolTable.Identify</c> resolves it; the finished
-    /// table holds no entry for it yet (listing step 7b).</summary>
+    /// defined at the same level as the entry containing the OCCURS clause"), listed by the data map on its table's line, marked
+    /// implicit.</summary>
     CapacityRegister,
+    /// <summary>An object-class-name: a class definition's CLASS-ID name, an imported class, or the standard class BASE (§2023:8.4.6.4).
+    /// The compilation group's tier (<c>SymbolTable.ClassNames</c>) declares it.</summary>
+    ObjectClass,
+    /// <summary>An interface-name: an interface definition's INTERFACE-ID name or an imported interface (§2023:8.4.6.4).</summary>
+    Interface,
+    /// <summary>A parameter-name of a parameterized class or interface definition (§2023:11.3.2, §2023:11.6.2 <c>USING
+    /// parameter-name-1</c>), written where an object-class-name or interface-name is permitted.</summary>
+    ParameterName,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>
@@ -108,6 +117,15 @@ internal sealed record SymbolEntry(int Id, NameClass Class, string Name, SymbolP
 
 /// <summary>The attributes of an entry: one record type per <see cref="NameClass"/>.</summary>
 internal abstract record SymbolAttributes;
+
+/// <summary>The attributes of an entry whose class no view of the listing reads attributes of (a procedure-name, a configuration-section
+/// name, a prototype-name, a DEBUG-ITEM register, a VARYING counter, an object-class-name, interface-name or parameter-name): the entry is
+/// its class, name and position, which the cross-reference (listing step 7b) joins its occurrences to.</summary>
+internal sealed record NameAttributes : SymbolAttributes
+{
+    /// <summary>The one value.</summary>
+    public static NameAttributes None { get; } = new();
+}
 
 /// <summary>A program's or function's attributes (DESIGN-listing.md section 6.5).</summary>
 /// <param name="Function">A user-defined function rather than a program.</param>

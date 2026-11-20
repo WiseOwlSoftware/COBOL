@@ -499,10 +499,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // A refused literal-5 registers NO specifier (the program specifier's posture, kb/Work PB237/PB4708): the word is
                 // declared, but resolving it by the word would answer REPO-1 about a name the source never gave (kb/Work PB4773).
                 if (BindSpecifierExternalizedName(re, "FUNCTION", fn.GetText(), "literal-5") is { } functionExternalized)
-                    Symbols.DeclareFunctionSpecifier(fn.GetText(), new FunctionSpecifier(fn.GetText(), functionExternalized, re));
+                    Symbols.DeclareFunctionSpecifier(fn, new FunctionSpecifier(fn.GetText(), functionExternalized, re));
                 else
                 {
-                    Symbols.DeclareFunctionSpecifier(fn.GetText(), specifier: null);
+                    Symbols.DeclareFunctionSpecifier(fn, specifier: null);
                     Edition.NoteSpecifierRefusalReported(RefusedSpecifierKind.Function, fn.GetText());   // reported by BindSpecifierExternalizedName
                 }
             }

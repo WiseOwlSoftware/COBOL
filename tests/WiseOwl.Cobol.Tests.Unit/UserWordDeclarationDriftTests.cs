@@ -174,9 +174,9 @@ public sealed class UserWordDeclarationDriftTests
                 @"ConfigurationNames<[^>]+>\s+\w+\s*=\s*new\(UserWordKind\.(\w+)\);")
             .Select(m => Enum.Parse<UserWordKind>(m.Groups[1].Value)));
         string table = sources.Single(s => s.Name == "SymbolTable.Configuration.cs").Text;
-        Assert.Contains("NameClass.Mnemonic => (MnemonicNamed(key), UserWordKind.MnemonicName)", table);
+        Assert.Contains("NameClass.Mnemonic => (Answer(MnemonicNamed(key)), UserWordKind.MnemonicName)", table);
         string identify = sources.Single(s => s.Name == "SymbolTable.Identify.cs").Text;
-        Assert.Contains("if (symbol is not null && report) _data.RecordConfigurationNameUse(written, key.Word, kind);", identify);
+        Assert.Contains("if (answer.Symbol is not null && report) _data.RecordConfigurationNameUse(written, key.Word, kind);", identify);
         Assert.Equal(listed, tabled.Append(UserWordKind.MnemonicName).Distinct().Order().ToArray());
     }
 

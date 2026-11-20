@@ -225,7 +225,8 @@ public sealed partial class SpecialNamesBinder
         // (alphabet-national-2002). The ISO position for the FOR phrase is between the name and IS
         // (§2023:12.3.7.2); a FOR phrase after the definition is refused by name in ClosedFormatPass (kb/Work PB977)
         // and read here only to recover.
-        string name = alpha.cobolWord().GetText();
+        var word = alpha.cobolWord().Start;   // the declaring word, where the name's entry stands
+        string name = word.Text;
         _host.DeclareUserWord(name, UserWordKind.AlphabetName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB1083)
         var def = alpha.alphabetDefinition();
         bool national = ForPhraseIsNational(alpha.specialNamesForPhrase(), alpha.misplacedSpecialNamesForPhrase());
@@ -254,13 +255,13 @@ public sealed partial class SpecialNamesBinder
                     "ISO §2023:12.3.7.3 SR24 — locale-name-2 shall be a locale-name defined by the LOCALE clause");
                 if (sym is not null) locale = new LocaleCollatingSpec(new LocaleRef(sym));
             }
-            if (national) _host.Symbols.Declare(name, new NationalAlphabetDef(null, locale, HasCollatingSequence: true, "LOCALE"));
-            else _host.Symbols.Declare(name, new AlphabetDef(null, locale, "LOCALE"));
+            if (national) _host.Symbols.Declare(word, new NationalAlphabetDef(null, locale, HasCollatingSequence: true, "LOCALE"));
+            else _host.Symbols.Declare(word, new AlphabetDef(null, locale, "LOCALE"));
             return;
         }
         if (national)
         {
-            AlphabetBindNational(name, def);
+            AlphabetBindNational(word, def);
             return;
         }
 
@@ -279,7 +280,7 @@ public sealed partial class SpecialNamesBinder
             // One identity COLLATING SEQUENCE, three distinct CODED CHARACTER SETS (Table 6 + GR7 c/d: STANDARD-1/2
             // are the 128 ISO/IEC 646 IRV characters; NATIVE is the whole native set) — the Phrase carries which
             // (kb/Work PB110); IsIdentity stays true, so no runtime carrier is emitted either way.
-            _host.Symbols.Declare(name, def.NATIVE() is not null ? AlphabetDef.Native
+            _host.Symbols.Declare(word, def.NATIVE() is not null ? AlphabetDef.Native
                 : new AlphabetDef(null, null, def.STANDARD_1() is not null ? "STANDARD-1" : "STANDARD-2"));
             return;
         }
@@ -293,12 +294,12 @@ public sealed partial class SpecialNamesBinder
         {
             case CodeNameOutcome.Refused: return;
             case CodeNameOutcome.Bound:
-                _host.Symbols.Declare(name, new AlphabetDef(codeName!.Table, null, codeName.Name, codeName));
+                _host.Symbols.Declare(word, new AlphabetDef(codeName!.Table, null, codeName.Name, codeName));
                 return;
         }
 
         if (AlphabetLiteralPhrase(name, def, national: false) is { } table)
-            _host.Symbols.Declare(name, new AlphabetDef(table, null, "literal-phrase"));
+            _host.Symbols.Declare(word, new AlphabetDef(table, null, "literal-phrase"));
     }
 
     /// <summary>What a bare-word alphabet definition turned out to be once <see cref="AlphabetCodeName"/> asked
@@ -488,11 +489,12 @@ public sealed partial class SpecialNamesBinder
     /// (GR7 k over the native national set). STANDARD-1/STANDARD-2 are not in the national branch's format
     /// (alphanumeric-branch-only); the LOCALE phrase is, and <see cref="AlphabetBind"/> binds it for both branches
     /// before reaching here. Unknown words are code-name-2 — the implementor supports none (§2023:12.3.7.3 SR15).</summary>
-    private void AlphabetBindNational(string name, Core.AlphabetDefinitionContext def)
+    private void AlphabetBindNational(Antlr4.Runtime.IToken word, Core.AlphabetDefinitionContext def)
     {
+        string name = word.Text;
         if (def.NATIVE() is not null)
         {
-            _host.Symbols.Declare(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
+            _host.Symbols.Declare(word, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
             return;
         }
         if (def.STANDARD_1() is not null || def.STANDARD_2() is not null)
@@ -507,7 +509,7 @@ public sealed partial class SpecialNamesBinder
             // UCS-4 references BOTH a coded set and a collating sequence; UTF-8/UTF-16 a coded set ONLY
             // (§2023:12.3.7 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the
             // difference is only WHERE the name may legally be referenced.
-            _host.Symbols.Declare(name, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
+            _host.Symbols.Declare(word, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
             return;
         }
         // A single non-figurative bare word that is not a coded-set name is code-name-2 (§2023:12.3.7.3 SR15 —
@@ -519,12 +521,12 @@ public sealed partial class SpecialNamesBinder
         {
             case CodeNameOutcome.Refused: return;
             case CodeNameOutcome.Bound:
-                _host.Symbols.Declare(name, new NationalAlphabetDef(codeName!.Table, null,
+                _host.Symbols.Declare(word, new NationalAlphabetDef(codeName!.Table, null,
                     HasCollatingSequence: true, codeName.Name, codeName));
                 return;
         }
         if (AlphabetLiteralPhrase(name, def, national: true) is { } table)
-            _host.Symbols.Declare(name, new NationalAlphabetDef(table, HasCollatingSequence: true, "literal-phrase"));
+            _host.Symbols.Declare(word, new NationalAlphabetDef(table, HasCollatingSequence: true, "literal-phrase"));
     }
 
     /// <summary>The ALPHABET clause's view of <see cref="LiteralPhraseOperand"/>: the operands of one alphabet
