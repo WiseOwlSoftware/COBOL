@@ -1,3 +1,4 @@
-## PB5948: the HTML listing's link targets land below its sticky navigation bar
+## Entry 3866 — 2026-11-19 19:32 PST — PB5948: the HTML listing's link targets land below its sticky navigation bar
 
 The owner found that a section link in the HTML listing scrolled its heading under the sticky bar. Measured in Chrome on NC105A's page (origin/main 8dd07d2eab): every heading at 0 px under a 34 px bar. The page now reserves the bar's rendered height above every link target (`scroll-padding-top: var(--navh)`, set by the script from the bar's height through a `ResizeObserver`, since the bar wraps as the window narrows): headings at 42 px under a 34 px bar, 120 px under a 112 px bar at a 420 px body. Witness `HtmlListingRendererTests.ALinkTarget_ScrollsBelowTheStickyNavigation`; DESIGN-listing.md section 7.2. Filed beside it: PB5949, the owner's request for syntax colouring of the source, decided to come from the compiler's tokens at the edition in force rather than a pattern grammar.
+
