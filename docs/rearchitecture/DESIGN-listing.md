@@ -17,9 +17,12 @@
 > function-prototype-names; the OO lane, branch `listing-step-6b-oo`: the object-class-names, interface-names and method rosters in the
 > compilation group's tier; the data-name lane's first slice, branch `listing-step-6b-data`: the DEBUG-ITEM, type, CAPACITY register and
 > index-names; the closing slice's first session, branch `listing-step-6b-close`: the data-name, condition-name and screen-name tables,
-> the USE and WHEN file registers, the end markers; the entry-id lane, branch `listing-step-6b-ids`: every class the table declares
-> enters its entry where it is declared and every identification hands back its id; the data-name and condition-name RESOLUTION remains, 86 baseline entries; sections
-> 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
+> the USE and WHEN file registers, the end markers; remainder slice 1, branch `listing-step-6b-r1`: every procedure-division data-name
+> and condition-name whose item is used identified through `IdentifyDataName` and `IdentifyConditionName`; the entry-id lane, branch
+> `listing-step-6b-ids`: every class the table declares enters its entry where it is declared and every identification hands back
+> its id; the procedure division's word probes and ambiguity counts, the data division's clause operands, the
+> declarations (with the data-names' and condition-names' entries), the census, the group tier's units and the parameterized expansion
+> remain, 75 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
 > PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); step 7b (the
 > occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
 > dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
@@ -27,6 +30,9 @@
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)", "(step 8)", "(step 9)" or "(PB5951)" in the section it changed.
 > PB5947 BUILT (the diagnostic summary's table of flagged constructs by edition, section 6.11, branch `listing-step-pb5947`).
+> kb/Work PB5941 (branch `listing-step-pb5941`, the `all` row's budget): every format streams to its file, the page shows each IL
+> instruction once, the object code is decoded into one array per method; corrections marked "(PB5941)" in sections 4.2, 7, 7.1,
+> 7.2, 7.3, 8, 9, 10, 11 and 13; review round 1 (R1-1) corrected sections 4.2, 8 and 10 (marked "PB5941 review R1-1").
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -348,6 +354,19 @@ The document's schema identity is two properties of `ListingDocument` itself, `S
 `ListingDocument.SchemaUrn`) and `SchemaVersion` (the constant `ListingDocument.CurrentSchemaVersion`), init properties
 beside the positional ones so a reader sees the version the file was WRITTEN at, not this compiler's. `CompilerDriver.Options.Listing` is a
 `ListingRequest?`; null means no listing and no listing work (section 9).
+(PB5941:) `ListingOutput.Render`, which returned a format as a string, is replaced by `ListingOutput.Write(format, document, request,
+Stream)`: each format is WRITTEN to a stream as it is rendered, in `ListingOutput.Utf8` (UTF-8, no byte order mark), and the stream is
+flushed and left open for its owner. A format is never held whole: the listing's exit (`ListingWriter`) opens each file as a
+`FileStream`. Holding a format whole cost three times its size
+(the buffer, the string copied from it, the encoding of the string), and an `all` listing is several times the source's size
+(section 9, PB5941). The table's one switch still dispatches every format to its renderer: the text and HTML renderers write
+characters to a `TextWriter` (a `StreamWriter` the table makes over the stream), the JSON writer serializes bytes to the stream itself.
+(PB5941 review R1-1, correction:) the table has a second entry, `ListingOutput.Write(format, document, request, TextWriter)`, which
+writes a format as CHARACTERS, streamed the same way: the text and HTML renderers write to the writer directly, and the JSON
+serializer's bytes are decoded into it as they arrive (a private write-only stream with a UTF-8 decoder, so no format is held
+whole there either). The `Stream` entry is a format's file; the `TextWriter` entry is the command line's `-`, which writes through
+the process's standard output writer (section 8). `ListingOutputTests.EveryFormat_WrittenAsCharacters_IsWhatItsFileHolds` ties them.
+A test reads a format as text through the same one call (`tests/_shared/ListingRendering.cs`).
 
 ### 4.3 Who fills what, at which stage
 
@@ -1519,6 +1538,64 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       typed `IdentifyDataName(WrittenQualifiedName, ...)` the data-name lane named, with the clause operands carrying their written
       words or resolved from their carrier, is the next slices' work, with the declaration sites, the census, the group tier's
       function units and the parameterized expansion (kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the table).
+  - *(Step 6b, remainder slice 1, branch `listing-step-6b-r1`.)* The procedure division's data-name and condition-name references
+    whose item is used are identified by the table, and the baseline holds 75 (1 table, 11 lookups, 63 sites): eleven text lookups are deleted
+    (`NameResolution.FindItem`, `ResolveQualified`, `ResolveUnqualified`, `FindReportedItem(dref, string, ...)`,
+    `DeclarationOf(dref, string)`, `ReferenceResolver.ResolveByName(string, ...)`, `ObjectPropertyResolver.ResolveObjectProperty(dref,
+    string, ...)`, `DataBinder.QualifiedConditionCandidates`, `ConditionTier`, and the table's public `TryResolveCondition` and
+    `NearestDeclaringConditions`, private now). Every procedure-division reference whose item is used (an identifier
+    `ReferenceResolver` identifies, a subscript or reference-modification data-name, a condition-name, a table operand, a table(ALL)
+    argument, SET ADDRESS OF, an object property's head, function-pointer-name-1 of a function-identifier, INITIALIZE's whole dynamic
+    table), and the operands a procedure-division scan collects for the data division (the storage-claim heads of ADDRESS OF and BY REFERENCE, a LENGTH OF
+    operand of a constant entry), hands the table the written words: `SymbolTable.IdentifyDataName(WrittenQualifiedName, report)`
+    answers the §2023:8.4.2.2 candidate set (`NameCandidates<DataItem>`), and `IdentifyConditionName(WrittenQualifiedName, report)`
+    the condition-names' (`List<Condition88>`); `NameResolution.DataItemNamed(WrittenQualifiedName)` is the procedure division's one
+    verdict over the set, as `ResolveIndexName` is the index-name's. The corrections the code proved:
+    - *A qualifiable class's typed method, not `SymbolNamed`'s arm (correction of the remainder's brief).* The remainder was written
+      as "`SymbolNamed` gaining its Data and Condition arms" beside the typed `IdentifyDataName`. `SymbolNamed` is the boxed
+      `Identify` arm, which answers an `IdentifiedName` around the symbol; this section's own correction (the data-name lane, review
+      round 1) measured that boxing a qualifiable name's candidate set costs every compilation two objects per ask, over section 9's
+      `None` budget. A data-name and a condition-name are qualifiable names whose identification IS the candidate set, so each class
+      has its own typed method beside `IdentifyIndexName`, and `SymbolNamed` gains no arm for them: one rule for the three
+      qualifiable classes.
+    - *A reference that writes no name is no name (correction).* `WrittenQualifiedName.Of(dataReference)` answers null for a
+      LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER reference, whose `cobolWord` is its file-name or report-name QUALIFIER
+      (§2023:8.4.2.2.2 Formats 7 and 8), and for a recovery node with no word. Several callers had read that qualifier as the referenced name,
+      or the reference's glued text (`dref.GetText()`, kb/Work PB2040's shape): the condition binder, the SEARCH ALL screens, the
+      storage-claim scan, the subscript reader, the table(ALL) argument, the flag pass and INITIALIZE's whole-dynamic-table arm
+      (which the first build left reading `dref.cobolWord()?.GetText() ?? dref.GetText()`, review R1-1). Each now asks the one maker.
+    - *An identification outside the resolver asks the LINKAGE screen itself (correction, review R1-1's sibling sweep).* Two
+      procedure-division references reached their item without `ReferenceResolver.Identify`: INITIALIZE's whole-dynamic-table arm
+      (§2023:14.9.20.4 GR10) and function-pointer-name-1 of a function-identifier (§2023:8.4.3.2.3 SR4), so `INITIALIZE L-TAB` and
+      `FUNCTION L-FP (1)` over a LINKAGE record the header does not admit compiled clean (§2023:13.7.3 SR4, the PB5846 shape). The
+      first asks `NameResolution.ScreenLinkageReference`, the second `ScreenLinkageFunctionPointer` (a word, not a `dataReference`),
+      and `ReferenceIdentificationDriftTests` finds a binder file by every member that answers a data-name's items (`DataItemNamed`,
+      `IdentifyDataName`, `QualifiedCandidates`, `TryResolveUnqualified`), not by the verdict alone (review R1-3).
+    - *The two arms of a data-name keep the two answers the procedure division gave (a lead, not a change).* An unqualified
+      reference names the nearest declaring element's items (`TryResolveUnqualified`); a qualified one is `DataBinder.QualifiedCandidates`,
+      which also drops a set of lapsed type-declaration members alone. `IdentifyDataName` keeps both, so the move is behaviour-neutral;
+      whether an unqualified reference to a type-declaration member alone should be dropped the same way is kb/Work PB5932's dated file
+      `2026-11-19-step-6b-r1`'s lead, with the sum-counter funnel that still asks the qualified set for an unqualified name.
+    - *Each written word is read once (correction, section 9).* The first build answered the `None` row 0.05 to 0.32 MB over its
+      parent: the identification step read the head word for its arms and again to make the `WrittenQualifiedName`, and a qualified
+      reference's qualifier words in `ReferenceResolver.ReadWritten` and again in the name. `WrittenQualifiedName.OfRead(dataReference,
+      qualifierWords)` makes the name from the words `ReadWritten` already read, reading the head once, and the identification step reads
+      the reference once before its arms; every `None` row is then below the parent's (section 9).
+    - *What remains of the class: the procedure division's word probes and ambiguity counts, and the data division's operands
+      (correction, review R1-1: this item first named the data division's operands alone).* The procedure division still answers a
+      spelling's text in two shapes, neither of which uses the item it finds. The word-class probes ask whether a word is declared
+      as a data-name at all before choosing a reading (`SymbolTable.TryResolve` with its answer discarded: `SortBinder.SortBindTable`'s
+      file-or-table split, `InspectBinder`'s CONVERTING alphabet-name test, `IntrinsicBinder.KeywordOmittedFunction`, `KeywordWordOf`
+      and `TypeNameArgument`, `SubscriptBinder.IsFunctionBearing`, `StatementValidation.RejectProcedureName`). The ambiguity counts
+      count a spelling's data items beside a declaration of another class (`DataBinder.QualifiedCandidates` from
+      `KeyedIoBinder.RecordKeyNameOf`, `CounterResolver.SumCounterFamilyFor` and `SumCounterFor`, `ReportGroupResolution`, and
+      `NameResolution.ReportUnidentified`'s wording, which also asks `TryResolve`); they are the arm kb/Work PB5932's dated file
+      `2026-11-19-step-6b-r1`'s lead decides. The clause operands the data division keeps as `(name, qualifiers)`
+      text (FILE STATUS, RELATIVE and RECORD KEY, PADDING, LINAGE, ASSIGN USING, APPLY COMMIT, VALUE OF, OCCURS DEPENDING ON and KEY,
+      REDEFINES, RENAMES, SAME AS, a report clause's operands, a BASED claim) still reach `QualifiedCandidates`, `EntryClauseCandidates`,
+      `RegionClauseCandidates`, `SubtreeCandidates`, `ResolveClauseOperand`, `RecordKeyNameCandidates`, `ReportItemOperandRefused`,
+      `SumCounterOperand85` and, through them, `TryResolve`, `TryResolveUnqualified` and `NearestDeclaringData`: the remainder's
+      part B, then the declarations (C) and the entry ids (D).
   - *(Step 6b, the entry ids, branch `listing-step-6b-ids`, a lane beside the data-name lane; kb/Work PB5932's dated file
     `2026-11-19-step-6b-entry-ids`.)* Every class whose declaration is the table's makes its ENTRY where the binder declares the name,
     and every identification hands the entry back, so step 7b joins an occurrence to its entry by id for every class, never by the
@@ -1758,18 +1835,18 @@ restore and declares no binder member) gives the paths into those tables today:
 |---|---|---|
 | `ReferenceResolver.Resolve` / `ResolveImpl` -> `ResolveImplCore` -> `ReferenceResolver.Identify` | `ExpressionBinder.FieldOperand`, `RefExpr`, `ResolveSending`, `ResolveReceiving`; `ObjectPropertyResolver.ResolveObjectProperty`, `ViewOfQualifiedItem`; `ProcedureTableBuilder.ReportUnresolvedDebugOperand`; `ReferenceResolver.CapacityRegisterFor` | `Identify` moves into `SymbolTable`; `ResolveImplCore` calls it |
 | `ReferenceResolver.ResolveForItem` (a condition-name's conditional variable) | `ConditionBinder.AnalyzeBareOperand`, `SetBinder.BindSetCondition` | the condition-name was identified by `ConditionBinder.ConditionOf` (next row), which records the use; `ResolveForItem` takes its `IdentifiedName` |
-| `ConditionBinder.ConditionOf` | `ConditionBinder.AnalyzeBareOperand`, `ReportMisqualifiedCondition`; `SetBinder.BindSetCondition`; `SetAlterBinder.SwitchCondOf`; `SearchAllFormat2Rules.CheckConditionNameSide` | becomes `SymbolTable.Identify(dref, NameClass.Condition, ...)` |
+| `ConditionBinder.ConditionOf` | `ConditionBinder.AnalyzeBareOperand`, `ReportMisqualifiedCondition`; `SetBinder.BindSetCondition`; `SetAlterBinder.SwitchCondOf`; `SearchAllFormat2Rules.CheckConditionNameSide` | becomes `SymbolTable.Identify(dref, NameClass.Condition, ...)` (since step 6b's remainder slice 1, the typed `SymbolTable.IdentifyConditionName(WrittenQualifiedName, report)`, not a `NameClass.Condition` arm: section 6.7.1's correction "A qualifiable class's typed method") |
 | `ReferenceResolver.ResolveForAddressOf` -> `Identify` | `PtrBinder.PtrBindAddressOf` | through `Identify` already; keeps it |
-| `ReferenceResolver.ResolveTableOperand` -> `NameResolution.FindReportedItem` | `SortBinder.SortBindTable`, `SortBinder.SortAddFileKeys`, `StatementValidation.ResolveSearchTable` | `Identify(dref, NameClass.TableOperand, ...)`; `FindReportedItem` is deleted |
+| `ReferenceResolver.ResolveTableOperand` -> `NameResolution.FindReportedItem` | `SortBinder.SortBindTable`, `SortBinder.SortAddFileKeys`, `StatementValidation.ResolveSearchTable` | `Identify(dref, NameClass.TableOperand, ...)`; `FindReportedItem` is deleted (since step 6b's remainder slice 1, `FindReportedItem(dref, WrittenQualifiedName)` is kept, over `NameResolution.DataItemNamed`: the reported lookup of a table name, which asks the LINKAGE screen) |
 | `PlaceBuilder.WholeTable` (place of a whole table, after the table operand was identified) | `InitializeBinder.BindInitializeTarget`, `SearchBinder.WrittenTable`, `SortBinder.SortBindTable` | takes the `IdentifiedName` (links the place) |
-| `NameResolution.FindReportedItem` | `IntrinsicBinder.TryBindAllArgument`, `ReferenceResolver.ResolveTableOperand` | deleted; both through `Identify` |
-| `ReferenceResolver.ResolveByName` -> `NameResolution.FindItem` | `IntrinsicBinder.TryBindAllArgument` | replaced by `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` on the name `TryBindAllArgument` already identified |
-| `NameResolution.FindItem` | `ConstantEntryBinder.LengthOperandItem`, `ReportLengthOperand`; `DataBinder.ReportEntryLocation`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `ReferenceResolver.ProbeDeclaration`, `ResolveByName`; `NameResolution.FindReportedItem` | private to `SymbolTable`; the data-division callers (a CONSTANT LENGTH OF operand, a BASED claim) call `Identify` and record a data-division use |
-| `NameResolution.ResolveQualified` / `ResolveUnqualified` | `ReferenceResolver.Identify`; `NameResolution.FindItem`, `DeclarationOf`; `SubscriptBinder.ResolveSubscriptName`, `CannotBeSubscripted`; `ObjectPropertyResolver.ViewSubjectChain`, `IsObjectPropertyReference`; `CounterResolver.SumCounterFamilyFor` | private to `SymbolTable`; `ResolveSubscriptName` (a subscript naming a data item) and `SumCounterFamilyFor` call `Identify`; the two object-property predicates and `CannotBeSubscripted` are probes (`report: false`) |
+| `NameResolution.FindReportedItem` | `IntrinsicBinder.TryBindAllArgument`, `ReferenceResolver.ResolveTableOperand` | deleted; both through `Identify` (since step 6b's remainder slice 1, kept: `FindReportedItem(dref, WrittenQualifiedName)` over `DataItemNamed`, as the row above says) |
+| `ReferenceResolver.ResolveByName` -> `NameResolution.FindItem` | `IntrinsicBinder.TryBindAllArgument` | replaced by `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` on the name `TryBindAllArgument` already identified (since step 6b's remainder slice 1, kept as `ResolveByName(WrittenQualifiedName, ...)` over `DataItemNamed`; the `IdentifiedName` comes with the entry ids, part D) |
+| `NameResolution.FindItem` | `ConstantEntryBinder.LengthOperandItem`, `ReportLengthOperand`; `DataBinder.ReportEntryLocation`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `ReferenceResolver.ProbeDeclaration`, `ResolveByName`; `NameResolution.FindReportedItem` | private to `SymbolTable`; the data-division callers (a CONSTANT LENGTH OF operand, a BASED claim) call `Identify` and record a data-division use (since step 6b's remainder slice 1, deleted: `NameResolution.DataItemNamed(WrittenQualifiedName)` over `SymbolTable.IdentifyDataName`; the CONSTANT LENGTH OF operand and the storage-claim scan hand their written name) |
+| `NameResolution.ResolveQualified` / `ResolveUnqualified` | `ReferenceResolver.Identify`; `NameResolution.FindItem`, `DeclarationOf`; `SubscriptBinder.ResolveSubscriptName`, `CannotBeSubscripted`; `ObjectPropertyResolver.ViewSubjectChain`, `IsObjectPropertyReference`; `CounterResolver.SumCounterFamilyFor` | private to `SymbolTable`; `ResolveSubscriptName` (a subscript naming a data item) and `SumCounterFamilyFor` call `Identify`; the two object-property predicates and `CannotBeSubscripted` are probes (`report: false`) (since step 6b's remainder slice 1, deleted: both arms are `SymbolTable.IdentifyDataName`'s; `SumCounterFamilyFor` still asks `DataBinder.QualifiedCandidates`, part B) |
 | `NameResolution.ResolveIndexName` | `ExpressionBinder.IndexFieldOf`; `SubscriptBinder.SubscriptNamesIndex`, `ResolveSubscriptName`; `SearchAllFormat2Rules.CheckKeySubscript` | `Identify(..., NameClass.Index, ...)` (since step 6b's data-name lane, first slice, `SymbolTable.IdentifyIndexName`, the typed index-name identification) |
-| `SymbolTable.TryResolve` | `DataBinder.ResolveClauseOperand`, `QualifiedCandidates`, `NonDataDeclarationOf`; `InspectBinder.BindPhraseOperands`; `IntrinsicBinder.TypeNameArgument`, `KeywordWordOf`, `KeywordOmittedFunction`; `PtrBinder.PtrResolveBased`; `SortBinder.SortBindTable`; `SubscriptBinder.IsFunctionBearing`; `StatementValidation.RejectProcedureName`; `NameResolution.ReportUnidentified`, `DeclarationOf`; `SymbolTable.TryResolveUnqualified`, `TryResolveCondition` | becomes private inside the grown `SymbolTable`: `DataBinder.ResolveClauseOperand` (a clause operand such as DEPENDING ON) and `InspectBinder.BindPhraseOperands` call `Identify`; `QualifiedCandidates` asks for symbols, so its callers (RECORD KEY, ASSIGN USING, the KEY phrases) call `Identify` and record; only `NonDataDeclarationOf`, a declaration question, calls `SymbolTable.Declarations` and gets a `DeclarationFact`; the word-class probes (`KeywordWordOf`, `KeywordOmittedFunction`, `TypeNameArgument`, `IsFunctionBearing`, `RejectProcedureName`) pass `report: false` |
-| `SymbolTable.TryResolveUnqualified` | `NameResolution.ResolveUnqualified`; `InitializeBinder.BindInitializeTarget`; `IntrinsicBinder.FunctionPointerItemNamed`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `SymbolTable.NearestDeclaringData` | as above: the two binders call `Identify` |
-| `SymbolTable.TryResolveCondition` | `DataBinder.QualifiedConditionCandidates`, `ConditionsUnderQualifiers`; `ConditionBinder.ReportMisqualifiedCondition`; `SearchAllFormat2Rules.CheckKeySide`, `CheckConditionNameSide` | through `Identify(..., NameClass.Condition, ...)`, or `Declarations` for the data-division checks |
+| `SymbolTable.TryResolve` | `DataBinder.ResolveClauseOperand`, `QualifiedCandidates`, `NonDataDeclarationOf`; `InspectBinder.BindPhraseOperands`; `IntrinsicBinder.TypeNameArgument`, `KeywordWordOf`, `KeywordOmittedFunction`; `PtrBinder.PtrResolveBased`; `SortBinder.SortBindTable`; `SubscriptBinder.IsFunctionBearing`; `StatementValidation.RejectProcedureName`; `NameResolution.ReportUnidentified`, `DeclarationOf`; `SymbolTable.TryResolveUnqualified`, `TryResolveCondition` | becomes private inside the grown `SymbolTable`: `DataBinder.ResolveClauseOperand` (a clause operand such as DEPENDING ON) and `InspectBinder.BindPhraseOperands` call `Identify`; `QualifiedCandidates` asks for symbols, so its callers (RECORD KEY, ASSIGN USING, the KEY phrases) call `Identify` and record; only `NonDataDeclarationOf`, a declaration question, calls `SymbolTable.Declarations` and gets a `DeclarationFact`; the word-class probes (`KeywordWordOf`, `KeywordOmittedFunction`, `TypeNameArgument`, `IsFunctionBearing`, `RejectProcedureName`) pass `report: false` (after step 6b's remainder slice 1 none of this is built: every caller named here still asks it by text, part B) |
+| `SymbolTable.TryResolveUnqualified` | `NameResolution.ResolveUnqualified`; `InitializeBinder.BindInitializeTarget`; `IntrinsicBinder.FunctionPointerItemNamed`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `SymbolTable.NearestDeclaringData` | as above: the two binders call `Identify` (since step 6b's remainder slice 1, `InitializeBinder.BindInitializeTarget` and `IntrinsicBinder.FunctionPointerItemNamed` ask `SymbolTable.IdentifyDataName`, `NameResolution.ResolveUnqualified` is deleted, and the table's own `IdentifyDataName` and `Declarations` ask it; the storage-claim scan's unqualified arm remains, part B) |
+| `SymbolTable.TryResolveCondition` | `DataBinder.QualifiedConditionCandidates`, `ConditionsUnderQualifiers`; `ConditionBinder.ReportMisqualifiedCondition`; `SearchAllFormat2Rules.CheckKeySide`, `CheckConditionNameSide` | through `Identify(..., NameClass.Condition, ...)`, or `Declarations` for the data-division checks (since step 6b's remainder slice 1, private to the table: `IdentifyConditionName`, `DeclaresConditionName`, `ConditionTier` and `Declarations` ask it; `DataBinder.QualifiedConditionCandidates` is deleted) |
 | `SymbolTable.IndexCandidates` | `NameResolution.ResolveIndexName`; `DataBinder.NonConditionDeclarationsOf`; `IndexNameRegistry.Candidates`; `FlagConformancePass.FlagIndexSet` | `ResolveIndexName`'s lookup inside `Identify`; `FlagIndexSet` reads the occurrences instead of looking up again (since step 6b's data-name lane, first slice, `IndexCandidates` is private, asked by `SymbolTable.IdentifyIndexName` and by `Declarations.NonConditionDeclarationsOf`; the first is what `ResolveIndexName` and, until step 7b, `FlagIndexSet` ask; `IndexNameRegistry` is deleted) |
 | `ProcedureTableBuilder.ResolveProcedureWord` | `ProcedureTableBuilder.Resolve`, `ResolveDebugProcedure`, `ReportUnresolvedDebugOperand` | `Identify(..., NameClass.Procedure, ...)` |
 | `StatementValidation.ResolveFileWord` | `StatementValidation.ResolveFile` | `Identify(..., NameClass.File, ...)` |
@@ -2083,6 +2160,10 @@ sections in the text listing's order by construction. (Step 9, correction:) `ILi
 table, `ListingOutput` (section 4.2), already dispatches each format to its renderer in one switch that `ListingOutputTests` holds
 total, and the JSON writer walks no section, so an interface implemented by three classes would be a second statement of that
 switch, kept in step with it by nothing.
+(PB5941:) every renderer WRITES as it renders (section 4.2's `ListingOutput.Write`): `TextListingRenderer.Write(document, request,
+TextWriter)`, `HtmlListingRenderer.Write(document, request, TextWriter)` and `JsonListingWriter.Write(document, Stream)`. A
+visitor method of the HTML renderer appends its section's markup to the writer; one of the text renderer returns its section's rows
+lazily, read by the paginator as they are made.
 
 ### 7.1 Paginated text (`TextListingRenderer`)
 
@@ -2095,6 +2176,10 @@ summary; each starts a page.
 (Step 5:) a page outside the source section has three heading lines (the identification line, the section's title, a blank
 line) and no ruler, and names the first outermost program (section 6.1). A section asked for that could not be produced
 prints its title and `Not produced: <reason>` (section 4.3). The pages are numbered through the whole listing.
+(PB5941:) `PageComposer.Compose(TextWriter, IEnumerable<ListingRow>, ...)` reads the rows as they are produced and writes each page
+when it closes, so it holds one page of rows, never a section (`PageComposerTests.APage_IsWritten_BeforeTheRowsAfterItAreRead`); the
+form feed before every page after the listing's first is its own. `ListingRow` is a value (a record struct), and an IL instruction's
+row is one string, made indented, cut by `TextListingRenderer.Indented` only when it is wider than the page.
 
 ### 7.2 HTML (`HtmlListingRenderer`)
 
@@ -2156,6 +2241,16 @@ layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. W
   `HtmlListingRenderer.Escape`, the script in a CDATA section), so the tests read the page with `XmlReader` and find each row by the
   renderer's id functions (`LineId`, `DiagnosticId`, `InclusionId`, `DataItemId`, `FileEntryId`, `ProgramId`, `MethodId`,
   `SectionId`).
+(PB5941, correction:) "each statement opens its method, IL offset range and (when requested) IL instructions beside it" and the
+object-code section's own instructions printed every instruction TWICE, most of the page's rows (IX113A: 52,026 table rows, of them
+its 24,882 instructions twice over). Each stretch's instructions now stand ONCE: under its statement's line when the page holds that line, in the stretch's
+collapsed block (`id="C<n>"`, `HtmlListingRenderer.RangeId`, n its 1-based place in `ListingObjectCodeMap.Ranges`), and the
+object-code section's entry for the stretch keeps its line, its heading (now a link to that block) and its source text; a stretch
+whose line the page does not hold (no source section) shows its instructions in the object-code section. The text listing is
+unchanged: it has one copy (the object-code section). `HtmlListingRendererTests.EachInstruction_StandsOnce_UnderItsLine_AndTheObjectCodeSectionLinksToIt`
+holds both cases. The page is written as it is rendered (section 4.2): `Escape` writes the runs between the five markup characters
+whole, and a number or an IL offset (`IlOffset`, the one spelling of `IL_xxxx`, a value that formats itself) is formatted into the
+writer with no string of its own.
 (Step 9, not built:) every NAME on a source line linking to its definition, and every definition listing its references, stand on
 `ListingLine.Names` and `ListingCrossReference`, which step 7b adds to the model with the occurrences (section 11, "Step 7b,
 dispatched early"); neither member exists, so the page links what the model holds and step 7b adds the name links with them.
@@ -2200,6 +2295,8 @@ dispatched early"); neither member exists, so the page links what the model hold
   group has MEASURED in `tests/_shared/test-weights.json`, and a new class has no measurement. (PB5951:) the weights now carry it
   (0.3 s), so it is declared in the `unit` target's `preflight` of `scripts/build_targets.json`: a stale schema ends the gate RED
   before the population runs (kb/Work PB5925's lead `2026-11-18-schema-drift-preflight`, closed).
+- (PB5941:) `JsonListingWriter.Write(document, Stream)` serializes through the same contract straight to the stream and ends it with a
+  line feed: the JSON text is never a string (it was serialized to one, then copied once more to append the line feed).
 - The document carries `"$schema": "urn:wiseowl:cobol:listing:v1"` and `"schemaVersion": "1.<minor>"`.
 - Diagnostics carry their citations as a field. (Step 3:) the field is a LIST, `citations`, of `ListingCitation(Edition,
   Locator, Rule)`: a message may cite several rules (`§2002:7.2.15.2 GR4` and a 1985 rule beside it), and keeping only the
@@ -2242,6 +2339,21 @@ validator on the root command applies `ListingRequest.FormatsProblem` to the two
 an argument error). With `-`, `RunCompile` prints `ListingOutput.Render` of the one format before the diagnostics; the
 `>>DISPLAY` lines that go to standard output follow it there, so a JSON listing on standard output is followed by them
 (step 4a sends DISPLAY UPON LISTING into the listing itself, so only UPON CONSOLE or SYSOUT follow it).
+(PB5941:) `RunCompile` no longer prints a rendered string: it streams the one format with section 4.2's character entry,
+`ListingOutput.Write(format, document, request, Console.Out)`, through the process's one standard output writer. That writer's
+encoding is `StandardStreams.EnsureUtf8`'s rule, set from `Main` for every line the command prints (kb/Work PB899, PB3294): on a
+redirected handle a BOM-less UTF-8 writer, so standard output receives the bytes the format's file would hold (section 7.1's text
+listing is UTF-8, a JSON text exchanged is UTF-8 by RFC 8259 section 8.1, and the page declares `charset="utf-8"`); on a Windows
+console the console's wide-character interface, so a listing read there shows its characters as themselves whatever the console's
+code page. The `>>DISPLAY` lines that follow are written through the same writer, so they follow the listing in order.
+(PB5941 review R1-1, correction:) the first PB5941 shape wrote the listing's UTF-8 bytes to `Console.OpenStandardOutput()`, past that
+writer, on the claim that `Console.Out` re-encoded through the console's OEM code page. The claim was wrong (since PB899 a redirected
+`Console.Out` is UTF-8), and the bypass was the defect: a Windows console whose standard output encoding `EnsureUtf8` set to UTF-16
+read the bytes as UTF-16 and showed CJK characters for the whole listing, measured on a code page 437 pseudoconsole. Two witnesses
+hold the path, each run as a process: `ListingCliTests.ToStandardOutput_TheListingIsUtf8_AndTheDisplayLinesFollowIt` (redirected
+under a cp437 console: UTF-8 with no byte order mark, the DISPLAY line after the listing; red when the listing is written after the
+DISPLAY lines) and `WindowsConsoleDeviceTests.The_cobol_commands_listing_on_the_console_shows_its_characters_as_themselves` (on a cp437
+pseudoconsole; red on the bypass).
 `Resolve` builds a `ListingRequest` on `CliOptions`; `RunCompile` passes it as `CompilerDriver.Options.Listing`. The
 library default is null (no listing), so every caller that builds `Options` itself (the test suites, `check-batch`, an
 expansion's own compilation in `ExpansionAssemblies`) does no listing work; the per-edition default is a CLI decision.
@@ -2361,6 +2473,12 @@ renderer. Naming it asks for a listing at any edition.
   two runs or within 0.04 MB of them (IX113A 68.32 and 68.29 MB against 68.33 and 68.33); NC105A's lie one below both parent runs and
   one 0.55 MB above them (34.60 and 35.26 MB against 34.61 and 34.71), inside the program's run-to-run spread on one tree (slice 3's
   four runs each). The slice moves no measurable allocation; the `None` budget holds (the README's step-6b table, the closing slice).
+  Remainder slice 1 (the procedure division's data-names and condition-names through `IdentifyDataName` and `IdentifyConditionName`),
+  measured against its parent 8dd07d2eab, alternating: the first build was over the budget on every program (IX113A 68.51 and 68.37 MB
+  against 68.23 and 68.32), because the identification step read the head word twice and a qualified reference's qualifier words twice.
+  With each word read once (`WrittenQualifiedName.OfRead`, section 6.7.1), every branch `None` row lies below all three parent runs
+  (IX113A 67.61 and 67.66 MB against 68.23, 68.32 and 68.30; NC105A 34.21 and 34.22 against 34.59 to 34.66); the `None` budget holds
+  (the README's step-6b table, remainder slice 1).
   The entry-id lane (every class the table declares enters its entry where it is declared, section 6.7.1 "Step 6b, the entry ids"),
   measured against its parent 8dd07d2eab (branch, branch, parent, parent; the first parent run failed to build BenchmarkDotNet's
   boilerplate in its two-minute timeout and is not counted): NC105A's `None` rows are 34.81 and 34.82 MB against 34.67 and 34.66,
@@ -2383,13 +2501,26 @@ renderer. Naming it asks for a listing at any edition.
   budget holds; the NIST programs flag nothing at the benchmark's edition, and the listing rows equal the parent's within 0.14 MB but
   SM201A's, which move both ways (+0.40, -0.60, +1.82 MB), that program's noise (kb/Work PB5925's lead
   `2026-11-18-full-compile-allocation-noise`).
+  (PB5941:) the `all` row is back inside its 25 % budget: +16.5 to +20.7 % over `None` on a full compile, from +50.2 to +69.3 % on
+  the parent `8dd07d2eab`, measured twice on each tree, alternating (the benchmark README's PB5941 table); `all` allocates 15.0 to
+  73.8 MB less per compile. The measurement found the mechanism before the change: a Release probe of each part of IX113A's `all`
+  listing put the document at +14.6 MB over no listing and the rendering at 99.7 MB, the text listing 33.2 MB for a 2.6 MB file,
+  the JSON 27.0 MB for 6.7 MB and the page 39.5 MB for 6.6 MB, each format held whole (a buffer, a string copied from it, the
+  string encoded) and the page holding every instruction twice. With each format streamed to its file (section 4.2), the paginator
+  holding one page (section 7.1), the instructions once on the page (section 7.2) and the object code decoded into one array per
+  method (each stretch a slice of it, `ObjectCodeMapReader`), the probe reads the text listing at 13.3 MB, the JSON at 0.16 MB and
+  the page at 8.3 MB (4.9 MB, from 6.6). What remains in the text listing is one string per printed row (an IL instruction's row
+  among them), which the paginator's model of a row as a string asks for; the budget holds with it, so the row stays a string.
+  The text and JSON listings of the four programs are byte-identical to the parent's but for the instant (a differential of the
+  CLI's `all` listing in every format); the page differs only in the stretch blocks' ids and the object-code section's entries.
   (PB5951:) the exception-handling regions, measured against the parent on a full compile, twice on the branch (the benchmark
   README's PB5951 table): the `None` rows move by up to 8.5 MB between two runs of one tree, and PB5951 changes nothing a compilation
   without a listing runs (the clauses are read only for `object-map` or `object-code`). The `All` row is +0.9 to +5.8 % over the
   parent's, inside that spread on three programs (SM201A, with no clause, moves as much as NC218A, with 218 protected blocks) and about
   5 MB beyond it on IX113A (320 protected blocks); the first build wrote a padding attribute on every instruction row of the page, and
   writing it only where a region nests the row took 6.5 MB off IX113A's `All`. `All` is +54.6 to +77.2 % over `None` (the parent's
-  +43.4 to +69.8 %), over its 25 % budget as before: kb/Work PB5941's dated file `2026-11-19-pb5951-rows`.
+  +43.4 to +69.8 %), over its 25 % budget as it was before PB5941
+  landed (these rows were measured on PB5941's parent): kb/Work PB5941's dated file `2026-11-19-pb5951-rows`.
 
 ## 10. Test plan
 
@@ -2458,6 +2589,14 @@ captured listing.
    every section has a method in `IListingSectionVisitor<T>` (compile-time); the options section names every public
    property of `CompilerDriver.Options`; the no-listing path does no work (section 9); the manual's command-line page
    names every listing option (`UserManualDriftTests`).
+   (PB5941:) every format is written by the one call as UTF-8 with no byte order mark to a stream left open
+   (`ListingOutputTests.EveryFormat_IsWrittenAsUtf8_WithNoByteOrderMark_ToAStreamLeftOpen`), the paginator writes a page before it
+   reads a row after it (`PageComposerTests.APage_IsWritten_BeforeTheRowsAfterItAreRead`), and the page holds each instruction once
+   (`HtmlListingRendererTests.EachInstruction_StandsOnce_UnderItsLine_AndTheObjectCodeSectionLinksToIt`). Each was mutated red (the
+   paginator materializing its rows, the object-code section printing the instructions of a held line, a byte order mark) and
+   restored green. No guard is a wall-clock or allocation limit: the API holds the structure (no renderer returns a string).
+   (PB5941 review R1-1:) the command line's `-` is held by the two process witnesses section 8 names, and the character entry by
+   `ListingOutputTests.EveryFormat_WrittenAsCharacters_IsWhatItsFileHolds`.
 7. **Unit tests** of `ListingVisibility` and `PageComposer` over hand-built line lists (one per rule above), and of
    `ListingLineIndex` over hand-built maps (step 1: `ListingLineIndexTests`, a copybook copied at two depths, framing
    lines, a file no inclusion holds, omission); `PhysicalLineKindDriftTests` (section 4.4.1). (kb/Work PB5950:)
@@ -2665,10 +2804,17 @@ shown behaviour-neutral by `compare_oracle.py`, and lowered the baseline 122 -> 
 data-names' and condition-names' resolution by text (22 lookups, about 100 call sites), their declaration sites, the census, the group
 tier's function units and the parameterized expansion, so the step lands one more slice at least, by the same rule: the slice that
 empties the baseline deletes it with the code that reads it, measures the whole step against the parent of slice 1, and flips PB5932;
-kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the remainder by class. (Step 6b, the entry ids, branch `listing-step-6b-ids`, a
+kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the remainder by class. (Step 6b, remainder slice 1, branch
+`listing-step-6b-r1`:) the procedure division's data-name and condition-name references whose item is used are identified by
+`SymbolTable.IdentifyDataName` and `IdentifyConditionName` (section 6.7.1, "Step 6b, remainder slice 1"), eleven text lookups
+deleted, `compare_oracle.py` IDENTICAL; the baseline is 75, and kb/Work PB5932's dated files `2026-11-19-step-6b-r1` and
+`2026-11-19-listing-step-6b-r1-review-r1` hold what remains in the remainder's order: the procedure division's word probes and
+ambiguity counts with the data division's clause operands (B), the declarations, the census, the group tier's units and the parameterized expansion (C), and every
+class's entry id (D). (Step 6b, the entry ids, branch `listing-step-6b-ids`, a
 lane beside the data-name lane, controller 2026-11-19:) the classes already in the table make their entries where they are declared and
 every identification carries its id (section 6.7.1, "Step 6b, the entry ids"); the lane moves no table, so the baseline is unchanged, and
-kb/Work PB5932's dated file `2026-11-19-step-6b-entry-ids` holds what it built and measured.
+kb/Work PB5932's dated file `2026-11-19-step-6b-entry-ids` holds what it built and measured: with remainder slice 1 merged the baseline is 75, and of D
+the data-names' and condition-names' entries remain, which their declarations (C) make.
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
 was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had
@@ -2745,7 +2891,8 @@ gap:
 - Section 6.7.1's one store: step 6b's data-name and condition-name resolution by text, 86 baseline entries (kb/Work PB5932).
 - Section 2.2's two 2002 DOC rows (`2002-DOC-B.1-90`, `-165`): documented in DOC-A.1-117 and DOC-A.1-200 but held at GAP by kb/Work
   PB5930.
-- Section 9's `All` budget: over 25 % since step 8 (kb/Work PB5941); step 9's HTML adds to it (section 9, step 9).
+- (PB5941:) section 9's `All` budget, over 25 % since step 8, is met: every format streams to its file and the page shows each
+  instruction once (section 9, PB5941; kb/Work PB5941 landed with this branch, `listing-step-pb5941`).
 - Section 7's `IListingRenderer`: not built by decision (section 7, step 9 correction).
 
 ## 12. Documents and records that change with the listing
@@ -2761,6 +2908,8 @@ and derivations PB5923 and section 10 name; `docs/manual/user-guide/command-line
    rest with `--listing-sections`. IBM's defaults are similar (NOMAP NOXREF NOLIST) and the full set costs a bound-tree
    walk. Decided again from the benchmark rows steps 6 to 9 land (section 9). (Step 9:) decided: `standard` stays the default. The
    rows of steps 6, 8 and 9 put `all` at 35 % and more over no listing (kb/Work PB5941), and `standard` inside its 10 %.
+   (PB5941:) the decision stands: with every format streamed `all` is +16.5 to +20.7 % (section 9), inside its own budget, but the
+   object code is IBM's LIST, long and wanted on request, and `standard` is what a 1985 listing must hold.
 2. **Should JSON contain every section regardless of `--listing-sections`?** Recommendation: no; one request, one
    document, so the three formats always agree.
 3. **Diagnostics carrying their citation as data.** DECIDED in step 3: NO second copy; the message is the one source of a

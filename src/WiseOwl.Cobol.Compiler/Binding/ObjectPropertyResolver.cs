@@ -67,14 +67,15 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     /// for the same reason the committing path orders it that way.</para></summary>
     public bool IsObjectPropertyReference(Core.DataReferenceContext dref)
     {
-        if (dref.cobolWord() is not { } head) return false;
+        if (dref.cobolWord() is null) return false;
         var written = ReferenceResolver.ReadWritten(dref);
         if (written.PropertyObject is null
-            && (written.Qualifiers.Count == 0 || refs.Names.ResolveQualified(head.Name(), written.Qualifiers) is not null))
+            && (written.Qualifiers.Count == 0
+                || refs.Names.DataItemNamed(WrittenQualifiedName.OfRead(dref, written.Qualifiers)) is not null))
             return false;
         bool saved = refs.Probing;
         refs.Probing = true;
-        try { return ViewOfQualifiedItem(dref, report: false) is null && ResolveObjectProperty(dref, head.Name(), written).Temp is not null; }
+        try { return ViewOfQualifiedItem(dref, report: false) is null && ResolveObjectProperty(dref, written).Temp is not null; }
         finally { refs.Probing = saved; }
     }
 
@@ -144,19 +145,17 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
         subject.Start = dref.Start;
         subject.Stop = term.Stop;
 
-        var w = ReferenceResolver.ReadWritten(subject);
-        return refs.Names.ResolveQualified(head.Name(), w.Qualifiers) is not null ? (subject, view) : null;
+        return WrittenQualifiedName.Of(subject) is { } named && refs.Names.DataItemNamed(named) is not null ? (subject, view) : null;
     }
 
-    /// <summary>Resolve <paramref name="dref"/> (head word <paramref name="name"/>, already known NOT to be a data name)
+    /// <summary>Resolve <paramref name="dref"/> (its head word, already known NOT to be a data name, is the property-name)
     /// as §2023:8.4.3.1.2 Format 7. Returns <c>(temp, null)</c> for a property reference (the §2023:8.4.3.9.4 temporary; a probe gets
     /// the accessor's MODEL item, with nothing synthesized or registered), <c>(null, answer)</c> when identifier-3 or the
     /// property was refused (reported), and <c>(null, null)</c> when the shape is no property reference at all — the
     /// caller keeps its generic unknown-name diagnosis.</summary>
-    internal (DataItem? Temp, RefResolution? Final) ResolveObjectProperty(Core.DataReferenceContext dref, string name,
-        WrittenReference written)
+    internal (DataItem? Temp, RefResolution? Final) ResolveObjectProperty(Core.DataReferenceContext dref, WrittenReference written)
     {
-        if (data.OoClasses is not { } table) return default;
+        if (data.OoClasses is not { } table || dref.cobolWord()?.GetText() is not { } name) return default;
         var terminal = written.PropertyObject;
         var objRef = PropertyObjectReference(dref);
         if (objRef is null && terminal is null) return default;

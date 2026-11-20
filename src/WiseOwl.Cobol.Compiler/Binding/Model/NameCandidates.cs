@@ -59,6 +59,26 @@ public readonly struct NameCandidates<T> where T : class
     /// set in against a declaration of another name class (kb/Work PB4219).</summary>
     internal int NearestDepth(Func<T, int> depthOf) => _items is { Count: > 0 } items ? items.Min(depthOf) : 0;
 
+    /// <summary>The first survivor, in declaration order, that satisfies <paramref name="predicate"/>, or null: for a position that
+    /// picks among the candidates BY KIND (a dynamic-capacity table, a FUNCTION-POINTER), always over this narrowed set
+    /// (<see cref="SymbolTable.TryResolveUnqualified"/>'s warning).</summary>
+    internal T? FirstWhere(Func<T, bool> predicate) => _items?.Find(i => predicate(i));
+
+    /// <summary>The one survivor that satisfies <paramref name="predicate"/>, or null when none or several do (the report
+    /// entries, which no member stands for, are not counted).</summary>
+    internal T? SingleWhere(Func<T, bool> predicate)
+    {
+        T? only = null;
+        if (_items is null) return null;
+        foreach (var i in _items)
+        {
+            if (!predicate(i)) continue;
+            if (only is not null) return null;
+            only = i;
+        }
+        return only;
+    }
+
     /// <summary>Whether any survivor satisfies <paramref name="predicate"/>.</summary>
     internal bool Any(Func<T, bool> predicate) => _items is not null && _items.Exists(i => predicate(i));
 

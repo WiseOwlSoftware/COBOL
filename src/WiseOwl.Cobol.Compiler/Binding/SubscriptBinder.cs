@@ -427,13 +427,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// off <c>qualified-data-name-1</c>, so in <c>X (E OF T (1))</c> the paren belongs to <c>E OF T</c>; asking the
     /// LAST word alone asked about <c>T</c> — a group that carries no OCCURS — split <c>(1)</c> off as a second
     /// subscript of X, and refused the legal reference COBOL2270 ("E OF T … shall be subscripted").</para></summary>
-    internal bool CannotBeSubscripted(string name, List<string> qualifiers) =>
-        (qualifiers.Count > 0 ? refs.Names.ResolveQualified(name, qualifiers) : refs.Names.ResolveUnqualified(name)) is { IsTableElement: false };
+    internal bool CannotBeSubscripted(WrittenQualifiedName written) => refs.Names.DataItemNamed(written) is { IsTableElement: false };
 
     // ── Intrinsic-argument entries (ISO §2023:15.3; consumed by IntrinsicBinder) ─────────────────────────────────
     // The table(ALL) argument resolves its name and renders its non-ALL subscripts itself (it builds an enumeration,
-    // not one place) — these thin internal entries expose the SAME private resolution (ResolveUnqualified /
-    // ResolveQualified → PlaceForItem → BindPosition) so argument references see identical view/qualification/
+    // not one place) — these thin internal entries expose the SAME private resolution (NameResolution.DataItemNamed
+    // → PlaceForItem → BindPosition) so argument references see identical view/qualification/
     // subscript semantics as every verb operand (singular-pattern rule).
 
     /// <summary>Bind one written subscript to its typed <see cref="Position"/> (the private
@@ -511,7 +510,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// splits the item at the list into pieces that carry no operand, and the binder refuses them by name (COBOL2363)
     /// rather than re-cut the expression out of its tokens (DESIGN-binder-bound-tree.md §3.9.2).</para></summary>
     internal static List<PositionSegment> SegmentsOf(Core.SubscriptPartContext group,
-        Func<string, List<string>, bool>? parenSplitsAfterName)
+        Func<WrittenQualifiedName, bool>? parenSplitsAfterName)
     {
         var segments = new List<PositionSegment>();
         if (group.subscriptList() is not { } list) return segments;
@@ -568,7 +567,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// splits. What the list holds is the next item's own question (<see cref="GivenAwayOperand"/>). The marking is
     /// idempotent: the same item and the same declarations give the same answer to every reader.</para></summary>
     internal static ListCut GiveAwayClosingList(Antlr4.Runtime.ParserRuleContext item,
-        Func<string, List<string>, bool>? cannotBeSubscripted, out Core.SubscriptPartContext? list)
+        Func<WrittenQualifiedName, bool>? cannotBeSubscripted, out Core.SubscriptPartContext? list)
     {
         list = null;
         if (cannotBeSubscripted is null) return ListCut.None;
@@ -595,25 +594,30 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// name that cannot be subscripted, at the item's OWN level — inside a nested paren (another reference's
     /// subscripts or reference modifier, a function's arguments, a parenthesized expression) the split question
     /// belongs to that paren's owner, so the walk does not descend there.</summary>
-    private static void CollectCuts(IParseTree node, Func<string, List<string>, bool> cannotBeSubscripted,
+    private static void CollectCuts(IParseTree node, Func<WrittenQualifiedName, bool> cannotBeSubscripted,
         ref List<Core.SubscriptPartContext>? cuts)
     {
         switch (node)
         {
             case Core.DataReferenceContext dref:
-                if (dref.cobolWord() is not { } head) return;
-                var qualifiers = new List<string>();
+                // A counter register's word is its qualifier (WrittenQualifiedName.Of), and a register owns no list.
+                if (dref.LINAGE_COUNTER() is not null || dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null
+                    || dref.cobolWord() is not { } word)
+                    return;
+                var head = word.Start;
+                List<IToken>? qualifiers = null;
                 foreach (var suffix in dref.dataReferenceSuffix())
                 {
                     Core.SubscriptPartContext? sp = suffix.subscriptPart();
                     if (suffix.qualification() is { } q)
                     {
-                        qualifiers.Add(q.cobolWord().GetText());
+                        (qualifiers ??= []).Add(q.cobolWord().Start);
                         if (q.subscriptPart() is [var qsp, ..]) sp = qsp;
                     }
                     if (sp is null) continue;
-                    // §2023:8.4.2.3.2 hangs the list off the whole qualified name (kb/Work PB1455's sweep)
-                    if (cannotBeSubscripted(head.GetText(), qualifiers)) (cuts ??= []).Add(sp);
+                    // §2023:8.4.2.3.2 hangs the list off the whole qualified name (kb/Work PB1455's sweep): the qualifiers
+                    // written before it
+                    if (cannotBeSubscripted(new WrittenQualifiedName(head, qualifiers ?? (IReadOnlyList<IToken>)[]))) (cuts ??= []).Add(sp);
                     return;   // the first list decides; what follows it is that list's own reading
                 }
                 return;
@@ -755,8 +759,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             if (written.PropertyObject is not null) return null;
             // ⛔ AN UNRESOLVABLE NAME ROUTES TO D18 — IT IS NOT A VERDICT (fix-queue PB50): the expression binder
             // reports a genuinely undefined name at the operand itself.
-            if (ResolveSubscriptName(dref, dref.cobolWord().GetText(), written.Qualifiers, position, ref pending,
-                    out bool scaled, (dref.Start, indexNames)) is not { } read) return null;
+            if (ResolveSubscriptName(dref, WrittenQualifiedName.OfRead(dref, written.Qualifiers), position,
+                    ref pending, out bool scaled, (dref.Start, indexNames)) is not { } read)
+                return null;
             // A scaled operand inside a compound position — evaluate the whole expression instead (above).
             return scaled && compound ? null : read;
         }
@@ -951,10 +956,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// referenced, so §2023:8.4.2.3.3 SR4 is applied there (<see cref="ScreenIndexNameAssociation"/>). Threaded rather
     /// than kept on the resolver because the D18 materializer can re-enter this resolver for a nested
     /// reference (kb/Work PB459).</param>
-    private Position? ResolveSubscriptName(Core.DataReferenceContext dref, string name, List<string> qualifiers, SegmentPosition position,
+    private Position? ResolveSubscriptName(Core.DataReferenceContext dref, WrittenQualifiedName written, SegmentPosition position,
         ref List<PendingScreen>? pending, out bool scaled, (IToken Token, List<IndexUse>? Into) nameToken)
     {
         scaled = false;
+        string name = written.Name;
+        var qualifiers = written.QualifierWords;
         // An index-name is an occurrence number by construction (§2023:13.18.38) and a constant-name substitutes an
         // INTEGER literal — neither can be scaled, so both keep the fast path.
         // ⛔ BUT ONLY IN THE POSITION r7 LISTS (kb/Work PB170). §2023:13.18.38.3 r7's five contexts include "as a
@@ -963,7 +970,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // already existed (ExpressionBinder.ScreenIndexNameOperand); it simply was not applied here.
         // The name may be QUALIFIED (§2023:8.4.2.2.2 Format 3 / §2023:8.4.2.2.3 SR6 — `E(IX OF T)`), and a duplicated one
         // must be (SR1): the ONE resolution decides both (kb/Work PB919).
-        if (refs.Names.ResolveIndexName(WrittenQualifiedName.Of(dref), nameToken.Token) is { Outcome: not IndexRefOutcome.NotAnIndexName } ix)
+        if (refs.Names.ResolveIndexName(written, nameToken.Token) is { Outcome: not IndexRefOutcome.NotAnIndexName } ix)
         {
             if (position == SegmentPosition.Subscript)
             {
@@ -987,7 +994,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             && data.Symbols.Identify(dref.cobolWord(), NameClass.ReportVarying, report: true, reportSite: refs.ReportSite)?.Symbol
                 is ReportVaryingModel counter)
             return new PositionLocal(counter.Local, AsLong: true);
-        DataItem? item = qualifiers.Count == 0 ? refs.Names.ResolveUnqualified(name) : refs.Names.ResolveQualified(name, qualifiers);
+        DataItem? item = refs.Names.DataItemNamed(written);
         if (item is null) return null;
         // ⛔ §1985:X.5.1 GR4 / §2023:13.7.3 SR4 AT A SUBSCRIPT OR REFERENCE-MODIFICATION POSITION (kb/Work PB5846): the name written
         // here is a reference within the procedure division, so a LINKAGE item that is no header operand (and no subordinate,

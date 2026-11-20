@@ -162,13 +162,13 @@ public sealed partial class SymbolTable
             && _data.State.Inherited.FileDepth(file) < depth;
 
         /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
-        /// (kb/Work PB4432 review R1-1, the class twin of <see cref="DataBinder.ConditionNameHiddenByNearerDataItem"/>): the written
+        /// (kb/Work PB4432 review R1-1, the class twin of <see cref="SymbolTable.ConditionNameHiddenByNearerDataItem"/>): the written
         /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name or file-name of it declared in a
         /// NEARER source element is the referenced item. The declaration that hides it, or null. Pure: it reports nothing.</summary>
         public DeclarationFact? ConditionNameHiddenByNearerNonDataName(
             string name, IReadOnlyList<string> qualifiers, Scope scope)
         {
-            var tier = _data.ConditionTier(name, qualifiers, scope);
+            var tier = _table.ConditionTier(name, qualifiers, scope);
             return tier.Count == 0 ? null : NonConditionDeclarationNearerThan(name, qualifiers, scope, _data.State.Forest.DeclaringDepth(tier[0].Parent));
         }
 

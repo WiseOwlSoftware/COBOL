@@ -141,6 +141,55 @@ public sealed class ListingCliTests
     [InlineData("--listing-sections", "")]
     public void ABadValue_IsAnArgumentError(string option, string value) => Assert.NotEmpty(Errors("a.cob", option, value));
 
+    /// <summary>The comment line of <see cref="ToStandardOutput_TheListingIsUtf8_AndTheDisplayLinesFollowIt"/>: two characters
+    /// outside ASCII, one of them (U+00E9) a single byte in cp437 and the other (U+20AC) in no OEM code page at all.</summary>
+    private const string NonAsciiComment = "      * café €";
+
+    /// <summary>The line the program's DISPLAY directive transfers UPON CONSOLE.</summary>
+    private const string DisplayedLine = "AFTER THE LISTING";
+
+    /// <summary>Section 8 (PB5941, correction): with <c>--listing-output -</c> the one format goes to standard output as the
+    /// bytes its file would hold, UTF-8 with no byte order mark whatever the console's code page, and the lines of the DISPLAY
+    /// directives that go to standard output follow it there. Run as a process under a cp437 console with standard output
+    /// redirected (<see cref="OemConsoleCli"/>): the listing goes through <c>Console.Out</c>, which
+    /// <c>StandardStreams.EnsureUtf8</c> makes BOM-less UTF-8 when standard output is redirected, and an in-process run cannot
+    /// observe those bytes because <c>EnsureUtf8</c> runs from <c>Main</c> (kb/Work PB5941 reviews R1-1 and R2-1). A writer that
+    /// re-encodes through the console's code page sends U+00E9 as the byte 0x82 and U+20AC as <c>?</c>, which the strict decode
+    /// or the comparison refuses; writing the listing after the DISPLAY lines puts the displayed line first.</summary>
+    [Theory]
+    [InlineData("text")]
+    [InlineData("json")]
+    [InlineData("html")]
+    public void ToStandardOutput_TheListingIsUtf8_AndTheDisplayLinesFollowIt(string format)
+    {
+        string work = WiseOwl.Cobol.Tests.Shared.ScratchDirectory.Create("listing-cli-stdout");
+        try
+        {
+            string source = Path.Combine(work, "lstout.cob");
+            File.WriteAllText(source, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. LSTOUT.\n" + NonAsciiComment + "\n"
+                + $"       >>DISPLAY \"{DisplayedLine}\" UPON CONSOLE\n       PROCEDURE DIVISION.\n           STOP RUN.\n",
+                ListingOutput.Utf8);
+
+            var capture = OemConsoleCli.Run(work, source, "--std", "2023", "--listing-output", "-", "--listing-format", format);
+            Assert.True(capture.Error.Length == 0, System.Text.Encoding.UTF8.GetString(capture.Error));
+            Assert.False(capture.Output.AsSpan().StartsWith(System.Text.Encoding.UTF8.Preamble), "a byte order mark");
+            string output = new System.Text.UTF8Encoding(false, throwOnInvalidBytes: true).GetString(capture.Output);
+
+            // The displayed line is the last line, and the only line that is the displayed text alone: it follows the listing.
+            string displayed = DisplayedLine + Environment.NewLine;
+            Assert.EndsWith("\n" + displayed, output, StringComparison.Ordinal);
+            string listing = output[..^displayed.Length];
+            Assert.DoesNotContain(listing.Split('\n'), l => l.TrimEnd('\r') == DisplayedLine);
+
+            if (format == "json")
+                Assert.Contains(NonAsciiComment, WiseOwl.Cobol.Listing.Json.JsonListingWriter.Read(listing).Lines.Select(l => l.Text));
+            else
+                Assert.Contains(format == "html" ? NonAsciiComment[^6..] : NonAsciiComment, listing, StringComparison.Ordinal);
+            if (format == "html") Assert.EndsWith("</html>\n", listing, StringComparison.Ordinal);
+        }
+        finally { WiseOwl.Cobol.Tests.Shared.ScratchDirectory.Remove(work); }
+    }
+
     /// <summary>A listing on standard output is ONE format: two would interleave in one stream.</summary>
     [Fact]
     public void TwoFormatsOnStandardOutput_IsAnArgumentError() =>

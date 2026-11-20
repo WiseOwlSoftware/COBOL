@@ -573,7 +573,7 @@ public sealed record PicInfo(
         Category is PicCategory.Alphanumeric or PicCategory.National && EditMask is not null;
 
     /// <summary>True when every PICTURE position is <c>A</c> — category alphabetic (ISO §2023:8.5.2). INITIALIZE
-    /// category matching (§2023:14.9.20 GR5c/GR6c) must distinguish alphabetic from alphanumeric receivers; both map
+    /// category matching (§2023:14.9.20.4 GR5c/GR6c) must distinguish alphabetic from alphanumeric receivers; both map
     /// to <see cref="PicCategory.Alphanumeric"/> storage, so the category needs this flag.</summary>
     public bool IsAlphabetic { get; init; }
 

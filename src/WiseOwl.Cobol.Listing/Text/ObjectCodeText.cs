@@ -46,13 +46,32 @@ public static class ObjectCodeText
             var regions = methods[range.Method].Regions;
             foreach (var line in CodeLines(range))
             {
-                int indent = 13 + RegionIndent * line.Depth;
-                string row = line.Instruction is { } instruction ? InstructionText(instruction) : RegionText(line.Mark!, regions);
-                foreach (string piece in TextListingRenderer.Indented(row, indent, line.Instruction is null ? indent : indent + 23, width))
-                    yield return piece;
+                // One string per line (kb/Work PB5941): the row is made indented, and cut only when it is wider than the page.
+                int indent = InstructionIndent + RegionIndent * line.Depth;
+                if (line.Instruction is { } instruction)
+                {
+                    string pad = Spaces(indent);
+                    string row = instruction.Operand is { } operand
+                        ? string.Create(CultureInfo.InvariantCulture, $"{pad}{new IlOffset(instruction.Offset)}  {instruction.OpCode,-12} {operand}")
+                        : string.Create(CultureInfo.InvariantCulture, $"{pad}{new IlOffset(instruction.Offset)}  {instruction.OpCode}");
+                    if (row.Length <= width) yield return row;
+                    else foreach (string piece in TextListingRenderer.Indented(row[indent..], indent, indent + OperandIndent, width)) yield return piece;
+                }
+                else foreach (string piece in TextListingRenderer.Indented(RegionText(line.Mark!, regions), indent, indent, width)) yield return piece;
             }
         }
     }
+
+    /// <summary>The indent of a depth-0 line of object code under its stretch's heading.</summary>
+    private const int InstructionIndent = 13;
+
+    /// <summary>Where an instruction row's continuation starts, past its own indent: under its operand.</summary>
+    private const int OperandIndent = 23;
+
+    /// <summary><paramref name="count"/> spaces, made once per count for the depths a listing reaches.</summary>
+    private static string Spaces(int count) => count < s_spaces.Length ? s_spaces[count] : new string(' ', count);
+
+    private static readonly string[] s_spaces = [.. Enumerable.Range(0, 64).Select(n => new string(' ', n))];
 
     /// <summary>The columns each level of exception-handling nesting indents a line of the object code by.</summary>
     public const int RegionIndent = 2;
@@ -80,10 +99,6 @@ public static class ObjectCodeText
 
     /// <summary>The depth the lines after <paramref name="mark"/> stand at: one deeper than an opening line, a closing line's own.</summary>
     public static int DepthAfter(ListingRegionMark mark) => ListingRegionBoundaries.Opens(mark.Boundary) ? mark.Depth + 1 : mark.Depth;
-
-    /// <summary>An instruction as both renderers' object code prints it: its offset, its name and its operand.</summary>
-    public static string InstructionText(ListingInstruction instruction) =>
-        string.Create(CultureInfo.InvariantCulture, $"{Offset(instruction.Offset)}  {instruction.OpCode,-12} {instruction.Operand}").TrimEnd();
 
     /// <summary>A line of a method's exception-handling structure as ILDASM prints it (ECMA-335 II.19): <c>.try {</c>,
     /// <c>} // end .try</c>, <c>catch Type {</c>, <c>filter {</c>, <c>} // end filter</c>, a filter's <c>{ // handler</c>,
@@ -114,8 +129,8 @@ public static class ObjectCodeText
     /// <summary>A method as the object-code rows name it: its type and its name, ECMA-335's <c>Type::Name</c>.</summary>
     public static string MethodName(ListingMethod method) => method.Type + "::" + method.Name;
 
-    /// <summary>An IL offset as an IL listing spells it: <c>IL_</c> and four or more hexadecimal digits.</summary>
-    public static string Offset(int offset) => string.Create(CultureInfo.InvariantCulture, $"IL_{offset:X4}");
+    /// <summary>An IL offset as an IL listing spells it: <c>IL_</c> and four or more hexadecimal digits (<see cref="IlOffset"/>).</summary>
+    public static string Offset(int offset) => new IlOffset(offset).ToString();
 
     /// <summary>A method's metadata token as both renderers print it: <c>0x</c> and eight hexadecimal digits.</summary>
     public static string Token(int token) => string.Create(CultureInfo.InvariantCulture, $"0x{token:X8}");
@@ -145,3 +160,19 @@ public static class ObjectCodeText
 /// <param name="Instruction">The instruction, or null for a region line.</param>
 /// <param name="Mark">The region line, or null for an instruction.</param>
 public readonly record struct ObjectCodeLine(int Depth, ListingInstruction? Instruction, ListingRegionMark? Mark);
+
+/// <summary>⛔ THE ONE SPELLING OF AN IL OFFSET, <c>IL_</c> and four or more hexadecimal digits, as a value that formats itself into a
+/// row or a page without a string of its own (kb/Work PB5941: the object code prints one per IL instruction).</summary>
+/// <param name="Offset">The offset in its method's IL body.</param>
+public readonly record struct IlOffset(int Offset) : ISpanFormattable
+{
+    /// <inheritdoc/>
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
+        destination.TryWrite(CultureInfo.InvariantCulture, $"IL_{Offset:X4}", out charsWritten);
+
+    /// <inheritdoc/>
+    public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
+
+    /// <summary>The offset as an IL listing spells it.</summary>
+    public override string ToString() => string.Create(CultureInfo.InvariantCulture, $"{this}");
+}

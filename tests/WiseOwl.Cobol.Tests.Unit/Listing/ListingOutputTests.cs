@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Listing.Json;
 using WiseOwl.Cobol.Listing.Text;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -26,7 +27,7 @@ public sealed class ListingOutputTests
         Assert.Equal(format, parsed);
         Assert.True(ListingOutput.TryParse(ListingOutput.Spelling(format).ToUpperInvariant(), out _));
         Assert.StartsWith(".lst", ListingOutput.Extension(format), StringComparison.Ordinal);
-        Assert.NotEmpty(ListingOutput.Render(format, JsonListingWriterTests.EveryMember(), new ListingRequest(Formats: format)));
+        Assert.NotEmpty(ListingRendering.Of(format, JsonListingWriterTests.EveryMember(), new ListingRequest(Formats: format)));
         Assert.Equal(format, ListingOutput.All & format);
         Assert.Equal([format], ListingOutput.Each(format));
     }
@@ -41,13 +42,58 @@ public sealed class ListingOutputTests
         Assert.Equal(".lst", ListingOutput.Extension(ListingFormats.Text));
         Assert.Equal(".lst.json", ListingOutput.Extension(ListingFormats.Json));
         Assert.Equal(".lst.html", ListingOutput.Extension(ListingFormats.Html));
-        Assert.Equal(TextListingRenderer.Render(document, request), ListingOutput.Render(ListingFormats.Text, document, request));
-        Assert.Equal(JsonListingWriter.Write(document), ListingOutput.Render(ListingFormats.Json, document, request));
-        Assert.Equal(HtmlListingRenderer.Render(document, request), ListingOutput.Render(ListingFormats.Html, document, request));
+        Assert.Equal(Characters(writer => TextListingRenderer.Write(document, request, writer)), ListingRendering.Of(ListingFormats.Text, document, request));
+        Assert.Equal(ListingRendering.Decoded(bytes => JsonListingWriter.Write(document, bytes)), ListingRendering.Of(ListingFormats.Json, document, request));
+        Assert.Equal(Characters(writer => HtmlListingRenderer.Write(document, request, writer)), ListingRendering.Of(ListingFormats.Html, document, request));
         Assert.Equal("text|json|html", ListingOutput.Spellings);
         Assert.Equal([ListingFormats.Text, ListingFormats.Json, ListingFormats.Html],
             ListingOutput.Each(ListingFormats.Html | ListingFormats.Json | ListingFormats.Text));
         Assert.False(ListingOutput.TryParse("pdf", out _));
+    }
+
+    /// <summary>What a character renderer writes, as text.</summary>
+    private static string Characters(Action<TextWriter> render)
+    {
+        using var writer = new StringWriter();
+        render(writer);
+        return writer.ToString();
+    }
+
+    /// <summary>Each format is written to the stream as UTF-8 with no byte order mark (DESIGN-listing.md section 7.1; kb/Work PB5941),
+    /// a character outside ASCII as its UTF-8 bytes, and the stream is left open for its owner.</summary>
+    [Theory]
+    [MemberData(nameof(EveryFormat))]
+    public void EveryFormat_IsWrittenAsUtf8_WithNoByteOrderMark_ToAStreamLeftOpen(ListingFormats format)
+    {
+        const string Written = "000100 ID DIVISION. *> été \U0001D11E";   // two-byte and four-byte UTF-8 characters
+        var everyMember = JsonListingWriterTests.EveryMember();
+        var document = everyMember with { Lines = [.. everyMember.Lines.Select(l => l.Number == 1 ? l with { Text = Written } : l)] };
+        using var bytes = new MemoryStream();
+        ListingOutput.Write(format, document, new ListingRequest(Formats: format), bytes);
+        Assert.True(bytes.CanWrite);   // left open
+        byte[] written = bytes.ToArray();
+        Assert.False(written.AsSpan().StartsWith((byte[])[0xEF, 0xBB, 0xBF]));   // no byte order mark
+        string text = new System.Text.UTF8Encoding(false, throwOnInvalidBytes: true).GetString(written);   // valid UTF-8 throughout
+        if (format == ListingFormats.Json) Assert.Equal(Written, JsonListingWriter.Read(text).Lines[0].Text);
+        else Assert.Contains(Written[23..], text, StringComparison.Ordinal);   // the words with no markup character
+    }
+
+    /// <summary>Written as characters (the command line's standard output, DESIGN-listing.md section 8, kb/Work PB5941 review R1-1),
+    /// each format is the characters its file's bytes decode to, and the writer is left open.</summary>
+    [Theory]
+    [MemberData(nameof(EveryFormat))]
+    public void EveryFormat_WrittenAsCharacters_IsWhatItsFileHolds(ListingFormats format)
+    {
+        var everyMember = JsonListingWriterTests.EveryMember();
+        var document = everyMember with
+        {
+            Lines = [.. everyMember.Lines.Select(l => l.Number == 1 ? l with { Text = "000100 ID DIVISION. *> été \U0001D11E" } : l)],
+        };
+        var request = new ListingRequest(Formats: format);
+        using var writer = new StringWriter();
+        ListingOutput.Write(format, document, request, writer);
+        writer.Write('.');   // left open
+        Assert.Equal(ListingRendering.Of(format, document, request) + ".", writer.ToString());
     }
 
     [Fact]

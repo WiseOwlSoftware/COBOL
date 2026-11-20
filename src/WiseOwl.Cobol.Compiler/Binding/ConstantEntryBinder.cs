@@ -648,8 +648,9 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         waits = false;
         // A subordinate a TYPE or SAME AS clause supplies exists once its subject is composed (kb/Work PB2844):
         // `M OF V` with `01 V TYPE T.` names T's M, copied under V only when V's clause is expanded.
-        DataItem? FindComposed() => resolver.Names.FindItem(baseName, qualifiers)
-            ?? (owner.ComposePendingSubjectsAhead() ? resolver.Names.FindItem(baseName, qualifiers) : null);
+        var reference = WrittenQualifiedName.Of(dref);
+        DataItem? FindComposed() => reference is not { } named ? null
+            : resolver.Names.DataItemNamed(named) ?? (owner.ComposePendingSubjectsAhead() ? resolver.Names.DataItemNamed(named) : null);
         DataItem? item = FindComposed();
         if (item is null && owner.Symbols.Identify(dref, NameClass.ReportEntry, report: true)?.Symbol
                 is ReportCandidates<DataBinder.ReportEntryLocation> reportEntries)
@@ -706,7 +707,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// and data-name-2, if defined in the report section, shall reference elementary report items" — so a report
     /// group (an entry with subordinates) is refused by that rule, and an elementary report item is measured as its
     /// printable item's description (§2023:15.50 / §2023:15.14 over its PICTURE). A report entry is not a <see cref="DataItem"/>
-    /// <see cref="NameResolution.FindItem"/> sees; the symbol table resolves it (<see cref="NameClass.ReportEntry"/>), and more than
+    /// <see cref="NameResolution.DataItemNamed"/> sees; the symbol table resolves it (<see cref="NameClass.ReportEntry"/>), and more than
     /// one candidate is §2023:8.4.2.2.3 SR1's ambiguity. The item's description is read from its entry
     /// (<see cref="DescribeReportItem"/>, kb/Work PB1941), never from the report walk, so it is measured the same
     /// wherever the constant is evaluated — before the REPORT SECTION binds, or in a group, or an entry, that the walk

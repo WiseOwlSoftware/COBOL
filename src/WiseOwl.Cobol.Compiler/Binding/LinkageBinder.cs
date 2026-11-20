@@ -382,7 +382,7 @@ internal sealed class LinkageBinder(DataBinder data)
             ? new HashSet<string>(CobolNames.Comparer)
             : data.ClaimScans.AddressTargets(pd)
                 .Concat(program.nestedProgram().SelectMany(data.ClaimScans.AddressTargets))
-                .Select(t => t.Name).ToHashSet(CobolNames.Comparer);
+                .Select(t => t.Written.Name).ToHashSet(CobolNames.Comparer);
         foreach (var prm in formals)
         {
             using var _ = data.Edition.At(prm);

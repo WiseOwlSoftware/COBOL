@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text;
 using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Listing.Json;
 using WiseOwl.Cobol.Listing.Text;
@@ -68,14 +69,103 @@ public static class ListingOutput
         _ => throw Unknown(format),
     };
 
-    /// <summary>One format's rendering of <paramref name="document"/>, as <paramref name="request"/> asks for it.</summary>
-    public static string Render(ListingFormats format, ListingDocument document, ListingRequest request) => format switch
+    /// <summary>The encoding of every format: UTF-8 with no byte order mark (DESIGN-listing.md section 7.1; the JSON text RFC 8259
+    /// section 8.1 requires; the charset the HTML page declares).</summary>
+    public static readonly UTF8Encoding Utf8 = new(encoderShouldEmitUTF8Identifier: false);
+
+    /// <summary>
+    /// Write one format's rendering of <paramref name="document"/>, as <paramref name="request"/> asks for it, to
+    /// <paramref name="output"/> in <see cref="Utf8"/>, and flush it; the stream stays open. This is a format's FILE: its bytes.
+    /// <para>⛔ STREAMED (kb/Work PB5941; DESIGN-listing.md section 9): each renderer writes to the stream as it renders, so no format is
+    /// ever held whole in memory, as a string or a buffer, on its way to its file. A listing of every section is several times the
+    /// source's size (the object code), and holding it whole, then copying it into a string, then encoding it, cost three times its
+    /// size per format.</para>
+    /// </summary>
+    public static void Write(ListingFormats format, ListingDocument document, ListingRequest request, Stream output)
     {
-        ListingFormats.Text => TextListingRenderer.Render(document, request),
-        ListingFormats.Json => JsonListingWriter.Write(document),
-        ListingFormats.Html => HtmlListingRenderer.Render(document, request),
-        _ => throw Unknown(format),
-    };
+        ArgumentNullException.ThrowIfNull(output);
+        if (format == ListingFormats.Json)
+        {
+            JsonListingWriter.Write(document, output);   // the serializer writes UTF-8 bytes itself
+        }
+        else
+        {
+            using var writer = Writer(output);
+            Write(format, document, request, writer);
+        }
+        output.Flush();
+    }
+
+    /// <summary>
+    /// Write one format's rendering of <paramref name="document"/> as CHARACTERS to <paramref name="output"/>, streamed as the
+    /// <see cref="Stream"/> overload is, and flush it; the writer stays open. The command line's <c>--listing-output -</c> writes
+    /// through the process's standard output writer this way (DESIGN-listing.md section 8, kb/Work PB5941 review R1-1), so the
+    /// writer the process configured for its standard output (<c>StandardStreams.EnsureUtf8</c>: UTF-8 on a redirected handle,
+    /// the wide-character interface on a Windows console) decides the encoding, and a listing read on a console shows its
+    /// characters as themselves. Bytes written past that writer, to the raw handle, were read by a Windows console as UTF-16.
+    /// </summary>
+    public static void Write(ListingFormats format, ListingDocument document, ListingRequest request, TextWriter output)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        switch (format)
+        {
+            case ListingFormats.Text:
+                TextListingRenderer.Write(document, request, output);
+                break;
+            case ListingFormats.Json:
+            {
+                using var characters = new CharacterStream(output);
+                JsonListingWriter.Write(document, characters);
+                break;
+            }
+            case ListingFormats.Html:
+                HtmlListingRenderer.Write(document, request, output);
+                break;
+            default:
+                throw Unknown(format);
+        }
+        output.Flush();
+    }
+
+    /// <summary>The character writer of a text format over <paramref name="output"/>: <see cref="Utf8"/>, LF line ends written
+    /// by the renderers themselves, the stream left open for its owner to close.</summary>
+    private static StreamWriter Writer(Stream output) =>
+        new(output, Utf8, bufferSize: WriterBufferSize, leaveOpen: true);
+
+    /// <summary>The characters a text format's writer buffers before it encodes them to the stream.</summary>
+    private const int WriterBufferSize = 16 * 1024;
+
+    /// <summary>The JSON serializer's UTF-8 bytes, decoded as they arrive into a character writer: the one format the serializer
+    /// writes as bytes reaches a character destination streamed, never held whole. Write-only; the decoder carries a character
+    /// split across two writes.</summary>
+    private sealed class CharacterStream(TextWriter output) : Stream
+    {
+        private readonly Decoder _decoder = Utf8.GetDecoder();
+        private readonly char[] _characters = new char[WriterBufferSize];
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            while (!buffer.IsEmpty)
+            {
+                _decoder.Convert(buffer, _characters, flush: false, out int used, out int decoded, out _);
+                output.Write(_characters, 0, decoded);
+                buffer = buffer[used..];
+            }
+        }
+
+        public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
+        public override void WriteByte(byte value) => Write([value]);
+        public override void Flush() => output.Flush();
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+    }
 
     private static ArgumentOutOfRangeException Unknown(ListingFormats format) =>
         new(nameof(format), format, "not one listing format");

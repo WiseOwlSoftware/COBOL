@@ -5987,9 +5987,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// </para>
     /// <para>⛔ AND IT IS THE ONLY COPY. The binder used to carry a weaker private twin
     /// (<c>FindQualified</c>/<c>QualifiersMatch</c>) that matched the IN/OF chain but knew nothing about the
-    /// file-name qualifier and never counted survivors, beside <c>NameResolution.ResolveQualified</c>, which
+    /// file-name qualifier and never counted survivors, beside the procedure division's qualified lookup, which
     /// did both — one rule written down twice, with the procedure division reading the complete one and the data
-    /// division the partial one (feedback_one_rule_one_place). <see cref="ReferenceResolver"/> now calls this.
+    /// division the partial one (feedback_one_rule_one_place). The symbol table's <see cref="SymbolTable.IdentifyDataName"/>
+    /// now asks this for a qualified reference.
     /// </para></summary>
     internal NameCandidates<DataItem> QualifiedCandidates(string name, IReadOnlyList<string> quals, Model.Scope scope)
     {
@@ -6095,7 +6096,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity
     /// of reference" — reported HERE, at the caller's cursor, under the procedure division's own descriptor
     /// (COBOL1639) and with its disposition: an error, or under <c>--permissive</c> a warning and the
-    /// first-declared survivor (NameResolution.ResolveUnqualified, kb/Work R33). None returns null WITHOUT a
+    /// first-declared survivor (as <c>NameResolution.DataItemNamed</c> does, kb/Work R33). None returns null WITHOUT a
     /// report: an operand that names nothing breaks the CLAUSE's own rule, which the caller states
     /// (<paramref name="ambiguityReported"/> says which of the two a null is).
     /// <para>⛔ THE VERDICT DOES NOT DEPEND ON WHETHER IT IS REPORTED. <paramref name="report"/> false asks the same
@@ -6160,48 +6161,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// condition-name qualified through its record's FILE could never resolve.</summary>
     internal bool ConditionQualifierChainMatches(Condition88 cond, IReadOnlyList<string> qualifiers) =>
         QualifierChainMatchesFrom(cond.Parent, cond.Parent, qualifiers);
-
-    /// <summary>⭐ THE ONE §2023:8.4.2.2 FORMAT 2 CANDIDATE SET of a written condition-name — every level-88 of
-    /// <paramref name="name"/> visible in <paramref name="scope"/> (the method overlay first, else the unit's:
-    /// <see cref="SymbolTable.TryResolveCondition"/>) whose conditional-variable chain carries each written
-    /// qualifier, narrowed to the nearest declaring source element (§2023:8.4.6.2.1 3, kb/Work PB1047). The condition-name
-    /// twin of <see cref="QualifiedCandidates"/>: it RETURNS THE CANDIDATE SET, NOT A WINNER, because the number of
-    /// survivors is the §2023:8.4.2.2.1 uniqueness verdict, which the caller reports (<c>ConditionBinder.ConditionOf</c>)
-    /// or ignores (a pass that only reads which condition a bare operand names: <c>FlagConformancePass</c>, kb/Work
-    /// PB3288). EMPTY when the spelling names no condition-name, when the qualifiers reach none, or when every
-    /// survivor is a lapsed type-declaration condition (§2023:8.4.2.2.1 SR4 — alone it names nothing to test). Pure:
-    /// it reports nothing.</summary>
-    internal List<Condition88> QualifiedConditionCandidates(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
-    {
-        var matches = Symbols.NearestDeclaringConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name,
-            qualifiers, scope);   // kb/Work PB4196, PB4219, PB4432
-        return matches.TrueForAll(IsTypeDeclarationCondition) ? [] : matches;
-    }
-
-    /// <summary>The nearest declaring source element's level-88s of <paramref name="name"/> that the written
-    /// <paramref name="qualifiers"/> reach, BEFORE a nearer declaration of another name class hides them: the tier the
-    /// §2023:8.4.6.2.1 3) a) question "is a nearer element's declaration the referenced item?" is asked of
-    /// (<see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>, and <c>ConditionBinder</c>'s CAPACITY register arm).</summary>
-    internal List<Condition88> ConditionTier(string name, IReadOnlyList<string> qualifiers, Model.Scope scope) =>
-        Symbols.NearestDeclaring(ConditionsUnderQualifiers(name, qualifiers, scope), static c => c.Parent);
-
-    /// <summary>Every level-88 of <paramref name="name"/> visible in <paramref name="scope"/> whose conditional-variable
-    /// chain carries each written qualifier, BEFORE the §2023:8.4.6.2.1 3) narrowing: the qualifier walk of
-    /// <see cref="QualifiedConditionCandidates"/> and of <see cref="ConditionNameHiddenByNearerDataItem"/>.</summary>
-    private List<Condition88> ConditionsUnderQualifiers(string name, IReadOnlyList<string> qualifiers, Model.Scope scope)
-    {
-        if (!Symbols.TryResolveCondition(name, scope, out var list)) return [];
-        return qualifiers.Count == 0 ? list : list.Where(c => ConditionQualifierChainMatches(c, qualifiers)).ToList();
-    }
-
-    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION (kb/Work PB4219 review R1-1): the written
-    /// qualifiers reach a level-88 of the spelling, but an ordinary data item of the spelling declared in a NEARER source
-    /// element hides it, and that data item is what the reference names (it survives <see cref="QualifiedCandidates"/>, so
-    /// no report entry or condition-name nearer still takes the reference from it). "If the name is declared in source
-    /// element B, the item in source element B is the referenced item." Pure: it reports nothing.</summary>
-    internal bool ConditionNameHiddenByNearerDataItem(string name, IReadOnlyList<string> qualifiers, Model.Scope scope) =>
-        Symbols.NearerDataItemHidesConditions(ConditionsUnderQualifiers(name, qualifiers, scope), name, qualifiers)
-        && QualifiedCandidates(name, qualifiers, scope).Count != 0;
 
     /// <summary>⛔ THE OTHER HALF OF THE §2023:8.4.2.2.1 UNIQUENESS COUNT OF A CONDITION-NAME REFERENCE (kb/Work PB3347): does
     /// the written reference ALSO name a switch-status condition-name (§2023:12.3.7.4 GR2) declared in the SAME source element

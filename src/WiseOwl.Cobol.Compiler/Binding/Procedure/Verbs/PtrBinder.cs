@@ -609,13 +609,13 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// declaration in this method. The declaration in the containing object definition is inaccessible to this
     /// method"). It is <see cref="NameResolution.DeclarationOf"/> now, so every scope the resolver learns
     /// reaches this screen for free; a special-case "also look in <c>scope.Method.ByName</c>" written here would
-    /// have been <see cref="SymbolTable.TryResolve"/>'s precedence copied into a second place.</para>
+    /// have been the symbol table's precedence (<see cref="SymbolTable.IdentifyDataName"/>) copied into a second place.</para>
     /// <para>The BARE-NAME guard stays, and it is SR18's rule rather than the resolver's: a based entry is
     /// level 01 or 77 (§2023:13.16.3 SR16), so no qualified, subscripted or reference-modified spelling of
     /// data-name-1 is legal here and none is turned away by refusing them.</para></summary>
     private DataItem? PtrResolveBased(Core.DataReferenceContext dref)
     {
-        DataItem? item = dref.ChildCount == 1 ? ctx.Refs.Names.DeclarationOf(dref, dref.GetText()) : null;
+        DataItem? item = dref.ChildCount == 1 ? ctx.Refs.Names.DeclarationOf(dref) : null;
         if (item is { IsBased: true }) return item;
         // A name no declaration in scope carries — or one several carry — is an §2023:8.4.2.1/§2023:8.4.2.2.1 failure the
         // resolver has already stated precisely. Adding "shall be a BASED level-01/77 item" on top of it would

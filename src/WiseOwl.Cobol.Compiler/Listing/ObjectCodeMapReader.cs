@@ -78,7 +78,7 @@ internal static class ObjectCodeMapReader
                 int end = i + 1 < visible.Count ? visible[i + 1].Offset : il.Length;
                 string document = SourceDocuments.PathOf(debug.GetString(debug.GetDocument(point.Document).Name), documentRoot);
                 points.Add(new ObjectSequencePoint(method, point.Offset, end, document, point.StartLine, point.StartColumn,
-                    point.EndLine, point.EndColumn, decoded is null ? null : Stretch(decoded, ref next, point.Offset, end)));
+                    point.EndLine, point.EndColumn, decoded is null ? null : (IReadOnlyList<ListingInstruction>)Stretch(decoded, ref next, point.Offset, end)));
             }
         }
         return new ObjectCodeFacts(methods, points);
@@ -103,12 +103,13 @@ internal static class ObjectCodeMapReader
 
     /// <summary>The instructions of <paramref name="decoded"/> (a body's, in offset order) from <paramref name="start"/> up to
     /// <paramref name="end"/>; <paramref name="next"/>, where the previous stretch's search stopped, moves past them. The stretches of a
-    /// method come in offset order, so the body is walked once.</summary>
-    private static List<ListingInstruction> Stretch(IReadOnlyList<ListingInstruction> decoded, ref int next, int start, int end)
+    /// method come in offset order, so the body is walked once, and each stretch is a slice of the body's one array: the instructions are
+    /// made once and never copied (kb/Work PB5941).</summary>
+    private static ArraySegment<ListingInstruction> Stretch(ListingInstruction[] decoded, ref int next, int start, int end)
     {
-        while (next < decoded.Count && decoded[next].Offset < start) next++;
-        var stretch = new List<ListingInstruction>();
-        for (int i = next; i < decoded.Count && decoded[i].Offset < end; i++) stretch.Add(decoded[i]);
-        return stretch;
+        while (next < decoded.Length && decoded[next].Offset < start) next++;
+        int last = next;
+        while (last < decoded.Length && decoded[last].Offset < end) last++;
+        return new ArraySegment<ListingInstruction>(decoded, next, last - next);
     }
 }

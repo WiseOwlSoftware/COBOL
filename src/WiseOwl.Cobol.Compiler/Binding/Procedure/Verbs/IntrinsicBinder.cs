@@ -100,7 +100,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // §2023:8.4.3.2.3 SR5 — "If function-pointer-name-1 is specified, the parentheses shall be specified" — decided
         // from the parse like SR6 above, before any bind: `FUNCTION FP` and `FUNCTION FP (1:4)` write no argument
         // list (kb/Work PB847).
-        if (fc.FNARG_LPAREN() is null && FunctionPointerNamed(name) is not null)
+        if (fc.FNARG_LPAREN() is null && FunctionPointerNamed(nameToken, report: false) is not null)
         {
             ctx.Edition.Error(DiagnosticCatalog.FunctionPointerParenthesesRequired,
                 $"{display}: '{name}' is a function-pointer, so the function-identifier shall write its argument "
@@ -271,30 +271,33 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// asks an identifier's item asks (a SET sender, an object-reference operand).</summary>
     public static Place? TemporaryItemOf(BoundExpr e) => OperandOf(e, functionValue: true) is BoundFieldOperand f ? f.Place : null;
 
-    /// <summary>The FUNCTION-POINTER data item <paramref name="name"/> resolves to in the active scope, as a Place,
+    /// <summary>The FUNCTION-POINTER data item the name <paramref name="written"/> resolves to in the active scope, as a Place,
     /// or null — the ONE §2023:8.4.3.2.3 SR4 test ("Function-pointer-name-1 shall be defined as a function-pointer data
     /// item") both function-identifier forms ask (with and without the word FUNCTION; kb/Work PB847). A name that
     /// resolves to anything else, or to more than one function-pointer, is not function-pointer-name-1 and takes
-    /// the ordinary paths — whose diagnostics already name those cases. The candidates are the NEAREST declaring
-    /// source element's (§2023:8.4.6.2.1 3); <c>SymbolTable.TryResolveUnqualified</c>), so a contained program's own
-    /// FUNCTION-POINTER hides a container's GLOBAL one of the same name instead of counting it as a rival.</summary>
-    private Place? FunctionPointerNamed(string name) =>
-        FunctionPointerItemNamed(name) is { } only ? ctx.Refs.Places.ResolveItem(only) : null;
+    /// the ordinary paths — whose diagnostics already name those cases. <paramref name="report"/> is true where the
+    /// answer IS the reference's identification (the item is then used): that reference asks the procedure division's
+    /// LINKAGE screen (§1985:X.5.1 GR4, §2023:13.7.3 SR4; <c>NameResolution.ScreenLinkageFunctionPointer</c>), which a
+    /// function-pointer of a record the header does not admit used to pass (`FUNCTION L-FP (1)` compiled clean).</summary>
+    private Place? FunctionPointerNamed(IToken written, bool report)
+    {
+        if (FunctionPointerItemNamed(written, report) is not { } only) return null;
+        if (report) ctx.Refs.Names.ScreenLinkageFunctionPointer(written, only);
+        return ctx.Refs.Places.ResolveItem(only);
+    }
 
     /// <summary><see cref="FunctionPointerNamed"/>'s test, answering the declared item itself — for the readers that
-    /// need its description and no <see cref="Place"/> (<see cref="SignatureOf(IToken)"/>).</summary>
-    private DataItem? FunctionPointerItemNamed(string name)
-    {
-        if (!ctx.Symbols.TryResolveUnqualified(name, ctx.ActiveScope, out var candidates)) return null;
-        DataItem? only = null;
-        foreach (var c in candidates)
-        {
-            if (c.Pic?.Category is not PicCategory.FunctionPointer) continue;
-            if (only is not null) return null;   // ambiguous — qualification is not part of the name form
-            only = c;
-        }
-        return only is not null && only.SubscriptLevels().Count == 0 ? only : null;
-    }
+    /// need its description and no <see cref="Place"/> (<see cref="SignatureOf(IToken)"/>). The name is the word the
+    /// reference writes, identified by the symbol table (<see cref="SymbolTable.IdentifyDataName"/>, unqualified: qualification
+    /// is not part of the name form); its candidates are the NEAREST declaring source element's (§2023:8.4.6.2.1 3)), so a
+    /// contained program's own FUNCTION-POINTER hides a container's GLOBAL one of the same name instead of counting it as a
+    /// rival, and the function-pointers are picked from that narrowed set.</summary>
+    private DataItem? FunctionPointerItemNamed(IToken written, bool report) =>
+        ctx.Symbols.IdentifyDataName(new WrittenQualifiedName(written, []), report)
+                .SingleWhere(static c => c.Pic?.Category is PicCategory.FunctionPointer) is { } only
+            && only.SubscriptLevels().Count == 0
+            ? only
+            : null;
 
     /// <summary>⛔ THE ONE DIAGNOSTIC-FREE ANSWER TO "WHICH USER FUNCTION DOES THIS FUNCTION-IDENTIFIER ACTIVATE": the signature of
     /// the REPOSITORY-declared user function or the containing function itself (function-prototype-name-1) and of a
@@ -315,7 +318,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     internal UserFunctionSignature? SignatureOf(IToken written)
     {
         if (FunctionPrototypeWritten(written, report: false) is { } function) return function.Signature;
-        return FunctionPointerItemNamed(FunctionWord.OfToken(written, ctx.CobolWords).Name) is { } pointer
+        return FunctionPointerItemNamed(written, report: false) is { } pointer
             ? ctx.Symbols.FunctionPrototypeOf(pointer)?.Signature
             : null;
     }
@@ -398,7 +401,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // pointer comparison read. A function-pointer is not a table, so the '(' can be no subscript here: the
         // routing takes nothing from the data path. An argument list followed by a reference-modifier of the
         // RESULT is the same two-suffix shape the prototype form wears.
-        if (sp is not null && FunctionPointerNamed(name) is { } fp)
+        if (sp is not null && FunctionPointerNamed(cw.Start, report: true) is { } fp)
         {
             var viaPointer = ArgumentsOf(sp) is { } fpArgs
                 ? host.Udf.UdfBindPointerCall(fp, fpArgs)
@@ -683,7 +686,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // §2023:8.4.3.2.2 — the function-identifier's THIRD name form, function-pointer-name-1 (SR4: "shall be defined
         // as a function-pointer data item"). It used to have no arm, so `FUNCTION FP (3)` reached the catalog and
         // was refused as "not an intrinsic function" while SET Format 8 happily filled FP (kb/Work PB847).
-        if (FunctionPointerNamed(name) is { } fpItem)
+        if (FunctionPointerNamed(written, report: true) is { } fpItem)
             return host.Udf.UdfBindPointerCall(fpItem, argCtxs);
 
         if (cobolWordsRemoved || !IntrinsicCatalog.TryGet(name, out var sig))
@@ -3349,8 +3352,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// </summary>
     private bool TryBindAllArgument(IntrinsicSig sig, Core.FunctionArgumentContext a, List<BoundOperand> args)
     {
-        if (SoleDataReference(a) is not { } dref || dref.cobolWord() is not { } cw) return false;
-        string name = cw.GetText();
+        if (SoleDataReference(a) is not { } dref || WrittenQualifiedName.Of(dref) is not { } named) return false;
+        string name = named.Name;
         var before = host.ArgOrder.Mark;   // the pre-ops its subscripts register are the argument's own (§2023:8.4.3.2.4 GR2, recorded below)
 
         // Collect OF/IN qualifiers and the ONE trailing subscript group — which the grammar hangs off the LAST
@@ -3418,7 +3421,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // sum counter"; kb/Work PB1271): it is asked of the ONE counter resolver FIRST, in the order
         // ReferenceResolver.Resolve asks it, and its register carries the OCCURS levels the walk below reads.
         var counter = ctx.Refs.Counters.SumCounterFamilyFor(dref, report: true);
-        if ((counter?.Family.Register ?? ctx.Refs.Names.FindReportedItem(dref, name, quals)) is not { } item)
+        if ((counter?.Family.Register ?? ctx.Refs.Names.FindReportedItem(dref, named)) is not { } item)
         {
             // The resolver's ONE reported lookup (kb/Work PB1029 — this arm refused silently; kb/Work PB3287 — and it
             // asked no §2023:13.7.3 SR4 screen of a LINKAGE table the procedure division may not reference): the §2023:8.4.2.1 /
@@ -3481,7 +3484,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         ctx.Refs.Names.ScreenImplicitLinkageCounts(dref, counts);
         if ((counter is ({ } counterReport, { } counterFamily)
                 ? ctx.Refs.Counters.SumCounterPlace(counterReport, counterFamily, exprs)
-                : ctx.Refs.ResolveByName(name, quals, exprs)) is not { } element)
+                : ctx.Refs.ResolveByName(named, exprs)) is not { } element)
         {
             args.Add(BoundOperandError.Unbuilt(ctx.Edition, $"table(ALL) occurrence of '{name}'"));
             return true;

@@ -70,7 +70,7 @@ public sealed class ListingJsonTests : IDisposable
         Assert.Contains(lst, result.OutputFiles);
         Assert.Contains(json, result.OutputFiles);
         string text = File.ReadAllText(json);
-        Assert.Equal(JsonListingWriter.Write(result.Listing!), text);
+        Assert.Equal(ListingRendering.Json(result.Listing!), text);
 
         // Valid against the committed schema, and naming it.
         var node = JsonNode.Parse(text)!;
