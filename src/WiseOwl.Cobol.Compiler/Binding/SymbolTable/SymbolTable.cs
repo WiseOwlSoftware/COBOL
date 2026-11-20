@@ -56,7 +56,7 @@ public sealed partial class SymbolTable
     /// index-name, a CAPACITY register, a constant-name — <see cref="SymbolTable.MethodDeclaresWord"/>) makes the object's data-name of it
     /// inaccessible (§2023:11.7.4 GR5 "the use of that word in this method refers to the declaration in this method"), so
     /// the lookup is false rather than the object's item (kb/Work PB3165 review R2-1's sibling arm).</summary>
-    public bool TryResolve(string name, Scope scope, out List<DataItem> items)
+    private bool TryResolve(string name, Scope scope, out List<DataItem> items)
     {
         var key = Key(name);
         if (scope.Method is { } m)
@@ -108,7 +108,7 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) FOR A DATA-NAME OR CONDITION-NAME REFERENCE — THE ONE NARROWING OF A QUALIFIED SET, in
-    /// every lookup that has one (<see cref="TryResolveUnqualified"/>; <c>DataBinder.QualifiedCandidates</c> and
+    /// every lookup that has one (<see cref="TryResolveUnqualified"/>; <see cref="DataNameCandidates"/> and
     /// <see cref="IdentifyConditionName"/>, which apply the qualifier walk and pass the survivors):
     /// <see cref="NearestDeclaring{T}"/> keeps the survivors of the nearest declaring source element, and the report
     /// entries that element declares take part in the same ranking (kb/Work PB4196). A REPORT SECTION entry is a
@@ -123,7 +123,7 @@ public sealed partial class SymbolTable
     /// its container's GLOBAL data item RELF, and its own data item RELF hides the container's GLOBAL condition-name RELF:
     /// each lookup leaves no survivor when the OTHER class declares the spelling nearer (<see cref="NearerConditionNameHides"/>,
     /// <see cref="NearerDataNameHides"/>), and the caller's own verdict then says what the name is declared as.</para></summary>
-    public List<DataItem> NearestDeclaringData(List<DataItem> candidates, string name, IReadOnlyList<string> qualifiers)
+    private List<DataItem> NearestDeclaringData(List<DataItem> candidates, string name, IReadOnlyList<string> qualifiers)
     {
         var tier = NearestDeclaring(candidates, static i => i);
         if (tier.Count == 0) return tier;
@@ -172,7 +172,7 @@ public sealed partial class SymbolTable
         if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_conditionNames.TryGetValue(Key(name), out var conditions)) return false;
         foreach (var c in conditions)
             if (_data.State.Forest.DeclaringDepth(c.Parent) < depth && !DataBinder.IsTypeDeclarationCondition(c)
-                && _data.ConditionQualifierChainMatches(c, qualifiers))
+                && ConditionQualifierChainMatches(c, qualifiers))
                 return true;
         return false;
     }
@@ -185,7 +185,7 @@ public sealed partial class SymbolTable
     /// raw one: filtering first skips a nearer declaration of another kind — or counts a container's hidden global of
     /// the same kind as a rival — and so resolves the name to an item §2023:8.4.6.2.1 3) a) makes inaccessible (wave 69 Z,
     /// found by the train-68b review on <c>IntrinsicBinder.FunctionPointerNamed</c>).</summary>
-    public bool TryResolveUnqualified(string name, Scope scope, out List<DataItem> items)
+    private bool TryResolveUnqualified(string name, Scope scope, out List<DataItem> items)
     {
         if (!TryResolve(name, scope, out items)) return false;
         items = NearestDeclaringData(items, name, []);
@@ -251,7 +251,7 @@ public sealed partial class SymbolTable
     {
         if (depth == 0 || !_data.State.Forest.InheritsGlobalData || !_dataNames.TryGetValue(Key(name), out var dataNames)) return false;
         foreach (var item in dataNames)
-            if (_data.State.Forest.DeclaringDepth(item) < depth && _data.QualifierChainMatches(item, qualifiers))
+            if (_data.State.Forest.DeclaringDepth(item) < depth && QualifierChainMatches(item, qualifiers))
                 return true;
         return false;
     }

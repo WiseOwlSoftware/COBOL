@@ -515,7 +515,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// <para>⛔ EVERY READING IS COUNTED, NONE IS "ASKED FIRST" (kb/Work PB1099 review R1-2). The KEY phrase admits
     /// data-name-1 or record-key-name-1, §2023:8.3.2.2 lets one word be a data-name and a record-key-name, and two files
     /// (or two clauses of one file) may declare the same record-key-name. The record-key-names of every visible file
-    /// and EVERY data item the written qualifiers reach (<see cref="DataBinder.QualifiedCandidates"/> over the
+    /// and EVERY data item the written qualifiers reach (<c>SymbolTable.IdentifyDataName</c> over the
     /// statement's scope, the set the data-name resolution itself counts) are one candidate set for the one
     /// ambiguity verdict: more than one is §2023:8.4.2.2.3 SR1's error, never the statement's own file's record-key-name
     /// chosen in silence. A <c>--permissive</c> verdict naming a data item answers
@@ -528,8 +528,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     private (RecordKeyNameUse Use, int KeyIndex) RecordKeyNameOf(FileModel file, Core.DataReferenceContext dref,
                                                                 string face)
     {
-        var (word, quals) = DataBinder.KeyReference(dref);
-        var written = new WrittenDataName(word, quals);
+        var written = DataBinder.KeyReference(dref);
         var names = ctx.Data.Symbols.RecordKeyNamesOf(file, written);
         foreach (var other in ctx.Data.Symbols.VisibleFiles)
             if (!ReferenceEquals(other, file)) names = names.Plus(ctx.Data.Symbols.RecordKeyNamesOf(other, written));

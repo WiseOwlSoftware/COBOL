@@ -38,7 +38,7 @@ internal static class BackendContract
             "Model.RangeCollationId.Name",   // alphabet-name-1 as written, for the carrier's comment (kb/Work PB5932)
             "Model.CommunicationDescription.Name",
             "Model.DataItem.CobolName", "Model.DataItem.ExternalizedAs", "Model.DataItem.IndexNames",
-            "Model.DataItem.RedefinesTargetName", "Model.DataItem.SameAsName", "Model.DataItem.SameAsQualifiers",
+            "Model.DataItem.RedefinesTargetName",
             "Model.DataItem.TypeName", "Model.DataItem.TypeRefName", "Model.DataItem.WrittenTypeName",
             "Model.DynamicLengthStructure.Name", "Model.DynamicLengthStructure.PhysicalStructureName",
             "Model.FileModel.CobolName",
@@ -49,13 +49,12 @@ internal static class BackendContract
             "Model.FileModel.SelectName",
             "Model.IndexDeclaration.Name", "Model.KeyLevelCollatingClause.Alphabet",
             "Model.LocaleSymbol.Name",
-            "Model.ObjectRefDescriptor.Name", "Model.OccursKey.Name", "Model.OccursKey.Qualifiers",
+            "Model.ObjectRefDescriptor.Name",
             "Model.OccursSpec.CapacityName",
             "Model.OmittedFormalGuard.FormalName", "Model.OoClassUnit.Name",
             "Model.PicInfo.RestrictedPrototypeName", "Model.PicInfo.RestrictedTypeName", "Model.RaisingTarget.Name",
             "Model.RecordKey.RecordKeyName", "Model.RecordKeySource.Name",
-            "Model.RenamesInfo.FromName", "Model.RenamesInfo.FromQualifiers",
-            "Model.RenamesInfo.ThruName", "Model.RenamesInfo.ThruQualifiers", "Model.ReportClauseName.Name",
+            "Model.ReportClauseName.Name",
             "Model.SelectWhenSpec.ConditionName",   // condition-name-1 of a SELECT WHEN clause as written (kb/Work PB5578)
             // a parameterized definition's published skeleton and an expansion's identity: externalized names and words (kb/Work PB2104)
             "Model.ExpansionIdentity.ActualIdentities", "Model.ExpansionIdentity.DefinitionIdentity",

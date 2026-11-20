@@ -283,8 +283,9 @@ public sealed class ReportControlModel
 /// operands to "refer to the same physical data item or to overlapping data items", so the referenced item
 /// cannot be what distinguishes them.</para>
 /// </summary>
-/// <param name="Name">The base data-name.</param>
-/// <param name="Qualifiers">The IN/OF qualifier words, innermost first (§2023:8.4.2.2).</param>
+/// <param name="Operand">The data-name and its IN/OF qualifier words, innermost first (§2023:8.4.2.2), as written: only the symbol
+/// table resolves it (<c>SymbolTable.IdentifyDataName</c>; docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, remainder
+/// slice 3").</param>
 /// <param name="RefModStart">The reference modification's leftmost-position integer literal; null when the
 /// operand is not reference-modified.</param>
 /// <param name="RefModLength">Its length integer literal; null both when there is no ref-mod and for
@@ -295,29 +296,28 @@ public sealed class ReportControlModel
 /// <param name="SubscriptRefused">A subscript was written and refused at capture (not an integer literal): the operand is
 /// recorded without it, and the post-build subscript screens stay silent so the refusal is the one verdict.</param>
 public sealed record ReportControlRef(
-    string Name, IReadOnlyList<string> Qualifiers, IReadOnlyList<int> Subscripts, int? RefModStart, int? RefModLength,
+    WrittenDataName Operand, IReadOnlyList<int> Subscripts, int? RefModStart, int? RefModLength,
     bool SubscriptRefused = false)
 {
     /// <summary>The identity ISO §2023:13.18.57.3 SR10 requires — "the same as one of the operands of the CONTROL
     /// clause" — which §2023:13.18.54.3 SR8 asks of its own operand in its own words ("Data-name-3 or FINAL shall be
     /// an operand of the CONTROL clause of the current report description"). The record's synthesized equality
-    /// cannot serve — <see cref="Qualifiers"/> is a list, compared by reference — and COBOL words are
+    /// cannot serve — the operand's qualifiers are a list, compared by reference — and COBOL words are
     /// case-insensitive (§2023:8.2), so the test is spelled out.</summary>
     public bool SameOperandAs(ReportControlRef other)
     {
-        if (!CobolNames.Same(Name, other.Name)) return false;
+        if (!CobolNames.Same(Operand.Name, other.Operand.Name)) return false;
         if (RefModStart != other.RefModStart || RefModLength != other.RefModLength) return false;
-        if (Qualifiers.Count != other.Qualifiers.Count || !Subscripts.SequenceEqual(other.Subscripts)) return false;
-        for (int i = 0; i < Qualifiers.Count; i++)
-            if (!CobolNames.Same(Qualifiers[i], other.Qualifiers[i])) return false;
+        if (Operand.Qualifiers.Count != other.Operand.Qualifiers.Count || !Subscripts.SequenceEqual(other.Subscripts)) return false;
+        for (int i = 0; i < Operand.Qualifiers.Count; i++)
+            if (!CobolNames.Same(Operand.Qualifiers[i], other.Operand.Qualifiers[i])) return false;
         return true;
     }
 
     /// <summary>The operand as written — the form every diagnostic about it quotes.</summary>
     public override string ToString()
     {
-        var sb = new System.Text.StringBuilder(Name);
-        foreach (var q in Qualifiers) sb.Append(" OF ").Append(q);
+        var sb = new System.Text.StringBuilder(Operand.Written);
         if (Subscripts.Count > 0) sb.Append('(').AppendJoin(", ", Subscripts).Append(')');
         if (RefModStart is { } s) sb.Append('(').Append(s).Append(':').Append(RefModLength?.ToString() ?? "").Append(')');
         return sb.ToString();
@@ -770,7 +770,7 @@ public sealed record FieldSumSource(int CounterId) : ReportFieldSource;
 /// item. §2023:8.4.3.1.2 Format 2 makes an identifier a <i>qualified-data-name-with-subscripts</i>, so the subscript
 /// is part of the reference and can be evaluated only where the ordinary identifier machinery lives — the
 /// procedure phase. <see cref="Ctx"/> is bound there through the ONE expression binder into <see cref="Value"/>;
-/// <see cref="Name"/>/<see cref="Qualifiers"/> answer the DATA-phase question (which arm of SR4/SR5 this is)
+/// <see cref="Operand"/> (the written data-name and its qualifiers) answers the DATA-phase question (which arm of SR4/SR5 this is)
 /// and <see cref="Item"/> is what that lookup found.
 /// <para>⛔ Before kb/Work PB482 the addend was captured by <c>KeyReference</c> — base word + qualifiers, with
 /// the subscript and the reference modification dropped on the floor — so <c>SUM WS-CELL(2)</c> compiled and
@@ -791,8 +791,9 @@ public sealed class ReportSumAddend
     /// §2023:13.18.54.4 GR3 COMPUTE-with-ON-SIZE-ERROR accumulation rather than GR3's ADD.</summary>
     public bool IsExpression => Reference is null;
 
-    public required string Name { get; init; }
-    public required IReadOnlyList<string> Qualifiers { get; init; }
+    /// <summary>The addend's data-name and IN/OF qualifiers as written (empty for an arithmetic-expression-1): only the symbol table
+    /// resolves it (<c>SymbolTable.IdentifyDataName</c>).</summary>
+    public required WrittenDataName Operand { get; init; }
     /// <summary>The operand exactly as written — what every diagnostic about it quotes.</summary>
     public required string Written { get; init; }
     /// <summary>The item the base name resolves to (the SR5 screen's subject); null when the addend was
@@ -917,7 +918,7 @@ public abstract class ReportEntryFamily
     /// entry without a data-name (FILLER). ISO §2023:8.4.2.2.3 SR4 — "Each data-name-2 shall be the name associated with a
     /// level number to which the item being qualified is subordinate" — so an entry is qualifiable by every named
     /// level above it, and by its REPORT as the outermost container (§2023:8.4.2.2.2 Format 1's file-report-qualifier).
-    /// Read by <see cref="DataBinder.QualifierWalk"/>, the ONE qualifier walk a data item's own ancestors go through.</summary>
+    /// Read by <c>SymbolTable.QualifierWalk</c>, the ONE qualifier walk a data item's own ancestors go through.</summary>
     public IReadOnlyList<string?> Qualification { get; init; } = [];
 
     /// <summary>The entry's occurrences, one per replay of it and per operand of its own multiple COLUMN clause, in

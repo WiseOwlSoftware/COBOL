@@ -287,8 +287,8 @@ public sealed class GlobalNameClassDriftTests
             + string.Join(", ", bare.Select(Path.GetFileName)));
 
         string table = File.ReadAllText(symbolTable);
-        AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerEntryHides(");
-        AssertBodyAsks(table, @"public List<DataItem> NearestDeclaringData\(", "NearerConditionNameHides(");
+        AssertBodyAsks(table, @"private List<DataItem> NearestDeclaringData\(", "NearerEntryHides(");
+        AssertBodyAsks(table, @"private List<DataItem> NearestDeclaringData\(", "NearerConditionNameHides(");
         AssertBodyAsks(table, @"private List<Condition88> NearestDeclaringConditions\(", "NearerDataNameHides(");
         AssertBodyAsks(table, @"public bool NearerDataNameHides\(", "NearerEntryHides(");
         string declarations = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "SymbolTable", "SymbolTable.Declarations.cs"));

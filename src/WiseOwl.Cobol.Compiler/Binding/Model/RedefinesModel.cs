@@ -59,19 +59,14 @@ public sealed record RenamesSpanPart(DataItem Leaf, int? Occurrence, int StartBy
 /// </summary>
 public sealed class RenamesInfo
 {
-    /// <summary>The <c>data-name-2</c> (FROM) operand text as written.</summary>
-    public required string FromName { get; init; }
+    /// <summary>The <c>data-name-2</c> (FROM) operand as written, its IN/OF qualifiers innermost first (kb/Work PB978: they are NOT
+    /// redundant inside the owning record, two same-named items in one record are distinguished only by them, §2023:8.4.2.2.3 SR1).
+    /// Only the symbol table resolves it (<c>SymbolTable.IdentifyRegionOperand</c>; docs/rearchitecture/DESIGN-listing.md section
+    /// 6.7.1, "Step 6b, remainder slice 3").</summary>
+    public required WrittenDataName FromOperand { get; init; }
 
-    /// <summary>The <c>data-name-3</c> (THRU) operand text, or <see langword="null"/> for the no-THRU form.</summary>
-    public string? ThruName { get; init; }
-
-    /// <summary>The IN/OF qualifiers written on data-name-2 — innermost first (kb/Work PB978). They are NOT
-    /// redundant inside the owning record: two same-named items in one record are distinguished only by them
-    /// (§2023:8.4.2.2.3 SR1).</summary>
-    public IReadOnlyList<string> FromQualifiers { get; init; } = [];
-
-    /// <summary>The IN/OF qualifiers written on data-name-3 (empty for the no-THRU form).</summary>
-    public IReadOnlyList<string> ThruQualifiers { get; init; } = [];
+    /// <summary>The <c>data-name-3</c> (THRU) operand as written, or <see langword="null"/> for the no-THRU form.</summary>
+    public WrittenDataName? ThruOperand { get; init; }
 
     /// <summary>The resolved FROM item (set post-build).</summary>
     public DataItem? From { get; set; }
@@ -90,7 +85,7 @@ public sealed class RenamesInfo
     public IEnumerable<DataItem> SpanLeaves => Span.Select(p => p.Leaf);
 
     /// <summary>True for a single no-THRU alias (Tier A forward, GR1); false for a THRU span (a Tier-B composition, GR2).</summary>
-    public bool IsAlias => ThruName is null;
+    public bool IsAlias => ThruOperand is null;
 
     /// <summary>⛔ THE DATA ITEMS A THROUGH ALIAS <i>INCLUDES</i>, in declaration order — §2023:13.18.45.4 GR2 verbatim:
     /// <i>"When the THROUGH phrase is specified, data-name-1 defines an alphanumeric group item that includes all

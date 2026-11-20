@@ -137,7 +137,7 @@ public sealed partial class SymbolTable
     /// name index (§2023:13.18.58.4 GR1), which IS the exemption while the type is unreferenced; once any TYPE clause names it
     /// (<see cref="DataItem.ReferencedByTypeClause"/>) its members are "other definitions" again, so they join
     /// <paramref name="storage"/> (the name's storage definitions, never empty) as candidates that COUNT for the uniqueness
-    /// verdict and never resolve alone (<c>DataBinder.QualifiedCandidates</c>). A member a candidate is a copy of
+    /// verdict and never resolve alone (<see cref="DataNameCandidates"/>). A member a candidate is a copy of
     /// (<see cref="DataItem.ClonedFrom"/>, to its written end) is that candidate's own definition, not another one: <c>01 Z TYPE
     /// T.</c> makes a reference to T's member through Z's one copy unique, as §2023:13.18.58.4 GR1 says ("If there is more than
     /// one such group, qualification with the name of the group is necessary"). Returns <paramref name="storage"/> itself when

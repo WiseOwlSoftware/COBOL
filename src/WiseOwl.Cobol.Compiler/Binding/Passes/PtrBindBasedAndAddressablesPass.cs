@@ -189,9 +189,9 @@ internal sealed class PtrBindBasedAndAddressablesPass(Core.ProgramUnitContext pr
         DataItem? hit;
         if (written.QualifierWords.Count == 0)
         {
-            if (!binder.Symbols.TryResolveUnqualified(written.Name, scope, out var candidates)) return null;
-            if (contained) candidates = candidates.FindAll(c => binder.Linkage.GlobalRoots.Contains(c.Root));
-            hit = candidates.Count == 1 || (firstOfSeveral && candidates.Count > 0) ? candidates[0] : null;
+            var candidates = binder.Symbols.IdentifyDataName(written, scope, report: false);
+            if (contained) candidates = candidates.Where(c => binder.Linkage.GlobalRoots.Contains(c.Root));
+            hit = candidates.ItemCount == 1 || (firstOfSeveral && candidates.ItemCount > 0) ? candidates.FirstWhere(static _ => true) : null;
         }
         else
         {

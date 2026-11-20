@@ -554,9 +554,13 @@ internal static class BitLayout
     /// <summary>The start-bit offset of DIRECT child <paramref name="child"/> within <paramref name="group"/>,
     /// by the same four placement rules as <see cref="ExtentBits"/> — one walk, one law (kb/Work PB132;
     /// §2023:14.9.4.3 SR6/SR8 ask whether a BY REFERENCE bit argument "is aligned on a byte boundary"). A
-    /// redefining child overlays its target (§2023:13.18.44), so its offset IS the target's — resolved here by
-    /// name. Returns -1 when the child is not found (an unmodelled overlay chain — callers must not reject
-    /// on -1).</summary>
+    /// redefining child overlays its target (§2023:13.18.44.4 GR1), so its offset IS the target's: the one
+    /// <see cref="DataItem.RedefinesTarget"/> the LinkRedefinitions pass set, never the written data-name-2 matched again
+    /// here (DESIGN-listing.md section 6.7.1), so the link runs before any pass that measures an item. Returns -1 when the
+    /// child is not <paramref name="group"/>'s, and for a redefiner whose overlay chain does not reach a non-redefining
+    /// sibling: one read before the LinkRedefinitions pass linked it (no pass measures that early; the pass reports and clears
+    /// a clause whose data-name-2 it finds nowhere, so after it no redefiner is unlinked) or a chain longer than the walk
+    /// follows. Callers must not reject on -1.</summary>
     public static int StartBitWithin(DataItem group, DataItem child)
     {
         var children = group.Children;
@@ -616,9 +620,11 @@ internal static class BitLayout
             if (children[i].RedefinesTargetName is null) continue;
             long at = -1;
             var c = children[i];
-            for (int hops = 0; hops < 64 && c.RedefinesTargetName is { } name; hops++)
+            for (int hops = 0; hops < 64 && c.RedefinesTargetName is not null; hops++)
             {
-                int t = IndexOfNamed(children, name);
+                // The target the LinkRedefinitions pass resolved (§2023:13.18.44.3 SR4: a preceding sibling), never the written name
+                // matched again here: the model reads the symbol the table resolved (DESIGN-listing.md section 6.7.1).
+                int t = c.RedefinesTarget is { } target ? IndexOf(children, target) : -1;
                 if (t < 0) break;
                 c = children[t];
                 if (c.RedefinesTargetName is null) at = starts[t];
@@ -628,10 +634,10 @@ internal static class BitLayout
         return cursor - phase;
     }
 
-    private static int IndexOfNamed(IReadOnlyList<DataItem> siblings, string name)
+    private static int IndexOf(IReadOnlyList<DataItem> siblings, DataItem sibling)
     {
         for (int i = 0; i < siblings.Count; i++)
-            if (CobolNames.Same(siblings[i].CobolName, name)) return i;
+            if (ReferenceEquals(siblings[i], sibling)) return i;
         return -1;
     }
 

@@ -40,6 +40,10 @@ internal static class BindPipeline
         new CheckClauseSubjectsPass(),
         new CheckSignClausesPass(),
         new InheritSignClausesPass(),
+        // Every REDEFINES subject linked to its data-name-2 before any item is measured: the layout reads a redefiner's overlay
+        // off the link (kb/Work PB5932 review R1-2). The clause's entry rules, SR8's size screen among them, stay in
+        // ResolveRedefines, after the size limit.
+        new LinkRedefinitionsPass(),
         // The limit on the size of one data item (kb/Work PB5695), once every size is final and before any later pass reads one.
         new CheckStorageLimitsPass(),
         new CheckCodeSetRecordItemsPass(),

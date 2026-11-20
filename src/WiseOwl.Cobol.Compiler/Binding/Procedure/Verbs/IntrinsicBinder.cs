@@ -426,7 +426,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // parameterized definition bound as itself, which stands where they do (§2023:11.3.4 GR6) — is a user-defined word
         // too (§2023:8.3.2.1 rule 5), so `INVOKE E "NEW"` with `CLASS E` in the REPOSITORY names the class, never the intrinsic
         // E (kb/Work PB2937: it drew COBOL1543 for a class or a formal spelled like a zero-argument intrinsic).
-        if (!repositoryIntrinsic && (ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _)
+        if (!repositoryIntrinsic && (ctx.Symbols.DeclaresDataName(name, ctx.ActiveScope)
             || host.OoClasses?.Names.Lookup(dref, cw, Compiler.Oo.OoNameWant.Either)
                 is { Ok: true } or { IsFormal: true }))
             return null;
@@ -2466,7 +2466,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// the one referenced; kb/Work PB1303), which is why the guard resolves the data-name first — in the statement's
     /// scope, so inside a METHOD its own declarations of either kind come first (§2023:11.7.4 GR5; kb/Work PB3192).</summary>
     private DataItem? TypeNameArgument(Core.FunctionArgumentContext a) =>
-        KeywordWordOf(a) is { } w && a.fnArgPhraseWord() is null && !ctx.Symbols.TryResolve(w, ctx.ActiveScope, out _)
+        KeywordWordOf(a) is { } w && a.fnArgPhraseWord() is null && !ctx.Symbols.DeclaresDataName(w, ctx.ActiveScope)
             && ctx.Symbols.Identify(KeywordWordContext(a)!, NameClass.TypeName, report: true) is { Symbol: DataItem t } ? t : null;
 
     /// <summary>
@@ -3317,7 +3317,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // when a data item shares the spelling (pb124_keyword_positions).
         if (bareName && word is not null
             && !WiseOwl.Cobol.Editions.ReservedWords.AdmitsAsKeyword(word, ctx.Edition.Edition.Year)
-            && ctx.Symbols.TryResolve(word, ctx.ActiveScope, out _))
+            && ctx.Symbols.DeclaresDataName(word, ctx.ActiveScope))
             return null;
         return word;
     }

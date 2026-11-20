@@ -31,7 +31,7 @@ internal sealed class OccursKeyResolvePass : IBindPass
 
     /// <summary>Post-build OCCURS KEY pass (kb/Work PB1018): resolve every data-name-2 of every table's KEY phrase
     /// ONCE, into <see cref="OccursSpec.ResolvedKeys"/>, which SEARCH ALL and the table SORT then read.
-    /// <para>The candidates are the table's OWN subtree from 2002 (<see cref="DataBinder.RegionClauseCandidates"/>; kb/Work PB5165 —
+    /// <para>The candidates are the table's OWN subtree from 2002 (<see cref="SymbolTable.IdentifyRegionOperand"/>; kb/Work PB5165 —
     /// below 2002 the whole scope's, narrowed by the written qualifiers alone, and the survivor is asked to lie in the
     /// table) (ISO §2023:13.18.38.3 SR3 — "The first specification of
     /// data-name-2 shall be the name of either the entry containing the OCCURS clause or an entry subordinate to
@@ -52,11 +52,11 @@ internal sealed class OccursKeyResolvePass : IBindPass
             for (int i = 0; i < spec.Keys.Count; i++)
             {
                 var key = spec.Keys[i];
-                string written = DataBinder.WrittenQualified(key.Name, key.Qualifiers);
+                string written = key.Written;
                 // The phrase as the program wrote it: ASCENDING or DESCENDING names the KEY phrase of ISO
                 // §2023:13.18.38.2, so a diagnostic about the key never opens with an elided OCCURS (kb/Work PB4160).
                 string keyPhrase = $"OCCURS {(key.Descending ? "DESCENDING" : "ASCENDING")} KEY IS";
-                var within = binder.RegionClauseCandidates(table, key.Name, key.Qualifiers);
+                var within = binder.Symbols.IdentifyRegionOperand(table, key.Operand);
                 DataItem? item = binder.UniqueOrReportAmbiguous(within, $"{keyPhrase} data-name-2 of '{subject}'", written,
                     out bool ambiguous);
                 // Below 2002 the candidates are the whole scope's, and the one that survives may lie outside the table.
@@ -64,7 +64,7 @@ internal sealed class OccursKeyResolvePass : IBindPass
                 if (item is null && !ambiguous)
                     binder.Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
                         $"{keyPhrase} '{written}' on '{subject}': no data item so named "
-                        + (key.Qualifiers.Count > 0 ? "under the written qualifiers " : "")
+                        + (key.Operand.Qualifiers.Count > 0 ? "under the written qualifiers " : "")
                         + $"is '{subject}' itself or subordinate to it — "
                         + binder.Edition.Edition.Cite(
                             "\"The first specification of data-name-2 must be the name of either the entry containing the OCCURS clause "

@@ -1786,7 +1786,7 @@ internal sealed class VersionConformancePass
 
         /// <summary>The SAME AS clause (ISO §2023:13.18.49; P10 Step 16) — a COBOL-2002 introduction (the
         /// TYPEDEF-family data-description edge). Recognition-based (the typedefClause pattern): the subject's
-        /// SameAsName is nulled by ExpandSameAs during bind — and cleared entirely on a §2023:13.16.3 SR12
+        /// SameAs is nulled by ExpandSameAs during bind — and cleared entirely on a §2023:13.16.3 SR12
         /// composition violation — so a bound-arm gate would drop the 0900 on exactly those paths. One Check
         /// per written SAME AS clause.</summary>
         public override object? VisitSameAsClause(CobolParserCore.SameAsClauseContext ctx)

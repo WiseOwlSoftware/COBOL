@@ -69,7 +69,7 @@ public sealed partial class DataBinder
     /// profile.</para></summary>
     internal static bool IsPictureLessLeaf(DataItem item) =>
         item.Pic is null && HasNoSubordinates(item) && item.Level is not (66 or 88)
-        && item.TypeRefName is null && item.SameAsName is null;
+        && item.TypeRefName is null && item.SameAs is null;
 
     /// <summary>⛔ §2023:8.5.1.3.1'S OWN TEST, and the ONE place either direction of the picture-placement rule asks
     /// it: "The most basic subdivisions of a record, that is, those not further subdivided, are called

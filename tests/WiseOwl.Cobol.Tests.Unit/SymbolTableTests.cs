@@ -64,9 +64,9 @@ public sealed class SymbolTableTests
     public void ProgramScope_ResolvesGlobalName()
     {
         var data = BindFixture();
-        Assert.True(data.Symbols.TryResolve("WS-A", Scope.Program, out var items));
-        Assert.Equal("WS-A", items[0].CobolName);
-        Assert.False(data.Symbols.TryResolve("NO-SUCH", Scope.Program, out _));
+        Assert.Equal("WS-A", DataNamed(data, "WS-A", Scope.Program).Single?.CobolName);
+        Assert.Equal(0, DataNamed(data, "NO-SUCH", Scope.Program).Count);
+        Assert.False(data.Symbols.DeclaresDataName("NO-SUCH", Scope.Program));
     }
 
     // (b) §2023:8.4.6.2.1 rule 3a: a method-local data-name REPLACES (never unions with) the object/program name.
@@ -74,18 +74,24 @@ public sealed class SymbolTableTests
     public void MethodScope_DataName_ShadowsGlobal()
     {
         var data = BindFixture();
-        var methodLocal = data.Symbols.TryResolve("WS-A", Scope.Program, out var g) ? g[0] : null;
+        var methodLocal = DataNamed(data, "WS-A", Scope.Program).Single;
         Assert.NotNull(methodLocal);
         var scope = new OoMethodDataScope();
         // The method declares its OWN WS-SHARED (through the table's one insert) — the method's entry points at a DIFFERENT item (reuse WS-A's
         // item object as a stand-in; the resolver compares nothing but presence).
         data.Symbols.DeclareDataName(methodLocal!, "WS-SHARED", scope);
-        Assert.True(data.Symbols.TryResolve("WS-SHARED", new Scope(scope), out var items));
-        Assert.Same(methodLocal, items[0]);                       // the method-local wins — REPLACES, not unions
-        Assert.Single(items);
-        Assert.True(data.Symbols.TryResolve("WS-SHARED", Scope.Program, out var globals));
-        Assert.NotSame(methodLocal, globals[0]);                  // program scope still sees the global item
+        var items = DataNamed(data, "WS-SHARED", new Scope(scope));
+        Assert.Equal(1, items.Count);                             // the method-local wins — REPLACES, not unions
+        Assert.Same(methodLocal, items.Single);
+        var global = DataNamed(data, "WS-SHARED", Scope.Program).Single;
+        Assert.NotNull(global);
+        Assert.NotSame(methodLocal, global);                      // program scope still sees the global item
     }
+
+    /// <summary>The data items a written, unqualified <paramref name="name"/> identifies in <paramref name="scope"/>:
+    /// <c>SymbolTable.IdentifyDataName</c>, the table's one data-name lookup (listing step 6b remainder slice 3, kb/Work PB5932).</summary>
+    private static NameCandidates<DataItem> DataNamed(DataBinder data, string name, Scope scope) =>
+        data.Symbols.IdentifyDataName(new WrittenQualifiedName(new Antlr4.Runtime.CommonToken(1, name), []), scope, report: false);
 
     /// <summary>The index-name a written <paramref name="name"/> identifies in <paramref name="method"/>'s scope (the program's when
     /// null): <c>SymbolTable.IdentifyIndexName</c>, the table's one index-name lookup (listing step 6b, kb/Work PB5932), with the
@@ -106,7 +112,7 @@ public sealed class SymbolTableTests
         var global = IndexNamed(data, "IX")?.Single;   // sanity: IX exists globally
         Assert.NotNull(global);
         var scope = new OoMethodDataScope();
-        data.Symbols.DeclareDataName(data.Symbols.TryResolve("WS-A", Scope.Program, out var g) ? g[0] : null!, "IX", scope);
+        data.Symbols.DeclareDataName(DataNamed(data, "WS-A", Scope.Program).Single!, "IX", scope);
         Assert.Null(IndexNamed(data, "IX", scope));
     }
 
@@ -116,7 +122,7 @@ public sealed class SymbolTableTests
     {
         var data = BindFixture();
         var scope = new OoMethodDataScope();
-        var tab = data.Symbols.TryResolve("TAB", Scope.Program, out var t) ? t[0] : null!;
+        var tab = DataNamed(data, "TAB", Scope.Program).Single!;
         data.Symbols.DeclareIndex(new IndexDeclaration("IX", tab, "_IX_42"), scope);
         Assert.Equal("_IX_42", IndexNamed(data, "IX", scope)?.Single?.Cell);   // the method's cell
         var global = IndexNamed(data, "IX")?.Single;
@@ -130,8 +136,7 @@ public sealed class SymbolTableTests
     {
         var data = BindFixture();
         var scope = new OoMethodDataScope();                      // empty overlay — nothing shadowed
-        Assert.True(data.Symbols.TryResolve("WS-A", new Scope(scope), out var items));
-        Assert.Equal("WS-A", items[0].CobolName);
+        Assert.Equal("WS-A", DataNamed(data, "WS-A", new Scope(scope)).Single?.CobolName);
         // And the index-name resolution falls through to the global declaration too.
         var viaMethod = IndexNamed(data, "IX", scope)?.Single;
         Assert.NotNull(viaMethod);

@@ -106,7 +106,7 @@ public sealed partial class DataBinder
         SynthesizeImpliedPicturesPass.SynthesizeImpliedPicturesUnder(this, item);
         // ExpandTypes' order: every TYPE clause, then every SAME AS clause (a SAME AS source copies its expanded TYPE).
         foreach (var typed in DataItem.SelfAndDescendantsOf(item).Where(i => i.TypeRefName is not null).ToList()) ExpandType(typed);
-        foreach (var sameAs in DataItem.SelfAndDescendantsOf(item).Where(i => i.SameAsName is not null).ToList()) ExpandSameAs(sameAs, []);
+        foreach (var sameAs in DataItem.SelfAndDescendantsOf(item).Where(i => i.SameAs is not null).ToList()) ExpandSameAs(sameAs, []);
     }
 
     /// <summary>⛔ A LENGTH OPERAND MAY BE A SUBORDINATE THAT A TYPE OR SAME AS CLAUSE SUPPLIES (kb/Work PB2844).
@@ -127,7 +127,7 @@ public sealed partial class DataBinder
     internal bool ComposePendingSubjectsAhead()
     {
         var pending = _entryItems.Values
-            .Where(i => (i.TypeRefName is not null || i.SameAsName is not null)
+            .Where(i => (i.TypeRefName is not null || i.SameAs is not null)
                 && !InTypeDeclaration(i) && !HasSubordinatesBeingDescribed(i))
             .ToList();
         foreach (var subject in pending) ComposeAhead(subject);

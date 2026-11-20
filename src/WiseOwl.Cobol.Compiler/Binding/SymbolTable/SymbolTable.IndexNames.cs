@@ -93,21 +93,21 @@ public sealed partial class SymbolTable
             if (own is not null && own.DataNames.TryGetValue(key, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
             if (own is not null && own.IndexNames.Declares(key))
                 return WithLapsedTypeIndexes(key,
-                    own.IndexNames.Candidates(key, d => _data.IndexQualifierChainMatches(d, qualifiers), out _),
-                    d => _data.IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
+                    own.IndexNames.Candidates(key, d => IndexQualifierChainMatches(d, qualifiers), out _),
+                    d => IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
             // A method condition-name, CAPACITY register or constant-name of the spelling hides the object's
             // index-name too (GR5 covers every name class; kb/Work PB3165 review R2-1, PB3153 review round 3).
             if (MethodDeclaresWord(m, name)) return null;
         }
         if (!_indexNames.Declares(key)) return null;
-        var indexes = _indexNames.Candidates(key, d => _data.IndexQualifierChainMatches(d, qualifiers), out int indexDepth);
+        var indexes = _indexNames.Candidates(key, d => IndexQualifierChainMatches(d, qualifiers), out int indexDepth);
         // §2023:8.4.6.2.1 3) across the name classes (kb/Work PB1047): a DATA-name or a CONDITION-name of the spelling that the
         // written qualifiers reach, declared in a NEARER source element than every such index-name, is the referenced
         // item — a contained program's `01 IX` or its `88 IX` hides its container's GLOBAL table's `INDEXED BY IX`,
         // exactly as its `01 X` hides the container's global `X` (kb/Work PB4432). At EQUAL depth the index-name keeps
         // the reference, as before.
         if (indexes.Count > 0 && NearerDataOrConditionNameHides(name, qualifiers, indexDepth)) return null;
-        return WithLapsedTypeIndexes(key, indexes, d => _data.IndexQualifierChainMatches(d, qualifiers), null);
+        return WithLapsedTypeIndexes(key, indexes, d => IndexQualifierChainMatches(d, qualifiers), null);
     }
 
     /// <summary>The entry of the index-name a reference identified, the ONE candidate of its set: its declaration's

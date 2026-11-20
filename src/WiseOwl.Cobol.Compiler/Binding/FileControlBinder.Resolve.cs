@@ -22,7 +22,7 @@ public sealed partial class FileControlBinder
     /// <summary>Post-build (once the forest is indexed), resolve every file's data-name clause operands — FILE
     /// STATUS, the keys, ASSIGN … USING, RECORD … DEPENDING ON and the LINAGE operands — and run the syntax
     /// rules of the file control entry and of the LINAGE clause that need a RESOLVED data item (design D19/D25).
-    /// Every operand goes through <see cref="DataBinder.ResolveClauseOperand"/> or <see cref="DataBinder.QualifiedCandidates"/>: ONE
+    /// Every operand goes through <see cref="DataBinder.ResolveClauseOperand"/> or <c>SymbolTable.IdentifyDataName</c>: ONE
     /// ISO §2023:8.4.2.2 resolution, never a per-clause first-match lookup (kb/Work PB489).</summary>
     internal void ResolveFiles()
     {

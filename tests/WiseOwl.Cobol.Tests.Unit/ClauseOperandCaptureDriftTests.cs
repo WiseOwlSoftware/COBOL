@@ -73,7 +73,7 @@ public sealed class ClauseOperandCaptureDriftTests
         var hits = Regex.Matches(src, FirstWordReduction);
         Assert.Single(hits);
         // internal since kb/Work PB1018: the SORT table-key phrase captures its qualifiers through this same one.
-        string capture = MethodBody(src, "internal static (string Base, IReadOnlyList<string> Quals) KeyReference(");
+        string capture = MethodBody(src, "internal static WrittenDataName KeyReference(");
         Assert.Contains(hits[0].Value, capture, StringComparison.Ordinal);
     }
 
@@ -150,7 +150,7 @@ public sealed class ClauseOperandCaptureDriftTests
                     definitions.Add($"{Path.GetFileName(path)}: {line.Trim()}");
         }
         Assert.Single(definitions);
-        Assert.StartsWith("DataBinder.cs:", definitions[0], StringComparison.Ordinal);
+        Assert.StartsWith("SymbolTable.DataNameCandidates.cs:", definitions[0], StringComparison.Ordinal);
     }
 
     /// <summary>The first-word reduction, as it was written at every one of the sites this change collapsed:

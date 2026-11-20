@@ -428,7 +428,7 @@ public sealed partial class FileControlBinder
     /// <para>⛔ THE OPERAND IS DECIDED BY THE ELEMENT THAT DECLARES WHAT IT NAMES, never by whether a name table holds it
     /// (review R2-1): a container's GLOBAL record is inherited into this unit's data-name index with its depth
     /// (<see cref="DataBinder.InheritContainerGlobalData"/>), so "the lookup found it" no longer means "declared here". The one
-    /// data-name lookup (<see cref="DataBinder.QualifiedCandidates"/>, qualification first, then the nearest declaring element) and the
+    /// data-name lookup (<c>SymbolTable.IdentifyDataName</c>, qualification first, then the nearest declaring element) and the
     /// depths of the other declarations the word can name are set side by side, and the NEAREST is the referenced item
     /// (§2023:8.4.6.2.1 3) a): "If the name is declared in source element B, the item in source element B is the referenced
     /// item"; b): otherwise the nearest containing element's):</para>

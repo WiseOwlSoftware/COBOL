@@ -1496,7 +1496,7 @@ the same list.
   b)'s default length the concatenation's), COLLATING SEQUENCE OF (§2023:12.4.5.7.3 SR5). Those positions admit
   data-name-1 OR record-key-name-1, and §2023:8.3.2.2 lets one word be both, so each counts every reading in one
   `KeyNameReading` set — the record-key-names of every visible file (the clause: of its own entry) and EVERY
-  data-name reading (each same-spelled data item `DataBinder.QualifiedCandidates` reaches; the clause narrows them to
+  data-name reading (each same-spelled data item `SymbolTable.IdentifyDataName` reaches; the clause narrows them to
   its entry's key items, as its key clauses' SR2 selection does) — judged by the one §2023:8.4.2.2.3 SR1 verdict
   (`DataBinder.UniqueOrReportAmbiguous`, COBOL1639): a name two clauses of one entry declare (no Format 6 qualifier
   can separate them), two files declare unqualified, or one or more data items also bear is refused, never resolved
@@ -2183,18 +2183,23 @@ behaviour with no other edit (kb/Work PB489). For the special-register alternati
 nonterminal the first word is the FILE-NAME QUALIFIER, so `LINAGE IS LINAGE-COUNTER OF LPF LINES` recorded the
 file name as the clause's data-name and died at OPEN naming a word the programmer never wrote as a data item.
 
-**Where it lives.** Three members of `DataBinder`, and nothing else:
+**Where it lives.** The matcher is the symbol table's (`Binding/SymbolTable/SymbolTable.DataNameCandidates.cs`, private,
+since listing step 6b's remainder slice 3, kb/Work PB5932); the operand capture and its screen are `DataBinder`'s:
 
-- **`QualifiedCandidates(name, quals, scope)`** — THE §2023:8.4.2.2 matcher: every in-scope declaration whose ancestor
-  chain carries the qualifiers inner → outer with gaps allowed (§2023:8.4.2.2.3 SR4), the outermost qualifier
-  optionally the owning FILE (Format 1's `file-report-qualifier`). It returns the SET, because the count is the
-  standard's answer. The procedure division's qualified lookup — which used to own the only complete copy, while the
-  binder carried a weaker private twin that knew neither the file-name qualifier nor uniqueness — now asks it, through
-  `SymbolTable.IdentifyDataName`.
-  **The set is a `DataNameCandidates` and has no indexer (kb/Work PB978):** it can be counted, narrowed
-  (`Where`) and read only as `Single`, so no caller can take "the first". Its record-confined twin
-  `SubtreeCandidates(root, name, quals)` serves RENAMES (§2023:13.18.45.3 SR4) and a TYPEDEF clone's own OCCURS DEPENDING
-  ON counter. Several survivors go to **`UniqueOrReportAmbiguous`**, the ONE data-division ambiguity verdict
+- **`SymbolTable.DataNameCandidates(name, quals, scope)`** — THE §2023:8.4.2.2 matcher: every in-scope declaration whose
+  ancestor chain carries the qualifiers inner → outer with gaps allowed (§2023:8.4.2.2.3 SR4, the table's one
+  `QualifierWalk`), the outermost qualifier optionally the owning FILE (Format 1's `file-report-qualifier`). It returns
+  the SET, because the count is the standard's answer. It is private, and a caller hands the written words, never the
+  name as text: the procedure division `IdentifyDataName(WrittenQualifiedName, report)`, a data-division clause operand
+  the `WrittenDataName` its model keeps (`IdentifyDataName(WrittenDataName, Scope)`; `IdentifyEntryClauseOperand` for
+  OCCURS … DEPENDING ON and SAME AS, with §2023:8.4.2.2.1 SR5's implicit qualifiers; `IdentifyRegionOperand` for OCCURS
+  KEY and RENAMES). The procedure division's qualified lookup used to own the only complete copy, while the binder
+  carried a weaker private twin that knew neither the file-name qualifier nor uniqueness; there is one now.
+  **The set is a `NameCandidates<DataItem>` and has no indexer (kb/Work PB978):** it can be counted, narrowed
+  (`Where`) and read only as `Single`, so no caller can take "the first". Its record-confined twin, the table's private
+  `SubtreeCandidates(root, name, quals)`, answers `IdentifyRegionOperand` (RENAMES, §2023:13.18.45.3 SR4; OCCURS KEY),
+  the group tiers of `IdentifyEntryClauseOperand` (a TYPEDEF clone's own OCCURS DEPENDING ON counter) and
+  `IdentifyWithin` (a SORT table key). Several survivors go to **`UniqueOrReportAmbiguous`**, the ONE data-division ambiguity verdict
   (§2023:8.4.2.2.3 SR1, COBOL1639; under `--permissive` a warning and the first declared — the procedure division's
   own disposition). Every data-division operand reads it: FILE STATUS, RELATIVE KEY, RECORD … DEPENDING ON and LINAGE
   (through `ResolveClauseOperand`), RECORD KEY / ALTERNATE RECORD KEY (SR2 narrows to this file's records first,
@@ -2960,7 +2965,7 @@ failure branches were fired once before it was trusted.
   sorts on that phrase's keys in their written significance order and direction (§2023:14.9.40.4 GR21), read from
   the ONE `OccursSpec.Keys` model SEARCH ALL also reads (resolved once, qualifiers and all, by
   `OccursKeyResolvePass` — kb/Work PB1018). A written table key and the table subject data-name-2 resolve
-  through the §2023:8.4.2.2 resolver too (`SubtreeCandidates` over data-name-2 / `ResolveTableOperand`): never the
+  through the §2023:8.4.2.2 resolver too (`SymbolTable.IdentifyWithin` over data-name-2 / `ResolveTableOperand`): never the
   first same-named item. The grammar's key list is zero-or-more; SR15 and
   Format 1's at-least-one are screened in `SortBinder` on the resolved operand (kb/Work PB846). MERGE has no
   table format, so its key list stays one-or-more in the grammar. Note also row 27: MERGE newly prohibited in another MERGE's output procedure / a

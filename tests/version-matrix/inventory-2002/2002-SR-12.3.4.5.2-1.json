@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-12.3.4.5.2-1",
  "rule-digest": "dfa20b4c388f",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#DataNameCandidates",
  "test-ref": "conformance:cases/12.3.4.5@2002-ALTERNATE-RECORD-KEY-CLAUSE/g2akq01_qualified_key_names",
- "notes": "§2002:12.3.4.5.2 SR1 grants qualified ALTERNATE RECORD KEY data-name-1 and SOURCE data-name-2: AK OF IRB WITH DUPLICATES and SK SOURCE IS S1 OF IRB S2 OF IRB, with a decoy record declared first holding the same names at other bytes, key the file on IRB's bytes (W2 02 duplicate, AK reads 003/001, SK reads 002); --std 2002 run matched the derived .out."
+ "notes": "§2002:12.3.4.5.2 SR1 grants qualified ALTERNATE RECORD KEY data-name-1 and SOURCE data-name-2: AK OF IRB WITH DUPLICATES and SK SOURCE IS S1 OF IRB S2 OF IRB, with a decoy record declared first holding the same names at other bytes, key the file on IRB's bytes (W2 02 duplicate, AK reads 003/001, SK reads 002); --std 2002 run matched the derived .out. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates (moved into the symbol table with the data-name candidate sets, kb/Work PB5932 listing step 6b remainder slice 3: SymbolTable.DataNameCandidates.cs)"
 }

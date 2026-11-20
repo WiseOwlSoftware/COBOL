@@ -40,7 +40,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     /// always subordinate to its 01 report group (and to any group entry between), so the covered spelling is
     /// <c>counter [ OF group-entry ]… [ OF report-name ]</c>: every named level above the entry, inner → outer
     /// with gaps allowed, the report-name last as §2023:8.4.2.2.2 Format 1's file-report-qualifier. The walk is the ONE
-    /// <see cref="DataBinder.QualifierWalk"/> a data item's own ancestors go through, over
+    /// <c>SymbolTable.QualifierWalk</c> a data item's own ancestors go through, over
     /// <see cref="ReportSumModel.Qualification"/>. (The model it replaced — "a level-01-free item whose only
     /// available qualifier is its report" — was false, so `TOT OF CF1` was refused and two same-named counters
     /// of one report could not be told apart.) A reference-modified counter is a counter reference like any other
@@ -112,15 +112,16 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // the written name and its qualifiers from the reference and the enclosing report from its site.
         if (data.Symbols.Identify(dref, NameClass.SumCounter, report, reportSite: refs.ReportSite)?.Symbol
             is not ReportCandidates<(ReportModel Report, ReportSumFamily Family)> { Hits: var matches }) return null;
-        string name = dref.cobolWord().GetText();
         List<string> qualifiers = ReferenceResolver.ReadWritten(dref).Qualifiers;
+        var written = WrittenQualifiedName.OfRead(dref, qualifiers);
+        string name = written.Name;
         if (matches.Count == 0)
         {
             // The qualifiers reach no counter of this name. When an ORDINARY item of the name does answer them
             // (`TOT OF WS-GROUP`, the counter's name reused as a data item), the reference is that item's and
             // resolution carries on; otherwise the name IS a sum counter and the ordinary resolver would only say
             // "not defined", so name the real rule (§2023:8.4.2.2.2 / §2023:8.4.2.2.3 SR4).
-            if (data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Single is not null) return null;
+            if (data.Symbols.IdentifyDataName(written, report: false).Single is not null) return null;
             if (report && refs.Diagnosed.Add(dref))
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': '{name}' is a sum counter "
                     + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5")}), "
@@ -139,7 +140,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         if (counterDepth > 0
             && (qualifiers.Count == 0
                 ? data.Symbols.Declared.DeclaredNearerThan(name, counterDepth)
-                : data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Single is { } nearer
+                : data.Symbols.IdentifyDataName(written, report: false).Single is { } nearer
                   && data.State.Forest.DeclaringDepth(nearer) < counterDepth))
             return null;
         // ⛔ THE COUNTER IS ONE CANDIDATE AMONG ALL THE DATA-NAMES OF ITS SPELLING (kb/Work PB3232). §2023:13.18.54.4 GR5 makes a
@@ -148,10 +149,10 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of
         // reference" — counts them TOGETHER. The ordinary items asked about are the ones the SAME written qualifiers
         // reach in the SAME source element as the counters (§2023:8.4.6.2.1 3): the one candidate set
-        // DataBinder.QualifiedCandidates, which the ordinary lookup (SymbolTable.IdentifyDataName) reads too.
+        // the table's SymbolTable.IdentifyDataName, which the ordinary lookup reads too.
         // Asking only the counters, as this method did, let the counter win every collision with a WORKING-STORAGE item
         // that had no qualifier to tell them apart: a MOVE to the name altered the report total, silently.
-        int sameSpelling = matches.Count + data.QualifiedCandidates(name, qualifiers, data.ActiveScope)
+        int sameSpelling = matches.Count + data.Symbols.IdentifyDataName(written, report: false)
             .Where(item => data.State.Forest.DeclaringDepth(item) == counterDepth).Count;
         if (sameSpelling > 1)
         {

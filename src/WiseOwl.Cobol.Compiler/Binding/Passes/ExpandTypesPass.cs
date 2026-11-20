@@ -58,7 +58,7 @@ internal sealed class ExpandTypesPass : IBindPass
         // was itself declared with a TYPE clause copies its fully-EXPANDED description (GR1 — "as though the
         // data description identified by data-name-1 had been coded in place"). Chains (a target with its own
         // pending SAME AS) recurse inside ExpandSameAs; cycles are the §2023:13.18.49.3 SR3 rejection.
-        foreach (var item in binder.AllItems().Where(i => i.SameAsName is not null).ToList())
+        foreach (var item in binder.AllItems().Where(i => i.SameAs is not null).ToList())
             binder.ExpandSameAs(item, []);
         // §2023:13.18.55.4 GR1 over the composed storage forest — a TYPE subject or SAME AS subject that writes the clause
         // reaches the leaves it copied (DataBinder.SynchronizedClause.cs; the templates took it in ExpandTemplate).

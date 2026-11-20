@@ -648,7 +648,7 @@ IX113A's +13.8 MB (320 protected blocks, 594 handlers) is beyond its own `None` 
 thousand rows of each format. Run 1's page wrote ` style="padding-left:0ch"` on every instruction row, twice per instruction (section
 7.2 shows the object code under each statement and in its section): IX113A's `All` fell 6.5 MB when the attribute was written only
 where a region nests the row. The `All` row stays over its 25 % budget, as it was before (kb/Work PB5941, whose dated file
-`2026-11-19-pb5951-rows` holds these rows). These rows were measured before PB5941 landed: its page prints each instruction once, so the doubled cost above is gone on the merged tree. Time rows are not shown (kb/Work PB5927).
+`2026-11-19-pb5951-rows` holds these rows). These rows were measured before PB5941 landed, whose page prints each instruction once; the merged tree's own `All` rows are below ("The `All` row at the merged tree of kb/Work PB5941 and PB5951"), inside the 25 % budget on every program. Time rows are not shown (kb/Work PB5927).
 
 **PB5949 (the source's syntax colouring): every row against the parent.** PB5949 changes every compilation a little (the
 logical conversion's per-line record is an object holding the kinds array; the lexer's comment rules call an action that records
@@ -991,6 +991,44 @@ Reading them: the medians agree within 0.08 MB on every program (IX113A 67.83 ag
 35.00, SM201A 15.49) are single runs as far from their tree's other runs as the parent's own NC218A 31.02 is from its. The operand is
 one value where it was two fields, and nothing it adds allocates, so the slice moves no measurable allocation; the `None` budget
 holds. Time rows are not shown (kb/Work PB5927).
+
+**Step 6b, remainder slice 3 (kb/Work PB5932, the data-name candidate sets moved into the symbol table behind the written words):
+the `None` row against the parent.** Every data-name reference of every compilation is identified through the moved candidate set, so
+the slice measures the no-listing path. Measured on 2026-11-20, Release, one Windows host, the built `WiseOwl.Cobol.Benchmarks.exe
+--filter '*CompileBenchmarks.FrontEndAndBind*' --buildTimeout 900`, each run from its own tree's root, on the parent `0c29eebc42` (a
+detached worktree) and the `listing-step-6b-r3` branch (bebbf305cb's source), two runs each, alternating (parent, branch, branch,
+parent). Allocated bytes per front end and bind:
+
+| Program | Listing | Parent 0c29eebc42 (2 runs) | Branch (2 runs) |
+|---|---|---|---|
+| IX113A | None | 67.78, 67.81 MB | 67.66, 67.60 MB |
+| NC105A | None | 34.42, 34.58 MB | 34.42, 34.34 MB |
+| NC218A | None | 30.44, 30.42 MB | 30.44, 30.50 MB |
+| SM201A | None | 15.15, 15.49 MB | 15.12, 15.12 MB |
+| IX113A | Text | 72.68, 72.75 MB | 72.65, 72.58 MB |
+| IX113A | All | 82.17, 82.16 MB | 82.02, 82.10 MB |
+
+Reading them: every branch `None` row lies inside the parent's two runs or below them but one (NC218A 30.50 MB, 0.06 MB above the
+parent's higher run, 30.44, which the branch's other run equals); IX113A's is 0.12 to 0.21 MB below the parent's on both runs. An unqualified data-name reads the
+table's list without a copy, as it did, and the qualified walk is the code it was, so the slice moves no measurable allocation; the
+`None` budget holds. Time rows are not shown (kb/Work PB5927).
+
+**The `All` row at the merged tree of kb/Work PB5941 and PB5951 (review lead pb5951 R4-1).** PB5951's rows above were measured before
+PB5941 landed, and PB5941's without PB5951's region rows, so no row showed the merged page. Measured on 2026-11-20 on `0c29eebc42`
+(main with both landed), Release, `--filter '*CompileBenchmarks.FullCompile*None*' '*CompileBenchmarks.FullCompile*All*'`, two runs.
+Allocated bytes per full compile:
+
+| Program | None (2 runs) | All (2 runs) | All over None, run 1 / run 2 |
+|---|---|---|---|
+| IX113A | 195.71, 193.47 MB | 228.57, 228.69 MB | +16.8 % / +18.2 % |
+| NC105A | 113.52, 118.68 MB | 140.25, 135.11 MB | +23.5 % / +13.8 % |
+| NC218A | 115.23, 112.72 MB | 136.54, 131.58 MB | +18.5 % / +16.7 % |
+| SM201A | 41.78, 44.62 MB | 50.92, 53.71 MB | +21.9 % / +20.4 % |
+
+Reading them: every run of every program is inside the 25 % budget (section 9 of the listing design), the highest NC105A's +23.5 %
+on run 1, whose `None` row is 5.2 MB under its run 2 (the full compile's run-to-run spread, as in PB5951's rows); over the two runs'
+means `All` is +17.5 % (IX113A), +18.6 % (NC105A), +17.6 % (NC218A) and +21.1 % (SM201A) over `None`. The merged page's region rows
+stay inside the budget PB5941 met. Time rows are not shown (kb/Work PB5927).
 
 ---
 

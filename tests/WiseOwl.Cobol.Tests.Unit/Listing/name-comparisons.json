@@ -307,12 +307,12 @@
       "reason": "compares a written word with a fixed word of the standard or the implementor (FILLER, ZERO, NEW, an intrinsic function, exception or implementor-name, a register keyword): no user-defined name is resolved"
     },
     {
-      "site": "SAME Binding/ReportModel.cs WiseOwl.Cobol.Binding.ReportControlRef.SameOperandAs CobolNames.Same(Name, other.Name)",
+      "site": "SAME Binding/ReportModel.cs WiseOwl.Cobol.Binding.ReportControlRef.SameOperandAs CobolNames.Same(Operand.Name, other.Operand.Name)",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
-      "site": "SAME Binding/ReportModel.cs WiseOwl.Cobol.Binding.ReportControlRef.SameOperandAs CobolNames.Same(Qualifiers[i], other.Qualifiers[i])",
+      "site": "SAME Binding/ReportModel.cs WiseOwl.Cobol.Binding.ReportControlRef.SameOperandAs CobolNames.Same(Operand.Qualifiers[i], other.Operand.Qualifiers[i])",
       "class": "SAMESYMBOL",
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },

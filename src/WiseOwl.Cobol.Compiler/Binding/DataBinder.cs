@@ -990,14 +990,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// SR10 / §2023:13.18.54.3 SR8 twins — must NOT use this helper alone either: it binds as if the operand were
     /// unmodified, which is a silent wrong answer. Those three go through
     /// <c>ReportSectionBinder.ControlOperandRef</c>, which keeps the whole written reference.</para></summary>
-    internal static (string Base, IReadOnlyList<string> Quals) KeyReference(Core.DataReferenceContext dref)
+    internal static WrittenDataName KeyReference(Core.DataReferenceContext dref)
     {
         string baseWord = dref.cobolWord()?.GetText() ?? dref.GetText();
         var quals = new List<string>();
         foreach (var s in dref.dataReferenceSuffix())
             if (s.qualification()?.cobolWord() is { } q)
                 quals.Add(q.GetText());
-        return (baseWord, quals);
+        return new WrittenDataName(baseWord, quals);
     }
 
     /// <summary>The capture for an operand written where a general format prints <i>data-name-n</i>: the base
@@ -1011,8 +1011,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal WrittenDataName ClauseDataName(Core.DataReferenceContext dref, string clauseFace)
     {
         if (!ScreenClauseOperandShape(dref, clauseFace)) return RefuseClauseOperand(dref);
-        var (word, quals) = KeyReference(dref);
-        return new WrittenDataName(word, quals);
+        return KeyReference(dref);
     }
 
     /// <summary>⛔ THE CAPTURE OF A data-name-n OPERAND WHOSE COBOL-2002 RULE SAYS ONLY "MAY BE QUALIFIED" (kb/Work PB5602):
@@ -1026,8 +1025,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Core.DataReferenceContext dref, string clauseFace)
     {
         if (!ScreenClauseOperandShape(dref, clauseFace, admitsSubscript2002: true)) return (RefuseClauseOperand(dref), []);
-        var (word, quals) = KeyReference(dref);
-        return (new WrittenDataName(word, quals),
+        return (KeyReference(dref),
             Edition.SubscriptedClauseOperands ? RefModBinder.ReadOperandSuffixes(dref).Subscript.Values : []);
     }
 
@@ -2251,7 +2249,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         foreach (var member in DataItem.SelfAndDescendantsOf(template).ToList())
         {
             if (member.TypeRefName is not null) ExpandType(member);
-            if (member.SameAsName is not null) ExpandSameAs(member, []);
+            if (member.SameAs is not null) ExpandSameAs(member, []);
         }
         if (template.TypedefStrong && template.IsElementary && !template.HasSubordinates)
         {
@@ -2677,7 +2675,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// clauses whole.</para></summary>
     private DataItem CloneItem(DataItem src, DataItem newParent, int levelDelta = 0)
     {
-        System.Diagnostics.Debug.Assert(src.TypeRefName is null && src.SameAsName is null,
+        System.Diagnostics.Debug.Assert(src.TypeRefName is null && src.SameAs is null,
             $"CloneItem: '{src.CobolName}' still carries a pending TYPE / SAME AS reference — its description was copied before it was complete");
         var clone = new DataItem
         {
@@ -2762,7 +2760,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// subjects whose expansion is in progress on the way to this one (see <see cref="ExpandSameAsEntry"/>).</summary>
     internal void ExpandSameAs(DataItem item, HashSet<DataItem> expanding)
     {
-        if (item.SameAsName is null) return;   // already expanded through a chain hop (idempotent — the TypeRefName pattern)
+        if (item.SameAs is null) return;   // already expanded through a chain hop (idempotent — the TypeRefName pattern)
         expanding.Add(item);
         try
         {
@@ -2778,8 +2776,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     private bool ExpandSameAsEntry(DataItem item, HashSet<DataItem> expanding)
     {
         using var _ = Edition.At(item);
-        string targetName = item.SameAsName!;
-        item.SameAsName = null;
+        var operand = item.SameAs!.Value;
+        item.SameAs = null;
+        string targetName = operand.Name;
         string subject = item.CobolName ?? item.ClrName;
 
         // §2023:13.18.49.3 SR2: the entry shall not be immediately followed by a subordinate data description entry
@@ -2818,8 +2817,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
         // In the element whose entry writes the clause (kb/Work PB3192): a METHOD's SAME AS names the method's own item
         // first (§2023:11.7.4 GR5) — it read program scope, so a method's `01 B SAME AS A.` copied its OBJECT's A.
-        var candidates = EntryClauseCandidates(item, targetName, item.SameAsQualifiers, ScopeOf(item.Root));
-        string writtenTarget = WrittenQualified(targetName, item.SameAsQualifiers);
+        var candidates = Symbols.IdentifyEntryClauseOperand(item, operand, ScopeOf(item.Root));
+        string writtenTarget = operand.Written;
         if (candidates.Count == 0)
         {
             Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS '{writtenTarget}' "
@@ -2856,7 +2855,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // clause that references the subject of this entry or any group item to which this entry is subordinate."
         foreach (var pending in DataItem.DescendantsOf(target).Prepend(target).ToList())
         {
-            if (pending.SameAsName is not null) ExpandSameAs(pending, expanding);
+            if (pending.SameAs is not null) ExpandSameAs(pending, expanding);
             if (pending.TypeRefName is not { } pendingType) continue;
             if (Symbols.TypeDeclarationOf(pending, TypeNameCarried.TypeClause) is { } decl && _templateComplete.TryGetValue(decl, out bool done)
                 && !done)
@@ -3070,11 +3069,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // data-name-2 / data-name-3 through the ONE screened data-name-n capture: §2023:13.18.45.3 SR7 — "Data-name-2 and
         // data-name-3 shall not be subscripted" — which the bare-word capture used to satisfy by dropping the
         // subscript in silence (kb/Work PB978's sweep).
-        var (fromBase, fromQuals) = ClauseDataName(rc.dataReference(0), $"'{name}' RENAMES");
-        var (thruBase, thruQuals) = thru && rc.dataReference().Length > 1
-                && ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU") is var thruOperand
-            ? (thruOperand.Name, thruOperand.Qualifiers)
-            : ((string?)null, (IReadOnlyList<string>)[]);
+        var fromOperand = ClauseDataName(rc.dataReference(0), $"'{name}' RENAMES");
+        WrittenDataName? thruOperand = thru && rc.dataReference().Length > 1
+            ? ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU")
+            : null;
         var item = new DataItem
         {
             Level = 66,
@@ -3087,10 +3085,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 // qualifiers used to be dropped as "redundant inside the owning record", which they are only
                 // when the base word is unique there; with two same-named items in the record they are what
                 // §2023:8.4.2.2.3 SR1 requires, and dropping them bound the first-declared (kb/Work PB978).
-                FromName = fromBase,
-                FromQualifiers = fromQuals,
-                ThruName = thruBase,
-                ThruQualifiers = thruQuals,
+                FromOperand = fromOperand,
+                ThruOperand = thruOperand,
             },
         };
         item.Uid = _uidCounter++;
@@ -3124,10 +3120,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             ClrName = src.ClrName,
             Renames = new RenamesInfo
             {
-                FromName = info.FromName,
-                FromQualifiers = info.FromQualifiers,
-                ThruName = info.ThruName,
-                ThruQualifiers = info.ThruQualifiers,
+                FromOperand = info.FromOperand,
+                ThruOperand = info.ThruOperand,
             },
         };
         clone.ClonedFrom = src;   // a copy like every other member of the type (§2023:8.4.2.2.1 SR4; DataItem.ReferenceSite)
@@ -3760,8 +3754,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §2023:13.18.58; D17)
         bool isConstantRecord = false; // CONSTANT RECORD (ISO §2023:13.18.15 — a structured constant; P10 Step 15)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
-        string? sameAsName = null;     // SAME AS data-name-1 — the entry this one copies, expanded post-build (§2023:13.18.49)
-        IReadOnlyList<string> sameAsQuals = [];   // the SAME AS target's OF/IN qualifiers
+        WrittenDataName? sameAs = null;   // SAME AS data-name-1 and its OF/IN qualifiers: the entry this one copies, expanded post-build (§2023:13.18.49)
         bool isAligned = false;        // ALIGNED (ISO §2023:13.18.1 — bit alignment at the first bit of the first available byte)
         SelectWhenSpec? selectWhen = null;   // SELECT WHEN (ISO §2023:13.18.51 — the record description entry's selection condition)
 
@@ -3886,9 +3879,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // SAME AS data-name-1 (ISO §2023:13.18.49; P10 Step 16) — the subject copies data-name-1's
                     // description via the ONE ExpandTypes/CloneItem machinery (ExpandSameAs, GR1/GR2). The
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitSameAsClause
-                    // (recognition-based — SameAsName is nulled by ExpandSameAs during bind, the TypeRefName
+                    // (recognition-based — SameAs is nulled by ExpandSameAs during bind, the TypeRefName
                     // pattern).
-                    { sameAsName = san; sameAsQuals = clause.SameAsQualifiers; }
+                    sameAs = new WrittenDataName(san, [.. clause.SameAsQualifiers]);
                 else if (clause.Context.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §2023:13.18.32 — right-justify alphanumeric receives)
                 else if (clause.Context.blankWhenZeroClause() is not null)
@@ -4422,9 +4415,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             IsConstantRecord = isConstantRecord,
             TypeRefName = typeRefName,
             WrittenTypeName = typeRefName,
-            SameAsName = sameAsName,
+            SameAs = sameAs,
         };
-        if (sameAsName is not null) item.SameAsQualifiers.AddRange(sameAsQuals);
         if (occursClause is not null)
         {
             item.DeferTableBounds();
@@ -5972,116 +5964,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             foreach (var l in LeavesOf(c)) yield return l;
     }
 
-    /// <summary>⭐ THE ONE ISO §2023:8.4.2.2 QUALIFICATION RESOLVER (kb/Work PB489). Every in-scope declaration of
-    /// <paramref name="name"/> whose ancestor chain carries each written qualifier in order (inner → outer,
-    /// §2023:8.4.2.2.2 Format 1 — qualifiers need not name consecutive levels), with the OUTERMOST qualifier
-    /// optionally naming the owning FILE instead: Format 1 is
-    /// <c>data-name-1 [ data-qualifier ] … [ file-report-qualifier ]</c>, so the FD/SD is the highest permissible
-    /// qualifier (SQ207M's <c>WRITE PRINT-REC IN PRINT-FILE</c>).
-    /// <para>⛔ IT RETURNS THE CANDIDATE SET, NOT A WINNER, because §2023:8.4.2.2.1 makes the number of survivors the
-    /// whole answer: "uniqueness shall be established through qualification for each user-defined name explicitly
-    /// referenced". One survivor resolves; zero or several is a resolution FAILURE the caller reports. A caller
-    /// that took the first survivor would be substituting declaration order for the standard's uniqueness
-    /// requirement — which is exactly what the file-clause lookups did (a bare <c>ByName[n][0]</c>) until PB489,
-    /// so <c>LINAGE IS SZ LINES</c> with two SZs silently built the whole page model on the first-declared one.
-    /// </para>
-    /// <para>⛔ AND IT IS THE ONLY COPY. The binder used to carry a weaker private twin
-    /// (<c>FindQualified</c>/<c>QualifiersMatch</c>) that matched the IN/OF chain but knew nothing about the
-    /// file-name qualifier and never counted survivors, beside the procedure division's qualified lookup, which
-    /// did both — one rule written down twice, with the procedure division reading the complete one and the data
-    /// division the partial one (feedback_one_rule_one_place). The symbol table's <see cref="SymbolTable.IdentifyDataName"/>
-    /// now asks this for a qualified reference.
-    /// </para></summary>
-    internal NameCandidates<DataItem> QualifiedCandidates(string name, IReadOnlyList<string> quals, Model.Scope scope)
-    {
-        List<DataItem> survivors = [];
-        if (Symbols.TryResolve(name, scope, out var candidates))
-            foreach (var cand in candidates)
-                if (QualifierChainMatches(cand, quals) && !survivors.Contains(cand))
-                    survivors.Add(cand);
-        // A lapsed type-declaration member (WithLapsedTypeMembers) only ever COUNTS against a storage item the
-        // qualifiers also reach; alone it identifies nothing — a type declaration has no storage (§2023:13.18.58.4
-        // GR2), and its members are referenced "only as subordinate items of groups defined using the type-name"
-        // (GR1), so `X OF T` naming the type itself stays an invalid reference.
-        if (survivors.TrueForAll(InTypeDeclaration)) survivors.Clear();
-        // §2023:8.4.6.2.1 3) AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole
-        // set first): the survivors of the nearest declaring source element (kb/Work PB1047 / PB1243), and none when a
-        // report entry of a nearer source element is the referenced item (kb/Work PB4196).
-        var tier = Symbols.NearestDeclaringData(survivors, name, quals);
-        // ⛔ A REPORT SECTION ENTRY OF THE SAME SPELLING AND SOURCE ELEMENT IS ANOTHER DECLARATION OF THE NAME (kb/Work PB5775): its
-        // data-name is a user-defined name, so "uniqueness must then be established through qualification for each user-defined name
-        // explicitly referenced" (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1) counts it, and `MOVE "Z" TO DA` over a Working-Storage
-        // DA and a report group DA is nonunique, never the storage item (the report entry is named by DA OF the-report). It counts
-        // WITH the items and resolves to none, and only beside one: a name the report section alone declares is the report-item
-        // refusal's (ReportSectionBinder.ReportEntryReferenceRefused).
-        int reportEntries = tier.Count == 0 ? 0 : ReportSection.ReportEntriesInTierOf(new NameCandidates<DataItem>(tier), name, quals);
-        return new NameCandidates<DataItem>(tier, reportEntries);
-    }
-
     /// <summary>Whether a candidate condition-name is a TYPE DECLARATION's own member — one that §2023:8.4.2.2.1 SR4
     /// lets count against a reference but that names no storage to test (§2023:13.18.58.4 GR2).</summary>
     internal static bool IsTypeDeclarationCondition(Condition88 condition) => InTypeDeclaration(condition.Parent);
-
-    /// <summary>The §2023:8.4.2.2 candidate set of <paramref name="name"/> WITHIN one record — every entry of
-    /// <paramref name="root"/>'s subtree (itself included) so named whose ancestor chain carries the written
-    /// qualifiers (<see cref="QualifierChainMatches"/>). For the operands confined to one record: RENAMES
-    /// data-name-2 / data-name-3 (§2023:13.18.45.3 SR4 — "in the same record") and a TYPEDEF clone's own OCCURS
-    /// DEPENDING ON counter. The tree walk, not the name index, because a TYPEDEF template's members are off the
-    /// name index (§2023:13.18.58.4 GR1). Counted like every other candidate set (kb/Work PB978).</summary>
-    internal NameCandidates<DataItem> SubtreeCandidates(DataItem root, string name, IReadOnlyList<string> quals)
-    {
-        List<DataItem> hits = [];
-        void Walk(DataItem n)
-        {
-            if (CobolNames.Same(n.CobolName, name) && QualifierChainMatches(n, quals))
-                hits.Add(n);
-            foreach (var c in n.Children) Walk(c);
-        }
-        Walk(root);
-        return new NameCandidates<DataItem>(hits);
-    }
-
-    /// <summary>⛔ WHETHER A NAME REFERENCED IN A DATA DESCRIPTION ENTRY CLAUSE TAKES THE GROUPS ABOVE ITS SUBJECT AS
-    /// IMPLICIT QUALIFIERS (kb/Work PB5165) — the ONE edition test of that rule, asked by
-    /// <see cref="EntryClauseCandidates"/> (OCCURS … DEPENDING ON) and <see cref="RegionClauseCandidates"/> (OCCURS KEY,
-    /// RENAMES). It is ISO/IEC 1989:2002's change (§2002:F.2, item 67: "Data-names referenced in a data description entry
-    /// need not be qualified when they are defined in the same group as the subject of the entry"), carried on by
-    /// §2023:8.4.2.2.1 SR5. §1985:IV.4.3.8.1 SR3 has only the exception "in the case of redefinition": every other
-    /// explicitly referenced name must be made unique by qualification, so below 2002 the whole scope's candidates
-    /// are counted (§1985:VI.5.8.3 SR2 and §1985:VI.5.11.3 SR5 give these clauses the qualifier to say it with).</summary>
-    private bool ClauseOperandsTakeImplicitQualifiers => Edition.DialectLevel >= 2002;
-
-    /// <summary>The candidate set of a data-name referenced in a DATA DESCRIPTION ENTRY CLAUSE of
-    /// <paramref name="subject"/> (OCCURS … DEPENDING ON, SAME AS), with ISO §2023:8.4.2.2.1 SR5's implicit
-    /// qualification applied (from 2002, <see cref="ClauseOperandsTakeImplicitQualifiers"/>): "The name is a data-name referenced in a data description entry clause whose subject
-    /// is subordinate to the same group item as that data-name. In this case, the names of any group items
-    /// superordinate to both the data-name and the subject of the data description entry clause are used as
-    /// implicit qualifiers for the reference, in addition to any explicit qualifiers needed to establish uniqueness
-    /// within that group." So the set is the one under the INNERMOST group superordinate to the subject that holds
-    /// any candidate — every candidate there shares exactly the same implicit qualifiers, so two of them are still
-    /// ambiguous — and the scope-wide set only when no group of the subject's holds one. This is also the rule
-    /// behind a TYPEDEF clone's own DEPENDING ON counter (a tree walk, so a clone's members off the name index are
-    /// found). Counted like every candidate set (kb/Work PB978).</summary>
-    internal NameCandidates<DataItem> EntryClauseCandidates(DataItem subject, string name, IReadOnlyList<string> quals,
-                                                      Model.Scope scope)
-    {
-        if (ClauseOperandsTakeImplicitQualifiers)
-            for (DataItem? group = subject.Parent; group is not null; group = group.Parent)
-                if (SubtreeCandidates(group, name, quals) is { Count: > 0 } within) return within;
-        return QualifiedCandidates(name, quals, scope);
-    }
-
-    /// <summary>The candidate set of a data-name an entry clause confines to ONE region — OCCURS KEY's data-name-2 to the
-    /// table (§2023:13.18.38.3 SR3) and RENAMES' data-name-2 and data-name-3 to the record (§2023:13.18.45.3 SR4) — with
-    /// the same edition step as <see cref="EntryClauseCandidates"/> (kb/Work PB5165). From 2002 the region's own subtree is the
-    /// set, the superordinate groups acting as implicit qualifiers; below 2002 nothing narrows, the whole scope's
-    /// candidates are counted, and the caller asks <see cref="IsWithinRegion"/> of the one that survives. One name
-    /// declared in the region and in another record is then §2023:8.4.2.2.3 SR1's ambiguity (COBOL1639), as in the
-    /// procedure division.</summary>
-    internal NameCandidates<DataItem> RegionClauseCandidates(DataItem region, string name, IReadOnlyList<string> quals)
-        => ClauseOperandsTakeImplicitQualifiers
-            ? SubtreeCandidates(region, name, quals)
-            : QualifiedCandidates(name, quals, ScopeOf(region.Root));
 
     /// <summary>Whether <paramref name="item"/> is <paramref name="region"/> or one of its subordinates.</summary>
     internal static bool IsWithinRegion(DataItem item, DataItem region)
@@ -6136,32 +6021,6 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     internal static string WrittenQualified(string name, IReadOnlyList<string> quals) =>
         quals.Count == 0 ? name : name + " OF " + string.Join(" OF ", quals);
 
-    /// <summary>True when every qualifier names strictly-superordinate context of <paramref name="cand"/>,
-    /// consumed inner → outer with gaps allowed (ISO §2023:8.4.2.2.3 SR4 — "Qualifiers shall be specified in the order
-    /// of successively more inclusive levels in the hierarchy"); when the data ancestors are exhausted, the
-    /// OUTERMOST remaining qualifier may instead name the file whose FD/SD owns the candidate's record
-    /// (§2023:8.4.2.2.2 Format 1's <i>file-report-qualifier</i>).</summary>
-    internal bool QualifierChainMatches(DataItem cand, IReadOnlyList<string> qualifiers) =>
-        QualifierChainMatchesFrom(cand.Parent, cand, qualifiers);
-
-    /// <summary>The §2023:8.4.2.2.2 Format 3 (qualified-index-name) twin of <see cref="QualifierChainMatches"/>:
-    /// <c>index-name-1 [ data-qualifier ] … [ file-report-qualifier ]</c>, whose hierarchy §2023:8.4.2.2.3 SR6 gives —
-    /// "The qualification of an index-name may include the name of the table with which the index-name is
-    /// associated, as well as any name by which that table may be qualified." So the chain starts AT the table,
-    /// not above it; the matching itself is the same one walk (kb/Work PB919).</summary>
-    internal bool IndexQualifierChainMatches(IndexDeclaration decl, IReadOnlyList<string> qualifiers) =>
-        QualifierChainMatchesFrom(decl.Table, decl.Table, qualifiers);
-
-    /// <summary>The §2023:8.4.2.2.2 Format 2 (qualified-condition-name) twin of <see cref="QualifierChainMatches"/>:
-    /// §2023:8.4.2.2.3 SR4 — "For purposes of item qualification, the hierarchy of an item declared at level 88
-    /// includes the conditional variable with which it is associated" — and SR5, "The qualification of a
-    /// condition-name may include the conditional variable ... as well as by any name by which that conditional
-    /// variable may be qualified". So the chain starts AT the conditional variable. ⛔ It used to be a PRIVATE
-    /// fourth copy of this walk in <c>ConditionBinder</c> (kb/Work PB567), without the file-name arm, so a
-    /// condition-name qualified through its record's FILE could never resolve.</summary>
-    internal bool ConditionQualifierChainMatches(Condition88 cond, IReadOnlyList<string> qualifiers) =>
-        QualifierChainMatchesFrom(cond.Parent, cond.Parent, qualifiers);
-
     /// <summary>⛔ THE OTHER HALF OF THE §2023:8.4.2.2.1 UNIQUENESS COUNT OF A CONDITION-NAME REFERENCE (kb/Work PB3347): does
     /// the written reference ALSO name a switch-status condition-name (§2023:12.3.7.4 GR2) declared in the SAME source element
     /// as the level-88 <paramref name="matches"/> it reaches? A switch's condition-name and a level-88 are the same type
@@ -6181,49 +6040,4 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         matches.Count != 0 && dref.dataReferenceSuffix().Length == 0
         && dref.cobolWord()?.GetText() is { } name
         && Symbols.SwitchConditionDepth(name) == State.Forest.DeclaringDepth(matches[0].Parent);   // matches is one tier (NearestDeclaring)
-
-    /// <summary>The one qualifier walk: <paramref name="firstQualifiable"/> is the innermost entry a qualifier may
-    /// name; <paramref name="member"/> locates the record for the file-name qualifier.</summary>
-    private bool QualifierChainMatchesFrom(DataItem? firstQualifiable, DataItem member, IReadOnlyList<string> qualifiers)
-    {
-        if (qualifiers.Count == 0) return true;
-        return QualifierWalk(NamesFrom(firstQualifiable), qualifiers, q =>
-        {
-            // Data ancestors exhausted: the OUTERMOST remaining qualifier may be the file name — any file-name visible
-            // here, a container's GLOBAL one included (VisibleFiles; kb/Work PB3557 review R2-1).
-            DataItem root = member;
-            while (root.Parent is { } p) root = p;
-            // A record of a communication description entry is qualified by its cd-name (ISO/IEC 1989:2002 8.4.1.1.1's file-cd-report-qualifier).
-            if (Symbols.CdQualifies(q, root) is { } describes) return describes;
-            return Symbols.FileQualifies(q, root);
-        });
-
-        static IEnumerable<string?> NamesFrom(DataItem? anc)
-        {
-            for (; anc is not null; anc = anc.Parent) yield return anc.CobolName;
-        }
-    }
-
-    /// <summary>⛔ THE ONE §2023:8.4.2.2.3 SR4 QUALIFIER WALK — the written qualifiers are consumed INNER → OUTER against
-    /// <paramref name="ancestorNames"/> (the names of the successively more inclusive levels above the item,
-    /// innermost first; a level with no name is a null), with gaps allowed, and when the ancestors are exhausted the
-    /// OUTERMOST remaining qualifier may instead be the container <paramref name="isOutermostContainer"/> accepts —
-    /// §2023:8.4.2.2.2 Format 1's <i>file-report-qualifier</i>: the owning FILE of a data record, the owning REPORT of a
-    /// report-section sum counter (kb/Work PB1454). The hierarchy differs by item kind; the rule does not, so it is
-    /// written once and each kind supplies its own ancestors and its own outermost container.</summary>
-    internal static bool QualifierWalk(
-        IEnumerable<string?> ancestorNames, IReadOnlyList<string> qualifiers, Func<string, bool> isOutermostContainer)
-    {
-        using var ancestors = ancestorNames.GetEnumerator();
-        for (int qi = 0; qi < qualifiers.Count; qi++)
-        {
-            string q = qualifiers[qi];
-            bool found = false;
-            while (!found && ancestors.MoveNext())
-                found = CobolNames.Same(ancestors.Current, q);
-            if (found) continue;
-            return qi == qualifiers.Count - 1 && isOutermostContainer(q);
-        }
-        return true;
-    }
 }

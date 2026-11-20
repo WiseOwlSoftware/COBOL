@@ -2,7 +2,7 @@
  "rule-id": "2002-GR-11.6.3-5",
  "rule-digest": "afe013e76ebd",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/OoMethodDataScope.cs",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.cs; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/OoMethodDataScope.cs",
  "test-ref": "conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2002-gr-11-6-3-5-method-name-shadows-object",
- "notes": "§2002:11.6.3 GR5: a word declared in both the method and its object refers in the method to the method's declaration and the object's is inaccessible; at --std 2002 a local-storage W and a linkage P shadow the object's W and P (S1:MTH-W, S2:NEW-W, T:ARG-P) while a sibling method still sees the object's unchanged items (O:OBJ-W, O:OBJ-P), equal to the derived .out."
+ "notes": "§2002:11.6.3 GR5: a word declared in both the method and its object refers in the method to the method's declaration and the object's is inaccessible; at --std 2002 a local-storage W and a linkage P shadow the object's W and P (S1:MTH-W, S2:NEW-W, T:ARG-P) while a sibling method still sees the object's unchanged items (O:OBJ-W, O:OBJ-P), equal to the derived .out. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs (the member moved or was renamed by an earlier change: SymbolTable/SymbolTable.cs; re-pointed by kb/Work PB5932 review round 2 R2-2)"
 }

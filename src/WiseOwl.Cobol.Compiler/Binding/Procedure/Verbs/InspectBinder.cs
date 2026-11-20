@@ -282,7 +282,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             // compile-time rejection, at the position whose format decides.
             foreach (var ch in conv.sendingOperand())
                 if (ch.dataReference()?.cobolWord()?.GetText() is { } w
-                    && !ctx.Symbols.TryResolve(w, ctx.ActiveScope, out _)
+                    && !ctx.Symbols.DeclaresDataName(w, ctx.ActiveScope)
                     && ctx.Data.SpecialNames.IsAlphabetName(w))
                     ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                         $"INSPECT CONVERTING references the ALPHABET-name '{w}' — Format 4's operands are "

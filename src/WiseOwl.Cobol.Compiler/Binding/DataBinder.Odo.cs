@@ -42,8 +42,8 @@ public sealed partial class DataBinder
             // refusal is the verdict, and a key named by its written spelling would only draw a second one.
             foreach (var k in kc.dataReference())
             {
-                var (keyName, keyQuals) = ClauseDataName(k, $"{where}: OCCURS KEY IS");
-                if (!State.Clauses.RefusedClauseOperands.Contains(keyName)) keys.Add(new OccursKey(keyName, keyQuals, descending));
+                var key = ClauseDataName(k, $"{where}: OCCURS KEY IS");
+                if (!State.Clauses.RefusedClauseOperands.Contains(key.Name)) keys.Add(new OccursKey(key, descending));
             }
         }
 
