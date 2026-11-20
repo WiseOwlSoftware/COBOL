@@ -1798,7 +1798,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       compilation (the listing's two gates forced on for the run, then restored): no data description entry of the population
       lacks its entry or enters twice. `SymbolEntryDriftTests` gains a data-name's, a condition-name's and a TYPE copy's reference
       answering its declaration's entry; with one declaration's `EnterConditionName` removed the planted programs fail ("the Condition
-      'N-ZERO' entered no entry"), and with `TurnState`'s comparison put back rule (5) is red.
+      'N-ZERO' entered no entry"), and with `TurnState`'s comparison put back rule (5) is red. The finish lists only the entries it
+      writes itself, never a record's (`SymbolTableFinish.PlacedByARecord`: the measured `All` row, section 9), and the text and JSON
+      listings of the four benchmark programs with every section are identical to the parent's but for the output path and the instant.
   - *(Step 6b, the entry ids, branch `listing-step-6b-ids`, a lane beside the data-name lane; kb/Work PB5932's dated file
     `2026-11-19-step-6b-entry-ids`.)* Every class whose declaration is the table's makes its ENTRY where the binder declares the name,
     and every identification hands the entry back, so step 7b joins an occurrence to its entry by id for every class, never by the
@@ -2761,6 +2763,18 @@ renderer. Naming it asks for a listing at any edition.
   67.70 and 67.71 MB against 67.78 and 67.82, NC105A 34.39 and 34.42 against 34.40 and 34.68, NC218A 30.60 and 30.42 against 31.01
   and 30.42, SM201A 15.18 and 15.15 against 15.00 and 15.16. Every branch `None` row lies inside the parent's two runs or below them
   but SM201A's 15.18, 0.02 MB above; the `None` budget holds (the README's step-6b table, remainder slice 4).
+  Remainder slice 5, the last (the group tier's function units and the expansion's names, the TURN file operand, the refused key
+  operands, and every data-name's and condition-name's entry made where it is declared, section 6.7.1 "Step 6b, remainder slice 5"),
+  measured against its parent 111f7fd0f5 and against the parent of slice 1, bfb8500569, two runs each: IX113A's `None` rows lie 0.29 to
+  0.50 MB over the parent's (68.10 and 68.03 MB against 67.74 and 67.63), the entries of its data description entries now made for every
+  compilation, which this section's `None` budget names (one entry and one identity-index slot per declared name), so the budget holds;
+  NC105A's, NC218A's and SM201A's lie inside or near the parent's runs, within the programs' run-to-run spread. The first build's `All`
+  row was 0.84 to 0.94 MB over the parent's on IX113A, because the finish listed every entry an element's table made, the data entries
+  now among them, before choosing the few it writes itself; it lists those few only (`SymbolTableFinish.PlacedByARecord`), and `All` is
+  0.13 to 0.26 MB over. The whole step against the parent of slice 1: IX113A 68.10 and 68.03 MB against 68.91 and 68.88, SM201A 15.04 and
+  15.18 against 15.40 and 15.37, NC105A and NC218A within their spread of it (35.19 and 34.89 against 35.47 and 34.89; 31.04 and 30.44
+  against 30.79 and 31.36), the listing work landed between the two trees in the same rows (the README's step-6b table, remainder
+  slice 5).
   (Step 9:) the `All` row with HTML, measured against the parent on a full compile (the benchmark README's step-9 table): `All` is
   +53.7 to +60.0 % over `None` (the parent's `All`, without the page, +34.4 to +40.4 %), the page adding +7.3 to +36.1 MB, three
   times its size (IX113A's page is 6.6 MB: the `StringBuilder`, the string `ListingOutput.Render` returns, the encoding of the

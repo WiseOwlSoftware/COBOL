@@ -1053,6 +1053,42 @@ on run 1, whose `None` row is 5.2 MB under its run 2 (the full compile's run-to-
 means `All` is +17.5 % (IX113A), +18.6 % (NC105A), +17.6 % (NC218A) and +21.1 % (SM201A) over `None`. The merged page's region rows
 stay inside the budget PB5941 met. Time rows are not shown (kb/Work PB5927).
 
+**Step 6b, remainder slice 5, the last slice (kb/Work PB5932): the `None` row against this slice's parent and against the parent of
+slice 1.** The slice moves the last comparisons of names into the symbol table and makes every data-name's and condition-name's entry
+where it is declared, for every compilation, so it measures the no-listing path; as the last slice it also measures the whole of step 6b
+against the parent of slice 1, `bfb8500569` (the tree slice 1 measured against). Measured on 2026-11-20, Release, one Windows host, the
+built `WiseOwl.Cobol.Benchmarks.exe --filter '*CompileBenchmarks.FrontEndAndBind*' --buildTimeout 900`, each run from its own tree's
+root (the two parents in detached worktrees). First the order slice 1's parent, first build (4a23de6aa9), parent, parent, first build
+(this run built nothing: BenchmarkDotNet's boilerplate build met a file another process held), slice 1's parent, first build again;
+then the build that fixed the `All` row (below), twice. Allocated bytes per front end and bind:
+
+| Program | Listing | Slice 1's parent bfb8500569 (2 runs) | Parent 111f7fd0f5 (2 runs) | First build 4a23de6aa9 (2 runs) | Branch (2 runs) |
+|---|---|---|---|---|---|
+| IX113A | None | 68.91, 68.88 MB | 67.74, 67.63 MB | 68.10, 68.13 MB | 68.10, 68.03 MB |
+| NC105A | None | 35.47, 34.89 MB | 34.35, 34.52 MB | 34.47, 34.53 MB | 35.19, 34.89 MB |
+| NC218A | None | 30.79, 31.36 MB | 30.44, 31.00 MB | 30.41, 30.44 MB | 31.04, 30.44 MB |
+| SM201A | None | 15.40, 15.37 MB | 15.13, 15.17 MB | 15.18, 15.00 MB | 15.04, 15.18 MB |
+| IX113A | Text | 76.66, 76.53 MB | 77.07, 77.05 MB | 77.80, 77.58 MB | 77.58, 77.58 MB |
+| IX113A | All | 97.02, 97.27 MB | 86.91, 86.88 MB | 87.75, 87.82 MB | 87.04, 87.14 MB |
+
+Reading them: IX113A's `None` rows lie 0.29 to 0.50 MB over both parent runs, on every build: the entries of IX113A's data description
+entries, FILLER and level-88 entries included, now made by the bind for every compilation (an entry and an identity-index slot each,
+with the list's and the dictionary's growth), which only a listing made before. Section 9's `None` budget names exactly that cost ("the
+symbol table's entries: one entry and one identity-index slot per declared name", since the entry-id lane), so the budget holds; the
+standard text listing, which finishes the program entries alone, pays the same (`Text` +0.51 to +0.75 MB). NC105A's, NC218A's and
+SM201A's rows lie inside or near the parent's runs either way (the branch's 35.19 MB on NC105A is 0.67 above, its other run 0.37 above,
+the first build's two runs 0.12 and 0.01 above: that program's run-to-run spread, 0.6 MB on one tree at slice 1). The first build's
+`All` row was 0.84 to 0.94 MB over the parent's, twice the `None` row's: the finish listed every entry each element's table made before
+choosing the few it writes itself, and the data description entries' entries, now the bind's, filled that list; the finish lists the
+others only (`SymbolTableFinish.PlacedByARecord`), and `All` is 0.13 to 0.26 MB over the parent's, under the `None` row's delta. The
+four programs' text and JSON listings with every section are identical to the parent's but for the output path and the instant.
+The whole step against the parent of slice 1: every branch `None` row lies below both of that parent's runs but NC218A's 31.04 MB
+(0.25 over its lower run, its other run 0.35 under both) and NC105A's 35.19 (0.30 over its lower run, its other run equal to it):
+IX113A 0.78 to 0.88 MB below, SM201A 0.19 to 0.36 MB below. The step moved every name into the one table and gave every declared name
+its entry, and allocates no more without a listing than the tree it started from, with the other listing work that landed between the
+two trees (steps 8 and 9, kb/Work PB5941, PB5947, PB5949, PB5951) in the same rows. The `All` rows differ by PB5941's streaming, not by
+this step. Time rows are not shown (kb/Work PB5927).
+
 ---
 
 ## Not measured here

@@ -83,7 +83,9 @@ internal static class SymbolTableFinish
     {
         var written = new List<(SymbolPosition At, int Order, Action Declare)>();
         int order = 0;
-        var made = entries.MadeBy(table).ToList();
+        // The entries a record places (every entry of a data description entry, made where it was declared) are written by the walk
+        // of the record below, so the list holds only the others, which the loops here write.
+        var made = entries.MadeBy(table).Where(static m => !PlacedByARecord(m.Entry)).ToList();
         var seen = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
         var roots = data.Forest.Roots.Concat(data.Linkage.Roots)
             .Concat(methods.SelectMany(static m => m.Binding is { } b ? b.LocalRoots.Concat(b.LinkageRoots) : []))
@@ -126,8 +128,12 @@ internal static class SymbolTableFinish
     /// <summary>Whether <paramref name="entry"/> is written by the declaration that owns it (<see cref="Declarations"/>): a CD, a
     /// constant, a file, a report and its report group description entries, and the entries of a data description entry.</summary>
     private static bool PlacedByItsOwner(SymbolTable.Entry entry) =>
-        entry.Symbol is CommunicationDescription or DeclaredConstant or FileModel or ReportModel or BoundUnit
-        || entry.Class is NameClass.Data or NameClass.Condition or NameClass.Index or NameClass.CapacityRegister or NameClass.TypeName;
+        entry.Symbol is CommunicationDescription or DeclaredConstant or FileModel or ReportModel or BoundUnit || PlacedByARecord(entry);
+
+    /// <summary>Whether <paramref name="entry"/> is an entry of a data description entry or of a report group description entry, which
+    /// the walk of its record or report places (<see cref="DeclareTree"/>, <see cref="DeclareReport"/>).</summary>
+    private static bool PlacedByARecord(SymbolTable.Entry entry) =>
+        entry.Class is NameClass.Data or NameClass.Condition or NameClass.Index or NameClass.CapacityRegister or NameClass.TypeName;
 
     /// <summary>Definition order: by the position written, a declaration with none (an implied record, a name the standard declares
     /// implicitly) after its predecessors.</summary>
