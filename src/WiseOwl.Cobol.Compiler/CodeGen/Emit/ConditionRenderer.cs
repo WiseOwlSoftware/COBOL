@@ -1057,7 +1057,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// <c>IN alphabet-name-1</c> (ISO §2023:14.7.8 GR2 — "the collating sequence used for range evaluation is the
     /// collating sequence defined by that alphabet"): the alphabet's carrier, or nothing when it is an identity
     /// sequence, whose ordering IS the native one. ⛔ It DISPLACES the categories' own answer, PROGRAM COLLATING
-    /// SEQUENCE included — that default is precisely what rule 2's no-phrase arm gives and what the phrase is for.
+    /// SEQUENCE included — that default is precisely what GR2's no-phrase arm gives and what the phrase is for.
     /// The ONE reader, shared by the EVALUATE range and the level-88 VALUE range, because §2023:14.7.8's first sentence
     /// governs both clauses at once.</summary>
     private string RangeCollateArg(RangeCollationId? collation, PicCategory? left, PicCategory? right) => collation is { } id
@@ -1091,7 +1091,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // `.AsNat()`, and lost a bit group's boolean-zero pad (kb/Work PB728 / PB741).
             string collate = ctx.CollateArgFor(cat, cat);
             // ⛔ THE `IN alphabet-name-1` PHRASE GOVERNS THE RANGES ONLY, and the split is the clause boundary,
-            // not a convenience: §2023:14.7.8 is the THROUGH phrase's specification and its rule 2 names "the collating
+            // not a convenience: §2023:14.7.8 is the THROUGH phrase's specification and its GR2 names "the collating
             // sequence used for RANGE evaluation", while a SINGLETON value is compared by §2023:8.8.4.5.3 GR2's plain
             // relation-condition rules, whose sequence is §2023:8.8.4.2.7's PROGRAM COLLATING SEQUENCE. Handing the
             // alphabet to the equality tests as well would have made `88 X VALUE "A", "M" THRU "Z" IN AL` weigh
