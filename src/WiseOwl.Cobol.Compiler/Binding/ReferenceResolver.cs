@@ -607,6 +607,20 @@ public sealed class ReferenceResolver(DataBinder data)
         place is null || !data.Symbols.GroupEntries.RecordsReferences ? place
             : data.Symbols.GroupEntries.Link(place, data.Symbols.OccurrenceOf(head));
 
+    /// <summary>The same link for an index-name receiver (an index-name's cell is held as a field name, so the receiver node is the
+    /// reference: <see cref="SetBinder.SetTargetOf"/>, SEARCH's VARYING phrase).</summary>
+    internal Bound.SetIndexTarget Linked(Bound.SetIndexTarget target, Antlr4.Runtime.IToken head) =>
+        !data.Symbols.GroupEntries.RecordsReferences ? target
+            : data.Symbols.GroupEntries.Link(target, data.Symbols.OccurrenceOf(head));
+
+    /// <summary>⛔ THE ONE BUILDER OF A WHOLE TABLE THE PROGRAM WROTE (<see cref="PlaceBuilder.WholeTable"/>, linked): SEARCH's identifier-1,
+    /// a table SORT's data-name-2 and each key data-name, INITIALIZE of a whole dynamic table. The place is the written reference's, so it is
+    /// linked to the occurrence at <paramref name="head"/> and the statement's store into the table (<c>SORT</c>, <c>INITIALIZE</c>) is that
+    /// occurrence's store kind: a statement that names a whole table asks here, never the place builder (kb/Work PB5925 step 7b, review round 1,
+    /// R1-1; <c>ReferenceOccurrenceDriftTests.NoWholeTableIsBuiltOutsideTheResolver</c>).</summary>
+    internal TableAllPlace? WholeTable(DataItem item, IReadOnlyList<Position> outer, Antlr4.Runtime.IToken head) =>
+        Linked(Places.WholeTable(item, outer), head);
+
     /// <summary>Resolve an <c>ADDRESS OF</c> operand (ISO §2023:8.4.3.11) to its item plus the OCCURS displacement
     /// of its subscripts — the <c>(idx − 1) × width</c> character-position terms (<see cref="OffsetTerm"/>) within
     /// the item's storage class, or a null displacement for an unsubscripted (possibly OF/IN-qualified) reference. The

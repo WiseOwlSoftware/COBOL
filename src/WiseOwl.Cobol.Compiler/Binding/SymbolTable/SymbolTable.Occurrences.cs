@@ -35,14 +35,15 @@ public sealed partial class SymbolTable
         // cross-reference, so a compilation without one allocates nothing here (section 9).
         private List<Occurrence>? _occurrences;
         private Dictionary<SymbolPosition, OccurrenceId>? _byPosition;
-        private Dictionary<Place, OccurrenceId>? _linked;
-        private List<Place>? _linkOrder;   // the linked places in the order linked: a statement's are those since its mark
+        private Dictionary<object, OccurrenceId>? _linked;     // by the INSTANCE of the SITE the bound tree holds: a place, or an index-name receiver
+        private List<object>? _linkOrder;   // the linked sites in the order linked: a statement's are those since its mark
 
         /// <summary>The end of the order places are linked in: a statement holds it as its mark (<see cref="LinkedSince"/>).</summary>
         internal int LinkMark => _linkOrder?.Count ?? 0;
 
-        /// <summary>The places linked since <paramref name="mark"/>: the places the statement's references were built as.</summary>
-        internal IEnumerable<Place> LinkedSince(int mark)
+        /// <summary>The sites linked since <paramref name="mark"/>: the places and index-name receivers the statement's references were
+        /// built as.</summary>
+        internal IEnumerable<object> LinkedSince(int mark)
         {
             for (int i = mark; i < (_linkOrder?.Count ?? 0); i++) yield return _linkOrder![i];
         }
@@ -96,12 +97,23 @@ public sealed partial class SymbolTable
             return place;
         }
 
-        /// <summary>The occurrence of the reference <paramref name="place"/> was built for: the first place linked to an occurrence,
-        /// walking inward from <paramref name="place"/> through the places it decorates.</summary>
-        internal OccurrenceId LinkedOccurrence(Place? place)
+        /// <summary>Link the index-name receiver node a binder made for a written index-name (an index-name's cell is held by its field
+        /// name, no place stands for it: section 6.7.1, "Store kind") to its occurrence, as <see cref="Link{T}"/> links a place. The node is
+        /// made for the one reference, so it is never already linked.</summary>
+        internal SetIndexTarget Link(SetIndexTarget target, OccurrenceId occurrence)
+        {
+            if (_linked is null || !occurrence.IsSet) return target;
+            _linked[target] = occurrence;
+            _linkOrder!.Add(target);
+            return target;
+        }
+
+        /// <summary>The occurrence of the reference <paramref name="site"/> was built for: the first site linked to an occurrence, walking
+        /// inward from <paramref name="site"/> through the places it decorates.</summary>
+        internal OccurrenceId LinkedOccurrence(object? site)
         {
             if (_linked is null) return default;
-            for (var p = place; p is not null; p = (p as PlaceDecorator)?.Inner)
+            for (var p = site; p is not null; p = (p as PlaceDecorator)?.Inner)
                 if (_linked.TryGetValue(p, out var id)) return id;
             return default;
         }
@@ -114,12 +126,12 @@ public sealed partial class SymbolTable
         /// <c>ReadWrite</c> modified), and every other is read.
         /// </summary>
         internal void Classify(int mark, WiseOwl.Cobol.Editions.DiagnosticCursor statement, string verb,
-            IEnumerable<(Place Place, StoreKind Kind)> storePositions)
+            IEnumerable<(object Site, StoreKind Kind)> storePositions)
         {
             if (_occurrences is null) return;
-            foreach (var (place, kind) in storePositions)
+            foreach (var (site, kind) in storePositions)
             {
-                if (LinkedOccurrence(place) is { IsSet: true } id && id.Value > mark && _occurrences[id.Value - 1] is { Classified: false } o)
+                if (LinkedOccurrence(site) is { IsSet: true } id && id.Value > mark && _occurrences[id.Value - 1] is { Classified: false } o)
                     o.Use = kind switch
                     {
                         StoreKind.Write or StoreKind.WriteInPart => SymbolUse.Written,
@@ -129,7 +141,12 @@ public sealed partial class SymbolTable
                 else
                     // A store position of a written operand that pairs with no occurrence of this statement: a binder rebuilt the
                     // linked place by value, or built it with no link (the pairing test, ReferenceOccurrenceDriftTests, holds it empty).
-                    _unpaired.Add((PositionOf(statement), verb, place.NamedItem?.CobolName ?? place.GetType().Name));
+                    _unpaired.Add((PositionOf(statement), verb, site switch
+                    {
+                        Place place => place.NamedItem?.CobolName ?? place.GetType().Name,
+                        SetIndexTarget index => index.IndexField,
+                        _ => site.GetType().Name,
+                    }));
             }
             for (int i = mark; i < _occurrences.Count; i++)
                 if (_occurrences[i] is { Classified: false } o)
@@ -165,6 +182,18 @@ public sealed partial class SymbolTable
                 yield return (o.Entry, new SymbolOccurrence(o.At, o.Length, o.Use, o.Statement, o.Verb));
         }
     }
+
+    /// <summary>⛔ NO LISTING ASKED, NO LISTING WORK (section 9): record the reference <paramref name="written"/> to the data-name or condition-name
+    /// <paramref name="candidate"/>, which asks for its entry (<see cref="DataEntryOf"/>, a lookup that fails loudly for a candidate with none)
+    /// ONLY when the group records references. Every funnel that identifies a data item or condition-name records through here, never by
+    /// <c>Record(DataEntryOf(...))</c>, so a compilation that asked for no listing does no entry lookup and cannot fail on one
+    /// (<c>ListingOffDoesNoWorkDriftTests</c>).</summary>
+    private OccurrenceId RecordData(object candidate, ParserRuleContext written, bool report) =>
+        report && _entries.RecordsReferences ? Record(DataEntryOf(candidate), written, report) : default;
+
+    /// <summary><see cref="RecordData(object, ParserRuleContext, bool)"/> for a qualified reference.</summary>
+    private OccurrenceId RecordData(object candidate, WrittenQualifiedName written, bool report) =>
+        report && _entries.RecordsReferences ? Record(DataEntryOf(candidate), written, report) : default;
 
     /// <summary>Record the reference <paramref name="written"/> (a context: its first token's position, its characters as written)
     /// to <paramref name="entry"/>, when <paramref name="report"/> says it is the reference itself and not a probe.</summary>
@@ -203,7 +232,7 @@ public sealed partial class SymbolTable
     internal void RecordRedefinition(DataItem redefiner)
     {
         if (_redefinesWritten is not null && _redefinesWritten.TryGetValue(redefiner, out var written) && redefiner.RedefinesTarget is { } target)
-            Record(DataEntryOf(target), written, report: true);
+            RecordData(target, written, report: true);
     }
 
     /// <summary>The occurrence recorded at <paramref name="written"/>'s first token, or none: what a place builder links the place it

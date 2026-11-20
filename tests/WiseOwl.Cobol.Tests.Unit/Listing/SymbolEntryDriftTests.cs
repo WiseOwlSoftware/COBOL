@@ -239,6 +239,7 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
         "           GENERATE DTL",
         "           TERMINATE RPT",
         "           CLOSE RPT-FILE",
+        "           CALL \"EXTSUB\"",
         "           STOP RUN.",
     ];
 
@@ -254,6 +255,9 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
         AssertEntry(symbols, Program1985, NameClass.Procedure, "P-1", line: 31);
         var debugName = Assert.Single(symbols.Entries, e => e.Class == NameClass.DebugRegister && e.Name == "DEBUG-NAME");
         Assert.False(debugName.DeclaredAt.IsSet);   // §1985:XV.3.2.4 GR10: "DEBUG-ITEM has the following implicit description"
+        // A program no source element of the group defines, which CALL's literal names (§1985:X.5.2.3 SR1): entered where its literal is
+        // bound, declared nowhere.
+        Assert.False(Assert.Single(symbols.Entries, e => e.Class == NameClass.ExternalProgram && e.Name == "EXTSUB").DeclaredAt.IsSet);
     }
 
     /// <summary>The 2023 report program: two VARYING counters of one clause, each declared by its data-name-1 (§2023:13.18.64).</summary>
@@ -598,7 +602,7 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
         var tree = frontend.Parse(path, bag);
         Assert.True(tree is not null, string.Join("\n", bag.Diagnostics));
         var binder = new BinderDriver();
-        var context = new EditionContext(edition, false) { LineMap = frontend.LineMap, RecordsSymbols = true, RecordsNames = true };
+        var context = new EditionContext(edition, false) { LineMap = frontend.LineMap, RecordsSymbols = true, RecordsNames = true, RecordsReferences = true };
         var compilation = binder.Bind(tree, context, frontend.Directives);
         Assert.False(context.HasErrors, string.Join("\n", context.Diagnostics));
         return new(source, Assert.IsType<SymbolTableSnapshot>(binder.Symbols), tree, compilation, binder);

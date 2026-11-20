@@ -118,6 +118,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// program-name (<see cref="ExternalizedProgramName"/>), which a CALL's literal-1 names.</summary>
     internal IReadOnlyDictionary<ExternalizedProgramName, CalleeSignature>? NestedCallables { get; set; }
 
+    /// <summary>The programs of the compilation group a CALL or CANCEL literal-1 of THIS unit can name, each by its externalized name: the
+    /// run-time resolver's four scope arms asked at bind time (<c>BinderDriver.ProgramsVisibleFrom</c>), which the cross-reference's CALL graph
+    /// reads (DESIGN-listing.md section 6.7.1, "The program-name literal"). A name not in it is an external program. Null unless the listing
+    /// records references (section 9). Set where <see cref="NestedCallables"/> is.</summary>
+    internal IReadOnlyDictionary<ExternalizedProgramName, BoundUnit>? ProgramsInScope { get; set; }
+
     /// <summary>True when two looked-up prototype signatures are both known and not <see cref="PrototypeSignatures.Same"/>.
     /// A side that is null names a prototype its tables do not hold — refused where it was declared — so the pair raises
     /// no signature fault of its own (one fault, one diagnostic). Every name-to-name signature screen of the SET, CALL and

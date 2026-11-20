@@ -70,6 +70,18 @@ public sealed partial class SymbolTable
         if (endMarker is not null && WordOf(endMarker) == _ownUnitName) Record(id, endMarker, report: true);
     }
 
+    /// <summary>⛔ THE OCCURRENCE OF A PROGRAM A CALL OR CANCEL LITERAL NAMES (DESIGN-listing.md sections 6.7 and 6.7.1, "The program-name
+    /// literal"): <paramref name="written"/> is literal-1 (§2023:14.9.4.3 SR2; §1985:X.5.2.3 SR1), at which the occurrence stands, and
+    /// <paramref name="target"/> the program of the compilation group it names, or null when the group defines none, so the call reaches a
+    /// program compiled elsewhere and the occurrence is of the group's one external-program entry of that name. Nothing when no listing
+    /// records references.</summary>
+    internal OccurrenceId RecordProgramName(Antlr4.Runtime.ParserRuleContext written, ExternalizedProgramName name, BoundUnit? target)
+    {
+        if (!_entries.RecordsReferences) return default;
+        var entry = target is not null ? _entries.IdOf(target) : _entries.ExternalProgram(this, name);
+        return Record(entry, written, report: true);
+    }
+
     /// <summary>The program-name or user-function-name <see cref="DeclareProgram"/> declared; none for a class, interface or method,
     /// whose name the OO driver declares.</summary>
     private CobolName? _ownUnitName;

@@ -111,10 +111,10 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// occurrence is referenced in every occurrence of the tables around it. Null with <paramref name="bail"/> set when the place
     /// builder has no element access for the table.</summary>
     private TableAllPlace? WrittenTable(string verb, DataItem table, IReadOnlyList<Position>? written, EnclosingOccurrence? fromWhens,
-        out BoundStatement bail)
+        Antlr4.Runtime.IToken head, out BoundStatement bail)
     {
         bail = null!;
-        if (ctx.Refs.Places.WholeTable(table, written ?? fromWhens?.Subscripts ?? []) is { } whole) return whole;
+        if (ctx.Refs.WholeTable(table, written ?? fromWhens?.Subscripts ?? [], head) is { } whole) return whole;
         bail = new BoundUnsupported($"{verb} of the table '{table.CobolName}': " + DeferredShapes.Describe(DeferredShape.UnbuiltAccessPath));
         return null;
     }
@@ -191,6 +191,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
 
         string searchIx = table.Indexes[0].Cell;   // the table's OWN first declaration (kb/Work PB919)
         BoundSetTarget? also = null;
+        SetIndexTarget? varyingIndex = null;
         if (s.receivingIdentifier() is { } varying)   // the VARYING phrase
         {
             // identifier-2 is incremented — a RECEIVING operand, so a format that is never one (SELF, NULL, an
@@ -200,10 +201,10 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                 _ = host.Expr.ResolveReceiving(varying);
                 return BoundRejected.Reported(ctx.Edition);
             }
-            if (host.Expr.IndexFieldOf(v) is { } vix)
+            if (host.Expr.IndexTargetOf(v) is { } vix)
             {
-                if (table.Indexes.Any(d => d.Cell == vix)) searchIx = vix;   // same table (GR3 c) 1.)
-                else also = new SetIndexTarget(vix);                                          // other table (GR3 c) 2.)
+                if (table.Indexes.Any(d => d.Cell == vix.IndexField)) (searchIx, varyingIndex) = (vix.IndexField, vix);   // same table (GR3 c) 1.)
+                else also = vix;                                                                                      // other table (GR3 c) 2.)
             }
             else if (host.Expr.ResolveReceiving(v) is { } p)                                       // data item (GR3 b)
             {
@@ -234,7 +235,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             [.. s.searchWhenClause().Select(wc => (wc.condition(), wc.statementBlock()))]);
         if (!DynamicTablePath(s.dataReference(), "SEARCH", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
-        if (WrittenTable("SEARCH", table, written, whenEnclosing, out bail) is not { } whole) return bail;
+        if (WrittenTable("SEARCH", table, written, whenEnclosing, s.dataReference().Start, out bail) is not { } whole) return bail;
         return Preceded(prelude, new BoundSearch(searchIx, RecordLayout.DeclaredOccurrences(table), whole, also, atEnd, whens, Borrowed(written, whenEnclosing),
             DependItem: SearchDepending(s.dataReference(), table),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
@@ -243,7 +244,8 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             CheckSearchIndex: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-INDEX", null, s.Start.Line),
             CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line),
             // §2023:14.9.37.4 GR4 vs §1985:VI.6.22.4 GR2: the lower bound of the start test is a 2002 rule (kb/Work PB5121).
-            IndexBelowTableIsUnsuccessful: DialectBehaviors.IsActive(DialectBehavior.SearchIndexBelowTableUnsuccessful, ctx.Edition.Edition.Year)));
+            IndexBelowTableIsUnsuccessful: DialectBehaviors.IsActive(DialectBehavior.SearchIndexBelowTableUnsuccessful, ctx.Edition.Edition.Year),
+            VaryingIndex: varyingIndex));
     }
 
     /// <summary>Bind <c>SEARCH ALL</c> (ISO §2023:14.9.37 Format 2 — the ordered-table search form). The initial index
@@ -285,7 +287,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             [(wc.condition(), wc.statementBlock())]);
         if (!DynamicTablePath(s.dataReference(), "SEARCH ALL", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
-        if (WrittenTable("SEARCH ALL", table, written, whenEnclosing, out bail) is not { } whole) return bail;
+        if (WrittenTable("SEARCH ALL", table, written, whenEnclosing, s.dataReference().Start, out bail) is not { } whole) return bail;
         return Preceded(prelude, new BoundSearch(table.Indexes[0].Cell, RecordLayout.DeclaredOccurrences(table), whole,
             AlsoVaried: null, atEnd, whens, Borrowed(written, whenEnclosing), IsAll: true, DependItem: SearchDepending(s.dataReference(), table),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)

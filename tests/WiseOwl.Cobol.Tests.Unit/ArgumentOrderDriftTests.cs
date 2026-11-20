@@ -113,7 +113,8 @@ public sealed class ArgumentOrderDriftTests
     /// held by the one holder (<c>ArgumentOrder</c> to <c>SendingValueTemp.MaterializeTableAll</c>); a third place that builds a
     /// <c>TableAllPlace</c> would build one the window never sees. The one other builder is the WHOLE-TABLE place
     /// (<c>PlaceBuilder.WholeTable</c>, kb/Work PB4855), a STATEMENT's operand (SEARCH, the table SORT, INITIALIZE of a whole dynamic
-    /// table) that no argument list holds, so its callers are those statements' binders and no function-argument binder.</summary>
+    /// table) that no argument list holds, so its callers are those statements' binders, through the resolver's linking <c>WholeTable</c>
+    /// (<c>ReferenceResolver.cs</c>, the one caller of the place builder's), and no function-argument binder.</summary>
     [Fact]
     public void ATableAllArgument_IsRecordedWhereItIsBuilt_AndHeldByTheOneHolder()
     {
@@ -128,7 +129,7 @@ public sealed class ArgumentOrderDriftTests
             .Select(Path.GetFileName)
             .OrderBy(n => n, System.StringComparer.Ordinal)
             .ToList();
-        Assert.Equal(["InitializeBinder.cs", "SearchBinder.cs", "SortBinder.cs"], wholeTableCallers);
+        Assert.Equal(["InitializeBinder.cs", "ReferenceResolver.cs", "SearchBinder.cs", "SortBinder.cs"], wholeTableCallers);
 
         Assert.Matches(@"new TableAllPlace\([^;]*;\s*args\.Add\(operand\);\s*host\.ArgOrder\.Record\(operand, before\);",
             Verb("IntrinsicBinder.cs"));

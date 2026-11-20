@@ -354,7 +354,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 // national key under the national sequence and nothing is staged.
                 if (TableSortKey(table, storage, outer, desc, key) is not { } k) return TableSortKeyUnsupported(kn);
                 // The key as written, in every current occurrence: an operand the statement explicitly references (kb/Work PB4855).
-                if (ctx.Refs.Places.WholeTable(key, outer) is not { } writtenKey) return TableSortKeyUnsupported(kn);
+                if (ctx.Refs.WholeTable(key, outer, dref.Start) is not { } writtenKey) return TableSortKeyUnsupported(kn);
                 keys.Add(k with { Written = writtenKey });
             }
         }
@@ -381,7 +381,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (collErr is { } ce) return ce;
         // data-name-2 as written: the whole table under the enclosing occurrences the statement names (kb/Work PB4855). Its element is
         // the one the statement's own storage reaches, so a table the sort can address always has one.
-        if (ctx.Refs.Places.WholeTable(table, outer) is not { } written)
+        if (ctx.Refs.WholeTable(table, outer, operand.Start) is not { } written)
             return new BoundUnsupported($"SORT of table '{name}': " + DeferredShapes.Describe(DeferredShape.UnbuiltAccessPath));
         return new BoundTableSort(storage, table, count, keys, s.sortDuplicatesPhrase() is not null, collating, written);
 

@@ -131,8 +131,8 @@ public sealed class ReferenceOccurrenceDriftTests
         var frontend = CompilerDriver.NewFrontend(options, new Frontend.CompilationInputs(), recordsListing: false);
         var diagnostics = new DiagnosticBag();
         var tree = frontend.Parse(options.SourcePath, diagnostics);
-        Assert.NotNull(tree);
         Assert.False(diagnostics.HasErrors, string.Join("\n", diagnostics.Diagnostics));
+        Assert.NotNull(tree);
         var edition = new EditionContext(options.DialectLevel, options.Permissive) { RecordsReferences = true };
         var binder = new BinderDriver();
         binder.Bind(tree!, edition, frontend.Directives);
@@ -152,7 +152,7 @@ public sealed class ReferenceOccurrenceDriftTests
         var slots = Slots(tree);
         var findings = new List<string>();
         var recorded = occurrences.GroupBy(o => (o.Occurrence.At.Line, o.Occurrence.At.Column)).ToDictionary(g => g.Key, g => g.ToList());
-        var refs = slots.Where(s => s.Prefix == "ref").GroupBy(s => (s.Line, s.Column)).ToDictionary(g => g.Key, g => g.ToList());
+        var refs = slots.Where(s => s.Prefix is "ref" or GrammarNameSlots.LiteralPrefix).GroupBy(s => (s.Line, s.Column)).ToDictionary(g => g.Key, g => g.ToList());
         foreach (var (at, slot) in refs)
             if (!recorded.ContainsKey(at) && !slot.All(s => s.Optional))
                 findings.Add($"ref slot {slot[0].Rule}.{slot[0].Label} at {at.Line}:{at.Column} has no occurrence");

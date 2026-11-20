@@ -54,7 +54,15 @@ internal static class GrammarNameSlots
     /// <summary>The classifying prefixes of a label (section 6.7.1): <c>ref</c> a reference, <c>qual</c> a qualifier,
     /// <c>def</c> a definition, <c>nn</c> a word that names nothing the program declares, <c>name</c> inside a name
     /// rule's own body (the class is the use site's).</summary>
-    internal static readonly IReadOnlyList<string> Prefixes = ["ref", "qual", "def", "nn", "name"];
+    internal static readonly IReadOnlyList<string> Prefixes = ["ref", "qual", "def", "nn", "name", "lit"];
+
+    /// <summary>The prefix of a LITERAL that names a symbol (a CALL or CANCEL literal-1 names a program): no name rule is its slot, so
+    /// the label is the grammar's declaration of it (section 6.7.1, "The program-name literal"), outside the one-for-one comparison of
+    /// slots and labels, and the occurrence oracle reads it as a <c>ref</c> slot.</summary>
+    internal const string LiteralPrefix = "lit";
+
+    /// <summary>Whether <paramref name="field"/> is a literal-slot label (<see cref="LiteralPrefix"/>).</summary>
+    internal static bool IsLiteralSlot(string field) => IsClassified(field) && field.StartsWith(LiteralPrefix, StringComparison.Ordinal);
 
     /// <summary>The two rules the closure starts from; a parser without them has no name slots to check, which is an
     /// input this check cannot resolve, so it throws.</summary>
@@ -144,7 +152,7 @@ internal static class GrammarNameSlots
             return [.. _parser.GetNestedTypes(BindingFlags.Public)
                 .Where(t => t == context || t.IsSubclassOf(context))
                 .SelectMany(t => t.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(f => IsClassified(f.Name))
+                    .Where(f => IsClassified(f.Name) && !IsLiteralSlot(f.Name))
                     .Select(f => $"{t.Name}.{f.Name}"))
                 .Order(StringComparer.Ordinal)];
         }
@@ -158,7 +166,7 @@ internal static class GrammarNameSlots
             return [.. _parser.GetNestedTypes(BindingFlags.Public)
                 .Where(t => t == context || t.IsSubclassOf(context))
                 .SelectMany(t => t.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-                .Where(f => IsClassified(f.Name))
+                .Where(f => IsClassified(f.Name) && !IsLiteralSlot(f.Name))
                 .Select(f => ElementOf(f.FieldType))
                 .Order(StringComparer.Ordinal)];
         }

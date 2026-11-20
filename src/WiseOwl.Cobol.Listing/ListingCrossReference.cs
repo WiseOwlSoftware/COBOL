@@ -103,6 +103,8 @@ public enum ListingSymbolKind
     ReportSumOperand,
     /// <summary>A program-prototype-name.</summary>
     ProgramPrototype,
+    /// <summary>A program no source element of the compilation group defines, named by the literal of a CALL or CANCEL.</summary>
+    ExternalProgram,
     /// <summary>A function-prototype-name.</summary>
     FunctionPrototype,
     /// <summary>The DEBUG-ITEM special register or one of its members.</summary>

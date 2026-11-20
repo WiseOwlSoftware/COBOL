@@ -929,7 +929,8 @@ names every connector (`BinderDriver`, after `QualifyClassFiles`).
 ### 6.7 Cross-reference
 
 Symbols: data items, condition-names, index-names, procedure-names (sections and paragraphs, `SymbolTable`'s `ProcedureNames<T>`), files,
-programs (CALL targets and units), and copy members (from the inclusions). Each use is one `ListingReference(Symbol,
+programs (CALL targets and units: a program the compilation group defines, or the external program a CALL or CANCEL literal names where it
+defines none), and copy members (from the inclusions). Each use is one `ListingReference(Symbol,
 Line, Column, Length, Use)` with `Use` one of:
 
 - `Defined` - the declaration (`DataItem.DeclaredAt`, a paragraph header, a file control entry's SELECT, a PROGRAM-ID, a COPY
@@ -947,7 +948,7 @@ Line, Column, Length, Use)` with `Use` one of:
 
 Procedure references carry the transfer kind (PERFORM, GO TO, ALTER, USE, SORT INPUT/OUTPUT PROCEDURE) and build the
 PERFORM graph; CALL references build the call graph; a file reference carries its verb. Sorted by name (Annex C fold of
-the name, `CobolNames.UpperFold`), then by line. A symbol defined and never referenced is flagged.
+the name, `CobolNames.UpperFold`, a copy member's text-name included), then by line. A symbol defined and never referenced is flagged.
 
 #### 6.7.1 The symbol table: the one store of names, its entries, its occurrences, its invariants (steps 6 and 7)
 
@@ -1107,12 +1108,17 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     wrote (compiler temporaries, implicit operands, connector stores) and link nothing.
   - **(b) The completeness oracle reads its name slots from the grammar** (below, Guards): nothing lists a slot by hand.
 - **Store kind.** `BoundStores`' exhaustive visitor gains one query, `BoundStores.StorePositionsOf(BoundStatement)`,
-  that returns `(Place, StoreKind)` for each store position the statement's WRITTEN operands occupy, the place being the
-  instance the bound node holds: `TargetHit`, `IntoHit` and `ReceiversHit` see those. `ConnectorHit` does not
+  that returns `(Site, StoreKind)` for each store position the statement's WRITTEN operands occupy, the SITE being the
+  instance the bound node holds: a `Place`, or, for an index-name (whose cell the bound tree holds as a field name, no place),
+  the receiver node itself, a `SetIndexTarget` (review round 1, R1-1; the sites are `BoundReferences.Of(s)`'s places and
+  index-name receivers beside the sites the symbol table linked, so a store position whose reference was never linked is still
+  seen and the pairing is red for it): `TargetHit`, `IntoHit` and `ReceiversHit` see those. `ConnectorHit` does not
   contribute: the places it sees are built by a file connector's callback from a `FileModel` (the record area, FILE
   STATUS, RELATIVE KEY, DEPENDING ON), not references written at the statement, so they belong to no occurrence. A
-  statement that stores into a whole table with no place (`BoundTableSort.Storage`) reports the table item as
-  `ReadWrite`, matched to the statement's occurrence of that table. `StatementBinder.BindStatement`, the one statement
+  statement that stores into a whole table (a table SORT's data-name-2 and keys, INITIALIZE of a whole dynamic table) stores through
+  the whole-table place its binder built, which `ReferenceResolver.WholeTable` links to the occurrence at the reference's head like
+  every written place (review round 1, R1-1; no statement asks `PlaceBuilder.WholeTable` itself, `ReferenceStoreKindDriftTests`): the
+  table is `ReadWrite` for a SORT (Modified) and `Write` for INITIALIZE (Written). `StatementBinder.BindStatement`, the one statement
   funnel, classifies the occurrences appended since its mark when the statement is bound: an occurrence whose linked place instance stands
   at a store position (found by walking from the stored place inward through the places it wraps, to the first instance
   linked to an occurrence) takes that position's kind; every other occurrence is `Read`. A subscript or
@@ -2044,8 +2050,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     `PERFORM`, `GO`, `ALTER`, `SORT`, `CALL`, `READ`, ...), which is the transfer kind of a procedure reference and the verb of a
     file or program reference; no enum of transfers is kept beside it.
   - *The finished table carries them.* `SymbolEntry.Occurrences` (each occurrence joined by the bind's entry id) and
-    `SymbolEntry.Fold`, the name's Annex C fold the cross-reference sorts by, made by the binder (the listing's layer may not
-    name the runtime's `CobolNames`, and only the binder compares names).
+    `SymbolEntry.Fold`, the name's Annex C fold the cross-reference sorts by, made by the binder (the `WiseOwl.Cobol.Listing`
+    model names no runtime type, and only the binder compares names); a copy member, which is no entry, is folded by `CrossReferenceBuilder`
+    with the same `CobolNames.UpperFold` as its sort key (review round 1, R1-4).
   - *The oracle is in the Unit assembly, over the NIST corpus (correction, as step 8's coverage test).*
     `ReferenceOccurrenceDriftTests` reads the generated parser's label fields and binds with the driver's own front end
     (`CompilerDriver.NewFrontend`), both internal to the Unit assembly; "every conformance-suite program that binds clean" would bind
@@ -2057,12 +2064,34 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     the table enters no register entry (lead 2). A `def` slot is held to its NAME, an entry of that spelling, since its entry stands
     where section 6.6 places it. The four resolution-dependent slots admit an occurrence and never demand one. Shown able to fail:
     the data-name recording dropped turns 369 of the 374 programs red, and a broken place link turns 369 red through the pairing.
-  - *What is not built, each a lead of kb/Work PB5925's dated file `2026-11-20-step-7b-2-built`:* an index-name's cell is held as
-    a field name, no `Place`, so SET index-name UP BY and a VARYING index are classified `Read` (lead 1); the LINAGE-COUNTER,
-    LINE-COUNTER, PAGE-COUNTER and EXCEPTION-OBJECT registers have no entry, so their references record nothing (lead 2); a whole
-    table a statement stores into with no place (`BoundTableSort.Storage`, INITIALIZE's whole dynamic table) is classified `Read`
-    (lead 4); a CALL whose target is a literal names no entry, so the CALL graph holds only the calls written by a
-    program-prototype-name (lead 5); the statistics' counts of names and uses (section 4.1's table, lead 6).
+  - *Every store occurrence carries its true store kind, the sites included (review round 1, R1-1).* An index-name's cell is held as a field
+    name, so the receiver node is the reference: `ExpressionBinder.IndexTargetOf` builds each `SetIndexTarget` (SET, a PERFORM's VARYING
+    phrase, SEARCH's VARYING phrase) linked to its index-name's occurrence (`ReferenceResolver.Linked`), SEARCH's same-table VARYING index
+    keeps its node in `BoundSearch.VaryingIndex`, and `BoundReferences` yields the index-name receivers beside the places. The store position
+    is then SET UP BY and a VARYING phrase Modified (§2023:14.9.39.4 GR4b, §2023:14.9.28.4 GR12, §2023:14.9.37.4 GR3), SET TO Written
+    (§2023:14.9.39.4 GR2); a table SORT's table and keys Modified (§2023:14.9.40.4 GR24), INITIALIZE's whole dynamic table Written
+    (§2023:14.9.20.3 SR7). The pairing is shown red by mutation for both (the index link and the whole-table link dropped).
+  - *The program-name literal (review round 1, R1-2): a CALL or CANCEL literal-1 is a reference slot.* At COBOL-85 every CALL names its
+    program by literal-1 or an identifier (§1985:X.5.2.3 SR1, §1985:X.5.3.3 SR1: "Literal-1 must be a nonnumeric literal"; §2023:14.9.4.3 SR2,
+    §2023:14.9.5.3 SR2), so the literal is the reference the CALL graph is made of. The grammar declares it: `callTarget` and `cancelTarget`
+    write `litProgramName1=literal` before `sendingOperand`, a `lit` label (a literal that names a symbol, beside `ref`, `qual`, `def`, `nn`
+    and `name`), which the occurrence oracle reads as a reference slot (a program literal's occurrence is demanded) and the name-slot counter
+    leaves out of its one-for-one comparison. `CallBinder.RecordProgramName` records the occurrence at the literal of the entry of the program
+    the name reaches by the scope of a program-name (§2023:8.4.6.3 SR1, SR2, SR3: `BinderDriver.ProgramVisibleFrom`, the run-time resolver's
+    four arms in its order, with the COMMON exception, over the compilation group's units), or, where the group defines none, of the group's
+    one entry of class `ExternalProgram` of that externalized name (`ListingSymbolKind.ExternalProgram`, declared nowhere, so no `Defined`
+    reference and never flagged unreferenced). **Decided (section 6.7 was silent):** an unresolved literal target is an edge to a named
+    external program, since section 6.7 lists "CALL targets" among the symbols and a program called and not defined here is a target the
+    reader of the listing needs by name. A literal a constant-name spells (§2023:13.10.3 SR2; 2002 and later, no constant entries at COBOL-85)
+    is written as that constant's reference, which owns the position: its edge is not drawn, a decision (one occurrence per written position
+    is the table's invariant) recorded in kb/Work PB5925's `2026-11-20-listing-step-7b-2-review-r1`.
+  - *No listing asked, no listing work (review round 1, R1-3).* Every identification funnel records a data-name or condition-name through
+    `SymbolTable.RecordData`, which asks the entry (`DataEntryOf`, which throws for a candidate that has none) only when the group records
+    references; `ReferenceStoreKindDriftTests.NoFunnelAsksADataEntry_ExceptThroughTheGuardedRecord` holds it.
+  - *What is not built, each a lead of kb/Work PB5925's dated file `2026-11-20-step-7b-2-built`:* the LINAGE-COUNTER, LINE-COUNTER,
+    PAGE-COUNTER and EXCEPTION-OBJECT registers have no entry, so their references record nothing (lead 2); `BoundReferences` does not enter
+    a value tuple (lead 3); the statistics' counts of names and uses (section 4.1's table, lead 6); a `--permissive` ambiguous reference records
+    no occurrence (lead 7); the oracle's corpus is the NIST programs (lead 8).
 
 #### 6.7.2 The mechanism, and today's inventory as evidence
 
@@ -3313,8 +3342,9 @@ and `ListingExceptionRegionTests`; the `All` row measured (section 9).
 gap:
 - (Step 7b:) section 9's `All` budget, over 25 % with the cross-reference: kb/Work PB5953.
 - (Step 7b:) the uses and references step 7b left, each a lead of kb/Work PB5925's dated file `2026-11-20-step-7b-2-built` (section
-  6.7.1, "Step 7b, as built"): an index-name's store, the special registers' entries, a whole table's store, a literal CALL target
-  in the CALL graph, and the statistics' counts of names and uses (section 4.1's table).
+  6.7.1, "Step 7b, as built"): the special registers' entries, `BoundReferences` over a value tuple, the statistics' counts of names and
+  uses (section 4.1's table), a `--permissive` ambiguous reference, and the oracle's corpus (leads 2, 3, 6, 7, 8; an index-name's store, a
+  whole table's store and a literal CALL target are built, review round 1).
 - Section 2.2's two 2002 DOC rows (`2002-DOC-B.1-90`, `-165`): documented in DOC-A.1-117 and DOC-A.1-200 but held at GAP by kb/Work
   PB5930.
 - (PB5941:) section 9's `All` budget, over 25 % since step 8, is met (measured at the merged tree of PB5941 and PB5951, `0c29eebc42`,
