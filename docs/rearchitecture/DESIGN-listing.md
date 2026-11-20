@@ -1683,9 +1683,15 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       every item (`RecordLayout.ExceedsSizeLimit` through `BitLayout.ExactExtentBits`, whose phase of a redefining bit group is its
       target's): the name match had answered there, the link had not yet been made. The link is now a pass of its own,
       `LinkRedefinitionsPass`, placed before the size limit (it measures nothing); the entry rules, SR8's size screen among them, stay
-      in `ResolveRedefinesPass` after it (kb/Work PB5695 review R1-1), and both read the one scope, `RedefinitionScopeOf`. A redefiner
-      whose data-name-2 is found nowhere stays unlinked until `ResolveRedefinesPass` reports it and clears the clause, so a layout read
-      between the two answers -1 for it only in a program already in error (`BitLayout.StartBitWithin`'s documented -1).
+      in `ResolveRedefinesPass` after it (kb/Work PB5695 review R1-1), and both read the one scope, `RedefinitionScopeOf`.
+    - *Link, then clear, one item at a time (correction, review round 2 R2-1).* Round 1's split left the report and the clearing of
+      a clause whose data-name-2 is found nowhere in `ResolveRedefinesPass`, after every item was linked. `DataItem.RedefinedEntry`
+      picks the nearest preceding same-named entry that is no redefinition by reading each candidate's written data-name-2, so a
+      later redefiner was linked while an earlier unresolved one still carried its name: in `05 A. 05 A REDEFINES ZZ. 05 C
+      REDEFINES A.` C was linked to the first A and SR10 then reported the cleared second A as new storage between them, the
+      half-state kb/Work PB93 forbids. `LinkRedefinitionsPass` now reports the unfound data-name-2 (COBOL1577 or COBOL1654) and
+      clears the clause before it links the next item, as the one loop did before the split; `ResolveRedefinesPass` screens linked
+      pairs only, so no pass after the link sees an unlinked redefiner. `RedefinesTargetTests` pins the case at 85 and 2023.
     - *The CAPACITY IN data-name is no operand (correction of remainder slice 2's list).* Slice 2 listed "a DYNAMIC CAPACITY IN
       name" among the operands kept as text. `CAPACITY IN data-name-3` DECLARES the register (§2023:13.18.38.3 SR30, "Data-name-3
       shall not be defined elsewhere in the source element"), which the table already enters as a CAPACITY register; it names

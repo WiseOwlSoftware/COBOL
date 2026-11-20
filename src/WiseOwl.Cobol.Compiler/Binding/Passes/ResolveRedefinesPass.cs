@@ -36,8 +36,8 @@ internal sealed class ResolveRedefinesPass : IBindPass
     /// <inheritdoc/>
     public PassViews Views => PassViews.None;
 
-    /// <summary>Screen each REDEFINES clause over the pair <see cref="LinkRedefinitionsPass"/> linked (reporting and clearing a
-    /// clause whose data-name-2 was found nowhere), and resolve each level-66 RENAMES FROM/THRU operand to its item. A REDEFINES
+    /// <summary>Screen each REDEFINES clause over the pair <see cref="LinkRedefinitionsPass"/> linked (a clause whose data-name-2 was
+    /// found nowhere was reported and cleared by the link, so every subject this pass reaches has its target), and resolve each level-66 RENAMES FROM/THRU operand to its item. A REDEFINES
     /// target is an unqualified prior entry in the same scope (SR1/SR6); a RENAMES range names items within the owning record
     /// (SR3). The link does not chase chains — the
     /// classification pass walks <see cref="DataItem.RedefinesTarget"/> transitively to the anchor (SR11).
@@ -65,30 +65,10 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 // subject's siblings, a method redefiner's own section, or the unit's roots. SR10's screen asks it again below.
                 // ⛔ THE LINK IS MADE BEFORE ANY ITEM IS MEASURED (LinkRedefinitionsPass, kb/Work PB5932 review R1-2): data-name-2
                 // is the ORIGINAL DEFINITION among the same-named entries that precede the subject (kb/Work PB1280; §2023:13.18.44.3
-                // SR7, SR10 and NOTE 1's "required placement"): `05 A. 05 A REDEFINES A. 05 C REDEFINES A.` names the FIRST A. This
-                // pass screens the pair the link made.
+                // SR7, SR10 and NOTE 1's "required placement"): `05 A. 05 A REDEFINES A. 05 C REDEFINES A.` names the FIRST A. The
+                // link also reported and cleared every clause whose data-name-2 it found nowhere (kb/Work PB93, review R2-1), so
+                // this pass screens a linked pair only.
                 var scope = LinkRedefinitionsPass.RedefinitionScopeOf(binder, item);
-                // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
-                // silent cross-scope bind to an object/program item) — §2023:13.18.44.3 SR.
-                if (written && item.RedefinesTarget is null && item.Parent is null && binder.Oo.RootOwner.ContainsKey(item.Root))
-                    // 1577, renumbered from a bare "COBOL1518" that collided with the locale-module
-                    // non-support meaning (review V11 — the code comes from the catalog descriptor, never a literal).
-                    binder.Edition.Error(DiagnosticCatalog.MethodRedefinesScope,
-                        $"REDEFINES target '{tname}' of method data item "
-                        + $"'{item.CobolName ?? "FILLER"}' is not a preceding item in the same method scope "
-                        + "(ISO §2023:13.18.44.3 — a method item may not redefine object or program data)");
-                else if (written && item.RedefinesTarget is null)
-                    // kb/Work PB93: the PROGRAM-scope miss used to be silent — the item kept RedefinesTargetName (so
-                    // BitLayout / ImageWidth / ByteWidth skipped it as an overlay) against a null RedefinesTarget (so
-                    // the emitter gave it its own field): a storage shape no edition defines. ONE diagnostic; the
-                    // item then binds as an ORDINARY entry (the name cleared below) so no consumer sees the half-state.
-                    binder.Edition.Error(DiagnosticCatalog.RedefinesTargetUnresolved,
-                        $"'{item.CobolName ?? "FILLER"}' REDEFINES '{tname}': data-name-2 does not name a preceding "
-                        + "entry in the same scope (ISO "
-                        + binder.Edition.Edition.Cite($"§1985:VI.5.10.3 SR11; {binder.Edition.Edition.Citation()}",
-                            "§2023:13.18.44.3 SR4/SR7/SR10; §2023:8.4.2.1") + ")");
-                if (item.RedefinesTarget is null)
-                    item.RedefinesTargetName = null;   // no half-state: an unresolved redefiner is an ordinary entry
                 // §2023:13.18.44.3 SR7 (kb/Work PB93 sweep): data-name-2 shall be the entry that ORIGINALLY defined the area
                 // — a redefiner naming a redefiner is a chain ISO forbids and the field's vendors accept: error strict,
                 // warning under --permissive with the chain semantics (ClassifyRedefinesClasses chases the anchor).

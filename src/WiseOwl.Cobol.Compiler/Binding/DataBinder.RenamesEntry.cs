@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// The RENAMES clause's ENTRY-level syntax rules (ISO §2023:13.18.45.3; kb/Work PB1283): what its operands may BE (SR3, SR5,
 /// SR6), where its window may lie (SR11) and where the entry may stand (SR2). They were all absent because
-/// data-name-2 / data-name-3 were found by name through <see cref="SubtreeCandidates"/> — whose candidate set includes
+/// data-name-2 / data-name-3 were found by name through the symbol table's region candidates (<see cref="SymbolTable.IdentifyRegionOperand"/>) — whose candidate set includes
 /// the record ITSELF — and then used without being asked what they are. SR4 (operands name items of THIS record), SR7
 /// (not subscripted), SR8 (what the range may hold) and SR10 (whole bytes) already had their screens beside the
 /// resolution in <see cref="ResolveRedefinesPass.Run"/>.

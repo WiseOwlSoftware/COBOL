@@ -288,6 +288,7 @@
       "WiseOwl.Cobol.Binding.Passes.ClassifyRedefinesClassesPass",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.GateFileRecordByteSurfacePass",
+      "WiseOwl.Cobol.Binding.Passes.LinkRedefinitionsPass",
       "WiseOwl.Cobol.Binding.Passes.OccursKeyResolvePass",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
@@ -465,7 +466,6 @@
       "WiseOwl.Cobol.Binding.Passes.LinkRedefinitionsPass",
       "WiseOwl.Cobol.Binding.Passes.OoRouteMethodRedefinesBackingsPass",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
-      "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Passes.StorageFormPass",
       "WiseOwl.Cobol.Binding.Procedure.AddressOfOperandScreen",
       "WiseOwl.Cobol.Binding.Procedure.CallBinder",
@@ -1064,7 +1064,6 @@
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
       "WiseOwl.Cobol.Binding.Passes.LinkRedefinitionsPass",
-      "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Passes.StorageFormPass"
     ],
     "WiseOwl.Cobol.Binding.OoDataBinder::RouteMethodRedefinesBackings": [

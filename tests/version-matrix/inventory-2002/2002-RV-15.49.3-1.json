@@ -2,7 +2,7 @@
  "rule-id": "2002-RV-15.49.3-1",
  "rule-digest": "efd01c95def5",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#Binary64ResultIsApproximation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/FunctionValueLane.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#Binary64ResultIsApproximation; src/WiseOwl.Cobol.Compiler/Binding/Bound/FunctionValueLane.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
  "test-ref": "conformance:cases/15.49@2002-MEDIAN-FUNCTION/g2-median-odd-standard-arithmetic",
- "notes": "§2002:15.49.3 RV1 with §2002:15.3.1: under ARITHMETIC IS STANDARD an odd MEDIAN equals the middle argument exactly (ALL subscript, a tie, one occurrence, 31-digit integer and fraction, EAE relation true); the --std 2002 run of the pinned build dc1f2dcce8 matched."
+ "notes": "§2002:15.49.3 RV1 with §2002:15.3.1: under ARITHMETIC IS STANDARD an odd MEDIAN equals the middle argument exactly (ALL subscript, a tie, one occurrence, 31-digit integer and fraction, EAE relation true); the --std 2002 run of the pinned build dc1f2dcce8 matched. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/FunctionValueLane.cs#Of (the member moved or was renamed by an earlier change: Bound/FunctionValueLane.cs#Of; re-pointed by kb/Work PB5932 review round 2 R2-2)"
 }

@@ -1771,11 +1771,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 n.TryGetProperty("to", out var to) ? [.. to.EnumerateArray().Select(x => x.GetString()!)] : [])
             : null);
 
-    /// <summary>Every traceability link still points at code that exists — the link is the whole point of it.</summary>
+    /// <summary>Every traceability link of EVERY edition's store still points at code that exists — the link is the whole point
+    /// of it. The 1985 and 2002 stores are rows of the same schema whose code-locations name the same tree, so a member renamed
+    /// or moved breaks their links exactly as it breaks the 2023 store's (kb/Work PB5932 review round 2 R2-2: reading the newest
+    /// store alone, a branch that moved the resolver out of DataBinder left 15 dead links in 10 older-edition rows green).</summary>
     [Fact]
     public void EveryCodeLocation_ResolvesInTheTree()
     {
-        var rows = LoadInventory();
+        var rows = TraceabilityInventory.Editions.SelectMany(TraceabilityInventory.RowsOf).ToList();
         var bad = UnresolvedCodeLocations(rows, LoadSchema(), TestRepo.Root);
         Assert.True(bad.Count == 0, Report("unresolved code-location(s)", bad, rows.Count));
     }

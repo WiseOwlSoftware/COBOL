@@ -45,5 +45,13 @@ on when the REDEFINES pass sets it, and that pass ran after `CheckStorageLimitsP
 pass, `LinkRedefinitionsPass`, before the size limit, and `BindPipelineTests` pins the order (kb/Work PB5932's dated file
 `2026-11-20-listing-step-6b-r3-review-r1`).
 
+**Review round 2.** R2-1: the split had moved the report and clearing of an unfound data-name-2 after every link, so in `05 A. 05 A
+REDEFINES ZZ. 05 C REDEFINES A.` C linked to the first A and drew a spurious SR10 error (COBOL2739); the link pass now reports and clears
+each unfound clause before the next item is linked, and `RedefinesTargetTests` pins it (red on the split order, 2 of 2). R2-2: 15
+code-locations in 10 rows of the 1985 and 2002 inventories still named the moved `DataBinder` members, and no gate saw them because
+`EveryCodeLocation_ResolvesInTheTree` read the 2023 store alone. It now reads every edition's store; that found 16 more dead links in 15
+older-edition rows, left by earlier changes, each re-pointed at its member's current home. R2-3: a stale cref in `DataBinder.RenamesEntry.cs`,
+and by the sweep one in `ReportModel.cs` (`ReportSumAddend`), the only two unresolved crefs this branch added (kb/Work PB1322 holds the rest).
+
 **What remains.** Part C (the declarations, the §2023:8.3.2.2 census, the group tier's program and function units, the parameterized
 expansion) and part D (the data-names' and condition-names' entries).

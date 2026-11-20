@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-12.3.4.13.2-1",
  "rule-digest": "8de075e4809d",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.DataNameCandidates.cs#DataNameCandidates",
  "test-ref": "conformance:cases/12.3.4.13@2002-RELATIVE-KEY-CLAUSE/g2rkq01_qualified_relative_key",
- "notes": "§2002:12.3.4.13.2 SR1 grants a qualified RELATIVE KEY: RELATIVE KEY IS RK OF G2 (decoy G1 declared first, always a different value) writes at 3 and 5 and reads R3R3, R5R5, then 23 at 9 (§2002:12.3.4.13.3 GR2, §2002:14.8.29.3 GR26); --std 2002 run matched the derived .out."
+ "notes": "§2002:12.3.4.13.2 SR1 grants a qualified RELATIVE KEY: RELATIVE KEY IS RK OF G2 (decoy G1 declared first, always a different value) writes at 3 and 5 and reads R3R3, R5R5, then 23 at 9 (§2002:12.3.4.13.3 GR2, §2002:14.8.29.3 GR26); --std 2002 run matched the derived .out. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates (moved into the symbol table with the data-name candidate sets, kb/Work PB5932 listing step 6b remainder slice 3: SymbolTable.DataNameCandidates.cs)"
 }

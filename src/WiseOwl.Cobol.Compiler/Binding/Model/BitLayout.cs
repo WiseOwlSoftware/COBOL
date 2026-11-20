@@ -558,8 +558,9 @@ internal static class BitLayout
     /// <see cref="DataItem.RedefinesTarget"/> the LinkRedefinitions pass set, never the written data-name-2 matched again
     /// here (DESIGN-listing.md section 6.7.1), so the link runs before any pass that measures an item. Returns -1 when the
     /// child is not <paramref name="group"/>'s, and for a redefiner whose overlay chain does not reach a non-redefining
-    /// sibling: one whose data-name-2 was found nowhere (a program already in error; the ResolveRedefines pass reports it and
-    /// clears the clause) or a chain longer than the walk follows. Callers must not reject on -1.</summary>
+    /// sibling: one read before the LinkRedefinitions pass linked it (no pass measures that early; the pass reports and clears
+    /// a clause whose data-name-2 it finds nowhere, so after it no redefiner is unlinked) or a chain longer than the walk
+    /// follows. Callers must not reject on -1.</summary>
     public static int StartBitWithin(DataItem group, DataItem child)
     {
         var children = group.Children;
@@ -621,7 +622,7 @@ internal static class BitLayout
             var c = children[i];
             for (int hops = 0; hops < 64 && c.RedefinesTargetName is not null; hops++)
             {
-                // The target the REDEFINES pass resolved (§2023:13.18.44.3 SR4: a preceding sibling), never the written name
+                // The target the LinkRedefinitions pass resolved (§2023:13.18.44.3 SR4: a preceding sibling), never the written name
                 // matched again here: the model reads the symbol the table resolved (DESIGN-listing.md section 6.7.1).
                 int t = c.RedefinesTarget is { } target ? IndexOf(children, target) : -1;
                 if (t < 0) break;

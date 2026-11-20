@@ -224,7 +224,9 @@ The LINK of a redefiner to its data-name-2 (`DataItem.SetRedefinition`) is made 
 `LinkRedefinitionsPass`, which runs before `CheckStorageLimitsPass` because the layout reads a redefiner's overlay off
 `RedefinesTarget` (`BitLayout`'s walk) and the size limit measures every item; the entry rules above, SR8's size screen among
 them, stay after the size limit, and both passes read the one scope, `LinkRedefinitionsPass.RedefinitionScopeOf` (kb/Work PB5932
-review R1-2). `ResolveRedefines` reports and clears a clause whose data-name-2 the link found nowhere.
+review R1-2). The link also reports and clears a clause whose data-name-2 it finds nowhere, before it links the next item
+(kb/Work PB93: an unresolved redefiner is an ordinary entry, and `DataItem.RedefinedEntry` reads that of each candidate; PB5932
+review round 2 R2-1), so `ResolveRedefines` screens linked pairs only.
 Both walk the COMPOSED forest (`CompositionForest`: roots, `TYPE` / `SAME AS` clones and the `TYPEDEF`
 templates, which are off `Roots`) so every redefiner has its target, but only the entries the programmer WROTE are screened
 (`ClonedFrom` null): a redefiner inside a type declaration is diagnosed once, at the declaration, used or not (kb/Work PB2518).

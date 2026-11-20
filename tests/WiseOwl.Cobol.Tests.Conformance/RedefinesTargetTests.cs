@@ -34,6 +34,23 @@ public sealed class RedefinesTargetTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL1654");
     }
 
+    /// <summary>An unresolved redefiner is an ORDINARY entry before the next redefiner is linked (kb/Work PB93, PB5932 review
+    /// round 2 R2-1): C names the second A, the nearest preceding A that is no redefinition once the unfound clause is cleared
+    /// (§2023:13.18.44.3 SR7, NOTE 1), so the one error is the second A's. Linked while the second A still carried its unfound
+    /// name, C named the first A and SR10 then reported the cleared second A as new storage between them.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void LaterRedefiner_AfterAnUnresolvedOne_NamesTheNearestEntry(int edition)
+    {
+        string src = Head + "01 G.\n   05 A PIC X.\n   05 A REDEFINES ZZ PIC X.\n   05 C REDEFINES A PIC X.\n"
+            + "PROCEDURE DIVISION.\nP1.\n    STOP RUN.\n";
+        var (ok, errors, _) = EditionHarness.CompileFull(src, edition);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOL1654");
+        Assert.Single(errors, e => e.Contains("COBOL"));
+    }
+
     [Fact]
     public void RedefinesOfRedefinition_IsAnErrorStrict_AndTheChainUnderPermissive()
     {

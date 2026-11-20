@@ -770,7 +770,7 @@ public sealed record FieldSumSource(int CounterId) : ReportFieldSource;
 /// item. §2023:8.4.3.1.2 Format 2 makes an identifier a <i>qualified-data-name-with-subscripts</i>, so the subscript
 /// is part of the reference and can be evaluated only where the ordinary identifier machinery lives — the
 /// procedure phase. <see cref="Ctx"/> is bound there through the ONE expression binder into <see cref="Value"/>;
-/// <see cref="Name"/>/<see cref="Qualifiers"/> answer the DATA-phase question (which arm of SR4/SR5 this is)
+/// <see cref="Operand"/> (the written data-name and its qualifiers) answers the DATA-phase question (which arm of SR4/SR5 this is)
 /// and <see cref="Item"/> is what that lookup found.
 /// <para>⛔ Before kb/Work PB482 the addend was captured by <c>KeyReference</c> — base word + qualifiers, with
 /// the subscript and the reference modification dropped on the floor — so <c>SUM WS-CELL(2)</c> compiled and

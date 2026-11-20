@@ -2,7 +2,7 @@
  "rule-id": "2002-RV-15.34.3-2",
  "rule-digest": "e208030d1ece",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#Binary64ResultIsApproximation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/FunctionValueLane.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#Binary64ResultIsApproximation; src/WiseOwl.Cobol.Compiler/Binding/Bound/FunctionValueLane.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
  "test-ref": "conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85; conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family; conformance:cases/15.4.1-Numeric-and-integer-functions/pb4622_float_item_function_value_exact",
- "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.44.4-1, witnessed at 2002 by the cases test-ref names. The read: Normative sentence identical; 2023 only adds a COMPUTE ROUNDED MODE example to the NOTE. Cited: §2002:15.34.3 RV2."
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.44.4-1, witnessed at 2002 by the cases test-ref names. The read: Normative sentence identical; 2023 only adds a COMPUTE ROUNDED MODE example to the NOTE. Cited: §2002:15.34.3 RV2. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/FunctionValueLane.cs#Of (the member moved or was renamed by an earlier change: Bound/FunctionValueLane.cs#Of; re-pointed by kb/Work PB5932 review round 2 R2-2)"
 }
