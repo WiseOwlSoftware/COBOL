@@ -60,11 +60,14 @@ public sealed partial class SymbolTable
     /// <summary>Declare the program-name or user-function-name of <paramref name="unit"/>, this source element (§2023:8.3.2.2): its
     /// entry, at the unit's first token, is the program map's, and the one a program-prototype-name or function-prototype-name of a
     /// containing definition (§2023:8.4.6.8, §2023:8.4.6.6) answers. Made by <c>BinderDriver.BindUnitData</c> before the unit's
-    /// containing definitions are declared, so the unit is its own.</summary>
-    internal void DeclareProgram(BoundUnit unit)
+    /// containing definitions are declared, so the unit is its own. The END PROGRAM or END FUNCTION header's name,
+    /// <paramref name="endMarker"/>, is a reference to the unit (§2023:10.7.3 SR2, SR7: it names the program it ends), recorded as an
+    /// occurrence of the entry when it spells the unit's name.</summary>
+    internal void DeclareProgram(BoundUnit unit, Antlr4.Runtime.ParserRuleContext? endMarker)
     {
         _ownUnitName = Key(unit.Name);
-        Enter(NameClass.Program, unit.Name, PositionOf(unit.DeclaredAt), unit);
+        var id = Enter(NameClass.Program, unit.Name, PositionOf(unit.DeclaredAt), unit);
+        if (endMarker is not null && WordOf(endMarker) == _ownUnitName) Record(id, endMarker, report: true);
     }
 
     /// <summary>The program-name or user-function-name <see cref="DeclareProgram"/> declared; none for a class, interface or method,

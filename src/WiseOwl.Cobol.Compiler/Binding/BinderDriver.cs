@@ -659,7 +659,7 @@ internal sealed class BinderDriver
         // §2023:8.4.6.6 / §2023:8.4.6.8 — the no-specifier leg of the two prototype-name scope rules: the ONE set the prototype
         // tables read (ContainingDefinitions; kb/Work PB452/PB817, PB3121), the symbol table's (DESIGN-listing.md section 6.7.1,
         // step 6b slice 7), declared before the unit's data binds so its USAGE TO screen reads it.
-        data.Symbols.DeclareProgram(unit);   // the unit's own name is an entry of the table (section 6.7.1), and a containing definition
+        data.Symbols.DeclareProgram(unit, definition.endProgramHeader()?.programName());   // the unit's own name is an entry of the table (section 6.7.1), and a containing definition
         data.Symbols.DeclareContainingDefinitions(unit);
         data.CallSeedUids(session.TakeUidBand());
 

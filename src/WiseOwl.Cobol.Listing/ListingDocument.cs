@@ -235,8 +235,8 @@ public enum ListingReplacement
 /// <param name="Margin">What the text listing prints in the line's margin: on a line that declares a data item, what the data map says
 /// of it (its offset, length and usage); on a line that writes references, the listing lines that define the names it uses (the
 /// cross-reference); null when the line has neither or the section that says it was not asked for.</param>
-/// <param name="Names">Each name written on the line, in column order (the cross-reference's references placed on it): the HTML
-/// listing links each to its definition; empty when the cross-reference was not asked for.</param>
+/// <param name="Names">Each reference written on the line, in column order (the cross-reference's references placed on it, its
+/// definitions aside): the HTML listing links each to its definition; empty when the cross-reference was not asked for.</param>
 /// <param name="Spans">What the compiler read each stretch of <paramref name="Text"/> as, in column order and never overlapping: its
 /// reference-format areas, comments, words, literals, picture character-strings and separators, at the edition in force. The HTML
 /// listing colours the text by them; text no span covers (spaces, a line no stage read) has no class.</param>

@@ -135,11 +135,17 @@ public static class BoundStores
     /// <see cref="StoreKindOf"/> counts it, a store into a window <see cref="StoreKind.WriteInPart"/>). A statement nested in
     /// <paramref name="s"/> is a statement of its own and answers for its own operands. The places a file connector's callback builds
     /// (the record area, FILE STATUS, RELATIVE KEY, DEPENDING ON) are no written operand and are not asked. The symbol table's
-    /// statement funnel reads it to classify each occurrence (<c>SymbolTable.EntryStore.Classify</c>).</summary>
-    internal static IEnumerable<(Place Place, StoreKind Kind)> StorePositionsOf(BoundStatement s)
+    /// statement funnel reads it to classify each occurrence (<c>SymbolTable.EntryStore.Classify</c>). <paramref name="linked"/> are the
+    /// places the statement's references were built as (the symbol table's links since the statement's mark), asked beside the places
+    /// <see cref="BoundReferences.Of"/> finds, since a node may hold an operand's place where that walk does not enter (a tuple of
+    /// <see cref="BoundSetConditions"/>: kb/Work PB5925's dated file <c>2026-11-20-step-7b-2-built</c>).</summary>
+    internal static IEnumerable<(Place Place, StoreKind Kind)> StorePositionsOf(BoundStatement s, IEnumerable<Place>? linked = null)
     {
-        foreach (var place in BoundReferences.Of(s).Places)
+        var asked = new HashSet<Place>(ReferenceEqualityComparer.Instance);
+        foreach (var place in BoundReferences.Of(s).Places.Concat(linked ?? []))
         {
+            if (!asked.Add(place)) continue;
+            if (place.NamedItem.IsCompilerTemp) continue;   // a temporary the binder made is no operand the program wrote
             var at = place;
             var visitor = new StoreKindVisitor(p => ReferenceEquals(p, at), StoreView.Operands, crossingsStore: true, direct: true);
             var kind = s.Accept(visitor);

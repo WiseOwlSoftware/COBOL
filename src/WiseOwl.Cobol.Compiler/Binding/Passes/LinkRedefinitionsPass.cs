@@ -57,7 +57,12 @@ internal sealed class LinkRedefinitionsPass : IBindPass
                 item.SetRedefinition(
                     DataItem.RedefinedEntry(binder.Symbols.RedefinitionCandidatesOf(item, RedefinitionScopeOf(binder, item))),
                     RedefinitionKind.Clause);
-                if (item.RedefinesTarget is not null) continue;
+                if (item.RedefinesTarget is not null)
+                {
+                    // The written data-name-2 is a reference to the entry it is linked to (DESIGN-listing.md section 6.7.1).
+                    if (item.ClonedFrom is null) binder.Symbols.RecordRedefinition(item);
+                    continue;
+                }
                 if (item.ClonedFrom is null) ReportUnresolved(binder, item, tname);
                 item.RedefinesTargetName = null;   // no half-state: an unresolved redefiner is an ordinary entry
             }

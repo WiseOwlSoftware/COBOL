@@ -160,14 +160,15 @@ internal static class CrossReferenceBuilder
 
     /// <summary>
     /// ⛔ THE JOINS OF THE CROSS-REFERENCE ONTO THE SOURCE LINES (DESIGN-listing.md section 4.2): each line's names
-    /// (<see cref="ListingLine.Names"/>, every reference placed on it, in column order) and, on a line that declares no data item and
+    /// (<see cref="ListingLine.Names"/>, every reference placed on it, in column order; a definition is the line's own and stands at its
+    /// entry, so it is no name of the line) and, on a line that declares no data item and
     /// writes references, its margin: the listing lines that define the names it uses (section 6.2).
     /// </summary>
     public static void MarkLines(ListingCrossReference xref, IReadOnlyList<LineDraft> drafts)
     {
         foreach (var symbol in xref.Symbols)
             foreach (var reference in symbol.References)
-                if (reference is { Line: { } line, Column: { } column } && symbol.Kind != ListingSymbolKind.CopyMember)
+                if (reference is { Line: { } line, Column: { } column, Use: not ListingUse.Defined } && symbol.Kind != ListingSymbolKind.CopyMember)
                     drafts[line - 1].AddName(new ListingNameUse(column, reference.Length, symbol.Id, reference.Use));
         var definedOn = xref.Symbols.ToDictionary(static s => s.Id,
             static s => s.References.FirstOrDefault(static r => r.Use == ListingUse.Defined)?.Line);

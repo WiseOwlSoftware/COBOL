@@ -3722,6 +3722,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         string csName = isFiller ? $"_filler{TakeFillerOrdinal()}" : DataItem.Sanitize(cobolName!);
 
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
+        Core.DataReferenceContext? redefinesWritten = null;   // REDEFINES data-name-2 as written: its occurrence (listing step 7b)
         Antlr4.Runtime.IToken? pictureToken = null;   // the PICTURE string's token, where a repetition constant-name is written
         var groupUsage = GroupUsage.None;   // GROUP-USAGE (§2023:13.18.29; D20/PB79)
         List<EditingPhraseSpec>? editingSpecs = null;   // PICTURE EDITING phrases (§2023:13.18.40.2), threaded to PictureAnalyzer
@@ -3963,7 +3964,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 else if (clause.RedefinesTarget is { } redefTarget)
                     // Capture the target name only; resolution waits until the forest is built (the target is a
                     // prior sibling, but a chain A REDEFINES B REDEFINES C resolves in the post-build pass).
+                {
                     redefinesTargetName = RedefinesDataName2(redefTarget, cobolName);
+                    redefinesWritten = redefTarget;
+                }
                 else if (clause.Context.valueClause() is { } value)
                 {
                     valueClauseWritten = true;
@@ -4439,6 +4443,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // clause's GEOMETRY (SR18–SR23) and its §2023:13.18.63.4 GR12–GR16 resolution are the post-forest
         // ResolveTableValues pass — they read the entry's OCCURS ANCESTORS, which do not exist yet here.
         ScreenTableValueLiterals(item, entryWhere);
+        if (redefinesTargetName is not null && redefinesWritten is not null) Symbols.NoteRedefinesWritten(item, redefinesWritten);
 
         // BASED declaration validation (Phase-4b increment 2). §2023:13.16.3 SR16 — level 1 or 77, in the linkage,
         // working-storage or local-storage section — is the clause-placement table's BASED Residence row, screened

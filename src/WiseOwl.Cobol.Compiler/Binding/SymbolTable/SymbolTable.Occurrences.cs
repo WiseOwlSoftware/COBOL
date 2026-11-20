@@ -36,6 +36,16 @@ public sealed partial class SymbolTable
         private List<Occurrence>? _occurrences;
         private Dictionary<SymbolPosition, OccurrenceId>? _byPosition;
         private Dictionary<Place, OccurrenceId>? _linked;
+        private List<Place>? _linkOrder;   // the linked places in the order linked: a statement's are those since its mark
+
+        /// <summary>The end of the order places are linked in: a statement holds it as its mark (<see cref="LinkedSince"/>).</summary>
+        internal int LinkMark => _linkOrder?.Count ?? 0;
+
+        /// <summary>The places linked since <paramref name="mark"/>: the places the statement's references were built as.</summary>
+        internal IEnumerable<Place> LinkedSince(int mark)
+        {
+            for (int i = mark; i < (_linkOrder?.Count ?? 0); i++) yield return _linkOrder![i];
+        }
 
         /// <summary>Whether the group's identifications record occurrences (<c>EditionContext.RecordsReferences</c>).</summary>
         internal bool RecordsReferences => _occurrences is not null;
@@ -47,6 +57,7 @@ public sealed partial class SymbolTable
             _occurrences ??= [];
             _byPosition ??= [];
             _linked ??= new(ReferenceEqualityComparer.Instance);
+            _linkOrder ??= [];
         }
 
         /// <summary>The global append order's current end: a statement holds it as its MARK and classifies exactly the occurrences
@@ -81,6 +92,7 @@ public sealed partial class SymbolTable
             if (_linked is null || !occurrence.IsSet) return place;
             if (_linked.ContainsKey(place)) place = place with { };
             _linked[place] = occurrence;
+            _linkOrder!.Add(place);
             return place;
         }
 
@@ -104,8 +116,9 @@ public sealed partial class SymbolTable
         internal void Classify(int mark, WiseOwl.Cobol.Editions.DiagnosticCursor statement, string verb,
             IEnumerable<(Place Place, StoreKind Kind)> storePositions)
         {
-            if (_occurrences is null || _occurrences.Count == mark) return;
+            if (_occurrences is null) return;
             foreach (var (place, kind) in storePositions)
+            {
                 if (LinkedOccurrence(place) is { IsSet: true } id && id.Value > mark && _occurrences[id.Value - 1] is { Classified: false } o)
                     o.Use = kind switch
                     {
@@ -113,6 +126,11 @@ public sealed partial class SymbolTable
                         StoreKind.ReadWrite => SymbolUse.Modified,
                         _ => o.Use,
                     };
+                else
+                    // A store position of a written operand that pairs with no occurrence of this statement: a binder rebuilt the
+                    // linked place by value, or built it with no link (the pairing test, ReferenceOccurrenceDriftTests, holds it empty).
+                    _unpaired.Add((PositionOf(statement), verb, place.NamedItem?.CobolName ?? place.GetType().Name));
+            }
             for (int i = mark; i < _occurrences.Count; i++)
                 if (_occurrences[i] is { Classified: false } o)
                 {
@@ -121,6 +139,13 @@ public sealed partial class SymbolTable
                     o.Classified = true;
                 }
         }
+
+        private readonly List<(SymbolPosition Statement, string Verb, string Operand)> _unpaired = [];
+
+        /// <summary>Each store position a classified statement's written operands occupy that pairs with no occurrence of the statement
+        /// (DESIGN-listing.md section 6.7.1, the pairing test): the statement's position and verb and the operand's name. Empty when every
+        /// store position's place is linked to its reference's occurrence.</summary>
+        internal IReadOnlyList<(SymbolPosition Statement, string Verb, string Operand)> UnpairedStorePositions => _unpaired;
 
         /// <summary>Every occurrence of <paramref name="entry"/>, in the order recorded, as the finished table holds it.</summary>
         internal IReadOnlyList<SymbolOccurrence> OccurrencesOf(SymbolId entry)
@@ -162,6 +187,23 @@ public sealed partial class SymbolTable
         if (!report || !_entries.RecordsReferences) return default;
         var last = written.Qualifiers.Count > 0 ? written.Qualifiers[^1] : written.Head;
         return _entries.Record(entry, PositionOf(written.Head), SpanLength(written.Head, last));
+    }
+
+    // Each written REDEFINES clause's data-name-2, by its redefiner, while the forest is built: the clause is resolved by its placement
+    // after the forest is composed (LinkRedefinitionsPass, §2023:13.18.44.3 SR4), and only then is its occurrence's entry known.
+    private Dictionary<DataItem, Frontend.Generated.CobolParserCore.DataReferenceContext>? _redefinesWritten;
+
+    /// <summary>Note where <paramref name="redefiner"/>'s REDEFINES clause writes data-name-2, for its occurrence once it is linked.</summary>
+    internal void NoteRedefinesWritten(DataItem redefiner, Frontend.Generated.CobolParserCore.DataReferenceContext written)
+    {
+        if (_entries.RecordsReferences) (_redefinesWritten ??= new(ReferenceEqualityComparer.Instance))[redefiner] = written;
+    }
+
+    /// <summary>Record the occurrence of <paramref name="redefiner"/>'s data-name-2 at the entry the link made its target.</summary>
+    internal void RecordRedefinition(DataItem redefiner)
+    {
+        if (_redefinesWritten is not null && _redefinesWritten.TryGetValue(redefiner, out var written) && redefiner.RedefinesTarget is { } target)
+            Record(DataEntryOf(target), written, report: true);
     }
 
     /// <summary>The occurrence recorded at <paramref name="written"/>'s first token, or none: what a place builder links the place it
