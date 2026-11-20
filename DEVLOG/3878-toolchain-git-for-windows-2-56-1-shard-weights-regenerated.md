@@ -1,4 +1,4 @@
-## Toolchain: Git for Windows 2.56.1; shard weights regenerated; the listing's follow-up notes
+## Entry 3878 — 2026-11-20 13:48 PST — Toolchain: Git for Windows 2.56.1; shard weights regenerated; the listing's follow-up notes
 
 The nightly of 2026-11-20 (run 44786485038) was red on three jobs. `latest` and `images (windows-2025-vs2026)` both
 named git-windows 2.56.0 against the published 2.56.1 (the image win25-vs2026/20261116.315 carries 2.56.1). The owner
@@ -14,3 +14,4 @@ rule written three times, PB5966 a second lookup in INITIALIZE) and four gate-sp
 (PB5967 the test_planner self-test keyed on every tracked file name, PB5968 the 22-minute filter_population self-test,
 PB5969 the program differential carrying 0 cases on most listing gates, PB5970 NIST timeouts under three concurrent
 gates). One branch, one gate, one landing for all of it (the owner's grouping rule).
+
