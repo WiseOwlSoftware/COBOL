@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 9 - the hyperlinked HTML page, the section visitor, and what of the design is not built
+## Entry 3864 — 2026-11-19 16:51 PST — PB5925: the source listing, step 9 - the hyperlinked HTML page, the section visitor, and what of the design is not built
 
 Step 9 of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5925) writes the listing as one HTML page: `--listing-format html`,
 `BASE.lst.html`, a rendering of the same document as the text and JSON listings.
@@ -34,3 +34,4 @@ would say the listing, and with it 1985, is complete.
 **Review lead carried.** Step 7b's R1-1: the `§2023:14.7.8 rule N` siblings the earlier sweep missed now name GR1 or GR2 (checked
 with `cite.py --check`), in the binder, the emitter, `DATA_MODEL_DESIGN.md`, three conformance cases' comments and one inventory row.
 Every other lead of the listing's review files was already fixed on main (kb/Work PB5925's dated file `2026-11-19-step-9-built`).
+
