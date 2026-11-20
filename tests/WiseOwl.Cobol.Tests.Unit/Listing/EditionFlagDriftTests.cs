@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -21,8 +22,10 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// (<c>EditionContext</c>) the record keeps it;</item>
 /// <item>every accepted, distinguishable nonstandard extension flagged under <c>--flag-extensions</c> carries the extension flag of its
 /// row at the edition compiled to, and none is recorded without the option;</item>
-/// <item>no source of the compiler but the funnels names a flag's code (COBOL0902, COBOL0903, COBOL2894, by literal or by its
-/// constant or descriptor), so no stage can report a flag the funnels did not make; the scan is shown able to fail on planted text.</item>
+/// <item>no source of the compiler but the funnels names a flag's code (COBOL0902, COBOL0903, COBOL2894, and the code each registry row
+/// that a later edition REMOVED pins, by literal or by its constant or descriptor), so no stage can report a flag the funnels did not
+/// make; the scan is shown able to fail on planted text. (Listing PB5947 review lead R1-2, fixed in PB5949:) the scan knew the three
+/// band codes only, and the MERGE placement rule reported its row's pinned COBOL1572 by its own descriptor, with no flag.</item>
 /// </list>
 /// A row added to either register is checked with no change here. Expected values are the registers' own rows (the inputs).
 /// </summary>
@@ -95,7 +98,7 @@ public sealed class EditionFlagDriftTests
     private static readonly IReadOnlyDictionary<string, string> Funnels = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["WiseOwl.Cobol.Editions/EditionCodes.cs"] = "declares COBOL0902 and COBOL0903",
-        ["WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs"] = "declares the descriptors of the three codes",
+        ["WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs"] = "declares the descriptors of the flag codes",
         ["WiseOwl.Cobol.Editions/ConstructRegistry.cs"] = "VerdictAt: the code and the flag of an obsolete or removed construct",
         ["WiseOwl.Cobol.Editions/ConstructRegistry.g.cs"] = "the registry's rows, each pinning its code (data VerdictAt reads)",
         ["WiseOwl.Cobol.Compiler/Binding/EditionContext.cs"] = "Extension: the code and the flag of a nonstandard extension",
@@ -140,6 +143,8 @@ public sealed class EditionFlagDriftTests
                     edition.Warning("COBOL2894", "m");
                     edition.Warning("COBOL0903", "m");
                     edition.Warning("COBOL0901", "m");
+                    edition.Error(DiagnosticCatalog.MergeInSortMergeProc.Code, "m");
+                    edition.Error("COBOL1572", "m");
                 }
             }
             """;
@@ -153,12 +158,25 @@ public sealed class EditionFlagDriftTests
             "Planted.cs:12: EditionRemovedConstruct",
             "Planted.cs:13: \"COBOL2894\"",
             "Planted.cs:14: \"COBOL0903\"",
+            "Planted.cs:16: MergeInSortMergeProc",
+            "Planted.cs:17: \"COBOL1572\"",
         ], FlagCodeNames("Planted.cs", planted));
     }
 
-    private static readonly HashSet<string> Codes = new(StringComparer.Ordinal) { "COBOL0902", "COBOL0903", "COBOL2894" };
-    private static readonly HashSet<string> Descriptors = new(StringComparer.Ordinal)
-        { "EditionRemovedConstruct", "EditionObsoleteFlag", "NonstandardExtensionUsed" };
+    /// <summary>The flag codes: the three band codes, and the code each registry row a later edition removed pins (its removal is
+    /// reported only through <see cref="ConstructRegistry.VerdictAt"/>, which flags it). The rows of a word as a user-defined word are
+    /// no construct: the reserved-word check (<see cref="EditionCodes.ReservedWord"/>) refuses a spelling and is no flag
+    /// (DESIGN-listing.md section 6.11, "What is not a flagged construct"), so their code is not one.</summary>
+    private static readonly HashSet<string> Codes = new(
+        new[] { "COBOL0902", "COBOL0903", "COBOL2894" }.Concat(ConstructRegistry.Entries
+            .Where(row => row.RemovedIn is not null && row.DiagnosticCode != EditionCodes.ReservedWord).Select(row => row.DiagnosticCode)),
+        StringComparer.Ordinal);
+
+    /// <summary>The descriptors of the flag codes: every descriptor of the catalog whose code is one.</summary>
+    private static readonly HashSet<string> Descriptors = new(
+        typeof(DiagnosticCatalog).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(f => f.GetValue(null) is WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor d && Codes.Contains(d.Code)).Select(f => f.Name),
+        StringComparer.Ordinal);
     private static readonly HashSet<string> CodeConstants = new(StringComparer.Ordinal) { "RemovedConstruct", "ObsoleteFlag" };
 
     /// <summary>Each place <paramref name="text"/> names a flag's code in code (never in a comment): a string literal of the code, a

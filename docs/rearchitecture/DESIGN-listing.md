@@ -1898,8 +1898,14 @@ table is not built, and no step of section 11 named it: kb/Work PB5947.
   (§2023:4.2.13) share the kind Obsolete, as they share COBOL0903. A removed construct is counted whatever its severity: strict, it is
   an error and still names the edition that removed it.
 - **What is not a flagged construct (decision).** A rule a later edition ADDED that `--permissive` relaxes (`EditionContext.Removed`'s
-  documented-dialect-leniency callers, the 2023 EXTERNAL file-connector and MERGE-placement rules that take the removed-construct
-  severity) reports under the rule's own code; it flags no construct of a register, and carries no flag. The FLAG-85 and
+  documented-dialect-leniency callers, the 2023 EXTERNAL file-connector rule that takes the removed-construct severity) reports under
+  the rule's own code; it flags no construct of a register, and carries no flag. (PB5949, correcting PB5947's review lead R1-2:) the
+  MERGE placement rule is not such a rule: the registry names it (`merge-in-sort-merge-proc-removed-2023`, removed in 2023, pinning
+  COBOL1572), so `VersionConformancePass` reports it through that row's `ConstructRegistry.VerdictAt` (code, severity and flag) and
+  the table counts it (witness `BoundArmDiagnosticPositionTests.MergeInASortProcedure_At2023_IsAFlaggedRemovedConstruct`). The
+  drift test's scan now knows every code a removal row pins (all but the user-defined-word rows' COBOL0901, below), each descriptor
+  of the catalog with one of them, and the band codes, so a row-pinned code reported outside the funnel is red (shown on the pre-fix
+  report). The FLAG-85 and
   FLAG-NATIVE-ARITHMETIC directives' warnings flag a change of meaning the program asked to see, not a construct by edition; neither
   is in the table. The reserved-word check (COBOL0901) refuses a spelling, not a construct.
 - **The model.** `ListingDiagnostic.Flag` (`ListingFlag`, `ListingFlagKind`, mapped by `DiagnosticSectionBuilder.FlagOf`, a switch

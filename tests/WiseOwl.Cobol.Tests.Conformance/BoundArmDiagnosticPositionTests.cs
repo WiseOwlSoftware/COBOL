@@ -163,6 +163,26 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         AssertAt(lines, line, 12, "warning", "COBOL1572");
     }
 
+    /// <summary>The removal is a construct of the registry (row merge-in-sort-merge-proc-removed-2023, removed in 2023), so its
+    /// diagnostic carries the removed-construct flag of that row and the listing's table of flagged constructs by edition counts it
+    /// (DESIGN-listing.md section 6.11; listing PB5947 review lead R1-2, fixed in PB5949).</summary>
+    [Fact]
+    public void MergeInASortProcedure_At2023_IsAFlaggedRemovedConstruct()
+    {
+        string text = Prologue + Outer("sort-input") + "       PR SECTION.\n       P1.\n           " + Merge + "\n";
+        string name = "t" + Guid.NewGuid().ToString("N")[..6] + ".cob";
+        File.WriteAllText(Path.Combine(_dir, name), text);
+        var r = CompiledProgramCache.CompileCold(new CompilerDriver.Options(
+            Path.Combine(_dir, name), Path.Combine(_dir, "flag.dll"), DialectLevel: 2023, CheckOnly: true,
+            CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed, Permissive: true,
+            Listing: new WiseOwl.Cobol.Listing.ListingRequest(OutputBase: "-")));
+        var listing = r.Listing!;
+        var merge = Assert.Single(listing.Diagnostics, d => d.Code == "COBOL1572");
+        var flagged = Assert.Single(listing.FlaggedConstructs, f => f.Diagnostics.Contains(merge.Id));
+        Assert.Equal((2023, WiseOwl.Cobol.Listing.ListingFlagKind.Removed, "merge-in-sort-merge-proc-removed-2023"),
+            (flagged.Edition, flagged.Kind, flagged.Construct));
+    }
+
     [Theory] // below 2023 the 2014 standard allowed it: no static diagnostic (EC-SORT-MERGE-ACTIVE is the dynamic net)
     [InlineData(2002)]
     [InlineData(2014)]
