@@ -231,19 +231,6 @@ internal static class OperandText
     /// needed). Same rendering as <see cref="AsString"/> over a field operand.</summary>
     public static string FieldImage(Place p, bool deSign = false, SendingRef sending = SendingRef.Normal) => FieldAsString(p, deSign, sending);
 
-    /// <summary>The RAW-STORAGE byte image of a field — CONVERT's ANY source channel (§2023:15.19.3 r7: "argument-1
-    /// shall be of any usage … It is not necessary for the contents to be valid according to the usage" — the
-    /// item's STORAGE BITS, never its display image; fix-queue PB59 family 5b / AR-15.19.3-7 leg b). The
-    /// convention is char==byte (the <c>CobolBits.Pack</c> image convention), one representation per leaf shape,
-    /// each THE mechanism that already defines that shape's storage (<c>GroupImageCodec.AsImageOf</c>'s recipes —
-    /// never a second codec): a group is its generated <c>AsImage()</c>; a national leaf its UTF-16BE bytes
-    /// (<c>CobolBits.NatBytes</c>, D-N1); a USAGE BIT leaf its packed bits (<c>CobolBits.Pack</c> — which also
-    /// materializes §2023:15.19.4 r2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
-    /// image — storage, so no GR6a de-sign); a BINARY/PACKED/COMP-5 leaf its radix-2/BCD bytes
-    /// (<c>CobolNum.FormatImage</c>, V59/§2023:14.4); a float leaf its IEEE interchange bytes
-    /// (<c>CobolNum.FormatImageFloat</c> — kb/Work PB164 wave 2); an INDEX leaf its 8-byte occurrence-number
-    /// bytes (R40). Only a VARIABLE-LENGTH group stages LOUD rather than returning a plausible wrong image;
-    /// pointer/object shapes are unreachable — the §2023:15.19.3 r7 bind screen rejected them.</summary>
     /// <summary>⛔ THE RECORD-AREA IMAGE — what a WRITE / REWRITE / RELEASE sends to a connector and what a
     /// READ / RETURN distributes back (kb/Work PB327). It IS <see cref="AsStorageImage"/>, because a file record
     /// is the record area's STORAGE: ISO §2023:14.9.30.4 GR14/GR15 state the short/long-record rules over "the number
@@ -252,7 +239,7 @@ internal static class OperandText
     /// except the ones whose carrier is not their bytes: a NATIONAL record area wrote one byte per position
     /// (measured: `01 L-REC PIC N(5).` holding N"AB" wrote `41 42` where D-N1's representation is
     /// `00 41 00 42`), and a USAGE BIT one wrote its '0'/'1' carrier into a ceil(n/8)-byte record. A GROUP record
-    /// took the same string either way, which is exactly why the elementary half went unnoticed.</summary>
+    /// took the same string either way, which is exactly why the elementary half went unnoticed.
     /// <para>⛔ AN OUT-OF-LINE RECORD (<c>FileModel.IsOutOfLineRecord</c> — determination D-FRA, kb/Work PB981)
     /// has no character window, so its record image is stated by the determination rather than read from one: a
     /// VARIABLE-LENGTH GROUP sends its contiguous image at its current extent (ISO §2023:8.5.1.11.2 — the
@@ -503,6 +490,19 @@ internal static class OperandText
             ? function
             : AsTransferString(op, num, context);
 
+    /// <summary>The RAW-STORAGE byte image of a field — CONVERT's ANY source channel (§2023:15.19.3 r7: "argument-1
+    /// shall be of any usage … It is not necessary for the contents to be valid according to the usage" — the
+    /// item's STORAGE BITS, never its display image; fix-queue PB59 family 5b / AR-15.19.3-7 leg b). The
+    /// convention is char==byte (the <c>CobolBits.Pack</c> image convention), one representation per leaf shape,
+    /// each THE mechanism that already defines that shape's storage (<c>GroupImageCodec.AsImageOf</c>'s recipes —
+    /// never a second codec): a group is its generated <c>AsImage()</c>; a national leaf its UTF-16BE bytes
+    /// (<c>CobolBits.NatBytes</c>, D-N1); a USAGE BIT leaf its packed bits (<c>CobolBits.Pack</c> — which also
+    /// materializes §2023:15.19.4 r2's trailing zero-bit pad); a zoned/character leaf its carrier (the sign-AWARE
+    /// image — storage, so no GR6a de-sign); a BINARY/PACKED/COMP-5 leaf its radix-2/BCD bytes
+    /// (<c>CobolNum.FormatImage</c>, V59/§2023:14.4); a float leaf its IEEE interchange bytes
+    /// (<c>CobolNum.FormatImageFloat</c> — kb/Work PB164 wave 2); an INDEX leaf its 8-byte occurrence-number
+    /// bytes (R40). Only a VARIABLE-LENGTH group stages LOUD rather than returning a plausible wrong image;
+    /// pointer/object shapes are unreachable — the §2023:15.19.3 r7 bind screen rejected them.</summary>
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
     /// <c>PlaceRenderer.GroupImage</c> carries, so a caller can route through THE ONE storage channel and keep
     /// its own site-specific reason (kb/Work PB178's law, PB327's second caller).</param>

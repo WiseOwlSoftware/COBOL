@@ -15,20 +15,6 @@ namespace WiseOwl.Cobol.Binding.Validation;
 
 using Core = CobolParserCore;
 
-/// <summary>
-/// ⭐ ONE ROW PER CORRESPONDING VERB — the operand rule §2023:14.9.25.3 SR12, §2023:14.9.2.3 SR6 and §2023:14.9.44.3 SR6 each
-/// state, AS DATA, so <see cref="StatementValidation.CheckCorrespondingGroupOperand"/> can ask each caller's own
-/// rule instead of the intersection of the three (kb/Work PB392).
-/// <para>The three rules differ on two axes and agreed on neither before this: ADD and SUBTRACT enumerate FOUR
-/// group kinds and exclude level-66 by name; MOVE says only "group data items" and never mentions level-66. A
-/// shared screen therefore has to carry the difference as a row, not as a comment — a fourth CORRESPONDING verb
-/// would be a row here and no edit anywhere else.</para>
-/// </summary>
-/// <param name="Verb">MOVE | ADD | SUBTRACT — the statement the programmer wrote, for the message.</param>
-/// <param name="Clause">The caller's own rule, e.g. "§2023:14.9.2.3 SR6".</param>
-/// <param name="Admitted">The group kinds the rule's own text admits.</param>
-/// <param name="ExcludesLevel66">True when the rule's text names level-number 66 (the arithmetic spellings), so
-/// the diagnostic may quote it. MOVE's SR12 does not, and quoting it there was a miscitation.</param>
 /// <summary>⭐ ONE ROW PER OPEN TAPE PHRASE — the two alternatives of ISO §2023:14.9.27.2's per-file-name
 /// <c>[ REVERSED | WITH NO REWIND ]</c> bracket, each stating its own ORGANIZATION rule and its own OPEN MODE
 /// rule AS DATA, so <see cref="StatementValidation.CheckOpenTapePhrase"/> is a lookup rather than a chain of
@@ -97,6 +83,20 @@ internal readonly record struct OpenTapePhraseRule(
     };
 }
 
+/// <summary>
+/// ⭐ ONE ROW PER CORRESPONDING VERB — the operand rule §2023:14.9.25.3 SR12, §2023:14.9.2.3 SR6 and §2023:14.9.44.3 SR6 each
+/// state, AS DATA, so <see cref="StatementValidation.CheckCorrespondingGroupOperand"/> can ask each caller's own
+/// rule instead of the intersection of the three (kb/Work PB392).
+/// <para>The three rules differ on two axes and agreed on neither before this: ADD and SUBTRACT enumerate FOUR
+/// group kinds and exclude level-66 by name; MOVE says only "group data items" and never mentions level-66. A
+/// shared screen therefore has to carry the difference as a row, not as a comment — a fourth CORRESPONDING verb
+/// would be a row here and no edit anywhere else.</para>
+/// </summary>
+/// <param name="Verb">MOVE | ADD | SUBTRACT — the statement the programmer wrote, for the message.</param>
+/// <param name="Clause">The caller's own rule, e.g. "§2023:14.9.2.3 SR6".</param>
+/// <param name="Admitted">The group kinds the rule's own text admits.</param>
+/// <param name="ExcludesLevel66">True when the rule's text names level-number 66 (the arithmetic spellings), so
+/// the diagnostic may quote it. MOVE's SR12 does not, and quoting it there was a miscitation.</param>
 internal readonly record struct CorrespondingOperandRule(
     string Verb, string Clause, string Clause1985, GroupKinds Admitted, bool ExcludesLevel66)
 {

@@ -1475,13 +1475,6 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         return new NumX($"((Int128)({Align(a, s)}) {op} ({Align(b, s)}))", s, Digits: digits, Precision: precision);
     }
 
-    /// <summary>⛔ A FLOAT ITEM'S CONTENT ON ITS OWN CARRIER — <c>float</c> for binary32, <c>double</c> for
-    /// binary64 — for a COPY of that content, never for arithmetic (kb/Work PB961). The arithmetic read
-    /// (<see cref="FieldNumCore"/>'s float arms) widens to binary64 because D16 evaluates there, and an ISO/IEC
-    /// 60559 widening QUIETS a signaling NaN; a transfer §2023:14.9.25.4 GR6 c) makes "without change" must not take
-    /// it. A windowed (image-stored) item decodes through the binary32 carrier lane
-    /// (<c>CobolNum.ParseImageSingle</c>). The §2023:14.6.13.2 rule 3 read check is decided by the ONE reader of that
-    /// rule's exemption list, <see cref="SendingRefRules.FloatChecked"/>, exactly as on the arithmetic read.</summary>
     /// <summary>A NATIVE carrier's value decoded from its item's STORAGE image — the ONE crossing decode, a COPY of
     /// the content and never an arithmetic read, so a binary32 item takes the binary32 lane (kb/Work PB961). Every
     /// boundary that meets a native side and an image-carried side of the same numeric description asks it: the
@@ -1502,6 +1495,13 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             ? RuntimeApi.NumFormatImageFloat(value, item.ProfileName, item.Pic.IsSingle)
             : RuntimeApi.NumFormatImage(value, item.ProfileName);
 
+    /// <summary>⛔ A FLOAT ITEM'S CONTENT ON ITS OWN CARRIER — <c>float</c> for binary32, <c>double</c> for
+    /// binary64 — for a COPY of that content, never for arithmetic (kb/Work PB961). The arithmetic read
+    /// (<see cref="FieldNumCore"/>'s float arms) widens to binary64 because D16 evaluates there, and an ISO/IEC
+    /// 60559 widening QUIETS a signaling NaN; a transfer §2023:14.9.25.4 GR6 c) makes "without change" must not take
+    /// it. A windowed (image-stored) item decodes through the binary32 carrier lane
+    /// (<c>CobolNum.ParseImageSingle</c>). The §2023:14.6.13.2 rule 3 read check is decided by the ONE reader of that
+    /// rule's exemption list, <see cref="SendingRefRules.FloatChecked"/>, exactly as on the arithmetic read.</summary>
     internal static string FloatCarrierRead(Place p, SendingRef sending)
     {
         string raw = p.Item.StoreAsImage

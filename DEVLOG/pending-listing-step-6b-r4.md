@@ -29,3 +29,9 @@ symbol table.
 **What remains** (kb/Work PB5932's dated file `2026-11-20-step-6b-r4`): the compilation group's program and function units, the
 parameterized expansion, a TURN directive's file operand, the refused record-key set, then part D, the data-names' and
 condition-names' entries made where they are declared.
+
+**Review round 1** (kb/Work PB5932's dated file `2026-11-20-listing-step-6b-r4-review-r1`). DESIGN-listing.md's name-class table
+now names the current home of each table, the entry places among them, and five more rows were brought current. The two doc
+comments this slice split from their members were rejoined, and the defect's 45 siblings across the tree were fixed. The new
+`DocCommentShapeDriftTests` refuses a doc comment that holds `summary` or `remarks` twice. `RedefinedAmong` now cites
+§2023:13.18.44.3 SR2 for the level-number and SR6 for the unqualified word.

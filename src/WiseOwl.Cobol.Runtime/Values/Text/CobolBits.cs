@@ -32,16 +32,16 @@ public static class CobolBits
 {
     private const int BitsPerByte = 8;
 
-    /// <summary>Pack a run's <c>'0'</c>/<c>'1'</c> carrier into its record image — <c>ceil(count / 8)</c>
-    /// characters, high-order bit first, trailing filler bits zero. Any character other than <c>'1'</c> reads as
-    /// zero, which makes a space-padded or uninitialized carrier decode as the all-zero boolean value §2023:13.18.63
-    /// gives it rather than throwing.</summary>
     /// <summary>Pack EVERY boolean position the carrier holds — the count is <paramref name="bits"/>.Length.
     /// The shape a REFERENCE-MODIFIED usage-bit operand needs: ISO/IEC 1989:2023 §2023:8.4.3.3.4 GR5c gives the slice
     /// its own position count, which may be a runtime expression, so the caller never has to re-derive it (and
     /// a second evaluation of the slice expression is exactly what this overload avoids).</summary>
     public static string Pack(string bits) => Pack(bits, bits.Length);
 
+    /// <summary>Pack a run's <c>'0'</c>/<c>'1'</c> carrier into its record image — <c>ceil(count / 8)</c>
+    /// characters, high-order bit first, trailing filler bits zero. Any character other than <c>'1'</c> reads as
+    /// zero, which makes a space-padded or uninitialized carrier decode as the all-zero boolean value §2023:13.18.63
+    /// gives it rather than throwing.</summary>
     public static string Pack(string bits, int count)
     {
         // ⛔ ONE bit-order law, and no extra allocation to get it: the fresh image is all-zero, so blitting only

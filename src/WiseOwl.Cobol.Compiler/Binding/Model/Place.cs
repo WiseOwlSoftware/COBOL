@@ -1221,6 +1221,13 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
     /// must answer NO here, and every "is this a whole item" test is one reading of this (kb/Work PB602).</summary>
     public override DataItem? DenotedItem => null;
 
+    /// <summary>The category of THIS view's unique data item — <see cref="CategoryOf"/> over the inner item's
+    /// PICTURE, or ALPHANUMERIC for a ref-modified GROUP (§2023:8.4.3.3.3 SR1 "an alphanumeric group item"; a bit group
+    /// or national group would be boolean / national by SR1's last sentence once GROUP-USAGE is modelled — kb/Work
+    /// PB79). ⛔ THE ONE READER for consumers that hold a <see cref="RefModPlace"/> (kb/Work PB70): six of them
+    /// each re-spelled "Pic is {} ip ? CategoryOf(ip) : Alphanumeric", and one returned null for a group.</summary>
+    public PicCategory Category => Inner.Item.OperandPic is { } ip ? CategoryOf(ip) : PicCategory.Alphanumeric;   // a bit / national group is "treated as elementary" (§2023:8.4.3.3.3 SR1 last sentence; D20)
+
     /// <summary>
     /// The CATEGORY of the unique data item reference modification creates — <b>ISO §2023:8.4.3.3.4 GR6, verbatim</b>:
     /// "The unique data item has the same class, category, and usage as that defined for identifier-1, except
@@ -1275,13 +1282,6 @@ public sealed record RefModPlace(Place Inner, Position Start, Position? Length) 
     /// <see cref="PicCategory"/> member, both arms must appear here**, which is why they are named rather than
     /// silently absent.
     /// </remarks>
-    /// <summary>The category of THIS view's unique data item — <see cref="CategoryOf"/> over the inner item's
-    /// PICTURE, or ALPHANUMERIC for a ref-modified GROUP (§2023:8.4.3.3.3 SR1 "an alphanumeric group item"; a bit group
-    /// or national group would be boolean / national by SR1's last sentence once GROUP-USAGE is modelled — kb/Work
-    /// PB79). ⛔ THE ONE READER for consumers that hold a <see cref="RefModPlace"/> (kb/Work PB70): six of them
-    /// each re-spelled "Pic is {} ip ? CategoryOf(ip) : Alphanumeric", and one returned null for a group.</summary>
-    public PicCategory Category => Inner.Item.OperandPic is { } ip ? CategoryOf(ip) : PicCategory.Alphanumeric;   // a bit / national group is "treated as elementary" (§2023:8.4.3.3.3 SR1 last sentence; D20)
-
     public static PicCategory CategoryOf(PicInfo inner) => inner.Category switch
     {
         // GR6 c — numeric and numeric-edited become national under a national usage, alphanumeric otherwise.

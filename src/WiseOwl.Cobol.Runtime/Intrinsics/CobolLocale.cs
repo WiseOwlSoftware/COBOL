@@ -179,9 +179,6 @@ public static class CobolLocale
     /// the sequence itself at use (<see cref="LocaleCollation.Resolve"/>).</summary>
     private static LocaleCollation Sequence(string localeTag, string fn) => new(localeTag);
 
-    /// <summary>The facts of the named (else current) locale for <paramref name="category"/>: EC-LOCALE-MISSING for an
-    /// unavailable named locale (the root's facts stand when checking is off); EC-LOCALE-INVALID when the locale has
-    /// no culture data for the category (the invariant facts stand).</summary>
     /// <summary>The facts of a function's locale — locale-name-1's when given, else the locale CURRENT for the category
     /// (§2023:14.6.6 r7/r8) — through the ONE §2023:8.2.1 gate (<see cref="LocaleFacts.Require"/>): EC-LOCALE-MISSING for an
     /// unavailable named locale (the rule each function states — §2023:15.51.4 r3, §2023:15.52.4 r1, §2023:15.53.4 r1, §2023:15.54.4 r1;

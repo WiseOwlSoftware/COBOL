@@ -764,9 +764,6 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
 
     // ── The EC-OVERFLOW family (STRING/UNSTRING, §2023:14.9.43 GR8b / §2023:14.9.48 GR16b) ─────────────────────────────
 
-    /// <summary>Emit the EC-OVERFLOW-STRING/-UNSTRING raise after the kernel latched <paramref name="ovfFlag"/>:
-    /// set the last exception status; without an ON OVERFLOW phrase run the F3 selection (nonfatal — execution
-    /// continues either way, §2023:14.6.13.1.4 #3/#4).</summary>
     /// <summary>Is <paramref name="ecName"/> enabled at the statement currently being emitted (§2023:7.3.25.4 GR6, as
     /// folded at bind time into the <see cref="BoundEcChecked"/> wrapper)? The ONE question every
     /// CHECKING-GATED emission asks before writing a raise site, so "emit nothing when checking is off" is one
@@ -774,6 +771,9 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     public bool EnabledHere(string ecName) =>
         ecState.Info is { } info && info.Enabled.Any(p => p.Ec == ecName);
 
+    /// <summary>Emit the EC-OVERFLOW-STRING/-UNSTRING raise after the kernel latched <paramref name="ovfFlag"/>:
+    /// set the last exception status; without an ON OVERFLOW phrase run the F3 selection (nonfatal — execution
+    /// continues either way, §2023:14.6.13.1.4 #3/#4).</summary>
     public void EmitOverflow(string ovfFlag, string ecName, bool hasPhrase)
     {
         if (!EnabledHere(ecName)) return;

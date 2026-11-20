@@ -21,9 +21,6 @@ public sealed partial class SymbolTable
         _cds.TryAdd(Key(description.Name), description);
     }
 
-    /// <summary>Whether <paramref name="qualifier"/>, written as the outermost qualifier of a data reference, is a cd-name
-    /// (ISO/IEC 1989:2002 8.4.1.1.1's file-cd-report-qualifier), and if so whether its communication description describes
-    /// the record <paramref name="root"/>; null when the word is no cd-name.</summary>
     /// <summary>Does another field of one CD entry already carry the data-name <paramref name="name"/> that a clause or a series
     /// member gives <paramref name="field"/>? The data-names of a CD entry are unique within it (§1985:XIV.2.2.3 SR6, SR10,
     /// SR15; ISO/IEC 1989:2002 A.1.2.2): a declaration question, asked by <c>CommunicationSectionBinder.ReadClauses</c> of the
@@ -34,6 +31,9 @@ public sealed partial class SymbolTable
         return fieldNames.Any(n => n.Key != field && Key(n.Value) == key);
     }
 
+    /// <summary>Whether <paramref name="qualifier"/>, written as the outermost qualifier of a data reference, is a cd-name
+    /// (ISO/IEC 1989:2002 8.4.1.1.1's file-cd-report-qualifier), and if so whether its communication description describes
+    /// the record <paramref name="root"/>; null when the word is no cd-name.</summary>
     internal bool? CdQualifies(string qualifier, DataItem root) =>
         _cds.TryGetValue(Key(qualifier), out var cd) ? cd.Describes(root) : null;
 }

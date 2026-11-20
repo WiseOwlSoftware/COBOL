@@ -45,8 +45,8 @@ internal sealed class PhysicalModel(EmitContext ctx)
 
     /// <summary>A field that physically appears in the emitted C# — an item's own field, OR a REDEFINES class's single
     /// string backing (which replaces ALL the class's members). A REDEFINES <i>view</i> yields no physical field
-    /// (ISO §2023:13.18.44; DESIGN §4.1 — never two stored fields per storage area).</summary>
-    /// <summary>One emitted struct field. <paramref name="Width"/> is the field's TOTAL contribution to its group's
+    /// (ISO §2023:13.18.44; DESIGN §4.1 — never two stored fields per storage area).
+    /// One emitted struct field. <paramref name="Width"/> is the field's TOTAL contribution to its group's
     /// character image — element-image-width × <paramref name="Occurs"/> for a fixed-OCCURS table, else the item's own
     /// image width. <paramref name="Occurs"/> is the fixed occurrence count (0 = not a table), so the image facility
     /// knows to concat/distribute across the array's elements. <paramref name="NumLeaf"/> is the source leaf when the

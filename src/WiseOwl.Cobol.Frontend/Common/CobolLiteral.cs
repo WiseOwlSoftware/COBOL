@@ -5,6 +5,14 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Common;
 
+/// <summary>The class of a quoted literal (ISO §2023:8.3.3.2 / §2023:8.3.3.4 / §2023:8.3.3.5) — what <see cref="CobolLiteral.ClassOf"/>
+/// answers from the prefix. Front-end-side (no PICTURE model here); the binder maps it onto its data category.</summary>
+public enum LiteralClass { Alphanumeric, National, Boolean }
+
+/// <summary>Which of a literal's own §2023:8.3.3 syntax rules <see cref="CobolLiteral.SyntaxViolation"/> found violated: the
+/// prefixed formats' content repertoire, the hexadecimal grouping, or the length.</summary>
+public enum LiteralRule { Repertoire, HexGrouping, Length }
+
 /// <summary>
 /// The ONE COBOL string-literal codec (ISO/IEC 1989:2023 §2023:8.3.3.1 — the quotation-mark (<c>"…"</c>) and
 /// apostrophe (<c>'…'</c>) delimiter forms are EQUAL-STANDING; the delimiters are not part of the value, and a
@@ -14,14 +22,6 @@ namespace WiseOwl.Cobol.Common;
 /// twins AND — the confirmed silent-miscompile fix — the hard-coded <c>'"'</c>-only guards that used to gate whether
 /// to decode, so an apostrophe-delimited <c>VALUE 'x'</c> no longer falls through to raw text (DESIGN-data-model §2.8).
 /// </summary>
-/// <summary>The class of a quoted literal (ISO §2023:8.3.3.2 / §2023:8.3.3.4 / §2023:8.3.3.5) — what <see cref="CobolLiteral.ClassOf"/>
-/// answers from the prefix. Front-end-side (no PICTURE model here); the binder maps it onto its data category.</summary>
-public enum LiteralClass { Alphanumeric, National, Boolean }
-
-/// <summary>Which of a literal's own §2023:8.3.3 syntax rules <see cref="CobolLiteral.SyntaxViolation"/> found violated: the
-/// prefixed formats' content repertoire, the hexadecimal grouping, or the length.</summary>
-public enum LiteralRule { Repertoire, HexGrouping, Length }
-
 public static class CobolLiteral
 {
     /// <summary>The prefix letters a quoted literal may carry: <c>N</c> national (§2023:8.3.3.5), <c>B</c> boolean
@@ -34,8 +34,6 @@ public static class CobolLiteral
     /// </remarks>
     private const string PrefixLetters = "NnBbXx";
 
-    /// <summary>The prefix letter (upper-cased, <c>'\0'</c> when none) and the quoted body of a literal, or
-    /// <see langword="null"/> when <paramref name="raw"/> is not a quoted literal at all.</summary>
     /// <summary>The prefix as WRITTEN, upper-cased — <c>""</c>, <c>"N"</c>, <c>"B"</c>, <c>"X"</c>, <c>"NX"</c>
     /// or <c>"BX"</c> — and the quoted body; null when <paramref name="raw"/> is not a quoted literal.</summary>
     private static (string Prefix, string Body)? SplitLiteral(string raw)

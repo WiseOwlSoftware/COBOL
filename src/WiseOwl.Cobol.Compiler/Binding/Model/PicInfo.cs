@@ -71,7 +71,6 @@ public enum PicCategory
 /// signed numeric item with the NEAREST enclosing clause taking precedence (§2023:13.18.52 GR1–3).</summary>
 public sealed record SignSpec(bool Leading, bool Separate);
 
-/// <summary>The physical representation a <c>USAGE</c> clause selects.</summary>
 /// <summary>The GROUP-USAGE clause (ISO §2023:13.18.29; data-model design D20; kb/Work PB79): None for an ordinary
 /// group — "an alphanumeric group item" (GR3) — Bit / National for a bit group / national group, declared by the
 /// clause or implied for every group subordinate to one (SR2/SR3).</summary>
@@ -87,6 +86,7 @@ public enum GroupUsage
     National,
 }
 
+/// <summary>The physical representation a <c>USAGE</c> clause selects.</summary>
 public enum Usage
 {
     /// <summary>USAGE DISPLAY (the default) — character form.</summary>

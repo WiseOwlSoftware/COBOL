@@ -492,9 +492,6 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             : new BoundEcChecked(bound, info);
     }
 
-    /// <summary>The §2023:15.30.3 r2 location string for a statement on <paramref name="line"/>:
-    /// "element-name; paragraph[ OF section]|section; line-id" (the line-id is the final preprocessed-text line
-    /// number — the implementor-defined identifier of the source line).</summary>
     /// <summary>The §2023:15.30.3 r2b location string (kb/Work PB63): part 1 the element name — "as specified in the
     /// FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph of the function, method, or program containing the
     /// statement", so a statement inside a METHOD names the method, not its class; part 2 the procedure field —

@@ -636,16 +636,16 @@ public sealed class CompileTimeExpressionEvaluator
         return any;
     }
 
-    /// <summary>The sole (unqualified, unsubscripted) data reference an arithmetic expression consists of, or null
-    /// — through <see cref="SoleOperand"/>, THE ONE single-child descent (kb/Work PB224). It was the last
-    /// surviving copy of that walk and it survived the PB172 collapse only because the other five lived in
-    /// <c>WiseOwl.Cobol.Compiler</c>, which this assembly cannot reference; the shared body therefore moved HERE,
-    /// where the parse trees are defined.</summary>
     /// <summary>True for a name that resolves to nothing because its own definition was refused and reported
     /// (<c>isRefusedName</c> of the constructor). Asked at every site that would otherwise report an undefined or
     /// wrong-category name, so the cascade is cut at the one place a name is read (kb/Work PB3119).</summary>
     private bool IsRefusedName(Core.CobolWordContext name) => _isRefusedName?.Invoke(name.GetText()) == true && _resolveName(name) is null;
 
+    /// <summary>The sole (unqualified, unsubscripted) data reference an arithmetic expression consists of, or null
+    /// — through <see cref="SoleOperand"/>, THE ONE single-child descent (kb/Work PB224). It was the last
+    /// surviving copy of that walk and it survived the PB172 collapse only because the other five lived in
+    /// <c>WiseOwl.Cobol.Compiler</c>, which this assembly cannot reference; the shared body therefore moved HERE,
+    /// where the parse trees are defined.</summary>
     private static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr) =>
         SoleOperand.DataRef(expr);
 

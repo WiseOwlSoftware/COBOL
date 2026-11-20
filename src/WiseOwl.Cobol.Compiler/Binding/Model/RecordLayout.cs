@@ -7,6 +7,10 @@ using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Model;
 
+/// <summary>The three measures the limit on one data item is decided over (<see cref="RecordLayout.ExceedsSizeLimit"/>): its image in
+/// character positions, its storage extent in bytes with every overlay, and the elementary items it holds.</summary>
+internal readonly record struct ItemMeasures(long Image, long Extent, long Elementary);
+
 /// <summary>
 /// The ONE physical offset/width authority over a record tree (rearchitecture PHASE 05; DESIGN-data-model §2.6).
 /// PHASE-FREE since P5 Step 8: leaf widths come from the DECLARED shape (<c>DataItem.ElementaryImageWidth</c>, a
@@ -25,10 +29,6 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// description entry are implicitly referenced as keys for all other record description entries";
 /// §2023:14.9.41.3 SR6b — leftmost character position correspondence).</para>
 /// </summary>
-/// <summary>The three measures the limit on one data item is decided over (<see cref="RecordLayout.ExceedsSizeLimit"/>): its image in
-/// character positions, its storage extent in bytes with every overlay, and the elementary items it holds.</summary>
-internal readonly record struct ItemMeasures(long Image, long Extent, long Elementary);
-
 internal static class RecordLayout
 {
     /// <summary>⛔ THE ONE WIDTH RULE of an item's character image — <c>DataItem.ImageWidth</c> IS this (kb/Work

@@ -160,10 +160,6 @@ internal sealed record RecordClauseRule(
 /// </summary>
 internal static class RecordClauseRules
 {
-    /// <summary>Every RECORD clause size syntax rule this compiler screens. ⛔ Order is significant only in that
-    /// a clause-level row is stated before the record-level rows it can make vacuous: an inverted range (SR5/SR9)
-    /// is reported once about the clause, and the record rows below still fire independently, because a record
-    /// that also fails SR4 fails it against a bound the program wrote and can act on.</summary>
     /// <summary>The whole of §2023:13.18.43.3 SR4, as the standard prints it — quoted ONCE and shipped by BOTH of
     /// its rows. The rule has two OBLIGATIONS and therefore two rows, but it is ONE sentence and the reader
     /// needs all of it to see which half was broken; the same sentence spelled into two message expressions
@@ -179,6 +175,10 @@ internal static class RecordClauseRules
         "data-name-1 shall describe an elementary unsigned integer in the "
         + edition.Edition.Cite("working-storage or linkage section", "working-storage, local-storage, or linkage section");
 
+    /// <summary>Every RECORD clause size syntax rule this compiler screens. ⛔ Order is significant only in that
+    /// a clause-level row is stated before the record-level rows it can make vacuous: an inverted range (SR5/SR9)
+    /// is reported once about the clause, and the record rows below still fire independently, because a record
+    /// that also fails SR4 fails it against a bound the program wrote and can act on.</summary>
     private static readonly RecordClauseRule[] Rules =
     [
         // ── FORMAT 1 (fixed-length) ──────────────────────────────────────────────────────────────────────────

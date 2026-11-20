@@ -58,9 +58,6 @@ internal sealed class InitialStateBackground(EmitContext ctx)
     private HashSet<DataItem>? _lsRoots;
     private IReadOnlyList<DataItem>? _lsSource;   // the list _lsRoots was built from — rebuilt when the activation changes
 
-    /// <summary>The §2023:11.9.10.4 GR5 specified-fill-character that applies to THIS item's initial state, or null
-    /// when no background applies to it — the ONE predicate, so section selectivity, the GR7 exclusion and the
-    /// no-clause case are answered once instead of once per storage arm.</summary>
     /// <summary>THE §2023:11.9.10.4 GR5 specified-fill-character of the clause itself, section selection aside — or
     /// null when there is no clause, or when its literal-1 was rejected by §2023:11.9.10.3 SR1 (a rejected clause
     /// behaves as an absent one rather than laying down a byte the program did not conformingly ask for).
@@ -93,6 +90,9 @@ internal sealed class InitialStateBackground(EmitContext ctx)
             $"OPTIONS INITIALIZE fill kind {unknown} has no ISO §2023:11.9.10.4 GR5 fill character; add its arm"),
     };
 
+    /// <summary>The §2023:11.9.10.4 GR5 specified-fill-character that applies to THIS item's initial state, or null
+    /// when no background applies to it — the ONE predicate, so section selectivity, the GR7 exclusion and the
+    /// no-clause case are answered once instead of once per storage arm.</summary>
     private char? FillFor(DataItem item)
     {
         if (ctx.CurrentOptions?.Initialize is not { } init) return null;   // GR6: no clause ⇒ implementor's choice

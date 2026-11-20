@@ -690,14 +690,6 @@ internal static class FileControlKeyRules
         new("a SHARING clause", Formats123, f => f.Sharing is not SharingMode.None),
     ];
 
-    /// <summary>⛔ THE UNBRACKETED MEMBERS OF THE FOUR GENERAL FORMATS (ISO §2023:12.4.5.1, kb/Work PB4236) — the clauses an
-    /// entry of the format shall specify. The old reading kept ONE of them, Format 1's RECORD KEY, as a row of the
-    /// key-operand table, and nothing screened the clause printed unbracketed in all four formats: a SELECT with no
-    /// ASSIGN compiled at every edition and bound the file to an invented <c>&lt;file-name&gt;.txt</c>. A requirement
-    /// stated by a general format has no numbered rule and no operand, so it is a row of its own table; the drift
-    /// test derives the set from the printed diagrams and refuses a line that opens unbracketed with no row.
-    /// <para>SELECT is also unbracketed, and is the entry itself. SORT-MERGE: Format 4 prints ASSIGN, and an SD's
-    /// entry is Format 4 (§2023:12.4.5.2 SR13), so the clause is required of it too.</para></summary>
     /// <summary>The general format of the file control entry of the 1985 module that holds a file of <paramref name="kind"/>: the
     /// sequential module's (§1985:VII.2.3.2) for a record or line sequential file, the relative (§1985:VIII.2.3.2), the indexed
     /// (§1985:IX.2.3.2) and the sort-merge (§1985:XI.2.3.2) module's for theirs (kb/Work PB4950). Each prints its required clauses
@@ -710,6 +702,14 @@ internal static class FileControlKeyRules
         _ => "§1985:VII.2.3.2",
     };
 
+    /// <summary>⛔ THE UNBRACKETED MEMBERS OF THE FOUR GENERAL FORMATS (ISO §2023:12.4.5.1, kb/Work PB4236) — the clauses an
+    /// entry of the format shall specify. The old reading kept ONE of them, Format 1's RECORD KEY, as a row of the
+    /// key-operand table, and nothing screened the clause printed unbracketed in all four formats: a SELECT with no
+    /// ASSIGN compiled at every edition and bound the file to an invented <c>&lt;file-name&gt;.txt</c>. A requirement
+    /// stated by a general format has no numbered rule and no operand, so it is a row of its own table; the drift
+    /// test derives the set from the printed diagrams and refuses a line that opens unbracketed with no row.
+    /// <para>SELECT is also unbracketed, and is the entry itself. SORT-MERGE: Format 4 prints ASSIGN, and an SD's
+    /// entry is Format 4 (§2023:12.4.5.2 SR13), so the clause is required of it too.</para></summary>
     private static readonly RequiredClause[] RequiredClauses =
     [
         new("ASSIGN", FileFormats.Format1 | FileFormats.Format2 | FileFormats.Format3 | FileFormats.Format4,

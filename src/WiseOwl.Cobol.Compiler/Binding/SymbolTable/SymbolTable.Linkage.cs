@@ -38,8 +38,9 @@ public sealed partial class SymbolTable
 
     /// <summary>The record among <paramref name="roots"/>, other than <paramref name="redefiner"/>, that its REDEFINES clause's
     /// data-name-2 names: an element's LINKAGE records, read while the header binds, before <c>LinkRedefinitionsPass</c> links
-    /// the redefinition (§2023:13.18.44.3 SR2: data-name-2 is the redefiner's own written word, never qualified, SR6). Null when the
-    /// item redefines nothing among them.</summary>
+    /// the redefinition. The search is among the level-01 and level-77 roots alone because "the level-numbers of data-name-2 and the
+    /// subject of the entry shall be identical" (§2023:13.18.44.3 SR2), and it compares the written word alone because
+    /// "Data-name-2 shall not be qualified" (SR6). Null when the item redefines nothing among them.</summary>
     internal static DataItem? RedefinedAmong(DataItem redefiner, IEnumerable<DataItem> roots)
     {
         if (redefiner.RedefinesTargetName is not { } target) return null;

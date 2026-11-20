@@ -15,120 +15,6 @@ namespace WiseOwl.Cobol.Runtime;
 public static partial class CobolIntrinsics
 {
     /// <summary>
-    /// THE one canonical double → scaled-long quantization (every floating-point intrinsic result funnels through
-    /// here — singular-pattern rule). <paramref name="scale"/> and <paramref name="mode"/> are the landing the
-    /// emitter chose, together, at <c>ReceiverContext.FloatLanding</c> — the resultant identifier's scale and the
-    /// statement's ROUNDED mode for a FINAL TRANSFER, the ≥ 9 working scale (hazard H1's floor) with TRUNCATION
-    /// for a nested intermediate.
-    /// <para>⛔ IT USED TO ROUND NEAREST-AWAY-FROM-ZERO UNCONDITIONALLY, ON THE RATIONALE THAT ROUNDING IS THE
-    /// BETTER APPROXIMATION (numeric-design hazard H2 — truncation turns the double artifact
-    /// LOG10(1000) = 2.9999999999999996 into 2.999999999). THAT RATIONALE IS RETIRED (kb/Work PB647). It is a
-    /// statement about the returned VALUE, which §2023:15.4.1's last paragraph does leave to the implementor; the
-    /// rounding of the TRANSFER into a resultant identifier is not left to the implementor — §2023:14.7.4.1 puts it
-    /// "relative to the size provided for the resultant identifier" and §2023:14.7.4.3 rule 2 makes a no-phrase store
-    /// TRUNCATION. Preferring the better approximation here meant `MOVE FUNCTION LOG10(1000) TO R` and
-    /// `COMPUTE R = FUNCTION LOG10(1000)` disagreed about ONE returned value, which §2023:15.4.1's identity sentence
-    /// forbids; when the two readings collide, the identity outranks the approximation, and a program that wants
-    /// the rounded landing writes ROUNDED — which on this family now actually does something.</para>
-    /// NaN (ACOS of |x|&gt;1, SQRT of a negative)
-    /// maps to the EC-ARGUMENT-FUNCTION default result 0 — §2023:15.3: "the implementor defines the result of the function
-    /// reference" while EC checking is disabled. ±∞ SATURATES to long.Max/MinValue: it is NOT necessarily a domain
-    /// error — a LEGAL class-numeric argument whose e**x / 10**x result merely overflows binary64 (EXP(710) ≈ 2.25e308
-    /// = +∞) is a genuine huge result under §2023:14.7.5 receiver handling, exactly like a FINITE over-range value
-    /// (EXP10(30)). The domain-edge −∞ of LOG(0)/LOG10(0) is a real §2023:15.55.3/§2023:15.56.3 violation and is caught at the
-    /// FUNCTION BODY (see <see cref="Float.Log"/>), never here — so this saturation cannot mask it. (CA24.)
-    /// <para>
-    /// ⛔ <b><paramref name="scale"/> IS NOT FREE — IT MUST BE THE RECEIVER'S OWN SCALE (<c>ReceiverContext.FloatLanding</c>,
-    /// kb/Work PB3829).</b> Landing AT the receiver's scale keeps a value that FITS the receiver inside the
-    /// <see cref="Int128"/> carrier, so the checked landing's raise past the carrier (kb/Work PB2967) is exactly "does
-    /// not fit any receiver". That is a property of the CALLER, not of this function — it cannot be checked here,
-    /// because a scaled unscaled-value carries no receiver; a landing at a WORKING scale above the receiver's, and a
-    /// later rescale down, is what used to hide the saturation sentinel this landing no longer produces.
-    /// </para>
-    /// </summary>
-    /// <remarks>
-    /// ⛔ RETURNS <see cref="Int128"/>, NOT <see cref="long"/> — and that is a CORRECTNESS fix, not a widening for
-    /// comfort (fix-queue PB5). The scaled domain of this compiler IS Int128 (every <c>…Scaled</c> body takes
-    /// one), but this function saturated at <c>long.MaxValue</c>. Its caller quantized at
-    /// <c>ws = max(Receiver.Scale, 9)</c> (kb/Work PB647 since landed at the resultant's own scale), so the old clamp bit at |value| ≈ <b>9.2 × 10⁹</b> — an utterly
-    /// ordinary COBOL magnitude. A twelve-digit money field is routine, and every float-family result at or above
-    /// that magnitude was silently replaced by 9223372036.85:
-    /// <code>
-    ///   01 R PIC 9(12)V99.
-    ///       COMPUTE R = FUNCTION ANNUITY(10000000000 1)   *> §2023:15.9.4 r1b gives exactly 10000000001.00
-    ///         ON SIZE ERROR ... NOT ON SIZE ERROR ...     *> prints NO SIZE ERROR
-    ///   R = 00922337203685
-    /// </code>
-    /// <c>SQRT(1e20)</c>, <c>EXP(23.3)</c>, <c>ABS</c> and <c>MAX</c> over a COMP-2 all produced the same constant.
-    /// No diagnostic, no size error — §2023:14.7.4 never saw an overflow because the value had already been clamped to
-    /// something that fits. §2023:15.4.1's native-arithmetic licence permits an implementor-defined APPROXIMATION of
-    /// the equivalent arithmetic expression; 9223372036.85 is not an approximation of 10000000001.
-    /// <para>
-    /// ⛔ <b>THE CLAIM THAT USED TO SIT HERE — "past the 10¹⁸ any PICTURE can describe, so the saturation is now
-    /// unreachable from a declarable receiver" — IS FALSE, AND BELIEVING IT IS WHY PB5 WAS RECORDED AS CLOSED.</b>
-    /// It is wrong twice over. (1) A PICTURE can describe far more than 10¹⁸: <c>PictureAnalyzer</c> caps digit
-    /// positions at 31 (CA33), so <c>PIC 9(31)</c> is legal and holds 10³⁰ comfortably. (2) The clamp does not
-    /// need a receiver at all — it fires at the FUNCTION's quantization point, before any store.
-    /// Both are reproduced (fix-queue PB13):
-    /// <code>
-    ///   01 R PIC 9(31).
-    ///       COMPUTE R = FUNCTION EXP(70) ON SIZE ERROR … NOT ON SIZE ERROR …
-    ///   -> prints NO SIZE ERROR;  R = 0170141183460469231731687303715
-    ///      where §2023:15.34.4 r1 + §2023:15.4.1 require ≈2.5154386709191670×10³⁰ — wrong by a factor of ~15, silently.
-    ///
-    ///   IF FUNCTION EXP10(30) = FUNCTION EXP10(31)   -> TRUE
-    ///   -> two values a FACTOR OF TEN apart compare equal, with no receiver in the statement: a relation
-    ///      operand renders under ReceiverContext.None, so ws = 9 and both sides saturate to Int128.MaxValue.
-    /// </code>
-    /// The saturation is therefore REACHABLE and SILENT, which is the defect PB5 fixed one instance of.
-    /// ⚠ Do not "fix" this by widening the clamp: at ws = 9 the intermediate needs
-    /// (receiver integer digits + 9) decimal digits, and Int128 supplies ~38, so a 31-digit receiver is 2 digits
-    /// short no matter what constant is chosen.
-    /// </para>
-    /// <para>
-    /// ✅ <b>BOTH CASES ARE CLOSED, AND THE FIX IS ENTIRELY EMITTER-SIDE — WHICH THE QUEUE ENTRY SAID IT COULD NOT
-    /// BE.</b> Its recipe read "the runtime must stop silently saturating, which no emitter-side choice can
-    /// reach"; that followed from taking the only emitter lever to be the working SCALE. The actual lever is
-    /// WHETHER TO QUANTIZE AT ALL, and using it makes this function's saturation correct as it stands:
-    /// <list type="number">
-    ///   <item><b>With a receiver</b> — <c>ReceiverContext.FloatLanding</c> quantizes at the receiver's own scale, so
-    ///         a value that fits can no longer saturate, and a value that does not raises the size error at the
-    ///         landing (§2023:14.7.5 case 5: a native intermediate out of its implementor-defined range). <c>COMPUTE R = FUNCTION EXP(700)</c> into <c>PIC 9(31)</c> now reports
-    ///         SIZE ERROR where it used to store a saturated value silently. Nothing here had to change.</item>
-    ///   <item><b>With no receiver</b> — the render never reaches this function. §2023:15.4.1 leaves "the
-    ///         characteristics and representation of the returned value" to the implementor under native
-    ///         arithmetic, and WiseOwl COBOL's determination is that the float family's value IS a binary64; the
-    ///         quantization exists only to land it in a fixed-point receiver, whose scale defines it. A relation
-    ///         then compares natively (§2023:8.8.4.2.4) and the text channel renders through
-    ///         <c>CobolFloat.Display</c>, which is what docs/CONFORMANCE.md already required.</item>
-    /// </list>
-    /// ⚠ So this function is NOT the place to add a raise. Doing so would convert an EC-SIZE-TRUNCATION that the
-    /// capacity check already reports correctly into an EC-SIZE-OVERFLOW with different fatality, for no gain.
-    /// What keeps the guarantee true for the Int128 working-scale landing that remains (the SDIDI intermediate,
-    /// <c>ReceiverContext.WorkingScale</c>) is <c>FloatQuantizeHeadroomDriftTests</c>, which proves both invariants over
-    /// every legal picture shape and fails if a caller hand-rolls the working scale again.
-    /// </para>
-    /// </remarks>
-    /// <summary>
-    /// The EC-ARGUMENT-FUNCTION screen for a float-family result that is NOT quantized — the receiver-less and
-    /// float-receiver arms of <c>IntrinsicRenderer.RenderFloat</c>, which keep the value in binary64 (PB13).
-    /// <para>
-    /// ⛔ THIS EXISTS BECAUSE PB13 MOVED THE RAISE SITE OUT FROM UNDER THOSE ARMS. <see cref="FromDouble"/> is
-    /// where an out-of-domain NaN became the §2023:15.3 default result (or the raise, under checking), and keeping a
-    /// receiver-less render in binary64 skips it — so <c>COMPUTE R = FUNCTION ACOS(2)</c> yielded the default 0
-    /// while the receiver-less <c>IF FUNCTION ACOS(2) = 0</c> propagated a raw NaN and compared FALSE. Two things
-    /// were wrong with that: a function's returned value must not depend on the shape of its receiver (§2023:15.4 puts
-    /// it in a temporary of the function's own characteristics), and with EC-ARGUMENT-FUNCTION checking ENABLED
-    /// §2023:14.6.13.1 requires the condition to be RAISED — which cannot happen if nothing looks at the value.
-    /// </para>
-    /// <para>Found by the Phase-B refute stage on §2023:15.55 (LOG), against code landed the same day. The domain
-    /// violation itself is still caught at the FUNCTION BODY where the body can name its own rule (see
-    /// <see cref="Float.Log"/>, §2023:15.55.3 r2); this is the catch-all for the families whose out-of-domain result
-    /// is simply NaN — ACOS/ASIN of |x|&gt;1 (§2023:15.8.3/§2023:15.10.3), SQRT of a negative (§2023:15.84.3).</para>
-    /// <para>±∞ is deliberately NOT screened here, exactly as <see cref="FromDouble"/> does not screen it: an
-    /// overflowing EXP is a legal huge result, not a domain error (CA24).</para>
-    /// </summary>
-    /// <summary>
     /// ⛔ THE §2023:15.3 INTEGER-ARGUMENT LANDING (fix-queue PB22) — the ONE place a wide intrinsic argument narrows
     /// to the <c>long</c> the integer bodies take. The emitter used to write a bare <c>(long)(…)</c> over an
     /// <c>Int128</c>-typed expression, and <c>RoslynBackend</c> sets no <c>checkOverflow</c>, so that cast WRAPS
@@ -314,6 +200,25 @@ public static partial class CobolIntrinsics
         return d >= 1.7e38 ? Int128.MaxValue : d <= -1.7e38 ? Int128.MinValue : v.TruncatedInteger();
     }
 
+    /// <summary>
+    /// The EC-ARGUMENT-FUNCTION screen for a float-family result that is NOT quantized — the receiver-less and
+    /// float-receiver arms of <c>IntrinsicRenderer.RenderFloat</c>, which keep the value in binary64 (PB13).
+    /// <para>
+    /// ⛔ THIS EXISTS BECAUSE PB13 MOVED THE RAISE SITE OUT FROM UNDER THOSE ARMS. <see cref="FromDouble"/> is
+    /// where an out-of-domain NaN became the §2023:15.3 default result (or the raise, under checking), and keeping a
+    /// receiver-less render in binary64 skips it — so <c>COMPUTE R = FUNCTION ACOS(2)</c> yielded the default 0
+    /// while the receiver-less <c>IF FUNCTION ACOS(2) = 0</c> propagated a raw NaN and compared FALSE. Two things
+    /// were wrong with that: a function's returned value must not depend on the shape of its receiver (§2023:15.4 puts
+    /// it in a temporary of the function's own characteristics), and with EC-ARGUMENT-FUNCTION checking ENABLED
+    /// §2023:14.6.13.1 requires the condition to be RAISED — which cannot happen if nothing looks at the value.
+    /// </para>
+    /// <para>Found by the Phase-B refute stage on §2023:15.55 (LOG), against code landed the same day. The domain
+    /// violation itself is still caught at the FUNCTION BODY where the body can name its own rule (see
+    /// <see cref="Float.Log"/>, §2023:15.55.3 r2); this is the catch-all for the families whose out-of-domain result
+    /// is simply NaN — ACOS/ASIN of |x|&gt;1 (§2023:15.8.3/§2023:15.10.3), SQRT of a negative (§2023:15.84.3).</para>
+    /// <para>±∞ is deliberately NOT screened here, exactly as <see cref="FromDouble"/> does not screen it: an
+    /// overflowing EXP is a legal huge result, not a domain error (CA24).</para>
+    /// </summary>
     public static double RealResult(double d) => double.IsNaN(d)
         ? Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN result)")
         : d;
@@ -343,6 +248,112 @@ public static partial class CobolIntrinsics
         throw new Exceptions.CobolFatalException("EC-ARGUMENT-FUNCTION", why);
     }
 
+    /// <summary>
+    /// THE one canonical double → scaled-long quantization (every floating-point intrinsic result funnels through
+    /// here — singular-pattern rule). <paramref name="scale"/> and <paramref name="mode"/> are the landing the
+    /// emitter chose, together, at <c>ReceiverContext.FloatLanding</c> — the resultant identifier's scale and the
+    /// statement's ROUNDED mode for a FINAL TRANSFER, the ≥ 9 working scale (hazard H1's floor) with TRUNCATION
+    /// for a nested intermediate.
+    /// <para>⛔ IT USED TO ROUND NEAREST-AWAY-FROM-ZERO UNCONDITIONALLY, ON THE RATIONALE THAT ROUNDING IS THE
+    /// BETTER APPROXIMATION (numeric-design hazard H2 — truncation turns the double artifact
+    /// LOG10(1000) = 2.9999999999999996 into 2.999999999). THAT RATIONALE IS RETIRED (kb/Work PB647). It is a
+    /// statement about the returned VALUE, which §2023:15.4.1's last paragraph does leave to the implementor; the
+    /// rounding of the TRANSFER into a resultant identifier is not left to the implementor — §2023:14.7.4.1 puts it
+    /// "relative to the size provided for the resultant identifier" and §2023:14.7.4.3 rule 2 makes a no-phrase store
+    /// TRUNCATION. Preferring the better approximation here meant `MOVE FUNCTION LOG10(1000) TO R` and
+    /// `COMPUTE R = FUNCTION LOG10(1000)` disagreed about ONE returned value, which §2023:15.4.1's identity sentence
+    /// forbids; when the two readings collide, the identity outranks the approximation, and a program that wants
+    /// the rounded landing writes ROUNDED — which on this family now actually does something.</para>
+    /// NaN (ACOS of |x|&gt;1, SQRT of a negative)
+    /// maps to the EC-ARGUMENT-FUNCTION default result 0 — §2023:15.3: "the implementor defines the result of the function
+    /// reference" while EC checking is disabled. ±∞ SATURATES to long.Max/MinValue: it is NOT necessarily a domain
+    /// error — a LEGAL class-numeric argument whose e**x / 10**x result merely overflows binary64 (EXP(710) ≈ 2.25e308
+    /// = +∞) is a genuine huge result under §2023:14.7.5 receiver handling, exactly like a FINITE over-range value
+    /// (EXP10(30)). The domain-edge −∞ of LOG(0)/LOG10(0) is a real §2023:15.55.3/§2023:15.56.3 violation and is caught at the
+    /// FUNCTION BODY (see <see cref="Float.Log"/>), never here — so this saturation cannot mask it. (CA24.)
+    /// <para>
+    /// ⛔ <b><paramref name="scale"/> IS NOT FREE — IT MUST BE THE RECEIVER'S OWN SCALE (<c>ReceiverContext.FloatLanding</c>,
+    /// kb/Work PB3829).</b> Landing AT the receiver's scale keeps a value that FITS the receiver inside the
+    /// <see cref="Int128"/> carrier, so the checked landing's raise past the carrier (kb/Work PB2967) is exactly "does
+    /// not fit any receiver". That is a property of the CALLER, not of this function — it cannot be checked here,
+    /// because a scaled unscaled-value carries no receiver; a landing at a WORKING scale above the receiver's, and a
+    /// later rescale down, is what used to hide the saturation sentinel this landing no longer produces.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// ⛔ RETURNS <see cref="Int128"/>, NOT <see cref="long"/> — and that is a CORRECTNESS fix, not a widening for
+    /// comfort (fix-queue PB5). The scaled domain of this compiler IS Int128 (every <c>…Scaled</c> body takes
+    /// one), but this function saturated at <c>long.MaxValue</c>. Its caller quantized at
+    /// <c>ws = max(Receiver.Scale, 9)</c> (kb/Work PB647 since landed at the resultant's own scale), so the old clamp bit at |value| ≈ <b>9.2 × 10⁹</b> — an utterly
+    /// ordinary COBOL magnitude. A twelve-digit money field is routine, and every float-family result at or above
+    /// that magnitude was silently replaced by 9223372036.85:
+    /// <code>
+    ///   01 R PIC 9(12)V99.
+    ///       COMPUTE R = FUNCTION ANNUITY(10000000000 1)   *> §2023:15.9.4 r1b gives exactly 10000000001.00
+    ///         ON SIZE ERROR ... NOT ON SIZE ERROR ...     *> prints NO SIZE ERROR
+    ///   R = 00922337203685
+    /// </code>
+    /// <c>SQRT(1e20)</c>, <c>EXP(23.3)</c>, <c>ABS</c> and <c>MAX</c> over a COMP-2 all produced the same constant.
+    /// No diagnostic, no size error — §2023:14.7.4 never saw an overflow because the value had already been clamped to
+    /// something that fits. §2023:15.4.1's native-arithmetic licence permits an implementor-defined APPROXIMATION of
+    /// the equivalent arithmetic expression; 9223372036.85 is not an approximation of 10000000001.
+    /// <para>
+    /// ⛔ <b>THE CLAIM THAT USED TO SIT HERE — "past the 10¹⁸ any PICTURE can describe, so the saturation is now
+    /// unreachable from a declarable receiver" — IS FALSE, AND BELIEVING IT IS WHY PB5 WAS RECORDED AS CLOSED.</b>
+    /// It is wrong twice over. (1) A PICTURE can describe far more than 10¹⁸: <c>PictureAnalyzer</c> caps digit
+    /// positions at 31 (CA33), so <c>PIC 9(31)</c> is legal and holds 10³⁰ comfortably. (2) The clamp does not
+    /// need a receiver at all — it fires at the FUNCTION's quantization point, before any store.
+    /// Both are reproduced (fix-queue PB13):
+    /// <code>
+    ///   01 R PIC 9(31).
+    ///       COMPUTE R = FUNCTION EXP(70) ON SIZE ERROR … NOT ON SIZE ERROR …
+    ///   -> prints NO SIZE ERROR;  R = 0170141183460469231731687303715
+    ///      where §2023:15.34.4 r1 + §2023:15.4.1 require ≈2.5154386709191670×10³⁰ — wrong by a factor of ~15, silently.
+    ///
+    ///   IF FUNCTION EXP10(30) = FUNCTION EXP10(31)   -> TRUE
+    ///   -> two values a FACTOR OF TEN apart compare equal, with no receiver in the statement: a relation
+    ///      operand renders under ReceiverContext.None, so ws = 9 and both sides saturate to Int128.MaxValue.
+    /// </code>
+    /// The saturation is therefore REACHABLE and SILENT, which is the defect PB5 fixed one instance of.
+    /// ⚠ Do not "fix" this by widening the clamp: at ws = 9 the intermediate needs
+    /// (receiver integer digits + 9) decimal digits, and Int128 supplies ~38, so a 31-digit receiver is 2 digits
+    /// short no matter what constant is chosen.
+    /// </para>
+    /// <para>
+    /// ✅ <b>BOTH CASES ARE CLOSED, AND THE FIX IS ENTIRELY EMITTER-SIDE — WHICH THE QUEUE ENTRY SAID IT COULD NOT
+    /// BE.</b> Its recipe read "the runtime must stop silently saturating, which no emitter-side choice can
+    /// reach"; that followed from taking the only emitter lever to be the working SCALE. The actual lever is
+    /// WHETHER TO QUANTIZE AT ALL, and using it makes this function's saturation correct as it stands:
+    /// <list type="number">
+    ///   <item><b>With a receiver</b> — <c>ReceiverContext.FloatLanding</c> quantizes at the receiver's own scale, so
+    ///         a value that fits can no longer saturate, and a value that does not raises the size error at the
+    ///         landing (§2023:14.7.5 case 5: a native intermediate out of its implementor-defined range). <c>COMPUTE R = FUNCTION EXP(700)</c> into <c>PIC 9(31)</c> now reports
+    ///         SIZE ERROR where it used to store a saturated value silently. Nothing here had to change.</item>
+    ///   <item><b>With no receiver</b> — the render never reaches this function. §2023:15.4.1 leaves "the
+    ///         characteristics and representation of the returned value" to the implementor under native
+    ///         arithmetic, and WiseOwl COBOL's determination is that the float family's value IS a binary64; the
+    ///         quantization exists only to land it in a fixed-point receiver, whose scale defines it. A relation
+    ///         then compares natively (§2023:8.8.4.2.4) and the text channel renders through
+    ///         <c>CobolFloat.Display</c>, which is what docs/CONFORMANCE.md already required.</item>
+    /// </list>
+    /// ⚠ So this function is NOT the place to add a raise. Doing so would convert an EC-SIZE-TRUNCATION that the
+    /// capacity check already reports correctly into an EC-SIZE-OVERFLOW with different fatality, for no gain.
+    /// What keeps the guarantee true for the Int128 working-scale landing that remains (the SDIDI intermediate,
+    /// <c>ReceiverContext.WorkingScale</c>) is <c>FloatQuantizeHeadroomDriftTests</c>, which proves both invariants over
+    /// every legal picture shape and fails if a caller hand-rolls the working scale again.
+    /// </para>
+    /// <para>⛔ THE LANDING ROUNDS ONCE AND NOTHING CUTS IT AFTERWARDS, WHATEVER THE FUNCTION'S CODOMAIN (kb/Work
+    /// PB3829, overturning PB65's codomain clamp). A §15.x.4 returned-value rule bounds the RETURNED VALUE, the §2023:15.4
+    /// "temporary elementary data item" (§2023:15.8.4 r1: ACOS's "is greater than or equal to zero and less than or equal
+    /// to π"; §2023:15.75.4 r1: RANDOM's "is greater than or equal to zero and less than one"), and the binary64 this
+    /// family returns is always inside it. What the RESULTANT IDENTIFIER receives is a different value, governed by
+    /// §2023:14.9.8.4 r2 ("stored, in conformance with the specifications in 14.6.8, Alignment and transfer of data into
+    /// data items, 14.7.4, ROUNDED phrase, and 14.7.5, SIZE ERROR phrase and size error condition"): ROUNDED rounds the
+    /// returned value to the nearest value the receiver can represent (§2023:14.7.4.3 r4), which for ACOS(-1) at four places
+    /// is 3.1416 > π, and a rounded value the receiver cannot hold is a size error (§2023:14.7.5 3)), never a value cut back
+    /// inside the codomain. The clamp PB65 put here returned 3.1415 for <c>COMPUTE R ROUNDED = FUNCTION ACOS(-1)</c>
+    /// while <c>FUNCTION ACOS(-1) + 0</c> stored 3.1416, and turned RANDOM's size error into a silent 0.9999.</para>
+    /// </remarks>
     /// <param name="checkedLanding">The LANDING's form (kb/Work PB77 — the same two-form rule as
     /// <c>CobolFloat.ToScaled</c> / <c>ToScaledUnchecked</c> and <c>CobolDec.ToUnscaledChecked</c> / <c>ToUnscaled</c>):
     /// <c>true</c> under ON SIZE ERROR / EC-SIZE checking, where a value past the carrier RAISES the size error
@@ -364,17 +375,6 @@ public static partial class CobolIntrinsics
     /// emitter-side rule that chooses it: the resultant identifier's own mode for a final transfer
     /// (§2023:14.7.4.3 rule 2 — "If the ROUNDED phrase is not specified, execution is as if ROUNDED MODE IS TRUNCATION
     /// had been specified"), TRUNCATION for a nested intermediate. A new call site must decide, not inherit.</param>
-    /// <remarks>⛔ THE LANDING ROUNDS ONCE AND NOTHING CUTS IT AFTERWARDS, WHATEVER THE FUNCTION'S CODOMAIN (kb/Work
-    /// PB3829, overturning PB65's codomain clamp). A §15.x.4 returned-value rule bounds the RETURNED VALUE, the §2023:15.4
-    /// "temporary elementary data item" (§2023:15.8.4 r1: ACOS's "is greater than or equal to zero and less than or equal
-    /// to π"; §2023:15.75.4 r1: RANDOM's "is greater than or equal to zero and less than one"), and the binary64 this
-    /// family returns is always inside it. What the RESULTANT IDENTIFIER receives is a different value, governed by
-    /// §2023:14.9.8.4 r2 ("stored, in conformance with the specifications in 14.6.8, Alignment and transfer of data into
-    /// data items, 14.7.4, ROUNDED phrase, and 14.7.5, SIZE ERROR phrase and size error condition"): ROUNDED rounds the
-    /// returned value to the nearest value the receiver can represent (§2023:14.7.4.3 r4), which for ACOS(-1) at four places
-    /// is 3.1416 > π, and a rounded value the receiver cannot hold is a size error (§2023:14.7.5 3)), never a value cut back
-    /// inside the codomain. The clamp PB65 put here returned 3.1415 for <c>COMPUTE R ROUNDED = FUNCTION ACOS(-1)</c>
-    /// while <c>FUNCTION ACOS(-1) + 0</c> stored 3.1416, and turned RANDOM's size error into a silent 0.9999.</remarks>
     public static Int128 FromDouble(double d, int scale, CobolRounding mode, bool checkedLanding = false)
     {
         // EC-ARGUMENT-FUNCTION raise point (§2023:14.6.13.1.6 — the exception-condition table gives it Fatal): the

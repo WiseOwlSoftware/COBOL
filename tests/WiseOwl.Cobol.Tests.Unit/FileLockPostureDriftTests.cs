@@ -187,18 +187,6 @@ public sealed class FileLockPostureDriftTests
 
     // ── The file lock against everything that is not this run unit ──────────────────────────────────────────
 
-    /// <summary>⛔ THE MIRROR, and it needs no second process: a host share mode names no requester, so a handle
-    /// opened by this test is exactly as foreign to the connector's handle as one opened by another program.
-    /// §2023:9.1.15 1) — <i>"The sharing with no other mode specifies exclusive access to a physical file"</i> — with
-    /// two control arms, because the defect was a RELATIVE inversion and an absolute assertion about one mode
-    /// cannot see one: the clause-less arm is the posture PB740 left untouched (an open owner question), and
-    /// the ALL OTHER arm is §2023:9.1.15 3)'s <i>"allows concurrent access"</i>. Before the fix the three arms read
-    /// (refused, refused, refused) with NO OTHER the most permissive of them at the OS.
-    /// <para>⚠ THE ARMS ARE THE STANDARD'S; WHAT THE HOST CAN MAKE OF THEM IS MEASURED (kb/Work PB795). The
-    /// clause-less arm asserted that a <see cref="FileShare.Read"/> file lock refuses an outside WRITER, and on
-    /// a host whose sharing is one advisory lock with two states that refusal cannot exist —
-    /// <see cref="ExpectedOutsideWriter"/> is where the translation happens, and it degrades exactly one rule
-    /// on exactly the hosts that measurably cannot express it.</para></summary>
     /// <summary>The three §2023:9.1.15 sharing modes whose file lock is observable from outside, crossed with every
     /// §2023:9.1.6 organization — because §2023:9.1.15 names no organization and the rule was implemented in one
     /// (kb/Work PB771).</summary>
@@ -214,6 +202,18 @@ public sealed class FileLockPostureDriftTests
         return data;
     }
 
+    /// <summary>⛔ THE MIRROR, and it needs no second process: a host share mode names no requester, so a handle
+    /// opened by this test is exactly as foreign to the connector's handle as one opened by another program.
+    /// §2023:9.1.15 1) — <i>"The sharing with no other mode specifies exclusive access to a physical file"</i> — with
+    /// two control arms, because the defect was a RELATIVE inversion and an absolute assertion about one mode
+    /// cannot see one: the clause-less arm is the posture PB740 left untouched (an open owner question), and
+    /// the ALL OTHER arm is §2023:9.1.15 3)'s <i>"allows concurrent access"</i>. Before the fix the three arms read
+    /// (refused, refused, refused) with NO OTHER the most permissive of them at the OS.
+    /// <para>⚠ THE ARMS ARE THE STANDARD'S; WHAT THE HOST CAN MAKE OF THEM IS MEASURED (kb/Work PB795). The
+    /// clause-less arm asserted that a <see cref="FileShare.Read"/> file lock refuses an outside WRITER, and on
+    /// a host whose sharing is one advisory lock with two states that refusal cannot exist —
+    /// <see cref="ExpectedOutsideWriter"/> is where the translation happens, and it degrades exactly one rule
+    /// on exactly the hosts that measurably cannot express it.</para></summary>
     [Theory]
     [MemberData(nameof(EveryModeAndOrganization))]
     public void TheFileLockIsTheSharingMode_MeasuredFromOutsideTheConnector(

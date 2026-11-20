@@ -385,14 +385,6 @@ public static partial class CobolIntrinsics
     // ── NUMVAL / NUMVAL-C (ISO §2023:15.67 / §2023:15.68) ───────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// NUMVAL (§2023:15.67): parse the human-formatted numeric string to its value, returned as the unscaled long at
-    /// the compile-time <paramref name="scale"/> the emitter requested (≥ 6 — the hazard-H1 floor; parsing to
-    /// (unscaled, actual-scale) then rescaling is hazard H2's discipline). The §2023:15.67.3 formats: optional leading
-    /// sign OR trailing sign/CR/DB (case-insensitive), spaces ignored leading/trailing and before the first digit
-    /// (rule 2), one decimal separator — '.' normally, ',' under DECIMAL-POINT IS COMMA
-    /// (<paramref name="commaMode"/>, rule 5). Malformed content → the EC-ARGUMENT-FUNCTION default 0 (§2023:15.3).
-    /// </summary>
-    /// <summary>
     /// ⛔ THE NUMVAL-FAMILY DIGIT CAP — ONE RAISE SITE FOR THE VALUE-PRODUCING HALF (fix-queue PB33 + PB34).
     /// </summary>
     /// <remarks>

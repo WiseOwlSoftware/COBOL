@@ -667,11 +667,9 @@ internal static class RuntimeApi
     public static string NumRetainSign(string digits, string current, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.RetainSign)}({digits}, {current}, {profile})";
 
-    /// <summary>Rescale an unscaled value between fraction scales under a rounding mode — <c>CobolNum.Rescale</c>,
-    /// or the size-error-latching <c>CobolNum.RescaleChecked</c> when <paramref name="checkedPath"/>.</summary>
     /// <summary>The §2023:15.3 integer-argument landing (PB22) — <c>CobolIntrinsics.IntegerArg</c>, which RAISES on a
     /// value outside the <c>long</c> range instead of letting an unchecked cast wrap it past the function's own
-    /// range guard. <paramref name="real"/> selects the double-typed twin (distinct name, not an overload — an
+    /// range guard. A double-typed twin takes a distinct name, not an overload — an
     /// integer literal converts to both carriers and would be a CS0121 ambiguity).</summary>
     public static string IntegerArg(string value) =>
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.IntegerArg)}({value})";

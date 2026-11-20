@@ -676,17 +676,6 @@ public sealed class FileAuthorityPresenceTests : IDisposable
             $"chmod 000 on {witness} (read back: {fileSet}) and on {dir} (read back: {dirSet}).");
     }
 
-    /// <summary>Create <c>readonly.dat</c>, make it unwritable to this process while leaving it PRESENT and
-    /// fully observable, and return its path — the precondition of §2023:14.9.27.4 GR16 and §2023:9.1.13.6 item 6 a),
-    /// actually established — or <c>null</c> when this host did not refuse the write. <see cref="_denial"/>
-    /// carries the classification either way.
-    /// <para>This is deliberately NOT <see cref="Refused"/>'s denial: that one hides the file from the presence
-    /// probe, which is GR3's precondition and a different rule. GR16's file is one the process can see, stat
-    /// and read perfectly — the '37' has to come from the write capability alone, so the two probes must give
-    /// different answers on it. The denial is verified with a RAW write open, never with
-    /// <c>HostFile.PermitsWrite</c>: checking the precondition with the subject under test would let a broken
-    /// subject certify its own premise. A <c>null</c> return is asserted about, not assumed — see
-    /// <see cref="NoPrecondition"/> and <see cref="TheCapabilityHelpersWorkOnThisHost"/>.</para></summary>
     /// <summary>⛔ THE WITNESS HAS TO BE A FILE THE ORGANIZATION UNDER TEST CAN ACTUALLY INTERPRET, or the test
     /// establishes TWO contradictions and measures the wrong one. Every witness here used to be the plain text
     /// <c>"HELLO-RECORD-0001"</c>, shared by all three organizations; since kb/Work PB802 a RELATIVE or INDEXED
@@ -709,6 +698,17 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         reg.Close("F");
     }
 
+    /// <summary>Create <c>readonly.dat</c>, make it unwritable to this process while leaving it PRESENT and
+    /// fully observable, and return its path — the precondition of §2023:14.9.27.4 GR16 and §2023:9.1.13.6 item 6 a),
+    /// actually established — or <c>null</c> when this host did not refuse the write. <see cref="_denial"/>
+    /// carries the classification either way.
+    /// <para>This is deliberately NOT <see cref="Refused"/>'s denial: that one hides the file from the presence
+    /// probe, which is GR3's precondition and a different rule. GR16's file is one the process can see, stat
+    /// and read perfectly — the '37' has to come from the write capability alone, so the two probes must give
+    /// different answers on it. The denial is verified with a RAW write open, never with
+    /// <c>HostFile.PermitsWrite</c>: checking the precondition with the subject under test would let a broken
+    /// subject certify its own premise. A <c>null</c> return is asserted about, not assumed — see
+    /// <see cref="NoPrecondition"/> and <see cref="TheCapabilityHelpersWorkOnThisHost"/>.</para></summary>
     private string? NotWritable(string organization = "seq")
     {
         string witness = Path.Combine(_root, $"readonly-{organization}.dat");
