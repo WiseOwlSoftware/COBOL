@@ -3562,7 +3562,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Order two operand VALUES: negative / zero / positive as the first is less than, equal to or
     /// greater than the second, and NULL when either names no value the compiler can weigh or the two are not
     /// comparable at all. A character pair is ordered by §2023:14.7.8 GR2's sequence
-    /// (<see cref="ConditionValueOrder"/>), an algebraic pair by rule 1's algebraic order.
+    /// (<see cref="ConditionValueOrder"/>), an algebraic pair by §2023:14.7.8 GR1's algebraic order.
     /// <para>A MIXED pair reaching here means the entry already violates the category funnel (§2023:13.18.63.3
     /// SR2/SR4/SR5/SR10, reported by <c>ValidateValueCategory</c>) on a subject whose two spellings have no common
     /// domain — so it answers "unknown" rather than inventing a conversion. The numeric-edited subject, where

@@ -33,6 +33,12 @@ public sealed class HtmlListingRendererTests
     private static string Span(XElement line, string cssClass) =>
         line.Elements("span").Single(e => (string?)e.Attribute("class") == cssClass).Value;
 
+    /// <summary>An object-code cell's nesting depth: its left padding in columns, two a level, none at depth 0.</summary>
+    private static int DepthOf(XElement cell) => cell.Attribute("style")?.Value is { } style
+        ? int.Parse(style.Replace("padding-left:", "", StringComparison.Ordinal).Replace("ch", "", StringComparison.Ordinal),
+            System.Globalization.CultureInfo.InvariantCulture) / 2
+        : 0;
+
     private static bool HasClass(XElement element, string cssClass) =>
         ((string?)element.Attribute("class") ?? "").Split(' ').Contains(cssClass);
 
@@ -188,10 +194,20 @@ public sealed class HtmlListingRendererTests
             var method = document.ObjectCode.Methods.Single(m => m.Id == ranges[i].Method);
             Assert.Equal($"col {ranges[i].Column}  {method.Type}::{method.Name}  IL_{ranges[i].Start:X4}-IL_{ranges[i].End:X4}",
                 objectCode[i].Element("summary")!.Value);
-            Assert.Equal(ranges[i].Instructions?.Count ?? 0, objectCode[i].Descendants("tr").Count());
+            Assert.Equal(ranges[i].Instructions?.Count ?? 0, objectCode[i].Descendants("tr").Count(tr => !HasClass(tr, "rg")));
+            Assert.Equal(ranges[i].Regions?.Count ?? 0, objectCode[i].Descendants("tr").Count(tr => HasClass(tr, "rg")));
         }
         Assert.Equal(document.ObjectCode.Ranges[0].Instructions!.Select(x => x.OpCode),
-            objectCode[0].Descendants("tr").Select(tr => tr.Elements("td").ElementAt(1).Value));
+            objectCode[0].Descendants("tr").Where(tr => !HasClass(tr, "rg")).Select(tr => tr.Elements("td").ElementAt(1).Value));
+        // The method's exception-handling lines among the instructions (kb/Work PB5951), as ILDASM prints them (ECMA-335 II.19), in the
+        // order the stretch holds them: each before the first instruction at or after its offset (the fixture's marks, by hand: two
+        // .try at 0, the catch's end of try and handler at 6, the handler's and the filter clause's try end and its filter at 11), the
+        // ones past the last instruction after it; each row indented by its depth (two columns a level, none at depth 0), an
+        // instruction one level inside the last line that opened a block.
+        Assert.Equal(
+            ["0 .try {", "1 .try {", "2 op", "2 op", "1 } // end .try", "1 catch System.Exception {", "2 op", "1 } // end handler",
+             "0 } // end .try", "0 filter {", "1 op", "0 } // end filter", "0 { // handler", "0 } // end handler"],
+            objectCode[0].Descendants("tr").Select(tr => DepthOf(tr.Element("td")!) + " " + (HasClass(tr, "rg") ? tr.Value : "op")));
     }
 
     /// <summary>ONE COPY OF THE INSTRUCTIONS (DESIGN-listing.md section 7.2; kb/Work PB5941): with the source and the object-code sections
@@ -204,7 +220,10 @@ public sealed class HtmlListingRendererTests
         var ranges = document.ObjectCode!.Ranges;
         int instructions = ranges.Sum(r => r.Instructions?.Count ?? 0);
         var page = Page(document);
-        Assert.Equal(instructions, page.Descendants("table").Where(t => HasClass(t, "il")).Sum(t => t.Descendants("tr").Count()));
+        // (kb/Work PB5951:) the region lines stand among them, once each as well, in rows of their own class.
+        var rows = page.Descendants("table").Where(t => HasClass(t, "il")).SelectMany(t => t.Descendants("tr")).ToList();
+        Assert.Equal(instructions, rows.Count(tr => !HasClass(tr, "rg")));
+        Assert.Equal(ranges.Sum(r => r.Regions?.Count ?? 0), rows.Count(tr => HasClass(tr, "rg")));
         var code = ById(page, HtmlListingRenderer.SectionId(ListingSection.ObjectCode));
         Assert.Empty(code.Descendants("table"));
         for (int i = 1; i <= ranges.Count; i++)
@@ -213,16 +232,16 @@ public sealed class HtmlListingRendererTests
             Assert.Equal("details", block.Name.LocalName);
             Assert.Equal(HtmlListingRenderer.LineId(ranges[i - 1].Line), ((XElement)block.Parent!.Nodes().TakeWhile(n => n != block).OfType<XElement>()
                 .Last(e => HasClass(e, "ln"))).Attribute("id")!.Value);
-            Assert.Equal(ranges[i - 1].Instructions?.Count ?? 0, block.Descendants("tr").Count());
+            Assert.Equal(ranges[i - 1].Instructions?.Count ?? 0, block.Descendants("tr").Count(tr => !HasClass(tr, "rg")));
             Assert.Contains(code.Descendants("a"), a => (string?)a.Attribute("href") == "#" + HtmlListingRenderer.RangeId(i));
         }
 
         var noSource = document with { Lines = [], Displays = [], Sections = [.. document.Sections.Where(s => s.Section != ListingSection.Source)] };
         var withoutSource = Page(noSource);
         var codeAlone = ById(withoutSource, HtmlListingRenderer.SectionId(ListingSection.ObjectCode));
-        Assert.Equal(instructions, codeAlone.Descendants("table").Where(t => HasClass(t, "il")).Sum(t => t.Descendants("tr").Count()));
+        Assert.Equal(instructions, codeAlone.Descendants("table").Where(t => HasClass(t, "il")).Sum(t => t.Descendants("tr").Count(tr => !HasClass(tr, "rg"))));
         Assert.Equal(ranges[0].Instructions!.Select(x => x.OpCode),
-            codeAlone.Descendants("tr").Select(tr => tr.Elements("td").ElementAt(1).Value));
+            codeAlone.Descendants("tr").Where(tr => !HasClass(tr, "rg")).Select(tr => tr.Elements("td").ElementAt(1).Value));
     }
 
     /// <summary>Section 7.2: "A DISPLAY transfer stands outside any collapsed block (§2023:7.3.12.4 GR2)", which says the transfer takes

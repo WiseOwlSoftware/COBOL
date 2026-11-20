@@ -21,8 +21,10 @@ cases ===` after the operand conversion and again after the last move.
 
 **Review leads fixed here.** The 2023 rule against a MERGE inside another SORT or MERGE procedure now reports through its register
 row's verdict, so it carries that row's edition flag and the listing counts it among the flagged constructs (lead pb5947 R1-2).
-`EditionFlagDriftTests` now also refuses a hand-reported code that a removed or obsolete row pins. A planted line shows the new check
-can fail. The HTML listing's script resolves the URL fragment once (lead pb5948 R1-1). A doc comment names the right test (pb5947 R1-1).
+`EditionFlagDriftTests` now also refuses a hand-reported code that a removed row pins. kb/Work PB5951's lead sweep fixed the same two leads
+while this branch ran; the merge of main keeps its one mechanism (the scan reads its codes from the rows; the obsolete-only rows
+pin only COBOL0903 and COBOL0900, so the two scans covered the same codes) and its fragment reading, which also survives a
+malformed escape. The HTML listing's script resolves the URL fragment once (lead pb5948 R1-1). A doc comment names the right test (pb5947 R1-1).
 
 **What remains.** Part B's second half (the data-entry operands OCCURS KEY, RENAMES and SAME AS, the qualification walks moved into the
 table, the procedure division's word probes and ambiguity counts), then the declarations (C) and the data-names' entry ids (D).

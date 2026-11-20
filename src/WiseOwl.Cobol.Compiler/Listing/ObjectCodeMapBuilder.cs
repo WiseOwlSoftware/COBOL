@@ -50,12 +50,33 @@ internal static class ObjectCodeMapBuilder
         var methodIds = new Dictionary<int, int>();
         foreach (int method in placed.Select(p => p.Point.Method).Distinct().Order()) methodIds[method] = methodIds.Count + 1;
         var methods = methodIds.Select(m => (Id: m.Value, Method: facts.Methods[m.Key]))
-            .Select(m => new ListingMethod(m.Id, m.Method.Token, m.Method.Type, m.Method.Name, m.Method.CodeSize)).ToList();
+            .Select(m => new ListingMethod(m.Id, m.Method.Token, m.Method.Type, m.Method.Name, m.Method.CodeSize, m.Method.Regions)).ToList();
+        var regions = RegionLines(facts, placed.Select(p => p.Point));
         var ranges = placed
             .OrderBy(p => p.Line).ThenBy(p => p.Column).ThenBy(p => p.Point.Method).ThenBy(p => p.Point.Start)
-            .Select(p => new ListingObjectRange(p.Line, p.Column, methodIds[p.Point.Method], p.Point.Start, p.Point.End, p.Point.Instructions))
+            .Select(p => (Placed: p, Lines: regions[p.Point]))
+            .Select(p => new ListingObjectRange(p.Placed.Line, p.Placed.Column, methodIds[p.Placed.Point.Method], p.Placed.Point.Start,
+                p.Placed.Point.End, p.Placed.Point.Instructions, p.Placed.Point.Instructions is null ? null : p.Lines.Marks, p.Lines.Depth))
             .ToList();
         return new ListingObjectCodeMap(assembly, methods, ranges);
+    }
+
+    /// <summary>The exception-handling lines each placed point's stretch prints, and the depth it begins at (kb/Work PB5951): each method's
+    /// clauses laid out once (<see cref="ExceptionRegionLayout.Marks"/>) and shared among its placed stretches in IL order
+    /// (<see cref="ExceptionRegionLayout.Place"/>), so a line of a stretch the map leaves out prints in a neighbour.</summary>
+    private static Dictionary<ObjectSequencePoint, (IReadOnlyList<ListingRegionMark> Marks, int Depth)> RegionLines(ObjectCodeFacts facts,
+        IEnumerable<ObjectSequencePoint> placed)
+    {
+        var lines = new Dictionary<ObjectSequencePoint, (IReadOnlyList<ListingRegionMark>, int)>(ReferenceEqualityComparer.Instance);
+        foreach (var method in placed.GroupBy(p => p.Method))
+        {
+            var info = facts.Methods[method.Key];
+            var stretches = method.OrderBy(p => p.Start).ToList();
+            var (marks, depths) = ExceptionRegionLayout.Place([.. stretches.Select(p => (p.Start, p.End))],
+                ExceptionRegionLayout.Marks(info.Regions, info.Type + "::" + info.Name), info.CodeSize);
+            for (int i = 0; i < stretches.Count; i++) lines[stretches[i]] = (marks[i], depths[i]);
+        }
+        return lines;
     }
 
     /// <summary>Which of <paramref name="lines"/> listing lines of one position each of its points goes to, the points given by their ends

@@ -71,6 +71,12 @@ public sealed class EditionGateArmDriftTests
             + "The two SENDER spellings that DO carry keywords (the ISO §2023:8.4.3.13 ADDRESS OF PROGRAM rule and "
             + "the Micro Focus / IBM TO ENTRY extension) bind to the same node and take the SAME id from this "
             + "one arm rather than a second, parse-arm gate — the Format-8 precedent exactly (kb/Work PB549)",
+        ["MergeInSortMergeProcRemoved2023"] =
+            "§2023:14.9.24.3 SR1 (kb/Work PB5951's lead sweep; listing step pb5947's review lead R1-2): a MERGE is the removed "
+            + "construct only \"in an output procedure of another MERGE statement\" or an input or output procedure of a file SORT, "
+            + "which the MERGE's own tokens never say: only the RESOLVED procedure ranges of every SORT and MERGE of the program "
+            + "(GateSortMergeProcedures' prohibited ranges over the bound paragraphs) place its paragraph inside one. The report "
+            + "had been made by hand beside the registry; it now takes the registry's verdict and flag, which made the gate visible",
         ["CallUsingGroupAnyLevel2002"] =
             "ISO/IEC 1989:2002 Annex F.2 item 10 (kb/Work PB4305): a CALL USING operand is the 85 restriction's subject "
             + "only when the item it RESOLVES to is a group whose level-number is not 01 or 77 — `CALL \"P\" USING H` "

@@ -184,7 +184,8 @@
       "preflight": {
         "WiseOwl.Cobol.Tests.Unit.RuntimeAbiPinDriftTests": "the runtime ABI pin (src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin): red when a shipped Runtime member moves and the pin was not bumped (kb/Work PB5858 run 1)",
         "WiseOwl.Cobol.Tests.Unit.Architecture.BinderMemberReadersDriftTests": "the measured binder-member readers file (Architecture/binder-member-readers.json): a run's only red twice, red in five runs",
-        "WiseOwl.Cobol.Tests.Unit.DocumentedFactsDriftTests": "the documented compiler facts (tests/doc-facts/compiler-facts.json): red in five runs"
+        "WiseOwl.Cobol.Tests.Unit.DocumentedFactsDriftTests": "the documented compiler facts (tests/doc-facts/compiler-facts.json): red in five runs",
+        "WiseOwl.Cobol.Tests.Unit.Listing.ListingJsonSchemaDriftTests": "the generated JSON listing schema, src/WiseOwl.Cobol.Listing/Json/listing-v1.schema.json: red when the model changes and the schema was not regenerated (kb/Work PB5925 lead 2026-11-18-schema-drift-preflight, declared by kb/Work PB5951)"
       },
       "depends": ["conformance-suite"],
       "inputs": {

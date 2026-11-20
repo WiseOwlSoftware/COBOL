@@ -467,7 +467,7 @@ public static class HtmlListingRenderer
                     Escape(page, source.TrimEnd());
                     page.Write("</pre>\n");
                 }
-                if (!underItsLine) Instructions(page, range.Instructions);
+                if (!underItsLine) Instructions(page, range, _methods[range.Method]);
                 page.Write("</div>\n");
             }
             return page;
@@ -627,7 +627,7 @@ public static class HtmlListingRenderer
                 Escape(page, StretchHeading(range, methods));
                 page.Write("</summary>\n");
                 if (range.Instructions is null) page.Write("<p class=\"np\">The object code section was not asked for.</p>\n");
-                else Instructions(page, range.Instructions);
+                else Instructions(page, range, methods[range.Method]);
                 page.Write("</details>\n");
             }
         }
@@ -678,20 +678,45 @@ public static class HtmlListingRenderer
         }
     }
 
-    private static void Instructions(TextWriter page, IReadOnlyList<ListingInstruction>? instructions)
+    /// <summary>A stretch's instructions and the lines of its method's exception-handling structure among them (kb/Work PB5951), in the
+    /// one order the text listing prints them (<see cref="ObjectCodeText.CodeLines"/>), each indented by its nesting depth.</summary>
+    private static void Instructions(TextWriter page, ListingObjectRange range, ListingMethod method)
     {
-        if (instructions is null) return;
+        if (range.Instructions is null) return;
         page.Write("<table class=\"il\">\n<tbody>\n");
-        foreach (var instruction in instructions)
+        foreach (var line in ObjectCodeText.CodeLines(range))
         {
-            page.Write("<tr><td>");
-            Formatted(page, new IlOffset(instruction.Offset));   // no markup character in an offset
-            page.Write("</td>");
-            Cell(page, instruction.OpCode);
-            Cell(page, instruction.Operand ?? "");
+            if (line.Instruction is { } instruction)
+            {
+                page.Write("<tr><td");
+                Indent(page, line.Depth);
+                page.Write('>');
+                Formatted(page, new IlOffset(instruction.Offset));   // no markup character in an offset
+                page.Write("</td>");
+                Cell(page, instruction.OpCode);
+                Cell(page, instruction.Operand ?? "");
+            }
+            else
+            {
+                page.Write("<tr class=\"rg\"><td colspan=\"3\"");
+                Indent(page, line.Depth);
+                page.Write('>');
+                Escape(page, ObjectCodeText.RegionText(line.Mark!, method.Regions));
+                page.Write("</td>");
+            }
             page.Write("</tr>\n");
         }
         page.Write("</tbody>\n</table>\n");
+    }
+
+    /// <summary>A cell's indentation for a line of object code <paramref name="depth"/> levels deep: none at depth 0 (most rows), so the
+    /// page carries the attribute only where a region nests the row.</summary>
+    private static void Indent(TextWriter page, int depth)
+    {
+        if (depth == 0) return;
+        page.Write(" style=\"padding-left:");
+        Number(page, depth * ObjectCodeText.RegionIndent);
+        page.Write("ch\"");
     }
 
     /// <summary>A number as the page prints it, written without a string of its own (kb/Work PB5941: a number per line and per
@@ -845,6 +870,7 @@ public static class HtmlListingRenderer
         details.inc { border-left: 2px solid var(--rule); margin-left: 8ch; } details.inc > summary { color: var(--muted); }
         details.hid > summary, details.obj > summary { color: var(--muted); padding-left: 17ch; font-size: 12px; }
         details.obj table { margin-left: 19ch; }
+        table.il tr.rg td { font-weight: 600; }
         .np { color: var(--muted); }
         .code { border-top: 1px solid var(--rule); } .code p { margin: 0.3em 0; }
         .filtered { display: none; }
@@ -868,8 +894,12 @@ public static class HtmlListingRenderer
           function every(open) { document.querySelectorAll('details').forEach(function (block) { block.open = open; }); }
           document.getElementById('expand').addEventListener('click', function () { every(true); });
           document.getElementById('collapse').addEventListener('click', function () { every(false); });
-          // The one reading of the fragment: the element the URL's hash names, or null.
-          function target() { return location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null; }
+          // The one reading of the fragment's target, for the reveal and the first scroll: none for no fragment or one that is
+          // not a well-formed escape (decodeURIComponent throws URIError on '#%E0').
+          function target() {
+            if (!location.hash) return null;
+            try { return document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch (e) { return null; }
+          }
           function reveal() {
             for (var at = target(); at; at = at.parentElement) if (at.tagName === 'DETAILS') at.open = true;
           }
