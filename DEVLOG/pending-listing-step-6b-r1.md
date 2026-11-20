@@ -44,3 +44,13 @@ cases' comments; they now name GR1 and GR2 (`cite.py --check "§2023:14.7.8 GR1"
 **Records.** The baseline and its ceiling (86 -> 75); `binder-member-readers.json`; five inventory rows re-sited with their
 retired-witness marks (`audit_witness_loss.py --check`: 0 unexcused, 5 retired); the text drift tests that named the deleted members;
 `cite-resolve-baseline.json` one entry smaller; the current-state docs and comments that named the deleted lookups.
+
+**Review round 1.** R1-1: the design said every procedure-division reference was identified by the table, and the resolve-paths
+table still promised convergences not built. The last reference that used its item by text, INITIALIZE's whole-dynamic-table arm (the
+glued-text shape of kb/Work PB2040), and the function-pointer-name-1 lookup now ask `SymbolTable.IdentifyDataName`; the design names
+what remains (the word probes and ambiguity counts, part B) and annotates the table's rows. The sweep found both of those references
+skipping the LINKAGE screen: `INITIALIZE L-TAB` and `FUNCTION L-FP (1)` over a record the header does not admit compiled clean at 2014
+and 2023, and now draw COBOL2746 (§2023:13.7.3 SR4; two new refusal cases on `SR-13.7.3-4`). Eighteen `§2023:14.9.20 GRn` citations
+lacked their subclause and now name `§2023:14.9.20.4`. R1-2: four current-state comments named deleted members. R1-3: the linkage-screen
+drift test matches every member that answers a data-name's items. `compare_oracle.py` against 55baef535f: the four added refusals
+differ, nothing else.

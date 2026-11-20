@@ -18,8 +18,8 @@
 > compilation group's tier; the data-name lane's first slice, branch `listing-step-6b-data`: the DEBUG-ITEM, type, CAPACITY register and
 > index-names; the closing slice's first session, branch `listing-step-6b-close`: the data-name, condition-name and screen-name tables,
 > the USE and WHEN file registers, the end markers; remainder slice 1, branch `listing-step-6b-r1`: every procedure-division data-name
-> and condition-name identified through `IdentifyDataName` and `IdentifyConditionName`; the data division's clause operands, the
-> declarations, the census, the group tier's units, the parameterized expansion and the entry ids remain, 75 baseline entries;
+> and condition-name whose item is used identified through `IdentifyDataName` and `IdentifyConditionName`; the procedure division's
+> word probes and ambiguity counts, the data division's clause operands, the declarations, the census, the group tier's units, the parameterized expansion and the entry ids remain, 75 baseline entries;
 > sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); step 7b (the
 > occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
 > dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
@@ -1514,13 +1514,15 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       typed `IdentifyDataName(WrittenQualifiedName, ...)` the data-name lane named, with the clause operands carrying their written
       words or resolved from their carrier, is the next slices' work, with the declaration sites, the census, the group tier's
       function units and the parameterized expansion (kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the table).
-  - *(Step 6b, remainder slice 1, branch `listing-step-6b-r1`.)* The procedure division's data-names and condition-names are
-    identified by the table, and the baseline holds 75 (1 table, 11 lookups, 63 sites): eleven text lookups are deleted
+  - *(Step 6b, remainder slice 1, branch `listing-step-6b-r1`.)* The procedure division's data-name and condition-name references
+    whose item is used are identified by the table, and the baseline holds 75 (1 table, 11 lookups, 63 sites): eleven text lookups are deleted
     (`NameResolution.FindItem`, `ResolveQualified`, `ResolveUnqualified`, `FindReportedItem(dref, string, ...)`,
     `DeclarationOf(dref, string)`, `ReferenceResolver.ResolveByName(string, ...)`, `ObjectPropertyResolver.ResolveObjectProperty(dref,
     string, ...)`, `DataBinder.QualifiedConditionCandidates`, `ConditionTier`, and the table's public `TryResolveCondition` and
-    `NearestDeclaringConditions`, private now). Every reference written in the procedure division, and the operands a
-    procedure-division scan collects for the data division (the storage-claim heads of ADDRESS OF and BY REFERENCE, a LENGTH OF
+    `NearestDeclaringConditions`, private now). Every procedure-division reference whose item is used (an identifier
+    `ReferenceResolver` identifies, a subscript or reference-modification data-name, a condition-name, a table operand, a table(ALL)
+    argument, SET ADDRESS OF, an object property's head, function-pointer-name-1 of a function-identifier, INITIALIZE's whole dynamic
+    table), and the operands a procedure-division scan collects for the data division (the storage-claim heads of ADDRESS OF and BY REFERENCE, a LENGTH OF
     operand of a constant entry), hands the table the written words: `SymbolTable.IdentifyDataName(WrittenQualifiedName, report)`
     answers the §2023:8.4.2.2 candidate set (`NameCandidates<DataItem>`), and `IdentifyConditionName(WrittenQualifiedName, report)`
     the condition-names' (`List<Condition88>`); `NameResolution.DataItemNamed(WrittenQualifiedName)` is the procedure division's one
@@ -1536,7 +1538,15 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER reference, whose `cobolWord` is its file-name or report-name QUALIFIER
       (§2023:8.4.2.2.2 Formats 7 and 8), and for a recovery node with no word. Several callers had read that qualifier as the referenced name,
       or the reference's glued text (`dref.GetText()`, kb/Work PB2040's shape): the condition binder, the SEARCH ALL screens, the
-      storage-claim scan, the subscript reader, the table(ALL) argument and the flag pass. Each now asks the one maker.
+      storage-claim scan, the subscript reader, the table(ALL) argument, the flag pass and INITIALIZE's whole-dynamic-table arm
+      (which the first build left reading `dref.cobolWord()?.GetText() ?? dref.GetText()`, review R1-1). Each now asks the one maker.
+    - *An identification outside the resolver asks the LINKAGE screen itself (correction, review R1-1's sibling sweep).* Two
+      procedure-division references reached their item without `ReferenceResolver.Identify`: INITIALIZE's whole-dynamic-table arm
+      (§2023:14.9.20.4 GR10) and function-pointer-name-1 of a function-identifier (§2023:8.4.3.2.3 SR4), so `INITIALIZE L-TAB` and
+      `FUNCTION L-FP (1)` over a LINKAGE record the header does not admit compiled clean (§2023:13.7.3 SR4, the PB5846 shape). The
+      first asks `NameResolution.ScreenLinkageReference`, the second `ScreenLinkageFunctionPointer` (a word, not a `dataReference`),
+      and `ReferenceIdentificationDriftTests` finds a binder file by every member that answers a data-name's items (`DataItemNamed`,
+      `IdentifyDataName`, `QualifiedCandidates`, `TryResolveUnqualified`), not by the verdict alone (review R1-3).
     - *The two arms of a data-name keep the two answers the procedure division gave (a lead, not a change).* An unqualified
       reference names the nearest declaring element's items (`TryResolveUnqualified`); a qualified one is `DataBinder.QualifiedCandidates`,
       which also drops a set of lapsed type-declaration members alone. `IdentifyDataName` keeps both, so the move is behaviour-neutral;
@@ -1547,7 +1557,16 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
       reference's qualifier words in `ReferenceResolver.ReadWritten` and again in the name. `WrittenQualifiedName.OfRead(dataReference,
       qualifierWords)` makes the name from the words `ReadWritten` already read, reading the head once, and the identification step reads
       the reference once before its arms; every `None` row is then below the parent's (section 9).
-    - *What remains of the class: the data division's operands.* The clause operands the data division keeps as `(name, qualifiers)`
+    - *What remains of the class: the procedure division's word probes and ambiguity counts, and the data division's operands
+      (correction, review R1-1: this item first named the data division's operands alone).* The procedure division still answers a
+      spelling's text in two shapes, neither of which uses the item it finds. The word-class probes ask whether a word is declared
+      as a data-name at all before choosing a reading (`SymbolTable.TryResolve` with its answer discarded: `SortBinder.SortBindTable`'s
+      file-or-table split, `InspectBinder`'s CONVERTING alphabet-name test, `IntrinsicBinder.KeywordOmittedFunction`, `KeywordWordOf`
+      and `TypeNameArgument`, `SubscriptBinder.IsFunctionBearing`, `StatementValidation.RejectProcedureName`). The ambiguity counts
+      count a spelling's data items beside a declaration of another class (`DataBinder.QualifiedCandidates` from
+      `KeyedIoBinder.RecordKeyNameOf`, `CounterResolver.SumCounterFamilyFor` and `SumCounterFor`, `ReportGroupResolution`, and
+      `NameResolution.ReportUnidentified`'s wording, which also asks `TryResolve`); they are the arm kb/Work PB5932's dated file
+      `2026-11-19-step-6b-r1`'s lead decides. The clause operands the data division keeps as `(name, qualifiers)`
       text (FILE STATUS, RELATIVE and RECORD KEY, PADDING, LINAGE, ASSIGN USING, APPLY COMMIT, VALUE OF, OCCURS DEPENDING ON and KEY,
       REDEFINES, RENAMES, SAME AS, a report clause's operands, a BASED claim) still reach `QualifiedCandidates`, `EntryClauseCandidates`,
       `RegionClauseCandidates`, `SubtreeCandidates`, `ResolveClauseOperand`, `RecordKeyNameCandidates`, `ReportItemOperandRefused`,
@@ -1719,18 +1738,18 @@ restore and declares no binder member) gives the paths into those tables today:
 |---|---|---|
 | `ReferenceResolver.Resolve` / `ResolveImpl` -> `ResolveImplCore` -> `ReferenceResolver.Identify` | `ExpressionBinder.FieldOperand`, `RefExpr`, `ResolveSending`, `ResolveReceiving`; `ObjectPropertyResolver.ResolveObjectProperty`, `ViewOfQualifiedItem`; `ProcedureTableBuilder.ReportUnresolvedDebugOperand`; `ReferenceResolver.CapacityRegisterFor` | `Identify` moves into `SymbolTable`; `ResolveImplCore` calls it |
 | `ReferenceResolver.ResolveForItem` (a condition-name's conditional variable) | `ConditionBinder.AnalyzeBareOperand`, `SetBinder.BindSetCondition` | the condition-name was identified by `ConditionBinder.ConditionOf` (next row), which records the use; `ResolveForItem` takes its `IdentifiedName` |
-| `ConditionBinder.ConditionOf` | `ConditionBinder.AnalyzeBareOperand`, `ReportMisqualifiedCondition`; `SetBinder.BindSetCondition`; `SetAlterBinder.SwitchCondOf`; `SearchAllFormat2Rules.CheckConditionNameSide` | becomes `SymbolTable.Identify(dref, NameClass.Condition, ...)` |
+| `ConditionBinder.ConditionOf` | `ConditionBinder.AnalyzeBareOperand`, `ReportMisqualifiedCondition`; `SetBinder.BindSetCondition`; `SetAlterBinder.SwitchCondOf`; `SearchAllFormat2Rules.CheckConditionNameSide` | becomes `SymbolTable.Identify(dref, NameClass.Condition, ...)` (since step 6b's remainder slice 1, the typed `SymbolTable.IdentifyConditionName(WrittenQualifiedName, report)`, not a `NameClass.Condition` arm: section 6.7.1's correction "A qualifiable class's typed method") |
 | `ReferenceResolver.ResolveForAddressOf` -> `Identify` | `PtrBinder.PtrBindAddressOf` | through `Identify` already; keeps it |
-| `ReferenceResolver.ResolveTableOperand` -> `NameResolution.FindReportedItem` | `SortBinder.SortBindTable`, `SortBinder.SortAddFileKeys`, `StatementValidation.ResolveSearchTable` | `Identify(dref, NameClass.TableOperand, ...)`; `FindReportedItem` is deleted |
+| `ReferenceResolver.ResolveTableOperand` -> `NameResolution.FindReportedItem` | `SortBinder.SortBindTable`, `SortBinder.SortAddFileKeys`, `StatementValidation.ResolveSearchTable` | `Identify(dref, NameClass.TableOperand, ...)`; `FindReportedItem` is deleted (since step 6b's remainder slice 1, `FindReportedItem(dref, WrittenQualifiedName)` is kept, over `NameResolution.DataItemNamed`: the reported lookup of a table name, which asks the LINKAGE screen) |
 | `PlaceBuilder.WholeTable` (place of a whole table, after the table operand was identified) | `InitializeBinder.BindInitializeTarget`, `SearchBinder.WrittenTable`, `SortBinder.SortBindTable` | takes the `IdentifiedName` (links the place) |
-| `NameResolution.FindReportedItem` | `IntrinsicBinder.TryBindAllArgument`, `ReferenceResolver.ResolveTableOperand` | deleted; both through `Identify` |
-| `ReferenceResolver.ResolveByName` -> `NameResolution.FindItem` | `IntrinsicBinder.TryBindAllArgument` | replaced by `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` on the name `TryBindAllArgument` already identified |
-| `NameResolution.FindItem` | `ConstantEntryBinder.LengthOperandItem`, `ReportLengthOperand`; `DataBinder.ReportEntryLocation`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `ReferenceResolver.ProbeDeclaration`, `ResolveByName`; `NameResolution.FindReportedItem` | private to `SymbolTable`; the data-division callers (a CONSTANT LENGTH OF operand, a BASED claim) call `Identify` and record a data-division use |
-| `NameResolution.ResolveQualified` / `ResolveUnqualified` | `ReferenceResolver.Identify`; `NameResolution.FindItem`, `DeclarationOf`; `SubscriptBinder.ResolveSubscriptName`, `CannotBeSubscripted`; `ObjectPropertyResolver.ViewSubjectChain`, `IsObjectPropertyReference`; `CounterResolver.SumCounterFamilyFor` | private to `SymbolTable`; `ResolveSubscriptName` (a subscript naming a data item) and `SumCounterFamilyFor` call `Identify`; the two object-property predicates and `CannotBeSubscripted` are probes (`report: false`) |
+| `NameResolution.FindReportedItem` | `IntrinsicBinder.TryBindAllArgument`, `ReferenceResolver.ResolveTableOperand` | deleted; both through `Identify` (since step 6b's remainder slice 1, kept: `FindReportedItem(dref, WrittenQualifiedName)` over `DataItemNamed`, as the row above says) |
+| `ReferenceResolver.ResolveByName` -> `NameResolution.FindItem` | `IntrinsicBinder.TryBindAllArgument` | replaced by `PlaceBuilder.PlaceForItem(IdentifiedName, ...)` on the name `TryBindAllArgument` already identified (since step 6b's remainder slice 1, kept as `ResolveByName(WrittenQualifiedName, ...)` over `DataItemNamed`; the `IdentifiedName` comes with the entry ids, part D) |
+| `NameResolution.FindItem` | `ConstantEntryBinder.LengthOperandItem`, `ReportLengthOperand`; `DataBinder.ReportEntryLocation`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `ReferenceResolver.ProbeDeclaration`, `ResolveByName`; `NameResolution.FindReportedItem` | private to `SymbolTable`; the data-division callers (a CONSTANT LENGTH OF operand, a BASED claim) call `Identify` and record a data-division use (since step 6b's remainder slice 1, deleted: `NameResolution.DataItemNamed(WrittenQualifiedName)` over `SymbolTable.IdentifyDataName`; the CONSTANT LENGTH OF operand and the storage-claim scan hand their written name) |
+| `NameResolution.ResolveQualified` / `ResolveUnqualified` | `ReferenceResolver.Identify`; `NameResolution.FindItem`, `DeclarationOf`; `SubscriptBinder.ResolveSubscriptName`, `CannotBeSubscripted`; `ObjectPropertyResolver.ViewSubjectChain`, `IsObjectPropertyReference`; `CounterResolver.SumCounterFamilyFor` | private to `SymbolTable`; `ResolveSubscriptName` (a subscript naming a data item) and `SumCounterFamilyFor` call `Identify`; the two object-property predicates and `CannotBeSubscripted` are probes (`report: false`) (since step 6b's remainder slice 1, deleted: both arms are `SymbolTable.IdentifyDataName`'s; `SumCounterFamilyFor` still asks `DataBinder.QualifiedCandidates`, part B) |
 | `NameResolution.ResolveIndexName` | `ExpressionBinder.IndexFieldOf`; `SubscriptBinder.SubscriptNamesIndex`, `ResolveSubscriptName`; `SearchAllFormat2Rules.CheckKeySubscript` | `Identify(..., NameClass.Index, ...)` (since step 6b's data-name lane, first slice, `SymbolTable.IdentifyIndexName`, the typed index-name identification) |
-| `SymbolTable.TryResolve` | `DataBinder.ResolveClauseOperand`, `QualifiedCandidates`, `NonDataDeclarationOf`; `InspectBinder.BindPhraseOperands`; `IntrinsicBinder.TypeNameArgument`, `KeywordWordOf`, `KeywordOmittedFunction`; `PtrBinder.PtrResolveBased`; `SortBinder.SortBindTable`; `SubscriptBinder.IsFunctionBearing`; `StatementValidation.RejectProcedureName`; `NameResolution.ReportUnidentified`, `DeclarationOf`; `SymbolTable.TryResolveUnqualified`, `TryResolveCondition` | becomes private inside the grown `SymbolTable`: `DataBinder.ResolveClauseOperand` (a clause operand such as DEPENDING ON) and `InspectBinder.BindPhraseOperands` call `Identify`; `QualifiedCandidates` asks for symbols, so its callers (RECORD KEY, ASSIGN USING, the KEY phrases) call `Identify` and record; only `NonDataDeclarationOf`, a declaration question, calls `SymbolTable.Declarations` and gets a `DeclarationFact`; the word-class probes (`KeywordWordOf`, `KeywordOmittedFunction`, `TypeNameArgument`, `IsFunctionBearing`, `RejectProcedureName`) pass `report: false` |
-| `SymbolTable.TryResolveUnqualified` | `NameResolution.ResolveUnqualified`; `InitializeBinder.BindInitializeTarget`; `IntrinsicBinder.FunctionPointerItemNamed`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `SymbolTable.NearestDeclaringData` | as above: the two binders call `Identify` |
-| `SymbolTable.TryResolveCondition` | `DataBinder.QualifiedConditionCandidates`, `ConditionsUnderQualifiers`; `ConditionBinder.ReportMisqualifiedCondition`; `SearchAllFormat2Rules.CheckKeySide`, `CheckConditionNameSide` | through `Identify(..., NameClass.Condition, ...)`, or `Declarations` for the data-division checks |
+| `SymbolTable.TryResolve` | `DataBinder.ResolveClauseOperand`, `QualifiedCandidates`, `NonDataDeclarationOf`; `InspectBinder.BindPhraseOperands`; `IntrinsicBinder.TypeNameArgument`, `KeywordWordOf`, `KeywordOmittedFunction`; `PtrBinder.PtrResolveBased`; `SortBinder.SortBindTable`; `SubscriptBinder.IsFunctionBearing`; `StatementValidation.RejectProcedureName`; `NameResolution.ReportUnidentified`, `DeclarationOf`; `SymbolTable.TryResolveUnqualified`, `TryResolveCondition` | becomes private inside the grown `SymbolTable`: `DataBinder.ResolveClauseOperand` (a clause operand such as DEPENDING ON) and `InspectBinder.BindPhraseOperands` call `Identify`; `QualifiedCandidates` asks for symbols, so its callers (RECORD KEY, ASSIGN USING, the KEY phrases) call `Identify` and record; only `NonDataDeclarationOf`, a declaration question, calls `SymbolTable.Declarations` and gets a `DeclarationFact`; the word-class probes (`KeywordWordOf`, `KeywordOmittedFunction`, `TypeNameArgument`, `IsFunctionBearing`, `RejectProcedureName`) pass `report: false` (after step 6b's remainder slice 1 none of this is built: every caller named here still asks it by text, part B) |
+| `SymbolTable.TryResolveUnqualified` | `NameResolution.ResolveUnqualified`; `InitializeBinder.BindInitializeTarget`; `IntrinsicBinder.FunctionPointerItemNamed`; `PtrBindBasedAndAddressablesPass.ResolveStorageClaimHead`; `SymbolTable.NearestDeclaringData` | as above: the two binders call `Identify` (since step 6b's remainder slice 1, `InitializeBinder.BindInitializeTarget` and `IntrinsicBinder.FunctionPointerItemNamed` ask `SymbolTable.IdentifyDataName`, `NameResolution.ResolveUnqualified` is deleted, and the table's own `IdentifyDataName` and `Declarations` ask it; the storage-claim scan's unqualified arm remains, part B) |
+| `SymbolTable.TryResolveCondition` | `DataBinder.QualifiedConditionCandidates`, `ConditionsUnderQualifiers`; `ConditionBinder.ReportMisqualifiedCondition`; `SearchAllFormat2Rules.CheckKeySide`, `CheckConditionNameSide` | through `Identify(..., NameClass.Condition, ...)`, or `Declarations` for the data-division checks (since step 6b's remainder slice 1, private to the table: `IdentifyConditionName`, `DeclaresConditionName`, `ConditionTier` and `Declarations` ask it; `DataBinder.QualifiedConditionCandidates` is deleted) |
 | `SymbolTable.IndexCandidates` | `NameResolution.ResolveIndexName`; `DataBinder.NonConditionDeclarationsOf`; `IndexNameRegistry.Candidates`; `FlagConformancePass.FlagIndexSet` | `ResolveIndexName`'s lookup inside `Identify`; `FlagIndexSet` reads the occurrences instead of looking up again (since step 6b's data-name lane, first slice, `IndexCandidates` is private, asked by `SymbolTable.IdentifyIndexName` and by `Declarations.NonConditionDeclarationsOf`; the first is what `ResolveIndexName` and, until step 7b, `FlagIndexSet` ask; `IndexNameRegistry` is deleted) |
 | `ProcedureTableBuilder.ResolveProcedureWord` | `ProcedureTableBuilder.Resolve`, `ResolveDebugProcedure`, `ReportUnresolvedDebugOperand` | `Identify(..., NameClass.Procedure, ...)` |
 | `StatementValidation.ResolveFileWord` | `StatementValidation.ResolveFile` | `Identify(..., NameClass.File, ...)` |
@@ -2493,10 +2512,11 @@ data-names' and condition-names' resolution by text (22 lookups, about 100 call 
 tier's function units and the parameterized expansion, so the step lands one more slice at least, by the same rule: the slice that
 empties the baseline deletes it with the code that reads it, measures the whole step against the parent of slice 1, and flips PB5932;
 kb/Work PB5932's dated file `2026-11-19-step-6b-close` holds the remainder by class. (Step 6b, remainder slice 1, branch
-`listing-step-6b-r1`:) the procedure division's data-names and condition-names are identified by `SymbolTable.IdentifyDataName` and
-`IdentifyConditionName` (section 6.7.1, "Step 6b, remainder slice 1"), eleven text lookups deleted, `compare_oracle.py` IDENTICAL; the
-baseline is 75, and kb/Work PB5932's dated file `2026-11-19-step-6b-r1` holds what remains in the remainder's order: the data
-division's clause operands (B), the declarations, the census, the group tier's units and the parameterized expansion (C), and every
+`listing-step-6b-r1`:) the procedure division's data-name and condition-name references whose item is used are identified by
+`SymbolTable.IdentifyDataName` and `IdentifyConditionName` (section 6.7.1, "Step 6b, remainder slice 1"), eleven text lookups
+deleted, `compare_oracle.py` IDENTICAL; the baseline is 75, and kb/Work PB5932's dated files `2026-11-19-step-6b-r1` and
+`2026-11-19-listing-step-6b-r1-review-r1` hold what remains in the remainder's order: the procedure division's word probes and
+ambiguity counts with the data division's clause operands (B), the declarations, the census, the group tier's units and the parameterized expansion (C), and every
 class's entry id (D).
 
 **Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7

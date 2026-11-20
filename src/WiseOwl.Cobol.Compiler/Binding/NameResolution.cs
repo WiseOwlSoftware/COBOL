@@ -435,8 +435,9 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// <summary>The written qualified index-name references already asked the qualified-index-name-2002 gate.</summary>
     private readonly HashSet<object> _qualifiedIndexGated = new(ReferenceEqualityComparer.Instance);
 
-    /// <summary>The written index-name references already reported as §2023:13.7.3 SR4 e) violations.</summary>
-    private readonly HashSet<object> _linkageIndexReported = new(ReferenceEqualityComparer.Instance);
+    /// <summary>The written index-name and function-pointer-name references already reported as §2023:13.7.3 SR4 violations (a
+    /// parse context or a token: neither is a <c>dataReference</c>, whose reports <see cref="ReferenceResolver.Diagnosed"/> keeps).</summary>
+    private readonly HashSet<object> _linkageLegReported = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>§2023:13.7.3 SR4 e): an index-name of a linkage table is referenceable exactly when the table is — the
     /// decision <see cref="ScreenLinkageReference"/> asks of a data-name, asked once per written reference (a probe
@@ -444,7 +445,18 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     private void ScreenLinkageIndex(IndexDeclaration decl, string name, IReadOnlyList<string> qualifiers, object writtenAt)
     {
         if (refs.Probing || data.Linkage.UnreferenceableLinkageRecord(decl.Table) is not { } record
-            || !_linkageIndexReported.Add(writtenAt)) return;
+            || !_linkageLegReported.Add(writtenAt)) return;
         ReportUnreferenceableLinkage(DataBinder.WrittenQualified(name, qualifiers), record);
+    }
+
+    /// <summary>§2023:13.7.3 SR4 (§1985:X.5.1 GR4) for function-pointer-name-1 of a function-identifier (§2023:8.4.3.2.3 SR4),
+    /// written as a word, not a <c>dataReference</c>: the pointer is a data item, referenceable exactly when its record is —
+    /// the decision <see cref="ScreenLinkageReference"/> asks of a data-name, asked once per written reference (a probe never
+    /// reports, R30).</summary>
+    internal void ScreenLinkageFunctionPointer(IToken written, DataItem pointer)
+    {
+        if (refs.Probing || data.Linkage.UnreferenceableLinkageRecord(pointer) is not { } record
+            || !_linkageLegReported.Add(written)) return;
+        ReportUnreferenceableLinkage(written.Text, record);
     }
 }

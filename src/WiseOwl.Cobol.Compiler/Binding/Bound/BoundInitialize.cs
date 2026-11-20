@@ -9,7 +9,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 // visitor, the emitter, BoundStores, and UsageCollectionPass key on this namespace).
 
 /// <summary><c>INITIALIZE</c> (ISO §2023:14.9.20), expanded at BIND time into the spec's series of implicit elementary
-/// MOVEs (§2023:14.9.20 GR4) — there is no runtime INITIALIZE: each action is one per-elementary store (the full MOVE
+/// MOVEs (§2023:14.9.20.4 GR4) — there is no runtime INITIALIZE: each action is one per-elementary store (the full MOVE
 /// conversion/editing/padding/truncation rules apply at emit, through the ONE MOVE path) or a per-occurrence loop
 /// over a table dimension (GR5b2 — every occurrence of a table element is a possible receiving operand). Multiple
 /// identifier-1 expand in source order as separate statements (GR3); elementary receivers within a group appear in

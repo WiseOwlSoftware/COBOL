@@ -88,10 +88,12 @@ public sealed class ReferenceIdentificationDriftTests
     /// or reference-modification data-name through the unqualified lookup and never reached
     /// <c>ScreenLinkageReference</c>, so a LINKAGE item the procedure division may not reference (§1985:X.5.1 GR4,
     /// §2023:13.7.3 SR4) compiled as <c>T (L2-N)</c> though <c>DISPLAY L2-N</c> was refused. A source file of the binder that
-    /// calls <c>NameResolution.DataItemNamed</c> (the one verdict over <c>SymbolTable.IdentifyDataName</c>'s candidate set, which
-    /// replaced <c>FindItem</c>, <c>ResolveUnqualified</c> and <c>ResolveQualified</c>) is therefore either one that asks the screen
-    /// (<c>ScreenLinkageReference</c> / <c>FindReportedItem</c> / <c>Identify</c>) or one named here with the reason its
-    /// lookups are no procedure-division reference; a new file with such a lookup is red until it is one or the other.</summary>
+    /// reaches the data items a written data-name names (<c>NameResolution.DataItemNamed</c>, the one verdict;
+    /// <c>SymbolTable.IdentifyDataName</c>, the candidate set beneath it; <c>DataBinder.QualifiedCandidates</c> and
+    /// <c>SymbolTable.TryResolveUnqualified</c>, the two lookups the table and the data division still answer a name's text with)
+    /// is therefore either one that asks the screen (<c>ScreenLinkageReference</c> / <c>FindReportedItem</c> / <c>Identify</c>)
+    /// or one named here with the reason its lookups are no procedure-division reference; a new file with such a lookup is red
+    /// until it is one or the other.</summary>
     [Fact]
     public void EveryBinderFileThatLooksANameUp_AsksTheLinkageScreenOrIsNamedWithWhy()
     {
@@ -100,9 +102,23 @@ public sealed class ReferenceIdentificationDriftTests
             ["ConstantEntryBinder.cs"] = "data-division constant entries resolve other entries' names, never a procedure-division operand",
             ["ObjectPropertyResolver.cs"] = "probes whether a qualified head resolves, to choose the property-chain reading; the head is identified through Identify",
             ["PtrBindBasedAndAddressablesPass.cs"] = "the whole-unit storage-claim scan of ADDRESS OF targets, which reads a declaration's depth, not a reference",
+            ["CounterResolver.cs"] = "counts the data items spelled as a sum counter's name (an ambiguity count, no item used); the counter's own subscripts go through ReadSubscripts",
+            ["KeyedIoBinder.cs"] = "counts a KEY phrase operand's data-name readings beside its record-key-names (an ambiguity count, no item used); data-name-1 itself is identified by ReferenceResolver",
+            ["ReportGroupResolution.cs"] = "counts the data items spelled as a report group's unqualified name (an ambiguity count, no item used)",
+            ["FileControlBinder.cs"] = "data-division clause operands (the KEY phrases of a SELECT), never a procedure-division operand",
+            ["FileControlBinder.IoControl.cs"] = "data-division clause operands (the I-O-CONTROL paragraph), never a procedure-division operand",
+            ["FileControlBinder.Resolve.cs"] = "data-division clause operands (RECORD KEY, ASSIGN USING), never a procedure-division operand",
+            ["ReportSectionBinder.cs"] = "data-division clause operands (the report clauses), never a procedure-division operand",
+            ["SymbolTable.DataNames.cs"] = "the identification itself (IdentifyDataName); its callers are the files this test reads",
+            ["SymbolTable.ConditionNames.cs"] = "the condition-name identification's existence question (DeclaresConditionName), no item used",
+            ["SymbolTable.Declarations.cs"] = "the declaration questions of the data division, answered as facts, no item used",
         };
         string root = TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding");
-        var lookup = new Regex(@"\.DataItemNamed\(");
+        // Every member that answers the data items a written data-name names, wherever a binder file reaches it: the procedure
+        // division's verdict, the table's identification beneath it, and the two lookups the table and the data division still
+        // answer a name's text with (review R1-3 of step 6b's remainder slice 1: matching DataItemNamed alone let a file call
+        // ctx.Symbols.IdentifyDataName, or the qualified set, for a procedure-division operand unseen).
+        var lookup = new Regex(@"\.(DataItemNamed|IdentifyDataName|QualifiedCandidates|TryResolveUnqualified)\(");
         foreach (string file in Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
         {
             string name = Path.GetFileName(file);
@@ -119,7 +135,7 @@ public sealed class ReferenceIdentificationDriftTests
                 continue;
             }
             Assert.True(asksScreen,
-                $"{name} looks a data-name up (DataItemNamed) and neither asks "
+                $"{name} looks a data-name up (DataItemNamed / IdentifyDataName / QualifiedCandidates / TryResolveUnqualified) and neither asks "
                 + "NameResolution.ScreenLinkageReference nor looks the item up through FindReportedItem / Identify: a LINKAGE item the "
                 + "procedure division may not reference (§1985:X.5.1 GR4, §2023:13.7.3 SR4) would compile through it as a subscript or "
                 + "reference-modification operand did (kb/Work PB5846). Ask the screen, or name the file in the closed list with why.");
@@ -146,7 +162,7 @@ public sealed class ReferenceIdentificationDriftTests
         string text = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"),
             "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
         Assert.Contains("ctx.Refs.Counters.SumCounterFamilyFor(dref, report: true)", text, StringComparison.Ordinal);
-        // ... and its table lookup is the REPORTED one (the §2023:8.4.2.2 report and the §2023:13.7.3 SR4 screen), not a bare FindItem.
+        // ... and its table lookup is the REPORTED one (the §2023:8.4.2.2 report and the §2023:13.7.3 SR4 screen), not the bare verdict (DataItemNamed).
         Assert.Contains("ctx.Refs.Names.FindReportedItem(dref, named)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Names.DataItemNamed(", text, StringComparison.Ordinal);
     }
