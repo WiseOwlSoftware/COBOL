@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using CatalogDescriptor = WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -22,10 +23,11 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// (<c>EditionContext</c>) the record keeps it;</item>
 /// <item>every accepted, distinguishable nonstandard extension flagged under <c>--flag-extensions</c> carries the extension flag of its
 /// row at the edition compiled to, and none is recorded without the option;</item>
-/// <item>no source of the compiler but the funnels names a flag's code (COBOL0902, COBOL0903, COBOL2894, and the code each registry row
-/// that a later edition REMOVED pins, by literal or by its constant or descriptor), so no stage can report a flag the funnels did not
-/// make; the scan is shown able to fail on planted text. (Listing PB5947 review lead R1-2, fixed in PB5949:) the scan knew the three
-/// band codes only, and the MERGE placement rule reported its row's pinned COBOL1572 by its own descriptor, with no flag.</item>
+/// <item>no source of the compiler but the funnels names a flag's code (COBOL0902, COBOL0903, COBOL2894, and the code each
+/// registry row with a removal edition pins, read from the rows, by literal or by its constant or descriptor), so no stage can report
+/// a flag the funnels did not make; the scan is shown able to fail on planted text. (Listing step pb5947's review lead R1-2, fixed by
+/// kb/Work PB5951's lead sweep: the scan knew the three band codes only, and the MERGE-in-a-SORT-procedure removal, which its row
+/// pins as COBOL1572, was reported by hand with no flag.)</item>
 /// </list>
 /// A row added to either register is checked with no change here. Expected values are the registers' own rows (the inputs).
 /// </summary>
@@ -163,20 +165,38 @@ public sealed class EditionFlagDriftTests
         ], FlagCodeNames("Planted.cs", planted));
     }
 
-    /// <summary>The flag codes: the three band codes, and the code each registry row a later edition removed pins (its removal is
-    /// reported only through <see cref="ConstructRegistry.VerdictAt"/>, which flags it). The rows of a word as a user-defined word are
-    /// no construct: the reserved-word check (<see cref="EditionCodes.ReservedWord"/>) refuses a spelling and is no flag
-    /// (DESIGN-listing.md section 6.11, "What is not a flagged construct"), so their code is not one.</summary>
+    /// <summary>The code the reserved-word list reports a removed user word under (§2023:8.9; <c>ReservedWordSet.UserWordVerdictAt</c>),
+    /// which the registry's user-word rows pin too: its reports are the list's, for every reserved word, not one row's, and carry no
+    /// flag yet (kb/Work PB5947's dated file <c>2026-11-19-reserved-word-removal-flag</c>), so the scan does not take it from the rows.</summary>
+    private const string ReservedWordCode = EditionCodes.ReservedWord;
+
+    /// <summary>The flags' codes: the three bands, and each code a registry row with a removal edition pins (read from the rows, so a
+    /// row added with a code of its own is scanned with no change here).</summary>
     private static readonly HashSet<string> Codes = new(
         new[] { "COBOL0902", "COBOL0903", "COBOL2894" }.Concat(ConstructRegistry.Entries
-            .Where(row => row.RemovedIn is not null && row.DiagnosticCode != EditionCodes.ReservedWord).Select(row => row.DiagnosticCode)),
+            .Where(row => row.RemovedIn is not null && row.DiagnosticCode != ReservedWordCode).Select(row => row.DiagnosticCode)),
         StringComparer.Ordinal);
 
-    /// <summary>The descriptors of the flag codes: every descriptor of the catalog whose code is one.</summary>
-    private static readonly HashSet<string> Descriptors = new(
-        typeof(DiagnosticCatalog).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-            .Where(f => f.GetValue(null) is WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor d && Codes.Contains(d.Code)).Select(f => f.Name),
-        StringComparer.Ordinal);
+    /// <summary>The descriptors of those codes, read from <see cref="DiagnosticCatalog"/>.</summary>
+    private static readonly HashSet<string> Descriptors = new(typeof(DiagnosticCatalog)
+        .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+        .Where(f => f.FieldType == typeof(CatalogDescriptor)
+            && Codes.Contains(((CatalogDescriptor)f.GetValue(null)!).Code))
+        .Select(f => f.Name), StringComparer.Ordinal);
+
+    /// <summary>The scan's sets hold what the registry and the catalog say: the pinned removal codes beside the bands (none of them the
+    /// introduction band, which flags nothing), and the descriptors of each.</summary>
+    [Fact]
+    public void TheScannedCodes_AreTheBandsAndEveryRowsPinnedRemovalCode()
+    {
+        Assert.Contains("COBOL1572", Codes);   // merge-in-sort-merge-proc-removed-2023
+        Assert.DoesNotContain(EditionCodes.Introduction, Codes);
+        Assert.DoesNotContain(ReservedWordCode, Codes);
+        Assert.Contains("MergeInSortMergeProc", Descriptors);
+        Assert.Contains("EditionRemovedConstruct", Descriptors);
+        Assert.Contains("EditionObsoleteFlag", Descriptors);
+        Assert.Contains("NonstandardExtensionUsed", Descriptors);
+    }
     private static readonly HashSet<string> CodeConstants = new(StringComparer.Ordinal) { "RemovedConstruct", "ObsoleteFlag" };
 
     /// <summary>Each place <paramref name="text"/> names a flag's code in code (never in a comment): a string literal of the code, a

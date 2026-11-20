@@ -514,18 +514,18 @@ public static class CollatingSelection
         ForComparison(OperandCategory(low), OperandCategory(high));
 
     /// <summary>⛔ WHICH OF §2023:14.7.8'S TWO RULES GOVERNS A THROUGH RANGE, in ONE place for every site that asks —
-    /// true when the range is rule 2's ("When the range of values is defined by alphanumeric or national
+    /// true when the range is §2023:14.7.8 GR2's ("When the range of values is defined by alphanumeric or national
     /// literals, the range of values depends on the collating sequence used for evaluation of the range"), false
-    /// when it is rule 1's ("When the range of values is defined by numeric literals, the range of values
+    /// when it is GR1's ("When the range of values is defined by numeric literals, the range of values
     /// includes literal-1, literal-2, and all algebraic values between literal-1 and literal-2" — algebraic, no
     /// sequence, and NO exception condition).
-    /// <para>⛔ THE ANSWER IS THE RANGE'S CLASS, NOT ITS OPERANDS' WRITTEN FORM (kb/Work PB401). Rule 2 names
+    /// <para>⛔ THE ANSWER IS THE RANGE'S CLASS, NOT ITS OPERANDS' WRITTEN FORM (kb/Work PB401). GR2 names
     /// "literal-1"/"literal-2" because §2023:14.7.8 introduces the phrase with "A THROUGH phrase specifies a range of
     /// values, literal-1 through literal-2"; EVALUATE's range-expression has no literal-1 or literal-2 at all
     /// (§2023:14.9.13.2 prints literal-3/identifier-3/arithmetic-expression-3 THROUGH literal-4/identifier-4/
     /// arithmetic-expression-4), and §2023:14.9.13.3 SR3 — a rule about THIS phrase — says "the literals <b>or
     /// identifiers</b> specified in the THROUGH phrase are of class alphabetic, alphanumeric, or national".
-    /// Reading rule 2's "literals" as a restriction on the OPERAND FORM would therefore make the whole of rule 2
+    /// Reading GR2's "literals" as a restriction on the OPERAND FORM would therefore make the whole of GR2
     /// — its collating sequence, its IN alphabet-name sentence and its exception alike — inapplicable to every
     /// EVALUATE range, which is not a reading anything in the standard supports and is not the reading the
     /// alphabet arm of this compiler already takes.</para>

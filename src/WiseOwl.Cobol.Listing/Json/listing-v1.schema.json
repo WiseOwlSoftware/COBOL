@@ -1330,6 +1330,62 @@
               "codeSize": {
                 "description": "The size of the method's IL body in bytes.",
                 "type": "integer"
+              },
+              "regions": {
+                "description": "The body's exception-handling clauses (ECMA-335 II.25.4.6), in the order the body lists them, which puts a clause nested in another before it (ECMA-335 I.12.4.2.7); empty for a body with none.",
+                "type": "array",
+                "items": {
+                  "description": "One exception-handling clause of a method body (ECMA-335 II.25.4.6): a protected block (its try block) and the handler that runs for it, as the body's data section holds them. Offsets are IL offsets in the method; an end is the offset after the block's last instruction.",
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "description": "What kind of handler the clause has. Catch: A typed handler: it runs when the exception is an instance of the clause's type (catch). Filter: A filtered handler: the filter block decides whether the handler runs (filter). Finally: A handler that runs whenever the protected block is left (finally). Fault: A handler that runs only when the protected block is left by an exception (fault).",
+                      "enum": [
+                        "Catch",
+                        "Filter",
+                        "Finally",
+                        "Fault"
+                      ]
+                    },
+                    "tryStart": {
+                      "description": "The IL offset of the protected block's first instruction.",
+                      "type": "integer"
+                    },
+                    "tryEnd": {
+                      "description": "The IL offset after the protected block.",
+                      "type": "integer"
+                    },
+                    "handlerStart": {
+                      "description": "The IL offset of the handler's first instruction.",
+                      "type": "integer"
+                    },
+                    "handlerEnd": {
+                      "description": "The IL offset after the handler.",
+                      "type": "integer"
+                    },
+                    "filterStart": {
+                      "description": "For a Filter clause, the IL offset of its filter block's first instruction (the filter block runs to the handler's start); null for every other kind.",
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "catchType": {
+                      "description": "For a Catch clause, the type it catches, named as an instruction's operand names a type (Operand); null for every other kind.",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "tryStart",
+                    "tryEnd",
+                    "handlerStart",
+                    "handlerEnd"
+                  ]
+                }
               }
             },
             "required": [
@@ -1337,7 +1393,8 @@
               "token",
               "type",
               "name",
-              "codeSize"
+              "codeSize",
+              "regions"
             ]
           }
         },
@@ -1399,6 +1456,52 @@
                     "opCode"
                   ]
                 }
+              },
+              "regions": {
+                "description": "The lines of the method's exception-handling structure the stretch prints among its instructions, in the order they print, when the object-code section was asked for; null otherwise. A line prints in the stretch whose code it bounds: a line that opens a block in the stretch holding its offset, a line that closes one in the stretch holding the block's last instruction (so a block inside one stretch opens and closes in it); one whose code no stretch of the map holds, in the method's next stretch, before its first instruction, or, when there is none, after the last instruction of the method's last stretch.",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "description": "One line of a method's exception-handling structure, placed among a stretch's instructions (DESIGN-listing.md section 6.9): it prints before the instruction at Offset, or after the stretch's last instruction when no instruction of the stretch is at or after it.",
+                  "type": "object",
+                  "properties": {
+                    "offset": {
+                      "description": "The IL offset of the boundary.",
+                      "type": "integer"
+                    },
+                    "boundary": {
+                      "description": "Which boundary the line is. TryStart: A protected block begins: .try {. Several clauses protecting the same block share one. TryEnd: A protected block ends: } // end .try. FilterStart: A filter clause's filter block begins: filter {. FilterEnd: A filter clause's filter block ends: } // end filter. HandlerStart: A handler begins: catch Type {, finally {, fault {, or a filter clause's { // handler. HandlerEnd: A handler ends: } // end handler.",
+                      "enum": [
+                        "TryStart",
+                        "TryEnd",
+                        "FilterStart",
+                        "FilterEnd",
+                        "HandlerStart",
+                        "HandlerEnd"
+                      ]
+                    },
+                    "region": {
+                      "description": "The clause the boundary belongs to, as its 1-based position in Regions; for a protected block several clauses share, the first of them.",
+                      "type": "integer"
+                    },
+                    "depth": {
+                      "description": "The nesting depth of the line: 0 outside every block of the method, one more inside each block that contains the boundary.",
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "offset",
+                    "boundary",
+                    "region",
+                    "depth"
+                  ]
+                }
+              },
+              "depth": {
+                "description": "The nesting depth (Depth) in effect at the stretch's first line, its first instruction or its first region line: the depth the method's earlier stretches leave, which is the number of the method's blocks that contain the stretch's start when the stretch before it ends there.",
+                "type": "integer"
               }
             },
             "required": [
@@ -1406,7 +1509,8 @@
               "column",
               "method",
               "start",
-              "end"
+              "end",
+              "depth"
             ]
           }
         }

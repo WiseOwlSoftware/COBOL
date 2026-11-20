@@ -12,7 +12,8 @@ namespace WiseOwl.Cobol.Listing.Building;
 /// <param name="Type">The full name of its declaring type.</param>
 /// <param name="Name">Its name.</param>
 /// <param name="CodeSize">Its IL body's size in bytes.</param>
-internal sealed record ObjectMethod(int Token, string Type, string Name, int CodeSize);
+/// <param name="Regions">Its body's exception-handling clauses, in the order the body lists them (ECMA-335 II.25.4.6).</param>
+internal sealed record ObjectMethod(int Token, string Type, string Name, int CodeSize, IReadOnlyList<ListingExceptionRegion> Regions);
 
 /// <summary>One statement's sequence point, as the PDB holds it, with the stretch of code it begins.</summary>
 /// <param name="Method">The <see cref="ObjectMethod"/> holding it, by its index in <see cref="ObjectCodeFacts.Methods"/>.</param>
@@ -38,8 +39,8 @@ internal sealed record ObjectCodeFacts(IReadOnlyList<ObjectMethod> Methods, IRea
 /// </summary>
 internal static class ObjectCodeMapReader
 {
-    /// <summary>Read <paramref name="assembly"/> and its PDB <paramref name="pdb"/>: each method with a visible sequence point, and each such
-    /// point with the stretch of IL from it to the method's next visible point (a hidden point, the code a backend writes between two
+    /// <summary>Read <paramref name="assembly"/> and its PDB <paramref name="pdb"/>: each method with a visible sequence point, with its
+    /// body's exception-handling clauses (read from the body beside its IL, kb/Work PB5951), and each such point with the stretch of IL from it to the method's next visible point (a hidden point, the code a backend writes between two
     /// statements, does not end a stretch), decoded when <paramref name="instructions"/>. A document the PDB names relative to the
     /// document root (<c>BackendOptions.DocumentRoot</c>: the main source's directory) is resolved against
     /// <paramref name="documentRoot"/> by the one decider (<see cref="SourceDocuments.PathOf"/>).</summary>
@@ -66,7 +67,7 @@ internal static class ObjectCodeMapReader
             var il = body.GetILContent();
             int method = methods.Count;
             methods.Add(new ObjectMethod(MetadataTokens.GetToken(handle), MetadataNames.TypeName(metadata, definition.GetDeclaringType()),
-                metadata.GetString(definition.Name), il.Length));
+                metadata.GetString(definition.Name), il.Length, [.. body.ExceptionRegions.Select(r => Region(metadata, r, names))]));
             // The body is decoded once and each stretch takes its own instructions: decoding each stretch from the body's start (to find
             // the instruction boundaries) is quadratic in a method that holds a whole program's paragraphs.
             var decoded = instructions ? IlDisassembler.Decode(metadata, il, 0, il.Length, names) : null;
@@ -82,6 +83,23 @@ internal static class ObjectCodeMapReader
         }
         return new ObjectCodeFacts(methods, points);
     }
+
+    /// <summary>One exception-handling clause of a body as the model holds it (ECMA-335 II.25.4.6): its kind, its protected block's and
+    /// handler's offsets, a filter clause's filter block and a catch clause's type, named as an instruction's type operand is
+    /// (<see cref="IlDisassembler.TokenName"/>). A kind the metadata reader does not know is no clause this listing can show, and fails
+    /// loudly.</summary>
+    private static ListingExceptionRegion Region(MetadataReader metadata, ExceptionRegion region, Dictionary<int, string> names) => new(
+        region.Kind switch
+        {
+            ExceptionRegionKind.Catch => ListingRegionKind.Catch,
+            ExceptionRegionKind.Filter => ListingRegionKind.Filter,
+            ExceptionRegionKind.Finally => ListingRegionKind.Finally,
+            ExceptionRegionKind.Fault => ListingRegionKind.Fault,
+            _ => throw new BadImageFormatException($"an exception-handling clause of kind {region.Kind}"),
+        },
+        region.TryOffset, region.TryOffset + region.TryLength, region.HandlerOffset, region.HandlerOffset + region.HandlerLength,
+        region.Kind == ExceptionRegionKind.Filter ? region.FilterOffset : null,
+        region.Kind == ExceptionRegionKind.Catch ? IlDisassembler.TokenName(metadata, MetadataTokens.GetToken(region.CatchType), names) : null);
 
     /// <summary>The instructions of <paramref name="decoded"/> (a body's, in offset order) from <paramref name="start"/> up to
     /// <paramref name="end"/>; <paramref name="next"/>, where the previous stretch's search stopped, moves past them. The stretches of a

@@ -22,12 +22,13 @@
 > `listing-step-6b-ids`: every class the table declares enters its entry where it is declared and every identification hands back
 > its id; the procedure division's word probes and ambiguity counts, the data division's clause operands, the
 > declarations (with the data-names' and condition-names' entries), the census, the group tier's units and the parameterized expansion
-> remain, 75 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); step 7b (the
+> remain, 75 baseline entries; sections 6.7.1 "Step 6b, as built so far" and 11); STEP 9 BUILT (the HTML page, the section visitor, branch `listing-step-9`); kb/Work
+> PB5951 BUILT (the object code's exception-handling regions, branch `listing-step-pb5951`); step 7b (the
 > occurrences and the cross-reference, which stand on 6b and on the entry ids 6b's remaining slices owe: section 11, "Step 7b,
 > dispatched early") not yet built, and with it the HTML page's name links (section 7.2). Section 11, "What is not built", lists every
 > part of this design not yet built and why.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
-> "(step 6)", "(step 6b)", "(step 7a)", "(step 8)" or "(step 9)" in the section it changed.
+> "(step 6)", "(step 6b)", "(step 7a)", "(step 8)", "(step 9)" or "(PB5951)" in the section it changed.
 > PB5947 BUILT (the diagnostic summary's table of flagged constructs by edition, section 6.11, branch `listing-step-pb5947`).
 > kb/Work PB5941 (branch `listing-step-pb5941`, the `all` row's budget): every format streams to its file, the page shows each IL
 > instruction once, the object code is decoded into one array per method; corrections marked "(PB5941)" in sections 4.2, 7, 7.1,
@@ -1910,7 +1911,8 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
 - **Source of truth.** `ObjectCodeMapReader` (Compiler, `Listing/`) opens the produced assembly and its PDB with
   `System.Reflection.Metadata` (`MetadataReader`, `MethodDebugInformation.GetSequencePoints`, `MethodBodyBlock`). For
   each method it reads the sequence points: a document (a COBOL source or library text), a start and end line and
-  column, and an IL offset. Each COBOL statement's listing line is placed through its source position by the one line
+  column, and an IL offset; and (PB5951) the body's exception-handling clauses (`MethodBodyBlock.ExceptionRegions`, ECMA-335
+  II.25.4.6), read beside the IL, since they are as much the method's object code as its instructions. Each COBOL statement's listing line is placed through its source position by the one line
   index (section 4.1); its object code is the method (its metadata token and name) and the IL offset range from its
   sequence point to the next. A copybook copied twice into one method gives two statements at one file position; they
   pair with that position's sequence points in IL order, which is statement order.
@@ -2007,13 +2009,61 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
   `ObjectCodeMapReader` reads the methods and every visible sequence point with its stretch (to the method's next visible point:
   a hidden point, the code the backend writes between statements, does not end one), `IlDisassembler` decodes the stretch (the
   instruction set is the runtime's own table, `System.Reflection.Emit.OpCodes`; operands named by `MetadataNames`, ECMA-335's
-  `Type::Member`), and `ObjectCodeMapBuilder` places each point on its listing line. A copybook copied twice: the points of one
+  `Type::Member`), and `ObjectCodeMapBuilder` places each point on its listing line. (PB5951) Each method's exception-handling clauses ride the method,
+  each stretch the lines it prints among its instructions: the next item. A copybook copied twice: the points of one
   position are told apart by their span (a statement's first point spans the statement, its later ones only the verb), the first
   points paired in compiled order with the listing lines of that position in listing order, each later point going with the first
   point before it. (Correction, review round 2:) a statement can hold two first points (the previous item), and each copy compiles
   to the same code, so when the first points divide evenly among the lines each line takes an equal share in order; when they do
   not, the k-th first point goes to the k-th line and every later one to the last. The text
   is `ObjectCodeText.MapRows` and `ObjectCodeText.CodeRows`.
+- **Exception-handling regions (PB5951, correction).** The owner, 2026-11-19, in NC105A's listing: "I see endfinally and leave
+  instructions, but there are no pseudo try or catch instructions, such as would appear in IL source code", and "catch also". The
+  step-8 reader decoded each body's IL and never read the body's exception-handling clauses, which ECMA-335 II.25.4.6 places in the
+  same method body, so a `leave`, `endfinally`, `endfilter` or `rethrow` stood with no protected block around it. As built:
+  - *Read once, by the reader of the IL.* `ObjectCodeMapReader.Read` reads `MethodBodyBlock.ExceptionRegions` beside the IL into
+    `ListingMethod.Regions`: one `ListingExceptionRegion(Kind, TryStart, TryEnd, HandlerStart, HandlerEnd, FilterStart, CatchType)`
+    per clause in the body's order (`ListingRegionKind`: `Catch`, `Filter`, `Finally`, `Fault`; an end is the offset after the block;
+    `FilterStart` only for a filter, `CatchType` only for a catch). The catch type is named by `IlDisassembler.TokenName`, the one
+    naming of a token, which the instructions' operands use too, so a catch names its type as `newobj` or `isinst` would. A kind the
+    metadata reader does not know fails loudly. The clauses are read whenever the map is (they cost a few objects per method); only
+    their placement among the instructions waits for `object-code`.
+  - *Laid out once, by the builder.* The lines are ILDASM's (ECMA-335 II.19): `.try {` and `} // end .try` around a protected
+    block, then each handler of the clauses that protect it: `catch <Type> {`, `finally {`, `fault {`, or a filter clause's
+    `filter {`, `} // end filter` and `{ // handler`, each closed by `} // end handler`. `ExceptionRegionLayout.Marks` makes a body's
+    BLOCKS (one protected block per distinct try range, which several clauses may share, as a C# `try` with two `catch` clauses
+    does; each filter block, from its start to its handler; each handler) and walks them as the tree ECMA-335 I.12.4.2.7 makes them
+    (two blocks are disjoint or one contains the other): at one offset every block ending there closes before any block starting
+    there opens, the innermost closing first and the outermost opening first. Each line is a `ListingRegionMark(Offset, Boundary,
+    Region, Depth)`: the boundary (`ListingRegionBoundary`), the clause (1-based in `ListingMethod.Regions`; for a shared block, the
+    first clause protecting it) and the nesting depth. A body whose blocks overlap, or a block covering no IL, fails loudly.
+  - *Placed in one stretch.* `ExceptionRegionLayout.Place` gives each line to the stretch whose code it bounds: a line that OPENS a
+    block at offset X to the stretch holding X (`Start <= X < End`), before the instruction at X; a line that CLOSES a block at X to
+    the stretch holding the block's last instruction (`Start < X <= End`), after it. So a block wholly inside one statement's code (a
+    `finally` of an OPEN, the handlers of an ADD ON SIZE ERROR) opens and closes in that statement's stretch, and a block ending where
+    the next statement's code begins closes under the statement whose code it ends. (Correction, PB5951 review round 1: the first cut
+    gave every line to the stretch holding its offset, so a closing line at a stretch's end printed at the top of the NEXT statement's
+    stretch, leaving the first stretch's block unclosed and the next one starting with a close of nothing open.) A line no stretch owns
+    that way (its code is before the method's first visible sequence point, or in a stretch the map leaves out because its position is
+    in no file of the listing) prints in the method's next placed stretch before its first instruction, or after the last instruction
+    of its last one, so every line prints exactly once. `ListingObjectRange.Regions` holds the stretch's lines in print order when the
+    object-code section is asked for (null otherwise, as `Instructions` is), and `ListingObjectRange.Depth` the depth the method's
+    earlier stretches' lines leave: the number of blocks containing the stretch's start whenever the stretch before it ends there.
+  - *Printed by the renderers, decided by neither.* `ObjectCodeText.CodeLines` is the one merge of a stretch's instructions and its
+    lines (each line before the first instruction at or after its offset, the rest after the last), giving each instruction the depth
+    the lines before it leave (from the stretch's `Depth`; `ListingRegionBoundaries.Opens` is the one answer to which lines open a
+    block), and `ObjectCodeText.RegionText` the one spelling of a line; the text listing indents a line two columns per level
+    (`ObjectCodeText.RegionIndent`), the HTML page the same in its instruction table (a row of class `rg` per line).
+  - *Witnesses.* `ExceptionRegionLayoutTests` (Unit, over hand-built clauses whose lines are written by hand from ECMA-335: nested
+    regions, adjacent ones, three clauses sharing a block with a filter among them, a region inside a handler, overlap refused, the
+    placement and depths, a block inside one stretch and one ending at a stretch boundary, the text rows) and
+    `ListingExceptionRegionTests` (Conformance: a program whose OPEN compiles to a `finally`, whose ADD ON SIZE ERROR compiles to
+    two nested protected blocks of two `catch` clauses each, and whose reference modification under `>>TURN EC-BOUND-REF-MOD
+    CHECKING ON` compiles to a `filter` in a `finally`; each method's clauses are read in the test from the assembly with
+    `System.Reflection.Metadata`, each line's depth from the blocks' containment, each line's stretch from the code it bounds, each
+    stretch's depth from the blocks containing its start, and the text and HTML rows counted against them). Each was shown able to
+    fail: the reader dropping the filter clauses, the layout opening the innermost block first, the merge dropping the lines, and
+    placement giving a closing line at a stretch's end to the next stretch were each red.
 - **Backend diagnostics through COBOL positions.** A Roslyn diagnostic on a statement's mapped line carries the COBOL file, line
   and column. (Correction, review round 1:) the mapped file is the directive's document name, relative to the document root, which
   no file of the listing is called and which names a file relative to the source's directory rather than the user's; so
@@ -2062,6 +2112,16 @@ table is not built, and no step of section 11 named it: kb/Work PB5947.
   axes carries the flag its row names, through `Check` and through the binder's records; every flaggable extension carries its
   row's flag at the edition compiled to; and no source of `src/` outside those funnels names a flag code by literal, constant or
   descriptor (a Roslyn scan, shown red on planted text). A flag added to either register is in the table by construction.
+  (Correction, listing step pb5947's review lead R1-2, fixed by kb/Work PB5951's lead sweep:) the scan knew the three band codes
+  only, so a removal its row pins a code of its own for escaped it: the MERGE in a SORT or MERGE procedure (row
+  `merge-in-sort-merge-proc-removed-2023`, COBOL1572) was reported by hand in `VersionConformancePass` with no flag and was missing
+  from the table. It now reports `ConstructRegistry.VerdictAt`'s code, severity and flag, and the scan reads its codes from the rows
+  (every row with a removal edition) and its descriptors from `DiagnosticCatalog`, so a row added with a code of its own is scanned
+  with no change to the test (`EditionFlagDriftTests.TheScannedCodes_AreTheBandsAndEveryRowsPinnedRemovalCode`;
+  `ListingFlaggedConstructsTests.ARemovalWithAPinnedCode_IsInTheTable`, red with the flag withheld). The one code it does not take
+  from the rows is the reserved-word code COBOL0901, which the user-word rows pin but the reserved-word list reports for every
+  reserved word: a word a later edition reserved, used as a user word under `--permissive`, is a removal that carries no flag yet
+  (kb/Work PB5947's dated file `2026-11-19-reserved-word-removal-flag`).
 - **"By edition" is the edition of the rule that flags it.** Obsolete: the row's `ObsoleteIn`; removed: its `RemovedIn` (so a
   debugging line at `--std 2023` is a 2014 removal); an extension: the edition compiled to, whose standard does not define it
   (§2023:4.2.10, "to indicate use of a nonstandard extension in a compilation group"). Archaic (§2023:4.2.12) and obsolete
@@ -2177,7 +2237,8 @@ layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. W
   block in; the next line of the inclusion reopens it as its continuation (its banner and "(continued)", no second id). Under a line: its compiled text when a replacing action changed it ('R' rows), each
   diagnostic placed on it (`id="D<n>"`, `TextListingRenderer.DiagnosticText`) with the character its column names marked in the line's text
   (a supplementary-plane character one position), and each stretch of its object code (`ListingObjectRange`, by its `Line`) as a
-  collapsed block naming its method and IL range, its instructions when the object-code section was asked for.
+  collapsed block naming its method and IL range, its instructions when the object-code section was asked for, with (PB5951) the
+  method's exception-handling lines among them as `ObjectCodeText.CodeLines` merges them (section 6.9).
 - The links between the model's own records: a margin to its data map entry, a data map or file map entry's line and the entries its
   facts name, the program map's first and last lines, the object-code map's lines and methods, each verb's lines, and the
   diagnostic summary to each diagnostic placed on a line. A link is written only to an element the page holds (a line, when the
@@ -2298,9 +2359,10 @@ dispatched early"); neither member exists, so the page links what the model hold
   be nullable (absent from older documents), which keeps it out of `required` and keeps every older document valid.
   `ListingJsonSchema.Committed()` returns the embedded file. The drift test is
   `tests/WiseOwl.Cobol.Tests.Unit/Listing/ListingJsonSchemaDriftTests.cs` (`WISEOWL_COBOL_UPDATE_LISTING_SCHEMA=1` writes the
-  file). It is NOT yet declared a preflight class: `scripts/buildgraph.py`'s preflight rule admits only a class the merge
-  group has MEASURED in `tests/_shared/test-weights.json`, and a new class has no measurement, so it runs in the population
-  until the weights carry it; declaring it then is kb/Work PB5925's lead `2026-11-18-schema-drift-preflight`.
+  file). It was NOT at first declared a preflight class: `scripts/buildgraph.py`'s preflight rule admits only a class the merge
+  group has MEASURED in `tests/_shared/test-weights.json`, and a new class has no measurement. (PB5951:) the weights now carry it
+  (0.3 s), so it is declared in the `unit` target's `preflight` of `scripts/build_targets.json`: a stale schema ends the gate RED
+  before the population runs (kb/Work PB5925's lead `2026-11-18-schema-drift-preflight`, closed).
 - (PB5941:) `JsonListingWriter.Write(document, Stream)` serializes through the same contract straight to the stream and ends it with a
   line feed: the JSON text is never a string (it was serialized to one, then copied once more to append the line feed).
 - The document carries `"$schema": "urn:wiseowl:cobol:listing:v1"` and `"schemaVersion": "1.<minor>"`.
@@ -2314,7 +2376,10 @@ dispatched early"); neither member exists, so the page links what the model hold
 - (Step 3:) the schema version stays `1.0`. The policy's minor bump is for documents a reader may already hold, and no
   release has shipped the JSON listing (`git tag --contains` of step 2's commit lists none), so steps 3 to 9 complete 1.0
   with the members required where they are never null; 1.0 freezes at the first release that ships the JSON listing, which
-  is the moment kb/Work PB5925's lead `2026-11-18-schema-version-bump` names for the surface record.
+  is the moment kb/Work PB5925's lead `2026-11-18-schema-version-bump` names for the surface record. (PB5951:) its members
+  (`ListingMethod.regions`, `ListingObjectRange.regions` and `depth`, and the three enums) join 1.0 by the same reasoning: `git tag
+  --contains` of step 2's commit still lists no release, so no reader holds a 1.0 document a minor bump would protect, and a 1.1
+  would name a version no document of 1.0 was ever written at.
 
 **Versioning and compatibility policy.** The major version changes only when a property is removed, renamed, or changes
 meaning; the minor version changes when a property or an enum value is added. Within a major version every addition is
@@ -2522,6 +2587,14 @@ renderer. Naming it asks for a listing at any edition.
   among them), which the paginator's model of a row as a string asks for; the budget holds with it, so the row stays a string.
   The text and JSON listings of the four programs are byte-identical to the parent's but for the instant (a differential of the
   CLI's `all` listing in every format); the page differs only in the stretch blocks' ids and the object-code section's entries.
+  (PB5951:) the exception-handling regions, measured against the parent on a full compile, twice on the branch (the benchmark
+  README's PB5951 table): the `None` rows move by up to 8.5 MB between two runs of one tree, and PB5951 changes nothing a compilation
+  without a listing runs (the clauses are read only for `object-map` or `object-code`). The `All` row is +0.9 to +5.8 % over the
+  parent's, inside that spread on three programs (SM201A, with no clause, moves as much as NC218A, with 218 protected blocks) and about
+  5 MB beyond it on IX113A (320 protected blocks); the first build wrote a padding attribute on every instruction row of the page, and
+  writing it only where a region nests the row took 6.5 MB off IX113A's `All`. `All` is +54.6 to +77.2 % over `None` (the parent's
+  +43.4 to +69.8 %), over its 25 % budget as it was before PB5941
+  landed (these rows were measured on PB5941's parent): kb/Work PB5941's dated file `2026-11-19-pb5951-rows`.
 
 ## 10. Test plan
 
@@ -2570,7 +2643,9 @@ captured listing.
    range equal what the PDB's sequence points say, read independently in the test with `System.Reflection.Metadata` (step 8:
    `ListingObjectCodeTests`, Conformance: each statement of the test's own source at its line and column, the PERFORM's second
    range, a copybook copied twice placed per block, the instructions, the statuses without an assembly; `IlDisassemblerTests`,
-   Unit: every operand form against ECMA-335 partition III; `ListingSectionRenderingTests`' object-code rows).
+   Unit: every operand form against ECMA-335 partition III; `ListingSectionRenderingTests`' object-code rows); the
+   exception-handling regions (PB5951: `ExceptionRegionLayoutTests`, Unit, and `ListingExceptionRegionTests`, Conformance, section
+   6.9).
 5. **Schema.** The generated schema equals the committed file (a preflight class, since a red one means a stale derived
    file); every document the tests produce round-trips through the contract (`ListingJson`) with no unknown property.
    (Step 2:) `ListingJsonSchemaDriftTests` (Unit: the schema equals the committed file and the embedded resource, every
@@ -2883,6 +2958,13 @@ and the JSON listing keep `ListingLine.FileLine` on every line. Witnesses: `Text
 and `HtmlListingRendererTests.EveryLine_IsARow_WithItsText` (section 10 items 7 and 7d). The diagnostic summary's
 `file(line,column)` (`TextListingRenderer.PlaceText`) keeps its line: it is the compiler's diagnostic location, read whole
 by an editor, not a column of the source row.
+
+**PB5951 - the object code's exception-handling regions. BUILT (branch `listing-step-pb5951`; the corrections above marked
+"PB5951").** The owner's finding of 2026-11-19 (section 6.9, "Exception-handling regions"): `ObjectCodeMapReader` reads each body's
+clauses beside its IL into `ListingMethod.Regions`; `ExceptionRegionLayout` lays them out as ILDASM's lines and places each in one
+stretch (`ListingObjectRange.Regions`, `Depth`); `ObjectCodeText.CodeLines` and `RegionText` print them in the text and HTML object
+code; the JSON schema regenerated within 1.0 (section 7.3) and its drift test declared a preflight class; `ExceptionRegionLayoutTests`
+and `ListingExceptionRegionTests`; the `All` row measured (section 9).
 
 **What is not built (checked at step 9 against every section of this document).** Each part below is a kb/Work item, never a silent
 gap:
