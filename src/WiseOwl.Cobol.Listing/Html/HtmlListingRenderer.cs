@@ -816,6 +816,7 @@ public static class HtmlListingRenderer
         @media (prefers-color-scheme: dark) {
           :root { --bg: #161618; --fg: #e8e8ed; --muted: #98989d; --rule: #3a3a3c; --err: #ff6b5e; --warn: #f0b429; --info: #7ab4ff;
                   --mark: #6b5310; --link: #8ab4f8; --head: #1f1f22; } }
+        html { scroll-padding-top: var(--navh, 5em); }
         body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
         header, main { padding: 0 16px; }
         h1 { font-size: 1.3em; } h2 { font-size: 1.1em; border-bottom: 1px solid var(--rule); padding-top: 1em; }
@@ -872,7 +873,14 @@ public static class HtmlListingRenderer
             for (; at; at = at.parentElement) if (at.tagName === 'DETAILS') at.open = true;
           }
           window.addEventListener('hashchange', reveal);
+          // The sticky nav covers the top of the viewport, and it wraps to more lines as the window narrows: every link
+          // target (a section heading, a line, a data item) scrolls to just below the nav's height as rendered now.
+          var nav = document.querySelector('nav');
+          function clear() { document.documentElement.style.setProperty('--navh', (nav.offsetHeight + 8) + 'px'); }
+          if (window.ResizeObserver) new ResizeObserver(clear).observe(nav);
+          clear();
           reveal();
+          if (location.hash) { var at = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (at) at.scrollIntoView(); }
         })();
         """;
 }
