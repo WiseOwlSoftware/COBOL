@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b remainder slice 2: the file clauses' operands keep their written name, and the table resolves it
+## Entry 3873 — 2026-11-20 01:29 PST — PB5932: the source listing, step 6b remainder slice 2: the file clauses' operands keep their written name, and the table resolves it
 
 Step 6b moves every name the compiler resolves into the one symbol table (docs/rearchitecture/DESIGN-listing.md section 6.7.1; kb/Work
 PB5932). It lands by name class behind a shrink-only baseline of what has not moved. Remainder slice 1 moved the procedure division's
@@ -29,3 +29,4 @@ malformed escape. The HTML listing's script resolves the URL fragment once (lead
 **What remains.** Part B's second half (the data-entry operands OCCURS KEY, RENAMES and SAME AS, the qualification walks moved into the
 table, the procedure division's word probes and ambiguity counts), then the declarations (C) and the data-names' entry ids (D).
 kb/Work PB5932's dated file `2026-11-19-step-6b-r2` lists them.
+
