@@ -21,7 +21,7 @@ public sealed class ListingSectionRenderingTests
     private static ListingLine Line(int number, ListingLineKind kind, int? inclusion = null, bool omitted = false, bool listed = true,
         int file = 1) =>
         new(number, file, number, inclusion, inclusion is null ? 0 : 1, ListingLineForm.Fixed, kind, "       LINE " + number, omitted,
-            listed, false, 0, ListingReplacement.None, null, [], null);
+            listed, false, 0, ListingReplacement.None, null, [], null, []);
 
     /// <summary>Six lines: three of program text (one omitted), a comment, a blank line, and two lines of a library text, one
     /// of them not listed.</summary>

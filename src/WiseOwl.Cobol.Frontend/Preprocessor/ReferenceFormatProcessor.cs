@@ -131,7 +131,8 @@ public static partial class ReferenceFormatProcessor
     public static MappedText NormalizeToFreeFormMapped(string sourceText, ReferenceFormatDiagnostics? gates, string sourcePath,
         bool? initialFixed, out ReferenceFormatMap formats, bool ccvsIndicators = false,
         IReadOnlyList<DirectiveStackOp>? implicitOps = null, bool? startsInIdentificationDivision = true,
-        CommentEntryPins? pins = null, int inclusion = CommentEntryPins.SourceText, Func<string, string>? paragraphWordAsReplaced = null)
+        CommentEntryPins? pins = null, int inclusion = CommentEntryPins.SourceText, Func<string, string>? paragraphWordAsReplaced = null,
+        bool recordsDiscarded = false)
     {
         // THE line-entry stage (kb/Work PB1800): every line below is read from here — terminators, tabs and (under
         // --nist) archive markers are settled, so no consumer splits, trims or expands anything itself.
@@ -143,14 +144,16 @@ public static partial class ReferenceFormatProcessor
         bool firstFixed = initialFixed ?? IsFixedForm(lines[..FirstSourceDirectiveCandidate(lines)]);
         var (segments, directiveLines) = FormatSegments(lines, firstFixed, gates, sourcePath, implicitOps ?? []);
         // What each physical line is, recorded where the conversion decides it (DESIGN-listing.md section 4.4.1).
-        var kinds = new PhysicalLineKind[lines.Length];
+        // Where it discards a line's text as a comment or a comment-entry, for a source listing only (section 7.2).
+        var kinds = new PhysicalLineRecord(lines.Length, recordsDiscarded);
 
         // No format boundary → the whole text is one segment in its initial format.
         if (segments.Count == 0)
         {
             bool? inIdentificationDivision = startsInIdentificationDivision;
             var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, paragraphWordAsReplaced, kinds, ref inIdentificationDivision);
-            formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines, kinds);
+            formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines, kinds.Kinds,
+                kinds.Discarded);
             return Mapped(wl, wo, sourcePath);
         }
 
@@ -181,7 +184,7 @@ public static partial class ReferenceFormatProcessor
             {
                 if (!keepsLine)
                 {
-                    kinds[segments[s].Index] = PhysicalLineKind.Directive;   // a >>SOURCE FORMAT line, discarded here (§2023:6.5 1))
+                    kinds.Kinds[segments[s].Index] = PhysicalLineKind.Directive;   // a >>SOURCE FORMAT line, discarded here (§2023:6.5 1))
                     outLines.Add("");                 // the discarded directive line → a blank line (slot preserved)
                     outOrigins.Add(new LineOrigin(new SourceOrigin(sourcePath, segments[s].Index + 1)));
                 }
@@ -190,7 +193,7 @@ public static partial class ReferenceFormatProcessor
             }
         }
         formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null,
-            segments.Select(s => (s.Index + 2, s.Fixed)), directiveLines, lines, kinds);
+            segments.Select(s => (s.Index + 2, s.Fixed)), directiveLines, lines, kinds.Kinds, kinds.Discarded);
         return Mapped(outLines, outOrigins, sourcePath);
     }
 

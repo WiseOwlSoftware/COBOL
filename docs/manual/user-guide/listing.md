@@ -440,6 +440,15 @@ document as the text and the JSON listing, so the three always agree.
   marker (the same markers as the text listing), its line in its file (as in the text listing, only where it differs from the
   listing line number) and its text. A line where the text listing starts a page
   carries a rule, and starts a page when the page is printed.
+- **Syntax colouring.** The source text is coloured by what the compiler read it as, at the edition compiled to, never by a guess
+  from patterns: the sequence number area, the indicator and the text past margin R; comments and comment-entries; reserved words,
+  words read as keywords that the edition does not reserve (a context-sensitive word in its context), intrinsic function names and
+  user-defined words; level-numbers; alphanumeric, national, boolean and numeric literals; figurative constants; PICTURE
+  character-strings; separators and operators; compiler directive lines. So a word a later edition reserves is coloured as the
+  name it is in an older program (`GOBACK` as a data item at `--std 85`), and a word a REPLACE or COPY REPLACING changed keeps
+  its written text uncoloured, since the compiler did not read it there. The colours follow the browser's light or dark scheme.
+  A COPY or REPLACE statement's own words are not coloured yet. The JSON listing carries the same classes, each line's `spans`;
+  the text listing prints the line as written.
 - **Inclusions.** Each COPY library text is a block under the COPY statement's line, opened by the same banner as the text listing
   (`COPY text-name OF library-name -> file (depth n)`); click the banner to fold it. A library text copied with `SUPPRESS` is folded
   to begin with.
