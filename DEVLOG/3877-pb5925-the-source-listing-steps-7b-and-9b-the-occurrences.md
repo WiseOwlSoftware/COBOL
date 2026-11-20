@@ -1,4 +1,4 @@
-## PB5925: the source listing, steps 7b and 9b - the occurrences and the cross-reference, and the close-out
+## Entry 3877 — 2026-11-20 11:51 PST — PB5925: the source listing, steps 7b and 9b - the occurrences and the cross-reference, and the close-out
 
 Step 7b of `docs/rearchitecture/DESIGN-listing.md` is built on step 6b's one store of names and its entry ids (branch
 `listing-step-7b-2`, kb/Work PB5925's dated file `2026-11-20-step-7b-2-built`).
@@ -62,3 +62,4 @@ thread-level) and stands at 0.25 to 4.7 MB at the merged head; `All` over `None`
 benchmark README's step-9b table). Every section of the design was checked against the code and the records; the parts the design leaves are
 each a filed item, PB5956, PB5957, PB5959, PB5960, PB5961 and PB5962 beside the older PB5930 and PB5952, and kb/Work PB5954 records the
 decision that PB5925 is landed with them. PB5925 and PB5953 are `landed`.
+
