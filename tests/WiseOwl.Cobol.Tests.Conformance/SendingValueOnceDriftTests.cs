@@ -131,17 +131,6 @@ public sealed class SendingValueOnceDriftTests
         Assert.Equal("BRANCH=SAME\nCOUNT=ONE", stdout.Replace("\r\n", "\n").TrimEnd('\n'));
     }
 
-    /// <summary>⛔ THE INTERMEDIATE MUST HOLD THE SENDER'S LENGTH, NOT A PADDED APPROXIMATION OF IT.
-    /// §2023:14.9.25.4 GR1's equivalence is a RESULT equivalence, so the one-receiver and many-receiver forms of the
-    /// same MOVE have to agree — and a JUSTIFIED receiver is what MEASURES that, because §2023:13.18.32.4 GR1 aligns
-    /// the sending data at the rightmost character position and space-fills on the LEFT, which makes the sender's
-    /// length observable where a left-justified receiver hides it. The sender that can get it wrong is one whose
-    /// length is decided at run time: §2023:15.4's temporary for a character-category function is carried by a
-    /// dynamic-length item, "treated as a fixed-length data item whose length is the dynamic-length elementary
-    /// item's current length" (§2023:8.5.1.10.4). <c>FUNCTION TRIM</c> is the shortest sender with that property.
-    /// <para>This test is the net under the residue named on GR-14.9.25.4-1: an earlier revision of kb/Work
-    /// PB394 froze an OCCURS DEPENDING group sender at its MAXIMUM extent, and a JUSTIFIED receiver is exactly
-    /// where that showed up.</para></summary>
     /// <summary>kb/Work PB1007 — §2023:14.9.25.4 GR1's equivalence is only an equivalence if the intermediate MOVES AS the
     /// sender: `MOVE a TO temp / MOVE temp TO b` must store what `MOVE a TO b` stores, for EVERY receiver category.
     /// The §2023:15.4 temporary of an INTEGER function held the value exactly but moved as its 30-digit implementor
@@ -255,6 +244,17 @@ public sealed class SendingValueOnceDriftTests
         Assert.Equal(lines[0], lines[1]);
     }
 
+    /// <summary>⛔ THE INTERMEDIATE MUST HOLD THE SENDER'S LENGTH, NOT A PADDED APPROXIMATION OF IT.
+    /// §2023:14.9.25.4 GR1's equivalence is a RESULT equivalence, so the one-receiver and many-receiver forms of the
+    /// same MOVE have to agree — and a JUSTIFIED receiver is what MEASURES that, because §2023:13.18.32.4 GR1 aligns
+    /// the sending data at the rightmost character position and space-fills on the LEFT, which makes the sender's
+    /// length observable where a left-justified receiver hides it. The sender that can get it wrong is one whose
+    /// length is decided at run time: §2023:15.4's temporary for a character-category function is carried by a
+    /// dynamic-length item, "treated as a fixed-length data item whose length is the dynamic-length elementary
+    /// item's current length" (§2023:8.5.1.10.4). <c>FUNCTION TRIM</c> is the shortest sender with that property.
+    /// <para>This test is the net under the residue named on GR-14.9.25.4-1: an earlier revision of kb/Work
+    /// PB394 froze an OCCURS DEPENDING group sender at its MAXIMUM extent, and a JUSTIFIED receiver is exactly
+    /// where that showed up.</para></summary>
     [Fact]
     public void RunTimeLengthSender_KeepsItsLength_UnderAJustifiedReceiver()
     {

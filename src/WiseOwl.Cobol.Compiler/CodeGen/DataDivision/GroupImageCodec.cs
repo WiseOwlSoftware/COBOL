@@ -1197,12 +1197,6 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         }
     }
 
-    /// <summary>One member's AsImage sub-expression: a scalar string field directly, a nested group's
-    /// <c>AsImage()</c>, a NATIVE fixed-point leaf the BYTES it occupies (<c>CobolNum.FormatImage</c> with the
-    /// leaf's own profile — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED,
-    /// §2023:13.18.60.4 GR4/GR11), or — for a fixed-OCCURS table — the concatenation of every occurrence's image
-    /// (ISO §2023:14.9: a group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric
-    /// item).</summary>
     /// <summary>A §2023:8.5.1.6.3 run member's BIT CARRIER expression — THE one carrier law (kb/Work PB161): a bit
     /// leaf's '0'/'1' string field; a bit GROUP's <c>AsBits()</c>; a fixed-OCCURS member the concatenation of
     /// every occurrence's carrier (the AsImage run packer read the raw <c>string[]</c> field before, CS1503).</summary>
@@ -1261,6 +1255,12 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         return RuntimeApi.BitsPack(string.Join(" + ", carriers), $"{BitLayout.RunBitsOf(run) + (tail?.Bits ?? 0)}");
     }
 
+    /// <summary>One member's AsImage sub-expression: a scalar string field directly, a nested group's
+    /// <c>AsImage()</c>, a NATIVE fixed-point leaf the BYTES it occupies (<c>CobolNum.FormatImage</c> with the
+    /// leaf's own profile — its zoned digits for USAGE DISPLAY, its radix-2 / BCD bytes for BINARY / PACKED,
+    /// §2023:13.18.60.4 GR4/GR11), or — for a fixed-OCCURS table — the concatenation of every occurrence's image
+    /// (ISO §2023:14.9: a group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric
+    /// item).</summary>
     private static string AsImageOf(PhysicalModel.Physical f) =>
         // D19/PB43 — a USAGE BIT run images as its PACKED bits (§2023:13.18.60.4 GR5), high-order first, and a run may
         // span several FIELDS because §2023:8.5.1.6.3 puts same-level bit items at successive bit positions. The run's

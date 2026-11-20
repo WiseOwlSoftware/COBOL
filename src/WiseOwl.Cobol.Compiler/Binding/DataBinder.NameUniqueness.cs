@@ -71,10 +71,8 @@ public sealed partial class DataBinder
     private void ScreenIndexNameUniqueness()
     {
         if (Edition.DialectLevel >= 2002) return;
-        var seen = new HashSet<string>(CobolNames.Comparer);
-        foreach (var decl in State.Forest.OwnIndexes)
+        foreach (var decl in SymbolTable.RepeatedIndexNames(State.Forest.OwnIndexes))
         {
-            if (seen.Add(decl.Name)) continue;
             using var _ = Edition.At(decl.Table.DeclaredAt);
             Edition.Error(DiagnosticCatalog.IndexNameNotUniqueInProgram, $"index-name '{decl.Name}' of the OCCURS clause of "
                 + $"'{decl.Table.CobolName ?? "FILLER"}' is already declared by an INDEXED BY phrase of this program; "

@@ -30,8 +30,8 @@ public sealed partial class FileControlBinder
     {
         foreach (var word in clause.cobolWord())
         {
+            if (SymbolTable.IdentifyDataRecord(records, word) is not null) continue;
             string name = word.GetText();
-            if (records.Any(r => r.Level == 1 && r.CobolName is { } n && CobolNames.Comparer.Equals(n, name))) continue;
             using var _ = Edition.At(word);
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseOperand, $"DATA RECORDS {name}: '{name}' is not the name of an "
                 + $"01 record description of file '{fileName}' (ISO §1985:VII.3.5.3 SR1: \"Data-name-1 is the name of a data "

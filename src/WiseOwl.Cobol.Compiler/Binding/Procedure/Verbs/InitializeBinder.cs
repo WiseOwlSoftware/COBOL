@@ -640,9 +640,6 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
-    /// <summary>ONE elementary receiver's action under ISO §2023:14.9.20.4 GR4/GR5c/GR6 at ONE occurrence, or null when
-    /// GR5c leaves it unchanged. <paramref name="effectiveValue"/> is the VALUE-clause literal applying to that
-    /// occurrence (<see cref="DataItem.ValueAt"/>).</summary>
     /// <summary>⛔ THE ONE CONSTRUCTOR OF AN INITIALIZE STORE — §2023:14.9.20.4 GR4's implicit <c>MOVE sending-operand
     /// TO receiving-operand</c>, BOUND through <c>MoveBinder.BindMoveOf</c> like every other implicit move (kb/Work
     /// PB880): the §2023:14.9.25.4 GR1 freeze, the per-target classification and the storage facts
@@ -653,6 +650,9 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     private InitializeStore Store(Place target, BoundOperand source) =>
         new(host.Move.BindMoveOf(source, [target], ImplicitMovePhrase.Initialize));
 
+    /// <summary>ONE elementary receiver's action under ISO §2023:14.9.20.4 GR4/GR5c/GR6 at ONE occurrence, or null when
+    /// GR5c leaves it unchanged. <paramref name="effectiveValue"/> is the VALUE-clause literal applying to that
+    /// occurrence (<see cref="DataItem.ValueAt"/>).</summary>
     /// <param name="receiver">The place the sender is stored into when it is not the cursor's own (a gap of a stored
     /// table pad, <see cref="PadGapPlace"/>); null for the cursor's.</param>
     private InitializeAction? ElementaryAction(PlaceCursor cur, DataItem item, InitializeCategory cat,

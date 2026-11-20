@@ -574,25 +574,6 @@ internal static class PlaceRenderer
         _ => Read(inner),
     };
 
-    /// <summary>
-    /// ⛔ THE ONE STORE OF A CHARACTER IMAGE INTO A GROUP RECEIVER (ISO §2023:14.9.25.4 GR4 — a group receiver is
-    /// "filled without consideration for the individual elementary or group items", no conversion): the generated
-    /// <c>FromImage</c> distributes the image into the leaves; an occurs-depending group with data-name-1 OUTSIDE
-    /// takes only its CURRENT-count part (§2023:13.18.38 GR8a — the GR8a splice, positions past the count unmodified;
-    /// data-name-1 INSIDE uses the maximum length, GR8b — the plain FromImage); a Tier-B REDEFINES view's image IS
-    /// its character window; a group nested under an OCCURS DYNAMIC level distributes through the RECEIVING accessor
-    /// (RefReceiving grows-and-seeds past the current capacity, §2023:8.5.1.9.3 — never RefSending, which drops an
-    /// out-of-capacity write into scratch). A variable-length group or a group with a pointer/object-class leaf has no image
-    /// (<see cref="DataItem.IsImageCapable"/>; kb/Work PB164 + R40) and stays the loud Tier-C island (DESIGN §4.2) —
-    /// <paramref name="context"/> names the verb in that message.
-    /// <para>V59 residue (DA5), written ONCE: this is a POSITIONAL character transfer INTO the group's storage — the
-    /// same job a group MOVE does — so a COMP / PACKED group is admitted (its leaves decode their image slices) and
-    /// "BYTES ARE NOT TEXT" does not apply (that rule governs RENDERING a COMP leaf's value as text, not writing
-    /// characters positionally over its bytes). §2023:14.9.43.4 GR3a makes STRING's transfer the alphanumeric MOVE
-    /// rules, §2023:14.9.22.3 SR1 names "an alphanumeric or national group item" a valid INSPECT identifier-1, ACCEPT
-    /// and UNSTRING store by the same MOVE rules — so every verb that deposits an image into a group calls THIS
-    /// (kb/Work PB70 removed five copies of the rule, each carrying this paragraph).</para>
-    /// </summary>
     /// <summary>The FULL-image store into a group place — a STORAGE-BOUNDARY write (a file record area receiving a
     /// READ, a FILE STATUS group, the CALL formal's copy-in / copy-out), never the §2023:13.18.38 GR8 sending/receiving
     /// slice: an occurs-depending wrapper is unwrapped and its inner takes the whole image (kb/Work PB80 — an FD
@@ -769,6 +750,25 @@ internal static class PlaceRenderer
     private static bool IsNativeImageWindow(Place p) =>
         p is RedefViewPlace { Coding: null } && p.Item is { StoreAsImage: false, Pic.HasImageByteForm: true };
 
+    /// <summary>
+    /// ⛔ THE ONE STORE OF A CHARACTER IMAGE INTO A GROUP RECEIVER (ISO §2023:14.9.25.4 GR4 — a group receiver is
+    /// "filled without consideration for the individual elementary or group items", no conversion): the generated
+    /// <c>FromImage</c> distributes the image into the leaves; an occurs-depending group with data-name-1 OUTSIDE
+    /// takes only its CURRENT-count part (§2023:13.18.38 GR8a — the GR8a splice, positions past the count unmodified;
+    /// data-name-1 INSIDE uses the maximum length, GR8b — the plain FromImage); a Tier-B REDEFINES view's image IS
+    /// its character window; a group nested under an OCCURS DYNAMIC level distributes through the RECEIVING accessor
+    /// (RefReceiving grows-and-seeds past the current capacity, §2023:8.5.1.9.3 — never RefSending, which drops an
+    /// out-of-capacity write into scratch). A variable-length group or a group with a pointer/object-class leaf has no image
+    /// (<see cref="DataItem.IsImageCapable"/>; kb/Work PB164 + R40) and stays the loud Tier-C island (DESIGN §4.2) —
+    /// <paramref name="context"/> names the verb in that message.
+    /// <para>V59 residue (DA5), written ONCE: this is a POSITIONAL character transfer INTO the group's storage — the
+    /// same job a group MOVE does — so a COMP / PACKED group is admitted (its leaves decode their image slices) and
+    /// "BYTES ARE NOT TEXT" does not apply (that rule governs RENDERING a COMP leaf's value as text, not writing
+    /// characters positionally over its bytes). §2023:14.9.43.4 GR3a makes STRING's transfer the alphanumeric MOVE
+    /// rules, §2023:14.9.22.3 SR1 names "an alphanumeric or national group item" a valid INSPECT identifier-1, ACCEPT
+    /// and UNSTRING store by the same MOVE rules — so every verb that deposits an image into a group calls THIS
+    /// (kb/Work PB70 removed five copies of the rule, each carrying this paragraph).</para>
+    /// </summary>
     public static string WriteGroupImage(Place group, string image, string context) => group switch
     {
         // A NATIONAL GROUP view's STORAGE image is its 2m-byte window; its Write is the m-position VALUE store

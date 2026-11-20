@@ -31,15 +31,6 @@ using Core = CobolParserCore;
 /// </summary>
 public sealed partial class DataBinder
 {
-    /// <summary>Where one data description entry stands: the section run it belongs to (the same entry list the
-    /// section's walk binds), its index there, and the section.</summary>
-    private readonly record struct DataEntryLocation(
-        IReadOnlyList<Core.DataDescriptionEntryContext> Run, int Index, EntrySection Section);
-
-    /// <summary>Every data-name a data description entry of this unit declares (levels 01-49, 66 and 77; never a
-    /// constant or a condition-name), with each place it is declared.</summary>
-    private readonly Dictionary<string, List<DataEntryLocation>> _dataEntryLocations = new(CobolNames.Comparer);
-
     /// <summary>The entries whose bind has begun, in or out of source order — a record whose first entry is here is
     /// bound or being bound.</summary>
     private readonly HashSet<Core.DataDescriptionEntryContext> _entriesBound = [];
@@ -101,9 +92,7 @@ public sealed partial class DataBinder
             var e = run[i];
             if (e.dataDescriptionBody()?.constantEntryBody() is not null || EntryLevel(e) == 88) continue;
             if (e.dataName()?.GetText() is not { } name || CobolNames.Same(name, "FILLER")) continue;
-            if (!_dataEntryLocations.TryGetValue(name, out var list)) _dataEntryLocations[name] = list = [];
-            if (!list.Any(l => ReferenceEquals(l.Run[l.Index], e)))   // a scope declared twice adds nothing
-                list.Add(new DataEntryLocation(run, i, section));
+            Symbols.DeclareDataEntry(name, new DataEntryPlace(run, i, section));
         }
     }
 
@@ -121,11 +110,11 @@ public sealed partial class DataBinder
 
     /// <summary>Is <paramref name="name"/> declared by a data description entry whose bind has not begun?</summary>
     internal bool IsDescribedLater(string name) =>
-        _dataEntryLocations.TryGetValue(name, out var locs) && locs.Any(l => !_entriesBound.Contains(l.Run[l.Index]));
+        Symbols.DataEntriesDeclaring(name).Any(p => !_entriesBound.Contains(p.Entry));
 
     /// <summary>Is <paramref name="name"/> declared by an entry whose own description is being bound right now?</summary>
     internal bool IsBeingDescribed(string name) =>
-        _openDescriptions.Any(d => CobolNames.Same(d.Entry.dataName()?.GetText(), name));
+        _openDescriptions.Any(d => Symbols.Declared.EntryDeclares(d.Entry, name));
 
     /// <summary>Is <paramref name="item"/>'s description still open — the item of the entry being bound, or an ancestor
     /// of it, so a group whose subordinates are still being described?</summary>
@@ -170,9 +159,8 @@ public sealed partial class DataBinder
     /// already, or open — and an item later in an open record cannot be measured yet.</summary>
     internal bool BindLaterRecords(string name)
     {
-        if (!_dataEntryLocations.TryGetValue(name, out var locs)) return false;
         bool any = false;
-        foreach (var (run, index, section) in locs.ToList())
+        foreach (var (run, index, section) in Symbols.DataEntriesDeclaring(name).ToList())   // a copy: a bind may declare more
         {
             int start = index;
             while (start > 0 && !EndsRecord(run[start])) start--;
@@ -210,9 +198,8 @@ public sealed partial class DataBinder
     /// <returns>True when at least one entry was bound.</returns>
     internal bool BindLaterEntriesOfOpenRecord(string name)
     {
-        if (!_dataEntryLocations.TryGetValue(name, out var locs)) return false;
         bool any = false;
-        foreach (var (run, index, section) in locs.ToList())
+        foreach (var (run, index, section) in Symbols.DataEntriesDeclaring(name).ToList())   // a copy: a bind may declare more
         {
             if (_entriesBound.Contains(run[index])) continue;
             int start = index;
@@ -228,7 +215,7 @@ public sealed partial class DataBinder
                 if (!_entryItems.TryGetValue(run[j], out var bound)) break;   // the entry described no item (reported)
                 _preboundEntryItems[run[j]] = bound;
                 foreach (var subordinate in entries.Skip(1)) _preboundEntryItems[subordinate] = null;
-                if (j != index) _preboundGroups[bound] = new DataEntryLocation(run, j, section);
+                if (j != index) _preboundGroups[bound] = new DataEntryPlace(run, j, section);
                 parent = bound;
                 any = true;
             }
@@ -238,7 +225,7 @@ public sealed partial class DataBinder
 
     /// <summary>The group entries bound ALONE ahead of the walk (<see cref="BindLaterEntriesOfOpenRecord"/>) whose
     /// other subordinates are not bound yet, so whose description is not complete.</summary>
-    private readonly Dictionary<DataItem, DataEntryLocation> _preboundGroups = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<DataItem, DataEntryPlace> _preboundGroups = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Complete a group bound alone ahead of the walk before it is measured: bind its subordinate entries now,
     /// under it and in source order (an entry already bound ahead attaches at its position), so its description is

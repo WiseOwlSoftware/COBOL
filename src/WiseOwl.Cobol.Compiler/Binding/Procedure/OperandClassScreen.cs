@@ -34,12 +34,12 @@ internal enum OperandClasses
 /// <summary>ONE statement operand position whose syntax rule closes the operand to a set of classes: the
 /// statement and operand as the general format names them, the rule that closes it, the rule's own words for
 /// what it admits, the admitted set, and the diagnostic the position reports under.</summary>
-/// <remarks>⚠ <see cref="Statement"/> is spelled WITHOUT an ellipsis: the diagnostic renderer transliterates U+2026
+/// <remarks><para>⚠ <see cref="Statement"/> is spelled WITHOUT an ellipsis: the diagnostic renderer transliterates U+2026
 /// to ASCII, and a message opening "SET … TO" printed a statement nobody wrote (kb/Work PB388,
-/// <c>SetDiagnosticNamesReceiversDriftTests</c>); the operand the program wrote is named in the message itself.</remarks>
-/// <remarks>⛔ <see cref="Rule1985"/> is the rule's 1985 citation where ANSI X3.23-1985 states it: a program compiled at
+/// <c>SetDiagnosticNamesReceiversDriftTests</c>); the operand the program wrote is named in the message itself.</para>
+/// <para>⛔ <see cref="Rule1985"/> is the rule's 1985 citation where ANSI X3.23-1985 states it: a program compiled at
 /// <c>--std 85</c> reads it instead of <see cref="Rule"/> (kb/Work PB4950); null where the 1985 text has no such rule, and the
-/// 2023 citation then stands.</remarks>
+/// 2023 citation then stands.</para></remarks>
 internal sealed record OperandPosition(
     string Statement, string Operand, string Rule, string Requirement, OperandClasses Admits,
     DiagnosticDescriptor Diagnostic, string? Rule1985 = null);

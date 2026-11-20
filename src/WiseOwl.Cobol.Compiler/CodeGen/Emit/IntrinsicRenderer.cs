@@ -907,8 +907,6 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// truncation now serves only the residual non-EAE consumers (the integer-argument intake via
     /// <c>AsInt</c>, and the arms with no Dec body) — where scale-0/format semantics make the landing the
     /// defined behavior rather than an approximation.</para>
-    /// </remarks>
-    /// <remarks>
     /// ⛔ <b>AND A FLOAT OPERAND LANDS THE SAME WAY UNDER A STANDARD ARITHMETIC MODE (fix-queue PB38).</b> This is
     /// where the ARITHMETIC MODE beats the float branch, which is the ordering `NUMERIC_DESIGN.md` D3
     /// states in words ("the mode branch runs BEFORE the D16 float branch") and which
@@ -933,6 +931,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX Landed(NumX x) => num.Landed(x, num.Receiver);   // the ONE landing (NumericRenderer.Landed — kb/Work PB84)
 
     // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
+
+    /// <summary>⛔ THE CONTEXT ARGUMENT <paramref name="i"/> IS RENDERED IN (kb/Work PB5891 review R3-1, kb/Work PB5893):
+    /// <see cref="NumericRenderer.ArgumentReceiver"/> at the argument's position, a §2023:15.3 type 6 (integer) position or not. Every
+    /// position renders without the receiver's floating-point facts; under a floating-point receiver a numeric position also keeps
+    /// significance (<c>NumericLanes.ArgumentKeepsSignificance</c>).</summary>
+    private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
+        num.ArgumentReceiver(ic.CarrierFacts.IsIntegerPosition(i));
+
+    /// <summary>The context of an operand the intake reads without its index: an element of a table(ALL) argument or an argument of a
+    /// variadic numeric list, and the leading rate of PRESENT-VALUE and a binary64-family argument-1, each at a §2023:15.3 type 10
+    /// (numeric) position.</summary>
+    private ReceiverContext NumericArgument => num.ArgumentReceiver(integerPosition: false);
 
     /// <summary>
     /// ⛔ AN ARGUMENT AS ITS POSITION TAKES IT, WITHOUT THE UNSCALED LANDING — the one indexed entry every numeric-channel
@@ -992,18 +1002,6 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// value (<see cref="ExactValueArg"/>, kb/Work PB4111, PB4568): VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE, and the exact
     /// family beside an SDIDI or binary64 argument, form their value from <c>CobolExact</c> arguments and round it once.</para>
     /// </remarks>
-    /// <summary>⛔ THE CONTEXT ARGUMENT <paramref name="i"/> IS RENDERED IN (kb/Work PB5891 review R3-1, kb/Work PB5893):
-    /// <see cref="NumericRenderer.ArgumentReceiver"/> at the argument's position, a §2023:15.3 type 6 (integer) position or not. Every
-    /// position renders without the receiver's floating-point facts; under a floating-point receiver a numeric position also keeps
-    /// significance (<c>NumericLanes.ArgumentKeepsSignificance</c>).</summary>
-    private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
-        num.ArgumentReceiver(ic.CarrierFacts.IsIntegerPosition(i));
-
-    /// <summary>The context of an operand the intake reads without its index: an element of a table(ALL) argument or an argument of a
-    /// variadic numeric list, and the leading rate of PRESENT-VALUE and a binary64-family argument-1, each at a §2023:15.3 type 10
-    /// (numeric) position.</summary>
-    private ReceiverContext NumericArgument => num.ArgumentReceiver(integerPosition: false);
-
     private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));
 
     /// <summary>
@@ -1584,15 +1582,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     }
 
     /// <summary>Does any argument render as FLOATING (binary64) rather than as a scaled integer? (PB2.)</summary>
-    /// <remarks>Asked of the ARGUMENTS, not the receiver: a float argument into a fixed-point receiver still has
+    /// <remarks><para>Asked of the ARGUMENTS, not the receiver: a float argument into a fixed-point receiver still has
     /// to be computed in binary64 and only then quantized, which is exactly what <see cref="RenderFloat"/>'s
-    /// <c>FromDouble</c> tail does.</remarks>
-    /// <remarks>⛔ ASKED OF THE <b>LANDED</b> OPERAND, NOT THE RAW ONE (fix-queue PB38). Under a standard
+    /// <c>FromDouble</c> tail does.</para>
+    /// <para>⛔ ASKED OF THE <b>LANDED</b> OPERAND, NOT THE RAW ONE (fix-queue PB38). Under a standard
     /// arithmetic mode <see cref="Landed"/> converts a float in per §2023:8.8.1.5.1, so it is no longer floating and
     /// this dispatch must not route the call to the binary64 body. Reading the RAW operand here would reinstate
     /// the exact defect the landing exists to remove, with the landing silently doing nothing — the two must ask
-    /// the same question of the same value.</remarks>
-    /// <remarks>INTAKE(PREDICATE) — renders only to ASK a question — of the LANDED operand, deliberately (see the remark above).</remarks>
+    /// the same question of the same value.</para>
+    /// <para>INTAKE(PREDICATE) — renders only to ASK a question — of the LANDED operand, deliberately (see the remark above).</para></remarks>
     private bool AnyRealArgument(BoundIntrinsicCall ic) =>
         Operands(ic).Any(x => Landed(x).Real);
 
@@ -1774,11 +1772,6 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     // ── The STRING channel (instance — reached through OperandText.AsString with the per-unit renderer) ─────
 
-    /// <summary>Render an alphanumeric-result intrinsic as a C# string expression. An INSTANCE channel (P7
-    /// Step 12 — the context-free static twin is deleted): numeric-kind arguments render through the ONE
-    /// <see cref="NumericRenderer"/> under <see cref="ReceiverContext.None"/> (a string-channel call has no
-    /// numeric receiver), so division, float items, nested numeric intrinsics, and numeric-edited de-edits
-    /// all render where the static channel stayed loud (H3 closed).</summary>
     /// <summary>
     /// Reference-modify the function RESULT when the reference carried one (ISO §2023:8.4.3.3.3 SR2, fix-queue PB8),
     /// through the SAME <c>CobolString.RefMod</c> — and therefore the same §2023:8.4.3.3.4 item-5c bounds check and
@@ -1795,6 +1788,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         return ic.RefMod is { } rm ? RuntimeApi.StrRefMod(value, rm) : value;
     }
 
+    /// <summary>Render an alphanumeric-result intrinsic as a C# string expression. An INSTANCE channel (P7
+    /// Step 12 — the context-free static twin is deleted): numeric-kind arguments render through the ONE
+    /// <see cref="NumericRenderer"/> under <see cref="ReceiverContext.None"/> (a string-channel call has no
+    /// numeric receiver), so division, float items, nested numeric intrinsics, and numeric-edited de-edits
+    /// all render where the static channel stayed loud (H3 closed).</summary>
     private string RenderStringValue(BoundIntrinsicCall ic)
     {
         var sig = ic.Sig;

@@ -51,7 +51,6 @@ internal static class CompiledProgramCache
     internal static bool Enabled { get; } =
         ResolveEnabled(Environment.GetEnvironmentVariable(SwitchVariable), Environment.GetEnvironmentVariable("CI"));
 
-    /// <summary>The store's root directory.</summary>
     /// <summary>A scope in which <see cref="Compile"/> compiles for real and takes nothing from the store (kb/Work PB5862):
     /// the architecture oracle observes the COMPILER, and a hit returns a result whose <see cref="CompilerDriver.Result.Inputs"/>
     /// is empty, so an observation made through a warm store would differ from one made through a cold store. Staging
@@ -75,6 +74,7 @@ internal static class CompiledProgramCache
     /// there is the compile's own staged input and never an ambient one (kb/Work PB5862; <c>ArchOracle.Ambient</c>).</summary>
     internal static string StagedRoot => Path.Combine(Root, "src");
 
+    /// <summary>The store's root directory.</summary>
     internal static string Root { get; } =
         Environment.GetEnvironmentVariable(DirVariable) is { Length: > 0 } dir
             ? Path.GetFullPath(dir)

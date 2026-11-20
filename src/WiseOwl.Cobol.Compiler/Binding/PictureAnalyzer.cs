@@ -1324,13 +1324,6 @@ public static class PictureAnalyzer
         }
     }
 
-    /// <summary>The ≥edition half of the W2 skeleton gate for a recognized-but-unimplemented PICTURE construct
-    /// (external-float symbol E / national-edited): at or above the row's introducing edition — where the
-    /// introduction <c>Check</c> is silent — a COBOL0899 "recognized but not yet implemented" naming the owning
-    /// roadmap phase. Below the edition it is a NO-OP: the COBOL0900 introduction gate is fired instead by the
-    /// post-bind <c>VersionConformancePass</c> GateData enumerator over <c>PicInfo.SkeletonGate</c> (Step 14g.5 — the
-    /// category is recovered to Alphanumeric, erasing the parse identity, so the flag carries the gate forward). Either
-    /// way the compile FAILS below its edition (the 0900) or above (the 0899) — never a silent misbind.</summary>
     /// <summary>The floating-point numeric-edited PICTURE (ISO §2023:13.18.40.4 GR13 b; data-model design D21 / kb/Work PB66):
     /// <c>significand E exponent</c>. Validated per string (§2023:13.18.40.6 — Table 10 applies to the two strings
     /// separately): the exponent is exactly <c>+9</c>…<c>+9999</c>; the significand an optional leading fixed

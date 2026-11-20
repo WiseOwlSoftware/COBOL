@@ -841,6 +841,30 @@ internal static partial class IntrinsicArgumentRules
         ? "a boolean function, which §2023:15.2 2) gives the implicit usage bit"
         : "a numeric, integer or index function, to which §2023:15.2 4), 5) and 6) give no usage";
 
+    /// <summary>ONE kind for every position — the shape most §15.x.3 argument rules actually have ("argument-1
+    /// shall be of class numeric", with argument-1 repeating for a variadic list). Expressed as a variadic TAIL
+    /// with no fixed positions, which is precisely what the pre-schema table did for every row.</summary>
+    private static ArgSchema Uniform(char kind, string clause, CrossArgRule cross = CrossArgRule.None,
+        string crossClause = "", string? noZeroLen = null) =>
+        new([], new ArgRule(kind, clause, noZeroLen), cross, crossClause);
+
+    /// <summary>The kind of a DECLARED position whose §15.x.3 rule is not a class rule — it constrains an axis a
+    /// class set cannot carry (BASECONVERT argument-1's USAGE, §2023:15.12.3 r1) — so the schema keeps the ordinal
+    /// (the positions after it need their index) while <see cref="Admissible"/> answers null: no class screen
+    /// there, and the function's own binder arm owns the position. Unlike an ABSENT position it is declared, so
+    /// <c>IntrinsicArgumentClassDriftTests</c> can hold every such position to the bespoke screen that owns it.</summary>
+    internal const char UnscreenedKind = '-';
+
+    /// <summary>Per-POSITION kinds, for a rule that constrains its ordinals differently — FIND-STRING's two
+    /// string operands plus an integer, the FORMATTED-* family's format literal plus its numeric values.
+    /// <paramref name="tail"/> is the kind for positions past the declared ones (a variadic tail), or
+    /// <c>'\0'</c> for none — and NONE is the honest default: a position the clause does not describe is
+    /// UNSCREENED, never screened by whatever the last declared position happened to be.</summary>
+    private static ArgSchema Schema(string clause, char[] kinds, char tail = '\0',
+        CrossArgRule cross = CrossArgRule.None, string crossClause = "") =>
+        new([.. kinds.Select(k => new ArgRule(k, clause))],
+            tail == '\0' ? null : new ArgRule(tail, clause), cross, crossClause);
+
     /// <summary>
     /// ⛔ THE SCREEN IS DRIVEN FROM HERE, NOT FROM <c>ArgKinds</c> — and the difference is the whole lesson.
     /// </summary>
@@ -866,30 +890,6 @@ internal static partial class IntrinsicArgumentRules
     /// outcome CLAUDE.md rule 4 forbids outright.
     /// </para>
     /// </remarks>
-    /// <summary>ONE kind for every position — the shape most §15.x.3 argument rules actually have ("argument-1
-    /// shall be of class numeric", with argument-1 repeating for a variadic list). Expressed as a variadic TAIL
-    /// with no fixed positions, which is precisely what the pre-schema table did for every row.</summary>
-    private static ArgSchema Uniform(char kind, string clause, CrossArgRule cross = CrossArgRule.None,
-        string crossClause = "", string? noZeroLen = null) =>
-        new([], new ArgRule(kind, clause, noZeroLen), cross, crossClause);
-
-    /// <summary>The kind of a DECLARED position whose §15.x.3 rule is not a class rule — it constrains an axis a
-    /// class set cannot carry (BASECONVERT argument-1's USAGE, §2023:15.12.3 r1) — so the schema keeps the ordinal
-    /// (the positions after it need their index) while <see cref="Admissible"/> answers null: no class screen
-    /// there, and the function's own binder arm owns the position. Unlike an ABSENT position it is declared, so
-    /// <c>IntrinsicArgumentClassDriftTests</c> can hold every such position to the bespoke screen that owns it.</summary>
-    internal const char UnscreenedKind = '-';
-
-    /// <summary>Per-POSITION kinds, for a rule that constrains its ordinals differently — FIND-STRING's two
-    /// string operands plus an integer, the FORMATTED-* family's format literal plus its numeric values.
-    /// <paramref name="tail"/> is the kind for positions past the declared ones (a variadic tail), or
-    /// <c>'\0'</c> for none — and NONE is the honest default: a position the clause does not describe is
-    /// UNSCREENED, never screened by whatever the last declared position happened to be.</summary>
-    private static ArgSchema Schema(string clause, char[] kinds, char tail = '\0',
-        CrossArgRule cross = CrossArgRule.None, string crossClause = "") =>
-        new([.. kinds.Select(k => new ArgRule(k, clause))],
-            tail == '\0' ? null : new ArgRule(tail, clause), cross, crossClause);
-
     public static readonly IReadOnlyDictionary<StandardWord, ArgSchema> Verified =
         new Dictionary<StandardWord, ArgSchema>
         {

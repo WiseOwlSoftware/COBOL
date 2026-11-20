@@ -169,13 +169,6 @@ public sealed class Table12StatementNameDriftTests
             + "scope terminator: " + string.Join(", ", phraseWithoutTerminator.Select(r => r.Name)));
     }
 
-    /// <summary>⛔ "A CONDITIONAL PHRASE IS WRITTEN" IS READ AS "THE STATEMENT'S OWN SYNTAX HOLDS A statementBlock",
-    /// AND THIS HOLDS THAT PROXY SOUND. Every grammar rule from which <c>statementBlock</c> is reachable (without
-    /// passing through another <c>statement</c>) must belong to a Table 12 row that HAS a conditional phrase — or be
-    /// PERFORM, whose inline imperative-statement-1 is not a conditional phrase but whose inline formats REQUIRE
-    /// END-PERFORM, so <see cref="ConditionalStatements.IsConditional"/> can never call it conditional. A new
-    /// statement rule that carries an imperative operand without a conditional phrase fails here until the
-    /// classifier is taught what it is.</summary>
     /// <summary>Every parser rule of every grammar file, name → body, comments stripped (the rules' own comments
     /// quote other rules' names). Internal: <c>ConditionalPhraseDriftTests</c> reads the same scrape.</summary>
     internal static Dictionary<string, string> ScrapeGrammarRules()
@@ -194,6 +187,13 @@ public sealed class Table12StatementNameDriftTests
         return grammarRules;
     }
 
+    /// <summary>⛔ "A CONDITIONAL PHRASE IS WRITTEN" IS READ AS "THE STATEMENT'S OWN SYNTAX HOLDS A statementBlock",
+    /// AND THIS HOLDS THAT PROXY SOUND. Every grammar rule from which <c>statementBlock</c> is reachable (without
+    /// passing through another <c>statement</c>) must belong to a Table 12 row that HAS a conditional phrase — or be
+    /// PERFORM, whose inline imperative-statement-1 is not a conditional phrase but whose inline formats REQUIRE
+    /// END-PERFORM, so <see cref="ConditionalStatements.IsConditional"/> can never call it conditional. A new
+    /// statement rule that carries an imperative operand without a conditional phrase fails here until the
+    /// classifier is taught what it is.</summary>
     [Fact]
     public void OnlyARowWithAConditionalPhrase_OrTheTerminatedPerform_HoldsAStatementBlock()
     {

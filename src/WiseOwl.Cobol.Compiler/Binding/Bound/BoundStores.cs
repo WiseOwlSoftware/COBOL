@@ -7,6 +7,33 @@ using WiseOwl.Cobol.Binding.Model;
 
 namespace WiseOwl.Cobol.Binding.Bound;
 
+/// <summary>How a statement touches a given item through its STORE positions (the polarity that selects the
+/// §2023:8.4.3.9.4 general rule): <see cref="None"/> → the occurrence is purely SENDING (GR1, get only);
+/// <see cref="Write"/> → a WRITE-only receiving position (GR2, set only — the get method is NOT invoked);
+/// <see cref="ReadWrite"/> → an in-place read-modify-write position (GR3, get before + set after);
+/// <see cref="WriteInPart"/> → a receiving position that stores only PART of the item and keeps the rest (ISO
+/// §2023:14.9.43.4 GR7 for STRING; §2023:8.4.3.3.4 GR5 for a reference-modified receiver), so the kept portion is the
+/// property's value: get before when the class has a get method, set after — and a class with NO get method is
+/// not an error (the position is a RECEIVING one, §2023:14.9.43.3 SR10, so §2023:8.4.3.9.3 SR3 asks nothing of it).</summary>
+public enum StoreKind { None, Write, ReadWrite, WriteInPart }
+
+/// <summary>What a store query asks of a statement that names one operand and stores into SELECTED items within it
+/// (MOVE, ADD and SUBTRACT CORRESPONDING; INITIALIZE): the operand the statement WROTE, or the items it actually stores
+/// (kb/Work PB5890). Every other statement stores what it names, and both views agree on it.</summary>
+internal enum StoreView
+{
+    /// <summary>The receiving operand as written: the receiving group of a CORRESPONDING statement, identifier-1 of INITIALIZE.
+    /// The property-temp query asks it (the temp IS the written operand) and the debug query asks it (X3.23-1985 USE FOR
+    /// DEBUGGING general rule 6 c "explicitly references"; rule 9: a group reference does not reference its subordinates).</summary>
+    Operands,
+
+    /// <summary>The storage the statement alters: the receiving item of each corresponding pair (§1985:VI.6.19.4 GR1 "selected
+    /// items within identifier-1 are moved to selected items within identifier-2"), and the elementary stores INITIALIZE's
+    /// expansion makes after its category selection, exclusions and default (§1985:VI.6.17.4 GR2 to GR5). The control-data
+    /// query asks it (§1985:XIII.4.9.3 SR4 "must not alter the value of any control data item").</summary>
+    Storage,
+}
+
 /// <summary>
 /// The bound-tree STORE analysis: does a statement write through a Place rooted at a given
 /// <see cref="DataItem"/>? First client: the object-property reference desugar (ISO §2023:8.4.3.9.4 GR1–GR3,
@@ -42,33 +69,6 @@ namespace WiseOwl.Cobol.Binding.Bound;
 ///   omit the recursion (e.g. <c>BoundKeyedDelete</c>) are equivalent, not buggy. Out-of-line PERFORM bodies
 ///   are pc ranges (not nested statements), so they are never walked.
 /// </remarks>
-/// <summary>How a statement touches a given item through its STORE positions (the polarity that selects the
-/// §2023:8.4.3.9.4 general rule): <see cref="None"/> → the occurrence is purely SENDING (GR1, get only);
-/// <see cref="Write"/> → a WRITE-only receiving position (GR2, set only — the get method is NOT invoked);
-/// <see cref="ReadWrite"/> → an in-place read-modify-write position (GR3, get before + set after);
-/// <see cref="WriteInPart"/> → a receiving position that stores only PART of the item and keeps the rest (ISO
-/// §2023:14.9.43.4 GR7 for STRING; §2023:8.4.3.3.4 GR5 for a reference-modified receiver), so the kept portion is the
-/// property's value: get before when the class has a get method, set after — and a class with NO get method is
-/// not an error (the position is a RECEIVING one, §2023:14.9.43.3 SR10, so §2023:8.4.3.9.3 SR3 asks nothing of it).</summary>
-public enum StoreKind { None, Write, ReadWrite, WriteInPart }
-
-/// <summary>What a store query asks of a statement that names one operand and stores into SELECTED items within it
-/// (MOVE, ADD and SUBTRACT CORRESPONDING; INITIALIZE): the operand the statement WROTE, or the items it actually stores
-/// (kb/Work PB5890). Every other statement stores what it names, and both views agree on it.</summary>
-internal enum StoreView
-{
-    /// <summary>The receiving operand as written: the receiving group of a CORRESPONDING statement, identifier-1 of INITIALIZE.
-    /// The property-temp query asks it (the temp IS the written operand) and the debug query asks it (X3.23-1985 USE FOR
-    /// DEBUGGING general rule 6 c "explicitly references"; rule 9: a group reference does not reference its subordinates).</summary>
-    Operands,
-
-    /// <summary>The storage the statement alters: the receiving item of each corresponding pair (§1985:VI.6.19.4 GR1 "selected
-    /// items within identifier-1 are moved to selected items within identifier-2"), and the elementary stores INITIALIZE's
-    /// expansion makes after its category selection, exclusions and default (§1985:VI.6.17.4 GR2 to GR5). The control-data
-    /// query asks it (§1985:XIII.4.9.3 SR4 "must not alter the value of any control data item").</summary>
-    Storage,
-}
-
 public static class BoundStores
 {
     /// <summary>The store polarity of <paramref name="item"/> in <paramref name="s"/> —

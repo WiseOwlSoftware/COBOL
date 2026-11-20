@@ -358,10 +358,6 @@ internal static class FunctionValueLane
                 _ => Carrier.Exact(left.Integral && right.Integral && op != '/'),
             };
 
-        /// <summary><c>NumericRenderer.Power</c> under NATIVE arithmetic: an exponentiation by an INTEGER with no binary64
-        /// operand is exact and lands on the SDIDI (or its wide form, which the renderer settles onto the SDIDI as an
-        /// operand); every other exponentiation is an implementor-defined binary64 approximation, which is a float
-        /// ITEM's content only when an operand is one.</summary>
         /// <summary>⛔ THE MARKS OF A VALUE COMPUTED FROM <paramref name="inputs"/> (kb/Work PB5893 review R5-1): an SDIDI result is an
         /// approximation (and keeps significance) when any input is one, through every node kind (a binary operation, a negation, a power;
         /// a function, in <c>Of</c>), so the delivery to a floating-point receiver (<see cref="DeliversByNearest"/>) sees it however it was
@@ -375,6 +371,10 @@ internal static class FunctionValueLane
                 Approximation = result.Approximation || inputs.Any(i => i.Approximation),
             };
 
+        /// <summary><c>NumericRenderer.Power</c> under NATIVE arithmetic: an exponentiation by an INTEGER with no binary64
+        /// operand is exact and lands on the SDIDI (or its wide form, which the renderer settles onto the SDIDI as an
+        /// operand); every other exponentiation is an implementor-defined binary64 approximation, which is a float
+        /// ITEM's content only when an operand is one.</summary>
         private static Carrier Power(Carrier b, Carrier e)
         {
             if (!b.IsReal && !e.IsReal && e.Kind != CarrierKind.Dec && e.Integral) return new Carrier(CarrierKind.Dec);

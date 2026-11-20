@@ -534,19 +534,6 @@ public static class CobolDate
             ? Exceptions.ArgumentSubstitute.ZeroLength
             : EmitFormatted(format, 1, secUnscaled, secScale, offsetMinutes, leapSecond);
 
-    /// <summary>§2023:15.41.3 r3 / §2023:15.40.3 r4: the seconds argument "shall be a value in STANDARD NUMERIC TIME FORM".
-    /// The §2023:7.3.17 LEAP-SECOND directive defines that range — GR5 (OFF, the implied default): "greater than or
-    /// equal to zero and less than 86,400"; GR4 (ON): "less than 86,401" — the compilation group's directive state
-    /// arrives as <paramref name="leapSecond"/> (kb/Work PB65; before it OFF was the only mode this compiler
-    /// supported). The bound is tied to the directive rather than to the number of seconds in a day, which is why
-    /// it is cited here rather than written as a bare 86400.
-    /// <para>Unenforced before this: a seconds argument of, say, 100000 produced <c>hh = 27</c> — a fabricated
-    /// time with no exception condition, the same failure mode as the offset bound below.</para>
-    /// <para>⛔ The comparison is exact and is asked on the DECIMAL carrier (kb/Work PB620):
-    /// <c>CobolDec.Compare</c> aligns at either operand's own exponent, so neither side is rescaled. It used to
-    /// scale the BOUND up — <c>86 400 × 10^secScale</c> — which is exact only while that product fits
-    /// <see cref="Int128"/> and WRAPPED past secScale 33; scaling the VALUE down instead would truncate and
-    /// silently admit a fractional overshoot.</para></summary>
     /// <summary>The same screen for another function's argument-1 (LOCALE-TIME-FROM-SECONDS, §2023:15.54.3 r1 — "a numeric
     /// value in standard numeric time form"): ONE rule, one place.</summary>
     internal static bool SecondsOutOfStandardFormFor(string fn, Int128 secUnscaled, int secScale, bool leapSecond)
@@ -608,6 +595,19 @@ public static class CobolDate
     private static bool SecondsOutOfStandardForm(string fn, string argName, Int128 secUnscaled, int secScale, bool leapSecond)
         => SecondsOutOfStandardForm(fn, argName, CobolDec.From(secUnscaled, secScale), leapSecond);
 
+    /// <summary>§2023:15.41.3 r3 / §2023:15.40.3 r4: the seconds argument "shall be a value in STANDARD NUMERIC TIME FORM".
+    /// The §2023:7.3.17 LEAP-SECOND directive defines that range — GR5 (OFF, the implied default): "greater than or
+    /// equal to zero and less than 86,400"; GR4 (ON): "less than 86,401" — the compilation group's directive state
+    /// arrives as <paramref name="leapSecond"/> (kb/Work PB65; before it OFF was the only mode this compiler
+    /// supported). The bound is tied to the directive rather than to the number of seconds in a day, which is why
+    /// it is cited here rather than written as a bare 86400.
+    /// <para>Unenforced before this: a seconds argument of, say, 100000 produced <c>hh = 27</c> — a fabricated
+    /// time with no exception condition, the same failure mode as the offset bound below.</para>
+    /// <para>⛔ The comparison is exact and is asked on the DECIMAL carrier (kb/Work PB620):
+    /// <c>CobolDec.Compare</c> aligns at either operand's own exponent, so neither side is rescaled. It used to
+    /// scale the BOUND up — <c>86 400 × 10^secScale</c> — which is exact only while that product fits
+    /// <see cref="Int128"/> and WRAPPED past secScale 33; scaling the VALUE down instead would truncate and
+    /// silently admit a fractional overshoot.</para></summary>
     private static bool SecondsOutOfStandardForm(string fn, string argName, CobolDec sec, bool leapSecond)
     {
         // §2023:7.3.17.4 GR5 (OFF): [0, 86 400); GR4 (ON): [0, 86 401) — the leap second at the end of the day (kb/Work PB65).

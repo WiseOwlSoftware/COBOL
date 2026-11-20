@@ -84,12 +84,6 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         _oo = oo;
     }
 
-    /// <summary>Emit a statement list (a paragraph case, an IF branch, or an inline-PERFORM body), suppressing dead
-    /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.
-    /// <para>⛔ THE LIST IS A REGION BOUNDARY (kb/Work PB441). Every member is a source statement of its own and
-    /// carries its own <c>BoundEcChecked</c> — or none, because §2023:7.3.25.4 GR6 enables nothing at ITS line — so the
-    /// enclosing statement's EC region must not stay ambient across it. See
-    /// <see cref="EcEmitter.EnterNestedStatements"/> for what leaving it ambient cost §2023:14.9.28.4 GR14.</para></summary>
     /// <summary>Emit the bounded dispatch that runs ONE procedure range from inside a statement — an out-of-line
     /// PERFORM, a SORT/MERGE INPUT or OUTPUT PROCEDURE. The ONE caller of <see cref="DispatchState.DispatchCall"/>
     /// (<c>ProcedureRangeCheckingDriftTests</c> pins that): the range's paragraphs are OTHER source statements, so
@@ -102,6 +96,12 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
             _ctx.Writer.Line(_dispatchState.DispatchCall(range, comment, lastUsedFlag));
     }
 
+    /// <summary>Emit a statement list (a paragraph case, an IF branch, or an inline-PERFORM body), suppressing dead
+    /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.
+    /// <para>⛔ THE LIST IS A REGION BOUNDARY (kb/Work PB441). Every member is a source statement of its own and
+    /// carries its own <c>BoundEcChecked</c> — or none, because §2023:7.3.25.4 GR6 enables nothing at ITS line — so the
+    /// enclosing statement's EC region must not stay ambient across it. See
+    /// <see cref="EcEmitter.EnterNestedStatements"/> for what leaving it ambient cost §2023:14.9.28.4 GR14.</para></summary>
     internal bool EmitStatementList(IReadOnlyList<BoundStatement> stmts)
     {
         using var region = _ecEmit.EnterNestedStatements();
@@ -117,8 +117,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     /// <summary>Emit one statement; returns true if it unconditionally transfers control out of the paragraph case.
     /// Dispatch is the generated exhaustive <see cref="IBoundStatementVisitor{T}"/> (PHASE-07 Step 6b): every bound
     /// statement leaf has a <c>Visit</c> below, so a missing arm is a COMPILE error — the former 79-arm switch and
-    /// its loud <c>default</c> are gone.</summary>
-    /// <summary>Emit one bound statement. An operand-evaluation step (<see cref="BoundStatement.OperandEvaluation"/>
+    /// its loud <c>default</c> are gone. An operand-evaluation step (<see cref="BoundStatement.OperandEvaluation"/>
     /// — kb/Work PB892, PB1432) is emitted inside <c>DispatchState</c>'s operand-evaluation scope, so every RESUME
     /// landing its raise sites write unwinds to the carrying statement's <see cref="BoundActivationSite"/> — one
     /// decision, here, for the hoisted step, the lambda-captured step (<c>ConditionRenderer.PreOpText</c>) and the

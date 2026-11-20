@@ -54,6 +54,16 @@ public sealed partial class SymbolTable
     /// <see cref="MethodNames.IndexNames"/> (§2023:11.7.4 GR5 privacy: a method index has its own cell).</summary>
     private readonly IndexNameTable _indexNames = new();
 
+    /// <summary>The second and later declaration of each index-name spelling among <paramref name="declarations"/> (an element's own
+    /// INDEXED BY declarations, in declaration order; one entry writing a spelling twice included): the declarations
+    /// §1985:VI.5.8.3 SR14, "Index-name-1 must be a unique word within the program", refuses (<c>DataBinder.ScreenIndexNameUniqueness</c>).</summary>
+    internal static IEnumerable<IndexDeclaration> RepeatedIndexNames(IReadOnlyList<IndexDeclaration> declarations)
+    {
+        HashSet<CobolName> seen = [];
+        foreach (var declaration in declarations)
+            if (!seen.Add(Key(declaration.Name))) yield return declaration;
+    }
+
     /// <summary>Is the written word <paramref name="written"/> (one token of a subscript's token list, where no parse rule holds
     /// the name alone) spelled as the index-name <paramref name="declared"/> an INDEXED BY phrase declares? The cheap pre-filter
     /// before such a word is resolved, with its qualifiers, by the declaration it identifies (kb/Work PB919): only the table

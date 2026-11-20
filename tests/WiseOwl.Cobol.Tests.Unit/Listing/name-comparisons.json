@@ -407,6 +407,11 @@
       "reason": "compares two symbols already resolved (type equivalence, conformance, control identity): no written name is resolved"
     },
     {
+      "site": "CMP Binding/LinkageBinder.cs WiseOwl.Cobol.Binding.LinkageBinder.CheckExternalizedNameUniqueness Comparer",
+      "class": "EXTERNAL",
+      "reason": "compares the externalized names of EXTERNAL subjects (§2023:13.18.22.3 SR2), keyed as the run-unit store ExternalTable keys its cells: identity across the run unit, not a reference written in this program"
+    },
+    {
       "site": "CMP Binding/AssignTargetRule.cs WiseOwl.Cobol.Binding.AssignTargetRule.DeviceClasses Comparer",
       "class": "KEYWORD",
       "reason": "the device classes DISK and PRINTER are implementor-names (ImplementorNameRegistry's source), a written word against a fixed word of the implementor"

@@ -158,25 +158,6 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         Assert.Equal(1.863999999, CobolIntrinsics.CombinedDatetimeReal(1, 86399.9999), 9);
     }
 
-    /// <summary>
-    /// ⛔ THE GENERAL GUARD: no <c>…Real</c> body may answer a domain guard with a bare literal.
-    /// </summary>
-    /// <remarks>
-    /// Every legitimately-guarded real body routes to a shared raise site — <c>RemZeroDivisor</c> for the
-    /// REM division rule (a §2023:15.3 type-6 position has no real body at all: its operand is taken as its integer
-    /// before any lane is chosen, and <c>IntrinsicRealArgDriftTests.NoRealBody_ServesAFunctionWhoseEveryPositionIsType6</c> forbids one;
-    /// MOD's divisor guard is <c>ModZeroDivisor</c>, shared by its exact twin). A body
-    /// that instead writes <c>x == 0 ? 0 : …</c> has silently re-implemented an exception condition as a default
-    /// value, which is precisely how MOD and REM drifted from their exact twins. The empty-argument
-    /// <c>xs.Length == 0 ? 0</c> forms are NOT this defect and are excluded by name: a zero-argument variadic
-    /// call cannot be written in COBOL (the general formats require at least one argument), so those are
-    /// unreachable defensive returns rather than a rule being defaulted.
-    /// <para>⚠ IT SCANS CODE ONLY, AND IT PROVED IT NEEDED TO BY FAILING ON ITS OWN FIRST RUN. The prose above
-    /// and the remarks on <c>ModZeroDivisor</c> both QUOTE the defective form <c>b == 0 ? 0 : …</c> so a later reader
-    /// knows what was wrong; scanning raw file text therefore reported the fixed code as an offender. Comments
-    /// are stripped before matching. A guard that cannot tell a defect from a description of a defect would have
-    /// had to be silenced, and a silenced guard is the dead lookup this project keeps finding.</para>
-    /// </remarks>
     /// <summary>The detector, so that both the guard below and its self-test use the SAME one — a self-test
     /// against a re-typed copy of the pattern proves nothing about the pattern actually shipped.</summary>
     private static List<string> DomainGuardOffenders(string source)
@@ -250,6 +231,25 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             + string.Join("; ", offenders));
     }
 
+    /// <summary>
+    /// ⛔ THE GENERAL GUARD: no <c>…Real</c> body may answer a domain guard with a bare literal.
+    /// </summary>
+    /// <remarks>
+    /// Every legitimately-guarded real body routes to a shared raise site — <c>RemZeroDivisor</c> for the
+    /// REM division rule (a §2023:15.3 type-6 position has no real body at all: its operand is taken as its integer
+    /// before any lane is chosen, and <c>IntrinsicRealArgDriftTests.NoRealBody_ServesAFunctionWhoseEveryPositionIsType6</c> forbids one;
+    /// MOD's divisor guard is <c>ModZeroDivisor</c>, shared by its exact twin). A body
+    /// that instead writes <c>x == 0 ? 0 : …</c> has silently re-implemented an exception condition as a default
+    /// value, which is precisely how MOD and REM drifted from their exact twins. The empty-argument
+    /// <c>xs.Length == 0 ? 0</c> forms are NOT this defect and are excluded by name: a zero-argument variadic
+    /// call cannot be written in COBOL (the general formats require at least one argument), so those are
+    /// unreachable defensive returns rather than a rule being defaulted.
+    /// <para>⚠ IT SCANS CODE ONLY, AND IT PROVED IT NEEDED TO BY FAILING ON ITS OWN FIRST RUN. The prose above
+    /// and the remarks on <c>ModZeroDivisor</c> both QUOTE the defective form <c>b == 0 ? 0 : …</c> so a later reader
+    /// knows what was wrong; scanning raw file text therefore reported the fixed code as an offender. Comments
+    /// are stripped before matching. A guard that cannot tell a defect from a description of a defect would have
+    /// had to be silenced, and a silenced guard is the dead lookup this project keeps finding.</para>
+    /// </remarks>
     [Fact]
     public void NoRealBody_AnswersADomainGuardWithALiteral()
     {

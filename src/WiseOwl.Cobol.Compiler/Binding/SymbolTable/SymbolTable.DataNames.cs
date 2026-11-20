@@ -51,10 +51,14 @@ public sealed partial class SymbolTable
         list.Add(cond);
     }
 
-    /// <summary>Record the screen-names the refused SCREEN SECTION declared.</summary>
-    internal void DeclareScreenNames(IEnumerable<string> names)
+    /// <summary>Record the screen-names the refused SCREEN SECTION declared, as written in source order, and answer each distinct name
+    /// once, as first written, for the declaration funnel (§2023:8.3.2.2).</summary>
+    internal List<string> DeclareScreenNames(IEnumerable<string> names)
     {
-        foreach (var n in names) _screenNames.Add(Key(n));
+        List<string> declared = [];
+        foreach (var n in names)
+            if (_screenNames.Add(Key(n))) declared.Add(n);
+        return declared;
     }
 
     /// <summary>Whether the refused SCREEN SECTION declares <paramref name="word"/> (a declaration question: no symbol answers).</summary>

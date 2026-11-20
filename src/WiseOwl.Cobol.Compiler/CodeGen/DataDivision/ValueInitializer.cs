@@ -420,8 +420,6 @@ internal sealed class ValueInitializer(EmitContext ctx)
     private static PicInfo AsIfAlphanumericGroup(DataItem item) =>
         new(PicCategory.Alphanumeric, Usage.Display, item.ImageWidth, Digits: 0, Scale: 0, Signed: false);
 
-    /// <summary>If <paramref name="raw"/> is a figurative constant, its C# initializer given the receiver's category
-    /// and width; otherwise null (ISO §2023:8.3.3.6; native HIGH/LOW = U+FFFF/U+0000, owner R52).</summary>
     /// <summary>⛔ THE ONE INITIAL BOOLEAN CARRIER of an elementary boolean item with a VALUE clause — its
     /// <c>pic.Length</c> boolean positions, in the SAME three arms the standard writes them in, for every lane
     /// that needs them (the record-struct field, the §2023:8.5.1.6.3 bit-run carrier, and the character-image seed —
@@ -456,6 +454,8 @@ internal sealed class ValueInitializer(EmitContext ctx)
             ? EmitText.CsLiteral(EmitText.RepeatToWidth(CobolLiteral.Decode(allLit), pic.Length))
             : null;
 
+    /// <summary>If <paramref name="raw"/> is a figurative constant, its C# initializer given the receiver's category
+    /// and width; otherwise null (ISO §2023:8.3.3.6; native HIGH/LOW = U+FFFF/U+0000, owner R52).</summary>
     public string? FigurativeInitializer(string raw, PicInfo pic)
     {
         if (FigurativeKind(raw) is not { } k) return null;

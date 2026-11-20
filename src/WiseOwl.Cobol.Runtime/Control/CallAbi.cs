@@ -904,6 +904,12 @@ public static class CobolArgAdapt
         }
     }
 
+    /// <summary>The cheap pre-test for <see cref="WithPointerContent"/>: a BY CONTENT argument on a class-pointer
+    /// slot. Asked first so the common (non-pointer) crossing never computes the formal's image width.</summary>
+    private static bool IsPointerContent(in CobolArg a) =>
+        a.Mode is CobolPassMode.Content
+        && a.Carrier is ManagedPointer<ManagedPointer> or ManagedPointer<ProgramPointer> or ManagedPointer<FunctionPointer>;
+
     /// <summary>⛔ A CLASS-POINTER ARGUMENT PASSED BY CONTENT TO A NON-POINTER FORMAL arrives as its STORAGE IMAGE
     /// (kb/Work PB970 arm 2). ISO §2023:14.8.2.3.3 1) — for a program activated with no program-specifier and no NESTED
     /// phrase, "the formal parameter shall be of the same length as the corresponding argument" is the whole
@@ -921,12 +927,6 @@ public static class CobolArgAdapt
     /// 2c "considered to match"): rule 1's same-length requirement is the pairing's whole conformance, and its
     /// violation is §2023:14.9.4.4 GR3 d)'s EC-PROGRAM-ARG-MISMATCH (conformance:cases/_unassigned/pb615_unreadable_argument_carrier).
     /// Returns <paramref name="args"/> itself (no allocation) whenever the argument is anything else.</para></summary>
-    /// <summary>The cheap pre-test for <see cref="WithPointerContent"/>: a BY CONTENT argument on a class-pointer
-    /// slot. Asked first so the common (non-pointer) crossing never computes the formal's image width.</summary>
-    private static bool IsPointerContent(in CobolArg a) =>
-        a.Mode is CobolPassMode.Content
-        && a.Carrier is ManagedPointer<ManagedPointer> or ManagedPointer<ProgramPointer> or ManagedPointer<FunctionPointer>;
-
     private static CobolArg[] WithPointerContent(CobolArg[] args, int i, int formalWidth)
     {
         if (args[i].Mode is not CobolPassMode.Content || PointerImage.OfCarrier(args[i].Carrier) is not { } image

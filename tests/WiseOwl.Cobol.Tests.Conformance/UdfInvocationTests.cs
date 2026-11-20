@@ -829,9 +829,6 @@ public sealed class UdfInvocationTests
 
     // ── M2-UDF-4: REPOSITORY specifiers + the §2023:8.4.3.2 SR2 keyword-omitted reference form (DEVLOG 626) ────────
 
-    /// <summary>A minimal program that references <paramref name="expr"/> as its COMPUTE/MOVE body under the
-    /// given <paramref name="repository"/> and optional extra <paramref name="ws"/> — for the keyword-omission
-    /// facts (byte-exact behaviour rides the udf_keyword_omitted golden).</summary>
     /// <summary>A function prototype of the user-defined function UDFDBL, ahead of every unit (ISO §2023:10.6.2 SR1): what a
     /// REPOSITORY <c>FUNCTION UDFDBL</c> entry names when the group has no definition of it (§2023:12.3.8.4 GR11 b); a specifier
     /// nothing answers is REPO-1, kb/Work PB2103).</summary>
@@ -847,6 +844,9 @@ public sealed class UdfInvocationTests
 
         """;
 
+    /// <summary>A minimal program that references <paramref name="expr"/> as its COMPUTE/MOVE body under the
+    /// given <paramref name="repository"/> and optional extra <paramref name="ws"/> — for the keyword-omission
+    /// facts (byte-exact behaviour rides the udf_keyword_omitted golden).</summary>
     private static string KoGroup(string pid, string repository, string body, string ws = "") => $$"""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. {{pid}}.

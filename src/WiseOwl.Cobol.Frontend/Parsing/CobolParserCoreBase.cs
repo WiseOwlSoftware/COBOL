@@ -55,25 +55,6 @@ public abstract class CobolParserCoreBase : Parser
     [EditionDerived] protected bool is2014() => Edition.Has(2014);
     [EditionDerived] protected bool is2023() => Edition.Has(2023);
 
-    /// <summary>
-    /// True when a SPECIAL-NAMES entry is the §2023:12.3.7 <c>LOCALE locale-name-1 IS {external-locale-name-1 |
-    /// literal-4}</c> clause — an <b>§2023:A.4.9 item 10</b> optional-locale element ("SPECIAL-NAMES paragraph: LOCALE
-    /// clause and LOCALE phrases in the ALPHABET clause"), which must be DIAGNOSED as documented non-support
-    /// rather than fail as a parse error (fix-queue PB25).
-    /// <para>⛔ WHY A TEXT PREDICATE AND NOT A LEXER TOKEN. LOCALE <i>is</i> reserved at 2002+ (§2023:8.9;
-    /// <c>reserved-words.json</c> r2002/r2014/r2023), so a token would be defensible — but the intrinsic side
-    /// DEPENDS on it arriving as a bare word: <c>IntrinsicBinder.KeywordWordOf</c> detects
-    /// <c>LOWER-CASE(x LOCALE …)</c> precisely because the phrase parses as ordinary space-separated arguments.
-    /// Tokenizing LOCALE would silently break that already-working diagnostic, so the reservation stays modelled
-    /// where the rest of §2023:8.9 lives and this reads the word.</para>
-    /// <para>⚠ EDITION-GATED DELIBERATELY. At COBOL-85 LOCALE is NOT reserved (r85 = false), so
-    /// <c>SPECIAL-NAMES. LOCALE IS FOO.</c> is a legal implementor-switch entry there and must keep parsing as
-    /// one. Below 2002 this returns false and the entry falls through to <c>implementorSwitchEntry</c> unchanged.
-    /// </para>
-    /// <para>The shape check (a following word, then IS or the value) is what keeps it off that 85 switch entry
-    /// even when the predicate is reached: a bare <c>LOCALE IS FOO</c> has no locale-name and is not this clause.
-    /// </para>
-    /// </summary>
     /// <summary>The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause is ahead (ISO §2023:12.3.6.2; kb/Work PB78, PB695).
     /// CLASSIFICATION is not a lexer token (a plain word at COBOL-85), so the clause is recognized by the text of
     /// its one REQUIRED word — printed folio 285 underlines CLASSIFICATION and leaves CHARACTER plain, making
@@ -354,6 +335,25 @@ public abstract class CobolParserCoreBase : Parser
         };
     }
 
+    /// <summary>
+    /// True when a SPECIAL-NAMES entry is the §2023:12.3.7 <c>LOCALE locale-name-1 IS {external-locale-name-1 |
+    /// literal-4}</c> clause — an <b>§2023:A.4.9 item 10</b> optional-locale element ("SPECIAL-NAMES paragraph: LOCALE
+    /// clause and LOCALE phrases in the ALPHABET clause"), which must be DIAGNOSED as documented non-support
+    /// rather than fail as a parse error (fix-queue PB25).
+    /// <para>⛔ WHY A TEXT PREDICATE AND NOT A LEXER TOKEN. LOCALE <i>is</i> reserved at 2002+ (§2023:8.9;
+    /// <c>reserved-words.json</c> r2002/r2014/r2023), so a token would be defensible — but the intrinsic side
+    /// DEPENDS on it arriving as a bare word: <c>IntrinsicBinder.KeywordWordOf</c> detects
+    /// <c>LOWER-CASE(x LOCALE …)</c> precisely because the phrase parses as ordinary space-separated arguments.
+    /// Tokenizing LOCALE would silently break that already-working diagnostic, so the reservation stays modelled
+    /// where the rest of §2023:8.9 lives and this reads the word.</para>
+    /// <para>⚠ EDITION-GATED DELIBERATELY. At COBOL-85 LOCALE is NOT reserved (r85 = false), so
+    /// <c>SPECIAL-NAMES. LOCALE IS FOO.</c> is a legal implementor-switch entry there and must keep parsing as
+    /// one. Below 2002 this returns false and the entry falls through to <c>implementorSwitchEntry</c> unchanged.
+    /// </para>
+    /// <para>The shape check (a following word, then IS or the value) is what keeps it off that 85 switch entry
+    /// even when the predicate is reached: a bare <c>LOCALE IS FOO</c> has no locale-name and is not this clause.
+    /// </para>
+    /// </summary>
     protected bool localeClauseAhead()
     {
         if (!Word(TokenStream.LT(1), "LOCALE")) return false;
