@@ -126,6 +126,33 @@ public sealed class TextListingRendererTests
         Assert.Equal("COPY REC -> " + library + " (depth 1)", joined);
     }
 
+    /// <summary>DESIGN-listing.md section 6.2, columns 11-16 (kb/Work PB5950): the file line is printed only where it is not the
+    /// listing number. Before the first inclusion the two agree and the column is blank; on a line of a library text, and on a
+    /// line of the source after an inclusion, they differ and the column names the line in its own file, right-aligned.</summary>
+    [Fact]
+    public void TheFileLineColumn_IsBlankWhereItIsTheListingNumber()
+    {
+        var document = new ListingDocument(Header(),
+            [new ListingFile(1, "/src/p.cob", ListingFileRole.Source, "00"), new ListingFile(2, "/src/REC.cpy", ListingFileRole.Library, "00")],
+            [new ListingInclusion(1, null, 1, 2, 2, "REC", null, 2, ListingInclusionOutcome.Found, false)],
+            [
+                new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       WORKING-STORAGE SECTION.", false, true, false, 0, ListingReplacement.None, null, [], null),
+                new(2, 1, 2, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       COPY REC.", false, true, false, 0, ListingReplacement.None, null, [], null),
+                new(3, 2, 1, 1, 1, ListingLineForm.Fixed, ListingLineKind.Source, "       01 R PIC X.", false, true, false, 0, ListingReplacement.None, null, [], null),
+                new(4, 1, 3, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       01 S PIC X.", false, true, false, 0, ListingReplacement.None, null, [], null),
+            ],
+            [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 4, null)],
+            [], [], [], null, null, null,
+            [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null)]);
+        string[] rows = [.. TextListingRenderer.Render(document, new ListingRequest()).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
+        string Row(string text) => Assert.Single(rows, r => r.EndsWith(text, StringComparison.Ordinal));
+        // Columns 1-6 the listing number, 11-16 the file line: blank, blank, the library's line 1, the source's line 3.
+        Assert.Equal("     1           ", Row("WORKING-STORAGE SECTION.")[..17]);
+        Assert.Equal("     2           ", Row("COPY REC.")[..17]);
+        Assert.Equal("     3 1       1 ", Row("01 R PIC X.")[..17]);
+        Assert.Equal("     4         3 ", Row("01 S PIC X.")[..17]);
+    }
+
     private static ListingDiagnostic Diagnostic(int id, ListingSeverity severity, string message, int? line = 1, int? column = 8) =>
         new(id, "COBOL0001", severity, message, line, line is null ? null : 1, line, line is null ? null : column, []);
 
