@@ -366,7 +366,13 @@ public sealed class ReferenceResolver(DataBinder data)
         // r.BaseName is the FILE-/REPORT-NAME qualifier and would otherwise mis-resolve here as a base data-name.
         if (r.Register != SpecialRegister.None) return Ends(Deferred(DeferredShape.UnroutedSpecialRegister));
         // No base word outside a special register is a parse-error recovery node: the parser reported it.
-        if (r.BaseName is not { } name) return Ends(Refused());
+        if (dref.cobolWord() is null) return Ends(Refused());
+        // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference), and its name and
+        // qualifiers as the symbol table keys them, each word read off its token once, here, for every arm below.
+        var written = ReadWritten(dref);
+        var qualifiers = written.Qualifiers;
+        var named = WrittenQualifiedName.OfRead(dref, qualifiers);
+        string name = named.Name;
 
         // The OCCURS DYNAMIC CAPACITY register (ISO §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9): an implicitly-
         // defined VIEW over the owning dynamic table's current capacity — never a storage item, so it is not in
@@ -404,9 +410,8 @@ public sealed class ReferenceResolver(DataBinder data)
         if (data.State.Implicit.DebugRegisters.Count > 0 && dref.dataReferenceSuffix().All(suffix => suffix.refModPart() is not null)
             && data.Symbols.Identify(dref.cobolWord(), NameClass.DebugRegister, report) is { Symbol: DebugRegisterPlace dbg })
         {
-            var debugWritten = ReadWritten(dref);
-            if (!RefMods.ScreenRefModCount(dref, debugWritten, name)) return Ends(Refused());
-            return new Identified(null, dbg.RegisterItem, debugWritten, [], dbg);
+            if (!RefMods.ScreenRefModCount(dref, written, name)) return Ends(Refused());
+            return new Identified(null, dbg.RegisterItem, written, [], dbg);
         }
 
         // A REPORT SECTION SUM COUNTER (ISO §2023:13.18.54.4 GR5 — the data-name after the level number names the
@@ -418,9 +423,6 @@ public sealed class ReferenceResolver(DataBinder data)
         // counter is a table and takes the ordinary subscripts (kb/Work PB1271).
         if (Counters.SumCounterFor(dref, report) is { } sumCounter) return Ends(sumCounter);
 
-        // The reference AS WRITTEN, read by the ONE decomposition (kb/Work PB443 — see WrittenReference).
-        var written = ReadWritten(dref);
-        var qualifiers = written.Qualifiers;
 
         // ISO §2023:8.4.3.3.3 SR3 — "Identifier-1 shall not be a reference-modification format identifier." The
         // grammar cannot express this (dataReferenceSuffix* and qualification's own (subscriptPart|refModPart)*
@@ -431,7 +433,7 @@ public sealed class ReferenceResolver(DataBinder data)
         if (!RefMods.ScreenRefModCount(dref, written, name)) return Ends(Refused());
 
         // A reference whose chain ends in a non-word object (SELF, SUPER, a view, a function, NULL) is never a data name.
-        DataItem? item = written.PropertyObject is not null || WrittenQualifiedName.Of(dref) is not { } named ? null
+        DataItem? item = written.PropertyObject is not null ? null
             : Names.DataItemNamed(named);
         // §2023:8.4.3.1.2 Format 7 (kb/Work PB1425): `property-name-1 OF identifier-3` is textually a qualified data
         // reference, so it legitimately FAILS normal qualification. ResolveObjectProperty splits the chain — identifier-3
@@ -579,9 +581,10 @@ public sealed class ReferenceResolver(DataBinder data)
     public TableOperand? ResolveTableOperand(Core.DataReferenceContext dref)
     {
         DataReferenceCst r = dref;
-        if (r.Register != SpecialRegister.None || r.BaseName is null) return null;
+        if (r.Register != SpecialRegister.None || dref.cobolWord() is null) return null;
         var written = ReadWritten(dref);
-        if (Names.FindReportedItem(dref) is not { } item) return null;
+        var named = WrittenQualifiedName.OfRead(dref, written.Qualifiers);
+        if (Names.FindReportedItem(dref, named) is not { } item) return null;
         // The subscripts AS WRITTEN, split by the ONE declaration-informed splitter (kb/Work PB136) — the same
         // reading SR8/SR9 already demand of a Format-2 key subscript, for the same reason: the RENDERED index
         // expression has erased how many operands the programmer wrote.

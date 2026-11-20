@@ -6,7 +6,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1585,
+ "count": 1584,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
@@ -748,13 +748,13 @@
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 2772,
+   "line": 2773,
    "citation": "§2023:14.9.51 GR29a",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/FILES_DESIGN.md",
-   "line": 2818,
+   "line": 2819,
    "citation": "§2023:14.9.41 GR5",
    "kind": "no-rule-list"
   },
@@ -1510,13 +1510,13 @@
   },
   {
    "file": "docs/rearchitecture/DESIGN-flag-directives.md",
-   "line": 215,
+   "line": 218,
    "citation": "§2023:13.18.63 SR6",
    "kind": "no-rule-list"
   },
   {
    "file": "docs/rearchitecture/DESIGN-flag-directives.md",
-   "line": 226,
+   "line": 229,
    "citation": "§2023:13.18.63 SR13",
    "kind": "no-rule-list"
   },
@@ -2938,7 +2938,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs",
-   "line": 254,
+   "line": 255,
    "citation": "§2023:8.4.3.15 SR2",
    "kind": "no-rule-list"
   },
@@ -3504,12 +3504,6 @@
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Model/StorageTierSlice.cs",
    "line": 85,
    "citation": "§2023:13.18.5 GR2",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs",
-   "line": 309,
-   "citation": "§2023:11.7 GR5",
    "kind": "no-rule-list"
   },
   {
@@ -4084,7 +4078,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs",
-   "line": 372,
+   "line": 371,
    "citation": "§2023:13.18.38 GR15",
    "kind": "no-rule-list"
   },
@@ -4126,19 +4120,19 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2063,
+   "line": 2047,
    "citation": "§2023:14.9.51 SR19",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2073,
+   "line": 2057,
    "citation": "§2023:14.9.51 SR18",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs",
-   "line": 2101,
+   "line": 2085,
    "citation": "§2023:14.9.51 SR13",
    "kind": "no-rule-list"
   },
@@ -4960,13 +4954,13 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs",
-   "line": 415,
+   "line": 432,
    "citation": "§2023:13.18.63 SR13",
    "kind": "no-rule-list"
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs",
-   "line": 438,
+   "line": 455,
    "citation": "§2023:13.18.63 SR6",
    "kind": "no-rule-list"
   },
@@ -4978,7 +4972,7 @@
   },
   {
    "file": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
-   "line": 3774,
+   "line": 3771,
    "citation": "§2023:8.4.3.2 SR8",
    "kind": "no-rule-list"
   },

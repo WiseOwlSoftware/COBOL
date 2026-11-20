@@ -58,11 +58,16 @@ internal readonly record struct WrittenWord(IToken Token, int Start, int Length)
 internal readonly record struct WrittenQualifiedName
 {
     public WrittenQualifiedName(IToken head, IReadOnlyList<IToken> qualifiers)
+        : this(head, head.Text, qualifiers, qualifiers.Count == 0 ? [] : [.. qualifiers.Select(static q => q.Text)])
+    {
+    }
+
+    private WrittenQualifiedName(IToken head, string name, IReadOnlyList<IToken> qualifiers, IReadOnlyList<string> qualifierWords)
     {
         Head = head;
-        Name = head.Text;
+        Name = name;
         Qualifiers = qualifiers;
-        QualifierWords = qualifiers.Count == 0 ? [] : [.. qualifiers.Select(static q => q.Text)];
+        QualifierWords = qualifierWords;
     }
 
     /// <summary>The name's token.</summary>
@@ -87,6 +92,23 @@ internal readonly record struct WrittenQualifiedName
         foreach (var suffix in dref.dataReferenceSuffix())
             if (suffix.qualification() is { } q) (qualifiers ??= []).Add(q.cobolWord().Start);
         return new(word.Start, qualifiers ?? (IReadOnlyList<IToken>)[]);
+    }
+
+    /// <summary>A <c>dataReference</c> whose qualifier words the caller has ALREADY read off their tokens (its
+    /// <c>ReferenceResolver.ReadWritten</c> decomposition): the name keeps that list, so the words are read once per reference,
+    /// never again here (section 9's budget: every data reference is identified so), and only a qualified reference walks its
+    /// qualifications again, for their tokens. <paramref name="dref"/> writes a name (the caller has screened the counter
+    /// registers).</summary>
+    internal static WrittenQualifiedName OfRead(Frontend.Generated.CobolParserCore.DataReferenceContext dref,
+        IReadOnlyList<string> qualifierWords)
+    {
+        var head = dref.cobolWord().Start;
+        string name = head.Text;
+        if (qualifierWords.Count == 0) return new(head, name, [], qualifierWords);
+        List<IToken> qualifiers = new(qualifierWords.Count);
+        foreach (var suffix in dref.dataReferenceSuffix())
+            if (suffix.qualification() is { } q) qualifiers.Add(q.cobolWord().Start);
+        return new(head, name, qualifiers, qualifierWords);
     }
 
     /// <summary>The name at <paramref name="at"/> of a token list and the qualifiers written after it (<c>OF</c> or <c>IN</c>, then a

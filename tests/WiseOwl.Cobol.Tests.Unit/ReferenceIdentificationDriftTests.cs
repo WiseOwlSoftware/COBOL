@@ -147,7 +147,7 @@ public sealed class ReferenceIdentificationDriftTests
             "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
         Assert.Contains("ctx.Refs.Counters.SumCounterFamilyFor(dref, report: true)", text, StringComparison.Ordinal);
         // ... and its table lookup is the REPORTED one (the §2023:8.4.2.2 report and the §2023:13.7.3 SR4 screen), not a bare FindItem.
-        Assert.Contains("ctx.Refs.Names.FindReportedItem(dref)", text, StringComparison.Ordinal);
+        Assert.Contains("ctx.Refs.Names.FindReportedItem(dref, named)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Names.DataItemNamed(", text, StringComparison.Ordinal);
     }
 
@@ -159,7 +159,7 @@ public sealed class ReferenceIdentificationDriftTests
     public void TheTableOperand_LooksItsItemUpThroughTheReportedLookup()
     {
         string body = Code(BodyOf("public TableOperand? ResolveTableOperand("));
-        Assert.Contains("FindReportedItem(dref)", body, StringComparison.Ordinal);
+        Assert.Contains("FindReportedItem(dref, named)", body, StringComparison.Ordinal);
         Assert.DoesNotContain("DataItemNamed(", body, StringComparison.Ordinal);
         string reported = Code(BodyOf("internal DataItem? FindReportedItem("));
         Assert.Contains("ReportUnidentified(", reported, StringComparison.Ordinal);

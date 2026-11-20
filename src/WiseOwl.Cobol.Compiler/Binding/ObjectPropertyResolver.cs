@@ -67,10 +67,11 @@ internal sealed class ObjectPropertyResolver(ReferenceResolver refs, DataBinder 
     /// for the same reason the committing path orders it that way.</para></summary>
     public bool IsObjectPropertyReference(Core.DataReferenceContext dref)
     {
-        if (WrittenQualifiedName.Of(dref) is not { } named) return false;
+        if (dref.cobolWord() is null) return false;
         var written = ReferenceResolver.ReadWritten(dref);
         if (written.PropertyObject is null
-            && (named.QualifierWords.Count == 0 || refs.Names.DataItemNamed(named) is not null))
+            && (written.Qualifiers.Count == 0
+                || refs.Names.DataItemNamed(WrittenQualifiedName.OfRead(dref, written.Qualifiers)) is not null))
             return false;
         bool saved = refs.Probing;
         refs.Probing = true;

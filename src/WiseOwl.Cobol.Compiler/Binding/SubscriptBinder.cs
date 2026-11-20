@@ -601,8 +601,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         {
             case Core.DataReferenceContext dref:
                 // A counter register's word is its qualifier (WrittenQualifiedName.Of), and a register owns no list.
-                if (WrittenQualifiedName.Of(dref) is null) return;
-                var head = dref.cobolWord().Start;
+                if (dref.LINAGE_COUNTER() is not null || dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null
+                    || dref.cobolWord() is not { } word)
+                    return;
+                var head = word.Start;
                 List<IToken>? qualifiers = null;
                 foreach (var suffix in dref.dataReferenceSuffix())
                 {
@@ -757,8 +759,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             if (written.PropertyObject is not null) return null;
             // ⛔ AN UNRESOLVABLE NAME ROUTES TO D18 — IT IS NOT A VERDICT (fix-queue PB50): the expression binder
             // reports a genuinely undefined name at the operand itself.
-            if (WrittenQualifiedName.Of(dref) is not { } named
-                || ResolveSubscriptName(dref, named, position, ref pending, out bool scaled, (dref.Start, indexNames)) is not { } read)
+            if (ResolveSubscriptName(dref, WrittenQualifiedName.OfRead(dref, written.Qualifiers), position,
+                    ref pending, out bool scaled, (dref.Start, indexNames)) is not { } read)
                 return null;
             // A scaled operand inside a compound position — evaluate the whole expression instead (above).
             return scaled && compound ? null : read;

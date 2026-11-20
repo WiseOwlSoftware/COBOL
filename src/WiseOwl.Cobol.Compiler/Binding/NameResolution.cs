@@ -54,7 +54,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// <summary>The COBOL1639 report for a reference no declaration identifies (kb/Work R30): "not defined"
     /// when the bare name exists nowhere; "does not uniquely identify" when it exists but the qualifiers or an
     /// ambiguity defeat resolution (§2023:8.4.2.2 — qualification shall establish uniqueness).</summary>
-    internal void ReportUnidentified(Core.DataReferenceContext dref, string name, List<string> qualifiers)
+    internal void ReportUnidentified(Core.DataReferenceContext dref, string name, IReadOnlyList<string> qualifiers)
     {
         // ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NOT UNDEFINED (kb/Work PB1906): the one query of
         // what it IS. "Not defined" would send the user hunting a declaration that is right there.
@@ -317,14 +317,13 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// two references that name a TABLE and not a place (the SEARCH / SORT table operand and the table(ALL) intrinsic
     /// argument), which read their own subscripts. Both used to resolve and stop, so `SEARCH L-TABLE`
     /// and `FUNCTION SUM (L-TABLE (ALL))` over a LINKAGE table the procedure division may not reference compiled clean
-    /// while `MOVE L-TABLE (1) TO X` drew COBOL2746. Null having reported; null without a report for a reference that writes no
-    /// name (a counter register).</summary>
-    internal DataItem? FindReportedItem(Core.DataReferenceContext dref)
+    /// while `MOVE L-TABLE (1) TO X` drew COBOL2746. <paramref name="written"/> is <paramref name="dref"/>'s name as the caller
+    /// read it. Null having reported.</summary>
+    internal DataItem? FindReportedItem(Core.DataReferenceContext dref, WrittenQualifiedName written)
     {
-        if (WrittenQualifiedName.Of(dref) is not { } written) return null;
         if (DataItemNamed(written) is not { } item)
         {
-            ReportUnidentified(dref, written.Name, [.. written.QualifierWords]);
+            ReportUnidentified(dref, written.Name, written.QualifierWords);
             return null;
         }
         ScreenLinkageReference(dref, item);
@@ -354,7 +353,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         var written = WrittenQualifiedName.Of(dref);
         if (written is { } named && DataItemNamed(named) is { } item) return item;
         // A special register names no data item: it is unidentified as written (its word is a qualifier, or none).
-        if (!refs.Probing) ReportUnidentified(dref, written?.Name ?? dref.GetText(), written is { } w ? [.. w.QualifierWords] : []);
+        if (!refs.Probing) ReportUnidentified(dref, written?.Name ?? dref.GetText(), written?.QualifierWords ?? []);
         return null;
     }
 
