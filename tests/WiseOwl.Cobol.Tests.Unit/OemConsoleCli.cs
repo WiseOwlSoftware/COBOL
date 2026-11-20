@@ -14,8 +14,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// An in-process run (<c>Program.Parse(...).Invoke()</c> under <c>Console.SetOut</c>) cannot see either thing these tests
-/// hold: the command writes a listing to <c>Console.OpenStandardOutput()</c>, which bypasses <c>Console.SetOut</c>, and a
-/// redirected writer never re-encodes through a console code page. A child launched with no console inherits .NET's UTF-8
+/// hold: the command's standard output writer is the one <c>StandardStreams.EnsureUtf8</c> sets from <c>Main</c> (BOM-less
+/// UTF-8 when redirected), which an in-process run never builds, and a redirected writer never re-encodes through a console
+/// code page. A child launched with no console inherits .NET's UTF-8
 /// default, so a naive spawn would pass on a build that writes through the code page; on Windows the command is therefore
 /// driven from a <c>cmd.exe</c> that first sets its own console to cp437 (<c>CreateNoWindow</c> gives the child its own
 /// console, so the developer's terminal is untouched), and <see cref="Run"/> FAILS if that code page was not in force.

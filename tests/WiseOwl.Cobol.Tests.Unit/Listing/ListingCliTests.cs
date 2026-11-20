@@ -151,10 +151,11 @@ public sealed class ListingCliTests
     /// <summary>Section 8 (PB5941, correction): with <c>--listing-output -</c> the one format goes to standard output as the
     /// bytes its file would hold, UTF-8 with no byte order mark whatever the console's code page, and the lines of the DISPLAY
     /// directives that go to standard output follow it there. Run as a process under a cp437 console with standard output
-    /// redirected (<see cref="OemConsoleCli"/>): an in-process run cannot see it, because the listing is written to
-    /// <c>Console.OpenStandardOutput()</c>, which <c>Console.SetOut</c> does not reach (kb/Work PB5941 review R1-1). Writing the
-    /// listing through <c>Console.Out</c> again sends U+00E9 as the byte 0x82 and U+20AC as <c>?</c>, which the strict decode
-    /// or the comparison refuses; writing it after the DISPLAY lines puts the displayed line first.</summary>
+    /// redirected (<see cref="OemConsoleCli"/>): the listing goes through <c>Console.Out</c>, which
+    /// <c>StandardStreams.EnsureUtf8</c> makes BOM-less UTF-8 when standard output is redirected, and an in-process run cannot
+    /// observe those bytes because <c>EnsureUtf8</c> runs from <c>Main</c> (kb/Work PB5941 reviews R1-1 and R2-1). A writer that
+    /// re-encodes through the console's code page sends U+00E9 as the byte 0x82 and U+20AC as <c>?</c>, which the strict decode
+    /// or the comparison refuses; writing the listing after the DISPLAY lines puts the displayed line first.</summary>
     [Theory]
     [InlineData("text")]
     [InlineData("json")]
