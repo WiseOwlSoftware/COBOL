@@ -203,7 +203,41 @@ public static class HtmlListingRenderer
                 page.Append("</tr>\n");
             }
             page.Append("</tbody>\n</table>\n");
+            FlaggedConstructs();
             return page;
+        }
+
+        /// <summary>The table of flagged constructs by edition (DESIGN-listing.md section 6.11) in the text listing's words
+        /// (<see cref="FlaggedConstructText"/>), each listing line a link to its diagnostic under its line where the page holds that
+        /// line; nothing when no diagnostic is an edition flag.</summary>
+        private void FlaggedConstructs()
+        {
+            if (document.FlaggedConstructs.Count == 0) return;
+            page.Append("<h3>");
+            Escape(page, FlaggedConstructText.Title);
+            page.Append("</h3>\n");
+            Head(page, FlaggedConstructText.Headings);
+            var diagnostics = document.Diagnostics.ToDictionary(d => d.Id);
+            foreach (var construct in document.FlaggedConstructs)
+            {
+                page.Append("<tr>");
+                Cell(page, FlaggedConstructText.EditionText(construct.Edition), "n");
+                Cell(page, FlaggedConstructText.KindWord(construct.Kind));
+                Cell(page, FlaggedConstructText.CountText(construct), "n");
+                Cell(page, FlaggedConstructText.ConstructText(construct));
+                page.Append("<td>");
+                bool first = true;
+                foreach (int id in construct.Diagnostics)
+                {
+                    if (!first) page.Append(' ');
+                    first = false;
+                    if (diagnostics[id].Line is { } line && _lines.Contains(line))
+                        Link(page, "#" + DiagnosticId(id), line.ToString(CultureInfo.InvariantCulture));
+                    else page.Append(diagnostics[id].Line?.ToString(CultureInfo.InvariantCulture) ?? "-");
+                }
+                page.Append("</td></tr>\n");
+            }
+            page.Append("</tbody>\n</table>\n");
         }
 
         public StringBuilder Options()
@@ -685,6 +719,7 @@ public static class HtmlListingRenderer
         @media (prefers-color-scheme: dark) {
           :root { --bg: #161618; --fg: #e8e8ed; --muted: #98989d; --rule: #3a3a3c; --err: #ff6b5e; --warn: #f0b429; --info: #7ab4ff;
                   --mark: #6b5310; --link: #8ab4f8; --head: #1f1f22; } }
+        html { scroll-padding-top: var(--navh, 5em); }
         body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
         header, main { padding: 0 16px; }
         h1 { font-size: 1.3em; } h2 { font-size: 1.1em; border-bottom: 1px solid var(--rule); padding-top: 1em; }
@@ -741,7 +776,14 @@ public static class HtmlListingRenderer
             for (; at; at = at.parentElement) if (at.tagName === 'DETAILS') at.open = true;
           }
           window.addEventListener('hashchange', reveal);
+          // The sticky nav covers the top of the viewport, and it wraps to more lines as the window narrows: every link
+          // target (a section heading, a line, a data item) scrolls to just below the nav's height as rendered now.
+          var nav = document.querySelector('nav');
+          function clear() { document.documentElement.style.setProperty('--navh', (nav.offsetHeight + 8) + 'px'); }
+          if (window.ResizeObserver) new ResizeObserver(clear).observe(nav);
+          clear();
           reveal();
+          if (location.hash) { var at = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (at) at.scrollIntoView(); }
         })();
         """;
 }

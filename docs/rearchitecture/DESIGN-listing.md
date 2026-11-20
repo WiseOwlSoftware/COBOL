@@ -25,6 +25,7 @@
 > part of this design not yet built and why.** Where building a step proved this document wrong it was
 > corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)",
 > "(step 6)", "(step 6b)", "(step 7a)", "(step 8)" or "(step 9)" in the section it changed.
+> PB5947 BUILT (the diagnostic summary's table of flagged constructs by edition, section 6.11, branch `listing-step-pb5947`).
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -1951,6 +1952,50 @@ The edition flags (COBOL0903 obsolete, COBOL0902 removed under `--permissive`, C
 diagnostics and print inline; the summary adds a table of flagged constructs by edition. (Step 9, the check of what is built:) the
 table is not built, and no step of section 11 named it: kb/Work PB5947.
 
+**As built (PB5947, branch `listing-step-pb5947`), with the corrections the code proved:**
+
+- **The flag is a fact on the diagnostic, stamped where it is raised (correction).** "Edition flags (COBOL0903, COBOL0902, COBOL2894)"
+  read as a list of codes the listing would keep beside the catalog, and a code is not the fact: a removed construct's verdict
+  carries the code its registry row pins (`ConstructDialectStatus.DiagnosticCode`, a pre-band code for some rows), and four front-end
+  stages spelled the codes themselves (the reference-format stage's column-7 continuation and word continuation, COPY REPLACING's
+  non-pseudo-text operand, the directive-word rule). So the flag is a record, `EditionFlag(Kind, Construct, Description, Edition)`
+  (`WiseOwl.Cobol.Editions`, `EditionFlagKind` Obsolete, Removed, Extension), and `Diagnostic.Flag` carries it. It is made in two
+  places only: `ConstructRegistry.VerdictAt`, the one verdict of a registry row at an edition (severity, code and flag; `Check` and
+  `GateErrorCodeAt` read it, and the four front-end stages report through it, `DiagnosticBag.Report(EditionVerdict, ...)`, in their
+  own words), and `EditionContext.Extension`, the §2023:4.2.10 seam. `EditionDiagnostic.Flag` carries it through either sink
+  (`EditionContext.Report`, `BagSink.Report`). `EditionFlagDriftTests` (Unit) holds it: every registry row at every edition on both
+  axes carries the flag its row names, through `Check` and through the binder's records; every flaggable extension carries its
+  row's flag at the edition compiled to; and no source of `src/` outside those funnels names a flag code by literal, constant or
+  descriptor (a Roslyn scan, shown red on planted text). A flag added to either register is in the table by construction.
+- **"By edition" is the edition of the rule that flags it.** Obsolete: the row's `ObsoleteIn`; removed: its `RemovedIn` (so a
+  debugging line at `--std 2023` is a 2014 removal); an extension: the edition compiled to, whose standard does not define it
+  (§2023:4.2.10, "to indicate use of a nonstandard extension in a compilation group"). Archaic (§2023:4.2.12) and obsolete
+  (§2023:4.2.13) share the kind Obsolete, as they share COBOL0903. A removed construct is counted whatever its severity: strict, it is
+  an error and still names the edition that removed it.
+- **What is not a flagged construct (decision).** A rule a later edition ADDED that `--permissive` relaxes (`EditionContext.Removed`'s
+  documented-dialect-leniency callers, the 2023 EXTERNAL file-connector and MERGE-placement rules that take the removed-construct
+  severity) reports under the rule's own code; it flags no construct of a register, and carries no flag. The FLAG-85 and
+  FLAG-NATIVE-ARITHMETIC directives' warnings flag a change of meaning the program asked to see, not a construct by edition; neither
+  is in the table. The reserved-word check (COBOL0901) refuses a spelling, not a construct.
+- **The model.** `ListingDiagnostic.Flag` (`ListingFlag`, `ListingFlagKind`, mapped by `DiagnosticSectionBuilder.FlagOf`, a switch
+  `FlaggedConstructTests.TheFlagKindMap_IsTotal` holds total both ways) and `ListingDocument.FlaggedConstructs`
+  (`ListingFlaggedConstruct(Edition, Kind, Construct, Description, Diagnostics)`), built once by
+  `DiagnosticSectionBuilder.FlaggedConstructs` from the placed diagnostics, by edition, kind and construct, each naming its
+  diagnostics in listing order. It is the diagnostics section's: empty when that section is not asked for. The schema stays 1.0
+  (section 7.3: no release has shipped the JSON listing); `flaggedConstructs` is required and `flag` optional.
+- **Rendering.** `FlaggedConstructText` holds the words both renderers print: the title `FLAGGED CONSTRUCTS BY EDITION`, the headings,
+  `KindWord`, `ConstructText` (the description, then the identifier) and `LinesText`; the text summary ends with the table
+  (`FlaggedConstructText.Rows`, after the list; nothing when no diagnostic is a flag), and the HTML page's diagnostics section with
+  the same table, each listing line a link to its diagnostic under its line.
+- **Witnesses.** `FlaggedConstructTests` (Unit: the grouping and order over hand-built diagnostics, a flag code with no flag left out,
+  the kind map, the text rows and their wrap, the page's rows and links), `EditionFlagDriftTests` (Unit, above),
+  `JsonListingWriterTests` (the member in `EveryMember`) and `ListingFlaggedConstructsTests` (Conformance: one program at `--std 2023
+  --permissive --flag-extensions` writing a construct of each kind in the front end and the binder; the table in the model, the text,
+  the JSON and the page equals the one the source and the registers call for, and is exactly the diagnostics of the three codes).
+  Each was shown red by mutation: the verdict's flag dropped, the extension's edition changed, a flag code planted in a front-end
+  source, the kind map crossed, the binder's error path dropping the flag, the table re-derived from the code, a front-end stage
+  dropping its flag.
+
 ## 7. The renderers
 
 Each implements `IListingRenderer` and visits the document through `IListingSectionVisitor<T>`, one method per section
@@ -2002,7 +2047,9 @@ lists from `ListingCrossReference`; the renderer joins nothing and computes noth
 layer of `architecture-edges.json`), `--listing-format html`, `BASE.lst.html`. What the page holds:
 - The identification (the compiler, the source, the edition, the instant, the outcome and the parse) and every file read with its
   digest; a bar of links to each section held, with the filter (text on a source line; only the lines with diagnostics) and the
-  expand / collapse buttons, the page's one script.
+  expand / collapse buttons, the page's one script. The bar is sticky, so every link target (a section heading, a line, a data
+  item) scrolls to just below it: the style's `scroll-padding-top` reads `--navh`, which the script sets from the bar's rendered
+  height whenever it resizes (it wraps to more lines as the window narrows; kb/Work PB5948).
 - Each section the document holds, in `ListingSections.Order`, titled `ListingSections.Title`; a section asked for and not produced
   says `Not produced: <reason>` (section 4.3).
 - The source section: every line of `ListingDocument.Lines` is a row (`id="L<n>"`) with its number, depth mark, marker
@@ -2261,6 +2308,12 @@ renderer. Naming it asks for a listing at any edition.
   the rows and the fix they point to (each renderer writing to the file's stream, not to a string; the instructions shown once).
   The `None` rows lie within the full compile's run-to-run spread of the parent's (0.37 to 1.86 MB): step 9 changes nothing a
   compilation without a listing runs.
+  (PB5947:) the table of flagged constructs changes every compilation's diagnostic records (a flag reference on each, null unless the
+  diagnostic is an edition flag), so it measures every row of the front end and bind against its parent `8dd07d2eab`, once each (the
+  benchmark README's PB5947 table): every `None` row lies within 0.07 MB of the parent's, SM201A's 0.26 MB below it, so the `None`
+  budget holds; the NIST programs flag nothing at the benchmark's edition, and the listing rows equal the parent's within 0.14 MB but
+  SM201A's, which move both ways (+0.40, -0.60, +1.82 MB), that program's noise (kb/Work PB5925's lead
+  `2026-11-18-full-compile-allocation-noise`).
 
 ## 10. Test plan
 
@@ -2360,6 +2413,8 @@ captured listing.
    refuses writes its page with the error under its line and its column marked. `ListingSectionsTests.EverySection_IsVisitedByTheMethodOfItsName`
    holds the visitor's dispatch total; `ListingOutputTests` and `ListingCliTests` take `html`. Each was mutated red (the visitor's
    `ObjectCode` arm removed, the `html` spelling removed, the `<` escape removed, the collapsed run disabled) and green restored.
+7e. **Flagged constructs (PB5947).** `FlaggedConstructTests` and `EditionFlagDriftTests` (Unit), `ListingFlaggedConstructsTests`
+   (Conformance); section 6.11 names each and the mutation that showed it red.
 8. **Failed compilations.** One test per kind of outcome (section 4.6): the sections present and the
    `ListingSectionStatus` of each absent one; the failed-parse test of section 4.4 (the listed pass). (Step 1:)
    `tests/WiseOwl.Cobol.Tests.Conformance/Listing/ListingOutcomeTests.cs`, beside the 1985 class's failed-compilation
@@ -2580,6 +2635,11 @@ COBOL positions; the `All` row.
 `FileDetailParts`; `--listing-format html`; the benchmark's `All` mode writes every format (section 9). The page reads what the
 model holds; `ListingLine.Names` and the cross-reference do not exist yet, so the name links join with them in step 7b.
 
+**PB5947 - the table of flagged constructs by edition. BUILT (branch `listing-step-pb5947`; section 6.11, "As built").** The edition
+flag as a fact on the diagnostic (`EditionFlag`, `Diagnostic.Flag`, made by `ConstructRegistry.VerdictAt` and
+`EditionContext.Extension`), `ListingDiagnostic.Flag` and `ListingDocument.FlaggedConstructs`, the table in the text summary, the
+JSON and the HTML page; `EditionFlagDriftTests`, `FlaggedConstructTests`, `ListingFlaggedConstructsTests`.
+
 **What is not built (checked at step 9 against every section of this document).** Each part below is a kb/Work item, never a silent
 gap:
 - Section 6.7 and 6.7.1's occurrences, the cross-reference section (`xref`), `ListingLine.Names`, the statement line's margin
@@ -2587,8 +2647,6 @@ gap:
   waits for step 6b's remaining slices (section 11 "Step 7b, dispatched early"; kb/Work PB5925's dated file
   `2026-11-19-step-7b-not-buildable-yet`).
 - Section 6.7.1's one store: step 6b's data-name and condition-name resolution by text, 86 baseline entries (kb/Work PB5932).
-- Section 6.11's table of flagged constructs by edition in the diagnostic summary: never built by step 3, which built the
-  diagnostics (the edition flags print inline as every diagnostic does); found by this check, kb/Work PB5947.
 - Section 2.2's two 2002 DOC rows (`2002-DOC-B.1-90`, `-165`): documented in DOC-A.1-117 and DOC-A.1-200 but held at GAP by kb/Work
   PB5930.
 - Section 9's `All` budget: over 25 % since step 8 (kb/Work PB5941); step 9's HTML adds to it (section 9, step 9).
