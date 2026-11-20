@@ -1,4 +1,4 @@
-## PB5941: the listing streams every format to its file, and the `all` row is back inside its budget
+## Entry 3869 — 2026-11-19 22:03 PST — PB5941: the listing streams every format to its file, and the `all` row is back inside its budget
 
 kb/Work PB5941 (branch `listing-step-pb5941`): the `all` listing (every section in text, JSON and HTML) allocated +50.2 to +69.3 % over
 a compile with no listing on the parent (`tests/WiseOwl.Cobol.Benchmarks`, Release, two runs), against a budget of 25 %
@@ -28,3 +28,4 @@ Also here: the benchmark's witness read the listing files after the check-only c
 step-9 witness lines quoted a listing with no object code (0.9 MB for IX113A, where the full compile writes 2.6 MB); it now reads them
 first and requires the object code. The command line's help for `--listing-output` and `--listing-format` named the text and JSON
 formats only; it names all three. The leads of the listing reviews were checked again on origin/main: every one already fixed.
+
