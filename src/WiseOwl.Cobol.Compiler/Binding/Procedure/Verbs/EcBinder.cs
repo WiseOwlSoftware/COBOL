@@ -460,7 +460,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // else computes a statement's names, so a name added to a table is checkable by construction.
         var scope = new EcRaiseScope(ElementKindOf(ctx.SourceElement), ctx.Data.State.Configuration.Classification is not null);
         var enabled = DeclaredRaisableNames(bound, scope)
-            .Where(d => ctx.EcState.Turn.Enabled(d.Ec, d.File?.CobolName, line))
+            .Where(d => ctx.EcState.Turn.Enabled(d.Ec, d.File, line))
             .Distinct()   // a sequence's steps can re-contribute a family (two hoisted activations ⇒ ProgramNames twice)
             .ToList();
 
@@ -475,7 +475,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // other enabled conditions (kb/Work R06; the former statement-level Any() did exactly that).
         var info = new EcStatementInfo(
             [.. enabled.Select(e => (e.Ec, e.File,
-                ctx.EcState.Turn.WithLocation(e.Ec, e.File?.CobolName, line)))],
+                ctx.EcState.Turn.WithLocation(e.Ec, e.File, line)))],
             Table12StatementNames.NameOf(s), EcLocation(line));
         // ⛔ THE WRAPPER DISTRIBUTES OVER AN IMPLICIT-STATEMENT SERIES, IT DOES NOT ENCLOSE IT. A multi-operand
         // CLOSE / FREE / INITIALIZE / INITIATE / OPEN / TERMINATE / VALIDATE *is* a separate statement per operand

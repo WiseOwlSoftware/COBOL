@@ -33,10 +33,21 @@ public sealed class TurnState
     /// — measured: the one-line form raised nothing while the two-line form raised and caught.
     /// <paramref name="RevokedAt"/> is the line of the <c>&gt;&gt;POP</c> that restored the checking state saved
     /// before this directive (§2023:7.3.20.4 GR1/GR3; kb/Work PB941) — from that line on the event is as though it had
-    /// never been written. <see cref="int.MaxValue"/> for a directive no POP undid, and for every synthetic.</summary>
+    /// never been written. <see cref="int.MaxValue"/> for a directive no POP undid, and for every synthetic.
+    /// <para>The file an EC-I-O event is scoped to is one of two (§2023:7.3.25.4 GR6, GR8): <paramref name="File"/>, the file-name a
+    /// REAL directive writes, or <paramref name="Identified"/>, the file a WHEN phrase's file-name identified, for the GR14 implicit
+    /// enable an exception-checking PERFORM assumes (§2023:14.9.28.4 GR14). Both null for an event that names no file.</para></summary>
     private readonly record struct Ev(int Line, string Ec, string? File, bool On, bool WithLocation,
-        bool Inclusive = false, int RevokedAt = int.MaxValue)
+        bool Inclusive = false, int RevokedAt = int.MaxValue, FileModel? Identified = null)
     {
+        /// <summary>Does this event apply to a statement that references <paramref name="file"/> (null: a statement that references
+        /// none)? An event that names no file applies to every statement; a file-scoped one only to a statement that references that
+        /// file (GR6, GR8): the identified file by identity, a directive's file-name by the symbol table's one name equality
+        /// (<see cref="SymbolTable.DirectiveNamesFile"/>; docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
+        public bool AppliesTo(FileModel? file) =>
+            (File is null && Identified is null)
+            || (file is not null && (Identified is not null ? ReferenceEquals(Identified, file) : SymbolTable.DirectiveNamesFile(File!, file)));
+
         /// <summary>Is this event written AFTER the statement starting on <paramref name="statementLine"/>? GR5 —
         /// a directive governs SUCCEEDING statements only; an Inclusive synthetic also governs its own line. The
         /// events are line-ordered, so a fold stops at the first such event.</summary>
@@ -99,13 +110,13 @@ public sealed class TurnState
     /// and must bind under the enable — measured, the one-line form silently escaped checking.
     /// (Known edge: WITH LOCATION precedence when a real enable precedes — a refinement for the interceptor
     /// wave.)</summary>
-    public TurnState WithImplicitEnable(IEnumerable<(string Ec, string? File)> names, bool withLocation, int imp1Line)
+    public TurnState WithImplicitEnable(IEnumerable<(string Ec, FileModel? File)> names, bool withLocation, int imp1Line)
     {
         var s = new TurnState();
         foreach (var e in _events) if (e.Line < imp1Line) s._events.Add(e);   // pre-imp-1 directives (line-sorted)
         foreach (var (ec, file) in names)
             if (!Enabled(ec, file, imp1Line))   // GR14 implicit ON only when not already enabled (else GR22 persists)
-                s._events.Add(new Ev(imp1Line, ec, file, On: true, WithLocation: withLocation, Inclusive: true));
+                s._events.Add(new Ev(imp1Line, ec, null, On: true, WithLocation: withLocation, Inclusive: true, Identified: file));
         foreach (var e in _events) if (e.Line >= imp1Line) s._events.Add(e);   // imp-1+ directives (line-sorted)
         return s;
     }
@@ -162,7 +173,7 @@ public sealed class TurnState
 
     /// <summary>Is checking for level-3 name <paramref name="level3"/> (for <paramref name="file"/>, when the
     /// name is EC-I-O-scoped) enabled at the statement starting on <paramref name="statementLine"/>?</summary>
-    public bool Enabled(string level3, string? file, int statementLine) =>
+    public bool Enabled(string level3, FileModel? file, int statementLine) =>
         Fold(level3, file, statementLine) is { On: true };
 
     /// <summary>⛔ THE ACTIVATED ELEMENT'S HALF OF AN "ENABLED IN BOTH" GATE — asked at its PROCEDURE DIVISION HEADER
@@ -179,10 +190,10 @@ public sealed class TurnState
 
     /// <summary>Did the event that ENABLED <paramref name="level3"/> at this statement carry WITH LOCATION
     /// (§2023:7.3.25.4 GR7 — the EXCEPTION-LOCATION/-STATEMENT information capture)?</summary>
-    public bool WithLocation(string level3, string? file, int statementLine) =>
+    public bool WithLocation(string level3, FileModel? file, int statementLine) =>
         Fold(level3, file, statementLine) is { On: true, WithLocation: true };
 
-    private Ev? Fold(string level3, string? file, int statementLine)
+    private Ev? Fold(string level3, FileModel? file, int statementLine)
     {
         Ev? last = null;
         foreach (var e in _events)
@@ -192,8 +203,7 @@ public sealed class TurnState
             // ON its own line — see the Ev remark (kb/Work R14). A POP-revoked event is skipped (kb/Work PB941).
             if (e.After(statementLine)) break;
             if (e.RevokedFor(statementLine) || !NameMatches(e.Ec, level3)) continue;
-            if (e.File is not null && (file is null || !CobolNames.Same(e.File, file)))
-                continue;   // a file-scoped event applies only to that file (GR6/GR8)
+            if (!e.AppliesTo(file)) continue;   // a file-scoped event applies only to that file (GR6/GR8)
             last = e;
         }
         return last;
@@ -222,7 +232,7 @@ public sealed class TurnState
         foreach (var e in _events)
         {
             if (e.After(statementLine)) break;
-            if (e.File is not null || e.RevokedFor(statementLine)) continue;   // a POP-revoked event is gone (PB941)
+            if (e.File is not null || e.Identified is not null || e.RevokedFor(statementLine)) continue;   // a POP-revoked event is gone (PB941)
             // Only the LAST event naming a given exception-name can ever be a query's last match, so an earlier
             // one with the same name is dead weight in the emitted literal. Dropping it preserves the fold
             // exactly (the relative order of the surviving, differently-named events is untouched) and bounds

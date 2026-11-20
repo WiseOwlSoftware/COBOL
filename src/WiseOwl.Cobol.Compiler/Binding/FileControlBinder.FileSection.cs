@@ -376,6 +376,9 @@ public sealed partial class FileControlBinder
         area.Uid = _host.TakeUid();
         record.AddMember(area);
         _host.State.Forest.AddRoot(record);
+        // The implied record description (§2023:14.9.30.4 GR6) is the standard's, declared here: its entries are made here too.
+        _host.Symbols.EnterDataItem(record);
+        _host.Symbols.EnterDataItem(area);
         file.Records.Add(record);
         file.ImpliedRecord = record;   // real storage, but no record description entry: WrittenRecords leaves it out (kb/Work PB1219)
     }

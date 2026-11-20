@@ -292,6 +292,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         area.Uid = host.TakeUid();
         area.RootSection = EntrySection.Communication;
         host.State.Forest.AddRoot(area);
+        host.Symbols.EnterDataItem(area);   // the implicit description is listed with its cd-name (SymbolTableFinish)
         foreach (var slot in CommunicationFormats.Header(format))
             AddSlot(area, 2, slot, names);
         if (format is not CommunicationFormat.Output) return area;

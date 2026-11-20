@@ -79,6 +79,12 @@ public sealed partial class SymbolTable
         /// spelled like one).</summary>
         internal bool NamesClass(string word) => _classes.ContainsKey(Key(word));
 
+        /// <summary>Whether two class or interface definitions of the group declare one word: the pair §2023:8.4.6.4's uniqueness
+        /// of object-class-names and interface-names in the compilation group refuses, which the tier reports where it declares the
+        /// second (COBOL0820), so a check of the externalized names (§2023:8.3.2.2, <c>BinderDriver.CheckDefinitionNameUniqueness</c>)
+        /// does not report the same pair again.</summary>
+        internal static bool DeclareOneWord(string word, string other) => Key(word) == Key(other);
+
         /// <summary>Whether an interface of the group carries the name <paramref name="word"/>.</summary>
         internal bool NamesInterface(string word) => _interfaces.ContainsKey(Key(word));
 

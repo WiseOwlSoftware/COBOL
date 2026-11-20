@@ -810,6 +810,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // real chain — and joins that parent's members only when the walk reaches it (TakePreboundEntry).
                     if (aheadOfWalkParent is not null && stack.Count == 0) placed.Parent = aheadOfWalkParent;
                     else AttachToHierarchy(placed);
+                    Symbols.EnterDataItem(placed);   // the entry's symbol table entry, where it is declared (DESIGN-listing.md section 6.7.1)
                     // The entry's table bounds, now that its item exists and is linked, its description still open
                     // (kb/Work PB1941): a bound's constant may measure an entry subordinate to this one.
                     BindTableBounds(placed, description);
@@ -1921,7 +1922,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Index a named item in the by-name multimap of the source element that owns its record
     /// (<see cref="NameScopeOf"/>: a METHOD's own, else the element's; the symbol table keys it, kb/Work PB3192, PB5932) — COBOL allows duplicate
     /// names disambiguated only by qualification.</summary>
-    internal void RegisterImpliedName(DataItem item) => RegisterName(item);
+    internal void RegisterImpliedName(DataItem item)
+    {
+        Symbols.EnterDataItem(item);
+        RegisterName(item);
+    }
 
     private void RegisterName(DataItem item)
     {
@@ -2687,6 +2692,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         clone.ClonedFrom = src;                                // §2023:8.4.2.2.1 SR4: the definition this copy reproduces
         clone.Uid = _uidCounter++;
         clone.Parent = newParent;
+        Symbols.EnterDataItem(clone);   // a copy is an entry of its own, on the line of the entry that wrote the clause
         // The member's INDEXED BY names are part of the type (§2023:13.18.58.4 GR1). RegisterName re-declares them on
         // THIS clone with its own cells, so a type referenced twice yields two tables whose indexes are both named
         // IX — referenced as IX OF A / IX OF B (§2023:8.4.2.2.3 SR6). The former COBOL1531 stage refused the second
@@ -2717,6 +2723,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         var c = src.CopyOnto(target);
         target.Own88s.Add(c);
+        Symbols.EnterConditionName(c);
         if (InTypeDeclaration(target)) return;   // a declaration's condition-names stay off the index (§2023:13.18.58.4 GR1)
         RegisterCondition(c);
     }
@@ -3083,6 +3090,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         item.Uid = _uidCounter++;
         item.Parent = owner;        // owning record — an alias sibling, NOT a storage child
         owner.Renames66.Add(item);
+        Symbols.EnterDataItem(item);
         DeclareUserWord(name, UserWordKind.DataName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB1083)
         // A TYPEDEF template's alias is NOT globally referenceable (§2023:13.18.58.4 GR1 — its name "may be referenced only
         // as [a] subordinate item of groups defined using the type-name"); the clone on each such group is.
@@ -3119,6 +3127,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         clone.Uid = _uidCounter++;
         clone.Parent = target;
         target.Renames66.Add(clone);
+        Symbols.EnterDataItem(clone);
         if (!InTypeDeclaration(target)) RegisterName(clone);
     }
 
@@ -3281,6 +3290,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 }
 
         parent.Own88s.Add(cond);   // the item owns its 88s (source of truth; lets CloneItem carry a TYPEDEF's 88s)
+        Symbols.EnterConditionName(cond);
         if (registerGlobal)
         {
             DeclareUserWord(name, UserWordKind.ConditionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)

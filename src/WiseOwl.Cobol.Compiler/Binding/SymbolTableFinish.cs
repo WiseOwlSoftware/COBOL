@@ -12,11 +12,11 @@ namespace WiseOwl.Cobol.Binding;
 /// <see cref="SymbolTableWriter"/>, element by element in the order the elements are written, and the plain-valued
 /// <see cref="SymbolTableSnapshot"/> the listing reads is made. It is binder-side and below the backend seam: no backend input names it.
 /// <para>It reads the entries the bind made, never declares a name a second time: an entry's class, name and position are the
-/// bind's, and its attributes are read off its symbol once the bind is finished (section 6.6). The data description entries' data-names
-/// and condition-names are still declared here from the frozen forest, in the order a record is written, until their declarations
-/// enter them (step 6b's data-name lane): every other entry of a data description entry (an index-name, a CAPACITY register, a type
-/// declaration's type-name) is the bind's, placed where its record places it, and the walk adopts a data-name's or condition-name's
-/// entry the same way the day the bind makes one (<see cref="DeclareEntered"/>).</para>
+/// bind's, and its attributes are read off its symbol once the bind is finished (section 6.6). Every entry of a data description entry
+/// (its data-name or FILLER, its condition-names, index-names, CAPACITY register and a type declaration's type-name) is the bind's too,
+/// made where the binder declares it (<c>SymbolTable.EnterDataItem</c>, <c>EnterConditionName</c>; step 6b's remainder slice 5); the
+/// walk of the frozen forest only PLACES each in the order a record is written, and a drift between the bind's position and the
+/// record's fails loudly (<see cref="DeclareEntered"/>).</para>
 /// </summary>
 internal static class SymbolTableFinish
 {
@@ -68,8 +68,9 @@ internal static class SymbolTableFinish
     /// The entries of one source element (docs/rearchitecture/DESIGN-listing.md sections 6.6 and 6.7.1), in definition order: every
     /// entry its <paramref name="table"/> made while the element bound (its CDs, constant entries, file-names, report description entries
     /// with their report group description entries, procedure-names, configuration-section names, prototype-names, DEBUG-ITEM registers
-    /// and VARYING counters), and every data description entry of every section from the frozen <paramref name="data"/> (FILLER
-    /// included, each level-88 and level-66 entry, each INDEXED BY index-name and each named CAPACITY register), the own entries of each
+    /// and VARYING counters), and the entries of every data description entry of every section, placed by a walk of the frozen
+    /// <paramref name="data"/> (FILLER included, each level-88 and level-66 entry, each INDEXED BY index-name and each named CAPACITY
+    /// register, every one made by the bind where it was declared), the own entries of each
     /// of its <paramref name="methods"/> (the class half's or the interface's own roster, <see cref="OoMethodSymbol.Binding"/>) and its
     /// type declarations. A container's GLOBAL names are the container's entries, never repeated here; compiler temporaries are no
     /// declared name and have no entry.
@@ -144,13 +145,13 @@ internal static class SymbolTableFinish
         var at = WrittenAt(item);
         bool type = DataBinder.InTypeDeclaration(item);
         DeclareEntered(into, entries, item, NameClass.Data, item.CobolName ?? "FILLER", at, ids => DataAttributesOf(item, implicitly, ids),
-            required: false);
+            required: true);
         foreach (var condition in item.Own88s)
         {
             var c = condition;
             DeclareEntered(into, entries, c, NameClass.Condition, c.Name, c.ClonedFrom is null ? PositionOf(c.DeclaredAt) : at,
                 ids => new ConditionAttributes(ids(c.Parent) ?? 0,
-                    [.. c.Values.Select(static v => v.High is { } high ? $"{v.Low} THRU {high}" : v.Low)], type), required: false);
+                    [.. c.Values.Select(static v => v.High is { } high ? $"{v.Low} THRU {high}" : v.Low)], type), required: true);
         }
         foreach (var index in item.Indexes)
         {
@@ -172,9 +173,9 @@ internal static class SymbolTableFinish
 
     /// <summary>⛔ ONE ENTRY OF A RECORD, placed where the record places it: the entry the bind made for <paramref name="symbol"/>
     /// (its class and name are the bind's, and its position is the one the record places it at, or the drift between the two fails
-    /// loudly), else, for a class whose declarations do not enter it yet (a data-name, a condition-name) or a declaration the bind
-    /// refused, the entry declared here from <paramref name="class"/>, <paramref name="name"/> and <paramref name="at"/>.
-    /// <paramref name="required"/>: the class's every declaration enters it, so an entry missing is a defect.</summary>
+    /// loudly), else, for a declaration the bind refused (a CAPACITY register §2023:13.18.38.3 SR30 refused as a duplicate), the entry
+    /// declared here from <paramref name="class"/>, <paramref name="name"/> and <paramref name="at"/>. <paramref name="required"/>: the
+    /// class's every declaration enters it (a data-name, FILLER, a condition-name, an index-name), so an entry missing is a defect.</summary>
     private static void DeclareEntered(SymbolTableWriter into, SymbolTable.EntryStore entries, object symbol, NameClass @class, string name,
         SymbolPosition at, Func<Func<object, int?>, SymbolAttributes> attributes, bool required)
     {

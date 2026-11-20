@@ -381,6 +381,35 @@ public sealed class SymbolEntryDriftTests : WiseOwlCobolTestBase
             NameClass.Program, "RECUR", 74, "IDENTIFICATION");
     }
 
+    /// <summary>The data-names' and condition-names' entries are the bind's, made where each is declared (DESIGN-listing.md section
+    /// 6.7.1, "Step 6b, remainder slice 5"): a data-name or condition-name reference identified as the binder identifies it answers,
+    /// through <c>DataEntryOf</c>, the entry of the declaration the rules resolve it to, at that entry's level-number; a member a TYPE
+    /// clause copied in answers its own entry on the line of the entry that wrote the clause (§2023:13.18.57.4 GR1: as though coded in
+    /// place), never the type declaration's member's; and an object no declaration entered fails loudly.</summary>
+    [Fact]
+    public void Program2023_DataAndConditionReferences_AnswerTheirDeclarationsEntry()
+    {
+        var bind = BindLive(Program2023, 2023);
+        var entries = bind.Table("ENTRIES");
+        var n = entries.IdentifyDataName(WrittenOf(bind, 59, "N"), report: false).Single;
+        Assert.NotNull(n);
+        AssertEntryIs(bind, entries.DataEntryOf(n), NameClass.Data, "N", 50, "01");
+        var record = entries.IdentifyDataName(WrittenOf(bind, 57, "IN-REC"), report: false).Single;
+        Assert.NotNull(record);
+        AssertEntryIs(bind, entries.DataEntryOf(record), NameClass.Data, "IN-REC", 40, "01");
+        var condition = Assert.Single(entries.IdentifyConditionName(WrittenOf(bind, 55, "N-ZERO"), report: false));
+        AssertEntryIs(bind, entries.DataEntryOf(condition), NameClass.Condition, "N-ZERO", 51, "88");
+
+        var copy = entries.IdentifyDataName(new WrittenQualifiedName(new CommonToken(1, "T-A"), []), report: false).Single;
+        Assert.NotNull(copy);
+        Assert.NotNull(copy.ClonedFrom);   // the copy under T-USE, not the type declaration's member
+        AssertEntryIs(bind, entries.DataEntryOf(copy), NameClass.Data, "T-A", 45, "01");
+        AssertEntryIs(bind, entries.DataEntryOf(copy.ClonedFrom!), NameClass.Data, "T-A", 44, "05");
+
+        var refused = Assert.Throws<InvalidOperationException>(() => entries.DataEntryOf(new DataItem { Level = 1, CobolName = "X", ClrName = "X" }));
+        Assert.Contains("entered no entry", refused.Message, StringComparison.Ordinal);
+    }
+
     /// <summary>An index-name a TYPE clause's copy declares answers the copy's own entry; the type declaration's member, which a
     /// lapsed candidate stands for (§2023:8.4.2.2.1 SR4), declared no index cell and entered nothing, so asking its entry fails
     /// loudly, never a silent no-entry (it only joins a set beside a declared survivor, never a set of one).</summary>

@@ -31,7 +31,8 @@ namespace WiseOwl.Cobol.Binding;
 /// times). The user-function table used to merge a prototype with a definition of the same WORD, which dropped the
 /// prototype's <c>AS literal-1</c> (§2023:11.5.4 GR2: literal-1 "is the name of the function prototype that is
 /// externalized to the operating environment") whenever a definition happened to share its word. The WORD has one
-/// job, for functions only: the candidates <see cref="FunctionsByWord"/> lists for D-R3 steps 2 and 3 (§2023:8.4.6.7).</para>
+/// job, for functions only: the candidates <see cref="FunctionsByWord"/> lists for D-R3 steps 2 and 3 (§2023:8.4.6.7), asked by the
+/// group tier of the symbol table (<see cref="SymbolTable.UnitNames.NamesFunction"/>).</para>
 /// </summary>
 internal sealed class GroupRepositoryProvider : IRepositoryProvider
 {
@@ -54,7 +55,8 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
     /// units <paramref name="matches"/> accepts that may supply a prototype's details, in the rule's own order — every
     /// definition that starts strictly before the element, then every prototype definition, each in source order. The
     /// first is the unit that supplies the details (<see cref="Find"/>); none is c). The predicate is the
-    /// externalized-name test for GR10 / GR11 and the user-function-name test for D-R3 steps 2 and 3.</summary>
+    /// externalized-name test for GR10 / GR11 and the user-function-name test for D-R3 steps 2 and 3, the symbol table's
+    /// (<see cref="SymbolTable.UnitNames.NamesFunction"/>).</summary>
     private static IEnumerable<BoundUnit> Candidates(List<BoundUnit> units, Func<BoundUnit, bool> matches, int position)
     {
         foreach (var u in units)
@@ -81,7 +83,7 @@ internal sealed class GroupRepositoryProvider : IRepositoryProvider
 
     /// <inheritdoc/>
     public IEnumerable<FunctionAnswer> FunctionsByWord(string userFunctionName, int position, string? otherThan) =>
-        Candidates(_functions, u => CobolNames.Same(u.Name, userFunctionName), position)
+        Candidates(_functions, u => SymbolTable.UnitNames.NamesFunction(u, userFunctionName), position)
             .Where(u => otherThan is null || !ExternalizedNames.Same(u.ExternalizedName, otherThan))   // D-R3 step 3: a DIFFERENT function
             .Select(AnswerOf);
 

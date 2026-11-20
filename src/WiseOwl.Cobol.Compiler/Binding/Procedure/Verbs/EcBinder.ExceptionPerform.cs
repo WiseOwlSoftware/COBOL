@@ -47,7 +47,7 @@ internal sealed partial class EcBinder
         // Resolve each WHEN's operands (mode / exception-name / file) → the descriptor header, the GR14 overlay
         // enables, and the SR14/SR15 operand census.
         var headers = new List<(string? Mode, List<BoundWhenOperand> Ops)>();
-        var overlay = new List<(string Ec, string? File)>();
+        var overlay = new List<(string Ec, FileModel? File)>();
         var census = new List<WhenOperandSite>();
         foreach (var w in whenPhrases)
             headers.Add(ResolveWhenOperands(w, overlay, census));
@@ -155,7 +155,7 @@ internal sealed partial class EcBinder
     /// enforce SR16 (a FILE-paired name shall begin EC-I-O), and the per-name edition window. Contributes GR14
     /// overlay enables and the SR14/SR15 census.</summary>
     private (string? Mode, List<BoundWhenOperand> Ops) ResolveWhenOperands(
-        Core.PerformWhenPhraseContext w, List<(string, string?)> overlay, List<WhenOperandSite> census)
+        Core.PerformWhenPhraseContext w, List<(string, FileModel?)> overlay, List<WhenOperandSite> census)
     {
         var ops = new List<BoundWhenOperand>();
 
@@ -183,7 +183,7 @@ internal sealed partial class EcBinder
                 if (ResolveWhenFile(fn) is { } f)
                 {
                     ops.Add(new BoundWhenOperand(null, f));
-                    overlay.Add(("EC-I-O", f.CobolName));
+                    overlay.Add(("EC-I-O", f));
                     census.Add(new(null, f, fn.Start));
                 }
             return (null, ops);
@@ -215,7 +215,7 @@ internal sealed partial class EcBinder
                 if (ResolveWhenFile(fn) is { } f)
                 {
                     ops.Add(new BoundWhenOperand(info.Name, f));
-                    overlay.Add((info.Name, f.CobolName));
+                    overlay.Add((info.Name, f));
                     census.Add(new(info.Name, f, fn.Start));
                 }
         }
