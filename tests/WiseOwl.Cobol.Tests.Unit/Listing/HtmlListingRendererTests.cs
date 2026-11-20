@@ -220,7 +220,10 @@ public sealed class HtmlListingRendererTests
         var ranges = document.ObjectCode!.Ranges;
         int instructions = ranges.Sum(r => r.Instructions?.Count ?? 0);
         var page = Page(document);
-        Assert.Equal(instructions, page.Descendants("table").Where(t => HasClass(t, "il")).Sum(t => t.Descendants("tr").Count()));
+        // (kb/Work PB5951:) the region lines stand among them, once each as well, in rows of their own class.
+        var rows = page.Descendants("table").Where(t => HasClass(t, "il")).SelectMany(t => t.Descendants("tr")).ToList();
+        Assert.Equal(instructions, rows.Count(tr => !HasClass(tr, "rg")));
+        Assert.Equal(ranges.Sum(r => r.Regions?.Count ?? 0), rows.Count(tr => HasClass(tr, "rg")));
         var code = ById(page, HtmlListingRenderer.SectionId(ListingSection.ObjectCode));
         Assert.Empty(code.Descendants("table"));
         for (int i = 1; i <= ranges.Count; i++)
@@ -229,16 +232,16 @@ public sealed class HtmlListingRendererTests
             Assert.Equal("details", block.Name.LocalName);
             Assert.Equal(HtmlListingRenderer.LineId(ranges[i - 1].Line), ((XElement)block.Parent!.Nodes().TakeWhile(n => n != block).OfType<XElement>()
                 .Last(e => HasClass(e, "ln"))).Attribute("id")!.Value);
-            Assert.Equal(ranges[i - 1].Instructions?.Count ?? 0, block.Descendants("tr").Count());
+            Assert.Equal(ranges[i - 1].Instructions?.Count ?? 0, block.Descendants("tr").Count(tr => !HasClass(tr, "rg")));
             Assert.Contains(code.Descendants("a"), a => (string?)a.Attribute("href") == "#" + HtmlListingRenderer.RangeId(i));
         }
 
         var noSource = document with { Lines = [], Displays = [], Sections = [.. document.Sections.Where(s => s.Section != ListingSection.Source)] };
         var withoutSource = Page(noSource);
         var codeAlone = ById(withoutSource, HtmlListingRenderer.SectionId(ListingSection.ObjectCode));
-        Assert.Equal(instructions, codeAlone.Descendants("table").Where(t => HasClass(t, "il")).Sum(t => t.Descendants("tr").Count()));
+        Assert.Equal(instructions, codeAlone.Descendants("table").Where(t => HasClass(t, "il")).Sum(t => t.Descendants("tr").Count(tr => !HasClass(tr, "rg"))));
         Assert.Equal(ranges[0].Instructions!.Select(x => x.OpCode),
-            codeAlone.Descendants("tr").Select(tr => tr.Elements("td").ElementAt(1).Value));
+            codeAlone.Descendants("tr").Where(tr => !HasClass(tr, "rg")).Select(tr => tr.Elements("td").ElementAt(1).Value));
     }
 
     /// <summary>Section 7.2: "A DISPLAY transfer stands outside any collapsed block (§2023:7.3.12.4 GR2)", which says the transfer takes

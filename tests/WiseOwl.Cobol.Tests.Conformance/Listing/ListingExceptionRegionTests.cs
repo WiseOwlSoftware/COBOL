@@ -191,10 +191,10 @@ public sealed class ListingExceptionRegionTests : IDisposable
         Assert.Equal(all.Count(r => r.Kind == ListingRegionKind.Finally), rows.Count(r => r == "finally {"));
         Assert.Equal(all.Count, rows.Count(r => r == "} // end handler"));
 
-        // The page prints the same lines, one row each, twice: under each statement's line in the source section and in the object-code
-        // section (DESIGN-listing.md section 7.2).
+        // The page prints the same lines, one row each, once: under each statement's line in the source section, which the object-code
+        // section's entry links to (DESIGN-listing.md section 7.2, kb/Work PB5941's one copy of the instructions).
         string page = File.ReadAllText(Path.Combine(_dir, "regions.lst.html"));
-        Assert.Equal(2 * map.Ranges.Sum(r => r.Regions!.Count), page.Split("<tr class=\"rg\"").Length - 1);
+        Assert.Equal(map.Ranges.Sum(r => r.Regions!.Count), page.Split("<tr class=\"rg\"").Length - 1);
     }
 
     private static (int, ListingRegionBoundary, int, int) Key(ListingRegionMark m) => (m.Offset, m.Boundary, m.Region, m.Depth);
