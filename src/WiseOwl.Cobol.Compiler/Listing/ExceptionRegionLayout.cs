@@ -73,47 +73,37 @@ internal static class ExceptionRegionLayout
         return marks;
     }
 
-    /// <summary>Which of <paramref name="stretches"/> (one method's stretches, by their IL range, in offset order) prints each line of
-    /// <paramref name="marks"/> (the method's lines in print order), and the depth each stretch begins at. A line prints in the stretch
-    /// whose range holds its offset, or that ends at the end of the body (<paramref name="codeSize"/>) when the line is there; a line in
-    /// code no stretch holds (before the method's first visible sequence point, or a stretch the map does not place) prints in the next
-    /// stretch, before its first instruction, or after the last stretch's last instruction when none follows. So every line prints once,
-    /// and in each stretch in the order <see cref="Marks"/> gave.</summary>
+    /// <summary>Which of <paramref name="stretches"/> (one method's stretches, by their half-open IL ranges, disjoint, in offset order)
+    /// prints each line of <paramref name="marks"/> (the method's lines in print order), and the depth each stretch begins at. A line
+    /// prints in the stretch whose code it bounds: an OPENING line at offset X in the stretch holding X (<c>Start &lt;= X &lt; End</c>),
+    /// before the instruction at X; a CLOSING line at X in the stretch holding the block's last instruction (<c>Start &lt; X &lt;= End</c>),
+    /// after it. So a block that lies inside one stretch opens and closes in it, and a block ending where the next statement's code begins
+    /// closes under the statement whose code it ends, never at the top of the next one (kb/Work PB5951 review round 1). A line no stretch
+    /// owns that way (its code is before the method's first visible sequence point, or in a stretch the map does not place) prints in the
+    /// next stretch, before its first instruction, or after the last stretch's last instruction when none follows. So every line prints
+    /// once, in each stretch in the order <see cref="Marks"/> gave, and each stretch begins at the depth the lines of the stretches before
+    /// it leave: the number of blocks that contain its start when the stretch before it ends there.</summary>
+    /// <param name="codeSize">The size of the body, which bounds every offset.</param>
     public static (List<ListingRegionMark>[] Lines, int[] Depths) Place(IReadOnlyList<(int Start, int End)> stretches,
         IReadOnlyList<ListingRegionMark> marks, int codeSize)
     {
         var lines = new List<ListingRegionMark>[stretches.Count];
         for (int s = 0; s < stretches.Count; s++) lines[s] = [];
-        var first = new int[stretches.Count];   // each stretch's first line, as an index into marks: its own, or the next one after
-        Array.Fill(first, -1);
         int at = 0;
-        for (int m = 0; m < marks.Count; m++)
+        foreach (var mark in marks)
         {
-            int offset = marks[m].Offset;
-            while (at < stretches.Count && stretches[at].End <= offset && !(stretches[at].End == codeSize && offset == codeSize)) at++;
-            int stretch = at < stretches.Count ? at : stretches.Count - 1;
-            if (first[stretch] < 0) first[stretch] = m;
-            lines[stretch].Add(marks[m]);
+            if (mark.Offset > codeSize)
+                throw new InvalidDataException($"a {mark.Boundary} line at IL offset {mark.Offset} lies past the body's end ({codeSize})");
+            // The first stretch that does not end before the line's code: for an opening line, one ending after its offset; for a
+            // closing line, one ending at or after it. Marks come in offset order, closings before openings at one offset, so the
+            // walk only moves forward.
+            bool opens = ListingRegionBoundaries.Opens(mark.Boundary);
+            while (at < stretches.Count && (opens ? stretches[at].End <= mark.Offset : stretches[at].End < mark.Offset)) at++;
+            lines[at < stretches.Count ? at : stretches.Count - 1].Add(mark);
         }
         var depths = new int[stretches.Count];
-        for (int s = 0; s < stretches.Count; s++)
-        {
-            // The depth before the stretch's first line: before its first region line, or before the first line of the method at or
-            // after its start (the stretch prints none, so none lies inside it).
-            int m = first[s] >= 0 ? first[s] : FirstAtOrAfter(marks, stretches[s].Start);
-            depths[s] = m < marks.Count ? DepthBefore(marks[m]) : 0;
-        }
+        for (int s = 1; s < stretches.Count; s++)
+            depths[s] = depths[s - 1] + lines[s - 1].Sum(m => ListingRegionBoundaries.Opens(m.Boundary) ? 1 : -1);
         return (lines, depths);
-    }
-
-    /// <summary>The depth in effect just before <paramref name="mark"/> prints: its own depth before an opening line, one deeper before a
-    /// closing one.</summary>
-    public static int DepthBefore(ListingRegionMark mark) => ListingRegionBoundaries.Opens(mark.Boundary) ? mark.Depth : mark.Depth + 1;
-
-    private static int FirstAtOrAfter(IReadOnlyList<ListingRegionMark> marks, int offset)
-    {
-        int m = 0;
-        while (m < marks.Count && marks[m].Offset < offset) m++;
-        return m;
     }
 }

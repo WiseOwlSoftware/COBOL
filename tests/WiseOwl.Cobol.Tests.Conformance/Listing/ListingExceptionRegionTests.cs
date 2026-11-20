@@ -97,6 +97,28 @@ public sealed class ListingExceptionRegionTests : IDisposable
     /// body's other blocks that contain the block (ECMA-335 I.12.4.2.7: two blocks are disjoint or nested).</summary>
     private static List<ListingRegionMark> ExpectedLines(IReadOnlyList<ListingExceptionRegion> clauses)
     {
+        var blocks = Blocks(clauses);
+        var lines = new List<ListingRegionMark>();
+        foreach (var b in blocks)
+        {
+            int depth = blocks.Count(o => o != b && o.Start <= b.Start && b.End <= o.End);
+            lines.Add(new ListingRegionMark(b.Start, b.Open, b.Region, depth));
+            lines.Add(new ListingRegionMark(b.End, b.Close, b.Region, depth));
+        }
+        return lines;
+    }
+
+    /// <summary>Whether <paramref name="stretch"/> holds the code <paramref name="line"/> bounds: the instruction at its offset for a
+    /// line that opens a block, the instruction before its offset (the block's last) for one that closes a block.</summary>
+    private static bool Owns(ListingObjectRange stretch, ListingRegionMark line) => ListingRegionBoundaries.Opens(line.Boundary)
+        ? stretch.Start <= line.Offset && line.Offset < stretch.End
+        : stretch.Start < line.Offset && line.Offset <= stretch.End;
+
+    /// <summary>A body's blocks: a protected block per distinct try range (named by the first clause protecting it), each filter
+    /// block, each handler.</summary>
+    private static List<(int Start, int End, ListingRegionBoundary Open, ListingRegionBoundary Close, int Region)> Blocks(
+        IReadOnlyList<ListingExceptionRegion> clauses)
+    {
         var blocks = new List<(int Start, int End, ListingRegionBoundary Open, ListingRegionBoundary Close, int Region)>();
         for (int i = 0; i < clauses.Count; i++)
         {
@@ -107,14 +129,7 @@ public sealed class ListingExceptionRegionTests : IDisposable
                 blocks.Add((filter, c.HandlerStart, ListingRegionBoundary.FilterStart, ListingRegionBoundary.FilterEnd, i + 1));
             blocks.Add((c.HandlerStart, c.HandlerEnd, ListingRegionBoundary.HandlerStart, ListingRegionBoundary.HandlerEnd, i + 1));
         }
-        var lines = new List<ListingRegionMark>();
-        foreach (var b in blocks)
-        {
-            int depth = blocks.Count(o => o != b && o.Start <= b.Start && b.End <= o.End);
-            lines.Add(new ListingRegionMark(b.Start, b.Open, b.Region, depth));
-            lines.Add(new ListingRegionMark(b.End, b.Close, b.Region, depth));
-        }
-        return lines;
+        return blocks;
     }
 
     [Fact]
@@ -149,6 +164,20 @@ public sealed class ListingExceptionRegionTests : IDisposable
             var stretches = map.Ranges.Where(r => r.Method == method.Id).ToList();
             Assert.All(stretches, s => Assert.Equal(s.Regions!.Select(m => m.Offset).Order(), s.Regions!.Select(m => m.Offset)));
             Assert.Equal(ExpectedLines(method.Regions).OrderBy(Key), stretches.SelectMany(s => s.Regions!).OrderBy(Key));
+
+            // Each line prints in the stretch whose code it bounds (section 6.9): an opening line in the stretch holding its offset, a
+            // closing line in the stretch holding the block's last instruction; only a line no stretch owns prints elsewhere. And a
+            // stretch that follows the one before it directly begins at the number of blocks containing its start.
+            var blocks = Blocks(method.Regions);
+            foreach (var s in stretches)
+                foreach (var line in s.Regions!)
+                    Assert.True(Owns(s, line) || !stretches.Any(o => Owns(o, line)),
+                        $"{method.Name}: the {line.Boundary} line at IL_{line.Offset:X4} prints in IL_{s.Start:X4}-IL_{s.End:X4}, "
+                        + "not in the stretch whose code it bounds");
+            var ordered = stretches.OrderBy(s => s.Start).ToList();
+            for (int i = 1; i < ordered.Count; i++)
+                if (ordered[i - 1].End == ordered[i].Start)
+                    Assert.Equal(blocks.Count(b => b.Start <= ordered[i].Start && ordered[i].Start < b.End), ordered[i].Depth);
         }
 
         // The text listing prints each line as ILDASM spells it: one .try per protected block, a catch row naming each catch clause's

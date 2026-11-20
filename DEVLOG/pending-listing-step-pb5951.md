@@ -13,8 +13,10 @@ filter, finally, fault), the protected block's and the handler's offsets, a filt
 `} // end .try` around a protected block (one for several clauses that protect the same block), then each handler, `catch <Type> {`,
 `finally {`, `fault {`, or a filter's `filter {`, `} // end filter` and `{ // handler`, each closed by `} // end handler`. At one
 offset the closing lines come first, innermost first, then the opening ones, outermost first; a body whose blocks overlap (which
-ECMA-335 I.12.4.2.7 forbids) fails loudly. Each line goes to the stretch of code that holds its offset, so a block that ends where
-the next statement begins closes at the top of that statement's stretch, and every line prints exactly once.
+ECMA-335 I.12.4.2.7 forbids) fails loudly. Each line goes to the stretch of code it bounds: an opening line to the stretch
+holding its offset, a closing line to the stretch holding the block's last instruction, so a block inside one statement opens and
+closes under that statement, and every line prints exactly once. (Review round 1 found the first cut gave a closing line at a stretch's end to the
+next statement's stretch, leaving an OPEN's `finally` unclosed under the OPEN and a stray close under the next statement.)
 
 **Printed, not decided, by the renderers.** One merge (`ObjectCodeText.CodeLines`) and one spelling (`RegionText`) serve the text
 listing and the HTML page, each indenting a level two columns, the instructions inside it too. The JSON listing holds the clauses on

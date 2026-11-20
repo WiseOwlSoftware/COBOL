@@ -419,8 +419,10 @@ protect one block share one `.try`. Blocks nest, and each level indents two colu
                } // end handler
 ```
 
-A boundary prints in the range that holds its offset, so a block that ends where the next statement's code begins closes at the top
-of that statement's range; one at the end of the method prints after the last instruction. The JSON listing holds each method's
+Each line prints in the range whose code it bounds: a line that opens a block in the range holding the block's first instruction,
+before it, and a line that closes one in the range holding the block's last instruction, after it. So a block inside one statement's
+code opens and closes under that statement, and a block that ends where the next statement's code begins closes under the statement
+it ends in, never at the top of the next one. The JSON listing holds each method's
 clauses (`regions`: the kind, the protected block's and the handler's offsets, a filter's start, a catch's type) and, in each range
 with instructions, the lines it prints among them, each with its offset, its depth and the clause it belongs to.
 

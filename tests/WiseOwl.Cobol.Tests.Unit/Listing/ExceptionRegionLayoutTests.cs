@@ -131,10 +131,11 @@ public sealed class ExceptionRegionLayoutTests
     [Fact]
     public void ABodyWithNoClause_HasNoLines() => Assert.Empty(ExceptionRegionLayout.Marks([], "T::M"));
 
-    /// <summary>Which stretch prints each line (section 6.9): the one holding its offset; one at the end of the body, the stretch ending
-    /// there; one in code no stretch holds, the next stretch, before its first instruction (here the <c>.try</c> at 0, before the
-    /// method's first visible point at 2, and the lines at 14 to 16 between the stretches 10-14 and 20-30, which the map left a stretch
-    /// out of); and each stretch begins at the depth in effect before its first line.</summary>
+    /// <summary>Which stretch prints each line (section 6.9): an opening line, the one holding its offset; a closing line, the one holding
+    /// the block's last instruction (one at the end of the body, the stretch ending there); one whose code no stretch holds, the next
+    /// stretch, before its first instruction (here the <c>.try</c> at 0, before the method's first visible point at 2, and the lines at
+    /// 16 after the gap 14-16 between the stretches 10-14 and 20-30, which the map left a stretch out of); and each stretch begins at the
+    /// depth the earlier stretches' lines leave.</summary>
     [Fact]
     public void EachLine_PrintsInOneStretch_AndEachStretchKnowsItsDepth()
     {
@@ -151,6 +152,36 @@ public sealed class ExceptionRegionLayoutTests
         // Code after the last stretch: its lines print after that stretch's last instruction.
         var (tail, _) = ExceptionRegionLayout.Place([(0, 4)], ExceptionRegionLayout.Marks([Finally(6, 8, 8, 10)], "T::M"), 12);
         Assert.Equal(4, tail[0].Count);
+    }
+
+    /// <summary>A block inside one stretch opens and closes in it, its closing line at the stretch's end printing after the stretch's
+    /// last instruction, never at the top of the next stretch (PB5951 review round 1: an OPEN's <c>finally</c> left its stretch unclosed
+    /// and the next statement's stretch began with a close); a block ending at a stretch boundary closes in the stretch before it, and
+    /// one spanning a boundary leaves the next stretch inside it.</summary>
+    [Fact]
+    public void ABlockClosesInTheStretchHoldingItsLastInstruction()
+    {
+        // try 0-4 finally 4-8, all in the stretch 0-8; the stretch 8-12 holds none of it and begins outside every block.
+        var inside = ExceptionRegionLayout.Marks([Finally(0, 4, 4, 8)], "T::M");
+        var (lines, depths) = ExceptionRegionLayout.Place([(0, 8), (8, 12)], inside, 12);
+        Assert.Equal(inside, lines[0]);
+        Assert.Empty(lines[1]);
+        Assert.Equal([0, 0], depths);
+
+        // try 0-10 in the stretch 0-10, its handler 10-20 in the stretch 10-20: the try closes after the first stretch's last
+        // instruction, the handler opens in the second, and the second begins outside every block.
+        var boundary = ExceptionRegionLayout.Marks([Catch(0, 10, 10, 20, "E")], "T::M");
+        (lines, depths) = ExceptionRegionLayout.Place([(0, 10), (10, 20)], boundary, 20);
+        Assert.Equal([Mark(0, ListingRegionBoundary.TryStart, 1, 0), Mark(10, ListingRegionBoundary.TryEnd, 1, 0)], lines[0]);
+        Assert.Equal([Mark(10, ListingRegionBoundary.HandlerStart, 1, 0), Mark(20, ListingRegionBoundary.HandlerEnd, 1, 0)], lines[1]);
+        Assert.Equal([0, 0], depths);
+
+        // try 0-15 spans the stretches 0-10 and 10-20: the second begins inside it.
+        var spanning = ExceptionRegionLayout.Marks([Finally(0, 15, 15, 20)], "T::M");
+        (lines, depths) = ExceptionRegionLayout.Place([(0, 10), (10, 20)], spanning, 20);
+        Assert.Equal([Mark(0, ListingRegionBoundary.TryStart, 1, 0)], lines[0]);
+        Assert.Equal(3, lines[1].Count);
+        Assert.Equal([0, 1], depths);
     }
 
     /// <summary>The text object code (section 6.9): each region line before the first instruction at or after its offset, the lines past

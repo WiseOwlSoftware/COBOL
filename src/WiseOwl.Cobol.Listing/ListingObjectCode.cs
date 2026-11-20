@@ -107,11 +107,13 @@ public sealed record ListingRegionMark(int Offset, ListingRegionBoundary Boundar
 /// <param name="Instructions">The IL instructions of the stretch, in order, when the object-code section was asked for; null
 /// otherwise.</param>
 /// <param name="Regions">The lines of the method's exception-handling structure the stretch prints among its instructions, in the order
-/// they print, when the object-code section was asked for; null otherwise. A boundary prints in the stretch that holds its offset; one at
-/// the end of the body, in the stretch that ends there; one in code no stretch of the map holds, in the method's next stretch, before its
-/// first instruction, or, when there is none, after the last instruction of the method's last stretch.</param>
+/// they print, when the object-code section was asked for; null otherwise. A line prints in the stretch whose code it bounds: a line that
+/// opens a block in the stretch holding its offset, a line that closes one in the stretch holding the block's last instruction (so a block
+/// inside one stretch opens and closes in it); one whose code no stretch of the map holds, in the method's next stretch, before its first
+/// instruction, or, when there is none, after the last instruction of the method's last stretch.</param>
 /// <param name="Depth">The nesting depth (<see cref="ListingRegionMark.Depth"/>) in effect at the stretch's first line, its first
-/// instruction or its first region line: the number of the method's blocks that contain it.</param>
+/// instruction or its first region line: the depth the method's earlier stretches leave, which is the number of the method's blocks that
+/// contain the stretch's start when the stretch before it ends there.</param>
 public sealed record ListingObjectRange(int Line, int Column, int Method, int Start, int End,
     IReadOnlyList<ListingInstruction>? Instructions, IReadOnlyList<ListingRegionMark>? Regions, int Depth);
 

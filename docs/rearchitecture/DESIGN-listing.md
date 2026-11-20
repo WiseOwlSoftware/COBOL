@@ -1867,14 +1867,18 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
     there opens, the innermost closing first and the outermost opening first. Each line is a `ListingRegionMark(Offset, Boundary,
     Region, Depth)`: the boundary (`ListingRegionBoundary`), the clause (1-based in `ListingMethod.Regions`; for a shared block, the
     first clause protecting it) and the nesting depth. A body whose blocks overlap, or a block covering no IL, fails loudly.
-  - *Placed in one stretch.* `ExceptionRegionLayout.Place` gives each line to the stretch whose range holds its offset, so a boundary
-    between two statement stretches prints at its offset in the stretch holding that offset (a block that ends where the next
-    statement's code begins closes at the top of that statement's stretch); a boundary at the end of the body prints in the stretch
-    that ends there, after its last instruction. A boundary in code no placed stretch holds (before the method's first visible
-    sequence point, or in a stretch the map leaves out because its position is in no file of the listing) prints in the method's
-    next placed stretch before its first instruction, or after the last instruction of its last one, so every line prints exactly
-    once. `ListingObjectRange.Regions` holds the stretch's lines in print order when the object-code section is asked for (null
-    otherwise, as `Instructions` is), and `ListingObjectRange.Depth` the depth in effect before its first line.
+  - *Placed in one stretch.* `ExceptionRegionLayout.Place` gives each line to the stretch whose code it bounds: a line that OPENS a
+    block at offset X to the stretch holding X (`Start <= X < End`), before the instruction at X; a line that CLOSES a block at X to
+    the stretch holding the block's last instruction (`Start < X <= End`), after it. So a block wholly inside one statement's code (a
+    `finally` of an OPEN, the handlers of an ADD ON SIZE ERROR) opens and closes in that statement's stretch, and a block ending where
+    the next statement's code begins closes under the statement whose code it ends. (Correction, PB5951 review round 1: the first cut
+    gave every line to the stretch holding its offset, so a closing line at a stretch's end printed at the top of the NEXT statement's
+    stretch, leaving the first stretch's block unclosed and the next one starting with a close of nothing open.) A line no stretch owns
+    that way (its code is before the method's first visible sequence point, or in a stretch the map leaves out because its position is
+    in no file of the listing) prints in the method's next placed stretch before its first instruction, or after the last instruction
+    of its last one, so every line prints exactly once. `ListingObjectRange.Regions` holds the stretch's lines in print order when the
+    object-code section is asked for (null otherwise, as `Instructions` is), and `ListingObjectRange.Depth` the depth the method's
+    earlier stretches' lines leave: the number of blocks containing the stretch's start whenever the stretch before it ends there.
   - *Printed by the renderers, decided by neither.* `ObjectCodeText.CodeLines` is the one merge of a stretch's instructions and its
     lines (each line before the first instruction at or after its offset, the rest after the last), giving each instruction the depth
     the lines before it leave (from the stretch's `Depth`; `ListingRegionBoundaries.Opens` is the one answer to which lines open a
@@ -1882,12 +1886,14 @@ read from what every backend produces, the ASSEMBLY and its PORTABLE PDB:
     (`ObjectCodeText.RegionIndent`), the HTML page the same in its instruction table (a row of class `rg` per line).
   - *Witnesses.* `ExceptionRegionLayoutTests` (Unit, over hand-built clauses whose lines are written by hand from ECMA-335: nested
     regions, adjacent ones, three clauses sharing a block with a filter among them, a region inside a handler, overlap refused, the
-    placement and depths, the text rows) and `ListingExceptionRegionTests` (Conformance: a program whose OPEN compiles to a `finally`,
-    whose ADD ON SIZE ERROR compiles to two nested protected blocks of two `catch` clauses each, and whose reference modification
-    under `>>TURN EC-BOUND-REF-MOD CHECKING ON` compiles to a `filter` in a `finally`; each method's clauses are read in the test
-    from the assembly with `System.Reflection.Metadata`, each line's depth from the blocks' containment, and the text and HTML rows
-    counted against them). Each was shown able to fail: the reader dropping the filter clauses, the layout opening the innermost
-    block first, and the merge dropping the lines were each red.
+    placement and depths, a block inside one stretch and one ending at a stretch boundary, the text rows) and
+    `ListingExceptionRegionTests` (Conformance: a program whose OPEN compiles to a `finally`, whose ADD ON SIZE ERROR compiles to
+    two nested protected blocks of two `catch` clauses each, and whose reference modification under `>>TURN EC-BOUND-REF-MOD
+    CHECKING ON` compiles to a `filter` in a `finally`; each method's clauses are read in the test from the assembly with
+    `System.Reflection.Metadata`, each line's depth from the blocks' containment, each line's stretch from the code it bounds, each
+    stretch's depth from the blocks containing its start, and the text and HTML rows counted against them). Each was shown able to
+    fail: the reader dropping the filter clauses, the layout opening the innermost block first, the merge dropping the lines, and
+    placement giving a closing line at a stretch's end to the next stretch were each red.
 - **Backend diagnostics through COBOL positions.** A Roslyn diagnostic on a statement's mapped line carries the COBOL file, line
   and column. (Correction, review round 1:) the mapped file is the directive's document name, relative to the document root, which
   no file of the listing is called and which names a file relative to the source's directory rather than the user's; so
