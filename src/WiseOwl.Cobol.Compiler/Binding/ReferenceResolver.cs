@@ -309,7 +309,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // no-THROUGH form's forward to data-name-2's place.
         // An implicitly-defined name that is no storage item (DEBUG-CONTENTS) brings its own place; every other item's is built.
         PlaceGap gap = default;
-        var inner = id.ImplicitPlace ?? Places.PlaceForItem(item, id.IndexExprs!, out gap);
+        var inner = Linked(id.ImplicitPlace ?? Places.PlaceForItem(item, id.IndexExprs!, out gap), dref.Start);
         if (inner is null) return ItemFailure(dref, gap);
         // The implicit half of the LINKAGE screen (kb/Work PB5876): an OCCURS DEPENDING ON object the operand's extent reads.
         if (report) Names.ScreenImplicitLinkageReferences(dref, inner);
@@ -491,7 +491,7 @@ public sealed class ReferenceResolver(DataBinder data)
             // SR2 names the CONDITIONAL VARIABLE for a condition-name reference (§2023:8.4.2.3 Format 2), which is
             // exactly the item this entry is handed — so the ONE subscript reading applies unchanged (kb/Work PB877).
             var answer = Subscripts.ReadSubscripts(dref, item, SubscriptBinder.SubscriptGroupOf(dref), out var indexExprs)
-                ?? (Places.PlaceForItem(item, indexExprs, out var gap) is { } place
+                ?? (Linked(Places.PlaceForItem(item, indexExprs, out var gap), dref.Start) is { } place
                     ? RefResolution.Resolved(place, "") : ItemFailure(dref, gap));
             if (answer.Outcome == RefOutcome.Deferred) data.Edition.NoteUnbuilt(answer.Feature);
             return answer;
@@ -597,7 +597,15 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <see cref="PlaceForItem"/> as every other item (kb/Work PB1380); it is never a table element, so a written
     /// subscript on one builds no place.</summary>
     internal Place? ResolveByName(WrittenQualifiedName written, IReadOnlyList<Position> indexExprs) =>
-        Names.DataItemNamed(written) is { } item ? Places.PlaceForItem(item, indexExprs) : null;
+        Names.DataItemNamed(written) is { } item ? Linked(Places.PlaceForItem(item, indexExprs), written.Head) : null;
+
+    /// <summary>⛔ THE LINK OF A WRITTEN REFERENCE'S PLACE TO ITS OCCURRENCE (docs/rearchitecture/DESIGN-listing.md section 6.7.1):
+    /// the place INSTANCE built for the reference written at <paramref name="head"/> is linked to the occurrence the symbol table
+    /// recorded there, so the statement funnel classifies the occurrence by the store position the place stands at. Nothing is linked
+    /// when no listing records references, and a place nobody wrote (a temporary, an implicit operand) is never handed here.</summary>
+    internal T? Linked<T>(T? place, Antlr4.Runtime.IToken head) where T : Place =>
+        place is null || !data.Symbols.GroupEntries.RecordsReferences ? place
+            : data.Symbols.GroupEntries.Link(place, data.Symbols.OccurrenceOf(head));
 
     /// <summary>Resolve an <c>ADDRESS OF</c> operand (ISO §2023:8.4.3.11) to its item plus the OCCURS displacement
     /// of its subscripts — the <c>(idx − 1) × width</c> character-position terms (<see cref="OffsetTerm"/>) within
@@ -631,7 +639,7 @@ public sealed class ReferenceResolver(DataBinder data)
         OdoGroupPlace? extent = null;
         // The reference as written, for the statement that holds the operand to name it among its operands (X3.23-1985 USE FOR DEBUGGING
         // general rule 5: "explicitly references"; kb/Work PB4855); null for a shape the place builder cannot model.
-        var operandPlace = Places.PlaceForItem(item, exprs);
+        var operandPlace = Linked(Places.PlaceForItem(item, exprs), dref.Start);
         if (written.IsReferenceModified || BitLayout.IsBitItem(item))
         {
             var inner = operandPlace;

@@ -177,24 +177,31 @@ public sealed partial class SymbolTable
             answer = ProcedureNamed(written,
                 site ?? throw new ArgumentNullException(nameof(site), "a procedure-name resolves from where it is written"));
         else if (IsReportClass(wanted))
-            answer = ReportSymbolNamed(written, wanted, reach, reportSite);   // the occurrence `report` gates is listing step 7b's
+            answer = ReportSymbolNamed(written, wanted, reach, reportSite);
         else if (wanted == NameClass.FunctionPrototype)
             answer = written.Start is { } only && written.Stop is { } last && only.TokenIndex == last.TokenIndex
-                ? FunctionPrototypeNamed(FunctionKey(WrittenWord.Of(only)))   // the occurrence `report` gates is listing step 7b's
+                ? FunctionPrototypeNamed(FunctionKey(WrittenWord.Of(only)))
                 : default;
         else if (WordOf(written) is not { } key)
             answer = default;
         else if (IsConfigurationClass(wanted))
         {
             // A configuration-section name's reference is a §2023:8.3.2.2 USE of the word in the element it is written in
-            // (kb/Work PB3153); a probe uses nothing. (Listing step 7b records the occurrence under the same flag.)
+            // (kb/Work PB3153); a probe uses nothing, and records no occurrence (below).
             (answer, var kind) = ConfigurationNamed(key, wanted);
             if (answer.Symbol is not null && report) _data.RecordConfigurationNameUse(written, key.Word, kind);
         }
         else
-            answer = SymbolNamed(key, wanted, reach);   // the occurrence `report` gates is listing step 7b's
-        return answer.Symbol is null ? null : new IdentifiedName(wanted, answer.Symbol, answer.Id);
+            answer = SymbolNamed(key, wanted, reach);
+        if (answer.Symbol is null) return null;
+        Record(OneEntry(answer.Symbol, answer.Id), written, report);
+        return new IdentifiedName(wanted, answer.Symbol, answer.Id);
     }
+
+    /// <summary>The entry an identification's occurrence joins: its own, or a candidate set's when the set has exactly one member
+    /// (a set of several, or of none, identifies nothing and records no occurrence: DESIGN-listing.md section 6.7.1).</summary>
+    private static SymbolId OneEntry(object symbol, SymbolId id) =>
+        id.IsSet ? id : symbol is ICandidateEntries { Ids: [var only] } ? only : default;
 
     /// <summary>
     /// The same lookup for a name no parse rule holds alone (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice
@@ -207,7 +214,6 @@ public sealed partial class SymbolTable
     /// </summary>
     internal IdentifiedName? Identify(WrittenWord written, NameClass wanted, bool report, NameReach reach = NameReach.Visible)
     {
-        _ = report;   // the occurrence it gates is listing step 7b's
         if (wanted == NameClass.Procedure)
             throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "a procedure-name is a reference rule: identify its context");
         if (IsConfigurationClass(wanted))
@@ -217,7 +223,9 @@ public sealed partial class SymbolTable
         var (symbol, id) = wanted == NameClass.FunctionPrototype
             ? FunctionPrototypeNamed(FunctionKey(written))
             : SymbolNamed(Key(written.Text), wanted, reach);
-        return symbol is null ? null : new IdentifiedName(wanted, symbol, id);
+        if (symbol is null) return null;
+        Record(OneEntry(symbol, id), written, report);
+        return new IdentifiedName(wanted, symbol, id);
     }
 
     /// <summary>
@@ -232,8 +240,9 @@ public sealed partial class SymbolTable
     /// </summary>
     internal NameCandidates<IndexDeclaration>? IdentifyIndexName(WrittenQualifiedName written, bool report)
     {
-        _ = report;   // the occurrence it gates is listing step 7b's
-        return IndexCandidates(written.Name, written.QualifierWords, _data.ActiveScope);
+        var candidates = IndexCandidates(written.Name, written.QualifierWords, _data.ActiveScope);
+        if (report && candidates is { Single: { } one } && _entries.RecordsReferences) Record(IndexEntryOf(one), written, report);
+        return candidates;
     }
 
     /// <summary>The symbol of class <paramref name="wanted"/> one word names here and the entry its declaration made, or null.</summary>

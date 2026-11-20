@@ -71,11 +71,17 @@ internal sealed class ListingFacts(ListingRequest request, CompilationInputs inp
     /// <summary>Whether a section the listing holds reads the symbol table: the data map, and the program map's attributes
     /// (DESIGN-listing.md sections 6.5 and 6.6). The bind finishes the table only then (<c>EditionContext.RecordsSymbols</c>).</summary>
     public static bool ReadsSymbols(ListingRequest request) =>
-        request.Sections.Contains(ListingSection.DataMap) || request.Sections.Contains(ListingSection.Programs);
+        ReadsNames(request) || request.Sections.Contains(ListingSection.Programs);
 
     /// <summary>Whether a section the listing holds reads every declared name of the symbol table, not only its program entries:
-    /// the data map (DESIGN-listing.md section 9).</summary>
-    public static bool ReadsNames(ListingRequest request) => request.Sections.Contains(ListingSection.DataMap);
+    /// the data map and the cross-reference (DESIGN-listing.md section 9).</summary>
+    public static bool ReadsNames(ListingRequest request) =>
+        request.Sections.Contains(ListingSection.DataMap) || ReadsReferences(request);
+
+    /// <summary>Whether a section the listing holds reads the symbol table's occurrences: the cross-reference, which also gives the
+    /// source lines their name uses and their statement margin (DESIGN-listing.md sections 6.7.1 and 9). The bind records them only
+    /// then (<c>EditionContext.RecordsReferences</c>).</summary>
+    public static bool ReadsReferences(ListingRequest request) => request.Sections.Contains(ListingSection.CrossReference);
 
     /// <summary>The assembly the compilation wrote and its portable PDB (DESIGN-listing.md section 6.9), deposited once the backend wrote
     /// them; null when no assembly was written (a failed compilation, a check-only compilation).</summary>

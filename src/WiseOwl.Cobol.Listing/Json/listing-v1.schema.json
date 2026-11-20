@@ -273,15 +273,18 @@
             }
           },
           "margin": {
-            "description": "What the data map says of the data item the line declares (its offset, length and usage), which the text listing prints in its margin; null when the line declares none or the data map was not asked for.",
+            "description": "What the text listing prints in the line's margin: on a line that declares a data item, what the data map says of it (its offset, length and usage); on a line that writes references, the listing lines that define the names it uses (the cross-reference); null when the line has neither or the section that says it was not asked for.",
             "type": [
               "object",
               "null"
             ],
             "properties": {
               "item": {
-                "description": "The Id of the data item the line declares (the first, when it declares several).",
-                "type": "integer"
+                "description": "The Id of the data item the line declares (the first, when it declares several), or null on a line that declares none.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
               },
               "offset": {
                 "description": "Its offset (Offset).",
@@ -303,11 +306,55 @@
                   "string",
                   "null"
                 ]
+              },
+              "definitions": {
+                "description": "On a line that declares no data item, the listing line of the definition of each name the line's references use (the cross-reference), each once, in the order the names are written; empty on a definition line.",
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
               }
             },
             "required": [
-              "item"
+              "definitions"
             ]
+          },
+          "names": {
+            "description": "Each name written on the line, in column order (the cross-reference's references placed on it): the HTML listing links each to its definition; empty when the cross-reference was not asked for.",
+            "type": "array",
+            "items": {
+              "description": "One name written on a source line (DESIGN-listing.md section 4.2): the join of the cross-reference onto the line, made once, which the HTML listing links to the name's definition.",
+              "type": "object",
+              "properties": {
+                "column": {
+                  "description": "The 1-based character position of its first character in the line's text.",
+                  "type": "integer"
+                },
+                "length": {
+                  "description": "The characters it is written in on this line.",
+                  "type": "integer"
+                },
+                "symbol": {
+                  "description": "The Id it uses.",
+                  "type": "integer"
+                },
+                "use": {
+                  "description": "How it uses the name. Defined: The declaration. Read: A reference at no position its statement stores into. Written: A reference at a position its statement stores into, wholly or in part. Modified: A reference at a position its statement reads and stores into (ADD TO, SUBTRACT FROM, INSPECT REPLACING, a STRING POINTER, ...).",
+                  "enum": [
+                    "Defined",
+                    "Read",
+                    "Written",
+                    "Modified"
+                  ]
+                }
+              },
+              "required": [
+                "column",
+                "length",
+                "symbol",
+                "use"
+              ]
+            }
           },
           "spans": {
             "description": "What the compiler read each stretch of Text as, in column order and never overlapping: its reference-format areas, comments, words, literals, picture character-strings and separators, at the edition in force. The HTML listing colours the text by them; text no span covers (spaces, a line no stage read) has no class.",
@@ -372,6 +419,7 @@
           "pageBreakBefore",
           "replacement",
           "diagnostics",
+          "names",
           "spans"
         ]
       }
@@ -1293,6 +1341,201 @@
         "files"
       ]
     },
+    "crossReference": {
+      "description": "The cross-reference: every declared name with its definition and its references, and the PERFORM and CALL graphs; null when the section was not asked for or could not be produced.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "symbols": {
+          "description": "Every symbol, sorted by name (the standard's case-insensitive fold of the name) and then by the line it is defined on.",
+          "type": "array",
+          "items": {
+            "description": "One declared name and its uses.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "1-based, in the order of Symbols.",
+                "type": "integer"
+              },
+              "name": {
+                "description": "The name as declared (FILLER is not listed; a copy member is its text-name).",
+                "type": "string"
+              },
+              "kind": {
+                "description": "What the name names. Program: A program-name or a user-function-name. Data: A data-name of a data description entry, a level-66 entry included. Condition: A condition-name. Index: An index-name. Constant: A constant-name. File: A file-name. Report: A report-name. CommunicationDescription: A cd-name. Procedure: A paragraph-name or a section-name. SwitchCondition: A SPECIAL-NAMES switch-status condition-name. ClassName: A class-name of a CLASS clause. Alphabet: An alphabet-name of an alphanumeric ALPHABET clause. NationalAlphabet: An alphabet-name of an ALPHABET … FOR NATIONAL clause. SymbolicCharacter: A symbolic-character. OrderingName: An ordering-name. DynamicLengthStructure: A dynamic-length-structure-name. Locale: A locale-name. Mnemonic: A mnemonic-name. ReportGroup: The data-name of a report group, as a reference that names a report group uses it. SumCounter: A sum counter. ReportVarying: A report VARYING counter. ReportEntry: A report entry named before the report section binds. ReportSumOperand: A SUM clause's data-name-1. ProgramPrototype: A program-prototype-name. FunctionPrototype: A function-prototype-name. DebugRegister: The DEBUG-ITEM special register or one of its members. TypeName: A type-name. CapacityRegister: A named OCCURS DYNAMIC CAPACITY register. ObjectClass: An object-class-name. Interface: An interface-name. ParameterName: A parameter-name of a parameterized class or interface definition. CopyMember: A library text a COPY statement names: its definition is none, each COPY statement that names it a reference.",
+                "enum": [
+                  "Program",
+                  "Data",
+                  "Condition",
+                  "Index",
+                  "Constant",
+                  "File",
+                  "Report",
+                  "CommunicationDescription",
+                  "Procedure",
+                  "SwitchCondition",
+                  "ClassName",
+                  "Alphabet",
+                  "NationalAlphabet",
+                  "SymbolicCharacter",
+                  "OrderingName",
+                  "DynamicLengthStructure",
+                  "Locale",
+                  "Mnemonic",
+                  "ReportGroup",
+                  "SumCounter",
+                  "ReportVarying",
+                  "ReportEntry",
+                  "ReportSumOperand",
+                  "ProgramPrototype",
+                  "FunctionPrototype",
+                  "DebugRegister",
+                  "TypeName",
+                  "CapacityRegister",
+                  "ObjectClass",
+                  "Interface",
+                  "ParameterName",
+                  "CopyMember"
+                ]
+              },
+              "program": {
+                "description": "The Id of the innermost program its definition stands in, or null.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "dataItem": {
+                "description": "The Id of its data map entry, when the data map holds it.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "references": {
+                "description": "Its definition (Defined, absent for a name the standard declares implicitly) and every reference, by listing line and column.",
+                "type": "array",
+                "items": {
+                  "description": "One use of a name.",
+                  "type": "object",
+                  "properties": {
+                    "symbol": {
+                      "description": "The Id it uses.",
+                      "type": "integer"
+                    },
+                    "line": {
+                      "description": "The listing line it is written on, or null when no listed line holds it.",
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "column": {
+                      "description": "The 1-based character position of its first character in that line's text, or null.",
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "description": "The characters it is written in: qualifiers, subscripts and reference modification included.",
+                      "type": "integer"
+                    },
+                    "use": {
+                      "description": "How it uses the name. Defined: The declaration. Read: A reference at no position its statement stores into. Written: A reference at a position its statement stores into, wholly or in part. Modified: A reference at a position its statement reads and stores into (ADD TO, SUBTRACT FROM, INSPECT REPLACING, a STRING POINTER, ...).",
+                      "enum": [
+                        "Defined",
+                        "Read",
+                        "Written",
+                        "Modified"
+                      ]
+                    },
+                    "verb": {
+                      "description": "The verb of the statement it is written in, upper case (the transfer of a procedure reference: PERFORM, GO, ALTER, SORT, MERGE; the verb of a file or program reference), or null outside every statement.",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "symbol",
+                    "length",
+                    "use"
+                  ]
+                }
+              },
+              "unreferenced": {
+                "description": "The name is defined and the program never references it.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "kind",
+              "references",
+              "unreferenced"
+            ]
+          }
+        },
+        "performs": {
+          "description": "The PERFORM graph: one edge per procedure a PERFORM statement names, from the procedure the statement is written in, in listing order.",
+          "type": "array",
+          "items": {
+            "description": "One edge of the PERFORM or CALL graph.",
+            "type": "object",
+            "properties": {
+              "from": {
+                "description": "The Id of the procedure (PERFORM) or source unit (CALL) the statement is written in, or null when none is defined before it.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "to": {
+                "description": "The Id the statement names.",
+                "type": "integer"
+              },
+              "line": {
+                "description": "The listing line of the reference.",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "verb": {
+                "description": "The verb of the statement, upper case.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "to",
+              "verb"
+            ]
+          }
+        },
+        "calls": {
+          "description": "The CALL graph: one edge per program, function or method prototype a statement activates by name, from the source unit the statement is written in, in listing order.",
+          "type": "array",
+          "items": {
+            "description": "One edge of the PERFORM or CALL graph.",
+            "$ref": "#/properties/crossReference/properties/performs/items",
+            "required": [
+              "to",
+              "verb"
+            ]
+          }
+        }
+      },
+      "required": [
+        "symbols",
+        "performs",
+        "calls"
+      ]
+    },
     "objectCode": {
       "description": "The COBOL to object-code map read from the assembly and its PDB, its instructions when the object-code section was asked for; null when neither the object-code map nor the object code was asked for, or the compilation wrote no assembly.",
       "type": [
@@ -1529,7 +1772,7 @@
         "type": "object",
         "properties": {
           "section": {
-            "description": "The section. Source: The source section: every physical line of every file read, with the DISPLAY directive's transfers. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end. Options: The options in effect: every option with its value and whether it is the default, the compiler and the host. Statistics: The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with its count and its lines. DataMap: The data map and the file map: every data item, condition-name, index-name, constant-name, report-name, cd-name and file-name with its level, offset, lengths, usage, picture and the .NET field it became, and each file's keys, reports and connector; and, in the source section, each data description line's offset, length and usage in the margin. ObjectMap: The object-code map: each COBOL statement's method and IL offset range, read from the assembly the compilation wrote and its portable PDB. ObjectCode: The object code: under each COBOL statement, its IL instructions, decoded from the assembly the compilation wrote.",
+            "description": "The section. Source: The source section: every physical line of every file read, with the DISPLAY directive's transfers. Programs: The program map: every source unit, its nesting and its listing lines. Diagnostics: The diagnostics: each at its line in the source section, and all of them in the summary at the end. Options: The options in effect: every option with its value and whether it is the default, the compiler and the host. Statistics: The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with its count and its lines. DataMap: The data map and the file map: every data item, condition-name, index-name, constant-name, report-name, cd-name and file-name with its level, offset, lengths, usage, picture and the .NET field it became, and each file's keys, reports and connector; and, in the source section, each data description line's offset, length and usage in the margin. CrossReference: The cross-reference: every declared name with its definition and each reference the program wrote to it, classified read, written or modified, the PERFORM and CALL graphs; and, in the source section, each line's names and a statement line's definitions in the margin. ObjectMap: The object-code map: each COBOL statement's method and IL offset range, read from the assembly the compilation wrote and its portable PDB. ObjectCode: The object code: under each COBOL statement, its IL instructions, decoded from the assembly the compilation wrote.",
             "enum": [
               "Source",
               "Programs",
@@ -1537,6 +1780,7 @@
               "Options",
               "Statistics",
               "DataMap",
+              "CrossReference",
               "ObjectMap",
               "ObjectCode"
             ]

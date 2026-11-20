@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -22,8 +23,9 @@ public sealed partial class SymbolTable
     /// the method whose procedure division it reads).</summary>
     internal NameCandidates<DataItem> IdentifyDataName(WrittenQualifiedName written, Scope scope, bool report)
     {
-        _ = report;   // the occurrence it gates is listing step 7b's
-        return DataNameCandidates(written.Name, written.QualifierWords, scope);
+        var candidates = DataNameCandidates(written.Name, written.QualifierWords, scope);
+        if (report && candidates.Single is { } one) Record(DataEntryOf(one), written, report);
+        return candidates;
     }
 
     /// <summary>
@@ -42,8 +44,8 @@ public sealed partial class SymbolTable
     {
         if (ClauseOperandsTakeImplicitQualifiers)
             for (DataItem? group = subject.Parent; group is not null; group = group.Parent)
-                if (SubtreeCandidates(group, operand.Name, operand.Qualifiers) is { Count: > 0 } within) return within;
-        return DataNameCandidates(operand.Name, operand.Qualifiers, scope);
+                if (SubtreeCandidates(group, operand.Name, operand.Qualifiers) is { Count: > 0 } within) return Recorded(within, operand);
+        return Recorded(DataNameCandidates(operand.Name, operand.Qualifiers, scope), operand);
     }
 
     /// <summary>The candidate set of a data-name an entry clause confines to ONE region (OCCURS KEY's data-name-2 to the table,
@@ -53,17 +55,28 @@ public sealed partial class SymbolTable
     /// <see cref="DataBinder.IsWithinRegion"/> of the one that survives. One name declared in the region and in another record is then
     /// §2023:8.4.2.2.3 SR1's ambiguity (COBOL1639), as in the procedure division.</summary>
     internal NameCandidates<DataItem> IdentifyRegionOperand(DataItem region, WrittenDataName operand) =>
-        ClauseOperandsTakeImplicitQualifiers
+        Recorded(ClauseOperandsTakeImplicitQualifiers
             ? SubtreeCandidates(region, operand.Name, operand.Qualifiers)
-            : DataNameCandidates(operand.Name, operand.Qualifiers, _data.ScopeOf(region.Root));
+            : DataNameCandidates(operand.Name, operand.Qualifiers, _data.ScopeOf(region.Root)), operand);
+
+    /// <summary>A data division clause operand's candidate set, its occurrence recorded when the set has one member: a clause operand
+    /// is the reference itself (the clause binders ask no probe of it), and the position it is written at is the operand's
+    /// (<see cref="WrittenDataName.Line"/>), none for an operand no source wrote.</summary>
+    private NameCandidates<DataItem> Recorded(NameCandidates<DataItem> candidates, WrittenDataName operand)
+    {
+        if (_entries.RecordsReferences && operand.Line > 0 && candidates.Single is { } one)
+            _entries.Record(DataEntryOf(one), new SymbolPosition(operand.Line, operand.Column), operand.Length);
+        return candidates;
+    }
 
     /// <summary>The candidate set of a written data-name WITHIN the record or table <paramref name="root"/> (itself included): a SORT
     /// table key, §2023:14.9.40.3 SR14 a) ("The data item identified by a key data-name shall be the same as, or subordinate to, the data
     /// item referenced by data-name-2"), narrowed by the written qualifiers and counted (kb/Work PB1018).</summary>
     internal NameCandidates<DataItem> IdentifyWithin(DataItem root, WrittenQualifiedName written, bool report)
     {
-        _ = report;   // the occurrence it gates is listing step 7b's
-        return SubtreeCandidates(root, written.Name, written.QualifierWords);
+        var candidates = SubtreeCandidates(root, written.Name, written.QualifierWords);
+        if (report && candidates.Single is { } one) Record(DataEntryOf(one), written, report);
+        return candidates;
     }
 
     /// <summary>Whether a data item of <paramref name="word"/> is visible in <paramref name="scope"/> at all, its qualifiers not

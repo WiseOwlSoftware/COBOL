@@ -30,6 +30,9 @@ public interface IListingSectionVisitor<out T>
     /// <summary>The data map and the file map.</summary>
     T DataMap();
 
+    /// <summary>The cross-reference and the PERFORM and CALL graphs.</summary>
+    T CrossReference();
+
     /// <summary>The object-code map.</summary>
     T ObjectMap();
 
@@ -51,6 +54,7 @@ public static class ListingSectionVisitor
         ListingSection.Options => visitor.Options(),
         ListingSection.Statistics => visitor.Statistics(),
         ListingSection.DataMap => visitor.DataMap(),
+        ListingSection.CrossReference => visitor.CrossReference(),
         ListingSection.ObjectMap => visitor.ObjectMap(),
         ListingSection.ObjectCode => visitor.ObjectCode(),
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no visitor method"),

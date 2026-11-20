@@ -88,6 +88,9 @@ public static class TextListingRenderer
         public IEnumerable<ListingRow> DataMap() => Rows(document.DataMap is { } map ? DataMapText.Rows(map, Width)
             : throw new InvalidOperationException("the data map section is produced but the document holds no data map"));
 
+        public IEnumerable<ListingRow> CrossReference() => Rows(document.CrossReference is { } xref ? CrossReferenceText.Rows(xref, Width)
+            : throw new InvalidOperationException("the cross-reference section is produced but the document holds no cross-reference"));
+
         public IEnumerable<ListingRow> ObjectMap() => Rows(document.ObjectCode is { } map ? ObjectCodeText.MapRows(map, Width)
             : throw new InvalidOperationException("the object-code map section is produced but the document holds no object-code map"));
 
@@ -170,10 +173,16 @@ public static class TextListingRenderer
         return marked.Length <= width ? marked : marked[..width];
     }
 
-    /// <summary>The margin's text: <c>OFF=n LEN=n usage</c>, an offset or length the data map does not hold printed as <c>-</c>, a usage it does not hold
-    /// (a group that states none) not printed.</summary>
-    public static string MarginText(ListingMargin margin) => string.Create(CultureInfo.InvariantCulture,
-        $"OFF={margin.Offset?.ToString(CultureInfo.InvariantCulture) ?? "-"} LEN={margin.Length?.ToString(CultureInfo.InvariantCulture) ?? "-"} {margin.Usage ?? ""}").TrimEnd();
+    /// <summary>The margin's text: on a definition line <c>OFF=n LEN=n usage</c>, an offset or length the data map does not hold printed
+    /// as <c>-</c>, a usage it does not hold (a group that states none) not printed; on a line of references <c>DEF n n ...</c>, the
+    /// listing lines that define the names it uses (the page cuts what does not fit, <see cref="WithMargin"/>).</summary>
+    public static string MarginText(ListingMargin margin) => margin.Item is null
+        ? DefinitionsMark + string.Join(" ", margin.Definitions.Select(static d => d.ToString(CultureInfo.InvariantCulture)))
+        : string.Create(CultureInfo.InvariantCulture,
+            $"OFF={margin.Offset?.ToString(CultureInfo.InvariantCulture) ?? "-"} LEN={margin.Length?.ToString(CultureInfo.InvariantCulture) ?? "-"} {margin.Usage ?? ""}").TrimEnd();
+
+    /// <summary>The word a statement line's margin starts with: the listing lines after it define the names the line uses.</summary>
+    public const string DefinitionsMark = "DEF ";
 
     /// <summary>Each text padded to its width; a text as wide as its column, or wider, is followed by one space.</summary>
     internal static string Columns(params ReadOnlySpan<(string Text, int Width)> columns)

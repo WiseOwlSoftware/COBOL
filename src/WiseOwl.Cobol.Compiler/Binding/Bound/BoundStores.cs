@@ -128,6 +128,26 @@ public static class BoundStores
         return s.Accept(visitor) is StoreKind.None ? null : visitor.FirstHit;
     }
 
+    /// <summary>⛔ THE STORE POSITIONS A STATEMENT'S WRITTEN OPERANDS OCCUPY (docs/rearchitecture/DESIGN-listing.md section 6.7.1,
+    /// "Store kind"): each place <paramref name="s"/> ITSELF holds in an operand position (<see cref="BoundReferences.Of"/>, the
+    /// instance the bound node holds, a decorated place as its outer place) that the exhaustive visitor stores through, with the kind
+    /// of the store, asked of that INSTANCE as <see cref="StoreKindOf"/> asks of an item (a BY REFERENCE argument counted as
+    /// <see cref="StoreKindOf"/> counts it, a store into a window <see cref="StoreKind.WriteInPart"/>). A statement nested in
+    /// <paramref name="s"/> is a statement of its own and answers for its own operands. The places a file connector's callback builds
+    /// (the record area, FILE STATUS, RELATIVE KEY, DEPENDING ON) are no written operand and are not asked. The symbol table's
+    /// statement funnel reads it to classify each occurrence (<c>SymbolTable.EntryStore.Classify</c>).</summary>
+    internal static IEnumerable<(Place Place, StoreKind Kind)> StorePositionsOf(BoundStatement s)
+    {
+        foreach (var place in BoundReferences.Of(s).Places)
+        {
+            var at = place;
+            var visitor = new StoreKindVisitor(p => ReferenceEquals(p, at), StoreView.Operands, crossingsStore: true, direct: true);
+            var kind = s.Accept(visitor);
+            if (kind == StoreKind.Write && visitor.StoredThroughWindow) kind = StoreKind.WriteInPart;
+            if (kind is not StoreKind.None) yield return (place, kind);
+        }
+    }
+
     /// <summary>The per-node store classification (the former <c>StoreKindOf</c> switch, one arm per leaf) —
     /// the exhaustive <see cref="IBoundStatementVisitor{T}"/> over the bound statements, carrying the target
     /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>. <paramref name="view"/> says whether a statement that

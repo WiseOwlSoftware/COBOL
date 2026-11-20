@@ -995,7 +995,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         foreach (var s in dref.dataReferenceSuffix())
             if (s.qualification()?.cobolWord() is { } q)
                 quals.Add(q.GetText());
-        return new WrittenDataName(baseWord, quals);
+        var last = dref.Stop ?? dref.Start;
+        return new WrittenDataName(baseWord, quals)
+        {
+            Line = dref.Start.Line,
+            Column = dref.Start.Column,
+            Length = last.Line == dref.Start.Line ? last.Column - dref.Start.Column + last.Text.Length : dref.Start.Text.Length,
+        };
     }
 
     /// <summary>The capture for an operand written where a general format prints <i>data-name-n</i>: the base

@@ -244,8 +244,8 @@ public sealed partial class SymbolTable
         /// as the declaration funnel does, so a conflict is worded in the programmer's spelling.</para>
         /// <para>This is the compilation group tier's RECORDING POINT, the twin of <see cref="SymbolTable.Identify(ParserRuleContext,
         /// NameClass, bool, NameReach, ProcedureSite?, ReportSite)"/> (docs/rearchitecture/DESIGN-listing.md section 6.7.1): only the
-        /// table makes an <see cref="OoNameResult"/>, and listing step 7b records the occurrence here, at
-        /// <paramref name="written"/>, under the condition the census use is recorded.</para></summary>
+        /// table makes an <see cref="OoNameResult"/>, and it records the occurrence here, at <paramref name="written"/>, under the
+        /// condition the census use is recorded.</para></summary>
         internal OoNameResult Lookup(RuleContext? site, ParserRuleContext written, OoNameWant want)
         {
             if (WordOf(written) is not { } key) return default;
@@ -265,6 +265,9 @@ public sealed partial class SymbolTable
                 if (!found.Entry.IsSet)
                     throw new InvalidOperationException($"SymbolTable.ClassNames.Lookup answered '{key.Word}', whose declaration entered no "
                         + "entry: every declaring path enters its name (DESIGN-listing.md section 6.7.1, \"Step 6b, the entry ids\")");
+                // The written word's occurrence, under the condition its use is recorded; a site that asks twice for one written
+                // word (RaisingPhrase.Partition's re-ask under FACTORY OF) records it once, keyed by where it is written.
+                _table.Entries.Record(found.Entry, PositionOf(written.Start), written.Start.Text.Length);
             }
             return found;
         }

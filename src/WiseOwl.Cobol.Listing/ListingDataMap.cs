@@ -122,14 +122,17 @@ public sealed record ListingFileEntry(int Id, string Name, int? Program, int? Li
 /// <param name="Duplicates">The WITH DUPLICATES phrase.</param>
 public sealed record ListingFileKey(string Name, IReadOnlyList<int> Items, bool Duplicates);
 
-/// <summary>The embedded margin of a source line (DESIGN-listing.md section 6.2): what the data map says of the item the line
-/// declares, printed beside the line.</summary>
+/// <summary>The embedded margin of a source line (DESIGN-listing.md section 6.2), printed beside the line: on a line that declares a
+/// data item, what the data map says of the item (<paramref name="Item"/>, its offset, length and usage); on a line that writes
+/// references and declares none, the listing lines that define the names it uses (<paramref name="Definitions"/>).</summary>
 /// <param name="Item">The <see cref="ListingDataItem.Id"/> of the data item the line declares (the first, when it declares
-/// several).</param>
+/// several), or null on a line that declares none.</param>
 /// <param name="Offset">Its offset (<see cref="ListingDataItem.Offset"/>).</param>
 /// <param name="Length">Its length in character positions (<see cref="ListingDataItem.Length"/>).</param>
 /// <param name="Usage">Its usage (<see cref="ListingDataItem.Usage"/>).</param>
-public sealed record ListingMargin(int Item, int? Offset, int? Length, string? Usage);
+/// <param name="Definitions">On a line that declares no data item, the listing line of the definition of each name the line's
+/// references use (the cross-reference), each once, in the order the names are written; empty on a definition line.</param>
+public sealed record ListingMargin(int? Item, int? Offset, int? Length, string? Usage, IReadOnlyList<int> Definitions);
 
 /// <summary>What the compiler decided for a bound program or function (DESIGN-listing.md section 6.5): a view of the symbol
 /// table's program entry.</summary>

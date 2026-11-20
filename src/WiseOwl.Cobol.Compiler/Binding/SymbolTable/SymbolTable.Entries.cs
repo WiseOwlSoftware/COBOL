@@ -42,7 +42,7 @@ public sealed partial class SymbolTable
     /// <para>Every compilation makes them (the table is the binder's one store of names); the finished snapshot reads them
     /// (<c>SymbolTableFinish.Of</c>) only when a listing asks for the symbol table.</para>
     /// </summary>
-    internal sealed class EntryStore
+    internal sealed partial class EntryStore
     {
         private readonly List<Entry> _entries = [];
         private readonly Dictionary<object, SymbolId> _bySymbol = new(ReferenceEqualityComparer.Instance);

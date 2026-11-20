@@ -20,7 +20,7 @@ public sealed class HtmlSyntaxSpanTests
 
     private static ListingLine Line(string text, IReadOnlyList<ListingSpan> spans, IReadOnlyList<int>? diagnostics = null) =>
         new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, text, false, true, false, 0, ListingReplacement.None, null,
-            diagnostics ?? [], null, spans);
+            diagnostics ?? [], null, [], spans);
 
     private static XElement TextOf(string page)
     {

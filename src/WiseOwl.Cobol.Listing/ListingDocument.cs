@@ -35,6 +35,8 @@ namespace WiseOwl.Cobol.Listing;
 /// and the verbs; null when the section was not asked for.</param>
 /// <param name="DataMap">The data map and the file map: every name of the data division with what the compiler decided for it;
 /// null when the section was not asked for or could not be produced.</param>
+/// <param name="CrossReference">The cross-reference: every declared name with its definition and its references, and the PERFORM and
+/// CALL graphs; null when the section was not asked for or could not be produced.</param>
 /// <param name="ObjectCode">The COBOL to object-code map read from the assembly and its PDB, its instructions when the object-code
 /// section was asked for; null when neither the object-code map nor the object code was asked for, or the compilation wrote no
 /// assembly.</param>
@@ -54,6 +56,7 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingOption> Options,
     ListingStatistics? Statistics,
     ListingDataMap? DataMap,
+    ListingCrossReference? CrossReference,
     ListingObjectCodeMap? ObjectCode,
     IReadOnlyList<ListingSectionStatus> Sections)
 {
@@ -229,15 +232,18 @@ public enum ListingReplacement
 /// its place; or, for a line a replacing action changed, the resultant text compiled from it (one line of text per resultant
 /// line, joined by line feeds; empty when the replacement removed everything the line held), printed under it.</param>
 /// <param name="Diagnostics">The <see cref="ListingDiagnostic.Id"/> of each diagnostic placed on the line, in listing order.</param>
-/// <param name="Margin">What the data map says of the data item the line declares (its offset, length and usage), which the text
-/// listing prints in its margin; null when the line declares none or the data map was not asked for.</param>
+/// <param name="Margin">What the text listing prints in the line's margin: on a line that declares a data item, what the data map says
+/// of it (its offset, length and usage); on a line that writes references, the listing lines that define the names it uses (the
+/// cross-reference); null when the line has neither or the section that says it was not asked for.</param>
+/// <param name="Names">Each name written on the line, in column order (the cross-reference's references placed on it): the HTML
+/// listing links each to its definition; empty when the cross-reference was not asked for.</param>
 /// <param name="Spans">What the compiler read each stretch of <paramref name="Text"/> as, in column order and never overlapping: its
 /// reference-format areas, comments, words, literals, picture character-strings and separators, at the edition in force. The HTML
 /// listing colours the text by them; text no span covers (spaces, a line no stage read) has no class.</param>
 public sealed record ListingLine(int Number, int File, int FileLine, int? Inclusion, int Depth, ListingLineForm Form,
     ListingLineKind Kind, string Text, bool Omitted, bool Listed, bool PageBreakBefore, int? Program,
     ListingReplacement Replacement, string? Replaced, IReadOnlyList<int> Diagnostics, ListingMargin? Margin,
-    IReadOnlyList<ListingSpan> Spans);
+    IReadOnlyList<ListingNameUse> Names, IReadOnlyList<ListingSpan> Spans);
 
 /// <summary>One classified stretch of a listing line's text (DESIGN-listing.md section 7.2; kb/Work PB5949).</summary>
 /// <param name="Column">The 1-based character position in the line's text (<see cref="ListingLine.Text"/>, tabs expanded) of its
@@ -348,6 +354,10 @@ public enum ListingSection
     /// and file-name with its level, offset, lengths, usage, picture and the .NET field it became, and each file's keys, reports
     /// and connector; and, in the source section, each data description line's offset, length and usage in the margin.</summary>
     DataMap,
+    /// <summary>The cross-reference: every declared name with its definition and each reference the program wrote to it, classified
+    /// read, written or modified, the PERFORM and CALL graphs; and, in the source section, each line's names and a statement line's
+    /// definitions in the margin.</summary>
+    CrossReference,
     /// <summary>The object-code map: each COBOL statement's method and IL offset range, read from the assembly the compilation wrote
     /// and its portable PDB.</summary>
     ObjectMap,

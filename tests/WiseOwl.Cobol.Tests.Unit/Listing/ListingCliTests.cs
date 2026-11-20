@@ -136,7 +136,7 @@ public sealed class ListingCliTests
     [InlineData("--listing-page-length", "-1")]
     [InlineData("--listing-format", "pdf")]
     [InlineData("--listing-format", "text,json")]
-    [InlineData("--listing-sections", "source,xref")]
+    [InlineData("--listing-sections", "source,xrefs")]
     [InlineData("--listing-sections", "source,")]
     [InlineData("--listing-sections", "")]
     public void ABadValue_IsAnArgumentError(string option, string value) => Assert.NotEmpty(Errors("a.cob", option, value));

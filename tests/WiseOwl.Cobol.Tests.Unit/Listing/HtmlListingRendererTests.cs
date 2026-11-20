@@ -342,7 +342,7 @@ public sealed class HtmlListingRendererTests
         var document = JsonListingWriterTests.EveryMember();
         var page = Page(document);
         var margin = ById(page, HtmlListingRenderer.LineId(1)).Elements("a").Single(a => (string?)a.Attribute("class") == "mg");
-        Assert.Equal("#" + HtmlListingRenderer.DataItemId(document.Lines[0].Margin!.Item), (string?)margin.Attribute("href"));
+        Assert.Equal("#" + HtmlListingRenderer.DataItemId(document.Lines[0].Margin!.Item!.Value), (string?)margin.Attribute("href"));
         Assert.Equal("OFF=0 LEN=5 DISPLAY", margin.Value);
         var renames = ById(page, HtmlListingRenderer.DataItemId(2));   // REDEFINES #1, RENAMES #1 THRU #1
         Assert.Equal(3, renames.Descendants("a").Count(a => (string?)a.Attribute("href") == "#" + HtmlListingRenderer.DataItemId(1)));

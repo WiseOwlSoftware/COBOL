@@ -98,6 +98,18 @@ public static class HtmlListingRenderer
     /// <summary>The element id of a method of the object-code map: <c>X</c> and its id.</summary>
     public static string MethodId(int method) => "X" + method.ToString(CultureInfo.InvariantCulture);
 
+    /// <summary>The id of a cross-reference symbol's row (<see cref="ListingSymbol.Id"/>).</summary>
+    public static string SymbolId(int symbol) => "Y" + symbol.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>⛔ WHERE A NAME ON A SOURCE LINE LINKS (DESIGN-listing.md section 7.2): a reference to the line its symbol is defined
+    /// on when the page holds that line, else to the symbol's cross-reference row; the definition itself to that row, which lists the
+    /// symbol's references as links. Null when the page holds neither (a link is written only to an element the page holds).</summary>
+    internal static string? NameHref(ListingSymbol symbol, ListingUse use, IReadOnlySet<int> lines, bool rowsHeld) =>
+        use != ListingUse.Defined
+        && symbol.References.FirstOrDefault(static r => r.Use == ListingUse.Defined) is { Line: { } line } && lines.Contains(line)
+            ? "#" + LineId(line)
+            : rowsHeld ? "#" + SymbolId(symbol.Id) : null;
+
     /// <summary>Why a line stands in a collapsed block, or null for a line the text listing prints: not listed (a LISTING
     /// directive or COPY SUPPRESS), replaced with the DATE-COMPILED paragraph, or omitted by conditional compilation.</summary>
     public static string? HiddenReason(ListingLine line) => line switch
@@ -167,7 +179,7 @@ public static class HtmlListingRenderer
 
         public TextWriter Source()
         {
-            new SourceWriter(document, page, _items, _methods).Write();
+            new SourceWriter(document, page, _items, _methods, _lines).Write();
             return page;
         }
 
@@ -408,6 +420,75 @@ public static class HtmlListingRenderer
             else Escape(page, text);
         }
 
+        public TextWriter CrossReference()
+        {
+            var xref = document.CrossReference ?? throw new InvalidOperationException("the cross-reference section is produced but the document holds no cross-reference");
+            Head(page, CrossReferenceText.SymbolHeadings, "map");
+            foreach (var symbol in xref.Symbols)
+            {
+                page.Write("<tr id=\"");
+                page.Write(SymbolId(symbol.Id));
+                page.Write("\">");
+                Cell(page, symbol.Id.ToString(CultureInfo.InvariantCulture), "n");
+                Cell(page, CrossReferenceText.KindWord(symbol.Kind));
+                page.Write("<td>");
+                if (symbol.DataItem is { } item) ItemLink(item, symbol.Name); else Escape(page, symbol.Name);
+                page.Write("</td><td class=\"n\">");
+                if (symbol.References.FirstOrDefault(static r => r.Use == ListingUse.Defined) is { Line: { } defined }) LineLink(defined);
+                else Escape(page, CrossReferenceText.DefinedText(symbol));
+                page.Write("</td><td>");
+                bool first = true;
+                foreach (var reference in symbol.References)
+                {
+                    if (reference.Use == ListingUse.Defined) continue;
+                    if (!first) page.Write(' ');
+                    first = false;
+                    if (reference.Line is { } line) LineLink(line); else Escape(page, DataMapText.NumberText(null));
+                    Escape(page, CrossReferenceText.UseMark(reference.Use));
+                }
+                if (symbol.Unreferenced)
+                {
+                    if (!first) page.Write("  ");
+                    Escape(page, CrossReferenceText.UnreferencedFlag);
+                }
+                page.Write("</td></tr>\n");
+            }
+            page.Write("</tbody>\n</table>\n");
+            Graph(CrossReferenceText.PerformsTitle, xref.Performs, xref);
+            Graph(CrossReferenceText.CallsTitle, xref.Calls, xref);
+            return page;
+        }
+
+        /// <summary>A graph's table: each edge's ends linked to their symbols' rows, its line to the line.</summary>
+        private void Graph(string title, IReadOnlyList<ListingEdge> edges, ListingCrossReference xref)
+        {
+            page.Write("<h3>");
+            Escape(page, title);
+            page.Write("</h3>\n");
+            Head(page, CrossReferenceText.EdgeHeadings);
+            foreach (var edge in edges)
+            {
+                page.Write("<tr><td>");
+                SymbolLink(edge.From, xref);
+                page.Write("</td><td class=\"n\">");
+                if (edge.Line is { } line) LineLink(line); else Escape(page, DataMapText.NumberText(null));
+                page.Write("</td>");
+                Cell(page, edge.Verb);
+                page.Write("<td>");
+                SymbolLink(edge.To, xref);
+                page.Write("</td></tr>\n");
+            }
+            page.Write("</tbody>\n</table>\n");
+        }
+
+        /// <summary>A link to a symbol's cross-reference row, or <c>-</c> for none.</summary>
+        private void SymbolLink(int? symbol, ListingCrossReference xref)
+        {
+            string text = CrossReferenceText.EndText(symbol, xref);
+            if (symbol is { } id && id >= 1 && id <= xref.Symbols.Count) Link(page, "#" + SymbolId(id), text);
+            else Escape(page, text);
+        }
+
         public TextWriter ObjectMap()
         {
             var map = document.ObjectCode ?? throw new InvalidOperationException("the object-code map section is produced but the document holds no object-code map");
@@ -478,8 +559,11 @@ public static class HtmlListingRenderer
     /// collapsible block, each run of lines the text listing does not print a collapsed block, and under a line its compiled text
     /// when a replacing action changed it, its diagnostics, its DISPLAY transfers and its object code.</summary>
     private sealed class SourceWriter(ListingDocument document, TextWriter page, HashSet<int> items,
-        IReadOnlyDictionary<int, ListingMethod> methods)
+        IReadOnlyDictionary<int, ListingMethod> methods, HashSet<int> lines)
     {
+        private readonly IReadOnlyList<ListingSymbol> _symbols = document.CrossReference?.Symbols ?? [];
+        private readonly bool _rowsHeld = document.Sections.Any(static s => s is { Section: ListingSection.CrossReference, Produced: true })
+            && document.CrossReference is not null;
         private readonly Dictionary<int, ListingInclusion> _inclusions = document.Inclusions.ToDictionary(i => i.Id);
         private readonly Dictionary<int, string> _files = document.Files.ToDictionary(f => f.Id, f => f.Path);
         private readonly Dictionary<int, ListingDiagnostic> _diagnostics = document.Diagnostics.ToDictionary(d => d.Id);
@@ -586,11 +670,26 @@ public static class HtmlListingRenderer
             else Marked(line.Text, line.Spans,
                 asWritten && line.Diagnostics.Count > 0
                     ? line.Diagnostics.Select(id => _diagnostics[id].Column).OfType<int>().ToHashSet()
-                    : s_noColumns);
+                    : s_noColumns,
+                asWritten ? NameLinks(line) : null);
             page.Write("</span>");
             if (line.Margin is { } margin)
             {
-                if (items.Contains(margin.Item)) Link(page, "#" + DataItemId(margin.Item), TextListingRenderer.MarginText(margin), "mg");
+                if (margin.Item is { } item && items.Contains(item)) Link(page, "#" + DataItemId(item), TextListingRenderer.MarginText(margin), "mg");
+                else if (margin.Item is null)
+                {
+                    // A line of references: each defining line a link to the line, in the words the text listing's margin prints.
+                    page.Write("<span class=\"mg\">");
+                    Escape(page, TextListingRenderer.DefinitionsMark);
+                    for (int i = 0; i < margin.Definitions.Count; i++)
+                    {
+                        if (i > 0) page.Write(' ');
+                        string number = margin.Definitions[i].ToString(CultureInfo.InvariantCulture);
+                        if (lines.Contains(margin.Definitions[i])) Link(page, "#" + LineId(margin.Definitions[i]), number);
+                        else page.Write(number);
+                    }
+                    page.Write("</span>");
+                }
                 else
                 {
                     page.Write("<span class=\"mg\">");
@@ -655,11 +754,27 @@ public static class HtmlListingRenderer
             }
         }
 
+        /// <summary>The link of each name the line writes (<see cref="ListingLine.Names"/>), by the column its word starts at; null
+        /// when it writes none or the page holds no cross-reference.</summary>
+        private Dictionary<int, string>? NameLinks(ListingLine line)
+        {
+            if (line.Names.Count == 0 || _symbols.Count == 0) return null;
+            var links = new Dictionary<int, string>();
+            foreach (var name in line.Names)
+                if (name.Symbol >= 1 && name.Symbol <= _symbols.Count
+                    && NameHref(_symbols[name.Symbol - 1], name.Use, lines, _rowsHeld) is { } href)
+                    links.TryAdd(name.Column, href);
+            return links;
+        }
+
         /// <summary><paramref name="text"/>, each of its <paramref name="spans"/> in an element of its class (<see cref="SpanClass"/>,
         /// coloured by the style for a light and a dark page), and each 1-based character position in <paramref name="columns"/>
         /// marked (a character outside the Basic Multilingual Plane is one position, as every listing record's column counts). The
-        /// spans are the builder's (DESIGN-listing.md section 7.2): in column order and never overlapping, so the markup nests.</summary>
-        private void Marked(string text, IReadOnlyList<ListingSpan> spans, HashSet<int> columns)
+        /// spans are the builder's (DESIGN-listing.md section 7.2): in column order and never overlapping, so the markup nests. Each
+        /// name's WORD (the span that starts at a column of <paramref name="names"/>) is a link to its definition (<see cref="NameHref"/>):
+        /// a link holds one span whole, so links never nest and the markup stays well-formed when one reference is written inside
+        /// another (<c>WS-X (WS-X)</c>).</summary>
+        private void Marked(string text, IReadOnlyList<ListingSpan> spans, HashSet<int> columns, Dictionary<int, string>? names = null)
         {
             if (columns.Count == 0 && spans.Count == 0)
             {
@@ -668,6 +783,7 @@ public static class HtmlListingRenderer
             }
             // The text between two boundaries (a span's start or end, a marked position) is escaped as one run (kb/Work PB5941).
             int position = 1, next = 0, closeAt = 0, run = 0;
+            bool linked = false;
             for (int at = 0; at < text.Length; position++)
             {
                 bool close = closeAt == position;
@@ -680,11 +796,19 @@ public static class HtmlListingRenderer
                 }
                 if (close)
                 {
-                    page.Write("</span>");
+                    page.Write(linked ? "</span></a>" : "</span>");
                     closeAt = 0;
+                    linked = false;
                 }
                 if (open)
                 {
+                    if (names is not null && names.TryGetValue(position, out var href))
+                    {
+                        page.Write("<a class=\"nm\" href=\"");
+                        Escape(page, href);
+                        page.Write("\">");
+                        linked = true;
+                    }
                     page.Write("<span class=\"");
                     page.Write(SpanClass(spans[next].Class));
                     page.Write("\">");
@@ -702,7 +826,7 @@ public static class HtmlListingRenderer
                 at += width;
             }
             Escape(page, text.AsSpan(run));
-            if (closeAt != 0) page.Write("</span>");
+            if (closeAt != 0) page.Write(linked ? "</span></a>" : "</span>");
             // A column one past the text's end (a diagnostic about a missing word) is marked as a space.
             if (columns.Contains(position)) page.Write("<mark> </mark>");
         }

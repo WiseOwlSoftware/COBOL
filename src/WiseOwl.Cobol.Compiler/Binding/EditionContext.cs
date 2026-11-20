@@ -163,6 +163,11 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// section 9): only the data map reads them, so the program map alone finishes the program entries and no more.</summary>
     public bool RecordsNames { get; init; }
 
+    /// <summary>The symbol table records every reference the program wrote, its OCCURRENCES (docs/rearchitecture/DESIGN-listing.md
+    /// sections 6.7.1 and 9): only the cross-reference and the lines' name uses read them, so a compilation whose listing does not ask
+    /// for the cross-reference records none and allocates nothing for them.</summary>
+    public bool RecordsReferences { get; init; }
+
     /// <summary>The compilation's §2023:4.2.10 warning mechanism is ON — the CLI's <c>--flag-extensions</c> (kb/Work
     /// PB1525): "An implementation shall provide a warning mechanism that optionally may be invoked by the user at
     /// compile time to indicate use of a nonstandard extension in a compilation group". Orthogonal to

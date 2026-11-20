@@ -22,11 +22,12 @@ public sealed partial class SymbolTable
     /// </summary>
     internal List<Condition88> IdentifyConditionName(WrittenQualifiedName written, bool report)
     {
-        _ = report;   // the occurrence it gates is listing step 7b's
         var scope = _data.ActiveScope;
         var matches = NearestDeclaringConditions(ConditionsUnderQualifiers(written.Name, written.QualifierWords, scope), written.Name,
             written.QualifierWords, scope);   // kb/Work PB4196, PB4219, PB4432
-        return matches.TrueForAll(DataBinder.IsTypeDeclarationCondition) ? [] : matches;
+        if (matches.TrueForAll(DataBinder.IsTypeDeclarationCondition)) return [];
+        if (report && matches is [var one]) Record(DataEntryOf(one), written, report);
+        return matches;
     }
 
     /// <summary>Whether a level-88 condition-name of <paramref name="written"/>'s spelling is visible in the active scope at all,

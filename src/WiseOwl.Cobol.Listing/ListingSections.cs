@@ -86,6 +86,7 @@ public static class ListingSections
         ListingSection.Options => "options",
         ListingSection.Statistics => "statistics",
         ListingSection.DataMap => "data-map",
+        ListingSection.CrossReference => "xref",
         ListingSection.ObjectMap => "object-map",
         ListingSection.ObjectCode => "object-code",
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "not one listing section"),
@@ -100,6 +101,7 @@ public static class ListingSections
         ListingSection.Options => "OPTIONS",
         ListingSection.Statistics => "STATISTICS",
         ListingSection.DataMap => "DATA MAP",
+        ListingSection.CrossReference => "CROSS-REFERENCE",
         ListingSection.ObjectMap => "OBJECT MAP",
         ListingSection.ObjectCode => "OBJECT CODE",
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no title"),
@@ -109,11 +111,13 @@ public static class ListingSections
     public static string NotProduced(string? reason) => "Not produced: " + reason;
 
     /// <summary>The order every renderer presents the sections in (DESIGN-listing.md sections 7.1 and 7.2): options, source with
-    /// inline diagnostics, program map, data map, statistics and verbs, object-code map, object code, diagnostic summary. Every
+    /// inline diagnostics, program map, data map, cross-reference, statistics and verbs, object-code map, object code, diagnostic
+    /// summary. Every
     /// member of <see cref="ListingSection"/> once (the Unit assembly's
     /// <c>ListingSectionsTests.EverySection_HasOneSpelling_OneTitle_AndOnePlaceInTheOrder</c> holds it so).</summary>
     public static readonly IReadOnlyList<ListingSection> Order =
-        [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.DataMap, ListingSection.Statistics,
+        [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.DataMap, ListingSection.CrossReference,
+         ListingSection.Statistics,
          ListingSection.ObjectMap, ListingSection.ObjectCode, ListingSection.Diagnostics];
 
     /// <summary>Every word a list may hold, as a help text lists them: each section's, then <c>standard</c> and <c>all</c>.</summary>

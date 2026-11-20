@@ -110,9 +110,39 @@ internal readonly record struct SymbolPosition(int Line, int Column)
 /// <param name="Id">1-based, in declaration order.</param>
 /// <param name="Class">The class of the name.</param>
 /// <param name="Name">The name as written, or <c>FILLER</c> for an entry with no data-name.</param>
-/// <param name="DeclaredAt">Where the name is declared.</param>
+/// <param name="DeclaredAt">Where the name is declared: its <see cref="SymbolUse.Defined"/> occurrence.</param>
 /// <param name="Attributes">What the binder decided for it: one record per class.</param>
-internal sealed record SymbolEntry(int Id, NameClass Class, string Name, SymbolPosition DeclaredAt, SymbolAttributes Attributes);
+/// <param name="Occurrences">Every reference the program WROTE to it (DESIGN-listing.md section 6.7.1), in the order the binder
+/// identified them: recorded by the table's identification funnels, classified by the statement funnel; empty unless the listing
+/// asked for the cross-reference (<c>EditionContext.RecordsReferences</c>).</param>
+/// <param name="Fold">The name's Annex C fold (the standard's equality of two spellings, <c>CobolNames.UpperFold</c>): the key the
+/// cross-reference sorts by, made by the binder, which alone compares names.</param>
+internal sealed record SymbolEntry(int Id, NameClass Class, string Name, SymbolPosition DeclaredAt, SymbolAttributes Attributes,
+    IReadOnlyList<SymbolOccurrence> Occurrences, string Fold);
+
+/// <summary>How an occurrence uses its name (DESIGN-listing.md section 6.7): the store kind of the position it is written at.</summary>
+internal enum SymbolUse
+{
+    /// <summary>The declaration (an entry's own position; no occurrence carries it).</summary>
+    Defined,
+    /// <summary>A reference at no store position of its statement, or outside every statement.</summary>
+    Read,
+    /// <summary>A reference at a store position of kind <c>Write</c> or <c>WriteInPart</c>.</summary>
+    Written,
+    /// <summary>A reference at a store position of kind <c>ReadWrite</c> (ADD TO, SUBTRACT FROM, INSPECT REPLACING, a STRING
+    /// POINTER, ...).</summary>
+    Modified,
+}
+
+/// <summary>One reference the program wrote to a declared name (DESIGN-listing.md section 6.7.1).</summary>
+/// <param name="At">The resultant position of the reference's first token.</param>
+/// <param name="Length">The characters of the reference as written, qualifiers, subscripts and reference modification included.</param>
+/// <param name="Use">How the reference uses the name.</param>
+/// <param name="Statement">The resultant position of the statement it is written in (<c>BoundStatement.At</c>), unset outside every
+/// statement (a data division clause, a paragraph header's qualifier).</param>
+/// <param name="Verb">The verb of that statement as written, upper case (<c>PERFORM</c>, <c>GO</c>, <c>CALL</c>, <c>READ</c>, ...):
+/// the transfer kind of a procedure reference, the verb of a file or program reference; null outside every statement.</param>
+internal sealed record SymbolOccurrence(SymbolPosition At, int Length, SymbolUse Use, SymbolPosition Statement, string? Verb);
 
 /// <summary>The attributes of an entry: one record type per <see cref="NameClass"/>.</summary>
 internal abstract record SymbolAttributes;

@@ -82,11 +82,6 @@ internal static class ListingBuilder
         if (wanted.Contains(ListingSection.Diagnostics))
             foreach (var diagnostic in diagnostics)
                 if (diagnostic.Line is { } placed) drafts[placed - 1].AddDiagnostic(diagnostic.Id);
-        List<ListingLine> lines = [.. drafts.Select(d => d.ToLine())];
-
-        var edition = facts.Edition;
-        var header = new ListingHeader(CompilerVersion, edition.Year, edition.StandardName, instant, frontend.SourcePath, outcome,
-            ParseOf(units));
         var copyLines = inclusions.Select(i => new ListingInclusion(i.Id, i.Parent, i.Depth,
             CopyLine(index, i, i.CopyFirst.Line), CopyLine(index, i, i.CopyLast.Line), i.TextName,
             i.LibraryName, i.File is { } f ? fileIds[f] : null, i.Outcome switch
@@ -95,6 +90,17 @@ internal static class ListingBuilder
                 TextInclusionOutcome.Circular => ListingInclusionOutcome.Circular,
                 _ => ListingInclusionOutcome.NotFound,
             }, i.Suppress)).ToList();
+        // The cross-reference (DESIGN-listing.md section 6.7), a view of the finished table's occurrences, and its joins onto the lines.
+        var crossReference = wanted.Contains(ListingSection.CrossReference) && facts.Symbols is { } referenced
+            ? CrossReferenceBuilder.Build(referenced, copyLines, index, frontend, drafts,
+                dataMap is null ? null : DataMapBuilder.ItemIds(referenced))
+            : null;
+        if (crossReference is not null) CrossReferenceBuilder.MarkLines(crossReference, drafts);
+        List<ListingLine> lines = [.. drafts.Select(d => d.ToLine())];
+
+        var edition = facts.Edition;
+        var header = new ListingHeader(CompilerVersion, edition.Year, edition.StandardName, instant, frontend.SourcePath, outcome,
+            ParseOf(units));
         return new ListingDocument(header, files, copyLines,
             wanted.Contains(ListingSection.Source) ? lines : [],
             programs,
@@ -105,6 +111,7 @@ internal static class ListingBuilder
             wanted.Contains(ListingSection.Statistics)
                 ? StatisticsSectionBuilder.Build(lines, files, diagnostics, programs, units, index) : null,
             dataMap,
+            crossReference,
             objectCode,
             [.. wanted.Each().Select(section => StatusOf(section, units, facts.Symbols, facts.ObjectCode, outcome))]);
     }
@@ -128,12 +135,12 @@ internal static class ListingBuilder
             new(section, false, "the backend wrote no PDB"),
         ListingSection.ObjectMap or ListingSection.ObjectCode => new(section, true, null),
         ListingSection.Programs when units is null => new(section, false, "the source was not parsed"),
-        ListingSection.DataMap when symbols is null => new(section, false, outcome switch
+        ListingSection.DataMap or ListingSection.CrossReference when symbols is null => new(section, false, outcome switch
         {
             ListingOutcome.FrontendError => "the source was not parsed",
             _ => "the bind refused the program",
         }),
-        ListingSection.DataMap => new(section, true, null),
+        ListingSection.DataMap or ListingSection.CrossReference => new(section, true, null),
         ListingSection.Source or ListingSection.Programs or ListingSection.Diagnostics or ListingSection.Options
             or ListingSection.Statistics => new(section, true, null),
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no builder"),

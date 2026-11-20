@@ -21,7 +21,7 @@ public sealed class ListingSectionRenderingTests
     private static ListingLine Line(int number, ListingLineKind kind, int? inclusion = null, bool omitted = false, bool listed = true,
         int file = 1) =>
         new(number, file, number, inclusion, inclusion is null ? 0 : 1, ListingLineForm.Fixed, kind, "       LINE " + number, omitted,
-            listed, false, 0, ListingReplacement.None, null, [], null, []);
+            listed, false, 0, ListingReplacement.None, null, [], null, [], []);
 
     /// <summary>Six lines: three of program text (one omitted), a comment, a blank line, and two lines of a library text, one
     /// of them not listed.</summary>
@@ -63,6 +63,10 @@ public sealed class ListingSectionRenderingTests
                     new ListingOption("compiler", "30.0.0", ListingOptionOrigin.Host)],
         statistics,
         dataMap,
+        sections.Any(static s => s is { Section: ListingSection.CrossReference, Produced: true })
+            ? new ListingCrossReference([new ListingSymbol(1, "A", ListingSymbolKind.Data, 0, null,
+                [new ListingReference(1, 1, 8, 1, ListingUse.Defined, null)], true)], [], [])
+            : null,
         objectCode,
         sections);
 
@@ -85,11 +89,11 @@ public sealed class ListingSectionRenderingTests
             Statistics(new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [1, 6]), new ListingVerb("STOP", 1, [6])])),
             dataMap: new ListingDataMap([], []), objectCode: new ListingObjectCodeMap("p.dll", [], []));
         string[] pages = ListingRendering.Text(document, new ListingRequest()).Split(PageComposer.FormFeed);
-        Assert.Equal(["OPTIONS", "SOURCE  /src/p.cob", "PROGRAMS", "DATA MAP", "STATISTICS", "OBJECT MAP", "OBJECT CODE", "DIAGNOSTICS"],
+        Assert.Equal(["OPTIONS", "SOURCE  /src/p.cob", "PROGRAMS", "DATA MAP", "CROSS-REFERENCE", "STATISTICS", "OBJECT MAP", "OBJECT CODE", "DIAGNOSTICS"],
             pages.Select(p => p.Split('\n')[1]));
         Assert.All(pages.Where(p => !p.Split('\n')[1].StartsWith("SOURCE", StringComparison.Ordinal)),
             p => Assert.Contains("  OUTER  ", p.Split('\n')[0], StringComparison.Ordinal));
-        Assert.Equal(["1", "2", "3", "4", "5", "6", "7", "8"], pages.Select(p => p.Split('\n')[0].Split(' ')[^1]));
+        Assert.Equal(["1", "2", "3", "4", "5", "6", "7", "8", "9"], pages.Select(p => p.Split('\n')[0].Split(' ')[^1]));
     }
 
     /// <summary>Section 6.9: the object-code map's rows (the assembly, each method with its token and IL size, each statement's range
