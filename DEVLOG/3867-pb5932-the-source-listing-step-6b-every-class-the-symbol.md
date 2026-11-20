@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b - every class the symbol table declares enters its entry, and every identification carries its id
+## Entry 3867 — 2026-11-19 21:48 PST — PB5932: the source listing, step 6b - every class the symbol table declares enters its entry, and every identification carries its id
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names. Step
 7b, dispatched early, found the store had no ENTRIES while the bind ran: each class's declaration keyed its symbol and returned
@@ -32,3 +32,4 @@ adopts their entries that day.
 at the line and column the source writes, a witness of every class, and every planted reference identified through the table's funnels with its id checked against the declaration the rules resolve it to) is shown red with one declaration's entry removed, and, after review round 1, with a funnel that answers another entry (the containing function definition's, a candidate's, a VARYING counter's). Review round 1 also made `IndexEntryOf` fail loudly for a lapsed type member, which has no entry. The section 9
 `None` row is in the dated file `kb/Work/PB5932/2026-11-19-step-6b-entry-ids.md`. The lane also fixed the last 14.7.8 rule-number
 citations the step 7b review's lead R1-1 found (comments and inventory notes only).
+
