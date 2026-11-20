@@ -88,8 +88,8 @@ public static class TurnDirectiveProcessor
         // fact that found it). One check per operand word, exception-names and file-names alike.
         void CheckWord(string w)
         {
-            foreach (var (code, violation) in Common.CobolWordRule.DirectiveWordViolations(w, dialectLevel))
-                diagnostics.ReportError(code, violation, loc, default);
+            foreach (var (code, violation, flag) in Common.CobolWordRule.DirectiveWordViolations(w, dialectLevel))
+                diagnostics.Report(code, DiagnosticSeverity.Error, violation, loc, default, flag);
         }
 
         int k = 0;

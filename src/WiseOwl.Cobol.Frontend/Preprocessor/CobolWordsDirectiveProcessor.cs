@@ -314,7 +314,7 @@ public static class CobolWordsDirectiveProcessor
         // word no statement uses never reaches the tree funnel that asks it of every other user word, so asking it here
         // is the only place a 64-character fresh word is seen. The directive is a COBOL-2023 introduction, so the
         // edition whose limit applies is the one that introduced it.
-        foreach (var (_, violation) in CobolWordRule.DirectiveWordViolations(word, CobolWordsMap.DirectiveEdition))
+        foreach (var (_, violation, _) in CobolWordRule.DirectiveWordViolations(word, CobolWordsMap.DirectiveEdition))
         {
             Invalid(diag, loc, $">>COBOL-WORDS: '{word}' is not a valid user-defined word — {violation} (ISO §2023:7.3.10.3 SR4)");
             ok = false;
