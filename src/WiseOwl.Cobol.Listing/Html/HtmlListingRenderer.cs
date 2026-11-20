@@ -502,7 +502,7 @@ public static class HtmlListingRenderer
                 .Append(line.Number.ToString(CultureInfo.InvariantCulture)).Append("</a><span class=\"dp\">")
                 .Append(TextListingRenderer.DepthMark(line.Depth)).Append("</span><span class=\"mk\">");
             Escape(page, TextListingRenderer.MarkerOf(line).ToString());
-            page.Append("</span><span class=\"fl\">").Append(line.FileLine.ToString(CultureInfo.InvariantCulture)).Append("</span><span class=\"tx\">");
+            page.Append("</span><span class=\"fl\">").Append(TextListingRenderer.FileLineColumn(line)).Append("</span><span class=\"tx\">");
             bool asWritten = line.Replacement is ListingReplacement.None or ListingReplacement.Replacing;
             if (line.Replacement == ListingReplacement.DateCompiled) Escape(page, line.Replaced ?? line.Text);
             else Marked(line.Text, asWritten ? line.Diagnostics.Select(id => _diagnostics[id].Column).OfType<int>().ToHashSet() : []);

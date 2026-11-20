@@ -398,9 +398,16 @@ public static class TextListingRenderer
     /// <summary>The depth column: blank for the source, 1-9, '+' beyond.</summary>
     public static char DepthMark(int depth) => depth switch { 0 => ' ', <= 9 => (char)('0' + depth), _ => '+' };
 
+    /// <summary>The file-line column of a source row: the line's physical line in its file, printed only where it says something the
+    /// listing number does not. Until a program's first inclusion the two are the same number, and printing it twice on every line
+    /// read as a duplicate (kb/Work PB5950); after an inclusion, and on every line of one, they differ and the column names the line
+    /// in the file the programmer edits.</summary>
+    public static string FileLineColumn(ListingLine line) =>
+        line.FileLine == line.Number ? "" : line.FileLine.ToString(CultureInfo.InvariantCulture);
+
     private static string SourceRow(ListingLine line, string text) =>
         string.Create(CultureInfo.InvariantCulture,
-            $"{line.Number,6} {DepthMark(line.Depth)}{MarkerOf(line)} {line.FileLine,6} {text}");
+            $"{line.Number,6} {DepthMark(line.Depth)}{MarkerOf(line)} {FileLineColumn(line),6} {text}");
 
     private static string ContinuationRow(string text) => new string(' ', 8) + "+" + new string(' ', TextColumn - 10) + text;
 
