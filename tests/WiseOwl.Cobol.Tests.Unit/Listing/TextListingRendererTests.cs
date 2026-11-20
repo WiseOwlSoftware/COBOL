@@ -142,7 +142,7 @@ public sealed class TextListingRendererTests
                 new(4, 1, 3, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       01 S PIC X.", false, true, false, 0, ListingReplacement.None, null, [], null),
             ],
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 4, null)],
-            [], [], [], null, null, null,
+            [], [], [], [], null, null, null,
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null)]);
         string[] rows = [.. TextListingRenderer.Render(document, new ListingRequest()).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
         string Row(string text) => Assert.Single(rows, r => r.EndsWith(text, StringComparison.Ordinal));
