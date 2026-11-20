@@ -1,4 +1,4 @@
-## PB5932: the source listing, step 6b remainder slice 1 - the procedure division's data-names and condition-names are identified by SymbolTable
+## Entry 3870 — 2026-11-19 22:52 PST — PB5932: the source listing, step 6b remainder slice 1 - the procedure division's data-names and condition-names are identified by SymbolTable
 
 Step 6b of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5932) makes `SymbolTable` the one store of the program's names, landing
 by name class behind a temporary shrink-only baseline (kb/Work/PB5932/2026-11-18-land-by-class.md). The closing slice's first session
@@ -54,3 +54,4 @@ and 2023, and now draw COBOL2746 (§2023:13.7.3 SR4; two new refusal cases on `S
 named clause 14.9.20 without its subclause and now name 14.9.20.4 (`§2023:14.9.20.4 GR10`: OK). R1-2: four current-state comments named deleted members. R1-3: the linkage-screen
 drift test matches every member that answers a data-name's items. `compare_oracle.py` against 55baef535f: the four added refusals
 differ, nothing else.
+
