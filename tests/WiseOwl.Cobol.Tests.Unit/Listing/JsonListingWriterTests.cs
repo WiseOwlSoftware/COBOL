@@ -29,13 +29,17 @@ public sealed class JsonListingWriterTests
         [new ListingInclusion(1, null, 1, 2, 2, "REC", "LIB", 2, ListingInclusionOutcome.Found, false),
          new ListingInclusion(2, 1, 2, 3, 3, "\"gone.cpy\"", null, null, ListingInclusionOutcome.NotFound, true)],
         [new ListingLine(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000100 ID DIVISION.", false, true,
-            false, 0, ListingReplacement.None, null, [1], new ListingMargin(1, 0, 5, "DISPLAY")),
+            false, 0, ListingReplacement.None, null, [1], new ListingMargin(1, 0, 5, "DISPLAY"),
+            [new ListingSpan(1, 6, ListingSpanClass.SequenceArea), new ListingSpan(8, 2, ListingSpanClass.ReservedWord),
+             new ListingSpan(11, 8, ListingSpanClass.ReservedWord), new ListingSpan(19, 1, ListingSpanClass.Separator)]),
          new ListingLine(2, 1, 2, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000200 DATE-COMPILED. X.", false, true,
-            true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00.", [], null),
+            true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00.", [], null, []),
          new ListingLine(3, 2, 1, 1, 1, ListingLineForm.Free, ListingLineKind.PageEjectComment, "*> été", true, false,
-            false, null, ListingReplacement.DateCompiledEntry, null, [], null),
+            false, null, ListingReplacement.DateCompiledEntry, null, [], null, [new ListingSpan(1, 6, ListingSpanClass.Comment)]),
          new ListingLine(4, 1, 3, null, 0, ListingLineForm.Free, ListingLineKind.Source, "MOVE A TO B.", false, true,
-            false, 0, ListingReplacement.Replacing, "MOVE X TO B.\nDISPLAY B.", [], null)],
+            false, 0, ListingReplacement.Replacing, "MOVE X TO B.\nDISPLAY B.", [], null,
+            [new ListingSpan(1, 4, ListingSpanClass.ReservedWord), new ListingSpan(8, 2, ListingSpanClass.ReservedWord),
+             new ListingSpan(11, 1, ListingSpanClass.UserWord), new ListingSpan(12, 1, ListingSpanClass.Separator)])],
         [new ListingProgram(0, "MAIN", ListingProgramKind.Program, null, 0, 1, 3,
              new ListingProgramAttributes(true, false, true, false, "main-ext", "MAIN")),
          new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 2, 3, null)],
@@ -91,10 +95,11 @@ public sealed class JsonListingWriterTests
 
     /// <summary>Each line as a value: a record's list member compares by reference, so a line's diagnostic ids are compared as a
     /// sequence beside the rest of it.</summary>
-    private static List<(ListingLine Line, string Diagnostics)> ByValue(IEnumerable<ListingLine> lines) =>
-        [.. lines.Select(l => (l with { Diagnostics = NoIds }, string.Join(",", l.Diagnostics)))];
+    private static List<(ListingLine Line, string Diagnostics, string Spans)> ByValue(IEnumerable<ListingLine> lines) =>
+        [.. lines.Select(l => (l with { Diagnostics = NoIds, Spans = NoSpans }, string.Join(",", l.Diagnostics), string.Join(",", l.Spans)))];
 
     private static readonly int[] NoIds = [];
+    private static readonly ListingSpan[] NoSpans = [];
 
     private static JsonObject Written(ListingDocument document) => JsonNode.Parse(JsonListingWriter.Write(document))!.AsObject();
 

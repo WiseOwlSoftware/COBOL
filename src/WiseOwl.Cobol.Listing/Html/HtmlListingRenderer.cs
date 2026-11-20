@@ -505,7 +505,8 @@ public static class HtmlListingRenderer
             page.Append("</span><span class=\"fl\">").Append(line.FileLine.ToString(CultureInfo.InvariantCulture)).Append("</span><span class=\"tx\">");
             bool asWritten = line.Replacement is ListingReplacement.None or ListingReplacement.Replacing;
             if (line.Replacement == ListingReplacement.DateCompiled) Escape(page, line.Replaced ?? line.Text);
-            else Marked(line.Text, asWritten ? line.Diagnostics.Select(id => _diagnostics[id].Column).OfType<int>().ToHashSet() : []);
+            else Marked(line.Text, line.Spans,
+                asWritten ? line.Diagnostics.Select(id => _diagnostics[id].Column).OfType<int>().ToHashSet() : []);
             page.Append("</span>");
             if (line.Margin is { } margin)
             {
@@ -565,18 +566,31 @@ public static class HtmlListingRenderer
             }
         }
 
-        /// <summary><paramref name="text"/>, each 1-based character position in <paramref name="columns"/> marked (a character outside
-        /// the Basic Multilingual Plane is one position, as every listing record's column counts).</summary>
-        private void Marked(string text, HashSet<int> columns)
+        /// <summary><paramref name="text"/>, each of its <paramref name="spans"/> in an element of its class (<see cref="SpanClass"/>,
+        /// coloured by the style for a light and a dark page), and each 1-based character position in <paramref name="columns"/>
+        /// marked (a character outside the Basic Multilingual Plane is one position, as every listing record's column counts). The
+        /// spans are the builder's (DESIGN-listing.md section 7.2): in column order and never overlapping, so the markup nests.</summary>
+        private void Marked(string text, IReadOnlyList<ListingSpan> spans, HashSet<int> columns)
         {
-            if (columns.Count == 0)
+            if (columns.Count == 0 && spans.Count == 0)
             {
                 Escape(page, text);
                 return;
             }
-            int position = 1;
+            int position = 1, next = 0, closeAt = 0;
             for (int at = 0; at < text.Length; position++)
             {
+                if (closeAt == position)
+                {
+                    page.Append("</span>");
+                    closeAt = 0;
+                }
+                if (next < spans.Count && spans[next].Column == position)
+                {
+                    page.Append("<span class=\"").Append(SpanClass(spans[next].Class)).Append("\">");
+                    closeAt = position + spans[next].Length;
+                    next++;
+                }
                 int width = char.IsHighSurrogate(text[at]) && at + 1 < text.Length && char.IsLowSurrogate(text[at + 1]) ? 2 : 1;
                 bool mark = columns.Contains(position);
                 if (mark) page.Append("<mark>");
@@ -584,6 +598,7 @@ public static class HtmlListingRenderer
                 if (mark) page.Append("</mark>");
                 at += width;
             }
+            if (closeAt != 0) page.Append("</span>");
             // A column one past the text's end (a diagnostic about a missing word) is marked as a space.
             if (columns.Contains(position)) page.Append("<mark> </mark>");
         }
@@ -603,6 +618,11 @@ public static class HtmlListingRenderer
         }
         page.Append("</tbody>\n</table>\n");
     }
+
+    /// <summary>The CSS class of a span of <paramref name="cls"/> (DESIGN-listing.md section 7.2): <c>s-</c> and the member's name in
+    /// lower case, so a class added to the model has its markup by construction; <c>HtmlListingRendererTests</c> holds that the style
+    /// colours every one, for a light and a dark page.</summary>
+    public static string SpanClass(ListingSpanClass cls) => "s-" + cls.ToString().ToLowerInvariant();
 
     private static string SeverityClass(ListingSeverity severity) => "sev-" + TextListingRenderer.SeverityWord(severity);
 
@@ -681,10 +701,16 @@ public static class HtmlListingRenderer
     private const string Style = """
 
         :root { --bg: #ffffff; --fg: #1d1d1f; --muted: #6e6e73; --rule: #d2d2d7; --err: #b3261e; --warn: #8a5a00; --info: #1f5fa8;
-                --mark: #ffe08a; --link: #0b57d0; --head: #f5f5f7; }
+                --mark: #ffe08a; --link: #0b57d0; --head: #f5f5f7;
+                --syn-reserved: #0033b3; --syn-context: #6f42c1; --syn-function: #795e26; --syn-name: #1a1a6e; --syn-level: #0b7a75;
+                --syn-string: #a31515; --syn-number: #116644; --syn-figurative: #0070c1; --syn-picture: #a626a4; --syn-punct: #5f5f66;
+                --syn-comment: #3b7a28; --syn-directive: #9a4f00; --syn-area: #8e8e93; --syn-indicator: #b3261e; }
         @media (prefers-color-scheme: dark) {
           :root { --bg: #161618; --fg: #e8e8ed; --muted: #98989d; --rule: #3a3a3c; --err: #ff6b5e; --warn: #f0b429; --info: #7ab4ff;
-                  --mark: #6b5310; --link: #8ab4f8; --head: #1f1f22; } }
+                  --mark: #6b5310; --link: #8ab4f8; --head: #1f1f22;
+                  --syn-reserved: #6cb6ff; --syn-context: #c4a7ff; --syn-function: #dcdcaa; --syn-name: #9cdcfe; --syn-level: #4ec9b0;
+                  --syn-string: #ce9178; --syn-number: #b5cea8; --syn-figurative: #4fc1ff; --syn-picture: #e2a0e8; --syn-punct: #b0b0b8;
+                  --syn-comment: #7fb069; --syn-directive: #e0a458; --syn-area: #76767c; --syn-indicator: #ff8a80; } }
         body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
         header, main { padding: 0 16px; }
         h1 { font-size: 1.3em; } h2 { font-size: 1.1em; border-bottom: 1px solid var(--rule); padding-top: 1em; }
@@ -705,6 +731,15 @@ public static class HtmlListingRenderer
         tr.sub td:first-child { padding-left: 2em; }
         .k-comment .tx, .k-pageejectcomment .tx, .k-commententry .tx { color: var(--muted); font-style: italic; }
         .k-directive .tx { color: var(--info); }
+        .s-reservedword { color: var(--syn-reserved); font-weight: 600; } .s-contextword { color: var(--syn-context); }
+        .s-functionname { color: var(--syn-function); } .s-userword { color: var(--syn-name); } .s-levelnumber { color: var(--syn-level); }
+        .s-alphanumericliteral, .s-nationalliteral, .s-booleanliteral { color: var(--syn-string); }
+        .s-numericliteral { color: var(--syn-number); } .s-figurativeconstant { color: var(--syn-figurative); }
+        .s-picture { color: var(--syn-picture); } .s-separator, .s-operator { color: var(--syn-punct); }
+        .s-comment, .s-commententry { color: var(--syn-comment); font-style: italic; } .s-directive { color: var(--syn-directive); }
+        .s-sequencearea, .s-identificationarea { color: var(--syn-area); } .s-indicator { color: var(--syn-indicator); font-weight: 600; }
+        .s-embeddedtext { color: var(--syn-area); font-style: italic; }
+        .s-unrecognized { color: var(--err); text-decoration: underline wavy; }
         .pb { border-top: 1px dashed var(--rule); }
         .off { opacity: 0.55; }
         mark { background: var(--mark); color: inherit; }

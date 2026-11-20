@@ -109,9 +109,9 @@ public sealed class ListingJsonTests : IDisposable
         Assert.False(File.Exists(Path.Combine(_dir, "json85.lst")));
         var read = JsonListingWriter.Read(File.ReadAllText(Path.Combine(_dir, "json85.lst.json")));
         Assert.Equal(ListingOutcome.BindError, read.Header.Outcome);
-        // A record's list member compares by reference, so each line's diagnostic ids are compared as a sequence.
-        static IEnumerable<(ListingLine, string)> ByValue(IEnumerable<ListingLine> lines) =>
-            lines.Select(l => (l with { Diagnostics = [] }, string.Join(',', l.Diagnostics)));
+        // A record's list member compares by reference, so each line's diagnostic ids and spans are compared as sequences.
+        static IEnumerable<(ListingLine, string, string)> ByValue(IEnumerable<ListingLine> lines) =>
+            lines.Select(l => (l with { Diagnostics = [], Spans = [] }, string.Join(',', l.Diagnostics), string.Join(',', l.Spans)));
         Assert.Equal(ByValue(result.Listing!.Lines), ByValue(read.Lines));
         Assert.Contains(read.Diagnostics, d => d.Message.Contains("NO-SUCH-NAME", StringComparison.Ordinal) && d.Line is not null);
     }

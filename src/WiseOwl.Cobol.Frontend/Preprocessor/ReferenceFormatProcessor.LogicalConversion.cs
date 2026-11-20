@@ -31,7 +31,7 @@ public static partial class ReferenceFormatProcessor
     /// </summary>
     private sealed class FixedFormConverter(ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators,
         bool? startsInIdentificationDivision, CommentEntryPins? pins, int inclusion, Func<string, string>? asReplaced,
-        PhysicalLineKind[]? kinds)
+        PhysicalLineRecord? kinds)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: true, kinds);
 
@@ -112,7 +112,8 @@ public static partial class ReferenceFormatProcessor
                     // free form (kb/Work PB1494, PB1758) — and only the comment-entry is discarded. The entry's end is
                     // implied by the next Area-A word (COBOL-85), so the logical conversion writes the paragraph's
                     // terminating period explicitly: `AUTHOR. .` is the paragraph `AUTHOR DOT DOT` with no content.
-                    _builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: true), site);
+                    _builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: true, out int entry), site);
+                    _builder.Discard(site, entry, SourceTextClass.CommentEntry);
                     return;
                 case CommentEntryText.Body:
                     _builder.Classify(site, PhysicalLineKind.CommentEntry);
@@ -256,7 +257,7 @@ public static partial class ReferenceFormatProcessor
     /// candidate (<see cref="ConvertCommentEntryCandidate"/>), which the conversion that carried them has gated already.</summary>
     private static (List<string> Lines, List<LineOrigin> Origins) ConvertSegment(ReadOnlySpan<PhysicalLine> lines, bool isFixed,
         ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, int inclusion, bool gatesLineLength,
-        Func<string, string>? asReplaced, PhysicalLineKind[]? kinds, ref bool? inIdentificationDivision)
+        Func<string, string>? asReplaced, PhysicalLineRecord? kinds, ref bool? inIdentificationDivision)
     {
         if (isFixed)
         {
@@ -295,7 +296,7 @@ public static partial class ReferenceFormatProcessor
     /// reading: the paragraph word first on its line, the entry the rest of that line, the next line program text.</para>
     /// </summary>
     private sealed class FreeFormConverter(ReferenceFormatDiagnostics? gates, string file, bool? startsInIdentificationDivision,
-        CommentEntryPins? pins, int inclusion, bool gatesLineLength, Func<string, string>? asReplaced, PhysicalLineKind[]? kinds)
+        CommentEntryPins? pins, int inclusion, bool gatesLineLength, Func<string, string>? asReplaced, PhysicalLineRecord? kinds)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: false, kinds);
 
@@ -326,7 +327,11 @@ public static partial class ReferenceFormatProcessor
                 {
                     // The division is not known (DivisionCursor) for a candidate: the line is CARRIED for CommentEntryResolver
                     // to decide on the text every stage between has finished with (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).
-                    if (entry == CommentEntryText.Header) _builder.Emit(CommentEntryHeader(line.Text, site, file, gates, periodRequired: false), site);
+                    if (entry == CommentEntryText.Header)
+                    {
+                        _builder.Emit(CommentEntryHeader(line.Text, site, file, gates, periodRequired: false, out int entryAt), site);
+                        _builder.Discard(site, entryAt, SourceTextClass.CommentEntry);
+                    }
                     else
                     {
                         _builder.Classify(site, PhysicalLineKind.CommentEntryCandidate);
@@ -393,12 +398,18 @@ public static partial class ReferenceFormatProcessor
     /// one, so the parse recovers without a cascade. Free form is the extension of docs/CONFORMANCE.md D-CE1, whose period
     /// is optional.</para></summary>
     private static string CommentEntryHeader(string programText, TextSite site, string file, ReferenceFormatDiagnostics? gates,
-        bool periodRequired)
+        bool periodRequired, out int entry)
     {
         int wordStart = FirstNonSpace(programText);
         int wordEnd = WordEnd(programText, wordStart);
         if (periodRequired && !SeparatorPeriodFollows(programText, wordEnd))
             gates?.OnCommentEntryHeaderWithoutPeriod(file, site.Line, site.Col(wordStart), programText[wordStart..wordEnd]);
+        // The comment-entry this conversion discards begins at the first character after the header word's separator period
+        // (the source listing's reading of the line, DESIGN-listing.md section 7.2).
+        entry = wordEnd;
+        while (entry < programText.Length && programText[entry] == ' ') entry++;
+        if (entry < programText.Length && programText[entry] == '.') entry++;
+        while (entry < programText.Length && programText[entry] == ' ') entry++;
         return programText[..wordEnd] + ". .";
     }
 

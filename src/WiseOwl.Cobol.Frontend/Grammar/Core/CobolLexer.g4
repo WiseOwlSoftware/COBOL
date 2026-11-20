@@ -36,6 +36,8 @@ tokens { FNARG_LPAREN, FNARG_RPAREN, REF_LPAREN, REF_RPAREN, SIGNED_INTEGERLIT, 
 channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
 
 @members {
+    // OnCommentStart and CommentStarts: Parsing/CobolLexer.CommentStarts.cs (kb/Work PB5949).
+
     // Track the types of the last TWO non-WS tokens emitted: one for the reference-paren decision, two for the
     // FUNCTION-argument suppression (P7 Step 12 — '(' after "FUNCTION name" opens an ARGUMENT list, ISO
     // §2023:8.4.3.2 SR6, lexed in DEFAULT mode so arguments parse as real arithmeticExpressions).
@@ -482,7 +484,10 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
 // The separator space is the space and the line end ONLY: the line-entry stage (PhysicalLines, kb/Work PB1800) has
 // already expanded every TAB and taken every CR LF to its LF, so neither has a rule here.
 WS           : [ \n]+ -> skip ;
-COMMENT_START: '*>' -> skip, pushMode(COMMENT_MODE) ;
+// An inline comment is skipped, so no token says where it stands; a compilation that produces a source listing asks the
+// lexer to record where each begins (CommentStarts, null otherwise: DESIGN-listing.md section 7.2, kb/Work PB5949), so the
+// listing colours the comment from the lexer's own reading of the text, never from a pattern over it.
+COMMENT_START: '*>' { OnCommentStart(); } -> skip, pushMode(COMMENT_MODE) ;
 
 // A fixed-form DEBUGGING LINE's marker (the X3.23-1985 debug module; kb/Work PB1705, owner decision R56): the §2023:6.5
 // logical conversion writes a `D` line as this carrier followed by the line's program text
@@ -1476,7 +1481,7 @@ PIC_WS      : ( [ \n] | [,;] [ \n] )+ -> skip ;
 // A fixed-form DEBUGGING line inside the open region (kb/Work PB1913): skipped whole, like a comment, but as a marker
 // DebuggingLineRewriter can find. It precedes PIC_COMMENT because the two match the same text and the first rule wins.
 PIC_DEBUG_LINE : '*>' '\u{FDD0}' 'DEBUG ' ~[\n]* -> type(DEBUG_LINE_IN_REGION), channel(HIDDEN) ;
-PIC_COMMENT : '*>' ~[\n]* -> skip ;
+PIC_COMMENT : '*>' ~[\n]* { OnCommentStart(); } -> skip ;
 PIC_STRING  : ( ~[ \n.] | '.' ~[ \n] )+ { OnPictureString(); } ;
     // Matches: any non-whitespace-non-period char,
     //      OR: a period followed by a non-whitespace char (embedded decimal)

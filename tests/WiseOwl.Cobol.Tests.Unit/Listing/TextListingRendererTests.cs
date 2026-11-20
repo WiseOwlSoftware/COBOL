@@ -26,7 +26,7 @@ public sealed class TextListingRendererTests
 
     private static ListingLine Line(ListingLineKind kind, bool omitted = false,
         ListingReplacement replacement = ListingReplacement.None) =>
-        new(1, 1, 1, null, 0, ListingLineForm.Fixed, kind, "", omitted, true, false, null, replacement, null, [], null);
+        new(1, 1, 1, null, 0, ListingLineForm.Fixed, kind, "", omitted, true, false, null, replacement, null, [], null, []);
 
     [Fact]
     public void TheMarker_FollowsTheLinesKind_OmissionAndReplacementFirst()
@@ -103,8 +103,8 @@ public sealed class TextListingRendererTests
             [new ListingFile(1, source, ListingFileRole.Source, "00"), new ListingFile(2, library, ListingFileRole.Library, "00")],
             [new ListingInclusion(1, null, 1, 1, 1, "REC", null, 2, ListingInclusionOutcome.Found, false)],
             [
-                new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       COPY REC.", false, true, false, 0, ListingReplacement.None, null, [], null),
-                new(2, 2, 1, 1, 1, ListingLineForm.Fixed, ListingLineKind.Source, "       01 R PIC X.", false, true, false, 0, ListingReplacement.None, null, [1], null),
+                new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       COPY REC.", false, true, false, 0, ListingReplacement.None, null, [], null, []),
+                new(2, 2, 1, 1, 1, ListingLineForm.Fixed, ListingLineKind.Source, "       01 R PIC X.", false, true, false, 0, ListingReplacement.None, null, [1], null, []),
             ],
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 2, null)],
             [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "a message of many words " + string.Join(" ", Enumerable.Repeat("word", 60)),
@@ -173,7 +173,7 @@ public sealed class TextListingRendererTests
     {
         var document = new ListingDocument(Header(), [new ListingFile(1, "main.cob", ListingFileRole.Source, "00")], [],
             [new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       MOVE X TO Y.", false, true, false, null,
-                ListingReplacement.None, null, [1, 2], null)],
+                ListingReplacement.None, null, [1, 2], null, [])],
             [], [Diagnostic(1, ListingSeverity.Error, "e"), Diagnostic(2, ListingSeverity.Warning, "w"), Diagnostic(3, ListingSeverity.Warning, "g", line: null)],
             [], [], null, null, null,
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Diagnostics, true, null)]);

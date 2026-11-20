@@ -42,7 +42,7 @@ public static partial class ReferenceFormatProcessor
             var site = new TextSite(line.Number, index, line.Columns);
             if (carried.IsHeader)
             {
-                builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: isFixed), site);
+                builder.Emit(CommentEntryHeader(area, site, file, gates, periodRequired: isFixed, out _), site);
             }
             else
             {

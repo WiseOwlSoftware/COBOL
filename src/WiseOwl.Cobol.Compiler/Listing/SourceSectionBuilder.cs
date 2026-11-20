@@ -34,11 +34,16 @@ internal sealed class LineDraft
     /// <summary>The line's margin (<see cref="LineAnnotationBuilder"/>), or null.</summary>
     public ListingMargin? Margin { get; set; }
 
+    /// <summary>What the compiler read each stretch of the line's text as (<see cref="SyntaxSpanBuilder"/>), or null while none.</summary>
+    public ListingSpan[]? Spans { get; set; }
+
     /// <summary>The finished model line.</summary>
     public ListingLine ToLine() => new(Number, File, FileLine, Inclusion, Depth, Form, ListingLineKinds.Of(Kind), Text, Omitted,
-        Listed, PageBreakBefore, Program, Replacement, Replaced, Diagnostics is { } ids ? ids.ToArray() : NoDiagnostics, Margin);
+        Listed, PageBreakBefore, Program, Replacement, Replaced, Diagnostics is { } ids ? ids.ToArray() : NoDiagnostics, Margin,
+        Spans ?? NoSpans);
 
     private static readonly int[] NoDiagnostics = [];
+    private static readonly ListingSpan[] NoSpans = [];
 }
 
 /// <summary>

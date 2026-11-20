@@ -191,6 +191,13 @@ public sealed class SourceLineMap
             ? _origins[line - 1].Locate(column).LocatedFrom(line, Frame)
             : new SourceOrigin(fallbackFile, line).ToLocation(column);
 
+    /// <summary>The stretches of RESULTANT line <paramref name="line"/> (1-based), in resultant-column order, each with its physical
+    /// origin (<see cref="LineOrigin.Spans"/>); empty when the line is outside the map. What maps a stretch of resultant text that
+    /// crosses origins (a token continued onto another physical line) to each physical line it came from (DESIGN-listing.md
+    /// section 7.2).</summary>
+    public ReadOnlySpan<OriginSpan> SpansAt(int line) =>
+        line >= 1 && line <= _origins.Length ? _origins[line - 1].Spans : [];
+
     /// <summary>The stretch that holds 0-based resultant <paramref name="column"/> of RESULTANT line <paramref name="line"/>
     /// (1-based), rebased to start there (<see cref="LineOrigin.PointAt"/>) — its origin AND the place it was laid out at
     /// (<see cref="OriginSpan.LaidOutAt"/>); null when the line is outside the map.</summary>

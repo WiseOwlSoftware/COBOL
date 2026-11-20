@@ -227,9 +227,70 @@ public enum ListingReplacement
 /// <param name="Diagnostics">The <see cref="ListingDiagnostic.Id"/> of each diagnostic placed on the line, in listing order.</param>
 /// <param name="Margin">What the data map says of the data item the line declares (its offset, length and usage), which the text
 /// listing prints in its margin; null when the line declares none or the data map was not asked for.</param>
+/// <param name="Spans">What the compiler read each stretch of <paramref name="Text"/> as, in column order and never overlapping: its
+/// reference-format areas, comments, words, literals, picture character-strings and separators, at the edition in force. The HTML
+/// listing colours the text by them; text no span covers (spaces, a line no stage read) has no class.</param>
 public sealed record ListingLine(int Number, int File, int FileLine, int? Inclusion, int Depth, ListingLineForm Form,
     ListingLineKind Kind, string Text, bool Omitted, bool Listed, bool PageBreakBefore, int? Program,
-    ListingReplacement Replacement, string? Replaced, IReadOnlyList<int> Diagnostics, ListingMargin? Margin);
+    ListingReplacement Replacement, string? Replaced, IReadOnlyList<int> Diagnostics, ListingMargin? Margin,
+    IReadOnlyList<ListingSpan> Spans);
+
+/// <summary>One classified stretch of a listing line's text (DESIGN-listing.md section 7.2; kb/Work PB5949).</summary>
+/// <param name="Column">The 1-based character position in the line's text (<see cref="ListingLine.Text"/>, tabs expanded) of its
+/// first character.</param>
+/// <param name="Length">How many characters it covers.</param>
+/// <param name="Class">What the compiler read the stretch as.</param>
+public sealed record ListingSpan(int Column, int Length, ListingSpanClass Class);
+
+/// <summary>What the compiler read a stretch of source text as (DESIGN-listing.md section 7.2): the reference-format areas and the
+/// kinds of line as the reference format decided them, and each word, literal and separator as the lexer and the parse read it at
+/// the edition in force. The front end's <c>SourceTextClass</c>, mapped in ONE switch a drift test holds total.</summary>
+public enum ListingSpanClass
+{
+    /// <summary>The sequence number area of a fixed-form line, positions 1 to 6.</summary>
+    SequenceArea,
+    /// <summary>The indicator area of a fixed-form line, position 7, when it holds an indicator.</summary>
+    Indicator,
+    /// <summary>The text of a fixed-form line past margin R, which the compiler ignores (the identification area).</summary>
+    IdentificationArea,
+    /// <summary>A comment: the text of a comment line, an inline comment, or a debugging line read as a comment.</summary>
+    Comment,
+    /// <summary>A comment-entry of an identification division paragraph.</summary>
+    CommentEntry,
+    /// <summary>A compiler directive line.</summary>
+    Directive,
+    /// <summary>A reserved word of the edition in force.</summary>
+    ReservedWord,
+    /// <summary>A word read as a keyword that the edition in force does not reserve: a context-sensitive word in its context, a word
+    /// a general format recognizes by its spelling, or a later edition's keyword.</summary>
+    ContextWord,
+    /// <summary>An intrinsic-function-name or the function-name a FUNCTION reference names.</summary>
+    FunctionName,
+    /// <summary>A user-defined word or a system-name: a word read as a name.</summary>
+    UserWord,
+    /// <summary>A level-number.</summary>
+    LevelNumber,
+    /// <summary>An alphanumeric literal, hexadecimal ones included.</summary>
+    AlphanumericLiteral,
+    /// <summary>A national literal.</summary>
+    NationalLiteral,
+    /// <summary>A boolean literal.</summary>
+    BooleanLiteral,
+    /// <summary>A numeric literal.</summary>
+    NumericLiteral,
+    /// <summary>A figurative constant, and the ALL that prefixes one.</summary>
+    FigurativeConstant,
+    /// <summary>A picture character-string.</summary>
+    Picture,
+    /// <summary>A separator other than the space: the period, comma, semicolon, parentheses and colon.</summary>
+    Separator,
+    /// <summary>An arithmetic, relational, concatenation or invocation operator.</summary>
+    Operator,
+    /// <summary>The text of an embedded precompiler block (EXEC ... END-EXEC).</summary>
+    EmbeddedText,
+    /// <summary>A character no lexical rule reads, which the compiler reports.</summary>
+    Unrecognized,
+}
 
 /// <summary>The kind of source unit a <see cref="ListingProgram"/> is.</summary>
 public enum ListingProgramKind

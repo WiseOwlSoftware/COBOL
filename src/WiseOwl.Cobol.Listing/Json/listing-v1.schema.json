@@ -308,6 +308,55 @@
             "required": [
               "item"
             ]
+          },
+          "spans": {
+            "description": "What the compiler read each stretch of Text as, in column order and never overlapping: its reference-format areas, comments, words, literals, picture character-strings and separators, at the edition in force. The HTML listing colours the text by them; text no span covers (spaces, a line no stage read) has no class.",
+            "type": "array",
+            "items": {
+              "description": "One classified stretch of a listing line's text (DESIGN-listing.md section 7.2; kb/Work PB5949).",
+              "type": "object",
+              "properties": {
+                "column": {
+                  "description": "The 1-based character position in the line's text (Text, tabs expanded) of its first character.",
+                  "type": "integer"
+                },
+                "length": {
+                  "description": "How many characters it covers.",
+                  "type": "integer"
+                },
+                "class": {
+                  "description": "What the compiler read the stretch as. SequenceArea: The sequence number area of a fixed-form line, positions 1 to 6. Indicator: The indicator area of a fixed-form line, position 7, when it holds an indicator. IdentificationArea: The text of a fixed-form line past margin R, which the compiler ignores (the identification area). Comment: A comment: the text of a comment line, an inline comment, or a debugging line read as a comment. CommentEntry: A comment-entry of an identification division paragraph. Directive: A compiler directive line. ReservedWord: A reserved word of the edition in force. ContextWord: A word read as a keyword that the edition in force does not reserve: a context-sensitive word in its context, a word a general format recognizes by its spelling, or a later edition's keyword. FunctionName: An intrinsic-function-name or the function-name a FUNCTION reference names. UserWord: A user-defined word or a system-name: a word read as a name. LevelNumber: A level-number. AlphanumericLiteral: An alphanumeric literal, hexadecimal ones included. NationalLiteral: A national literal. BooleanLiteral: A boolean literal. NumericLiteral: A numeric literal. FigurativeConstant: A figurative constant, and the ALL that prefixes one. Picture: A picture character-string. Separator: A separator other than the space: the period, comma, semicolon, parentheses and colon. Operator: An arithmetic, relational, concatenation or invocation operator. EmbeddedText: The text of an embedded precompiler block (EXEC ... END-EXEC). Unrecognized: A character no lexical rule reads, which the compiler reports.",
+                  "enum": [
+                    "SequenceArea",
+                    "Indicator",
+                    "IdentificationArea",
+                    "Comment",
+                    "CommentEntry",
+                    "Directive",
+                    "ReservedWord",
+                    "ContextWord",
+                    "FunctionName",
+                    "UserWord",
+                    "LevelNumber",
+                    "AlphanumericLiteral",
+                    "NationalLiteral",
+                    "BooleanLiteral",
+                    "NumericLiteral",
+                    "FigurativeConstant",
+                    "Picture",
+                    "Separator",
+                    "Operator",
+                    "EmbeddedText",
+                    "Unrecognized"
+                  ]
+                }
+              },
+              "required": [
+                "column",
+                "length",
+                "class"
+              ]
+            }
           }
         },
         "required": [
@@ -322,7 +371,8 @@
           "listed",
           "pageBreakBefore",
           "replacement",
-          "diagnostics"
+          "diagnostics",
+          "spans"
         ]
       }
     },
