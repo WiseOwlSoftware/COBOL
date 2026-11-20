@@ -16,6 +16,11 @@ internal sealed class LineDraft
     public required int Depth { get; init; }
     public required ListingLineForm Form { get; init; }
     public required PhysicalLineKind Kind { get; set; }
+
+    /// <summary>Whether the line was a comment-entry candidate the parse read as a comment-entry paragraph's header
+    /// (<see cref="SourceSectionBuilder.SettleCandidates"/>): its settled <see cref="Kind"/> is source, and the rest of its program
+    /// text from <see cref="ReferenceFormatMap.DiscardedAt"/> is the comment-entry.</summary>
+    public bool HeadsCarriedCommentEntry { get; set; }
     public required string Text { get; init; }
     public bool Omitted { get; set; }
     public bool Listed { get; set; } = true;
@@ -34,11 +39,16 @@ internal sealed class LineDraft
     /// <summary>The line's margin (<see cref="LineAnnotationBuilder"/>), or null.</summary>
     public ListingMargin? Margin { get; set; }
 
+    /// <summary>What the compiler read each stretch of the line's text as (<see cref="SyntaxSpanBuilder"/>), or null while none.</summary>
+    public ListingSpan[]? Spans { get; set; }
+
     /// <summary>The finished model line.</summary>
     public ListingLine ToLine() => new(Number, File, FileLine, Inclusion, Depth, Form, ListingLineKinds.Of(Kind), Text, Omitted,
-        Listed, PageBreakBefore, Program, Replacement, Replaced, Diagnostics is { } ids ? ids.ToArray() : NoDiagnostics, Margin);
+        Listed, PageBreakBefore, Program, Replacement, Replaced, Diagnostics is { } ids ? ids.ToArray() : NoDiagnostics, Margin,
+        Spans ?? NoSpans);
 
     private static readonly int[] NoDiagnostics = [];
+    private static readonly ListingSpan[] NoSpans = [];
 }
 
 /// <summary>
@@ -114,8 +124,9 @@ internal static class SourceSectionBuilder
     }
 
     /// <summary>Settle each <see cref="PhysicalLineKind.CommentEntryCandidate"/> line from the parse (DESIGN-listing.md section
-    /// 4.4.1): a candidate line that heads a comment-entry paragraph the parse read is the paragraph's header (source), the
-    /// candidate lines after it are its comment-entry, and any other candidate line is source text.</summary>
+    /// 4.4.1): a candidate line that heads a comment-entry paragraph the parse read is the paragraph's header (source, the rest
+    /// of its text the comment-entry: <see cref="LineDraft.HeadsCarriedCommentEntry"/>), the candidate lines after it are its
+    /// comment-entry, and any other candidate line is source text.</summary>
     public static void SettleCandidates(List<LineDraft> drafts, ISet<int> commentEntryHeads)
     {
         bool inEntry = false;
@@ -130,6 +141,7 @@ internal static class SourceSectionBuilder
             {
                 inEntry = true;
                 draft.Kind = PhysicalLineKind.Source;
+                draft.HeadsCarriedCommentEntry = true;
             }
             else draft.Kind = inEntry ? PhysicalLineKind.CommentEntry : PhysicalLineKind.Source;
         }

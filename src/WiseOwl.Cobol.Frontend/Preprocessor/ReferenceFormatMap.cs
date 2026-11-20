@@ -34,9 +34,13 @@ public sealed class ReferenceFormatMap
     // Per 0-based physical line: what the logical conversion decided the line is (DESIGN-listing.md section 4.4.1).
     private readonly PhysicalLineKind[] _kinds;
 
+    // Per 1-based physical line: where the conversion discarded the rest of its program text, and as what; null without a listing.
+    private readonly IReadOnlyDictionary<int, (int Column, SourceTextClass Class)>? _discarded;
+
     private ReferenceFormatMap((int FromLine, bool Fixed, bool Detected)[] changes, int[] directiveLines,
-        ReadOnlySpan<PhysicalLine> lines, PhysicalLineKind[] kinds)
+        ReadOnlySpan<PhysicalLine> lines, PhysicalLineKind[] kinds, IReadOnlyDictionary<int, (int Column, SourceTextClass Class)>? discarded)
     {
+        _discarded = discarded;
         if (kinds.Length != lines.Length)
             throw new ArgumentException($"one kind per physical line: {kinds.Length} kinds for {lines.Length} lines", nameof(kinds));
         _changes = changes;
@@ -92,11 +96,23 @@ public sealed class ReferenceFormatMap
     /// <paramref name="directiveLines"/> are the lines of its written format directives (<see cref="DirectiveLines"/>) and
     /// <paramref name="lines"/> its physical lines, as the line-entry stage settled them (<see cref="PhysicalText"/>,
     /// <see cref="AreaAt"/>), and <paramref name="kinds"/> what the conversion decided each one is, one per line
-    /// (<see cref="KindAt"/>).</summary>
+    /// (<see cref="KindAt"/>), and <paramref name="discarded"/>, for a source listing, where it discarded a line's text as a
+    /// comment or a comment-entry (<see cref="DiscardedAt"/>).</summary>
     public static ReferenceFormatMap Create(bool initialFixed, bool detected, IEnumerable<(int FromLine, bool Fixed)> changes,
-        IEnumerable<int> directiveLines, ReadOnlySpan<PhysicalLine> lines, PhysicalLineKind[] kinds)
+        IEnumerable<int> directiveLines, ReadOnlySpan<PhysicalLine> lines, PhysicalLineKind[] kinds,
+        IReadOnlyDictionary<int, (int Column, SourceTextClass Class)>? discarded = null)
         => new([(1, initialFixed, detected), .. changes.Select(c => (c.FromLine, c.Fixed, false))], [.. directiveLines],
-            lines, kinds);
+            lines, kinds, discarded);
+
+    /// <summary>Where the §2023:6.5 logical conversion discarded the rest of the program text of 1-based physical
+    /// <paramref name="line"/>, and as what: the 0-based physical column an inline comment (§2023:6.5 GR3) or the comment-entry of
+    /// the paragraph the line heads begins at. Null when it discarded none, and always when the conversion was not asked to record
+    /// it, which only a compilation producing a source listing asks (DESIGN-listing.md section 7.2). On a comment-entry candidate
+    /// line (<see cref="PhysicalLineKind.CommentEntryCandidate"/>) it is where the comment-entry begins IF the line heads a
+    /// comment-entry paragraph, which only the parse of each copy of the line settles: the caller asks it of a candidate the
+    /// parse read as a header, and of no other candidate.</summary>
+    public (int Column, SourceTextClass Class)? DiscardedAt(int line) =>
+        _discarded is not null && _discarded.TryGetValue(line, out var discarded) ? discarded : null;
 
     /// <summary>What 1-based physical <paramref name="line"/> of this text is, as the §2023:6.5 logical conversion decided
     /// when it read the line (<see cref="PhysicalLineKind"/>; DESIGN-listing.md section 4.4.1): the one reader of a line's
@@ -131,6 +147,17 @@ public sealed class ReferenceFormatMap
         for (int at = 1; at < Math.Min(index, text.Length); at++)
             if (char.IsLowSurrogate(text[at]) && char.IsHighSurrogate(text[at - 1])) pairs++;
         return index - pairs + 1;
+    }
+
+    /// <summary>Where the areas of 1-based physical <paramref name="line"/> begin and end in its expanded text
+    /// (<see cref="PhysicalText"/>), as the one reader of fixed-form columns reads them (<see cref="FixedFormLine"/>, kb/Work PB1966);
+    /// null when the line was read in free form, which has no areas (§2023:6.4.1), or is not a line of this text. What the source
+    /// listing colours the areas of a line by (DESIGN-listing.md section 7.2): a result of the reader, not a second reader.</summary>
+    public FixedFormRegions? RegionsAt(int line)
+    {
+        if (line < 1 || line > PhysicalText.Count || !At(line).Fixed) return null;
+        var fixedLine = new FixedFormLine(PhysicalText[line - 1]);
+        return new FixedFormRegions(fixedLine.IndicatorIndex, fixedLine.ProgramTextAreaIndex, fixedLine.MarginRIndex);
     }
 
     /// <summary>The COBOL-85 area the text at 0-based physical <paramref name="column"/> of 1-based physical
@@ -204,3 +231,12 @@ public sealed class ReferenceFormatMap
         return _changes[lo];
     }
 }
+
+/// <summary>The areas of one fixed-form physical line as 0-based indexes of its expanded text (<see cref="ReferenceFormatMap.RegionsAt"/>;
+/// §2023:6.3.1): the sequence number area is <c>[0, Indicator)</c>, the indicator area <c>[Indicator, ProgramText)</c>, the
+/// program-text area <c>[ProgramText, MarginR)</c> and what follows margin R <c>[MarginR, end)</c>. A line shorter than an area
+/// ends it early: each index is at most the line's length.</summary>
+/// <param name="Indicator">Where the indicator area begins.</param>
+/// <param name="ProgramText">Where the program-text area begins.</param>
+/// <param name="MarginR">Where the program-text area ends.</param>
+public readonly record struct FixedFormRegions(int Indicator, int ProgramText, int MarginR);

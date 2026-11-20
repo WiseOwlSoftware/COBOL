@@ -56,6 +56,9 @@ internal static class ListingBuilder
         }
         else SourceSectionBuilder.SettleCandidates(drafts, new HashSet<int>());
         DirectiveEffectsBuilder.MarkReplaced(frontend.Trace, index, drafts, frontend.ResultantText);
+        // What the compiler read each stretch of a line as (section 7.2), for the source section only: no other part reads it.
+        if (facts.Request.Sections.Contains(ListingSection.Source))
+            SyntaxSpanBuilder.Mark(drafts, frontend, index, fileIds.ToDictionary(f => f.Value, f => f.Key));
         ListingVisibility.Apply(drafts, programs.Where(p => p.Depth == 0).Select(p => p.FirstLine),
             DirectiveEffectsBuilder.Build(frontend.Trace, inclusions, index, drafts));
         var displays = DirectiveEffectsBuilder.Displays(frontend.Trace, index);

@@ -31,7 +31,7 @@ public static partial class ReferenceFormatProcessor
     /// quotation symbol, a national literal only by the floating form, no multiple-character token split by a join.</item>
     /// </list>
     /// </summary>
-    private sealed class LogicalLineBuilder(string file, ReferenceFormatDiagnostics? gates, bool fixedForm, PhysicalLineKind[]? kinds)
+    private sealed class LogicalLineBuilder(string file, ReferenceFormatDiagnostics? gates, bool fixedForm, PhysicalLineRecord? kinds)
     {
         /// <summary>Record what the physical line at <paramref name="site"/> is (<see cref="PhysicalLineKind"/>; DESIGN-listing.md
         /// section 4.4.1): the classifier records the indicator's answer first, and this builder overrides it where IT decides
@@ -39,7 +39,15 @@ public static partial class ReferenceFormatProcessor
         /// decided after COPY) records nothing.</summary>
         public void Classify(TextSite site, PhysicalLineKind kind)
         {
-            if (kinds is not null) kinds[site.Line - 1] = kind;
+            if (kinds is not null) kinds.Kinds[site.Line - 1] = kind;
+        }
+
+        /// <summary>Record that the conversion discards the program text of the line at <paramref name="site"/> from its index
+        /// <paramref name="at"/> on as <paramref name="cls"/> (an inline comment, a comment-entry), for the source listing only
+        /// (<see cref="PhysicalLineRecord.Discarded"/>): text that never reaches the lexer.</summary>
+        public void Discard(TextSite site, int at, SourceTextClass cls)
+        {
+            if (kinds?.Discarded is { } discarded) discarded.TryAdd(site.Line, (site.Col(at), cls));
         }
 
         private readonly List<string> _lines = [];
@@ -426,6 +434,7 @@ public static partial class ReferenceFormatProcessor
             {
                 case ScanStopKind.Comment:
                     ReportComment(text, at, site);
+                    Discard(site, at, SourceTextClass.Comment);
                     return text[..at];
                 case ScanStopKind.FloatingContinuation:
                     // The introduction gate is asked in FIXED form only, as the floating comment indicator's is (see

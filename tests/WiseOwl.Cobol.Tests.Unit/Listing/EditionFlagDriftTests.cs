@@ -100,7 +100,7 @@ public sealed class EditionFlagDriftTests
     private static readonly IReadOnlyDictionary<string, string> Funnels = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["WiseOwl.Cobol.Editions/EditionCodes.cs"] = "declares COBOL0902 and COBOL0903",
-        ["WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs"] = "declares the descriptors of the three codes",
+        ["WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs"] = "declares the descriptors of the flag codes",
         ["WiseOwl.Cobol.Editions/ConstructRegistry.cs"] = "VerdictAt: the code and the flag of an obsolete or removed construct",
         ["WiseOwl.Cobol.Editions/ConstructRegistry.g.cs"] = "the registry's rows, each pinning its code (data VerdictAt reads)",
         ["WiseOwl.Cobol.Compiler/Binding/EditionContext.cs"] = "Extension: the code and the flag of a nonstandard extension",

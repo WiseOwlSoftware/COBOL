@@ -1212,6 +1212,7 @@ public sealed class CopyProcessor(
             startsInIdentificationDivision: inIdentificationDivision,
             pins: commentEntryPins,   // a candidate of this library text a previous run proved to be program text (kb/Work PB4281)
             inclusion: ++_inclusions,   // … in THIS inclusion of it (kb/Work PB4487)
+            recordsDiscarded: Trace.Records,   // the comments and comment-entries it discards, for the listing (kb/Work PB5949)
             paragraphWordAsReplaced: paragraphWordAsReplaced);
         _referenceFormats[copybookPath] = formats;
         return mapped;

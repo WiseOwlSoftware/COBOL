@@ -85,6 +85,12 @@ public sealed class Frontend
     /// Empty until a source has been read.</summary>
     public string ResultantText { get; private set; } = "";
 
+    /// <summary>What the listed pass's lexer and parse read each stretch of <see cref="ResultantText"/> as (DESIGN-listing.md
+    /// section 7.2; kb/Work PB5949): every token of the final stream and every inline comment, classified at the edition in force
+    /// (<see cref="Parsing.SourceTextClassifier"/>), which the HTML listing colours the source by. Null when
+    /// <see cref="RecordsListing"/> is false or no text was lexed.</summary>
+    public IReadOnlyList<SourceTextSpan>? TextClasses { get; private set; }
+
     /// <summary>Add a directory to the COPY copybook search path.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
@@ -150,9 +156,10 @@ public sealed class Frontend
             LineMap = passLineMap;
             var passAreas = new FixedFormAreas(passLineMap, formats);
             int diagnosticsBeforeLexing = passDiagnostics.Diagnostics.Count;
-            var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas, referenceFormatGates);
+            var (tree, parsed, sourceDebuggingLines, commentLines, textClasses) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas, referenceFormatGates);
             // What the source listing reads of this pass (DESIGN-listing.md section 4.4): taken from the SAME pass as LineMap.
-            var listed = new ListedPass(trace, formats, RecordsListing ? SourceUnitFacts.Read(tree, recovered: !parsed) : null, processed.Text);
+            var listed = new ListedPass(trace, formats, RecordsListing ? SourceUnitFacts.Read(tree, recovered: !parsed) : null, processed.Text,
+                textClasses);
             // A debugging line the §2023:6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(
@@ -215,7 +222,8 @@ public sealed class Frontend
 
     /// <summary>What the source listing reads of one pass of the text stages and its parse (DESIGN-listing.md section 4.4).</summary>
     private readonly record struct ListedPass(Preprocessor.TextStageTrace Trace,
-        IReadOnlyDictionary<string, Preprocessor.ReferenceFormatMap> Formats, SourceUnitFacts? UnitFacts, string ResultantText);
+        IReadOnlyDictionary<string, Preprocessor.ReferenceFormatMap> Formats, SourceUnitFacts? UnitFacts, string ResultantText,
+        IReadOnlyList<SourceTextSpan>? TextClasses);
 
     /// <summary>Expose <paramref name="pass"/> as the listed pass, beside <see cref="LineMap"/>, which the caller set from the
     /// same pass.</summary>
@@ -225,6 +233,7 @@ public sealed class Frontend
         ReferenceFormats = pass.Formats;
         UnitFacts = pass.UnitFacts;
         ResultantText = pass.ResultantText;
+        TextClasses = pass.TextClasses;
     }
 
     /// <summary>The text stages — the normalizer, then <see cref="Preprocess"/> — run to a FIXED POINT of the comment-entry
@@ -329,6 +338,7 @@ public sealed class Frontend
             InitialFormat.InitialFixed(), out var formats, ccvsIndicators: NistTestName is not null,   // kb/Work PB1494
             implicitOps: implicitOps.For(sourcePath),   // §2023:14.9.28.4 GR14's implicit PUSH/POP ALL written in the source (kb/Work PB1066)
             pins: pins,   // the comment-entry candidates a previous run proved to be program text (kb/Work PB4281)
+            recordsDiscarded: RecordsListing,   // the comments and comment-entries it discards, for the listing (kb/Work PB5949)
             inclusion: CommentEntryPins.SourceText);   // … in the source text, the run's first text (kb/Work PB4487)
         return (text, formats);
     }
@@ -496,7 +506,8 @@ public sealed class Frontend
     /// error was reported); the tree of a parse that reported errors is the parser's RECOVERED one, for the one reader that
     /// can use it (<see cref="Parse"/>'s §2023:14.9.28.4 GR14 op placement) and never an answer to hand on.
     /// </summary>
-    private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines, IReadOnlySet<int> CommentLines) LexAndParse(
+    private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines, IReadOnlySet<int> CommentLines,
+        IReadOnlyList<SourceTextSpan>? TextClasses) LexAndParse(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics, IMarginRCutLocator cuts,
         ReferenceFormatDiagnostics gates)
     {
@@ -520,7 +531,7 @@ public sealed class Frontend
         while (true)
         {
             var attemptDiagnostics = new DiagnosticBag();
-            var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, cuts, gates);
+            var (tree, parsed, sourceDebuggingLines, commentLines, textClasses) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, cuts, gates);
             if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
             {
                 retypes = tree.TokenRetypes;
@@ -528,13 +539,14 @@ public sealed class Frontend
             }
             foreach (var d in attemptDiagnostics.Diagnostics) diagnostics.Add(d);
             diagnostics.AddCompileOutput(attemptDiagnostics.CompileOutput);
-            return (tree, parsed, sourceDebuggingLines, commentLines);
+            return (tree, parsed, sourceDebuggingLines, commentLines, textClasses);
         }
     }
 
     /// <summary>One lex + parse of <paramref name="text"/> with <paramref name="retypes"/> priming the lexer (see
     /// <see cref="LexAndParse"/>), reporting into <paramref name="diagnostics"/>.</summary>
-    private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines, IReadOnlySet<int> CommentLines) LexAndParseOnce(
+    private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines, IReadOnlySet<int> CommentLines,
+        IReadOnlyList<SourceTextSpan>? TextClasses) LexAndParseOnce(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, TokenRetypes retypes, EditionInfo edition,
         bool priorErrors, DiagnosticBag diagnostics, IMarginRCutLocator cuts, ReferenceFormatDiagnostics gates)
     {
@@ -551,9 +563,12 @@ public sealed class Frontend
         var misplacedDebuggingLines = new List<IToken>();   // the final stream's own (§1985:VI.7.3)
         var commentLines = new HashSet<int>();   // the text lines the final stream makes comment (kb/Work PB5588)
         LexerErrorListener lexErrors;
+        // Where the final lexer met each inline comment, for the source listing only (kb/Work PB5949).
+        List<(int Line, int Column)>? commentStarts;
         while (true)
         {
             var lexer = new CobolLexer(new AntlrInputStream(text));
+            lexer.CommentStarts = commentStarts = RecordsListing ? [] : null;
             retypes.PrimeLexer(lexer, edition);
             lexErrors = LexerErrorListener.AttachTo(lexer);
             tokens = new CommonTokenStream(lexer);
@@ -673,7 +688,12 @@ public sealed class Frontend
                     sourcePath, cuts, diagnostics);
         }
 
-        return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines, commentLines);
+        // The source listing's classes of the text (DESIGN-listing.md section 7.2): the final stream, as the parse read it, at the
+        // edition in force and with the group's reserved words (kb/Work PB5949). Nothing without a listing.
+        var textClasses = commentStarts is null ? null
+            : SourceTextClassifier.Classify(tokens.GetTokens(), tree, commentStarts, text, edition.Year,
+                ReservedWordSet.Compose(cobolWordsMap));
+        return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines, commentLines, textClasses);
     }
 
     /// <summary>§1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER

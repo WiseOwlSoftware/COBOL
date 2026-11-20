@@ -650,6 +650,32 @@ thousand rows of each format. Run 1's page wrote ` style="padding-left:0ch"` on 
 where a region nests the row. The `All` row stays over its 25 % budget, as it was before (kb/Work PB5941, whose dated file
 `2026-11-19-pb5951-rows` holds these rows). These rows were measured before PB5941 landed: its page prints each instruction once, so the doubled cost above is gone on the merged tree. Time rows are not shown (kb/Work PB5927).
 
+**PB5949 (the source's syntax colouring): every row against the parent.** PB5949 changes every compilation a little (the
+logical conversion's per-line record is an object holding the kinds array; the lexer's comment rules call an action that records
+nothing without a listing) and adds the spans to every listing that holds the source section. Measured on 2026-11-19, Release, one
+Windows host, `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter '*CompileBenchmarks.FullCompile*'
+'*CompileBenchmarks.FrontEndAndBind*None*'` on the `listing-step-pb5949` branch (origin/main 7f7ae8c3da merged) and then on that
+parent `7f7ae8c3da` (a detached worktree of it), the parent's in parentheses. Allocated bytes:
+
+| Program | Front end and bind, None | Full, None | Full, Text | Full, TextAndJson | Full, All |
+|---|---|---|---|---|---|
+| IX113A | 68.25 (68.16) MB | 189.47 (186.04) MB | 202.88 (193.56) MB | 224.48 (209.94) MB | 333.18 (302.50) MB |
+| NC105A | 34.63 (34.60) MB | 118.73 (121.95) MB | 121.74 (122.56) MB | 132.46 (127.54) MB | 196.40 (181.59) MB |
+| NC218A | 30.66 (30.63) MB | 119.40 (112.59) MB | 119.51 (115.93) MB | 138.09 (124.61) MB | 204.26 (185.54) MB |
+| SM201A | 15.08 (15.22) MB | 42.14 (47.87) MB | 48.71 (47.83) MB | 47.72 (50.02) MB | 73.92 (68.30) MB |
+
+Reading them: the front end and bind with no listing are the parent's within 0.14 MB on every program, so the `None` budget holds;
+the full compile's `None` rows straddle the parent's by up to 6.8 MB, its known run-to-run spread on one tree (kb/Work PB5925's lead
+`2026-11-18-full-compile-allocation-noise`), for code that is the parent's but for the two no-listing changes above. The spans cost
+what the source section holds: the standard text listing, which prints none of them, still builds them (one request, one document),
++9.3 MB on IX113A over the parent's `Text` (+4.8 %), +3.6 MB on NC218A, and within the spread on the other two; `Text` over the same
+run's `None` is +7.1 % (IX113A), +2.5 %, +0.1 % and +15.6 % (SM201A, whose branch `None` row is 5.7 MB under the parent's; over the
+parent's `None`, +1.8 %), so the standard listing stays inside its 10 % budget. `TextAndJson` grows +4.9 to +14.5 MB (each span is a
+JSON object), and `All` (with the HTML page, each span an element) +5.6 to +30.7 MB (+8.2 to +10.1 %): these rows were measured before
+kb/Work PB5941 landed (the paragraph above), so their `All` row predates its streaming; PB5941's dated file
+`2026-11-19-pb5949-spans` records them. Time rows are
+not shown (kb/Work PB5927).
+
 **Step 6b, slice 1 (kb/Work PB5932, the cd-names and the file-names resolved by `SymbolTable.Identify`): the `None` row against
 the parent.** Slice 1 changes how every compilation resolves a cd-name or a file-name, with or without a listing, so it
 measures the no-listing path. Measured on 2026-11-18, Release, one Windows host,
