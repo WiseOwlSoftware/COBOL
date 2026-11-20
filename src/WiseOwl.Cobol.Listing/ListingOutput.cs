@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text;
 using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Listing.Json;
 using WiseOwl.Cobol.Listing.Text;
@@ -68,14 +69,51 @@ public static class ListingOutput
         _ => throw Unknown(format),
     };
 
-    /// <summary>One format's rendering of <paramref name="document"/>, as <paramref name="request"/> asks for it.</summary>
-    public static string Render(ListingFormats format, ListingDocument document, ListingRequest request) => format switch
+    /// <summary>The encoding of every format: UTF-8 with no byte order mark (DESIGN-listing.md section 7.1; the JSON text RFC 8259
+    /// section 8.1 requires; the charset the HTML page declares).</summary>
+    public static readonly UTF8Encoding Utf8 = new(encoderShouldEmitUTF8Identifier: false);
+
+    /// <summary>
+    /// Write one format's rendering of <paramref name="document"/>, as <paramref name="request"/> asks for it, to
+    /// <paramref name="output"/> in <see cref="Utf8"/>, and flush it; the stream stays open.
+    /// <para>⛔ STREAMED (kb/Work PB5941; DESIGN-listing.md section 9): each renderer writes to the stream as it renders, so no format is
+    /// ever held whole in memory, as a string or a buffer, on its way to its file. A listing of every section is several times the
+    /// source's size (the object code), and holding it whole, then copying it into a string, then encoding it, cost three times its
+    /// size per format.</para>
+    /// </summary>
+    public static void Write(ListingFormats format, ListingDocument document, ListingRequest request, Stream output)
     {
-        ListingFormats.Text => TextListingRenderer.Render(document, request),
-        ListingFormats.Json => JsonListingWriter.Write(document),
-        ListingFormats.Html => HtmlListingRenderer.Render(document, request),
-        _ => throw Unknown(format),
-    };
+        ArgumentNullException.ThrowIfNull(output);
+        switch (format)
+        {
+            case ListingFormats.Text:
+            {
+                using var writer = Writer(output);
+                TextListingRenderer.Write(document, request, writer);
+                break;
+            }
+            case ListingFormats.Json:
+                JsonListingWriter.Write(document, output);
+                break;
+            case ListingFormats.Html:
+            {
+                using var writer = Writer(output);
+                HtmlListingRenderer.Write(document, request, writer);
+                break;
+            }
+            default:
+                throw Unknown(format);
+        }
+        output.Flush();
+    }
+
+    /// <summary>The character writer of a text format over <paramref name="output"/>: <see cref="Utf8"/>, LF line ends written
+    /// by the renderers themselves, the stream left open for its owner to close.</summary>
+    private static StreamWriter Writer(Stream output) =>
+        new(output, Utf8, bufferSize: WriterBufferSize, leaveOpen: true);
+
+    /// <summary>The characters a text format's writer buffers before it encodes them to the stream.</summary>
+    private const int WriterBufferSize = 16 * 1024;
 
     private static ArgumentOutOfRangeException Unknown(ListingFormats format) =>
         new(nameof(format), format, "not one listing format");

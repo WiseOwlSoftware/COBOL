@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Json;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -96,7 +97,7 @@ public sealed class JsonListingWriterTests
 
     private static readonly int[] NoIds = [];
 
-    private static JsonObject Written(ListingDocument document) => JsonNode.Parse(JsonListingWriter.Write(document))!.AsObject();
+    private static JsonObject Written(ListingDocument document) => JsonNode.Parse(ListingRendering.Json(document))!.AsObject();
 
     [Fact]
     public void TheDocument_OpensWithItsSchemaAndVersion()
@@ -146,7 +147,7 @@ public sealed class JsonListingWriterTests
     [Fact]
     public void TheText_IsIndented_WithLineFeeds_AndEndsInOne()
     {
-        string text = JsonListingWriter.Write(EveryMember());
+        string text = ListingRendering.Json(EveryMember());
         Assert.DoesNotContain('\r', text);
         Assert.StartsWith("{\n  \"$schema\": ", text, StringComparison.Ordinal);
         Assert.EndsWith("}\n", text, StringComparison.Ordinal);
@@ -158,14 +159,14 @@ public sealed class JsonListingWriterTests
     public void ADocument_RoundTrips_WithNoUnknownProperty()
     {
         var document = EveryMember();
-        string text = JsonListingWriter.Write(document);
+        string text = ListingRendering.Json(document);
         var strict = new JsonSerializerOptions(ListingJson.Options)
         {
             UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow,
         };
         var read = (ListingDocument)JsonSerializer.Deserialize(text, strict.GetTypeInfo(typeof(ListingDocument)))!;
-        Assert.Equal(text, JsonListingWriter.Write(read));
-        Assert.Equal(text, JsonListingWriter.Write(JsonListingWriter.Read(text)));
+        Assert.Equal(text, ListingRendering.Json(read));
+        Assert.Equal(text, ListingRendering.Json(JsonListingWriter.Read(text)));
         Assert.Equal(document.Header, read.Header);
         Assert.Equal(ByValue(document.Lines), ByValue(read.Lines));
     }
@@ -227,7 +228,7 @@ public sealed class JsonListingWriterTests
         Assert.False(Enum.IsDefined(read.Lines[0].Kind));
         Assert.Equal((ListingSection)ListingJson.UnknownEnumValue, read.Sections[1].Section);
         Assert.Equal(ByValue([EveryMember().Lines[1]]), ByValue([read.Lines[1]]));
-        Assert.Throws<JsonException>(() => JsonListingWriter.Write(read));
+        Assert.Throws<JsonException>(() => ListingRendering.Json(read));
 
         json["schemaVersion"] = ListingDocument.CurrentSchemaVersion;
         Assert.Contains("AKindOfALaterMinor", Assert.Throws<JsonException>(() => JsonListingWriter.Read(json.ToJsonString())).Message,
@@ -323,7 +324,7 @@ public sealed class JsonListingWriterTests
     [Fact]
     public void TheReader_RefusesAPropertyWrittenTwice()
     {
-        string text = JsonListingWriter.Write(EveryMember());
+        string text = ListingRendering.Json(EveryMember());
         string twice = text.Replace("\"schemaVersion\": \"1.0\",", "\"schemaVersion\": \"1.0\", \"$schema\": \"urn:wiseowl:cobol:listing:v1\",",
             StringComparison.Ordinal);
         Assert.NotEqual(text, twice);

@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Text;
-
 namespace WiseOwl.Cobol.Listing.Building;
 
 /// <summary>What the listing's exit produced: the document, the files written (none when the request writes none or the host
@@ -12,7 +10,7 @@ internal sealed record ListingWritten(ListingDocument Document, IReadOnlyList<st
 /// ⛔ THE LISTING'S ONE EXIT from a compilation (DESIGN-listing.md section 4.6): <c>CompilerDriver.Compile</c> asks it once the
 /// body has returned, whatever return the body took. With no source text deposited there is no listing (null); with source,
 /// the listing is built ONCE (<see cref="ListingBuilder"/>) and each requested format renders that one document
-/// (<see cref="ListingOutput.Render"/>) into <c>BASE</c> plus the format's extension, unless the request writes no file. A
+/// (<see cref="ListingOutput.Write"/>), streamed into <c>BASE</c> plus the format's extension, unless the request writes no file. A
 /// listing file the host refuses to write is one error and changes no outcome; the other formats are still written.
 /// </summary>
 internal static class ListingWriter
@@ -29,8 +27,8 @@ internal static class ListingWriter
             string path = outputBase + ListingOutput.Extension(format);
             try
             {
-                File.WriteAllText(path, ListingOutput.Render(format, document, facts.Request),
-                    new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                using (var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, FileBufferSize))
+                    ListingOutput.Write(format, document, facts.Request, file);
                 files.Add(Path.GetFullPath(path));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
@@ -40,4 +38,7 @@ internal static class ListingWriter
         }
         return new ListingWritten(document, files, errors);
     }
+
+    /// <summary>The bytes the file stream buffers before it writes: each format streams to its file (kb/Work PB5941).</summary>
+    private const int FileBufferSize = 64 * 1024;
 }

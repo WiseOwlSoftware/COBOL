@@ -45,17 +45,24 @@ public static class ObjectCodeText
                 foreach (string piece in TextListingRenderer.Indented(source.TrimEnd(), 13, 13, width)) yield return piece;
             foreach (var instruction in range.Instructions ?? [])
             {
-                string row = string.Create(CultureInfo.InvariantCulture, $"{Offset(instruction.Offset)}  {instruction.OpCode,-12} {instruction.Operand}");
-                foreach (string piece in TextListingRenderer.Indented(row.TrimEnd(), 13, 36, width)) yield return piece;
+                // One string per instruction (kb/Work PB5941): the row is made indented, and cut only when it is wider than the page.
+                string row = instruction.Operand is { } operand
+                    ? string.Create(CultureInfo.InvariantCulture, $"{InstructionIndent}{new IlOffset(instruction.Offset)}  {instruction.OpCode,-12} {operand}")
+                    : string.Create(CultureInfo.InvariantCulture, $"{InstructionIndent}{new IlOffset(instruction.Offset)}  {instruction.OpCode}");
+                if (row.Length <= width) yield return row;
+                else foreach (string piece in TextListingRenderer.Indented(row[InstructionIndent.Length..], InstructionIndent.Length, 36, width)) yield return piece;
             }
         }
     }
 
+    /// <summary>The indent of an instruction row under its stretch's heading.</summary>
+    private const string InstructionIndent = "             ";
+
     /// <summary>A method as the object-code rows name it: its type and its name, ECMA-335's <c>Type::Name</c>.</summary>
     public static string MethodName(ListingMethod method) => method.Type + "::" + method.Name;
 
-    /// <summary>An IL offset as an IL listing spells it: <c>IL_</c> and four or more hexadecimal digits.</summary>
-    public static string Offset(int offset) => string.Create(CultureInfo.InvariantCulture, $"IL_{offset:X4}");
+    /// <summary>An IL offset as an IL listing spells it: <c>IL_</c> and four or more hexadecimal digits (<see cref="IlOffset"/>).</summary>
+    public static string Offset(int offset) => new IlOffset(offset).ToString();
 
     /// <summary>A method's metadata token as both renderers print it: <c>0x</c> and eight hexadecimal digits.</summary>
     public static string Token(int token) => string.Create(CultureInfo.InvariantCulture, $"0x{token:X8}");
@@ -77,4 +84,20 @@ public static class ObjectCodeText
 
     /// <summary>What the object code section says when no statement compiled to object code.</summary>
     public const string NoCodeNote = "No statement of the listing compiled to object code.";
+}
+
+/// <summary>⛔ THE ONE SPELLING OF AN IL OFFSET, <c>IL_</c> and four or more hexadecimal digits, as a value that formats itself into a
+/// row or a page without a string of its own (kb/Work PB5941: the object code prints one per IL instruction).</summary>
+/// <param name="Offset">The offset in its method's IL body.</param>
+public readonly record struct IlOffset(int Offset) : ISpanFormattable
+{
+    /// <inheritdoc/>
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) =>
+        destination.TryWrite(CultureInfo.InvariantCulture, $"IL_{Offset:X4}", out charsWritten);
+
+    /// <inheritdoc/>
+    public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
+
+    /// <summary>The offset as an IL listing spells it.</summary>
+    public override string ToString() => string.Create(CultureInfo.InvariantCulture, $"{this}");
 }

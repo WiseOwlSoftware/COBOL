@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Html;
 using WiseOwl.Cobol.Listing.Text;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
@@ -24,7 +25,7 @@ public sealed class HtmlListingRendererTests
         return XDocument.Load(reader);
     }
 
-    private static XDocument Page(ListingDocument document) => Read(HtmlListingRenderer.Render(document, new ListingRequest()));
+    private static XDocument Page(ListingDocument document) => Read(ListingRendering.Html(document, new ListingRequest()));
 
     private static XElement ById(XDocument page, string id) =>
         page.Descendants().Single(e => (string?)e.Attribute("id") == id);
@@ -174,6 +175,37 @@ public sealed class HtmlListingRendererTests
             objectCode[0].Descendants("tr").Select(tr => tr.Elements("td").ElementAt(1).Value));
     }
 
+    /// <summary>ONE COPY OF THE INSTRUCTIONS (DESIGN-listing.md section 7.2; kb/Work PB5941): with the source and the object-code sections
+    /// both held, a stretch's instructions stand once, under its statement's line, and the object-code section's entry for the stretch
+    /// links to that block; with no source section, the object-code section holds them.</summary>
+    [Fact]
+    public void EachInstruction_StandsOnce_UnderItsLine_AndTheObjectCodeSectionLinksToIt()
+    {
+        var document = EverySectionProduced();
+        var ranges = document.ObjectCode!.Ranges;
+        int instructions = ranges.Sum(r => r.Instructions?.Count ?? 0);
+        var page = Page(document);
+        Assert.Equal(instructions, page.Descendants("table").Where(t => HasClass(t, "il")).Sum(t => t.Descendants("tr").Count()));
+        var code = ById(page, HtmlListingRenderer.SectionId(ListingSection.ObjectCode));
+        Assert.Empty(code.Descendants("table"));
+        for (int i = 1; i <= ranges.Count; i++)
+        {
+            var block = ById(page, HtmlListingRenderer.RangeId(i));
+            Assert.Equal("details", block.Name.LocalName);
+            Assert.Equal(HtmlListingRenderer.LineId(ranges[i - 1].Line), ((XElement)block.Parent!.Nodes().TakeWhile(n => n != block).OfType<XElement>()
+                .Last(e => HasClass(e, "ln"))).Attribute("id")!.Value);
+            Assert.Equal(ranges[i - 1].Instructions?.Count ?? 0, block.Descendants("tr").Count());
+            Assert.Contains(code.Descendants("a"), a => (string?)a.Attribute("href") == "#" + HtmlListingRenderer.RangeId(i));
+        }
+
+        var noSource = document with { Lines = [], Displays = [], Sections = [.. document.Sections.Where(s => s.Section != ListingSection.Source)] };
+        var withoutSource = Page(noSource);
+        var codeAlone = ById(withoutSource, HtmlListingRenderer.SectionId(ListingSection.ObjectCode));
+        Assert.Equal(instructions, codeAlone.Descendants("table").Where(t => HasClass(t, "il")).Sum(t => t.Descendants("tr").Count()));
+        Assert.Equal(ranges[0].Instructions!.Select(x => x.OpCode),
+            codeAlone.Descendants("tr").Select(tr => tr.Elements("td").ElementAt(1).Value));
+    }
+
     /// <summary>Section 7.2: "A DISPLAY transfer stands outside any collapsed block (§2023:7.3.12.4 GR2)", which says the transfer takes
     /// place "irrespective of whether it is suppressed by the LISTING directive". A transfer at a line of a COPY ... SUPPRESS inclusion
     /// (line 3, inclusion 1's) is printed by the text listing though its line is not; on the page it stands outside the collapsed
@@ -196,7 +228,7 @@ public sealed class HtmlListingRendererTests
         Assert.Equal("DISPLAY: BUILD 42", display.Value);
         Assert.DoesNotContain(display.Ancestors("details"), d => d.Attribute("open") is null);
         Assert.Contains(TextListingRenderer.DisplayText(document.Displays[0]),
-            TextListingRenderer.Render(document, new ListingRequest()), StringComparison.Ordinal);
+            ListingRendering.Text(document, new ListingRequest()), StringComparison.Ordinal);
         var first = ById(page, HtmlListingRenderer.InclusionId(1));
         Assert.Same(first, ById(page, HtmlListingRenderer.LineId(3)).Parent);
         Assert.Null(first.Attribute("open"));
@@ -220,7 +252,7 @@ public sealed class HtmlListingRendererTests
         foreach (var document in new[] { EverySectionProduced(), EverySectionProduced() with { Statistics = EverySectionProduced().Statistics! with { Parse = null } } })
         {
             var page = Page(document);
-            string text = TextListingRenderer.Render(document, new ListingRequest { PageWidth = ListingRequest.MaximumPageWidth });
+            string text = ListingRendering.Text(document, new ListingRequest { PageWidth = ListingRequest.MaximumPageWidth });
             var rows = text.Split('\n').Select(r => Regex.Replace(r, @"\s+", "")).ToHashSet(StringComparer.Ordinal);
             void Shared(string words) => Assert.True(text.Contains(words, StringComparison.Ordinal), $"the text listing does not print '{words}'");
 
