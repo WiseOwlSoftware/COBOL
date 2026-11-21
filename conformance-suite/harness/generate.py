@@ -87,10 +87,12 @@ Problem = tuple[str, str]
 #: A `build` step's output base name: the assembly's file name without `.dll`.
 OUTPUT_BASE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._ -]*$")
 #: wiseowl/options/ (§4): the WiseOwl compile options a WiseOwl test may need, and each one's values (the `cobol`
-#: command's --sign-encoding, --numeric-display, --flag-extensions and --repository-update). Only a test of the wiseowl
-#: tree may name one.
+#: command's --sign-encoding, --numeric-display, --flag-extensions, --repository-update and --listing). Only a test of the
+#: wiseowl tree may name one. `listing` writes the program's text listing beside its assembly in the run directory
+#: (`<id>.lst`, the listing's default destination), where the program may read it (kb/Work PB5926: a WHEN-COMPILED value
+#: compared with the instant its listing's heading prints, §1989:A.2.46.3 RV3).
 WISEOWL_OPTIONS = {"sign-encoding": ("ibm", "ascii"), "numeric-display": ("decimal", "digits"), "flag-extensions": ("on", "off"),
-                   "repository-update": ("on", "off")}
+                   "repository-update": ("on", "off"), "listing": ("on", "off")}
 #: The option a build STEP alone may name (the `cobol` command's --std): the edition that unit is compiled at, where the test's
 #: own edition is the one every other unit and the test's source compile at. Its values are the schema's editions. A whole
 #: test never names it: the test runs once per `accept` edition, and an edition fixed for it would contradict that list.
