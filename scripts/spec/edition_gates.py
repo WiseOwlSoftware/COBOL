@@ -94,6 +94,10 @@ _FORMAT_KIND = "FMT"
 #: docstring); each was searched for a rule of its own (branch review R2-1, wave 20261935 C). The fix is a catalog that
 #: numbers each format's alternatives, which no note carries yet (the report's lead names it for the registrar).
 FORMAT_ONLY = "the catalog holds the general format as one rule and no SR or GR names this construct (lead R2-1, w20261935 C)"
+#: A construct whose 1985 rules the 1985 mint left without a change record: rows minted open, or parents a split reopened
+#: (kb/Work PB5452). Each closes when kb/Work PB5453 records their change records; the audit refuses the entry then.
+UNCLASSIFIED_AT_MINT = ("its 1985 rules were minted open or reopened by the 1985 mint and have no change record yet "
+                        "(kb/Work PB5452; recorded by PB5453)")
 HELD_OPEN: dict[str, str] = {f"constructs/{c}": FORMAT_ONLY for c in (
     "end-accept-2002", "end-display-2002",                   # a scope terminator; §2023:14.5.3.2 GR1 is KEPT
     "identification-header-optional-2002",                   # the bracketed header of §2023:11.2.1
@@ -109,6 +113,9 @@ HELD_OPEN: dict[str, str] = {f"constructs/{c}": FORMAT_ONLY for c in (
     "rewrite-record-word-2002",                              # the optional word RECORD of §2023:14.9.35.2 (kb/Work PB5159)
     "report-code-is-2002",                                   # the optional word IS of §2023:13.18.12.2 (kb/Work PB5242)
     "write-lock-phrases-before-end-of-page-2014",            # the place of the lock pair in §2023:14.9.51.2 Format 1 (kb/Work PB5620)
+)} | {f"constructs/{c}": UNCLASSIFIED_AT_MINT for c in (
+    "fixed-form-word-continuation-removed-2023",             # §1985:IV.7.2.2's four paragraph rows, minted open
+    "segment-numbers-removed-2002",                          # §1985:XVI.3.3.2-2, -3.3-2, -3.4-2, XVI.1.4.3-3, reopened
 )}
 _COMMENT = "//"
 

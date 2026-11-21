@@ -204,6 +204,7 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
     vanished: list[str] = []
     erased: list[StatementLoss] = []
     heads: dict[int, list[dict[str, Any]]] = {}
+    reopened: set[str] = set()
 
     def head(year: int) -> list[dict[str, Any]]:
         if year not in heads:
@@ -219,16 +220,30 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
             continue
         after = head(year)
         got, gone = (revisions or compare_revisions)(before, after, base, None, schema)
-        losses += got
+        # A row whose text moved under its record and whose record is now withdrawn (a split's parent that failed its
+        # recheck, rule_moves.apply): it is open, and its old witnesses witnessed text it no longer has (kb/Work PB5452).
+        was = {r["rule-id"]: r.get("rule-digest") for r in before}
+        opened = {r["rule-id"] for r in after if r["rule-id"] in was and was[r["rule-id"]] != r.get("rule-digest")
+                  and not r.get("verdict") and not r.get("next")}
+        reopened |= opened
+        losses += [l._replace(withdrawn=True) if l.rule_id in opened else l for l in got]
         vanished += gone
         ed = schema.edition(year)
         # an older edition's chained row is judged under its chain, at the head (kb/Work PB5822)
         targets = {} if ed.newest else {r["rule-id"]: r for r in head(ed.next_held)}
-        erased += compare_statements(before, after, schema, lambda r: chain_of(r, ed, schema, targets))
+        # (a withdrawn record's statements go with it: excused as its witnesses are)
+        erased += [e for e in compare_statements(before, after, schema, lambda r: chain_of(r, ed, schema, targets))
+                   if e.rule_id not in opened]
     unexcused = [l for l in losses if not l.excused]
     retired = [l for l in losses if l.retired]
     resited = [l for l in losses if l.resited and not l.retired]
     respelled = [l for l in losses if l.respelled and not (l.retired or l.resited)]
+    withdrawn = [l for l in losses if l.withdrawn and not (l.retired or l.resited or l.respelled)]
+    if reopened:
+        print(f"  ⓘ {len(reopened)} row(s) whose text moved under their record, the record withdrawn (open for "
+              "re-adjudication; their witnesses and statements go with the record): " + ", ".join(sorted(reopened)))
+    for l in withdrawn:
+        print(f"  ⓘ WITHDRAWN {l.rule_id} {l.field}: {l.ref}  (its text moved under its record, now open)")
     for l in retired:
         print(f"  ⓘ RETIRED  {l.rule_id} {l.field}: {l.ref}")
     for l in resited:
@@ -243,7 +258,7 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
     if vanished:
         print(f"  ⓘ {len(vanished)} witnessed row(s) no longer in the inventory (catalog-owned, not gated): "
               + ", ".join(vanished[:10]) + (" …" if len(vanished) > 10 else ""))
-    print(f"=== WITNESS LOSS vs {base[:12]}: {len(unexcused)} unexcused, {len(retired)} retired, "
+    print(f"=== WITNESS LOSS vs {base[:12]}: {len(unexcused)} unexcused, {len(retired)} retired, {len(withdrawn)} withdrawn, "
           f"{len(resited)} re-sited, {len(respelled)} re-spelled, {len(erased)} statements erased — "
           f"{'RED' if unexcused or erased else 'GREEN'} ===")
     return 1 if unexcused or erased else 0
@@ -451,6 +466,19 @@ def self_test(schema) -> int:
     with contextlib.redirect_stdout(io.StringIO()):
         green = check("HEAD", schema, lambda _b, y: base_rows[y], lambda y: base_rows[y], no_git)
     verify("and the same rows unchanged are green", green == 0)
+    # A SPLIT'S WITHDRAWN PARENT (kb/Work PB5452): its text moved under its record and the record went, so the row is
+    # open; its witnesses go with the record. The same withdrawal with the text unmoved is a loss.
+    split_base = {**base_rows, older: [{**kept, "rule-digest": "d-old", "notes": "Kept on its chain."}]}
+    opened = {"rule-id": kept["rule-id"], "test-ref": "", "notes": "", "next": None}
+    with contextlib.redirect_stdout(io.StringIO()) as seen:
+        green = check("HEAD", schema, lambda _b, y: split_base[y],
+                      lambda y: {**base_rows, older: [{**opened, "rule-digest": "d-new"}]}[y], no_git)
+    verify("a withdrawn parent whose text moved under its record loses nothing (WITHDRAWN, its statements too)",
+           green == 0 and f"WITHDRAWN {kept['rule-id']} test-ref" in seen.getvalue(), seen.getvalue()[-300:])
+    with contextlib.redirect_stdout(io.StringIO()) as seen:
+        red = check("HEAD", schema, lambda _b, y: split_base[y],
+                    lambda y: {**base_rows, older: [{**opened, "rule-digest": "d-old"}]}[y], no_git)
+    verify("... and the same withdrawal with its text unmoved is a loss", red == 1, seen.getvalue()[-300:])
 
     # A RE-SPELLING (kb/Work PB3177): the same test file, moved, cited under its new name.
     moved_to = "conformance:cases/0-SELF-TEST/self_test_moved"
