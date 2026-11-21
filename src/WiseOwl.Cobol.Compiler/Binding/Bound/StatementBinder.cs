@@ -433,10 +433,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         int unbuiltMark = data.Edition.UnbuiltMark;
         int deferredMark = data.Edition.ExpansionDeferredMark;
         int controlStoreMark = _controlStoreReports;
-        // ISO §2023:13.4.6.3 SR4 (kb/Work PB1291) — asked HERE, of every input-output statement, because this is the one
-        // funnel every statement passes through: a new operand position in any of the eight is screened without a
-        // verb binder remembering to ask.
-        if (InputOutputStatement(s) is { } io)
+        // ISO §2023:13.4.6.3 SR4 (kb/Work PB1291) — asked HERE, of every input-output statement of the edition
+        // (InputOutputStatementForms, kb/Work PB6032), because this is the one funnel every statement passes through: a new
+        // operand position in any of them is screened without a verb binder remembering to ask.
+        if (InputOutputStatementForms.Of(s, Ctx.Edition.Edition) is { } io)
             Ctx.Validation.ScreenSortMergeRecordReferences(io, io.Start.Text.ToUpperInvariant(), Ctx.Refs);
         // ⛔ BELOW THE MESSAGE-TAG INTRODUCTION A STATEMENT NAMING A GATED TAG IS THE GATE'S, WHATEVER ITS VERB (kb/Work PB4771, PB4836, PB4868): asked
         // HERE, once, because this is the one funnel every statement passes through, so no verb binder has to remember to stay quiet beside COBOL0900.
@@ -601,16 +601,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>How many §2023:14.9.49.3 SR11 violations <see cref="BindStatement"/> has reported — compared across a
     /// statement's bind so an enclosing statement does not report again the store its nested statement reported.</summary>
     private int _controlStoreReports;
-
-    /// <summary>The statement's INPUT-OUTPUT STATEMENT node, or null — the eight statements ISO §2023:9.1.13.1 names as
-    /// those whose execution sets the I-O status (CLOSE, DELETE in both formats, OPEN, READ, REWRITE, START, UNLOCK
-    /// and WRITE), which is the set §2023:13.4.6.3 SR4 speaks about (kb/Work PB1291).</summary>
-    private static Antlr4.Runtime.ParserRuleContext? InputOutputStatement(Core.StatementContext s) =>
-        s.GetChild(0) is Core.OpenStatementContext or Core.CloseStatementContext or Core.ReadStatementContext
-            or Core.WriteStatementContext or Core.RewriteStatementContext or Core.StartStatementContext
-            or Core.DeleteStatementContext or Core.DeleteFileStatementContext or Core.UnlockStatementContext
-            ? (Antlr4.Runtime.ParserRuleContext)s.GetChild(0)
-            : null;
 
     /// <summary>⛔ WHETHER THE INTRODUCTION GATE HAS ALREADY REFUSED THIS STATEMENT'S COMPILE: below 2023 (<c>usage-message-tag-2023</c>, §2023:8.9) a
     /// message-tag entry draws COBOL0900, and DESIGN-message-control.md §7.1 says each refusal also runs at 2014, "where COBOL0900 is the expected

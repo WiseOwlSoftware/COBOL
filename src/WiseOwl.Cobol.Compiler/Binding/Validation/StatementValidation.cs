@@ -1578,9 +1578,10 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>⛔ THE ONE §2023:13.4.6.3 SR4 SCREEN, ASKED OF EVERY INPUT-OUTPUT STATEMENT'S OWN OPERANDS (kb/Work
     /// PB1291) — <i>"A record description entry associated with file-name-1 shall not be specified in an
     /// input-output statement other than following the word FROM or the word INTO."</i> The input-output statements
-    /// are the eight statements §2023:9.1.13.1 names as those whose execution sets the I-O status — CLOSE, DELETE, OPEN, READ,
-    /// REWRITE, START, UNLOCK and WRITE — and the statement binder calls this for each of them from its ONE
-    /// funnel, so a new operand position in any of them is screened by construction.
+    /// are the edition's own set (<see cref="InputOutputStatementForms"/>, kb/Work PB6032): from 2002 the eight statements
+    /// §2023:9.1.13.1 names as those whose execution sets the I-O status — CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK
+    /// and WRITE — and the statement binder calls this for each of them from its ONE funnel, so a new operand position in
+    /// any of them is screened by construction.
     /// <para>It used to be asked only at the WRITE / REWRITE record-name slot (<see cref="ScreenSortMergeFile"/> on
     /// the record's file), so an SD record anywhere else — <c>WRITE IN-REC AFTER ADVANCING SRT-N LINES</c>, a
     /// <c>START … KEY</c>, a RETRY count, a subscript — compiled clean and read a sort record area outside any
