@@ -9520,10 +9520,7 @@ public static class DiagnosticCatalog
         "COBOL0865", "delete-record-on-sequential-file", EditionSeverity.Error,
         "A DELETE statement names a file of sequential organization. §2023:14.9.10.3 SR1: \"The DELETE RECORD statement shall "
         + "not be specified for a file with sequential organization.\"",
-        "ISO §2023:14.9.10.3 SR1",
-        No1985Rule: "ANSI X3.23-1985 defines the DELETE statement only in the relative I-O module (§1985:VIII.4.3.1) and the indexed "
-            + "I-O module (§1985:IX.4.3.1); the sequential I-O module (§1985:VII) has no DELETE statement and so states no rule about "
-            + "one on a sequential file (kb/Work PB4950).");
+        "ISO §2023:14.9.10.3 SR1");
 
     /// <summary>COBOL0866 — an INVOKE through a universal object reference, or by a dynamic method name (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor InvokeUniversalReferenceRule = new(
@@ -9738,9 +9735,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReadDynamicNextRequired = new(
         "COBOL7144", "read-dynamic-next-required", EditionSeverity.Error,
         "§1985:IX.4.5.3 SR5: \"The NEXT phrase must be specified for files in dynamic access mode, when records are to be "
-        + "retrieved sequentially.\" §1985:VIII.4.5.3 SR3 words the relative file's rule the same. A READ of a dynamic-access file "
-        + "that writes the AT END phrase (format 1 of the 1985 READ, the sequential retrieval) omits NEXT. COBOL-2002 and later "
-        + "imply the NEXT phrase from AT END (§2023:14.9.30.3 SR9).",
+        + "retrieved sequentially.\" §1985:VIII.4.5.3 SR3 words the relative file's rule the same, without the comma. A READ of a "
+        + "dynamic-access file that writes the AT END or the NOT AT END phrase (format 1 of the 1985 READ, the sequential "
+        + "retrieval) omits NEXT. COBOL-2002 and later imply the NEXT phrase from AT END or NOT AT END (§2023:14.9.30.3 SR9).",
         "ISO §1985:VIII.4.5.3 SR3; §1985:IX.4.5.3 SR5");
 
     /// <summary>COBOL7165 — a COBOL-85 comment-entry continued by a hyphen in the indicator area (kb/Work PB5169). The

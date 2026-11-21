@@ -253,8 +253,17 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return BoundRejected.Reported(ctx.Edition);   // the screen REPORTED; a loud runtime stage on top would re-answer it (PB236)
         if (file.IsSequential)
         {
+            // COBOL-85 has no rule that says "not on a sequential file" because its sequential I-O module has no DELETE
+            // statement at all: DELETE is a statement of the relative and indexed I-O modules only. That is the 1985 ground
+            // the message cites at --std 85 (kb/Work PB5933), the convention of the WRITE ADVANCING refusal above.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.DeleteRecordOnSequentialFile, $"DELETE RECORD shall not be specified for sequential-organization "
-                + $"file '{name}' (ISO §2023:14.9.10.3 SR1)");
+                + $"file '{name}' ("
+                + ctx.Edition.Edition.Cite(
+                    "the sequential I-O module has no DELETE statement: \"the Sequential I-O level 2 provides full capabilities for the "
+                    + "CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements\" (ISO §1985:VII.1.2); \"DELETE file-name-1 RECORD\" is a "
+                    + "statement of the relative and indexed I-O modules (§1985:VIII.4.3.2, §1985:IX.4.3.2)",
+                    "ISO §2023:14.9.10.3 SR1")
+                + ")");
         }
         // §2023:14.9.10.3 SR2 — the INVALID KEY / NOT INVALID KEY phrases shall not be specified for a DELETE RECORD
         // that references a file in SEQUENTIAL ACCESS MODE. Gated through the ONE severity seam (kb/Work PB144):

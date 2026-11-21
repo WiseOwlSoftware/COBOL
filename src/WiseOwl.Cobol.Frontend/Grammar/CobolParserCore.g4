@@ -702,13 +702,19 @@ computerName
 
 procedureDivision
     : PROCEDURE DIVISION usingClause? (returningClause)? (raisingClause)? DOT   // returningClause + raisingClause introduction-gated post-bind by VersionConformancePass ParseArm.VisitReturning/RaisingClause (rearch 14g.4, InMethodDefinition-guarded — program-unit PDs only; this rule is SHARED with method PDs)
-      declarativePart*
-      sentence*          // §2023:14.4.3: the paragraph-name-OMITTED paragraph — "one or more successive sentences
+      (declarativePart | sentence)*   // §2023:14.3: the DECLARATIVES portion begins the division; one written after a sentence parses
+                         // here too, and ProcedureFormatPass refuses it by name (kb/Work PB5987)
+                         // sentence: §2023:14.4.3: the paragraph-name-OMITTED paragraph — "one or more successive sentences
                          // following the procedure division header or a section header". Legal COBOL with no
                          // paragraph at all; NIST/CCVS never exercises it (it always writes paragraph names),
                          // which is why the GnuCOBOL external corpus was what surfaced it (DEVLOG 931).
-      paragraphDefinition*   // §2023:14.2.1 Format 2's paragraphs (without sections)
-      sectionDefinition*     // §2023:14.2.1 Format 1's sections, each holding the paragraphs that follow its header
+      ( paragraphDefinition+ (sectionDefinition | declarativePart sentence* paragraphDefinition*)*   // §2023:14.2.1 Format 2's paragraphs (without sections)
+      | sectionDefinition (sectionDefinition | declarativePart sentence* paragraphDefinition*)*      // §2023:14.2.1 Format 1's sections, each holding the paragraphs that follow its header
+      )?
+      // ⛔ A DECLARATIVES portion is a member of the leading loop OR of a trailing one, never of both for the same source
+      // position (what follows a late portion, its sentences and paragraphs, is read here so the portion's ordering error
+      // is the one named, never a parser message): the trailing loops are reached only after a paragraph or a section, so a decision at DECLARATIVES is
+      // never ambiguous and looks one token (ProcedureDivisionShapeDriftTests, kb/Work PB5987).
     ;
 // ⛔ THE SECTION OWNS ITS PARAGRAPHS IN THE SHAPE, NOT BY A PREDICTION CHOICE (kb/Work PB4230). §2023:14.4.2: "A section
 // consists of a section header followed by zero, one, or more successive paragraphs. A section ends immediately before
@@ -722,6 +728,7 @@ procedureDivision
 // input, which differ from `paragraphName DOT` within the header's own tokens.
 // The union of the two formats is kept: sentences or paragraphs ahead of the first section, beside a section or a
 // DECLARATIVES portion, still parse here so ProcedureFormatPass can refuse them by name (COBOL2797, kb/Work PB1146).
+// DECLARATIVES portion after a nondeclarative unit (kb/Work PB5987) parses too, by its first word (reserved at every edition).
 // ProcedureDivisionShapeDriftTests holds the bound: no procedure-division decision looks further than one header.
 
 usingClause
@@ -732,8 +739,9 @@ usingClause
 //   { [BY REFERENCE] { [OPTIONAL] data-name-1 }… | BY VALUE { data-name-1 }… }…
 // Parsed FLAT (one parameter per node, the CALL callArgument precedent) — the §2023:14.2.3 GR4 transitivity
 // ("both phrases are transitive across the parameters that follow them") is threaded by the binder
-// (LinkageBinder.CallBindLinkage), never encoded structurally. BY VALUE is a COBOL-2002 introduction —
-// gated post-bind by VersionConformancePass ParseArm.VisitUsingByValue (pd-header-by-value-2002).
+// (LinkageBinder.CallBindLinkage), never encoded structurally. BY VALUE and BY REFERENCE are COBOL-2002
+// introductions (the 1985 header is `USING {data-name-1} ...`, §1985:X.5.1) — gated post-bind by VersionConformancePass
+// ParseArm.VisitUsingByValue (pd-header-by-value-2002) and VisitUsingByReference (pd-header-by-reference-2002, PB5901).
 usingParameter
     : usingByReference
     | usingByValue

@@ -15,6 +15,10 @@
       *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
       *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE
       *> SR3, SR12) and the key rule is the ONE reason it is refused.
+      *> EVERY EDITION'S OWN TEXT FORBIDS THE KEY (docs/conformance/3/D-SKE.md, kb/Work PB5321), so it is refused at 85, 2002,
+      *> 2014 and 2023: §1985:XI.4.4.3 SR4c "The data items identified by key data-names must not be group items that
+      *> contain variable occurrence data items" (the --std 85 refusal quotes it) and §2002:14.8.36.2 SR6d "shall not be
+      *> variable-length data items".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173FO.
        ENVIRONMENT DIVISION.
