@@ -211,7 +211,8 @@ def case_07_an_applied_move_or_split_batch_leaves_its_tracked_copy(expect):
     expect.equal("the copy is the batch's moves and splits alone, under its label, at MOVES_DIR/<the batch's name>; a "
                  "batch of verdicts alone leaves none", (list(files), errs), ([dest], []))
     expect.equal("its text is the record the audit and the reads read: each move with the slices that read its old id",
-                 json.loads(files[dest]), {"batch": "the mint", "records": [{**move, M.READS: ["s-01", "s-02"]}, split]})
+                 json.loads(files[dest]), {"batch": "the mint", M.APPLIED: 1,
+                                          "records": [{**move, M.READS: ["s-01", "s-02"]}, split]})
     dest.parent.mkdir(parents=True)
     dest.write_text(files[dest], encoding="utf-8", newline="\n")
     expect.equal("recorded_moves reads the copy back: (old, new, its readers), one list per batch",
@@ -220,10 +221,51 @@ def case_07_an_applied_move_or_split_batch_leaves_its_tracked_copy(expect):
                  M.tracked_copies([(applied, [move, split])], 1985, repo, lambda rid: readers(rid, []))[1], [])
     expect.equal("a batch applied from its own tracked file is its copy already",
                  M.tracked_copies([(dest, [split])], 1985, repo, lambda rid: []), ({}, []))
-    dest.write_text(json.dumps({"batch": "another", "records": []}), encoding="utf-8", newline="\n")
+    dest.write_text(json.dumps({"batch": "another", M.APPLIED: 1, "records": []}), encoding="utf-8", newline="\n")
     expect("another batch's tracked file of the same name refuses the apply, never overwritten",
            "already holds another batch" in " ".join(M.tracked_copies([(applied, [split])], 1985, repo,
                                                                       lambda rid: [])[1]))
+
+def case_08_the_moves_are_followed_in_the_order_the_batches_were_applied(expect):
+    """train-1985-b review R1-1: two chained batches whose file names sort OPPOSITE to their application (`z-first.json`
+    moves A -> B and is applied first, `a-second.json` moves B -> C after it). The copies carry their place in the
+    application order, and recorded_moves returns them in it, so a reader follows A -> B, then B -> C; before, the name
+    order put B -> C first. A copy with no place, or two at one place, cannot be ordered and raises."""
+    repo = scratch_dir("rule-moves-applied-order")
+    scratch = repo / "scratch"
+    scratch.mkdir()
+    first, second = scratch / "z-first.json", scratch / "a-second.json"
+    ab, bc = {"rule-id": "GR-1-p2", "move-from": "GR-1-p1"}, {"rule-id": "GR-1-p3", "move-from": "GR-1-p2"}
+    for path, rec in ((first, ab), (second, bc)):
+        path.write_text(json.dumps({"batch": path.stem, "records": [rec]}), encoding="utf-8", newline="\n")
+    folder = repo / M.MOVES_DIR.format(year=1985)
+    folder.mkdir(parents=True)
+    for path, rec in ((first, ab), (second, bc)):          # two runs of the writer, in this order
+        files, errs = M.tracked_copies([(path, [rec])], 1985, repo, lambda rid: ["s-18"] if rid == "GR-1-p1" else [])
+        expect.equal(f"{path.name}: one copy, no refusal", (len(files), errs), (1, []))
+        for dest, text in files.items():
+            dest.write_text(text, encoding="utf-8", newline="\n")
+    expect.equal("each copy carries its place in the application order",
+                 [json.loads((folder / n).read_text(encoding="utf-8"))[M.APPLIED] for n in ("z-first.json", "a-second.json")],
+                 [1, 2])
+    expect.equal("recorded_moves follows them in that order, not the files' name order",
+                 M.recorded_moves(1985, repo),
+                 [[("GR-1-p1", "GR-1-p2", frozenset({"s-18"}))], [("GR-1-p2", "GR-1-p3", frozenset())]])
+    again, _ = M.tracked_copies([(second, [bc])], 1985, repo, lambda rid: [])
+    expect.equal("a batch applied again keeps its place", json.loads(next(iter(again.values())))[M.APPLIED], 2)
+    (folder / "b-hand.json").write_text(json.dumps({"batch": "hand", "records": [ab]}), encoding="utf-8", newline="\n")
+    try:
+        M.recorded_moves(1985, repo)
+        expect("a copy with no place raises", False)
+    except ValueError as e:
+        expect("a copy with no place raises", M.APPLIED in str(e))
+    (folder / "b-hand.json").write_text(json.dumps({"batch": "hand", M.APPLIED: 2, "records": [ab]}),
+                                        encoding="utf-8", newline="\n")
+    try:
+        M.recorded_moves(1985, repo)
+        expect("two copies at one place raise", False)
+    except ValueError as e:
+        expect("two copies at one place raise", "another copy's place" in str(e))
 
 if __name__ == "__main__":
     ensure_utf8()

@@ -63,6 +63,9 @@ MOVES_DIR = "docs/rearchitecture/spec-moves-{year}"
 #: and only these, read the moved rule under its old id (a slice imported after the move that names the old id means
 #: whatever rule holds that id then).
 READS = "reads"
+#: A tracked copy's field: its place (1, 2, ...) in the order the edition's batches were applied, which is the order a
+#: read record follows their moves in (`recorded_moves`; train-1985-b review R1-1). The writer assigns it (`tracked_copies`).
+APPLIED = "applied"
 
 Record = dict[str, Any]
 
@@ -89,7 +92,7 @@ def explains(split: Record, was: str | None, now: str | None) -> bool:
 def tracked_copies(batches: list[tuple[pathlib.Path, list[Record]]], year: int, repo: pathlib.Path,
                    reads_of: Callable[[str], list[str]]) -> tuple[dict[pathlib.Path, str], list[str]]:
     """The TRACKED COPY of each applied batch that holds a move or a split (kb/Work PB6002, PB6020):
-    `MOVES_DIR/<the batch file's name>`, holding the batch's moves and splits (`{"batch", "records"}`), each move with
+    `MOVES_DIR/<the batch file's name>`, holding the batch's moves and splits (`{"batch", "applied", "records"}`, `APPLIED` its place in the order of application), each move with
     the read records that read its old id now (`READS`, from `reads_of`). The WITNESS LOSS audit reads a split there to
     tell a parent a split withdrew from a hand edit (`audit_witness_loss.recorded_splits`), and the read records follow
     a move from there (`recorded_moves`, read by `lineage_reads.load`). The writer (`record_verdicts.py`) writes it in
@@ -100,6 +103,8 @@ def tracked_copies(batches: list[tuple[pathlib.Path, list[Record]]], year: int, 
     out: dict[pathlib.Path, str] = {}
     errs: list[str] = []
     folder = repo / MOVES_DIR.format(year=year)
+    sequence = _applied_sequence(folder)
+    following = max(sequence.values(), default=0) + 1
     for path, records in batches:
         ops = [{**r, READS: sorted(reads_of(r[MOVE_FROM]))} if is_move(r) else r for r in records if structural(r)]
         if not ops:
@@ -109,7 +114,13 @@ def tracked_copies(batches: list[tuple[pathlib.Path, list[Record]]], year: int, 
             continue
         raw = json.loads(path.read_text(encoding="utf-8"))
         label = raw.get("batch") if isinstance(raw, dict) and isinstance(raw.get("batch"), str) else path.stem
-        text = json.dumps({"batch": label, "records": ops}, indent=1, ensure_ascii=False) + "\n"
+        # A batch applied again keeps its place in the sequence (its copy is written again unchanged); a new one follows
+        # every batch applied before it, and the batches of one run follow one another in the order they are applied.
+        if dest.name in sequence:
+            applied = sequence[dest.name]
+        else:
+            applied, following = following, following + 1
+        text = json.dumps({"batch": label, APPLIED: applied, "records": ops}, indent=1, ensure_ascii=False) + "\n"
         if dest.exists() and dest.read_text(encoding="utf-8") != text:
             errs.append(f"{dest.relative_to(repo).as_posix()} already holds another batch: name {path} apart")
         elif dest in out and out[dest] != text:
@@ -120,18 +131,38 @@ def tracked_copies(batches: list[tuple[pathlib.Path, list[Record]]], year: int, 
 
 
 def recorded_moves(year: int, repo: pathlib.Path) -> list[list[tuple[str, str, frozenset[str]]]]:
-    """The moves of the edition's tracked copies (`MOVES_DIR`), one list per batch in the files' name order, each move
-    `(old id, new id, the slices that read the old id when it was applied)`. A batch's moves are SIMULTANEOUS (a
-    renumbering moves p4 to p3 and p5 to p4 at once), so a reader applies each batch's as one renaming, never chained."""
+    """The moves of the edition's tracked copies (`MOVES_DIR`), one list per batch in the order the batches were APPLIED
+    (each copy's `APPLIED`; never the files' name order, train-1985-b review R1-1: a later batch that moves B -> C, named so
+    that it sorts first, would be followed before the batch that moved A -> B, and a slice that read A would end at the gone
+    id B), each move `(old id, new id, the slices that read the old id when it was applied)`. A batch's moves are
+    SIMULTANEOUS (a renumbering moves p4 to p3 and p5 to p4 at once), so a reader applies each batch's as one renaming,
+    never chained."""
     folder = repo / MOVES_DIR.format(year=year)
+    sequence = _applied_sequence(folder)
     out = []
-    for path in sorted(folder.glob("*.json")) if folder.is_dir() else []:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+    for name in sorted(sequence, key=sequence.__getitem__):
+        raw = json.loads((folder / name).read_text(encoding="utf-8"))
         moves = [(r[MOVE_FROM], r["rule-id"], frozenset(r.get(READS, ())))
                  for r in (raw["records"] if isinstance(raw, dict) else raw) if is_move(r)]
         if moves:
             out.append(moves)
     return out
+
+
+def _applied_sequence(folder: pathlib.Path) -> dict[str, int]:
+    """{tracked copy's file name: its place in the order the batches were applied (`APPLIED`)}. A copy without one, or two
+    copies at one place, cannot be ordered, and a wrong order sends a read record to a gone id: it raises, never guesses."""
+    seq: dict[str, int] = {}
+    for path in sorted(folder.glob("*.json")) if folder.is_dir() else []:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        n = raw.get(APPLIED) if isinstance(raw, dict) else None
+        if not isinstance(n, int) or isinstance(n, bool) or n < 1:
+            raise ValueError(f"{path}: a tracked move/split copy carries '{APPLIED}', its place (1, 2, ...) in the order "
+                             "the batches were applied")
+        if n in seq.values():
+            raise ValueError(f"{path}: '{APPLIED}' {n} is another copy's place too")
+        seq[path.name] = n
+    return seq
 
 
 def structural(rec: Record) -> bool:
