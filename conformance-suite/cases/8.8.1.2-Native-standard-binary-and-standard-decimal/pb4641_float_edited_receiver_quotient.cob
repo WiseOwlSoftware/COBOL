@@ -6,7 +6,7 @@
       *> portable: unverified
       *>---
       *> kb/Work PB4641 review R1-1: a floating-point edited receiver
-      *> may carry a 1 to 36 digit significand (§2023:13.18.40.3 SR15; cite.py
+      *> may carry a 1 to 36 digit significand (PICTURE, §2023:13.18.40.3 SR15; cite.py
       *> OK), so the final-transfer SDIDI quotient must not be jammed
       *> to an odd 34th digit for it: the receiver would read the jam
       *> as exact. 2.0E0 / 9.0E0 = .2222... (non-terminating): a
