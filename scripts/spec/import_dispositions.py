@@ -16,7 +16,12 @@ disposition wins ("SR", "GR (definitional)", "restates <ids>", "not-a-rule <clas
 failure of the run (nothing is written):
   - a record whose key is no unit of the tree, unless `--skip` lists it (a key a re-segmentation retired);
   - a `--skip` key that IS a unit of the tree (skipping it would hide a unit), or that no record holds;
-  - a unit of the tree, pending or not, with no record (every unit is disposed, decision PB5448 point 3);
+  - a unit of the tree with no record and no STANDING entry (every unit is disposed, decision PB5448 point 3): a unit
+    an earlier import decided keeps the manifest's entry, with the refuter record that import committed, unless a slice
+    of this one holds its key (then the slice decides it again); a pending unit no slice holds is refused;
+  - a `restates` naming an id that is neither a row of the committed catalog nor a unit this import (or a standing
+    entry) disposes a row of that kind: a reader may name a row minted in THE SAME import (85w-05's p170 restates
+    1985-GR-III.2-p173, a row of its own slice), and the import is where that id can first be verified;
   - a `restates` or `not-a-rule` whose deciding slice holds no UPHELD refuter record of its digest: an OVERTURNED
     record correcting a row to `restates` is itself refuted in a later slice, or the unit stays out of nothing;
   - two refuter records of one unit in one slice that disagree.
@@ -33,6 +38,10 @@ on the tree now (the label it was read under kept as `unit_read` when a re-segme
 
     python scripts/spec/import_dispositions.py --edition 1985 --records <dir> --slices 85u-01,...,85x-02 \\
         --skip <skip.json> --blocks 85b-01 [--write]
+    python scripts/spec/import_dispositions.py --edition 1985 --records <dir> [--records <dir> ...] \\
+        --slices 85w-01,...,85y-02 [--write]          # a later campaign: the earlier imports' entries stand
+A slice is read from the first `--records` directory holding its `<slice>.json` (a later campaign's corrections are
+refuted in a slice of their own, which may live in another directory).
     Its cases: scripts/selftests/spec/import_dispositions/test_import_dispositions.py
 """
 from __future__ import annotations
@@ -65,6 +74,7 @@ class Outcome:
     entries: dict[str, dict[tuple[str, int], dict]]
     records: dict[str, list[dict]]
     refusals: list[str]
+    standing: set[Key] = dataclasses.field(default_factory=set)   # the units whose earlier entry stands
 
 
 def load(path: pathlib.Path) -> list[dict]:
@@ -94,12 +104,17 @@ def corrected(rec: dict) -> dict:
 
 
 def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str, list[dict], list[dict]]],
-           skip: list[dict], path_of, row_id=None) -> Outcome:
+           skip: list[dict], path_of, row_id=None, standing: dict[Key, dict] | None = None,
+           catalog_ids: set[str] | None = None) -> Outcome:
     """THE IMPORT, pure: `units` is the tree's units by clause, each (label, digest, order); `slices` the campaign's
     slices in precedence order, each (name, reader records, refuter records); `skip` the keys never imported, each
     {clause, unit, digest, order, file}; `path_of(slice)` the committed refuter file's repository path; `row_id(kind,
-    clause, label)` spells the edition's row id, which resolves a `restates` chain (`_resolve_chains`)."""
+    clause, label)` spells the edition's row id, which resolves a `restates` chain (`_resolve_chains`); `standing` the
+    manifest's decided entries by key (an earlier import's: each stands for its unit when no slice holds the key);
+    `catalog_ids` the committed catalog's row ids, against which (with the rows this import disposes) every `restates`
+    id is verified (None: not verified)."""
     out = Outcome({}, {}, [])
+    standing = standing or {}
     label_of = {(c, d, o): lab for c, us in units.items() for lab, d, o in us}
     skipped = {(s["clause"], s["unit"], s["digest"], s["order"], s.get("file")) for s in skip}
     final: dict[Key, tuple[str, dict]] = {}
@@ -128,6 +143,10 @@ def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str,
         for label, dg, order in us:
             k = (clause, dg, order)
             if k not in final:
+                if (kept := standing.get(k)) is not None and kept.get("disposition") != text_units.PENDING:
+                    out.entries.setdefault(clause, {})[dg, order] = dict(kept)
+                    out.standing.add(k)
+                    continue
                 out.refusals.append(f"{clause} {label}: a unit of the tree with no record (digest {dg})")
                 continue
             name, r = final[k]
@@ -161,7 +180,7 @@ def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str,
                 entry["refuted"] = path_of(name)
             out.entries.setdefault(clause, {})[dg, order] = entry
     if row_id is not None:
-        _resolve_chains(out, row_id)
+        _resolve_chains(out, row_id, catalog_ids)
     for (name, clause, dg), rec in refuted.items():
         label = next((lab for (c, d, _o), lab in label_of.items() if c == clause and d == dg), None)
         if label is None:
@@ -173,11 +192,13 @@ def decide(units: dict[str, list[tuple[str, str, int]]], slices: list[tuple[str,
     return out
 
 
-def _resolve_chains(out: Outcome, row_id) -> None:
+def _resolve_chains(out: Outcome, row_id, catalog_ids: set[str] | None = None) -> None:
     """A `restates` naming the row of a unit this import disposes: when that unit is a row of the named kind, the id
     stands; when the unit is itself `restates`, its rules stand in its place (`restates` read transitively: the unit
     states the same requirement as one that states the same requirement as they do, kb/Work PB5452), the replaced id
-    kept as `restated_via`; any other disposition of the named unit is refused."""
+    kept as `restated_via`; any other disposition of the named unit is refused. With `catalog_ids`, an id that is no
+    unit's row here and no row of the catalog is refused: the rows the mint will make are exactly the catalog's and
+    this import's, so a `restates` of a row of the same import is verified here, where its id first exists."""
     by_id = {row_id(k, clause, e["unit"]): (k, e) for clause, es in out.entries.items() for e in es.values()
              for k in text_units.ROW_KINDS}
     for clause, es in out.entries.items():
@@ -190,7 +211,11 @@ def _resolve_chains(out: Outcome, row_id) -> None:
                 changed, nxt = False, []
                 for r in rules:
                     kind, t = by_id.get(r, (None, None))
-                    if t is None or t["disposition"] == kind:
+                    if t is None and catalog_ids is not None and r not in catalog_ids:
+                        out.refusals.append(f"{clause} {e['unit']}: restates {r}, which is no row of the catalog "
+                                            "and no unit this import disposes a row")
+                        nxt.append(r)
+                    elif t is None or t["disposition"] == kind:
                         nxt.append(r)
                     elif t["disposition"] == text_units.RESTATES and r not in via:
                         via.append(r)
@@ -242,7 +267,8 @@ def _write_jsonl(path: pathlib.Path, records: list[dict]) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--edition", type=int, required=True, choices=sorted(INTO))
-    ap.add_argument("--records", type=pathlib.Path, required=True, help="the campaign's records directory")
+    ap.add_argument("--records", type=pathlib.Path, required=True, action="append",
+                    help="a campaign's records directory (repeatable: a slice is read from the first holding it)")
     ap.add_argument("--slices", required=True, help="the slices, comma-separated, in precedence order (later wins)")
     ap.add_argument("--skip", type=pathlib.Path, help="JSON list of the record keys never imported")
     ap.add_argument("--blocks", help="the slice of the not-rules blocks' refuter records")
@@ -255,8 +281,11 @@ def main() -> int:
     tree = {c: [(u.label, u.digest, o) for u, o in text_units.keyed(us)] for c, us in units.items()}
     slices = []
     for name in args.slices.split(","):
-        reader = args.records / f"{name}.json"
-        refs = [p for p in (args.records / f"{name}-refute.json", args.records / f"{name}-refute.jsonl") if p.exists()]
+        home = next((d for d in args.records if (d / f"{name}.json").exists()), None)
+        if home is None:
+            sys.exit(f"slice {name}: no {name}.json in " + ", ".join(map(str, args.records)))
+        reader = home / f"{name}.json"
+        refs = [p for p in (home / f"{name}-refute.json", home / f"{name}-refute.jsonl") if p.exists()]
         seen, refuters = set(), []
         for p in refs:
             for r in load(p):
@@ -267,21 +296,28 @@ def main() -> int:
     skip = json.loads(args.skip.read_text(encoding="utf-8")) if args.skip else []
     into = INTO[args.edition]
     import rule_catalog_1985  # noqa: PLC0415
-    outcome = decide(tree, slices, skip, lambda name: f"{into}/{name}-refute.jsonl", rule_catalog_1985.unit_rule_id)
     manifest = erc.UNHARVESTED_OF[args.edition]
     raw = json.loads(manifest.read_text(encoding="utf-8"))
+    standing = {(c, e["digest"], e.get("order", 0)): e for c, es in text_units.entries_of(raw[erc.PARAGRAPH_BLOCKS]).items()
+                for e in es}
+    catalog_ids = {r["id"] for r in json.loads(erc.catalog_path(args.edition).read_text(encoding="utf-8"))["rules"]}
+    outcome = decide(tree, slices, skip, lambda name: f"{into}/{name}-refute.jsonl", rule_catalog_1985.unit_rule_id,
+                     standing, catalog_ids)
     block_records: list[dict] = []
     if args.blocks:
         raw["blocks"], block_records, refused = refute_blocks(
-            raw["blocks"], cat.unharvested, load(args.records / f"{args.blocks}-refute.jsonl"),
+            raw["blocks"], cat.unharvested, load(args.records[0] / f"{args.blocks}-refute.jsonl"),
             f"{into}/{args.blocks}-refute.jsonl")
         outcome.refusals += refused
     counts: dict[str, int] = {}
-    for es in outcome.entries.values():
-        for e in es.values():
+    for clause, es in outcome.entries.items():
+        for (dg, order), e in es.items():
+            if (clause, dg, order) in outcome.standing:
+                continue
             tag = e["disposition"] + (f" ({e['class']})" if e.get("class") else "")
             counts[tag] = counts.get(tag, 0) + 1
-    print(f"{sum(len(es) for es in outcome.entries.values())} units disposed: "
+    print(f"{sum(len(es) for es in outcome.entries.values()) - len(outcome.standing)} units disposed "
+          f"({len(outcome.standing)} earlier entries stand): "
           + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
     print(f"blocks: {sum(r['outcome'] == text_units.UPHELD for r in block_records)} not-rules upheld, "
           f"{sum(r['outcome'] != text_units.UPHELD for r in block_records)} overturned (pending)")
