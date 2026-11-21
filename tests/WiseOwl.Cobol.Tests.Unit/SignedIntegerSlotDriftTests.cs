@@ -44,7 +44,9 @@ public sealed class SignedIntegerSlotDriftTests
         string src = Body(System.IO.Path.Combine(GrammarDir(), "Core", "CobolExpressions.g4"));
         var m = Regex.Match(src, @"^\s*integerLiteral\s*:(?<body>.*?);", RegexOptions.Multiline | RegexOptions.Singleline);
         Assert.True(m.Success, "the integerLiteral rule is gone from Core/CobolExpressions.g4 — this guard is blind");
-        string body = m.Groups["body"].Value.Trim();
+        // The left-edge predicate that keeps the next entry's level-number out of every integer operand (kb/Work PB6011,
+        // AreaAOpeningDriftTests) is no part of the shape: it admits no token, so it is set aside before the shape is read.
+        string body = Regex.Replace(m.Groups["body"].Value, @"\{[^{}]*\}\?", string.Empty).Trim();
         Assert.Equal("INTEGERLIT", body);
         Assert.DoesNotContain("PLUS", body);
         Assert.DoesNotContain("MINUS", body);
