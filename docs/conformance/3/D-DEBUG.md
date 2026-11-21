@@ -63,8 +63,10 @@
   correct program is formed with or without the debugging lines being considered as comment lines" (COBOL7061: a program that
   parses with its debugging lines as source is parsed again with them hidden, and reported at the last debugging line before the
   first syntax error of that parse; and, from kb/Work PB5466, the converse: a program that parses with the lines of a unit
-  WITHOUT the mode as comment lines is parsed again with their text exposed as source, a hidden USE FOR DEBUGGING section with it,
-  and reported the same way. The rule reads "with or without" and refuses neither side's program, so each parse is asked, and
+  WITHOUT the mode as comment lines is read again with those lines as source (kb/Work PB5990: their carriers blanked, the text
+  lexed and parsed again and put through the same token and operator screens source text gets, so an unterminated literal, a
+  missing separator or an operator's spacing on a hidden debugging line is found too), and reported the same way, by one
+  reporter for both directions. The rule reads "with or without" and refuses neither side's program, so each parse is asked, and
   the 1985 text gives no reason to refuse one program form and accept the other). Both are 1985 rules and bind below COBOL-2002 only: the later editions carry the facility as
   obsolete or removed (the edition windows above). Witnesses:
   `conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5214-debugging-line-copy-no-mode`,

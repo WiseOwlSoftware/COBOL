@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
@@ -37,7 +38,7 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// text is decides whether the text moves the lexer's own mode (a <c>)</c> that closes the subscript, the PICTURE
 /// string that ends PICMODE), so the region modes skip the text and leave a
 /// <see cref="CobolLexer.DEBUG_LINE_IN_REGION"/> marker. <see cref="Rewrite"/> then names the FIRST such line whose unit
-/// declares the mode, and the frontend blanks that line's carrier (<see cref="WithCarrierBlanked"/>) and lexes the text
+/// declares the mode, and the frontend blanks that line's carrier (<see cref="WithCarriersBlanked"/>) and lexes the text
 /// again: the line is plain source the second time. Only the first, because every later token of the first lex came
 /// from a lexer that skipped a line which is in fact source, so a decision about a LATER line read off those tokens may
 /// be wrong; the tokens up to and including the first kept line are exact (an earlier region line was a comment, and a
@@ -51,19 +52,22 @@ public static class DebuggingLineRewriter
     /// Must run before every other rewriter and every reader of the token list, and after
     /// <see cref="CommonTokenStream.Fill"/>.
     /// <para>Returns the first debugging line INSIDE A PICTURE OR SUBSCRIPT REGION that is source — the lexer skipped
-    /// its text, so the caller must blank its carrier and lex again (<see cref="WithCarrierBlanked"/>), then call this
+    /// its text, so the caller must blank its carrier and lex again (<see cref="WithCarriersBlanked"/>), then call this
     /// again — or <see langword="null"/> when there is none, which is when the token stream is final.</para>
     /// <para>When <paramref name="sourceLines"/> is given, the marker of every other debugging line the stream keeps as
     /// SOURCE is added to it (kb/Work PB2490): the lines the caller may still have to diagnose, because a source line is
     /// not a comment line and the logical conversion passed it over as one. The list is that of THIS stream — the final
     /// one's is complete apart from the region lines the caller blanked on the way.</para>
+    /// <para>When <paramref name="hiddenLines"/> is given, the marker of every debugging line this pass makes COMMENT is added to it
+    /// (kb/Work PB5990): the lines of a unit without the mode, which the caller reads as source once more to show the program they
+    /// would form (§1985:VI.7.3, "with or without"). Region lines are among them; <see cref="WithCarriersBlanked"/> turns any marker into source text.</para>
     /// <para>When <paramref name="commentLines"/> is given, the line of the text (the lexer's, 1-based) of every line this pass
     /// makes comment is added to it (kb/Work PB5588): each hidden debugging line, and each line of a hidden debugging section,
     /// "compiled as if they were comment lines" (§1985:VI.4.3.4 GR5, §1985:XV.2.1.3 GR2). The lexer skips a floating comment, so
     /// no token says what a comment line held; a reader of the TEXT that must not judge a comment line (the COBOL-85 gate of
     /// <c>*&gt;</c>, <c>SurvivingFloatingComments</c>) asks this set, the one place that decides it.</para></summary>
     public static IToken? Rewrite(CommonTokenStream tokenStream, List<IToken>? sourceLines = null, List<IToken>? misplacedLines = null,
-        bool debuggingSectionsAreComments = false, HashSet<int>? commentLines = null)
+        bool debuggingSectionsAreComments = false, HashSet<int>? commentLines = null, List<IToken>? hiddenLines = null)
     {
         tokenStream.Fill();
         var tokens = tokenStream.GetTokens();
@@ -78,6 +82,7 @@ public static class DebuggingLineRewriter
         var misplaced = new List<int>();                     // the lines that stand where no debugging line may (token indices)
         var keptSource = new List<int>();                    // the other lines that are source (token indices)
         var comment = commentLines ?? [];                    // the text lines this pass makes comment
+        var hidden = new List<int>();                        // the lines that are comment (token indices)
         int nextLine = 0;
         for (int v = 0; v < visible.Count; v++)
         {
@@ -95,7 +100,7 @@ public static class DebuggingLineRewriter
                         : new UnitFrame(inheritedMode: false));
                     break;
                 case CobolLexer.END when v + 1 < visible.Count && IsUnitKind(tokens[visible[v + 1]].Type):
-                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment);
+                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment, hidden);
                     break;
                 case CobolLexer.DECLARATIVES when debuggingSectionsAreComments && units.Count > 0
                     && v + 1 < visible.Count && tokens[visible[v + 1]].Type == CobolLexer.DOT
@@ -116,31 +121,44 @@ public static class DebuggingLineRewriter
             }
         }
         while (nextLine < lines.Count) (units.Count > 0 ? units.Peek() : outside).Lines.Add(lines[nextLine++]);
-        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment);
-        Resolve(tokens, outside, kept, keptSource, misplaced, comment);
+        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment, hidden);
+        Resolve(tokens, outside, kept, keptSource, misplaced, comment, hidden);
         tokenStream.Seek(0);
         sourceLines?.AddRange(keptSource.Select(i => tokens[i]));
         misplacedLines?.AddRange(misplaced.Order().Select(i => tokens[i]));
+        hiddenLines?.AddRange(hidden.Order().Select(i => tokens[i]));
         return kept.Count == 0 ? null : tokens[kept.Min()];
     }
 
-    /// <summary>The text with the carrier of <paramref name="regionLine"/> (a <see cref="CobolLexer.DEBUG_LINE_IN_REGION"/>
-    /// marker <see cref="Rewrite"/> returned) replaced by as many spaces, so the line becomes plain source at the same
-    /// columns and every line, column and offset after it is unchanged. The marker's text starts with the carrier.</summary>
-    public static string WithCarrierBlanked(string text, IToken regionLine)
+    /// <summary>The text with the carrier of every one of <paramref name="lines"/> (a <see cref="CobolLexer.DEBUG_LINE_IN_REGION"/>
+    /// marker <see cref="Rewrite"/> returned, or any <see cref="CobolLexer.DEBUG_LINE"/> marker it kept or hid) replaced by as many
+    /// spaces, so each line becomes plain source at the same columns and every line, column and offset is unchanged. A marker's
+    /// text starts with the carrier. A carrier already blank is left as it stands: <paramref name="text"/> may be one this method
+    /// has already worked on.</summary>
+    public static string WithCarriersBlanked(string text, IEnumerable<IToken> lines)
     {
         string carrier = WiseOwl.Cobol.Frontend.Preprocessor.ReferenceFormatProcessor.DebugLineCarrier;
-        int at = regionLine.StartIndex;
-        if (regionLine.Type != CobolLexer.DEBUG_LINE_IN_REGION
-            || string.CompareOrdinal(text, at, carrier, 0, carrier.Length) != 0)
-            throw new InvalidOperationException(
-                $"DebuggingLineRewriter.WithCarrierBlanked: line {regionLine.Line} is not a skipped region debugging line whose carrier stands at offset {at}");
-        return string.Concat(text.AsSpan(0, at), new string(' ', carrier.Length), text.AsSpan(at + carrier.Length));
+        char[]? blanked = null;
+        foreach (var line in lines)
+        {
+            int at = line.StartIndex;
+            if (line.Type is not (CobolLexer.DEBUG_LINE_IN_REGION or CobolLexer.DEBUG_LINE))
+                throw new InvalidOperationException($"DebuggingLineRewriter.WithCarriersBlanked: line {line.Line} is not a debugging line marker");
+            if (string.CompareOrdinal(text, at, carrier, 0, carrier.Length) != 0)
+            {
+                if (CobolSpace.IsBlank(text.AsSpan(at, carrier.Length))) continue;
+                throw new InvalidOperationException(
+                    $"DebuggingLineRewriter.WithCarriersBlanked: line {line.Line} has no debugging-line carrier at offset {at}");
+            }
+            blanked ??= text.ToCharArray();
+            blanked.AsSpan(at, carrier.Length).Fill(' ');
+        }
+        return blanked is null ? text : new string(blanked);
     }
 
     /// <summary>Hide every debugging line, as a comment: the reading of a re-lexed FRAGMENT of source text
     /// (<see cref="FragmentParse"/>), whose text is a slice of the text the main lexer finally read. A debugging line that
-    /// is SOURCE had its carrier blanked before that lex (<see cref="WithCarrierBlanked"/>), so the carriers that remain
+    /// is SOURCE had its carrier blanked before that lex (<see cref="WithCarriersBlanked"/>), so the carriers that remain
     /// in the slice are exactly the lines that are comments — the one reading both lexes of the text agree on.</summary>
     public static void HideAll(CommonTokenStream tokenStream)
     {
@@ -269,7 +287,7 @@ public static class DebuggingLineRewriter
     }
 
     private static void Resolve(IList<IToken> tokens, UnitFrame unit, List<int> keptRegionLines, List<int> keptSourceLines,
-        List<int> misplacedLines, HashSet<int> commentLines)
+        List<int> misplacedLines, HashSet<int> commentLines, List<int> hiddenLines)
     {
         if (!unit.Mode)
             foreach (var (first, last, lastLine) in unit.DebuggingSections)
@@ -294,6 +312,7 @@ public static class DebuggingLineRewriter
         {
             Hide(tokens, line);
             commentLines.Add(tokens[line.Start].Line);
+            hiddenLines.Add(line.Start);
         }
     }
 

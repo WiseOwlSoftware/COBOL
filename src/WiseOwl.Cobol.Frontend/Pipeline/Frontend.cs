@@ -561,29 +561,30 @@ public sealed class Frontend
         // stream) and the final stream's own (kb/Work PB2490).
         var sourceDebuggingLines = new List<IToken>();
         var misplacedDebuggingLines = new List<IToken>();   // the final stream's own (§1985:VI.7.3)
+        var hiddenDebuggingLines = new List<IToken>();      // the final stream's debugging lines that are comment (§1985:VI.7.3, kb/Work PB5990)
         var commentLines = new HashSet<int>();   // the text lines the final stream makes comment (kb/Work PB5588)
         LexerErrorListener lexErrors;
         // Where the final lexer met each inline comment, for the source listing only (kb/Work PB5949).
         List<(int Line, int Column)>? commentStarts;
         while (true)
         {
-            var lexer = new CobolLexer(new AntlrInputStream(text));
+            var lexer = NewLexer(text, retypes, edition);
             lexer.CommentStarts = commentStarts = RecordsListing ? [] : null;
-            retypes.PrimeLexer(lexer, edition);
             lexErrors = LexerErrorListener.AttachTo(lexer);
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
             misplacedDebuggingLines.Clear();
+            hiddenDebuggingLines.Clear();
             commentLines.Clear();
             if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
                     debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002),
-                    commentLines: commentLines) is not { } sourceRegionLine)
+                    commentLines: commentLines, hiddenLines: hiddenDebuggingLines) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;
             }
             sourceDebuggingLines.Add(sourceRegionLine);
-            text = DebuggingLineRewriter.WithCarrierBlanked(text, sourceRegionLine);
+            text = DebuggingLineRewriter.WithCarriersBlanked(text, [sourceRegionLine]);
         }
         // The COBOL-85 `*>` gate reports after this stage (Parse), yet its error keeps the binder from running like any prior
         // error, so the word-character screen below must know of it now (kb/Work PB5588, review R1-1).
@@ -607,17 +608,8 @@ public sealed class Frontend
         var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts, edition);
         // ISO §2023:6.3.5 1) / §2023:6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
         // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
-        LiteralScreen.ReportUnterminated(tokens.GetTokens(), edition, (t, descriptor, message) =>
-            sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, $"[{descriptor.Code}] {message}", null!));
-        foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens.GetTokens()))
-            sr7.SyntaxError(TextWriter.Null, null!, pic, pic.Line, pic.Column,
-                $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic, edition)}", null!);
-        // ISO §2023:8.3.5 rules 2, 3 and 5 — the separator context of every comma, semicolon, period and literal, decided from
-        // the same characters and reported the same way (kb/Work PB1394). Hidden-channel tokens included: a ';' with no
-        // space after it reaches the token stream only there.
-        foreach (var v in SeparatorRule.Violations(text, tokens.GetTokens(), edition))
-            sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
-                $"[{v.Descriptor.Code}] {v.Message}", null!);
+        ReportTokenScreens(text, tokens.GetTokens(), edition,
+            (t, message) => sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, message, null!));
 
         // The parser needs the map as well as the lexer and the rewriter: its text predicates (LOCALE, ORDER,
         // CLASSIFICATION, ATTRIBUTE, the LC_ categories) recognize §2023:8.9/§2023:8.10 words the lexer deliberately does
@@ -650,14 +642,8 @@ public sealed class Frontend
         // ISO §2023:8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
         // (kb/Work PB2017). The two operator clauses that need no tree (§2023:8.7.3, §2023:8.7.4) were asked with the rest above.
-        foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree, edition))
-            sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
-                $"[{v.Descriptor.Code}] {v.Message}", null!);
-        // §1985:VI.6.3.1.1 / §1985:VI.6.3.2 — the relational operators' and the logical connectives' separator context, the same way,
-        // at the editions that state it (kb/Work PB5989).
-        foreach (var v in SeparatorRule.ConditionOperatorViolations(text, tree, edition))
-            sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
-                $"[{v.Descriptor.Code}] {v.Message}", null!);
+        ReportArithmeticOperatorScreen(text, tree, edition,
+            (t, message) => sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, message, null!));
 
         // ISO §2023:8.3.2.1 / §2023:8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced. The binder driver
         // screens the words of a tree it binds, but it does not run on a compilation whose frontend reported ANY error
@@ -691,6 +677,10 @@ public sealed class Frontend
             if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any)
                 ReportDebuggingLinesBreakingTheProgram(tokens.GetTokens(), sourceDebuggingLines, retypes, edition, cobolWordsMap,
                     sourcePath, cuts, diagnostics);
+            if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any && hiddenDebuggingLines.Count > 0)
+                ReportDebuggingLinesBreakingTheProgramAsSource(text, sourceDebuggingLines,
+                    hiddenDebuggingLines.Where(h => misplacedDebuggingLines.All(m => m.Line != h.Line)).ToList(), retypes, edition,
+                    cobolWordsMap, sourcePath, cuts, diagnostics);
         }
 
         // The source listing's classes of the text (DESIGN-listing.md section 7.2): the final stream, as the parse read it, at the
@@ -712,16 +702,11 @@ public sealed class Frontend
 
     /// <summary>§1985:VI.7.3: "The content of a debugging line must be such that a syntactically correct program is formed with or
     /// without the debugging lines being considered as comment lines." The stream parsed clean as it stands, so ONE direction holds;
-    /// the other is parsed here from a copy, and a program that no longer parses is COBOL7061 at the last debugging line before
-    /// the first syntax error (the one whose change left what the error found), or at the first when none precedes it (kb/Work
-    /// PB5212, PB5466).
-    /// <list type="bullet">
-    /// <item>The lines <paramref name="sourceLines"/> are source (their unit declares WITH DEBUGGING MODE): the program is parsed
-    /// again with them HIDDEN, as comment lines.</item>
-    /// <item>A line the rewriter left as a COMMENT (a unit without the mode; its marker on the absent-line channel): the program is
-    /// parsed again with the text of every such line EXPOSED, as source. A hidden USE FOR DEBUGGING section is exposed with them,
-    /// because the mode that makes a debugging line source makes the section source too. A debugging line inside a PICTURE or
-    /// subscript region is not here: the lexer skipped its text, so the unit's own mode decided it (kb/Work PB1913).</item></list></summary>
+    /// the other is parsed here (this method: the lines <paramref name="sourceLines"/> are source, their unit declares WITH
+    /// DEBUGGING MODE, and the program is parsed again with them HIDDEN as comment lines; <see cref="ReportDebuggingLinesBreakingTheProgramAsSource"/>:
+    /// the lines of a unit without the mode, read as source). A program that no longer parses is COBOL7061 at the last debugging line
+    /// before the first syntax error (the one whose change left what the error found), or at the first when none precedes it
+    /// (kb/Work PB5212, PB5466, PB5990).</summary>
     private void ReportDebuggingLinesBreakingTheProgram(IList<IToken> tokens, List<IToken> sourceLines, TokenRetypes retypes,
         EditionInfo edition, CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts, DiagnosticBag diagnostics)
     {
@@ -732,29 +717,92 @@ public sealed class Frontend
                 && t.Channel == TokenConstants.DefaultChannel
                 ? new CommonToken(t) { Channel = CobolLexer.ABSENT_DEBUG_LINE }
                 : t).ToList();
-            ReportIfDebuggingLinesBreak(ParseCopyOf(hidden, retypes, edition, cobolWordsMap, sourcePath, cuts), sourceLines, sourcePath, diagnostics);
-        }
-        var commentLines = tokens.Where(t => t.Type == CobolLexer.DEBUG_LINE && t.Channel == CobolLexer.ABSENT_DEBUG_LINE).ToList();
-        if (commentLines.Count > 0)
-        {
-            var exposed = tokens.Select(t => t.Channel == CobolLexer.ABSENT_DEBUG_LINE
-                && t.Type is not (CobolLexer.DEBUG_LINE or CobolLexer.DEBUG_LINE_IN_REGION)
-                ? new CommonToken(t) { Channel = TokenConstants.DefaultChannel }
-                : t).ToList();
-            ReportIfDebuggingLinesBreak(ParseCopyOf(exposed, retypes, edition, cobolWordsMap, sourcePath, cuts), commentLines, sourcePath, diagnostics);
+            var verdict = ParseCopyOf(hidden, retypes, edition, cobolWordsMap, sourcePath, cuts);
+            ReportIfDebuggingLinesBreak(verdict.Clean, verdict.Offender?.Line ?? int.MaxValue, sourceLines, sourcePath, diagnostics);
         }
     }
 
     /// <summary>COBOL7061 for a debugging-line direction whose parse failed: at the last of <paramref name="lines"/> at or before the
     /// first syntax error, else at the first line.</summary>
-    private void ReportIfDebuggingLinesBreak((bool Clean, IToken? Offender) verdict, List<IToken> lines, string sourcePath,
+    private void ReportIfDebuggingLinesBreak(bool clean, int errorLine, List<IToken> lines, string sourcePath,
         DiagnosticBag diagnostics)
     {
-        if (verdict.Clean) return;
-        int errorLine = verdict.Offender?.Line ?? int.MaxValue;
+        if (clean) return;
         var at = lines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? lines.MinBy(t => t.Line)!;
         var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineSyntaxBothWays;
         diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);
+    }
+
+    /// <summary>The syntax rules decided from the token stream and its text, before any parse: a literal its line ends inside
+    /// (§2023:6.3.5 1) / §2023:6.4.2, kb/Work PB3245) FIRST, the PICTURE separator period and the §2023:8.3.5 separator contexts
+    /// (kb/Work PB1394). ONE pipeline: the main parse and the as-source reading of a hidden debugging line (kb/Work PB5990) both
+    /// run it, so a refusal that applies to source applies to a debugging line taken as source.</summary>
+    private static void ReportTokenScreens(string text, IList<IToken> tokens, EditionInfo edition, Action<IToken, string> report)
+    {
+        LiteralScreen.ReportUnterminated(tokens, edition, (t, descriptor, message) =>
+            report(t, $"[{descriptor.Code}] {message}"));
+        foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens))
+            report(pic, $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic, edition)}");
+        // Hidden-channel tokens included: a ';' with no space after it reaches the token stream only there.
+        foreach (var v in SeparatorRule.Violations(text, tokens, edition))
+            report(v.Token, $"[{v.Descriptor.Code}] {v.Message}");
+    }
+
+    /// <summary>The §2023:8.7.1 arithmetic operators' own separator context, decided from the characters beside each operator the
+    /// PARSE TREE found (kb/Work PB2017), and the §1985:VI.6.3 condition operators' (kb/Work PB5989). The tree-level twin of <see cref="ReportTokenScreens"/>, run by the main parse and by the
+    /// as-source reading of a hidden debugging line (kb/Work PB5990).</summary>
+    private static void ReportArithmeticOperatorScreen(string text, CobolParserCore.CompilationUnitContext tree, EditionInfo edition,
+        Action<IToken, string> report)
+    {
+        foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree, edition))
+            report(v.Token, $"[{v.Descriptor.Code}] {v.Message}");
+        // §1985:VI.6.3.1.1 / §1985:VI.6.3.2 — the relational operators' and the logical connectives' separator context, the same
+        // way, at the editions that state it (kb/Work PB5989).
+        foreach (var v in SeparatorRule.ConditionOperatorViolations(text, tree, edition))
+            report(v.Token, $"[{v.Descriptor.Code}] {v.Message}");
+    }
+
+    /// <summary>The ONE place a text gets its lexer: primed with the group's synonyms, the de-reserved words and the edition's
+    /// spellings (<see cref="TokenRetypes.PrimeLexer"/>) before any tokenization.</summary>
+    private static CobolLexer NewLexer(string text, TokenRetypes retypes, EditionInfo edition)
+    {
+        var lexer = new CobolLexer(new AntlrInputStream(text));
+        retypes.PrimeLexer(lexer, edition);
+        return lexer;
+    }
+
+    /// <summary>§1985:VI.7.3, the other direction of "with or without" (kb/Work PB5990): the stream parsed clean with the
+    /// <paramref name="hiddenLines"/> (the debugging lines of a unit without WITH DEBUGGING MODE, which are comment lines) as
+    /// they stand; here <paramref name="text"/> is lexed again with every debugging line SOURCE
+    /// (<see cref="DebuggingLineRewriter.WithCarriersBlanked"/>), and a program that no longer parses is COBOL7061 at the last
+    /// hidden line before the first syntax error, or at the first when none precedes it. A source that holds an embedded
+    /// precompiler block is not asked: its parse is not the program's.</summary>
+    private void ReportDebuggingLinesBreakingTheProgramAsSource(string text, List<IToken> sourceLines, List<IToken> hiddenLines,
+        TokenRetypes retypes, EditionInfo edition, CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts,
+        DiagnosticBag diagnostics)
+    {
+        if (hiddenLines.Count == 0) return;   // every hidden line was a misplaced one, which COBOL7060 reports already
+        var asSourceText = DebuggingLineRewriter.WithCarriersBlanked(text, sourceLines.Concat(hiddenLines));
+        var lexer = NewLexer(asSourceText, retypes, edition);
+        var lexErrors = LexerErrorListener.AttachTo(lexer);
+        var asSource = new CommonTokenStream(lexer);
+        DebuggingLineRewriter.Rewrite(asSource,
+            debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002));
+        ZeroTokenRewriter.Rewrite(asSource);
+        retypes.Rewrite(asSource);
+        if (EmbeddedBlockReading.Read(asSource, () => ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts).Clean).Any)
+            return;
+        // The screens source text gets, into a bag nothing reads: any error is a source-level refusal the line's being source causes.
+        // Only an error ON a hidden line is that line's doing: one on a plain line is the program's own, reported by the main
+        // pass, and must not blame a valid debugging line (review R2-2).
+        var hiddenOn = hiddenLines.Select(t => t.Line).ToHashSet();
+        int screenLine = lexErrors.FirstLineWhere(hiddenOn.Contains) ?? int.MaxValue;
+        void Note(IToken t, string _) { if (hiddenOn.Contains(t.Line)) screenLine = Math.Min(screenLine, t.Line); }
+        ReportTokenScreens(asSourceText, asSource.GetTokens(), edition, Note);
+        var verdict = ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts);
+        ReportArithmeticOperatorScreen(asSourceText, verdict.Tree, edition, Note);
+        ReportIfDebuggingLinesBreak(verdict.Clean && screenLine == int.MaxValue,
+            Math.Min(screenLine, verdict.Offender?.Line ?? int.MaxValue), hiddenLines, sourcePath, diagnostics);
     }
 
     /// <summary>The whole-group parser of <paramref name="tokens"/>: the ONE place the driver hands it the edition (both axes) and
@@ -765,7 +813,7 @@ public sealed class Frontend
     /// <summary>Does the token list parse with no syntax error as it stands, and where is its first one? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
     /// EXEC only the grammar can classify (kb/Work PB4381): one whole parse, the gate's loop included, of a COPY of the
     /// stream (the loop retypes the tokens it is handed) into a bag nothing reads.</summary>
-    private (bool Clean, IToken? Offender) ParseCopyOf(IList<IToken> tokens, TokenRetypes retypes, EditionInfo edition,
+    private (bool Clean, IToken? Offender, CobolParserCore.CompilationUnitContext Tree) ParseCopyOf(IList<IToken> tokens, TokenRetypes retypes, EditionInfo edition,
         CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts)
     {
         var copy = new CommonTokenStream(new ListTokenSource(tokens.Select(t => (IToken)new CommonToken(t)).ToList()));
@@ -774,12 +822,12 @@ public sealed class Frontend
         copy.Fill();
         var parser = NewParser(copy, edition, cobolWordsMap);
         var first = new FirstOffender();
-        ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(), (bag, witness) =>
+        var tree = ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(), (bag, witness) =>
         {
             first.Offender = null;   // only the last pass of the gate's loop describes the stream
             return ParsePass(parser, copy, bag, new Tee(witness, first), sourcePath, cuts, edition);
         });
-        return (parser.NumberOfSyntaxErrors == 0, first.Offender);
+        return (parser.NumberOfSyntaxErrors == 0, first.Offender, tree);
     }
 
     /// <summary>Remembers the offending token of the first syntax error of a pass.</summary>
