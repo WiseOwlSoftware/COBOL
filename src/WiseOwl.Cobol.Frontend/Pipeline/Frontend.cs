@@ -589,8 +589,13 @@ public sealed class Frontend
         }
         // A USE FOR DEBUGGING section the mode makes comment is still a use of the obsolete Debug module (§1985:C.1 item 18): no
         // parse or bind sees it, so the one place that knows of it says so (kb/Work PB5986).
-        if (hiddenDebuggingSections.Count > 0 && LineMap.Origin(hiddenDebuggingSections[0].Line) is { } hiddenAt)
-            gates.OnHiddenDebuggingSection(hiddenAt.File, hiddenAt.Line, hiddenDebuggingSections[0].Column);
+        // The header's RESULTANT position goes through the map's one conversion: a fixed-form resultant line has lost the sequence
+        // and indicator areas, so its raw column is not the physical one (kb/Work PB5986, review R1-1).
+        if (hiddenDebuggingSections.Count > 0 && LineMap.Origin(hiddenDebuggingSections[0].Line) is not null)
+        {
+            var hiddenAt = LineMap.Locate(hiddenDebuggingSections[0].Line, hiddenDebuggingSections[0].Column, sourcePath);
+            gates.OnHiddenDebuggingSection(hiddenAt.FileName, hiddenAt.Line + 1, hiddenAt.Column);
+        }
         // The COBOL-85 `*>` gate reports after this stage (Parse), yet its error keeps the binder from running like any prior
         // error, so the word-character screen below must know of it now (kb/Work PB5588, review R1-1).
         priorErrors |= gates.HasProgramTextFloatingComment(commentLines);

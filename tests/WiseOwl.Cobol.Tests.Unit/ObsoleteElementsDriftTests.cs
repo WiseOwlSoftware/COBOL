@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol;
 using WiseOwl.Cobol.Editions;
 using Xunit;
 
@@ -28,6 +29,32 @@ public sealed class ObsoleteElementsDriftTests
         foreach (var row in ObsoleteIn1985())
             Assert.True(row.Citation.Contains("§1985:C.1 item", StringComparison.Ordinal),
                 $"{row.Id} is obsolete at 85 but its citation names no item of §1985:C.1: {row.Citation}");
+    }
+
+    [Fact]
+    public void AHiddenUseForDebuggingSection_IsReportedAtItsPhysicalColumn_NotTheResultantOne()
+    {
+        // §1985:C.1 item 18: the section the mode makes comment is still a use of the Debug module. Its COBOL0903 sits where the
+        // reader sees the section header: line 11, column 8 of the fixed-form source (kb/Work PB5986, review R1-1).
+        string source = string.Join('\n',
+            "       IDENTIFICATION DIVISION.", "       PROGRAM-ID. OUTR.", "       PROCEDURE DIVISION.", "       M0.",
+            "           CALL \"INNR\".", "           STOP RUN.", "       IDENTIFICATION DIVISION.", "       PROGRAM-ID. INNR.",
+            "       PROCEDURE DIVISION.", "       DECLARATIVES.", "       DBG-SEC SECTION.",
+            "           USE FOR DEBUGGING ON ALL PROCEDURES.", "       DBG-PARA.", "           DISPLAY \"DBG\".",
+            "       END DECLARATIVES.", "       MAIN SECTION.", "       M1.", "           DISPLAY \"IN\".",
+            "           EXIT PROGRAM.", "       END PROGRAM INNR.", "       END PROGRAM OUTR.") + "\n";
+        string dir = Path.Combine(Path.GetTempPath(), "obs85-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string src = Path.Combine(dir, "hidden.cob");
+            File.WriteAllText(src, source);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 85,
+                SourceFormat: WiseOwl.Cobol.Frontend.Preprocessor.InitialReferenceFormat.Fixed));
+            string warning = Assert.Single(r.Warnings, w => w.Contains("COBOL0903", StringComparison.Ordinal));
+            Assert.Contains("hidden.cob(11,8)", warning, StringComparison.Ordinal);
+        }
+        finally { Directory.Delete(dir, recursive: true); }
     }
 
     [Fact]
