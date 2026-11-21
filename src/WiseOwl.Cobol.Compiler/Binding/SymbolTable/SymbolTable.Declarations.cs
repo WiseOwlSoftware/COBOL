@@ -180,10 +180,11 @@ public sealed partial class SymbolTable
         /// way hidden name the nearer data item, and their refusal says so.</summary>
         public DeclarationFact? RecordNameHiddenBy(string name)
         {
-            foreach (var (record, file) in _data.State.Inherited.RecordAreas)
+            foreach (var record in _data.State.Inherited.RecordAreas.Keys)
             {
                 if (record.CobolName is not { } recordName || Key(recordName) != Key(name)) continue;
-                int depth = _data.State.Inherited.FileDepth(file);
+                // The record's own containment distance (a GLOBAL record under a non-GLOBAL FD has no file depth, §2023:13.18.27.3 SR1 b)).
+                int depth = _data.State.Inherited.DataRoots.First(r => ReferenceEquals(r.Root, record)).Depth;
                 return _table.NearestInNameSet(name, [], NameSetClass.All) is { } hider && hider.Depth < depth ? hider : null;
             }
             return null;
