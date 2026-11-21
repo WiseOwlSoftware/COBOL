@@ -96,8 +96,9 @@ public sealed class EditionCitationTests
         Assert.Contains("COBOL0802", error, StringComparison.Ordinal);
     }
 
-    /// <summary>kb/Work PB5905: a literal written as SOURCE-COMPUTER's computer-name reads as an unrecognized paragraph
-    /// (COBOL1971), which heads no area-A item, so no area-A message (COBOL3734) joins it.</summary>
+    /// <summary>kb/Work PB5905, PB5920: a literal written as SOURCE-COMPUTER's computer-name reads as an unrecognized paragraph,
+    /// which heads no area-A item, so no area-A message (COBOL3734) joins it, and it is refused as what the user wrote, a
+    /// computer-name that is no system-name (COBOL7654), not as "a paragraph of the CONFIGURATION SECTION" (COBOL1971).</summary>
     [Fact]
     public void LiteralComputerName_At85_IsOneVerdict()
     {
@@ -111,7 +112,9 @@ public sealed class EditionCitationTests
         var (ok, errors) = EditionHarness.Compile(source, 85);
         Assert.False(ok);
         string error = Assert.Single(errors);
-        Assert.Contains("COBOL1971", error, StringComparison.Ordinal);
+        Assert.Contains("COBOL7654", error, StringComparison.Ordinal);
+        Assert.Contains("computer-name-1 stands", error, StringComparison.Ordinal);
+        Assert.Contains("§1985:VI.4.3.3 SR1", error, StringComparison.Ordinal);
     }
 
     /// <summary>kb/Work PB5906: LINAGE-COUNTER OF a file of the containing program that is not GLOBAL names a file this program

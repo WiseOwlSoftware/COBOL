@@ -1963,6 +1963,13 @@ joined the table the same way, which is the table doing its job: a tenth format 
   refusal used to live in `DataBinder.BindEntry`, which the level-66 and level-88 paths return before, so
   `88 CN WIBBLE VALUE 1.` dropped the word in silence — measured on the pre-change build, where only
   COBOL1747 fired. Four of the other formats bind nothing at all by construction.
+- **THE COMPUTER-NAME SLOT (kb/Work PB5920).** A run that opens right after the header of a SOURCE-COMPUTER or
+  OBJECT-COMPUTER paragraph that wrote no name is the computer-name written as something that is none (a literal or a number: a
+  computer-name is a system-name, a COBOL word, §1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1, §2023:8.3.2.3.1). The grammar meets it as the
+  next configuration paragraph after SOURCE-COMPUTER (COBOL1971's row) and as the first clause of OBJECT-COMPUTER (COBOL1970's),
+  so neither row's sentence is true of what the user wrote. `ClosedFormats.ComputerNameSlotOf` is the ONE reading of the slot and
+  `ClosedFormatPass.Refuse` reports COBOL7654 instead, at every edition. A RESERVED word in the slot (`OBJECT-COMPUTER. GLOBAL.`) is
+  met by the parse layer's own site and keeps the row's wording.
 - **ONE drift guard.** `ClosedFormatDriftTests` reads the generated parser's ATN (the word run's pieces are called
   only by the two forms; each list writes the form its follow set calls for — the data form exactly where INTEGERLIT
   may begin what follows the list's period, derived from the ATN, not listed; `numericLiteralCore`'s shapes are
