@@ -245,13 +245,21 @@ internal sealed class StatementValidation(DataBinder data)
                                  bool admitsReportFile, string? statementRule)
     {
         string name = written.GetText();
+        string nameWritten = DataBinder.WrittenText(written);
         file = data.Symbols.Identify(written, NameClass.File, report: true)?.Symbol as FileModel;
         if (file is not null)
             return admitsReportFile || ScreenReportFileReference(file, verb, statementRule);
+        // §1985:X.1.3.8.2 GR3a: a nearer declaration of the spelling (this program's own data item) hides a container's GLOBAL file, and
+        // then a SELECT of a containing program DOES give the name — the refusal says what the word names here instead (kb/Work PB5980).
+        var hider = data.Symbols.Declared.FileNameHiddenBy(name);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
-            $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
-            + "or file description entry in this source element gives that name, so the statement's reference "
-            + $"identifies no resource ({data.Edition.Edition.Quoted()}). Check the spelling, or add the file to the FILE-CONTROL paragraph.");
+            $"'{nameWritten}' is not defined as a file — {verb} names file-name-1 in its general format, and "
+            + (hider is null
+                ? "no SELECT or file description entry in this source element gives that name"
+                : NameResolution.HidingClause(hider.Value, nameWritten, "file-name", data.Edition.Edition))
+            + ", so the statement's reference "
+            + $"identifies no resource ({data.Edition.Edition.Quoted()}). "
+            + (hider is null ? "Check the spelling, or add the file to the FILE-CONTROL paragraph." : "Rename one of the two declarations."));
         return false;
     }
 
@@ -904,7 +912,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <returns>The table identifier-1 names with the subscripts it wrote, or null after reporting when the statement cannot bind.</returns>
     public ReferenceResolver.TableOperand? ResolveSearchTable(Core.DataReferenceContext dref, string verb, ReferenceResolver refs)
     {
-        string written = dref.GetText();
+        string written = DataBinder.WrittenText(dref);
         if (refs.ResolveTableOperand(dref) is not { } operand)
         {
             // A name identifying no item is already reported (COBOL1639 — §2023:8.4.2.1 "In order to use a

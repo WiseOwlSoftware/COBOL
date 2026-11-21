@@ -155,7 +155,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // is stored (§1985:VI.6.11.4 GR4; kb/Work PB5386), like every arithmetic receiver.
             if (host.Expr.ResolveReceivingAtStore(rem.receivingIdentifier()) is not { } r0
                 || host.Expr.ScreenResultant(r0, rem.receivingIdentifier(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2")) is not { } r)
-                return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.receivingIdentifier().GetText()}'");
+                return new BoundUnsupported($"DIVIDE REMAINDER receiver '{DataBinder.WrittenText(rem.receivingIdentifier())}'");
             ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients, CompositeMembers.ReceivingItems85);
             ctx.Data.Procedure.ClaimInterleavedReceiver(r);   // the quotient was claimed with the other Receivers (ExpressionBinder.ReceiverOf)
             return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
@@ -385,7 +385,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // ordinary boolean one and needs no exclusion.)
             var cat = p is RefModPlace rm ? rm.Category : p.Item.OperandPic?.Category;
             if (cat is not PicCategory.Boolean)
-                ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"the receiver '{store.receivingIdentifier().GetText()}' of a boolean "
+                ctx.Edition.Error(DiagnosticCatalog.BooleanExpressionRule, $"the receiver '{DataBinder.WrittenText(store.receivingIdentifier())}' of a boolean "
                     + "COMPUTE shall be an elementary boolean item (ISO §2023:14.9.8.3 Format 2 SR2)");
             targets.Add(p);
         }

@@ -17,7 +17,7 @@ public sealed partial class SymbolTable
     /// null when none does, which the header reports. The header is the reference itself, so its occurrence is recorded.</summary>
     internal DataItem? IdentifyHeaderOperand(IEnumerable<DataItem> linkageRoots, Core.DataReferenceContext written)
     {
-        var key = Key(written.GetText());
+        var key = Key(DataBinder.WrittenText(written));
         var item = linkageRoots.FirstOrDefault(r => r.CobolName is { } n && Key(n) == key);
         if (item is not null) RecordData(item, written, report: true);
         return item;

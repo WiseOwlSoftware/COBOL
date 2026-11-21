@@ -1116,7 +1116,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 continue;
             }
             if (mustBeName)
-                return Malformed($"argument-3 '{argCtxs[2].GetText().Trim()}' is not an ordering-name declared in an "
+                return Malformed($"argument-3 '{DataBinder.WrittenText(argCtxs[2]).Trim()}' is not an ordering-name declared in an "
                     + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
                     + "§2023:15.85.2 general format's third position IS ordering-name-1 (ISO §2023:15.85.3 r5; §2023:15.3 "
                     + "argument type 12)"
@@ -1182,7 +1182,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 "LOCALE-TIME" => "ISO §2023:15.53.3 r4 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
                 _ => "ISO §2023:15.54.3 r2 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
             };
-            string site = $"FUNCTION {sig.Name}'s locale-name-1 '{a.GetText().Trim()}'";
+            string site = $"FUNCTION {sig.Name}'s locale-name-1 '{DataBinder.WrittenText(a).Trim()}'";
             if (KeywordWordOf(a) is { } word)
             {
                 var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(a)!, word, site, rule);
@@ -1236,7 +1236,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         else
         {
             ctx.Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"FUNCTION {sig.Name}'s LOCALE phrase: the word after LOCALE shall be a locale-name declared by a "
-                + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{argCtxs[2].GetText().Trim()}'");
+                + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{DataBinder.WrittenText(argCtxs[2]).Trim()}'");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
         var operands = new List<BoundOperand> { operand };
@@ -3276,8 +3276,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (host.Expr.NonNumericLiteralOperand(nn) is { } op) return op;
         // The F18 sibling one shape over (kb/Work R19): the null fallback was a silent runtime stage too.
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentNotAValue,
-            $"the literal '{nn.GetText()}' is not a form this intrinsic-argument position admits (ISO §2023:15.3)");
-        return BoundOperandError.Refused(ctx.Edition, $"literal argument '{nn.GetText()}'");
+            $"the literal '{DataBinder.WrittenText(nn)}' is not a form this intrinsic-argument position admits (ISO §2023:15.3)");
+        return BoundOperandError.Refused(ctx.Edition, $"literal argument '{DataBinder.WrittenText(nn)}'");
     }
 
     /// <summary>The word <see cref="KeywordWordOf"/> reads, as written: the argument's phrase word or its sole unqualified data

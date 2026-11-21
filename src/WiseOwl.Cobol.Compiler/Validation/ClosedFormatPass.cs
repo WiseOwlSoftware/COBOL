@@ -202,9 +202,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// <summary>The first words of a clause as the programmer wrote them (at most 32 characters), to name it in the message.</summary>
     private static string WrittenOpening(ParserRuleContext clause)
     {
-        string text = clause.Start?.InputStream is { } chars && clause.Stop is { } stop
-            ? chars.GetText(new Antlr4.Runtime.Misc.Interval(clause.Start.StartIndex, stop.StopIndex))
-            : clause.GetText();
+        string text = WrittenSource.Of(clause);
         text = string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         return text.Length <= 32 ? text : text[..32] + "…";
     }
@@ -227,7 +225,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
         var format = ClosedFormats.Of(ctx.Parent?.GetType());
         // The drift test makes a missing row impossible; refuse anyway rather than return silently, because a
         // silent return here is precisely the defect this pass exists to end.
-        string word = ctx.GetChild(0) is ParserRuleContext opening ? WrittenSource.Of(opening) : ctx.GetText();
+        string word = ctx.GetChild(0) is ParserRuleContext opening ? WrittenSource.Of(opening) : WrittenSource.Of(ctx);
         if (format is null)
         {
             _edition.Error(DiagnosticCatalog.ClosedFormatUnrecognizedClause,

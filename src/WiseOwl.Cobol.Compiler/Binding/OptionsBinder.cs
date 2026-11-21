@@ -235,7 +235,7 @@ internal static class OptionsBinder
                 : lit.GetText();
             // A figurative constant reaches literal-1 only when it is NOT one of the clause's four fill keywords as
             // printed — the singular spellings (kb/Work PB510): the diagnostic names the keyword it missed.
-            return LiteralFill(sections, raw, $"literal {raw}", lit.nonNumericLiteral()?.figurativeConstant() is not null, edition);
+            return LiteralFill(sections, raw, $"literal {DataBinder.WrittenText(lit)}", lit.nonNumericLiteral()?.figurativeConstant() is not null, edition);
         }
         OptionsFill kind =
             fill.BINARY() is not null ? OptionsFill.BinaryZeroes

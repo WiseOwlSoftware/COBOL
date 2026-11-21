@@ -1223,9 +1223,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     {
         if (ctx.Symbols.Identify(word, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype proto) return proto;
         string name = word.GetText();
+        string nameWritten = DataBinder.WrittenText(word);
         if (ctx.Symbols.IsRefusedProgramReference(name, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
         ctx.Edition.Error(DiagnosticCatalog.ProgramPrototypeUndeclared,
-            $"{verb} {name}: '{name}' is not a program prototype — {ctx.Symbols.WhyNoPrototype(name)}{alsoNot}");
+            $"{verb} {nameWritten}: '{nameWritten}' is not a program prototype — {ctx.Symbols.WhyNoPrototype(name)}{alsoNot}");
         return null;
     }
 

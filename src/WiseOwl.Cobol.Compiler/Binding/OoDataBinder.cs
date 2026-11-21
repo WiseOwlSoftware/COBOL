@@ -245,6 +245,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
         DiagnosticDescriptor interfacePhrase, string interfaceRule)
     {
         string name = written.GetText();
+        string nameWritten = DataBinder.WrittenText(written);
         // A TYPED reference (spine part 2 — LIVE): the declared name must resolve — its emitted C# field type
         // IS the named class's or interface's emitted type (PicInfo.ClrType), so an unresolved name would
         // surface as a Roslyn CS0246 on user source (a loud-failure violation). §2023:13.18.60.2: the operand is
@@ -268,7 +269,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             // The general format's interface-name-1 alternative is the BARE name: FACTORY OF and ONLY belong to
             // the object-class-name-1 alternative alone, and GR22 c) states the interface reading with no
             // subordinate rules at all ("the object referenced by this data item shall implement interface-1").
-            Edition.Error(interfacePhrase, $"{where} names the interface '{name}' with "
+            Edition.Error(interfacePhrase, $"{where} names the interface '{nameWritten}' with "
                 + (factory && only ? "the FACTORY OF and ONLY phrases" : factory ? "the FACTORY OF phrase" : "the ONLY phrase")
                 + " — those phrases belong to the object-class-name-1 alternative of the general format; the "
                 + $"interface-name-1 alternative carries neither ({interfaceRule})");
@@ -400,7 +401,7 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
                 optional = rb.OPTIONAL() is not null;
             }
             else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
-            string pname = dref.GetText();
+            string pname = DataBinder.WrittenText(dref);
             var item = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, dref);
             if (item is null)
                 Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
@@ -429,10 +430,10 @@ internal sealed class OoDataBinder(DataBinder data, OoUnitRole? role)
             using var returningAt = Edition.At(rref);   // the RETURNING item's own position, as each USING parameter's (kb/Work PB2034)
             m.Binding!.Returning = data.Symbols.IdentifyHeaderOperand(m.Binding!.LinkageRoots, rref);
             if (m.Binding!.Returning is null)
-                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
+                Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot, $"{where}: PROCEDURE DIVISION RETURNING item '{DataBinder.WrittenText(rref)}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §2023:14.2.2 SR1)");
             else
-                header.CheckReturning(rref.GetText(), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
+                header.CheckReturning(DataBinder.WrittenText(rref), m.Binding!.Returning);   // SR5 / SR6 — SR6 was mis-cited "SR4" here
         }
         ScreenPropertyMethodHeader(m, definition, pd?.usingClause()?.usingParameter().Length ?? 0,
             m.Owner is { } owner ? $"class '{owner.Name}'{(m.IsFactory ? " (FACTORY)" : "")}: " : "");

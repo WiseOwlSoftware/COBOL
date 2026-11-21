@@ -438,7 +438,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         : nn.HEXLIT() is { } x ? new(PicCategory.Alphanumeric, CobolLiteral.DecodeHex(x.GetText()))
         : nn.NATLIT() is { } nat ? new(PicCategory.National, CobolLiteral.Decode(nat.GetText()))
         : nn.BOOLLIT() is { } b ? new ConcatFolder.Folded(PicCategory.Boolean, CobolLiteral.Decode(b.GetText()))
-        : throw new InvalidOperationException($"{where}: nonNumericLiteral alternative '{nn.GetText()}' has no "
+        : throw new InvalidOperationException($"{where}: nonNumericLiteral alternative '{DataBinder.WrittenText(nn)}' has no "
             + "decoding — the grammar rule grew an arm this decoder does not read");
 
     /// <summary>The arithmetic-expression AS form. §2023:13.10.3 SR1 first: an operand that is a SINGLE numeric

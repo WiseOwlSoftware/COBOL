@@ -225,7 +225,7 @@ internal sealed partial class EcBinder
     private FileModel? ResolveWhenFile(Antlr4.Runtime.ParserRuleContext written)
     {
         if (ctx.Symbols.Identify(written, NameClass.File, report: true) is { Symbol: FileModel file }) return file;
-        string name = written.GetText();
+        string name = DataBinder.WrittenText(written);
         ctx.Edition.Error(DiagnosticCatalog.PerformWhenFileUnknown, $"WHEN names unknown file '{name}' (ISO §2023:14.9.28.2 Format 3)");
         return null;
     }

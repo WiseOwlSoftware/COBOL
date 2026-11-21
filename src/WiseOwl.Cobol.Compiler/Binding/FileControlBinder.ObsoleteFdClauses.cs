@@ -83,7 +83,7 @@ public sealed partial class FileControlBinder
             var form = WiseOwl.Cobol.CodeGen.FigurativeConstants.Classify(fig.GetText(), includeNull: false);
             return form.Kind is { } kind ? $"F:{kind}"
                 : form.AllLiteral is { } all ? "ALL:" + Classed(CobolLiteral.ClassOf(all), CobolLiteral.Decode(all))
-                : "F:" + CobolNames.UpperFold(fig.GetText());   // ALL symbolic-character / constant-name: named, compared by name
+                : "F:" + CobolNames.UpperFold(DataBinder.WrittenText(fig));   // ALL symbolic-character / constant-name: named, compared by name
         }
         if (nn.concatenationExpression() is { } ce)
         {

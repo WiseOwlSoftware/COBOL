@@ -199,7 +199,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         var op = ce.comparisonOperator();
         return IsEqualTo(op)
             ? null
-            : $"the relational operator '{op?.GetText() ?? "?"}' where Format 2 prints IS EQUAL TO";
+            : $"the relational operator '{DataBinder.WrittenTextOr(op, "?")}' where Format 2 prints IS EQUAL TO";
     }
 
     /// <summary>The "equal to" relational operator of ISO §2023:8.8.4.2.2, in any of its spellings — the ONE operator
@@ -366,7 +366,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // asked of the diagnostic-free fold so ConcatFolder's own reporting does not run a second time here.
         if (operand.valueOperand()?.nonNumericLiteral() is { } nn)
             return !IsZeroLengthLiteral(nn) || Sending(table,
-                $"the sending operand {nn.GetText()} is a zero-length literal; "
+                $"the sending operand {DataBinder.WrittenText(nn)} is a zero-length literal; "
                 + data.Edition.Edition.Cite(
                     "a nonnumeric literal has \"1 through 160 characters in length\", so none is zero-length (ISO §1985:IV.4.2.2.2.1)",
                     $"\"neither literal-1 nor literal-2 shall be zero-length literals\" (ISO {Rule("SR13")})"));
@@ -381,7 +381,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             // SR12's identifier arm — only a SOLE identifier is identifier-3/-4; the identifiers INSIDE an
             // arithmetic expression are named by SR10 alone and SR12 does not reach them.
             if (item is { } si && VariableLengthCompatibility.IsVariableLength(si))
-                ok &= Sending(table, $"'{sole.GetText()}' specifies a variable-length group; identifier-3 and "
+                ok &= Sending(table, $"'{DataBinder.WrittenText(sole)}' specifies a variable-length group; identifier-3 and "
                     + $"identifier-4 \"shall not specify a variable-length group\" (ISO {Rule("SR12")})");
             return ok;
         }

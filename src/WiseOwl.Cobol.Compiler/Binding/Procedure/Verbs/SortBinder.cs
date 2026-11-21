@@ -498,7 +498,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindRelease(Core.ReleaseStatementContext rel)
     {
         if (rel.dataReference() is not { } rn)
-            return new BoundUnsupported($"RELEASE record '{rel.dataReference()?.GetText()}' (unresolvable record-name)");
+            return new BoundUnsupported($"RELEASE record '{DataBinder.WrittenTextOr(rel.dataReference(), "")}' (unresolvable record-name)");
         if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } record)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         // ⛔ SR1 IS A SYNTAX RULE AND IS DECIDED HERE, NOT AT RUN TIME (kb/Work PB236, row SR-14.9.32.3-1).
@@ -511,7 +511,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // ResolveRecordName's, held in common with WRITE §2023:14.9.51.3 SR5 and REWRITE §2023:14.9.35.3 SR1 (and it is
         // what rejects `RELEASE SR-DATA` and `RELEASE SRT-REC(1:3)`); "in a SORT-MERGE file description entry"
         // is RELEASE's alone, and CheckReleaseRecord asks it of a reference that already IS a logical record.
-        if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "RELEASE",
+        if (!ctx.Validation.ResolveRecordName(record, DataBinder.WrittenText(rn), "RELEASE",
                 ctx.Edition.Edition.Cite("record-name-1 \"must be the name of a logical record in a sort-merge file description entry and it may be qualified\" "
                         + "(ISO §1985:XI.4.2.3 SR1)",
                     "record-name-1 \"shall be the name of a logical record in a sort-merge file description entry and it may be qualified\" "
@@ -520,7 +520,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 + "containing program, the file shall not be referenced directly or indirectly by any input-output "
                 + "statements in any contained program\"", out var file))
             return BoundRejected.Reported(ctx.Edition);
-        if (!ctx.Validation.CheckReleaseRecord(file, rn.GetText())) return BoundRejected.Reported(ctx.Edition);
+        if (!ctx.Validation.CheckReleaseRecord(file, DataBinder.WrittenText(rn))) return BoundRejected.Reported(ctx.Edition);
         // RELEASE ... FROM is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.32.4 GR4 a); kb/Work PB348), so
         // §2023:14.9.32.3 SR2 (the function-identifier class), SR3 (valid as a MOVE sending operand with
         // record-name-1 as the receiver) and SR4 (no zero-length literal-1) are applied HERE, at bind time,

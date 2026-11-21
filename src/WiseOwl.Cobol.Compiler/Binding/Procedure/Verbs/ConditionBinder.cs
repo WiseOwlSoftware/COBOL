@@ -1187,16 +1187,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         System.Func<BoundOperand> operand)
     {
         string word = written.GetText();
+        string wordWritten = DataBinder.WrittenText(written);
         // §2023:8.8.4.4.3 SR2 — "Alphabet-name-1 shall not reference an alphabet associated with a locale": a LOCALE
         // alphabet is a collating sequence, not a coded character set (Table 6), so it names no character set a
         // class condition could test membership of (kb/Work PB64 T5; the same rule family as §2023:12.3.7.3 SR16g/SR17d
         // — SpecialNamesBinder.IsLocaleAlphabet is the one predicate, over BOTH classes of alphabet).
         if (ctx.Data.SpecialNames.IsLocaleAlphabet(word))
         {
-            ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{word}': "
+            ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{wordWritten}': "
                 + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §2023:8.8.4.4.3 SR2) — "
                 + "an ALPHABET … IS LOCALE defines a collating sequence, not a coded character set (§2023:12.3.7.4 GR7 Table 6)");
-            return Refused($"class condition '{word}'");
+            return Refused($"class condition '{wordWritten}'");
         }
         // A SPECIAL-NAMES user-defined class (§2023:12.3.7): membership over the expanded character set.
         if (ctx.Symbols.Identify(written, NameClass.ClassName, report: true)?.Symbol is UserClassDef userClass)
@@ -1218,7 +1219,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // statement (kb/Work PB4485).
             using (ctx.Edition.At(written))
                 ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.ClassConditionAlphabetName2002,
-                    $"the class condition testing the alphabet-name '{word}'");
+                    $"the class condition testing the alphabet-name '{wordWritten}'");
             var opnd = operand();
             // ⛔ ITS OWN KIND, NOT THE CLASS-NAME'S. SR3 names alphabet-name-1 beside class-name-1, but SR4 —
             // "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified if the
@@ -1243,10 +1244,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // NotImplementedCobolFeatureException "class condition 'NOSUCHCLASS'". Measured on this worktree
         // before the change, at 2023 and (for the COBOL-85 spelling of BOOLEAN, which is an ordinary user word
         // below 2002) at 85.
-        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, $"class condition '{word}': the word names "
+        ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, $"class condition '{wordWritten}': the word names "
             + "neither an alphabet-name nor a class-name declared in the SPECIAL-NAMES paragraph — the class "
             + $"condition's only user-defined-word alternatives (ISO §2023:8.8.4.4.2; {ctx.Edition.Edition.QuotedDash()})");
-        return Refused($"class condition '{word}'");
+        return Refused($"class condition '{wordWritten}'");
     }
 
     /// <summary>⛔ THE ONE sign-condition body (ISO §2023:8.8.4.7), over an operand node the CALLER names — the written
@@ -1285,7 +1286,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             // be true in the invoked method"), so its own formals are the ones searched, never the containing
             // unit's; elsewhere the program/function formals are. Either way the test renders the formal's ONE
             // presence fact (OmittedProbe): spelled, trailing and GR1c-transitive omission all arrive there.
-            string fname = operands.Length >= 1 ? operands[0].GetText().Trim() : "";
+            string fname = operands.Length >= 1 ? DataBinder.WrittenText(operands[0]).Trim() : "";
             OmittedProbe? formal = operands.Length >= 1 ? ctx.Symbols.FormalSpelled(operands[0], ctx.CurrentMethodScope?.Formals) : null;
             if (formal is null)
             {

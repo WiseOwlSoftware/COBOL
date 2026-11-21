@@ -99,7 +99,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // parse error pointing at ATTRIBUTE rather than a named refusal naming the facility.
         if (set.setScreenAttributeStatement() is { } sat)
         {
-            ScreenFacility.ReportSetAttribute(ctx.Edition, sat.dataReference().GetText());
+            ScreenFacility.ReportSetAttribute(ctx.Edition, DataBinder.WrittenText(sat.dataReference()));
             return BoundRejected.Reported(ctx.Edition);
         }
         if (set.setLastExceptionStatement() is not null) return host.Ec.BindSetLastException();   // F13 (ISO §2023:14.9.39; 2002+)
@@ -167,7 +167,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (host.Expr.ResolveReceiving(dref) is not { } place)
                 return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
-            string name = place.Item.CobolName ?? dref.GetText();
+            string name = place.Item.CobolName ?? DataBinder.WrittenText(dref);
             var pic = place.Item.Pic;
 
             if (farthest || nearest)
@@ -362,7 +362,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundSetLocale(categories, false, user ? LocaleSetSource.UserDefault : LocaleSetSource.SystemDefault, null, null);
         }
         var to = source.dataReference();
-        string toText = to.GetText();
+        string toText = DataBinder.WrittenText(to);
         // A bare word that is a declared locale-name (SR26): §2023:8.3.2.2 keeps the two name types apart within one
         // source element. A locale-name a CONTAINING element declares yields to the referring element's own item of
         // the same spelling — "a source element's reference to such a name, even when it is a different type of
@@ -534,7 +534,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             var senderRestriction = StrongTypeModel.PointerRestriction(sp.Item);
             for (int i = 0; i < targets.Count; i++)
             {
-                if (!host.Ptr.ScreenPointerReceiverRestriction(targets[i], targetRefs[i].GetText(),
+                if (!host.Ptr.ScreenPointerReceiverRestriction(targets[i], DataBinder.WrittenText(targetRefs[i]),
                         senderRestriction, sender.Text, addressSender: false))
                     return BoundRejected.Reported(ctx.Edition);
             }
@@ -870,7 +870,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             return new BoundSetFunctionAddress(targets, idName.Literal, idName.Place, expectedFormals);
         }
         var operand = fai.dataReference();
-        string word = operand.GetText();
+        string word = DataBinder.WrittenText(operand);
         // The PROTOTYPE arm (§2023:8.4.3.12.3 SR2 + §2023:8.4.6.6): a REPOSITORY function-specifier, or the containing
         // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves, through the
         // symbol table's one lookup (a function-prototype-name is one word: a qualified or subscripted operand is no such name).
@@ -1019,7 +1019,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // no rule the program broke (kb/Work PB1030).
         if (host.Expr.ResolveSending(se.dataReference()) is var entryAnswer && entryAnswer.Place is not { } namePlace)
             return entryAnswer.Refusal(ctx.Edition);
-        return RestrictedReceiverRefusesEntry(targets, written, se.dataReference().GetText())
+        return RestrictedReceiverRefusesEntry(targets, written, DataBinder.WrittenText(se.dataReference()))
             ? BoundRejected.Reported(ctx.Edition)
             : new BoundSetEntry(targets, null, namePlace);
     }
@@ -1137,7 +1137,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
         string senderWhat = operand.NamePlace is null
             ? $"literal \"{operand.NameLiteral}\""
-            : $"identifier '{operandRef?.GetText() ?? DataBinder.WrittenText((ParserRuleContext?)pai.functionCall() ?? pai.inlineMethodInvocation()!)}'";
+            : $"identifier '{DataBinder.WrittenText(operandRef ?? (ParserRuleContext?)pai.functionCall() ?? pai.inlineMethodInvocation()!)}'";
         return RestrictedReceiverNeedsPrototype(targets, $"SET {written} TO ADDRESS OF PROGRAM {senderWhat}",
                 "only the program-prototype-name-1 arm of a program-address-identifier is itself restricted "
                 + "(ISO §2023:8.4.3.13.4 GR3); an unrestricted sender is associated with no program-prototype, so the two "
@@ -1176,7 +1176,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 : null;
 
         var operandRef = pai.dataReference();
-        string word = operandRef.GetText();
+        string word = DataBinder.WrittenText(operandRef);
         // ── ARM 3: program-prototype-name-1 (§2023:8.4.3.13.3 SR3) — GR2's EXTERNALIZED program-name, never the
         //    source word (kb/Work PB303). ──
         if (ctx.Symbols.Identify(operandRef, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype proto)
@@ -1467,20 +1467,25 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (t is not SetPlaceTarget { Place: var p }) return true;   // index-name-1 — GR2 a) admits every sender
         if (!OperandClassScreen.Screen(ctx.Edition, OperandPositions.SetIndexAssignmentReceiver, p, text)) return false;
         bool indexReceiver = (OperandClassScreen.ClassesOf(p) & OperandClasses.IndexDataItem) != 0;
-        string? rule = (indexReceiver, sender) switch
+        // The rule each pairing breaks, per edition (§1985:VI.6.23.4 GR5's table names the general rule of each "No": an index data
+        // item receiver is GR3b's, an integer data item receiver GR3c's); a later edition's wording is one more Cite argument.
+        (string Later, string Y1985)? rule = (indexReceiver, sender) switch
         {
             (true, IndexAssignmentSender.ArithmeticExpression) =>
-                "SR3: \"If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be "
-                + "specified\"",
+                ("§2023:14.9.39.3 SR3: \"If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be "
+                    + "specified\"",
+                 "§1985:VI.6.23.4 GR3b: \"If identifier-1 references an index data item, it may be set equal to either the content of "
+                    + "index-name-2 or identifier-2 where identifier-2 also references an index data item\" (GR5's table: no integer "
+                    + "literal or integer data item may be sent to an index data item)"),
             (false, IndexAssignmentSender.ArithmeticExpression or IndexAssignmentSender.IndexDataItem) =>
-                "SR4: \"If identifier-1 references a numeric data item, index-name-2 shall be specified\"",
+                ("§2023:14.9.39.3 SR4: \"If identifier-1 references a numeric data item, index-name-2 shall be specified\"",
+                 "§1985:VI.6.23.4 GR3c: \"If identifier-1 does not reference an index data item, it may be set only to an occurrence "
+                    + "number that corresponds to the value of index-name-2. Neither identifier-2 nor integer-1 can be used in this case.\""),
             _ => null,
         };
-        if (rule is null) return true;
+        if (rule is not { } broken) return true;
         ctx.Edition.Removed(DiagnosticCatalog.SetIndexAssignmentOperand.Code,
-            $"SET '{text}' TO '{senderText}' violates ISO "
-            + ctx.Edition.Edition.Cite("§1985:VI.6.23.3 SR2 — \"Identifier-1 and identifier-2 must each reference an index data item or an elementary item described as an integer\", and the format sends only index-name-2, identifier-2 or integer-1",
-                $"§2023:14.9.39.3 {rule}"));
+            $"SET '{text}' TO '{senderText}' violates ISO " + ctx.Edition.Edition.Cite(broken.Y1985, broken.Later));
         return ctx.Edition.Permissive;
     }
 

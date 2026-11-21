@@ -181,10 +181,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // The call sits BEFORE the `file.IsSequential` reroute, so the RELATIVE and INDEXED arms are under
         // the rule too and not just this file's sequential one (feedback_two_arm_dispatch).
         if (w.recordName()?.dataReference() is not { } rn)
-            return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText()}' not resolvable to a file");
+            return new BoundUnsupported($"WRITE record '{DataBinder.WrittenTextOr(w.recordName(), "")}' not resolvable to a file");
         if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } resolved)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
-        if (!ctx.Validation.ResolveRecordName(resolved, rn.GetText(), "WRITE",
+        if (!ctx.Validation.ResolveRecordName(resolved, DataBinder.WrittenText(rn), "WRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO "
                 + ctx.Edition.Edition.Cite("§1985:VII.4.7.3 SR2, §1985:VIII.4.9.3 SR2, §1985:IX.4.9.3 SR2", "§2023:14.9.51.3 SR5") + ")",
@@ -367,10 +367,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // the message (kb/Work PB347). Placed, like WRITE's, BEFORE the `file.IsSequential` reroute, so the
         // relative and indexed arms are under the rule too (feedback_two_arm_dispatch).
         if (rw.recordName()?.dataReference() is not { } rn)
-            return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
+            return new BoundUnsupported($"REWRITE record '{DataBinder.WrittenTextOr(rw.recordName(), "")}' not resolvable to a file");
         if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } resolved)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
-        if (!ctx.Validation.ResolveRecordName(resolved, rn.GetText(), "REWRITE",
+        if (!ctx.Validation.ResolveRecordName(resolved, DataBinder.WrittenText(rn), "REWRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO "
                 + ctx.Edition.Edition.Cite("§1985:VII.4.5.3 SR2, §1985:VIII.4.6.3 SR2, §1985:IX.4.6.3 SR2", "§2023:14.9.35.3 SR1") + ")",

@@ -170,7 +170,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         if (send.dataReference() is { } sdref)
         {
             using var sendingAt = ctx.Edition.At(sdref);   // the operand's own position, not the statement's (kb/Work PB4383)
-            if (host.Expr.ScreenIndexNameOperand(source, sdref.GetText(), "a MOVE sending operand"))
+            if (host.Expr.ScreenIndexNameOperand(source, DataBinder.WrittenText(sdref), "a MOVE sending operand"))
                 source = BoundOperandError.Refused(ctx.Edition, $"MOVE of the index-name '{DataBinder.WrittenText(sdref)}' (ISO §2023:13.18.38.3 r7)");
         }
         // Identifier-1 is bound; what the receivers register from here on (a function-bearing subscript's temporary,

@@ -90,7 +90,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
             {
                 using var atOperand = ctx.Edition.At(oref);   // SR2 is about identifier-1 (kb/Work PB4722, as EcBindRaising)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.RaiseOperandRule,
-                    $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
+                    $"RAISE '{DataBinder.WrittenText(oref)}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
                     + "(ISO §2023:14.9.29.3 SR2)");
             }
             return new BoundRaiseObject(op);

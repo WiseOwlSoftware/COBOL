@@ -574,7 +574,8 @@ public sealed partial class FileControlBinder
         var (alnumWord, natWord) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
             f => f.NATIONAL() is not null, f => f.cobolWord(), cs.cobolWord(),
             $"file '{file.CobolName}' CODE-SET", "13.18.13.2");
-        string? alnumName = alnumWord?.GetText(), natName = natWord?.GetText();
+        string? alnumName = alnumWord is null ? null : DataBinder.WrittenText(alnumWord);
+        string? natName = natWord is null ? null : DataBinder.WrittenText(natWord);
         var alnumSet = alnumWord is null ? null : _host.SpecialNames.CodedCharacterSetOf(alnumWord, $"CODE-SET {alnumName}",
             "ISO §2023:13.18.13.3 SR1 — alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set");
         var natSet = natWord is null ? null : _host.SpecialNames.CodedCharacterSetOf(natWord, $"CODE-SET {natName}",

@@ -840,7 +840,7 @@ public sealed class ReferenceResolver(DataBinder data)
     internal bool IsExceptionObjectRegister(Core.DataReferenceContext dref) =>
         data.Edition.Edition.Has(2002)
         && dref.dataReferenceSuffix().Length == 0
-        && Procedure.OoBinder.OoIsExceptionObject(dref.GetText(), data.CobolWords);
+        && Procedure.OoBinder.OoIsExceptionObject(DataBinder.WrittenText(dref), data.CobolWords);
 
     /// <summary>The place of one entry of the X3.23-1985 DEBUG-ITEM group (kb/Work PB4903), reached by the entry the group lists
     /// (MOVE CORRESPONDING's pair walk), or <see langword="null"/> for an item that is no register entry.</summary>

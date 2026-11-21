@@ -126,8 +126,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 // shall be specified". literal-1 is what the rule excludes, and it excludes it because GR4 makes
                 // the implicit statement a SET for exactly these five categories and no literal is a SET sending
                 // operand (§2023:14.9.39). Unreachable until the words became spellable (kb/Work PB415).
-                string senderText = lit?.GetText() ?? send?.dataReference()?.GetText()
-                    ?? send?.functionCall()?.GetText() ?? "the sending operand";
+                string senderText = DataBinder.WrittenTextOr(
+                    lit ?? send?.dataReference() ?? (Antlr4.Runtime.ParserRuleContext?)send?.functionCall(), "the sending operand");
                 // NULL is identifier-2, not literal-1 (kb/Work PB1427): SR3 is satisfied, and SR4's SET is valid for
                 // every SET-form category (CheckSetFormCategoryAgreement), so only a real literal takes SR3.
                 if (lit is not null && value is not BoundPredefinedNull)
@@ -264,7 +264,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // used to sit in the resolve-FAILURE arm above, and a level-66 entry RESOLVES — so the rule never fired
         // and the violation shipped as an unhandled NotImplementedCobolFeatureException naming a missing
         // compiler feature instead of the reader's illegal program (kb/Work PB416).
-        if (!ctx.Validation.CheckInitializeTargetRenames(dref.GetText(), place)) return;
+        if (!ctx.Validation.CheckInitializeTargetRenames(DataBinder.WrittenText(dref), place)) return;
         // ISO §2023:14.9.20.3 SR1 — the class screen, asked of the ONE §2023:8.5.2.1 Table-2 classifier. See
         // DiagnosticCatalog.InitializeTargetClass for why this cannot be folded into GR5a1's exclusion below.
         if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index)

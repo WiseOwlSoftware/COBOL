@@ -398,7 +398,7 @@ internal sealed class LinkageBinder(DataBinder data)
             // the SR24/count checks read it at the AS NESTED bind, and the §2023:8.8.4.8 omitted-argument
             // condition tests the carrier's presence — the staged OptionalFormal rejection is lifted.
 
-            string pname = dref.GetText();
+            string pname = DataBinder.WrittenText(dref);
             var item = data.Symbols.IdentifyHeaderOperand(_roots, dref);
             if (item is null)
             {
@@ -471,10 +471,10 @@ internal sealed class LinkageBinder(DataBinder data)
             Returning = data.Symbols.IdentifyHeaderOperand(_roots, rref);
             if (Returning is null)
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
-                    $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
+                    $"PROCEDURE DIVISION RETURNING item '{DataBinder.WrittenText(rref)}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §2023:14.2.2 SR1)");
             else
-                header.CheckReturning(rref.GetText(), Returning);
+                header.CheckReturning(DataBinder.WrittenText(rref), Returning);
         }
 
         SealLinkageRules(_roots, _formals.ConvertAll(f => f.Item), Returning, data.UnitIsFunction);

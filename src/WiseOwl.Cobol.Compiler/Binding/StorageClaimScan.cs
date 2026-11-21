@@ -170,7 +170,7 @@ internal sealed class StorageClaimScan
         /// the OUTERMOST data reference under it, when its text is the whole operand's.</summary>
         private static WrittenQualifiedName? OperandIdentifier(IParseTree operand) =>
             ParseTreeWalk.SelfAndDescendants(operand).OfType<Core.DataReferenceContext>().FirstOrDefault() is { } dref
-            && dref.GetText() == operand.GetText()
+            && DataBinder.WrittenText(dref) == operand.GetText()
                 ? WrittenQualifiedName.Of(dref)
                 : null;
     }

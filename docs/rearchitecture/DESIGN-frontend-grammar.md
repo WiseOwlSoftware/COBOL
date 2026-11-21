@@ -3155,7 +3155,11 @@ regression bisects to one step.
   `ZERO_ARITH`, with no neighbour test of its own. ⚠ The
   `ZERO_ARITH` token's text stays "0" (several readers parse the text of an arithmetic operand), so a diagnostic that
   quotes an operand node spells it with `WrittenSource.Of` (`DataBinder.WrittenText`), never `GetText()` (kb/Work
-  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`).
+  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`). ⛔ `RepoDrift`'s `MessageOperandTextDriftTests` holds
+  this for the whole compiler (kb/Work PB5979: `X OF Q` printed `XOFQ`, `KY OF IREC` printed `KYOFIREC`): a `GetText()` of a
+  multi-token parse context (a one-token word, read from the grammar, and a terminal node are exempt) is refused in an
+  interpolation hole, in a `+` that holds a string literal, in a local that feeds either, and anywhere on a data reference,
+  receiving identifier or object reference, whose text is never the name the programmer wrote.
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
   namespaces + the injected severity policy change.
 - **SUBSCRIPT lexer mode existence** — the `x(i)`/`(a+b)` disambiguation genuinely needs it; we dedup its

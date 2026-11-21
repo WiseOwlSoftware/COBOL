@@ -859,7 +859,7 @@ public sealed record ReportDetailRef
     {
         (var head, null) => head,
         (var head, var qualifier) => $"{head} OF {qualifier}",
-        null => Ctx.GetText(),
+        null => DataBinder.WrittenText(Ctx),
     };
 }
 

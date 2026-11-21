@@ -477,8 +477,9 @@ public sealed partial class SpecialNamesBinder
         if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce)
             return ConcatFolder.Fold(ce, Edition, LiteralEnvironment.SpecialNames(_host, sr11)).Value;
         string text = lit.GetText();
+        string textWritten = DataBinder.WrittenText(lit);
         if (CobolLiteral.IsStringLiteral(text)) return CobolLiteral.Decode(text);
-        throw new InvalidOperationException($"'{text}' is neither a quoted literal nor a concatenation expression — "
+        throw new InvalidOperationException($"'{textWritten}' is neither a quoted literal nor a concatenation expression — "
             + "the caller shall refuse an operand of any other form before decoding it (kb/Work PB791)");
     }
 

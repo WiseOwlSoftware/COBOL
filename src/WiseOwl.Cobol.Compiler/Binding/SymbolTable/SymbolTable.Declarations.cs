@@ -164,6 +164,16 @@ public sealed partial class SymbolTable
                 ? hider
                 : null;
 
+        /// <summary>⛔ §1985:X.1.3.8.2 GR3a FOR A FILE-NAME (kb/Work PB5980), the file twin of <see cref="ReportNameHiddenBy"/>: the declaration
+        /// that hides a containing program's GLOBAL file-name <paramref name="name"/> here (<see cref="InheritedFile"/> is the GLOBAL file,
+        /// hidden or not), or null when the spelling is no inherited file or nothing nearer declares it. The OPEN, CLOSE, READ, WRITE,
+        /// REWRITE, DELETE and START of a name this way hidden name the data item, and their refusal says so.</summary>
+        public DeclarationFact? FileNameHiddenBy(string name) =>
+            InheritedFile(name) is { } global
+            && _table.NearestInNameSet(name, [], NameSetClass.All & ~NameSetClass.FileName) is { } hider && hider.Depth < global.Depth
+                ? hider
+                : null;
+
         /// <summary>⛔ §1985:X.1.3.8.2 GR3a / ISO §2023:8.4.6.2.1 3) FOR AN INHERITED NAME A NEARER DECLARATION HIDES, of any class:
         /// whether this unit's set of names (its own and every container's global ones, <see cref="SymbolTable.NearestInNameSet"/>)
         /// declares <paramref name="name"/>, as anything, in a source element NEARER than <paramref name="depth"/> (the containment

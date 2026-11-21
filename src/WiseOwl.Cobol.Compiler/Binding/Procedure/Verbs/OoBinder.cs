@@ -552,7 +552,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (place is null) return false;   // reported by the resolver or the receiving chokepoint
             if (explicitReference && ctx.Data.Oo.IsObjectData(place.Item))
             {
-                ReportObjectDataByReference(subject, dref.GetText(), "pass it BY CONTENT");
+                ReportObjectDataByReference(subject, DataBinder.WrittenText(dref), "pass it BY CONTENT");
                 return false;
             }
             if (byReference)
@@ -564,7 +564,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment, subject, BitAlignmentStatement.Invoke);
             }
             return ActiveClassSubordinateAdmitted(place, subject)
-                && (!arg.ByValueWritten || ByValueClassAdmitted(new BoundFieldOperand(place), dref.GetText(), subject));
+                && (!arg.ByValueWritten || ByValueClassAdmitted(new BoundFieldOperand(place), DataBinder.WrittenText(dref), subject));
         }
         // An inline invocation or an object-view is an identifier referencing a temporary (§2023:8.4.3.4.4 GR1 c),
         // §2023:8.4.3.5.4 GR1) — identifier-5, never SR9's section item; bound by the OO identifier door, which reports.
@@ -1319,7 +1319,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return null;
             }
             literal2 = host.Expr.AliasOperand(alias);
-            constantName = dref.GetText();
+            constantName = DataBinder.WrittenText(dref);
             dref = null;
             arithCtx = null;
         }
@@ -1396,7 +1396,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         }
         if (dref is not null || inlinePlace is not null)
         {
-            string argText = dref?.GetText() ?? DataBinder.WrittenText(arithCtx!);   // as written — `FUNCTION NUMVAL("3.7")`, never run together
+            string argText = DataBinder.WrittenText(dref ?? (Antlr4.Runtime.ParserRuleContext)arithCtx!);   // as written — `FUNCTION NUMVAL("3.7")`, never run together
             // ⛔ THE MODE IS DECIDED BEFORE THE OPERAND IS RESOLVED, BECAUSE THE MODE DECIDES ITS ROLE (kb/Work PB881,
             // PB1137). An explicit BY REFERENCE argument is identifier-3, "a receiving operand" (§2023:14.9.23.3 SR20); an
             // explicit BY CONTENT one is identifier-5, "a sending operand" (SR21). A KEYWORD-LESS identifier is either,
@@ -1547,7 +1547,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // it among a COMPUTE's operands — so it takes the numeric-literal lane (its verdict and its carrier split), and
         // only a character-carried formal takes the fill below (kb/Work PB1617).
         literal2 = ParameterConformance.ArgumentForFormal(literal2, formal);
-        string literalText = constantName ?? nonNumCtx?.GetText() ?? writtenLit?.Image ?? foldedAlnum ?? "";
+        string literalText = constantName ?? (nonNumCtx is null ? null : DataBinder.WrittenText(nonNumCtx)) ?? writtenLit?.Image ?? foldedAlnum ?? "";
         switch (literal2)
         {
             case BoundStringLiteral { Value.Length: 0 } empty:
@@ -2101,7 +2101,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             }
             for (int i = 0; i < cur.ChildCount; i++) stack.Push(cur.GetChild(i));
         }
-        return only is not null && only.GetText() == e.GetText() ? only : null;
+        return only is not null && DataBinder.WrittenText(only) == e.GetText() ? only : null;
     }
 
     /// <summary>The VALUE of literal-1, the method name — for the INVOKE statement (§2023:14.9.23.3 SR2: "Literal-1 shall

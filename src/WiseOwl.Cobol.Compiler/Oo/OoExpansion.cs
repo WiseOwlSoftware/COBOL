@@ -303,8 +303,9 @@ internal static class OoExpansion
             string name = DeclaredName(e)!;
             var targetWord = ph.expandsTarget();
             string target = targetWord.GetText();
+            string targetWritten = DataBinder.WrittenText(targetWord);
             var actuals = ph.expandsActual().Select(a => a.GetText()).ToList();
-            string where = $"REPOSITORY {kind} '{name}' EXPANDS {target}";
+            string where = $"REPOSITORY {kind} '{name}' EXPANDS {targetWritten}";
 
             // §2023:12.3.8.3 SR4 / SR7: the parameterized name and every actual "shall be defined in the same
             // REPOSITORY paragraph where object-class-name-1 [interface-name-2] is defined".
@@ -327,7 +328,7 @@ internal static class OoExpansion
             {
                 bool isPlain = names.DeclaresDefinition(target, isInterface);
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
-                    $"{where}: '{target}' is not a parameterized {(isInterface ? "interface" : "class")} of this "
+                    $"{where}: '{targetWritten}' is not a parameterized {(isInterface ? "interface" : "class")} of this "
                     + "compilation group — " + (sk is not null
                         ? $"it is a parameterized {(sk.IsInterface ? "interface" : "class")}, and "
                           + $"{(isInterface ? "an interface-specifier expands a parameterized interface" : "a class-specifier expands a parameterized class")}"
@@ -400,7 +401,7 @@ internal static class OoExpansion
             if (definition is null)
             {
                 edition.Error(DiagnosticCatalog.ExpandsPhraseInvalid,
-                    $"REPOSITORY {(isInterface ? "INTERFACE" : "CLASS")} '{target}': the parameterized {(isInterface ? "interface" : "class")} '{identity}' that "
+                    $"REPOSITORY {(isInterface ? "INTERFACE" : "CLASS")} '{DataBinder.WrittenText(targetWord)}': the parameterized {(isInterface ? "interface" : "class")} '{identity}' that "
                     + $"'{found.From.AssemblyFile}' publishes does not parse from the source it recorded, so it cannot be expanded: recompile that "
                     + "assembly (ISO §2023:12.3.8.4 GR5/GR8)");
                 return null;

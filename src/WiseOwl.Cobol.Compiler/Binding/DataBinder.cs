@@ -1011,7 +1011,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <c>ReportSectionBinder.ControlOperandRef</c>, which keeps the whole written reference.</para></summary>
     internal static WrittenDataName KeyReference(Core.DataReferenceContext dref)
     {
-        string baseWord = dref.cobolWord()?.GetText() ?? dref.GetText();
+        string baseWord = dref.cobolWord()?.GetText() ?? DataBinder.WrittenText(dref);
         var quals = new List<string>();
         foreach (var s in dref.dataReferenceSuffix())
             if (s.qualification()?.cobolWord() is { } q)
@@ -1076,6 +1076,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <para>The body is the frontend's <see cref="WiseOwl.Cobol.Frontend.Parsing.WrittenSource.Of"/>, which a frontend
     /// formation rule quotes source through as well (kb/Work PB1413) — one definition, two layers.</para></summary>
     internal static string WrittenText(Antlr4.Runtime.ParserRuleContext ctx) => WiseOwl.Cobol.Frontend.Parsing.WrittenSource.Of(ctx);
+
+    /// <summary><see cref="WrittenText(Antlr4.Runtime.ParserRuleContext)"/> of an optional node: <paramref name="absent"/> when the program wrote none.</summary>
+    internal static string WrittenTextOr(Antlr4.Runtime.ParserRuleContext? ctx, string absent) => ctx is null ? absent : WrittenText(ctx);
 
     /// <summary>⛔ THE SHAPES A <i>data-name-n</i> OPERAND MAY NOT BE WRITTEN IN (kb/Work PB489). Where a general
     /// format prints <c>data-name-n</c>, the reference is a QUALIFIED-DATA-NAME — ISO §2023:8.4.2.2.2 Format 1,
@@ -3181,6 +3184,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     // because with IN omitted the parser has handed the word in AS the last operand.
                     var (alphaWord, alphaOperand) = RangeAlphabetPhraseOf(value);
                     string? alphaName = alphaWord?.GetText();
+                    string alphaNameWritten = DataBinder.WrittenTextOr(alphaWord, "");
                     foreach (var vi in value.valueItem())
                     {
                         // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7 GR14a).
@@ -3296,7 +3300,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         {
                             if (SpecialNames.IsAlphabetName(alphaName)) SpecialNames.GateRangeAlphabetPhrase($"condition-name '{name}'");
                             Edition.Error(DiagnosticCatalog.ValueAlphabetWithoutThrough, $"condition-name "
-                                + $"'{name}': alphabet-name '{alphaName}' is written with no THROUGH phrase in "
+                                + $"'{name}': alphabet-name '{alphaNameWritten}' is written with no THROUGH phrase in "
                                 + "the clause, so there are no \"literals specified in the THROUGH phrase\" for "
                                 + "it to order (ISO §2023:13.18.63.3 SR31)");
                         }
@@ -3369,7 +3373,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // container's alphabet-names, and "a source element's reference to such a name, even when it is a
         // different type of user-defined word, is to the item which that source element describes" (§2023:8.4.6.1;
         // kb/Work PB3153), so the element's own constant-name of the spelling keeps its literal-2 reading.
-        return dref.GetText() is var word && SpecialNames.IsAlphabetName(word) && Constants.ConstantOf(dref) is null
+        return DataBinder.WrittenText(dref) is var word && SpecialNames.IsAlphabetName(word) && Constants.ConstantOf(dref) is null
             ? (dref, last) : (null, null);
     }
 
@@ -5023,7 +5027,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 var quoted = ph.literal();
                 char1 = quoted is null ? "" : CobolLiteral.Decode(quoted.GetText());
                 Edition.Error(DiagnosticCatalog.PictureEditingChar1NotALiteral, $"{where}: the PICTURE EDITING "
-                    + $"phrase's character-1 is written as a quoted literal ({quoted?.GetText() ?? "\"\""}) "
+                    + $"phrase's character-1 is written as a quoted literal ({WrittenTextOr(quoted, "\"\"")}) "
                     + "— the general format writes it BARE, as a picture symbol: `EDITING character-1 { IS "
                     + "literal-1 | FOR … }` (ISO §2023:13.18.40.2 Format 1; §2023:13.18.40.3 SR8 types character-1 as a basic "
                     + $"letter, and SR9 types only literal-1/-2/-3 as literals). Write EDITING {char1.ToUpperInvariant()} instead");

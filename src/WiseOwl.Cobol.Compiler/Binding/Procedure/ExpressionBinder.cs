@@ -1118,7 +1118,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     internal Place? ScreenResultant(Place p, Antlr4.Runtime.ParserRuleContext written, bool editedOk, EditionRule clause)
     {
         using var _ = ctx.Edition.At(written);   // kb/Work PB4406 — the resultant's own position, not the statement's
-        string refText = written.GetText();
+        string refText = DataBinder.WrittenText(written);
         var pic = p.Item.Pic;
         // ⛔ THE IDENTITY QUESTION, ASKED ONCE (kb/Work PB602). It used to be `p is not RefModPlace` — PB128's
         // route AROUND the fact that a decorated place reported the item underneath — and §2023:8.4.3.3.4 GR5's
@@ -1543,12 +1543,12 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
             : id switch
             {
                 Core.InlineMethodInvocationContext =>
-                    $"the inline method invocation '{id.GetText()}' ({article} {cls} result, ISO §2023:8.4.3.4.4 GR1)",
+                    $"the inline method invocation '{DataBinder.WrittenText(id)}' ({article} {cls} result, ISO §2023:8.4.3.4.4 GR1)",
                 Core.ObjectViewContext =>
                     $"the object-view '{DataBinder.WrittenText(id)}' (an object reference, ISO §2023:8.4.3.5.4 GR1)",
                 Core.SelfAndSuperContext =>
                     $"'{DataBinder.WrittenText(id)}' (an object reference, ISO §2023:8.4.3.8.3 SR7)",
-                _ => $"the function-identifier '{id.GetText()}' ({article} {cls} result, ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:15.2")})",
+                _ => $"the function-identifier '{DataBinder.WrittenText(id)}' ({article} {cls} result, ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.3", "§2023:15.2")})",
             };
         bool decodable = IntrinsicArgumentRules.IsDigitDecodable(operand);
         if (ctx.Edition.Permissive && decodable)

@@ -58,7 +58,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// register, whose glued text the wording then quotes).</summary>
     internal void ReportUnidentified(Core.DataReferenceContext dref, WrittenQualifiedName? written)
     {
-        string name = written?.Name ?? dref.GetText();
+        string name = written?.Name ?? DataBinder.WrittenText(dref);
         IReadOnlyList<string> qualifiers = written?.QualifierWords ?? [];
         // ⛔ A NAME DECLARED AS SOMETHING OTHER THAN A DATA ITEM IS NOT UNDEFINED (kb/Work PB1906): the one query of
         // what it IS. "Not defined" would send the user hunting a declaration that is right there.
@@ -187,6 +187,15 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         $"'{text}' names {nearer}, not a condition-name, and this position requires a condition-name: '{name}' is "
         + "declared in a source element nearer than the containing program whose GLOBAL condition-name "
         + $"'{name}' it hides ({NearerDeclarationRule(edition)}).";
+
+    /// <summary>⛔ THE ONE WORDING OF "THIS NAME IS HIDDEN HERE" (kb/Work PB5976, PB5980): what <paramref name="written"/> names in this
+    /// program (<see cref="DeclarationFact.Placed"/>), which GLOBAL name of a containing program it hides (<paramref name="globalKind"/>,
+    /// "report-name" or "file-name") and the rule that makes the nearer declaration the referenced one. The report verbs' refusals
+    /// (<c>ReportWriterBinder.HidingOfReportName</c>) and the file verbs' (<c>StatementValidation.ResolveFileWord</c>, the I-O-CONTROL
+    /// clauses) each say it; before kb/Work PB5980 the file verbs told the programmer no SELECT gave a name that one gives.</summary>
+    internal static string HidingClause(DeclarationFact hider, string written, string globalKind, EditionInfo edition) =>
+        $"'{written}' here names {hider.Placed(edition)}, which hides the GLOBAL {globalKind} '{written}' of a containing program "
+        + $"({NearerDeclarationRule(edition)})";
 
     /// <summary>THE ONE CITATION of the rule a nearer declaration hides a containing program's GLOBAL name by, whatever the classes
     /// (§1985:X.1.3.8.2 GR3a; §2023:8.4.6.2.1 GR3a), quoted in <paramref name="edition"/>'s own words: the refusals that name a hiding

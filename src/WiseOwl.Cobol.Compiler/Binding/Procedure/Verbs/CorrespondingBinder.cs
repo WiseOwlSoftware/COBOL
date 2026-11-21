@@ -114,8 +114,8 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         // PLACE, decorations intact, which is the only level at which a reference modifier is visible.
         // Both operands are screened before the verdict — a statement with two bad operands reports two
         // diagnostics, not the first one only (a short-circuit here would hide the second).
-        bool srcOk = ctx.Validation.CheckCorrespondingGroupOperand(src, sending.GetText(), rule);
-        bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst, receiving.GetText(), rule);
+        bool srcOk = ctx.Validation.CheckCorrespondingGroupOperand(src, DataBinder.WrittenText(sending), rule);
+        bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst, DataBinder.WrittenText(receiving), rule);
         if (!srcOk || !dstOk) return BoundRejected.Reported(ctx.Edition);
 
         // A per-pair MOVE re-runs the identification steps the two group operands registered while they resolved (a subscript

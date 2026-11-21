@@ -365,7 +365,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             }
             if (_d.SpecialNames.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
             {
-                Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {lit.GetText()}, which is not an "
+                Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {DataBinder.WrittenText(lit)}, which is not an "
                     + $"alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO {CodeLiteralRule})");
                 return null;
             }
@@ -417,7 +417,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (ConcatFolder.FoldAllLiteral(fig, _d.LiteralEnv, Edition) is { } folded)
         {
             if (folded.Category == PicCategory.Alphanumeric) return folded.Value;
-            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, whose literal-1 is not an "
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {DataBinder.WrittenText(fig)}, whose literal-1 is not an "
                 + $"alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO {CodeLiteralRule})");
             return null;
         }
@@ -428,12 +428,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (!symbolic.National) return symbolic.Value;
             // A symbol declared SYMBOLIC CHARACTERS FOR NATIONAL is a NATIONAL figurative constant (§2023:12.3.7.4 GR11c), the
             // same class ALL N"C" is refused for above (kb/Work PB5523).
-            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, a national symbolic character, "
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {DataBinder.WrittenText(fig)}, a national symbolic character, "
                 + "whose literal-1 is not an alphanumeric literal: literal-1 shall be an alphanumeric literal "
                 + "(ISO §2023:13.18.12.3 SR1; §2023:12.3.7.4 GR11c)");
             return null;
         }
-        Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, which is no alphanumeric literal "
+        Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {DataBinder.WrittenText(fig)}, which is no alphanumeric literal "
             + $"(ISO {CodeLiteralRule})");
         return null;
     }
@@ -3211,7 +3211,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         foreach (var o in ops.Where(o => !IsParenthesized(o)))
             Edition.Error(DiagnosticCatalog.ReportSourceOperandParens, $"{where}: the SOURCE clause has "
                 + $"{ops.Length} operands of which at least one is an arithmetic-expression, so each operand "
-                + $"shall be enclosed in parentheses (ISO §2023:13.18.53.3 SR7); '{o.GetText()}' is not.");
+                + $"shall be enclosed in parentheses (ISO §2023:13.18.53.3 SR7); '{DataBinder.WrittenText(o)}' is not.");
     }
 
     /// <summary>⛔ THE ONE FORM CLASSIFIER OF A REPORT VALUE-CLAUSE OPERAND (kb/Work PB852 × PB883 × PB1316): the bare
@@ -4649,14 +4649,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // report-name associated with the different report"), so that spelling is legal. A qualifier that
                 // names no report is the qualification rule's own error, reported where the counter is bound
                 // (kb/Work PB1456); it is not a report section NAME and is not flagged here.
-                if (countersOf is null) return dref.GetText();
+                if (countersOf is null) return DataBinder.WrittenText(dref);
                 return null;
             }
             if (dref.cobolWord()?.GetText() is { } w && IsReportSectionOnlyName(w))
             {
                 // A sum counter of the CURRENT report is SR4's other admitted report-section item.
                 bool ownCounter = countersOf is not null && _d.Symbols.Declared.IsSumCounterOf(countersOf, w);
-                return ownCounter ? null : dref.GetText();
+                return ownCounter ? null : DataBinder.WrittenText(dref);
             }
             // identifier-1 is a qualified-data-name-with-subscripts (§2023:8.4.3.1.2): a name inside a SUBSCRIPT or a
             // reference-modification is an identifier of the clause too (SR4's "any identifier appearing in…"). A

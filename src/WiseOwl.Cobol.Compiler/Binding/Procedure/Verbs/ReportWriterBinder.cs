@@ -452,8 +452,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// TERMINATE, whose report-name positions are resolved by the one report-name lookup.</summary>
     private string HidingOfReportName(string written) =>
         ctx.Data.Symbols.Declared.ReportNameHiddenBy(written) is { } hider
-            ? $"; '{written}' here names {hider.Placed(ctx.Edition.Edition)}, which hides the GLOBAL report-name "
-              + $"'{written}' of a containing program ({NameResolution.NearerDeclarationRule(ctx.Edition.Edition)})"
+            ? "; " + NameResolution.HidingClause(hider, written, "report-name", ctx.Edition.Edition)
             : "";
 
     /// <summary><c>TERMINATE report-name…</c> (ISO §2023:14.9.46 SR1; §2023:14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
