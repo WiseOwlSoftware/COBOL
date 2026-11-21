@@ -8,12 +8,16 @@ It measures four parts and prints a verdict line. An edition is COMPLETE only wh
   1. INVENTORY GAP: the rows of the edition's traceability inventory in state GAP (`inventory_view.inventory`, `gaps`).
   2. CODE READS: the rows owed a read, owed a re-read, contradicted or undecided (`code_reads`, `code_read_store`). The
      newest held edition has no store (its rows carry their own verdicts): that is said, and it counts 0.
-  3. OPEN WORK NOTES that touch the edition: every note of the register whose status is not terminal and whose frontmatter
-     text matches the edition's patterns (`EDITION_PATTERNS`, one table), by `work.load`, the one reader of the register.
-     Each is HARM (a harm flag set, not process_only), else QUESTION (kind analysis, adjudication or decision), else
-     TOOLING (process_only), else OTHER; the first test that fits decides.
-  4. CATALOG PROSE HOLES: the normative sentences of the transcription that are the text of no catalog row
-     (`catalog_prose_holes`; measured for 1985 only).
+  3. OPEN WORK NOTES that touch the edition: every note of the register whose status is not terminal and whose text,
+     frontmatter AND body with its addenda, matches the edition's patterns (`EDITION_PATTERNS`, one table), by
+     `work.load`, the one reader of the register. Each is HARM (a harm flag set, not process_only), else QUESTION (kind
+     analysis, adjudication or decision), else TOOLING (process_only), else OTHER; the first test that fits decides.
+     The patterns over-count by design (a note that only mentions the edition is counted): an under-count is a false
+     COMPLETE (review R1-1). Reading text is the interim; the structural fix is a declared `editions:` field (kb/Work
+     PB5995).
+  4. CATALOG PROSE HOLES: the printed paragraphs of the transcription's normative region in no catalog row at or under
+     their locator, none discounted until kb/Work PB5452 records dispositions, with the deontic sentences among them as a
+     labelled floor (`catalog_prose_holes`, kb/Work PB479's measure; measured for 1985 only).
 
 A part that cannot be measured (an edition the inventory does not hold, a transcription the hole reader does not read) is
 NOT a zero: it prints `not measured` with why, and the verdict is NOT COMPLETE with that reason. Exit status 0 when
@@ -41,12 +45,16 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 EDITIONS = (1985, 2002, 2014, 2023)
 
-#: What in a note's frontmatter text says it touches an edition: one row per edition, each a regular expression.
+#: What in a note's text (frontmatter and body) says it touches an edition: one row per edition, each a regular expression.
+#: A year not inside a longer word (`PB2014` is a note id, never the edition) names 1985, 2002 and 2014, whose years carry
+#: no other meaning in the register; 2023's year does (ISO/IEC 1989:2023 is the standard the whole register cites), so
+#: 2023 is named only by a citation, a `--std` spelling or a 2023 rule id (unprefixed, `GR-14.9.1-3`). 1985 is also
+#: named by Amendment 1's citations (`§1989:`) and the standard's number (`X3.23`).
 EDITION_PATTERNS: dict[int, tuple[str, ...]] = {
-    1985: (r"(?<!\d)1985(?!\d)", r"\bstd[ =-]?85\b"),
-    2002: (r"(?<!\d)2002(?!\d)", r"\bstd[ =-]?(?:2002|02)\b"),
-    2014: (r"(?<!\d)2014(?!\d)", r"\bstd[ =-]?(?:2014|14)\b"),
-    2023: (r"(?<!\d)2023(?!\d)", r"\bstd[ =-]?(?:2023|23)\b"),
+    1985: (r"(?<!\w)1985(?!\d)", r"\bstd[ =-]?85\b", r"§1989:", r"\bX3\.23"),
+    2002: (r"(?<!\w)2002(?!\d)", r"\bstd[ =-]?(?:2002|02)\b"),
+    2014: (r"(?<!\w)2014(?!\d)", r"\bstd[ =-]?(?:2014|14)\b"),
+    2023: (r"§2023:", r"\bstd[ =-]?(?:2023|23)\b", r"(?<![\w-])(?:SR|GR|AR|RV|FMT|DOC)-[A-Z]?\d+(?:\.\d+)*-\d"),
 }
 CATEGORIES = ("HARM", "QUESTION", "TOOLING", "OTHER")
 QUESTION_KINDS = ("analysis", "adjudication", "decision")
@@ -112,8 +120,9 @@ def code_reads_part(year: int) -> Part:
 
 
 def touches(it: dict, year: int) -> bool:
-    """Whether the frontmatter text of note `it` (every value but the reader's own `_` keys) matches `EDITION_PATTERNS`."""
-    text = "\n".join(f"{k}: {v}" for k, v in it.items() if not k.startswith("_"))
+    """Whether the text of note `it` matches `EDITION_PATTERNS`: its frontmatter (every value but the reader's own `_`
+    keys) and its body with its addenda (`_body`, as `work.load` folds them)."""
+    text = "\n".join(f"{k}: {v}" for k, v in it.items() if not k.startswith("_")) + "\n" + str(it.get("_body", ""))
     return any(re.search(p, text, re.IGNORECASE) for p in EDITION_PATTERNS[year])
 
 
@@ -140,10 +149,14 @@ def holes_part(year: int) -> Part:
     h = catalog_prose_holes.holes(year)
     d = h.as_doc()
     return Part("catalog prose holes", h.count,
-                lines=(f"{h.count} normative sentences of the body are the text of no catalog row ({h.normative} measured, "
-                       f"{h.covered} covered); {h.summary} more in Appendix C, a summary, not counted",),
-                data={k: d[k] for k in ("normative-sentences", "covered", "uncovered-body", "uncovered-summary-appendix",
-                                        "paragraphs-with-holes", "by-section")})
+                lines=(f"{h.count} printed paragraphs of the normative region are in no catalog row at or under their "
+                       f"locator ({h.printed_paragraphs} measured, in {d['paragraphs-with-holes']} numbered paragraphs; "
+                       f"{len(h.rowless)} numbered paragraphs have no row at all); no disposition recorded (kb/Work "
+                       "PB5452), none discounted",
+                       f"floor inside it: {h.deontic} deontic sentences in no row; lead: {h.elsewhere} of the paragraphs are "
+                       "in a row of another clause"),
+                data={k: d[k] for k in ("printed-paragraphs", "uncovered-paragraphs", "deontic-floor",
+                                        "rowless-paragraphs", "elsewhere-lead", "paragraphs-with-holes", "by-section")})
 
 
 #: The four sources of `status`, as callables of the year: a self-test plants others.
