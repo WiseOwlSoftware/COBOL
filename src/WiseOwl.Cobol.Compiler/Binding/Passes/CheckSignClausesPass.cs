@@ -80,10 +80,10 @@ internal sealed class CheckSignClausesPass : IBindPass
     }
 
     /// <summary>A numeric data description entry whose WRITTEN picture character-string contains the symbol 'S' — the
-    /// entry both editions' SIGN rules name.</summary>
+    /// entry both editions' SIGN rules name; at --std 85 a BLANK WHEN ZERO promotion of one is such an entry too
+    /// (<see cref="PicInfo.PictureIsSignedNumeric"/>, kb/Work PB5790).</summary>
     private static bool IsSignedNumericEntry(DataItem d) =>
-        d.IsElementary && d.Pic is { Category: PicCategory.Numeric, Signed: true, IsRecovery: false }
-        && d.PictureText is not null;
+        d.IsElementary && d.Pic is { PictureIsSignedNumeric: true } && d.PictureText is not null;
 
     /// <summary>The signed numeric items below <paramref name="group"/> that its own clause applies to: every one not
     /// at or under a subordinate entry that writes its own SIGN clause (§2023:13.18.52.4 GR2/GR3).</summary>

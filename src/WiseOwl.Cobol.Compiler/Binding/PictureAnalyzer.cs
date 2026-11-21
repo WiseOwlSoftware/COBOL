@@ -99,7 +99,9 @@ public static class PictureAnalyzer
     {
         var pic = AnalyzeCharacterString(picture, usage, edition, where, sign, currency, blankWhenZero, explicitUsage,
             editing, currencies, localeFormat2, decimalPointIsComma, out var clause);
-        return pic.IsRecovery || clause is null ? pic : pic with { Clause = clause };
+        // The entry's own SIGN clause on a COBOL-85 BLANK WHEN ZERO promotion of a signed picture, read once the PICTURE is
+        // recorded (PicInfo.BlankWhenZeroSigned; a no-op on every other profile; kb/Work PB5790).
+        return pic.IsRecovery || clause is null ? pic : (pic with { Clause = clause }).WithBlankWhenZeroSeparateSign(sign);
     }
 
     /// <summary>The body of <see cref="Analyze"/>; <paramref name="clause"/> is the PICTURE clause identity, set
@@ -505,6 +507,8 @@ public static class PictureAnalyzer
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§2023:13.18.40).
+            // The S leaves the profile but not the PICTURE: the SIGN clause's subject rule still reads it, and a SEPARATE
+            // sign keeps its own character position (PicInfo.BlankWhenZeroSigned, applied in Analyze; kb/Work PB5790).
             return new PicInfo(PicCategory.NumericEdited, usage,
                 Length: CharacterPositions(runs, currencyExtra, editingExtra), Digits: digits, Scale: scale, Signed: false)
             { SignKind = PicInfo.SignKindFor(usage, false, sign), EditMask = CanonicalCurrencyMask(mask, cs), EditingRules = editRules, DigitPositions = digitPos,

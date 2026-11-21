@@ -5681,11 +5681,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// pair §2023:13.18.52.3 SR2 names, kb/Work PB646 — a binary or packed item has no sign position for the clause to
     /// place, so it keeps its own representation); any other profile is returned unchanged. Read by
     /// <see cref="ApplyEffectiveSign"/> (the data division's group inheritance and the SAME AS ancestor transform)
-    /// and by <see cref="ReportPrintablePicture"/> (a report group entry's inherited clause, kb/Work PB493).</summary>
+    /// and by <see cref="ReportPrintablePicture"/> (a report group entry's inherited clause, kb/Work PB493).
+    /// <para>A COBOL-85 BLANK WHEN ZERO promotion of a signed numeric PICTURE (<see cref="PicInfo.BlankWhenZeroSigned"/>) is
+    /// such an item too: its PICTURE contains the 'S' (§1985:VI.5.12.3 SR1), so a SEPARATE clause it inherits gives its
+    /// edited image the sign's own position, exactly as its own clause would (kb/Work PB5790).</para></summary>
     private static PicInfo? WithInheritedSign(PicInfo? pic, SignSpec sign) =>
         pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display or Usage.National }
             ? pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, sign) }
-            : pic;
+            : pic?.WithBlankWhenZeroSeparateSign(sign);
 
     /// <summary>One entry of the §2023:13.18.52.4 GR1 walk: the nearest enclosing clause, unless the entry wrote its own.
     /// A subtree completed ahead of the pipeline (<see cref="CompleteDescriptionAhead"/>, kb/Work PB2465) took its

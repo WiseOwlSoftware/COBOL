@@ -1,9 +1,9 @@
 {
  "id": "rerun-removed-2002",
- "description": "RERUN clause (I-O-CONTROL) - the '85 checkpoint hint (RERUN [ON file/implementor-name] EVERY {{[END OF] REEL/UNIT | n RECORDS} OF f | n CLOCK-UNITS | condition-name}); no program-visible effect, parsed-and-ignored at 85 (a null rerun facility is conforming) once its five syntax rules are screened (COBOL6529-COBOL6531, kb/Work PB4945); deleted by ISO 2002 (absent from the whole 2023 text, 8.9 included).",
+ "description": "RERUN clause (I-O-CONTROL) - the '85 checkpoint hint (RERUN [ON file/implementor-name] EVERY {{[END OF] REEL/UNIT | n RECORDS} OF f | n CLOCK-UNITS | condition-name}); at 85 the integer-1 RECORDS ON implementor-name-1 form writes its rerun information (the one form §1985:VII.2.12.4 GR2 requires the implementor to provide, kb/Work PB5198, PB5143) and the other forms have no program-visible effect, once its five syntax rules are screened (COBOL6529-COBOL6531, kb/Work PB4945); deleted by ISO 2002 (absent from the whole 2023 text, 8.9 included).",
  "display": "the RERUN clause (I-O-CONTROL)",
  "diagnosticCode": "COBOL0902",
- "citation": "obsolete '85 checkpoint hint deleted by ISO 2002 (absent from the whole 2023 text; §2023:8.9 absence); parsed-and-ignored at 85; VCR Table 7 row 7.15; obsolete element (§1985:p.XVII-83 (obsolete list item 5))",
+ "citation": "obsolete '85 checkpoint hint deleted by ISO 2002 (absent from the whole 2023 text; §2023:8.9 absence); at 85 the integer-1 RECORDS form records rerun information and the other forms have no effect (§1985:VII.2.12.4 GR2); VCR Table 7 row 7.15; obsolete element (§1985:p.XVII-83 (obsolete list item 5))",
  "introducedIn": 85,
  "removedIn": 2002,
  "obsoleteIn": 85,
