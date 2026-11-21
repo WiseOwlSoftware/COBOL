@@ -483,7 +483,10 @@ def iso_units(ed: IsoEdition, lines: list[str], rules: list[dict], declared: dic
             if clause in numbered and ORDINAL.match(line):
                 break
             body.append((i + 1, line))
-        units = [u for u in text_units.segment(body, items=clause not in numbered and clause not in declared)
+        # A list is held by its marker (kb/Work PB6001): a rule block's or a declared block's lists are the ones its
+        # scan measures (ORDINAL); a prose clause, or one its block decides unit by unit (text_units.UNITS), holds none.
+        prose = clause not in numbered and declared.get(clause, {}).get("disposition", text_units.UNITS) == text_units.UNITS
+        units = [u for u in text_units.segment(body, held=None if prose else ORDINAL)
                  if not (u.table and u.table in named.get(clause, ()))]
         if units:
             out[clause] = units
