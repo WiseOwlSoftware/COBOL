@@ -1700,8 +1700,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// (indexed). The 1985 READ of both organizations prints AT END and NOT AT END in format 1 only, and format 1 is the
     /// sequential retrieval (format 2, the random one, carries INVALID KEY), so a READ of a dynamic-access file that writes
     /// either phrase is a sequential read and must write NEXT. COBOL-2002 and later imply the NEXT phrase from those
-    /// phrases (§2023:14.9.30.3 SR9), so
-    /// the requirement is the 1985 dialect's alone, and <c>KeyedIoBinder.BindRead</c> binds the READ as the implied
+    /// phrases (§2023:14.9.30.3 SR9), so the requirement is the 1985 dialect's alone, and <c>KeyedIoBinder.BindRead</c> binds the READ as the implied
     /// NEXT it reads either way, the refusal being reported beside it. Returns true when the statement conforms.</summary>
     public bool CheckReadDynamicNextWritten(FileModel file, bool atEnd, bool notAtEnd, bool next)
     {
