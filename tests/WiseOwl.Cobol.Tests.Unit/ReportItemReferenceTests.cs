@@ -208,7 +208,7 @@ public sealed class ReportItemReferenceTests
 
     /// <summary>The text of a member in a source file: from its <paramref name="declaration"/> to the next closing brace
     /// at class-member indentation (four spaces). A member of the class is sliced exactly; a LOCAL function (the record-key
-    /// resolver <c>InRecords</c>) is sliced to the end of the method that holds it, which is wider than the function but
+    /// resolver <c>ResolveKeyOperand</c>) is sliced to the end of the method that holds it, which is wider than the function but
     /// still the one method that must ask the question.</summary>
     private static string MethodText(string file, string declaration)
     {
@@ -241,7 +241,7 @@ public sealed class ReportItemReferenceTests
         foreach (string arm in new[]
                  {
                      "private void ResolveAssignUsing(",          // ASSIGN … USING (kb/Work PB3768)
-                     "DataItem? InRecords(",                      // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
+                     "DataItem? ResolveKeyOperand(",              // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
                  })
             Assert.Contains("ReportItemOperandRefused(", MethodText(fileResolve, arm));   // the one ask that carries the COBOL-85 edge (kb/Work PB5361)
 

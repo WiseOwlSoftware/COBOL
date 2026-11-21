@@ -16,6 +16,10 @@
       *> ignores punctuation (the golden's expect pins the comma).
       *> The USING and GIVING records are sized to the SD record (CNT + KODO is 2 to 4 bytes), so the record-size rules (MERGE SR3, SR12) hold
       *> and the key rule is the ONE reason the program is refused.
+      *> EVERY EDITION'S OWN TEXT FORBIDS THE KEY (docs/conformance/3/D-SKE.md, kb/Work PB5321), so it is refused at 85, 2002,
+      *> 2014 and 2023: §1985:XI.4.1.3 SR4c "The data items identified by key data-names must not be group items that
+      *> contain variable occurrence data items" (the --std 85 refusal quotes it) and §2002:14.8.23.2 SR4d "The data items
+      *> identified by key data-name shall not be variable-length data items".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB2512MO.
        ENVIRONMENT DIVISION.

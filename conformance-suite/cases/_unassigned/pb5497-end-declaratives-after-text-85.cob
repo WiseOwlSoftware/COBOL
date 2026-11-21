@@ -7,8 +7,9 @@
       *> kb/Work PB5497 - §1985:IV.7.5: DECLARATIVES and END
       *> DECLARATIVES "must each appear on a line by itself". END below
       *> starts in area A but follows the paragraph X on its line, so at
-      *> --std 85 it is COBOL3734 (a header after text is legal only for
-      *> a paragraph-name, §1985:IV.7.3.3).
+      *> --std 85 it is COBOL3734. Starting in area A is not enough for
+      *> these two alone: a section header, a division header or an end
+      *> marker that starts in area A after other text is accepted.
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB5497ED.
 000300 PROCEDURE DIVISION.

@@ -34,8 +34,7 @@ UNIT: wave.
    and at 60 minutes it writes {STOP_UNIT}: the running Workflow finishes, and once it returns you start nothing new
    and hand off.
 5. In the same turn as the Workflow's result, render the ledger: `python scripts/spec/gen_ledger.py --out '{COORD}\ledger.html'`
-   (every figure on it is computed; its trend series, `{COORD}\ledger-trend.json`, gains a point when GAP or the
-   register's series moved, and it is never committed: kb/Work PB2426). You cannot
+   (every figure on it is computed, per edition, from `edition_status.py`: kb/Work PB5994; it is never committed). You cannot
    PUBLISH it (a headless session has no Artifact tool): the supervisor announces the owed publish after you end, and the
    attended session publishes `{COORD}\ledger.html` to the owner's artifact. Do not look for a way around that.
 6. Write the handoff: `workflow.state`, and every branch the wave finished in `branches_pending` (DONE: the review and

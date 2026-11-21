@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -244,7 +245,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             using var _ = ctx.Edition.At(fc);
             ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.NumericFunctionIdentifierOperand2002,
-                $"{DataBinder.WrittenText(fc)} as an identifier operand");
+                $"{WrittenSource.Of(fc)} as an identifier operand");
         }
         return operand;
     }
@@ -579,7 +580,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         foreach (var item in list.subscriptItem())
         {
             if (item.functionArgument() is { } a) { args.Add(a); continue; }
-            ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"malformed function-argument list '{DataBinder.WrittenText(sp)}' — an "
+            ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"malformed function-argument list '{WrittenSource.Of(sp)}' — an "
                 + "argument is an identifier, a literal, a boolean expression, or an arithmetic expression, and ALL is "
                 + $"none of them (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8")})");
             return null;
@@ -615,7 +616,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             {
                 using var _ = ctx.Edition.At(given!);
                 ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
-                    $"'{DataBinder.WrittenText(given!)}' follows '{WrittenBefore(arg, given!)}', "
+                    $"'{WrittenSource.Of(given!)}' follows '{WrittenBefore(arg, given!)}', "
                     + $"on which no subscript may be written (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2")}), so it begins the next argument — and an "
                     + $"argument written in parentheses is an arithmetic or a boolean expression, which this is not (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8")})");
                 return null;
@@ -1025,7 +1026,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
             (name, written) = (word.GetText(), word);
         }
-        else name = DataBinder.WrittenText(argCtx);
+        else name = WrittenSource.Of(argCtx);
         // §2023:15.28.3 r1 / §2023:15.29.3 r1 (word for word): "Argument-1 is optional and when specified shall be the name of
         // a file connector that is specified in an FD statement." BOTH halves (kb/Work PB63): the name must be a
         // file-name, and that file must be FD-described — an SD (a sort-merge file description) or a SELECT with no
@@ -1116,7 +1117,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 continue;
             }
             if (mustBeName)
-                return Malformed($"argument-3 '{argCtxs[2].GetText().Trim()}' is not an ordering-name declared in an "
+                return Malformed($"argument-3 '{WrittenSource.Of(argCtxs[2]).Trim()}' is not an ordering-name declared in an "
                     + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
                     + "§2023:15.85.2 general format's third position IS ordering-name-1 (ISO §2023:15.85.3 r5; §2023:15.3 "
                     + "argument type 12)"
@@ -1182,7 +1183,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 "LOCALE-TIME" => "ISO §2023:15.53.3 r4 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
                 _ => "ISO §2023:15.54.3 r2 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
             };
-            string site = $"FUNCTION {sig.Name}'s locale-name-1 '{a.GetText().Trim()}'";
+            string site = $"FUNCTION {sig.Name}'s locale-name-1 '{WrittenSource.Of(a).Trim()}'";
             if (KeywordWordOf(a) is { } word)
             {
                 var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(a)!, word, site, rule);
@@ -1236,7 +1237,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         else
         {
             ctx.Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"FUNCTION {sig.Name}'s LOCALE phrase: the word after LOCALE shall be a locale-name declared by a "
-                + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{argCtxs[2].GetText().Trim()}'");
+                + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{WrittenSource.Of(argCtxs[2]).Trim()}'");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
         var operands = new List<BoundOperand> { operand };
@@ -1873,7 +1874,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (k < 0 || kind >= 0)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION MODULE-NAME takes exactly one keyword argument "
-                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2), not '{DataBinder.WrittenText(a)}'");
+                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2), not '{WrittenSource.Of(a)}'");
                 return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
             }
             kind = k;
@@ -3276,8 +3277,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (host.Expr.NonNumericLiteralOperand(nn) is { } op) return op;
         // The F18 sibling one shape over (kb/Work R19): the null fallback was a silent runtime stage too.
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentNotAValue,
-            $"the literal '{nn.GetText()}' is not a form this intrinsic-argument position admits (ISO §2023:15.3)");
-        return BoundOperandError.Refused(ctx.Edition, $"literal argument '{nn.GetText()}'");
+            $"the literal '{WrittenSource.Of(nn)}' is not a form this intrinsic-argument position admits (ISO §2023:15.3)");
+        return BoundOperandError.Refused(ctx.Edition, $"literal argument '{WrittenSource.Of(nn)}'");
     }
 
     /// <summary>The word <see cref="KeywordWordOf"/> reads, as written: the argument's phrase word or its sole unqualified data

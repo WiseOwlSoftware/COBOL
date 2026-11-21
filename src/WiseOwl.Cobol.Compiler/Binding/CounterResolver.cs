@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 
 namespace WiseOwl.Cobol.Binding;
@@ -60,7 +61,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         var written = ReferenceResolver.ReadWritten(dref);
         string name = dref.cobolWord().GetText();
         // §2023:8.4.3.3.3 SR3 — the count screen every identifier entry runs (ScreenRefModCount), asked of the counter too.
-        if (!refs.RefMods.ScreenRefModCount(dref, written, name)) return RefResolution.Refused(DataBinder.WrittenText(dref));
+        if (!refs.RefMods.ScreenRefModCount(dref, written, name)) return RefResolution.Refused(WrittenSource.Of(dref));
         if (refs.Subscripts.ReadSubscripts(dref, family.Register, written.SubscriptGroup, out var indexExprs) is { } refusal)
             return refusal;
         var counter = SumCounterPlace(rep, family, indexExprs);
@@ -75,7 +76,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         if (refs.RefMods.ReadScreenedRefMod(dref, written, counter.Item, out var refModRefusal) is not { } spec) return refModRefusal;
         return refs.RefMods.RefModView(counter.Item, counter, spec) is { } view
             ? RefResolution.Resolved(view, "")
-            : RefResolution.Deferred(DeferredShape.NumericRefModSubstrate, DataBinder.WrittenText(dref));
+            : RefResolution.Deferred(DeferredShape.NumericRefModSubstrate, WrittenSource.Of(dref));
     }
 
     /// <summary>The place of one counter occurrence of <paramref name="family"/>: its rendered one-based subscripts
@@ -123,7 +124,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             // "not defined", so name the real rule (§2023:8.4.2.2.2 / §2023:8.4.2.2.3 SR4).
             if (data.Symbols.IdentifyDataName(written, report: false).Single is not null) return null;
             if (report && refs.Diagnosed.Add(dref))
-                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': '{name}' is a sum counter "
+                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{WrittenSource.Of(dref)}': '{name}' is a sum counter "
                     + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5")}), "
                     + "but none is subordinate to the qualifiers written — a sum counter is "
                     + "qualified by the data-names of the report group description entries above it, innermost "
@@ -162,7 +163,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             if (report && refs.Diagnosed.Add(dref))
             {
                 int ordinary = sameSpelling - matches.Count;
-                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{DataBinder.WrittenText(dref)}': the reference is ambiguous — "
+                data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{WrittenSource.Of(dref)}': the reference is ambiguous — "
                     + (ordinary == 0
                         ? $"{matches.Count} entries establish a sum counter named '{name}' (ISO "
                           + data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR1", "§2023:13.18.54.4 GR1")
@@ -194,7 +195,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // LINAGE-COUNTER > 1` bound and read the live counter (kb/Work PB1431).
         if (refs.EnclosingReport is { } report)
         {
-            DataBinder.ReportLinageCounterOutsideProcedure(data.Edition, dref, $"RD '{report.Name}': clause operand", DataBinder.WrittenText(dref));
+            DataBinder.ReportLinageCounterOutsideProcedure(data.Edition, dref, $"RD '{report.Name}': clause operand", WrittenSource.Of(dref));
             return null;
         }
         if (dref.cobolWord() is { } q)   // qualified: LINAGE-COUNTER OF/IN file-name

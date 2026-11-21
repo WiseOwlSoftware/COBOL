@@ -1,0 +1,23 @@
+W 00
+W 00
+W 00
+00 05 [ALPHA               ]
+00 05 [BRAVO               ]
+00 07 [CHARLIE             ]
+N 3
+W 00
+W 00
+W 00
+00 05 [DELTA               ]
+00 04 [ECHO                ]
+00 07 [FOXTROT             ]
+N 3
+W 00
+W 00
+W 00
+W 00
+00 04 [GOLF                ]
+00 05 [HOTEL               ]
+00 05 [INDIA               ]
+00 06 [JULIET              ]
+N 4

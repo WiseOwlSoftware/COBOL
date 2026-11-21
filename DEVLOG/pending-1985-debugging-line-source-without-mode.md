@@ -14,3 +14,10 @@ the mode after a unit with it were probed and refused the same way. Goldens: pb5
 and pb5990-debugging-line-not-source-without-mode (refused at 85). Unit test:
 HiddenLines_AreTheLinesOfAUnitWithoutTheMode_AndBlankingTheirCarriersLeavesNoMarker. The closes_rows are empty: the 1985 inventory
 holds store records (PB5094).
+
+Review follow-up: the as-source reading first only parsed, so a hidden D line holding an unterminated literal (COBOL5563) or
+literals with no separator (COBOL2633) exited 0. `Frontend.ReportTokenScreens` is now the one pipeline of the token-level
+screens, run by the main parse and by the as-source reading (lexer errors included); goldens pb5990-debugging-line-unterminated-
+literal-as-source and pb5990-debugging-line-separator-as-source witness each. A misplaced D line before OBJECT-COMPUTER in a unit
+without the mode drew COBOL7060 and COBOL7675 for one cause; it is now COBOL7060 alone (pb5990-misplaced-debugging-line-reported-once).
+The arithmetic-operator separator screen needs the parse tree and is not part of the as-source reading.

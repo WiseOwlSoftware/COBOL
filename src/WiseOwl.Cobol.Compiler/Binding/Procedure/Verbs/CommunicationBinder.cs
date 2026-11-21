@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Symbols;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Runtime.Communication;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -123,7 +124,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         // (communication-key-phrase-removed-2002), so the rule has no later row.
         if (!IsAlphanumericKey(keyOperand))
             using (ctx.Edition.At(key.sendingOperand()))
-                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"{statement} KEY {DataBinder.WrittenText(key.sendingOperand())}: the operand is not "
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"{statement} KEY {WrittenSource.Of(key.sendingOperand())}: the operand is not "
                     + $"alphanumeric; §1985:XIV.3.{clause}.3 SR4: \"Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.\"");
         return new BoundCommunicationStatement(verb, cd, CommunicationAreaOf(cd)) { Path = path, Key = keyOperand };
     }
@@ -151,7 +152,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         if (host.Expr.ResolveReceiving(s.receivingIdentifier()) is not { } into) return BoundRejected.Reported(ctx.Edition);
         if (Prints2002 && !IsCommunicationAlphanumericArea(into, ctx.Edition.Edition))
             using (ctx.Edition.At(s.receivingIdentifier()))
-                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"RECEIVE INTO {DataBinder.WrittenText(s.receivingIdentifier())}: the item is not of category alphanumeric; "
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"RECEIVE INTO {WrittenSource.Of(s.receivingIdentifier())}: the item is not of category alphanumeric; "
                     + "§2002:A.2.5.2 SR2: \"Identifier-1 shall reference a data item of category alphanumeric.\"");
         var noData = s.receiveNoDataPhrase() is { } no ? host.BindBlocks([no.statementBlock()]) : null;
         var withData = s.receiveWithDataPhrase() is { } yes ? host.BindBlocks([yes.statementBlock()]) : null;
@@ -189,10 +190,10 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         {
             using var at = ctx.Edition.At(s.sendIdentifier());
             if (Prints2002)
-                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendIdentifier())}: the operand is not of class alphanumeric; "
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {WrittenSource.Of(s.sendIdentifier())}: the operand is not of class alphanumeric; "
                     + $"§2002:A.2.6.2 SR2: \"Identifier-1 shall reference a data item of class alphanumeric\", and SR7 asks a function-identifier the same.");
             else if (s.sendIdentifier().functionCall() is not null)
-                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendIdentifier())}: the function is not an alphanumeric "
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {WrittenSource.Of(s.sendIdentifier())}: the function is not an alphanumeric "
                     + $"function; {Cite(SendFunction)}");
         }
         var indicator = SendIndicator.None;
@@ -210,7 +211,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
                 // (kb/Work PB5289).
                 if (!IsIntegerItem(indicatorItem, static pic => pic is { Digits: 1, Signed: false }))
                     using (ctx.Edition.At(ind))
-                        ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND WITH {DataBinder.WrittenText(ind.sendIdentifier())}: {Cite(SendIdentifier2)}");
+                        ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND WITH {WrittenSource.Of(ind.sendIdentifier())}: {Cite(SendIdentifier2)}");
             }
         }
         if (s.sendAdvancingPhrase() is { } advancing) ScreenSendAdvancing(advancing);
@@ -243,7 +244,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         int mark = ctx.Edition.ErrorsRecorded;
         BoundOperand operand = BindSendIdentifier(identifier);
         return ctx.Edition.ErrorsRecorded == mark || operand is BoundOperandError ? operand
-            : BoundOperandError.Refused(ctx.Edition, $"SEND operand '{DataBinder.WrittenText(identifier)}'");
+            : BoundOperandError.Refused(ctx.Edition, $"SEND operand '{WrittenSource.Of(identifier)}'");
     }
 
     /// <summary>The ADVANCING phrase's operands (SR3 to SR5 at 85, SR4 to SR6 at 2002). This MCS's devices are oriented to variable-length messages, so vertical
@@ -259,14 +260,14 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             && ctx.Mnemonics.TryUse(word, out var system))
         {
             if (system.Kind != SystemNameKind.Feature || (advancing.LINE() ?? advancing.LINES()) is not null)
-                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {DataBinder.WrittenText(advancing)}: {Cite(SendMnemonic)}, and "
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {WrittenSource.Of(advancing)}: {Cite(SendMnemonic)}, and "
                     + $"{SendFormat} prints no LINE or LINES after it.");
             return;
         }
         // "an integer data item" (kb/Work PB5289): a trailing-P item is one; an index data item, a symbolic-character (a figurative constant, and
         // no mnemonic-name "defined in the SPECIAL-NAMES paragraph", §1985:XIV.3.6.3 SR4), an index-name and a reference-modified item are not.
         if (!IsIntegerItem(BindSendDataOperand(identifier), describedAs: null))
-            ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {DataBinder.WrittenText(identifier)}: {Cite(SendIdentifier3)}");
+            ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {WrittenSource.Of(identifier)}: {Cite(SendIdentifier3)}");
     }
 
     /// <summary>Integer-1, which "may be zero" (SR5 at 85, SR6 at 2002), and the figurative ZERO is that zero (kb/Work PB5289): the bound literal answers which constant

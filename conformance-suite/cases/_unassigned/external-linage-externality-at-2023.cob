@@ -7,7 +7,8 @@
 *> ISO 14.8.4.2 conjunct 1 (Annex E.2 item 9): at >=2023 a LINAGE data item of an external
 *> file connector shall ITSELF be an external data item. Here a SINGLE program declares
 *> FD F IS EXTERNAL LINAGE IS WS-LN LINES, where WS-LN is a plain (non-external) item. A
-*> LITERAL LINAGE operand would be exempt. Below 2023 the requirement did not exist.
+*> LITERAL LINAGE operand would be exempt. The 1985 text has it too (§1985:VII.3.7.4 GR11c,
+*> pb5982-external-linage-not-external); 2002 and 2014 are not screened (kb/Work PB5982).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. XLNE.
        ENVIRONMENT DIVISION.

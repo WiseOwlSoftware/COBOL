@@ -608,17 +608,8 @@ public sealed class Frontend
         var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts, edition);
         // ISO §2023:6.3.5 1) / §2023:6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
         // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
-        LiteralScreen.ReportUnterminated(tokens.GetTokens(), edition, (t, descriptor, message) =>
-            sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, $"[{descriptor.Code}] {message}", null!));
-        foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens.GetTokens()))
-            sr7.SyntaxError(TextWriter.Null, null!, pic, pic.Line, pic.Column,
-                $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic, edition)}", null!);
-        // ISO §2023:8.3.5 rules 2, 3 and 5 — the separator context of every comma, semicolon, period and literal, decided from
-        // the same characters and reported the same way (kb/Work PB1394). Hidden-channel tokens included: a ';' with no
-        // space after it reaches the token stream only there.
-        foreach (var v in SeparatorRule.Violations(text, tokens.GetTokens(), edition))
-            sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
-                $"[{v.Descriptor.Code}] {v.Message}", null!);
+        ReportTokenScreens(text, tokens.GetTokens(), edition,
+            (t, message) => sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, message, null!));
 
         // The parser needs the map as well as the lexer and the rewriter: its text predicates (LOCALE, ORDER,
         // CLASSIFICATION, ATTRIBUTE, the LC_ categories) recognize §2023:8.9/§2023:8.10 words the lexer deliberately does
@@ -688,7 +679,8 @@ public sealed class Frontend
                 ReportDebuggingLinesBreakingTheProgram(tokens.GetTokens(), sourceDebuggingLines, retypes, edition, cobolWordsMap,
                     sourcePath, cuts, diagnostics);
             if (parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any && hiddenDebuggingLines.Count > 0)
-                ReportDebuggingLinesBreakingTheProgramAsSource(text, sourceDebuggingLines, hiddenDebuggingLines, retypes, edition,
+                ReportDebuggingLinesBreakingTheProgramAsSource(text, sourceDebuggingLines,
+                    hiddenDebuggingLines.Where(h => misplacedDebuggingLines.All(m => m.Line != h.Line)).ToList(), retypes, edition,
                     cobolWordsMap, sourcePath, cuts, diagnostics);
         }
 
@@ -730,6 +722,21 @@ public sealed class Frontend
         diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);
     }
 
+    /// <summary>The syntax rules decided from the token stream and its text, before any parse: a literal its line ends inside
+    /// (§2023:6.3.5 1) / §2023:6.4.2, kb/Work PB3245) FIRST, the PICTURE separator period and the §2023:8.3.5 separator contexts
+    /// (kb/Work PB1394). ONE pipeline: the main parse and the as-source reading of a hidden debugging line (kb/Work PB5990) both
+    /// run it, so a refusal that applies to source applies to a debugging line taken as source.</summary>
+    private static void ReportTokenScreens(string text, IList<IToken> tokens, EditionInfo edition, Action<IToken, string> report)
+    {
+        LiteralScreen.ReportUnterminated(tokens, edition, (t, descriptor, message) =>
+            report(t, $"[{descriptor.Code}] {message}"));
+        foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens))
+            report(pic, $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic, edition)}");
+        // Hidden-channel tokens included: a ';' with no space after it reaches the token stream only there.
+        foreach (var v in SeparatorRule.Violations(text, tokens, edition))
+            report(v.Token, $"[{v.Descriptor.Code}] {v.Message}");
+    }
+
     /// <summary>The ONE place a text gets its lexer: primed with the group's synonyms, the de-reserved words and the edition's
     /// spellings (<see cref="TokenRetypes.PrimeLexer"/>) before any tokenization.</summary>
     private static CobolLexer NewLexer(string text, TokenRetypes retypes, EditionInfo edition)
@@ -749,8 +756,10 @@ public sealed class Frontend
         TokenRetypes retypes, EditionInfo edition, CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts,
         DiagnosticBag diagnostics)
     {
-        var lexer = NewLexer(DebuggingLineRewriter.WithCarriersBlanked(text, sourceLines.Concat(hiddenLines)), retypes, edition);
-        LexerErrorListener.AttachTo(lexer);
+        if (hiddenLines.Count == 0) return;   // every hidden line was a misplaced one, which COBOL7060 reports already
+        var asSourceText = DebuggingLineRewriter.WithCarriersBlanked(text, sourceLines.Concat(hiddenLines));
+        var lexer = NewLexer(asSourceText, retypes, edition);
+        var lexErrors = LexerErrorListener.AttachTo(lexer);
         var asSource = new CommonTokenStream(lexer);
         DebuggingLineRewriter.Rewrite(asSource,
             debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002));
@@ -758,9 +767,12 @@ public sealed class Frontend
         retypes.Rewrite(asSource);
         if (EmbeddedBlockReading.Read(asSource, () => ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts).Clean).Any)
             return;
+        // The screens source text gets, into a bag nothing reads: any error is a source-level refusal the line's being source causes.
+        int screenLine = lexErrors.FirstLine ?? int.MaxValue;
+        ReportTokenScreens(asSourceText, asSource.GetTokens(), edition, (t, _) => screenLine = Math.Min(screenLine, t.Line));
         var verdict = ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts);
-        if (verdict.Clean) return;
-        int errorLine = verdict.Offender?.Line ?? int.MaxValue;
+        if (verdict.Clean && screenLine == int.MaxValue) return;
+        int errorLine = Math.Min(screenLine, verdict.Offender?.Line ?? int.MaxValue);
         var at = hiddenLines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? hiddenLines.MinBy(t => t.Line)!;
         var descriptor = Editions.Diagnostics.DiagnosticCatalog.DebuggingLineSyntaxAsSource;
         diagnostics.ReportError(descriptor.Code, descriptor.Title, LineMap.Locate(at.Line, at.Column, sourcePath), default);

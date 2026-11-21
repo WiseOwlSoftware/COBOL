@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -225,7 +226,7 @@ internal sealed partial class OoBinder
         }
         if (term?.dataReference() is { } dr0 && ctx.Refs.Probe(dr0) is not null
             && host.Expr.ResolveSending(dr0).Place is { } r0   // a non-place answer is bound (and answered) below
-            && RefuseUniversalInlineReceiver(r0, dr0.GetText()) is { } refusedFirst)
+            && RefuseUniversalInlineReceiver(r0, WrittenSource.Of(dr0)) is { } refusedFirst)
             return refusedFirst;
 
         // §2023:8.4.3.1.3 SR1 recursion: each segment invokes on the temporary the previous one produced. A
@@ -239,7 +240,7 @@ internal sealed partial class OoBinder
             return BoundExprError.Refused(ctx.Edition, "inline method invocation through a non-object identifier-1");
         // The receiver AS WRITTEN (spaces kept), which every diagnostic about a chained receiver names — never the
         // compiler's temporary.
-        string written = DataBinder.WrittenText(target);
+        string written = WrittenSource.Of(target);
         foreach (var seg in imi.inlineInvocationSegment())
         {
             // §2023:8.4.3.4.3 SR2 binds EVERY segment's identifier-1, not only the written first one: identifier is
@@ -249,7 +250,7 @@ internal sealed partial class OoBinder
             if (chained is { } recv && RefuseUniversalInlineReceiver(recv, written) is { } refusedChained)
                 return refusedChained;
             string receiverText = written;
-            written += " " + DataBinder.WrittenText(seg);
+            written += " " + WrittenSource.Of(seg);
             // literal-1 as written, or spelled by a constant-name (§2023:13.10.3 SR2; kb/Work PB780) — a word that names no
             // literal-alias is no literal at all, and takes the same refusal.
             string? segmentMethod = seg.cobolWord() is { } methodWord
@@ -258,7 +259,7 @@ internal sealed partial class OoBinder
             if (segmentMethod is not { Length: > 0 } methodName)
             {
                 ctx.Edition.Error(DiagnosticCatalog.InlineInvocationReceiver,
-                    $"the inline method invocation '{seg.GetText()}': literal-1 (the method name) shall be a "
+                    $"the inline method invocation '{WrittenSource.Of(seg)}': literal-1 (the method name) shall be a "
                     + "non-zero-length literal of class alphanumeric or national, or a constant-name that stands for "
                     + "one (ISO §2023:8.4.3.4.2; §2023:8.4.3.4.3 SR3 → §2023:14.9.23.3 SR2; §2023:13.10.3 SR2)");
                 return BoundExprError.Refused(ctx.Edition, "inline method invocation method name");
