@@ -1,4 +1,4 @@
-## The 1985 debugging line in a unit without the mode is read as source with every screen source text gets (PB5990)
+## Entry 3899 — 2026-11-21 05:48 PST — The 1985 debugging line in a unit without the mode is read as source with every screen source text gets (PB5990)
 
 §1985:VI.7.3 requires a debugging line to leave a syntactically correct program "with or without" the lines taken as comment
 lines. PB5212 checked only the direction where the mode is on (COBOL7061); PB5466 added a token-copy reading of the other
@@ -16,3 +16,4 @@ PB5466's reader were deleted, and the branch's two duplicates of PB5466's golden
 OBJECT-COMPUTER stays COBOL7060 alone; a valid D line is not blamed for an error on a plain line. The pb1913 comment twin takes valid
 D-line text (`IS`, `W-E(W-I`) since region lines are now read as source too. The closes_rows are empty: the 1985 inventory holds
 store records (PB5094).
+
