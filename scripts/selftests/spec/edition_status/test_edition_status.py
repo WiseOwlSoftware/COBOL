@@ -142,6 +142,52 @@ def case_07_a_catalog_row_the_walk_does_not_reach_refuses(expect):
                  False)
 
 
+def case_07b_a_paragraph_leaves_the_count_only_on_a_disposition_and_its_record(expect):
+    # kb/Work PB6001: the measure reads the one disposition store through the one segmentation and the one test of a
+    # record; a disposition with no UPHELD record of the unit's text, a pending unit and a stale block stay counted.
+    import json  # noqa: PLC0415
+    H = C.catalog_prose_holes
+    E, U = H.extract_rule_catalog, H.text_units
+    root = F.planted_1985(scratch_dir("edition-status-disposed-"), [], F.DISPOSED_1985)
+    lines = F.DISPOSED_1985.splitlines()
+    manifest = root / E.UNHARVESTED_OF[1985].relative_to(E.REPO)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    records_at = "docs/planted-refute.jsonl"
+    scan = H.rule_catalog_1985.parse(lines).unharvested
+    blocks = {c: {**{k: scan[c][k] for k in ("title", "ordinals", "lists", "longest")}, "disposition": "not-rules",
+                  "why": "planted", "digest": scan[c]["digest"] if c.endswith("2.5") else "000000000000",
+                  "refuted": records_at} for c in ("§1985:VI.2.5", "§1985:VI.2.6")}
+    manifest.write_text(json.dumps({"blocks": blocks}), encoding="utf-8", newline="\n")
+    _cat, units, _a, _m = E.units_1985(lines, root)
+    unit = {c: us[0] for c, us in units.items()}
+    records = [{"unit": c, "clause": c, "digest": b["digest"], "outcome": "UPHELD"} for c, b in blocks.items()]
+    entries = {}
+    for c, (d, outcome, read) in {"§1985:VI.2.1": ("restates", "UPHELD", None),
+                                  "§1985:VI.2.2": ("not-a-rule", "OVERTURNED", None),
+                                  "§1985:VI.2.3": ("restates", "UPHELD", "0123456789ab"),
+                                  "§1985:VI.2.4": ("pending", None, None),
+                                  "§1985:VI.2.5": ("not-a-rule", "UPHELD", None),
+                                  "§1985:VI.2.6": ("pending", None, None)}.items():
+        u = unit[c]
+        entries[c] = {"units": [{"unit": u.label, "digest": u.digest, "order": 0, "disposition": d,
+                                 "refuted": records_at}]}
+        if outcome:
+            records.append({"unit": u.label, "clause": c, "digest": read or u.digest, "outcome": outcome})
+    manifest.write_text(json.dumps({"blocks": blocks, "paragraph-blocks": entries}), encoding="utf-8", newline="\n")
+    (root / records_at).write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8", newline="\n")
+    expect.equal("the planted units are the clauses' paragraphs, the held lists none of them",
+                 {c: [u.label for u in us] for c, us in units.items() if c != "§1985:VI.2.7"},
+                 {f"§1985:VI.2.{n}": ["p1"] for n in range(1, 7)})
+    h = H.holes(1985, root)
+    expect.equal("counted: an OVERTURNED record, a record of other words, a pending unit, and a block whose text moved "
+                 "(its lead-in pending, its two items)", [u.locator for u in h.uncovered],
+                 ["VI.2.2", "VI.2.3", "VI.2.4", "VI.2.6", "VI.2.6", "VI.2.6"])
+    expect.equal("covered by cause: a restates and a not-a-rule on their records, a not-rules block's two items",
+                 h.discounted, {"row": 0, "restates": 1, "not-a-rule": 1, "not-rules block": 2})
+    expect.equal("an HTML table, a caption below it, a figure's caption and the repeated section title are no prose",
+                 h.printed_paragraphs, 10)
+
+
 def case_08_an_edition_no_reader_reads_is_refused(expect):
     for year in (2002, 2014, 2023):
         try:

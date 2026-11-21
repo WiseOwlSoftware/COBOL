@@ -188,14 +188,15 @@ class Paragraph:
     """One paragraph of the transcription as `parse` walks it: its locator (`<section or appendix>.<number>`, or the bare
     section or appendix for the text between its heading and its first paragraph), its title, the kind its title types
     (`kind_of`; None for prose), and every body line the walk reads under it, skips applied (a repeated page, an editorial
-    note, a folio, a running header), each as (text, PDF page, printed folio). THE ONE WALK of the 1985 transcription:
+    note, a folio, a running header), each as (text, PDF page, printed folio, 1-based line: where a unit holds it,
+    `text_units.Unit.lines`). THE ONE WALK of the 1985 transcription:
     `catalog_prose_holes.py` reads these, never a copy of the walk (kb/Work PB5924 review R1-3)."""
     locator: str
     title: str
     kind: str | None
     section: str                     # the Roman section, or "A" (Amendment 1's Section A)
     appendix: str | None             # the appendix of Section XVII, whose letter leads the locator (`C.2`), else None
-    lines: list[tuple[str, int, str]] = dataclasses.field(default_factory=list)
+    lines: list[tuple[str, int, str, int]] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -509,7 +510,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None, carved: fro
                 cat.unrecognised.append((loc, title))
             continue
         if para is not None:
-            para.lines.append((line.strip(), page, recon_folio[at] or folio_below[at]))
+            para.lines.append((line.strip(), page, recon_folio[at] or folio_below[at], at + 1))
         if scan is not None:
             if ANY_HEADING.match(line) and GROUP_LABEL.match(line) is None:
                 close_scan()
@@ -751,10 +752,9 @@ def unit_rule_id(kind: str, clause: str, label: str) -> str:
 
 #: The sides of a level-2 box at either end of a line (`unboxed`).
 BOX_EDGE = re.compile(rf"^\s*{BOX_SIDE}\s*|\s*{BOX_SIDE}\s*$")
-#: A table a rule's text holds in HTML markup (1985 prints sixteen so), and a label inside a rule's text: a band naming
-#: formats ("<u>FORMATS 1 AND 3</u>:") or a figure's or table's caption ("Figure 4: ...", "Table 1. ..."). Neither is a
-#: paragraph of the clause: both are the rule's (`_rules_of`).
-HTML_TABLE_OPEN, HTML_TABLE_CLOSE = re.compile(r"^\s*<table\b"), re.compile(r"</table>\s*$")
+#: A label inside a rule's text: a band naming formats ("<u>FORMATS 1 AND 3</u>:") or a figure's or table's caption
+#: ("Figure 4: ...", "Table 1. ..."). It is no paragraph of the clause: it is the rule's (`_rules_of`), as a table the
+#: rule's text holds is, in either markup (text_units.HTML_TABLE_OPEN for the sixteen the 1985 text holds in HTML).
 FORMAT_BAND = r"^\s*(?:<u>)?FORMATS?\s+\d+(?:\s*(?:,|AND)\s*\d+)*(?:</u>)?:?(?:</u>)?\s*$"
 RULE_LABEL = re.compile(rf"{FORMAT_BAND}|^\s*(?:<u>)?(?:Figure|Table)\s+\d+[.:]", re.I)
 #: A band naming a format on a line of its own ("<u>Format 1</u>:", page 182) is part of the general-format display it
@@ -783,15 +783,18 @@ class BlockParagraph:
         return self.clause, self.unit.digest, self.order
 
 
-def _bodies(lines: list[str], rows: list[dict]) -> dict[str, list[tuple[int, str]]]:
-    """The body of every paragraph region of the normative region but a general format's, by citation, in the order of
-    the text, with the 1985 page furniture removed (`furniture`, the reading `parse` makes: a page heading, a page the scan prints
+def _bodies(lines: list[str], rows: list[dict], whole: frozenset[str] = frozenset()
+            ) -> dict[str, list[tuple[int, str]]]:
+    """The body of every paragraph region of the normative region but a general format's, and of every clause of `whole`
+    wherever it lies (a clause its content-keyed block decides unit by unit, `text_units.UNITS`; kb/Work PB5452), by
+    citation, in the order of the text, with the 1985 page furniture removed (`furniture`, the reading `parse` makes: a page heading, a page the scan prints
     twice, an editorial note, a folio and the running header that opens a printed page), every heading and every format
     band (`FORMAT_LABEL`). A paragraph headed "Examples" has no body (`EXAMPLES_TITLE`). A blank line stays, as the
     segmentation's separator."""
     formats = {r["citation"].split(" ")[0] for r in rows if r["kind"] == "FMT"}
     regions = [(f"§1985:{loc}", s, e) for loc, t, s, e in citation.regions_1985(lines)
-               if loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc and not EXAMPLES_TITLE.match(t.strip())]
+               if (loc.split(".", 1)[0] in NORMATIVE_SECTIONS and "." in loc and not EXAMPLES_TITLE.match(t.strip()))
+               or f"§1985:{loc}" in whole]
     regions += [(f"§1989:{loc}", s, e) for loc, t, s, e in citation.amendment_regions(lines, 1989)
                 if loc.startswith("A.") and not EXAMPLES_TITLE.match(t.strip())]
     bodies: dict[str, list[tuple[int, str]]] = {}
@@ -832,9 +835,9 @@ def _rules_of(body: list[tuple[int, str]]) -> tuple[list[tuple[int, str]], list[
             in_table = False
         elif not rules:
             lead.append((no, line))
-        elif HTML_TABLE_OPEN.match(line) or in_table:
+        elif text_units.HTML_TABLE_OPEN.match(line) or in_table:
             # A table a rule's text holds is the rule's (text_units.after_rule), whatever its markup: no candidate.
-            in_table = not HTML_TABLE_CLOSE.search(line)
+            in_table = not text_units.HTML_TABLE_CLOSE.search(line)
         elif GROUP_LABEL.match(line) is None and RULE_LABEL.match(line) is None:
             rules[-1][1].append((no, line))
     return lead, rules
@@ -856,7 +859,7 @@ def block_paragraphs(lines: list[str], rows: list[dict]) -> tuple[list[BlockPara
             continue
         lead, rules = _rules_of(body)
         leads += [BlockParagraph(clause, "", u, order, page_of[u.line])
-                  for u, order in text_units.keyed([u for u in text_units.segment(lead, items=False)
+                  for u, order in text_units.keyed([u for u in text_units.segment(lead, held=ORDINAL)
                                                     if u.shape == "paragraph"])]
         found = [(follows, u) for follows, rule in rules for u in text_units.after_rule(rule)]
         after += [BlockParagraph(clause, follows, u, order, page_of[u.line])
@@ -886,9 +889,13 @@ def units(lines: list[str], rows: list[dict], declared: dict[str, dict], margin:
     for p in margin:
         glued[p.clause].append(p.unit)
     out: dict[str, list] = {}
-    for clause, body in _bodies(lines, rows).items():
+    whole = frozenset(c for c, info in declared.items() if info.get("disposition") == text_units.UNITS)
+    for clause, body in _bodies(lines, rows, whole).items():
         lead = _rules_of(body)[0] if clause in numbered else body
-        found = [u for u in text_units.segment(lead, items=clause not in numbered and clause not in declared)
+        # A list is held by its marker (kb/Work PB6001): a rule block's and a declared block's lists are the `(n)` lists
+        # the content-keyed scan measures (ORDINAL); a clause decided unit by unit holds none, nor does a prose clause.
+        prose = clause in whole or (clause not in numbered and clause not in declared)
+        found = [u for u in text_units.segment(lead, held=None if prose else ORDINAL)
                  if not (u.table and u.table in named[clause])]
         p = sum(u.shape == "paragraph" for u in found)
         found += [dataclasses.replace(u, label=f"p{p + i}") for i, u in enumerate(glued[clause], start=1)]
@@ -940,8 +947,8 @@ def _spans(lines: list[str], cat: Catalog, units: dict[str, list], after: list[B
                     if display.search(line):
                         display = None
                     continue
-                if text_units.PRE_OPEN.match(line) or HTML_TABLE_OPEN.match(line):
-                    closes = text_units.PRE_CLOSE if text_units.PRE_OPEN.match(line) else HTML_TABLE_CLOSE
+                if text_units.PRE_OPEN.match(line) or text_units.HTML_TABLE_OPEN.match(line):
+                    closes = text_units.PRE_CLOSE if text_units.PRE_OPEN.match(line) else text_units.HTML_TABLE_CLOSE
                     display = None if closes.search(line) else closes
                     continue
                 if text_units.FENCE.match(line):

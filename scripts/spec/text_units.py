@@ -68,6 +68,12 @@ INFORMATIVE = re.compile(r"^\s*(?:\*\*)?(?:NOTE|EXAMPLE)S?\b")
 TABLE_LINE = re.compile(r"^\s*\|")
 TABLE_RULE = re.compile(r"^\s*\|(?:\s*:?-{3,}:?\s*\|)+\s*$")
 CAPTION = re.compile(r"^\s*(?:\*\*)?Table\s+(?P<t>\d+)\b")
+#: A table the transcription holds in HTML markup (the 1985 text prints sixteen so, kb/Work PB6001): `<table>` to
+#: `</table>`, each `<tr>` a row and each `<td>`/`<th>` a cell. It is read as a `|` table is (`html_rows`), so the two
+#: markups have ONE table reading.
+HTML_TABLE_OPEN, HTML_TABLE_CLOSE = re.compile(r"^\s*<table\b"), re.compile(r"</table>\s*$")
+HTML_ROW = re.compile(r"<tr\b[^>]*>(?P<row>.*?)</tr>", re.S)
+HTML_CELL = re.compile(r"<t[dh]\b[^>]*>(?P<cell>.*?)</t[dh]>", re.S)
 #: Markup that is no text: an anchor, an HTML comment line, an image.
 MARKUP = re.compile(r"^\s*(?:<a\s+id=\"[^\"]*\"></a>|<!--.*-->|!\[)\s*$")
 #: A general format or code: `<pre …>` … `</pre>`, or a ``` fence.
@@ -91,6 +97,9 @@ class Unit:
     line: int                  # the 1-based line its text starts on
     table: int = 0             # the table's number (printed, or its position in the clause when it prints none)
     table_kind: str = ""       # entries, matrix or data (a table unit's)
+    #: Every 1-based line whose text the unit holds (its own lines, never a display or a held list among them): where a
+    #: measure finds the unit a printed line is in (catalog_prose_holes, kb/Work PB6001). Not part of its identity.
+    lines: tuple[int, ...] = dataclasses.field(default=(), compare=False)
 
     @property
     def digest(self) -> str:
@@ -165,38 +174,79 @@ def table_kind(header: list[str], body: list[list[str]]) -> str:
     return "data"
 
 
-def segment(lines: list[tuple[int, str]], items: bool = True) -> list[Unit]:
+def html_rows(block: list[tuple[int, str]]) -> list[tuple[int, str]]:
+    """An HTML table's rows as `|` table lines, each on the line its `<tr>` opens: the one table reading of both markups
+    (kb/Work PB6001). Its first row is its header, as a `|` table's is; a cell's inner markup is kept, as a `|` cell's."""
+    text, starts, at = "", [], 0
+    for no, line in block:
+        starts.append((at, no))
+        text += line + "\n"
+        at = len(text)
+    out = []
+    for m in HTML_ROW.finditer(text):
+        no = max(n for off, n in starts if off <= m.start())
+        cells = [re.sub(r"\s+", " ", c["cell"]).strip() for c in HTML_CELL.finditer(m["row"])]
+        out.append((no, "| " + " | ".join(cells) + " |"))
+    return out
+
+
+def segment(lines: list[tuple[int, str]], held: re.Pattern[str] | None = None) -> list[Unit]:
     """The units of a clause's unnumbered text. `lines` is (line number, text) of the clause's body, its page furniture
-    already removed by the edition's reader (a removed line is simply absent). `items`: whether a numbered item at the
-    margin is a unit of its own (a prose clause's, design point 1); when False the clause's numbered list is held by a
-    block disposition of its content-keyed manifest (or is a rule list), and its items and their text are no unit."""
-    paras: list[list] = []         # [kind, first line, [text lines], number or table data]
+    already removed by the edition's reader (a removed line is simply absent). `held`: the item marker of the numbered
+    lists that are no unit, or None when every numbered item at the margin is a unit of its own (a prose clause's,
+    design point 1). A list is held PER LIST, by its marker, never per clause (kb/Work PB6001): a content-keyed block
+    disposition holds the list its scan measured (the edition's rule ordinal), and another list of the clause, printed
+    in another marker, is units; a rule's own text holds every list (`after_rule`, `NUMBERED_ITEM`)."""
+    paras: list[list] = []         # [kind, first line, [text lines], number or table data, [line numbers]]
     lead: int | None = None        # the paragraph that leads the open numbered list
     in_item = False                # inside a numbered item (its lettered items and indented lines are its text)
-    held = False                   # inside a numbered item that is no unit (`items` False)
+    is_held = False                # inside a numbered item that is no unit (its marker is `held`)
     number = 0                     # the printed number of the last numbered item
     lists = 0                      # the clause's numbered lists so far (an item of the m-th is `L<m>.<n>`, m > 1)
     fresh = True
     table: list[tuple[int, str]] = []
+    html: list[tuple[int, str]] | None = None   # the lines of an open HTML table
     caption: tuple[int, int] | None = None   # (table number, line) of the caption naming the next table
     tables = 0
+    uncaptioned: list | None = None  # the table just closed with no caption above it: a caption right below names it
+    below = False                  # caption was printed below the table before it
     verbatim = False               # inside a <pre> or a fence: no text
 
     def close_table() -> None:
-        nonlocal table, caption, tables
+        nonlocal table, caption, tables, uncaptioned, below
         if table:
             t = caption[0] if caption else tables + 1
+            whole = next((p for p in paras if p[0] == "table" and p[3] == t), None)
+            if below and whole is not None and _header(whole[2]) != _header(table):
+                # The caption below the table before named THAT table; this one, under another header, is not its
+                # part printed on, and is numbered by its position.
+                t, whole = tables + 1, None
             # A part with the number and header of a table already read is that table printed on: its rows follow.
-            if (whole := next((p for p in paras if p[0] == "table" and p[3] == t), None)) is not None \
-                    and _header(whole[2]) == _header(table):
+            if whole is not None and _header(whole[2]) == _header(table):
                 whole[2].extend(_rows(table)[1:])
+                uncaptioned = None
             else:
                 tables += 1
-                paras.append(["table", table[0][0], table, t])
-            table, caption = [], None
+                paras.append(["table", table[0][0], table, t, [no for no, _ in table]])
+                uncaptioned = None if caption else paras[-1]
+            table, caption, below = [], None, False
 
     for no, line in lines:
         s = line.strip()
+        if html is not None:
+            html.append((no, line))
+            if HTML_TABLE_CLOSE.search(line):
+                table, html = html_rows(html), None
+                close_table()
+            continue
+        if HTML_TABLE_OPEN.match(line):
+            close_table()
+            html = [(no, line)]
+            if HTML_TABLE_CLOSE.search(line):
+                table, html = html_rows(html), None
+                close_table()
+            fresh = True
+            continue
         if verbatim:
             if PRE_CLOSE.search(line) or (FENCE.match(line) and not PRE_OPEN.match(line)):
                 verbatim = False
@@ -220,9 +270,22 @@ def segment(lines: list[tuple[int, str]], items: bool = True) -> list[Unit]:
             continue
         if (c := CAPTION.match(line)) and s.endswith(("**", s.split()[-1])) and len(s.split()) <= 16 \
                 and not ends_sentence(s.rstrip("*")):
-            caption = (int(c.group("t")), no)
+            t = int(c.group("t"))
+            # A caption printed right below a table that had none above names it (the 1985 text captions its tables
+            # below them: "Table 2: Page Heading Group Presentation Rules Table", kb/Work PB6001), unless another table
+            # of the clause has that number; it is still the caption of a part printed after it (a table continued
+            # across pages, its caption below each part: §1989:A.2.4).
+            if uncaptioned is not None and paras and paras[-1] is uncaptioned \
+                    and not any(p[0] == "table" and p[3] == t for p in paras if p is not uncaptioned):
+                uncaptioned[3] = t
+                below = True
+            else:
+                below = False
+            uncaptioned = None
+            caption = (t, no)
             fresh = True
             continue
+        uncaptioned = None
         n = NUMBERED_ITEM.match(line)
         at = int(n.group("p") or n.group("n")) if n else 0
         if n and (fresh or (in_item and at == number + 1)):
@@ -233,56 +296,62 @@ def segment(lines: list[tuple[int, str]], items: bool = True) -> list[Unit]:
             in_item, fresh, number = True, False, at
             if paras and paras[-1][0] == "paragraph" and lead is None and LEADS.search(" ".join(paras[-1][2])):
                 lead = len(paras) - 1
-            held = not items
-            if not held:
-                paras.append(["item", no, [s], str(at) if lists == 1 else f"L{lists}.{at}"])
+            is_held = held is not None and held.match(line) is not None
+            if not is_held:
+                paras.append(["item", no, [s], str(at) if lists == 1 else f"L{lists}.{at}", [no]])
             continue
         if fresh:
             prev = paras[-1] if paras else None
             joins_list = DASH_ITEM.match(line) or LETTERED_ITEM.match(line) or line.startswith((" ", "\t"))
             if in_item and joins_list:
-                if not held:
+                if not is_held:
                     prev[2].append(s)
+                    prev[4].append(no)
                 fresh = False
                 continue
-            if in_item and not held and continues(" ".join(prev[2]), s):
+            if in_item and not is_held and continues(" ".join(prev[2]), s):
                 # The list's closing tail belongs to the unit that leads the list, never to its last item (design
                 # point 1, §2023:14.7.5); an item with no lead keeps its own continuation.
-                paras[lead if lead is not None else -1][2].append(s)
+                owner = paras[lead if lead is not None else -1]
+                owner[2].append(s)
+                owner[4].append(no)
                 fresh = False
                 continue
-            if held and joins_list:
+            if is_held and joins_list:
                 fresh = False
                 continue
-            in_item, held = False, False
+            in_item, is_held = False, False
             if prev and prev[0] == "paragraph" and (
                     INFORMATIVE.match(line) or joins_list or continues(" ".join(prev[2]), s)):
                 prev[2].append(s)
+                prev[4].append(no)
                 fresh = False
                 continue
             if INFORMATIVE.match(line) and prev:
                 if prev[0] != "table":
                     prev[2].append(s)
+                    prev[4].append(no)
                 fresh = False
                 continue
             lead = None
-            paras.append(["paragraph", no, [s], None])
+            paras.append(["paragraph", no, [s], None, [no]])
             fresh = False
             continue
-        if held:
+        if is_held:
             continue
         if paras and paras[-1][0] != "table":
             paras[-1][2].append(s)
+            paras[-1][4].append(no)
     close_table()
 
     units: list[Unit] = []
     p = 0
-    for kind, no, body, extra in paras:
+    for kind, no, body, extra, nos in paras:
         if kind == "paragraph":
             p += 1
-            units.append(Unit(f"p{p}", "paragraph", _text(body), no))
+            units.append(Unit(f"p{p}", "paragraph", _text(body), no, lines=tuple(nos)))
         elif kind == "item":
-            units.append(Unit(extra, "item", _text(body), no))
+            units.append(Unit(extra, "item", _text(body), no, lines=tuple(nos)))
         else:
             units += table_units(extra, body)
     if twice := sorted(lab for lab, k in Counter(u.label for u in units).items() if k > 1):
@@ -299,8 +368,8 @@ def after_rule(lines: list[tuple[int, str]]) -> list[Unit]:
     included by the segmentation's own rules; every LATER paragraph is a candidate (its label is provisional), whose
     printed level, measured on the PDF (`measure_margin_levels.py`), says whether it continues the rule (a level below
     the margin) or is a margin paragraph of the clause (level 0, a unit). A table or a numbered item in a rule's text
-    stays the rule's."""
-    return [u for u in segment(lines, items=False) if u.shape == "paragraph"][1:]
+    stays the rule's: every list is held (`NUMBERED_ITEM`)."""
+    return [u for u in segment(lines, held=NUMBERED_ITEM) if u.shape == "paragraph"][1:]
 
 
 def _text(body: list[str]) -> str:
@@ -328,8 +397,8 @@ def table_units(t: int, rows: list[tuple[int, str]]) -> list[Unit]:
     kind = table_kind(header, [_cells(ln) for _, ln in body])
     if kind == "data" or not body:
         text = " ".join(" ".join(_cells(ln)) for _, ln in body_lines)
-        return [Unit(f"T{t}", "table", _text([text]), body_lines[0][0], t, kind)]
-    return [Unit(f"T{t}.{r}", "table-row", _text([" | ".join(_cells(ln))]), no, t, kind)
+        return [Unit(f"T{t}", "table", _text([text]), body_lines[0][0], t, kind, tuple(no for no, _ in body_lines))]
+    return [Unit(f"T{t}.{r}", "table-row", _text([" | ".join(_cells(ln))]), no, t, kind, (no,))
             for r, (no, ln) in enumerate(body, start=1)]
 
 
@@ -352,6 +421,14 @@ PENDING, RESTATES, NOT_A_RULE = "pending", "restates", "not-a-rule"
 #: The closed vocabulary of `not-a-rule`, each with a mechanical test (decision PB5448 point 3).
 NOT_A_RULE_CLASSES = ("lead-in", "cross-reference", "data")
 DISPOSITIONS = ROW_KINDS + (PENDING, RESTATES, NOT_A_RULE)
+
+
+#: THE BLOCK DISPOSITION that decides a content-keyed clause UNIT BY UNIT (kb/Work PB5452, PB6001): neither `rules` (its
+#: numbered list admitted whole) nor `not-rules` (its list kept out whole), but its whole text, every list included,
+#: segmented into units wherever the clause lies, each disposed in `paragraph-blocks` like any other. It is the block a
+#: refuter overturned whose rule sentences are no item of its list (§1985:III.2's glossary) or whose list holds both
+#: restatements and rules (§1985:B.2.1 item 9).
+UNITS = "units"
 
 
 def entries_of(blocks: dict[str, dict]) -> dict[str, list[dict]]:
@@ -498,17 +575,26 @@ def guard_refusal(u: Unit, ctx: Context) -> str | None:
     return None
 
 
-def record_refusal(e: dict, u: Unit | None, ctx: Context) -> str | None:
-    """Why the refuter record a `restates` or `not-a-rule` entry names does not let it stand, or None: the entry names
-    no record file, the file or the record of this unit is missing, its outcome is not UPHELD, or the digest it read is
-    not the unit's."""
+def keyed_to(r: dict, clause: str, e: dict) -> bool:
+    """Is refuter record `r` a record of the entry `e` of `clause`? By THE KEY (design point 3): its clause, its digest and
+    its order (a record that states none read the first unit of its text, order 0), never by the unit's label, which a
+    repair before it in the clause moves (kb/Work PB6001: §1985:XIII.3.10.7's p3 became p2 when its HTML table became a
+    table unit, its words and its record unchanged). A block's record names its clause as its `unit`."""
+    return (r.get("clause", r.get("unit")) == clause and r.get("digest") == e.get("digest")
+            and r.get("order", 0) == e.get("order", 0))
+
+
+def record_refusal(e: dict, u: Unit | None, clause: str, records) -> str | None:
+    """Why the refuter record a `restates` or `not-a-rule` entry `e` of `clause` names does not let it stand, or None: the
+    entry names no record file, the file or the record of this unit (`keyed_to`) is missing, its outcome is not UPHELD,
+    or the digest it read is not the unit's. `records(path)` reads a record file (`Context.records`)."""
     path = e.get("refuted")
     if not path:
         return "it names no refuter record (`refuted`: the JSON-lines file of an independent refuter's pass)"
-    recs = ctx.records(path)
+    recs = records(path)
     if recs is None:
         return f"its refuter record file {path} is not in the tree"
-    mine = [r for r in recs if r.get("unit") == e.get("unit") and r.get("digest") == e.get("digest")]
+    mine = [r for r in recs if keyed_to(r, clause, e)]
     if not mine:
         return f"{path} holds no record of this unit at digest {e.get('digest')}"
     if mine[-1].get("outcome") != UPHELD:
@@ -566,7 +652,7 @@ def audit(units: dict[str, list[Unit]], blocks: dict[str, dict], label, kinds, c
                     why = class_refusal(cls, u, clause, ctx) or (guard_refusal(u, ctx) if cls != "lead-in" else None)
                     if why:
                         out.append(f"{where}: not-a-rule ({cls}) refused: {why}")
-                if why := record_refusal(e, u, ctx):
+                if why := record_refusal(e, u, clause, ctx.records):
                     out.append(f"{where}: {d} refused: {why}")
         out += [f"{label(clause)} {u.label}: a unit with no disposition entry (digest {u.digest}); regenerate the "
                 f"manifest, which enters it pending"
@@ -581,13 +667,12 @@ def class_counts(blocks: dict[str, dict], ctx: Context) -> dict[str, tuple[int, 
     """Per `not-a-rule` class, (dispositions, UPHELD records keyed to them): the audit holds the two equal (decision
     PB5448 point 3), so a record can never stand for two units nor a unit for none."""
     out: dict[str, list[int]] = {c: [0, 0] for c in NOT_A_RULE_CLASSES}
-    for es in entries_of(blocks).values():
+    for clause, es in entries_of(blocks).items():
         for e in es:
             if e.get("disposition") == NOT_A_RULE and e.get("class") in out:
                 out[e["class"]][0] += 1
                 recs = ctx.records(e.get("refuted") or "") or []
-                out[e["class"]][1] += any(r.get("unit") == e.get("unit") and r.get("digest") == e.get("digest")
-                                          and r.get("outcome") == UPHELD for r in recs)
+                out[e["class"]][1] += any(keyed_to(r, clause, e) and r.get("outcome") == UPHELD for r in recs)
     return {c: (n, k) for c, (n, k) in out.items()}
 
 
@@ -604,13 +689,21 @@ def block_refusals(declared: dict[str, dict], ctx: Context, required: bool,
     for clause, info in declared.items():
         if info.get("disposition") != "not-rules" or (not required and not info.get("refuted")):
             continue
-        why = record_refusal({"unit": clause, "digest": info.get("digest"), "refuted": info.get("refuted")}, None, ctx)
-        now = (measured or {}).get(clause, {}).get("digest")
-        if why is None and now is not None and now != info.get("digest"):
-            why = f"its text now digests to {now}, not the {info.get('digest')} its record read: refute it again"
-        if why:
+        if why := block_refusal(clause, info, ctx.records, (measured or {}).get(clause, {}).get("digest")):
             out.append(f"{clause}: not-rules refused: {why}")
     return out
+
+
+def block_refusal(clause: str, info: dict, records, now: str | None) -> str | None:
+    """Why the `not-rules` block `info` of `clause` does not stand on its refuter record, or None: the record is missing or
+    not UPHELD (`record_refusal`, the record keyed by the clause and the block's digest), or the text now digests to
+    `now`, not the digest its record read. THE ONE TEST of a block's record: the dispositions audit (`block_refusals`)
+    and the prose-holes measure (catalog_prose_holes, kb/Work PB6001) both ask it."""
+    why = record_refusal({"unit": clause, "digest": info.get("digest"), "refuted": info.get("refuted")}, None, clause,
+                         records)
+    if why is None and now is not None and now != info.get("digest"):
+        why = f"its text now digests to {now}, not the {info.get('digest')} its record read: refute it again"
+    return why
 
 def regenerated(units: dict[str, list[Unit]], blocks: dict[str, dict], title) -> dict[str, dict]:
     """`blocks` (a `paragraph-blocks` map) after a regeneration over `units`: every unit with no entry is entered
