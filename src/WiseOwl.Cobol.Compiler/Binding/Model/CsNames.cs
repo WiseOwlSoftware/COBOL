@@ -49,7 +49,7 @@ public static class CsNames
     /// <summary>The members a program class carries that are not its records: the <c>ICobolProgram</c> surface the
     /// emitter implements (<c>ProgramEmitter</c>; <c>WiseOwl.Cobol.Runtime.ICobolProgram</c>).</summary>
     public static readonly FrozenSet<string> ProgramClassMembers = FrozenSet.ToFrozenSet(
-        ["Call", "CloseFiles", "EndStorage", "Activate", "DescribeExternals"], StringComparer.Ordinal);
+        ["Call", "CloseFiles", "EndStorage", "Activate", "DescribeExternals", "ArgumentBreachTerminates"], StringComparer.Ordinal);
 
     /// <summary>The members a generated HOST-ENTRY class carries (<c>HostEntryEmitter</c>; DESIGN-external-repository
     /// §2023:4.3): <c>Call</c>, the .NET counterpart of a CALL statement, and <c>Cancel</c>, of a CANCEL statement. Its

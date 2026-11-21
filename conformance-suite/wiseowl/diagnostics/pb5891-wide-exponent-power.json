@@ -1,1 +1,0 @@
-{"refuse-at": ["2014", "2023"], "expect": "raises the literal 1 to the power (X * X), an integer the code generator evaluates as a binary64 approximation"}

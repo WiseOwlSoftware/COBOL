@@ -36,65 +36,74 @@ public sealed class IntegerArgumentConstantWitnessTests
     private static readonly BoundExpr IntItem = Item("W-I", 3, 0);
     private static readonly BoundExpr ScaledItem = Item("W-S", 2, 1);
 
-    public static TheoryData<string, BoundExpr, bool> Cases() => new()
+    public static TheoryData<string, BoundExpr, Screen> Cases() => new()
     {
         // Refused: the literal constant is not an integer and every other term is one.
-        { "1.5 + 1", Bin(Lit("1.5"), '+', Lit("1")), true },
-        { "(1.5) parenthesized", Lit("1.5"), true },
-        { "W-I + 0.5", Bin(IntItem, '+', Lit("0.5")), true },
-        { "W-I * 2 + 0.5", Bin(Bin(IntItem, '*', Lit("2")), '+', Lit("0.5")), true },
-        { "3 / 2 + 1", Bin(Bin(Lit("3"), '/', Lit("2")), '+', Lit("1")), true },
-        { "1 / 3", Bin(Lit("1"), '/', Lit("3")), true },
-        { "W-S - W-S + 0.5", Bin(Bin(ScaledItem, '-', ScaledItem), '+', Lit("0.5")), true },
-        { "- 0.25 + 2", Bin(new BoundNegate(Lit("0.25")), '+', Lit("2")), true },
-        { "2 ** -1", new BoundPower(Lit("2"), new BoundNegate(Lit("1")), NegativeBaseRealRoots: false), true },
+        { "1.5 + 1", Bin(Lit("1.5"), '+', Lit("1")), Refuted },
+        { "(1.5) parenthesized", Lit("1.5"), Refuted },
+        { "W-I + 0.5", Bin(IntItem, '+', Lit("0.5")), Refuted },
+        { "W-I * 2 + 0.5", Bin(Bin(IntItem, '*', Lit("2")), '+', Lit("0.5")), Refuted },
+        { "3 / 2 + 1", Bin(Bin(Lit("3"), '/', Lit("2")), '+', Lit("1")), Refuted },
+        { "1 / 3", Bin(Lit("1"), '/', Lit("3")), Refuted },
+        { "W-S - W-S + 0.5", Bin(Bin(ScaledItem, '-', ScaledItem), '+', Lit("0.5")), Refuted },
+        { "- 0.25 + 2", Bin(new BoundNegate(Lit("0.25")), '+', Lit("2")), Refuted },
+        { "2 ** -1", new BoundPower(Lit("2"), new BoundNegate(Lit("1")), NegativeBaseRealRoots: false), Refuted },
         // kb/Work PB5832: a product or quotient by a literal scales the spine, so an item's net coefficient is a rational and a step of
         // the item (0.1 for W-S, 1 for W-I) moves the sum by 0.2 or 0.5: W-S * 2 + 65.5 is 65.7 at W-S = 0.1, W-I / 2 + 0.5 is 1.5 at W-I = 2.
-        { "W-S * 2 + 65.5", Bin(Bin(ScaledItem, '*', Lit("2")), '+', Lit("65.5")), true },
-        { "W-I / 2 + 0.5", Bin(Bin(IntItem, '/', Lit("2")), '+', Lit("0.5")), true },
-        { "W-I * 0.5", Bin(IntItem, '*', Lit("0.5")), true },
-        { "0.5 * W-I", Bin(Lit("0.5"), '*', IntItem), true },
+        { "W-S * 2 + 65.5", Bin(Bin(ScaledItem, '*', Lit("2")), '+', Lit("65.5")), Refuted },
+        { "W-I / 2 + 0.5", Bin(Bin(IntItem, '/', Lit("2")), '+', Lit("0.5")), Refuted },
+        { "W-I * 0.5", Bin(IntItem, '*', Lit("0.5")), Refuted },
+        { "0.5 * W-I", Bin(Lit("0.5"), '*', IntItem), Refuted },
         // kb/Work PB5832 review R1-1: a product of two items (both at one granule) under a non-integral factor.
-        { "W-S * W-S * 0.5", Bin(Bin(ScaledItem, '*', ScaledItem), '*', Lit("0.5")), true },
-        { "W-I * W-I / 2", Bin(Bin(IntItem, '*', IntItem), '/', Lit("2")), true },
-        // kb/Work PB5886: the screen fails closed; a zero divisor gives no value at all, and the reciprocal of 3 does not terminate.
-        { "W-I / 3 * 3", Bin(Bin(IntItem, '/', Lit("3")), '*', Lit("3")), true },
-        { "W-I / W-I", Bin(IntItem, '/', IntItem), true },
-        { "1 / 0 + 0.5", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), true },
-        { "1 / 3 * 3", Bin(Bin(Lit("1"), '/', Lit("3")), '*', Lit("3")), true },
+        { "W-S * W-S * 0.5", Bin(Bin(ScaledItem, '*', ScaledItem), '*', Lit("0.5")), Refuted },
+        { "W-I * W-I / 2", Bin(Bin(IntItem, '*', IntItem), '/', Lit("2")), Refuted },
+        // kb/Work PB5889: neither proven nor refuted, so checked at run time: a zero divisor gives no value at all, the reciprocal of 3 does not terminate (W-I / 3 * 3 is exactly W-I), and a quotient by an item is no polynomial.
+        { "W-I / 3 * 3", Bin(Bin(IntItem, '/', Lit("3")), '*', Lit("3")), Checked },
+        { "W-I / W-I", Bin(IntItem, '/', IntItem), Checked },
+        { "1 / 0 + 0.5", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), Checked },
+        { "1 / 3 * 3", Bin(Bin(Lit("1"), '/', Lit("3")), '*', Lit("3")), Checked },
         // Admitted: the expression is shown to be an integer for every valuation.
-        { "1.5 + 0.5", Bin(Lit("1.5"), '+', Lit("0.5")), false },
-        { "3 - 1", Bin(Lit("3"), '-', Lit("1")), false },
-        { "6.5E1", Bin(Lit("6.5E1"), '+', Lit("0")), false },
-        { "W-I + 1.5 + 1.5", Bin(Bin(IntItem, '+', Lit("1.5")), '+', Lit("1.5")), false },
-        { "0.5 * 4", Bin(Lit("0.5"), '*', Lit("4")), false },
-        { "2 ** 6 + 1", Bin(new BoundPower(Lit("2"), Lit("6"), NegativeBaseRealRoots: false), '+', Lit("1")), false },
+        { "1.5 + 0.5", Bin(Lit("1.5"), '+', Lit("0.5")), Proven },
+        { "3 - 1", Bin(Lit("3"), '-', Lit("1")), Proven },
+        { "6.5E1", Bin(Lit("6.5E1"), '+', Lit("0")), Proven },
+        { "W-I + 1.5 + 1.5", Bin(Bin(IntItem, '+', Lit("1.5")), '+', Lit("1.5")), Proven },
+        { "0.5 * 4", Bin(Lit("0.5"), '*', Lit("4")), Proven },
+        { "2 ** 6 + 1", Bin(new BoundPower(Lit("2"), Lit("6"), NegativeBaseRealRoots: false), '+', Lit("1")), Proven },
         // The products by a literal that cancel to a whole net coefficient (kb/Work PB5832).
-        { "W-I * 0.5 * 2", Bin(Bin(IntItem, '*', Lit("0.5")), '*', Lit("2")), false },
-        { "W-I * 0.5 + W-I * 0.5", Bin(Bin(IntItem, '*', Lit("0.5")), '+', Bin(IntItem, '*', Lit("0.5"))), false },
-        { "W-S * 10", Bin(ScaledItem, '*', Lit("10")), false },
+        { "W-I * 0.5 * 2", Bin(Bin(IntItem, '*', Lit("0.5")), '*', Lit("2")), Proven },
+        { "W-I * 0.5 + W-I * 0.5", Bin(Bin(IntItem, '*', Lit("0.5")), '+', Bin(IntItem, '*', Lit("0.5"))), Proven },
+        { "W-S * 10", Bin(ScaledItem, '*', Lit("10")), Proven },
         // kb/Work PB5886 round 2: a quotient by a literal whose reciprocal terminates is the product by that reciprocal.
-        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
-        { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), false },
-        { "W-I * 0", Bin(IntItem, '*', Lit("0")), false },
-        { "W-I * W-I * 2", Bin(Bin(IntItem, '*', IntItem), '*', Lit("2")), false },
-        { "W-I * W-I", Bin(IntItem, '*', IntItem), false },
-        { "4 / 2 + W-I", Bin(Bin(Lit("4"), '/', Lit("2")), '+', IntItem), false },
+        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), Proven },
+        { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), Proven },
+        { "W-I * 0", Bin(IntItem, '*', Lit("0")), Proven },
+        { "W-I * W-I * 2", Bin(Bin(IntItem, '*', IntItem), '*', Lit("2")), Proven },
+        { "W-I * W-I", Bin(IntItem, '*', IntItem), Proven },
+        { "4 / 2 + W-I", Bin(Bin(Lit("4"), '/', Lit("2")), '+', IntItem), Proven },
     };
+
+    /// <summary>The three outcomes of the screen (kb/Work PB5889): proven, refuted with a counterexample, or checked at run time.</summary>
+    public enum Screen { Proven, Refuted, Checked }
+
+    private const Screen Proven = Screen.Proven, Refuted = Screen.Refuted, Checked = Screen.Checked;
+
+    /// <summary>The outcome the screen gives the argument: COBOL1627 (<c>IntegerViolation</c>), the run-time check
+    /// (<c>NeedsRunTimeIntegerCheck</c>), or neither.</summary>
+    private static (Screen Outcome, string? Why) OutcomeOf(BoundExpr expr, ArithmeticMode arithmetic)
+    {
+        var op = new BoundComputedOperand(expr);
+        return IntrinsicArgumentRules.IntegerViolation(op, arithmetic, EditionInfo.Latest) is { } why ? (Refuted, (string?)why)
+            : IntrinsicArgumentRules.NeedsRunTimeIntegerCheck(op, arithmetic) ? (Checked, null) : (Proven, null);
+    }
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheIntegerScreen_JudgesTheLiteralConstantByValue(string shape, BoundExpr expr, bool refused)
+    public void TheIntegerScreen_JudgesTheLiteralConstantByValue(string shape, BoundExpr expr, Screen expected)
     {
-        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), ArithmeticMode.Native, EditionInfo.Latest);
-        if (refused)
-            Assert.True(why is not null,
-                $"'{shape}' is not shown to be an integer for every valuation, so ISO §2023:15.3 type 6 does not admit it — but "
-                + "the integer screen admitted it (kb/Work PB617: the sum must fold its literal terms; PB5886: the screen fails closed).");
-        else
-            Assert.True(why is null,
-                $"'{shape}' must stay admitted (the screen shows it is an integer for every valuation) — but the screen "
-                + $"refused it: {why}");
+        var (outcome, why) = OutcomeOf(expr, ArithmeticMode.Native);
+        Assert.True(outcome == expected,
+            $"'{shape}': expected {expected}, got {outcome} {why} (kb/Work PB617: the sum folds its literal terms; PB5889: a refusal needs "
+            + "a value of the operands at which the expression is not an integer, and an argument neither proven nor refuted is checked at run time).");
     }
 
     /// <summary>A 27-digit unsigned integer item, all nines at its largest.</summary>
@@ -109,31 +118,31 @@ public sealed class IntegerArgumentConstantWitnessTests
     private static readonly BoundExpr Big27Round =
         Bin(Bin(Bin(Bin(Big27, '/', Lit("0.0001")), '/', Lit("16384")), '*', Lit("16384")), '*', Lit("0.0001"));
 
-    public static TheoryData<string, ArithmeticMode, BoundExpr, bool> ArithmeticCases() => new()
+    public static TheoryData<string, ArithmeticMode, BoundExpr, Screen> ArithmeticCases() => new()
     {
-        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, native", ArithmeticMode.Native, Big27Round, false },
-        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, standard-decimal", ArithmeticMode.StandardDecimal, Big27Round, true },
-        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, standard (2002)", ArithmeticMode.Standard, Big27Round, true },
-        { "W-I / 2 * 2, standard-decimal", ArithmeticMode.StandardDecimal, Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
-        { "W-S * 10, standard (2002)", ArithmeticMode.Standard, Bin(ScaledItem, '*', Lit("10")), false },
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, native", ArithmeticMode.Native, Big27Round, Proven },
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, standard-decimal", ArithmeticMode.StandardDecimal, Big27Round, Checked },
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, standard (2002)", ArithmeticMode.Standard, Big27Round, Checked },
+        { "W-I / 2 * 2, standard-decimal", ArithmeticMode.StandardDecimal, Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), Proven },
+        { "W-S * 10, standard (2002)", ArithmeticMode.Standard, Bin(ScaledItem, '*', Lit("10")), Proven },
         { "B27 * 3, standard-decimal (an integer intermediate may round and stays an integer)", ArithmeticMode.StandardDecimal,
-            Bin(Big27, '*', Lit("3")), false },
+            Bin(Big27, '*', Lit("3")), Proven },
         // Review R4-1: a power is bounded by its base, so ** 1 does not hide the base's rounded intermediate.
         { "(B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1, native", ArithmeticMode.Native,
-            new BoundPower(Big27Round, Lit("1"), NegativeBaseRealRoots: false), false },
+            new BoundPower(Big27Round, Lit("1"), NegativeBaseRealRoots: false), Proven },
         { "(B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1, standard-decimal", ArithmeticMode.StandardDecimal,
-            new BoundPower(Big27Round, Lit("1"), NegativeBaseRealRoots: false), true },
+            new BoundPower(Big27Round, Lit("1"), NegativeBaseRealRoots: false), Checked },
         { "(W-I / 2 * 2) ** 2, standard-decimal", ArithmeticMode.StandardDecimal,
-            new BoundPower(Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), Lit("2"), NegativeBaseRealRoots: false), false },
+            new BoundPower(Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), Lit("2"), NegativeBaseRealRoots: false), Proven },
     };
 
     [Theory]
     [MemberData(nameof(ArithmeticCases))]
-    public void TheIntegerScreen_AsksTheArithmeticInForce(string shape, ArithmeticMode arithmetic, BoundExpr expr, bool refused)
+    public void TheIntegerScreen_AsksTheArithmeticInForce(string shape, ArithmeticMode arithmetic, BoundExpr expr, Screen expected)
     {
-        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), arithmetic, EditionInfo.Latest);
-        Assert.True(refused == why is not null,
-            $"'{shape}': expected {(refused ? "refused" : "admitted")} under {arithmetic} arithmetic, whose intermediates keep "
-            + $"{ArithmeticModes.IntermediateSignificantDigits(arithmetic)?.ToString() ?? "every integer"} digits (kb/Work PB5886 R3-1); got {why ?? "admitted"}");
+        var (outcome, why) = OutcomeOf(expr, arithmetic);
+        Assert.True(outcome == expected,
+            $"'{shape}': expected {expected} under {arithmetic} arithmetic, whose intermediates keep "
+            + $"{ArithmeticModes.IntermediateSignificantDigits(arithmetic)?.ToString() ?? "every integer"} digits (kb/Work PB5886 R3-1); got {outcome} {why}");
     }
 }

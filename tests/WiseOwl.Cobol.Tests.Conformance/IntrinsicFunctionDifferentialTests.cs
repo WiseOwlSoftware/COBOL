@@ -175,7 +175,9 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void OutOfDomain_EcDefaultZero_PinnedToSpec() =>
         // §2023:15.3: with EC-ARGUMENT-FUNCTION checking disabled "the implementor defines the result" — this
-        // implementation returns 0 (NaN → 0 in FromDouble; the legacy-compatible default the goldens encode).
+        // implementation returns 0 (NaN → 0 in FromDouble; the legacy-compatible default the goldens encode). That is the
+        // 2023 rule, so the program is compiled for 2023: at COBOL-85 the same breach terminates the run unit (§1989:A.2.2 p3,
+        // §1985:p.B-46; kb/Work PB6019, goldens pb6019_argument_breach_85 / pb6019_argument_breach_text_85).
         AssertSpec(Program("01 R PIC S9(4)V9(2) SIGN LEADING SEPARATE.", """
                 COMPUTE R = FUNCTION SQRT(0 - 4).
                 DISPLAY R.
@@ -185,9 +187,11 @@ public sealed class IntrinsicFunctionDifferentialTests
                 DISPLAY R.
                 COMPUTE R = FUNCTION FACTORIAL(0 - 1).
                 DISPLAY R.
-            """), "+0000.00\n+0000.00\n+0000.00\n+0000.00");
+                COMPUTE R = FUNCTION NUMVAL("1O2").
+                DISPLAY R.
+            """), "+0000.00\n+0000.00\n+0000.00\n+0000.00\n+0000.00", dialect: 2023);
 
-    // ── Spec-pinned: NUMVAL / NUMVAL-C formats (§2023:15.67.3 / §2023:15.68.3) ─────────────────────────────────────────
+    // ── Spec-pinned: NUMVAL / NUMVAL-C formats (§2023:15.67.3 / §2023:15.68.3; a malformed NUMVAL is OutOfDomain's) ─────────────────────────────────────────
 
     [Theory]
     [InlineData("\"  -123.45 \"", "-00123.45")]      // leading sign, surrounding spaces (format 1)
@@ -195,7 +199,6 @@ public sealed class IntrinsicFunctionDifferentialTests
     [InlineData("\"82.93+\"", "+00082.93")]          // trailing sign (format 2)
     [InlineData("\"12cr\"", "-00012.00")]            // CR suffix, case-insensitive (§2023:15.67.3 r1) ⇒ negative (§2023:15.67.4 r2)
     [InlineData("\".5\"", "+00000.50")]              // the ". digit" alternative
-    [InlineData("\"1O2\"", "+00000.00")]             // malformed (letter O) → EC-ARGUMENT default 0 (§2023:15.3)
     public void Numval_Formats_PinnedToSpec(string arg, string expected) =>
         AssertSpec(Program("01 R PIC S9(5)V9(2) SIGN LEADING SEPARATE.",
             $"    COMPUTE R = FUNCTION NUMVAL({arg}).\n    DISPLAY R."), expected);
@@ -275,7 +278,8 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void IntegerDateForm_Epoch_PinnedToSpec() =>
         // §2023:15.5.2: integer date 1 = Monday 1601-01-01; INTEGER-OF-DATE(99991231) = 3,067,671. Invalid calendar
-        // dates → the EC-ARGUMENT default 0 (§2023:15.3).
+        // dates → the EC-ARGUMENT default 0 (§2023:15.3), the 2023 rule, so compiled for 2023 (at COBOL-85 the invalid date
+        // terminates the run unit, kb/Work PB6019).
         AssertSpec(Program("01 R PIC 9(8).", """
                 COMPUTE R = FUNCTION INTEGER-OF-DATE(16010101).
                 DISPLAY R.
@@ -289,7 +293,7 @@ public sealed class IntrinsicFunctionDifferentialTests
                 DISPLAY R.
                 COMPUTE R = FUNCTION INTEGER-OF-DATE(20230230).
                 DISPLAY R.
-            """), "00000001\n16010101\n01601001\n03067671\n00150000\n00000000");
+            """), "00000001\n16010101\n01601001\n03067671\n00150000\n00000000", dialect: 2023);
 
     [Fact]
     public void WhenCompiled_CompileTimeConstant_PinnedToSpec() =>

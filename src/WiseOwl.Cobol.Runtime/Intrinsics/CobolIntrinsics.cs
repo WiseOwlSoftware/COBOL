@@ -103,6 +103,81 @@ public static partial class CobolIntrinsics
         RequireIntegral(CobolNum.HasFraction(v),
             () => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
 
+    // ── THE RUN-TIME CHECK OF AN INTEGER ARGUMENT THE COMPILE-TIME SCREEN LEFT UNDECIDED (kb/Work PB5889) ───────────────────
+    // The type 6 screen refuses an arithmetic-expression argument only when it can name a value of the operands at which the
+    // expression is not an integer, and accepts one it neither proves nor refutes (S2 - FUNCTION MAX (S2), FUNCTION ORD (A) / 2):
+    // the absence of a proof is never a refusal, because a program whose expression does always result in an integer is
+    // conforming (§2023:4.2.2; §1985:I.1.5.2). Such an argument is checked HERE, before its intake, and the check NAMES the function,
+    // the argument and the value. From COBOL-2002 a value that is not an integer is an incorrect argument (§2023:15.3 AR14:
+    // EC-ARGUMENT-FUNCTION, fatal, under the edition's checking rules; with checking off the intake's truncated integer is the
+    // result the implementor defines, DOC-A.1-124). COBOL-85 has no exception conditions; the result is undefined (§1985:I.1.6), and
+    // the Correction Amendment's clarification "allows an implementation of amended third Standard COBOL to terminate processing"
+    // (§1985:p.B-46), so there the run unit is terminated (docs/conformance D-INTEGER-ARGUMENT-SCREEN). Which of the two a breach
+    // takes is not this check's to decide: it is the activation's edition, read by the one answer to every broken argument rule,
+    // ExceptionEngine.ArgumentError (kb/Work PB6019). The emitter renders the check only for an undecided argument
+    // (IntrinsicArgumentRules.NeedsRunTimeIntegerCheck), so a proven or literal argument carries no test it cannot fail.
+
+    /// <summary>The check of an undecided fixed-point integer argument at its own scale; the value is returned unchanged.</summary>
+    public static Int128 CheckedIntegerArgumentScaled(Int128 unscaled, int scale, string function, int argument)
+    {
+        if (scale > 0 && CobolNum.HasFraction(unscaled, scale))
+            NotAnIntegerArgument(function, argument, CobolNum.PlainValue(unscaled, scale));
+        return unscaled;
+    }
+
+    /// <summary>The check of an undecided SDIDI integer argument (see <see cref="CheckedIntegerArgumentScaled"/>).</summary>
+    public static CobolDec CheckedIntegerArgumentDec(CobolDec v, string function, int argument)
+    {
+        if (v.HasFraction)
+            NotAnIntegerArgument(function, argument,
+                v.ToDouble().ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+        return v;
+    }
+
+    /// <summary>The check of an undecided binary64 integer argument (see <see cref="CheckedIntegerArgumentScaled"/>).</summary>
+    public static double CheckedIntegerArgumentReal(double v, string function, int argument)
+    {
+        if (CobolNum.HasFraction(v))
+            NotAnIntegerArgument(function, argument, v.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+        return v;
+    }
+
+    /// <summary>The check of an undecided integer argument on the exact wide carrier at <paramref name="scale"/>.</summary>
+    public static CobolWide CheckedIntegerArgumentWide(CobolWide v, int scale, string function, int argument)
+    {
+        IntegerPart(v, scale, out CobolWide fraction);
+        if (fraction.Sign != 0)
+            NotAnIntegerArgument(function, argument,
+                v.ToDouble(scale).ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+        return v;
+    }
+
+    /// <summary>The check of an undecided integer argument whose scale only the run time knows (<see cref="CobolExact"/>): the same
+    /// three forms <see cref="IntegerArgExact"/> reads.</summary>
+    public static CobolExact CheckedIntegerArgumentExact(CobolExact v, string function, int argument)
+    {
+        if (v.Scale <= 0) return v;
+        if (v.TryWide(out CobolWide wide, out int scale)) CheckedIntegerArgumentWide(wide, scale, function, argument);
+        else if (v.IsBig)
+        {
+            v.IntegerPartBig(floor: false, out bool fraction);
+            if (fraction)
+                NotAnIntegerArgument(function, argument,
+                    v.ToDouble().ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+        }
+        else CheckedIntegerArgumentDec(v.Image, function, argument);
+        return v;
+    }
+
+    /// <summary>⛔ THE ONE RAISE SITE OF THE CHECK: the message names the function, the argument and its value, and the breach takes the
+    /// one path every broken argument rule takes, <see cref="Exceptions.ExceptionState.ArgumentError"/> (kb/Work PB6019): at COBOL-85
+    /// the run unit is terminated; from COBOL-2002 it is EC-ARGUMENT-FUNCTION (fatal when checking is enabled, otherwise the intake
+    /// that follows truncates). The rule the message cites is the activation's edition's: §1989:A.2.2 AR4 ("An arithmetic expression
+    /// which will always result in an integer value must be specified") at COBOL-85, §2023:15.3 AR6 and AR14 after it.</summary>
+    private static void NotAnIntegerArgument(string function, int argument, string value) =>
+        Exceptions.ExceptionState.ArgumentError($"FUNCTION {function} argument-{argument} is {value}, which is not an integer"
+            + (Exceptions.ExceptionState.ArgumentBreachTerminates ? " (§1989:A.2.2 AR4)" : " (ISO §2023:15.3 AR6, AR14)"));
+
     /// <summary>The scaled-operand intake for a BOUNDED (<c>long</c>) integer argument — <see cref="IntegerArg(Int128)"/>
     /// behind the §2023:15.3 type-6 integrality test. Scale 0 needs no test and takes <see cref="IntegerArg(Int128)"/> itself.</summary>
     public static long IntegerArgScaled(Int128 unscaled, int scale) => IntegerArg(IntegerValue(unscaled, scale));

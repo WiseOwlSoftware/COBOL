@@ -102,7 +102,9 @@ public sealed class CsNameReservationDriftTests
     [Fact]
     public void EveryICobolProgramMember_IsReservedInTheProgramClass()
     {
-        var missing = typeof(ICobolProgram).GetMethods().Select(m => m.Name)
+        // A property's accessors are its METHODS to reflection, but the name the class scope holds is the property's own.
+        var missing = typeof(ICobolProgram).GetMethods().Where(m => !m.IsSpecialName).Select(m => m.Name)
+            .Concat(typeof(ICobolProgram).GetProperties().Select(p => p.Name))
             .Where(n => !CsNames.ProgramClassMembers.Contains(n)).Distinct().ToList();
         Assert.True(missing.Count == 0,
             "a program class implements ICobolProgram, but CsNames.ProgramClassMembers does not reserve: "

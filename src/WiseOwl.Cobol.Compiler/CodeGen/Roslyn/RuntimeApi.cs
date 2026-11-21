@@ -691,6 +691,34 @@ internal static class RuntimeApi
     public static string IntegerArgUnboundedDec(string value) =>
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.IntegerArgUnboundedDec)}({value})";
 
+    /// <summary>⛔ THE RUN-TIME CHECK OF AN UNDECIDED INTEGER ARGUMENT (kb/Work PB5889), one landing per carrier kind of
+    /// <see cref="IntegerArgOf"/> and the wide and run-time-scaled exact forms: <c>CobolIntrinsics.CheckedIntegerArgument*</c>, which
+    /// returns the value unchanged after naming <paramref name="site"/>'s function and argument if it is not an integer.</summary>
+    public static string CheckedIntegerArgument(IntegerArgCarrier carrier, string value, int scale, IntegerArgumentSite site) => carrier switch
+    {
+        IntegerArgCarrier.Real => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CheckedIntegerArgumentReal)}({value}, {site})",
+        IntegerArgCarrier.Dec => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CheckedIntegerArgumentDec)}({value}, {site})",
+        IntegerArgCarrier.Scaled => $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CheckedIntegerArgumentScaled)}({value}, {scale}, {site})",
+        _ => throw new ArgumentOutOfRangeException(nameof(carrier)),
+    };
+
+    /// <summary>The check of <see cref="CheckedIntegerArgument"/> on the exact wide carrier at <paramref name="scale"/>.</summary>
+    public static string CheckedIntegerArgumentWide(string value, int scale, IntegerArgumentSite site) =>
+        $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CheckedIntegerArgumentWide)}({value}, {scale}, {site})";
+
+    /// <summary>The check of <see cref="CheckedIntegerArgument"/> on the run-time-scaled exact form.</summary>
+    public static string CheckedIntegerArgumentExact(string value, IntegerArgumentSite site) =>
+        $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CheckedIntegerArgumentExact)}({value}, {site})";
+
+    /// <summary>Where a run-time integer check stands (kb/Work PB5889): the function and the argument's 1-based position, rendered as
+    /// the check's trailing arguments. What a failure does is the activation's edition's, decided at run time by the one answer to
+    /// every broken argument rule (<c>ExceptionEngine.ArgumentError</c>, kb/Work PB6019), never by the site. A function name is a
+    /// catalogued intrinsic name (letters, digits and hyphens), so it needs no escape.</summary>
+    internal readonly record struct IntegerArgumentSite(string Function, int Argument)
+    {
+        public override string ToString() => $"\"{Function}\", {Argument}";
+    }
+
     /// <summary>The §2023:15.3 type-6 intake for a value on ONE of the operand carriers, keyed by carrier KIND — the ONE
     /// family of landings the renderer's bounded (<c>long</c>) and total (<c>Int128</c>) integer arguments share,
     /// so the integrality rule (kb/Work PB1526) is asked on every carrier and a new carrier is a compile error in

@@ -1,36 +1,33 @@
       *>--- conformance-case
       *> id: pb5886-numeric-function-terms
       *> rules: [AR-15.3-6]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5886 - an integer argument the type 6 screen
-      *> does not show to be always an integer is refused
-      *> (COBOL1627) at every edition.
+      *> kb/Work PB5886 refused S2 - FUNCTION MAX (S2) as a real term
+      *> that does not cancel.
       *>
-      *> §2023:15.3 AR6 (cite.py --check): "An arithmetic
-      *> expression that will always result in an integer value
-      *> or an integer data item shall be specified"; §1989:A.2.2
-      *> AR4 (cite.py --check): "An arithmetic expression which
-      *> will always result in an integer value must be specified".
-      *> The screen fails closed and decides exactly (kb/Work
-      *> PB5886, PB5891): the argument's value is a polynomial in
-      *> its terms (a quotient by a nonzero literal is the product
-      *> by its reciprocal; a function is a term, of the type its
-      *> definition gives for its arguments), and it is admitted
-      *> only when every intermediate is exact and the polynomial is
-      *> an integer for every value of its terms.
-      *> MAX of a scaled item is a numeric function, a real term.
-      *> S2 - FUNCTION MAX (S2) is 0 for every S2, but MAX (S2) and
-      *> S2 are two terms, equal only by MAX's meaning, so the real
-      *> term does not cancel (the residue of kb/Work PB5889).
+      *> kb/Work PB5889 (the ruling of 2026-11-21): the integer-
+      *> argument screen refuses an argument only when it can name a
+      *> value of the operands at which the expression is not an
+      *> integer, and accepts the rest with a run-time check of the
+      *> value. §2023:15.3 AR6 (cite.py --check): "An arithmetic
+      *> expression that will always result in an integer value or an
+      *> integer data item shall be specified"; §1989:A.2.2 AR4
+      *> (cite.py --check) the same at COBOL-85.
+      *>
+      *> A one-argument MAX returns its argument (§2023:15.59.4), so
+      *> S2 - MAX (S2) is 0 for every S2: the program conforms and is
+      *> accepted. EXPECTED, with S2 = 0.2: FACTORIAL (0) = 1.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5886I.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01  S2 PIC 9V9 VALUE 0.2.
-       01  R  PIC S9(18).
+       01  R  PIC 9(18).
        PROCEDURE DIVISION.
        MAIN-PARA.
            COMPUTE R = FUNCTION FACTORIAL (S2 - FUNCTION MAX (S2)).
+           DISPLAY R.
            STOP RUN.

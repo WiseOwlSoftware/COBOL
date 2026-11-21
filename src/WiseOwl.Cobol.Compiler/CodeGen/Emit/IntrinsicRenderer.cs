@@ -1029,14 +1029,30 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         NumX x = num.AsNum(ic.Args[i], ReceiverFor(ic, i), keepWide: true);
         x = StandardArgument(ic, x);
         if (!(x.Real || x.Dec || x.Exact || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
+        var site = UndecidedIntegerSite(ic, i);
         if (x.Wide)
-            return new NumX(RuntimeApi.IntegerArgWide(x.Expr, x.Scale), 0, Wide: true,
+        {
+            string wide = site is { } w ? RuntimeApi.CheckedIntegerArgumentWide(x.Expr, x.Scale, w) : x.Expr;
+            return new NumX(RuntimeApi.IntegerArgWide(wide, x.Scale), 0, Wide: true,
                 Digits: x.Scale > 0 ? Math.Max(1, x.Digits - x.Scale) : x.Digits - x.Scale);
-        if (x.Exact) return new NumX(RuntimeApi.IntegerArgExact(x.Expr), 0, Exact: true, Precision: 0);
+        }
+        if (x.Exact)
+            return new NumX(RuntimeApi.IntegerArgExact(site is { } e ? RuntimeApi.CheckedIntegerArgumentExact(x.Expr, e) : x.Expr), 0,
+                Exact: true, Precision: 0);
         return x.Dec
-            ? x with { Expr = RuntimeApi.IntegerArgUnboundedDec(x.Expr), WithPrecision = null }
-            : new NumX(IntegerIntake(x, wide: true), 0);
+            ? x with { Expr = RuntimeApi.IntegerArgUnboundedDec(site is { } d ? RuntimeApi.CheckedIntegerArgument(RuntimeApi.IntegerArgCarrier.Dec, x.Expr, 0, d) : x.Expr), WithPrecision = null }
+            : new NumX(IntegerIntake(x, wide: true, site), 0);
     }
+
+    /// <summary>⛔ THE SITE OF THE RUN-TIME INTEGER CHECK (kb/Work PB5889): non-null exactly when the argument at the integer position
+    /// <paramref name="i"/> is one the compile-time screen neither proved nor refuted (<see cref="IntrinsicArgumentRules.NeedsRunTimeIntegerCheck"/>),
+    /// so the value is tested where it is evaluated and a failure names the function and the argument. The failure takes the one
+    /// path of every broken argument rule (kb/Work PB6019): a COBOL-85 element terminates the run unit (the 1985 text has no
+    /// exception conditions; §1985:p.B-46 lets the run terminate), a later one raises EC-ARGUMENT-FUNCTION (§2023:15.3 AR14).</summary>
+    private static RuntimeApi.IntegerArgumentSite? UndecidedIntegerSite(BoundIntrinsicCall ic, int i) =>
+        IntrinsicArgumentRules.NeedsRunTimeIntegerCheck(ic.Args[i], ic.Arithmetic)
+            ? new RuntimeApi.IntegerArgumentSite(ic.Sig.Name, i + 1)
+            : null;
 
     /// <summary>A written argument as its function receives it under ARITHMETIC IS STANDARD: a standard intermediate data item (an
     /// arithmetic expression's result, <c>NumX.Dec</c>) that "is the argument of a function and there is no equivalent arithmetic
@@ -1075,9 +1091,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string IntArgWideSaturating(BoundIntrinsicCall ic, int i)
     {
         NumX x = num.AsNum(ic.Args[i], ReceiverFor(ic, i));
-        return x.Real ? RuntimeApi.IntegerArgSaturatingReal(x.Expr)
-            : x.Dec ? RuntimeApi.IntegerArgSaturatingDec(x.Expr)
-            : AsIntWide(x);
+        var site = UndecidedIntegerSite(ic, i);
+        return x.Real ? RuntimeApi.IntegerArgSaturatingReal(site is { } r ? RuntimeApi.CheckedIntegerArgument(RuntimeApi.IntegerArgCarrier.Real, x.Expr, 0, r) : x.Expr)
+            : x.Dec ? RuntimeApi.IntegerArgSaturatingDec(site is { } d ? RuntimeApi.CheckedIntegerArgument(RuntimeApi.IntegerArgCarrier.Dec, x.Expr, 0, d) : x.Expr)
+            : IntegerIntake(x, wide: true, site);
     }
 
     /// <summary>Every argument as its position takes it (<see cref="RawArg"/>), in order — what a lane predicate asks.</summary>
@@ -1675,10 +1692,15 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </list>
     /// <c>IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers</c> derives the carrier
     /// list from <see cref="NumX"/>'s own flags and proves both widths accept every one.</summary>
-    internal static string IntegerIntake(NumX a, bool wide)
+    internal static string IntegerIntake(NumX a, bool wide, RuntimeApi.IntegerArgumentSite? site = null)
     {
         var (carrier, value) = NumericRenderer.IntakeCarrier(a);
-        return RuntimeApi.IntegerArgOf(carrier, value.Expr, value.Scale, wide);
+        // An undecided argument (kb/Work PB5889) is checked on its own carrier first, naming its site; a scale-0 fixed-point one is an
+        // integer already and takes no check.
+        string expr = site is { } s && !(carrier is RuntimeApi.IntegerArgCarrier.Scaled && value.Scale == 0)
+            ? RuntimeApi.CheckedIntegerArgument(carrier, value.Expr, value.Scale, s)
+            : value.Expr;
+        return RuntimeApi.IntegerArgOf(carrier, expr, value.Scale, wide);
     }
 
     /// <summary>The variadic arguments aligned to their common scale (ISO §2023:8.8.1 — alignment makes unscaled

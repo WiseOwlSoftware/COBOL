@@ -137,6 +137,9 @@ internal sealed class Polynomial
 
     public bool IsZero => _terms.Count == 0;
 
+    /// <summary>The coefficient of the monomial with no atom (zero when there is none).</summary>
+    public ExactRational ConstantTerm => _terms.TryGetValue(KeyOf([]), out var t) ? t.Coefficient : ExactRational.Zero;
+
     public static Polynomial Zero => new(new());
 
     public static Polynomial Constant(ExactRational c) => Single([], c);

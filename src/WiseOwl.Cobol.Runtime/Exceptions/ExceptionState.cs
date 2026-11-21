@@ -550,12 +550,35 @@ public sealed class ExceptionEngine
         set => _checking.ArgumentFunction = value;
     }
 
-    /// <summary>Raise EC-ARGUMENT-FUNCTION for an intrinsic argument/domain error when checking is enabled
-    /// (Table 13: Fatal — thrown as <see cref="CobolFatalException"/>, caught by the statement guard for USE F3
-    /// dispatch, else terminating the run unit per §2023:14.6.13.1.3 #7); otherwise return 0, the §2023:15.3
-    /// default-result convention.</summary>
+    /// <summary>True while the executing ACTIVATION is a COBOL-85 runtime element (kb/Work PB6019): installed and restored by
+    /// the activation boundary (<c>ProgramTable</c>) from <see cref="ICobolProgram.ArgumentBreachTerminates"/>, exactly as
+    /// <see cref="NonfatalDispatcher"/> is, so a CALLed element of another edition answers by its own text. It is a property of
+    /// the element's EDITION, never checking state: no PUSH ALL clears it and no TURN sets it (COBOL-85 has no exception
+    /// conditions), which is why it is not a <see cref="CheckingFlags"/> field. <see cref="ArgumentError(string)"/> is its one
+    /// reader.</summary>
+    public bool ArgumentBreachTerminates { get; set; }
+
+    /// <summary>⛔ THE ONE ANSWER TO AN INTRINSIC ARGUMENT WHOSE VALUE BREAKS ITS FUNCTION'S ARGUMENT RULES (kb/Work PB6019): every
+    /// run-time value check of every intrinsic function (a negative FACTORIAL argument, a date out of range, a zero divisor, an
+    /// integer argument that is not an integer, a text the function cannot read ...) calls this, or one of its two text twins,
+    /// and nothing else decides what the breach does.
+    /// <list type="bullet">
+    /// <item>A COBOL-85 activation (<see cref="ArgumentBreachTerminates"/>): the result is undefined — if the arguments "do not have
+    /// values within the permissible range, then the result of such a reference is undefined" (§1989:A.2.2 p3; §1989:A.1.2.2 says
+    /// the same of values that do not "comply with the specified constraints") — and the Correction Amendment's
+    /// clarification "allows an implementation of amended third Standard COBOL to terminate processing" (§1985:p.B-46). The
+    /// run unit is terminated with the message (<see cref="CobolImplementorFatalException"/>: it raises no exception condition,
+    /// for COBOL-85 has none), so a 1985 program never runs on with a value the implementation made up.</item>
+    /// <item>From COBOL-2002: EC-ARGUMENT-FUNCTION is set to exist (§2002:15.2 AR13, §2014:15.3 AR13, §2023:15.3 AR14). With
+    /// checking enabled it is fatal (Table 13 — thrown as <see cref="CobolFatalException"/>, caught by the statement guard for
+    /// USE F3 dispatch, else terminating the run unit per §2023:14.6.13.1.3 #7); otherwise "the implementor defines the result
+    /// of the function reference" (the same rules), and this returns 0 (docs/CONFORMANCE.md DOC-A.1-90).</item>
+    /// </list></summary>
     public long ArgumentError(string detail)
     {
+        if (ArgumentBreachTerminates)
+            throw new CobolImplementorFatalException(detail + "; at COBOL-85 the result of such a reference is undefined (§1989:A.2.2 p3) "
+                + "and the run unit is terminated, as §1985:p.B-46 allows");
         FatalIfEnabled(ArgumentFunctionChecking, "EC-ARGUMENT-FUNCTION", detail);
         return 0;
     }
@@ -2307,6 +2330,9 @@ public static class ExceptionState
         get => E.ArgumentFunctionChecking;
         set => E.ArgumentFunctionChecking = value;
     }
+
+    /// <inheritdoc cref="ExceptionEngine.ArgumentBreachTerminates"/>
+    public static bool ArgumentBreachTerminates => E.ArgumentBreachTerminates;
 
     /// <inheritdoc cref="ExceptionEngine.ArgumentError"/>
     public static long ArgumentError(string detail) => E.ArgumentError(detail);
