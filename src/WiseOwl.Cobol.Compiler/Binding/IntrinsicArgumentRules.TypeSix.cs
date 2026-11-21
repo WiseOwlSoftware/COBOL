@@ -47,6 +47,23 @@ internal static partial class IntrinsicArgumentRules
     /// ARITHMETIC in force decides which intermediates are exact.</para></summary>
     private static TypeSixVerdict ClassifyTypeSix(BoundExpr expr, ArithmeticMode arithmetic)
     {
+        // ⛔ ONCE PER ARGUMENT AND ARITHMETIC (kb/Work PB5889): the binder's screen, the result-type rows and every render of an integer
+        // position ask the same bound node, and an undecided one runs the refutation's points; the verdict is a function of the
+        // immutable tree and the arithmetic, so it is kept beside the node.
+        var known = Verdicts.GetOrCreateValue(expr);
+        lock (known)
+            if (known.TryGetValue(arithmetic, out var cached)) return cached;
+        var verdict = Classify(expr, arithmetic);
+        lock (known) known[arithmetic] = verdict;
+        return verdict;
+    }
+
+    /// <summary>The verdicts of <see cref="ClassifyTypeSix"/>, by the node they were asked of (its reference) and the arithmetic.</summary>
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpr, Dictionary<ArithmeticMode, TypeSixVerdict>>
+        Verdicts = new();
+
+    private static TypeSixVerdict Classify(BoundExpr expr, ArithmeticMode arithmetic)
+    {
         // ARITHMETIC IS STANDARD-BINARY is declined at bind (COBOL0806, ArithmeticModes): no expression is evaluated under it, so nothing
         // more is said of an argument; asking its intermediate precision crashed the compiler (kb/Work PB5891 review R4-2).
         if (arithmetic is ArithmeticMode.StandardBinary) return new(TypeSixOutcome.Proven, null);
