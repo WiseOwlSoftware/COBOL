@@ -194,7 +194,7 @@ def render(root: pathlib.Path = REPO) -> tuple[str, tuple[str, ...]]:
         for _, locator, n in element_standing.entries_of(r["status"]):
             if locator == "C.1":
                 marked.setdefault(n, []).append(r)
-    obs = [f"| §1985:C.1 item | Element (the list's words) | Rules it marks | OK | Not supported ({EXCEPTIONS_REF}) |", "|---|---|---|---|---|"]
+    obs = [f"| Item of §1985:C.1 | Element (the list's words) | Rules it marks | OK | Not supported ({EXCEPTIONS_REF}) |", "|---|---|---|---|---|"]
     for e in entries:
         group = marked.get(e.n, [])
         if not group:
