@@ -7,7 +7,7 @@
   parenthesis directly before the logical operator NOT: its expanded equivalents read `(NOT (a = b)) OR (a = c)` and
   `AND (NOT (a NOT > d))` (`§1985:VI.6.3.3`), and its precedence example reads `(condition-1 OR (NOT condition-2))`
   (`§1985:VI.6.3.2.3`). It writes one directly before a unary minus in the ANNUITY formula, `(- argument-2)`
-  (`§1985:p.A-34`, Amendment 1; both pages checked against the rendered PDF, pages 293 and 864). It also names the left
+  (`§1989:p.A-34`, Amendment 1; both pages checked against the rendered PDF, pages 293 and 864). It also names the left
   parenthesis as the unary operator's required neighbor on the left, but only in one position (`§1985:VI.6.2.3 SR4`: "it must be immediately
   preceded by a left parenthesis if that arithmetic expression immediately follows an identifier or another arithmetic
   expression"), and a parenthesis is itself a separator (`§1985:IV.4.2.1 SR4`). So for that one

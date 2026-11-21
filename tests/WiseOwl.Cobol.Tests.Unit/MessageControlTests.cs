@@ -199,7 +199,7 @@ public sealed class MessageControlTests : IDisposable
         Assert.Equal("00", OutputStatus(session.Send(Cd("C"), CommunicationFormat.Output, OutputArea(1, "D1"), "A", SendIndicator.EndOfMessage)));
     }
 
-    /// <summary>§1985:XIV.2.2.4 GR4, GR10 and GR20 with §1985:p.A-9 ("Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"): the
+    /// <summary>§1985:XIV.2.2.4 GR4, GR10 and GR20 with §1989:p.A-9 ("Each lowercase letter is considered to be equivalent to its corresponding uppercase letter"): the
     /// symbolic names a CD holds designate the queue, sub-queue, source, terminal and destination whatever their letter case (kb/Work PB5284).</summary>
     [Fact]
     public void SymbolicNames_AreComparedWithoutLetterCase()

@@ -946,24 +946,38 @@ def check(cited: citation.Citation, text: str, repo: pathlib.Path = spec_pdf.REP
     if v.suggestion:
         out.append(f"      the right citation: {v.suggestion}")
     elif v.kind == "text-not-found":
-        out.append("      run --find to locate the text and get the clause it is really in")
+        source = citation.SOURCE_EDITION.get(cited.edition, cited.edition)
+        out.append(f"      run --find --edition {source} to locate the text and get the clause it is really in"
+                   + (" (it searches the amendments printed with it)" if len(citation.printed_with(source)) > 1 else ""))
     return 1, out
 
 
 def find(lines, cls, text, edition: int):
-    """(exit code, output lines) for `--find`: every region line of `edition`'s transcription that contains TEXT."""
+    """(exit code, output lines) for one edition's search: every region line of `edition`'s transcription that contains
+    TEXT. `--find` itself is `find_printed`, over every edition the transcription prints."""
+    return _found(text, [(edition, lines, cls)])
+
+
+def find_printed(text: str, edition: int, repo: pathlib.Path = spec_pdf.REPO):
+    """(exit code, output lines) for `--find`: `edition`'s transcription and every amendment printed in it, each hit cited
+    by its own edition's token (`citation.printed_with`; kb/Work PB5059: `--find --edition 1985` steered an amendment's
+    text to a `§1985:` page that is no page of the standard, and a 1989 or 1993 text could not be searched at all)."""
+    return _found(text, [(e, *load(e, repo)) for e in citation.printed_with(edition)])
+
+
+def _found(text: str, sources) -> tuple[int, list[str]]:
+    """The search both `find` forms share: every region line of each (edition, lines, regions) holding TEXT."""
     needle = norm(text)
     if not needle:
         return 1, [f"REFUSED: {EMPTY_NEEDLE}"]
-    hits = [(n, t, s, e, i) for (n, t, s, e) in cls
+    hits = [(edition, lines, n, t, s, i) for edition, lines, cls in sources for (n, t, s, e) in cls
             for i in range(s, e) if needle in norm(lines[i])]
     if not hits:
         return 1, [f"NO CLAUSE contains {text!r} — the citation names text the standard does not have"]
-    styles = labels_of(edition)
     out = []
-    for n, t, s, _e, i in hits[:12]:
+    for edition, lines, n, t, s, i in hits[:12]:
         mark = f" {RECONSTRUCTED_MARK}" if in_reconstruction(lines, i) else ""
-        out.append(f"§{edition}:{n} {rule_path(lines, i, s, styles)}  ({t}){mark}\n    {lines[i].strip()[:190]}\n")
+        out.append(f"§{edition}:{n} {rule_path(lines, i, s, labels_of(edition))}  ({t}){mark}\n    {lines[i].strip()[:190]}\n")
     out.append(f"{len(hits)} occurrence(s)")
     return 0, out
 
@@ -1201,6 +1215,10 @@ def self_test() -> int:
         ("--find prints the edition form", find(lines, cls, "equivalent to a literal", 2023)[1][0].startswith("§2023:")),
         ("--find prints the 1985 path in the 1985 style",
          any(o.startswith("§1985:XI.4.4.4 (6) b.  (") for o in find(*load(1985), q85b, 1985)[1])),
+        ("--find --edition 1985 searches the amendments printed with it, citing each hit by its own token, never as a "
+         "§1985 page (kb/Work PB5059)",
+         (got := find_printed("each table element associated with that subscript position were specified", 1985))[0] == 0
+         and any(o.startswith("§1989:") for o in got[1]) and not any(o.startswith("§1985:p.A-") for o in got[1])),  # citation-audit: example
         # kb/Work PB5449: unnumbered text. Prose in no row answers pending and names no rule (kb/Work PB222's repair); a
         # paragraph row is cited `p<n>`, a pending unit by its designator too, and a unit the clause lacks fails; a
         # quotation inside a row's text answers as it did (the glued GR13 stays until the 2023 mint carves it).
@@ -1242,7 +1260,7 @@ def main() -> int:
         ap.print_help()
         return 2
     if args.find:
-        code, out = find(*load(args.edition), args.find, args.edition)
+        code, out = find_printed(args.find, args.edition)
     elif any(a == "--edition" or a.startswith("--edition=") for a in sys.argv[1:]):
         print("FAIL: --check takes the edition from the citation (§1985:VI.5.3.2); --edition is --find's")
         return 2

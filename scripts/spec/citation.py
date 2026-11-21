@@ -33,6 +33,11 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
   in angle brackets after the colon (`§2023:<clause>`, the way a document shows the format), an interpolation hole
   (`$"ISO §2023:{clause}"`, the way the compiler composes a diagnostic) and a regex group (`@"§2023:([0-9.]+)"`, the
   way a test reads citations) are templates, not citations.
+- **A `§1985:` citation names the standard as amended, and an amendment's own text is cited by its own token**
+  (kb/Work PB5059). The transcription applies both amendments in place in the base text (kb/Work PB5045, each change
+  marked), so `§1985:VI.5.3.2` names the amended rule wherever an amendment changed it; the 1985 universe ends at the
+  first `# AMENDMENT` heading, and what only an amendment prints (Amendment 1's Section A and its pages, Amendment 2's
+  pages) is `§1989:` or `§1993:`, never a `§1985:` page (`§1985:p.B-16` named Amendment 2's page and validated). (citation-audit: example)
 - **Paragraph numbers restart in each section of the 1985 standard** (VI.5.3 and VII.5.3 are different paragraphs), so
   a 1985 locator always carries its section, and a paragraph the section does not have is refused even when another
   section has it.
@@ -321,6 +326,13 @@ SECTIONS_85 = ("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"
 SOURCE_EDITION = {1989: 1985, 1993: 1985}
 
 
+def printed_with(edition: int) -> tuple[int, ...]:
+    """The edition tokens whose text `edition`'s transcription prints: the edition, then each amendment printed after it
+    (1985 -> 1985, 1989, 1993). `cite.py --find` searches them all, each hit cited by its own token (kb/Work PB5059)."""
+    source = SOURCE_EDITION.get(edition, edition)
+    return (source, *sorted(e for e, s in SOURCE_EDITION.items() if s == source))
+
+
 def transcription(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> pathlib.Path | None:
     """The transcription `validate` checks `edition` against, or None while the edition is parsed only."""
     edition = SOURCE_EDITION.get(edition, edition)
@@ -376,6 +388,11 @@ def regions_1985(lines: list[str], start: int = 0, end: int | None = None, secti
             if owner:
                 out.append((owner, "", owner_start, i))
             owner, para = None, None
+            if i > start:
+                # ⛔ THE STANDARD ENDS AT THE FIRST AMENDMENT (kb/Work PB5059). Each amendment's lines are its own
+                # edition's (`amendment_regions`, cited `§1989:` and `§1993:`), so the 1985 universe holds none of its
+                # folios: `§1985:p.B-16` named Amendment 2's page and validated. An amendment opens at `start` itself. (citation-audit: example)
+                return out
             continue
         head = SECTION_85.match(line) or APPENDIX_85.match(line)
         if head is not None:
@@ -627,6 +644,8 @@ the planted appendix sentence
 ## 8. INTRINSIC FUNCTION FACILITY
 
 the planted addendum sentence
+
+A-1
 """
 
 
@@ -663,6 +682,8 @@ def self_test() -> int:
             ("1985 printed page that does not exist is refused", bad("§1985:p.VI-21", planted) is not None),
             ("an amendment's part heading ends the 1985 sections: its addendum paragraph is no paragraph of Section XVIII",
              bad("§1985:XVIII.1", planted) is None and bad("§1985:XVIII.8", planted) is not None),
+            ("the 1985 universe ends at the first amendment: an amendment's folio is no 1985 page (kb/Work PB5059)",
+             bad("§1985:p.A-1", planted) is not None and bad("§1989:p.A-1", planted) is None),  # citation-audit: example
             ("2002 validates against its transcription once it exists",
              bad("§2002:14.8.4 SR2", planted) is None),  # citation-audit: example
             ("2002 phantom refused once its transcription exists", bad("§2002:14.8.5", planted) is not None),
@@ -701,6 +722,9 @@ def self_test() -> int:
         ("a planted amendment is cut at the next one and owns only its own pages and section",
          _planted_amendments()),
         ("1985 against the real transcription", bad("§1985:VI.5.3.2") is None and bad("§1985:p.VI-20") is None),
+        ("the real 1985 universe holds no amendment folio, each amendment's own does (kb/Work PB5059)",
+         bad("§1985:p.B-16") is not None and bad("§1985:p.A-20") is not None  # citation-audit: example
+         and not any(loc.startswith(("p.A-", "p.B-")) for loc in universe(1985) or ())),
         *_real_1985_heads(),
         ("parses an argument rule and a returned-value rule, the catalogs' AR and RV (kb/Work PB4886)",
          parse("§2023:15.10.3 AR1").rule == "AR1" and parse("§1989:A.2.5.4 RV1").rule == "RV1"
