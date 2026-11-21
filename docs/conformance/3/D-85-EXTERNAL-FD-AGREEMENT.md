@@ -8,5 +8,10 @@
   of two separately compiled programs at `--std 85`, at compile time or at run time; a run unit that violates them has
   undefined results, as the text says. Each declaring program's own description must still name external data items where
   the text requires one (the LINAGE data-names, kb/Work PB5982; the PADDING CHARACTER data item, `§1985:VII.2.7.4 GR6`).
+  An undefined result is not a crash. Probed on 2026-11-20 (kb/Work PB5983): two separately compiled programs at
+  `--std 85`, the first describing an EXTERNAL record and an EXTERNAL file's record at 10 characters, the second describing
+  both at 100, the second writing all 100. The run ended normally. The shared external record keeps the first
+  description's 10 characters: the second program's positions 11 to 100 read as spaces, and its stores there do not reach
+  the record. The file's record is likewise written and read at 10 characters. No out-of-range access and no exception.
   Decided by the Mythos session on 2026-11-20 (the documented limit, option (a) of the PB5912 ruling). Source:
   `kb/Work/PB5912.md` and its 2026-11-20 ruling addendum.
