@@ -322,7 +322,7 @@ public sealed partial class SpecialNamesBinder
         {
             if (CollatingAlphabetFault(WrittenAlphabet(alnumWord), national: false) is { } fault)
                 Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumWord.GetText(),
-                    national: false, fault, "ISO " + Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "§2023:12.3.6.3 SR1")));
+                    national: false, fault, Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "ISO §2023:12.3.6.3 SR1")));
             else if (_host.Symbols.Identify(alnumWord, NameClass.Alphabet, report: true)?.Symbol is AlphabetDef def)
                 Cfg.Collating = def.IsIdentity ? null : def;
         }

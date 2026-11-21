@@ -4216,7 +4216,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             if (sumAmbiguous) return;
             Edition.Error(DiagnosticCatalog.ReportSumAddendUnresolved, $"RD '{model.Name}': SUM addend '{addend.Written}' does not resolve "
-                + "to a data item outside the report section (ISO §2023:13.18.54.3 SR5)");
+                // At 85 the rule is the SUM clause's SR1: "If identifier-1 is defined in the Report Section, identifier-1 must
+                // reference a sum counter" (a PAGE-COUNTER or LINE-COUNTER addend is no sum counter; kb/Work PB6010).
+                + $"to a data item outside the report section ({Edition.Edition.Cite("§1985:XIII.3.19.3 SR1", "ISO §2023:13.18.54.3 SR5")})");
             return;
         }
         // SR5's category half. A group item and every non-numeric category fail it — the addend is added into

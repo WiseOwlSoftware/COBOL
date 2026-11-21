@@ -145,8 +145,11 @@ internal static class ClausePlacementRules
             + "local-storage, or linkage section.",
             DiagnosticCatalog.DataClausePlacement,
             Sections: EntrySections.File | EntrySections.WorkingStorage | EntrySections.LocalStorage | EntrySections.Linkage,
-            Rule1985: "§1985:X.4.3.3 SR4",
-            Sentence1985: "The GLOBAL clause may be specified only in data description entries whose level-number is 01."),
+            // The GLOBAL clause's own SR1 states both halves at 85, the level and the sections; the data description skeleton's
+            // X.4.3.3 SR4 states the level alone, so a GLOBAL record of the communication section cited it wrongly (kb/Work PB6010).
+            Rule1985: "§1985:X.4.6.3 SR1",
+            Sentence1985: "The GLOBAL clause may be specified only in data description entries whose level-number is 01 in the "
+                + "File Section or the Working-Storage Section, file description entries, or report description entries."),
         // §2023:13.18.22.3 SR1 — PB518's sibling: the registration scan's `externalLegal` filter was its only site.
         new(DataClauseKind.External, ClausePlacementKind.Residence, "§2023:13.18.22.3 SR1",
             "The EXTERNAL clause may be specified only in file description entries, in level 1 data description "

@@ -801,10 +801,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The clauses the bound verb states its COLLATING SEQUENCE phrase under: the general format that prints
     /// the FOR ALPHANUMERIC / FOR NATIONAL pair, and the syntax rules that alphabet-name-1 "shall reference an alphabet
     /// that defines an alphanumeric collating sequence" and alphabet-name-2 "a national collating sequence" — SORT
-    /// §2023:14.9.40.3 SR1 / SR2, MERGE §2023:14.9.24.3 SR5 / SR6.</summary>
-    private static (string Format, string Alphanumeric, string National) SortCollatingClauses(bool merge) => merge
-        ? ("14.9.24.2", "ISO §2023:14.9.24.3 SR5", "ISO §2023:14.9.24.3 SR6")
-        : ("14.9.40.2", "ISO §2023:14.9.40.3 SR1", "ISO §2023:14.9.40.3 SR2");
+    /// §2023:14.9.40.3 SR1 / SR2, MERGE §2023:14.9.24.3 SR5 / SR6. ANSI X3.23-1985 states the alphanumeric rule once, for SORT
+    /// and MERGE alike, in the ALPHABET clause (§1985:VI.4.5.4 GR4: when alphabet-name-1 is referenced "in the COLLATING
+    /// SEQUENCE phrase of a SORT or MERGE statement", the clause "specifies a collating sequence"); its FOR NATIONAL half has
+    /// no 1985 counterpart (kb/Work PB6010).</summary>
+    private (string Format, string Alphanumeric, string National) SortCollatingClauses(bool merge) => merge
+        ? ("14.9.24.2", ctx.Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "ISO §2023:14.9.24.3 SR5"), "ISO §2023:14.9.24.3 SR6")
+        : ("14.9.40.2", ctx.Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "ISO §2023:14.9.40.3 SR1"), "ISO §2023:14.9.40.3 SR2");
 
     /// <summary>Map a USING/GIVING file list to <see cref="FileModel"/>s. Each shall be an FD file — never an SD
     /// (ISO §2023:14.9.40.3 SR8) — of ANY organization: the implicit OPEN/READ/WRITE/CLOSE of GR12/GR15 run through the
