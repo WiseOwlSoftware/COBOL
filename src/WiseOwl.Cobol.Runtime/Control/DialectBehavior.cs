@@ -360,8 +360,14 @@ public enum DialectBehavior
     /// or the record size used within the program" (§1985:VII.2.8.4 GR1), so a WRITE writes the record at its size, and a READ
     /// of a line outside the minimum and maximum record size is the record length conflict of §1985:VII.4.4.4 GR13, "the
     /// record is truncated on the right to the maximum size" with the I-O status '04' and no remainder (§2002:14.8.29.3 GR13
-    /// and §2014:14.9.29.3 GR14 the same; kb/Work PB5903; VCR row 7.88). Both editions are QUOTED. The consumers are
-    /// <c>SequentialConnector.ReadRecord</c> and <c>SequentialConnector.WriteRecord</c>.</summary>
+    /// and §2014:14.9.29.3 GR14 the same; kb/Work PB5903; VCR row 7.88). The same frame decides two more arms before 2023: a
+    /// REWRITE is the sequential size rule, '44' unless the record has the character positions of the record being replaced
+    /// (§1985:VII.4.5.4 GR10, kb/Work PB5915; 2023's §2023:14.9.35.4 GR17 c) pads a shorter one), and the vertical positioning
+    /// of an ADVANCING phrase or a LINAGE page has no image on the medium, so each WRITE releases exactly one line in WRITE
+    /// order (§1985:VII.4.7.4 GR12, kb/Work PB5984). Both editions are QUOTED. The consumers are
+    /// <c>SequentialConnector.ReadRecord</c>, <c>SequentialConnector.WriteRecord</c>, <c>SequentialConnector.WriteAdvancingRecord</c>
+    /// and <c>SequentialConnector.RewriteRecord</c>, through <c>SequentialConnector.LineSequentialFileRules</c> and
+    /// <c>SequentialConnector.LineDelimiterOnlyFrames</c>.</summary>
     LineSequentialFileRules = 32,
 }
 
@@ -540,7 +546,8 @@ public static class DialectBehaviors
             "a file the line delimiter frames follows the line sequential file's rules (a WRITE drops the record's trailing "
             + "spaces, a short line is padded with no length conflict, and an over-length line's remainder is the next READ's) "
             + "only from COBOL-2023; before, its records keep their size, and a READ of a line shorter than the minimum or longer "
-            + "than the maximum record size is a record length conflict, '04', the long line truncated with no remainder"),
+            + "than the maximum record size is a record length conflict, '04', the long line truncated with no remainder, a REWRITE "
+            + "of another size is '44' with the file unchanged, and an ADVANCING phrase or a LINAGE page writes no line of its own"),
     ];
 
     static DialectBehaviors()
