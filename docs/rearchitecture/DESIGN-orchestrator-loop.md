@@ -2219,6 +2219,19 @@ marker), and, for a section that has entries, one file per entry named by the en
 | 5 the A.4 dispositions | `docs/conformance/5/` | `A.4-<n>.md`, frontmatter `cells:` |
 | 7 the A.1 register | `docs/conformance/7/` | `DOC-A.1-<item>.md`, frontmatter `cells:`; a body when the row has one |
 | 8 the derivations | `docs/conformance/8/` | `DRV-<rule-id>.md`, frontmatter `cells:`; a body when the row has one |
+| 9 the COBOL-85 conformance statement (kb/Work PB4997) | `docs/conformance/9/` | none: `index.md` only, frontmatter `generated: "conformance_1985"` |
+| 9.1 the rules the COBOL-85 claim does not support | `docs/conformance/9.1/` | `<rule-id>.md`, frontmatter `cells:` |
+| 9.2, 9.3 the COBOL-85 hardware components and character set | `docs/conformance/9.2/`, `9.3/` | none: `index.md` only |
+
+A section may be partly COMPUTED (kb/Work PB4997): an index whose frontmatter names a generator of
+`conformance_source.GENERATORS` (`generated:`) has the text the generator computes from tracked data appended to its
+preamble in the rendered whole (the view, the package's copy, `problems`), and the generator's findings are the sources'
+findings, so `conformance_doc.py --check` fails when the computed part and the hand-written parts it holds to disagree. A reader's `load` takes the frame alone: the computed text holds no register row,
+determination or key, and computing it reads the inventory view, whose state rule reads the registers, so a reader that
+computed it would pay for the view on every load and could reach the view computed from the document. Section 9 is
+the one such section: `scripts/spec/conformance_1985.py` computes the COBOL-85 claim from the 1985 inventory and holds
+section 9.1's rows to the rules the claim does not support, both ways (DESIGN-spec-conformance-review.md section 10.2,
+slice 6). A computed text is never committed, so it cannot go stale and two landings never collide on it.
 
 Every keyed entry is its own file, so two landings that add or edit different determinations or rows touch different
 files and plain git merges them (PB5110's rule, which supersedes the keyed-table driver this section first planned for

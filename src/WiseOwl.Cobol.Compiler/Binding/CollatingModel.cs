@@ -38,7 +38,7 @@ namespace WiseOwl.Cobol.Binding;
 /// occupies; ALSO groups make it smaller than <c>Codes.Length</c>). Unspecified character <c>c</c> takes position
 /// <c>NextFree + (c − |specified codes &lt; c|)</c> (GR7 k3), giving the sequence
 /// <c>NextFree + (0x10000 − Codes.Length)</c> positions — the §2023:15.15.3 r2 domain bound.</param>
-/// <param name="HighValue">The runtime HIGH-VALUE character under this sequence (§2023:12.3.7.4 GR8 + §2023:8.3.3.6 GR6/7):
+/// <param name="HighValue">The runtime HIGH-VALUE character under this sequence (§2023:12.3.7.4 GR8 + §2023:8.3.3.6.4 GR6/7):
 /// the character at the HIGHEST position; a tie (an ALSO group at the top) takes the LAST character specified.
 /// Both classes compute it over the whole 65,536-unit repertoire (owner decision kb/Work R52).</param>
 /// <param name="LowValue">The runtime LOW-VALUE character (§2023:12.3.7.4 GR9): lowest position; tie takes the FIRST
@@ -231,7 +231,7 @@ public sealed record AlphabetDef(CollatingTable? Table, LocaleCollatingSpec? Loc
 /// comparison model, and ISO 10646 order over the 65,536 single-position characters IS code-unit order (D-N3).</item>
 /// <item><c>UTF-16</c> / <c>UTF-8</c> — coded character sets ONLY (Table 6: their collating-sequence column is
 /// EMPTY): legal where an alphabet references a coded character set (CODE-SET, SYMBOLIC … IN, CLASS … IN), an
-/// SR violation where a collating sequence is required (§2023:12.3.6 SR2, §2023:12.4.5.7, SORT/MERGE). UTF-16 as a coded
+/// SR violation where a collating sequence is required (§2023:12.3.6.3 SR2, §2023:12.4.5.7, SORT/MERGE). UTF-16 as a coded
 /// set is the D-N1 native identity; UTF-8's external form matters only at a codec boundary (none exists yet —
 /// the CODE-SET clause has no compiler surface, so declaring it is well-formed but inert).</item>
 /// <item>literal-phrase — a user collating sequence AND coded character set (Table 6 last row): the sparse
@@ -467,7 +467,7 @@ public static class CollatingSelection
 {
     /// <summary>⛔ THE ONE data-CATEGORY reading of a bound relation operand — literals carry their own tag
     /// (<see cref="Bound.BoundStringLiteral.Category"/>); a reference-modified field is the unique item of its
-    /// inner's class view (alphanumeric for the classic categories, ISO §2023:8.4.3.3 GR6 — but national/boolean ref-mod
+    /// inner's class view (alphanumeric for the classic categories, ISO §2023:8.4.3.3.4 GR6 — but national/boolean ref-mod
     /// stays national/boolean, GR1/GR5a); a plain field asks <c>DataItem.OperandPic</c>, never raw <c>Pic</c>, so a
     /// bit / national GROUP answers as the elementary item §2023:13.18.29.4 GR1b/GR2b makes it; null only for the
     /// genuinely context-dependent shapes (a figurative, whose category §2023:8.3.3.6.4 GR1 takes from its context;

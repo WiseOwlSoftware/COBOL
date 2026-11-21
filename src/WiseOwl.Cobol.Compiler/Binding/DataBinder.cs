@@ -508,7 +508,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 }
             }
             // FUNCTION … INTRINSIC (§2023:12.3.8): `ALL` (GR14) or a LIST of intrinsic-function-names (§2023:12.3.8.2's
-            // `{ intrinsic-function-name-1 } …`, kb/Work PB974) — the §2023:8.4.3.2 SR2 keyword-omission enabler
+            // `{ intrinsic-function-name-1 } …`, kb/Work PB974) — the §2023:8.4.3.2.3 SR2 keyword-omission enabler
             // (M2-UDF-4). `FUNCTION ALL INTRINSIC` carries no functionName.
             else if (re.FUNCTION() is not null && re.INTRINSIC() is not null)
             {
@@ -536,7 +536,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         FileControl.BindFileSection(program, _rootNames);      // FD records → Roots + FileModel.Records + the shared-area REDEFINES
         FileControl.ScreenSelectsHaveDescriptions();           // §2023:12.4.5.2 SR3 — after every FD and SD has attached
         ReportSection.BindReportSection(program);               // RD entries → ReportModels (ISO §2023:13.14; ReportSectionBinder.cs)
-        FileControl.BindIoControl(program);                  // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§2023:12.4.6.4 GR2)
+        FileControl.BindIoControl(program);                  // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§2023:12.4.6.4.4 GR2)
 
         // SCREEN SECTION (ISO §2023:13.9) is an OPTIONAL element of Annex A.4.2, the module docs/CONFORMANCE.md §5
         // records as Not claimed. A.4.1 admits an optional element's syntax ONLY when support is claimed, so the
@@ -1631,7 +1631,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     + "numeric literal but the item is a floating-point numeric-edited item — its VALUE shall be a "
                     + "floating-point literal, ZERO, or the literal zero (ISO §2023:13.18.63.3 SR6)");
                 return raw;
-            // National: an N"…" literal or a figurative constant (§2023:8.3.3.6 GR1/GR6/GR7 — SPACE/QUOTE/HIGH/
+            // National: an N"…" literal or a figurative constant (§2023:8.3.3.6.4 GR1/GR6/GR7 — SPACE/QUOTE/HIGH/
             // LOW/ZERO, incl. their ALL-prefixed forms). Plain strings, B"…", numeric, and ALL "literal" are
             // illegal.
             case PicCategory.National when isPlainString || isBoolLit || isNumeric || isAllQuoted
@@ -2299,7 +2299,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Clone the referenced TYPEDEF template into <paramref name="item"/> (ISO §2023:13.18.57.4 GR1/GR2): an
     /// ELEMENTARY type copies its PICTURE onto the item (a leaf); a GROUP type clones each subordinate under the item
-    /// (a group). The subject's OWN OCCURS (an array-of-type, §2023:13.16 SR14) and VALUE (GR3) are already on the item and
+    /// (a group). The subject's OWN OCCURS (an array-of-type, §2023:13.16.3 SR14) and VALUE (GR3) are already on the item and
     /// preserved. The template is COMPLETED first (<see cref="ExpandTemplate"/>), and one still in progress is the
     /// recursive type declaration §2023:13.18.58.3 SR2 forbids (COBOL1530).</summary>
     internal void ExpandType(DataItem item)
@@ -2361,7 +2361,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     + $"'{typeName}': a data description containing an external type declaration shall be at "
                     + "level-number 1 (ISO §2023:13.18.22.4 GR2)");
             else
-                item.ExternalFromType = true;   // §2023:13.18.22 GR3
+                item.ExternalFromType = true;   // §2023:13.18.22.4 GR3
         }
         // §2023:13.18.22.3 SR5: "When a record description is an external item, any associated type declaration that is
         // strongly typed shall also be external." ⛔ The predicate is "the record IS an external item" — its own EXTERNAL
@@ -2611,7 +2611,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // TableValues are the two spellings of ONE clause (§2023:13.18.63.2 formats 1 and 2, mutually exclusive on the
         // entry), and copying only the first silently DROPPED a table VALUE across every TYPE / SAME AS reference:
         // `01 TT TYPEDEF. 05 X PIC X(2) OCCURS 3 VALUE "AB" FROM (1). 01 R TYPE TT.` composed a clone whose
-        // occurrences were all VALUE-less. §2023:13.18.57.4 GR1 / §2023:13.18.49 GR1 copy the DESCRIPTION, and the VALUE
+        // occurrences were all VALUE-less. §2023:13.18.57.4 GR1 / §2023:13.18.49.4 GR1 copy the DESCRIPTION, and the VALUE
         // clause is in neither GR's exclusion list, in either of its formats.
         if (entryCopy)
         {
@@ -2955,7 +2955,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         CopyClauseDescription(target, item, DescriptionCopyScope.Entry);
         if (!wroteBased && item.IsBased) ScreenComposedBased(item, $"SAME AS '{targetName}'");
         // GR3/GR5: a USAGE / SIGN clause of a group containing data-name-1 takes effect as though specified
-        // for the SUBJECT (nearest enclosing clause, the §2023:13.18.60 GR1 discipline; only an ELEMENTARY target
+        // for the SUBJECT (nearest enclosing clause, the §2023:13.18.60.4 GR1 discipline; only an ELEMENTARY target
         // can have ancestors — SR7). The subject's chain cannot see data-name-1's ancestors, so the transform
         // the InheritUsage/InheritSign passes would have applied is applied here, on the copied Pic.
         // ⛔ EACH RULE NAMES THE GROUP KINDS IT TRANSFERS FROM, and the two sets differ (kb/Work PB1300): GR3 —
@@ -3015,7 +3015,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
         foreach (var c88 in target.Own88s) CloneConditionOnto(item, c88);   // GR2a — data-name-1's own condition-names ride the copy
 
-        // §2023:13.18.22 GR3 carried through SAME AS: when data-name-1's external-ness came FROM ITS TYPE (not from
+        // §2023:13.18.22.4 GR3 carried through SAME AS: when data-name-1's external-ness came FROM ITS TYPE (not from
         // an explicit EXTERNAL clause — that one GR1 excludes), the copied description still names the external
         // type, so the subject is external under the same GR2 level-1 constraint.
         if (target.ExternalFromType)
@@ -3175,7 +3175,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                     string alphaNameWritten = WrittenSource.Of(alphaWord, "");
                     foreach (var vi in value.valueItem())
                     {
-                        // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7 GR14a).
+                        // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7.4 GR14a).
                         if (vi.valueClauseRange() is { } range)
                         {
                             // §2023:13.18.63.3 SR29: THROUGH shall not be specified for a boolean conditional
@@ -3184,7 +3184,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                             // banned for.
                             // ⛔ THERE IS NO LONGER A NATIONAL STAGE HERE (kb/Work PB761, discharged in landing
                             // train 18). A COBOL0899 "recognized but not yet implemented (Phase 4a residue)"
-                            // stood over a national THROUGH range on the citation §2023:13.18.63 SR31 — but SR31 says
+                            // stood over a national THROUGH range on the citation §2023:13.18.63.3 SR31 — but SR31 says
                             // "Alphabet-name-1 may be specified only when the literals specified in the THROUGH
                             // phrase are of class alphanumeric or national", which governs WHEN the
                             // IN alphabet-name-1 phrase may be written and never makes the range
@@ -3230,7 +3230,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                             // and a second diagnostic on the same entry would be noise.
                             if (parent.OperandPic is { Category: not PicCategory.Boolean } rp)
                             {
-                                // §2023:13.18.63 SR4/SR5/SR24→SR10: the VALUE literals' CATEGORY must match the
+                                // §2023:13.18.63.3 SR4/SR5/SR24→SR10: the VALUE literals' CATEGORY must match the
                                 // conditional variable's — the SAME funnel the item-entry VALUE uses. Their SIZE
                                 // sentences do not reach a condition-name subject, which is why the subject is
                                 // ValueSubject.ForConditionName, which carries the conditional variable's size only at 85
@@ -3245,7 +3245,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                             foreach (var op in vi.valueClauseOperand())
                             {
                                 if (op == alphaOperand) continue;   // alphabet-name-1, not a literal-2
-                                // §2023:13.18.63 SR4/SR5/SR24→SR10 (both directions): an N"…"/B"…" literal seeds
+                                // §2023:13.18.63.3 SR4/SR5/SR24→SR10 (both directions): an N"…"/B"…" literal seeds
                                 // only its own category, and a national/boolean conditional variable takes only
                                 // its own literal form — the ONE canonical checker (0898 band). A bit /
                                 // national GROUP parent funnels here too, through its §2023:13.18.29.4 GR1b/GR2b as-if
@@ -3678,7 +3678,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>The compile-time VALUE of a numeric VALUE-clause operand (ISO §2023:13.18.63.3 SR27's "<i>the value of
     /// literal-4</i>" / "<i>the value of … literal-2</i>"), or null when the operand names no value the compiler
-    /// can weigh. The binder has already normalized a numeric operand to dot-decimal form (§2023:12.3.7 GR14a), so the
+    /// can weigh. The binder has already normalized a numeric operand to dot-decimal form (§2023:12.3.7.4 GR14a), so the
     /// parse is invariant-culture; the figurative ZERO family is admitted because §2023:8.3.3.6.4 GR3 gives it the
     /// value zero exactly, and every other figurative (SPACE, HIGH-VALUE, …) is a CHARACTER value that a numeric
     /// subject could not have taken in the first place (§2023:13.18.63.3 SR2).</summary>
@@ -4342,9 +4342,9 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (rawValue is { } rv && pic is not null)
             rawValue = ScreenValueLiteral(pic, rv, entryWhere,
                 ValueSubject.ForElementary(pic, isDynamicLength, isAnyLength, implicitPicture: false));
-        // An EXTERNAL type declaration (ISO §2023:13.18.22 SR1 — EXTERNAL is legal on a level-1 type declaration;
+        // An EXTERNAL type declaration (ISO §2023:13.18.22.3 SR1 — EXTERNAL is legal on a level-1 type declaration;
         // the level-1 shape is §2023:13.18.58.3 SR3, already enforced by RegisterTypeDecl's 1529). The declaration
-        // itself has no storage (§2023:13.18.58.4 GR2); the effect lands on its REFERENCES — §2023:13.18.22 GR2 (a data
+        // itself has no storage (§2023:13.18.58.4 GR2); the effect lands on its REFERENCES — §2023:13.18.22.4 GR2 (a data
         // description containing the type shall be level-1) and GR3 (those records are themselves EXTERNAL) are
         // enforced in ExpandType, and the record rides the ordinary run-unit ExternalStore re-basing
         // (CallBindExternalAndGlobal). The former COBOL1534 stage is LIFTED (P10 Step 16).
@@ -4432,8 +4432,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             Synchronized = synchronized,
             IsTypedef = isTypedef,
             TypedefStrong = typedefStrong,
-            IsExternalTypedef = isTypedef && hasExternal,   // §2023:13.18.22 SR1 / §2023:13.18.58.3 SR3 (P10 Step 16)
-            HasExternalClause = hasExternal,                // the ADMITTED clause — re-basing input + §2023:13.18.22 SR5 pairing check
+            IsExternalTypedef = isTypedef && hasExternal,   // §2023:13.18.22.3 SR1 / §2023:13.18.58.3 SR3 (P10 Step 16)
+            HasExternalClause = hasExternal,                // the ADMITTED clause — re-basing input + §2023:13.18.22.3 SR5 pairing check
             HasGlobalClause = hasGlobal,                    // the ADMITTED clause — global-name registration input (PB518)
             ExternalizedAs = externalizedAs,                // §2023:13.18.22.4 GR5's literal-1 (kb/Work PB511)
             IsConstantRecord = isConstantRecord,
@@ -4708,7 +4708,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// <summary>Extract the first VALUE operand's raw source text (literal or figurative constant). THRU ranges /
     /// 88-levels are later. The emitter (<c>FieldEmitter</c>) interprets the text — including figurative constants
     /// such as ZERO/SPACE — against the item's category and width. A numeric literal is normalized to the
-    /// canonical dot-decimal form (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7 GR14a).</summary>
+    /// canonical dot-decimal form (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7.4 GR14a).</summary>
     private string? ExtractValue(Core.ValueClauseContext value, string where)
     {
         var item = value.valueItem().FirstOrDefault();
@@ -4792,7 +4792,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// time): a §2023:8.8.3 concatenation expression folds to its equivalent literal's raw text (§2023:8.8.3.3 GR3); a
     /// constant-name substitutes its literal's raw text (§2023:13.10.3 SR2 / §2023:13.10.4 GR1 — a VALUE operand is a
     /// literal position); any other operand keeps its source text, numeric literals normalized to dot-decimal
-    /// (ISO §2023:12.3.7 GR14a).
+    /// (ISO §2023:12.3.7.4 GR14a).
     /// <para>NULL when the operand is NOT a literal position at all (<see cref="IsLiteralValueOperand"/> said
     /// so and <see cref="ReportNonLiteralValueOperand"/> has reported it) — the caller stores no value, so the
     /// unreadable operand never reaches the emitter. kb/Work PB732: this method's last arm used to be an
@@ -5605,7 +5605,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// USAGE × PICTURE screen (SR3/SR5/SR12/SR20, shared verbatim with the written-clause path) followed by the
     /// representation rewrite the screened usage calls for.
     /// <para>⛔ ONE site for every route by which an elementary item acquires a usage its own entry did not
-    /// write: §2023:13.18.60.4 GR1 group inheritance (<see cref="UsageInheritancePass.Run"/>) and the §2023:13.18.49.3 GR3
+    /// write: §2023:13.18.60.4 GR1 group inheritance (<see cref="UsageInheritancePass.Run"/>) and the §2023:13.18.49.4 GR3
     /// SAME-AS ancestor transform. Both used to carry their own copy of a three-member
     /// <c>Binary or Packed or Comp5</c> hand-list over a <c>{ Numeric, !IsFloat, Display }</c> leaf shape, and
     /// each silently dropped every usage outside it (kb/Work PB495).</para>
@@ -5652,7 +5652,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             ? pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, sign) }
             : pic;
 
-    /// <summary>One entry of the §2023:13.18.52 GR1 walk: the nearest enclosing clause, unless the entry wrote its own.
+    /// <summary>One entry of the §2023:13.18.52.4 GR1 walk: the nearest enclosing clause, unless the entry wrote its own.
     /// A subtree completed ahead of the pipeline (<see cref="CompleteDescriptionAhead"/>, kb/Work PB2465) took its
     /// clause then and is passed over.</summary>
     internal void InheritSignWalk(DataItem item, SignSpec? inherited)
@@ -5712,7 +5712,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// top-level member starts at <paramref name="off"/> (0), a subordinate accumulates by preceding-sibling FULL
     /// extents (per-occurrence image width × OCCURS count — every occurrence is part of the layout). A subordinate
     /// that itself REDEFINES a prior sibling takes the TARGET's offset (redefinition begins at the redefined item's
-    /// first position, ISO §2023:13.18.44 GR1) and contributes NO width of its own. Every subordinate of a class member
+    /// first position, ISO §2023:13.18.44.4 GR1) and contributes NO width of its own. Every subordinate of a class member
     /// is itself a view (its stored field is suppressed — SR9).</summary>
     internal static void AssignClassOffsets(DataItem item, int off, RedefinesClass cls) =>
         AssignClassBitOffsets(item, off * BitLayout.BitsPerCharacter, cls);

@@ -142,7 +142,7 @@
            MOVE 1 TO RB-RRN
            READ RB RETRY FOREVER INVALID KEY CONTINUE END-READ
            DISPLAY "R2FVR=" RB-ST
-      *> §2023:14.9.47 GR1 — once RA releases, the same READ succeeds: the
+      *> §2023:14.9.47.4 GR1 — once RA releases, the same READ succeeds: the
       *> conflict was the lock, not a wedged connector.
            UNLOCK RA RECORDS
            MOVE 1 TO RB-RRN

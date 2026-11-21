@@ -404,7 +404,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             }
             if (!file.IsSequential) { keyedIo.EmitRegistration(w, file); EmitSharingRegistration(w, file); continue; }   // relative/indexed connectors
             bool lineSeq = file.Organization == FileOrganization.LineSequential;
-            // A variable-length file registers its record-size bounds (ISO §2023:13.18.43 GR9/GR10) — the connector
+            // A variable-length file registers its record-size bounds (ISO §2023:13.18.43.4 GR9/GR10) — the connector
             // length-frames its records and enforces the GR14 '44' boundary checks.
             // A variable-length record (D-FRA; kb/Work PB981) implies Format 2 (§2023:13.18.43.4 GR5) and reaches past
             // the character area, so the connector learns the record descriptions' own maximum (GR14/GR15's
@@ -426,7 +426,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// file-name-1"</i> — and both arms name the element that performs it: a) <i>"identified by the specification
     /// of device-name-1 or the value of literal-1 in the source unit that specifies the OPEN, SORT, or MERGE
     /// statement"</i>, b) <i>"identified by the content of the data item referenced by data-name-1 in the runtime
-    /// element that executes the OPEN, SORT, or MERGE statement"</i>. §2023:13.18.34 GR6 b) 1 does the same for the
+    /// element that executes the OPEN, SORT, or MERGE statement"</i>. §2023:13.18.34.4 GR6 b) 1 does the same for the
     /// LINAGE operands at the completion of an OPEN OUTPUT.</para>
     /// <para><b>Why it cannot be installed on the connector.</b> A file connector is not per-element and not
     /// per-activation: an EXTERNAL one is a single object per run unit shared by every describing element
@@ -459,7 +459,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         return (CsLiteral(file.AssignTarget), false);
     }
 
-    /// <summary>The executing element's LINAGE operand values (ISO §2023:13.18.34 GR6) as a <c>LinagePage</c>, or
+    /// <summary>The executing element's LINAGE operand values (ISO §2023:13.18.34.4 GR6) as a <c>LinagePage</c>, or
     /// <c>null</c> for an FD with no LINAGE clause. ONE rendering for both operand forms — GR6 a) literals fold to
     /// constants, GR6 b) data-names render this element's field reads, evaluated by the runtime at the three GR6 b)
     /// times (OPEN OUTPUT completion, WRITE ADVANCING PAGE, page-overflow WRITE). Passed by every OPEN and every
@@ -659,7 +659,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         w.Line($"{RuntimeApi.FileRegisterSharing(FileKeyExpr(file), $"{sharing}, {lockMode}, {(multiple ? "true" : "false")}")};");
     }
 
-    /// <summary>The C# <c>int</c> expression for one LINAGE clause operand (ISO §2023:13.18.34 GR6): the fixed literal
+    /// <summary>The C# <c>int</c> expression for one LINAGE clause operand (ISO §2023:13.18.34.4 GR6): the fixed literal
     /// (GR6 a), or the data item's current value (GR6 b — scale 0 by SR2's elementary-unsigned-integer rule, with
     /// a defensive rescale). A declared data-name that does not resolve to storage fails loud (§1.4).
     /// <para><paramref name="absent"/> is what an OMITTED phrase renders, and it is the caller's decision because
@@ -946,7 +946,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         string name = FileKeyExpr(wr.File);
         string image = SentRecordImage(wr.File, wr.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1, PB1907)
-        // ⛔ ONE CALL FOR EVERY WRITE SHAPE (kb/Work PB683). §2023:9.1.16/§2023:14.9.51 GR10-GR11 (P10 Step 8): the governed
+        // ⛔ ONE CALL FOR EVERY WRITE SHAPE (kb/Work PB683). §2023:9.1.16/§2023:14.9.51.4 GR10-GR11 (P10 Step 8): the governed
         // WRITE — single locking releases the connector's prior lock, WITH LOCK locks the record written — and
         // both are ALL FILES rules, so the ADVANCING phrases are the statement's PRESENTATION shape and travel
         // as an argument, never as a choice of runtime entry. This used to be a three-arm dispatch whose two
@@ -998,7 +998,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // "If the END-OF-PAGE phrase is not specified" (kb/Work PB854). NOT END-OF-PAGE alone does not count —
         // it is GR28's arm for the ABSENCE of the condition.
         var hook = EmitUseHook(wr.File, "WRITE", atEndHandled: wr.AtEop is not null);
-        // END-OF-PAGE branches (ISO §2023:14.9.51 GR27b/GR28): an end-of-page WRITE is SUCCESSFUL — the branch runs
+        // END-OF-PAGE branches (ISO §2023:14.9.51.4 GR27b/GR28): an end-of-page WRITE is SUCCESSFUL — the branch runs
         // after the status store and the hook (which sets GR27 a)'s condition and, with the phrase present,
         // dispatches nothing). The flag is read in the
         // `if` HEADER before either body runs: a branch body may WRITE the same file again (SQ208M's footing loop
@@ -1054,7 +1054,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         file is { Varying.DependingOperand: not null, VaryingDependingItem: { } d } ? places.Of(d) : null;
 
     /// <summary>The record-length argument for a WRITE/REWRITE on a RECORD VARYING … DEPENDING file (ISO
-    /// §2023:13.18.43 GR13a — the DEPENDING item's content names the record length), or null when the statement
+    /// §2023:13.18.43.4 GR13a — the DEPENDING item's content names the record length), or null when the statement
     /// writes the record's own size (GR13b/c — on a varying file the runtime takes the image's length; on a
     /// fixed file it pads to the record width).</summary>
     public string? VaryingLengthArg(FileModel file) =>
@@ -1080,7 +1080,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 : RecordLayout.PhysicalWidth(rw.Record.Item)).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
     /// <summary>After a SUCCESSFUL read of a RECORD VARYING … DEPENDING file, store the just-read record's length
-    /// into the DEPENDING item (ISO §2023:13.18.43 GR15; GR12 — an unsuccessful READ leaves it unchanged, so the call
+    /// into the DEPENDING item (ISO §2023:13.18.43.4 GR15; GR12 — an unsuccessful READ leaves it unchanged, so the call
     /// site sits inside the success branch).</summary>
     public void EmitReadLengthStore(FileModel file)
     {
@@ -1091,7 +1091,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <summary>READ file [INTO x] [AT END …][NOT AT END …] (ISO §2023:14.9.30): on success the record image is
     /// distributed into the FD record area (and, with INTO, MOVEd to the target); the AT END / NOT AT END imperative
     /// branches on the at-end condition. After an UNSUCCESSFUL read the record area's content is spec-UNDEFINED
-    /// (§2023:14.9.30 GR18 "unless otherwise specified…"); WiseOwl COBOL's documented refinement is that the area is
+    /// (§2023:14.9.30.4 GR18 "unless otherwise specified…"); WiseOwl COBOL's documented refinement is that the area is
     /// UNCHANGED — the store sits in the success branch only — extending the spec's own rule for every other
     /// unsuccessful I-O verb (REWRITE GR14 / WRITE GR15 / DELETE GR8 / START GR2 all say "unaffected"). The
     /// legacy's LOW-VALUE fill there was a byte-engine artifact (ST146A's golden is re-baselined over it,
@@ -1113,7 +1113,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // splice (ST111A).
         Place? area = places.RecordArea(rd.File);
         // §2023:9.1.16 record locking on the sequential organization (P10 Step 8): EVERY READ routes through the
-        // governed runtime entry — the next ordinal's pre-read conflict check (§2023:14.9.30 GR9, FPI unchanged on a
+        // governed runtime entry — the next ordinal's pre-read conflict check (§2023:14.9.30.4 GR9, FPI unchanged on a
         // 51 per GR10a), the GR11 lock discipline, and the GR22 ADVANCING ON LOCK skip-scan. Unconditional
         // (kb/Work PB683): only the runtime can see an OPEN statement's own SHARING phrase (§2023:9.1.15), and it
         // governs the retrieval for EVERY connector — §2023:9.1.16 makes a locked record inaccessible to another file
@@ -1145,7 +1145,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         using (w.Block($"if ({cond})"))
         {
             if (!stored) EmitRecordAreaStore(rd.File, area, tmp, RuntimeApi.FileCurrentRecord(name), RuntimeApi.FileCurrentRecordExtents(name));
-            EmitReadLengthStore(rd.File);   // §2023:13.18.43 GR15 — the just-read length into DEPENDING
+            EmitReadLengthStore(rd.File);   // §2023:13.18.43.4 GR15 — the just-read length into DEPENDING
             EmitStoreFileStatus(rd.File);
             // ⛔ A SUCCESSFUL READ RUNS THE EC HOOK TOO (kb/Work PB1382): a '0x' status (04, 06, 09 …) is
             // EC-I-O-WARNING (§2023:9.1.13.1) and, with it enabled (§2023:7.3.25.4 GR4), a WHEN / USE handles it and the NOT
@@ -1202,7 +1202,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (rw.FromMove is { } fromMove) move.Emit(fromMove);   // §2023:14.9.35.4 GR7 a) — the BOUND implicit MOVE
         Debug.LandBeforeIo();   // X3.23-1985 USE FOR DEBUGGING general rule 5 a / 6 a: after the FROM move, before the I-O (docs/CONTROL_FLOW_DESIGN.md D20)
         string image = SentRecordImage(rw.File, rw.Record);   // THE ONE record-area channel (kb/Work PB327; D-WRT1, PB1907)
-        // §2023:9.1.16/§2023:14.9.35 GR11-GR12 (P10 Step 8): EVERY sequential REWRITE routes through the governed runtime
+        // §2023:9.1.16/§2023:14.9.35.4 GR11-GR12 (P10 Step 8): EVERY sequential REWRITE routes through the governed runtime
         // entry — the pre-operation conflict check on the last-read record (51 leaves the record unrewritten)
         // and the GR12 lock discipline. Unconditional (kb/Work PB683), and the runtime body governs every
         // connector, opted in or not (kb/Work PB669). The status lands on the connector either way.

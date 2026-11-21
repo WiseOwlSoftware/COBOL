@@ -60,11 +60,11 @@ public sealed class LiteralScreenTests
             if (data.Contains("{Q}") && positions % 4 != 0) continue;   // BX counts in fours — 8,192 only (8,188 is below)
             var (ok, errors, _) = EditionHarness.CompileFull(Program("LS" + positions, Fill(data), Fill(proc)), 2023);
             if (positions <= 8191)
-                Assert.True(ok, $"[{position}] a {positions}-position literal is legal (§2023:8.3.3 SR1 '≤ 8,191'):\n"
+                Assert.True(ok, $"[{position}] a {positions}-position literal is legal (§2023:8.3.3.2.3 SR1 '≤ 8,191'):\n"
                     + string.Join("\n", errors));
             else
             {
-                Assert.False(ok, $"[{position}] an 8,192-position literal shall be rejected (§2023:8.3.3 SR1)");
+                Assert.False(ok, $"[{position}] an 8,192-position literal shall be rejected (§2023:8.3.3.2.3 SR1)");
                 Assert.Single(errors, e => e.Contains("COBOL0814"));   // once — one screen, no second funnel
             }
         }

@@ -290,7 +290,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             if (m.PropertySubject is not null)
             {
                 // A PROPERTY-clause-SYNTHESIZED accessor: no COBOL body exists — the emitter renders the
-                // direct field read/write (D-P1; observably identical to the §2023:13.18.42 GR1/GR2 implicit
+                // direct field read/write (D-P1; observably identical to the §2023:13.18.42.4 GR1/GR2 implicit
                 // MOVE methods). It still occupies a roster slot (override/implements machinery applies).
                 m.Binding!.EntryPc = table.Paragraphs.Count;
                 m.Binding!.DeclStartPc = m.Binding!.EntryPc;
@@ -300,7 +300,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             }
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
             // bound by OoDataBinder.BindMethodData before any body binds; here we link its name scope so the
-            // per-pc switch below activates §2023:11.7 GR5 shadowing while this method's statements bind.
+            // per-pc switch below activates §2023:11.7.4 GR5 shadowing while this method's statements bind.
             var scope = new OoMethodScope { Data = m.DataScope, MethodName = m.Name, Formals = m.Binding!.Formals };
             scopeToMethod[scope] = m;         // §9.10 — handler pc-ranges map back to this method via its scope
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
@@ -331,7 +331,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         OoMethodSymbol? raisingLoadedFor = null;
         for (int i = 0; i < table.Paragraphs.Count; i++)
         {
-            // The ordered quadruple (section → method scope → §2023:11.7 GR5 data shadowing → cursor) is ONE
+            // The ordered quadruple (section → method scope → §2023:11.7.4 GR5 data shadowing → cursor) is ONE
             // scoped operation (10s) — set coherently, restored coherently on dispose.
             using var _ = Ctx.EnterMethodScope(table.ParaSections[i], table.ParaMethods[i], i);
             // §2023:11.9.4 GR1 (kb/Work PB135): a method's own OPTIONS model governs ITS body only — swapped in

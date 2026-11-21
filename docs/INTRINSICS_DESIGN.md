@@ -11,7 +11,7 @@
 > `Unsupported` case (the A.4.9 non-support era) is DELETED with the module's claim at PB64 T6; the `Deferred` enum case remains
 > only as the renderer's never-hit backstop), `BoundIntrinsicCall`,
 > `Binding/Procedure/Verbs/IntrinsicBinder.cs` (P7 Step 12: FUNCTION arguments are REAL parse trees —
-> `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?`, each argument a §2023:8.4.3.2 SR8 shape
+> `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?`, each argument a §2023:8.4.3.2.3 SR8 shape
 > bound through the ONE `ExpressionBinder.BindExpr`; the keyword-omitted form binds the `functionArgument` items its
 > reference's parsed `subscriptPart` already holds (`IntrinsicBinder.ArgumentsOf`, kb/Work PB2113); table(ALL) expansion, MAX/MIN resolution, LENGTH
 > fold, the §2023:15.68.3 r3 currency injection), `IntrinsicRenderer` (ONE instance channel — numeric + string; the

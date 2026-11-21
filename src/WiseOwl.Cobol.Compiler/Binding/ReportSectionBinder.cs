@@ -2260,7 +2260,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
                     + "repeating entry contains an absolute COLUMN clause, or is subordinate to an entry with a "
-                    + "LINE clause and has one subordinate to it (ISO §2023:13.18.38.3 SR25c/SR25d) — without it "
+                    + "LINE clause and has one subordinate to it (ISO §2023:13.18.38.3 SR25c / SR25 d)) — without it "
                     + "every repetition would print in the same column");
                 return null;
             }
@@ -2958,7 +2958,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>True when any entry in <c>[start, end)</c> carries a COLUMN clause with an ABSOLUTE operand
-    /// (ISO §2023:13.18.38.3 SR25c/SR25d).</summary>
+    /// (ISO §2023:13.18.38.3 SR25c / SR25 d)).</summary>
     private static bool AbsoluteColumnClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
     {
         for (int k = start; k < end; k++)
@@ -2978,7 +2978,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         && int.TryParse(entries[self + 1].levelNumber().GetText(), out int next) && next > level;
 
     /// <summary>True when <paramref name="self"/> "is subordinate to an entry with a LINE clause" — the
-    /// qualifier ISO §2023:13.18.38.3 SR25d and §2023:13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
+    /// qualifier ISO §2023:13.18.38.3 SR25 d) and §2023:13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
     /// preceding entry with a strictly lower level-number, taken innermost-first (the §2023:13.15 level hierarchy).</summary>
     private static bool SubordinateToLineClause(Core.ReportGroupEntryContext[] entries, int self)
     {

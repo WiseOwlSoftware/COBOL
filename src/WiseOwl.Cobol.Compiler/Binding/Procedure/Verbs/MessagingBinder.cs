@@ -168,7 +168,7 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
         else if (s.inlineMethodInvocation() is { } invocation) operand = host.Oo.OoInlineInvocationOperand(invocation);
         else if (DataReferencesAfter(s, Core.FROM).FirstOrDefault() is { } reference)
         {
-            // A repository function written without FUNCTION is a function-identifier too (§2023:8.4.3.2 SR2), read as FieldOperand reads it.
+            // A repository function written without FUNCTION is a function-identifier too (§2023:8.4.3.2.3 SR2), read as FieldOperand reads it.
             if (host.Intrinsic.KeywordOmittedFunction(reference) is { } keywordOmitted) operand = IntrinsicBinder.OperandOf(keywordOmitted, functionValue: true);
             else if (Sending(reference, ref refusal) is { } place)
             {

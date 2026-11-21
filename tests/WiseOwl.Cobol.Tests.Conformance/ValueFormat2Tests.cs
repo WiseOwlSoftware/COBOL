@@ -299,7 +299,7 @@ public sealed class ValueFormat2Tests
     }
 
     /// <summary>A TYPE reference assumes the template's description (ISO §2023:13.18.57.4 GR1), and the VALUE clause is
-    /// in neither that GR's nor §2023:13.18.49 GR1's exclusion list — in EITHER of its two formats. The clone used to
+    /// in neither that GR's nor §2023:13.18.49.4 GR1's exclusion list — in EITHER of its two formats. The clone used to
     /// copy only <c>RawValue</c>, so a template member's table VALUE was dropped silently and every occurrence
     /// came back VALUE-less (kb/Work PB505's sibling sweep).</summary>
     [Fact]

@@ -3,7 +3,7 @@
 namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
-/// ⛔ THE ONE KEY COMPARISON of SORT and MERGE (ISO §2023:14.9.40 GR8 / §2023:14.9.24 GR3 — the relation-condition comparison
+/// ⛔ THE ONE KEY COMPARISON of SORT and MERGE (ISO §2023:14.9.40.4 GR8 / §2023:14.9.24.4 GR3 — the relation-condition comparison
 /// rules per key), over a fixed number of SLOTS, each holding one record's keys DECODED ONCE: a chunk being sorted has
 /// one slot per record, a merge one per run head (<see cref="SortWork"/>, kb/Work PB3339). A NUMERIC key column holds
 /// the records' algebraic values (GR8 / §2023:8.8.4.2.4 — a collating sequence NEVER applies to a numeric comparison); a

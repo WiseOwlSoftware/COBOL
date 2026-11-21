@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Runtime;
 //    • ProgramTable (instance, on RunUnit) — program-name resolution honoring §2023:8.4.6.3, the §2023:14.6.2.3 state model,
 //      and CANCEL semantics; ProgramRegistry (this file) is its static emitted-surface shim.
 //    • ExternalTable (instance, on RunUnit) — one storage copy per external name per run unit (§2023:8.6.7 /
-//      §2023:13.18.22); NOT reset by CANCEL (§2023:14.9.5 GR8); ExternalStore is its static shim.
+//      §2023:13.18.22); NOT reset by CANCEL (§2023:14.9.5.4 GR8); ExternalStore is its static shim.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 /// <summary>
@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// program call is not successful" set: program not found (GR3b, EC-PROGRAM-NOT-FOUND), a NULL program-pointer
 /// (GR3b, EC-PROGRAM-PTR-NULL), an argument-count violation (GR3d, EC-PROGRAM-ARG-MISMATCH), an external
 /// non-conformance (GR3e, the EC-EXTERNAL trio), a re-entry of an active non-RECURSIVE program (GR3f,
-/// EC-PROGRAM-RECURSIVE-CALL), CANCEL of an active program (§2023:14.9.5 GR5, EC-PROGRAM-CANCEL-ACTIVE), or a
+/// EC-PROGRAM-RECURSIVE-CALL), CANCEL of an active program (§2023:14.9.5.4 GR5, EC-PROGRAM-CANCEL-ACTIVE), or a
 /// user-defined-function locate miss (§2023:8.4.3.2.4 GR6b, EC-FUNCTION-NOT-FOUND). <see cref="CarriedNames"/> is
 /// the whole set. At <c>--std 85</c> there is no EC machinery — a CALL site with an ON OVERFLOW phrase converts
 /// this to the overflow branch (the 85 surface); without one, the run unit terminates loudly (abnormal
@@ -90,7 +90,7 @@ public sealed class CobolCallException(string message, string ecName = "EC-PROGR
         "EC-FUNCTION-NOT-FOUND",          // §2023:8.4.3.2.4 GR6b — a user-defined-function locate miss
         "EC-FUNCTION-PTR-NULL",           // §2023:8.4.3.2.4 GR6c — a function-identifier through a NULL function-pointer
         "EC-PROGRAM-ARG-MISMATCH",        // §2023:14.8.2.1 via §2023:14.9.4.4 GR3d
-        "EC-PROGRAM-CANCEL-ACTIVE",       // §2023:14.9.5 GR5
+        "EC-PROGRAM-CANCEL-ACTIVE",       // §2023:14.9.5.4 GR5
         "EC-PROGRAM-IMP",                 // the ctor default (see above)
         "EC-PROGRAM-NOT-FOUND",           // §2023:14.9.4.4 GR3b
         "EC-PROGRAM-PTR-NULL",            // §2023:14.9.4.4 GR3b, first sentence

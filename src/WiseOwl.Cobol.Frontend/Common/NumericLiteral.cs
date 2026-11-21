@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Common;
 
-/// <summary>Which decimal-separator rule a numeric literal violated, if any (ISO/IEC 1989:2023 §2023:12.3.7 GR14a /
+/// <summary>Which decimal-separator rule a numeric literal violated, if any (ISO/IEC 1989:2023 §2023:12.3.7.4 GR14a /
 /// §2023:8.3.3.3.2). Returned by <see cref="NumericLiteral.Normalize"/> so each caller can route the diagnostic to its
 /// own channel with its own code — the algorithm stays a single pure function.</summary>
 public enum NumericSeparatorIssue
@@ -18,7 +18,7 @@ public enum NumericSeparatorIssue
 }
 
 /// <summary>
-/// The ONE numeric-literal normalizer (ISO/IEC 1989:2023 §2023:12.3.7 GR14a: under DECIMAL-POINT IS COMMA "the
+/// The ONE numeric-literal normalizer (ISO/IEC 1989:2023 §2023:12.3.7.4 GR14a: under DECIMAL-POINT IS COMMA "the
 /// character written in numeric literals to represent the decimal separator shall be the comma"; §2023:8.3.3.3.2
 /// admits ONLY the decimal point as the separator in a fixed-point literal). It converts a numeric literal's
 /// source text to the canonical dot-decimal form the whole decode pipeline consumes and reports — via the returned
@@ -32,7 +32,7 @@ public enum NumericSeparatorIssue
 /// </summary>
 public static class NumericLiteral
 {
-    /// <summary>Normalize <paramref name="text"/> to canonical dot-decimal, reporting any §2023:12.3.7 GR14a separator
+    /// <summary>Normalize <paramref name="text"/> to canonical dot-decimal, reporting any §2023:12.3.7.4 GR14a separator
     /// violation for the active <paramref name="decimalPointIsComma"/> mode through <paramref name="issue"/>. The
     /// returned text is always well-formed dot-decimal (a violation is normalized too, so downstream decode stays
     /// well-formed while the caller emits the diagnostic).</summary>

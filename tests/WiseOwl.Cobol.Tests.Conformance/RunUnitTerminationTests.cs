@@ -29,7 +29,7 @@ public sealed class RunUnitTerminationTests
 
     // ── V52: a fatal EC in an EC-free MAIN reaches the §2023:14.6.12 abnormal-termination surface (not a raw CLR crash) ──
 
-    /// <summary>V52: a null BASED-item dereference raises EC-DATA-PTR-NULL (Fatal, §2023:13.18.5 GR3) UNCONDITIONALLY —
+    /// <summary>V52: a null BASED-item dereference raises EC-DATA-PTR-NULL (Fatal, §2023:13.18.5.4 GR3) UNCONDITIONALLY —
     /// it is not gated on the EC model, so this program declares no EC feature and its generated <c>Main</c> carries
     /// no fatal-EC catch. The runtime's RunMain boundary must still convert the fatal into the documented
     /// abnormal-termination surface (§2023:14.6.12: the OS "shall indicate an abnormal termination"): a stderr diagnostic

@@ -539,7 +539,7 @@ readLockContentionPhrase
     | retryPhrase   // COBOL-2002 (§2023:14.7.9); superset-parsed, introduction-gated in the VersionConformancePass parse arm (VisitRetryPhrase → Check(RetryPhrase2002))
     ;
 
-// COBOL-2002 READ … ADVANCING ON LOCK (ISO §2023:14.9.30 GR22): skip-scan locked records on NEXT/PREVIOUS.
+// COBOL-2002 READ … ADVANCING ON LOCK (ISO §2023:14.9.30.4 GR22): skip-scan locked records on NEXT/PREVIOUS.
 // Introduction-gated in the VersionConformancePass parse arm (VisitReadAdvancingOnLock -> Check(RecordLockPhrase2002)),
 // beside its two printed siblings; it was gated on BoundRead/BoundKeyedRead.AdvancingOnLock until kb/Work PB353,
 // which measured that a READ the binder refuses never builds the node and so never named the edition.
@@ -551,7 +551,7 @@ readAdvancingOnLock
     : ADVANCING ON? LOCK
     ;
 
-// COBOL-2002 READ … IGNORING LOCK (ISO §2023:14.9.30 GR12): make the record available even if it is locked.
+// COBOL-2002 READ … IGNORING LOCK (ISO §2023:14.9.30.4 GR12): make the record available even if it is locked.
 // Both words are underlined on p722 (`_IGNORING_ _LOCK_`), so both are required. Introduction-gated in the
 // VersionConformancePass parse arm (VisitReadIgnoringLock → Check(RecordLockPhrase2002)), which is where its
 // former host `recordLockPhrase` gates the retention bracket — the split must not lose the 2002 gate.

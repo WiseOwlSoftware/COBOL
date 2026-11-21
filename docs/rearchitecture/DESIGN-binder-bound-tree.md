@@ -148,7 +148,7 @@ public enum Capability
     SignInherited,         // group SIGN pushed to leaves (InheritSignClauses)
     RedefinesResolved,     // REDEFINES/RENAMES targets bound (ResolveRedefines)
     RedefinesClassified,   // shared-storage classes + tiers assigned (ClassifyRedefinesClasses)
-    StrongTypesChecked,    // §2023:13.18.57 SR3/SR4
+    StrongTypesChecked,    // §2023:13.18.57.3 SR3/SR4
     OdoResolved, DynamicResolved, FilesResolved, NationalGated, ReportsResolved,
     ExternalGlobalBound, PointersBound,
     ProcedureBound,        // PROCEDURE DIVISION bound to BoundProgram(s) (produces WholeGroupReferenced facts)
@@ -248,7 +248,7 @@ shadowing. There is exactly one lookup entry point:
 public sealed class SymbolTable
 {
     // The ONLY name lookup. `scope` is the active method scope (or Program scope for non-OO code); OO
-    // sibling-invisibility (§2023:11.7 GR5) is enforced HERE, not by callers choosing an overload.
+    // sibling-invisibility (§2023:11.7.4 GR5) is enforced HERE, not by callers choosing an overload.
     public bool TryResolve(QualifiedName name, Scope scope, out DataItem item);
     public bool TryResolveCondition(QualifiedName name, Scope scope, out Condition88 cond);
     public bool TryResolveIndex(QualifiedName name, Scope scope, out DataItem index);
@@ -659,7 +659,7 @@ unflagged 30-digit description moved as zero-padded digits, `MOVE FUNCTION INTEG
 A literal or figurative constant is NOT materialized: §2023:8.3.3.6.4 GR2 sizes it from the RECEIVER, so it has no
 description of its own. **The identity store is the copy the operand's CLASS has** (`SendingValueTemp.IdentityStore`):
 a MOVE for every item MOVE can store, and the SET that names the copy for the classes it cannot — an index data item
-(§2023:14.9.39 GR2 b), kb/Work PB1661), a data-pointer, function-pointer or program-pointer (§2023:14.9.39 Formats 7, 8, 9)
+(§2023:14.9.39.4 GR2 b), kb/Work PB1661), a data-pointer, function-pointer or program-pointer (§2023:14.9.39 Formats 7, 8, 9)
 and an object reference (Format 5). A MOVE into a pointer clone stored nothing, so a pointer EVALUATE subject read by two WHEN
 arms compared a null intermediate (kb/Work PB1060's sweep). An address-identifier is never materialized: it is a
 unique item CREATED at the reference (§2023:8.4.3.11.4 GR1), with no storage an earlier store could change.
@@ -1155,7 +1155,7 @@ cross-check against the old across the corpus, delete the old). Never delete a m
 ## 6. Risks
 
 - **R1 — OO method-scope shadowing regression (HIGH).** Collapsing the lookup quadruple into one scoped resolver
-  is the single most behavior-sensitive change; §2023:11.7 GR5 sibling-invisibility is subtle. Mitigation: land last,
+  is the single most behavior-sensitive change; §2023:11.7.4 GR5 sibling-invisibility is subtle. Mitigation: land last,
   behind the OO goldens + method-scope unit tests, with a temporary shim-and-cross-check.
 - **R2 — StorageForm equivalence gaps (HIGH).** `StoreAsImage` has accreted special cases (SORT SD records, FILE
   whole-group, compiler temps). A single `StorageFormPass` must reproduce ALL of them. Mitigation: the

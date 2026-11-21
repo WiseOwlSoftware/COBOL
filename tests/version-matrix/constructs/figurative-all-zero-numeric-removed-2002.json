@@ -3,7 +3,7 @@
  "description": "The figurative constant ZERO (ZEROS, ZEROES) WITH the ALL phrase where the literal is restricted to a numeric literal - the VALUE clause of a numeric item and a level-88 VALUE under a numeric conditional variable (13.18.63.3 SR2: 'all literals in the VALUE clause shall be numeric'), and an arithmetic-expression operand (8.8.1.1). ISO 8.3.3.6.3 SR1 a): 'the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase'; edition-unqualified in 2023 and absent from Annex E, so 2014 agrees. DERIVED edge (VCR Table 7 row 7.28; no 1985/2002/2014 text in-repo): accepted at 85, where ALL before a figurative word is redundant and CCVS-85 writes VALUE ALL ZEROS on PIC 999 (NC201A/NC211A/NC250A); 0902 at 2002+, the edition that restructured 8.3.3.6 into the seven formats with ALL optional in Formats 1-5 - the edge of its sibling SR3 (row 7.13). Under --permissive a warning, the value ZERO. One gate: FigurativeAssociation.GateAllZeroAsNumeric (kb/Work PB1415); askers DataBinder.ValidateValueCategory and ExpressionBinder (the arithmetic operand).",
  "display": "the figurative constant ALL ZERO where the literal is restricted to a numeric literal",
  "diagnosticCode": "COBOL0902",
- "citation": "§2023:8.3.3.6.3 SR1 a); §1985:IV.4.2.2.2.3 SR1 (CHANGED); ALL before a figurative word redundant at 85, barred from 2002 (DERIVED edge — VCR Table 7 row 7.28)",
+ "citation": "§2023:8.3.3.6.3 SR1 a); §1985:IV.4.2.2.2.3 SRL3.1 (CHANGED); ALL before a figurative word redundant at 85, barred from 2002 (DERIVED edge — VCR Table 7 row 7.28)",
  "introducedIn": 85,
  "removedIn": 2002,
  "expectDiagnostic": "COBOL0902",

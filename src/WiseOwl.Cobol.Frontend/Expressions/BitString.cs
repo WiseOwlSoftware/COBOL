@@ -92,7 +92,7 @@ public sealed class BitString : IEquatable<BitString>
         return Of(new string(arr));
     }
 
-    /// <summary>The truth value of a boolean value used as a simple boolean condition (§2023:8.8.4.3 GR1 — true iff the
+    /// <summary>The truth value of a boolean value used as a simple boolean condition (§2023:8.8.4.3.4 GR1 — true iff the
     /// value is boolean 1). SR1 (length 1) is checked by the caller; this defensively tests position 1.</summary>
     public bool IsTrue => Bits.Length > 0 && Bits[0] == '1';
 

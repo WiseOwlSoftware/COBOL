@@ -51,7 +51,7 @@
            MOVE ALL B"1" TO BR.
            IF BR = ALL B"1" DISPLAY "T5 ALL-ONES" ELSE DISPLAY "T5 WRONG" END-IF.
            IF NR = ALL N"Q" DISPLAY "T6 ALL-Q" ELSE DISPLAY "T6 WRONG" END-IF.
-      *> 7-11 — VALUE clauses (§2023:13.18.63 SR5/SR10 — a national / boolean literal or a figurative constant).
+      *> 7-11 — VALUE clauses (§2023:13.18.63.3 SR5/SR10 — a national / boolean literal or a figurative constant).
            DISPLAY "T7 [" NV "]".
            DISPLAY "T8 [" NX2 "]".
            DISPLAY "T9 [" BV "]".

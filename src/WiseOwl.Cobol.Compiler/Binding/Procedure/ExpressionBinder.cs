@@ -379,7 +379,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         new(CobolLiteral.Decode(raw)) { Category = PicCategory.Boolean };
 
     /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> / <c>ALL X"…"</c> (a
-    /// multi-character figurative, ISO §2023:8.3.3.6.4 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc.
+    /// multi-character figurative, ISO §2023:8.3.3.6 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc.
     /// are the single-character figurative repeated to width, identical to the bare word.</summary>
     /// <remarks>
     /// ⛔ The HEXLIT arm was the FIFTH site of the hexadecimal-literal defect (fix-queue PB4), and the one the
@@ -448,7 +448,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // and this scope positions what the mapping reports after it (the LINAGE-COUNTER refusal, a keyword-omitted
         // function's COBOL1543), so an operand on a continuation line is never reported at the statement's first token.
         using var _ = ctx.Edition.At(dref);
-        return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §2023:8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
+        return host.Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof, functionValue: true)   // §2023:8.4.3.2.3 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? ctx.Refs.Counters.LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
                 : BoundOperandError.Refused(ctx.Edition, $"LINAGE-COUNTER reference '{WrittenSource.Of(dref)}' (ISO §2023:8.4.3.14)")
@@ -575,7 +575,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind a data reference in a numeric-expression position: an INDEXED BY index-name reads its
     /// occurrence number (valid in SET/SEARCH/relations, ISO §2023:13.18.38); the LINAGE-COUNTER register reads its
-    /// file's runtime counter (ISO §2023:8.4.3.14 GR1 — an unsigned integer); otherwise the resolved item's value.
+    /// file's runtime counter (ISO §2023:8.4.3.14.4 GR1 — an unsigned integer); otherwise the resolved item's value.
     /// The ONE dataReference→<see cref="BoundExpr"/> mapping, used by every expression path.</summary>
     private BoundExpr RefExpr(Core.DataReferenceContext dref, OperandContext context)
     {
@@ -809,7 +809,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     // Receiving references resolve through ResolveReceiving below — the ONE
     // receiving-side chokepoint: a report counter receiver is rejected at bind (LINE-COUNTER illegal per ISO
-    // §2023:8.4.3.15 SR3; PAGE-COUNTER staged loud) instead of being SILENTLY dropped by .OfType<Place>() (§1.4).
+    // §2023:8.4.3.15.3 SR3; PAGE-COUNTER staged loud) instead of being SILENTLY dropped by .OfType<Place>() (§1.4).
 
     // ── ROUNDED phrase → rounding mode + receiver resolution (ISO §2023:14.7.4) ───────────────────────────────────
 
@@ -863,7 +863,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Resolve a RECEIVING data reference to its <see cref="Place"/> — the ONE receiving-side
     /// chokepoint (MOVE targets, arithmetic resultants, SET receivers). A report counter here is rejected at
-    /// bind time: LINE-COUNTER shall not be a receiving operand (ISO §2023:8.4.3.15 SR3 — illegal); PAGE-COUNTER as a
+    /// bind time: LINE-COUNTER shall not be a receiving operand (ISO §2023:8.4.3.15.3 SR3 — illegal); PAGE-COUNTER as a
     /// receiver is legal but not yet implemented (staged loud). Without this guard the
     /// <c>.OfType&lt;Place&gt;()</c> receiver pipelines would DROP the counter silently — a silent-miscompile
     /// hazard (§1.4).</summary>
@@ -1074,7 +1074,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// CONSTANT RECORD's content.</summary>
     private ReceivingBar? ReceivingPlaceBar(Core.DataReferenceContext dref, Place place)
     {
-        // The OCCURS DYNAMIC CAPACITY register (§2023:13.18.38 SR30–32; D9) is set ONLY by a SET Format 14 statement
+        // The OCCURS DYNAMIC CAPACITY register (§2023:13.18.38.3 SR30–32; D9) is set ONLY by a SET Format 14 statement
         // (which reroutes BEFORE this chokepoint). Any other receiving use — MOVE/arithmetic resultant/ordinary SET
         // receiver — is illegal; reject it here rather than reach CapacityRegisterPlace.Write (an internal throw).
         if (place is CapacityRegisterPlace cap)

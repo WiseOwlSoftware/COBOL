@@ -11,9 +11,9 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <item>Apostrophe-delimited N'…'/B'…' literals decode (ISO §2023:8.3.3.1 — both quote forms equal-standing; the
 ///   delimiters are not part of the value; a doubled opening quote is one embedded quote).</item>
 /// <item>§2023:14.9.25.3 SR8 — a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sender requires a numeric/numeric-edited receiver.</item>
-/// <item>§2023:8.3.3.6.4 GR2 / §2023:8.4.3.3 GR5 — a figurative MOVE fills EVERY position of a ref-mod slice.</item>
+/// <item>§2023:8.3.3.6.4 GR2 / §2023:8.4.3.3.4 GR5 — a figurative MOVE fills EVERY position of a ref-mod slice.</item>
 /// <item>§2023:8.8.4.2.8 — a boolean figurative relation right-extends with boolean zeros (not spaces).</item>
-/// <item>§2023:13.18.63 SR4/SR5/SR24→SR10 — level-88 VALUE category conformance, both directions.</item>
+/// <item>§2023:13.18.63.3 SR4/SR5/SR24→SR10 — level-88 VALUE category conformance, both directions.</item>
 /// <item>§2023:8.8.4.4.3 SR8/SR4 — class conditions on boolean operands.</item>
 /// <item>§2023:15.50 — N"…"/B"…" as intrinsic-function arguments (the keyword-omitted parser leg).</item>
 /// <item>The ALL-prefixed figurative VALUE (ALL SPACES / ALL ZEROS) is NOT falsely rejected.</item>
@@ -98,7 +98,7 @@ public sealed class NationalBooleanReviewFixTests
     public void Level88ValueCategory_Mismatch_Rejected0898(string ws)
     {
         var (ok, errors, _) = EditionHarness.CompileFull(Prog("NBRF05", ws, "CONTINUE."), 2002);
-        Assert.False(ok, "a cross-category 88 VALUE must be rejected (ISO §2023:13.18.63 SR4/SR5/SR24→SR10)");
+        Assert.False(ok, "a cross-category 88 VALUE must be rejected (ISO §2023:13.18.63.3 SR4/SR5/SR24→SR10)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOL5982");
     }
 

@@ -25,14 +25,14 @@ public sealed class OccursDynamicGuardTests
             STOP RUN.
         """;
 
-    /// <summary>§2023:13.18.38 SR28 — integer-5 (TO) shall be greater than integer-4 (FROM); <c>FROM 8 TO 3</c> is a
+    /// <summary>§2023:13.18.38.3 SR28 — integer-5 (TO) shall be greater than integer-4 (FROM); <c>FROM 8 TO 3</c> is a
     /// declaration error, COBOL1522, not a table that opens above its own expected capacity.</summary>
     [Fact]
     public void FromGreaterThanTo_Rejected1522()
     {
         var (ok, diag) = EditionHarness.Compile(Prog(
             "01 WS-TABLE.\n   05 WS-E PIC 9(3) OCCURS DYNAMIC FROM 8 TO 3."), 2014);
-        Assert.False(ok, "FROM 8 TO 3 must be rejected (ISO §2023:13.18.38 SR28)");
+        Assert.False(ok, "FROM 8 TO 3 must be rejected (ISO §2023:13.18.38.3 SR28)");
         EditionHarness.AssertHasDiagnostic(diag, "COBOL1522");
     }
 
@@ -41,7 +41,7 @@ public sealed class OccursDynamicGuardTests
     /// <para>The OBJECT side is named by a SYNTAX RULE: §2023:13.18.44.3 SR5 SENTENCE 1, "The data description entry
     /// for data-name-2 shall not contain an OCCURS clause" — and OCCURS DYNAMIC is Format 4 OF the OCCURS clause
     /// (§2023:13.18.38), so the dynamic-capacity object is as squarely named as a fixed one. COBOL1701. (This
-    /// method's old doc-comment cited "§2023:13.18.44 SR5 — a dynamic-capacity table is out-of-line storage that can
+    /// method's old doc-comment cited "§2023:13.18.44.3 SR5 — a dynamic-capacity table is out-of-line storage that can
     /// neither be the subject nor the object of a REDEFINES", which is the right clause NUMBER attached to a
     /// storage-model sentence the rule does not contain.)</para></summary>
     [Fact]

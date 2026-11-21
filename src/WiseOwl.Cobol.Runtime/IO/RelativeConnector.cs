@@ -9,9 +9,9 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// each record is identified by its relative record number (RRN); slots between records "do not exist" for READ.
 /// The behavioral state machine ports the legacy <c>RelativeFileHandler</c> (NIST RL-suite-proven) onto the
 /// character-image substrate: the file position indicator (§2023:9.1.11) is a slot number + an inclusive flag (set by
-/// OPEN/START, advanced exclusively by READ), '46' poisoning after an unsuccessful READ/START (§2023:14.9.30 GR21 /
-/// §2023:9.1.13.7 item 6), and the '43' previous-op-was-READ rule for sequential-access REWRITE/DELETE (§2023:14.9.35 GR5 /
-/// §2023:14.9.10 GR2). Records cross this boundary as their character image (a <see cref="string"/>).
+/// OPEN/START, advanced exclusively by READ), '46' poisoning after an unsuccessful READ/START (§2023:14.9.30.4 GR21 /
+/// §2023:9.1.13.7 item 6), and the '43' previous-op-was-READ rule for sequential-access REWRITE/DELETE (§2023:14.9.35.4 GR5 /
+/// §2023:14.9.10.4 GR2). Records cross this boundary as their character image (a <see cref="string"/>).
 /// <para>⛔ THE RECORDS LIVE IN THE KEYED STORE ENGINE (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1, kb/Work
 /// PB3333): one B+ tree keyed by the relative record number (<see cref="RelativeStore"/>), every statement reading the
 /// pages it touches and writing the pages it changes, then page 2 — so the file is, after every statement, in the state
@@ -39,16 +39,16 @@ public sealed class RelativeConnector : KeyedConnector
     /// organization's rules asks OPEN-or-START.</summary>
     private bool _inclusive;
     private long _pendingKey;            // the RELATIVE KEY item's value, set by the compiler before keyed verbs
-    private long _lastReleasedSlot;      // highest RRN THIS connector has released since OPEN (§2023:14.9.51 GR29a's "ascending")
+    private long _lastReleasedSlot;      // highest RRN THIS connector has released since OPEN (§2023:14.9.51.4 GR29a's "ascending")
     private long _lastSlot;              // last slot read/written — the GR25/GR29a store-back + seq REWRITE/DELETE target
 
 
-    /// <summary>The RRN of the record last made available / released — the §2023:14.9.30 GR25 and §2023:14.9.51 GR29a
+    /// <summary>The RRN of the record last made available / released — the §2023:14.9.30.4 GR25 and §2023:14.9.51.4 GR29a
     /// MOVE-back source the generated code stores into the RELATIVE KEY item.</summary>
     public long LastSlot => _lastSlot;
 
-    /// <summary>Stage the RELATIVE KEY item's value for the next keyed operation (§2023:14.9.30 GR29, §2023:14.9.35 GR21,
-    /// §2023:14.9.51 GR29b, §2023:14.9.10 GR4). The compiler decodes the TYPED key field — never raw bytes.</summary>
+    /// <summary>Stage the RELATIVE KEY item's value for the next keyed operation (§2023:14.9.30.4 GR29, §2023:14.9.35.4 GR21,
+    /// §2023:14.9.51.4 GR29b, §2023:14.9.10.4 GR4). The compiler decodes the TYPED key field — never raw bytes.</summary>
     public void SetPendingKey(long rrn) => _pendingKey = rrn;
 
     // ── Record-lock identity (ISO §2023:9.1.16) — a relative record's identity IS its RRN ─────────────────────────
@@ -64,12 +64,12 @@ public sealed class RelativeConnector : KeyedConnector
         ? SequentialMutationTarget
         : _pendingKey > 0 ? _pendingKey.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
-    /// <inheritdoc/>  (Write sets <see cref="_lastSlot"/> to the released RRN on success, §2023:14.9.51 GR29)
+    /// <inheritdoc/>  (Write sets <see cref="_lastSlot"/> to the released RRN on success, §2023:14.9.51.4 GR29)
     public override string LastWrittenRecordId => LastReadRecordId;
 
     // RECORD IS VARYING: each record's frame carries its exact length, so a varying record persists at the length it
-    // was written (§2023:13.18.43 GR13) and reports it on READ (GR15); WRITE/REWRITE outside the VaryMin/VaryMax bounds is
-    // the GR14/§2023:14.9.35 GR20 '44'.
+    // was written (§2023:13.18.43.4 GR13) and reports it on READ (GR15); WRITE/REWRITE outside the VaryMin/VaryMax bounds is
+    // the GR14/§2023:14.9.35.4 GR20 '44'.
 
     public RelativeConnector(string hostPath, int recordWidth, KeyedAccess access, int relativeKeyDigits,
         int varyMin = -1, int varyMax = -1)
@@ -142,12 +142,12 @@ public sealed class RelativeConnector : KeyedConnector
     }
 
     /// <inheritdoc/>
-    /// <remarks>§2023:14.9.27 GR14 — the file position indicator is 1 on INPUT/I-O, an INCLUSIVE indicator (§2023:14.9.30.4 GR21
+    /// <remarks>§2023:14.9.27.4 GR14 — the file position indicator is 1 on INPUT/I-O, an INCLUSIVE indicator (§2023:14.9.30.4 GR21
     /// rule b). ⛔ NOTHING IS CAPTURED HERE FOR EXTEND (kb/Work PB739). The extend release number used to be measured
     /// once, at the OPEN, into a private base — and §2023:14.9.51.4 GR29 a) says in the same breath that under sharing "the
     /// record numbers are not necessarily consecutive", which can only be true of a number taken from the file AT THE
     /// RELEASE. Two connectors extending one shared file both captured 2 and the second overwrote the first record.
-    /// <see cref="NextSequentialSlot"/> reads the live tree instead; §2023:14.9.27 GR15's positioning IS that reading, not a
+    /// <see cref="NextSequentialSlot"/> reads the live tree instead; §2023:14.9.27.4 GR15's positioning IS that reading, not a
     /// saved base.</remarks>
     private protected override string? Opened(FileOpenMode mode)
     {
@@ -159,7 +159,7 @@ public sealed class RelativeConnector : KeyedConnector
     // ── READ (ISO §2023:14.9.30) ──────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Sequential <c>READ [NEXT]</c> — the first existing slot at/after the FPI (inclusive after
-    /// OPEN/START, exclusive after a READ; §2023:14.9.30 GR21 relative rules b/c). No such slot → at end '10' (GR24);
+    /// OPEN/START, exclusive after a READ; §2023:14.9.30.4 GR21 relative rules b/c). No such slot → at end '10' (GR24);
     /// an RRN whose significant digits exceed the RELATIVE KEY item's size → '14', at end (GR21 rule d).</summary>
     public string ReadNext(out string image) => ReadSequential(out image, previous: false);
 
@@ -245,23 +245,23 @@ public sealed class RelativeConnector : KeyedConnector
 
         if (SelectSequentialSlot(previous, withValue: true, out var found, out var value) is not StoreStatus.Ok)
             return Unsuccessful(FileStatusCode.PermanentError);              // a torn page: '30' §2023:9.1.13.6 item 1
-        if (found is not { } s) return Unsuccessful(FileStatusCode.AtEnd);   // §2023:14.9.30 GR24b
+        if (found is not { } s) return Unsuccessful(FileStatusCode.AtEnd);   // §2023:14.9.30.4 GR24b
         if (_keyDigits > 0 && s.ToString(System.Globalization.CultureInfo.InvariantCulture).Length > _keyDigits)
         {
-            // §2023:14.9.30 GR21 relative rule d: significant digits of the RRN exceed the RELATIVE KEY item → '14',
+            // §2023:14.9.30.4 GR21 relative rule d: significant digits of the RRN exceed the RELATIVE KEY item → '14',
             // the at-end condition, FPI invalidated.
             return Unsuccessful(FileStatusCode.RelativeKeyOverflow);
         }
         if (Decoded(value) is not { } read) return Unsuccessful(FileStatusCode.PermanentError);
         _fpi = s; FpiValid = true; _inclusive = false;   // GR21 rule f + rule c's exclusive bound
         _lastSlot = s;
-        NoteRecordRead(read.Image, read.Extents);   // §2023:13.18.43 GR15 — the stored frame length
+        NoteRecordRead(read.Image, read.Extents);   // §2023:13.18.43.4 GR15 — the stored frame length
         image = Fit(read.Image);
         // §1985:VIII.4.5.4 GR16 — outside the reader's record size the READ is successful, with '04' (FileConnector.RecordLengthConflicts)
         return ReadSucceeded(RecordLengthConflicts(read.Image.Length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success);
     }
 
-    /// <summary>Format-2 random READ (§2023:14.9.30 GR29): the FPI takes the RELATIVE KEY item's value (staged by
+    /// <summary>Format-2 random READ (§2023:14.9.30.4 GR29): the FPI takes the RELATIVE KEY item's value (staged by
     /// <see cref="SetPendingKey"/>); no such record → invalid key '23'; an absent optional file → '23' (GR28).</summary>
     public string ReadRandom(out string image)
     {
@@ -274,7 +274,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (Decoded(value) is not { } rec) return Unsuccessful(FileStatusCode.PermanentError);
         _fpi = _pendingKey; FpiValid = true; _inclusive = false;
         _lastSlot = _pendingKey;
-        NoteRecordRead(rec.Image, rec.Extents);   // §2023:13.18.43 GR15 — the stored frame length
+        NoteRecordRead(rec.Image, rec.Extents);   // §2023:13.18.43.4 GR15 — the stored frame length
         image = Fit(rec.Image);
         // §1985:VIII.4.5.4 GR16 — outside the reader's record size the READ is successful, with '04' (FileConnector.RecordLengthConflicts)
         return ReadSucceeded(RecordLengthConflicts(rec.Image.Length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success);
@@ -405,7 +405,7 @@ public sealed class RelativeConnector : KeyedConnector
     {
         bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (MutationOpenModeGuard() is { } notIO) return Status = notIO;   // '49' §2023:14.9.35.4 GR3 / §2023:14.9.10.4 GR1
-        // §2023:14.9.35 GR18 — a relative record's size MAY differ from the replaced record's; GR20 still bounds it.
+        // §2023:14.9.35.4 GR18 — a relative record's size MAY differ from the replaced record's; GR20 still bounds it.
         // ⛔ IN THE GENERAL RULES' ORDER (DOC-A.1-104, kb/Work PB2751): GR5's '43', then GR20's size '44' and the
         // content's '91', and only then the record the statement replaces — GR21's '23' for random/dynamic access.
         bool sequential = Access == KeyedAccess.Sequential;   // §2023:14.9.35.4 GR5 vs. GR21 — the ACCESS MODE alone
@@ -464,7 +464,7 @@ public sealed class RelativeConnector : KeyedConnector
     public string Start(string op, long operand)
     {
         if (StartOpenModeGuard() is { } notOpen) return Unsuccessful(notOpen);   // '47' §2023:14.9.41.4 GR1 + GR7
-        if (OptionalAbsent) return StartFail();                           // '23' §2023:14.9.41 GR5
+        if (OptionalAbsent) return StartFail();                           // '23' §2023:14.9.41.4 GR5
         var relation = op switch
         {
             "==" => SeekRelation.Equal,
@@ -482,7 +482,7 @@ public sealed class RelativeConnector : KeyedConnector
         return found is { } f ? StartAt(f) : StartFail();
     }
 
-    /// <summary>START FIRST/LAST (COBOL-2002+; §2023:14.9.41 GR11/GR12): the lowest / highest existing RRN; an empty
+    /// <summary>START FIRST/LAST (COBOL-2002+; §2023:14.9.41.4 GR11/GR12): the lowest / highest existing RRN; an empty
     /// (or absent optional) file → invalid key '23'.</summary>
     public string StartFirstLast(bool last)
     {

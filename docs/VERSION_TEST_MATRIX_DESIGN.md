@@ -479,7 +479,7 @@ interval encoding — `user-word-commit-2023` (intro 85 / removedIn 2023 / 0901)
 W2 (parallel agents, disjoint files): the MOVE rows (VCR 1 — alphanumeric-figurative→numeric `Removed` ≥2023
 with the digit-only-ALL exception; VCR 92/128 — ALL-digit→integer obsolete 0903 @2023) + fix the two latent
 bugs found by the inventory (STOP literal silently binds as STOP RUN, in `ControlFlowBinder` (the STOP verb) → runtime-loud or
-implement; MOVE ALL "5" TO integer fails loud though valid at EVERY edition, §2023:14.9.25 GR5); the `_negative/`
+implement; MOVE ALL "5" TO integer fails loud though valid at EVERY edition, §2023:14.9.25.4 GR5); the `_negative/`
 corpus discovery (→ Phase 3); VCR Status flips; adversarial review.
 W3 (frontend/grammar — FULL legacy guard + committed regen): the XOR/EXCLUSIVE-OR
 hole (unconditional lexer tokens wrongly commented "COBOL-2002" — they are 2023, VCR rows 41/32; not in

@@ -22,10 +22,10 @@ internal sealed class InheritSignClausesPass : IBindPass
     public PassViews Views => PassViews.None;
 
     /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY/NATIONAL items (ISO
-    /// §2023:13.18.52 GR1–3): a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST
+    /// §2023:13.18.52.4 GR1–3): a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST
     /// enclosing clause takes precedence, and an item's OWN clause (already consumed by
     /// <see cref="PictureAnalyzer.Analyze"/> at entry bind) wins outright. Runs BEFORE the REDEFINES
-    /// classification pass because a SEPARATE sign occupies its own character position (§2023:13.18.52 GR6a) — it
+    /// classification pass because a SEPARATE sign occupies its own character position (§2023:13.18.52.4 GR6a) — it
     /// widens the item's image, which feeds the class-max width.
     /// <para>⛔ THE TYPE DECLARATIONS TOO (kb/Work PB3682), as <see cref="UsageInheritancePass.Run"/>: a template and a subject
     /// of one declaration are one description to the §2023:8.5.3.1 comparison, so the template's leaves take the group's SIGN as
