@@ -1,7 +1,8 @@
 {
  "rule-id": "1989-AR-A.2.9.3-1",
  "rule-digest": "027f4ef0fa4d",
- "test-ref": "conformance:cases/A.2.9@1985-CHAR-FUNCTION/g85_f34_02; conformance:cases/15.3-Arguments/pb5886-char-quotient; conformance:cases/15.3-Arguments/pb5891_polynomial_integer_arguments",
+ "test-ref": "conformance:cases/A.2.9@1985-CHAR-FUNCTION/g85_f34_02; conformance:cases/15.3-Arguments/pb5891_polynomial_integer_arguments; conformance:cases/15.3-Arguments/pb5889_run_time_check_85",
+ "notes": "retired-witness: conformance:cases/15.3-Arguments/pb5886-char-quotient (kb/Work PB5889: the argument is undecided, accepted and checked at run time; the case now runs from 2002 only (RAISED), and pb5889_run_time_check_85 is the 85 run-time witness)",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

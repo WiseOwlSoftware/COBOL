@@ -22,7 +22,7 @@
       *> implementation of amended third Standard COBOL to terminate
       *> processing" (§1985:p.B-46). The run unit is terminated with
       *> a message naming the function, the argument and the value
-      *> (docs/conformance D-85-INTEGER-ARGUMENT-CHECK).
+      *> (docs/conformance D-INTEGER-ARGUMENT-SCREEN).
       *> EXPECTED: ORD ("A") is 66 in the native collating sequence,
       *> so the first argument is 33 and MOD (33, 7) = 5 (INTEGER
       *> 0005); then ORD ("B") / 2 is 33.5, the run ends after BEFORE

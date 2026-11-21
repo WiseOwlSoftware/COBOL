@@ -1795,7 +1795,7 @@ internal static partial class IntrinsicArgumentRules
         // `FUNCTION ABS (1 / 3 * 3)` returned 1 where `COMPUTE X = 1 / 3 * 3` stores 0.9999. A quotient whose exact value has a
         // non-terminating decimal expansion, or a terminating one longer than the fraction digits the arithmetic keeps
         // (`1 / 1048576 * 1048576`, PB4794), therefore voids the proof (§2023:15.3 6) asks for an expression that "will always result in
-        // an integer value", and that value is the one the arithmetic produces); the argument stays a Numeric one and the type 6 screen refuses it.
+        // an integer value", and that value is the one the arithmetic produces); the argument stays a Numeric one and the type 6 screen does not prove it (it is undecided, kb/Work PB5889: its exact value is 1, so it is checked at run time).
         _ when ExactValue(e) is { } v => v.IsInteger && QuotientsAreExact(e),
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
         // not provably integral.
