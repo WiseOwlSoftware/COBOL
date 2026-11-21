@@ -535,7 +535,11 @@ paragraphs in order, refuses a carved row with a record, and keeps the parent's 
 of the remaining text (re-stamped, its notes marked `split-recheck:`), withdrawing it otherwise; both re-point the older
 held editions' change records (`next.to` and `next.digests` renamed for a move, a parent's digest re-stamped for a
 split, but only for a record decided against the parent's old text: one already stale, or whose `reason` quotes eight
-consecutive words of carved text, is left STALE for adjudication). A
+consecutive words of carved text, is left STALE for adjudication). The writer copies each applied batch that holds a
+split to the edition's tracked split batches (`rule_moves.SPLIT_DIR`, `docs/rearchitecture/spec-splits-<year>/<the
+batch file's name>`, its splits alone) in the same operation (`rule_moves.split_copies`, kb/Work PB6002): the WITNESS
+LOSS audit reads that copy to tell a parent a split withdrew from a hand edit (`audit_witness_loss.recorded_splits`), and
+a copy whose file holds another batch's splits is refused before anything is written. A
 regeneration that relabels a decided row unit writes the move batch itself (`text_units.moves`,
 `TestResults/rule-moves/<year>.json`) and prints the command; until it is applied the view refuses the moved records.
 The margin levels of point 4 are `scripts/spec/measure_margin_levels.py`, one mechanism for every edition: the

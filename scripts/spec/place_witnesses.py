@@ -43,11 +43,17 @@ and no other); when it is not, the run is refused before it writes anything, nam
 from and the records file that places it again. `--replace` replaces it instead: every file of the old case (its program
 in whatever clause folder, its `.out` files, its `wiseowl/diagnostics/` refusal) is removed before the new one is written.
 
-The witness of a rule whose change record is its own (`next` not `chained`: CHANGED, REMOVED) is recorded as a
-WITNESS-ONLY record (`{"rule-id", "test-ref"}`) in the batch this writes, for `record_verdicts.py --edition <year>`; its
-verdict (CONFORMS needs the code read, `code-location`) is the adjudicator's, never this script's. A KEPT rule's verdict
-and test are its chain's (design section 10.2: its store row holds none), and a rule with no change record yet has no adjudication a
-witness can join, so both are placed and listed, never recorded.
+The witness of a rule whose change record is its own (`next` not `chained`: CHANGED, REMOVED), or whose row holds a
+verdict of its own, is recorded as a WITNESS-ONLY record (`{"rule-id", "test-ref"}`) in the batch this writes, for
+`record_verdicts.py --edition <year>`; its verdict (CONFORMS needs the code read, `code-location`) is the adjudicator's,
+never this script's. A KEPT rule's verdict and test are its chain's (design section 10.2: its store row holds none), so
+it is placed and listed, never recorded. A rule the store holds NO adjudication of (no verdict, no change record: a 1985
+row read on its own text, kb/Work PB5453) is recorded with ITS OWN VERDICT when the record that places its witness
+carries the adjudication (`ADJUDICATION`: `verdict`, and `code-location` and `notes` as the schema's `requires` of the
+verdict asks): the full record `{"rule-id", "verdict", ..., "test-ref"}`, so the verdict, the code location and the test
+reach the store through this one batch and never by hand. A record whose adjudication is malformed, or that adjudicates
+a rule the store already adjudicates, refuses the run before it writes anything; a rule with neither is listed
+`unclassified`.
 """
 from __future__ import annotations
 
@@ -82,6 +88,8 @@ TOOL = "place_witnesses"
 CONFIRMED, UNDECIDED, REDRAFTED, PLACEABLE_REDRAFT = "CONFIRMED", "UNDECIDED", ("WEAK", "WRONG"), run_drafts.MATCH
 #: A witness a later pass wrote and ran itself; its record names that pass.
 DRAFTED = "DRAFTED"
+#: The fields of a confirmation record that adjudicate a rule the store holds no adjudication of (`batch_of`).
+ADJUDICATION = ("verdict", "code-location", "notes")
 #: A fixed-form comment line of a placed test: the indicator `*>` in columns 7-8, the text inside margin R (column 72).
 COMMENT, MARGIN = "      *> ", 72
 
@@ -94,6 +102,8 @@ class Witness:
     source: str
     #: the records file whose record gives it
     origin: pathlib.Path
+    #: the record's own adjudication of a rule the store holds none of (`ADJUDICATION`), empty when it gives none
+    adjudication: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass
@@ -122,16 +132,17 @@ def sort_records(records: list[tuple[pathlib.Path, dict[str, Any]]], drafts: dic
     out = Sorted([], {}, {})
     for origin, r in records:
         rid, decision = r["rule-id"], r["decision"]
+        own = tuple((k, r[k]) for k in ADJUDICATION if k in r)
         if decision == CONFIRMED:
             if rid in drafts:
-                out.witnesses.append(Witness(rid, drafts[rid], "the audit's draft, confirmed", origin))
+                out.witnesses.append(Witness(rid, drafts[rid], "the audit's draft, confirmed", origin, own))
             else:
                 out.unplaced[rid] = "CONFIRMED, but the audit run holds no draft of it"
         elif decision in REDRAFTED and r.get("redraft_run") == PLACEABLE_REDRAFT:
             out.witnesses.append(Witness(rid, r["draft"], f"the confirmation pass's redraft ({decision} original)",
-                                         origin))
+                                         origin, own))
         elif decision == DRAFTED and r.get("redraft_run") == PLACEABLE_REDRAFT:
-            out.witnesses.append(Witness(rid, r["draft"], f"written and run by {r['pass']}", origin))
+            out.witnesses.append(Witness(rid, r["draft"], f"written and run by {r['pass']}", origin, own))
         elif decision == UNDECIDED:
             out.undecided[rid] = r.get("question") or ""
         else:
@@ -352,20 +363,52 @@ def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict
     return out
 
 
+def unadjudicated(row: dict[str, Any], change: inventory_schema.ChangeRecord) -> bool:
+    """Does the store hold no adjudication of the row: no verdict and no change record?"""
+    return not row.get("verdict") and change.kinds.get((row.get("next") or {}).get("kind", "")) is None
+
+
+def adjudication_errors(witnesses: list[Witness], rows: dict[str, dict[str, Any]], schema: inventory_schema.Schema
+                        ) -> list[str]:
+    """Why a witness's own adjudication cannot be recorded with it (`batch_of`): it adjudicates a rule the store already
+    adjudicates (the record would be dropped unseen), its verdict is none of the schema's, or it lacks a field the
+    schema's `requires` of the verdict asks (other than the `test-ref` the placement gives)."""
+    out = []
+    for w in witnesses:
+        own, row = dict(w.adjudication), rows.get(w.rule_id)
+        if not own or row is None:
+            continue
+        where = f"{w.origin}: {w.rule_id}"
+        if not unadjudicated(row, schema.next):
+            out.append(f"{where}: the record adjudicates a rule the store already adjudicates; a witness joins that "
+                       "adjudication as a witness-only record, so drop its verdict fields")
+        elif own.get("verdict") not in schema.verdicts:
+            out.append(f"{where}: verdict {own.get('verdict')!r} is not one of {sorted(schema.verdicts)}")
+        elif missing := [f for f in schema.requires(own["verdict"]) if f != "test-ref" and not str(own.get(f, "")).strip()]:
+            out.append(f"{where}: verdict {own['verdict']} requires {missing}, which the record does not give")
+    return out
+
+
 def batch_of(placement: Placement, rows: dict[str, dict[str, Any]], change: inventory_schema.ChangeRecord,
-             label: str) -> tuple[dict[str, Any], list[str], list[str]]:
-    """The witness-only records of every placed rule whose verdict is its own (its change record is not `chained`); the
-    placed rules whose verdict is their chain's, which no record of their own edition may carry; and the placed rules
-    with no change record yet, whose witness waits for the record that classifies them."""
+             label: str, witnesses: list[Witness] = ()) -> tuple[dict[str, Any], list[str], list[str]]:
+    """The records of every placed rule, in the one batch: a WITNESS-ONLY record for a rule whose verdict is its own (its
+    change record is not `chained`, or its row holds a verdict of its own); the FULL record (its own adjudication and the
+    witness, `ADJUDICATION`) for a rule the store holds no adjudication of when the record that placed it carries one;
+    the placed rules whose verdict is their chain's, which no record of their own edition may carry; and the placed rules
+    with neither an adjudication nor a record of one, whose witness waits for the record that classifies them."""
+    own = {w.rule_id: dict(w.adjudication) for w in witnesses}
     records, chained, unclassified = [], [], []
     for rid, (folder, tid, _) in sorted(placement.placed.items()):
+        ref = f"conformance:cases/{folder}/{tid}"
         kind = change.kinds.get((rows[rid].get("next") or {}).get("kind", ""))
-        if kind is None:
-            unclassified.append(rid)
-        elif kind.chained:
+        if kind is not None and kind.chained:
             chained.append(rid)
+        elif kind is not None or rows[rid].get("verdict"):
+            records.append({"rule-id": rid, "test-ref": ref})
+        elif own.get(rid):
+            records.append({"rule-id": rid, **own[rid], "test-ref": ref})
         else:
-            records.append({"rule-id": rid, "test-ref": f"conformance:cases/{folder}/{tid}"})
+            unclassified.append(rid)
     return {"batch": label, "records": records}, chained, unclassified
 
 
@@ -388,9 +431,12 @@ def run_placement(confirm: pathlib.Path, state: pathlib.Path, year: int, adapter
     rows = rows if rows is not None else inventory_view.inventory(year, schema)
     by_id = {r["rule-id"]: r for r in rows}
     s = sort_records(read_confirmations(confirm), answers_by_id(state, "drafts"))
+    if bad := adjudication_errors(s.witnesses, by_id, schema):   # before anything is judged or written
+        raise SystemExit(f"{TOOL}: {len(bad)} record(s) adjudicate what cannot be recorded (nothing was written):\n  "
+                         + "\n  ".join(bad))
     judged = judge_all(s.witnesses, adapter, variables, ed.spelling, jobs)
     placement = place(s.witnesses, by_id, clause_names(rows), ed, judged, suite, replace)
-    batch, chained, unclassified = batch_of(placement, by_id, schema.next, f"place-witnesses-{year}")
+    batch, chained, unclassified = batch_of(placement, by_id, schema.next, f"place-witnesses-{year}", s.witnesses)
     return batch, summary_of(s, placement, chained, unclassified)
 
 
@@ -596,6 +642,46 @@ def self_test() -> int:
            and (folder / f"{test_id(kept)}.out").read_text(encoding="utf-8") == "K\n"
            and not (diagnostics / f"{test_id(kept)}.json").exists(),
            "--replace writes the new case and removes every file of the old shape (the .out files, the refusal)")
+        # kb/Work PB5453: a rule the store holds NO adjudication of is recorded with the adjudication the record that
+        # places it carries (one batch: verdict, code location, test); a row with a verdict of its own takes a
+        # witness-only record; one with neither stays unclassified; a malformed adjudication refuses the run.
+        own_rid, owned, bare = "1985-GR-VI.6.18.4-12", "1985-GR-VI.6.18.4-13", "1985-GR-VI.6.18.4-14"
+        own_suite, own_confirm = root / "suite-own", root / "confirm-own"
+        own_confirm.mkdir()
+        out_w = {"program": "*> STUB run out O", "expected": {"outcome": "output", "output": ["O"]}}
+        site = "src/WiseOwl.Cobol.Compiler/A.cs#M"
+        (own_confirm / "own.json").write_text(json.dumps({"records": [
+            {"rule-id": own_rid, "decision": "DRAFTED", "pass": "the PB5453 reader", "redraft_run": "MATCH",
+             "draft": out_w, "verdict": "CONFORMS", "code-location": site},
+            {"rule-id": owned, "decision": "DRAFTED", "pass": "the PB5453 reader", "redraft_run": "MATCH", "draft": out_w},
+            {"rule-id": bare, "decision": "DRAFTED", "pass": "the PB5453 reader", "redraft_run": "MATCH",
+             "draft": out_w}]}), encoding="utf-8", newline="\n")
+        own_rows = [row(own_rid, None), {**row(owned, None), "verdict": "CONFORMS"}, row(bare, None)]
+        own_batch, own_summary = run_placement(own_confirm, state, 1985, root / "adapters" / "stub.json", {}, 2,
+                                               own_suite, own_rows, schema)
+        own_folder = "VI.6.18@1985-INSPECT-STATEMENT"
+        ok(sorted(own_batch["records"], key=lambda r: r["rule-id"]) == [
+            {"rule-id": own_rid, "verdict": "CONFORMS", "code-location": site,
+             "test-ref": f"conformance:cases/{own_folder}/{test_id(own_rid)}"},
+            {"rule-id": owned, "test-ref": f"conformance:cases/{own_folder}/{test_id(owned)}"}]
+           and own_summary["unclassified"] == [bare],
+           "an unadjudicated rule's record carries its own verdict and code location with the placed test, in the one "
+           "batch; a row with a verdict of its own takes a witness-only record; a rule with neither is unclassified")
+        (own_confirm / "own.json").write_text(json.dumps({"records": [
+            {"rule-id": bare, "decision": "DRAFTED", "pass": "p", "redraft_run": "MATCH", "draft": out_w,
+             "verdict": "CONFORMS"},
+            {"rule-id": owned, "decision": "DRAFTED", "pass": "p", "redraft_run": "MATCH", "draft": out_w,
+             "verdict": "CONFORMS", "code-location": site}]}), encoding="utf-8", newline="\n")
+        before_own = sorted(own_suite.rglob("*"))
+        try:
+            run_placement(own_confirm, state, 1985, root / "adapters" / "stub.json", {}, 2, own_suite, own_rows, schema,
+                          replace=True)
+            ok(False, "a malformed adjudication refuses the run")
+        except SystemExit as e:
+            ok("requires ['code-location']" in str(e) and "already adjudicates" in str(e)
+               and sorted(own_suite.rglob("*")) == before_own,
+               "a verdict missing a field its schema entry requires, and an adjudication of an adjudicated row, refuse "
+               "the run before it writes anything")
         dup = confirm / "slice-03.json"
         dup.write_text(json.dumps({"records": [{"rule-id": changed, "decision": "CONFIRMED", "basis": "b"}]}),
                        encoding="utf-8", newline="\n")
