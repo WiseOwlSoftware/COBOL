@@ -302,13 +302,20 @@ def edition_views(schema: Schema | None = None) -> dict[int, list[Row]]:
     return {year: inventory(year, schema) for year in sorted(HELD, reverse=True)}
 
 
-def lower_bound(ed: Edition, tree: Tree = WORKING_TREE) -> str:
-    """The note every printed rule count of `ed` carries while its count is a lower bound (kb/Work PB5256, branch review
-    R1-5): the clauses its content-keyed manifest holds pending and the rule-shaped headings no kind types
-    (`Edition.outside`), whose rules are not counted yet; "" when the count is the whole denominator."""
+def pending(ed: Edition, tree: Tree = WORKING_TREE) -> dict[str, int]:
+    """What keeps `ed`'s rule count a LOWER BOUND (kb/Work PB5256, branch review R1-5): the clauses its content-keyed
+    manifest holds pending and the rule-shaped headings no kind types (`Edition.outside`), whose rules are not counted
+    yet, each by its count; {} when the count is the whole denominator. THE one reading of the bound: `lower_bound`
+    prints it and `edition_status.inventory_part` counts it (kb/Work PB5994 review R1-1)."""
     out = ed.outside(tree)
-    parts = [f"{len(v)} {what}" for v, what in ((out.get("pending-clauses", []), "clauses pending adjudication"),
-                                                (out.get("untyped-headings", []), "rule-shaped headings untyped")) if v]
+    return {what: len(v) for v, what in ((out.get("pending-clauses", []), "clauses pending adjudication"),
+                                         (out.get("untyped-headings", []), "rule-shaped headings untyped")) if v}
+
+
+def lower_bound(ed: Edition, tree: Tree = WORKING_TREE) -> str:
+    """The note every printed rule count of `ed` carries while its count is a lower bound (`pending`); "" when the count
+    is the whole denominator."""
+    parts = [f"{n} {what}" for what, n in pending(ed, tree).items()]
     return f" (a lower bound: {', '.join(parts)})" if parts else ""
 
 

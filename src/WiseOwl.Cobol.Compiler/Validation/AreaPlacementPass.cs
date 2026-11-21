@@ -15,11 +15,14 @@ using Core = CobolParserCore;
 /// <summary>
 /// ⛔ THE ONE SCREEN OF COBOL-85'S AREAS A AND B (kb/Work PB3147). ANSI X3.23-1985 split the program-text area of a
 /// fixed-form line at margin B into area A (character positions 8–11) and area B (position 12 to margin R) and placed
-/// every item by where it BEGINS ITS LINE:
+/// an AREA-A ITEM by where it STARTS and all other text by where it BEGINS ITS LINE:
 /// <list type="bullet">
 /// <item>an AREA-A ITEM — a division header, a section header, a paragraph header, a level indicator (FD, SD, RD),
-/// level-number 01 or 77, DECLARATIVES, END DECLARATIVES, an end marker — STARTS in area A (§1985:IV.7.3.3 "starts in
-/// area A of any line": positions 8-11, whether or not it begins the line, so <c>X. Y.</c> with Y in position 11 is legal) (row
+/// level-number 01 or 77, DECLARATIVES, END DECLARATIVES, an end marker — STARTS in area A, positions 8-11, whether or
+/// not it begins the line (a section header "must start in area A", §1985:IV.7.3.2; a paragraph header "starts in area
+/// A of any line following the first line of a division or a section", §1985:IV.7.3.3), so <c>X. Y.</c> with Y in
+/// position 11 is legal. The one exception is DECLARATIVES and END DECLARATIVES, which "must each appear on a line by
+/// itself" (§1985:IV.7.5) and so must also begin their line (<see cref="AreaItems.LineAlone"/>) (row
 /// <c>fixed-form-area-a-item-outside-area-a-2002</c>, COBOL3734);</item>
 /// <item>every other text that begins a line — a sentence, a statement, an entry or clause continued on a later line,
 /// a separator period — begins in area B (row <c>fixed-form-text-in-area-a-2002</c>, COBOL3735). A level-number
@@ -93,7 +96,8 @@ internal static class AreaPlacementPass
             : $"begins in area {which}";
         if (items.Heads.TryGetValue(token.TokenIndex, out string? item))
         {
-            // §1985:IV.7.3.3: an area-A item "starts in area A of any line": where it starts, not whether it begins the line.
+            // An area-A item is placed by where it starts, not by whether it begins the line (§1985:IV.7.3.2 "must start in
+            // area A"; §1985:IV.7.3.3 "starts in area A of any line").
             // §1985:IV.7.5: DECLARATIVES and END DECLARATIVES "must each appear on a line by itself", so they must begin it.
             bool startsInAreaA = placement == AreaPlacement.BeginsLineInAreaA
                 || (placement == AreaPlacement.WithinLineInAreaA && !items.LineAlone.Contains(token.TokenIndex));

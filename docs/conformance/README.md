@@ -13,7 +13,9 @@ at pack time by the `CobolPackConformanceStatement` target in `Directory.Build.p
 `head.md` is the title and status before section 1. Each section is a directory named by its number, holding `index.md`
 (frontmatter `heading:`, and `columns:` for a table section; its body is the section's opening prose), an optional
 `epilogue.md` (prose that speaks for the whole section, after its entries), and one file per entry named by the entry's
-key. Frontmatter values are JSON, one `<name>: <value>` a line.
+key. Frontmatter values are JSON, one `<name>: <value>` a line. An index may also name a GENERATOR (`generated:`, one of
+`conformance_source.GENERATORS`): the text it computes from tracked data is appended to the section's opening prose in
+the rendered whole, and its findings are the sources' findings (section 9's, computed from the 1985 inventory by `scripts/spec/conformance_1985.py`).
 
 | Section | What it holds | One file per |
 |---|---|---|
@@ -28,6 +30,9 @@ key. Frontmatter values are JSON, one `<name>: <value>` a line.
 | `6/` | maintenance | (prose only) |
 | `7/` | Annex A.1, the implementor-defined elements | row `DOC-A.1-<item>`: `cells:`, and a body for a row's extended prose |
 | `8/` | the signed derivations (an owner's or a deciding session's signature, kb/Work PB5373) | row `DRV-<rule-id>`: `cells:` |
+| `9/` | the COBOL-85 conformance statement (§1985:I.1.5): the claim and its frame, then the computed module table and obsolete list | (prose, `generated: "conformance_1985"`) |
+| `9.1/` | the rules the COBOL-85 claim does not support, each with its ground, held to the 1985 rows both ways | row `<rule-id>`: `cells:` |
+| `9.2/`, `9.3/` | the COBOL-85 hardware components and character set | (prose only) |
 
 A new determination is a new `3/D-<KEY>.md` (the key unique in the whole statement); a new register row is a new file
 in its section. Entries render in natural key order (`DOC-A.1-9` before `DOC-A.1-10`), section 4's blocks by `order:`.

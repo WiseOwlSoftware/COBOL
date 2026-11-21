@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -399,12 +400,13 @@ internal sealed class LinkageBinder(DataBinder data)
             // condition tests the carrier's presence — the staged OptionalFormal rejection is lifted.
 
             string pname = dref.GetText();
+            string pnameWritten = WrittenSource.Of(dref);
             var item = data.Symbols.IdentifyHeaderOperand(_roots, dref);
             if (item is null)
             {
                 // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
-                    $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
+                    $"PROCEDURE DIVISION USING parameter '{pnameWritten}' is not a level-01/77 LINKAGE SECTION item "
                     + $"(ISO {data.Edition.Edition.Cite("§1985:X.5.1", "§2023:14.2.2 SR1")})");
                 pos++;
                 continue;
@@ -471,7 +473,7 @@ internal sealed class LinkageBinder(DataBinder data)
             Returning = data.Symbols.IdentifyHeaderOperand(_roots, rref);
             if (Returning is null)
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
-                    $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
+                    $"PROCEDURE DIVISION RETURNING item '{WrittenSource.Of(rref)}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §2023:14.2.2 SR1)");
             else
                 header.CheckReturning(rref.GetText(), Returning);

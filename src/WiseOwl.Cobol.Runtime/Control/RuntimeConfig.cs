@@ -104,6 +104,12 @@ public static class RuntimeConfig
             "an invariant-culture date-time, optionally with a UTC offset (\"2026-06-10T14:30:45.67\", \"…+02:30\"); unset or empty = the system clock; any other value that does not parse stops the run (kb/Work PB5839)",
             typeof(SystemClock), "IO/Clock.cs"),
 
+        // ── the COBOL-85 debug facility (Control/RunUnit.cs — the object-time switch, §1985:XV.1.3.4; kb/Work PB4997) ──
+        new(RunUnit.DebugSwitchVariable, "debug",
+            "the object-time debug switch of a program compiled WITH DEBUGGING MODE at --std 85 (docs/CONFORMANCE.md D-DEBUG-SWITCH-85): off inhibits every effect of its USE FOR DEBUGGING sections with no recompilation",
+            "ON | OFF (case-insensitive); unset or empty = on; any other value stops the run; read at the switch's first use in the run unit, unless a host has set RunUnit.DebugMode",
+            typeof(RunUnit), "Control/RunUnit.cs"),
+
         // ── the communication facility (Mcs/ and Communication/MessageStore.cs — ISO/IEC 1989:2002 Annex A; kb/Work PB4677) ──
         new(Mcs.McsDirectory.Variable, "communication",
             "the message control system's directory, which holds the user's definitions (mcs.json) and the MCS's state (docs/CONFORMANCE.md section 3.3)",

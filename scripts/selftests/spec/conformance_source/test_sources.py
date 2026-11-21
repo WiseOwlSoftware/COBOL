@@ -12,6 +12,11 @@ from standard_streams import ensure_utf8
 
 cs = selftest_cases.subject(__file__)   # scripts/spec/conformance_source.py
 
+#: A computed section of a planted tree (`cs.GENERATORS`, kb/Work PB4997): its text follows the frame, and a finding it
+#: returns is a finding of the sources. `PLANTED_FINDINGS` is what the next render reports.
+PLANTED_FINDINGS: list[str] = []
+cs.GENERATORS["planted"] = lambda root: ("the computed part", tuple(PLANTED_FINDINGS))
+
 EXPECTED = (
     "# Conformance\n\n> the status\n\n"
     "## 1. Summary\n\nprose\n\n"
@@ -23,7 +28,8 @@ EXPECTED = (
     "## 4. Facilities\n\nThe preamble.\n\n#### MCS\n\n1. **Message control** — provided\n\n#### SCREEN\n\n2. **Screens**\n\n"
     "## 5. Annex A.4\n\n| A.4 # | Module |\n|---|---|\n| A.4.2 | m |\n\n"
     "## 7. Annex A.1\n\n| A.1 item | E |\n|---|---|\n| DOC-A.1-9 | e |\n\n"
-    "## 8. Derivations\n\n| Rule | Arm |\n|---|---|\n| DRV-GR-1-1 | a |\n")
+    "## 8. Derivations\n\n| Rule | Arm |\n|---|---|\n| DRV-GR-1-1 | a |\n\n"
+    "## 9. A claim\n\nThe frame.\n\nthe computed part\n\n### 9.1 Its exceptions\n\n| Rule | Ground |\n|---|---|\n| `x-1` | g |\n")
 
 
 def _plant(root: pathlib.Path) -> pathlib.Path:
@@ -57,6 +63,9 @@ def _plant(root: pathlib.Path) -> pathlib.Path:
     put("7/DOC-A.1-9.md", cs.with_frontmatter({"cells": ["DOC-A.1-9", "e"]}, ""))
     put("8/index.md", cs.with_frontmatter({"heading": "## 8. Derivations", "columns": ["Rule", "Arm"]}, ""))
     put("8/DRV-GR-1-1.md", cs.with_frontmatter({"cells": ["DRV-GR-1-1", "a"]}, ""))
+    put("9/index.md", cs.with_frontmatter({"heading": "## 9. A claim", "generated": "planted"}, "The frame."))
+    put("9.1/index.md", cs.with_frontmatter({"heading": "### 9.1 Its exceptions", "columns": ["Rule", "Ground"]}, ""))
+    put("9.1/x-1.md", cs.with_frontmatter({"cells": ["`x-1`", "g"]}, ""))
     return base
 
 
@@ -80,7 +89,8 @@ def case_00_a_planted_tree_renders_the_regular_document(expect):
         expect.equal("no source out of shape", findings, [])
         expect.equal("the render: sections in number order, entries in key order, blocks by `order:`", text, EXPECTED)
         expect.equal("and the render is regular", cs.check(cs.parse(text)), [])
-        expect.equal("load reads the same document", cs.load(root).text, EXPECTED)
+        expect.equal("load reads the same document, a generated section's frame alone",
+                     cs.load(root).text, EXPECTED.replace("The frame.\n\nthe computed part\n\n", "The frame.\n\n"))
     expect.equal("frontmatter round-trips through JSON values",
                  cs.frontmatter(cs.with_frontmatter({"cells": ["a | b", "“q”"], "order": 3}, "body"), "x"),
                  ({"cells": ["a | b", "“q”"], "order": 3}, "body"))
@@ -110,6 +120,14 @@ def case_01_each_source_out_of_shape_is_a_finding_naming_its_file(expect):
                  lambda b: write(b, "5/index.md", cs.with_frontmatter({"heading": "## 6. Annex A.4", "columns": ["A.4 #", "Module"]}, "")),
                  "does not name §5"))
     expect(*_one("a directory that is no section number", lambda b: (b / "old").mkdir(), "no section number"))
+    expect(*_one("an index naming no generator",
+                 lambda b: write(b, "9/index.md", cs.with_frontmatter({"heading": "## 9. A claim", "generated": "none"}, "The frame.")),
+                 "names no generator"))
+    PLANTED_FINDINGS.append("9.1: no row for r-2")
+    try:
+        expect(*_one("a generator's finding is a finding of the sources", lambda b: None, "9.1: no row for r-2"))
+    finally:
+        PLANTED_FINDINGS.clear()
     dup = _findings_after(lambda b: write(b, "3/DOC-A.1-9.md", "- **DOC-A.1-9** a determination keyed like a row\n"))
     expect("a key used twice across sections is the rendered whole's finding", any("already the entry" in f for f in dup)
            or any("does not open" in f for f in dup), str(dup))

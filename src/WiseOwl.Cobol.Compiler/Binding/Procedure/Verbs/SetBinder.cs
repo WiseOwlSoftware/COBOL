@@ -99,7 +99,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // parse error pointing at ATTRIBUTE rather than a named refusal naming the facility.
         if (set.setScreenAttributeStatement() is { } sat)
         {
-            ScreenFacility.ReportSetAttribute(ctx.Edition, sat.dataReference().GetText());
+            ScreenFacility.ReportSetAttribute(ctx.Edition, WrittenSource.Of(sat.dataReference()));
             return BoundRejected.Reported(ctx.Edition);
         }
         if (set.setLastExceptionStatement() is not null) return host.Ec.BindSetLastException();   // F13 (ISO §2023:14.9.39; 2002+)
@@ -129,7 +129,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (set.setSwitchStatement() is { } sw) return host.Alter.SwitchBindSet(sw);   // Format 3 — external switches (ISO §2023:14.9.39)
         if (set.setFunctionAddressStatement() is { } sfa) return BindSetFunctionAddress(sfa);   // F8 + §2023:8.4.3.12 sender (kb/Work PB452)
         if (set.setProgramAddressStatement() is { } spa) return BindSetProgramAddress(spa);     // F9 + §2023:8.4.3.13 sender (kb/Work PB549)
-        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"SET '{DataBinder.WrittenText(set)}': the statement matches no SET format (ISO §2023:14.9.39.2)");
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"SET '{WrittenSource.Of(set)}': the statement matches no SET format (ISO §2023:14.9.39.2)");
     }
 
     /// <summary><c>SET CONTENT OF { identifier-14 } … TO { FARTHEST-FROM-ZERO [IN-ARITHMETIC-RANGE] |
@@ -167,7 +167,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (host.Expr.ResolveReceiving(dref) is not { } place)
                 return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
-            string name = place.Item.CobolName ?? dref.GetText();
+            string name = place.Item.CobolName ?? WrittenSource.Of(dref);
             var pic = place.Item.Pic;
 
             if (farthest || nearest)
@@ -304,7 +304,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             setsUserDefault = true;
             if (words.Length > 2)
             {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE USER-DEFAULT {DataBinder.WrittenText(words[2])}: USER-DEFAULT as the first operand stands alone — "
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE USER-DEFAULT {WrittenSource.Of(words[2])}: USER-DEFAULT as the first operand stands alone — "
                     + "the general format's outer brace is a plain alternation of the category list OR USER-DEFAULT (ISO §2023:14.9.39.2 format 11)");
             }
         }
@@ -329,7 +329,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 };
                 if (cat == LocaleCategorySet.None)
                 {
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE {DataBinder.WrittenText(words[i])}: '{DataBinder.WrittenText(words[i])}' is not a locale category — "
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocaleCategories, $"SET LOCALE {WrittenSource.Of(words[i])}: '{WrittenSource.Of(words[i])}' is not a locale category — "
                         + "the first operand is one or more of LC_ALL, LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, LC_TIME, "
                         + "or USER-DEFAULT (ISO §2023:14.9.39.2 format 11)");
                 }
@@ -363,6 +363,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
         var to = source.dataReference();
         string toText = to.GetText();
+        string toTextWritten = WrittenSource.Of(to);
         // A bare word that is a declared locale-name (SR26): §2023:8.3.2.2 keeps the two name types apart within one
         // source element. A locale-name a CONTAINING element declares yields to the referring element's own item of
         // the same spelling — "a source element's reference to such a name, even when it is a different type of
@@ -376,15 +377,15 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (probe.Item.Pic?.Category is not PicCategory.Pointer)
             {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"{first} TO {toText}: identifier-10 shall reference an elementary data item of category "
-                    + $"data-pointer (ISO §2023:14.9.39.3 SR27) — '{toText}' is {probe.Item.Pic?.Category.ToString() ?? "a group"}");
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"{first} TO {toTextWritten}: identifier-10 shall reference an elementary data item of category "
+                    + $"data-pointer (ISO §2023:14.9.39.3 SR27) — '{toTextWritten}' is {probe.Item.Pic?.Category.ToString() ?? "a group"}");
             }
             if (host.Expr.ResolveSending(to) is var toAnswer && toAnswer.Place is not { } place)
                 return toAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
             return new BoundSetLocale(categories, setsUserDefault, LocaleSetSource.SavedPointer, null, place);
         }
         // Neither: the ONE undeclared-locale-name diagnostic, with this site named (SR26).
-        ctx.Data.SpecialNames.ResolveLocaleName(to, toText, $"{first} TO {toText}",
+        ctx.Data.SpecialNames.ResolveLocaleName(to, toText, $"{first} TO {toTextWritten}",
             "ISO §2023:14.9.39.3 SR26 — locale-name-1 shall be specified in the LOCALE clause of the SPECIAL-NAMES paragraph; "
             + "or SR27 — identifier-10 shall reference an elementary data item of category data-pointer, and no such item is declared");
         return BoundRejected.Reported(ctx.Edition);
@@ -399,7 +400,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var target = sl.setReceivingIdentifier().dataReference();   // a data reference: BindSet refused any other form (kb/Work PB1551)
         if (host.Expr.ResolveReceiving(target) is not { } place || place.Item.Pic?.Category is not PicCategory.Pointer)
         {
-            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"SET {DataBinder.WrittenText(target)} TO LOCALE {(userDefault ? "USER-DEFAULT" : "LC_ALL")}: identifier-11 shall "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.SetLocalePointerCategory, $"SET {WrittenSource.Of(target)} TO LOCALE {(userDefault ? "USER-DEFAULT" : "LC_ALL")}: identifier-11 shall "
                 + "reference an elementary data item of category data-pointer (ISO §2023:14.9.39.3 SR28)");
         }
         return new BoundSaveLocale(place, userDefault);
@@ -423,7 +424,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (dref is null || host.Expr.IndexFieldOf(dref) is null) return false;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"SET '{DataBinder.WrittenText(dref)}': an index-name cannot be the {position} of a {carrier} SET — that operand "
+            $"SET '{WrittenSource.Of(dref)}': an index-name cannot be the {position} of a {carrier} SET — that operand "
             + $"shall be of category {carrier} ({cite}). An index-name operand belongs to Format 1, whose "
             + "receiver is a data item of class index or an integer data item (ISO "
             + ctx.Edition.Edition.Cite("§1985:VI.6.23.3 SR2", "§2023:14.9.39.3 SR1") + ")");
@@ -485,7 +486,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a data-pointer SET shall be of category "
+                    $"SET '{WrittenSource.Of(t)}': the receiving operand of a data-pointer SET shall be of category "
                     + $"data-pointer ({DataPointerSetRule("14.9.39 Format 7")})");
             }
             targets.Add(tp);
@@ -534,7 +535,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             var senderRestriction = StrongTypeModel.PointerRestriction(sp.Item);
             for (int i = 0; i < targets.Count; i++)
             {
-                if (!host.Ptr.ScreenPointerReceiverRestriction(targets[i], targetRefs[i].GetText(),
+                if (!host.Ptr.ScreenPointerReceiverRestriction(targets[i], WrittenSource.Of(targetRefs[i]),
                         senderRestriction, sender.Text, addressSender: false))
                     return BoundRejected.Reported(ctx.Edition);
             }
@@ -572,7 +573,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (SetIndexNameOperand(t, "receiving operand", "message-tag", "ISO §2023:14.9.39 Format 17, §2023:14.9.39.3 SR35")) return BoundRejected.Reported(ctx.Edition);
         if (host.Expr.ResolveReceiving(t) is not { } target || target.Item.Pic?.Category is not PicCategory.MessageTag)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a message-tag SET shall be a message-tag data item "
+                $"SET '{WrittenSource.Of(t)}': the receiving operand of a message-tag SET shall be a message-tag data item "
                 + "(ISO §2023:14.9.39.3 SR35 — \"Data-name-4 and data-name-5 shall be message-tag data items\")");
         Place? source = null;
         if (!toNull)
@@ -617,7 +618,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a program-pointer SET shall be USAGE "
+                    $"SET '{WrittenSource.Of(t)}': the receiving operand of a program-pointer SET shall be USAGE "
                     + "PROGRAM-POINTER (ISO §2023:14.9.39.3 Format 9 SR21)");
             }
             targets.Add(tp);
@@ -770,7 +771,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a function-pointer SET shall be USAGE "
+                    $"SET '{WrittenSource.Of(t)}': the receiving operand of a function-pointer SET shall be USAGE "
                     + "FUNCTION-POINTER (ISO §2023:14.9.39.3 SR20)");
             }
             targets.Add(tp);
@@ -835,7 +836,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(dref) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{DataBinder.WrittenText(dref)}': the receiving operand of SET … TO ADDRESS OF FUNCTION shall be "
+                    $"SET '{WrittenSource.Of(dref)}': the receiving operand of SET … TO ADDRESS OF FUNCTION shall be "
                     + "USAGE FUNCTION-POINTER (ISO §2023:14.9.39.3 SR20 / §2023:8.4.3.12.4 GR1)");
             }
             targets.Add(tp);
@@ -864,13 +865,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // reader the data-reference arm uses, over the data item the identifier references (§2023:8.4.3.2.1, §2023:8.4.3.4.4 GR1).
         if (((ParserRuleContext?)fai.functionCall() ?? fai.inlineMethodInvocation()) is { } idSyntax)
         {
-            if (AddressNameOfIdentifier(idSyntax, $"SET {written} TO ADDRESS OF FUNCTION {DataBinder.WrittenText(idSyntax)}",
+            if (AddressNameOfIdentifier(idSyntax, $"SET {written} TO ADDRESS OF FUNCTION {WrittenSource.Of(idSyntax)}",
                     DiagnosticCatalog.FunctionAddressOperand, "8.4.3.12.3 SR1") is not { } idName)
                 return BoundRejected.Reported(ctx.Edition);
             return new BoundSetFunctionAddress(targets, idName.Literal, idName.Place, expectedFormals);
         }
         var operand = fai.dataReference();
         string word = operand.GetText();
+        string wordWritten = WrittenSource.Of(operand);
         // The PROTOTYPE arm (§2023:8.4.3.12.3 SR2 + §2023:8.4.6.6): a REPOSITORY function-specifier, or the containing
         // function definition's own user-function-name. The SAME two legs the USAGE clause's TO phrase resolves, through the
         // symbol table's one lookup (a function-prototype-name is one word: a qualified or subscripted operand is no such name).
@@ -883,9 +885,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 string? receiverProto = t.Item.Pic?.RestrictedPrototypeName;
                 if (!StatementBinder.SignaturesDiffer(ctx.Symbols.FunctionSignatureOf(t.Item), prototype.CalleeSignature)) continue;
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
-                    $"SET '{t.Item.CobolName}' TO ADDRESS OF FUNCTION {word}: the receiving function-pointer "
+                    $"SET '{t.Item.CobolName}' TO ADDRESS OF FUNCTION {wordWritten}: the receiving function-pointer "
                     + $"is restricted to function-prototype '{receiverProto}' and the function-address-identifier has "
-                    + $"the characteristics of a function-pointer restricted to '{word}' (ISO §2023:8.4.3.12.4 GR3), and "
+                    + $"the characteristics of a function-pointer restricted to '{wordWritten}' (ISO §2023:8.4.3.12.4 GR3), and "
                     + "the two do not have the same signature (ISO §2023:14.9.39.3 SR20)");
             }
             // §2023:8.4.3.12.4 GR2 names the EXTERNALIZED function-name as the address's identity, and that is what
@@ -901,11 +903,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (nameAnswer.Outcome == RefOutcome.Deferred) return nameAnswer.Refusal(ctx.Edition);   // kb/Work PB1030
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.FunctionAddressOperand,
-                $"SET {written} TO ADDRESS OF FUNCTION {word}: '{word}' is neither a function-prototype-name declared in "
+                $"SET {written} TO ADDRESS OF FUNCTION {wordWritten}: '{wordWritten}' is neither a function-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §2023:8.4.3.12.3 SR2 / §2023:8.4.6.6) nor a resolvable identifier "
                 + "(§2023:8.4.3.12.3 SR1)");
         }
-        if (!ScreenAddressName(namePlace, $"SET {written} TO ADDRESS OF FUNCTION {word}", word,
+        if (!ScreenAddressName(namePlace, $"SET {written} TO ADDRESS OF FUNCTION {wordWritten}", wordWritten,
                 DiagnosticCatalog.FunctionAddressOperand, "8.4.3.12.3 SR1"))
             return BoundRejected.Reported(ctx.Edition);
         return new BoundSetFunctionAddress(targets, null, namePlace, expectedFormals);
@@ -947,7 +949,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 $"AddressNameOfIdentifier serves ISO §2023:8.4.3.1.2 Formats 1 and 4 only, not {syntax.GetType().Name}"),
         };
         if (bound is BoundExprError) return null;   // the identifier's own binder reported
-        string text = DataBinder.WrittenText(syntax);
+        string text = WrittenSource.Of(syntax);
         var operand = IntrinsicBinder.OperandOf(bound, functionValue: syntax is Core.FunctionCallContext);
         if (operand is BoundStringLiteral { Category: PicCategory.Alphanumeric or PicCategory.National } folded)
             return (folded.Value, null);
@@ -1019,7 +1021,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // no rule the program broke (kb/Work PB1030).
         if (host.Expr.ResolveSending(se.dataReference()) is var entryAnswer && entryAnswer.Place is not { } namePlace)
             return entryAnswer.Refusal(ctx.Edition);
-        return RestrictedReceiverRefusesEntry(targets, written, se.dataReference().GetText())
+        return RestrictedReceiverRefusesEntry(targets, written, WrittenSource.Of(se.dataReference()))
             ? BoundRejected.Reported(ctx.Edition)
             : new BoundSetEntry(targets, null, namePlace);
     }
@@ -1055,7 +1057,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
             {
                 ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{DataBinder.WrittenText(drefs[i])}': the receiving operand of {where} shall be USAGE "
+                    $"SET '{WrittenSource.Of(drefs[i])}': the receiving operand of {where} shall be USAGE "
                     + "PROGRAM-POINTER (ISO §2023:14.9.39.2 Format 9 / §2023:14.9.39.3 SR21)");
                 return null;
             }
@@ -1137,7 +1139,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
         string senderWhat = operand.NamePlace is null
             ? $"literal \"{operand.NameLiteral}\""
-            : $"identifier '{operandRef?.GetText() ?? DataBinder.WrittenText((ParserRuleContext?)pai.functionCall() ?? pai.inlineMethodInvocation()!)}'";
+            : $"identifier '{WrittenSource.Of(operandRef ?? (ParserRuleContext?)pai.functionCall() ?? pai.inlineMethodInvocation()!)}'";
         return RestrictedReceiverNeedsPrototype(targets, $"SET {written} TO ADDRESS OF PROGRAM {senderWhat}",
                 "only the program-prototype-name-1 arm of a program-address-identifier is itself restricted "
                 + "(ISO §2023:8.4.3.13.4 GR3); an unrestricted sender is associated with no program-prototype, so the two "
@@ -1170,13 +1172,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // ── ARM 1b: identifier-1 written as a function-identifier or an inline method invocation (§2023:8.4.3.1.3 SR1;
         //    kb/Work PB1452) — a reference to a data item like any other, so SR1's category screen is the same one. ──
         if (((ParserRuleContext?)pai.functionCall() ?? pai.inlineMethodInvocation()) is { } idSyntax)
-            return AddressNameOfIdentifier(idSyntax, $"{site} ADDRESS OF PROGRAM {DataBinder.WrittenText(idSyntax)}",
+            return AddressNameOfIdentifier(idSyntax, $"{site} ADDRESS OF PROGRAM {WrittenSource.Of(idSyntax)}",
                     DiagnosticCatalog.ProgramAddressOperand, "8.4.3.13.3 SR1") is { } idName
                 ? new BoundProgramAddress(idName.Literal, idName.Place, null)
                 : null;
 
         var operandRef = pai.dataReference();
         string word = operandRef.GetText();
+        string wordWritten = WrittenSource.Of(operandRef);
         // ── ARM 3: program-prototype-name-1 (§2023:8.4.3.13.3 SR3) — GR2's EXTERNALIZED program-name, never the
         //    source word (kb/Work PB303). ──
         if (ctx.Symbols.Identify(operandRef, NameClass.ProgramPrototype, report: true)?.Symbol is ProgramPrototype proto)
@@ -1189,7 +1192,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Symbols.IsRefusedProgramReference(word, ctx.Edition)) return null;   // reported at the specifier (kb/Work PB4936)
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"{site} ADDRESS OF PROGRAM {word}: '{word}' is no program-prototype-name here — "
+                $"{site} ADDRESS OF PROGRAM {wordWritten}: '{wordWritten}' is no program-prototype-name here — "
                 + $"{ctx.Symbols.WhyNoPrototype(word)} (ISO §2023:8.4.3.13.3 SR3) — and no resolvable identifier (SR1)");
             return null;
         }
@@ -1199,11 +1202,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         {
             if (nameAnswer.Outcome == RefOutcome.Deferred) { nameAnswer.PlaceOrReported(ctx.Edition); return null; }   // 0899, reported (kb/Work PB1030)
             ctx.Edition.Error(DiagnosticCatalog.ProgramAddressOperand,
-                $"{site} ADDRESS OF PROGRAM {word}: '{word}' is neither a program-prototype-name declared in "
+                $"{site} ADDRESS OF PROGRAM {wordWritten}: '{wordWritten}' is neither a program-prototype-name declared in "
                 + "the REPOSITORY paragraph (ISO §2023:8.4.3.13.3 SR3) nor a resolvable identifier (SR1)");
             return null;
         }
-        if (!ScreenAddressName(namePlace, $"{site} ADDRESS OF PROGRAM {word}", word,
+        if (!ScreenAddressName(namePlace, $"{site} ADDRESS OF PROGRAM {wordWritten}", wordWritten,
                 DiagnosticCatalog.ProgramAddressOperand, "8.4.3.13.3 SR1"))
             return null;
         return new BoundProgramAddress(null, namePlace, null);
@@ -1322,7 +1325,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         var kinds = _fmt.KindsOf(recvs);
         // As written: GetText() prints a bare ZERO as its rewritten ZERO_ARITH token "0" (kb/Work PB4209, PB3961).
-        string senderText = DataBinder.WrittenText(amount);
+        string senderText = WrittenSource.Of(amount);
         // ⛔ THE FORMATS THAT TAKE THE AMOUNT AS AN EXPRESSION OF THEIR OWN are decided from the receiving list alone,
         // BEFORE the sender is classified: classifying binds a sole function-identifier (and registers its
         // activation), and F14/F16 bind the same expression themselves — binding it here as well would run a user
@@ -1376,8 +1379,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         bool admitted = true;
         foreach (var dref in recvs)
         {
-            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{DataBinder.WrittenText(dref)}'");
-            admitted &= ScreenIndexAssignmentReceiver(t, DataBinder.WrittenText(dref), alternative, sender.Text);
+            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{WrittenSource.Of(dref)}'");
+            admitted &= ScreenIndexAssignmentReceiver(t, WrittenSource.Of(dref), alternative, sender.Text);
             targets.Add(t);
         }
         if (!admitted) return BoundRejected.Reported(ctx.Edition);
@@ -1467,20 +1470,25 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (t is not SetPlaceTarget { Place: var p }) return true;   // index-name-1 — GR2 a) admits every sender
         if (!OperandClassScreen.Screen(ctx.Edition, OperandPositions.SetIndexAssignmentReceiver, p, text)) return false;
         bool indexReceiver = (OperandClassScreen.ClassesOf(p) & OperandClasses.IndexDataItem) != 0;
-        string? rule = (indexReceiver, sender) switch
+        // The rule each pairing breaks, per edition (§1985:VI.6.23.4 GR5's table names the general rule of each "No": an index data
+        // item receiver is GR3b's, an integer data item receiver GR3c's); a later edition's wording is one more Cite argument.
+        (string Later, string Y1985)? rule = (indexReceiver, sender) switch
         {
             (true, IndexAssignmentSender.ArithmeticExpression) =>
-                "SR3: \"If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be "
-                + "specified\"",
+                ("§2023:14.9.39.3 SR3: \"If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be "
+                    + "specified\"",
+                 "§1985:VI.6.23.4 GR3b: \"If identifier-1 references an index data item, it may be set equal to either the content of "
+                    + "index-name-2 or identifier-2 where identifier-2 also references an index data item\" (GR5's table: no integer "
+                    + "literal or integer data item may be sent to an index data item)"),
             (false, IndexAssignmentSender.ArithmeticExpression or IndexAssignmentSender.IndexDataItem) =>
-                "SR4: \"If identifier-1 references a numeric data item, index-name-2 shall be specified\"",
+                ("§2023:14.9.39.3 SR4: \"If identifier-1 references a numeric data item, index-name-2 shall be specified\"",
+                 "§1985:VI.6.23.4 GR3c: \"If identifier-1 does not reference an index data item, it may be set only to an occurrence "
+                    + "number that corresponds to the value of index-name-2. Neither identifier-2 nor integer-1 can be used in this case.\""),
             _ => null,
         };
-        if (rule is null) return true;
+        if (rule is not { } broken) return true;
         ctx.Edition.Removed(DiagnosticCatalog.SetIndexAssignmentOperand.Code,
-            $"SET '{text}' TO '{senderText}' violates ISO "
-            + ctx.Edition.Edition.Cite("§1985:VI.6.23.3 SR2 — \"Identifier-1 and identifier-2 must each reference an index data item or an elementary item described as an integer\", and the format sends only index-name-2, identifier-2 or integer-1",
-                $"§2023:14.9.39.3 {rule}"));
+            $"SET '{text}' TO '{senderText}' violates ISO " + ctx.Edition.Edition.Cite(broken.Y1985, broken.Later));
         return ctx.Edition.Permissive;
     }
 
@@ -1509,14 +1517,14 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             case SetFormat.F2:
                 break;
             default:
-                _fmt.ReportNoFormat(recvs, kinds, SetDirections.UpDown, DataBinder.WrittenText(amount));
+                _fmt.ReportNoFormat(recvs, kinds, SetDirections.UpDown, WrittenSource.Of(amount));
                 return BoundRejected.Reported(ctx.Edition);
         }
         GateCobol85IndexAmount(amount, upDown: true);
         var targets = new List<BoundSetTarget>();
         foreach (var dref in recvs)
         {
-            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{DataBinder.WrittenText(dref)}'");
+            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{WrittenSource.Of(dref)}'");
             targets.Add(t);
         }
         return new BoundSetUpDown(targets, host.Expr.BindIndexWindowExpr(amount), down);
@@ -1538,7 +1546,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             || ConstructRegistry.IsAvailable(ctx.Edition.Edition, row)) return;
         using var _ = ctx.Edition.At(amount);
         ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, row,
-            $"the SET {(upDown ? "UP BY or DOWN BY" : "TO")} operand {DataBinder.WrittenText(amount)}");
+            $"the SET {(upDown ? "UP BY or DOWN BY" : "TO")} operand {WrittenSource.Of(amount)}");
     }
 
     /// <summary>The construct row that names why <paramref name="amount"/> is not one of the 1985 operands
@@ -1595,7 +1603,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // this very reference as a CAPACITY register through the same peek, so a miss is a broken invariant.
         if (ctx.Refs.CapacityRegisterFor(targets[0], report: true) is not { } cap)
             throw new InvalidOperationException(
-                $"SET Format 14 was selected for '{DataBinder.WrittenText(targets[0])}', which is not a CAPACITY register (kb/Work PB3225)");
+                $"SET Format 14 was selected for '{WrittenSource.Of(targets[0])}', which is not a CAPACITY register (kb/Work PB3225)");
         // The target NAMES a register but breaks one of its reference rules (§2023:13.18.38.3 SR30/SR31, §2023:8.4.2.2.3 SR4,
         // §2023:8.4.3.3.3 SR1; kb/Work PB457). This is still SET Format 14 — SetFormatSelection chose the format from the
         // receiving list, and a CAPACITY register is what this receiver IS — so the format is CONSUMED here and the
@@ -1744,7 +1752,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     // A DECLARED level-88 the qualifiers do not reach is misqualified, not "not a condition-name"
                     // (kb/Work PB567 — §2023:13.16.3 SR23's negative side, one wording for every site).
                     if (!host.Cond.ReportMisqualifiedCondition(dref))
-                        ctx.Validation.RejectSetConditionName(DataBinder.WrittenText(dref), toTrue, host.Alter.SwitchNameOf(dref),
+                        ctx.Validation.RejectSetConditionName(WrittenSource.Of(dref), toTrue, host.Alter.SwitchNameOf(dref),
                             ReferenceResolver.WrittenWordOf(dref), ReferenceResolver.ReadWritten(dref).Qualifiers);
                     return BoundRejected.Reported(ctx.Edition);
                 }
