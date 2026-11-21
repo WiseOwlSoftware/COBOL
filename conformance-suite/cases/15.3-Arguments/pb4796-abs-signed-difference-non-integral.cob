@@ -1,21 +1,51 @@
 *>--- conformance-case
 *> id: pb4796-abs-signed-difference-non-integral
 *> rules: [AR-15.3-6]
+*> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
-      *> PB4796 (review R2-1 of PB4757) - ISO §2023:15.3 item 6 (cite.py --check 15.3 OK): an Integer argument is "an arithmetic
-      *> expression that will always result in an integer value". FUNCTION ABS of a negative argument is its negation (§2023:15.7.4 1) b),
-      *> cite.py --check 15.7.4 OK: "When the value of argument-1 is negative"), so G2 - FUNCTION ABS (G2) over the SIGNED item G2
-      *> is 0 where G2 is not negative and 2 * G2 where it is: -0.4 for G2 = -0.2, not an integer. FACTORIAL's argument position
-      *> (§2023:15.36.3 1), cite.py --check 15.36.3 OK) refuses it - COBOL1627, whatever value G2 holds at this reference. The screen read the
-      *> call as G2 alone, netted the difference to 0 and failed open; over an UNSIGNED item the difference is always 0 and legal.
+      *> kb/Work PB4796 refused G2 - FUNCTION ABS (G2) over a signed
+      *> G2.
+      *>
+      *> kb/Work PB5889 (the ruling of 2026-11-21): the integer-
+      *> argument screen refuses an argument only when it can name a
+      *> value of the operands at which the expression is not an
+      *> integer, and accepts the rest with a run-time check of the
+      *> value. §2023:15.3 AR6 (cite.py --check): "An arithmetic
+      *> expression that will always result in an integer value or an
+      *> integer data item shall be specified"; §1989:A.2.2 AR4
+      *> (cite.py --check) the same at COBOL-85.
+      *>
+      *> G2 - ABS (G2) is 0 where G2 is not negative and 2 * G2 where
+      *> it is (§2023:15.7.4): -0.4 at G2 = -0.2, the value given
+      *> here; the screen names no counterexample and the value is
+      *> checked at run time.
+      *>
+      *> From COBOL-2002 a value that is not an integer is an
+      *> incorrect argument: §2023:15.3 AR14 (cite.py --check) "the
+      *> EC-ARGUMENT-FUNCTION exception condition is set to exist".
+      *> Checking is turned on, so the declarative shows RAISED and
+      *> RESUME continues with the next statement (EXPECTED: RAISED,
+      *> DONE). At COBOL-85 the same run terminates
+      *> (pb5889_run_time_check_85).
+       >>TURN EC-ARGUMENT-FUNCTION CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NEGPB4796SGNDIFF.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 G2   PIC S9V9 VALUE 0.2.
+       01 G2   PIC S9V9 VALUE -0.2.
        01 T    PIC 9(9).
        PROCEDURE DIVISION.
+       DECLARATIVES.
+       H SECTION.
+           USE AFTER EXCEPTION CONDITION EC-ARGUMENT-FUNCTION.
+       H-P.
+           DISPLAY "RAISED".
+           RESUME AT NEXT STATEMENT.
+       END DECLARATIVES.
+       MAIN-SECTION SECTION.
+       MAIN-PARA.
            COMPUTE T = FUNCTION FACTORIAL (G2 - FUNCTION ABS (G2))
+           DISPLAY "DONE".
            STOP RUN.
