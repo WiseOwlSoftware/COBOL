@@ -42,6 +42,18 @@ def case_02_complete_only_when_every_part_is_measured_and_zero(expect):
     expect("an unmeasured part is named on the page", "not measured" in C.render(F.ledger({1985: (0, 0, 0, None)})))
 
 
+def case_02b_a_bounded_inventory_at_zero_gap_is_not_complete(expect):
+    def bounded(year):
+        return C.edition_status.inventory_count([{"state": "OK"}], {"clauses pending adjudication": 89})
+    ed = C.measure_edition(2002, (bounded, *F.sources(0, 0, 0, 0)[1:]))
+    expect.equal("edition_status's verdict", (ed.complete, ed.line),
+                 (False, "=== EDITION 2002: NOT COMPLETE — 0 inventory GAP + 89 clauses pending adjudication ==="))
+    led = F.ledger({y: (1, 0, 0, 0) for y in C.ORDER})
+    page = C.render(C.Ledger(**{**led.__dict__, "editions": tuple(ed if e.year == 2002 else e for e in led.editions)}))
+    expect("the page prints that line", ed.line in F.verdicts(page))
+    expect("the top table shows the bound beside the GAP", "(0 inventory GAP + 89 clauses pending adjudication)" in page)
+
+
 def case_03_the_work_in_flight_by_edition(expect):
     editions_of = {"PB10": frozenset({1985}), "PB20": frozenset({2002, 2023})}
     rows = [F.row("group-1985-fixes", "IN FLIGHT"), F.row("worktree-wf_x-1", "WAITING TO LAND", lead="PB20"),

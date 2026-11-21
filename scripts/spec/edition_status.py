@@ -5,7 +5,9 @@
 
 It measures four parts and prints a verdict line. An edition is COMPLETE only when ALL FOUR are zero:
 
-  1. INVENTORY GAP: the rows of the edition's traceability inventory in state GAP (`inventory_view.inventory`, `gaps`).
+  1. INVENTORY GAP: the rows of the edition's traceability inventory in state GAP (`inventory_view.inventory`, `gaps`),
+     plus every item that keeps its rule count a lower bound (`inventory_view.pending`: clauses pending adjudication,
+     untyped rule-shaped headings), whose rules have no row yet; the verdict names them beside the GAP (`Part.shown`).
   2. CODE READS: the rows owed a read, owed a re-read, contradicted or undecided (`code_reads`, `code_read_store`). The
      newest held edition has no store (its rows carry their own verdicts): that is said, and it counts 0.
   3. OPEN WORK NOTES that touch the edition: every note of the register whose status is not terminal and whose text,
@@ -67,11 +69,17 @@ class Part:
     count: int | None
     why: str = ""
     lines: tuple[str, ...] = ()
+    shown: str = ""   # how the verdict names the count when `count` sums several things ("" = `<count> <name>`)
     data: dict = dataclasses.field(default_factory=dict)
 
     @property
     def measured(self) -> bool:
         return self.count is not None
+
+    @property
+    def text(self) -> str:
+        """The part as the verdict names it."""
+        return f"{self.name} not measured" if not self.measured else (self.shown or f"{self.count} {self.name}")
 
 
 def unmeasured(name: str, why: str) -> Part:
@@ -92,9 +100,25 @@ def _loud(name: str, fn: Callable[[], Part]) -> Part:
 # -- the four parts ---------------------------------------------------------------------------------------------------------
 
 def inventory_part(year: int) -> Part:
-    rows = inventory_view.inventory(year)
+    """Part 1 of the edition's inventory as the working tree holds it: its rows, and the bound its catalog declares."""
+    schema = inventory_schema.load_schema()
+    return inventory_count(inventory_view.inventory(year, schema), inventory_view.pending(schema.edition(year)))
+
+
+def inventory_count(rows: list[dict], bound: dict[str, int]) -> Part:
+    """Part 1 from `rows` and the edition's `bound` (`inventory_view.pending`: what keeps its rule count a lower bound).
+    ⛔ A BOUNDED COUNT IS NEVER A ZERO (kb/Work PB5994 review R1-1): a clause pending adjudication holds rules no row
+    counts yet, so each pending item adds to the part's count and the verdict names it beside the GAP; an edition whose
+    GAP reaches 0 with clauses pending stays NOT COMPLETE."""
     gap = inventory_view.gaps(rows)
-    return Part("inventory GAP", gap, lines=(f"{gap} of {len(rows)} rule rows in state GAP",), data={"rows": len(rows)})
+    pending = sum(bound.values())
+    lines = [f"{gap} of {len(rows)} rule rows in state GAP"]
+    if bound:
+        lines.append("the rule count is a lower bound: " + ", ".join(f"{n} {what}" for what, n in bound.items())
+                     + " (their rules have no row yet, so each is counted here)")
+    shown = f"{gap} inventory GAP" + "".join(f" + {n} {what}" for what, n in bound.items())
+    return Part("inventory GAP", gap + pending, lines=tuple(lines), shown=shown if bound else "",
+                data={"rows": len(rows), "gap": gap, "bound": dict(bound)})
 
 
 def code_reads_part(year: int) -> Part:
@@ -173,14 +197,14 @@ def verdict(year: int, parts: list[Part]) -> tuple[bool, str]:
     """(complete, the verdict line): COMPLETE only when every part is measured and zero."""
     if all(p.measured and p.count == 0 for p in parts):
         return True, f"=== EDITION {year}: COMPLETE ==="
-    shown = [f"{p.count} {p.name}" if p.measured else f"{p.name} not measured" for p in parts if not p.measured or p.count]
-    return False, f"=== EDITION {year}: NOT COMPLETE — {' · '.join(shown)} ==="
+    return False, f"=== EDITION {year}: NOT COMPLETE — {' · '.join(p.text for p in parts if not p.measured or p.count)} ==="
 
 
 def render(year: int, parts: list[Part]) -> str:
     out = [f"edition {year}"]
     for i, p in enumerate(parts, 1):
-        out.append(f"{i}. {p.name}: " + (str(p.count) if p.measured else f"not measured — {p.why}"))
+        out.append(f"{i}. {p.name}: " + (str(p.count) + (f" ({p.shown})" if p.shown else "") if p.measured
+                                         else f"not measured — {p.why}"))
         out += [f"     {line}" for line in p.lines]
     out.append(verdict(year, parts)[1])
     return "\n".join(out)

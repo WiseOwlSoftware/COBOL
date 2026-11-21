@@ -273,8 +273,11 @@ def top_table(eds: tuple[Edition, ...]) -> str:
     for ed in eds:
         notes = ed.part("open work notes")
         harm = f' <span class="dim">({len(notes.data.get("HARM", []))} harm)</span>' if notes.measured else ""
+        gap = ed.part("inventory GAP")
+        # a bounded inventory (edition_status.inventory_count): the GAP rows and the pending items, side by side
+        bound = f' <span class="dim">({e(gap.shown)})</span>' if gap.measured and gap.shown else ""
         rows.append(f'<tr><td><a href="#e{ed.year}">{ed.year}</a></td><td>{verdict_pill(ed)}</td>'
-                    + count_cell(ed.part("inventory GAP")) + count_cell(ed.part("code reads"))
+                    + count_cell(gap, bound) + count_cell(ed.part("code reads"))
                     + count_cell(notes, harm) + count_cell(ed.part("catalog prose holes")) + "</tr>")
     return ('<div class="tablecard"><table><thead><tr><th>Edition</th><th>Verdict</th><th class="r">Inventory GAP</th>'
             '<th class="r">Code reads owed</th><th class="r">Open notes</th><th class="r">Text in no row</th></tr></thead>'
@@ -292,7 +295,8 @@ DETAILED = ("open work notes", "catalog prose holes")
 def parts_html(ed: Edition) -> str:
     out = []
     for i, p in enumerate(ed.parts, 1):
-        head = f"{i}. {p.name}: " + (f"{p.count:,}" if p.measured else f"not measured — {p.why}")
+        head = f"{i}. {p.name}: " + (f"{p.count:,}" + (f" ({p.shown})" if p.shown else "") if p.measured
+                                     else f"not measured — {p.why}")
         lines = () if p.name in DETAILED else p.lines
         out.append(f"<li>{e(head)}" + "".join(f"<br><span class=\"dim\">{e(x)}</span>" for x in lines) + "</li>")
     return f'<ul class="parts">{"".join(out)}</ul>'

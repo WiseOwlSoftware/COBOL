@@ -92,6 +92,22 @@ def case_05_the_real_readers_of_a_held_and_an_unheld_edition(expect):
                  "catalog prose holes not measured ===")
 
 
+def case_05b_a_bounded_inventory_is_never_zero(expect):
+    rows = [{"state": "OK"}, {"state": "OK"}]
+    whole = C.inventory_count(rows, {})
+    expect.equal("no GAP and no bound is zero", (whole.count, whole.text), (0, "0 inventory GAP"))
+    bounded = C.inventory_count(rows, {"clauses pending adjudication": 89})
+    expect.equal("no GAP with clauses pending is not zero", bounded.count, 89)
+    parts = [bounded, *(C.Part(n, 0) for n in F.NAMES[1:])]
+    expect.equal("and the verdict names the bound beside the GAP", C.verdict(2002, parts),
+                 (False, "=== EDITION 2002: NOT COMPLETE — 0 inventory GAP + 89 clauses pending adjudication ==="))
+    both = C.inventory_count([{"state": "GAP"}], {"clauses pending adjudication": 2, "rule-shaped headings untyped": 3})
+    expect.equal("every pending item counts", (both.count, both.data["gap"]), (6, 1))
+    real = C.inventory_part(2002)
+    expect.equal("the real part carries the edition's bound, read by the one reader",
+                 real.data["bound"], C.inventory_view.pending(C.inventory_schema.load_schema().edition(2002)))
+
+
 def case_06_the_prose_holes_of_a_planted_1985_transcription(expect):
     root = F.planted_1985(scratch_dir("edition-status-holes-"),
                           [{"locator": "VI.1.1", "text": "The compiler must reject every undeclared name in the source text."}])

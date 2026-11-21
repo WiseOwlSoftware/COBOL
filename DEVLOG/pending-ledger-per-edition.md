@@ -20,6 +20,11 @@ fixed here:
   (`Catalog.paragraphs`) and the copy is deleted; a committed row the walk does not reach refuses the measurement.
 - R1-4: coverage is scoped to the rows at or under the paragraph's locator.
 - R1-5: the self-test runs the real inventory and code-read parts (2014's `not measured` pinned) and an unreadable register.
+- The ledger branch's own review R1-1: part 1 counted GAP rows only and dropped the edition's lower bound (2002: 89 clauses
+  pending adjudication), so 2002 at zero GAP would have read COMPLETE. `inventory_view.pending` is now the one reading of
+  the bound (`lower_bound` prints it), and `inventory_count` adds each pending item to part 1, the verdict naming it beside
+  the GAP (`1173 inventory GAP + 89 clauses pending adjudication`) and the ledger showing it in the GAP cell. Its lead R1-2:
+  both case files pin a bounded inventory at zero GAP as NOT COMPLETE (a part that ignores the bound turns both RED).
 
 **The ledger** (`scripts/spec/gen_ledger.py`) was built for one goal, 2023 v1.0, and named 1985 nowhere in its plan half.
 It now shows, in the owner's order 1985, 2002, 2023, 2014: one line per edition with its verdict and blocking counts, each
@@ -34,6 +39,7 @@ ledger), and their CSS. The self-tests move to `scripts/selftests/spec/gen_ledge
 equals `edition_status.verdict` for the same parts, and the page reads COMPLETE for an edition only when all four parts are
 measured and zero (81 combinations).
 
-At the branch head every edition is NOT COMPLETE: 1985 by 166 open notes and 840 paragraphs in no row; 2002 by 1,173 GAP,
-704 code reads and 328 notes; 2023 by 4 GAP and 518 notes; 2014 by its unheld inventory and 256 notes. This entry also
+At the branch head every edition is NOT COMPLETE: 1985 by 165 open notes and 840 paragraphs in no row; 2002 by 1,173 GAP
+and 89 clauses pending adjudication, 704 code reads and 327 notes; 2023 by 4 GAP and 518 notes; 2014 by its unheld
+inventory and 255 notes. This entry also
 carries the edition_status branch's own (its pending entry is folded in here).
