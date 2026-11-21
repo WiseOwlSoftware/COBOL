@@ -1185,6 +1185,13 @@
    "refuter": "—"
   },
   {
+   "key": "DRV-1985-GR-VI.6.18.5-p1",
+   "arm": "informative",
+   "names": "describes the standard's examples and how their result tables are read: \"COUNT-n is assumed to be zero immediately prior to execution of the statement\"",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-e-01.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-VI.6.25.4-12",
    "arm": "undefined-in-rule",
    "names": "\"the result of the execution of this statement is undefined\"",

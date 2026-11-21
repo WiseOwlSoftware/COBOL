@@ -332,8 +332,7 @@
    "band": "",
    "text": "<u>Access Mode</u>. The manner in which records are to be operated upon within a file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p3",
@@ -356,8 +355,7 @@
    "band": "",
    "text": "<u>Actual Decimal Point</u>. The physical representation, using the decimal point characters period (.) or comma (,), of the decimal point position in a data item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p5",
@@ -380,8 +378,7 @@
    "band": "",
    "text": "<u>Alphabetic Character</u>. A letter or a space character.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p6",
@@ -404,8 +401,7 @@
    "band": "",
    "text": "<u>Alphanumeric Character</u>. Any character in the computer's character set.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p7",
@@ -428,8 +424,7 @@
    "band": "",
    "text": "<u>Alphanumeric Function</u>. A function whose value is composed of a string of one or more characters from the computer's character set.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p8",
@@ -452,8 +447,7 @@
    "band": "",
    "text": "<u>Alternate Record Key</u>. A key, other than the prime record key, whose contents identify a record within an indexed file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p11",
@@ -499,8 +493,7 @@
    "band": "",
    "text": "<u>Block</u>. A physical unit of data that is normally composed of one or more logical records. For mass storage files, a block may contain a portion of a logical record. The size of a block has no direct relationship to the size of the file within which the block is contained or to the size of the logical record(s) that are either contained within the block or that overlap the block. (See page IV-13, Conceptual Characteristics of a File.) The term is synonymous with physical record.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p18",
@@ -523,8 +516,7 @@
    "band": "",
    "text": "<u>Body Group</u>. Generic name for a report group of TYPE DETAIL, CONTROL HEADING, or CONTROL FOOTING.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p19",
@@ -547,8 +539,7 @@
    "band": "",
    "text": "<u>Bottom Margin</u>. An empty area which follows the page body.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p20",
@@ -571,8 +562,7 @@
    "band": "",
    "text": "<u>Called Program</u>. A program which is the object of a CALL statement combined at object time with the calling program to produce a run unit.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p21",
@@ -595,8 +585,7 @@
    "band": "",
    "text": "<u>Calling Program</u>. A program which executes a CALL to another program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p22",
@@ -619,8 +608,7 @@
    "band": "",
    "text": "<u>Cd-Name</u>. A user-defined word that names an MCS interface area described in a communication description entry within the Communication Section of the Data Division.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p24",
@@ -643,8 +631,7 @@
    "band": "",
    "text": "<u>Character Position</u>. A character position is the amount of physical storage required to store a single standard data format character whose usage is DISPLAY. Further characteristics of the physical storage are defined by the implementor.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p28",
@@ -667,8 +654,7 @@
    "band": "",
    "text": "<u>Clause</u>. A clause is an ordered set of consecutive COBOL character-strings whose purpose is to specify an attribute of an entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p29",
@@ -691,8 +677,7 @@
    "band": "",
    "text": "<u>COBOL Character Set</u>. The complete COBOL character set consists of the characters listed below.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p31",
@@ -715,8 +700,7 @@
    "band": "",
    "text": "<u>Collating Sequence</u>. The sequence in which the characters that are acceptable to a computer are ordered for purposes of sorting, merging, comparing, and for processing indexed files sequentially.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p32",
@@ -785,8 +769,7 @@
    "band": "",
    "text": "<u>Communication Device</u>. A mechanism (hardware or hardware/software) capable of sending data to a queue and/or receiving data from a queue. This mechanism may be a computer or a peripheral device. One or more programs containing communication description entries and residing within the same computer define one or more of these mechanisms.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p39",
@@ -832,8 +815,7 @@
    "band": "",
    "text": "<u>Compile Time</u>. The time at which a COBOL source program is translated, by a COBOL compiler, to a COBOL object program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-III.2-p44",
@@ -856,8 +838,7 @@
    "band": "",
    "text": "<u>Condition</u>. A status of a program at execution time for which a truth value can be determined. Where the term 'condition' (condition-1, condition-2, ...) appears in these language specifications in or in reference to 'condition' (condition-1, condition-2, ...) of a general format, it is a conditional expression consisting of either a simple condition optionally parenthesized, or a combined condition consisting of the syntactically correct combination of simple conditions, logical operators, and parentheses, for which a truth value can be determined.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-III.2-p45",
@@ -903,8 +884,7 @@
    "band": "",
    "text": "<u>Contiguous Items</u>. Items that are described by consecutive entries in the Data Division, and that bear a definite hierarchical relationship to each other.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p56",
@@ -927,8 +907,7 @@
    "band": "",
    "text": "<u>Control Data-Name</u>. A data-name that appears in a CONTROL clause and refers to a control data item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p61",
@@ -951,8 +930,7 @@
    "band": "",
    "text": "<u>Counter</u>. A data item used for storing numbers or number representations in a manner that permits these numbers to be increased or decreased by the value of another number, or to be changed or reset to zero or to an arbitrary positive or negative value.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p62",
@@ -998,8 +976,7 @@
    "band": "",
    "text": "<u>Current Record</u>. In file processing, the record which is available in the record area associated with a file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p66",
@@ -1022,8 +999,7 @@
    "band": "",
    "text": "<u>Data Clause</u>. A clause, appearing in a data description entry in the Data Division of a COBOL program, that provides information describing a particular attribute of a data item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p68",
@@ -1046,8 +1022,7 @@
    "band": "",
    "text": "<u>Data Item</u>. A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-III.2-p69",
@@ -1093,8 +1068,7 @@
    "band": "",
    "text": "<u>Debugging Section</u>. A debugging section is a section that contains a USE FOR DEBUGGING statement.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p74",
@@ -1117,8 +1091,7 @@
    "band": "",
    "text": "<u>De-Edit</u>. The logical removal of all editing characters from a numeric edited data item in order to determine that item's unedited numeric value.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p76",
@@ -1141,8 +1114,7 @@
    "band": "",
    "text": "<u>Delimiter</u>. A character or a sequence of contiguous characters that identify the end of a string of characters and separates that string of characters from the following string of characters. A delimiter is not part of the string of characters that it delimits.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p78",
@@ -1165,8 +1137,7 @@
    "band": "",
    "text": "<u>Destination</u>. The symbolic identification of the receiver of a transmission from a queue.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p79",
@@ -1189,8 +1160,7 @@
    "band": "",
    "text": "<u>Digit Position</u>. A digit position is the amount of physical storage required to store a single digit. This amount may vary depending on the usage specified in the data description entry that defines the data item. If the data description entry specifies that usage is DISPLAY, then a digit position is synonymous with a character position. Further characteristics of the physical storage are defined by the implementor.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p80",
@@ -1213,8 +1183,7 @@
    "band": "",
    "text": "<u>Division</u>. A collection of zero, one, or more sections or paragraphs, called the division body, that are formed and combined in accordance with a specific set of rules. Each division consists of the division header and the related division body. There are four divisions in a COBOL program: Identification, Environment, Data, and Procedure.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p82",
@@ -1283,8 +1252,7 @@
    "band": "",
    "text": "<u>End of Procedure Division</u>. The physical position of a COBOL source program after which no further procedures appear.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p87",
@@ -1307,8 +1275,7 @@
    "band": "",
    "text": "<u>Entry</u>. Any descriptive set of consecutive clauses terminated by a separator period and written in the Identification Division, Environment Division, or Data Division of a COBOL program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p88",
@@ -1331,8 +1298,7 @@
    "band": "",
    "text": "<u>Environment Clause</u>. A clause that appears as part of an Environment Division entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p89",
@@ -1355,8 +1321,7 @@
    "band": "",
    "text": "<u>Execution Time</u>. The time at which an object program is executed. The term is synonymous with object time.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p91",
@@ -1379,8 +1344,7 @@
    "band": "",
    "text": "<u>Expression</u>. An arithmetic or conditional expression.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p92",
@@ -1403,8 +1367,7 @@
    "band": "",
    "text": "<u>Extend Mode</u>. The state of a file after execution of an OPEN statement, with the EXTEND phrase specified, for that file and before the execution of a CLOSE statement without the REEL or UNIT phrase for that file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p93",
@@ -1427,8 +1390,7 @@
    "band": "",
    "text": "<u>External Data</u>. The data described in a program as external data items and external file connectors.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p99",
@@ -1451,8 +1413,7 @@
    "band": "",
    "text": "<u>File</u>. A collection of logical records.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p100",
@@ -1475,8 +1436,7 @@
    "band": "",
    "text": "<u>File Attribute Conflict Condition</u>. An unsuccessful attempt has been made to execute an input-output operation on a file and the file attributes, as specified for that file in the program, do not match the fixed attributes for that file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p101",
@@ -1499,8 +1459,7 @@
    "band": "",
    "text": "<u>File Clause</u>. A clause that appears as part of any of the following Data Division entries: file description entry (FD entry) and sort-merge file description entry (SD entry.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p108",
@@ -1523,8 +1482,7 @@
    "band": "",
    "text": "<u>File Position Indicator</u>. A conceptual entity that contains the value of the current key within the key of reference for an indexed file, or the record number of the current record for a sequential file, or the relative record number of the current record for a relative file, or indicates that no next logical record exists, or that the number of significant digits in the relative record number is larger than the size of the relative key data item, or that an optional input file is not present, or that the at end condition already exists, or that no valid next record has been established.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p110",
@@ -1547,8 +1505,7 @@
    "band": "",
    "text": "<u>Fixed File Attributes</u>. Information about a file which is established when a file is created and cannot subsequently be changed during the existence of the file. These attributes include the organization of the file (sequential, relative, or indexed), the prime record key, the alternate record keys, the code set, the minimum and maximum record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p111",
@@ -1571,8 +1528,7 @@
    "band": "",
    "text": "<u>Fixed Length Record</u>. A record associated with a file whose file description or sort-merge description entry requires that all records contain the same number of character positions.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p112",
@@ -1595,8 +1551,7 @@
    "band": "",
    "text": "<u>Footing Area</u>. The position of the page body adjacent to the bottom margin.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p113",
@@ -1619,8 +1574,7 @@
    "band": "",
    "text": "<u>Format</u>. A specific arrangement of a set of data.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-III.2-p115",
@@ -1666,8 +1620,7 @@
    "band": "",
    "text": "<u>High Order End</u>. The leftmost character of a string of characters.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p121",
@@ -1690,8 +1643,7 @@
    "band": "",
    "text": "<u>I-O-CONTROL Entry</u>. An entry in the I-O-CONTROL paragraph of the Environment Division which contains clauses which provide information required for the transmission and handling of data on named files during the execution of a program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p122",
@@ -1714,8 +1666,7 @@
    "band": "",
    "text": "<u>I-O Mode</u>. The state of a file after execution of an OPEN statement, with the I-O phrase specified, for that file and before the execution of a CLOSE statement without the REEL or UNIT phrase for that file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p124",
@@ -1738,8 +1689,7 @@
    "band": "",
    "text": "<u>Identifier</u>. A syntactically correct combination of character-strings and separators that names a data item. When referencing a data item which is not a function, an identifier consists of a data-name, together with its qualifiers, subscripts, and reference-modifier, as required for uniqueness of reference. When referencing a data item which is a function, a function-identifier is used. The rules for 'identifier' associated with general formats may, however, specifically prohibit reference to functions, qualification, subscripting, or reference modification.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p126",
@@ -1762,8 +1712,7 @@
    "band": "",
    "text": "<u>Implementor-Name</u>. A system-name that refers to a particular feature available on that implementor's computing system.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p128",
@@ -1809,8 +1758,7 @@
    "band": "",
    "text": "<u>Indexed File</u>. A file with indexed organization.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p135",
@@ -1833,8 +1781,7 @@
    "band": "",
    "text": "<u>Input File</u>. A file that is opened in the input mode.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p136",
@@ -1857,8 +1804,7 @@
    "band": "",
    "text": "<u>Input Mode</u>. The state of a file after execution of an OPEN statement, with the INPUT phrase specified, for that file and before the execution of a CLOSE statement without the REEL or UNIT phrase for that file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p137",
@@ -1881,8 +1827,7 @@
    "band": "",
    "text": "<u>Input-Output File</u>. A file that is opened in the I-O mode.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p139",
@@ -1905,8 +1850,7 @@
    "band": "",
    "text": "<u>Input-Output Statement</u>. A statement that causes files to be processed by performing operations upon individual records or upon the file as a unit. The input-output statements are: ACCEPT (with the identifier phrase), CLOSE, DELETE, DISABLE, DISPLAY, ENABLE, OPEN, PURGE, READ, RECEIVE, REWRITE, SEND, SET (with the TO ON or TO OFF phrase), START, and WRITE.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p141",
@@ -1929,8 +1873,7 @@
    "band": "",
    "text": "<u>Integer</u>. (1) A numeric literal that does not include any digit positions to the right of the decimal point.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-L2.2",
@@ -1953,8 +1896,7 @@
    "band": "",
    "text": "(2) A numeric data item defined in the Data Division that does not include any digit positions to the right of the decimal point.",
    "provisional": "none",
-   "shape": "item",
-   "definitional": true
+   "shape": "item"
   },
   {
    "id": "1985-SR-III.2-p142",
@@ -2000,8 +1942,7 @@
    "band": "",
    "text": "<u>Integer Function</u>. A function whose class and category are numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p147",
@@ -2024,8 +1965,7 @@
    "band": "",
    "text": "<u>Intra-Record Data Structure</u>. The entire collection of groups and elementary data items from a logical record which is defined by a contiguous subset of the data description entries which describe that record. These data description entries include all entries whose level-number is greater than the level-number of the first data description entry describing the intra-record data structure.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p148",
@@ -2048,8 +1988,7 @@
    "band": "",
    "text": "<u>Invalid Key Condition</u>. A condition, at object time, caused when a specific value of the key associated with an indexed or relative file is determined to be invalid.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p149",
@@ -2072,8 +2011,7 @@
    "band": "",
    "text": "<u>Key</u>. A data item which identifies the location of a record, or a set of data items which serve to identify the ordering of data.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p150",
@@ -2096,8 +2034,7 @@
    "band": "",
    "text": "<u>Key of Reference</u>. The key, either prime or alternate, currently being used to access records within an indexed file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p151",
@@ -2120,8 +2057,7 @@
    "band": "",
    "text": "<u>Key Word</u>. A reserved word or function-name whose presence is required when the format in which the word appears is used in a source program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p153",
@@ -2144,8 +2080,7 @@
    "band": "",
    "text": "<u>Letter</u>. A character belonging to one of the following two sets: (1) uppercase letters: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z; (2) lowercase letters: a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p157",
@@ -2168,8 +2103,7 @@
    "band": "",
    "text": "<u>Library Text</u>. A sequence of text words, comment lines, the separator space, or the separator pseudo-text delimiter in a COBOL library.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p159",
@@ -2215,8 +2149,7 @@
    "band": "",
    "text": "<u>Line Number</u>. An integer that denotes the vertical position of a report line on a page.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p163",
@@ -2262,8 +2195,7 @@
    "band": "",
    "text": "<u>Low Order End</u>. The rightmost character of a string of characters.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p167",
@@ -2286,8 +2218,7 @@
    "band": "",
    "text": "<u>Mass Storage</u>. A storage medium in which data may be organized and maintained in both a sequential and nonsequential manner.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p168",
@@ -2310,8 +2241,7 @@
    "band": "",
    "text": "<u>Mass Storage Control System (MSCS)</u>. An input-output control system that directs, or controls, the processing of mass storage files.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p169",
@@ -2334,8 +2264,7 @@
    "band": "",
    "text": "<u>Mass Storage File</u>. A collection of records that is assigned to a mass storage medium.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p171",
@@ -2381,8 +2310,7 @@
    "band": "",
    "text": "<u>Message</u>. Data associated with an end of message indicator or an end of group indicator. (See page III-14, Message Indicators.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p173",
@@ -2405,8 +2333,7 @@
    "band": "",
    "text": "<u>Message Control System (MCS)</u>. A communication control system that supports the processing of messages.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p175",
@@ -2452,8 +2379,7 @@
    "band": "",
    "text": "<u>Message Segment</u>. Data that forms a logical subdivision of a message, normally associated with an end of segment indicator. (See page III-14, Message Indicators.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p178",
@@ -2476,8 +2402,7 @@
    "band": "",
    "text": "<u>MSCS</u>. Mass storage control system; an input-output control system that directs, or controls, the processing of mass storage files.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p179",
@@ -2500,8 +2425,7 @@
    "band": "",
    "text": "<u>Native Character Set</u>. The implementor-defined character set associated with the computer specified in the OBJECT-COMPUTER paragraph.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p180",
@@ -2524,8 +2448,7 @@
    "band": "",
    "text": "<u>Native Collating Sequence</u>. The implementor-defined collating sequence associated with the computer specified in the OBJECT-COMPUTER paragraph.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p181",
@@ -2548,8 +2471,7 @@
    "band": "",
    "text": "<u>Negated Combined Condition</u>. The 'NOT' logical operator immediately followed by a parenthesized combined condition.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p182",
@@ -2572,8 +2494,7 @@
    "band": "",
    "text": "<u>Negated Simple Condition</u>. The 'NOT' logical operator immediately followed by a simple condition.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p183",
@@ -2596,8 +2517,7 @@
    "band": "",
    "text": "<u>Next Executable Sentence</u>. The next sentence to which control will be transferred after execution of the current statement is complete. (See page IV-25, Explicit and Implicit Transfers of Control.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p185",
@@ -2620,8 +2540,7 @@
    "band": "",
    "text": "<u>Next Record</u>. The record which logically follows the current record of a file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p187",
@@ -2644,8 +2563,7 @@
    "band": "",
    "text": "<u>Nonnumeric Item</u>. A data item whose description permits its content to be composed of any combination of characters taken from the computer's character set. Certain categories of nonnumeric items may be formed from more restricted character sets.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p189",
@@ -2668,8 +2586,7 @@
    "band": "",
    "text": "<u>Numeric Character</u>. A character that belongs to the following set of digits: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p190",
@@ -2692,8 +2609,7 @@
    "band": "",
    "text": "<u>Numeric Function</u>. A function whose class and category are numeric but which for some possible evaluation does not satisfy the requirements of an integer function.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p195",
@@ -2716,8 +2632,7 @@
    "band": "",
    "text": "<u>Object of Entry</u>. A set of operands and reserved words, within a Data Division entry of a COBOL program, that immediately follows the subject of the entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p196",
@@ -2740,8 +2655,7 @@
    "band": "",
    "text": "<u>Object Program</u>. A set or group of executable machine language instructions and other material designed to interact with data to provide problem solutions. In this context, an object program is generally the machine language result of the operation of a COBOL compiler on a source program. Where there is no danger of ambiguity, the word 'program' alone may be used in place of the phrase 'object program'.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p197",
@@ -2764,8 +2678,7 @@
    "band": "",
    "text": "<u>Object Time</u>. The time at which an object program is executed. The term is synonymous with execution time.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p198",
@@ -2788,8 +2701,7 @@
    "band": "",
    "text": "<u>Obsolete Element</u>. A COBOL language element in Standard COBOL that is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p200",
@@ -2812,8 +2724,7 @@
    "band": "",
    "text": "<u>Operand</u>. Whereas the general definition of operand is 'that component which is operated upon', for the purposes of this document, any lowercase word (or words) that appears in a statement or entry format may be considered to be an operand and, as such, is an implied reference to the data indicated by the operand.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p204",
@@ -2836,8 +2747,7 @@
    "band": "",
    "text": "<u>Output File</u>. A file that is opened in either the output mode or extend mode.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p205",
@@ -2883,8 +2793,7 @@
    "band": "",
    "text": "<u>Page</u>. A vertical division of a report representing a physical separation of report data, the separation being based on internal reporting requirements and/or external characteristics of the reporting medium.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-III.2-p212",
@@ -2953,8 +2862,7 @@
    "band": "",
    "text": "<u>Phrase</u>. A phrase is an ordered set of one or more consecutive COBOL character-strings that form a portion of a COBOL procedural statement or of a COBOL clause.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p219",
@@ -2977,8 +2885,7 @@
    "band": "",
    "text": "<u>Physical Page</u>. A device dependent concept defined by the implementor.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p220",
@@ -3001,8 +2908,7 @@
    "band": "",
    "text": "<u>Physical Record</u>. The term is synonymous with block.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p222",
@@ -3025,8 +2931,7 @@
    "band": "",
    "text": "<u>Printable Group</u>. A report group that contains at least one print line.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p223",
@@ -3049,8 +2954,7 @@
    "band": "",
    "text": "<u>Printable Item</u>. A data item, the extent and contents of which are specified by an elementary report entry. This elementary report entry contains a COLUMN NUMBER clause, a PICTURE clause, and a SOURCE, SUM, or VALUE clause.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p225",
@@ -3073,8 +2977,7 @@
    "band": "",
    "text": "<u>Procedure Branching Statement</u>. A statement that causes the explicit transfer of control to a statement other than the next executable statement in the sequence in which the statements are written in the source program. The procedure branching statements are: ALTER, CALL, EXIT, EXIT PROGRAM, GO TO, MERGE (with the OUTPUT PROCEDURE phrase), PERFORM and SORT (with the INPUT PROCEDURE or OUTPUT PROCEDURE phrase).",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p227",
@@ -3097,8 +3000,7 @@
    "band": "",
    "text": "<u>Program Identification Entry</u>. An entry in the PROGRAM-ID paragraph of the Identification Division which contains clauses that specify the program-name and assign selected program attributes to the program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p229",
@@ -3121,8 +3023,7 @@
    "band": "",
    "text": "<u>Pseudo-Text</u>. A sequence of text words, comment lines, or the separator space in a source program or COBOL library bounded by, but not including, pseudo-text delimiters.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-III.2-p230",
@@ -3168,8 +3069,7 @@
    "band": "",
    "text": "<u>Punctuation Character</u>. A character that belongs to the following set:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p235",
@@ -3192,8 +3092,7 @@
    "band": "",
    "text": "<u>Queue</u>. A logical collection of messages awaiting transmission or processing.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p236",
@@ -3216,8 +3115,7 @@
    "band": "",
    "text": "<u>Queue Name</u>. A symbolic name that indicates to the message control system the logical path by which a message or a portion of a completed message may be accessible in a queue.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p239",
@@ -3240,8 +3138,7 @@
    "band": "",
    "text": "<u>Record Area</u>. A storage area allocated for the purpose of processing the record described in a record description entry in the File Section of the Data Division. In the File Section, the current number of character positions in the record area is determined by the explicit or implicit RECORD clause.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p240",
@@ -3264,8 +3161,7 @@
    "band": "",
    "text": "<u>Record Description</u>. The total set of data description entries associated with a particular record. The term is synonymous with record description entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p241",
@@ -3288,8 +3184,7 @@
    "band": "",
    "text": "<u>Record Description Entry</u>. The total set of data description entries associated with a particular record. The term is synonymous with record description.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p243",
@@ -3312,8 +3207,7 @@
    "band": "",
    "text": "<u>Record-Name</u>. A user-defined word that names a record described in a record description entry in the Data Division of a COBOL program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p244",
@@ -3336,8 +3230,7 @@
    "band": "",
    "text": "<u>Record Number</u>. The ordinal number of a record in the file whose organization is sequential.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p245",
@@ -3360,8 +3253,7 @@
    "band": "",
    "text": "<u>Reel</u>. A discrete portion of a storage medium, the dimensions of which are determined by each implementor, that contains part of a file, all of a file, or any number of files. The term is synonymous with unit and volume.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p248",
@@ -3384,8 +3276,7 @@
    "band": "",
    "text": "<u>Relation</u>. The term is synonymous with relational operator.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p249",
@@ -3408,8 +3299,7 @@
    "band": "",
    "text": "<u>Relation Character</u>. A character that belongs to the following set:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p252",
@@ -3432,8 +3322,7 @@
    "band": "",
    "text": "<u>Relative File</u>. A file with relative organization.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p253",
@@ -3502,8 +3391,7 @@
    "band": "",
    "text": "<u>Report Clause</u>. A clause, in the Report Section of the Data Division, that appears in a report description entry or a report group description entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p258",
@@ -3572,8 +3460,7 @@
    "band": "",
    "text": "<u>Report Writer Control System (RWCS)</u>. An object time control system, provided by the implementor, that accomplishes the construction of reports.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p267",
@@ -3596,8 +3483,7 @@
    "band": "",
    "text": "<u>Report Writer Logical Record</u>. A record that consists of the report writer print line and associated control information necessary for its selection and vertical positioning.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p269",
@@ -3620,8 +3506,7 @@
    "band": "",
    "text": "<u>Resource</u>. A facility or service, controlled by the operating system, that can be used by an executing program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p270",
@@ -3644,8 +3529,7 @@
    "band": "",
    "text": "<u>Resultant Identifier</u>. A user-defined data item that is to contain the result of an arithmetic operation.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p272",
@@ -3668,8 +3552,7 @@
    "band": "",
    "text": "<u>Run Unit</u>. One or more object programs which interact with one another and which function, at object time, as an entity to provide problem solutions.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p274",
@@ -3761,8 +3644,7 @@
    "band": "",
    "text": "<u>Separately Compiled Program</u>. A program which, together with its contained programs, is compiled separately from all other programs.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p283",
@@ -3808,8 +3690,7 @@
    "band": "",
    "text": "<u>Sequential File</u>. A file with sequential organization.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p291",
@@ -3832,8 +3713,7 @@
    "band": "",
    "text": "<u>Source</u>. The symbolic identification of the originator of a transmission to a queue.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-III.2-p295",
@@ -3879,8 +3759,7 @@
    "band": "",
    "text": "<u>Special Character</u>. A character that belongs to the following set:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-T7.1",
@@ -3903,8 +3782,7 @@
    "band": "",
    "text": "+ | plus sign",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.2",
@@ -3927,8 +3805,7 @@
    "band": "",
    "text": "- | minus sign",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.3",
@@ -3951,8 +3828,7 @@
    "band": "",
    "text": "\\* | asterisk",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.4",
@@ -3975,8 +3851,7 @@
    "band": "",
    "text": "/ | slant (solidus)",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.5",
@@ -3999,8 +3874,7 @@
    "band": "",
    "text": "= | equal sign",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.6",
@@ -4023,8 +3897,7 @@
    "band": "",
    "text": "$ | currency sign",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.7",
@@ -4047,8 +3920,7 @@
    "band": "",
    "text": ", | comma (decimal point)",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.8",
@@ -4071,8 +3943,7 @@
    "band": "",
    "text": "; | semicolon",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.9",
@@ -4095,8 +3966,7 @@
    "band": "",
    "text": ". | period (decimal point, full stop)",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.10",
@@ -4119,8 +3989,7 @@
    "band": "",
    "text": "\" | quotation mark",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.11",
@@ -4143,8 +4012,7 @@
    "band": "",
    "text": "( | left parenthesis",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.12",
@@ -4167,8 +4035,7 @@
    "band": "",
    "text": ") | right parenthesis",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.13",
@@ -4191,8 +4058,7 @@
    "band": "",
    "text": "&gt; | greater than symbol",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.14",
@@ -4215,8 +4081,7 @@
    "band": "",
    "text": "&lt; | less than symbol",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-T7.15",
@@ -4239,8 +4104,7 @@
    "band": "",
    "text": ": | colon",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-III.2-p301",
@@ -4263,8 +4127,7 @@
    "band": "",
    "text": "<u>Standard Data Format</u>. The concept used in describing data in a COBOL Data Division under which the characteristics or properties of the data are expressed in a form oriented to the appearance of the data on a printed page of infinite length and breadth, rather than a form oriented to the manner in which the data is stored internally in the computer or on a particular medium.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p303",
@@ -4287,8 +4150,7 @@
    "band": "",
    "text": "<u>Sub-Queue</u>. A logical hierarchical division of a queue.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p304",
@@ -4311,8 +4173,7 @@
    "band": "",
    "text": "<u>Subject of Entry</u>. An operand or reserved word that appears immediately following the level indicator or the level-number in a Data Division entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p305",
@@ -4335,8 +4196,7 @@
    "band": "",
    "text": "<u>Subprogram</u>. A program which is the object of a CALL statement combined at object time with the calling program to produce a run unit. The term is synonymous with called program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p312",
@@ -4359,8 +4219,7 @@
    "band": "",
    "text": "<u>Table</u>. A set of logically consecutive items of data that are defined in the Data Division of a COBOL program by means of the OCCURS clause.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p313",
@@ -4383,8 +4242,7 @@
    "band": "",
    "text": "<u>Table Element</u>. A data item that belongs to the set of repeated items comprising a table.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p314",
@@ -4407,8 +4265,7 @@
    "band": "",
    "text": "<u>Terminal</u>. The originator of a transmission to a queue, or the receiver of a transmission from a queue.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p315",
@@ -4431,8 +4288,7 @@
    "band": "",
    "text": "<u>Text-Name</u>. A user-defined word which identifies library text.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p316",
@@ -4550,8 +4406,7 @@
    "band": "",
    "text": "<u>Top Margin</u>. An empty area which precedes the page body.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p320",
@@ -4574,8 +4429,7 @@
    "band": "",
    "text": "<u>Unit</u>. A discrete portion of a storage medium, the dimensions of which are determined by each implementor, that contains part of a file, all of a file, or any number of files. The term is synonymous with reel and volume.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p321",
@@ -4621,8 +4475,7 @@
    "band": "",
    "text": "<u>Variable</u>. A data item whose value may be changed by execution of the object program. A variable used in an arithmetic-expression must be a numeric elementary item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p324",
@@ -4645,8 +4498,7 @@
    "band": "",
    "text": "<u>Variable Length Record</u>. A record associated with a file whose file description or sort-merge description entry permits records to contain a varying number of character positions.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p325",
@@ -4669,8 +4521,7 @@
    "band": "",
    "text": "<u>Variable Occurrence Data Item</u>. A variable occurrence data item is a table element which is repeated a variable number of times. Such an item must contain an OCCURS DEPENDING ON clause in its data description entry, or be subordinate to such an item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p326",
@@ -4693,8 +4544,7 @@
    "band": "",
    "text": "<u>Verb</u>. A word that expresses an action to be taken by a COBOL compiler or object program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-III.2-p327",
@@ -4717,8 +4567,7 @@
    "band": "",
    "text": "<u>Volume</u>. A discrete portion of a storage medium, the dimensions of which are determined by each implementor, that contains part of a file, all of a file, or any number of files. The term is synonymous with reel and unit.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.1-p1",
@@ -4741,8 +4590,7 @@
    "band": "",
    "text": "The language considerations and rules specified in this section, apply to the highest level of Standard COBOL. When a particular level of a module does not allow all of these language concepts, the restrictions will be pointed out in the section describing that language element. Throughout this document, specifications unique to the high level are enclosed in boxes. It should also be noted that restrictions contained in one module might possibly affect other modules. For example, qualification is not allowed in level 1 of the Nucleus; therefore, any module which is combined with level 1 of the Nucleus would have the same restriction. The flowcharts in this document illustrate the logic of the statement under which they are contained and are not meant to dictate implementation.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.2.1-p1",
@@ -4788,8 +4636,7 @@
    "band": "",
    "text": "Elements which make up a clause or a statement consist of uppercase words, lowercase words, level-numbers, brackets, braces, connectives, and special characters.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.2.1.2-p1",
@@ -4835,8 +4682,7 @@
    "band": "",
    "text": "Lowercase words, in a general format, are generic terms used to represent COBOL words, literals, PICTURE character-strings, comment-entries, or a complete syntactical entry that must be supplied by the user. Where generic terms are repeated in a general format, a number or letter appended to the term serves to identify that term for explanation or discussion.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.2.1.3-p1",
@@ -4951,8 +4797,7 @@
    "band": "",
    "text": "Options are indicated in a general format or a portion of a general format by vertically stacking alternative possibilities, by a series of brackets, braces, or choice indicators or by a combination of both. An option is selected by specifying one of the possibilities from a stack of alternative possibilities or by specifying a unique combination of possibilities from a series of brackets, braces, or choice indicators.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.2.1.5-p1",
@@ -4975,8 +4820,7 @@
    "band": "",
    "text": "In text, other than general formats, the ellipsis (...) shows omission of a word or words when such omission does not impair comprehension. This is the conventional meaning of the ellipsis, and the use becomes apparent in context.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.2.1.5-p2",
@@ -5114,8 +4958,7 @@
    "band": "",
    "text": "Syntax rules are those rules that define or clarify the order in which words or elements are arranged to form larger elements such as phrases, clauses, or statements. Syntax rules may also either impose restrictions on individual words or elements or relax restrictions implied by words or elements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.3.2-p1",
@@ -5138,8 +4981,7 @@
    "band": "",
    "text": "A general rule is a rule that defines or clarifies the meaning or relationship of meanings of an element or set of elements. It is used to define or clarify the semantics of the statement and the effect that it has on either execution or compilation.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.1-p1",
@@ -5185,8 +5027,7 @@
    "band": "",
    "text": "Certain of the characters comprising the COBOL character set may not be graphically represented in definitions of national and international standard character sets. In these instances, a substitute graphic may be specified to replace the character(s) not represented.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.1-p3",
@@ -5675,7 +5516,6 @@
    "text": "1. alphabet-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5700,7 +5540,6 @@
    "text": "2. cd-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5725,7 +5564,6 @@
    "text": "3. class-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5750,7 +5588,6 @@
    "text": "4. condition-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5775,7 +5612,6 @@
    "text": "5. data-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5800,7 +5636,6 @@
    "text": "6. file-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5825,7 +5660,6 @@
    "text": "7. index-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5850,7 +5684,6 @@
    "text": "8. level-number",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5875,7 +5708,6 @@
    "text": "9. library-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5900,7 +5732,6 @@
    "text": "10. mnemonic-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5925,7 +5756,6 @@
    "text": "11. paragraph-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5950,7 +5780,6 @@
    "text": "12. program-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -5975,7 +5804,6 @@
    "text": "13. record-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -6000,7 +5828,6 @@
    "text": "14. report-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -6025,7 +5852,6 @@
    "text": "15. routine-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -6050,7 +5876,6 @@
    "text": "16. section-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -6075,7 +5900,6 @@
    "text": "17. segment-number",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -6100,7 +5924,6 @@
    "text": "18. symbolic-character",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -6125,7 +5948,6 @@
    "text": "19. text-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "The types of user-defined words are:"
   },
   {
@@ -6578,8 +6400,7 @@
    "band": "",
    "text": "A condition-name is a name which is assigned to a specific value, set of values, or range of values, within a complete set of values that a data item may assume. The data item itself is called a conditional variable.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.2.2.1.1.1-p2",
@@ -6648,8 +6469,7 @@
    "band": "",
    "text": "A mnemonic-name assigns a user-defined word to an implementor-name. These associations are established in the SPECIAL-NAMES paragraph of the Environment Division (see VI-13, The SPECIAL-NAMES Paragraph).",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.2.2.1.1.3-p1",
@@ -6742,7 +6562,6 @@
    "text": "1. computer-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are three types of system-names:"
   },
   {
@@ -6767,7 +6586,6 @@
    "text": "2. implementor-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are three types of system-names:"
   },
   {
@@ -6792,7 +6610,6 @@
    "text": "3. language-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are three types of system-names:"
   },
   {
@@ -6816,8 +6633,7 @@
    "band": "",
    "text": "Within a given implementation these three types of system-names form disjoint sets; a given system-name may belong to one and only one of them. The system-names listed above are individually defined in the glossary beginning on page III-1.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.2.2.1.3-p1",
@@ -6864,7 +6680,6 @@
    "text": "1. required words",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are three types of reserved words:"
   },
   {
@@ -6889,7 +6704,6 @@
    "text": "2. optional words",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are three types of reserved words:"
   },
   {
@@ -6914,7 +6728,6 @@
    "text": "3. special purpose words",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are three types of reserved words:"
   },
   {
@@ -7008,7 +6821,6 @@
    "text": "1. special registers",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are two types of special purpose words:"
   },
   {
@@ -7033,7 +6845,6 @@
    "text": "2. figurative constants",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are two types of special purpose words:"
   },
   {
@@ -7081,7 +6892,6 @@
    "text": "1. DEBUG-ITEM (see page XV-1)",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are four special registers:"
   },
   {
@@ -7106,7 +6916,6 @@
    "text": "2. LINAGE-COUNTER (see page VII-5)",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are four special registers:"
   },
   {
@@ -7131,7 +6940,6 @@
    "text": "3. LINE-COUNTER (see page XIII-1)",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are four special registers:"
   },
   {
@@ -7156,7 +6964,6 @@
    "text": "4. PAGE-COUNTER (see page XIII-1)",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "There are four special registers:"
   },
   {
@@ -7203,8 +7010,7 @@
    "band": "",
    "text": "A literal is a character-string whose value is implied by an ordered set of characters of which the literal is composed or by specification of a reserved word which references a figurative constant. Every literal belongs to one of two types: nonnumeric or numeric.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.2.2.2.1-p1",
@@ -7865,8 +7671,7 @@
    "band": "",
    "text": "A PICTURE character-string consists of certain symbols which are composed of the currency symbol and certain combinations of characters in the COBOL character set. An explanation of the PICTURE character-string and the rules that govern its use are given under the appropriate paragraph. (See page VI-29, The PICTURE Clause.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.2.2.4-p1",
@@ -7912,8 +7717,7 @@
    "band": "",
    "text": "To make data as computer-independent as possible, the characteristics or properties of the data are described in relation to a standard data format rather than an equipment-oriented format. This standard data format is oriented to general data processing applications and uses the decimal system to represent numbers (regardless of the radix used by the computer) and all characters of the COBOL character set to describe nonnumeric data items.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.1-p1",
@@ -7936,8 +7740,7 @@
    "band": "",
    "text": "In order to separate the logical characteristics of data from the physical characteristics of the data storage media, separate clauses or phrases are used. The following paragraphs discuss the characteristics of files.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.1.1-p1",
@@ -7960,8 +7763,7 @@
    "band": "",
    "text": "The physical aspects of a file describe the data as it appears on the input or output media and include such features as:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.1.2-p1",
@@ -7984,8 +7786,7 @@
    "band": "",
    "text": "The conceptual characteristics of a file are the explicit definition of each logical entity within the file itself. In a COBOL program, the input or output statements refer to one logical record.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.1.2-p2",
@@ -8008,8 +7809,7 @@
    "band": "",
    "text": "It is important to distinguish between a physical record and a logical record. A COBOL logical record is a group of related information, uniquely identifiable, and treated as a unit.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.1.2-p3",
@@ -8032,8 +7832,7 @@
    "band": "",
    "text": "A physical record is a physical unit of information whose size and recording mode is convenient to a particular computer for the storage of data on an input or output device. The size of a physical record is hardware dependent and bears no direct relationship to the size of the file of information contained on a device.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.1.2-p4",
@@ -8079,8 +7878,7 @@
    "band": "",
    "text": "The concept of a logical record is not restricted to file data but is carried over into the definition of working storage. Thus, working storage is grouped into logical records and defined by a series of record description entries.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.1.2-p6",
@@ -8149,8 +7947,7 @@
    "band": "",
    "text": "A level concept is inherent in the structure of a logical record. This concept arises from the need to specify subdivision of a record for the purpose of data reference. Once a subdivision has been specified, it may be further subdivided to permit more detailed data referral.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.2-p2",
@@ -8196,8 +7993,7 @@
    "band": "",
    "text": "In order to refer to a set of elementary items, the elementary items are combined into groups. Each group consists of a named sequence of one or more elementary items. Groups, in turn, may be combined into groups of two or more groups, etc. Thus, an elementary item may belong to more than one group.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.3.2.1-p1",
@@ -8335,8 +8131,7 @@
    "band": "",
    "text": "Entries that specify noncontiguous data items, which are not subdivisions of other items, and are not themselves subdivided, have been assigned the special level-number 77.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.3-p1",
@@ -8405,8 +8200,7 @@
    "band": "",
    "text": "The value of a numeric item may be represented in either binary or decimal form depending on the equipment. In addition there are several ways of expressing decimal. Since these representations are actually combinations of bits, they are commonly called binary-coded decimal forms. The selection of radix is generally dependent upon the arithmetic capability of the computer. If more than one arithmetic radix is provided, the selection is dependent upon the specification of the USAGE clause. The binary-coded decimal form is also used to represent characters and symbols that are alphanumeric items. The selection of the proper binary-coded alphanumeric or binary-coded decimal form is dependent upon the capability of the computer and its external media.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.4-p2",
@@ -8498,8 +8292,7 @@
    "band": "",
    "text": "Algebraic signs fall into two categories: operational signs, which are associated with signed numeric data items and signed numeric literals to indicate their algebraic properties; and editing signs, which appear (e.g.) on edited reports to identify the sign of the item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.6-p1",
@@ -8522,8 +8315,7 @@
    "band": "",
    "text": "The standard rules for positioning data within an elementary item depend on the category of the receiving item. These rules are:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.6-1",
@@ -8615,8 +8407,7 @@
    "band": "",
    "text": "Some computer memories are organized in such a way that there are natural addressing boundaries in the computer memory (e.g., word boundaries, half-word boundaries, byte boundaries). The way in which data is stored is determined by the object program, and need not respect these natural boundaries.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.7-p2",
@@ -8639,8 +8430,7 @@
    "band": "",
    "text": "However, certain uses of data (e.g., in arithmetic operations or in subscripting) may be facilitated if the data is stored so as to be aligned on these natural boundaries. Specifically, additional machine operations in the object program may be required for the accessing and storage of data if portions of two or more data items appear between adjacent natural boundaries, or if certain natural boundaries bifurcate a single data item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.7-p3",
@@ -8663,8 +8453,7 @@
    "band": "",
    "text": "Data items which are aligned on these natural boundaries in such a way as to avoid such additional machine operations are defined to be synchronized.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.7-1",
@@ -8733,8 +8522,7 @@
    "band": "",
    "text": "Each implementor who provides for special types of alignment will specify the precise interpretations which are to be made. The use of such items within a group may affect the results of statements in which the group is used as an operand. Each implementor who provides for these special types of alignment will describe the effect of the implicit FILLER and the semantics of any statement referencing these groups.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.3.8-p1",
@@ -8803,8 +8591,7 @@
    "band": "",
    "text": "When the resource named is a function, the function definition may require the user to specify in the reference to the function a value or set of values for one or more parameters which determine the value of the function for that particular reference. This is accomplished through the specification of arguments as described in the following paragraphs.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.3.8-p4",
@@ -9486,8 +9273,7 @@
    "band": "",
    "text": "A function-identifier is a syntactically correct combination of character-strings and separators that uniquely references the data item resulting from the evaluation of a function.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-IV.4.3.8.3.2",
@@ -9918,8 +9704,7 @@
    "band": "",
    "text": "An identifier is a syntactically correct sequence of character-strings and separators used to reference data uniquely.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.4.3.8.5.1-p2",
@@ -10078,8 +9863,7 @@
    "band": "",
    "text": "In the general format of the chapters that follow, 'condition-name' refers to a condition-name qualified or subscripted, as necessary.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.4.1-p1",
@@ -10102,8 +9886,7 @@
    "band": "",
    "text": "A COBOL source program can reference data items either explicitly or implicitly in Procedure Division statements. An explicit reference occurs when the name of the referenced item is written in a Procedure Division statement or when the name of the referenced item is copied into the Procedure Division by the processing of a COPY statement. An implicit reference occurs when the item is referenced by a Procedure Division statement without the name of the referenced item being written in the source statement. An implicit reference also occurs, during the execution of a PERFORM statement, when the index or data item referenced by the index-name or identifier specified in the VARYING, AFTER, or UNTIL phrase is initialized, modified, or evaluated by the control mechanism associated with that PERFORM statement. Such an implicit reference occurs if and only if the data item contributes to the execution of the statement.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.4.2-p1",
@@ -10241,8 +10024,7 @@
    "band": "",
    "text": "In this document, the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred according to the rules above and the rules associated with each language element.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.4.2-p6",
@@ -10426,8 +10208,7 @@
    "band": "",
    "text": "Attributes may be implicitly or explicitly specified. Any attribute which has been explicitly specified is called an explicit attribute. If an attribute has not been specified explicitly, then the attribute takes on the default specification. Such an attribute is known as an implicit attribute.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.4.4-p1",
@@ -10450,8 +10231,7 @@
    "band": "",
    "text": "Scope terminators serve to delimit the scope of certain Procedure Division statements. (See page IV-39, Delimited Scope Statements.) Scope terminators are of two types: explicit and implicit.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.4.4-T1.1",
@@ -10474,8 +10254,7 @@
    "band": "",
    "text": "END-ADD | END-MULTIPLY | END-SEARCH",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-IV.4.4.4-T1.2",
@@ -10498,8 +10277,7 @@
    "band": "",
    "text": "END-CALL | END-PERFORM | END-START",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-IV.4.4.4-T1.3",
@@ -10522,8 +10300,7 @@
    "band": "",
    "text": "END-COMPUTE | END-READ | END-STRING",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-IV.4.4.4-T1.4",
@@ -10546,8 +10323,7 @@
    "band": "",
    "text": "END-DELETE | END-RECEIVE | END-SUBTRACT",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-IV.4.4.4-T1.5",
@@ -10570,8 +10346,7 @@
    "band": "",
    "text": "END-DIVIDE | END-RETURN | END-UNSTRING",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-IV.4.4.4-T1.6",
@@ -10594,8 +10369,7 @@
    "band": "",
    "text": "END-EVALUATE | END-REWRITE | END-WRITE",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-IV.4.4.4-T1.7",
@@ -10618,8 +10392,7 @@
    "band": "",
    "text": "END-IF | |",
    "provisional": "none",
-   "shape": "table-row",
-   "definitional": true
+   "shape": "table-row"
   },
   {
    "id": "1985-GR-IV.4.4.4-1",
@@ -10688,8 +10461,7 @@
    "band": "",
    "text": "An external switch is a hardware or software device, defined and named by the implementor, which is used to indicate that one of two alternate states exists. These alternate states are referred to as the on status and the off status of the associated external switch.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.4.5-p3",
@@ -10735,8 +10507,7 @@
    "band": "",
    "text": "A COBOL source program is a syntactically correct set of COBOL statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.5.2-p1",
@@ -10827,8 +10598,7 @@
    "band": "",
    "text": "The Identification Division identifies the program. In addition, the user may include the date the program is written, the date the compilation of the source program is accomplished and such other information as desired under the paragraphs in the general format shown below.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.6.1.2-p1",
@@ -10896,8 +10666,7 @@
    "band": "",
    "text": "The Environment Division specifies a standard method of expressing those aspects of a data processing problem that are dependent upon the physical characteristics of a specific computer. This division allows specification of the configuration of the compiling computer and the object computer. In addition, information relative to input-output control, special hardware characteristics, and control techniques can be given.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.2.2-p2",
@@ -10920,8 +10689,7 @@
    "band": "",
    "text": "The Configuration Section deals with the characteristics of the source computer and the object computer. This section is divided into three paragraphs: the SOURCE-COMPUTER paragraph, which describes the computer configuration on which the source program is compiled; the OBJECT-COMPUTER paragraph, which describes the computer configuration on which the object program produced by the compiler is to be run; and the SPECIAL-NAMES paragraph, which provides a means for specifying the currency sign, choosing the decimal point, specifying symbolic-characters, relating implementor-names to user-specified mnemonic-names, relating alphabet-names to character sets or collating sequences, and relating class-names to sets of characters.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.2.2-p3",
@@ -10944,8 +10712,7 @@
    "band": "",
    "text": "The Input-Output Section deals with the information needed to control transmission and handling of data between external media and the object program. This section is divided into two paragraphs: the FILE-CONTROL paragraph which names and associates the files with external media; and the I-O-CONTROL paragraph which defines special control techniques to be used in the object program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-IV.6.2.3.1",
@@ -10990,8 +10757,7 @@
    "band": "",
    "text": "The Data Division describes the data that the object program is to accept as input, to manipulate, to create, or to produce as output.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.6.3.2.1-p2",
@@ -11037,8 +10803,7 @@
    "band": "",
    "text": "The Working-Storage Section describes records and subordinate data items which are not part of external data files but are developed and processed internally. It also describes data items whose values are assigned in the source program and do not change during the execution of the object program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.3.2.1-p4",
@@ -11061,8 +10826,7 @@
    "band": "",
    "text": "The Linkage Section appears in the called program and describes data items that are to be referred to by the calling program and the called program. Its structure is the same as the Working-Storage Section.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.3.2.1-p5",
@@ -11085,8 +10849,7 @@
    "band": "",
    "text": "The Communication Section describes the data item in the source program that will serve as the interface between the message control system (MCS) and the program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.3.2.1-p6",
@@ -11109,8 +10872,7 @@
    "band": "",
    "text": "The Report Section describes the content and format of reports that are to be generated.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-IV.6.3.2.2.1",
@@ -11270,8 +11032,7 @@
    "band": "",
    "text": "A statement is a syntactically valid combination of words, literals, and separators beginning with a COBOL verb.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.4.1.2-p5",
@@ -11294,8 +11055,7 @@
    "band": "",
    "text": "The term 'identifier' is defined as the word or words necessary to make unique reference to a data item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.4.1.3-p1",
@@ -11387,8 +11147,7 @@
    "band": "",
    "text": "There are four types of statements: imperative statements, conditional statements, compiler directing statements, and delimited scope statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.4.2-p2",
@@ -11411,8 +11170,7 @@
    "band": "",
    "text": "There are three types of sentences: imperative sentences, conditional sentences, and compiler directing sentences.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.4.2.1.1-p1",
@@ -11435,8 +11193,7 @@
    "band": "",
    "text": "A conditional statement specifies that the truth value of a condition is to be determined and that the subsequent action of the object program is dependent on this truth value.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.4.2.1.1-1",
@@ -11643,8 +11400,7 @@
    "band": "",
    "text": "A conditional phrase specifies the action to be taken upon determination of the truth value of a condition resulting from the execution of a conditional statement.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.4.2.1.1.1-1",
@@ -11828,8 +11584,7 @@
    "band": "",
    "text": "A conditional sentence is a conditional statement, optionally preceded by an imperative statement, terminated by the separator period.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.4.2.2.1-p1",
@@ -11852,8 +11607,7 @@
    "band": "",
    "text": "A compiler directing statement consists of a compiler directing verb and its operands. The compiler directing verbs are COPY, ENTER, REPLACE, and USE (see page XII-2, The COPY Statement; page VI-83, The ENTER Statement; page XII-6, The REPLACE Statement; and the USE statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5). A compiler directing statement causes the compiler to take a specific action during compilation.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.6.4.2.2.2-p1",
@@ -11876,8 +11630,7 @@
    "band": "",
    "text": "A compiler directing sentence is a single compiler directing statement terminated by the separator period.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.6.4.2.3.1-p1",
@@ -11969,8 +11722,7 @@
    "band": "",
    "text": "An imperative sentence is an imperative statement terminated by the separator period.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.6.4.2.4-p1",
@@ -11993,8 +11745,7 @@
    "band": "",
    "text": "A delimited scope statement is any statement which includes its explicit scope terminator. (See page IV-27, Explicit and Implicit Scope Terminators.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IV.6.4.3-p4",
@@ -12132,8 +11883,7 @@
    "band": "",
    "text": "Margin L is immediately to the left of the leftmost character position of a line.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.7.2-p3",
@@ -12156,8 +11906,7 @@
    "band": "",
    "text": "Margin C is between the 6th and 7th character positions of a line.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.7.2-p4",
@@ -12180,8 +11929,7 @@
    "band": "",
    "text": "Margin A is between the 7th and 8th character positions of a line.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.7.2-p5",
@@ -12204,8 +11952,7 @@
    "band": "",
    "text": "Margin B is between the 11th and 12th character positions of a line.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.7.2-p6",
@@ -12228,8 +11975,7 @@
    "band": "",
    "text": "Margin R is immediately to the right of the rightmost character position of a line.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.7.2-p7",
@@ -12689,8 +12435,7 @@
    "band": "",
    "text": "In the Data Division, a level indicator is any of the following: FD, SD, CD, RD.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.7.4-p4",
@@ -12736,8 +12481,7 @@
    "band": "",
    "text": "Those entries that begin with level-numbers are called data description entries.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.7.4-p6",
@@ -12875,8 +12619,7 @@
    "band": "",
    "text": "The following is a list of COBOL reserved words for the seven required modules and the five optional modules.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-IV.8-T1",
@@ -12945,8 +12688,7 @@
    "band": "",
    "text": "The Nucleus module provides a language capability for the internal processing of data within the structure of the four divisions of a program. The Nucleus also provides a capability for defining tables of contiguous data items and accessing an item relative to its position in a table. The Nucleus provides a debugging capability consisting of a compile time switch and debugging lines.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.1.2-p1",
@@ -12969,8 +12711,7 @@
    "band": "",
    "text": "Nucleus level 1 provides limited capabilities for the SPECIAL-NAMES paragraph and the data description entry. Within the Procedure Division, the Nucleus level 1 provides limited capabilities for the ACCEPT, ADD, ALTER, DISPLAY, DIVIDE, IF, MOVE, MULTIPLY, PERFORM, and SUBTRACT statements and full capabilities for the CONTINUE, ENTER, EXIT, GO TO, and STOP statements. Nucleus level 1 does not provide full COBOL capabilities for qualification, data-name formation, and figurative constants. Nucleus level 1 provides a capability for accessing items in up to three-dimensional fixed length tables. Nucleus level 1 provides a debugging capability consisting of a compile time switch and debugging lines.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.1.2-p2",
@@ -12993,8 +12734,7 @@
    "band": "",
    "text": "Nucleus level 2 provides full capabilities for the SPECIAL-NAMES paragraph and the data description entry. Within the Procedure Division, the Nucleus level 2 provides full capabilities for the ACCEPT, ADD, ALTER, COMPUTE, DISPLAY, DIVIDE, EVALUATE, IF, INITIALIZE, INSPECT, MOVE, MULTIPLY, PERFORM, SEARCH, SET, STRING, SUBTRACT, and UNSTRING statements. Nucleus level 2 provides full capabilities for qualification, data-name formation, and figurative constants. Nucleus level 2 provides a capability for accessing items in up to seven-dimensional tables.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-VI.1.3.1-p1",
@@ -13178,8 +12918,7 @@
    "band": "",
    "text": "A COBOL source program is a syntactically correct set of COBOL statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-VI.2.2-p1",
@@ -13492,8 +13231,7 @@
    "band": "",
    "text": "The AUTHOR paragraph, INSTALLATION paragraph, DATE-WRITTEN paragraph, DATE-COMPILED paragraph, and SECURITY paragraph are obsolete elements in Standard COBOL because they are to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.3.2.1.1",
@@ -13692,8 +13430,7 @@
    "band": "",
    "text": "The Environment Division specifies a standard method of expressing those aspects of a data processing problem that are dependent upon the physical characteristics of a specific computer. The Environment Division is optional in a COBOL source program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-VI.4.2-p3",
@@ -13739,8 +13476,7 @@
    "band": "",
    "text": "The SOURCE-COMPUTER paragraph provides a means of describing the computer upon which the program is to be compiled.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.4.3.2",
@@ -13917,8 +13653,7 @@
    "band": "",
    "text": "The OBJECT-COMPUTER paragraph provides a means of describing the computer on which the program is to be executed. The MEMORY SIZE clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.4.4.2",
@@ -14161,8 +13896,7 @@
    "band": "",
    "text": "The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; choosing the decimal point; specifying symbolic-characters; relating implementor-names to user-specified mnemonic-names; relating alphabet-names to character sets or collating sequences; and relating class-names to sets of characters.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.4.5.2",
@@ -14737,8 +14471,7 @@
    "band": "",
    "text": "The Data Division describes the data that is to be processed by the object program. The Data Division is optional in a COBOL source program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.5.2-p1",
@@ -14761,8 +14494,7 @@
    "band": "",
    "text": "The Working-Storage Section is located in the Data Division of a source program. The Working-Storage Section describes records and subordinate data items which are not part of data files.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.5.2.1-p1",
@@ -14878,8 +14610,7 @@
    "band": "",
    "text": "A record description consists of a set of data description entries which describe the characteristics of a particular record. Each data description entry consists of a level-number followed by the data-name or FILLER clause, if specified, followed by a series of independent clauses as required. A record description may have a hierarchical structure and therefore the clauses used within an entry may vary considerably, depending upon whether or not it is followed by subordinate entries. The structure of a record description and the elements allowed in a record description entry are explained on page IV-14, Concept of Levels, and on page VI-20, The Data Description Entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.5.3.1-p1",
@@ -14902,8 +14633,7 @@
    "band": "",
    "text": "A data description entry specifies the characteristics of a particular item of data.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.5.3.2",
@@ -15212,8 +14942,7 @@
    "band": "",
    "text": "A data-name specifies the name of the data item being described. The key word FILLER may be used to specify a data item which is not referenced explicitly.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.5.5.2",
@@ -15478,8 +15207,7 @@
    "band": "",
    "text": "The level-number indicates the position of a data item within the hierarchical structure of a logical record. In addition, it is used to identify entries for working storage items, linkage items, condition-names, and the RENAMES clause.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.5.7.2",
@@ -15656,8 +15384,7 @@
    "band": "",
    "text": "The OCCURS clause eliminates the need for separate entries for repeated data items and supplies information required for the application of subscripts.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.5.8.2",
@@ -16120,8 +15847,7 @@
    "band": "",
    "text": "The PICTURE clause describes the general characteristics and editing requirements of an elementary item.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.5.9.2",
@@ -16745,8 +16471,7 @@
    "band": "",
    "text": "Nonfloating insertion symbols '+' and '-', floating insertion symbols 'Z', '\\*', '+', '-', and 'cs', and other symbol 'P' appear twice in the PICTURE character precedence chart on page VI-37. The leftmost column and uppermost row for each symbol represents its use to the left of the decimal point position. The second appearance of the symbol in the chart represents its use to the right of the decimal point position.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.5.10.2",
@@ -18599,8 +18324,7 @@
    "band": "",
    "text": "The general formats of the Procedure Division in the Nucleus are shown below.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-VI.6.2.1-p1",
@@ -19489,8 +19213,7 @@
    "band": "",
    "text": "The class condition determines whether an operand is numeric, alphabetic, alphabetic-lower, alphabetic-upper, or contains only the characters in the set of characters specified by the CLASS clause as defined in the SPECIAL-NAMES paragraph of the Environment Division. The class of an operand is determined as follows:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.3.1.2-1",
@@ -20065,8 +19788,7 @@
    "band": "",
    "text": "A combined condition results from connecting conditions with one of the logical operators 'AND' or 'OR'. The general format of a combined condition is:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.3.2.3-p1",
@@ -20411,8 +20133,7 @@
    "band": "",
    "text": "Some examples of abbreviated combined and negated combined relation conditions and expanded equivalents follow.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.3.4-p1",
@@ -20504,8 +20225,7 @@
    "band": "",
    "text": "Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.4-p1",
@@ -20528,8 +20248,7 @@
    "band": "",
    "text": "Paragraph 6.4 and its subordinate paragraphs provide a description of the common options and conditions that pertain to or appear in several different statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.4.1-p1",
@@ -20874,8 +20593,7 @@
    "band": "",
    "text": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements. They have several common features.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.4.4-1",
@@ -20942,8 +20660,7 @@
    "band": "",
    "text": "When a sending and a receiving item in any statement share a part or all of their storage areas, yet are not defined by the same data description entry, the result of the execution of such a statement is undefined. In addition, the results are undefined for some statements in which sending and receiving items are defined by the same data description entry. These cases are addressed in the general rules associated with those statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.4.6-p1",
@@ -20966,8 +20683,7 @@
    "band": "",
    "text": "The ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements may have multiple results. Such statements behave as though they had been written in the following way:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.4.6-1",
@@ -21036,8 +20752,7 @@
    "band": "",
    "text": "Except for the class condition, when the content of a data item is referenced in the Procedure Division and the content of that data item is not compatible with the class specified for that data item by its PICTURE clause or function definition, then the result of such a reference is undefined. (See page VI-56, Class Condition.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.6.5.2",
@@ -21544,8 +21259,7 @@
    "band": "",
    "text": "The ALTER statement modifies a predetermined sequence of operations. The ALTER statement is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.6.7.2",
@@ -21833,8 +21547,7 @@
    "band": "",
    "text": "The CONTINUE statement is a no operation statement. It indicates that no executable statement is present.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.6.9.2",
@@ -22495,8 +22208,7 @@
    "band": "",
    "text": "The ENTER statement provides a means of allowing the use of more than one language in the same program. The ENTER statement is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.6.12.2",
@@ -22959,8 +22671,7 @@
    "band": "",
    "text": "The GO TO statement causes control to be transferred from one part of the Procedure Division to another. The optionality of procedure-name-1 in format 1 of the GO TO statement is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.6.15.2",
@@ -24337,8 +24048,7 @@
    "band": "",
    "text": "In each of the following examples of the INSPECT statement, COUNT-n is assumed to be zero immediately prior to execution of the statement. The results shown for each example, except the last, are the result of executing the two successive INSPECT statements shown above them.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VI.6.18.5-T4.1",
@@ -26135,8 +25845,7 @@
    "band": "",
    "text": "The STOP statement causes a permanent or temporary suspension of the execution of the run unit. The literal variation of the STOP statement is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VI.6.24.2",
@@ -27726,8 +27435,7 @@
    "band": "",
    "text": "Sequential I-O level 1 provides limited capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Sequential I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, USE, and WRITE statements; full capabilities are provided for the REWRITE statement.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VII.1.2-p2",
@@ -27750,8 +27458,7 @@
    "band": "",
    "text": "Sequential I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Sequential I-O level 2 provides full capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VII.1.3.1-p1",
@@ -27820,8 +27527,7 @@
    "band": "",
    "text": "The current volume pointer is a conceptual entity used in this document to facilitate exact specification of the current physical volume of a sequential file. The status of the current volume pointer is affected by the CLOSE, OPEN, READ, and WRITE statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VII.1.3.4-p1",
@@ -27844,8 +27550,7 @@
    "band": "",
    "text": "The file position indicator is a conceptual entity used in this document to facilitate exact specification of the next record to be accessed within a given file during certain sequences of input-output operations. The setting of the file position indicator is affected only by the CLOSE, OPEN, and READ statements. The concept of a file position indicator has no meaning for a file opened in the output or extend mode.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VII.1.3.5-p1",
@@ -28185,8 +27890,7 @@
    "band": "",
    "text": "The FILE-CONTROL paragraph allows specification of file-related information.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.2.2.2",
@@ -28231,8 +27935,7 @@
    "band": "",
    "text": "The file control entry declares the relevant physical attributes of a sequential file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.2.3.2",
@@ -28431,8 +28134,7 @@
    "band": "",
    "text": "The ACCESS MODE clause specifies the order in which records are to be accessed in the file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.2.4.2",
@@ -29203,8 +28905,7 @@
    "band": "",
    "text": "The I-O-CONTROL paragraph specifies the points at which rerun is to be established, the memory area which is to be shared by different files, and the location of files on a multiple file reel. The RERUN clause and the MULTIPLE FILE TAPE clause within the I-O-CONTROL paragraph are obsolete elements in Standard COBOL because they are to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.2.10.2",
@@ -29293,8 +28994,7 @@
    "band": "",
    "text": "The MULTIPLE FILE TAPE clause specifies the location of files on a multiple file reel. The MULTIPLE FILE TAPE clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.2.11.2",
@@ -29361,8 +29061,7 @@
    "band": "",
    "text": "The RERUN clause specifies the points at which rerun is to be established. The RERUN clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.2.12.2",
@@ -29738,8 +29437,7 @@
    "band": "",
    "text": "The file description entry furnishes information concerning the physical structure, identification, and record-names pertaining to a sequential file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.3.2.2",
@@ -30158,8 +29856,7 @@
    "band": "",
    "text": "The DATA RECORDS clause serves only as documentation for the names of data records within their associated file. The DATA RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.3.5.2",
@@ -30270,8 +29967,7 @@
    "band": "",
    "text": "The LABEL RECORDS clause specifies whether labels are present. The LABEL RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.3.6.2",
@@ -31215,8 +30911,7 @@
    "band": "",
    "text": "The VALUE OF clause particularizes the description of an item in the label records associated with a file. The VALUE OF clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.3.9.2",
@@ -31349,8 +31044,7 @@
    "band": "",
    "text": "The CLOSE statement terminates the processing of reels/units and files with optional rewind and/or lock or removal where applicable.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.4.2.2",
@@ -31618,8 +31312,7 @@
    "band": "",
    "text": "The OPEN statement initiates the processing of files. The REVERSED phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.4.3.2",
@@ -32328,8 +32021,7 @@
    "band": "",
    "text": "The READ statement makes available the next logical record from a file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.4.4.2",
@@ -32730,8 +32422,7 @@
    "band": "",
    "text": "The REWRITE statement logically replaces a record existing in a mass storage file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.4.5.2",
@@ -33043,8 +32734,7 @@
    "band": "",
    "text": "The USE statement specifies procedures for input-output error handling that are in addition to the standard procedures provided by the input-output control system.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.4.6.2",
@@ -33377,8 +33067,7 @@
    "band": "",
    "text": "The WRITE statement releases a logical record for an output file. It can also be used for vertical positioning of lines within a logical page.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VII.4.7.2",
@@ -34024,8 +33713,7 @@
    "band": "",
    "text": "The Relative I-O module provides a capability to access records of a mass storage file in either a random or sequential manner. Each record in a relative file is uniquely identified by an integer value greater than zero which specifies the record's logical ordinal position in the file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VIII.1.2-p1",
@@ -34048,8 +33736,7 @@
    "band": "",
    "text": "Relative I-O level 1 provides limited capabilities for the file control entry, the file description entry, and the entries in the I-O CONTROL paragraph. Within the Procedure Division, the Relative I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements and full capabilities for the DELETE statement.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VIII.1.2-p2",
@@ -34072,8 +33759,7 @@
    "band": "",
    "text": "Relative I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O CONTROL paragraph. Within the Procedure Division, the Relative I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VIII.1.3.1-p1",
@@ -34096,8 +33782,7 @@
    "band": "",
    "text": "A file with relative organization is a mass storage file from which any record may be stored or retrieved by providing the value of its relative record number.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VIII.1.3.1-p2",
@@ -34143,8 +33828,7 @@
    "band": "",
    "text": "In order to achieve more efficient access to records in a relative file, the number of character positions reserved on the medium to store a particular logical record may be different from the number of character positions in the description of that record in the program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VIII.1.3.3-p1",
@@ -34713,8 +34397,7 @@
    "band": "",
    "text": "The at end condition can occur as a result of the execution of a READ statement. (See page VIII-26, The READ Statement.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-VIII.2.3.1-p1",
@@ -34737,8 +34420,7 @@
    "band": "",
    "text": "The file control entry declares the relevant physical attributes of a relative file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VIII.2.3.2",
@@ -35003,8 +34685,7 @@
    "band": "",
    "text": "The ACCESS MODE clause specifies the order in which records are to be accessed in the file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VIII.2.4.2",
@@ -35401,8 +35082,7 @@
    "band": "",
    "text": "The I-O-CONTROL paragraph specifies the points at which rerun is to be established and the memory area which is to be shared by different files. The RERUN clause within the I-O-CONTROL paragraph is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VIII.2.6.2",
@@ -35491,8 +35171,7 @@
    "band": "",
    "text": "The file description entry furnishes information concerning the physical structure, identification, and record-names pertaining to a relative file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VIII.3.2.2",
@@ -35735,8 +35414,7 @@
    "band": "",
    "text": "The CLOSE statement terminates the processing of files with optional lock.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VIII.4.2.2",
@@ -35957,8 +35635,7 @@
    "band": "",
    "text": "The DELETE statement logically removes a record from a mass storage file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VIII.4.3.2",
@@ -36245,8 +35922,7 @@
    "band": "",
    "text": "The OPEN statement initiates the processing of files.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-VIII.4.4.2",
@@ -38731,8 +38407,7 @@
    "band": "",
    "text": "The Indexed I-O module provides a capability to access records of a mass storage file in either a random or sequential manner. Each record in an indexed file is uniquely identified by the value of one or more keys within that record.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IX.1.2-p1",
@@ -38755,8 +38430,7 @@
    "band": "",
    "text": "Indexed I-O level 1 provides limited capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Indexed I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements and full capabilities for the DELETE statement.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IX.1.2-p2",
@@ -38779,8 +38453,7 @@
    "band": "",
    "text": "Indexed I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph. Within the Procedure Division, the Indexed I-O level 2 provides full capabilities for the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IX.1.3.1-p1",
@@ -38803,8 +38476,7 @@
    "band": "",
    "text": "A file with indexed organization is a mass storage file from which any record may be accessed by giving the value of a specified key in that record. For each key data item defined for the records of a file, an index is maintained. Each such index represents the set of values from the corresponding key data item in each record. Each index, therefore, is a mechanism which can provide access to any record in the file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IX.1.3.1-p2",
@@ -39442,8 +39114,7 @@
    "band": "",
    "text": "The at end condition can occur as a result of the execution of a READ statement. (See page IX-28, The READ Statement.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-IX.2.3.1-p1",
@@ -39466,8 +39137,7 @@
    "band": "",
    "text": "The file control entry declares the relevant physical attributes of an indexed file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-IX.2.3.2",
@@ -40414,8 +40084,7 @@
    "band": "",
    "text": "The I-O-CONTROL paragraph specifies the points at which rerun is to be established and the memory area which is to be shared by different files. The RERUN clause within the I-O-CONTROL paragraph is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-IX.2.8.2",
@@ -40504,8 +40173,7 @@
    "band": "",
    "text": "The file description entry furnishes information concerning the physical structure, identification, and record-names pertaining to an indexed file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-IX.3.2.2",
@@ -43959,8 +43627,7 @@
    "band": "",
    "text": "The Inter-Program Communication module provides a facility by which a program can communicate with one or more programs. This communication is provided by: (a) the ability to transfer control from one program to another within a run unit and (b) the ability to pass parameters between programs to make certain data values available to a called program. The Inter-Program Communication module also permits communication between two programs by the sharing of data and the sharing of files.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.2-p1",
@@ -43983,8 +43650,7 @@
    "band": "",
    "text": "Inter-Program Communication level 1 provides a capability to transfer control to one or more programs whose names are known at compile time and for the sharing of data among such programs.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.2-p2",
@@ -44007,8 +43673,7 @@
    "band": "",
    "text": "Inter-Program Communication level 2 provides the capability to transfer control to one or more programs whose names are not known at compile time as well as the ability to determine the availability of object time memory for the program to which control is being passed. Inter-Program Communication level 2 also provides external attributes, global names, and nesting of source programs.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.3.1-p1",
@@ -44031,8 +43696,7 @@
    "band": "",
    "text": "A COBOL source program is a syntactically correct set of COBOL statements. A COBOL source program may contain other COBOL source programs and these contained programs may reference some of the resources of the program within which they are contained.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.3.1-p2",
@@ -44055,8 +43719,7 @@
    "band": "",
    "text": "When a program, program B, is contained in another program, program A, it may be directly contained or indirectly contained. Program B is directly contained in program A if there is no program contained in program A that also contains program B. Program B is indirectly contained in program A if there exists a program contained in program A that also contains program B.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.3.2-p1",
@@ -44079,8 +43742,7 @@
    "band": "",
    "text": "A file connector is a storage area which contains information about a file and is used as the linkage between a file-name and a physical file and between a file-name and its associated record area.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.3.3-p1",
@@ -44103,8 +43765,7 @@
    "band": "",
    "text": "A data-name names a data item. A file-name names a file connector. These names are classified as either global or local.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-X.1.3.3-p3",
@@ -44173,8 +43834,7 @@
    "band": "",
    "text": "If a data-name, a file-name, or a condition-name declared in a data description entry is not global, the name is local.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.3.4-p1",
@@ -44197,8 +43857,7 @@
    "band": "",
    "text": "Accessible data items usually require that certain representations of data be stored. File connectors usually require that certain information concerning files be stored. The storage associated with a data item or a file connector may be external or internal to the program in which the object is declared.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.3.4-p2",
@@ -44244,8 +43903,7 @@
    "band": "",
    "text": "An object is internal if the storage associated with that object is associated only with the program which describes the object.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.3.4-p4",
@@ -44383,8 +44041,7 @@
    "band": "",
    "text": "All programs which form part of a run unit may possess none, one, or more of the following attributes: common and initial.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.1.3.6-1",
@@ -44973,7 +44630,6 @@
    "text": "1. condition-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "Specific conventions, for declarations and references, apply to the following types of user-defined words when the conditions listed above do not apply:"
   },
   {
@@ -44998,7 +44654,6 @@
    "text": "2. data-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "Specific conventions, for declarations and references, apply to the following types of user-defined words when the conditions listed above do not apply:"
   },
   {
@@ -45023,7 +44678,6 @@
    "text": "3. file-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "Specific conventions, for declarations and references, apply to the following types of user-defined words when the conditions listed above do not apply:"
   },
   {
@@ -45048,7 +44702,6 @@
    "text": "4. index-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "Specific conventions, for declarations and references, apply to the following types of user-defined words when the conditions listed above do not apply:"
   },
   {
@@ -45073,7 +44726,6 @@
    "text": "5. program-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "Specific conventions, for declarations and references, apply to the following types of user-defined words when the conditions listed above do not apply:"
   },
   {
@@ -45098,7 +44750,6 @@
    "text": "6. record-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "Specific conventions, for declarations and references, apply to the following types of user-defined words when the conditions listed above do not apply:"
   },
   {
@@ -45123,7 +44774,6 @@
    "text": "7. report-name",
    "provisional": "none",
    "shape": "item",
-   "definitional": true,
    "lead": "Specific conventions, for declarations and references, apply to the following types of user-defined words when the conditions listed above do not apply:"
   },
   {
@@ -45396,8 +45046,7 @@
    "band": "",
    "text": "A COBOL source program is a syntactically correct set of COBOL statements. A COBOL source program may contain other COBOL source programs and these contained programs may reference some of the resources of the programs within which they are contained.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-X.2.2-p1",
@@ -45466,8 +45115,7 @@
    "band": "",
    "text": "The following gives the general format and order of presentation of the entries and statements which constitute a COBOL source program. The generic terms identification-division, environment-division, data-division, procedure-division, source-program, and end-program-header represent a COBOL Identification Division, a COBOL Environment Division, a COBOL Data Division, a COBOL Procedure Division, a COBOL source program, and a COBOL end program header, respectively.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-X.2.3.1",
@@ -46110,8 +45758,7 @@
    "band": "",
    "text": "The Linkage Section is located in the Data Division of a source program. The Linkage Section appears in the called program and describes data items that are to be referred to by the calling program and the called program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.4.1-p2",
@@ -46134,8 +45781,7 @@
    "band": "",
    "text": "The Linkage Section in a program is meaningful if and only if the object program is to function under the control of a CALL statement, and the CALL statement in the calling program contains a USING phrase.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-X.4.1-p3",
@@ -46181,8 +45827,7 @@
    "band": "",
    "text": "If a data item in the Linkage Section is accessed in a program which is not a called program, the effect is undefined.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-X.4.1.1-p1",
@@ -46321,8 +45966,7 @@
    "band": "",
    "text": "Within the Inter-Program Communication module, the file description entry in the File Section determines the internal or external attributes of a file connector, of the associated data records, and of the associated data items. The file description entry also determines whether a file-name is a local name or a global name.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-X.4.2.2",
@@ -48298,8 +47942,7 @@
    "band": "",
    "text": "The Sort-Merge module provides the capability to order one or more files of records, or to combine two or more identically ordered files of records, according to a set of user-specified keys contained within each record. Optionally, a user may apply some special processing to each of the individual records by input or output procedures. This special processing may be applied before and/or after the records are ordered by the SORT or after the records have been combined by the MERGE.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XI.1.2.1-p1",
@@ -48322,8 +47965,7 @@
    "band": "",
    "text": "A sort file is a collection of records to be sorted by a SORT statement. The sort file has no label procedures which the programmer can control and the rules for blocking and for allocation of internal storage are peculiar to the SORT statement. The RELEASE and RETURN statements imply nothing with respect to buffer areas, blocks, or reels. A sort file, then, may be considered as an internal file which is created (RELEASE statement) from the input file, processed (SORT statement), and then made available (RETURN statement) to the output file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XI.1.2.2-p1",
@@ -48346,8 +47988,7 @@
    "band": "",
    "text": "A merge file is a collection of records to be merged by a MERGE statement. The merge file has no label procedures which the programmer can control and the rules for blocking and for allocation of internal storage are peculiar to the MERGE statement. The RETURN statement implies nothing with respect to buffer areas, blocks, or reels. A merge file, then, may be considered as an internal file which is created from input files by combining them (MERGE statement) as the file is made available (RETURN statement) to the output file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XI.2.3.1-p1",
@@ -48370,8 +48011,7 @@
    "band": "",
    "text": "The file control entry declares the relevant physical attributes of a sort or merge file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XI.2.3.2",
@@ -48769,8 +48409,7 @@
    "band": "",
    "text": "The sort-merge file description entry furnishes information concerning the physical structure and record-names pertaining to a sort or merge file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XI.3.2.2",
@@ -50456,8 +50095,7 @@
    "band": "",
    "text": "The Source Text Manipulation module contains the COPY statement and the REPLACE statement. Each of these statements can function either independent of the other or in conjunction with the other to provide an extensive capability to insert and replace source program text as part of the compilation of the source program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XII.1.2-p1",
@@ -50480,8 +50118,7 @@
    "band": "",
    "text": "Source Text Manipulation level 1 provides the facility for copying text from a single library into the source program. Text is copied from the library without change.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XII.1.2-p2",
@@ -50504,8 +50141,7 @@
    "band": "",
    "text": "Source Text Manipulation level 2 provides the additional capability of replacing all occurrences of a given literal, identifier, word, or group of words in the library text, with alternate text, during the copying process. Level 2 also provides for the availability of more than one COBOL library at compile time and the substitution of new text for text appearing in the source program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XII.2.2",
@@ -51488,8 +51124,7 @@
    "band": "",
    "text": "The Report Writer module provides a facility for producing reports by specifying the physical appearance of a report rather than requiring specification of the detailed procedure necessary to produce that report.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.1.1-p2",
@@ -51512,8 +51147,7 @@
    "band": "",
    "text": "A hierarchy of levels is used in defining the logical organization of a report. Each report is divided into report groups, which in turn are divided into sequences of items. Such a hierarchical structure permits explicit reference to a report group with implicit reference to other levels in the hierarchy. A report group contains one or more items to be presented on zero, one, or more lines.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.1.2.1-p2",
@@ -51536,8 +51170,7 @@
    "band": "",
    "text": "A report file is named by a file control entry and is described by a file description entry containing a REPORT clause. A report file is referred to and accessed by the OPEN, GENERATE, INITIATE, SUPPRESS, TERMINATE, USE AFTER STANDARD EXCEPTION PROCEDURE, USE BEFORE REPORTING, and CLOSE statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.1.2.2-p1",
@@ -51629,8 +51262,7 @@
    "band": "",
    "text": "The file control entry declares the relevant physical attributes of a report file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIII.2.3.2",
@@ -51851,8 +51483,7 @@
    "band": "",
    "text": "The I-O-CONTROL paragraph specifies the memory area which is to be shared by different files and the location of files on a multiple file reel.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIII.2.4.2",
@@ -52007,8 +51638,7 @@
    "band": "",
    "text": "The file description entry furnishes information concerning the physical structure, identification, and report-names pertaining to a report file.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIII.3.2.2",
@@ -52450,8 +52080,7 @@
    "band": "",
    "text": "In addition to naming the report, the report description entry (RD entry) defines the format of each page of the report by specifying the vertical boundaries of the region within which each type of report group may be printed. The report description entry also specifies the control data items. When the report is produced, changes in the values of the control data items causes the detail information of the report to be processed in groups called control groups.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIII.3.5.2",
@@ -53750,8 +53379,7 @@
    "band": "",
    "text": "There is an individual presentation rules table for each of the following types of report groups: report heading, page heading, page footing, report footing. In addition, detail report groups, control heading report groups, and control footing report groups are treated jointly in the body group presentation rules table. (See page XIII-32, The Body Group Presentation Rules.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p2",
@@ -53774,8 +53402,7 @@
    "band": "",
    "text": "Columns 1 and 2 of a presentation rules table list all of the permissible combinations of LINE NUMBER and NEXT GROUP clauses for the designated report group type. Consequently, for the purpose of identifying the set of presentation rules that apply to a particular combination of LINE NUMBER and NEXT GROUP clauses, a presentation rules table is read from left to right, along the selected row.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p3",
@@ -53798,8 +53425,7 @@
    "band": "",
    "text": "The applicable rules columns of a presentation rules table are partitioned into two parts. The first part specifies the rules that apply if the report description contains a PAGE clause, and the second part specifies the rules that apply if the PAGE clause is omitted. The purpose of the rules named in the applicable rules columns is discussed below:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p4",
@@ -53822,8 +53448,7 @@
    "band": "",
    "text": "These rules specify the vertical subdivisions of the page within which the specified report group may be represented.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p5",
@@ -53846,8 +53471,7 @@
    "band": "",
    "text": "In the absence of a PAGE clause the printed report is not considered to be partitioned into vertical subdivisions. Consequently, within the tables no upper limit rule or lower limit rule is specified for a report description in which the PAGE clause is omitted.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p6",
@@ -53870,8 +53494,7 @@
    "band": "",
    "text": "The fit test rules are applicable only to body groups, and hence fit test rules are specified only within the body group presentation rules table. At object time the report writer control system (RWCS) applies the fit test rules to determine whether the designated body group can be presented on the page to which the report is currently positioned.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p7",
@@ -53894,8 +53517,7 @@
    "band": "",
    "text": "However, even for body groups there are no fit test rules when the PAGE clause is omitted from the report description entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p8",
@@ -53918,8 +53540,7 @@
    "band": "",
    "text": "The first print line position rules specify where on the report medium the report writer control system (RWCS) shall present the first print line of the given report group.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p9",
@@ -53942,8 +53563,7 @@
    "band": "",
    "text": "The presentation rules tables do not specify where on the report medium the report writer control system (RWCS) shall present the second and subsequent print lines (if any) of a report group. Certain general rules determine where the second and subsequent print lines of a report group shall be presented. Refer to the LINE NUMBER clause general rules for this information. (See page XIII-46, The LINE NUMBER Clause.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p10",
@@ -53966,8 +53586,7 @@
    "band": "",
    "text": "The next group rules relate to the proper use of the NEXT GROUP clause.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.2-p11",
@@ -53990,8 +53609,7 @@
    "band": "",
    "text": "The terminal values that the report writer control system (RWCS) places in LINE-COUNTER after presenting report groups are specified by the final LINE-COUNTER setting rules.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.3-p1",
@@ -54014,8 +53632,7 @@
    "band": "",
    "text": "Column 1 of the presentation rules table uses a shorthand notation to describe the sequence of LINE NUMBER clauses that may appear in the description of a report group. The meaning of the abbreviations used in column 1 is as follows:",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.3-1",
@@ -54107,8 +53724,7 @@
    "band": "",
    "text": "When two abbreviations appear together, they refer to a sequence of LINE NUMBER clauses that consists of the two specified consecutive sequences. For example 'A R' refers to a report group description entry within which the 'A' sequence (defined in rule 1 above) is immediately followed by the 'R' sequence (defined in rule 2 above.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.4-p1",
@@ -54177,8 +53793,7 @@
    "band": "",
    "text": "Saved next group integer is a data item that is addressable only by the report writer control system (RWCS). When an absolute NEXT GROUP clause specifies a vertical positioning value which cannot be accommodated on the current page, the RWCS stores that value in saved next group integer. After page advance processing, the RWCS positions the next body group using the value stored in saved next group integer.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.6-p1",
@@ -54362,8 +53977,7 @@
    "band": "",
    "text": "\\*\\* A blank entry in column 1 or column 2 indicates that the named clause is totally absent from the report group description entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.7-p4",
@@ -54386,8 +54000,7 @@
    "band": "",
    "text": "\\*\\*\\* A blank entry in an applicable rules column indicates the absence of the named rule for the given combination of LINE NUMBER and NEXT GROUP clauses.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.7-1",
@@ -54688,8 +54301,7 @@
    "band": "",
    "text": "\\*\\* A blank entry in column 1 or column 2 indicates that the named clause is totally absent from the report group description entry.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.9-p4",
@@ -54712,8 +54324,7 @@
    "band": "",
    "text": "\\*\\*\\* A blank entry in an applicable rules column indicates the absence of the named rule for the given combination of LINE NUMBER and NEXT GROUP clauses.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIII.3.10.9-1",
@@ -55120,8 +54731,7 @@
    "band": "",
    "text": "A data-name specifies the name of the data item being described.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIII.3.12.2",
@@ -55298,8 +54908,7 @@
    "band": "",
    "text": "The level-number indicates the position of a data item within the hierarchical structure of a report group.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIII.3.14.2",
@@ -57390,8 +56999,7 @@
    "band": "",
    "text": "The CLOSE statement terminates the processing of reel/units and files with optional rewind and/or lock or removal where applicable.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIII.4.2.2",
@@ -59311,8 +58919,7 @@
    "band": "",
    "text": "The Communication module provides the ability to access, process, and create messages or portions thereof. It provides the ability to communicate through a message control system (MCS) with communication devices.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIV.1.2-p1",
@@ -59335,8 +58942,7 @@
    "band": "",
    "text": "Communication level 1 provides limited capabilities for the communication description entry. Within the Procedure Division, Communication level 1 provides limited capabilities for the RECEIVE and SEND statements and full capabilities for the ACCEPT MESSAGE COUNT statement.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIV.1.2-p2",
@@ -59359,8 +58965,7 @@
    "band": "",
    "text": "Communication level 2 provides full capabilities for the communication description entry. Within the Procedure Division, Communication level 2 provides full capabilities for the ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE, and SEND statements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-XIV.2.1.1-p1",
@@ -59406,8 +59011,7 @@
    "band": "",
    "text": "A record description consists of a set of data description entries which describe the characteristics of a particular record. Each data description entry consists of a level-number followed by the data-name or FILLER clause, if specified, followed by a series of independent clauses as required. A record description may have a hierarchical structure and therefore the clauses used with an entry may vary considerably, depending upon whether or not it is followed by subordinate entries. The structure of a record description and the elements allowed in a record description entry are explained on page IV-14, Concept of Levels, and on page VI-20, The Data Description Entry. The availability of specific clauses in the data description entry is dependent on the level of Nucleus module supported by the implementation.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIV.2.2.2",
@@ -60547,8 +60151,7 @@
    "band": "",
    "text": "Table 1 on page XIV-15 indicates the possible contents of the data items referenced by data-name-10 for format 1, by data-name-3 for format 2, and by data-name-6 for format 3 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated status key value shown for that line is possible for that statement. The symbol <sup>2</sup> indicates a level 2 element that is not available in level 1.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIV.2.2.5-T1",
@@ -60594,8 +60197,7 @@
    "band": "",
    "text": "Table 2 below indicates the possible content of the data item referenced by data-name-4 for format 2 at the completion of each statement shown. An 'X' on a line in a statement column indicates that the associated error key value shown for that line is possible for that statement. The symbol ² indicates a level 2 element that is not available in level 1.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XIV.2.2.6-T2",
@@ -60729,8 +60331,7 @@
    "band": "",
    "text": "The DISABLE statement notifies the message control system (MCS) to inhibit data transfer between specified output queues and destinations for output or between specified sources and input queues for input or between the program and one specified source or destination for input-output. The WITH KEY phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIV.3.2.2",
@@ -61019,8 +60620,7 @@
    "band": "",
    "text": "The ENABLE statement notifies the message control system (MCS) to allow data transfer between specified output queues and destinations for output or between specified sources and input queues for input or between the program and one specified source or destination for input-output. The WITH KEY phrase is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-FMT-XIV.3.3.2",
@@ -62251,8 +61851,7 @@
    "band": "",
    "text": "The Debug module provides a means by which the user can describe his debugging algorithm including the conditions under which data items or procedures are to be monitored during the execution of the object program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XV.1.1-p2",
@@ -62275,8 +61874,7 @@
    "band": "",
    "text": "The decisions of what to monitor and what information to display on the output device are explicitly in the domain of the user. The COBOL facility simply provides a convenient access to pertinent information.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XV.1.1-p3",
@@ -62299,8 +61897,7 @@
    "band": "",
    "text": "The Debug module is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XV.1.2-p1",
@@ -62323,8 +61920,7 @@
    "band": "",
    "text": "Debug level 1 provides a basic debugging capability including the ability to specify selective procedure monitoring.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XV.1.2-p2",
@@ -62347,8 +61943,7 @@
    "band": "",
    "text": "Debug level 2 provides the full COBOL debugging facility.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XV.1.3.2-p1",
@@ -63322,8 +62917,7 @@
    "band": "",
    "text": "The Segmentation module provides a means by which the user may communicate with the compiler to specify object program overlay requirements.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XVI.1.1-p2",
@@ -63346,8 +62940,7 @@
    "band": "",
    "text": "The Segmentation module is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XVI.1.3-p1",
@@ -63370,8 +62963,7 @@
    "band": "",
    "text": "COBOL segmentation deals only with segmentation of procedures. As such, only the Procedure Division and the Environment Division are considered in determining segmentation requirements for an object program.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-XVI.1.4.1-p1",
@@ -63417,8 +63009,7 @@
    "band": "",
    "text": "The fixed portion is defined as that part of the object program which is logically treated as if it were always in memory. This portion of the program is composed of two types of segments: fixed permanent segments and fixed overlayable segments.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-XVI.1.4.2-p2",
@@ -64413,8 +64004,7 @@
    "band": "",
    "text": "The following is a list of the changes of substance included in third Standard COBOL that are new features not impacting existing programs; for example, a new verb or an additional capability for an old verb.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-SR-B.2.1-29",
@@ -64529,8 +64119,7 @@
    "band": "",
    "text": "The following is a list of the changes of substance introduced by the Intrinsic Function Amendment that are new features not impacting existing programs.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1985-GR-B.2.1-p3",
@@ -64553,8 +64142,7 @@
    "band": "",
    "text": "The following is a list of the changes of substance introduced by the Correction Amendment that are new features not impacting existing programs.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1989-GR-A.1.2.1-p1",
@@ -64600,8 +64188,7 @@
    "band": "",
    "text": "A function-identifier is used by the programmer to reference a function within the Procedure Division of a COBOL source program. (See page IV-22, Function-Identifier.)",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1989-AR-A.2.2-p1",
@@ -64762,8 +64349,7 @@
    "band": "",
    "text": "The rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If, at the time a function is referenced, the arguments specified for that reference do not have values within the permissible range, then the result of such a reference is undefined.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1989-AR-A.2.2-p4",
@@ -64924,8 +64510,7 @@
    "band": "",
    "text": "Table 1 on pages A-30 through A-32 summarizes the functions that are available.",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1989-GR-A.2.4-p2",
@@ -64971,8 +64556,7 @@
    "band": "",
    "text": "A means alphabetic I means integer N means numeric X means alphanumeric",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1989-GR-A.2.4-p5",
@@ -64995,8 +64579,7 @@
    "band": "",
    "text": "I means integer N means numeric X means alphanumeric",
    "provisional": "none",
-   "shape": "paragraph",
-   "definitional": true
+   "shape": "paragraph"
   },
   {
    "id": "1989-GR-A.2.4-p6",

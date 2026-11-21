@@ -34,3 +34,15 @@ counters, GR8, SR3 and §1985:IV.4.2.2.2.3 GR5 for QUOTE), each correction refut
 `1985-GR-VI.6.18.5-p1` (definitional: GAP until its derivation and that derivation's refuter), `-p7` and `-T4.1`, both
 CONFORMS on their own witnesses (`conformance-suite/cases/VI.6.18@1985-INSPECT-STATEMENT/1985-GR-VI_6_18_5-p7`, `-T4_1`).
 Measure: holes 0, pending units 0; 1985 GAP 195 -> 198 (minted) -> 196 (witnessed).
+
+**p1's derivation, and the catalog's `definitional` flag.** The definitional proposal for `1985-GR-VI.6.18.5-p1` was
+OVERTURNED (its subject is the standard's own examples, not a user's program; the record is
+`tests/version-matrix/derivation-refutations/w20262132a-1985-p1-definitional.jsonl`) and the `informative` arm UPHELD
+(read `tests/version-matrix/lineage-reads-1985/e-01.json`, its refuter record `lineage-reads-1985-e-01.jsonl`), written by
+`audit_batch.py import-reads` and `derivation-batch --signature "claude: 2026-11-21"` (decision PB6012): §8
+`DRV-1985-GR-VI.6.18.5-p1`, CONFORMS, GAP 196 -> 195. The refuter saw the row carry `definitional: true`. Root: the importer
+copied a reader's advisory `definitional` into the manifest entry and `rule_catalog_1985.mint` copied it into the row, so
+the catalog pre-judged an arm that only the store's derivation decides; nothing read the flag, and it contradicted all 11
+informative rows of train B too. Both copies are deleted (`import_dispositions.decide`/`corrected`, `mint`), the 417 manifest
+entries lose the key (a round-tripped strip), the catalog is regenerated without it (RULE CATALOGS GREEN), and the
+importer's self-test now expects the entry without it.

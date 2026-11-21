@@ -33,8 +33,9 @@ how much of its text is a RECONSTRUCTION of a printed page the scan lacks, cite.
 provisional rule's text is the transcription's, not the standard's, and the inventory row and every verdict built on it
 carry the mark until the printed page's verbatim text replaces the reconstruction). A UNIT OF UNNUMBERED TEXT disposed
 a row kind in the content-keyed manifest is a row too (`mint`, kb/Work PB5452): `-p<n>`, `-T<t>.<r>`, `-T<t>`, an item's
-`-<n>`, with its `shape`, and `definitional` where its disposition says so; every row of a list a colon unit leads
-carries that unit's words as `lead`.
+`-<n>`, with its `shape`; every row of a list a colon unit leads carries that unit's words as `lead`. A row carries no
+derivation arm: the arm that closes a row that obliges nothing (definitional, informative, ...) is its store record's
+derivation, decided and refuted on its own (DESIGN-spec-conformance-review.md section 1.1), never the disposition's guess.
 
 COMPLETENESS (design §7) is held the 2023 way: a rule-shaped heading no kind resolves, a recognised block that yields no
 rule, an ordinal that neither continues its list nor restarts it, a box inside a one-level module, an amendment change
@@ -979,8 +980,8 @@ def mint(cat: Catalog, lines: list[str], units: dict[str, list], blocks: dict[st
     `-p<n>`, `-T<t>.<r>`, `-T<t>`, an item `-<n>` or `-L<m>.<n>`), its citation the unit's designator (`p3`, `Table 1
     row 2`), an item's the numbered rule's (`GR1`, `GRL2.1`: the id an item mints is the id a numbered rule of that
     designator has, `citation.rule_designator`); `shape` the unit's; `box` read on its printed lines and `level` as a
-    numbered rule's (`add_row`); `definitional` when the disposition says the row obliges nothing (closed through the
-    `definitional` arm, kb/Work PB5453). Every row a list holds, numbered rule or item, then takes the words of the
+    numbered rule's (`add_row`). No arm: a row that obliges nothing closes through the derivation its store record
+    names (definitional, informative, ...; section 1.1), decided after the mint, so the row never pre-judges it. Every row a list holds, numbered rule or item, then takes the words of the
     colon unit that leads its list as its `lead` (outside `text`, so no digest moves; design point 1)."""
     from cite import unit_designator  # noqa: PLC0415
     decided = _decided(blocks)
@@ -1010,8 +1011,6 @@ def mint(cat: Catalog, lines: list[str], units: dict[str, list], blocks: dict[st
                    "folio": recon[u.line - 1] or below[u.line - 1], "band": "", "text": u.text,
                    "provisional": PROVISIONAL[frozenset(recon[i - 1] is not None for i in span
                                                         if lines[i - 1].strip())], "shape": u.shape}
-            if e.get("definitional"):
-                row["definitional"] = True
             minted.append((u.line, row))
     # In the order of the text: a minted row goes before the first row of the catalog that opens after it.
     at_line = {r["id"]: cat.row_line.get(r["id"]) for r in cat.rules}

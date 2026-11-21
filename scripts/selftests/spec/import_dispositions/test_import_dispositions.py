@@ -56,9 +56,9 @@ def case_01_the_records_decide_every_unit(expect):
     out = _decide()
     expect.equal("no refusal", out.refusals, [])
     e = {(c, k[0]): v for c, es in out.entries.items() for k, v in es.items()}
-    expect.equal("a reader's row stands, definitional riding with it", (e["§1985:IV.1", "aaa"]["disposition"],
-                                                                        e["§1985:IV.1", "aaa"].get("definitional")),
-                 ("GR", True))
+    # A reader's `definitional` advice never rides into the manifest: the arm is the store derivation's (kb/Work PB6001).
+    expect.equal("a reader's row stands, its definitional advice left behind", e["§1985:IV.1", "aaa"],
+                 {"unit": "p1", "digest": "aaa", "order": 0, "disposition": "GR"})
     expect.equal("an OVERTURNED record's correction wins over its reader", e["§1985:IV.1", "ccc"]["disposition"], "SR")
     expect.equal("the later slice wins, and its UPHELD record lets a restates stand",
                  (e["§1985:IV.2", "ddd"]["disposition"], e["§1985:IV.2", "ddd"]["refuted"]),

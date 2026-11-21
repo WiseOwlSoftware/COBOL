@@ -1654,6 +1654,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // 78 characters of the 1985 COBOL character set), read in s-101 (superseding s-99 and s-01), standing on the UPHELD
             // records of tests/version-matrix/derivation-refutations/lineage-reads-1985-s-101.jsonl.
             "1985-GR-IV.4.1-p2", "1985-SR-IV.4.1-p3",
+            // ⚙ One more, added deliberately (kb/Work PB6001 and PB6012, the `informative` arm, signature `claude: 2026-11-21`):
+            // §1985:VI.6.18.5 p1, the preamble of the INSPECT examples, read in e-01 (tests/version-matrix/lineage-reads-1985/e-01.json)
+            // after its refuter OVERTURNED the definitional proposal (derivation-refutations/w20262132a-1985-p1-definitional.jsonl),
+            // written by `audit_batch.py derivation-batch` on the UPHELD record of
+            // tests/version-matrix/derivation-refutations/lineage-reads-1985-e-01.jsonl.
+            "1985-GR-VI.6.18.5-p1",
         ];
 
         var s = LoadSchema();

@@ -929,8 +929,7 @@
      "unit": "p1",
      "digest": "6bf5a689ef89",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -952,8 +951,7 @@
      "unit": "p1",
      "digest": "9c34266fb54f",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -970,8 +968,7 @@
      "unit": "p2",
      "digest": "aa4ea0c9b8b9",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -1012,7 +1009,6 @@
      "digest": "1a90d9186a85",
      "order": 0,
      "disposition": "SR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-01-refute.jsonl"
     }
    ]
@@ -1025,7 +1021,6 @@
      "digest": "19a36db64904",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-01-refute.jsonl"
     },
     {
@@ -1079,8 +1074,7 @@
      "unit": "p1",
      "digest": "979f0b03551f",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -1101,8 +1095,7 @@
      "unit": "p1",
      "digest": "485b55338aa3",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -1120,7 +1113,6 @@
      "digest": "2c143065611f",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-01-refute.jsonl"
     },
     {
@@ -1217,137 +1209,118 @@
      "unit": "1",
      "digest": "68110f45629e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "2",
      "digest": "fd6841b47364",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "3",
      "digest": "bbfc15da371a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "4",
      "digest": "c7f7d0d35dcf",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "5",
      "digest": "d42581ac2fba",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "6",
      "digest": "e55102b5adfc",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "7",
      "digest": "2ea7c085c2ea",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-01-refute.jsonl"
     },
     {
      "unit": "8",
      "digest": "c05fa2f729d2",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "9",
      "digest": "73d04ff8835a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "10",
      "digest": "03548d8f76fd",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-01-refute.jsonl"
     },
     {
      "unit": "11",
      "digest": "bbf1d9c6d858",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "12",
      "digest": "d77d409ddb4c",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "13",
      "digest": "6da97d582a13",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "14",
      "digest": "21a4814ac8d1",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-01-refute.jsonl"
     },
     {
      "unit": "15",
      "digest": "40afaaff660a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "16",
      "digest": "fd6aaf5101dc",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "17",
      "digest": "94c767fb8772",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "18",
      "digest": "aa1135cbbeff",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "19",
      "digest": "4728d0aef215",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p3",
@@ -1469,8 +1442,7 @@
      "unit": "p1",
      "digest": "c744a916786e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -1493,8 +1465,7 @@
      "unit": "p1",
      "digest": "8e7be948f25a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -1554,30 +1525,26 @@
      "unit": "1",
      "digest": "786665a0095c",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "2",
      "digest": "987fa636d8a1",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "3",
      "digest": "0defa3a25fd4",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-01-refute.jsonl"
     },
     {
      "unit": "p3",
      "digest": "443b4e1d1656",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -1611,22 +1578,19 @@
      "unit": "L2.1",
      "digest": "7cfd67530a45",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "L2.2",
      "digest": "f15cb15a8d3b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "L2.3",
      "digest": "711d1f881515",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -1680,15 +1644,13 @@
      "unit": "1",
      "digest": "f16cf1cf3e0b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "2",
      "digest": "f2d5b727879a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -1714,29 +1676,25 @@
      "unit": "1",
      "digest": "ac3fdfd3a9d3",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "2",
      "digest": "7d3c47eba3e6",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "3",
      "digest": "f19d0dc009ac",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "4",
      "digest": "02e9274dbf92",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-02-refute.jsonl"
     }
    ]
@@ -1775,8 +1733,7 @@
      "unit": "p1",
      "digest": "d2142debdb8b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -1861,7 +1818,6 @@
      "digest": "174383854ef6",
      "order": 0,
      "disposition": "SR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-02-refute.jsonl"
     },
     {
@@ -1894,8 +1850,7 @@
      "unit": "p1",
      "digest": "b0367a8ea65c",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -1906,8 +1861,7 @@
      "unit": "p1",
      "digest": "494dcce2a304",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -1919,7 +1873,6 @@
      "digest": "1c93a3237cba",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-02-refute.jsonl"
     }
    ]
@@ -1931,22 +1884,19 @@
      "unit": "p1",
      "digest": "48da0df456c5",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "5fbdd9621ca6",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p3",
      "digest": "98882bd09572",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p4",
@@ -1958,8 +1908,7 @@
      "unit": "p5",
      "digest": "de37afc1659a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p6",
@@ -1988,8 +1937,7 @@
      "unit": "p1",
      "digest": "feac7be62d16",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -2002,7 +1950,6 @@
      "digest": "146c8a7fd9eb",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-03-refute.jsonl"
     }
    ]
@@ -2047,7 +1994,6 @@
      "digest": "7d7bab98a42e",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-02-refute.jsonl"
     },
     {
@@ -2107,8 +2053,7 @@
      "unit": "p1",
      "digest": "3d502d059198",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -2137,8 +2082,7 @@
      "unit": "p1",
      "digest": "6ffdc7745365",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -2171,8 +2115,7 @@
      "unit": "p1",
      "digest": "d258720188c5",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -2195,22 +2138,19 @@
      "digest": "027001451aa2",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-03-refute.jsonl"
     },
     {
      "unit": "p2",
      "digest": "30dc0dc08f62",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p3",
      "digest": "1be26f790906",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-03-refute.jsonl"
     },
     {
@@ -2225,8 +2165,7 @@
      "unit": "p5",
      "digest": "b9bf9081c800",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -2250,8 +2189,7 @@
      "unit": "p3",
      "digest": "3e6fac5432a0",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p4",
@@ -2321,8 +2259,7 @@
      "unit": "p1",
      "digest": "84712e9365bf",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -2348,8 +2285,7 @@
      "unit": "p1",
      "digest": "ccccd24a3bcd",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -2394,8 +2330,7 @@
      "unit": "p5",
      "digest": "fd509acb90f7",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -2419,8 +2354,7 @@
      "unit": "p1",
      "digest": "f81c02e257ab",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -2469,7 +2403,6 @@
      "digest": "1a1713a74d2d",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-04-refute.jsonl"
     },
     {
@@ -2493,8 +2426,7 @@
      "unit": "p1",
      "digest": "a9fd595467f4",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -2515,8 +2447,7 @@
      "unit": "p1",
      "digest": "b4a5e1a5cb5b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -2531,50 +2462,43 @@
      "digest": "1d9397341434",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-04-refute.jsonl"
     },
     {
      "unit": "T1.2",
      "digest": "af1a3a78a198",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T1.3",
      "digest": "ba35ae644c74",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T1.4",
      "digest": "c02c8ad15aaa",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T1.5",
      "digest": "7961a37e3727",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T1.6",
      "digest": "613c051cd5d7",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T1.7",
      "digest": "49b193aebe59",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p3",
@@ -2593,8 +2517,7 @@
      "unit": "p1",
      "digest": "5d9d8bd58038",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -2634,8 +2557,7 @@
      "unit": "p1",
      "digest": "c0c108f51e92",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -2719,8 +2641,7 @@
      "unit": "p1",
      "digest": "c9237a49fd9b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -2758,7 +2679,6 @@
      "digest": "28f05755c108",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-05-refute.jsonl"
     }
    ]
@@ -2781,15 +2701,13 @@
      "digest": "0064d9f294eb",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-05-refute.jsonl"
     },
     {
      "unit": "p3",
      "digest": "9cc0a94664c9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -2815,8 +2733,7 @@
      "unit": "p1",
      "digest": "66ca1aea0dbc",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -2844,30 +2761,26 @@
      "digest": "257f0fe3fce2",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-05-refute.jsonl"
     },
     {
      "unit": "p4",
      "digest": "6b95740d3cc9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p5",
      "digest": "16d5d2ecf89a",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-05-refute.jsonl"
     },
     {
      "unit": "p6",
      "digest": "ea72727effd6",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -2935,15 +2848,13 @@
      "unit": "p4",
      "digest": "781421ff6ff3",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     },
     {
      "unit": "p5",
      "digest": "e5c59428fb0e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -2987,15 +2898,13 @@
      "unit": "p1",
      "digest": "ba152eef75e5",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "41d11c0c9681",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -3007,7 +2916,6 @@
      "digest": "051baab66421",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-05-refute.jsonl"
     },
     {
@@ -3028,7 +2936,6 @@
      "digest": "0b716b8f11cf",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-05-refute.jsonl"
     },
     {
@@ -3048,8 +2955,7 @@
      "unit": "p1",
      "digest": "827bad6bfc86",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -3060,8 +2966,7 @@
      "unit": "p1",
      "digest": "9d93855e23e3",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -3072,8 +2977,7 @@
      "unit": "p1",
      "digest": "7962cbdd225c",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -3221,7 +3125,6 @@
      "digest": "10071b4c8c38",
      "order": 0,
      "disposition": "SR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-06-refute.jsonl"
     }
    ]
@@ -3233,8 +3136,7 @@
      "unit": "p1",
      "digest": "52ea9e186577",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -3325,15 +3227,13 @@
      "unit": "p2",
      "digest": "fcf3ad1d6f05",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     },
     {
      "unit": "p3",
      "digest": "2bf19bc687c6",
      "order": 0,
      "disposition": "SR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-06-refute.jsonl"
     },
     {
@@ -3341,22 +3241,19 @@
      "digest": "2ada08028fe4",
      "order": 0,
      "disposition": "SR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-06-refute.jsonl"
     },
     {
      "unit": "p5",
      "digest": "62b9c728a56a",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     },
     {
      "unit": "p6",
      "digest": "bdb34da9c5ca",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     },
     {
      "unit": "p7",
@@ -3547,8 +3444,7 @@
      "unit": "p3",
      "digest": "4303387ced2c",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p4",
@@ -3560,8 +3456,7 @@
      "unit": "p5",
      "digest": "dbd5a18ec7ff",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p6",
@@ -3612,8 +3507,7 @@
      "unit": "p1",
      "digest": "dc5b96b330ff",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T1",
@@ -3636,8 +3530,7 @@
      "unit": "p1",
      "digest": "6b0900dc1ce6",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -3649,15 +3542,13 @@
      "digest": "23dd6cce8eb9",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-07-refute.jsonl"
     },
     {
      "unit": "p2",
      "digest": "49ea4ca70a7f",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -3746,8 +3637,7 @@
      "unit": "p1",
      "digest": "c0c108f51e92",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -3867,7 +3757,6 @@
      "digest": "7c5aa67ece8a",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -3927,7 +3816,6 @@
      "digest": "c2d95e73abbc",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -3987,7 +3875,6 @@
      "digest": "4d0d94637d5d",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4000,7 +3887,6 @@
      "digest": "6ebf0ef45b12",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4013,7 +3899,6 @@
      "digest": "44c1bf281de1",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4026,7 +3911,6 @@
      "digest": "e80440fd76da",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4039,7 +3923,6 @@
      "digest": "2ec9d5370812",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     },
     {
@@ -4142,7 +4025,6 @@
      "digest": "150be22e0ef6",
      "order": 0,
      "disposition": "SR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4172,7 +4054,6 @@
      "digest": "a1f97390df8e",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4200,7 +4081,6 @@
      "digest": "c2678ca8bc1d",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4228,7 +4108,6 @@
      "digest": "dfe7307bfed4",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4241,7 +4120,6 @@
      "digest": "eecef7d2482a",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4254,7 +4132,6 @@
      "digest": "249fee4cd4dd",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-08-refute.jsonl"
     }
    ]
@@ -4278,8 +4155,7 @@
      "unit": "p3",
      "digest": "db1868a12555",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     },
     {
      "unit": "T1",
@@ -4394,8 +4270,7 @@
      "unit": "p2",
      "digest": "c65f7d86f269",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -4629,7 +4504,6 @@
      "digest": "2668ff4ae018",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-10-refute.jsonl"
     },
     {
@@ -4828,8 +4702,7 @@
      "unit": "p1",
      "digest": "73bd4d1a53f6",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     }
    ]
   },
@@ -4933,8 +4806,7 @@
      "unit": "p5",
      "digest": "9639fb614334",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -4951,8 +4823,7 @@
      "unit": "p2",
      "digest": "959ff453cc73",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -4963,8 +4834,7 @@
      "unit": "p1",
      "digest": "3fc5c23b8555",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5046,8 +4916,7 @@
      "unit": "p1",
      "digest": "44d1bc451292",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5058,8 +4927,7 @@
      "unit": "p1",
      "digest": "693f172abd5f",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5071,7 +4939,6 @@
      "digest": "6c1527bde5c8",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-11-refute.jsonl"
     },
     {
@@ -5094,8 +4961,7 @@
      "unit": "p1",
      "digest": "a35c070309f0",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5139,8 +5005,7 @@
      "unit": "p1",
      "digest": "d2ffb60f056f",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5163,7 +5028,6 @@
      "digest": "50d05cd0d053",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-11-refute.jsonl"
     }
    ]
@@ -5210,8 +5074,7 @@
      "unit": "p1",
      "digest": "a4449c2a733b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5254,8 +5117,7 @@
      "unit": "p1",
      "digest": "a9693280c370",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5404,7 +5266,6 @@
      "digest": "314525d81014",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-12-refute.jsonl"
     }
    ]
@@ -5575,7 +5436,6 @@
      "digest": "c1651d56dcba",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-12-refute.jsonl"
     },
     {
@@ -5583,7 +5443,6 @@
      "digest": "d82f182246c5",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-12-refute.jsonl"
     }
    ]
@@ -5627,8 +5486,7 @@
      "unit": "p1",
      "digest": "b0d69d504104",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5639,8 +5497,7 @@
      "unit": "p1",
      "digest": "bc4195734717",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5746,8 +5603,7 @@
      "unit": "p1",
      "digest": "ed5c9611b131",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5758,8 +5614,7 @@
      "unit": "p1",
      "digest": "e80d7b1f2e13",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5770,8 +5625,7 @@
      "unit": "p1",
      "digest": "d6672488725b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5857,8 +5711,7 @@
      "unit": "p1",
      "digest": "e7f19f982371",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5869,8 +5722,7 @@
      "unit": "p1",
      "digest": "bb6eae7ac3ee",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5881,8 +5733,7 @@
      "unit": "p1",
      "digest": "664d4f98081b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -5977,8 +5828,7 @@
      "unit": "p1",
      "digest": "fe283eadc18f",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6020,8 +5870,7 @@
      "unit": "p1",
      "digest": "a5384c061efa",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6032,8 +5881,7 @@
      "unit": "p1",
      "digest": "cf9a89fdd2e0",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6091,8 +5939,7 @@
      "unit": "p1",
      "digest": "64069ef44ed6",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6118,8 +5965,7 @@
      "unit": "p1",
      "digest": "9762da37c1f7",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6142,7 +5988,6 @@
      "digest": "21da80c0b400",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-14-refute.jsonl"
     }
    ]
@@ -6154,8 +5999,7 @@
      "unit": "p1",
      "digest": "b3b427ab9b90",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6166,8 +6010,7 @@
      "unit": "p1",
      "digest": "3496115fb577",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6178,8 +6021,7 @@
      "unit": "p1",
      "digest": "a4980bae82af",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6191,7 +6033,6 @@
      "digest": "16d8291a4d34",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-14-refute.jsonl"
     }
    ]
@@ -6203,8 +6044,7 @@
      "unit": "p1",
      "digest": "9dc51c34817c",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6215,15 +6055,13 @@
      "unit": "p1",
      "digest": "8f8c701f0fea",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "a9d03c0ab284",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6234,8 +6072,7 @@
      "unit": "p1",
      "digest": "9cd46e8707c2",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -6247,8 +6084,7 @@
      "unit": "p3",
      "digest": "381f7611bb37",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6371,8 +6207,7 @@
      "unit": "p1",
      "digest": "fe5f0f5ba174",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6409,8 +6244,7 @@
      "unit": "p1",
      "digest": "d584d25960fe",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6421,8 +6255,7 @@
      "unit": "p1",
      "digest": "d6672488725b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6449,7 +6282,6 @@
      "digest": "07e00efcf6e9",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-14-refute.jsonl"
     }
    ]
@@ -6474,8 +6306,7 @@
      "unit": "p1",
      "digest": "74a087e82473",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6501,8 +6332,7 @@
      "unit": "p1",
      "digest": "ca20bca5b286",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6513,8 +6343,7 @@
      "unit": "p1",
      "digest": "d79fafd4da25",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6525,8 +6354,7 @@
      "unit": "p1",
      "digest": "48e14442f64e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6616,8 +6444,7 @@
      "unit": "p1",
      "digest": "bb2e12f41f9a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6628,15 +6455,13 @@
      "unit": "p1",
      "digest": "43182ea05890",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "aca6888b0079",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6647,8 +6472,7 @@
      "unit": "p1",
      "digest": "62d9d4ba4e76",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -6787,7 +6611,6 @@
      "digest": "23b1d95d2710",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-15-refute.jsonl"
     }
    ]
@@ -6825,8 +6648,7 @@
      "unit": "p1",
      "digest": "348ab1719b6f",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -6900,7 +6722,6 @@
      "digest": "07e00efcf6e9",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-15-refute.jsonl"
     }
    ]
@@ -6926,7 +6747,6 @@
      "digest": "1be89df3fb73",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-15-refute.jsonl"
     }
    ]
@@ -7078,8 +6898,7 @@
      "unit": "p1",
      "digest": "574509481773",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -7090,15 +6909,13 @@
      "unit": "p1",
      "digest": "6a9e9fe27d34",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "4a91a44ba612",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -7109,15 +6926,13 @@
      "unit": "p1",
      "digest": "cf82680c8fb7",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "f414564d8534",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -7129,7 +6944,6 @@
      "digest": "03df14326465",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-16-refute.jsonl"
     }
    ]
@@ -7141,8 +6955,7 @@
      "unit": "p1",
      "digest": "4d6b2c9a2e00",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -7181,7 +6994,6 @@
      "digest": "1ea8a09c51a9",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-16-refute.jsonl"
     },
     {
@@ -7203,8 +7015,7 @@
      "unit": "p1",
      "digest": "e50fa4144d85",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -7217,8 +7028,7 @@
      "unit": "p3",
      "digest": "95048ddf95a0",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p4",
@@ -7259,8 +7069,7 @@
      "unit": "p1",
      "digest": "e09e71bdb202",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -7442,53 +7251,46 @@
      "unit": "L5.1",
      "digest": "f2e2913725e8",
      "order": 1,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "L5.2",
      "digest": "2277b5684e4a",
      "order": 1,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-03-refute.jsonl"
     },
     {
      "unit": "L5.3",
      "digest": "3abd57946b92",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "L5.4",
      "digest": "196f1e8de510",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-03-refute.jsonl"
     },
     {
      "unit": "L5.5",
      "digest": "3dc21e0727b9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "L5.6",
      "digest": "0cfc44be3e42",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85r-03-refute.jsonl"
     },
     {
      "unit": "L5.7",
      "digest": "68adc71e12cc",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -7574,8 +7376,7 @@
      "unit": "p1",
      "digest": "a02ae4213b58",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -7645,7 +7446,6 @@
      "digest": "0cae31675ac2",
      "order": 0,
      "disposition": "SR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-17-refute.jsonl"
     }
    ]
@@ -7717,15 +7517,13 @@
      "unit": "p1",
      "digest": "647fa786ca8b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "0f9311683794",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-17-refute.jsonl"
     },
     {
@@ -7758,8 +7556,7 @@
      "unit": "p6",
      "digest": "b2b04eacbe36",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -7848,8 +7645,7 @@
      "unit": "p1",
      "digest": "c640fb76be17",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -8058,7 +7854,6 @@
      "digest": "9dd6f00612e9",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     }
    ]
@@ -8071,7 +7866,6 @@
      "digest": "50be206a17b7",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     },
     {
@@ -8097,7 +7891,6 @@
      "digest": "f87ea52ea941",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     },
     {
@@ -8148,7 +7941,6 @@
      "digest": "4492827f129e",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     }
    ]
@@ -8265,7 +8057,6 @@
      "digest": "e502322ba2ad",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     }
    ]
@@ -8341,7 +8132,6 @@
      "digest": "4a0250595cae",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     },
     {
@@ -8376,7 +8166,6 @@
      "digest": "0d56fdcc8f25",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     },
     {
@@ -8384,7 +8173,6 @@
      "digest": "d74274b0a269",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     }
    ]
@@ -8427,7 +8215,6 @@
      "digest": "38929a860274",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     },
     {
@@ -8435,7 +8222,6 @@
      "digest": "062b62e27ee7",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-18-refute.jsonl"
     }
    ]
@@ -8461,7 +8247,6 @@
      "digest": "116c3d40dd0a",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-19-refute.jsonl"
     }
    ]
@@ -8532,8 +8317,7 @@
      "unit": "p1",
      "digest": "d8806af0434e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -8545,7 +8329,6 @@
      "digest": "0f4158dda9a3",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-19-refute.jsonl"
     }
    ]
@@ -8599,7 +8382,6 @@
      "digest": "20b633b97000",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-19-refute.jsonl"
     }
    ]
@@ -8647,8 +8429,7 @@
      "unit": "p1",
      "digest": "8fa90870ca36",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -8853,79 +8634,68 @@
      "digest": "143d54794c3c",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-20-refute.jsonl"
     },
     {
      "unit": "p2",
      "digest": "80d36500a86d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p3",
      "digest": "20a027398422",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-20-refute.jsonl"
     },
     {
      "unit": "p4",
      "digest": "3792e14be3c3",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p5",
      "digest": "5f323c22332a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p6",
      "digest": "baa7517583c6",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p7",
      "digest": "7270e50640a1",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p8",
      "digest": "313bfef414d0",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p9",
      "digest": "9716b7d11c47",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p10",
      "digest": "d1e11b87c6b2",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p11",
      "digest": "f91c039aedc4",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -8937,15 +8707,13 @@
      "digest": "117d066c2311",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-20-refute.jsonl"
     },
     {
      "unit": "p2",
      "digest": "c27a78282c25",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -8973,8 +8741,7 @@
      "unit": "p1",
      "digest": "8fe8fef37143",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -9019,15 +8786,13 @@
      "unit": "p3",
      "digest": "62719b67aa9b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p4",
      "digest": "d8c26f0f78fe",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p5",
@@ -9090,15 +8855,13 @@
      "unit": "p3",
      "digest": "62719b67aa9b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p4",
      "digest": "d8c26f0f78fe",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p5",
@@ -9156,7 +8919,6 @@
      "digest": "172f9f45ad7b",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-20-refute.jsonl"
     }
    ]
@@ -9183,8 +8945,7 @@
      "unit": "p1",
      "digest": "e396c7eb6478",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -9339,8 +9100,7 @@
      "unit": "p1",
      "digest": "769d7ca605c2",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -9474,7 +9234,6 @@
      "digest": "234eb7c5a4cc",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-21-refute.jsonl"
     }
    ]
@@ -9486,15 +9245,13 @@
      "unit": "p1",
      "digest": "ee775c1399d5",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "04d0b0006398",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-21-refute.jsonl"
     }
    ]
@@ -9569,7 +9326,6 @@
      "digest": "261592aabf11",
      "order": 0,
      "disposition": "SR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-21-refute.jsonl"
     }
    ]
@@ -9611,8 +9367,7 @@
      "unit": "p1",
      "digest": "5a67cf3c5f4a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T1",
@@ -9630,7 +9385,6 @@
      "digest": "1b78ec13cc4e",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-21-refute.jsonl"
     },
     {
@@ -9663,8 +9417,7 @@
      "unit": "p1",
      "digest": "c13555222d15",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -9675,8 +9428,7 @@
      "unit": "p1",
      "digest": "af8c55b09911",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -9747,22 +9499,19 @@
      "unit": "p1",
      "digest": "4c44ae595894",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "4513e055f64e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p3",
      "digest": "099a4805b430",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-22-refute.jsonl"
     }
    ]
@@ -9774,15 +9523,13 @@
      "unit": "p1",
      "digest": "9a260b2a7c7a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "44037c38d807",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -9917,15 +9664,13 @@
      "unit": "p1",
      "digest": "5bb0034ffd94",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
      "digest": "6d41195ca9d0",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -9965,8 +9710,7 @@
      "unit": "p1",
      "digest": "b246b1d4483d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -9988,8 +9732,7 @@
      "unit": "p1",
      "digest": "389165dc505d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p2",
@@ -10279,8 +10022,7 @@
      "unit": "p1",
      "digest": "91c105394c56",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     }
    ]
   },
@@ -10336,8 +10078,7 @@
      "unit": "p3",
      "digest": "88026183eb25",
      "order": 0,
-     "disposition": "AR",
-     "definitional": true
+     "disposition": "AR"
     },
     {
      "unit": "p4",
@@ -10372,7 +10113,6 @@
      "digest": "054210d3fff4",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-23-refute.jsonl"
     },
     {
@@ -10387,7 +10127,6 @@
      "digest": "1f50d9550fd7",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85u-23-refute.jsonl"
     },
     {
@@ -10402,8 +10141,7 @@
      "unit": "p5",
      "digest": "cb3a65d41494",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T1.1",
@@ -11337,7 +11075,6 @@
      "digest": "233670245d7e",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
@@ -11345,7 +11082,6 @@
      "digest": "00f2adc1a482",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
@@ -11363,29 +11099,25 @@
      "unit": "p5",
      "digest": "bcc4845c42ef",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p6",
      "digest": "341ac3acc44b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p7",
      "digest": "6af99dff0e52",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p8",
      "digest": "f470d34a4d45",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p9",
@@ -11557,44 +11289,38 @@
      "unit": "p17",
      "digest": "6415fdbf263a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p18",
      "digest": "58d3139a42e8",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p19",
      "digest": "664bef151748",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p20",
      "digest": "cc1c5beec857",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p21",
      "digest": "12ab9fba7baa",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
      "unit": "p22",
      "digest": "d6af86ef43e4",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p23",
@@ -11610,8 +11336,7 @@
      "unit": "p24",
      "digest": "a527c2497a3b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p25",
@@ -11649,7 +11374,6 @@
      "digest": "2c5fffc187ed",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
@@ -11657,7 +11381,6 @@
      "digest": "d3dee01e3b84",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-01-refute.jsonl"
     },
     {
@@ -11682,8 +11405,7 @@
      "unit": "p31",
      "digest": "b87ec3ad6844",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p32",
@@ -11744,8 +11466,7 @@
      "unit": "p38",
      "digest": "9a2052ea2ec5",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p39",
@@ -11758,8 +11479,7 @@
      "unit": "p40",
      "digest": "c6088248ded7",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p41",
@@ -11798,8 +11518,7 @@
      "unit": "p44",
      "digest": "ed2f91370512",
      "order": 0,
-     "disposition": "SR",
-     "definitional": true
+     "disposition": "SR"
     },
     {
      "unit": "p45",
@@ -11882,7 +11601,6 @@
      "digest": "044091eb42ff",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-02-refute.jsonl"
     },
     {
@@ -11920,8 +11638,7 @@
      "unit": "p56",
      "digest": "a30a95af7d0e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p57",
@@ -11970,8 +11687,7 @@
      "unit": "p61",
      "digest": "f8673c5cf6cb",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p62",
@@ -11994,8 +11710,7 @@
      "unit": "p64",
      "digest": "d74945b857fe",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p65",
@@ -12011,8 +11726,7 @@
      "unit": "p66",
      "digest": "7034437576ff",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p67",
@@ -12028,8 +11742,7 @@
      "unit": "p68",
      "digest": "eda0ee1d2626",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p69",
@@ -12051,8 +11764,7 @@
      "unit": "p71",
      "digest": "ea88fa9bbedc",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p72",
@@ -12083,8 +11795,7 @@
      "unit": "p74",
      "digest": "422246662c4d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p75",
@@ -12100,8 +11811,7 @@
      "unit": "p76",
      "digest": "8cc5e644a98a",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p77",
@@ -12119,23 +11829,20 @@
      "unit": "p78",
      "digest": "609a04a16cf9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p79",
      "digest": "23d265fb82f3",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p80",
      "digest": "8996a0d8b9c5",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p81",
@@ -12272,8 +11979,7 @@
      "unit": "p85",
      "digest": "4acb9e5b8b5d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p86",
@@ -12291,22 +11997,19 @@
      "digest": "08034f273cb9",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p88",
      "digest": "37837c747ae3",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p89",
      "digest": "7346fa64facd",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p90",
@@ -12329,22 +12032,19 @@
      "unit": "p91",
      "digest": "d1f47baaaae9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p92",
      "digest": "32c985a90d28",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p93",
      "digest": "f4bd292b18a1",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p94",
@@ -12404,22 +12104,19 @@
      "digest": "1cedcd53b2e4",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-03-refute.jsonl"
     },
     {
      "unit": "p100",
      "digest": "7c3f6bb51145",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p101",
      "digest": "386fa9ebe6aa",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p102",
@@ -12499,7 +12196,6 @@
      "digest": "1272c4750946",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
@@ -12518,29 +12214,25 @@
      "unit": "p110",
      "digest": "cd1e38e73ef2",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p111",
      "digest": "43206f345956",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p112",
      "digest": "b27e5cd79af7",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p113",
      "digest": "58c52c45e732",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p114",
@@ -12597,8 +12289,7 @@
      "unit": "p119",
      "digest": "6bcbff1c0e16",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p120",
@@ -12615,15 +12306,13 @@
      "unit": "p121",
      "digest": "7a08ce3a23c7",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p122",
      "digest": "1191f5f86fa0",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
@@ -12642,8 +12331,7 @@
      "unit": "p124",
      "digest": "f370c9476e27",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p125",
@@ -12660,7 +12348,6 @@
      "digest": "2ba0e08e952c",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
@@ -12706,8 +12393,7 @@
      "unit": "p131",
      "digest": "86e115ce8d08",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p132",
@@ -12745,22 +12431,19 @@
      "unit": "p135",
      "digest": "b29db2e836a1",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p136",
      "digest": "f610ca22af53",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p137",
      "digest": "2d788fb7b990",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-04-refute.jsonl"
     },
     {
@@ -12777,8 +12460,7 @@
      "unit": "p139",
      "digest": "eb450d37ffe5",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p140",
@@ -12795,15 +12477,13 @@
      "unit": "p141",
      "digest": "77692ac1e2a6",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "L2.2",
      "digest": "9e2827651328",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "L2.3",
@@ -12825,8 +12505,7 @@
      "unit": "p143",
      "digest": "5bc986a4cecd",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p144",
@@ -12867,37 +12546,32 @@
      "digest": "197611dc96cf",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p148",
      "digest": "382a970f8699",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p149",
      "digest": "206948c581ee",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p150",
      "digest": "6a78c69bf808",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p151",
      "digest": "619447eff746",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p152",
@@ -12915,7 +12589,6 @@
      "digest": "024d1f718d30",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
@@ -12958,8 +12631,7 @@
      "unit": "p157",
      "digest": "e4c48775e447",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p158",
@@ -12982,8 +12654,7 @@
      "unit": "p160",
      "digest": "74680cd039d4",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p161",
@@ -13042,29 +12713,25 @@
      "digest": "2d33a7f75859",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
      "unit": "p167",
      "digest": "9823c22cf46d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p168",
      "digest": "96babb32d0a9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p169",
      "digest": "881bca001109",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p170",
@@ -13086,15 +12753,13 @@
      "unit": "p172",
      "digest": "7211c0936c48",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p173",
      "digest": "ee3dbdbe092c",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p174",
@@ -13117,7 +12782,6 @@
      "digest": "2d8674b80403",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-05-refute.jsonl"
     },
     {
@@ -13134,44 +12798,38 @@
      "unit": "p178",
      "digest": "feb9130e0830",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p179",
      "digest": "cb1f41c260ac",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p180",
      "digest": "0d01396b3b6e",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p181",
      "digest": "fd5915c468eb",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p182",
      "digest": "c3971d168c22",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p183",
      "digest": "b206b7417b1d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p184",
@@ -13187,8 +12845,7 @@
      "unit": "p185",
      "digest": "a7ecf28c5eea",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p186",
@@ -13206,8 +12863,7 @@
      "unit": "p187",
      "digest": "e738052df0e8",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p188",
@@ -13224,15 +12880,13 @@
      "unit": "p189",
      "digest": "4e5e62f94531",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p190",
      "digest": "9388f8e21636",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p191",
@@ -13282,30 +12936,26 @@
      "unit": "p195",
      "digest": "d3b1d2befb52",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p196",
      "digest": "08c8a9f48be5",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
      "unit": "p197",
      "digest": "8aa0c8c595f1",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p198",
      "digest": "0f21683a6c68",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
@@ -13327,8 +12977,7 @@
      "unit": "p200",
      "digest": "f0d515247446",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p201",
@@ -13368,8 +13017,7 @@
      "unit": "p204",
      "digest": "b6ae1c625d78",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p205",
@@ -13405,7 +13053,6 @@
      "digest": "10b8eb323e68",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-06-refute.jsonl"
     },
     {
@@ -13497,7 +13144,6 @@
      "digest": "1e0669b19798",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13505,15 +13151,13 @@
      "digest": "21bdf23e4e88",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
      "unit": "p220",
      "digest": "22b0ba1f88c9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p221",
@@ -13530,15 +13174,13 @@
      "unit": "p222",
      "digest": "b7cfe6c892dd",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p223",
      "digest": "2cffba2801b2",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13556,7 +13198,6 @@
      "digest": "21ea55d8cf67",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13574,7 +13215,6 @@
      "digest": "1ee72a5e8de8",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13593,8 +13233,7 @@
      "unit": "p229",
      "digest": "98ee044b903e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p230",
@@ -13606,8 +13245,7 @@
      "unit": "p231",
      "digest": "e9cbfb6e1b83",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T4",
@@ -13673,15 +13311,13 @@
      "unit": "p235",
      "digest": "da1fe68315cf",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p236",
      "digest": "027fe5dc4724",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13711,15 +13347,13 @@
      "unit": "p239",
      "digest": "6f44da15a779",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p240",
      "digest": "5c3ec67d7251",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13727,7 +13361,6 @@
      "digest": "fadfd6e08f10",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13746,15 +13379,13 @@
      "unit": "p243",
      "digest": "f791e3d3fdd9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p244",
      "digest": "1beb20d20a6d",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13762,7 +13393,6 @@
      "digest": "092c263fbe08",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13790,15 +13420,13 @@
      "unit": "p248",
      "digest": "b0ee4c21db07",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p249",
      "digest": "8fa16fa217fb",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-07-refute.jsonl"
     },
     {
@@ -13910,8 +13538,7 @@
      "unit": "p252",
      "digest": "3694e7f2dc4c",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p253",
@@ -13940,8 +13567,7 @@
      "unit": "p256",
      "digest": "b83387b4d72d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p257",
@@ -14037,15 +13663,13 @@
      "unit": "p266",
      "digest": "df2673c9d50f",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p267",
      "digest": "55b973212a7d",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p268",
@@ -14061,15 +13685,13 @@
      "unit": "p269",
      "digest": "a8b922f0a863",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p270",
      "digest": "9175ce0b8ec0",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p271",
@@ -14086,8 +13708,7 @@
      "unit": "p272",
      "digest": "cf486be46fc0",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p273",
@@ -14166,8 +13787,7 @@
      "unit": "p281",
      "digest": "734ef7f6b9e3",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p282",
@@ -14192,7 +13812,6 @@
      "digest": "27cf029138db",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-08-refute.jsonl"
     },
     {
@@ -14263,8 +13882,7 @@
      "unit": "p291",
      "digest": "37e1f87cd2e3",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p292",
@@ -14309,116 +13927,100 @@
      "unit": "p296",
      "digest": "ad8951ac1d28",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.1",
      "digest": "b00c3f083c23",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.2",
      "digest": "bc747abc7c21",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.3",
      "digest": "13e70e4768d9",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "T7.4",
      "digest": "54bb058ea85e",
      "order": 1,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.5",
      "digest": "1bcdeaf497ac",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "T7.6",
      "digest": "69e7ebd173dc",
      "order": 1,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.7",
      "digest": "97a4457c52cb",
      "order": 1,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.8",
      "digest": "7b5f5c2b8d3e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.9",
      "digest": "76d5c790bc98",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.10",
      "digest": "39193b69ec15",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.11",
      "digest": "9e93f5239aca",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.12",
      "digest": "04320f7377f5",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-09-refute.jsonl"
     },
     {
      "unit": "T7.13",
      "digest": "e7266fdbf984",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.14",
      "digest": "82d038c7be07",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "T7.15",
      "digest": "551c77789bf6",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p297",
@@ -14465,8 +14067,7 @@
      "unit": "p301",
      "digest": "ca0cc4a93323",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p302",
@@ -14482,22 +14083,19 @@
      "unit": "p303",
      "digest": "7f790e852297",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p304",
      "digest": "ccd4f1b648e1",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p305",
      "digest": "38eddc636e37",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85y-02-refute.jsonl"
     },
     {
@@ -14571,29 +14169,25 @@
      "unit": "p312",
      "digest": "350c4f16847e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p313",
      "digest": "b7c614437442",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p314",
      "digest": "b988acd586dd",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p315",
      "digest": "b03e7f7e1083",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p316",
@@ -14623,8 +14217,7 @@
      "unit": "p317",
      "digest": "8b1f9a16bab9",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p318",
@@ -14655,8 +14248,7 @@
      "unit": "p320",
      "digest": "dc2dc29b1e83",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p321",
@@ -14679,36 +14271,31 @@
      "digest": "1fabe46cfaf1",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-10-refute.jsonl"
     },
     {
      "unit": "p324",
      "digest": "de3ee266b5dd",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p325",
      "digest": "4b6105c8a0b8",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p326",
      "digest": "b840b73fb80e",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p327",
      "digest": "55880f46554f",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "p328",
@@ -14752,8 +14339,7 @@
      "unit": "p1",
      "digest": "923e62218d6b",
      "order": 0,
-     "disposition": "GR",
-     "definitional": true
+     "disposition": "GR"
     },
     {
      "unit": "1",
@@ -15972,7 +15558,6 @@
      "digest": "aa8f860f0271",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
@@ -15990,7 +15575,6 @@
      "digest": "7daca3bd6936",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85w-13-refute.jsonl"
     },
     {
@@ -16064,7 +15648,6 @@
      "digest": "4d44c0216cb7",
      "order": 0,
      "disposition": "GR",
-     "definitional": true,
      "refuted": "docs/rearchitecture/spec-dispositions-1985/85e-01-refute.jsonl"
     },
     {
