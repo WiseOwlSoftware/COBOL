@@ -118,6 +118,45 @@ def case_05_the_not_rules_blocks_take_their_records(expect):
                                                              for f in refused))
 
 
+def case_06_an_earlier_imports_entries_stand(expect):
+    # A later campaign (85w) disposes only the units still pending: every other unit keeps the entry an earlier import
+    # wrote, and a pending unit no slice holds is still refused (kb/Work PB5452, the 85w import).
+    tree = copy.deepcopy(TREE)
+    tree["§1985:IV.2"].append(("p3", "fff", 0))
+    tree["§1985:IV.2"].append(("p4", "ggg", 0))
+    standing = {("§1985:IV.2", "fff", 0): {"unit": "p3", "digest": "fff", "order": 0, "disposition": "GR"},
+                ("§1985:IV.2", "ggg", 0): {"unit": "p4", "digest": "ggg", "order": 0, "disposition": "pending"}}
+    out = M.decide(tree, _slices(), SKIP, lambda n: f"refutations/{n}-refute.jsonl", _row_id, standing)
+    expect.equal("a decided entry no slice holds stands, untouched", out.entries["§1985:IV.2"].get(("fff", 0)),
+                 standing["§1985:IV.2", "fff", 0])
+    expect("a PENDING entry no slice holds is a unit with no record",
+           any("IV.2 p4: a unit of the tree with no record" in f for f in out.refusals), out.refusals)
+    expect.equal("the standing units are told apart from the decided", out.standing, {("§1985:IV.2", "fff", 0)})
+    tree["§1985:IV.2"].pop()
+    slices = _slices()
+    slices[1][1].append(_r("§1985:IV.2", "p3", "fff", "SR"))
+    out = M.decide(tree, slices, SKIP, lambda n: f"refutations/{n}-refute.jsonl", _row_id, standing)
+    expect.equal("a slice holding a standing unit's key decides it again", out.entries["§1985:IV.2"]["fff", 0]
+                 ["disposition"], "SR")
+
+
+def case_07_a_restates_is_verified_against_the_catalog_and_this_import(expect):
+    # 85w-05's p170 restates 1985-GR-III.2-p173, a row of its own slice: an id of THE SAME import stands, a catalog id
+    # stands, and an id neither has is refused at the import (it would otherwise surface only after the mint).
+    catalog = {"1985-GR-IV.9-3"}
+    slices = _slices()
+    slices[1][1][0]["rules"] = ["1985-GR-IV.1-p2", "1985-GR-IV.9-3"]
+    out = M.decide(TREE, slices, SKIP, lambda n: f"refutations/{n}-refute.jsonl", _row_id, None, catalog)
+    expect.equal("a row of this import and a catalog row both stand", out.refusals, [])
+    expect.equal("the chain still resolves through this import's restates",
+                 sorted(out.entries["§1985:IV.2"]["ddd", 0]["rules"]), ["1985-GR-IV.1-p1", "1985-GR-IV.9-3"])
+    slices = _slices()
+    slices[1][1][0]["rules"] = ["1985-GR-IV.1-p7"]
+    out = M.decide(TREE, slices, SKIP, lambda n: f"refutations/{n}-refute.jsonl", _row_id, None, catalog)
+    expect("an id no catalog row and no unit of the import is", any(
+        "restates 1985-GR-IV.1-p7, which is no row of the catalog" in f for f in out.refusals), out.refusals)
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))
