@@ -45,7 +45,7 @@ public sealed class FileControlKeyRuleSpecTests
         ["§2023:12.4.5.2 SR9"] = "§1985:VIII.2.3.2",
         ["§2023:12.4.5.2 SR10"] = "§1985:VIII.2.4.2",
         // kb/Work PB4950: the required-clause rule cites the general format of the 1985 module that holds the file.
-        ["ISO §2023:12.4.5.1 Format 1"] = "ISO §1985:IX.2.3.2",
+        ["ISO §2023:12.4.5.1 Format 1"] = "§1985:IX.2.3.2",
         ["category alphanumeric or category national"] = "the category alphanumeric (ANSI §1985:IX.2.7.3 SR2)",
         ["category alphanumeric or national"] = "the category alphanumeric (ANSI §1985:IX.2.5.3 SR2)",
     };
@@ -219,7 +219,11 @@ public sealed class FileControlKeyRuleSpecTests
         foreach (int edition in AllEditions)
         {
             string cited = CitationAt(citation, edition);
-            int hits = Diagnostics(source, edition).Count(e => e.Contains(cited, StringComparison.Ordinal));
+            // The edition gate is not the format rule: at --std 85 a RELATIVE KEY clause written outside the ACCESS MODE clause is the
+            // 2002 construct relative-key-clause-alone-2002, refused COBOL0900 citing the same §1985:VIII.2.3.2 (its rule1985, kb/Work
+            // PB6010) on every organization, so its line is not a hit of the format rule counted here.
+            int hits = Diagnostics(source, edition)
+                .Count(e => e.Contains(cited, StringComparison.Ordinal) && !e.Contains("COBOL0900", StringComparison.Ordinal));
             Assert.True(hits == (expectRefusal ? 1 : 0),
                 $"[{organization.Trim()} + {clauses.Trim()}] @ {edition}: {cited} reported {hits}×, expected "
                 + (expectRefusal ? 1 : 0));
@@ -432,7 +436,7 @@ public sealed class FileControlKeyRuleSpecTests
             {
                 Assert.Contains("file 'F' has no ASSIGN clause", hit, StringComparison.Ordinal);
                 // At COBOL-85 the general format of the entry's module: §1985:VII.2.3.2, VIII.2.3.2, IX.2.3.2 or XI.2.3.2 (kb/Work PB4950).
-                if (edition < 2002) Assert.Matches(@"ISO §1985:(VII|VIII|IX|XI)\.2\.3\.2", hit);
+                if (edition < 2002) Assert.Matches(@"§1985:(VII|VIII|IX|XI)\.2\.3\.2", hit);
                 else Assert.Contains("ISO §2023:12.4.5.1", hit, StringComparison.Ordinal);
             });
         }
@@ -844,7 +848,7 @@ public sealed class FileControlKeyRuleSpecTests
             if (refused)
                 Assert.True(d.Count(e => e.Contains("does not uniquely identify a record key or data item", StringComparison.Ordinal)
                     && e.Contains($"{matches} declarations match", StringComparison.Ordinal)
-                    && e.Contains(edition < 2002 ? "ISO §1985:IV.4.3.8.1 SR3" : "ISO §2023:8.4.2.2.3 SR1", StringComparison.Ordinal)) == 1,
+                    && e.Contains(edition < 2002 ? "§1985:IV.4.3.8.1 SR3" : "ISO §2023:8.4.2.2.3 SR1", StringComparison.Ordinal)) == 1,
                     $"[{shape}: {statement}] @ {edition}: {string.Join(" | ", d)}");
             else
                 Assert.True(d.Count == 0, $"[{shape}: {statement}] @ {edition}: {string.Join(" | ", d)}");

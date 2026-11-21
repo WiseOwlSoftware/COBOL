@@ -8,40 +8,66 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 
 /// <summary>⛔ A 1985 CITATION NAMES NO ISO STANDARD (kb/Work PB6013, PB6010). The 1985 text is American National Standard
 /// X3.23-1985; no ISO standard has a <c>§1985</c> clause, so a message saying <c>ISO §1985:VII.2.7.3 SR1</c> sends the user to a
-/// document that does not exist. A citation chosen by edition is written whole in each arm of <c>EditionInfo.Cite</c> (the one
-/// choice of a citation by edition): the 1985 arm <c>§1985:…</c>, the later arms <c>ISO §2023:…</c>, never a shared
-/// <c>"ISO " +</c> prefix outside it. This RATCHET lists every source line that still types the designation by hand, in either
-/// form: a literal <c>ISO §1985</c>, or an <c>ISO</c> written in front of a <c>Cite(</c> call (which renders <c>ISO §1985</c>
-/// at 85). Moving a message to the rule lowers the count and the test then demands the new, lower <see cref="Unmoved"/>; a new
-/// line raises it and fails. Comments are not messages and are not counted.</summary>
+/// document that does not exist. A message's citation takes its designation from ONE function, <c>EditionInfo.Designated</c>
+/// (<c>ISO </c> before a rule of ISO/IEC 1989, nothing before the edition form <c>§1985:…</c> / <c>§1989:…</c>), or from
+/// <c>EditionInfo.CiteRule</c>, which chooses the rule by edition and designates it through that function. So no source line
+/// types <c>ISO §1985</c>, and no message types <c>ISO</c> in front of a COMPUTED citation (an interpolation <c>ISO {…}</c>, or a
+/// literal ending <c>ISO "</c> joined by <c>+</c> to anything but a literal later-edition citation <c>"§2023:…"</c>), which renders
+/// <c>ISO §1985</c> whenever it computes a 1985 rule. Comments are not messages and are not counted. The runtime is outside the
+/// computed-citation half: it has no edition and cites the rule its own text names; a literal <c>ISO §1985</c> there is still
+/// refused.</summary>
 [Trait("Sweep", "tree")]
 public sealed class StandardDesignationDriftTests
 {
     /// <summary>The C# sources the messages are built in (declared, kb/Work PB3531).</summary>
     private static readonly TreeScope Sources = new(Under: ["src/"], Kinds: [".cs"]);
 
-    /// <summary>The count of unmoved lines on this tree (kb/Work PB6013 stays open while it is above zero).</summary>
-    private const int Unmoved = 439;
+    /// <summary>The one function that writes the designation (it is the one place <c>"ISO " + citation</c> may stand).</summary>
+    private const string DesignationHome = "src/WiseOwl.Cobol.Editions/EditionInfo.cs";
 
-    private static readonly Regex HandTyped = new(@"ISO §1985|ISO \{[^}]*\bCite\(|""ISO "" \+ [^;]*\bCite\(", RegexOptions.Compiled);
+    /// <summary>The runtime: no edition reaches it, so no citation it prints is chosen by edition.</summary>
+    private const string Runtime = "src/WiseOwl.Cobol.Runtime/";
+
+    private static readonly Regex Literal1985 = new(@"ISO §1985", RegexOptions.Compiled);
+
+    private static readonly Regex ComputedCitation =
+        new(@"ISO \{|ISO ""\s*\+(?!\s*\$?""§(2002|2014|2023):)", RegexOptions.Compiled);
 
     [Fact]
-    public void NoMessageTypesAnIsoDesignationBeforeA1985Citation()
+    public void NoMessageTypesAnIsoDesignationBeforeACitationThatCanBe1985s()
     {
-        var lines = new List<string>();
+        var hits = new List<string>();
         foreach (string path in TrackedTree.Files(Sources))
         {
-            string[] text = File.ReadAllLines(Path.Combine(TestRepo.Root, path));
-            for (int i = 0; i < text.Length; i++)
-            {
-                string line = text[i].TrimStart();
-                if (line.StartsWith("//", StringComparison.Ordinal)) continue;
-                if (HandTyped.IsMatch(line)) lines.Add($"{path}:{i + 1}: {line}");
-            }
+            string[] lines = File.ReadAllLines(Path.Combine(TestRepo.Root, path));
+            string text = string.Join("\n", lines.Select(l => l.TrimStart().StartsWith("//", StringComparison.Ordinal) ? "" : l));
+            bool computedAsked = path != DesignationHome && !path.StartsWith(Runtime, StringComparison.Ordinal);
+            foreach (Match m in Literal1985.Matches(text)) hits.Add(Hit(path, lines, text, m));
+            if (computedAsked)
+                foreach (Match m in ComputedCitation.Matches(text)) hits.Add(Hit(path, lines, text, m));
         }
-        Assert.True(lines.Count == Unmoved,
-            $"{lines.Count} source lines type a standard's designation before a citation that can be 1985's (expected {Unmoved}; "
-            + "write each arm of EditionInfo.Cite whole, \"§1985:…\" and \"ISO §2023:…\", and set Unmoved to the new count):\n  "
-            + string.Join("\n  ", lines));
+        Assert.True(hits.Count == 0,
+            $"{hits.Count} message sites type a standard's designation before a citation that can be 1985's: write the citation "
+            + "through EditionInfo.Designated (or EditionInfo.CiteRule for a rule chosen by edition), never \"ISO \" by hand:\n  "
+            + string.Join("\n  ", hits));
+    }
+
+    [Theory]
+    [InlineData("    Report($\"x (ISO {edition.Cite(\"§1985:VI.5.3.4 GR1\", \"§2023:13.16.3 SR11\")})\");", true)]
+    [InlineData("    Report(\"x (ISO \"\n        + Rule(edition) + \")\");", true)]
+    [InlineData("    Report(\"x (ISO §1985:VII.2.7.3 SR1)\");", true)]
+    [InlineData("    Report(\"x (ISO \"\n        + \"§2023:13.10.3 SR11)\");", false)]
+    [InlineData("    Report($\"x ({edition.CiteRule(\"§1985:VI.5.3.4 GR1\", \"§2023:13.16.3 SR11\")})\");", false)]
+    [InlineData("    // a comment saying ISO §1985 is no message", false)]
+    public void TheRule_RefusesEachHandTypedForm_AndPassesTheDesignatedOnes(string source, bool refused)
+    {
+        string text = string.Join("\n", source.Split('\n').Select(l => l.TrimStart().StartsWith("//", StringComparison.Ordinal) ? "" : l));
+        Assert.Equal(refused, Literal1985.IsMatch(text) || ComputedCitation.IsMatch(text));
+    }
+
+    private static string Hit(string path, string[] lines, string text, Match m)
+    {
+        int line = text.AsSpan(0, m.Index).Count('\n');
+        return $"{path}:{line + 1}: {lines[line].Trim()}";
     }
 }

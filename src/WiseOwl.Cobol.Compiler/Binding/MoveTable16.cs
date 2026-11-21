@@ -291,8 +291,8 @@ public static class MoveTable16
     /// number and says so with the edition gate's own phrase, "(targeting COBOL-85)".</summary>
     public static MoveCitations CitationsOf(EditionInfo edition)
     {
-        string toNumeric = edition.Cite("ISO §1985:VI.6.19.4 GR3a", MoveCitations.Iso2023.ToNumeric);
-        string toAlphabetic = edition.Cite("ISO §1985:VI.6.19.4 GR3b", MoveCitations.Iso2023.NumericToAlphabetic);
+        string toNumeric = edition.Cite("§1985:VI.6.19.4 GR3a", MoveCitations.Iso2023.ToNumeric);
+        string toAlphabetic = edition.Cite("§1985:VI.6.19.4 GR3b", MoveCitations.Iso2023.NumericToAlphabetic);
         string notIn85(string cite, string what) => edition.Cite(
             $"{cite}; {what} are COBOL-2002 introductions (targeting COBOL-{edition.Year})", cite);
         return MoveCitations.Iso2023 with
@@ -300,11 +300,11 @@ public static class MoveTable16
             Boolean = notIn85(MoveCitations.Iso2023.Boolean, "the boolean category and boolean characters"),
             BinaryWidth = notIn85(MoveCitations.Iso2023.BinaryWidth, "the BINARY-CHAR, -SHORT, -LONG and -DOUBLE usages"),
             Table16 = notIn85(MoveCitations.Iso2023.Table16, "the national and boolean categories"),
-            Space = edition.Cite("ISO §1985:VI.6.19.4 GR3a", MoveCitations.Iso2023.Space),
-            Zero = edition.Cite("ISO §1985:VI.6.19.4 GR3b", MoveCitations.Iso2023.Zero),
+            Space = edition.Cite("§1985:VI.6.19.4 GR3a", MoveCitations.Iso2023.Space),
+            Zero = edition.Cite("§1985:VI.6.19.4 GR3b", MoveCitations.Iso2023.Zero),
             ToNumeric = toNumeric,
             NumericToAlphabetic = toAlphabetic,
-            Noninteger = edition.Cite("ISO §1985:VI.6.19.4 GR3c", MoveCitations.Iso2023.Noninteger),
+            Noninteger = edition.Cite("§1985:VI.6.19.4 GR3c", MoveCitations.Iso2023.Noninteger),
         };
     }
 
@@ -501,8 +501,8 @@ public static class MoveTable16
         // COBOL-85 states the rule as its own SR4 ("An index data item must not appear as an operand of a MOVE statement",
         // §1985:VI.6.19.3 SR4) and lists the contexts of an index data item in the USAGE clause (§1985:VI.5.14.3 SR5): no
         // intrinsic function, no inline method and no INVOKE exist there (kb/Work PB4950).
-        CobolClass.Index => "a MOVE operand shall not be of class index (ISO "
-            + edition.Cite("§1985:VI.6.19.3 SR4", "§2023:14.9.25.3 SR1") + "; "
+        CobolClass.Index => "a MOVE operand shall not be of class index ("
+            + edition.CiteRule("§1985:VI.6.19.3 SR4", "§2023:14.9.25.3 SR1") + "; "
             + (why ?? edition.Cite("§1985:VI.5.14.3 SR5 — only a SEARCH or SET statement, a relation condition, the USING phrase of a "
                     + "Procedure Division header or the USING phrase of a CALL statement may reference an index data item",
                     "§2023:13.18.60.3 SR10 — only a SEARCH or SET statement, a relation condition, an "

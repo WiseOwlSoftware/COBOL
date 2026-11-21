@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -111,13 +112,13 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
                 case ParameterConformance.BitStartFault.NonLiteralRefMod:
                     Report(DiagnosticCatalog.AddressOfBitAlignment, text,
                         "is a bit item whose reference-modification leftmost position or length is not a fixed-point numeric "
-                        + $"literal or an arithmetic expression of such literals without exponentiation (ISO {rule.Clause} a))");
+                        + $"literal or an arithmetic expression of such literals without exponentiation ({EditionInfo.Designated(rule.Clause)} a))");
                     ok = false;
                     break;
                 case ParameterConformance.BitStartFault.NonLiteralSubscript:
                     Report(DiagnosticCatalog.AddressOfBitAlignment, text,
                         "is a bit item whose subscripts are not fixed-point numeric literals or arithmetic "
-                        + $"expressions of such literals without exponentiation (ISO {rule.Clause} a))");
+                        + $"expressions of such literals without exponentiation ({EditionInfo.Designated(rule.Clause)} a))");
                     ok = false;
                     break;
                 default:
@@ -125,7 +126,7 @@ internal sealed class AddressOfOperandScreen(BinderContext ctx)
                     {
                         Report(DiagnosticCatalog.AddressOfBitAlignment, text,
                             $"is a bit item that starts at bit {bits} of its record, so it is not aligned on a byte "
-                            + $"boundary (ISO {rule.Clause} b) and {rule.AlignmentClause})");
+                            + $"boundary ({EditionInfo.Designated(rule.Clause)} b) and {rule.AlignmentClause})");
                         ok = false;
                     }
                     break;

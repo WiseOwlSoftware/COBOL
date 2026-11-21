@@ -74,7 +74,7 @@ public sealed partial class SymbolTable
             $"'{word}' names two types of user-defined word in this source element ({first.Spelling()} and "
             + $"{second.Spelling()}) — a given user-defined word may be used as only one type of user-defined word "
             + edition.Cite(
-                "(ISO §1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, can belong to one and only "
+                "(§1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, can belong to one and only "
                 + "one of these disjoint sets\"); the exceptions are the segment-numbers and the level-numbers, and the one set of "
                 + "condition-names, data-names and record-names",
                 "(ISO §2023:8.3.2.2); the exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "

@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -105,7 +106,7 @@ internal static class OoDefinitionRules
             using var _ = edition.At(context);
             edition.Error(DiagnosticCatalog.OoDataDivisionPlacement,
                 $"{what}: {KindName(kind)} shall not contain a {SectionName(section)} — {AdmittedIn(section)} "
-                + $"(ISO {clause})");
+                + $"({EditionInfo.Designated(clause)})");
         }
         ScreenGlobalClauses(kind, what, data, edition);
     }

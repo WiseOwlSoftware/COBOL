@@ -166,7 +166,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     private readonly record struct RowAt1985(string Brace, string Rule);
 
     /// <summary>The clause that prints the SET formats in the governing edition.</summary>
-    private string FormatsClause => ctx.Edition.Edition.Cite("ISO §1985:VI.6.23.2", "ISO §2023:14.9.39.2");
+    private string FormatsClause => ctx.Edition.Edition.Cite("§1985:VI.6.23.2", "ISO §2023:14.9.39.2");
 
     /// <summary>The row's format exists in the compiled edition: <see cref="Row.IntroducedIn"/> is the first edition
     /// whose general-format list prints it (kb/Work PB4954).</summary>
@@ -232,7 +232,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         new(SetFormat.F2,  SetDirections.UpDown, [SetOperandKind.IndexName],        [], "ISO §2023:14.9.39.2 Format 2 / §2023:14.9.39.4 GR4",
             "Format 2's receiving operand is index-name-3, an index-name of an INDEXED BY phrase", 85,
             new("Format 2's receiving operand is index-name-3, an index-name of an INDEXED BY phrase",
-                "ISO §1985:VI.6.23.2 Format 2 / §1985:VI.6.23.4 GR4")),
+                "§1985:VI.6.23.2 Format 2 / §1985:VI.6.23.4 GR4")),
         // ⛔ LAST, AND DELIBERATELY WIDE. Format 1's brace is `{ index-name-1 | identifier-1 } …`: the BRACE
         // admits any identifier and SR1 ("a data item of class index or an integer data item") is a CATEGORY
         // screen over it, not a selection question. That screen is its own open item (kb/Work PB212); putting it
@@ -244,7 +244,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
             "ISO §2023:14.9.39.3 SR1",
             "Format 1's receiving operand is index-name-1 or identifier-1, a data item of class index or an integer data item", 85,
             new("Format 1's receiving operand is index-name-1 or identifier-1, an index data item or an elementary item described as an integer",
-                "ISO §1985:VI.6.23.3 SR2")),
+                "§1985:VI.6.23.3 SR2")),
     ];
 
     /// <summary>The rows, for the drift test that pins the table unambiguous.</summary>

@@ -29,7 +29,7 @@ public sealed class EditionCitationTests
     /// contain the KEY IS phrase in its OCCURS clause"; §2002:14.8.34.2 SR5 and §2014:14.9.34.2 SR5 "shall contain the KEY
     /// phrase"; §2023:14.9.37.3 SR7.</summary>
     [Theory]
-    [InlineData(85, "ISO §1985:VI.6.22.3 SR1", "§2023:")]
+    [InlineData(85, "§1985:VI.6.22.3 SR1", "§2023:")]
     [InlineData(2002, "ISO §2002:14.8.34.2 SR5", "§1985:")]
     [InlineData(2014, "ISO §2014:14.9.34.2 SR5", "§1985:")]
     [InlineData(2023, "ISO §2023:14.9.37.3 SR7", "§1985:")]
@@ -155,7 +155,7 @@ public sealed class EditionCitationTests
         Assert.False(ok);
         string error = Assert.Single(errors, e => e.Contains("COBOL0863", StringComparison.Ordinal));
         Assert.Contains("names no file this program can reference", error, StringComparison.Ordinal);
-        Assert.Contains("ISO §1985:II.6.2.1", error, StringComparison.Ordinal);
+        Assert.Contains("§1985:II.6.2.1", error, StringComparison.Ordinal);
     }
 
     /// <summary>The programs of kb/Work PB6010, each refused at every edition by one code, each once citing the wrong edition's

@@ -74,7 +74,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S3A", "STRING \"AB,CD\" DELIMITED BY \"\" INTO OUT1.")]
     [InlineData("S3B", "STRING \"AB,CD\" DELIMITED BY X\"\" INTO OUT1.")]
     public void String_ZeroLengthLiteral2_IsSR3(string pid, string statement) =>
-        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.43.3 SR3", fromEdition: 85, rule1985: "ISO §1985:VI.6.25.3 SR2");
+        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.43.3 SR3", fromEdition: 85, rule1985: "§1985:VI.6.25.3 SR2");
 
     /// <summary>§2023:14.9.43.3 SR8 — "Where identifier-1 or identifier-2 is an elementary numeric data item, it shall be
     /// described as an integer without the symbol 'P' in its picture character-string." Only SR7's identifier-4 had
@@ -88,7 +88,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("S8E", "STRING \"AB05CD\" DELIMITED BY N2 INTO OUT1.", "symbol P")]
     public void String_NonIntegerOrPScaledNumericIdentifier_IsSR8(string pid, string statement, string wording)
     {
-        Refuses("PB1182" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.43.3 SR8", fromEdition: 85, rule1985: "ISO §1985:VI.6.25.3 SR6");
+        Refuses("PB1182" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.43.3 SR8", fromEdition: 85, rule1985: "§1985:VI.6.25.3 SR6");
         Refuses("PB1182" + pid + "W", "", statement, "COBOL1651", wording, fromEdition: 85);
     }
 
@@ -116,7 +116,7 @@ public sealed class StringUnstringOperandScreenTests
     [InlineData("U1G", "UNSTRING S DELIMITED BY \",\" OR X\"\" INTO A B C.", "zero-length literal")]
     public void Unstring_DelimiterLiteral_IsSR1(string pid, string statement, string wording)
     {
-        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.48.3 SR1", fromEdition: 85, rule1985: "ISO §1985:VI.6.27.3 SR1");
+        Refuses("PB1181" + pid, "", statement, "COBOL1651", "ISO §2023:14.9.48.3 SR1", fromEdition: 85, rule1985: "§1985:VI.6.27.3 SR1");
         Refuses("PB1181" + pid + "W", "", statement, "COBOL1651", wording, fromEdition: 85);
     }
 

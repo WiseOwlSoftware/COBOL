@@ -77,8 +77,8 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edit
         // ERROR …` meant it for the outer statement: when the inner statement's phrase is one the outer statement's
         // format also prints, the message says which statement the rule gave it to (kb/Work PB3830).
         string association = InnerPhraseTheOwnerPrints(block, s) is { } inner
-            ? $" The {inner} phrase is this {name} statement's, not the {owner} statement's — ISO "
-              + edition.Cite(
+            ? $" The {inner} phrase is this {name} statement's, not the {owner} statement's — "
+              + edition.CiteRule(
                   "§1985:IV.6.4.3: \"any optional conditional phrase encountered is considered to be the next phrase of the nearest "
                   + "preceding unterminated statement with which that phrase is permitted to be associated\".",
                   AssociationRule2023)
@@ -87,8 +87,8 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edit
         Sink.Report(new EditionDiagnostic(DiagnosticCatalog.ConditionalStatementAsImperative.Code,
             EditionSeverity.Error, DiagnosticCatalog.ConditionalStatementAsImperative.Id,
             $"{owner} {phrase}: this {name} statement is written without its explicit scope terminator END-{name}, "
-            + "so it is a conditional statement, and the operand of this phrase is an imperative-statement — ISO "
-            + edition.Cite(
+            + "so it is a conditional statement, and the operand of this phrase is an imperative-statement — "
+            + edition.CiteRule(
                 $"§1985:IV.6.4.2.1.1 {ConditionalStatementRule1985(name)}: a {name} statement is one of the conditional statements; an "
                 + "imperative statement \"specifies an unconditional action to be taken by the object program or is a conditional "
                 + "statement that is delimited by its explicit scope terminator\" (§1985:IV.6.4.2.3.1)",

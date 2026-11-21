@@ -41,8 +41,8 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
     /// production never begins with (kb/Work PB3373, PB3390).
     /// <paramref name="owner"/> is the entry's own name (<see cref="ClosedFormats.OwnerName"/>) or null.</summary>
     public string Refusal(string word, string? owner, EditionInfo edition)
-        => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the ISO "
-           + $"{edition.Cite(Clause1985 is { } c1985 ? $"§1985:{c1985}" : $"§2023:{Clause}", $"§2023:{Clause}")} "
+        => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the "
+           + $"{edition.CiteRule(Clause1985 is { } c1985 ? $"§1985:{c1985}" : $"§2023:{Clause}", $"§2023:{Clause}")} "
            + $"{FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
 }
 
@@ -259,12 +259,12 @@ public static class ClosedFormats
             y2014: "§2014:8.3.1.1.2: " + SystemNameFormation);
         string head = $"'{word}' is written where the {paragraph} paragraph's computer-name-1 stands, and it is no system-name — ";
         if (!reserved)
-            return head + $"a computer-name is a system-name, which is a COBOL word, never a literal or a number (ISO {rule})";
+            return head + $"a computer-name is a system-name, which is a COBOL word, never a literal or a number ({EditionInfo.Designated(rule)})";
         const string Later = ": \"Reserved words shall not be used as user-defined words or system-names\"";
         string reservedRule = edition.Cite(
             "§1985:III.2: a reserved word \"must not appear in the program as user-defined words or system-names\"",
             "§2023:8.3.2.1 1)" + Later, y2002: "§2002:8.3.1.1 1)" + Later, y2014: "§2014:8.3.1.1 1)" + Later);
-        return head + $"a computer-name is a system-name, and a reserved word is never one (ISO {rule}; {reservedRule})";
+        return head + $"a computer-name is a system-name, and a reserved word is never one ({EditionInfo.Designated(rule)}; {reservedRule})";
     }
 
     /// <summary>⛔ THE ENTRY WHOSE OWN NAME IS STILL DUE (kb/Work PB4604, PB4788), or null where no entry waits for one.

@@ -290,7 +290,7 @@ public sealed partial class SymbolTable
             // name the same operand a second time under a 2023 clause.
             ambiguityReported = true;
             edition.Error(Editions.Diagnostics.DiagnosticCatalog.ReportSumCounterReference, $"{subject}: the reference is ambiguous — {matches.Count} "
-                + $"entries establish a sum counter named '{name}'. A reference shall uniquely identify one resource (ISO "
+                + $"entries establish a sum counter named '{name}'. A reference shall uniquely identify one resource ("
                 + "§1985:IV.4.3.8.1 SR3); qualify it by report group entry or report-name.");
             return null;
         }

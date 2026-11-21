@@ -469,22 +469,22 @@ public static class ConditionalPhraseAssociation
             .Select(s => s.Words).Distinct().ToList();
         string why = written.Contains(kind)
             ? $"this {name} statement already has its {kind.Words} phrase, and "
-              + cite("ISO §1985:IV.2.1: its general format prints the phrase once",
+              + cite("§1985:IV.2.1: its general format prints the phrase once",
                   "ISO §2023:14.5.3.3: \"If all permitted "
                   + "occurrences of a phrase have already been specified for a given statement, a subsequent occurrence of "
                   + "that phrase is not syntactically associated with that statement\"")
             : selectors.Count > 0
                 ? $"this {name} statement specifies {string.Join(" and ", selectors)}, and no general format of the "
                   + $"{name} statement that prints it also prints the {kind.Words} phrase, so the phrase may not be "
-                  + "syntactically associated with this statement (ISO " + cite("§1985:IV.2.1", "§2023:14.5.3.3") + ")"
+                  + "syntactically associated with this statement (" + WiseOwl.Cobol.Editions.EditionInfo.Designated(cite("§1985:IV.2.1", "§2023:14.5.3.3")) + ")"
             : Prints(OwnerRule(owner), kind)
                 ? $"no general format of the {name} statement prints the {kind.Words} phrase beside the "
                   + string.Join(" and ", written.Select(w => w.Words)) + " phrase, so it may not be syntactically "
-                  + "associated with this statement (ISO " + cite("§1985:IV.2.1", "§2023:14.5.3.3") + ")"
+                  + "associated with this statement (" + WiseOwl.Cobol.Editions.EditionInfo.Designated(cite("§1985:IV.2.1", "§2023:14.5.3.3")) + ")"
                 : $"no general format of the {name} statement prints a {kind.Words} phrase, so it may not be "
-                  + "syntactically associated with this statement (ISO " + cite("§1985:IV.2.1", "§2023:14.5.3.3") + ")";
+                  + "syntactically associated with this statement (" + WiseOwl.Cobol.Editions.EditionInfo.Designated(cite("§1985:IV.2.1", "§2023:14.5.3.3")) + ")";
         return $"{name} {kind.Words}: {why}; and no other statement open here may take it. "
-            + cite("A phrase belongs to the statement whose general format prints it (ISO §1985:IV.2.1)",
+            + cite("A phrase belongs to the statement whose general format prints it (§1985:IV.2.1)",
                 "A phrase is the next phrase of the most-recently preceding unterminated statement with which it may be "
                 + "syntactically associated (ISO §2023:14.5.3.3)")
             + ", and its imperative-statement ends at the next phrase of any containing statement.";

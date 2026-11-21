@@ -349,7 +349,7 @@ public sealed partial class SpecialNamesBinder
         Edition.Error(DiagnosticCatalog.AlphabetCodeNameUnsupported, $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} "
             + $"IS {cw.GetText()}: not a supported code-name — the {(national ? "code-name-2" : "code-name-1")} "
             + $"names this implementation supports are: {ImplementorCodeNames.Spellings(national)} "
-            + $"(ISO {Edition.Edition.Cite("§1985:VI.4.5.4 GR4c", "§2023:12.3.7.3 SR15")}; the {(national ? "national coded character set keywords are NATIVE, UCS-4, UTF-8, and UTF-16" : "alphanumeric coded character set keywords are NATIVE, STANDARD-1, and STANDARD-2")})");
+            + $"({Edition.Edition.CiteRule("§1985:VI.4.5.4 GR4c", "§2023:12.3.7.3 SR15")}; the {(national ? "national coded character set keywords are NATIVE, UCS-4, UTF-8, and UTF-16" : "alphanumeric coded character set keywords are NATIVE, STANDARD-1, and STANDARD-2")})");
         return CodeNameOutcome.Refused;
     }
 
@@ -399,7 +399,7 @@ public sealed partial class SpecialNamesBinder
                 // sequence stays well-formed and the rest of the source still binds.
                 Edition.Error(DiagnosticCatalog.AlphabetClauseViolation, $"{what}: the character {DescribeChar(c)} is "
                     + "specified more than once — a given character shall not be specified more than once in that "
-                    + $"ALPHABET clause (ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR3", "§2023:12.3.7.3 SR14 a")})");
+                    + $"ALPHABET clause ({Edition.Edition.CiteRule("§1985:VI.4.5.3 SR3", "§2023:12.3.7.3 SR14 a")})");
                 return;
             }
             pos[c] = next;
@@ -422,8 +422,8 @@ public sealed partial class SpecialNamesBinder
                 // to recover to — k5 and k6 place operands by incompatible rules — so the entry contributes nothing.
                 Edition.Error(DiagnosticCatalog.AlphabetThroughWithAlso, $"{what}: the entry for {entry.GetChild(0).GetText()} "
                     + "specifies both a THROUGH phrase and an ALSO phrase — the literal-phrase general format offers "
-                    + "them as alternatives within one pair of brackets (ISO "
-                    + Edition.Edition.Cite("§1985:VI.4.5.2; §1985:IV.2.1.4", "§2023:12.3.7.2; §2023:5.2.6.2") + ")");
+                    + "them as alternatives within one pair of brackets ("
+                    + Edition.Edition.CiteRule("§1985:VI.4.5.2; §1985:IV.2.1.4", "§2023:12.3.7.2; §2023:5.2.6.2") + ")");
                 continue;
             }
             var operands = AlphabetOperands(entry, rules);

@@ -2525,7 +2525,7 @@ internal static class RuntimeApi
     public static string ReportFloatControlEqual => $"{nameof(CobolReport)}.{nameof(CobolReport.FloatControlEqual)}";
 
     /// <summary>The break test of an image-carried NUMERIC CONTROL item — <c>CobolReport.NumericControlEqual</c> over the
-    /// two saved character images and the item's profile (ISO §1985:XIII.3.7.4 GR3 a; kb/Work PB5782).</summary>
+    /// two saved character images and the item's profile (§1985:XIII.3.7.4 GR3 a; kb/Work PB5782).</summary>
     public static string ReportNumericControlEqual(string a, string b, string profile) =>
         $"{nameof(CobolReport)}.{nameof(CobolReport.NumericControlEqual)}({a}, {b}, {profile})";
 

@@ -83,8 +83,8 @@ public sealed partial class FileControlBinder
             if (screened && _host.Symbols.Declared.IsSelected(name))
             {
                 Edition.Error(DiagnosticCatalog.FileNameSelectedTwice, $"file-name '{name}' is specified in a second "
-                    + "SELECT clause; ISO "
-                    + Edition.Edition.Cite(
+                    + "SELECT clause; "
+                    + Edition.Edition.CiteRule(
                         "§1985:VII.2.3.3 SR2: \"Each file-name in the Data Division must be specified only once in the FILE-CONTROL paragraph.\"",
                         "§2023:12.4.5.2 SR2: \"A given file-name may be specified in only one SELECT clause within a factory, function, object, or program.\""));
                 continue;
@@ -218,8 +218,8 @@ public sealed partial class FileControlBinder
                     {
                         Edition.Error(DiagnosticCatalog.ReserveAreasBeyondLimit,
                             $"file '{name}': RESERVE {file.ReserveAreas} AREAS exceeds this implementation's limit of "
-                            + $"{WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas} input-output areas (ISO "
-                            + Edition.Edition.Cite("§1985:VII.2.9.3 GR1, which makes the number of input-output areas allocated equal to integer-1",
+                            + $"{WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas} input-output areas ("
+                            + Edition.Edition.CiteRule("§1985:VII.2.9.3 GR1, which makes the number of input-output areas allocated equal to integer-1",
                                 "§2023:4.2.15") + ")");
                         file.ReserveAreas = ConstantEntryBinder.RecoveredIntegerOperand;
                     }
@@ -291,7 +291,7 @@ public sealed partial class FileControlBinder
                     $"file '{name}': ACCESS MODE IS {file.AccessMode.ToString().ToUpperInvariant()} may not be "
                     + $"specified for a sequential file — this entry's organization is "
                     + file.OrganizationFace(Edition.Edition)
-                    + " (ISO " + Edition.Edition.Cite(
+                    + " (" + Edition.Edition.CiteRule(
                         "§1985:VII.2.4.2, whose ACCESS MODE clause for a sequential file prints SEQUENTIAL alone",
                         "§2023:12.4.5.5.2 SR2") + ")");
             }

@@ -86,8 +86,8 @@ internal sealed class LinkRedefinitionsPass : IBindPass
             // field): a storage shape no edition defines. ONE diagnostic; the item then binds as an ORDINARY entry.
             binder.Edition.Error(DiagnosticCatalog.RedefinesTargetUnresolved,
                 $"'{item.CobolName ?? "FILLER"}' REDEFINES '{tname}': data-name-2 does not name a preceding "
-                + "entry in the same scope (ISO "
-                + binder.Edition.Edition.Cite($"§1985:VI.5.10.3 SR11; {binder.Edition.Edition.Citation()}",
+                + "entry in the same scope ("
+                + binder.Edition.Edition.CiteRule($"§1985:VI.5.10.3 SR11; {binder.Edition.Edition.Citation()}",
                     "§2023:13.18.44.3 SR4/SR7/SR10; §2023:8.4.2.1") + ")");
     }
 

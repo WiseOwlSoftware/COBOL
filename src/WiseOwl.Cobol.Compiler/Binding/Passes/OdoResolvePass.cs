@@ -53,7 +53,7 @@ internal sealed class OdoResolvePass : IBindPass
                 $"table '{table.CobolName ?? table.ClrName}' is nested under seven other OCCURS entries: a reference to "
                 + "it needs eight subscripts, and "
                 + binder.Edition.Edition.Cite(
-                    "\"One through seven subscripts are permitted in level 2\" (ISO §1985:VI.1.3.4)",
+                    "\"One through seven subscripts are permitted in level 2\" (§1985:VI.1.3.4)",
                     "\"as long as the number of subscripts required does not exceed seven\" (ISO §2023:13.18.38.3 SR10) — at most seven subscripts may be specified (§2023:8.4.2.3.3 SR3)")
                 + DataBinder.ViaReference(table));
         }
@@ -79,7 +79,7 @@ internal sealed class OdoResolvePass : IBindPass
             // SR16: 0 ≤ integer-1 < integer-2.
             if (spec.Min < 0 || spec.Min >= spec.Max)
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingBoundsInvalid, $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
-                    + $"be greater than or equal to zero and less than integer-2 (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR5", "§2023:13.18.38.3 SR16")})");
+                    + $"be greater than or equal to zero and less than integer-2 ({binder.Edition.Edition.CiteRule("§1985:VI.5.8.3 SR5", "§2023:13.18.38.3 SR16")})");
 
             // data-name-1 resolution. A counter under a group the table is ALSO subordinate to is found first:
             // §2023:8.4.2.2.1 SR5 makes the groups superordinate to both the data-name and the subject IMPLICIT
@@ -147,10 +147,10 @@ internal sealed class OdoResolvePass : IBindPass
                     + (nonData is { } declared
                         ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName, binder.Edition.Edition)} ({binder.Edition.Edition.Quoted()})"
                         : dependingOperand.Qualifiers.Count > 0
-                        ? "is not defined under the given qualifiers (ISO "
-                          + binder.Edition.Edition.Cite("§1985:IV.4.3.8.1 SR3", "§2023:8.4.2.2.1")
+                        ? "is not defined under the given qualifiers ("
+                          + binder.Edition.Edition.CiteRule("§1985:IV.4.3.8.1 SR3", "§2023:8.4.2.2.1")
                           + ": uniqueness shall be established through qualification)"
-                        : $"is not defined (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8", "§2023:13.18.38")} Format 2)") + via);
+                        : $"is not defined ({binder.Edition.Edition.CiteRule("§1985:VI.5.8", "§2023:13.18.38")} Format 2)") + via);
                 continue;
             }
             // The ambiguity (§2023:8.4.2.2.3 SR1) is a fact of the declaration too when every candidate lies inside the copy that
@@ -180,7 +180,7 @@ internal sealed class OdoResolvePass : IBindPass
             // item is NOT an integer data item).
             if (notInteger && !DeclarationFact(dep))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectNotInteger, $"OCCURS DEPENDING ON '{depName}' on '{subject}': data-name-1 "
-                    + $"shall describe an integer (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR6", "§2023:13.18.38.3 SR17")})" + via);
+                    + $"shall describe an integer ({binder.Edition.Edition.CiteRule("§1985:VI.5.8.3 SR6", "§2023:13.18.38.3 SR17")})" + via);
 
             // SR18 / SR21 (kb/Work PB1261, PB5797): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
             // or the table's current extent would depend on a counter that a program sharing the record cannot see
@@ -200,8 +200,8 @@ internal sealed class OdoResolvePass : IBindPass
             // data-name-1 and the innermost table that makes it subscripted.
             if (subscripted && !DeclarationFact(dep, dep.SubscriptLevels()[^1]))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectSubscripted, $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
-                    + "data-name-1 shall not be subscripted (ISO "
-                    + binder.Edition.Edition.Cite(
+                    + "data-name-1 shall not be subscripted ("
+                    + binder.Edition.Edition.CiteRule(
                         "§1985:VI.5.8.3 SR2: only qualification of data-name-1 is permitted, and a data-name in a general format \"must not be reference-modified, subscripted, or qualified unless specifically permitted\", §1985:III.2",
                         "§2023:13.18.38.3 SR2") + ")" + via);
 
@@ -213,7 +213,7 @@ internal sealed class OdoResolvePass : IBindPass
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingTableNested, $"occurs-depending table '{subject}' is subordinate to the "
                     + $"OCCURS item '{enclosing.SubscriptLevels()[^1].CobolName}': tables may be nested only when the "
                     + "DEPENDING phrase is "
-                    + "absent (ISO " + binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR1b", "§2023:13.18.38.3 SR1(b)/SR10") + ")" + via);
+                    + "absent (" + binder.Edition.Edition.CiteRule("§1985:VI.5.8.3 SR1b", "§2023:13.18.38.3 SR1(b)/SR10") + ")" + via);
 
             // §2023:13.18.44 SR: neither the redefined item nor a redefinition may include an occurs-depending table.
             // (The FD multi-record shared AREA is §2023:9.1.2 record sharing — synthesized with no written REDEFINES
@@ -230,7 +230,7 @@ internal sealed class OdoResolvePass : IBindPass
                         continue;
                     binder.Edition.Error(DiagnosticCatalog.OccursDependingTableInRedefinesArea, $"occurs-depending table '{subject}' lies within a REDEFINES "
                         + "area: neither the original nor a redefinition may include an OCCURS DEPENDING ON "
-                        + $"table (ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR5", "§2023:13.18.44.3 SR5")})" + via);
+                        + $"table ({binder.Edition.Edition.CiteRule("§1985:VI.5.10.3 SR5", "§2023:13.18.44.3 SR5")})" + via);
                     break;
                 }
 
@@ -247,7 +247,7 @@ internal sealed class OdoResolvePass : IBindPass
                     binder.Edition.Error(DiagnosticCatalog.OccursDependingTableNotLast, $"occurs-depending table '{subject}' is followed by a "
                         + "non-subordinate entry in its record: the subject of an OCCURS DEPENDING ON entry may "
                         + "be followed, within that record, only by data items subordinate to it "
-                        + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR10", "§2023:13.18.38.3 SR22")})" + via);
+                        + $"({binder.Edition.Edition.CiteRule("§1985:VI.5.8.3 SR10", "§2023:13.18.38.3 SR22")})" + via);
                     break;
                 }
             }
@@ -258,7 +258,7 @@ internal sealed class OdoResolvePass : IBindPass
             if (inTableRange && !DeclarationFact(dep))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectInTableRange, $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
-                    + $"position to the last byte position of its record (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR7", "§2023:13.18.38.3 SR20")})"
+                    + $"position to the last byte position of its record ({binder.Edition.Edition.CiteRule("§1985:VI.5.8.3 SR7", "§2023:13.18.38.3 SR20")})"
                     + (ReferenceEquals(dep.Root, item.Root) ? ""
                         : $" — '{dep.Root.CobolName}' and '{item.Root.CobolName}' are one storage area") + via);
         }
@@ -294,23 +294,23 @@ internal sealed class OdoResolvePass : IBindPass
             return $"the table's record '{table.Root.CobolName}' is {(tableGlobal ? "global" : "EXTERNAL")} and data-name-1 "
                 + $"'{dep.CobolName}' is described in the data division of a containing program — \""
                 + (tableGlobal
-                    ? ed.Cite("must reference a data item which is described in the same Data Division\" (ISO §1985:VI.5.8.3 SR9)",
+                    ? ed.Cite("must reference a data item which is described in the same Data Division\" (§1985:VI.5.8.3 SR9)",
                         "shall reference a data item that is described in the same data division\" (ISO §2023:13.18.38.3 SR18)")
                     : ed.Cite("must reference a data item possessing the external attribute which is described in the same Data Division\" "
-                            + "(ISO §1985:VI.5.8.3 SR8)",
+                            + "(§1985:VI.5.8.3 SR8)",
                         "shall reference a data item possessing the external attribute that is described in the same data division\" "
                             + "(ISO §2023:13.18.38.3 SR21)"));
         if (tableGlobal && !globalDep)
             return $"the table's record '{table.Root.CobolName}' is global and data-name-1 is not a global name — \"If "
                 + ed.Cite("the OCCURS clause is specified in a data description entry subordinate to one containing the GLOBAL clause, "
-                        + "data-name-1, if specified, must be a global name\" (ISO §1985:VI.5.8.3 SR9)",
+                        + "data-name-1, if specified, must be a global name\" (§1985:VI.5.8.3 SR9)",
                     "the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause, "
                         + "data-name-1, if specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)");
         if (tableExternal && !DataBinder.IsInExternalRecord(dep.Root, binder.State.Files))
             return $"the table's record '{table.Root.CobolName}' is EXTERNAL and data-name-1 does not possess the "
                 + "external attribute — \"" + ed.Cite(
                     "data-name-1, if specified, must reference a data item possessing the external attribute which is described in the "
-                        + "same Data Division\" (ISO §1985:VI.5.8.3 SR8)",
+                        + "same Data Division\" (§1985:VI.5.8.3 SR8)",
                     "data-name-1 shall reference a data item possessing the external attribute that is described in the same data "
                         + "division\" (ISO §2023:13.18.38.3 SR21)");
         return null;

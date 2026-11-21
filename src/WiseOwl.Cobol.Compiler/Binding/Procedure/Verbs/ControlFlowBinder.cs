@@ -506,7 +506,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             + $"in which the PERFORM statement is specified\" (ISO §2023:14.9.28.3 {rule})";
         return ctx.Edition.Edition.Cite(
             "\"Procedure-name-1 and procedure-name-2 must not name sections or paragraphs in any other program in the run unit\" "
-            + "(ISO §1985:VI.6.21.4 GR13)", later);
+            + "(§1985:VI.6.21.4 GR13)", later);
     }
 
     public BoundStatement BindPerform(Core.PerformStatementContext p)
@@ -688,7 +688,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))
             ctx.Edition.Error(DiagnosticCatalog.PerformTimesCountNotInteger,
                 $"PERFORM TIMES count '{WrittenSource.Of(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference(), "")}' "
-                + $"shall be an integer (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.3 SR4", "§2023:14.9.28.3 SR2")}) — an integer data item, an integer literal, or an "
+                + $"shall be an integer ({ctx.Edition.Edition.CiteRule("§1985:VI.6.21.3 SR4", "§2023:14.9.28.3 SR2")}) — an integer data item, an integer literal, or an "
                 + "integer-type function-identifier (§2023:15.2 type 5)");
         return op;
     }

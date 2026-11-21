@@ -774,8 +774,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // no dialect (kb/Work PB909; the COBOL1941/1970 posture). It used to be a DEFERRAL (a COBOL1756
         // warning and a run-time abort), which is a promise to build something the standard does not contain.
         _ when s.entryStatement() is not null => BoundRejected.Report(data.Edition, DiagnosticCatalog.StatementFormatShape, "ENTRY: ISO/IEC 1989 defines no ENTRY statement — a secondary entry point is a vendor extension, and "
-            + "this implementation admits none (ISO "
-            + data.Edition.Edition.Cite("§1985:I.1.5.2.5.2", "§2023:4.2.2") + "). Make the entry point a separate program, or a "
+            + "this implementation admits none ("
+            + data.Edition.Edition.CiteRule("§1985:I.1.5.2.5.2", "§2023:4.2.2") + "). Make the entry point a separate program, or a "
             + "nested program, and CALL it"),
         // ENTER language-name [routine-name] (X3.23-1985 Nucleus, deleted by ISO 2002 — 0902-gated >=2002 by the
         // version-conformance pass, VCR Table 7 row 7.16): not provided at 85 (kb/Work PB5308), refused by name.
@@ -878,7 +878,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (UnitRecursive || InMethod || UnitKind is SourceElementKind.FunctionDefinition or SourceElementKind.FunctionPrototype)
         {
             return BoundRejected.Report(Ctx.Edition, DiagnosticCatalog.CommitRollbackContext,
-                $"{verb} shall not be specified in a recursive source element (ISO {cite}; a function or "
+                $"{verb} shall not be specified in a recursive source element ({EditionInfo.Designated(cite)}; a function or "
                 + "method is always recursive, §2023:8.6.6)");
         }
         // The files of a CONTAINER's clause this element names (FileControlBinder.ForeignCommitFiles): a refusal of one is told by

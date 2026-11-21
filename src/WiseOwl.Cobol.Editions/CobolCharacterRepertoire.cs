@@ -141,7 +141,7 @@ public static partial class CobolCharacterRepertoire
             (edge == '_'
                 ? "\"Each character of a COBOL word that is not a special character word is selected from the set of letters, "
                   + "digits, and the hyphen\""
-                : "\"the hyphen may not appear as the first or last character in such words\"") + " (ISO §1985:IV.4.2.2.1)",
+                : "\"the hyphen may not appear as the first or last character in such words\"") + " (§1985:IV.4.2.2.1)",
             later);
     }
 
@@ -221,7 +221,7 @@ public static partial class CobolCharacterRepertoire
             if (cp >= 0x80 && !IsInSomeAnnexB(cp))
                 return $"the COBOL word '{word}' contains U+{cp:X4}, which is in no edition's Annex B, so it is not a "
                     + "character of a COBOL word at any edition: a word is made of "
-                    + EditionInfo.Of(dialectLevel).Cite("letters, digits and the hyphen (ISO §1985:IV.4.2.2.1)",
+                    + EditionInfo.Of(dialectLevel).Cite("letters, digits and the hyphen (§1985:IV.4.2.2.1)",
                         LaterWordCharacters);
         }
         return null;

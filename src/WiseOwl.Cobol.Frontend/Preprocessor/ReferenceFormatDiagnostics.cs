@@ -147,8 +147,8 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             if (_debuggingLinesBetweenLiteralParts.TryGetValue(origin, out int indicatorColumn))
                 diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.DebuggingLineBetweenLiteralParts.Code,
                     "a debugging line (indicator D or >>D) is source under WITH DEBUGGING MODE, and a source line shall not stand "
-                    + "between the parts of a continued literal: only comment lines and blank lines may (ISO "
-                    + Edition.Cite("§1985:IV.7.2.2", "§2023:6.3.5 2)") + ")",
+                    + "between the parts of a continued literal: only comment lines and blank lines may ("
+                    + Edition.CiteRule("§1985:IV.7.2.2", "§2023:6.3.5 2)") + ")",
                     At(origin.File, origin.Line, indicatorColumn), default);
     }
 
@@ -182,7 +182,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnCommentEntryHeaderWithoutPeriod(string file, int line, int column, string word)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.CommentEntryHeaderWithoutPeriod.Code,
             $"the paragraph header {word.ToUpperInvariant()} has no separator period; a paragraph header is a reserved word followed by "
-            + "the separator period (ISO §1985:IV.2.1.6)", At(file, line, column), default);
+            + "the separator period (§1985:IV.2.1.6)", At(file, line, column), default);
 
     /// <summary>§1985:VI.3.2.1.2 SR1 (and §1985:VI.3.4.3 SR1 for DATE-COMPILED): "The continuation of the comment-entry by
     /// the use of the hyphen in the indicator area is not permitted" — COBOL7165, for the continuation line of a comment-entry.
@@ -190,7 +190,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnCommentEntryContinued(string file, int line)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.CommentEntryContinued.Code,
             "a comment-entry is continued by a hyphen in the indicator area; the continuation of a comment-entry by the hyphen "
-            + "is not permitted, the entry may be contained on one or more lines (ISO §1985:VI.3.2.1.2 SR1)",
+            + "is not permitted, the entry may be contained on one or more lines (§1985:VI.3.2.1.2 SR1)",
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>§2023:6.2.3.2 SR3: "All the characters forming a multiple-character floating indicator shall be
@@ -209,7 +209,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.MultipleCharacterTokenSplit.Code,
             $"{token} is split across a continued line and its continuation line; "
             + Edition.Cite(
-                "both characters composing the separator '==' must be on the same line (ISO §1985:IV.7.2.2)",
+                "both characters composing the separator '==' must be on the same line (§1985:IV.7.2.2)",
                 "all the characters of a multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))"),
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
@@ -218,7 +218,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnContinuationQuote(string file, int line, int column, char quote)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LiteralContinuationQuote.Code,
             $"the first nonblank character of a continuation line of a literal shall be {QuoteName(quote)}, the quotation "
-            + $"symbol used in the literal's opening delimiter (ISO {Edition.Cite("§1985:IV.7.2.2", "§2023:6.2.3.2 SR6")})", At(file, line, column), default);
+            + $"symbol used in the literal's opening delimiter ({Edition.CiteRule("§1985:IV.7.2.2", "§2023:6.2.3.2 SR6")})", At(file, line, column), default);
 
     /// <summary>§2023:6.3.5 2) — COBOL2685: a national literal continued by the fixed continuation indicator.</summary>
     public void OnNationalFixedContinuation(string file, int line)
@@ -279,8 +279,8 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     /// (kb/Work PB1494). Every such line is reported; it is then read as a source line.</summary>
     public void OnInvalidIndicator(string file, int line, Rune indicator)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FixedIndicatorInvalid.Code,
-            $"the indicator area (column 7) holds '{indicator}', which is not a fixed indicator: ISO "
-            + Edition.Cite("§1985:IV.7.2.2 and §1985:IV.7.2.4 list * and / (comment line), - (continuation line) and space (source line), "
+            $"the indicator area (column 7) holds '{indicator}', which is not a fixed indicator: "
+            + Edition.CiteRule("§1985:IV.7.2.2 and §1985:IV.7.2.4 list * and / (comment line), - (continuation line) and space (source line), "
                     + "and the Debug module's D (debugging line)",
                 "§2023:6.2.2 lists *, / (comment line), - (continuation line) and space (source line)")
             + "; a NIST CCVS program's column-7 conventions are honored under --nist", At(file, line, FixedFormLine.IndicatorColumn), default);

@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Cst;         // ClosedFormats — the ONE table of closed general formats
 using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
 using WiseOwl.Cobol.Frontend.Parsing;     // WrittenSource — the opening item quoted as written
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Validation;
 
@@ -118,8 +119,8 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             using var at = _edition.At(period.Symbol);
             _edition.Error(DiagnosticCatalog.ParagraphInteriorPeriod,
                 $"{row.Subject} paragraph: a separator period follows '{WrittenOpening(sentences[i].Entries[^1])}' "
-                + $"and the paragraph goes on with '{WrittenOpening(sentences[i + 1].Entries[0])}' — the ISO "
-                + $"{row.FormatCitation(_edition.Edition)} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRule(_edition.Edition)}); delete this period");
+                + $"and the paragraph goes on with '{WrittenOpening(sentences[i + 1].Entries[0])}' — the "
+                + $"{EditionInfo.Designated(row.FormatCitation(_edition.Edition))} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRule(_edition.Edition)}); delete this period");
         }
         if (sentences[^1].Period is null)
         {
@@ -127,7 +128,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             using var at = _edition.At(last.Stop);
             _edition.Error(DiagnosticCatalog.ParagraphPeriodMissing,
                 $"{row.Subject} paragraph: it ends after '{WrittenOpening(last)}' without a separator period — the "
-                + $"ISO {row.FormatCitation(_edition.Edition)} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRule(_edition.Edition)}); write the period");
+                + $"{EditionInfo.Designated(row.FormatCitation(_edition.Edition))} general format prints {row.PrintedIn(_edition.Edition)} ({ParagraphPeriod.PunctuationRule(_edition.Edition)}); write the period");
         }
     }
 

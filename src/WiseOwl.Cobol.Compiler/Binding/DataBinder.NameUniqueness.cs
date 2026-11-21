@@ -54,8 +54,8 @@ public sealed partial class DataBinder
                     Edition.Error(DiagnosticCatalog.GlobalDataNameNotUnique, $"data-name '{name}' names {(global ? "this GLOBAL item" : "this item")} "
                         + $"and also {(global && firstGlobal is null ? "another data item" : "a GLOBAL item")} described in the same source element{ViaReference(item)}; "
                         + (Edition.Edition.Cite(
-                            "the same data-name must not name an item possessing the global attribute and any other data item (ISO §1985:IV.4.3.8.1), "
-                                + "and no two data items of a Data Division with the same data-name may include the GLOBAL clause (ISO §1985:X.4.6.3 SR2)",
+                            "the same data-name must not name an item possessing the global attribute and any other data item (§1985:IV.4.3.8.1), "
+                                + "and no two data items of a Data Division with the same data-name may include the GLOBAL clause (§1985:X.4.6.3 SR2)",
                             "the same name shall not be used both as the name of an item possessing the global attribute and as the name of any other data item (ISO §2023:8.4.2.1)")));
                 }
                 if (global) firstGlobal ??= item;
@@ -76,7 +76,7 @@ public sealed partial class DataBinder
             using var _ = Edition.At(decl.Table.DeclaredAt);
             Edition.Error(DiagnosticCatalog.IndexNameNotUniqueInProgram, $"index-name '{decl.Name}' of the OCCURS clause of "
                 + $"'{decl.Table.CobolName ?? "FILLER"}' is already declared by an INDEXED BY phrase of this program; "
-                + "index-name-1 must be a unique word within the program (ISO §1985:VI.5.8.3 SR14)");
+                + "index-name-1 must be a unique word within the program (§1985:VI.5.8.3 SR14)");
         }
     }
 }

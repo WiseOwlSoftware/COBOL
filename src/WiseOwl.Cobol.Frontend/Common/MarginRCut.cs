@@ -73,10 +73,10 @@ public readonly record struct MarginRCut(int Column, int LastProgramTextPosition
             return HoldsProgramText
                 ? $"the program text of this line was cut at margin R: it ends at position {LastProgramTextPosition}{held}, and what "
                   + $"follows, '{shown}' (positions {FirstCutPosition} to {LastCutPosition}), is outside the "
-                  + $"program-text area and was ignored (ISO {rule})."
+                  + $"program-text area and was ignored ({EditionInfo.Designated(rule)})."
                 : $"this line has no program text: all that it holds, '{shown}' (positions {FirstCutPosition} to "
                   + $"{LastCutPosition}), lies past margin R, after position {LastProgramTextPosition}{held}, outside "
-                  + $"the program-text area, so it was ignored and the line reads as blank (ISO {rule}).";
+                  + $"the program-text area, so it was ignored and the line reads as blank ({EditionInfo.Designated(rule)}).";
     }
 
     /// <summary>What to do about the cut (<see cref="AccountAt"/>): keep the text within the program-text area.</summary>

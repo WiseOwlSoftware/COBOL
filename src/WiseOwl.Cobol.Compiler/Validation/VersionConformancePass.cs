@@ -499,7 +499,7 @@ internal sealed class VersionConformancePass
                     _sink.Report(new EditionDiagnostic(DiagnosticCatalog.CommitRollbackContext.Code,
                         EditionSeverity.Error, "commit-rollback-context",
                         $"{(cr.IsCommit ? "COMMIT" : "ROLLBACK")} shall not be specified in the input or output "
-                        + $"procedure of a MERGE or file SORT statement (ISO {(cr.IsCommit ? "§2023:14.9.7.3" : "§2023:14.9.36.3")} SR2)",
+                        + $"procedure of a MERGE or file SORT statement ({EditionInfo.Designated((cr.IsCommit ? "§2023:14.9.7.3" : "§2023:14.9.36.3"))} SR2)",
                         cr.IsCommit ? "COMMIT" : "ROLLBACK", "ISO §2023:14.9.7.3 SR2 / §2023:14.9.36.3 SR2"));
                 }
             }

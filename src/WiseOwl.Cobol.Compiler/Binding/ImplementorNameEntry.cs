@@ -41,14 +41,14 @@ public readonly record struct ImplementorNameEntry(string Written, ImplementorNa
         ? $"SPECIAL-NAMES: '{Written}' is not a switch-name, feature-name or device-name this implementation makes "
           + "available — "
           + edition.Cite("\"Implementor-name is a system-name; thus the formation of an implementor-name is defined by the "
-                + "implementor\" (ISO §1985:p.XVII-87)",
+                + "implementor\" (§1985:p.XVII-87)",
               "\"The implementor shall specify the names that are available for switch-name-1, feature-name-1, and "
                 + "device-name-1\" (ISO §2023:12.3.7.3 SR8)")
           + ". Available: " + ImplementorNames.Describe()
         : HasStatus && Row.Kind != SystemNameKind.Switch
             ? $"SPECIAL-NAMES: '{Written}' is a {ImplementorNames.KindWord(Row.Kind)}, and only a switch-name-1 entry "
               + "may carry ON STATUS / OFF STATUS condition-names ("
-              + edition.Cite("ISO §1985:VI.4.5.3 SR2",
+              + edition.Cite("§1985:VI.4.5.3 SR2",
                   "ISO §2023:12.3.7.2; §2023:12.3.7.3 SR8; a system-name belongs to one type only, §2023:8.3.2.3.1")
               + ")"
             : null;

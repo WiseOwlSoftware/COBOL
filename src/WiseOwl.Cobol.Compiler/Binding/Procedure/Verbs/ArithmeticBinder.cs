@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Binding.Validation;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -41,8 +42,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
                     $"ADD with GIVING writes one operand, '{WrittenSource.Of(operands[0])}', before GIVING: Format 2 "
                     + "prints identifier-1 or literal-1 and then identifier-2 or literal-2, the second after the "
-                    + ctx.Edition.Edition.Cite("word", "optional word") + " TO (ISO "
-                    + ctx.Edition.Edition.Cite("§1985:VI.6.6.2 Format 2", "§2023:14.9.2.2 Format 2") + ")");
+                    + ctx.Edition.Edition.Cite("word", "optional word") + " TO ("
+                    + ctx.Edition.Edition.CiteRule("§1985:VI.6.6.2 Format 2", "§2023:14.9.2.2 Format 2") + ")");
             var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.6.3 SR1", "§2023:14.9.2.3 SR4"));
             // §2023:14.9.2.3 SR1b: the ADD Format-2 composite is "all of the operands ... excluding the data items that
             // follow the word GIVING" — the resultant identifiers are NOT superimposed into the composite (§2023:14.7.7
@@ -62,8 +63,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // §2023:14.9.2.2 (kb/Work PB134): no ADD format prints operands with BOTH phrases absent — `ADD A B.` is
         // illegal source, and the old BoundUnsupported staged it to a RUNTIME loud.
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-            "ADD without a TO or GIVING phrase: no ADD format prints operands alone (ISO "
-            + ctx.Edition.Edition.Cite("§1985:VI.6.6.2", "§2023:14.9.2.2") + ")");
+            "ADD without a TO or GIVING phrase: no ADD format prints operands alone ("
+            + ctx.Edition.Edition.CiteRule("§1985:VI.6.6.2", "§2023:14.9.2.2") + ")");
     }
 
     public BoundStatement BindSubtract(Core.SubtractStatementContext sub)
@@ -74,8 +75,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (sub.subtractFromPhrase()?.arithmeticPhraseOperand() is not { } from)
             // §2023:14.9.44.2 (kb/Work PB134): every SUBTRACT format prints FROM.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
-                "SUBTRACT without a FROM phrase: no SUBTRACT format prints operands alone (ISO "
-                + ctx.Edition.Edition.Cite("§1985:VI.6.26.2", "§2023:14.9.44.2") + ")");
+                "SUBTRACT without a FROM phrase: no SUBTRACT format prints operands alone ("
+                + ctx.Edition.Edition.CiteRule("§1985:VI.6.26.2", "§2023:14.9.44.2") + ")");
         if (sub.arithmeticGivingPhrase() is { } giving)
         {
             var fromX = GivingSendingOperand("SUBTRACT", "FROM", ctx.Edition.Edition.Cite("§1985:VI.6.26.2 Format 2", "§2023:14.9.44.2 Format 2"), from);
@@ -131,7 +132,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 // §2023:14.9.12.2 Formats 4–5 print GIVING before REMAINDER — no format has REMAINDER without it.
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
                     "DIVIDE REMAINDER without GIVING: Formats 4–5 print GIVING identifier-3 before "
-                    + "REMAINDER (ISO " + ctx.Edition.Edition.Cite("§1985:VI.6.11.2", "§2023:14.9.12.2") + ")");
+                    + "REMAINDER (" + ctx.Edition.Edition.CiteRule("§1985:VI.6.11.2", "§2023:14.9.12.2") + ")");
             }
             // Format 4 prints ONE sending `INTO {identifier-2 | literal-2}` and Format 5 ONE `BY {identifier-1 |
             // literal-1}`, neither with ROUNDED: the same discipline as every GIVING form (kb/Work PB2144 — this
@@ -147,7 +148,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                 // there is no syntax rule to pair with it — §2023:14.9.12.3 has four (kb/Work PB388).
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
                     $"DIVIDE REMAINDER with {quotients.Count} GIVING receivers: Formats 4–5 print exactly one quotient receiver "
-                    + "(ISO " + ctx.Edition.Edition.Cite("§1985:VI.6.11.2", "§2023:14.9.12.2") + ")");
+                    + "(" + ctx.Edition.Edition.CiteRule("§1985:VI.6.11.2", "§2023:14.9.12.2") + ")");
             }
             // kb/Work PB128: identifier-4 rides the ONE receiving chokepoint like every other resultant —
             // the direct Refs.Resolve bypass skipped the CONSTANT RECORD / CAPACITY-register / constant-name
@@ -188,7 +189,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // §2023:14.9.12.2: every BY format (3–5) prints GIVING — `DIVIDE A BY B.` exists in no format.
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
                 "DIVIDE BY without GIVING: every BY format of DIVIDE prints the GIVING phrase "
-                + "(ISO " + ctx.Edition.Edition.Cite("§1985:VI.6.11.2 Formats 3–5", "§2023:14.9.12.2 Formats 3–5") + ")");
+                + "(" + ctx.Edition.Edition.CiteRule("§1985:VI.6.11.2 Formats 3–5", "§2023:14.9.12.2 Formats 3–5") + ")");
         }
         return DivideShape();
     }
@@ -212,12 +213,12 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
                 $"{verb} with GIVING writes {operands.Length} {phrase} operands "
                 + $"({string.Join(", ", operands.Select(o => $"'{WrittenSource.Of(Written(o))}'"))}): the GIVING form "
-                + $"prints ONE sending operand, an identifier or a literal, after {phrase} (ISO {format})");
+                + $"prints ONE sending operand, an identifier or a literal, after {phrase} ({EditionInfo.Designated(format)})");
         foreach (var operand in operands)
             if (operand.roundedPhrase() is not null)
                 ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
                     $"{verb} with GIVING writes ROUNDED after the {phrase} operand '{WrittenSource.Of(Written(operand))}': "
-                    + $"that operand is sending, and only the GIVING receivers take a rounded-phrase (ISO {format})");
+                    + $"that operand is sending, and only the GIVING receivers take a rounded-phrase ({EditionInfo.Designated(format)})");
         // The WRAPPER is bound, so the operand walk's function-call arm fires: passing a raw FunctionCallContext
         // re-springs PB45's trap (the walk descends into the ARGUMENT and drops the function; `ADD 1 TO
         // FUNCTION SQRT(9) GIVING X` computed 1 + 9).
@@ -242,7 +243,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             if (ArithmeticOperandRole.FirstNonReceiver(operand) is { } bad)
             {
                 ctx.Edition.Error(DiagnosticCatalog.ArithmeticFormatOperand,
-                    $"{verb} without GIVING: Format 1 prints receiving identifiers only (ISO {cite}), and "
+                    $"{verb} without GIVING: Format 1 prints receiving identifiers only ({EditionInfo.Designated(cite)}), and "
                     + $"'{WrittenSource.Of(bad)}' is {ArithmeticOperandRole.Describe(bad)} — a sending operand belongs to "
                     + "the GIVING form");
                 ok = false;

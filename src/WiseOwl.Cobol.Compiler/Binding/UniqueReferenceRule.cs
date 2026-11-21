@@ -29,7 +29,7 @@ internal static class UniqueReferenceRule
                       : "a statement shall contain a reference that uniquely identifies that resource");
 
     /// <summary><c>ISO §2023:8.4.2.1: "a statement shall contain …"</c>, the colon form every message of the colon arm uses.</summary>
-    public static string Quoted(this EditionInfo edition) => $"ISO {edition.Citation()}: \"{edition.Quote()}\"";
+    public static string Quoted(this EditionInfo edition) => $"{EditionInfo.Designated(edition.Citation())}: \"{edition.Quote()}\"";
 
     /// <summary><c>§2023:8.4.2.1 — "In order to use a resource, …"</c> (no "ISO" lead-in), the dash form of the procedure-name messages.</summary>
     public static string QuotedDash(this EditionInfo edition) => $"{edition.Citation()} — \"{edition.Quote(inOrderTo: true)}\"";

@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -435,7 +436,7 @@ internal sealed partial class EcBinder
             if (!ctx.EcState.ReportedDirectiveBans.Add(site.Line)) continue;
             ctx.Edition.Warning(DiagnosticCatalog.DirectiveInExceptionCheckingPerform,
                 $"the >>{site.Word} directive on line {site.Line} is written within an exception-checking "
-                + $"(Format-3) PERFORM statement — \"{ban.Text}\" (ISO {ban.Clause} {ban.Rule}). The program "
+                + $"(Format-3) PERFORM statement — \"{ban.Text}\" ({EditionInfo.Designated(ban.Clause)} {ban.Rule}). The program "
                 + "still compiles (ISO §2023:4.2.2 requires a compile-time warning mechanism for a violation of the "
                 + "syntax rules, not rejection). The checking state inside this statement is not the state the "
                 + "surrounding text reads as: §2023:14.9.28.4 GR14 assumes \"an implicit PUSH ALL followed by TURN "

@@ -551,10 +551,10 @@ public sealed class CompileTimeExpressionEvaluator
         // word" — the same screen as the DEFINE's own name slot, asked of the ONE §2023:8.12 representation.
         if (WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.IsReserved(name, _edition.Year))
         {
-            _diag.Report(CtDiagCode.DirectiveWordAsName, $"{where}: '{name}' is a compiler-directive word (ISO "
-                + $"{WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.TableCitation(_edition.Year)}) and shall not be used as a "
-                + "compilation-variable-name in a defined condition (ISO "
-                + $"{WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.Citation(_edition.Year, WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.Site.DefinedCondition)})");
+            _diag.Report(CtDiagCode.DirectiveWordAsName, $"{where}: '{name}' is a compiler-directive word ("
+                + $"{EditionInfo.Designated(WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.TableCitation(_edition.Year))}) and shall not be used as a "
+                + "compilation-variable-name in a defined condition ("
+                + $"{EditionInfo.Designated(WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.Citation(_edition.Year, WiseOwl.Cobol.Frontend.Common.CompilerDirectiveWords.Site.DefinedCondition))})");
             return false;
         }
         bool defined = _resolveName(d.cobolWord()) is not null;

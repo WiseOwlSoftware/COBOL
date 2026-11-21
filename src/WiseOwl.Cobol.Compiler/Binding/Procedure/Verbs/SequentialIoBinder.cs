@@ -186,8 +186,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         if (!ctx.Validation.ResolveRecordName(resolved, WrittenSource.Of(rn), "WRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
-                + "may be qualified\" (ISO "
-                + ctx.Edition.Edition.Cite("§1985:VII.4.7.3 SR2, §1985:VIII.4.9.3 SR2, §1985:IX.4.9.3 SR2", "§2023:14.9.51.3 SR5") + ")",
+                + "may be qualified\" ("
+                + ctx.Edition.Edition.CiteRule("§1985:VII.4.7.3 SR2, §1985:VIII.4.9.3 SR2, §1985:IX.4.9.3 SR2", "§2023:14.9.51.3 SR5") + ")",
                 "ISO §2023:14.9.51.3 SR21 — \"If record-name-1 is defined in a containing program and is referenced in a "
                 + "contained program, the file description entry for the file-name associated with record-name-1 shall "
                 + "contain a GLOBAL clause.\"", out file!))
@@ -234,7 +234,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             ctx.Validation.ScreenForbiddenPhrase(true,
                 ConditionalPhrases.KindOf(wik).Words, "WRITE",
                 "a file with sequential organization",
-                "ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.7.2", "§2023:14.9.51.3 SR2"));
+                ctx.Edition.Edition.CiteRule("§1985:VII.4.7.2", "§2023:14.9.51.3 SR2"));
             winvalid = keyedIo.KeyedInvalidPhrase(w.conditionalPhrases());
         }
 
@@ -337,7 +337,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             ctx.Validation.ScreenForbiddenPhrase(true,
                 ConditionalPhrases.KindOf(ik).Words, "READ",
                 "a file with sequential organization, whose READ is a Format-1 sequential read",
-                "ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.4.2", "§2023:14.9.30.2 Format 1 · §2023:14.9.30.4 GR19"));
+                ctx.Edition.Edition.CiteRule("§1985:VII.4.4.2", "§2023:14.9.30.2 Format 1 · §2023:14.9.30.4 GR19"));
             invalid = keyedIo.KeyedInvalidPhrase(r.conditionalPhrases());
         }
         // COBOL-85: AT END is mandatory where no applicable USE procedure takes the exception (kb/Work PB5076).
@@ -372,8 +372,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         if (!ctx.Validation.ResolveRecordName(resolved, WrittenSource.Of(rn), "REWRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
-                + "may be qualified\" (ISO "
-                + ctx.Edition.Edition.Cite("§1985:VII.4.5.3 SR2, §1985:VIII.4.6.3 SR2, §1985:IX.4.6.3 SR2", "§2023:14.9.35.3 SR1") + ")",
+                + "may be qualified\" ("
+                + ctx.Edition.Edition.CiteRule("§1985:VII.4.5.3 SR2, §1985:VIII.4.6.3 SR2, §1985:IX.4.6.3 SR2", "§2023:14.9.35.3 SR1") + ")",
                 "ISO §2023:14.9.35.3 SR3 — \"If record-name-1 is defined in a containing program and is referenced in a "
                 + "contained program, the file description entry for the file associated with record-name-1 shall "
                 + "contain a GLOBAL clause.\"", out file!))
@@ -412,7 +412,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             ctx.Validation.ScreenForbiddenPhrase(true,
                 ConditionalPhrases.KindOf(ik).Words, "REWRITE",
                 "a file with sequential organization",
-                "ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.5.2", "§2023:14.9.35.3 SR2"));
+                ctx.Edition.Edition.CiteRule("§1985:VII.4.5.2", "§2023:14.9.35.3 SR2"));
             rinvalid = keyedIo.KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         var rewriteFrom = bindFrom();
@@ -493,7 +493,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             if ((wba.LINE() ?? wba.LINES()) is { } word)
                 ctx.Edition.Error(DiagnosticCatalog.StatementFormatShape,
                     $"WRITE ADVANCING {WrittenSource.Of(m)} {word.GetText()}: '{name}' "
-                    + "is a mnemonic-name, and ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.7.2", "§2023:14.9.51.2 Format 1")
+                    + "is a mnemonic-name, and " + ctx.Edition.Edition.CiteRule("§1985:VII.4.7.2", "§2023:14.9.51.2 Format 1")
                     + " writes LINE or LINES only after the count "
                     + "alternative { identifier-2 | integer-1 } — the other alternative is { mnemonic-name-1 | PAGE } "
                     + $"with no such word. Remove '{word.GetText()}'.");
@@ -554,7 +554,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingOperand,
                     $"WRITE ADVANCING integer-1 '{text}' shall be an unsigned integer literal, positive or zero ("
                     + ctx.Edition.Edition.Cite(
-                        "ISO §1985:VII.4.7.3 SR5; §1985:III.2 — an integer \"must be neither signed nor zero unless "
+                        "§1985:VII.4.7.3 SR5; §1985:III.2 — an integer \"must be neither signed nor zero unless "
                             + "explicitly allowed by the rules for that format\"), or identifier-2 an integer data item (SR4)",
                         "ISO §2023:14.9.51.3 SR15; §2023:5.5 — integer-n \"shall be unsigned and nonzero unless "
                             + "otherwise specified\"), or identifier-2 an integer data item (SR14)",
@@ -600,7 +600,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 + $"'{mnemonic}' is the mnemonic-name of the {ImplementorNames.KindWord(system.Kind)} '{system.Name}' — "
                 + ctx.Edition.Edition.Cite(
                     "\"When mnemonic-name-1 is specified, the name is associated with a particular feature specified by the "
-                    + "implementor\" (ISO §1985:VII.4.7.3 SR6), and a mnemonic-name that is not a feature's may not be "
+                    + "implementor\" (§1985:VII.4.7.3 SR6), and a mnemonic-name that is not a feature's may not be "
                     + "specified in WRITE (§1985:VI.4.5.3 SR1, SR2)",
                     "\"When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the "
                     + "implementor\" (ISO §2023:14.9.51.3 SR16), and a mnemonic-name that is not a feature-name's may not be "

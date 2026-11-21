@@ -236,13 +236,13 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                     // Format-4 condition-name rule; both used to ship as a run-time "not implemented" abort).
                     ctx.Validation.RejectStatementOperand($"SET '{name}' TO {(on ? "ON" : "OFF")} — "
                         + ctx.Edition.Edition.Cite(
-                            "\"Mnemonic-name-1 must be associated with an external switch, the status of which can be altered\" (ISO §1985:VI.6.23.3 SR5), and ",
+                            "\"Mnemonic-name-1 must be associated with an external switch, the status of which can be altered\" (§1985:VI.6.23.3 SR5), and ",
                             "\"mnemonic-name-1 shall be associated with an external switch, the status of which may be altered\" (ISO §2023:14.9.39.3 SR5), and ")
                         + (row is not null
                             ? $"'{name}' is the mnemonic-name of the {ImplementorNames.KindWord(row.Kind)} '{row.Name}'"
                             : ImplementorNames.Lookup(name) is { } named
                                 ? $"'{name}' is itself a {ImplementorNames.KindWord(named.Kind)}, an implementor-name "
-                                  + $"(ISO {ctx.Edition.Edition.Cite("§1985:IV.4.2.2.1.2", "§2023:8.3.2.3.11")}), not a mnemonic-name — the SPECIAL-NAMES entry "
+                                  + $"({ctx.Edition.Edition.CiteRule("§1985:IV.4.2.2.1.2", "§2023:8.3.2.3.11")}), not a mnemonic-name — the SPECIAL-NAMES entry "
                                   + $"'{named.Name} IS mnemonic-name' declares the name SET takes"
                                 : $"no SPECIAL-NAMES paragraph in this source element associates '{name}' with a switch-name"));
                     bad = true;
