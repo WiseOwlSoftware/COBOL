@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.1.1-p3",
+ "rule-digest": "83333f449a28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationHasNonLiteralOperand",
+ "test-ref": "conformance:cases/VI.6.22@1985-SEARCH-STATEMENT/pb5826_condition_without_variable_runs",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with tests the suite already holds, joined as the row's own by the PB5453 rows pass (w20262131i); the import left the row GAP because the read named them in prose, not as a runnable probe.  The read: 1985: 'The relation condition must contain at least one reference to a variable.' 2023 has no such rule (GR-8.8.4.2.1-13 accepts a relation of two literals), so no pointer states it. At 85 the compiler flags each literal-only relation with warning COBOL7609 and evaluates it as written, the same policy as COBOL3146 later (docs/conformance/3/D-RELLITERAL.md); the prose85 refuter upheld this as CONFORMS. The subject/object sentence only names the operands. Code location located after the read: subject/object operands of a relation condition"
+}

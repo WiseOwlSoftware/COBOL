@@ -1,0 +1,1 @@
+       01  CPY-ITEM    PIC X(5) VALUE "FROMC".

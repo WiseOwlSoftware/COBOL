@@ -13,8 +13,9 @@ rule's text and wrote one record per rule (`{"records": [...]}` files under a di
     DRAFTED              a later pass wrote the witness itself (the triage of the drafts that did not match corrected a
                          suspect draft; the drafting pass wrote one for a rule the audit never drafted): the record names
                          its `pass` and carries the `draft` and its `redraft_run`, placed when that is MATCH
-    HELD                 the witness is a case the suite already holds (`case`, `conformance:cases/<folder>/<id>`): nothing
-                         is written, the record joins it to the rule (kb/Work PB5453)
+    HELD                 the witness is a case the suite already holds (`case`, `conformance:cases/<folder>/<id>`, or a
+                         WiseOwl test's `conformance:wiseowl/cases/<folder>/<id>`): nothing is written, the record joins
+                         it to the rule (kb/Work PB5453)
 
 Records whose drafts are EQUAL witness their rules with one program: they are judged once and placed as ONE case, led
 by the first record's rule (its id and clause folder), its header naming every rule (kb/Work PB5453).
@@ -37,8 +38,9 @@ model's, checked against its rule, never yet against the portability lint or the
   waits for the clause pass that writes it.
 A draft's library texts (its `files`, audit_batch.py `draft_problem`) lie beside its test and its header declares them
 (`files`, design §3.1), as the harness staged them when it judged the draft (kb/Work PB5067). A library text in a
-library folder (`<library>/<file>`) is no suite test's: where a library-name's text is found is the implementor's, so
-the generator admits the folder only in a WiseOwl test, and such a draft is skipped with that reason. A library text
+library folder (`<library>/<file>`) is no portable suite test's: where a library-name's text is found is the
+implementor's, so the generator admits the folder only in a WiseOwl test, and such a draft is placed as one, in the
+same clause folder under `wiseowl/cases/` (kb/Work PB5453: `COPY text-name OF library-name`). A library text
 whose name the folder already holds with other text (another test's) refuses the run before it writes anything. A
 refusal the compiler reports with no error at the violating line is skipped too (a warning alone refuses nothing).
 
@@ -100,6 +102,9 @@ HELD = "HELD"
 ADJUDICATION = ("verdict", "code-location", "notes")
 #: A fixed-form comment line of a placed test: the indicator `*>` in columns 7-8, the text inside margin R (column 72).
 COMMENT, MARGIN = "      *> ", 72
+#: The two homes of a case under the suite (`<root>/<clause folder>/<id>.cob`): the portable cases and the WiseOwl tests
+#: (a test whose outcome rests on an implementor's choice, as where a library folder's text is found; design §3.1).
+CASE_ROOTS = ("cases", "wiseowl/cases")
 
 
 @dataclass(frozen=True)
@@ -217,6 +222,9 @@ def render(w: Witness, row: dict[str, Any], spelling: str, code: str | None, als
     else:
         why = (f"A refusal: the rule forbids line {w.draft['expected']['line']} of the program below, and WiseOwl refuses "
                f"it at {spelling} with {code} there; a compiler that accepts it fails.")
+    if any("/" in name for name in files):
+        why += (" A WiseOwl test: its library texts lie in library folders, and where a library-name's text is found is "
+                "the implementor's (design section 3.1).")
     cited = "; ".join(dict.fromkeys([row["citation"], *(r["citation"] for r in also)]))
     comment = wrapped(f"{cited} ({row.get('subject') or row['section']}). {why} Placed from {w.source} by "
                       f"scripts/spec/place_witnesses.py (kb/Work PB4995).")
@@ -264,7 +272,7 @@ def case_files(suite: pathlib.Path, tid: str) -> list[pathlib.Path]:
     """Every file of `suite` that is test `tid`'s case: its program in whatever clause folder, the expected-output files
     beside it (`<id>.out`, `<id>.<...>.out`: generate.py's names), the library texts it declares, and its refusal
     (`wiseowl/diagnostics/<id>.json`, `<id>.<step file>.json`)."""
-    programs = sorted((suite / "cases").glob(f"*/{tid}.cob"))
+    programs = sorted(p for root in CASE_ROOTS for p in (suite / root).glob(f"*/{tid}.cob"))
     outs = [o for p in programs for o in sorted(p.parent.glob(f"{tid}.*out")) if o.name.endswith(".out")]
     libraries = [f for p in programs for f in declared(p) if f.is_file()]
     diagnostics = suite / "wiseowl" / "diagnostics"
@@ -340,8 +348,9 @@ def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict
         row = rows[w.rule_id]
         if HELD in w.draft:
             ref = w.draft[HELD]
-            folder, _, tid = ref.removeprefix("conformance:cases/").rpartition("/")
-            if not ref.startswith("conformance:cases/") or not (suite / "cases" / folder / f"{tid}.cob").is_file():
+            folder, _, tid = ref.removeprefix("conformance:").rpartition("/")
+            if (not ref.startswith("conformance:") or folder.rpartition("/")[0] not in CASE_ROOTS
+                    or not (suite / folder / f"{tid}.cob").is_file()):
                 out.skipped.update(dict.fromkeys(members, f"the held case {ref} is no case of the suite"))
             else:
                 out.placed.update(dict.fromkeys(members, (folder, tid, None)))
@@ -349,10 +358,7 @@ def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict
         verdict, code = judged.get(w.rule_id, ("not judged", None))
         refused = w.draft["expected"]["outcome"] != "output"
         why = None
-        if any("/" in name for name in w.draft.get("files", {})):
-            why = ("its library texts lie in a library folder, which only a WiseOwl test may declare "
-                   "(where a library-name's text is found is the implementor's, design §3.1)")
-        elif verdict != run_drafts.MATCH:
+        if verdict != run_drafts.MATCH:
             why = verdict
         elif refused and code is None:
             why = (f"the compiler reports no error at its violating line {w.draft['expected']['line']} "
@@ -361,8 +367,9 @@ def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict
             out.skipped.update(dict.fromkeys(members, why))
         else:
             clause = clause_of(row["section"])
-            folder, tid = f"{clause}@{ed.year}-{names[clause]}", test_id(w.rule_id)
-            where = suite / "cases" / folder
+            root = CASE_ROOTS[1] if any("/" in name for name in w.draft.get("files", {})) else CASE_ROOTS[0]
+            folder, tid = f"{root}/{clause}@{ed.year}-{names[clause]}", test_id(w.rule_id)
+            where = suite / folder
             case = {where / f"{tid}.cob": render(w, row, ed.spelling, code, [rows[x.rule_id] for x in also])}
             if refused:
                 case[suite / "wiseowl" / "diagnostics" / f"{tid}.json"] = json.dumps(
@@ -449,7 +456,7 @@ def batch_of(placement: Placement, rows: dict[str, dict[str, Any]], change: inve
     own = {w.rule_id: dict(w.adjudication) for w in witnesses}
     records, chained, unclassified = [], [], []
     for rid, (folder, tid, _) in sorted(placement.placed.items()):
-        ref = f"conformance:cases/{folder}/{tid}"
+        ref = f"conformance:{folder}/{tid}"
         kind = change.kinds.get((rows[rid].get("next") or {}).get("kind", ""))
         if kind is not None and kind.chained:
             chained.append(rid)
@@ -495,7 +502,7 @@ def run_placement(confirm: pathlib.Path, state: pathlib.Path, year: int, adapter
 def self_test() -> int:
     """Three planted records through the harness's stub compiler (run.py `_STUB`): a CONFIRMED output draft of a CHANGED
     rule, a WEAK record's MATCH redraft refusing at its line (a KEPT rule), and an UNDECIDED record; then a redraft that
-    COPYs the library text it carries (placed with it), one whose text lies in a library folder (skipped), a refusal the
+    COPYs the library text it carries (placed with it), one whose text lies in a library folder (a WiseOwl test), a refusal the
     compiler only warns about, a MISMATCH redraft, a MATCH record that mismatches on this build and a DRAFTED record its
     pass ran to MISMATCH; then the same records again (nothing written), a draft needing a placed library text's name with
     other text (refused), another pass's records that place two of the rules in the other shape (refused) and the same
@@ -589,9 +596,12 @@ def self_test() -> int:
         ok(refused_test.is_file() and "accept:" not in refused_test.read_text(encoding="utf-8")
            and json.loads(diag.read_text(encoding="utf-8")) == {"refuse-at": ["85"], "expect": "refused"},
            "a MATCH redraft refusal is a refused test with the code the compiler reports at its violating line")
+        wiseowl = suite / "wiseowl" / "cases" / folder.name
         ok(sorted(batch["records"], key=lambda r: r["rule-id"])
-           == [{"rule-id": rid, "test-ref": f"conformance:cases/{folder.name}/{test_id(rid)}"}
-               for rid in sorted((changed, copying, drafted))]
+           == sorted([{"rule-id": rid, "test-ref": f"conformance:cases/{folder.name}/{test_id(rid)}"}
+                      for rid in (changed, copying, drafted)]
+                     + [{"rule-id": in_library, "test-ref": f"conformance:wiseowl/cases/{folder.name}/{test_id(in_library)}"}],
+                     key=lambda r: r["rule-id"])
            and summary["chained"] == [kept] and summary["unclassified"] == [],
            "the CHANGED and REMOVED rules' witnesses are witness-only records; the KEPT rule's is its chain's, placed and "
            "not recorded")
@@ -601,14 +611,21 @@ def self_test() -> int:
            and (folder / "LIB1.cpy").read_text(encoding="utf-8") == library
            and (folder / f"{test_id(copying)}.out").read_text(encoding="utf-8") == "X\n",
            "a draft that COPYs is placed with its library text beside it, its header declaring it (kb/Work PB5067)")
-        ok("library folder" in summary["skipped"].get(in_library, "") and not (folder / "LIBA").exists(),
-           "a draft whose library text lies in a library folder is skipped: only a WiseOwl test may declare one")
+        in_lib = wiseowl / f"{test_id(in_library)}.cob"
+        lib_header, _ = generate.read_header(in_lib.read_text(encoding="utf-8")) if in_lib.is_file() else (None, [])
+        ok(in_library not in summary["skipped"] and not (folder / "LIBA").exists() and lib_header is not None
+           and lib_header.fields.get("files") == ["LIBA/LIB2.cpy"]
+           and (wiseowl / "LIBA" / "LIB2.cpy").read_text(encoding="utf-8") == library
+           and "A WiseOwl test" in in_lib.read_text(encoding="utf-8").replace("\n" + COMMENT, " "),
+           "a draft whose library text lies in a library folder is placed as a WiseOwl test of its clause folder, "
+           "its library folder beside it, its header declaring it, its comment naming the implementor's choice "
+           "(kb/Work PB5453); never as a portable case")
         ok((folder / f"{test_id(drafted)}.out").read_text(encoding="utf-8") == "W\n"
            and "written and run by the drafting pass" in (folder / f"{test_id(drafted)}.cob").read_text(encoding="utf-8"),
            "a DRAFTED record's MATCH draft is placed and recorded, its test naming the pass that wrote it")
         ok(summary["undecided"] == {undecided: "Is it testable?"} and filed in summary["unplaced"],
            "an UNDECIDED record is listed with its question; a MISMATCH redraft is a filed defect, never placed")
-        ok("no error" in summary["skipped"].get(warned, "") and summary["placed"] == 4,
+        ok("no error" in summary["skipped"].get(warned, "") and summary["placed"] == 5,
            "a refusal the compiler only warns about is skipped")
         ok("on this build" in summary["skipped"].get(stale, "") and not (folder / f"{test_id(stale)}.cob").exists()
            and stale not in summary["unplaced"],
@@ -621,7 +638,7 @@ def self_test() -> int:
 
         before = snapshot()
         _, again = run_placement(confirm, state, 1985, root / "adapters" / "stub.json", {}, 2, suite, rows, schema)
-        ok(again["placed"] == 4 and again["unchanged"] == 4 and snapshot() == before,
+        ok(again["placed"] == 5 and again["unchanged"] == 5 and snapshot() == before,
            "placing the same records again finds every case already there, byte for byte, and writes nothing")
         # another rule's draft needs the placed test's library text's name with other text: the folder has one file of
         # that name, so the run is refused before it writes
