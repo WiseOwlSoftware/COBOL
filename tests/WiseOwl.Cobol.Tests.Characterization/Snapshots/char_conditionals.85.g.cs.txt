@@ -102,14 +102,14 @@ internal sealed class _PRG_CHAR_CONDITIONALS : ICobolProgram
                     break;
                 }
             }
-            if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §2023:14.6.3 rule 1)
+            if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §2023:14.6.3 GR1)
             if (__pc == 1) throw new ProgramReturn();   // the implicit GOBACK past the source element's last paragraph (ISO §2023:14.6.3)
         }
         return __pc;
     }
 }
 
-/// <summary>PROGRAM-ID CHAR-CONDITIONALS (ISO §2023:14.2.3 13), DESIGN-external-repository §4.3): activates the program through the run unit's activation boundary (§2023:14.9.4.4 3)) as a CALL statement naming it does, landing each argument exactly or refusing it.</summary>
+/// <summary>PROGRAM-ID CHAR-CONDITIONALS (ISO §2023:14.2.3 GR13, DESIGN-external-repository §4.3): activates the program through the run unit's activation boundary (§2023:14.9.4.4 GR3) as a CALL statement naming it does, landing each argument exactly or refusing it.</summary>
 [global::WiseOwl.Cobol.Runtime.Repository.CobolUnitAttribute(global::WiseOwl.Cobol.Runtime.Repository.RepositoryUnitKind.Program, "CHAR-CONDITIONALS", "CHAR-CONDITIONALS", EntryConvention = "COBOL", CurrencySymbol = new char[] { '\u0024' }, CurrencyText = new string[] { "$" }, CurrencyClass = new global::WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass[] { global::WiseOwl.Cobol.Runtime.Repository.RepositoryLiteralClass.Alphanumeric })]
 public static class CHAR_CONDITIONALS
 {
