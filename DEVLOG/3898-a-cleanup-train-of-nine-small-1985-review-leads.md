@@ -1,4 +1,4 @@
-## A cleanup train of nine small 1985 review leads
+## Entry 3898 — 2026-11-21 05:19 PST — A cleanup train of nine small 1985 review leads
 
 Nine review leads from the 1985 work, each checked on main before it was fixed. Three citations were repaired against the
 standard: the operator-spacing note now states the condition of `§1985:VI.6.2.3 SR4` (a left parenthesis before a unary
@@ -17,3 +17,4 @@ closing note as the catalog's walks do (a new self-test). The five spurious unit
 at X.3.1.4, XIII.3.10.7 twice, XIII.3.19.4, XIII.3.20.3) are already gone under main's reader: the measurer re-run on the
 merged tree reproduces main's `margin-levels-1985.json` byte for byte (373 records). Lead 3 (four unused usings) was
 already fixed on main.
+
