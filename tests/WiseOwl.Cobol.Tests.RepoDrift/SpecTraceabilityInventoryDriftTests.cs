@@ -1594,6 +1594,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // `unpopulatable-antecedent` (no 1985 program can read a report group's area after another group was built), standing on
             // the UPHELD record of tests/version-matrix/derivation-refutations/pb5822-1985-kept-4.jsonl; its chain closed when PB5729 made GR-13.18.33.4-3 CONFORMS.
             "1985-GR-XIII.3.14.4-2",
+            // ⚙ Thirteen more, added deliberately (kb/Work PB5453 and decision PB6003, signature `claude: 2026-11-21`): the
+            // first derivations from the 1985 reads, each a minted row with no other record, written by
+            // `audit_batch.py derivation-batch` on the UPHELD record of its slice's derivation refuter
+            // (tests/version-matrix/derivation-refutations/lineage-reads-1985-<slice>.jsonl).
+            "1985-GR-IV.4.2.2.1.1-15", "1985-SR-IV.4.2.2.1.1-L2.12", "1985-GR-IV.4.2.2.1.2-3", "1985-GR-IV.4.2.2.1.3.3-1",
+            "1985-GR-IV.4.2.2.1.3.3-2", "1985-GR-IV.4.3.7-p3", "1985-GR-IV.6.3.1-p1", "1985-GR-IV.6.4.2-p1",
+            "1985-GR-IV.6.4.2-p2", "1985-SR-IV.5.1-p1", "1985-GR-IV.7.4-p5", "1985-GR-VI.2.1-p1", "1985-GR-VII.1.3.3-p1",
         ];
 
         var s = LoadSchema();
