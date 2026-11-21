@@ -1,0 +1,1262 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-18 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-18",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-18",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-XIII.3.10.4-p1",
+   "1985-GR-XIII.3.10.4-p2",
+   "1985-GR-XIII.3.10.5-p1",
+   "1985-GR-XIII.3.10.6-p1",
+   "1985-GR-XIII.3.10.7-p1",
+   "1985-GR-XIII.3.10.7-p4",
+   "1985-GR-XIII.3.10.7-p5",
+   "1985-GR-XIII.3.10.8-p1",
+   "1985-GR-XIII.3.10.9-p1",
+   "1985-GR-XIII.3.10.9-p4",
+   "1985-GR-XIII.3.10.9-p5",
+   "1985-GR-XIII.3.10.10-p1",
+   "1985-GR-XIII.3.12.1-p1",
+   "1985-GR-XIII.3.14.1-p1",
+   "1985-GR-XIII.4.2.1-p1",
+   "1985-GR-XIII.4.2.4-p1",
+   "1985-GR-XIV.1.1-p1",
+   "1985-GR-XIV.1.2-p1",
+   "1985-GR-XIV.1.2-p2",
+   "1985-SR-XIV.2.1.1-p1",
+   "1985-SR-XIV.2.1.2-p2",
+   "1985-GR-XIV.2.2.5-p1",
+   "1985-GR-XIV.2.2.5-T1",
+   "1985-GR-XIV.2.2.6-p1",
+   "1985-GR-XIV.2.2.6-T1",
+   "1985-GR-XIV.3.2.1-p1",
+   "1985-GR-XIV.3.3.1-p1",
+   "1985-GR-XV.1.1-p1",
+   "1985-GR-XV.1.1-p2",
+   "1985-GR-XV.1.1-p3"
+  ],
+  "pointers": {
+   "1985-GR-XIII.3.10.4-p1": {
+    "candidates-2023": [
+     "GR-13.18.24.4-10",
+     "GR-13.18.24.4-1",
+     "DOC-A.1-60"
+    ],
+    "nearest-2023": "GR-13.18.24.4-10",
+    "similarity": 0.249
+   },
+   "1985-GR-XIII.3.10.4-p2": {
+    "candidates-2023": [
+     "GR-13.18.24.4-10",
+     "GR-13.18.24.4-1",
+     "DOC-A.1-60"
+    ],
+    "nearest-2023": "GR-13.18.24.4-10",
+    "similarity": 0.217
+   },
+   "1985-GR-XIII.3.10.5-p1": {
+    "candidates-2023": [
+     "GR-13.18.37.4-4",
+     "SR-13.18.37.3-4",
+     "SR-13.18.37.3-5"
+    ],
+    "nearest-2023": "GR-13.18.37.4-4",
+    "similarity": 0.428
+   },
+   "1985-GR-XIII.3.10.6-p1": {
+    "candidates-2023": [
+     "GR-13.18.37.4-3",
+     "GR-13.18.35.4-5",
+     "SR-13.18.37.3-7",
+     "SR-13.18.37.3-6",
+     "SR-13.18.37.3-4",
+     "GR-13.18.35.4-8",
+     "SR-13.18.35.3-9",
+     "SR-13.18.57.3-13",
+     "GR-8.4.3.15.4-4"
+    ],
+    "nearest-2023": "GR-13.18.37.4-3",
+    "similarity": 0.407
+   },
+   "1985-GR-XIII.3.10.7-p1": {
+    "candidates-2023": [
+     "GR-13.18.35.4-5",
+     "GR-8.4.3.15.4-4",
+     "GR-13.18.57.4-7",
+     "GR-13.18.35.4-1",
+     "GR-13.18.35.4-8",
+     "GR-13.18.35.4-4",
+     "SR-13.18.35.3-9",
+     "SR-13.18.37.3-4",
+     "GR-13.18.37.4-3"
+    ],
+    "nearest-2023": "GR-13.18.35.4-5",
+    "similarity": 0.312
+   },
+   "1985-GR-XIII.3.10.7-p4": {
+    "candidates-2023": [
+     "GR-13.18.35.4-5",
+     "GR-13.18.35.4-1",
+     "GR-8.4.3.15.4-4",
+     "GR-8.4.3.15.4-5",
+     "GR-13.18.57.4-3",
+     "GR-13.18.35.4-8",
+     "GR-13.18.57.4-4",
+     "SR-13.15.3-13",
+     "SR-13.15.3-15",
+     "GR-13.18.14.4-14"
+    ],
+    "nearest-2023": "GR-13.18.35.4-5",
+    "similarity": 0.177
+   },
+   "1985-GR-XIII.3.10.7-p5": {
+    "candidates-2023": [
+     "GR-8.4.3.15.4-4",
+     "GR-13.18.35.4-5",
+     "GR-13.18.35.4-1",
+     "GR-13.18.57.4-7",
+     "GR-13.18.35.4-8",
+     "GR-13.18.35.4-7",
+     "GR-13.18.35.4-4",
+     "GR-13.15.4-2",
+     "SR-13.18.14.3-3",
+     "GR-13.18.14.4-11"
+    ],
+    "nearest-2023": "GR-8.4.3.15.4-4",
+    "similarity": 0.279
+   },
+   "1985-GR-XIII.3.10.8-p1": {
+    "candidates-2023": [
+     "GR-13.18.57.4-7",
+     "GR-13.18.35.4-5",
+     "GR-13.18.37.4-4",
+     "SR-13.18.37.3-6",
+     "SR-13.18.37.3-4",
+     "GR-13.18.57.4-6",
+     "GR-13.18.37.4-3",
+     "SR-13.18.57.3-15",
+     "SR-13.18.35.3-9",
+     "SR-13.18.35.3-8"
+    ],
+    "nearest-2023": "GR-13.18.57.4-7",
+    "similarity": 0.317
+   },
+   "1985-GR-XIII.3.10.9-p1": {
+    "candidates-2023": [
+     "GR-13.18.35.4-5",
+     "GR-13.18.37.4-5",
+     "SR-13.18.37.3-7",
+     "GR-8.4.3.15.4-4",
+     "SR-13.18.37.3-4",
+     "SR-13.18.37.3-5",
+     "SR-13.18.35.3-8",
+     "SR-13.18.35.3-9",
+     "GR-13.18.35.4-8"
+    ],
+    "nearest-2023": "GR-13.18.35.4-5",
+    "similarity": 0.304
+   },
+   "1985-GR-XIII.3.10.9-p4": {
+    "candidates-2023": [
+     "GR-13.18.37.4-2",
+     "GR-13.18.35.4-8",
+     "GR-13.18.35.4-5",
+     "GR-13.18.35.4-1",
+     "GR-13.18.57.4-3",
+     "GR-13.18.57.4-4",
+     "SR-13.15.3-13",
+     "SR-13.15.3-15",
+     "GR-13.18.14.4-14"
+    ],
+    "nearest-2023": "GR-13.18.37.4-2",
+    "similarity": 0.208
+   },
+   "1985-GR-XIII.3.10.9-p5": {
+    "candidates-2023": [
+     "GR-8.4.3.15.4-4",
+     "GR-13.18.35.4-8",
+     "GR-13.18.35.4-5",
+     "GR-13.18.37.4-2",
+     "GR-13.18.35.4-7",
+     "GR-13.18.35.4-4",
+     "GR-13.15.4-2",
+     "SR-13.18.14.3-3",
+     "GR-13.18.14.4-11"
+    ],
+    "nearest-2023": "GR-8.4.3.15.4-4",
+    "similarity": 0.279
+   },
+   "1985-GR-XIII.3.10.10-p1": {
+    "candidates-2023": [
+     "GR-13.18.35.4-5",
+     "SR-13.18.37.3-4",
+     "GR-13.18.57.4-6",
+     "GR-13.18.35.4-8",
+     "SR-13.18.37.3-7",
+     "SR-13.18.37.3-6",
+     "SR-13.18.35.3-8",
+     "SR-13.18.57.3-13",
+     "GR-13.18.37.4-5"
+    ],
+    "nearest-2023": "GR-13.18.35.4-5",
+    "similarity": 0.379
+   },
+   "1985-GR-XIII.3.12.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.54.4-5",
+     "SR-11.7.3-5",
+     "SR-8.4.2.2.1-5"
+    ],
+    "nearest-2023": "GR-13.18.54.4-5",
+    "similarity": 0.505
+   },
+   "1985-GR-XIII.3.14.1-p1": {
+    "candidates-2023": [
+     "FMT-13.18.33.2",
+     "GR-13.18.33.4-1",
+     "SR-13.18.33.3-3"
+    ],
+    "nearest-2023": "FMT-13.18.33.2",
+    "similarity": 0.591
+   },
+   "1985-GR-XIII.4.2.1-p1": {
+    "candidates-2023": [
+     "FMT-14.9.6.2",
+     "SR-14.9.6.3-1",
+     "GR-9.1.13.2-6"
+    ],
+    "nearest-2023": "FMT-14.9.6.2",
+    "similarity": 0.529
+   },
+   "1985-GR-XIII.4.2.4-p1": {
+    "candidates-2023": [
+     "GR-14.9.6.4-2",
+     "SR-14.9.6.3-2",
+     "GR-14.9.6.4-3",
+     "GR-14.9.6.4-1",
+     "SR-14.9.6.3-1",
+     "GR-14.9.6.4-9",
+     "GR-14.9.6.4-6",
+     "GR-14.9.30.4-20",
+     "GR-14.9.30.4-23",
+     "GR-12.4.5.3-8"
+    ],
+    "nearest-2023": "GR-14.9.6.4-2",
+    "similarity": 0.357
+   },
+   "1985-GR-XIV.1.1-p1": {
+    "candidates-2023": [
+     "GR-14.6.6-1",
+     "GR-14.9.38.4-1",
+     "RV-15.65.4-9"
+    ],
+    "nearest-2023": "GR-14.6.6-1",
+    "similarity": 0.14
+   },
+   "1985-GR-XIV.1.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.38.4-1",
+     "GR-14.9.31.4-1",
+     "GR-14.9.38.4-6"
+    ],
+    "nearest-2023": "GR-14.9.38.4-1",
+    "similarity": 0.152
+   },
+   "1985-GR-XIV.1.2-p2": {
+    "candidates-2023": [
+     "FMT-13.18.26.2",
+     "GR-13.18.26.3-5",
+     "GR-13.18.26.3-1"
+    ],
+    "nearest-2023": "FMT-13.18.26.2",
+    "similarity": 0.245
+   },
+   "1985-SR-XIV.2.1.1-p1": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "SR-13.15.3-5",
+     "SR-13.15.3-4"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.238
+   },
+   "1985-SR-XIV.2.1.2-p2": {
+    "candidates-2023": [
+     "SR-13.18.38.3-22",
+     "SR-13.16.3-6",
+     "GR-13.18.38.4-9"
+    ],
+    "nearest-2023": "SR-13.18.38.3-22",
+    "similarity": 0.514
+   },
+   "1985-GR-XIV.2.2.5-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.5.3-3",
+     "GR-14.9.48.4-5",
+     "GR-14.9.37.4-5"
+    ],
+    "nearest-2023": "GR-12.4.5.5.3-3",
+    "similarity": 0.28
+   },
+   "1985-GR-XIV.2.2.5-T1": {
+    "candidates-2023": [
+     "DOC-A.1-103",
+     "DOC-A.1-218",
+     "GR-9.1.13.2-2"
+    ],
+    "nearest-2023": "DOC-A.1-103",
+    "similarity": 0.322
+   },
+   "1985-GR-XIV.2.2.6-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.5.3-3",
+     "GR-13.18.40.4-18",
+     "GR-14.9.37.4-5"
+    ],
+    "nearest-2023": "GR-12.4.5.5.3-3",
+    "similarity": 0.312
+   },
+   "1985-GR-XIV.2.2.6-T1": {
+    "candidates-2023": [
+     "FMT-13.18.18.2",
+     "GR-13.18.18.4-1",
+     "GR-13.18.18.4-5"
+    ],
+    "nearest-2023": "FMT-13.18.18.2",
+    "similarity": 0.42
+   },
+   "1985-GR-XIV.3.2.1-p1": {
+    "candidates-2023": [
+     "SR-14.9.27.3-6",
+     "SR-14.9.36.3-2",
+     "SR-14.9.7.3-2"
+    ],
+    "nearest-2023": "SR-14.9.27.3-6",
+    "similarity": 0.252
+   },
+   "1985-GR-XIV.3.3.1-p1": {
+    "candidates-2023": [
+     "SR-14.9.27.3-6",
+     "SR-14.9.36.3-2",
+     "SR-14.9.7.3-2"
+    ],
+    "nearest-2023": "SR-14.9.27.3-6",
+    "similarity": 0.257
+   },
+   "1985-GR-XV.1.1-p1": {
+    "candidates-2023": [
+     "RV-15.65.4-9",
+     "GR-14.6.6-1",
+     "DOC-A.1-135"
+    ],
+    "nearest-2023": "RV-15.65.4-9",
+    "similarity": 0.197
+   },
+   "1985-GR-XV.1.1-p2": {
+    "candidates-2023": [
+     "DOC-A.1-134",
+     "DOC-A.1-67",
+     "DOC-A.1-135"
+    ],
+    "nearest-2023": "DOC-A.1-134",
+    "similarity": 0.258
+   },
+   "1985-GR-XV.1.1-p3": {
+    "candidates-2023": [
+     "DOC-A.1-134",
+     "GR-11.9.5.2-2",
+     "GR-14.6.6-1"
+    ],
+    "nearest-2023": "DOC-A.1-134",
+    "similarity": 0.261
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-18",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-XIII.3.10.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer, Tables 1-5 (report heading, page heading, body groups, page footing, report footing): where 'A R' is a permissible LINE NUMBER sequence, 'A' alone (absolute LINE NUMBER clauses, none with NEXT PAGE) is permissible",
+     "the presentation rules of the 'A R' row apply to the 'A' group"
+    ],
+    "evidence-1985": {
+     "RH 'A' alone (Table 1 rule 3a)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p01_seq_substitution.cob (run E:/COBOL-coord/scratch/pb5453/runs/s-18/p01_seq_substitution-002: RH-A printed on line 2) and conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01 (RH-A TYPE RH LINE 3 NEXT GROUP 5) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)",
+     "PH 'A' alone": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01 (PH-B LINE 6)",
+     "body group 'A' alone (Table 3)": "covered by p01 (DA LINE 5: 'PAGE 01 LC 05', printed on line 5; its 'A R' twin DAR on lines 7-8, 'PAGE 01 LC 08')",
+     "PF 'A' alone": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_04 (PF-P LINE 22 NEXT GROUP 25, PF-S LINE 22) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)",
+     "RF 'A' alone": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf35_06 (RA: TYPE REPORT FOOTING LINE 8) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.4 p1",
+      "quote": "is also permissible and the same presentation rules are applicable",
+      "check": "OK  §1985:XIII.3.10.4 p1  (3.10.4 LINE NUMBER Clause Sequence Substitutions)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"Where 'A R' is shown to be a permissible sequence in the presentation rules table, 'A' is also permissible and the same presentation rules are applicable.\" It grants a form, so accepted programs are needed: p01 and the 85 table cases place each group type written with absolute LINE clauses only as the 'A R' rows say. 2023 has no presentation tables and no sequence notation; the candidates (FORMAT clause rules, DOC-A.1-60) are wording-only matches with no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p01_seq_substitution.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p01_seq_substitution.cob (PAGE 01 LC 05 / PAGE 01 LC 08 / PAGE 02 LC 06 / PAGE 03 LC 11; printer.txt places each line as Tables 1 and 3 say)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p01 (+ .out) as the row's 85 test, with g85_bf36_01, g85_bf36_04 and g85_bf35_06 mapped to it",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.4-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer, Tables 3 and 5 (body groups, report footing): where 'NP R' is a permissible LINE NUMBER sequence, 'NP' alone (absolute LINE NUMBER clauses, NEXT PAGE in the first only) is permissible",
+     "the presentation rules of the 'NP R' row apply to the 'NP' group"
+    ],
+    "evidence-1985": {
+     "body group 'NP' alone": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p01_seq_substitution.cob (DNP LINE 6 ON NEXT PAGE: 'PAGE 02 LC 06', printed on line 6 of page 2)",
+     "body group 'NP R' (the row substituted for)": "covered by p01 (DNPR LINE 9 ON NEXT PAGE then LINE PLUS 2: 'PAGE 03 LC 11', lines 9 and 11 of page 3)",
+     "RF 'NP' alone": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf35_06 (RN: TYPE REPORT FOOTING LINE 2 ON NEXT PAGE) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.4 p2",
+      "quote": "is also permissible and the same presentation rules are applicable",
+      "check": "OK  §1985:XIII.3.10.4 p2  (3.10.4 LINE NUMBER Clause Sequence Substitutions)  the text is in p2"
+     }
+    ],
+    "reason": "1985: \"Where 'NP R' is shown to be a permissible sequence in the presentation rules table, 'NP' is also permissible and the same presentation rules are applicable.\" It grants a form: p01 accepts a detail group with one absolute LINE clause carrying NEXT PAGE and places it, after a page advance, on its line as its 'NP R' twin is placed; g85_bf35_06 does the same for a report footing. No 2023 counterpart (no tables, no notation).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p01_seq_substitution.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p01_seq_substitution.cob (PAGE 02 LC 06)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p01 as the row's 85 test, with g85_bf35_06 mapped to it",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer, body groups: an absolute NEXT GROUP value that cannot be accommodated on the current page is kept by the RWCS in the saved next group integer (addressable only by the RWCS)",
+     "after page advance processing the next body group is positioned using the saved value (Table 3 rules 3a-3c, 6a)"
+    ],
+    "evidence-1985": {
+     "value saved when it cannot be accommodated": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p02_saved_next_group.cob (second DL printed on line 7, not below NEXT GROUP 6: 'PAGE 01 LC 18', the FOOTING line)",
+     "next body group positioned from it after page advance": "covered by p02 (DX LINE PLUS 1 printed on line 7 of page 2, saved 6 + 1, not FIRST DETAIL 3: 'PAGE 02 LC 07'; run E:/COBOL-coord/scratch/pb5453/runs/s-18/p02_saved_next_group-002) and conformance-suite/cases/13.18.37-NEXT-GROUP/pb5823_saved_next_group_fit_test (its .85.out matches at 85, run pb5823_saved_next_group_fit_test-001)",
+     "addressable only by the RWCS": "not shown (the language has no name for it, so there is nothing to refuse)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.5 p1",
+      "quote": "the RWCS stores that value in saved next group integer",
+      "check": "OK  §1985:XIII.3.10.5 p1  (3.10.5 Saved Next Group Integer Description)  the text is in p1"
+     },
+     {
+      "cite": "§1985:XIII.3.10.8 GR6a",
+      "quote": "the RWCS places the NEXT GROUP integer into the saved next group integer location",
+      "check": "OK  §1985:XIII.3.10.8 GR6a  (3.10.8 Body Group Presentation Rules)  the text is in GR6a"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: \"When an absolute NEXT GROUP clause specifies a vertical positioning value which cannot be accommodated on the current page, the RWCS stores that value in saved next group integer. After page advance processing, the RWCS positions the next body group using the value\". GR-13.18.37.4-4 has a save location too, but its at-85 lists are empty and its effect differs from 1985: pb5823 carries a separate .85.out because from 2002 the saved integer forces the page advance before the next group, while 1985 reads it only when no body group is yet on the page. So it is no SAME pointer.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p02_saved_next_group.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p02_saved_next_group.cob (PAGE 01 LC 06 / PAGE 01 LC 18 / PAGE 02 LC 07)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p02 (+ .out) as the row's 85 test, with pb5823_saved_next_group_fit_test (85 leg) mapped to it",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: every permissible combination of LINE NUMBER and NEXT GROUP clauses in a report heading report group is governed by its table's row (upper and lower limit, first print line position, next group and final LINE-COUNTER setting rules)",
+     "with and without the PAGE clause (Table 1's two column groups)"
+    ],
+    "evidence-1985": {
+     "Table 1 rows (A R, R, absent; each NEXT GROUP form; paged and unpaged)": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01 (RDs R-A..R-G) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/), conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_f01_04 (next group rules, MATCH) and conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_6-2 (lower limits; not run here)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.6 p1",
+      "quote": "points to the appropriate presentation rules for all permissible combinations",
+      "check": "OK  §1985:XIII.3.10.6 p1  (3.10.6 Report Heading Group Presentation Rules)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"... points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a report heading report group\". A lead-in that makes the table govern the group's presentation. 2023 has no tables, and each candidate states one placement rule (GR-13.18.35.4-5, GR-13.18.35.4-8, ...), none the set of rules a table row names, so no pointer covers the scope. The table's own rules are the siblings 1985-GR-XIII.3.10.6-1..-5, each with an 85 case.",
+    "probe": null,
+    "compiler-at-1985": "correct: the sibling rows' 85 cases run here and match (see evidence)",
+    "class": "own-text",
+    "needs": "needs-own-witness: map the listed sibling 85 cases to this row (the paragraph adds no rule beyond its table's rows)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.7-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: every permissible combination of LINE NUMBER and NEXT GROUP clauses in a page heading report group is governed by its table's row (upper and lower limit, first print line position, next group and final LINE-COUNTER setting rules)",
+     "only with the PAGE clause (footnote ****)"
+    ],
+    "evidence-1985": {
+     "Table 2 rows (A R, R, absent)": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_relative_after_rh_85 (MATCH), conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_nonprintable_85 (absent row, MATCH) and conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01 (PH-A..PH-G, MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.7 p1",
+      "quote": "points to the appropriate presentation rules for all permissible combinations",
+      "check": "OK  §1985:XIII.3.10.7 p1  (3.10.7 Page Heading Group Presentation Rules)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"... points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a page heading report group\". A lead-in that makes the table govern the group's presentation. 2023 has no tables, and each candidate states one placement rule (GR-13.18.35.4-5, GR-13.18.35.4-8, ...), none the set of rules a table row names, so no pointer covers the scope. The table's own rules are the siblings 1985-GR-XIII.3.10.7-1..-4, each with an 85 case.",
+    "probe": null,
+    "compiler-at-1985": "correct: the sibling rows' 85 cases run here and match (see evidence)",
+    "class": "own-text",
+    "needs": "needs-own-witness: map the listed sibling 85 cases to this row (the paragraph adds no rule beyond its table's rows)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.7-p4",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "Report Writer, Table 2 footnote **: how to read a blank entry in columns 1 and 2 of the standard's table (the clause is absent from the entry)"
+    ],
+    "evidence-1985": {
+     "reading convention of the table": "not shown: no program can show how the standard's table is read; the row it explains (a page heading with no LINE clause, rule 3c) is shown by pb5789_page_heading_nonprintable_85, the sibling's witness"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.7 p4",
+      "quote": "indicates that the named clause is totally absent",
+      "check": "OK  §1985:XIII.3.10.7 p4  (3.10.7 Page Heading Group Presentation Rules)  the text is in p4"
+     }
+    ],
+    "reason": "\"A blank entry in column 1 or column 2 indicates that the named clause is totally absent from the report group description entry.\" A footnote on the standard's table notation, like 3.10.2-p1/p3 and 3.10.3-p2 (DOUBTFUL in s-17). no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling or derivation arm for presentation footnotes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: no program can show a convention for reading the standard's table",
+    "class": null,
+    "needs": "a ruling on how presentation footnotes close: no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.7-p5",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "Report Writer, Table 2 footnote ***: a blank applicable-rules entry means the named rule does not apply to that combination"
+    ],
+    "evidence-1985": {
+     "reading convention of the table": "not shown: no program can show it; its consequence (no next group rule for a page heading) is the NEXT GROUP syntax rule's, refused by cases/13.18.37-NEXT-GROUP/pb957-next-group-in-page-heading"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.7 p5",
+      "quote": "indicates the absence of the named rule",
+      "check": "OK  §1985:XIII.3.10.7 p5  (3.10.7 Page Heading Group Presentation Rules)  the text is in p5"
+     }
+    ],
+    "reason": "\"A blank entry in an applicable rules column indicates the absence of the named rule for the given combination of LINE NUMBER and NEXT GROUP clauses.\" Table notation. no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling or derivation arm for presentation footnotes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: no program can show a convention for reading the standard's table",
+    "class": null,
+    "needs": "a ruling on how presentation footnotes close: no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.8-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: every permissible combination of LINE NUMBER and NEXT GROUP clauses in a control heading, detail, and control footing report groups is governed by its table's row (upper and lower limit, first print line position, next group and final LINE-COUNTER setting rules)",
+     "the body group presentation rules that follow (limits, fit test, first print line, next group, final LINE-COUNTER)"
+    ],
+    "evidence-1985": {
+     "Table 3 rows": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_02, conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_8-1, conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_8-6 (each MATCH), pb5823_saved_next_group_fit_test (85 leg, MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p01_seq_substitution.cob / p02_saved_next_group.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.8 p1",
+      "quote": "points to the appropriate presentation rules for all permissible combinations",
+      "check": "OK  §1985:XIII.3.10.8 p1  (3.10.8 Body Group Presentation Rules)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"... points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a control heading, detail, and control footing report groups\". A lead-in that makes the table govern the group's presentation. 2023 has no tables, and each candidate states one placement rule (GR-13.18.35.4-5, GR-13.18.35.4-8, ...), none the set of rules a table row names, so no pointer covers the scope. The table's own rules are the siblings 1985-GR-XIII.3.10.8-1..-6, each with an 85 case.",
+    "probe": null,
+    "compiler-at-1985": "correct: the sibling rows' 85 cases run here and match (see evidence)",
+    "class": "own-text",
+    "needs": "needs-own-witness: map the listed sibling 85 cases to this row (the paragraph adds no rule beyond its table's rows)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.9-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: every permissible combination of LINE NUMBER and NEXT GROUP clauses in a page footing report group is governed by its table's row (upper and lower limit, first print line position, next group and final LINE-COUNTER setting rules)",
+     "only with the PAGE clause"
+    ],
+    "evidence-1985": {
+     "Table 4 rows": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_04 (PF-P absolute with absolute NEXT GROUP, PF-Q relative NEXT GROUP, PF-S, PF-T absent; MATCH) and conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_f01_04 (MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.9 p1",
+      "quote": "points to the appropriate presentation rules for all permissible combinations",
+      "check": "OK  §1985:XIII.3.10.9 p1  (3.10.9 Page Footing Presentation Rules)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"... points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a page footing report group\". A lead-in that makes the table govern the group's presentation. 2023 has no tables, and each candidate states one placement rule (GR-13.18.35.4-5, GR-13.18.35.4-8, ...), none the set of rules a table row names, so no pointer covers the scope. The table's own rules are the siblings 1985-GR-XIII.3.10.9-1..-5, each with an 85 case.",
+    "probe": null,
+    "compiler-at-1985": "correct: the sibling rows' 85 cases run here and match (see evidence)",
+    "class": "own-text",
+    "needs": "needs-own-witness: map the listed sibling 85 cases to this row (the paragraph adds no rule beyond its table's rows)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.9-p4",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "Report Writer, Table 4 footnote **: a blank entry in columns 1 and 2 means the clause is absent from the entry"
+    ],
+    "evidence-1985": {
+     "reading convention of the table": "not shown: no program can show it; the absent row (PF-T) is shown by g85_bf36_04"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.9 p4",
+      "quote": "indicates that the named clause is totally absent",
+      "check": "OK  §1985:XIII.3.10.9 p4  (3.10.9 Page Footing Presentation Rules)  the text is in p4"
+     }
+    ],
+    "reason": "The footnote of 3.10.7-p4, under Table 4. no derivation arm fits a rule about the standard's own presentation.",
+    "probe": null,
+    "compiler-at-1985": "not probed: no program can show a convention for reading the standard's table",
+    "class": null,
+    "needs": "a ruling on how presentation footnotes close: no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.9-p5",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "Report Writer, Table 4 footnote ***: a blank applicable-rules entry means the rule does not apply"
+    ],
+    "evidence-1985": {
+     "reading convention of the table": "not shown: no program can show it"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.9 p5",
+      "quote": "indicates the absence of the named rule",
+      "check": "OK  §1985:XIII.3.10.9 p5  (3.10.9 Page Footing Presentation Rules)  the text is in p5"
+     }
+    ],
+    "reason": "The footnote of 3.10.7-p5, under Table 4. no derivation arm fits a rule about the standard's own presentation.",
+    "probe": null,
+    "compiler-at-1985": "not probed: no program can show a convention for reading the standard's table",
+    "class": null,
+    "needs": "a ruling on how presentation footnotes close: no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.10-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: every permissible combination of LINE NUMBER and NEXT GROUP clauses in a report footing report group is governed by its table's row (upper and lower limit, first print line position, next group and final LINE-COUNTER setting rules)",
+     "with and without the PAGE clause"
+    ],
+    "evidence-1985": {
+     "Table 5 rows": "covered by conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_10-1, conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf35_06 and conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_f29_03 (each MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.10 p1",
+      "quote": "points to the appropriate presentation rules for all permissible combinations",
+      "check": "OK  §1985:XIII.3.10.10 p1  (3.10.10 Report Footing Presentation Rules)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"... points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a report footing report group\". A lead-in that makes the table govern the group's presentation. 2023 has no tables, and each candidate states one placement rule (GR-13.18.35.4-5, GR-13.18.35.4-8, ...), none the set of rules a table row names, so no pointer covers the scope. The table's own rules are the siblings 1985-GR-XIII.3.10.10-1..-4, each with an 85 case.",
+    "probe": null,
+    "compiler-at-1985": "correct: the sibling rows' 85 cases run here and match (see evidence)",
+    "class": "own-text",
+    "needs": "needs-own-witness: map the listed sibling 85 cases to this row (the paragraph adds no rule beyond its table's rows)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.12.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: in a report group description entry the data-name names the item described",
+     "a named detail group is referenced by GENERATE; a named sum counter is referenced in the Procedure Division (XIII.3.12.4 GR1a-b)"
+    ],
+    "evidence-1985": {
+     "detail group named and GENERATEd by its name": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p03_rw_dataname_level.cob (GENERATE DETAIL-LINE: 'LC 02', 'LC 04')",
+     "sum counter named and read by its name": "covered by p03 (MOVE TOTAL-AMT TO WS-TOT: 'TOTAL-AMT 042'; printed 'TOT 042') and conformance-suite/cases/13.8.6.2.3-Report-Items/pb882_report_sum_counter_identity (GR-13.18.54.4-5's 85 case)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.12.1 p1",
+      "quote": "specifies the name of the data item being described",
+      "check": "OK  §1985:XIII.3.12.1 p1  (3.12.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: \"A data-name specifies the name of the data item being described.\" 2023 has no data-name clause; GR-13.18.54.4-5 (with an 85 case) states only that a data-name on a SUM entry names the sum counter, not a report group or another item, so it covers part of the scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p03_rw_dataname_level.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p03_rw_dataname_level.cob (LC 02 / LC 04 / TOTAL-AMT 042; run p03_rw_dataname_level-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p03 (+ .out) as the row's 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.14.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: the level-number places an entry within the hierarchy of a report group (01 the group, subordinate LINE entries, their COLUMN items)"
+    ],
+    "evidence-1985": {
+     "items placed by level under the LINE entry that contains them": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p03_rw_dataname_level.cob (two 05 LINE entries with 10 items: printed 'AMT 12' then '---'; LINE-COUNTER advances by 2 per GENERATE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.14.1 p1",
+      "quote": "indicates the position of a data item within the hierarchical structure of a report group",
+      "check": "OK  §1985:XIII.3.14.1 p1  (3.14.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"The level-number indicates the position of a data item within the hierarchical structure of a report group.\" 2023 13.18.33.1 says the same in a General paragraph that is not a catalog rule; the candidates FMT-13.18.33.2 and GR-13.18.33.4-1 have an 85 case (pb1246_level_hierarchy_legal) with no report group, so it does not exercise this scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p03_rw_dataname_level.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p03_rw_dataname_level.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p03 as the row's 85 test (or give FMT-13.18.33.2 an 85 report-group case, then SAME)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.4.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer CLOSE of a report file: terminates the processing of the file",
+     "REEL/UNIT [FOR REMOVAL], WITH NO REWIND, WITH LOCK where applicable (format XIII.4.2.2)"
+    ],
+    "evidence-1985": {
+     "CLOSE terminates processing (reopen possible; LOCK forbids it)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p04_rw_close_forms.cob (REOPEN 00 after NO REWIND; LOCK 00, then OPEN gives 'AFTER LOCK 38')",
+     "REEL/UNIT, FOR REMOVAL": "covered by p04 (07 each; the file stays open and GENERATE continues: two HELLO lines)",
+     "NO REWIND": "covered by p04 (NO REWIND 07) and conformance-suite/cases/XIII.4.2@1985-CLOSE-STATEMENT/1985-GR-XIII_4_2_4-3 (MATCH)",
+     "LOCK": "covered by p04 and conformance-suite/cases/XIII.4.2@1985-CLOSE-STATEMENT/1985-FMT-XIII_4_2_2 (MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.4.2.1 p1",
+      "quote": "terminates the processing of reel/units and files",
+      "check": "OK  §1985:XIII.4.2.1 p1  (4.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"The CLOSE statement terminates the processing of reel/units and files with optional rewind and/or lock or removal where applicable.\" FMT-14.9.6.2's 85 case pb141_close_forms closes a sequential file, not a report file, so it does not exercise this module's scope, and 2023 has no Function rule.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p04_rw_close_forms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p04_rw_close_forms.cob (REEL 07 / UNIT 07 / REEL REMOVAL 07 / UNIT REMOVAL 07 / NO REWIND 07 / REOPEN 00 / LOCK 00 / AFTER LOCK 38)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p04 (+ .out) as the row's 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.4.2.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer CLOSE: 'reel' and 'unit' synonymous and interchangeable",
+     "sequential mass storage files treated as tape-like sequential media",
+     "a file of a multiple file tape wholly on one reel treated as sequential single-reel/unit"
+    ],
+    "evidence-1985": {
+     "REEL and UNIT interchangeable": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p04_rw_close_forms.cob (REEL 07 = UNIT 07; REEL FOR REMOVAL 07 = UNIT FOR REMOVAL 07)",
+     "mass storage treatment": "covered by p04 under the documented determination D-MEDIUM-85 (docs/conformance/3/D-MEDIUM-85.md: every file is on a non-reel/unit medium; 07 for NO REWIND and REEL/UNIT)",
+     "multiple file tape": "not shown: no tape medium exists; every file is one host path (the unpopulatable antecedent of DRV-1985-GR-XIII.4.5.4-15)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.4.2.4 p1",
+      "quote": "are synonymous and completely interchangeable in the CLOSE statement",
+      "check": "OK  §1985:XIII.4.2.4 p1  (4.2.4 General Rules)  the text is in p1"
+     },
+     {
+      "cite": "§1985:XIII.4.2.4 GR2",
+      "quote": "A file whose output medium is such that the concepts of rewind and reels/units have no meaning",
+      "check": "OK  §1985:XIII.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2"
+     }
+    ],
+    "reason": "1985: \"the terms 'reel' and 'unit' are synonymous and completely interchangeable in the CLOSE statement. Treatment of sequential mass storage files is logically equivalent to the treatment of a file on tape ...\". SR-14.9.6.3-2 ('The words REEL and UNIT are equivalent', 85 case pb141_close_forms on a sequential file) states only the first sentence, and not for a report file; 2023 has neither the mass-storage nor the multiple-file-tape sentence. The second sentence is read under D-MEDIUM-85 (adjudicated in kb/Work PB5779).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p04_rw_close_forms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p04_rw_close_forms.cob (REEL/UNIT synonyms)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p04 for the synonym sentence; the mass-storage sentence rests on D-MEDIUM-85, and the multiple-file-tape sentence wants an unpopulatable-antecedent derivation (no tape medium)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication module: access, process and create messages or portions of messages",
+     "communicate through a message control system (MCS) with communication devices"
+    ],
+    "evidence-1985": {
+     "create and send messages and portions": "covered by conformance-suite/cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10 (ESI/EMI/EGI portions) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)",
+     "access and process received messages": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-1 (RECEIVE of a seeded queue, MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p07_cd_record_description.cob (ACCEPT MESSAGE COUNT: 'CD  00 000002')",
+     "devices through the MCS": "covered by conformance-suite/cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-12 (device output through the MCS, MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.1.1 p1",
+      "quote": "provides the ability to access, process, and create messages",
+      "check": "OK  §1985:XIV.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: \"The Communication module provides the ability to access, process, and create messages or portions thereof. It provides the ability to communicate through a message control system (MCS) with communication devices.\" The 1985 communication module left the standard in 2014; the 2023 candidates (locale, SEND size, MODULE-NAME) are wording-only. The 85 SEND and RECEIVE cases run and match.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p07_cd_record_description.cob",
+    "compiler-at-1985": "correct: conformance-suite/cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-10 (MATCH, run 1985-GR-XIV_3_6_4-10-001)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: map 1985-GR-XIV_3_6_4-10, -12 and 1985-GR-XIV_2_2_4-1 to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.1.2-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "Communication level 1: limited CD entry, limited RECEIVE and SEND, full ACCEPT MESSAGE COUNT"
+    ],
+    "evidence-1985": {
+     "level 1 content": "not shown: --std 85 implements the high subset (kb/Work PB4885); no program can show the limits of a level the implementation does not offer as such"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.1.2 p1",
+      "quote": "Communication level 1 provides limited capabilities",
+      "check": "OK  §1985:XIV.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1"
+     }
+    ],
+    "reason": "A level-characteristics paragraph (VII.1.2 and VIII.1.2 were decided DOUBTFUL in s-12/s-13): it describes the standard's own level structure. no derivation arm fits a rule about the standard's own presentation.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a statement of the standard's level structure",
+    "class": null,
+    "needs": "a ruling or derivation arm for level-characteristics paragraphs: no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.1.2-p2",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "Communication level 2 (boxed): full CD entry; full ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE and SEND"
+    ],
+    "evidence-1985": {
+     "each level 2 statement accepted and run at 85": "covered in part by the XIV.3.1-3.6 85 cases (e.g. conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1, conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1, conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3: MATCH), but 'full capabilities' is the module's own rows, not a witness of this paragraph"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.1.2 p2",
+      "quote": "Communication level 2 provides full capabilities",
+      "check": "OK  §1985:XIV.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2"
+     }
+    ],
+    "reason": "Level-characteristics paragraph, treated as VIII.1.2-p2 was in s-13: the statements it lists run at 85, but the paragraph states the standard's level structure. no derivation arm fits a rule about the standard's own presentation.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a statement of the standard's level structure (each statement is shown by its own rows' cases)",
+    "class": null,
+    "needs": "a ruling or derivation arm for level-characteristics paragraphs: no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XIV.2.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication Section: the CD entry is the highest level of organization",
+     "the section header is followed by a CD entry",
+     "a CD entry is the level indicator CD, a cd-name and a series of independent clauses, terminated by a period"
+    ],
+    "evidence-1985": {
+     "CD entry accepted (CD, cd-name, clauses, period)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p07_cd_record_description.cob (accepted; REC 00 000002 / CD  00 000002)",
+     "missing terminating period refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p08_cd_entry_no_period.cob (p07 with the one period removed: COBOL0307 \"unexpected '01'. A period may be missing at the end of the previous sentence.\")",
+     "header followed by a CD entry (a record first is refused)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p09_cd_section_record_first.cob (COBOL0001 \"unexpected '01'\"; control p07)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.2.1.1 p1",
+      "quote": "The entry itself is terminated by a period",
+      "check": "OK  §1985:XIV.2.1.1 p1  (2.1.1 Communication Description Entry)  the text is in p1"
+     }
+    ],
+    "reason": "1985: \"The Communication Section header is followed by a communication description entry consisting of a level indicator (CD), a cd-name, and a series of independent clauses. The entry itself is terminated by a period.\" A syntax rule: the accepted control and the two refusals show it. 2023 has no Communication Section; the candidates are BASED, TYPE and report-group rules.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p07_cd_record_description.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p07_cd_record_description.cob with the refusals E:/COBOL-coord/scratch/pb5453/probes/s-18/p08_cd_entry_no_period.cob and E:/COBOL-coord/scratch/pb5453/probes/s-18/p09_cd_section_record_first.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p07 (+ .out) with the refusals p08 and p09",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-XIV.2.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication Section record description: data description entries (level-number, data-name or FILLER, independent clauses)",
+     "hierarchical structure (group and subordinate entries)",
+     "clauses available per the Nucleus level (the high subset at --std 85)"
+    ],
+    "evidence-1985": {
+     "record under a CD with groups, OCCURS and FILLER, describing the CD's area": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p07_cd_record_description.cob (CIN-Q written through the record selects Q1; CIN-ST and CIN-CNT read '00 000002', equal to the clause items)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.2.1.2 p2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK  §1985:XIV.2.1.2 p2  (2.1.2 Record Description Structure)  the text is in p2"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: \"A record description consists of a set of data description entries ... A record description may have a hierarchical structure\". p07's record redescribes the 87-character input CD area with three levels, OCCURS and FILLER, and the MCS reads the queue name written through it. 2023 has no Communication Section; the candidates are OCCURS and CONSTANT RECORD rules.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p07_cd_record_description.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-18/p07_cd_record_description.cob (run p07_cd_record_description-001)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p07 (+ .out) as the row's 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.2.2.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication (boxed): the status key item of each CD format (data-name-10 of format 1, data-name-3 of format 2, data-name-6 of format 3) holds at the completion of each statement a value Table 1 lists as possible for that statement",
+     "the superscript 2 marks a level 2 element (presentation)"
+    ],
+    "evidence-1985": {
+     "00": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-1 (RECEIVE 00) and conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 (DISABLE 00), MATCH",
+     "10 (SEND, a destination disabled)": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 ('SEND    10 2', MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob ('SEND 1 10 2')",
+     "15 (ENABLE/DISABLE, already enabled/disabled)": "covered by conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1 ('ENABLE  15 5', MATCH)",
+     "20 (destinations, queues or subqueues unknown)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-20 ('UNKNOWN 20 1', 'MIXED 20 01', MATCH)",
+     "21 (symbolic source unknown)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-31-failing-first-statement ('ENABLE 21', 'RECEIVE 1 21', MATCH)",
+     "30 (destination count invalid)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-17 ('COUNT 0 STATUS 30', MATCH) and conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 ('COUNT   30', MATCH)",
+     "40 (password invalid)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-22-refused-statement ('ENABLE KEY 40', MATCH)",
+     "50 (text length exceeds identifier-1)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-22-refused-statement ('TOO LONG 50')",
+     "60 (zero text length or no identifier-1)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-22-refused-statement ('NO TEXT 60')",
+     "65 (output queue capacity exceeded)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob ('SEND 2 65 6' with mcs.json capacity 1; run p05_cd_status_65_error_6-001)",
+     "70 (a destination without a partial message, PURGE)": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 ('NONE    70 4', MATCH)",
+     "80 (two or more of 10, 15, 20)": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-3-known-prefix-unknown-level ('ENA Q1/SX       80', MATCH)",
+     "9x (implementor-defined)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p06_cd_status_9x.cob ('SEND 1 91 X': the definition file cannot be used, documented in docs/conformance/3.3)",
+     "each X cell (a value possible for that statement's column)": "not shown cell by cell: each value is shown on some statement, not every statement-value pair"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.2.2.5 p1",
+      "quote": "indicates that the associated status key value shown for that line is possible",
+      "check": "OK  §1985:XIV.2.2.5 p1  (2.2.5 Communication Status Key Conditions)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but programs show it: the status key \"at the completion of each statement shown\" takes the values of Table 1. Every value of the table is shown at 85 by a case or a probe; 2023 has no CD status key (the candidates are file-access and SEARCH rules, wording-only).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob",
+    "compiler-at-1985": "correct: the XIV 85 cases (MATCH) with E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob and E:/COBOL-coord/scratch/pb5453/probes/s-18/p06_cd_status_9x.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: map the status-key cases with p05 and p06 to this row; a statement-by-value matrix case would close the X cells",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.2.2.5-T1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication status key conditions (Table 1): 00, 10, 15, 20 (two meanings), 21, 30, 40, 50, 60, 65, 70, 80, 9x, each for the statements its X marks (RECEIVE, SEND to an input-output CD, SEND to an output CD, PURGE, ACCEPT MESSAGE COUNT, ENABLE/DISABLE INPUT, INPUT TERMINAL or I-O TERMINAL, OUTPUT)"
+    ],
+    "evidence-1985": {
+     "00": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-1 (RECEIVE 00) and conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 (DISABLE 00), MATCH",
+     "10 (SEND, a destination disabled)": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 ('SEND    10 2', MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob ('SEND 1 10 2')",
+     "15 (ENABLE/DISABLE, already enabled/disabled)": "covered by conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1 ('ENABLE  15 5', MATCH)",
+     "20 (destinations, queues or subqueues unknown)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-20 ('UNKNOWN 20 1', 'MIXED 20 01', MATCH)",
+     "21 (symbolic source unknown)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-31-failing-first-statement ('ENABLE 21', 'RECEIVE 1 21', MATCH)",
+     "30 (destination count invalid)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-17 ('COUNT 0 STATUS 30', MATCH) and conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 ('COUNT   30', MATCH)",
+     "40 (password invalid)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-22-refused-statement ('ENABLE KEY 40', MATCH)",
+     "50 (text length exceeds identifier-1)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-22-refused-statement ('TOO LONG 50')",
+     "60 (zero text length or no identifier-1)": "covered by conformance-suite/cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-22-refused-statement ('NO TEXT 60')",
+     "65 (output queue capacity exceeded)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob ('SEND 2 65 6' with mcs.json capacity 1; run p05_cd_status_65_error_6-001)",
+     "70 (a destination without a partial message, PURGE)": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 ('NONE    70 4', MATCH)",
+     "80 (two or more of 10, 15, 20)": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-3-known-prefix-unknown-level ('ENA Q1/SX       80', MATCH)",
+     "9x (implementor-defined)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p06_cd_status_9x.cob ('SEND 1 91 X': the definition file cannot be used, documented in docs/conformance/3.3)",
+     "each X cell (a value possible for that statement's column)": "not shown cell by cell: each value is shown on some statement, not every statement-value pair"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.2.2.5 Table 1",
+      "quote": "Output queue capacity exceeded",
+      "check": "OK  §1985:XIV.2.2.5 Table 1  (2.2.5 Communication Status Key Conditions)  the text is in Table 1"
+     }
+    ],
+    "reason": "The table: each status value, its meaning and the statements it can follow. Every value is shown at 85: the cases under conformance-suite/cases/XIV.*@1985 run here and match, and p05 and p06 show 65 and 9x. No 2023 counterpart (the candidates DOC-A.1-103, DOC-A.1-218 and GR-9.1.13.2-2 are I-O status rules).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob",
+    "compiler-at-1985": "correct: the XIV 85 cases (MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob, E:/COBOL-coord/scratch/pb5453/probes/s-18/p06_cd_status_9x.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p05 and p06 with the listed cases; a per-statement matrix for the X cells",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.2.2.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication (boxed): the error key item (data-name-4 of a format 2 CD) of each destination holds at the completion of SEND, PURGE, ENABLE OUTPUT and DISABLE OUTPUT a value Table 2 lists as possible",
+     "the superscript 2 marks a level 2 element (presentation)"
+    ],
+    "evidence-1985": {
+     "0 no error": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-1-repeated-destination ('PURGE 00 00', MATCH)",
+     "1 symbolic destination unknown": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 ('UNKNOWN 20 1', MATCH)",
+     "2 symbolic destination disabled": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 ('SEND    10 2', MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob ('SEND 1 10 2')",
+     "4 no partial message (PURGE)": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 ('NONE    70 4')",
+     "5 already enabled/disabled": "covered by conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1 ('ENABLE  15 5', MATCH)",
+     "6 output queue capacity exceeded": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob ('SEND 2 65 6')",
+     "7-9 reserved": "not shown (nothing to show: never set)",
+     "A-Z implementor-defined": "not shown: none is defined (documented, docs/conformance/3.3 'Error key A-Z')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.2.2.6 p1",
+      "quote": "indicates that the associated error key value shown for that line is possible",
+      "check": "OK  §1985:XIV.2.2.6 p1  (2.2.6 Error Key Values)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but programs show it: \"Table 2 below indicates the possible content of the data item referenced by data-name-4 for format 2 at the completion of each statement shown\". Every defined value is shown at 85; no 2023 counterpart (the candidates are file-access, PICTURE and SEARCH rules).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob",
+    "compiler-at-1985": "correct: the XIV 85 cases (MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: map the error-key cases with p05 to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.2.2.6-T1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication error key values (printed as Table 2): 0, 1, 2, 4, 5, 6, 7-9 reserved, A-Z implementor-defined, each for the statements its X marks (SEND, PURGE, ENABLE OUTPUT, DISABLE OUTPUT)"
+    ],
+    "evidence-1985": {
+     "0 no error": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-1-repeated-destination ('PURGE 00 00', MATCH)",
+     "1 symbolic destination unknown": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 ('UNKNOWN 20 1', MATCH)",
+     "2 symbolic destination disabled": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 ('SEND    10 2', MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob ('SEND 1 10 2')",
+     "4 no partial message (PURGE)": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 ('NONE    70 4')",
+     "5 already enabled/disabled": "covered by conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1 ('ENABLE  15 5', MATCH)",
+     "6 output queue capacity exceeded": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob ('SEND 2 65 6')",
+     "7-9 reserved": "not shown (nothing to show: never set)",
+     "A-Z implementor-defined": "not shown: none is defined (documented, docs/conformance/3.3 'Error key A-Z')"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.2.2.6 Table 2",
+      "quote": "Output queue capacity exceeded",
+      "check": "OK  §1985:XIV.2.2.6 Table 2  the text is in table 2 (XIV.2.2.6)"
+     }
+    ],
+    "reason": "The table. Each defined value is shown at 85; for A-Z WiseOwl defines none (documented in docs/conformance/3.3). No 2023 counterpart (the candidates are the 2023 DESTINATION clause of VALIDATE, a different subject). Cited by its printed caption, Table 2, while the row id says T1 (see leads).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob",
+    "compiler-at-1985": "correct: the XIV 85 cases (MATCH) and E:/COBOL-coord/scratch/pb5453/probes/s-18/p05_cd_status_65_error_6.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p05 with the listed cases",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.3.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication (boxed): DISABLE inhibits data transfer between output queues and destinations (OUTPUT), between sources and input queues (INPUT), and between the program and one source or destination (I-O TERMINAL)",
+     "the WITH KEY phrase is an obsolete element (still present at 85)"
+    ],
+    "evidence-1985": {
+     "DISABLE OUTPUT inhibits transfer": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 (SEND after DISABLE: 10, COUNT 000000 until ENABLE) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)",
+     "DISABLE INPUT": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-3 and 1985-GR-XIV_3_2_4-3-known-prefix-unknown-level (MATCH)",
+     "DISABLE I-O TERMINAL": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-6 (MATCH)",
+     "WITH KEY accepted and checked (obsolete, still present)": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-7 ('D1 BAD  40', 'D1 GOOD 00', MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.3.2.1 p1",
+      "quote": "notifies the message control system (MCS) to inhibit data transfer",
+      "check": "OK  §1985:XIV.3.2.1 p1  (║3.2.1 Function║)  the text is in p1"
+     }
+    ],
+    "reason": "Function of DISABLE plus the obsolete-element note. Flagged definitional, but programs show it; the obsolete WITH KEY phrase is still present at 85 and is accepted and checked. No 2023 counterpart (the candidates are OPEN and SORT restrictions).",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 (MATCH, run 1985-GR-XIV_3_2_4-1-001)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: map 1985-GR-XIV_3_2_4-1, -3, -6 and -7 to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.3.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication (boxed): ENABLE allows data transfer between output queues and destinations, between sources and input queues, and between the program and one source or destination",
+     "the WITH KEY phrase is an obsolete element (still present at 85)"
+    ],
+    "evidence-1985": {
+     "ENABLE OUTPUT allows transfer": "covered by conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1 (COUNT 000000, ENABLE 00, COUNT 000001) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)",
+     "ENABLE INPUT, INPUT TERMINAL, I-O TERMINAL": "covered by conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-2, -3 and -4 (each MATCH)",
+     "WITH KEY accepted and checked (obsolete, still present)": "covered by conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-6 ('D1 BAD  40', 'D1 GOOD 00', MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.3.3.1 p1",
+      "quote": "notifies the message control system (MCS) to allow data transfer",
+      "check": "OK  §1985:XIV.3.3.1 p1  (║3.3.1 Function║)  the text is in p1"
+     }
+    ],
+    "reason": "Function of ENABLE plus the obsolete-element note; programs show it at 85, and the WITH KEY phrase is accepted and checked. No 2023 counterpart.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1 (MATCH, run 1985-GR-XIV_3_3_4-1-001)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: map 1985-GR-XIV_3_3_4-1 to -4 and -6 to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XV.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Debug module: the user describes a debugging algorithm (USE FOR DEBUGGING declaratives)",
+     "the conditions under which data items are monitored",
+     "the conditions under which procedures are monitored"
+    ],
+    "evidence-1985": {
+     "data item monitoring (ALL REFERENCES OF)": "covered by conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5 ('DEBUG 5' at each reference of W-A) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)",
+     "procedure monitoring": "covered by conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5 ('DEBUG P3') and conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-FMT-XV_3_2_2 ('DEBUG' before P1, MATCH)",
+     "algorithm active under WITH DEBUGGING MODE": "covered by conformance-suite/cases/XV.2.1@1985-WITH-DEBUGGING-MODE-CLAUSE/1985-GR-XV_2_1_3-1 (MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XV.1.1 p1",
+      "quote": "conditions under which data items or procedures are to be monitored",
+      "check": "OK  §1985:XV.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but programs show it: \"The Debug module provides a means by which the user can describe his debugging algorithm including the conditions under which data items or procedures are to be monitored\". The Debug module left the standard after 1985; the 2023 candidates (MODULE-NAME, locale) are wording-only.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5 (MATCH, run 1985-GR-XV_3_2_4-5-001)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: map 1985-GR-XV_3_2_4-5 and 1985-FMT-XV_3_2_2 to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XV.1.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Debug module: what to monitor and what to display is the user's (the declarative's own statements)",
+     "the facility gives access to pertinent information (DEBUG-ITEM: DEBUG-LINE, DEBUG-NAME, DEBUG-SUB-n, DEBUG-CONTENTS)"
+    ],
+    "evidence-1985": {
+     "the user decides what to display": "covered by conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5 (the declarative DISPLAYs W-A, its own choice; MATCH)",
+     "access to pertinent information (DEBUG-ITEM)": "covered by conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-10 (DEBUG-ITEM, DEBUG-SUB-1..3, DEBUG-LINE and DEBUG-NAME read in the declarative) (MATCH at 85 against its .out, run under E:/COBOL-coord/scratch/pb5453/runs/s-18/)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XV.1.1 p2",
+      "quote": "simply provides a convenient access to pertinent information",
+      "check": "OK  §1985:XV.1.1 p2  (1.1 FUNCTION)  the text is in p2"
+     }
+    ],
+    "reason": "\"The decisions of what to monitor and what information to display on the output device are explicitly in the domain of the user. The COBOL facility simply provides a convenient access to pertinent information.\" Shown at 85 by the USE FOR DEBUGGING cases that read DEBUG-ITEM. No 2023 counterpart.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-10 (MATCH, run 1985-GR-XV_3_2_4-10-001)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: map 1985-GR-XV_3_2_4-10 and -5 to this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XV.1.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Debug module: an obsolete element of the 1985 standard, so still present at 85 (the module element tables mark it Z: present, to be deleted next revision)"
+    ],
+    "evidence-1985": {
+     "the Debug module compiles and runs at 85 without refusal": "covered by conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-FMT-XV_3_2_2 (MATCH, stderr empty), conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-5 and conformance-suite/cases/XV.2.1@1985-WITH-DEBUGGING-MODE-CLAUSE/1985-GR-XV_2_1_3-1 (MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XV.1.1 p3",
+      "quote": "The Debug module is an obsolete element in Standard COBOL",
+      "check": "OK  §1985:XV.1.1 p3  (1.1 FUNCTION)  the text is in p3"
+     }
+    ],
+    "reason": "\"The Debug module is an obsolete element in Standard COBOL because it is to be deleted from the next revision\". Read as the s-09 and s-13 obsolete-element rows were: an obsolete element is still present in its level at 85, so its programs must compile and run, and they do with no diagnostic. 2023 has no Debug module.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-FMT-XV_3_2_2 (MATCH, run 1985-FMT-XV_3_2_2-001, stderr empty)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: map 1985-FMT-XV_3_2_2 to this row",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "tooling",
+    "row": "1985-GR-XIII.3.10.5-p1",
+    "what": "GR-13.18.37.4-4's at-85 lists are empty although conformance-suite/cases/13.18.37-NEXT-GROUP/pb5823_saved_next_group_fit_test names it, accepts [85, 2002, 2014, 2023] and carries a .85.out that matches at 85: the writer's at-85 search seems to miss a case whose 85 leg has its own .85.out (s-17 saw the same for GR-13.18.37.4-2 and pb957_next_group_control_85)",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs/s-18 --std 85 --exe <mint cobol.exe> pb5823_saved_next_group_fit_test.cob: stdout equals pb5823_saved_next_group_fit_test.85.out (run pb5823_saved_next_group_fit_test-001)",
+    "site": ""
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-GR-XIV.2.2.6-T1",
+    "what": "The row id and the view's citation number this table T1 / 'Table 1' within XIV.2.2.6, but the standard prints it 'Table 2: Error Key Values'; cite_check.py answers OK for both '§1985:XIV.2.2.6 Table 1' and '§1985:XIV.2.2.6 Table 2', so a table citation's ordinal is ambiguous (clause-local against printed caption)",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/cite_check.py \"§1985:XIV.2.2.6 Table 1\" \"Output queue capacity exceeded\" (and the same with Table 2): both OK",
+    "site": "scripts/spec/citation.py"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-18",
+  "cases": [],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "665debeaf537015f7efcfc52f52a8039d678e7879ba389e35d5e2598a592a799",
+  "read": "2394596ad576d109bd061aed385287f63999e305dd1e311d8f119134ad2010a6",
+  "refute": "b5de2fad0da2f61deee2f5795a5a99845635c7089d136a8e9c809c2c1d179f59"
+ }
+}

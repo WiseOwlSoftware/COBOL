@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.2-p5",
+ "rule-digest": "5f9ba804f8ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+ "test-ref": "conformance:cases/VI.6.3.1@1985-Simple-Conditions/1985-GR-VI_6_3_1_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_class.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985 forbids NUMERIC on an alphabetic item or a group of signed items; 2023 (SR-8.8.4.4.3-8) allows both, so no pointer states the 1985 scope. The suite refusal cases named at-85 and the probe cover every sentence at 85. Code location located after the read: cites §1985:VI.6.3.1.2 NUMERIC bar at ClassConditionModel.cs:57,83"
+}

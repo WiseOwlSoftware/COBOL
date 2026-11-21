@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.1-T1.2",
+ "rule-digest": "c0b9e0eeea1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set",
+ "notes": "Own verdict from the read lineage-reads-1985/s-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.8.4.2.2, witnessed at 85 by the cases test-ref names. The read: The 1985 Table 1 row pairs the meaning 'Less than or not less than' with IS [NOT] LESS THAN, IS [NOT] <. 2023's general-relation format (8.8.4.2.2) prints the same spellings with the same optional IS/THAN/TO and the same NOT placement (NOT only on GREATER/LESS/EQUAL and their symbols, never on >=/<=); its extra IS <> is not part of this row and is refused at 85 (COBOL0900, E:/COBOL-coord/scratch/pb5453/probes/s-10/s10_relop_ne.cob). The pointer's case pb1034_printed_relational_operator_set runs at 85 and exercises every spelling of this row with true and false outcomes. Cited: §1985:VI.6.3.1.1 Table 1 row 2."
+}

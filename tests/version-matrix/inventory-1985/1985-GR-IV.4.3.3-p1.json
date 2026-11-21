@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.3-p1",
+ "rule-digest": "fa66d09755b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#ItemCategory; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel",
+ "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/1985-GR-IV_4_3_3-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with its probe (p07_group_class.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The class of a group item is treated at object time as alphanumeric regardless of the class of elementary items subordinate to that group item.' GR-13.18.40.4-3 (85 case pb535_picture_category_size_85) states the categories only, not the classes or the group's class; GR-8.5.2.3-3 has no 85 case. Code location located after the read: five categories/three classes of data items (cites 1985:IV.4.3.3)"
+}

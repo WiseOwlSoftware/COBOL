@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.3-p3",
+ "rule-digest": "9cf85c1c57c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderMembershipTest; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#StringMembershipOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderStringRange",
+ "test-ref": "conformance:cases/8.8.4.5-Simple-condition-name-condition/pb1477_cond88_odo_figurative",
+ "notes": "Own verdict from the read lineage-reads-1985/s-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.8.4.5.3-2, witnessed at 85 by the cases test-ref names. The read: The 1985 sentence and 2023's GR2 are word for word. At --std 85 the relation rules applied are the 1985 ones; the pointer's 85 case pb1477_cond88_odo_figurative compares a variable-length conditional variable with figurative and ALL-literal values by the nonnumeric relation rules, which is this scope. Cited: §1985:VI.6.3.1.3 p3."
+}

@@ -1,0 +1,1322 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-01 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-01",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-01",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-II.6.5.1-1",
+   "1985-GR-II.6.5.1-2",
+   "1985-GR-II.6.5.1-3",
+   "1985-GR-II.6.5.1-4",
+   "1985-GR-IV.1-p1",
+   "1985-SR-IV.2.1-p1",
+   "1985-SR-IV.2.1.1-p1",
+   "1985-SR-IV.2.1.2-p1",
+   "1985-SR-IV.2.1.2-p2",
+   "1985-SR-IV.2.1.3-p1",
+   "1985-SR-IV.2.1.4-p1",
+   "1985-SR-IV.2.1.4-p2",
+   "1985-SR-IV.2.1.4-p3",
+   "1985-SR-IV.2.1.4-p4",
+   "1985-GR-IV.2.1.5-p1",
+   "1985-SR-IV.2.1.5-p2",
+   "1985-SR-IV.2.1.5-p3",
+   "1985-SR-IV.2.1.6-p1",
+   "1985-SR-IV.2.1.6-p2",
+   "1985-SR-IV.2.1.7-p1",
+   "1985-GR-IV.3.1-p1",
+   "1985-GR-IV.3.2-p1",
+   "1985-SR-IV.4.1-p1",
+   "1985-GR-IV.4.1-p2",
+   "1985-SR-IV.4.1-p3",
+   "1985-SR-IV.4.2-p1",
+   "1985-SR-IV.4.2.1-p1",
+   "1985-SR-IV.4.2.1-9",
+   "1985-SR-IV.4.2.1-p2",
+   "1985-SR-IV.4.2.1-p3"
+  ],
+  "pointers": {
+   "1985-GR-II.6.5.1-1": {
+    "candidates-2023": [
+     "SR-14.9.17.3-3",
+     "GR-14.9.17.4-1",
+     "FMT-14.9.17.2"
+    ],
+    "nearest-2023": "SR-14.9.17.3-3",
+    "similarity": 0.418
+   },
+   "1985-GR-II.6.5.1-2": {
+    "candidates-2023": [
+     "GR-14.9.28.4-8",
+     "SR-14.9.28.3-3",
+     "SR-14.9.14.3-8"
+    ],
+    "nearest-2023": "GR-14.9.28.4-8",
+    "similarity": 0.276
+   },
+   "1985-GR-II.6.5.1-3": {
+    "candidates-2023": [
+     "SR-14.9.36.3-2",
+     "SR-14.9.7.3-2",
+     "SR-14.9.40.3-3"
+    ],
+    "nearest-2023": "SR-14.9.36.3-2",
+    "similarity": 0.56
+   },
+   "1985-GR-II.6.5.1-4": {
+    "candidates-2023": [
+     "SR-14.9.40.3-3",
+     "SR-14.9.24.3-1",
+     "GR-14.9.28.4-1"
+    ],
+    "nearest-2023": "SR-14.9.40.3-3",
+    "similarity": 0.334
+   },
+   "1985-GR-IV.1-p1": {
+    "candidates-2023": [
+     "SR-13.16.3-16",
+     "SR-13.18.44.3-3",
+     "GR-14.6.3-3"
+    ],
+    "nearest-2023": "SR-13.16.3-16",
+    "similarity": 0.238
+   },
+   "1985-SR-IV.2.1-p1": {
+    "candidates-2023": [
+     "SR-8.3.5-7",
+     "SR-8.3.5-3",
+     "GR-14.9.22.4-19"
+    ],
+    "nearest-2023": "SR-8.3.5-7",
+    "similarity": 0.334
+   },
+   "1985-SR-IV.2.1.1-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.4.2-1",
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.4.2-1",
+    "similarity": 0.281
+   },
+   "1985-SR-IV.2.1.2-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.4.2-1",
+     "FMT-13.18.63.2",
+     "FMT-8.8.4.2.2"
+    ],
+    "nearest-2023": "SR-8.3.2.4.2-1",
+    "similarity": 0.505
+   },
+   "1985-SR-IV.2.1.2-p2": {
+    "candidates-2023": [
+     "FMT-13.7.2",
+     "SR-5.5-1",
+     "GR-13.4.6.4-1"
+    ],
+    "nearest-2023": "FMT-13.7.2",
+    "similarity": 0.191
+   },
+   "1985-SR-IV.2.1.3-p1": {
+    "candidates-2023": [
+     "SR-13.18.33.3-6",
+     "SR-13.18.33.3-4",
+     "SR-13.18.33.3-2"
+    ],
+    "nearest-2023": "SR-13.18.33.3-6",
+    "similarity": 0.458
+   },
+   "1985-SR-IV.2.1.4-p1": {
+    "candidates-2023": [
+     "RV-15.38.4-2",
+     "AR-15.41.3-5",
+     "AR-15.40.3-6"
+    ],
+    "nearest-2023": "RV-15.38.4-2",
+    "similarity": 0.353
+   },
+   "1985-SR-IV.2.1.4-p2": {
+    "candidates-2023": [
+     "GR-7.3.14.4-3",
+     "GR-7.3.15.4-3",
+     "GR-11.9.4-1"
+    ],
+    "nearest-2023": "GR-7.3.14.4-3",
+    "similarity": 0.368
+   },
+   "1985-SR-IV.2.1.4-p3": {
+    "candidates-2023": [
+     "FMT-13.18.24.2",
+     "FMT-7.3.12.2",
+     "SR-13.4.3-1"
+    ],
+    "nearest-2023": "FMT-13.18.24.2",
+    "similarity": 0.28
+   },
+   "1985-SR-IV.2.1.4-p4": {
+    "candidates-2023": [
+     "FMT-13.18.25.2",
+     "FMT-7.3.12.2",
+     "FMT-8.4.3.15.2"
+    ],
+    "nearest-2023": "FMT-13.18.25.2",
+    "similarity": 0.194
+   },
+   "1985-GR-IV.2.1.5-p1": {
+    "candidates-2023": [
+     "SR-8.8.4.12.1-2",
+     "SR-8.8.4.12.1-1",
+     "GR-11.7.4-5"
+    ],
+    "nearest-2023": "SR-8.8.4.12.1-2",
+    "similarity": 0.237
+   },
+   "1985-SR-IV.2.1.5-p2": {
+    "candidates-2023": [
+     "RV-15.38.4-2",
+     "AR-15.41.3-5",
+     "AR-15.40.3-6"
+    ],
+    "nearest-2023": "RV-15.38.4-2",
+    "similarity": 0.397
+   },
+   "1985-SR-IV.2.1.5-p3": {
+    "candidates-2023": [
+     "SR-8.8.2-3",
+     "SR-13.18.14.3-9",
+     "GR-8.4.3.1.4-1"
+    ],
+    "nearest-2023": "SR-8.8.2-3",
+    "similarity": 0.425
+   },
+   "1985-SR-IV.2.1.6-p1": {
+    "candidates-2023": [
+     "SR-8.3.5-2",
+     "SR-8.3.5-1",
+     "SR-8.3.5-8"
+    ],
+    "nearest-2023": "SR-8.3.5-2",
+    "similarity": 0.489
+   },
+   "1985-SR-IV.2.1.6-p2": {
+    "candidates-2023": [
+     "SR-8.3.5-3",
+     "AR-15.67.3-5",
+     "AR-15.69.3-4"
+    ],
+    "nearest-2023": "SR-8.3.5-3",
+    "similarity": 0.477
+   },
+   "1985-SR-IV.2.1.7-p1": {
+    "candidates-2023": [
+     "SR-13.18.63.3-33",
+     "SR-8.3.5-7",
+     "FMT-13.18.63.2"
+    ],
+    "nearest-2023": "SR-13.18.63.3-33",
+    "similarity": 0.344
+   },
+   "1985-GR-IV.3.1-p1": {
+    "candidates-2023": [
+     "GR-13.15.4-2",
+     "SR-8.3.2.1-2",
+     "GR-7.2.2.5-3"
+    ],
+    "nearest-2023": "GR-13.15.4-2",
+    "similarity": 0.275
+   },
+   "1985-GR-IV.3.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.39.4-2",
+     "SR-13.7.3-4",
+     "GR-13.16.4-4"
+    ],
+    "nearest-2023": "GR-14.9.39.4-2",
+    "similarity": 0.244
+   },
+   "1985-SR-IV.4.1-p1": {
+    "candidates-2023": [
+     "GR-12.3.7.4-12",
+     "GR-8.1.2-3",
+     "GR-12.3.7.4-7"
+    ],
+    "nearest-2023": "GR-12.3.7.4-12",
+    "similarity": 0.477
+   },
+   "1985-GR-IV.4.1-p2": {
+    "candidates-2023": [
+     "GR-8.1.3.2-5",
+     "GR-8.1.3.2-1",
+     "GR-8.1.2-3"
+    ],
+    "nearest-2023": "GR-8.1.3.2-5",
+    "similarity": 0.441
+   },
+   "1985-SR-IV.4.1-p3": {
+    "candidates-2023": [
+     "GR-12.3.7.4-12",
+     "GR-8.1.3.2-4",
+     "GR-8.1.3.2-5"
+    ],
+    "nearest-2023": "GR-12.3.7.4-12",
+    "similarity": 0.345
+   },
+   "1985-SR-IV.4.2-p1": {
+    "candidates-2023": [
+     "SR-8.3.5-1",
+     "GR-12.3.7.4-14",
+     "SR-7.2.4.3-1"
+    ],
+    "nearest-2023": "SR-8.3.5-1",
+    "similarity": 0.29
+   },
+   "1985-SR-IV.4.2.1-p1": {
+    "candidates-2023": [
+     "SR-8.3.5-1",
+     "SR-8.3.5-3",
+     "SR-8.3.5-7",
+     "SR-8.3.5-8",
+     "SR-8.3.5-9",
+     "SR-8.3.5-2",
+     "GR-12.3.7.4-12",
+     "GR-12.3.7.4-14",
+     "SR-8.3.3.5.3-3"
+    ],
+    "nearest-2023": "SR-8.3.5-1",
+    "similarity": 0.256
+   },
+   "1985-SR-IV.4.2.1-9": {
+    "candidates-2023": [
+     "SR-8.3.5-9",
+     "SR-8.3.5-1",
+     "SR-8.3.5-8",
+     "SR-8.3.5-3",
+     "SR-8.3.5-5",
+     "SR-8.3.5-2",
+     "SR-6.2.3.2-2",
+     "SR-13.18.40.3-7",
+     "GR-13.18.40.5-12"
+    ],
+    "nearest-2023": "SR-8.3.5-9",
+    "similarity": 0.679
+   },
+   "1985-SR-IV.4.2.1-p2": {
+    "candidates-2023": [
+     "SR-8.3.5-8",
+     "SR-8.3.5-1",
+     "SR-8.3.5-2",
+     "SR-8.3.5-3",
+     "SR-8.3.5-9",
+     "SR-8.3.5-6",
+     "SR-13.18.2.3-1",
+     "SR-13.18.19.3-1",
+     "SR-13.17.3-10"
+    ],
+    "nearest-2023": "SR-8.3.5-8",
+    "similarity": 0.385
+   },
+   "1985-SR-IV.4.2.1-p3": {
+    "candidates-2023": [
+     "SR-8.3.5-5",
+     "SR-8.3.5-8",
+     "SR-8.3.5-2",
+     "SR-8.3.5-4",
+     "GR-8.8.2-9",
+     "GR-8.8.1.2-6",
+     "SR-12.3.7.3-19",
+     "DOC-A.1-143",
+     "DOC-A.1-68"
+    ],
+    "nearest-2023": "SR-8.3.5-5",
+    "similarity": 0.112
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-01",
+  "edition": 1985,
+  "reader": "pilot (by hand)",
+  "cases": [
+   {
+    "rule-id": "1985-GR-II.6.5.1-1",
+    "to": [
+     "GR-14.9.17.4-1"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "GO TO (format 1 and DEPENDING) as a method of transferring control"
+    ],
+    "evidence-1985": {
+     "GO TO transfers control": "covered by cases/14.9.17-GO-TO/pb413_go_to_out_of_inline_perform (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR1",
+      "check": "OK  §1985:II.6.5.1 GR1 (structure only) ok"
+     },
+     {
+      "cite": "§2023:14.9.17.4 GR1",
+      "quote": "control is transferred to procedure-name-1",
+      "check": "OK  §2023:14.9.17.4 GR1  (General rules)  the text is in GR1"
+     }
+    ],
+    "reason": "Item 1 of 'four methods of transferring control within a program'. It names GO TO as a transfer of control and says nothing GO TO's own rules (§1985:VI.6.15) do not; the 2023 GO TO rule states the transfer. Every 1985 GO TO form exists in 2023's format, so the pointer's accepted case witnesses the 1985 scope.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (lineage_reads.Witnesses.accepted_at)"
+   },
+   {
+    "rule-id": "1985-GR-II.6.5.1-2",
+    "to": [
+     "GR-14.9.28.4-5"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "PERFORM (out-of-line, every format) as a method of transferring control"
+    ],
+    "evidence-1985": {
+     "PERFORM transfers control to its range": "covered by cases/14.9.28-PERFORM/pb440_perform_empty_range_85 and pb440_perform_range_composition (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR2",
+      "check": "OK  §1985:II.6.5.1 GR2 (structure only) ok"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR5",
+      "quote": "control is transferred to the first statement of the specified set of statements",
+      "check": "OK  §2023:14.9.28.4 GR5  (General rules)  the text is in GR5"
+     }
+    ],
+    "reason": "Item 2 of the list: PERFORM transfers control. 2023's PERFORM general rule 5 states the transfer to the first statement of the range and the implicit return; both pointer cases run at 85.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (lineage_reads.Witnesses.accepted_at)"
+   },
+   {
+    "rule-id": "1985-GR-II.6.5.1-3",
+    "to": [
+     "GR-14.6.3-2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "SORT input procedure",
+     "SORT and MERGE output procedures"
+    ],
+    "evidence-1985": {
+     "control reaches the input and output procedures": "covered by cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1c09_sort_merge_procedure_transfer (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR3",
+      "quote": "an output procedure associated with either a SORT or a MERGE statement",
+      "check": "OK  §1985:II.6.5.1 GR3  (6.5.1 Transfer of Control)  the text is in GR3"
+     },
+     {
+      "cite": "§2023:14.6.3 GR2",
+      "quote": "an implicit transfer of control occurs to any associated input or output procedures",
+      "check": "OK  §2023:14.6.3 GR2  (Explicit and implicit transfers of control)  the text is in GR2"
+     }
+    ],
+    "reason": "Item 3: the SORT input and SORT/MERGE output procedures are entered by a transfer of control. 2023 14.6.3 GR2 says the same of SORT and MERGE; MERGE has no input procedure in either edition.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (lineage_reads.Witnesses.accepted_at)"
+   },
+   {
+    "rule-id": "1985-GR-II.6.5.1-4",
+    "to": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-1"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "a declarative (USE) procedure activated by a condition",
+     "an input-output procedure as an implicit PERFORM: the return at its end",
+     "the restrictions on PERFORM apply to input-output procedures; stricter ones to declaratives (stated by the SORT, MERGE and USE rules themselves)"
+    ],
+    "evidence-1985": {
+     "declarative activation": "covered by l1_transfer_of_control_implicit (accepted at 85)",
+     "the implicit return at the end of a procedure under SORT/MERGE/USE": "covered by pb3511_sort_merge_procedure_ends_at_last_paragraph (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR4",
+      "quote": "A declarative procedure which is activated whenever certain conditions",
+      "check": "OK  §1985:II.6.5.1 GR4  (6.5.1 Transfer of Control)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:14.6.3 GR3",
+      "quote": "an implicit transfer of control to those procedures occurs",
+      "check": "OK  §2023:14.6.3 GR3  (Explicit and implicit transfers of control)  the text is in GR3"
+     },
+     {
+      "cite": "§2023:14.6.3 GR1",
+      "quote": "the procedure is the last procedure in the range of the controlling statement",
+      "check": "OK  §2023:14.6.3 GR1  (Explicit and implicit transfers of control)  the text is in GR1"
+     }
+    ],
+    "reason": "Item 4 plus the two closing paragraphs the catalog folds into this row (a segmentation lead: they follow the list, not item 4). Declarative activation is 2023 14.6.3 GR3; the implicit-PERFORM view of an input-output procedure is GR1's implied return. The 'restrictions apply equally' sentences summarize restrictions the SORT, MERGE and USE rules state and add none of their own.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (lineage_reads.Witnesses.accepted_at)"
+   },
+   {
+    "rule-id": "1985-GR-IV.1-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the section's scope: the high level",
+     "boxes mark high-level text",
+     "flowcharts do not dictate implementation"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:IV.1 p1",
+      "quote": "specifications unique to the high level are enclosed in boxes",
+      "check": "OK  §1985:IV.1 p1  (1. <u>INTRODUCTION</u>)  the text is in p1"
+     }
+    ],
+    "reason": "A statement about the document (its level convention, its boxes, its flowcharts), not about a program or the implementation. It is flagged definitional, but the derivation arm `definitional` needs a property of the USER'S PROGRAM, which this is not; the level claim is the register's (docs/conformance 3.9, kb/Work PB4885: --std 85 claims the high subset). No pointer: the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer. What would settle it: a ruling on which arm, if any, closes a rule about the standard's own presentation (a register entry naming the high-level claim, or a new derivation arm)",
+    "probe": null,
+    "compiler-at-1985": "not probed"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "clauses in the sequence of the general format",
+     "optional clauses in that sequence when used",
+     "the sequences a rule explicitly permits otherwise"
+    ],
+    "evidence-1985": {
+     "order enforced": "covered by prose85 goldens pb5924-clause-sequence-refused-85 and pb5924-optional-sequence-refused-85 (refused at 85)",
+     "order kept accepted": "pb5924-clause-sequence-legal-85, pb5924-optional-sequence-legal-85",
+     "explicit other order": "pb5924-explicit-any-order-legal-85 (all pass on the mint build: E:/COBOL-coord/scratch/pb5453/work/goldens-s-01.json)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1 p1",
+      "quote": "Clauses must be written in the sequence given in the general formats",
+      "check": "OK  §1985:IV.2.1 p1  (2.1 DEFINITION OF A GENERAL FORMAT)  the text is in p1"
+     }
+    ],
+    "reason": "No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer). The rule is testable and prose85's goldens witness every part at 85.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-clause-sequence-refused-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-clause-sequence-refused-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the prose85 goldens once placed (rules: this row)"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "the kinds of element a general format is made of"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown: no program can witness it"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.1 p1",
+      "quote": "uppercase words, lowercase words, level-numbers, brackets, braces",
+      "check": "OK  §1985:IV.2.1.1 p1  (2.1.1 Elements)  the text is in p1"
+     }
+    ],
+    "reason": "Enumerates the notation's element kinds; each kind's meaning is a rule of its own (IV.2.1.2 to IV.2.1.7). No program can show the enumeration apart from those rules.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the rule obliges the implementation to nothing",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "indistinguishable-consequent",
+     "names": "1985-SR-IV.2.1.2-p1"
+    }
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "key words required",
+     "optional words may be omitted",
+     "uppercase words spelled correctly"
+    ],
+    "evidence-1985": {
+     "key word omitted refused": "pb5924-keyword-required-refused-85, pb5924-required-word-omitted-85",
+     "misspelled word refused": "pb5924-spelling-refused-85 (all pass on the mint build: E:/COBOL-coord/scratch/pb5453/work/goldens-s-01.json)",
+     "optional word omitted accepted": "not shown by a golden of its own; the probe's ADD ... TO forms omit none"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.2 p1",
+      "quote": "Uppercase words which are not underlined are optional to the user",
+      "check": "OK  §1985:IV.2.1.2 p1  (2.1.2 Words)  the text is in p1"
+     }
+    ],
+    "reason": "No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer). Key-word and spelling parts are witnessed; the optional-word grant needs an accepted case (e.g. DISPLAY ... UPON, IS in PICTURE IS).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-keyword-required-refused-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-keyword-required-refused-85.cob",
+    "needs": "an accepted golden omitting an optional word, then its own verdict CONFORMS"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "generic terms stand for words, literals, picture strings, entries"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown: no program can witness it"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.2 p2",
+      "quote": "are generic terms used to represent COBOL words",
+      "check": "OK  §1985:IV.2.1.2 p2  (2.1.2 Words)  the text is in p2"
+     }
+    ],
+    "reason": "Explains how the formats name their operands; the obligations are each format's own.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the rule obliges the implementation to nothing",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines how a general format names the operand a user's program supplies at each lowercase word"
+    }
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "level-numbers a format names are required",
+     "01-09 written as 1-9"
+    ],
+    "evidence-1985": {
+     "required level refused when wrong": "pb5924-level-number-refused-85",
+     "1-9 accepted for 01-09": "pb5924-level-number-legal-85 (both pass: E:/COBOL-coord/scratch/pb5453/work/goldens-s-01.json)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.3 p1",
+      "quote": "those specific level-numbers are required when such entries are used",
+      "check": "OK  §1985:IV.2.1.3 p1  (2.1.3 Level-Numbers)  the text is in p1"
+     }
+    ],
+    "reason": "No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer); the 2023 level-number rules (§2023:13.18.33) are about the clause, not the notation. Witnessed at 85 by prose85's goldens.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-level-number-refused-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-level-number-refused-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the prose85 goldens once placed"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a bracketed option may be specified or omitted"
+    ],
+    "evidence-1985": {
+     "omitted and specified both accepted": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob (ADD ... TO with and without ROUNDED; prints 015 013 015)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.4 p1",
+      "quote": "that portion of the general format may be omitted",
+      "check": "OK  §1985:IV.2.1.4 p1  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in p1"
+     }
+    ],
+    "reason": "No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer). A grant: shown by an accepted program.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a braced option must be specified or implied",
+     "a default option of non-key reserved words"
+    ],
+    "evidence-1985": {
+     "one option required": "pb5924-braces-refused-85",
+     "options accepted": "pb5924-braces-legal-85 (both pass: E:/COBOL-coord/scratch/pb5453/work/goldens-s-01.json)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.4 p2",
+      "quote": "must be either explicitly specified or implicitly selected",
+      "check": "OK  §1985:IV.2.1.4 p2  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in p2"
+     }
+    ],
+    "reason": "No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-braces-refused-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-braces-refused-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the prose85 goldens once placed"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "choice indicators {| |}"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown: no program can witness it"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.4 p3",
+      "quote": "a single option may be specified only once",
+      "check": "OK  §1985:IV.2.1.4 p3  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in p3"
+     }
+    ],
+    "reason": "The 1985 transcription prints the choice indicator once, here; no general format of 1985 uses it, so no program can exercise the rule (prose85 85p-06: NOT-NORMATIVE, UPHELD).",
+    "probe": null,
+    "compiler-at-1985": "not probed: the rule obliges the implementation to nothing",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "unpopulatable-antecedent",
+     "names": "no 1985 general format encloses a portion in choice indicators, so no source program has one"
+    }
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "how options are shown: stacks, brackets, braces, choice indicators"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown: no program can witness it"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.4 p4",
+      "quote": "by vertically stacking alternative possibilities",
+      "check": "OK  §1985:IV.2.1.4 p4  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in p4"
+     }
+    ],
+    "reason": "Explains the presentation of alternatives; what may be selected is IV.2.1.4 p1 to p3's.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the rule obliges the implementation to nothing",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "indistinguishable-consequent",
+     "names": "1985-SR-IV.2.1.4-p2"
+    }
+   },
+   {
+    "rule-id": "1985-GR-IV.2.1.5-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the ellipsis in running text"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.5 p1",
+      "quote": "shows omission of a word or words",
+      "check": "OK  §1985:IV.2.1.5 p1  (2.1.5 Ellipsis)  the text is in p1"
+     }
+    ],
+    "reason": "A convention of the document's prose, not of a program; flagged definitional but no arm fits (the subject is the text, not the user's program). What would settle it: the same ruling as 1985-GR-IV.1-p1 (a rule about the standard's own presentation)",
+    "probe": null,
+    "compiler-at-1985": "not probed"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.5-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "the ellipsis marks where the user repeats a portion of a format"
+    ],
+    "evidence-1985": {
+     "repetition accepted": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob (ADD 10 TO A B C)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.5 p2",
+      "quote": "represents the position at which the user elects repetition",
+      "check": "OK  §1985:IV.2.1.5 p2  (2.1.5 Ellipsis)  the text is in p2"
+     }
+    ],
+    "reason": "No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.5-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "the repeated portion is the bracketed or braced group left of the ellipsis"
+    ],
+    "evidence-1985": {
+     "a group repeated whole": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob (ADD 1.5 TO A ROUNDED B C ROUNDED: {identifier-2 [ROUNDED]} ... repeated with and without ROUNDED; 015 013 015)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.5 p3",
+      "quote": "the ellipsis applies to the portion of the format between the determined pair of delimiters",
+      "check": "OK  §1985:IV.2.1.5 p3  (2.1.5 Ellipsis)  the text is in p3"
+     }
+    ],
+    "reason": "No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.6-p1",
+    "to": [
+     "SR-8.3.5-2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "comma and semicolon where a space separates",
+     "interchangeable"
+    ],
+    "evidence-1985": {
+     "comma/semicolon as separators": "covered by cases/IV.4.2@1985-LANGUAGE-STRUCTURE/pb5793_list_separator_where_space and w73a_separator_context_conforming (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.6 p1",
+      "quote": "may be used anywhere the separator space is used in the formats",
+      "check": "OK  §1985:IV.2.1.6 p1  (2.1.6 Format Punctuation)  the text is in p1"
+     },
+     {
+      "cite": "§2023:8.3.5 SR2",
+      "quote": "are separators that may be used anywhere the separator space is used",
+      "check": "OK  §2023:8.3.5 SR2  (Separators)  the text is in SR2"
+     }
+    ],
+    "reason": "The same grant. 2023 requires the comma/semicolon be followed by a space; 1985 IV.4.2.1 rule (2) says the same of 1985's separators, so the pointer's cases (written to that rule) witness the 1985 scope.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (lineage_reads.Witnesses.accepted_at)"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.6-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a period shown in a format is required"
+    ],
+    "evidence-1985": {
+     "omitted period refused": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p02_period_missing.cob (COBOL0307 at line 3); control E:/COBOL-coord/scratch/pb5453/probes/s-01/p02_period_control.cob runs (RAN)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.6 p2",
+      "quote": "has the status of a required word",
+      "check": "OK  §1985:IV.2.1.6 p2  (2.1.6 Format Punctuation)  the text is in p2"
+     }
+    ],
+    "reason": "No 2023 rule states it (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer; §2023:8.3.5 SR3 only says where a period may be used).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01/p02_period_missing.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01/p02_period_missing.cob",
+    "needs": "an own golden from the probe (refusal with control)"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.7-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "+ - > < = >= <= in formats are required"
+    ],
+    "evidence-1985": {
+     "omitted special-character word refused": "pb5924-special-char-word-refused-85, pb5924-required-word-omitted-85",
+     "written accepted": "pb5924-special-char-word-legal-85 (all pass: E:/COBOL-coord/scratch/pb5453/work/goldens-s-01.json)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.7 p1",
+      "quote": "although not underlined, are required when such portions of the formats are used",
+      "check": "OK  §1985:IV.2.1.7 p1  (2.1.7 Use of Special Character Words in Formats)  the text is in p1"
+     }
+    ],
+    "reason": "No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-special-char-word-refused-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-special-char-word-refused-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the prose85 goldens once placed"
+   },
+   {
+    "rule-id": "1985-GR-IV.3.1-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "what a syntax rule is"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:IV.3.1 p1",
+      "quote": "Syntax rules are those rules that define or clarify the order",
+      "check": "OK  §1985:IV.3.1 p1  (3.1 SYNTAX RULES)  the text is in p1"
+     }
+    ],
+    "reason": "Defines a kind of rule of the standard; no program and no implementation obligation (prose85: NOT-NORMATIVE, UPHELD). Flagged definitional, but the `definitional` arm wants a property of the user's program. What would settle it: the same ruling as 1985-GR-IV.1-p1",
+    "probe": null,
+    "compiler-at-1985": "not probed"
+   },
+   {
+    "rule-id": "1985-GR-IV.3.2-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "what a general rule is"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:IV.3.2 p1",
+      "quote": "A general rule is a rule that defines or clarifies the meaning",
+      "check": "OK  §1985:IV.3.2 p1  (3.2 GENERAL RULES)  the text is in p1"
+     }
+    ],
+    "reason": "As IV.3.1 p1. What would settle it: the same ruling as 1985-GR-IV.1-p1",
+    "probe": null,
+    "compiler-at-1985": "not probed"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "the COBOL character set forms character-strings and separators",
+     "nonnumeric literals, comment-entries and comment lines take the computer's whole set"
+    ],
+    "evidence-1985": {
+     "other characters in a literal": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob (prints a,b;c. d ~@#{}[]|^)",
+     "in a comment-entry and a comment line": "covered by the same probe (AUTHOR entry and line 8 compile)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.1 p1",
+      "quote": "the character set is expanded to include the computer's entire character set",
+      "check": "OK  §1985:IV.4.1 p1  (4.1 CHARACTER SET)  the text is in p1"
+     }
+    ],
+    "reason": "The 2023 candidates (§2023:8.1.2) speak of the coded character set in other terms; no 2023 row states the literal/comment expansion with a case that runs at 85, so the probe is the witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.1-p2",
+    "to": [
+     "GR-8.1.3.2-5"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "a substitute graphic for a character a national set cannot show"
+    ],
+    "evidence-1985": {
+     "implementor's option": "not shown: the pointer has no case (its row CONFORMS with no test-ref)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.1 p2",
+      "quote": "a substitute graphic may be specified to replace the character",
+      "check": "OK  §1985:IV.4.1 p2  (4.1 CHARACTER SET)  the text is in p2"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR5",
+      "quote": "substitute graphics may be specified by the implementor",
+      "check": "OK  §2023:8.1.3.2 GR5  (General rules)  the text is in GR5"
+     }
+    ],
+    "reason": "The same latitude in both texts. Expected to be refused by own-verdict-batch (no own-edition witness): the row then needs a derivation, as the 2023 row presumably should.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (lineage_reads.Witnesses.accepted_at)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a character set of fewer than 52 characters uses double characters (obsolete)"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown: the compiler's source character set has every COBOL character"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.1 p3",
+      "quote": "double characters must be substituted for the single characters",
+      "check": "OK  §1985:IV.4.1 p3  (4.1 CHARACTER SET)  the text is in p3"
+     }
+    ],
+    "reason": "The antecedent (a set of fewer than 52 characters) cannot arise in this implementation (prose85 85p-06 NOT-OBSERVABLE, refuted DOUBTFUL).",
+    "probe": null,
+    "compiler-at-1985": "not probed: the antecedent is unreachable",
+    "needs": "a signed derivation, arm unpopulatable-antecedent, naming the source character set (Unicode/ASCII) the compiler reads"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a character-string is concatenated only with a separator"
+    ],
+    "evidence-1985": {
+     "two strings unseparated refused": "pb5924-concatenation-refused-85 (passes: E:/COBOL-coord/scratch/pb5453/work/goldens-s-01.json)",
+     "separators concatenated accepted": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2 p1",
+      "quote": "A character-string may only be concatenated with a separator",
+      "check": "OK  §1985:IV.4.2 p1  (4.2 LANGUAGE STRUCTURE)  the text is in p1"
+     }
+    ],
+    "reason": "No 2023 rule with a case at 85 states it; prose85's golden witnesses it.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-concatenation-refused-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-06/goldens/pb5924-concatenation-refused-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the prose85 golden"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.1-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "what a separator is (the lead of rules (1) to (9))"
+    ],
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.1 p1",
+      "quote": "A separator is a character or two contiguous characters",
+      "check": "OK  §1985:IV.4.2.1 p1  (4.2.1 Separators)  the text is in p1"
+     }
+    ],
+    "reason": "A lead-in whose requirement is its list's: items (1)-(8) are recorded rows, (9) is reopened here. PB5452 minted it a row rather than `not-a-rule lead-in`. What would settle it: PB5452's disposition re-read (lead-in vs row); as a row it is closed by its items' verdicts",
+    "probe": null,
+    "compiler-at-1985": "not probed"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.1-9",
+    "to": [
+     "SR-8.3.5-9"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "a space may follow any separator but the opening quotation mark",
+     "such a space is part of the literal"
+    ],
+    "evidence-1985": {
+     "space after separators; space inside the literal kept": "covered by cases/8.3.5-Separators/l1c17_separator_spaces (accepted at 85); probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob prints \"X\" \" \" \"Y\" as X Y"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.1 SR9",
+      "quote": "except the opening quotation mark",
+      "check": "OK  §1985:IV.4.2.1 SR9  (4.2.1 Separators)  the text is in SR9"
+     },
+     {
+      "cite": "§2023:8.3.5 SR9",
+      "quote": "may optionally immediately follow any separator except the opening delimiter of a literal",
+      "check": "OK  §2023:8.3.5 SR9  (Separators)  the text is in SR9"
+     }
+    ],
+    "reason": "The same rule; 2023 widens 'opening quotation mark' to every literal's opening delimiter, which covers the 1985 case. The pre-mint record was KEPT into SR-8.3.5-9 and four more; the split carved paragraphs p2 and p3 out of it, so only SR9 states what is left.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "punctuation inside a PICTURE string or numeric literal is a symbol",
+     "a PICTURE string ends only at space, comma, semicolon or period"
+    ],
+    "evidence-1985": {
+     "comma and period in PICTURE, period in a literal": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob (Z,ZZ9.99 prints 1,234.50; MOVE 1.25 to 9(3)V99 prints 001.25)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.1 p2",
+      "quote": "is not considered as a punctuation character, but rather as a symbol",
+      "check": "OK  §1985:IV.4.2.1 p2  (4.2.1 Separators)  the text is in p2"
+     }
+    ],
+    "reason": "The 2023 counterpart is spread over §2023:8.3.5 SR2/SR3 exceptions; none with an accepted case at 85 for the PICTURE part. The probe witnesses it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "separator formation does not apply inside nonnumeric literals, comment-entries, comment lines"
+    ],
+    "evidence-1985": {
+     "commas, semicolons and periods inside a literal kept": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob (prints a,b;c. d ...)",
+     "inside a comment-entry and comment line": "same probe (AUTHOR. A,B;C. D ... compiles)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.1 p3",
+      "quote": "do not apply to the characters which comprise the contents of nonnumeric literals",
+      "check": "OK  §1985:IV.4.2.1 p3  (4.2.1 Separators)  the text is in p3"
+     }
+    ],
+    "reason": "No 2023 row with a case at 85 states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01/p01_notation.cob",
+    "needs": "an own golden from the probe"
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-II.6.5.1-4",
+    "what": "the row's text holds the list's two closing paragraphs ('An input-output procedure can be considered as an implicit PERFORM ...', 'Stricter restrictions ...'), which follow the list (page 110), not item (4)",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-GR-II.6.5.1-4",
+    "site": "scripts/spec/rule_catalog_1985.py#_rules_of (the admitted II.6.5.1 rule block)"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-IV.4.2.1-p1",
+    "what": "a lead-in ('formed according to the following rules:') minted as an SR row; its requirement is its items' (1985-SR-IV.4.2.1-1..9)",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-SR-IV.4.2.1-p1",
+    "site": "docs/rearchitecture/spec-dispositions-1985 (PB5452 disposition)"
+   },
+   {
+    "kind": "tooling",
+    "row": null,
+    "what": "lineage_reads reads `compiler-at-2002` and `licence-2002` by fixed name: a 1985 read's `compiler-at-1985` is dropped silently and every DIFFERENT imports as `undecided`",
+    "repro": "E:/COBOL-coord/scratch/pb5453/dry/a-as-is vs dry/b-fields",
+    "site": "scripts/spec/lineage_reads.py#_judgment, #normal_read"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-01",
+  "cases": [
+   {
+    "rule-id": "1985-GR-II.6.5.1-1",
+    "verdict": "OVERTURNED",
+    "reason": "Item (1) names 'A GO TO statement' as a method of transfer, so it reaches every 1985 GO TO: format 1 with procedure-name-1, format 2 DEPENDING (VI.6.15.4 GR3) and the high-level format 1 WITHOUT procedure-name-1 whose target an ALTER sets (VI.6.15.4 GR2, a form 2023 removed with ALTER). The pointer GR-14.9.17.4-1 states only format 1's transfer to procedure-name-1; it states neither the DEPENDING transfer nor the altered GO TO, and its 85 case pb413_go_to_out_of_inline_perform has no ALTER. No pointer states the whole 1985 scope with an 85 witness. The compiler is correct at 85: probe r01 ALTERs a bare 'GO TO.' to P2 and prints ALTER-OK.",
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR1",
+      "check": "OK  §1985:II.6.5.1 GR1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:VI.6.15.4 GR2",
+      "quote": "an ALTER statement, referring to this GO TO statement, must be executed",
+      "check": "OK  §1985:VI.6.15.4 GR2  (6.15.4 General Rules)  the text is in GR2"
+     },
+     {
+      "cite": "§1985:VI.6.15.4 GR3",
+      "quote": "When a GO TO statement represented by format 2 is executed",
+      "check": "OK  §1985:VI.6.15.4 GR3  (6.15.4 General Rules)  the text is in GR3"
+     },
+     {
+      "cite": "§2023:14.9.17.4 GR1",
+      "quote": "control is transferred to procedure-name-1",
+      "check": "OK  §2023:14.9.17.4 GR1  (General rules)  the text is in GR1"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r01_altered_go_to.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r01_altered_go_to.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01_altered_go_to-001: ALTER-OK); format 2 is shown by pb413's T6-DEP leg"
+   },
+   {
+    "rule-id": "1985-GR-II.6.5.1-2",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading tried: item (2) reaches the in-line PERFORM and every 1985 out-of-line format (TIMES, UNTIL, VARYING ... AFTER, THRU). §2023:14.9.28.4 GR5 states the transfer to the first statement of the specified set and the return for all of them; pb440_perform_empty_range_85 (accept [85]) runs out-of-line VARYING ... AFTER, THRU and THRU ... TIMES transfers, and pb440_perform_range_composition (accept [85, 2023]) runs non-empty ranges. The list item adds no restriction of its own.",
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR2",
+      "check": "OK  §1985:II.6.5.1 GR2 (structure only) ok"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR5",
+      "quote": "control is transferred to the first statement of the specified set of statements",
+      "check": "OK  §2023:14.9.28.4 GR5  (General rules)  the text is in GR5"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: cases/14.9.28-PERFORM/pb440_perform_empty_range_85 and pb440_perform_range_composition (accept 85)"
+   },
+   {
+    "rule-id": "1985-GR-II.6.5.1-3",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading tried: the item reaches three entries (SORT input, SORT output, MERGE output procedure), so a witness of SORT alone would not do. l1c09_sort_merge_procedure_transfer (accept [85]) runs all three: IN-PROC, OUT-PROC and MOUT-PROC each DISPLAY. GR-14.6.3-2 states the transfer to any associated input or output procedure of SORT or MERGE.",
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR3",
+      "quote": "an output procedure associated with either a SORT or a MERGE statement",
+      "check": "OK  §1985:II.6.5.1 GR3  (6.5.1 Transfer of Control)  the text is in GR3"
+     },
+     {
+      "cite": "§2023:14.6.3 GR2",
+      "quote": "an implicit transfer of control occurs to any associated input or output procedures",
+      "check": "OK  §2023:14.6.3 GR2  (Explicit and implicit transfers of control)  the text is in GR2"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1c09_sort_merge_procedure_transfer (accept 85)"
+   },
+   {
+    "rule-id": "1985-GR-II.6.5.1-4",
+    "verdict": "OVERTURNED",
+    "reason": "The read's witnesses do not exercise the rule: l1_transfer_of_control_implicit (accept [85, 2023]) has no DECLARATIVES at all (empty procedures, EXIT PROGRAM, implicit return), and pb3511_sort_merge_procedure_ends_at_last_paragraph has none either; the one 14.6.3 case with USE procedures, pb367_use_procedure_is_the_section, is accept [2023] and free-form. No case running at 85 shows a declarative activated. The scope also exceeds the pointer: 1985 declaratives activated by a condition include USE FOR DEBUGGING (Debug module, §1985:XV.3.2, removed in 2023) and USE BEFORE REPORTING (Report Writer), while GR-14.6.3-3 speaks of 'exception processing procedures' under 2023's exception-condition model. The compiler is correct at 85: probe r02 (USE AFTER STANDARD ERROR on a missing input file) prints DECL-ACTIVATED FS=35 then AFTER-OPEN FS=35; probe r03 (WITH DEBUGGING MODE, USE FOR DEBUGGING ON P1) prints DEBUG-ACTIVATED P1 then IN-P1. USE BEFORE REPORTING not probed.",
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR4",
+      "quote": "A declarative procedure which is activated whenever certain conditions, including errors and exceptions, occur",
+      "check": "OK  §1985:II.6.5.1 GR4  (6.5.1 Transfer of Control)  the text is in GR4"
+     },
+     {
+      "cite": "§1985:XV.3.2",
+      "check": "OK  §1985:XV.3.2 (structure only) ok"
+     },
+     {
+      "cite": "§2023:14.6.3 GR3",
+      "quote": "results in the execution of exception processing procedures",
+      "check": "OK  §2023:14.6.3 GR3  (Explicit and implicit transfers of control)  the text is in GR3"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r02_declarative_error.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r02_declarative_error.cob (runs/r02_declarative_error-001) and E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r03_use_for_debugging.cob (runs/r03_use_for_debugging-001); the Report Writer USE BEFORE REPORTING leg not probed"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.6-p1",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading tried: 1985 limits the grant to 'in the formats' and §1985:IV.4.2.1 SR2 excepts the comma in a PICTURE string; 2023 SR2 grants the same where the separator space is used, with the same PICTURE exclusion. 'Interchangeable' needs both characters in the same positions: w73a_separator_context_conforming (accept [85]) uses comma and semicolon in the same operand lists (MOVE 1 TO N, M / MOVE 2 TO N; M / DISPLAY \"AB\", \"CD\"; \"EF\") and pb5793_list_separator_where_space (accept [85]) uses both inside subscript and argument lists.",
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.6 p1",
+      "quote": "may be used anywhere the separator space is used in the formats",
+      "check": "OK  §1985:IV.2.1.6 p1  (2.1.6 Format Punctuation)  the text is in p1"
+     },
+     {
+      "cite": "§2023:8.3.5 SR2",
+      "quote": "are separators that may be used anywhere the separator space is used",
+      "check": "OK  §2023:8.3.5 SR2  (Separators)  the text is in SR2"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: cases/8.3.5-Separators/w73a_separator_context_conforming (accept 85)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.1-p2",
+    "verdict": "OVERTURNED",
+    "reason": "A SAME needs every pointer witnessed by a case running at 85; GR-8.1.3.2-5 has NO test-ref (at-85 accepted [] and diagnosed-only []), as the read itself concedes. The texts also differ in antecedent: 1985 conditions the substitute on characters not representable 'in definitions of national and international standard character sets' and names no one who specifies it; 2023 conditions it on the implementation not providing a graphic and gives it to the implementor. The row is implementor latitude that needs a derivation or a conformance-doc entry, not a copied verdict.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.1 p2",
+      "quote": "a substitute graphic may be specified to replace the character",
+      "check": "OK  §1985:IV.4.1 p2  (4.1 CHARACTER SET)  the text is in p2"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR5",
+      "quote": "substitute graphics may be specified by the implementor",
+      "check": "OK  §2023:8.1.3.2 GR5  (General rules)  the text is in GR5"
+     }
+    ],
+    "class": "other: the pointer has no 85 witness; implementor latitude (substitute graphic) closes by a derivation or a docs/conformance entry",
+    "probe": null,
+    "compiler-at-1985": "not probed: the implementation represents every COBOL character and specifies no substitute graphic, so no program shows a substitution"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.1-9",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading tried: 'any separator' in 1985 includes comma, semicolon, period, parentheses, colon, closing quotation mark and pseudo-text delimiters, and the second sentence keeps a space after the opening quotation mark in the literal. l1c17_separator_spaces (accept [85]) puts spaces after comma, semicolon, period, '(', ':' and '==' and shows \"  Z\" kept ([  Z]); 2023 SR9 states both sentences, its 'opening delimiter of a literal' reducing to the quotation mark for 1985's only literal form.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.1 SR9",
+      "quote": "a following space is considered as part of the nonnumeric literal",
+      "check": "OK  §1985:IV.4.2.1 SR9  (4.2.1 Separators)  the text is in SR9"
+     },
+     {
+      "cite": "§2023:8.3.5 SR9",
+      "quote": "A space following the opening delimiter of a literal is part of the literal",
+      "check": "OK  §2023:8.3.5 SR9  (Separators)  the text is in SR9"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: cases/8.3.5-Separators/l1c17_separator_spaces (accept 85)"
+   }
+  ],
+  "disputed-different": [
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p3",
+    "reason": "Its stated basis is false: 1985 DOES use choice indicators, in the PROGRAM-ID general format (§1985:X.3.1.2 and the summary on folio V-2, PDF page 194 rendered: [IS {|COMMON|INITIAL|} PROGRAM]). The row is testable, not definitional: probe r04 (IS COMMON INITIAL / IS INITIAL COMMON / IS COMMON accepted; prints BOTH N=1 twice, REV, ONE) and r05 (IS COMMON COMMON refused, COBOL2104 citing §1985:IV.2.1.4) are its own witnesses: own-text, correct."
+   }
+  ]
+ },
+ "derivation-refute": {
+  "slice": "s-01",
+  "cases": [
+   {
+    "rule-id": "1985-SR-IV.2.1.1-p1",
+    "arm": "indistinguishable-consequent",
+    "verdict": "OVERTURNED",
+    "attempt": "Compared the consequents: IV.2.1.1 p1 enumerates uppercase words, lowercase words, level-numbers, brackets, braces, connectives and special characters; the named row 1985-SR-IV.2.1.2-p1 governs only uppercase words (key words required, optional words, spelling).",
+    "reason": "The named row's consequent is not the same: it says nothing of lowercase words, level-numbers, brackets, braces, connectives or special characters, which IV.2.1.2 p2 through IV.2.1.7 govern. An indistinguishable-consequent arm must name a row whose consequent equals this one's; the enumeration is at most the union of several rows, which this arm does not express.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.2-p2",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "A program that omits the entry a lowercase word stands for: r06 'MOVE TO X.' against its control r07 'MOVE 1 TO X.'",
+    "reason": "The paragraph says a lowercase word is an entry 'that must be supplied by the user', an obligation on the program whose outcome a program depends on: r06 is refused at 85 (COBOL5506 at 10,17, citing §1985:IV.2.1) and r07 is accepted and prints X=1. Its sibling IV.2.1.2 p1 (key words required) was read own-text with a refusal golden on the same footing. The row is testable: own-text, correct, needs-own-witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r06_lowercase_operand_omitted.cob"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p3",
+    "arm": "unpopulatable-antecedent",
+    "verdict": "OVERTURNED",
+    "attempt": "A program using the 1985 PROGRAM-ID format, whose COMMON and INITIAL are enclosed in choice indicators (§1985:X.3.1.2; PDF page 194, folio V-2, rendered at E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/pages/spec_p194.png shows {|COMMON|INITIAL|}).",
+    "reason": "The antecedent is populated: r04 (nested programs IS COMMON INITIAL, IS INITIAL COMMON, IS COMMON) is accepted at 85 and prints BOTH N=1 / BOTH N=1 / REV / ONE; r05 (IS COMMON COMMON) is refused at 85 with COBOL2104 'the COMMON attribute is specified 2 times ... §1985:IV.2.1.4 admits a single option only once'. Both halves of the rule have witnesses.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r04_choice_indicators_ok.cob"
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p4",
+    "arm": "indistinguishable-consequent",
+    "verdict": "OVERTURNED",
+    "attempt": "Compared consequents, then wrote a program selecting 'a unique combination of possibilities from a series of ... choice indicators': r04's IS COMMON INITIAL / IS INITIAL COMMON.",
+    "reason": "The named row 1985-SR-IV.2.1.4-p2 is about braces alone (one option must be specified or implicitly selected; the default option). p4 also grants selection of a unique COMBINATION from a series of brackets, braces or choice indicators and selection from a bare vertical stack; neither is p2's consequent. r04 (accepted at 85) depends on the combination grant, not on p2.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r04_choice_indicators_ok.cob"
+   }
+  ]
+ },
+ "imported": {
+  "asked": "72f5d2e21ed084cff8dcb9fd4e53c173091153a109649844e7d1c3c384695e95",
+  "derivation-refute": "6f611eba5c91ea48569d3abae0f4f9518389bf390f1e03c331454cf599b3a5e4",
+  "read": "ad27450651df3073cbfeecf096d60ca154769dbdfa82b68b29857b13499532d6",
+  "refute": "128e0fd0148ac8fc571ace4276c6fa6c92145f2a783517c9347f1207e71bd971"
+ }
+}

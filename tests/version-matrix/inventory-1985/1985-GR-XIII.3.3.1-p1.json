@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.3.1-p1",
+ "rule-digest": "535fa97fd98e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#reportClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1050_reports_share_file",
+ "notes": "Own verdict from the read lineage-reads-1985/s-17.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.46.2, GR-13.18.46.4-1, witnessed at 85 by the cases test-ref names. The read: 'The REPORT clause specifies the names of reports that comprise a report file.' The 2023 format (REPORT IS / REPORTS ARE report-name-1 ...) and GR1 ('more than one report may be written to the file') state it; pb1050_reports_share_file names both rules and runs at 85 with one FD naming two reports, each written. GR-13.18.46.4-1 is not among the view's candidates; its 85 case is the same pb1050 (FMT-13.18.46.2's at-85.accepted). Cited: §1985:XIII.3.3.1 p1."
+}

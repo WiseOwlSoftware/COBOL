@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p9",
+ "rule-digest": "cba2a28e4d8f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SubsequentTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb484_report_line_placement; conformance:cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85",
+ "notes": "Own verdict from the read lineage-reads-1985/s-17.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.35.4-7, witnessed at 85 by the cases test-ref names. The read: The paragraph defers the second and later lines to the LINE NUMBER general rules (§1985:XIII.3.15.4 GR3/GR4); 2023 GR7 is that rule, and pb1247 shows a second line placed by LINE PLUS 0 at 85. Cited: §1985:XIII.3.10.2 p9."
+}

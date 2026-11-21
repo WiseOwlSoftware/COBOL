@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1-p1",
+ "rule-digest": "8347476d7bef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimary",
+ "test-ref": "conformance:cases/VI.6@1985-PROCEDURE-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_6_3-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_cond_contexts.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985 names exactly five simple conditions and says 'The inclusion in parentheses of simple conditions does not change the simple condition truth value'. The candidates are class-condition rules (GR-8.8.4.4.4-1/-2) and a national comparison (GR-8.8.4.2.1-5), none with an 85 case and none stating this. The probe evaluates each of the five kinds in nested parentheses at 85. Code location located after the read: simple conditions are primaryCondition alternatives bound by BindPrimary"
+}

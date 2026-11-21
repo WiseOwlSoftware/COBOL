@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VII.3.1.1-p1",
+ "rule-digest": "72c68c354ce4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
+ "test-ref": "conformance:cases/VII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-GR-VII_3_2_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (fdall.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The paragraph sets out the FD entry: \"a level indicator (FD), a file-name, and a series of independent clauses\" that cover label records, implementor label items, record names and the lines on a page, and \"The entry itself is terminated by a period.\" SR-13.4.5.3-5 says only that format 1 is the sequential FD. 2023 has no LABEL RECORDS, VALUE OF or DATA RECORDS, so no 2023 rule states this scope. Code location located after the read: File Section binder"
+}

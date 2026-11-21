@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.12.1-p1",
+ "rule-digest": "e8a952c1b82b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
+ "test-ref": "conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-FMT-VI_6_12_2",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-FMT-VI_6_12_2), joined as the row's own test. The read: ENTER was deleted after 1985 and has no 2023 counterpart (the candidates are unrelated). 1985 lets an implementation omit it: 'may include the ENTER statement or not, at the option of the implementor'. WiseOwl declines it and refuses ENTER at 85 (COBOL7240), which is the licensed behavior. Code location located after the read: cites §1985:VI.6.12.2/3 at StatementBinder.cs:681-698; ENTER refused"
+}

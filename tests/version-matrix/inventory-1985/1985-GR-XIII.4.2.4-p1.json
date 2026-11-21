@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.4.2.4-p1",
+ "rule-digest": "4cafb3735bb6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#closeStatement",
+ "test-ref": "conformance:cases/XIII.4.2@1985-CLOSE-STATEMENT/1985-GR-XIII_4_2_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with its probe (p04_rw_close_forms.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: \"the terms 'reel' and 'unit' are synonymous and completely interchangeable in the CLOSE statement. Treatment of sequential mass storage files is logically equivalent to the treatment of a file on tape ...\". SR-14.9.6.3-2 ('The words REEL and UNIT are equivalent', 85 case pb141_close_forms on a sequential file) states only the first sentence, and not for a report file; 2023 has neither the mass-storage nor the multiple-file-tape sentence. The second sentence is read under D-MEDIUM-85 (adjudicated in kb/Work PB5779). Code location located after the read: CLOSE statement parsed by closeStatement and bound by BindClose"
+}

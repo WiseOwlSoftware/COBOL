@@ -1,0 +1,1260 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-03 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-03",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-03",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-IV.4.2.2.1.1.1-p1",
+   "1985-SR-IV.4.2.2.1.1.1-p2",
+   "1985-GR-IV.4.2.2.1.1.1-p3",
+   "1985-GR-IV.4.2.2.1.1.2-p1",
+   "1985-SR-IV.4.2.2.1.1.3-p1",
+   "1985-SR-IV.4.2.2.1.1.4-p1",
+   "1985-SR-IV.4.2.2.1.2-p1",
+   "1985-GR-IV.4.2.2.1.2-1",
+   "1985-GR-IV.4.2.2.1.2-2",
+   "1985-GR-IV.4.2.2.1.2-3",
+   "1985-SR-IV.4.2.2.1.2-p3",
+   "1985-SR-IV.4.2.2.1.3-p1",
+   "1985-GR-IV.4.2.2.1.3.2-p1",
+   "1985-GR-IV.4.2.2.1.3.3-1",
+   "1985-GR-IV.4.2.2.1.3.3-2",
+   "1985-SR-IV.4.2.2.1.3.3.1-p1",
+   "1985-GR-IV.4.2.2.1.3.3.1-1",
+   "1985-GR-IV.4.2.2.1.3.3.1-2",
+   "1985-GR-IV.4.2.2.1.3.3.1-3",
+   "1985-GR-IV.4.2.2.1.3.3.1-4",
+   "1985-SR-IV.4.2.2.1.4-p1",
+   "1985-GR-IV.4.2.2.2-p1",
+   "1985-SR-IV.4.2.2.2.1-p1",
+   "1985-SR-IV.4.2.2.2.2-p1",
+   "1985-SR-IV.4.2.2.2.3-p1",
+   "1985-GR-IV.4.2.2.2.3-L2.3",
+   "1985-SR-IV.4.2.2.2.3-p4",
+   "1985-SR-IV.4.2.2.2.3-L3.3",
+   "1985-SR-IV.4.2.2.2.3-p6",
+   "1985-SR-IV.4.2.2.3-p1"
+  ],
+  "pointers": {
+   "1985-GR-IV.4.2.2.1.1.1-p1": {
+    "candidates-2023": [
+     "GR-13.16.4-3",
+     "GR-13.16.4-4",
+     "GR-8.8.4.5.3-1"
+    ],
+    "nearest-2023": "GR-13.16.4-3",
+    "similarity": 0.495
+   },
+   "1985-SR-IV.4.2.2.1.1.1-p2": {
+    "candidates-2023": [
+     "GR-12.3.7.4-2",
+     "SR-14.9.11.3-2",
+     "SR-14.9.1.3-2"
+    ],
+    "nearest-2023": "GR-12.3.7.4-2",
+    "similarity": 0.36
+   },
+   "1985-GR-IV.4.2.2.1.1.1-p3": {
+    "candidates-2023": [
+     "GR-8.8.4.5.3-2",
+     "GR-8.8.4.5.3-3",
+     "SR-8.4.2.2.3-5"
+    ],
+    "nearest-2023": "GR-8.8.4.5.3-2",
+    "similarity": 0.615
+   },
+   "1985-GR-IV.4.2.2.1.1.2-p1": {
+    "candidates-2023": [
+     "DOC-A.1-219",
+     "SR-8.3.2.1-4",
+     "GR-12.3.8.4-12"
+    ],
+    "nearest-2023": "DOC-A.1-219",
+    "similarity": 0.33
+   },
+   "1985-SR-IV.4.2.2.1.1.3-p1": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-3",
+     "RV-15.30.3-2",
+     "RV-15.31.3-2"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-3",
+    "similarity": 0.303
+   },
+   "1985-SR-IV.4.2.2.1.1.4-p1": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-3",
+     "RV-15.30.3-2",
+     "RV-15.31.3-2"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-3",
+    "similarity": 0.3
+   },
+   "1985-SR-IV.4.2.2.1.2-p1": {
+    "candidates-2023": [
+     "DOC-A.1-198",
+     "SR-8.3.2.1-4",
+     "GR-8.1.2-3"
+    ],
+    "nearest-2023": "DOC-A.1-198",
+    "similarity": 0.503
+   },
+   "1985-GR-IV.4.2.2.1.2-1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "DOC-A.1-127",
+     "SR-8.3.2.2-L3.2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.366
+   },
+   "1985-GR-IV.4.2.2.1.2-2": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-GR-IV.4.2.2.1.2-3": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.2-L3.2",
+     "SR-8.3.2.1-2"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.347
+   },
+   "1985-SR-IV.4.2.2.1.2-p3": {
+    "candidates-2023": [
+     "DOC-A.1-198",
+     "SR-8.3.2.1-4",
+     "SR-8.3.2.1-1"
+    ],
+    "nearest-2023": "DOC-A.1-198",
+    "similarity": 0.367
+   },
+   "1985-SR-IV.4.2.2.1.3-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2",
+     "SR-8.3.2.1-4"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.719
+   },
+   "1985-GR-IV.4.2.2.1.3.2-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.4.2-1",
+     "SR-8.3.2.1-2",
+     "SR-8.3.2.1-1"
+    ],
+    "nearest-2023": "SR-8.3.2.4.2-1",
+    "similarity": 0.63
+   },
+   "1985-GR-IV.4.2.2.1.3.3-1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2",
+     "SR-8.3.2.4.2-1"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.362
+   },
+   "1985-GR-IV.4.2.2.1.3.3-2": {
+    "candidates-2023": [
+     "SR-8.3.2.1-1",
+     "SR-8.3.2.1-2",
+     "SR-8.3.2.4.2-1"
+    ],
+    "nearest-2023": "SR-8.3.2.1-1",
+    "similarity": 0.427
+   },
+   "1985-SR-IV.4.2.2.1.3.3.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.40.5-4",
+     "GR-8.5.1.6.4-2",
+     "GR-8.5.1.3.2-3"
+    ],
+    "nearest-2023": "GR-13.18.40.5-4",
+    "similarity": 0.324
+   },
+   "1985-GR-IV.4.2.2.1.3.3.1-1": {
+    "candidates-2023": [
+     "SR-13.18.57.3-12",
+     "SR-13.18.14.3-6",
+     "FMT-7.3.19.2"
+    ],
+    "nearest-2023": "SR-13.18.57.3-12",
+    "similarity": 0.208
+   },
+   "1985-GR-IV.4.2.2.1.3.3.1-2": {
+    "candidates-2023": [
+     "SR-8.4.3.14.3-2",
+     "SR-8.4.3.14.3-1",
+     "FMT-8.4.3.14.2"
+    ],
+    "nearest-2023": "SR-8.4.3.14.3-2",
+    "similarity": 0.323
+   },
+   "1985-GR-IV.4.2.2.1.3.3.1-3": {
+    "candidates-2023": [
+     "SR-13.18.57.3-12",
+     "SR-13.18.14.3-6",
+     "FMT-7.3.19.2"
+    ],
+    "nearest-2023": "SR-13.18.57.3-12",
+    "similarity": 0.226
+   },
+   "1985-GR-IV.4.2.2.1.3.3.1-4": {
+    "candidates-2023": [
+     "GR-13.18.37.4-6",
+     "GR-8.5.2.12-5",
+     "SR-13.18.57.3-12"
+    ],
+    "nearest-2023": "GR-13.18.37.4-6",
+    "similarity": 0.23
+   },
+   "1985-SR-IV.4.2.2.1.4-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.1-4",
+     "SR-7.3.10.3-4",
+     "SR-8.3.2.2-1"
+    ],
+    "nearest-2023": "SR-8.3.2.1-4",
+    "similarity": 0.524
+   },
+   "1985-GR-IV.4.2.2.2-p1": {
+    "candidates-2023": [
+     "SR-8.3.3.6.3-2",
+     "SR-12.4.5.6.3-7",
+     "GR-8.3.3.3.2-4"
+    ],
+    "nearest-2023": "SR-8.3.3.6.3-2",
+    "similarity": 0.351
+   },
+   "1985-SR-IV.4.2.2.2.1-p1": {
+    "candidates-2023": [
+     "SR-13.16.3-9",
+     "SR-13.15.3-14",
+     "SR-13.17.3-10"
+    ],
+    "nearest-2023": "SR-13.16.3-9",
+    "similarity": 0.255
+   },
+   "1985-SR-IV.4.2.2.2.2-p1": {
+    "candidates-2023": [
+     "GR-8.3.3.3.2-4",
+     "SR-8.3.3.3.2-3",
+     "SR-8.3.3.3.2-2",
+     "GR-8.3.3.2.4-2",
+     "SR-8.3.3.3.2-1",
+     "GR-8.3.3.2.4-3",
+     "GR-13.18.52.4-1",
+     "SR-8.3.3.3.3-1",
+     "RV-15.99.3-1"
+    ],
+    "nearest-2023": "GR-8.3.3.3.2-4",
+    "similarity": 0.392
+   },
+   "1985-SR-IV.4.2.2.2.3-p1": {
+    "candidates-2023": [
+     "SR-8.3.3.6.3-1",
+     "GR-8.3.3.6.4-1",
+     "GR-8.3.3.6.4-3",
+     "SR-8.3.3.6.3-2",
+     "GR-8.3.3.6.4-2",
+     "GR-8.3.3.6.4-9",
+     "GR-14.9.11.4-3",
+     "SR-14.9.49.3-6",
+     "SR-13.18.43.3-2"
+    ],
+    "nearest-2023": "SR-8.3.3.6.3-1",
+    "similarity": 0.305
+   },
+   "1985-GR-IV.4.2.2.2.3-L2.3": {
+    "candidates-2023": [
+     "GR-8.3.3.6.4-3",
+     "GR-8.3.3.6.4-2",
+     "SR-8.3.3.6.3-1",
+     "SR-8.3.3.6.3-2",
+     "SR-8.3.3.6.3-3",
+     "GR-12.3.7.4-8",
+     "SR-13.16.3-9",
+     "SR-13.15.3-14",
+     "SR-13.17.3-10"
+    ],
+    "nearest-2023": "GR-8.3.3.6.4-3",
+    "similarity": 0.64
+   },
+   "1985-SR-IV.4.2.2.2.3-p4": {
+    "candidates-2023": [
+     "SR-8.3.3.6.3-1",
+     "SR-8.3.3.6.3-2",
+     "GR-8.3.3.6.4-3",
+     "GR-8.3.3.6.4-2",
+     "GR-8.3.3.6.4-1",
+     "GR-12.3.7.4-8",
+     "GR-14.9.11.4-3",
+     "SR-13.10.3-6",
+     "SR-14.9.22.3-3"
+    ],
+    "nearest-2023": "SR-8.3.3.6.3-1",
+    "similarity": 0.568
+   },
+   "1985-SR-IV.4.2.2.2.3-L3.3": {
+    "candidates-2023": [
+     "SR-8.3.3.6.3-1",
+     "SR-14.9.25.3-5",
+     "GR-8.3.3.6.4-3",
+     "GR-8.3.3.6.4-2",
+     "SR-8.3.3.6.3-2",
+     "GR-8.3.3.6.4-1",
+     "GR-14.9.11.4-3",
+     "SR-14.9.22.3-3",
+     "SR-14.9.48.3-1"
+    ],
+    "nearest-2023": "SR-8.3.3.6.3-1",
+    "similarity": 0.38
+   },
+   "1985-SR-IV.4.2.2.2.3-p6": {
+    "candidates-2023": [
+     "FMT-8.3.3.6.2",
+     "SR-14.9.25.3-5",
+     "SR-8.3.3.6.3-1",
+     "GR-8.3.3.6.4-2",
+     "SR-8.3.3.6.3-2",
+     "GR-8.3.3.6.4-3",
+     "SR-13.18.63.3-39",
+     "SR-14.9.43.3-2",
+     "SR-14.9.48.3-1"
+    ],
+    "nearest-2023": "FMT-8.3.3.6.2",
+    "similarity": 0.266
+   },
+   "1985-SR-IV.4.2.2.3-p1": {
+    "candidates-2023": [
+     "SR-13.18.40.3-2",
+     "SR-13.18.2.3-1",
+     "SR-13.18.19.3-1"
+    ],
+    "nearest-2023": "SR-13.18.40.3-2",
+    "similarity": 0.401
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-03",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.1.1-p1",
+    "to": [
+     "GR-13.16.4-3"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "condition-name (level 88) assigned to a single value",
+     "to a set of values",
+     "to a range of values",
+     "the conditional variable it is associated with (Nucleus data description)"
+    ],
+    "evidence-1985": {
+     "single value, set, range on one conditional variable": "covered by conformance-suite/cases/13.16-Data-description/pb501_condition_name_entry_format (accepted at 85: 88 N-SEVEN VALUE 07, N-LIST VALUE 01 03 07, N-RANGE VALUE 1 THRU 9, each tested true)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1.1 p1",
+      "check": "OK  §1985:IV.4.2.2.1.1.1 p1  (4.2.2.1.1.1 Condition-Name)  the text is in p1",
+      "quote": "within a complete set of values that a data item may assume"
+     },
+     {
+      "cite": "§2023:13.16.4 GR3",
+      "check": "OK  §2023:13.16.4 GR3  (General rules)  the text is in GR3",
+      "quote": "the value, values, or range of values associated with the condition-name"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it. 1985: 'a name which is assigned to a specific value, set of values, or range of values, within a complete set of values that a data item may assume. The data item itself is called a conditional variable.' 2023 format 3 'contains the name of the condition and the value, values, or range of values associated with the condition-name'. The pointer's 85 case declares all three kinds on one conditional variable and tests each.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.1.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "condition-names in the Data Division (level 88)",
+     "condition-names in SPECIAL-NAMES, only on the ON/OFF STATUS of an implementor switch"
+    ],
+    "evidence-1985": {
+     "Data Division": "covered by conformance-suite/cases/13.16-Data-description/pb501_condition_name_entry_format (accepted at 85)",
+     "switch status accepted": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-cond-name-switch-status-85.cob (passes on the mint build: E:/COBOL-coord/scratch/pb5453/work/goldens-s-03.json)",
+     "non-switch refused": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-cond-name-not-a-switch-85.cob (COBOL2241) (passes on the mint build: E:/COBOL-coord/scratch/pb5453/work/goldens-s-03.json)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1.1 p2",
+      "check": "OK  §1985:IV.4.2.2.1.1.1 p2  (4.2.2.1.1.1 Condition-Name)  the text is in p2",
+      "quote": "must be assigned to the on status or off status"
+     }
+    ],
+    "reason": "1985: condition-names 'may be defined in the Data Division or in the SPECIAL-NAMES paragraph ... where a condition-name must be assigned to the on status or off status, or both, of implementor-defined switches'. GR-12.3.7.4-2 grants the switch association ('may each be associated') but states neither the restriction to switches nor the Data Division half, so no witnessed pointer states the whole scope. prose85's goldens witness both halves at 85.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-cond-name-not-a-switch-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-cond-name-not-a-switch-85.cob",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 goldens once placed (with pb501 for the Data Division half)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.1.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "condition-name as a condition: true iff the conditional variable equals one of its values",
+     "SET condition-name TO TRUE moves the associated value to the conditional variable"
+    ],
+    "evidence-1985": {
+     "abbreviation of the relation": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p01_condname.cob (IF C-LIST and IF V = 03 OR V = 05 OR V = 07 agree: A=T B=T; C=F)",
+     "SET": "covered by the same probe (SET C-NINE TO TRUE gives V=09, D=T; SET C-LIST TO TRUE gives W=03, the first value)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1.1 p3",
+      "check": "OK  §1985:IV.4.2.2.1.1.1 p3  (4.2.2.1.1.1 Condition-Name)  the text is in p3",
+      "quote": "A condition-name is also used in a SET statement"
+     }
+    ],
+    "reason": "1985: 'used in conditions as an abbreviation for the relation condition ... A condition-name is also used in a SET statement, indicating that the associated value is to be moved to the conditional variable.' The candidate GR-8.8.4.5.3-2 (85 case pb1477) covers the comparison only; no candidate states the SET half. The probe witnesses both at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p01_condname.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p01_condname.cob",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "SPECIAL-NAMES implementor-name IS mnemonic-name",
+     "the mnemonic-name then stands for the implementor-name (e.g. DISPLAY ... UPON)"
+    ],
+    "evidence-1985": {
+     "association and use": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p02_mnemonic.cob (CONSOLE IS MY-TERMINAL, SYSOUT IS MY-PRINTER; both DISPLAY ... UPON lines print)",
+     "also": "conformance-suite/cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1.2 p1",
+      "check": "OK  §1985:IV.4.2.2.1.1.2 p1  (4.2.2.1.1.2 Mnemonic-Name)  the text is in p1",
+      "quote": "A mnemonic-name assigns a user-defined word to an implementor-name"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it. The candidates (DOC-A.1-219, SR-8.3.2.1-4, GR-12.3.8.4-12) do not state the association; the probe witnesses it at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p02_mnemonic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p02_mnemonic.cob",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.1.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "paragraph-name names a paragraph of the Procedure Division",
+     "two paragraph-names are equivalent only when the same sequence of the same number of characters (1 and 01 differ)",
+     "all-digit paragraph-names"
+    ],
+    "evidence-1985": {
+     "equivalence by exact sequence": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p03_procnames.cob (paragraphs 1 and 01 are distinct: PARA-1, PARA-01; 007 THRU 7X runs both)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1.3 p1",
+      "check": "OK  §1985:IV.4.2.2.1.1.3 p1  (4.2.2.1.1.3 Paragraph-Name)  the text is in p1",
+      "quote": "Paragraph-names are equivalent if, and only if"
+     }
+    ],
+    "reason": "1985: 'Paragraph-names are equivalent if, and only if, they are composed of the same sequence of the same number of digits and/or characters.' The candidates (SR-8.4.2.2.3-3, RV-15.30.3-2, RV-15.31.3-2) are wording matches with no bearing; the probe shows 1 and 01 name distinct paragraphs at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p03_procnames.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p03_procnames.cob",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.1.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "section-name names a section of the Procedure Division",
+     "two section-names are equivalent only when the same sequence of the same number of characters (1 and 01 differ)",
+     "all-digit section-names"
+    ],
+    "evidence-1985": {
+     "equivalence by exact sequence": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p03_procnames.cob (sections 2 and 02 are distinct: SECT-2, SECT-02)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1.4 p1",
+      "check": "OK  §1985:IV.4.2.2.1.1.4 p1  (4.2.2.1.1.4 Section-Name)  the text is in p1",
+      "quote": "Section-names are equivalent if, and only if"
+     }
+    ],
+    "reason": "1985: 'Section-names are equivalent if, and only if, they are composed of the same sequence of the same number of digits and/or characters.' The candidates (SR-8.4.2.2.3-3, RV-15.30.3-2, RV-15.31.3-2) are wording matches with no bearing; the probe shows 1 and 01 name distinct sections at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p03_procnames.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p03_procnames.cob",
+    "needs": "an own golden from the probe, then its own verdict CONFORMS"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "system-name characters only A-Z, 0-9 and hyphen",
+     "hyphen not first or last",
+     "formation otherwise implementor-defined"
+    ],
+    "evidence-1985": {
+     "legal system-name accepted": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-sysname-legal-85.cob",
+     "trailing hyphen refused": "golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-sysname-trailing-hyphen-85.cob (COBOL2773)",
+     "character outside the set refused": "golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-sysname-underscore-85.cob (COBOL0900) (passes on the mint build: E:/COBOL-coord/scratch/pb5453/work/goldens-s-03.json)",
+     "leading hyphen": "not shown (a leading hyphen does not begin a word; the COBOL-word lexing rows witness it)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.2 p1",
+      "check": "OK  §1985:IV.4.2.2.1.2 p1  (4.2.2.1.2 System-Names)  the text is in p1",
+      "quote": "the '-' may not appear as the first or last character"
+     }
+    ],
+    "reason": "1985 restricts the characters of a system-name. DOC-A.1-198 (85 case l1c32) says only that the formation rules are implementor-defined; no 2023 row states the character set and the hyphen placement with an 85 witness. prose85's goldens witness it.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-sysname-trailing-hyphen-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-sysname-trailing-hyphen-85.cob",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 goldens once placed"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.2-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "computer-name is a system-name (SOURCE-COMPUTER, OBJECT-COMPUTER)"
+    ],
+    "evidence-1985": {
+     "computer-name accepted": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p04_sysnames.cob (SOURCE-COMPUTER. MY-COMPUTER-2. OBJECT-COMPUTER. MY-COMPUTER-2.; prints SYSNAMES-OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.2 GR1",
+      "check": "OK  §1985:IV.4.2.2.1.2 GR1 (structure only) ok"
+     }
+    ],
+    "reason": "Item 1 of 'There are three types of system-names'. Flagged definitional, but an accepted program shows a computer-name in its system-name positions. The candidates (SR-8.3.2.1-1 etc.) are about reserved words.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p04_sysnames.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p04_sysnames.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.2-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "implementor-name is a system-name (SPECIAL-NAMES, ASSIGN)"
+    ],
+    "evidence-1985": {
+     "implementor-name accepted": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p04_sysnames.cob (CONSOLE IS TERM) and E:/COBOL-coord/scratch/pb5453/probes/s-03/p02_mnemonic.cob (CONSOLE, SYSOUT)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.2 GR2",
+      "check": "OK  §1985:IV.4.2.2.1.2 GR2 (structure only) ok"
+     }
+    ],
+    "reason": "Item 2 of 'There are three types of system-names'. Testable: an accepted program names implementor-names.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p04_sysnames.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p04_sysnames.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.2-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "language-name is a system-name: it occurs only in the ENTER statement (Nucleus, obsolete)"
+    ],
+    "evidence-1985": {
+     "language-name": "not shown: ENTER is declined at 85 (probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p05_enter.cob: COBOL7240, citing §1985:I.1.5.2.5.5)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.2 GR3",
+      "check": "OK  §1985:IV.4.2.2.1.2 GR3 (structure only) ok"
+     },
+     {
+      "cite": "§1985:VI.6.12.2 Format 1",
+      "check": "OK  §1985:VI.6.12.2 Format 1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:I.1.5.2.5.5",
+      "check": "OK  §1985:I.1.5.2.5.5  (1.5.2.5.5 The ENTER Statement)  the text is in the clause",
+      "quote": "may include the ENTER statement or not"
+     }
+    ],
+    "reason": "A language-name appears in no 1985 format but ENTER language-name-1 [routine-name-1]; 'An implementation of Standard COBOL may include the ENTER statement or not, at the option of the implementor', and this one does not (COBOL7240). So no accepted program contains a language-name.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p05_enter.cob",
+    "compiler-at-1985": "not probed: no accepted program can contain a language-name (ENTER declined; p05_enter.cob refused with COBOL7240)",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "unpopulatable-antecedent",
+     "names": "language-name occurs only in the ENTER statement (§1985:VI.6.12.2), which this implementation declines under §1985:I.1.5.2.5.5 (COBOL7240), so no accepted program has one"
+    },
+    "licence-1985": "§1985:I.1.5.2.5.5 (the ENTER statement is the implementor's option)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "computer-names, implementor-names and language-names are disjoint in the implementation",
+     "a word of one set is refused in another set's position"
+    ],
+    "evidence-1985": {
+     "implementor-name as computer-name refused": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p06_disjoint.cob (SOURCE-COMPUTER. CONSOLE. refused COBOL7624 quoting this rule)",
+     "control": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p04_sysnames.cob (MY-COMPUTER-2 accepted)",
+     "language-name set": "not shown (ENTER declined)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.2 p3",
+      "check": "OK  §1985:IV.4.2.2.1.2 p3  (4.2.2.1.2 System-Names)  the text is in p3",
+      "quote": "these three types of system-names form disjoint sets"
+     }
+    ],
+    "reason": "Flagged definitional, but the compiler enforces it and a program shows it: 'Within a given implementation these three types of system-names form disjoint sets'. The glossary sentence is a pointer only. No candidate states it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p06_disjoint.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p06_disjoint.cob",
+    "needs": "an own golden from the probe (refusal with p04_sysnames.cob as control)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "1985's own reserved-word list (IV-45, with Amendments 1 and 2)",
+     "a reserved word is not a user-defined word",
+     "a reserved word is not a system-name",
+     "reserved words used only as the general formats specify"
+    ],
+    "evidence-1985": {
+     "not a user-defined word, 1985 list": "covered by conformance-suite/cases/8.3.2-COBOL-words/pb3794-multiple-reserved-at-85 and pb3794-message-reserved-85-2002 (diagnosed at 85), and probes E:/COBOL-coord/scratch/pb5453/probes/s-03/p12_refuse_RANDOM.cob, p12_refuse_SUM.cob, p17_length_dataname.cob (COBOL0901)",
+     "not a system-name": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p07_resv_sysname.cob (SOURCE-COMPUTER. MERGE. refused COBOL1971); control E:/COBOL-coord/scratch/pb5453/probes/s-03/p07_resv_control.cob (MERGER accepted, RAN)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3 p1",
+      "check": "OK  §1985:IV.4.2.2.1.3 p1  (4.2.2.1.3 Reserved Words)  the text is in p1",
+      "quote": "must not appear in the programs as user-defined words or system-names"
+     }
+    ],
+    "reason": "SR-8.3.2.1-1 states the prohibition, but its 85 cases exercise only the user-defined-word half; the system-name half is shown only by the probe, so no pointer is witnessed for the whole scope. The 1985 list is the edition's own. The system-name refusal's message (COBOL1971 'not a paragraph of the CONFIGURATION SECTION') reads MERGE as the next paragraph: a correct refusal with a weak message (lead).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p07_resv_sysname.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p07_resv_sysname.cob",
+    "needs": "an own golden from the probe (refusal with control), with the pb3794 cases for the user-defined-word half"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "optional words (uppercase, not underlined) may be written",
+     "or omitted",
+     "with no effect on semantics"
+    ],
+    "evidence-1985": {
+     "written and omitted, same results": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p08_optional.cob (IS GREATER THAN vs GREATER, IS NOT LESS THAN vs NOT LESS, IS NUMERIC vs NUMERIC all T; PICTURE IS / VALUE IS / USAGE IS accepted; C=019)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3.2 p1",
+      "check": "OK  §1985:IV.4.2.2.1.3.2 p1  (4.2.2.1.3.2 Optional Words)  the text is in p1",
+      "quote": "may be specified at the user's option with no effect on the semantics"
+     }
+    ],
+    "reason": "A grant ('may be specified at the user's option'), so an accepted program is needed. SR-8.3.2.4.2-1 is about key words; no candidate states optional words with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p08_optional.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p08_optional.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.3-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "special registers are a type of special purpose word"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown apart from IV.4.2.2.1.3.3.1, whose rows say what a special register is"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3.3 GR1",
+      "check": "OK  §1985:IV.4.2.2.1.3.3 GR1 (structure only) ok"
+     }
+    ],
+    "reason": "Item 1 of 'There are two types of special purpose words'. The classification has no consequence a program can show apart from the special-register paragraph and list (IV.4.2.2.1.3.3.1), read in this slice with probes.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the item names a class whose content is 1985-SR-IV.4.2.2.1.3.3.1-p1",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "indistinguishable-consequent",
+     "names": "1985-SR-IV.4.2.2.1.3.3.1-p1"
+    }
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "figurative constants are a type of special purpose word"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown apart from IV.4.2.2.2.3, whose rows say what a figurative constant is"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3.3 GR2",
+      "check": "OK  §1985:IV.4.2.2.1.3.3 GR2 (structure only) ok"
+     }
+    ],
+    "reason": "Item 2 of 'There are two types of special purpose words'. IV.4.2.2.1.3.3.2 only points to IV-10 (Figurative Constant Values), whose rows carry the content.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the item names a class whose content is 1985-SR-IV.4.2.2.2.3-p1",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "indistinguishable-consequent",
+     "names": "1985-SR-IV.4.2.2.2.3-p1"
+    }
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.3.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "special registers named by reserved words (DEBUG-ITEM, LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER)",
+     "used wherever a data-name or identifier of the same category is specified",
+     "qualified where qualification is allowed (LINAGE-COUNTER by file, LINE-/PAGE-COUNTER by report)",
+     "one register of each type per program unless specified otherwise"
+    ],
+    "evidence-1985": {
+     "as identifiers": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p09_linage.cob (MOVE, ADD ... GIVING, IF with LINAGE-COUNTER) and E:/COBOL-coord/scratch/pb5453/probes/s-03/p11_reportreg.cob (MOVE LINE-COUNTER, MOVE PAGE-COUNTER, SOURCE PAGE-COUNTER)",
+     "qualified": "p09_linage.cob (LINAGE-COUNTER OF RPT, IN RPT2: N=04, M=06, one register per file) and p11_reportreg.cob (LINE-COUNTER OF R1)",
+     "DEBUG-ITEM": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p10_debugitem.cob (DEBUG-NAME)",
+     "one per program": "not shown (needs a nested program, each with its own register)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3.3.1 p1",
+      "check": "OK  §1985:IV.4.2.2.1.3.3.1 p1  (4.2.2.1.3.3.1 Special Registers)  the text is in p1",
+      "quote": "may be used, unless otherwise restricted, wherever data-name or identifier is specified"
+     }
+    ],
+    "reason": "The candidates (GR-13.18.40.5-4, GR-8.5.1.6.4-2, GR-8.5.1.3.2-3) are wording matches with no bearing; no 2023 row with an 85 witness states the general special-register rule. The probes witness use as identifiers and qualification at 85; the one-per-program clause is not shown.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p09_linage.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p09_linage.cob",
+    "needs": "an own golden from p09/p11, plus a nested-program case for 'one special register of each type is allocated for each program'"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.3.1-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "DEBUG-ITEM (Debug module, XV-1) is a special register"
+    ],
+    "evidence-1985": {
+     "register exists and is referenced": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p10_debugitem.cob (USE FOR DEBUGGING ON P-TWO with WITH DEBUGGING MODE: DEBUG-NAME=P-TWO, then IN-P-TWO)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3.3.1 GR1",
+      "check": "OK  §1985:IV.4.2.2.1.3.3.1 GR1 (structure only) ok"
+     }
+    ],
+    "reason": "Item of 'There are four special registers'. Flagged definitional, but a program shows each register; its behaviour is the pointed page's rows. The candidates (Report Writer page rules, LINAGE-COUNTER SRs, PAGE-COUNTER GR) have no 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p10_debugitem.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p10_debugitem.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.3.1-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "LINAGE-COUNTER (Sequential I-O, VII-5) is a special register"
+    ],
+    "evidence-1985": {
+     "register exists and is referenced": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p09_linage.cob (LINAGE-COUNTER OF/IN file read by MOVE, ADD, IF)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3.3.1 GR2",
+      "check": "OK  §1985:IV.4.2.2.1.3.3.1 GR2 (structure only) ok"
+     }
+    ],
+    "reason": "Item of 'There are four special registers'. Flagged definitional, but a program shows each register; its behaviour is the pointed page's rows. The candidates (Report Writer page rules, LINAGE-COUNTER SRs, PAGE-COUNTER GR) have no 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p09_linage.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p09_linage.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.3.1-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "LINE-COUNTER (Report Writer, XIII-1) is a special register"
+    ],
+    "evidence-1985": {
+     "register exists and is referenced": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p11_reportreg.cob (MOVE LINE-COUNTER OF R1 gives LC=04 after two DETAIL lines from FIRST DETAIL 3)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3.3.1 GR3",
+      "check": "OK  §1985:IV.4.2.2.1.3.3.1 GR3 (structure only) ok"
+     }
+    ],
+    "reason": "Item of 'There are four special registers'. Flagged definitional, but a program shows each register; its behaviour is the pointed page's rows. The candidates (Report Writer page rules, LINAGE-COUNTER SRs, PAGE-COUNTER GR) have no 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p11_reportreg.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p11_reportreg.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.3.1-4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "PAGE-COUNTER (Report Writer, XIII-1) is a special register"
+    ],
+    "evidence-1985": {
+     "register exists and is referenced": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p11_reportreg.cob (MOVE PAGE-COUNTER gives PC=01; SOURCE PAGE-COUNTER in a DETAIL line compiles)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.3.3.1 GR4",
+      "check": "OK  §1985:IV.4.2.2.1.3.3.1 GR4 (structure only) ok"
+     }
+    ],
+    "reason": "Item of 'There are four special registers'. Flagged definitional, but a program shows each register; its behaviour is the pointed page's rows. The candidates (Report Writer page rules, LINAGE-COUNTER SRs, PAGE-COUNTER GR) have no 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p11_reportreg.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p11_reportreg.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "function-names (Amendment 1, Intrinsic Function module)",
+     "a function-name other than LENGTH, RANDOM, SUM may also be a user-defined word",
+     "or a system-name",
+     "LENGTH, RANDOM and SUM may not"
+    ],
+    "evidence-1985": {
+     "as user-defined words": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p12_funcnames.cob (data-names MAX, UPPER-CASE, MEAN beside FUNCTION MAX and FUNCTION UPPER-CASE: R=05, S=ABC) and E:/COBOL-coord/scratch/pb5453/probes/s-03/p18_funcname_sysname.cob (paragraph MIN beside FUNCTION MIN: R=04)",
+     "as a system-name": "p18_funcname_sysname.cob (SOURCE-COMPUTER. MAX.)",
+     "LENGTH, RANDOM, SUM refused": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p17_length_dataname.cob, p12_refuse_RANDOM.cob, p12_refuse_SUM.cob (COBOL0901); control E:/COBOL-coord/scratch/pb5453/probes/s-03/p17_control.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.4 p1",
+      "check": "OK  §1985:IV.4.2.2.1.4 p1  (4.2.2.1.4 Function-Names)  the text is in p1",
+      "quote": "With the exception of the words LENGTH, RANDOM, and SUM"
+     }
+    ],
+    "reason": "Amendment 2's sentence: 'With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word.' SR-8.3.2.1-4 (85 case l1c03) is the general system-name/user-word overlap and states neither the function-name rule nor its three exceptions.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p12_funcnames.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p12_funcnames.cob",
+    "needs": "an own golden from the probes (accepted p12/p18, refusals p17/p12_refuse_* with control)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a literal is nonnumeric or numeric (two types only)",
+     "a figurative constant is a literal by its reserved word"
+    ],
+    "evidence-1985": {
+     "other literal types refused": "covered by probes E:/COBOL-coord/scratch/pb5453/probes/s-03/p13_hexlit.cob (X\"41\" refused COBOL0900) and E:/COBOL-coord/scratch/pb5453/probes/s-03/p13_natlit.cob (N\"A\" refused); control E:/COBOL-coord/scratch/pb5453/probes/s-03/p13_control.cob",
+     "numeric, nonnumeric and figurative accepted": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p16_figcon.cob, p15_control.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2 p1",
+      "check": "OK  §1985:IV.4.2.2.2 p1  (4.2.2.2 Literals)  the text is in p1",
+      "quote": "Every literal belongs to one of two types: nonnumeric or numeric"
+     }
+    ],
+    "reason": "Flagged definitional, but it withholds a property a refusal shows: at 85 only two literal types exist. No candidate states it (2023 adds national, boolean, hexadecimal and floating-point literals).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p13_hexlit.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p13_hexlit.cob",
+    "needs": "an own golden from the probes (refusals with control)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "delimited by quotation marks",
+     "1 through 160 characters must be allowed",
+     "a zero-length literal is not a 1985 literal",
+     "length applies to the object-program representation"
+    ],
+    "evidence-1985": {
+     "160 characters": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-nonnumeric-literal-160-85.cob (passes on the mint build: E:/COBOL-coord/scratch/pb5453/work/goldens-s-03.json)",
+     "zero length refused": "probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p14_emptylit.cob (\"\" refused COBOL0900); control E:/COBOL-coord/scratch/pb5453/probes/s-03/p13_control.cob",
+     "delimiters": "conformance-suite/cases/IV.4.2.2.2.1@1985-Nonnumeric-Literals/1985-FMT-IV_4_2_2_2_1_1 (accept [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2.1 p1",
+      "check": "OK  §1985:IV.4.2.2.2.1 p1  (4.2.2.2.1 Nonnumeric Literals)  the text is in p1",
+      "quote": "The implementor must allow for nonnumeric literals of 1 through 160 characters in length"
+     }
+    ],
+    "reason": "The candidates are PICTURE-omission rules. No 2023 row states the 1-160 range; the golden and probe witness it at 85.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-nonnumeric-literal-160-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-nonnumeric-literal-160-85.cob",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 golden once placed, with p14_emptylit as the lower bound"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.2.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "characters: digits, + and -, decimal point only",
+     "1 through 18 digits must be allowed",
+     "the formation rules (1)-(4), each its own row"
+    ],
+    "evidence-1985": {
+     "18 digits": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-numeric-literal-18-digits-85.cob (passes on the mint build: E:/COBOL-coord/scratch/pb5453/work/goldens-s-03.json)",
+     "no other characters (no E exponent)": "probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p15_floatlit.cob (1.5E3 refused COBOL0900); control E:/COBOL-coord/scratch/pb5453/probes/s-03/p15_control.cob (01500)",
+     "formation rules": "sibling rows 1985-SR-IV.4.2.2.2.2-1..3, 1985-GR-IV.4.2.2.2.2-4 (decided)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2.2 p1",
+      "check": "OK  §1985:IV.4.2.2.2.2 p1  (4.2.2.2.2 Numeric Literals)  the text is in p1",
+      "quote": "the plus sign, the minus sign, and the decimal point"
+     }
+    ],
+    "reason": "The candidates cover the formation rules, not the character set or the 18-digit minimum, and the siblings already carry those rules. The golden and probe witness this paragraph at 85.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-numeric-literal-18-digits-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-numeric-literal-18-digits-85.cob",
+    "needs": "its own verdict CONFORMS, witnessed by the prose85 golden once placed, with p15_floatlit"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.2.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "figurative constants referenced by reserved words",
+     "not bounded by quotation marks (\"ZERO\" is a nonnumeric literal)",
+     "singular and plural forms equivalent"
+    ],
+    "evidence-1985": {
+     "quoted word is a literal": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p16_figcon.cob (MOVE \"ZERO\" gives 1[ZERO])",
+     "singular = plural": "same probe (ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE(S), LOW-VALUE(S), QUOTE(S) pairs all equal: 2..7=T; ZEROS in a relation 10=T)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2.3 p1",
+      "check": "OK  §1985:IV.4.2.2.2.3 p1  (4.2.2.2.3 Figurative Constant Values)  the text is in p1",
+      "quote": "The singular and plural forms of figurative constants are equivalent"
+     }
+    ],
+    "reason": "No candidate with an 85 witness states the quotation and singular/plural rules (SR-8.3.3.6.3-1 is the 'wherever literal appears' grant). The probe witnesses both.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p16_figcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p16_figcon.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "ALL literal not associated with a data item (DISPLAY): the string is the literal's length"
+    ],
+    "evidence-1985": {
+     "DISPLAY ALL \"AB\" shows AB": "covered by conformance-suite/cases/IV.4.2.2.2@1985-Literals/1985-GR-IV_4_2_2_2_3-L2_3 (rules: this row, accept [85]; [AB]), g85_bf02_01 (L23-A [AB], L23-B [XYZ]) and 14.9.11-DISPLAY/pb243_display_all_literal (accepted at 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2.3 GRL2.3",
+      "check": "OK  §1985:IV.4.2.2.2.3 GRL2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.3",
+      "quote": "the length of the string is the length of the literal"
+     }
+    ],
+    "reason": "Reopened: the old text carried p4 ('A figurative constant may be used whenever literal appears ...'), now its own row; what is left is rule (3) alone. GR-8.3.3.6.4-3 c) states it but has no case at 85, so it cannot be the pointer; the placed own case names this row and runs at 85.",
+    "probe": "conformance-suite/cases/IV.4.2.2.2@1985-Literals/1985-GR-IV_4_2_2_2_3-L2_3.cob",
+    "compiler-at-1985": "correct: conformance-suite/cases/IV.4.2.2.2@1985-Literals/1985-GR-IV_4_2_2_2_3-L2_3.cob",
+    "needs": "its own verdict CONFORMS on the placed case (it already names the row and tests only what remains)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.2.3-p4",
+    "to": [
+     "SR-8.3.3.6.3-1"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "a figurative constant may stand wherever 'literal' appears in a format (the exceptions are items L3.1-L3.3)"
+    ],
+    "evidence-1985": {
+     "figurative in literal positions": "covered by conformance-suite/cases/8.3.3.6-Figurative-constant-values/pb3846_all_zero_in_expression_85 (ALL ZERO as arithmetic-expression operands, in a reference modifier, in VALUE), pb1415_all_zero_numeric_85, pb3962_figurative_zero_before_a_signed_literal (accepted at 85); alphanumeric positions also by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p16_figcon.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2.3 p4",
+      "check": "OK  §1985:IV.4.2.2.2.3 p4  (4.2.2.2.3 Figurative Constant Values)  the text is in p4",
+      "quote": "A figurative constant may be used whenever 'literal' appears in a format"
+     },
+     {
+      "cite": "§2023:8.3.3.6.3 SR1",
+      "check": "OK  §2023:8.3.3.6.3 SR1  (Syntax rules)  the text is in SR1",
+      "quote": "A figurative constant may be used whenever 'literal' appears in a format"
+     }
+    ],
+    "reason": "The lead of the exceptions list, and a grant in the same words as 2023's SR1. SR1's 2023 additions ('or when a rule allows it', 'shall not be specified where a syntax rule prohibits it') are no wider than 1985's practice; its exceptions are separate rows. The pointer's 85 cases use figurative constants in literal positions.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's cases run at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.2.3-L3.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "ALL before a figurative constant other than ALL literal changes nothing (MOVE, comparison, DISPLAY)"
+    ],
+    "evidence-1985": {
+     "MOVE ALL ZEROS = MOVE ZEROS": "covered by conformance-suite/cases/IV.4.2.2.2@1985-Literals/1985-SR-IV_4_2_2_2_3-L3_3 (rules: this row, accept [85]; SAME, 000)",
+     "DISPLAY ALL ZEROES/SPACES/QUOTES as one character": "conformance-suite/cases/14.9.11-DISPLAY/pb243_display_all_literal (accepted at 85: 4[0][ ][\"]; 3[*][*])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2.3 SRL3.3",
+      "check": "OK  §1985:IV.4.2.2.2.3 SRL3.3  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.3",
+      "quote": "the word ALL is redundant and is used for readability only"
+     }
+    ],
+    "reason": "Reopened: the old text carried the HIGH/LOW-VALUE collating paragraph and the two-character-string paragraph (now 1985-SR-IV.4.2.2.2.3-p6); what is left is the 'ALL is redundant' sentence. No candidate with an 85 witness states it (FMT-8.3.3.6.2 marks ALL optional, no 85 case); the placed own case names this row and runs at 85.",
+    "probe": "conformance-suite/cases/IV.4.2.2.2@1985-Literals/1985-SR-IV_4_2_2_2_3-L3_3.cob",
+    "compiler-at-1985": "correct: conformance-suite/cases/IV.4.2.2.2@1985-Literals/1985-SR-IV_4_2_2_2_3-L3_3.cob",
+    "needs": "its own verdict CONFORMS on the placed case (it tests what remains)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.2.3-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "each figurative-constant word is one character-string",
+     "ALL x is two character-strings (separated by any separator, even a line break)"
+    ],
+    "evidence-1985": {
+     "ALL and its operand separated by spaces and a line": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-03/p16_figcon.cob (MOVE ALL<newline>SPACES and MOVE ALL      \"XY\": 9[    ][XYXY])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2.3 p6",
+      "check": "OK  §1985:IV.4.2.2.2.3 p6  (4.2.2.2.3 Figurative Constant Values)  the text is in p6",
+      "quote": "which are composed of two distinct character-strings"
+     }
+    ],
+    "reason": "No candidate with an 85 witness states it; FMT-8.3.3.6.2 shows ALL as a separate word but has no 85 case. The probe witnesses it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03/p16_figcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-03/p16_figcon.cob",
+    "needs": "an own golden from the probe"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.3-p1",
+    "to": [
+     "SR-13.18.40.3-2"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "a PICTURE character-string is made of the currency symbol and COBOL-character combinations, as the PICTURE clause (VI-29) allows"
+    ],
+    "evidence-1985": {
+     "legal compositions, currency symbol included": "covered by conformance-suite/cases/13.18.40-PICTURE/pb528_picture_composition_legal_85 (accepted at 85: $999+, $$$9.99, +$$99, ZZZ,ZZ9.99, XXBXX, 999.99CR, ***9 and others)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.3 p1",
+      "check": "OK  §1985:IV.4.2.2.3 p1  (4.2.2.3 PICTURE Character-Strings)  the text is in p1",
+      "quote": "composed of the currency symbol and certain combinations of characters"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR2",
+      "check": "OK  §2023:13.18.40.3 SR2  (Syntax rules)  the text is in SR2",
+      "quote": "Character-string-1 shall consist of an allowable combination of characters used as picture symbols"
+     }
+    ],
+    "reason": "Flagged definitional, but testable. The 1985 paragraph says a PICTURE string is the currency symbol and combinations of COBOL characters and defers to the PICTURE clause; 2023's SR2 says the same (its NOTE 1 names the currency symbol and the COBOL repertoire). The pointer's 85 case composes legal strings with the currency symbol.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85"
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-IV.4.2.2.2.2-3",
+    "what": "The row's text carries the paragraph that closes the formation list ('If a literal conforms to the rules for the formation of numeric literals, but is enclosed in quotation marks, it is a nonnumeric literal and it is treated as such by the compiler'), words not its own: page 156 prints it as a separate paragraph after rule (3), before rule (4).",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-SR-IV.4.2.2.2.2-3",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json#1985-SR-IV.4.2.2.2.2-3"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-IV.4.2.2.2.3-L3.3",
+    "what": "The split that reopened L3.3 carved two paragraphs but minted a row for only one (p6). The other, 'Except in the SPECIAL-NAMES paragraph, when the figurative constants HIGH-VALUES(S) or LOW-VALUE(S) are used in the source program, the actual characters associated with each figurative constant depend upon the program collating sequence specified' (page 158, folio IV-12), is in no 1985 catalog row and in no disposition; cite.py places a quotation of it only 'in the clause'.",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/cite_check.py \"§1985:IV.4.2.2.2.3 p5\" \"the actual characters associated with each figurative constant depend upon the program collating sequence\"",
+    "site": "docs/rearchitecture/spec-splits-1985/split-batch.json#1985-SR-IV.4.2.2.2.3-L3.3"
+   },
+   {
+    "kind": "defect",
+    "row": "1985-SR-IV.4.2.2.1.3-p1",
+    "what": "Diagnostic quality only, not a wrong answer: a reserved word written as a computer-name (SOURCE-COMPUTER. MERGE.) is refused, but COBOL1971 reads it as a misplaced paragraph ('MERGE is not a paragraph of the CONFIGURATION SECTION') instead of naming the reserved-word rule §1985:IV.4.2.2.1.3.",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe E:/COBOL-coord/scratch/pb5453/tree-9fdf39b9e8/src/WiseOwl.Cobol.Cli/bin/Debug/net11.0/cobol.exe E:/COBOL-coord/scratch/pb5453/probes/s-03/p07_resv_sysname.cob",
+    "site": ""
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-03",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.1.1-p1",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading tried: 1985 condition-names also name switch status in SPECIAL-NAMES, which the pointer's case does not show. But that is the clause's p2 (its own row, read DIFFERENT); p1 speaks only of a value, set or range a DATA ITEM may assume and names that item the conditional variable. GR-13.16.4-3 states that, and pb501_condition_name_entry_format (accept [85]) declares single value, list and THRU range on one conditional variable (plus a group one) and tests each true; .out SEVEN=T RANGE=T LIST=T GAB=T.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1.1.1 p1",
+      "quote": "within a complete set of values that a data item may assume",
+      "check": "OK  §1985:IV.4.2.2.1.1.1 p1  (4.2.2.1.1.1 Condition-Name)  the text is in p1"
+     },
+     {
+      "cite": "§2023:13.16.4 GR3",
+      "quote": "the value, values, or range of values associated with the condition-name",
+      "check": "OK  §2023:13.16.4 GR3  (General rules)  the text is in GR3"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/13.16-Data-description/pb501_condition_name_entry_format runs accepted at 85"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.2.3-p4",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading: the row ends 'with the following exceptions:' so it incorporates 1985's exceptions, and the pointer's exception a) differs (2023 admits ZERO in a numeric-restricted position only 'without the ALL phrase'; 1985 SRL3.3 makes ALL redundant, so ALL ZERO is admitted). That difference is real but the pointer's own 85 witness pb1415_all_zero_numeric_85 (accept [85], rules [SR-8.3.3.6.3-1]) exercises exactly it (VALUE ALL ZEROES on PIC 9(3) -> 000, ADD/COMPUTE ALL ZERO), so the pointer's CONFORMS is true of the 1985 scope. The grant itself is word-for-word; my probe r5_figpos.cob additionally shows figurative constants accepted at 85 in INSPECT TALLYING/REPLACING, STRING, EVALUATE WHEN and DISPLAY literal positions with correct results.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.2.3 p4",
+      "quote": "A figurative constant may be used whenever 'literal' appears in a format",
+      "check": "OK  §1985:IV.4.2.2.2.3 p4  (4.2.2.2.3 Figurative Constant Values)  the text is in p4"
+     },
+     {
+      "cite": "§2023:8.3.3.6.3 SR1",
+      "quote": "ZERO (ZEROS, ZEROES) without the ALL phrase",
+      "check": "OK  §2023:8.3.3.6.3 SR1  (Syntax rules)  the text is in SR1"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.2.3 SRL3.3",
+      "quote": "the word ALL is redundant and is used for readability only",
+      "check": "OK  §1985:IV.4.2.2.2.3 SRL3.3  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.3"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03-refute/r5_figpos.cob",
+    "compiler-at-1985": "correct: r5_figpos.cob at 85 prints 1[03] 2[A\"B\"C\"] 3[X Y   ] 4=O ' 5' (runs/r5_figpos-001); pb1415_all_zero_numeric_85 covers the ALL ZERO edge"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.3-p1",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading: 1985's 'certain combinations of characters' is the 1985 symbol set, narrower than 2023's (no N, E, 1), and its currency symbol is any CURRENCY SIGN character, so an accepted-only $ witness does not cover the scope. Probed at 85: PIC N(4), PIC +9.99E+99 and PIC 1(4) are each refused COBOL0900 (requires COBOL-2002), and CURRENCY SIGN IS \"#\" with PIC ##9.99 is accepted and renders #12.34. The paragraph itself defers all rules to VI-29 (separate rows); the composition it states is what SR2 states and pb528_picture_composition_legal_85 (accept [85]) exercises. No difference found.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.3 p1",
+      "quote": "composed of the currency symbol and certain combinations of characters",
+      "check": "OK  §1985:IV.4.2.2.3 p1  (4.2.2.3 PICTURE Character-Strings)  the text is in p1"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR2",
+      "quote": "Character-string-1 shall consist of an allowable combination of characters used as picture symbols",
+      "check": "OK  §2023:13.18.40.3 SR2  (Syntax rules)  the text is in SR2"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03-refute/r4_pic_cs.cob",
+    "compiler-at-1985": "correct: r1_pic_n/r2_pic_e/r3_pic_1 refused COBOL0900 at 85; r4_pic_cs accepted R4[#12.34] (runs/r*-001)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-03",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.2-3",
+    "arm": "unpopulatable-antecedent",
+    "verdict": "UPHELD",
+    "attempt": "r6_enter_C.cob, r6_enter_ASSEMBLER.cob, r6_enter_FORTRAN.cob (ENTER <name> and ENTER COBOL at 85): every one refused COBOL7240. 1985 text has language-name only in the ENTER format (VI.6.12.2) and the glossary; §1985:I.1.5.2.5.5 'may include the ENTER statement or not' (OK) permits the decline.",
+    "reason": "No accepted 85 program can contain a language-name; the set is empty in this implementation.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-03-refute/r6_enter_C.cob"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.3-1",
+    "arm": "indistinguishable-consequent",
+    "verdict": "UPHELD",
+    "attempt": "The only observable consequence of being a special purpose word is being a reserved word (§1985:IV.4.2.2.1.3 p1 'must not appear in the programs as user-defined words or system-names', OK), e.g. 01 LINAGE-COUNTER refused; but §1985:IV.4.2.2.1.3.3.1 p1 'Certain reserved words are used to name and reference special registers' (OK) states that same consequent, so any such witness witnesses the named row.",
+    "reason": "No program distinguishes the classification from 1985-SR-IV.4.2.2.1.3.3.1-p1.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.2.2.1.3.3-2",
+    "arm": "indistinguishable-consequent",
+    "verdict": "UPHELD",
+    "attempt": "Same attempt: a refusal of ZERO as a user-defined word shows reserved-ness, which §1985:IV.4.2.2.2.3 p1 'referenced through the use of the reserved words given below' (OK) already states.",
+    "reason": "No program distinguishes the classification from 1985-SR-IV.4.2.2.2.3-p1.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "asked": "ad23f10e79f2e5deb88976ca6b50778ba9bcce1f2daed99516f9e617660a91d1",
+  "derivation-refute": "f064e4e304d2b2b35f517f4ae71e82468ae4490b86be0f22572197ebdc5e22f4",
+  "read": "2eb7534f9101580e043cf2c3cf093904331ea2196acc973c20400d2a0bc3f3bf",
+  "refute": "c3bbc9a2a2b0590dc685d0b1b2b2e5f87876ea5e0eef96028280b87732cb39f7"
+ }
+}

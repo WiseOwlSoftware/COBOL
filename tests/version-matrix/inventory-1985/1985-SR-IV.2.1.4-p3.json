@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.2.1.4-p3",
+ "rule-digest": "26b94ab84c88",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#ChoiceIndicators",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/1985-SR-IV_2_1_4-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (r04_choice_indicators_ok.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'one or more of the unique options contained within the choice indicators must be specified, but a single option may be specified only once.' The refuter showed the antecedent is populated: PROGRAM-ID's COMMON and INITIAL sit in choice indicators (§1985:X.3.1.2, printed page V-2). At 85, IS COMMON INITIAL, IS INITIAL COMMON and IS COMMON are accepted and behave; IS COMMON COMMON is refused citing this clause. Code location located after the read: ChoiceIndicators cites 1985:IV.2.1.4 (line 73): one option of braces, once only"
+}

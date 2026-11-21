@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.3.5.1-p1",
+ "rule-digest": "cdcb6a7a6842",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#ScreenDataRecords; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataRecordsClause",
+ "test-ref": "conformance:cases/VII.2@1985-ENVIRONMENT-DIVISION-IN-THE-SEQUENTIAL-I/1985-GR-VII_2_12-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (seqobs.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The DATA RECORDS clause serves only as documentation\" and \"is an obsolete element\". 2023 deleted DATA RECORDS, so no 2023 row states it. At 85 the probes accept both spellings and the I-O results do not change (FileControlBinder.ObsoleteFdClauses.cs: documentation, no I-O effect). Code location located after the read: DATA RECORDS obsolete clause screen"
+}

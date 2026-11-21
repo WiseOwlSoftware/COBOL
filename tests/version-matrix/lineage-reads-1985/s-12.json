@@ -1,0 +1,1286 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-12 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-12",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-12",
+  "edition": 1985,
+  "ids": [
+   "1985-GR-VI.6.4.5-p1",
+   "1985-GR-VI.6.4.6-p1",
+   "1985-GR-VI.6.4.7-p1",
+   "1985-GR-VI.6.7.1-p1",
+   "1985-GR-VI.6.8.1-p1",
+   "1985-GR-VI.6.9.1-p1",
+   "1985-GR-VI.6.12.1-p1",
+   "1985-GR-VI.6.15.1-p1",
+   "1985-GR-VI.6.24.1-p1",
+   "1985-GR-VI.7.2-p3",
+   "1985-GR-VI.7.3-p1",
+   "1985-SR-VI.7.3-p2",
+   "1985-SR-VI.7.3-p4",
+   "1985-SR-VI.7.3-p5",
+   "1985-GR-VII.1.2-p1",
+   "1985-GR-VII.1.2-p2",
+   "1985-GR-VII.1.3.1-p1",
+   "1985-GR-VII.1.3.1-p2",
+   "1985-GR-VII.1.3.3-p1",
+   "1985-GR-VII.1.3.4-p1",
+   "1985-GR-VII.1.3.5-p1",
+   "1985-GR-VII.1.3.5-p3",
+   "1985-GR-VII.1.3.5-5",
+   "1985-GR-VII.1.3.5-p5",
+   "1985-GR-VII.1.3.7-p1",
+   "1985-GR-VII.2.2.1-p1",
+   "1985-GR-VII.2.3.1-p1",
+   "1985-GR-VII.2.4.1-p1",
+   "1985-GR-VII.2.10.1-p1",
+   "1985-GR-VII.2.11.1-p1"
+  ],
+  "pointers": {
+   "1985-GR-VI.6.4.5-p1": {
+    "candidates-2023": [
+     "GR-14.6.10-1",
+     "GR-14.6.10-2",
+     "GR-14.7.7-4"
+    ],
+    "nearest-2023": "GR-14.6.10-1",
+    "similarity": 0.495
+   },
+   "1985-GR-VI.6.4.6-p1": {
+    "candidates-2023": [
+     "GR-14.7.7-4",
+     "SR-14.7.7-2",
+     "GR-14.7.7-1",
+     "GR-14.7.7-3",
+     "GR-14.7.6-3",
+     "GR-14.7.5-2",
+     "GR-14.7.5-L3.2"
+    ],
+    "nearest-2023": "GR-14.7.7-4",
+    "similarity": 0.187
+   },
+   "1985-GR-VI.6.4.7-p1": {
+    "candidates-2023": [
+     "SR-13.18.63.3-7",
+     "GR-13.18.11.4-3",
+     "GR-8.8.4.4.4-3"
+    ],
+    "nearest-2023": "SR-13.18.63.3-7",
+    "similarity": 0.464
+   },
+   "1985-GR-VI.6.7.1-p1": {
+    "candidates-2023": [
+     "SR-14.9.49.3-11",
+     "GR-13.18.54.4-12",
+     "GR-14.9.41.4-2"
+    ],
+    "nearest-2023": "SR-14.9.49.3-11",
+    "similarity": 0.311
+   },
+   "1985-GR-VI.6.8.1-p1": {
+    "candidates-2023": [
+     "SR-14.9.8.3-2",
+     "GR-13.18.53.4-2",
+     "SR-14.9.8.3-1"
+    ],
+    "nearest-2023": "SR-14.9.8.3-2",
+    "similarity": 0.445
+   },
+   "1985-GR-VI.6.9.1-p1": {
+    "candidates-2023": [
+     "FMT-14.9.9.2",
+     "SR-14.9.9.3-1",
+     "GR-14.9.9.4-2"
+    ],
+    "nearest-2023": "FMT-14.9.9.2",
+    "similarity": 0.47
+   },
+   "1985-GR-VI.6.12.1-p1": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-11.9.5.2-2",
+     "GR-9.2.3-1"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.251
+   },
+   "1985-GR-VI.6.15.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.17.4-1",
+     "SR-14.9.17.3-3",
+     "FMT-14.9.17.2"
+    ],
+    "nearest-2023": "GR-14.9.17.4-1",
+    "similarity": 0.629
+   },
+   "1985-GR-VI.6.24.1-p1": {
+    "candidates-2023": [
+     "SR-14.9.42.3-1",
+     "SR-14.9.42.3-4",
+     "SR-14.9.42.3-3"
+    ],
+    "nearest-2023": "SR-14.9.42.3-1",
+    "similarity": 0.419
+   },
+   "1985-GR-VI.7.2-p3": {
+    "candidates-2023": [
+     "GR-7.2.3.4-6",
+     "GR-7.2.4.4-7",
+     "GR-7.2.4.4-9"
+    ],
+    "nearest-2023": "GR-7.2.3.4-6",
+    "similarity": 0.218
+   },
+   "1985-GR-VI.7.3-p1": {
+    "candidates-2023": [
+     "GR-6.5-2",
+     "GR-13.18.35.4-7",
+     "GR-6.5-5"
+    ],
+    "nearest-2023": "GR-6.5-2",
+    "similarity": 0.403
+   },
+   "1985-SR-VI.7.3-p2": {
+    "candidates-2023": [
+     "SR-13.18.35.3-2",
+     "GR-13.18.35.4-3",
+     "FMT-13.18.34.2"
+    ],
+    "nearest-2023": "SR-13.18.35.3-2",
+    "similarity": 0.194
+   },
+   "1985-SR-VI.7.3-p4": {
+    "candidates-2023": [
+     "GR-13.18.38.4-12",
+     "FMT-13.18.34.2",
+     "SR-13.18.40.3-4"
+    ],
+    "nearest-2023": "GR-13.18.38.4-12",
+    "similarity": 0.149
+   },
+   "1985-SR-VI.7.3-p5": {
+    "candidates-2023": [
+     "GR-12.3.6.4-4",
+     "GR-12.3.6.4-3",
+     "GR-14.6.6-4"
+    ],
+    "nearest-2023": "GR-12.3.6.4-4",
+    "similarity": 0.214
+   },
+   "1985-GR-VII.1.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.51.4-23",
+     "GR-12.4.5.3-8",
+     "GR-9.1.13.2-7"
+    ],
+    "nearest-2023": "GR-14.9.51.4-23",
+    "similarity": 0.339
+   },
+   "1985-GR-VII.1.2-p2": {
+    "candidates-2023": [
+     "GR-12.4.5.3-8",
+     "GR-14.9.51.4-23",
+     "SR-13.4.5.3-5"
+    ],
+    "nearest-2023": "GR-12.4.5.3-8",
+    "similarity": 0.365
+   },
+   "1985-GR-VII.1.3.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.51.4-17",
+     "GR-14.9.51.4-18",
+     "GR-12.4.5.5.3-2"
+    ],
+    "nearest-2023": "GR-14.9.51.4-17",
+    "similarity": 0.502
+   },
+   "1985-GR-VII.1.3.1-p2": {
+    "candidates-2023": [
+     "GR-14.9.10.4-1",
+     "GR-12.4.5.10.3-3",
+     "GR-14.9.6.4-2"
+    ],
+    "nearest-2023": "GR-14.9.10.4-1",
+    "similarity": 0.359
+   },
+   "1985-GR-VII.1.3.3-p1": {
+    "candidates-2023": [
+     "GR-14.9.6.4-3",
+     "GR-14.9.6.4-6",
+     "GR-14.9.51.4-24"
+    ],
+    "nearest-2023": "GR-14.9.6.4-3",
+    "similarity": 0.38
+   },
+   "1985-GR-VII.1.3.4-p1": {
+    "candidates-2023": [
+     "GR-14.9.6.4-6",
+     "GR-14.9.27.4-14",
+     "GR-14.9.30.4-21"
+    ],
+    "nearest-2023": "GR-14.9.6.4-6",
+    "similarity": 0.461
+   },
+   "1985-GR-VII.1.3.5-p1": {
+    "candidates-2023": [
+     "GR-9.1.13.7-3",
+     "GR-14.9.30.4-2",
+     "GR-9.1.13.7-9",
+     "GR-9.1.13.7-7",
+     "GR-14.9.27.4-1",
+     "GR-14.9.27.4-25",
+     "GR-14.9.51.4-15",
+     "GR-12.4.5.8.4-1",
+     "GR-14.9.6.4-4",
+     "GR-14.9.49.4-7"
+    ],
+    "nearest-2023": "GR-9.1.13.7-3",
+    "similarity": 0.501
+   },
+   "1985-GR-VII.1.3.5-p3": {
+    "candidates-2023": [
+     "GR-9.1.13.6-1",
+     "DOC-A.1-110",
+     "GR-9.1.13.2-1",
+     "GR-9.1.13.11-1",
+     "GR-14.9.49.4-7",
+     "GR-14.9.49.4-12",
+     "DOC-A.1-218",
+     "GR-9.1.14-4",
+     "GR-9.1.14-L2.1",
+     "DOC-A.1-105"
+    ],
+    "nearest-2023": "GR-9.1.13.6-1",
+    "similarity": 0.296
+   },
+   "1985-GR-VII.1.3.5-5": {
+    "candidates-2023": [
+     "GR-14.9.49.4-6",
+     "GR-9.1.13.6-4",
+     "GR-9.1.13.2-1",
+     "GR-9.1.13.7-3",
+     "GR-9.1.13.11-1",
+     "GR-9.1.13.7-5",
+     "GR-14.9.33.4-2",
+     "GR-9.1.14-4",
+     "GR-14.9.10.4-2"
+    ],
+    "nearest-2023": "GR-14.9.49.4-6",
+    "similarity": 0.243
+   },
+   "1985-GR-VII.1.3.5-p5": {
+    "candidates-2023": [
+     "GR-9.1.13.2-1",
+     "GR-9.1.13.2-7",
+     "GR-9.1.13.7-9",
+     "GR-9.1.13.11-1",
+     "DOC-A.1-104",
+     "GR-14.9.27.4-1",
+     "GR-14.9.51.4-15",
+     "GR-12.4.5.8.4-1",
+     "GR-14.7.9.3-4",
+     "GR-14.9.51.4-23"
+    ],
+    "nearest-2023": "GR-9.1.13.2-1",
+    "similarity": 0.349
+   },
+   "1985-GR-VII.1.3.7-p1": {
+    "candidates-2023": [
+     "GR-13.18.34.4-7",
+     "GR-8.4.3.14.4-1",
+     "SR-8.4.3.14.3-1"
+    ],
+    "nearest-2023": "GR-13.18.34.4-7",
+    "similarity": 0.61
+   },
+   "1985-GR-VII.2.2.1-p1": {
+    "candidates-2023": [
+     "FMT-12.4.4.2",
+     "SR-12.4.6.3.3-1",
+     "SR-12.4.6.4.3-2"
+    ],
+    "nearest-2023": "FMT-12.4.4.2",
+    "similarity": 0.63
+   },
+   "1985-GR-VII.2.3.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.3-8",
+     "SR-12.4.5.2-11",
+     "SR-13.4.5.3-1"
+    ],
+    "nearest-2023": "GR-12.4.5.3-8",
+    "similarity": 0.54
+   },
+   "1985-GR-VII.2.4.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.5.3-1",
+     "FMT-12.4.5.5.1",
+     "GR-12.4.5.5.3-4"
+    ],
+    "nearest-2023": "GR-12.4.5.5.3-1",
+    "similarity": 0.555
+   },
+   "1985-GR-VII.2.10.1-p1": {
+    "candidates-2023": [
+     "GR-9.1.18.2-p1",
+     "FMT-12.4.6.2",
+     "GR-12.4.6.4.4-2"
+    ],
+    "nearest-2023": "GR-9.1.18.2-p1",
+    "similarity": 0.293
+   },
+   "1985-GR-VII.2.11.1-p1": {
+    "candidates-2023": [
+     "GR-12.4.5.11.4-2",
+     "SR-13.18.64.3-1",
+     "GR-13.18.63.4-15"
+    ],
+    "nearest-2023": "GR-12.4.5.11.4-2",
+    "similarity": 0.314
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-12",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-VI.6.4.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "every Nucleus statement (and every module's statements, by its rules) whose sending and receiving items share storage while defined by different data description entries",
+     "a pointer to statements whose general rules make same-entry overlap undefined"
+    ],
+    "evidence-1985": {
+     "overlap by different entries: result undefined": "not shown (no program can show an undefined result)",
+     "pointer to per-statement rules": "not shown (it imposes nothing of its own; each statement's rule is its own row)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.5 p1",
+      "quote": "the result of the execution of such a statement is undefined",
+      "check": "OK  §1985:VI.6.4.5 p1  (6.4.5 Overlapping Operands)  the text is in p1"
+     }
+    ],
+    "reason": "Definitional flag: can a program show it? No. The paragraph's only requirement is 'the result of the execution of such a statement is undefined'; its second and third sentences point to the general rules of other statements. The earlier prose85 read classed both sentences NOT-NORMATIVE (refutation UPHELD). 2023 GR-14.6.10-1 repeats sentence 1, but an undefined result has no observable outcome to witness at 85, so the undefined-in-rule arm closes it.",
+    "probe": null,
+    "compiler-at-1985": "not probed: an undefined result has no outcome a program can check",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "undefined-in-rule",
+     "names": "the result of the execution of such a statement is undefined"
+    }
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.6-p1",
+    "to": [
+     "GR-14.7.7-4"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ADD (formats 1 and 2) with multiple results",
+     "SUBTRACT (formats 1 and 2) with multiple results",
+     "MULTIPLY (formats 1 and 2) with multiple results",
+     "DIVIDE (INTO and GIVING formats) with multiple results",
+     "COMPUTE with multiple results"
+    ],
+    "evidence-1985": {
+     "ADD": "covered by cases/14.7.7-Arithmetic-statements/l1c04_arith_multiple_receivers (85) and probe p01",
+     "COMPUTE": "covered by l1c04_arith_multiple_receivers (85) and probe p01",
+     "MULTIPLY": "covered by l1c04_arith_multiple_receivers (85) and probe p01",
+     "SUBTRACT": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p01_multi_results.cob (not by the pointer's 85 cases)",
+     "DIVIDE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p01_multi_results.cob (not by the pointer's 85 cases)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.6 p1",
+      "quote": "SUBTRACT statements may have multiple results",
+      "check": "OK  §1985:VI.6.4.6 p1  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in p1"
+     },
+     {
+      "cite": "§2023:14.7.7 GR4",
+      "quote": "may have single or multiple resultant identifiers",
+      "check": "OK  §2023:14.7.7 GR4  (Arithmetic statements)  the text is in GR4"
+     }
+    ],
+    "reason": "The paragraph grants a form ('The ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements may have multiple results'), so each of the five statements needs an accepted program. GR-14.7.7-4 states the grant, but its 85 cases (l1c04_arith_multiple_receivers, pb5386_arith_receiver_identified_at_store) write multiple receivers only for ADD, COMPUTE and MULTIPLY; DIVIDE appears only as GIVING ... REMAINDER and SUBTRACT not at all. Probe p01 runs all five at 85 (INTO/FROM/BY and GIVING forms) and each receiver gets its own result: ADD 011 021 031, SUB 010 020 030, MUL 020 040 060, DIV 010 020 030, DVG 020 020 020, SBG 049 049 049, CMP 021 021 021.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p01_multi_results.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12/p01_multi_results.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_multi_results-001)",
+    "class": "other: the pointer states the grant but its 85 cases leave out SUBTRACT and DIVIDE",
+    "needs": "needs-own-witness: place p01 as the row's own 85 test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.7-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "any Procedure Division reference to content not compatible with the PICTURE class (or a function's definition): result undefined",
+     "the exception: a class condition on such content is defined"
+    ],
+    "evidence-1985": {
+     "undefined reference": "not shown (no outcome to check)",
+     "class condition exception": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p02_class_cond_incompatible.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.7 p1",
+      "quote": "Except for the class condition",
+      "check": "OK  §1985:VI.6.4.7 p1  (6.4.7 Incompatible Data)  the text is in p1"
+     },
+     {
+      "cite": "§1985:VI.6.4.7 p1",
+      "quote": "then the result of such a reference is undefined",
+      "check": "OK  §1985:VI.6.4.7 p1  (6.4.7 Incompatible Data)  the text is in p1"
+     }
+    ],
+    "reason": "The candidates are unrelated (SR-13.18.63.3-7 is a VALUE rule; GR-13.18.11.4-3 is the 2023 CLASS clause; GR-8.8.4.4.4-3 is the class test alone). The 1985 text makes every reference undefined 'Except for the class condition', so the one observable consequence is that a class condition on incompatible content works. p02 puts 'A1B' in a PIC 9(3) item through a redefinition: NUMERIC answers NOT NUMERIC, and on '123' NUMERIC. The undefined remainder has nothing to witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p02_class_cond_incompatible.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12/p02_class_cond_incompatible.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_class_cond_incompatible-001: NOT NUMERIC / NUMERIC)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p02 for the class-condition exception; the undefined remainder needs no program",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.7.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ALTER statement (Nucleus): modifies the predetermined sequence of operations (the GO TO it alters)",
+     "obsolete-element label (informative, imposes nothing on the compiler)"
+    ],
+    "evidence-1985": {
+     "ALTER modifies the sequence": "covered by conformance-suite/cases/VI.6.7@1985-ALTER-STATEMENT/1985-GR-VI_6_7_4-1 and 1985-GR-VI_6_7_4-2 (accept: [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.7.1 p1",
+      "quote": "The ALTER statement modifies a predetermined sequence of operations",
+      "check": "OK  §1985:VI.6.7.1 p1  (6.7.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "ALTER was deleted after 1985; 2023 has no ALTER statement, and the candidates (USE BEFORE REPORTING, sum counters, START) are unrelated wording matches. The 1985 ALTER cases run at 85 and show the altered GO TO taking the new target.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VI.6.7@1985-ALTER-STATEMENT/1985-GR-VI_6_7_4-1 (accept: [85])",
+    "class": "removed-form",
+    "needs": "needs-own-witness: name the existing 1985 ALTER cases as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.8.1-p1",
+    "to": [
+     "GR-14.9.8.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "COMPUTE (high-level box): stores the value of an arithmetic expression into one receiver",
+     "into more than one receiver"
+    ],
+    "evidence-1985": {
+     "one receiver": "covered by conformance-suite/cases/VI.6.8@1985-COMPUTE-STATEMENT/1985-GR-VI_6_8_4-1 (accept: [85]) and cases/14.9.8-COMPUTE/compute-numeric-receiver (85)",
+     "more than one receiver": "covered by cases/14.9.8-COMPUTE/compute-multi-receiver-size-error (accept 85) and probe p01 (CMP line)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.8.1 p1",
+      "quote": "assigns to one or more data items the value of an arithmetic expression",
+      "check": "OK  §1985:VI.6.8.1 p1  (║6.8.1 Function║)  the text is in p1"
+     }
+    ],
+    "reason": "The candidates are wrong (boolean identifier-2, report SOURCE, receiver category). The 2023 rule that states the function is GR-14.9.8.4-1 ('determination of a numeric value and the subsequent storing'), but none of its test-refs runs at 85 (pb230 at 2002, rounded_modes, arithmetic_standard_decimal and pb157_compute_sdidi_sole at 2014). The 1985 COMPUTE cases and the 85 multi-receiver case show the 1985 scope.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VI.6.8@1985-COMPUTE-STATEMENT/1985-GR-VI_6_8_4-1 and cases/14.9.8-COMPUTE/compute-multi-receiver-size-error (both accepted at 85)",
+    "class": "other: the 2023 rule that states it (GR-14.9.8.4-1) has no case at 85",
+    "needs": "needs-own-witness: name 1985-GR-VI_6_8_4-1 and compute-multi-receiver-size-error, or give GR-14.9.8.4-1 an 85 case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.9.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "CONTINUE (Nucleus): a no-operation statement that stands where no executable statement is present"
+    ],
+    "evidence-1985": {
+     "CONTINUE does nothing": "covered by conformance-suite/cases/VI.6.9@1985-CONTINUE-STATEMENT/1985-GR-VI_6_9_4-1 and g85_bf15_04 (accept: [85])",
+     "it stands where a statement is required": "covered by VI.6.9@1985-CONTINUE-STATEMENT/g85_y91 (accept: [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.9.1 p1",
+      "quote": "The CONTINUE statement is a no operation statement",
+      "check": "OK  §1985:VI.6.9.1 p1  (6.9.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "2023's CONTINUE has the AFTER phrase and implicit-CONTINUE rules; no 2023 rule states the 1985 'no operation statement' as such, and the candidates' at-85 lists are empty. The 1985 CONTINUE cases run at 85 and show it.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VI.6.9@1985-CONTINUE-STATEMENT/1985-GR-VI_6_9_4-1 (accept: [85])",
+    "class": "own-text",
+    "needs": "needs-own-witness: name the 1985 CONTINUE cases as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.12.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ENTER statement (Nucleus): use of more than one language in one program",
+     "obsolete-element label (informative)"
+    ],
+    "evidence-1985": {
+     "ENTER": "covered by conformance-suite/cases/VI.6.12@1985-ENTER-STATEMENT/1985-FMT-VI_6_12_2 (refused at 85 with COBOL7240, wiseowl/diagnostics/1985-FMT-VI_6_12_2.json): the facility is declined under the licence"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.12.1 p1",
+      "quote": "allowing the use of more than one language in the same program",
+      "check": "OK  §1985:VI.6.12.1 p1  (6.12.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§1985:I.1.5.2.5.5",
+      "quote": "may include the ENTER statement or not, at the option of the implementor",
+      "check": "OK  §1985:I.1.5.2.5.5  (1.5.2.5.5 The ENTER Statement)  the text is in the clause"
+     }
+    ],
+    "reason": "ENTER was deleted after 1985 and has no 2023 counterpart (the candidates are unrelated). 1985 lets an implementation omit it: 'may include the ENTER statement or not, at the option of the implementor'. WiseOwl declines it and refuses ENTER at 85 (COBOL7240), which is the licensed behavior.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VI.6.12@1985-ENTER-STATEMENT/1985-FMT-VI_6_12_2 (refused at 85, COBOL7240, under §1985:I.1.5.2.5.5)",
+    "class": "removed-form",
+    "needs": "a documented-non-support record citing §1985:I.1.5.2.5.5, witnessed by 1985-FMT-VI_6_12_2",
+    "derivation": null,
+    "licence-1985": "§1985:I.1.5.2.5.5 \"may include the ENTER statement or not, at the option of the implementor\" (check: OK  §1985:I.1.5.2.5.5  (1.5.2.5.5 The ENTER Statement)  the text is in the clause)"
+   },
+   {
+    "rule-id": "1985-GR-VI.6.15.1-p1",
+    "to": [
+     "GR-14.9.17.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "GO TO format 1 transfers control",
+     "GO TO format 2 (DEPENDING) transfers control",
+     "format 1 with procedure-name-1 omitted (the obsolete form an ALTER sets)"
+    ],
+    "evidence-1985": {
+     "format 1": "covered by cases/14.9.17-GO-TO/pb413_go_to_out_of_inline_perform (85) and VI.6.15@1985-GO-TO-STATEMENT/1985-FMT-VI_6_15_2 (85)",
+     "format 2": "covered by cases/14.9.17-GO-TO/pb412_go_to_general_formats and pb3491_go_to_depending_out_of_perform_range (accept: [85])",
+     "procedure-name-1 omitted": "covered by VI.6.7@1985-ALTER-STATEMENT/1985-GR-VI_6_7_4-1 (85: the ALTERed GO TO)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.15.1 p1",
+      "quote": "The optionality of procedure-name-1 in format 1 of the GO TO statement is an obsolete element",
+      "check": "OK  §1985:VI.6.15.1 p1  (6.15.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "GR-14.9.17.4-1 (with pb413 at 85) states the format-1 transfer, but the paragraph also names the format-1 GO TO without procedure-name-1, which 2023 does not have. That form is shown only by the 1985 ALTER cases. Every part runs correctly at 85.",
+    "probe": null,
+    "compiler-at-1985": "correct: cases/14.9.17-GO-TO/pb412_go_to_general_formats and pb413_go_to_out_of_inline_perform (85); the name-less form by VI.6.7@1985-ALTER-STATEMENT/1985-GR-VI_6_7_4-1 (85)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: name the 85 GO TO cases with the 1985 ALTER case for the name-less form",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.24.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "STOP RUN: permanent suspension (end of the run unit)",
+     "STOP literal: temporary suspension (the obsolete literal variation)"
+    ],
+    "evidence-1985": {
+     "STOP RUN": "covered by cases/14.9.42-STOP/l1c30_stop_run_from_called_program (accept: [85, 2002]) and VI.6.24@1985-STOP-STATEMENT/g85_z07 (85)",
+     "STOP literal": "covered by VI.6.24@1985-STOP-STATEMENT/1985-GR-VI_6_24_4-4 and pb5809_stop_symbolic_character (accept: [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.24.1 p1",
+      "quote": "causes a permanent or temporary suspension of the execution of the run unit",
+      "check": "OK  §1985:VI.6.24.1 p1  (6.24.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "The candidates are STOP syntax rules (placement, literal shape). 2023 has no temporary suspension (STOP literal); its STOP ends the run unit. The 1985 STOP cases show both arms at 85.",
+    "probe": null,
+    "compiler-at-1985": "correct: VI.6.24@1985-STOP-STATEMENT/1985-GR-VI_6_24_4-4 (STOP \"PAUSE\" then continues) and cases/14.9.42-STOP/l1c30_stop_run_from_called_program (85)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: name the two 85 cases as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VI.7.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus debugging: WITH DEBUGGING MODE produced by REPLACE",
+     "WITH DEBUGGING MODE removed by REPLACE",
+     "WITH DEBUGGING MODE produced by COPY library text"
+    ],
+    "evidence-1985": {
+     "REPLACE introduces the clause": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p03_replace_sets_mode.cob (D line runs)",
+     "REPLACE removes the clause": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p03b_replace_removes_mode.cob (D line is a comment)",
+     "COPY brings the clause": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p03c_copy_sets_mode.cob with library DBGMODE (D line runs)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.7.2 p3",
+      "quote": "is logically determined after all COPY and REPLACE statements are processed",
+      "check": "OK  §1985:VI.7.2 p3  (7.2 COMPILE TIME SWITCH)  the text is in p3"
+     }
+    ],
+    "reason": "2023 has no debugging lines or WITH DEBUGGING MODE (no 'debugging' in the 2023 text about source lines); the candidates are COPY/REPLACE effect rules that do not state the switch. The three probes decide the switch after text manipulation: XMODE replaced by WITH DEBUGGING MODE prints DEBUG LINE COMPILED; the written clause replaced by empty pseudo-text prints only START/END; the clause copied from library text prints DEBUG LINE COMPILED.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p03_replace_sets_mode.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12/p03_replace_sets_mode.cob, p03b_replace_removes_mode.cob, p03c_copy_sets_mode.cob (runs p03_replace_sets_mode-001, p03b_replace_removes_mode-001, p03c_copy_sets_mode-002)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p03 and p03b (and p03c with its library)",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VI.7.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a line with D in the indicator area is a debugging line",
+     "a debugging line of spaces from margin A to margin R is a blank line, so it may stand anywhere a blank line may"
+    ],
+    "evidence-1985": {
+     "D line is a debugging line": "covered by conformance-suite/cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-no-mode-parses-both-ways (85) and probe p05",
+     "all-space D line is a blank line": "WRONG: E:/COBOL-coord/scratch/pb5453/probes/s-12/p04_blank_debug_line_before_objcomp.cob and p04b_blank_debug_line_padded.cob are refused with COBOL7060; the control p04c (same program, plain blank line) runs"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.7.3 p1",
+      "quote": "consists solely of spaces from margin A to margin R is considered the same as a blank line",
+      "check": "OK  §1985:VI.7.3 p1  (7.3 DEBUGGING LINES)  the text is in p1"
+     },
+     {
+      "cite": "§1985:IV.7.2.3 p1",
+      "quote": "A blank line can appear anywhere in the source program",
+      "check": "OK  §1985:IV.7.2.3 p1  (7.2.3 Blank Lines)  the text is in p1"
+     },
+     {
+      "cite": "§1985:VI.7.3 p5",
+      "quote": "only permitted in the separately compiled program after the OBJECT-COMPUTER paragraph",
+      "check": "OK  §1985:VI.7.3 p5  (7.3 DEBUGGING LINES)  the text is in p5"
+     }
+    ],
+    "reason": "2023 has no debugging lines (GR-6.5-2 discards comment and blank lines, but has no D line). The second sentence makes an all-space debugging line 'the same as a blank line', and 'A blank line can appear anywhere in the source program', so the placement limit for debugging lines (p5) does not reach it. WiseOwl at 85 refuses a D line of spaces between PROGRAM-ID and the ENVIRONMENT DIVISION with COBOL7060 ('A debugging line (indicator D) stands before the end of the OBJECT-COMPUTER paragraph'), both with the line cut at column 7 and padded with spaces to column 72; the same program with a plain blank line runs (BLANK DEBUG LINE ACCEPTED).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p04b_blank_debug_line_padded.cob",
+    "compiler-at-1985": "wrong: a debugging line of spaces before OBJECT-COMPUTER is refused with COBOL7060 instead of being a blank line. Program E:/COBOL-coord/scratch/pb5453/probes/s-12/p04b_blank_debug_line_padded.cob (line 6: 'D' in column 7, spaces to column 72); expected: accepted, DISPLAY BLANK DEBUG LINE ACCEPTED (§1985:VI.7.3 p1, §1985:IV.7.2.3 p1); observed: EXIT 65, error COBOL7060 at (6,8) (run E:/COBOL-coord/scratch/pb5453/runs/p04b_blank_debug_line_padded-001). Control p04c_blank_line_control.cob runs.",
+    "class": "removed-form",
+    "needs": "a defect fix: exclude an all-space debugging line from the COBOL7060 placement check (treat it as a blank line); then p04b as the accepted witness",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-VI.7.3-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a debugging line that breaks syntax when taken as a comment (with the mode on) is refused",
+     "a debugging line that breaks syntax when taken as source (mode off) is refused",
+     "a debugging line that is correct both ways is accepted"
+    ],
+    "evidence-1985": {
+     "broken as comment": "covered by conformance-suite/cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-syntax-both-ways (refused at 85)",
+     "broken as source": "covered by VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-syntax-no-mode and the pb5990-* as-source cases (refused at 85); the prose85 golden pb5924-debug-line-not-source-syntax-85 is also refused at the mint build with COBOL7061 (run E:/COBOL-coord/scratch/pb5453/runs/pb5924-debug-line-not-source-syntax-85-001)",
+     "correct both ways": "covered by VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-no-mode-parses-both-ways (accept: [85]) and golden pb5924-debug-line-both-ways-runs-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.7.3 p2",
+      "quote": "a syntactically correct program is formed with or without the debugging lines being considered as comment lines",
+      "check": "OK  §1985:VI.7.3 p2  (7.3 DEBUGGING LINES)  the text is in p2"
+     }
+    ],
+    "reason": "No 2023 counterpart (debugging lines are gone; the candidates are report LINE and LINAGE rules). The refusals witness the syntax rule from both sides and the accepted controls show the legal form. The prose85 read recorded a DEFECT at 8244f1aa4b (the as-source direction not checked); at the mint build the same golden program is refused with COBOL7061, so the defect is fixed. run_goldens marked that golden FAIL only because its expect text 'The program is not syntactically correct' predates COBOL7061's message (see leads).",
+    "probe": null,
+    "compiler-at-1985": "correct: VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-syntax-no-mode and pb5212-debugging-line-syntax-both-ways (refused), pb5466-debugging-line-no-mode-parses-both-ways (accepted control)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: name the pb5212/pb5466 refusals and their accepted control as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-VI.7.3-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "successive debugging lines, the mode on (each compiled, a statement may span two)",
+     "successive debugging lines, the mode off (all comments)"
+    ],
+    "evidence-1985": {
+     "mode on": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p05_successive_debug_lines.cob",
+     "mode off": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p05b_successive_debug_lines_nomode.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.7.3 p4",
+      "quote": "Successive debugging lines are allowed",
+      "check": "OK  §1985:VI.7.3 p4  (7.3 DEBUGGING LINES)  the text is in p4"
+     }
+    ],
+    "reason": "A grant ('Successive debugging lines are allowed') of a form 2023 dropped; the candidates are unrelated. p05 has four successive D lines with the mode on: START, D1, D2, A=2 (ADD 1 TO A spans two D lines); p05b, the same lines without the mode: START, A=1.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p05_successive_debug_lines.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12/p05_successive_debug_lines.cob and p05b_successive_debug_lines_nomode.cob (runs p05_successive_debug_lines-001, p05b_successive_debug_lines_nomode-001)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place p05 (and p05b)",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-SR-VI.7.3-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a debugging line before the end of OBJECT-COMPUTER is refused",
+     "a debugging line after OBJECT-COMPUTER is accepted"
+    ],
+    "evidence-1985": {
+     "before": "covered by conformance-suite/cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-before-object-computer and pb5990-misplaced-debugging-line-reported-once (refused at 85, COBOL7060)",
+     "after": "covered by VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-no-mode-parses-both-ways (accept: [85]) and probe p05"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.7.3 p5",
+      "quote": "only permitted in the separately compiled program after the OBJECT-COMPUTER paragraph",
+      "check": "OK  §1985:VI.7.3 p5  (7.3 DEBUGGING LINES)  the text is in p5"
+     }
+    ],
+    "reason": "A placement syntax rule with no 2023 counterpart (the candidates are OBJECT-COMPUTER general rules). The refusals and the accepted control witness it at 85. Its reach stops at debugging lines that hold text: an all-space D line is a blank line (§1985:VI.7.3 p1), and refusing one is the defect recorded on 1985-GR-VI.7.3-p1, not a defect of this rule.",
+    "probe": null,
+    "compiler-at-1985": "correct: VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-before-object-computer (refused COBOL7060) with pb5466-debugging-line-no-mode-parses-both-ways (accepted control)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: name the pb5212/pb5990 refusals and the accepted control as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.2-p1",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "Sequential I-O level 1: limited file control, file description, I-O-CONTROL, CLOSE, OPEN, READ, USE and WRITE; full REWRITE"
+    ],
+    "evidence-1985": {
+     "level 1 subset": "not shown (--std 85 implements the high subset, kb/Work PB4885; the level-1 limits are a presentation of which elements are in the low subset)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.2 p1",
+      "quote": "Sequential I-O level 1 provides limited capabilities",
+      "check": "OK  §1985:VII.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1"
+     }
+    ],
+    "reason": "The paragraph describes the standard's own level structure (what level 1 of the module contains), not a property of a program or of a compiler that implements level 2. no derivation arm fits a rule about the standard's own presentation. It would be settled by a recorded decision on how level-description paragraphs close (for example, one decision that WiseOwl implements the high subset, citing the box convention).",
+    "probe": null,
+    "compiler-at-1985": "not probed: a level description has no behavior of its own",
+    "class": null,
+    "needs": "a decision on how level-characteristics paragraphs close: no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.2-p2",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "Sequential I-O level 2 (boxed, high): full file control, file description, I-O-CONTROL, CLOSE, OPEN, READ, REWRITE, USE and WRITE"
+    ],
+    "evidence-1985": {
+     "level 2 full capabilities": "not shown as such; each statement's and clause's own 1985 rows carry their witnesses (VII.2@1985 to VII.4@1985 cases)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.2 p2",
+      "quote": "Sequential I-O level 2 provides full capabilities",
+      "check": "OK  §1985:VII.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2"
+     }
+    ],
+    "reason": "The paragraph tells which elements make up level 2 of the module, a statement about the standard's presentation. no derivation arm fits a rule about the standard's own presentation. 'Full capabilities' is witnessed only through every row of the module's clauses and statements, which is not a witness of this row.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a level description has no behavior of its own",
+    "class": null,
+    "needs": "a decision on how level-characteristics paragraphs close: no derivation arm fits a rule about the standard's own presentation",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.1-p1",
+    "to": [
+     "GR-14.9.51.4-17"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "each record of a sequential file has a unique predecessor and successor",
+     "the successor order is the WRITE order when the file is created",
+     "the order changes only when records are added at the end (OPEN EXTEND, boxed)"
+    ],
+    "evidence-1985": {
+     "write order": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p06_successor_extend.cob (CCCC AAAA BBBB read back in write order, not key order)",
+     "added at the end": "covered by p06 (DDDD from OPEN EXTEND read last)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.1 p1",
+      "quote": "successor relationships do not change except in the case where records are added to the end of a file",
+      "check": "OK  §1985:VII.1.3.1 p1  (1.3.1 Organization)  the text is in p1"
+     }
+    ],
+    "reason": "GR-14.9.51.4-17 states the same ('established by the order of execution of WRITE statements ... does not change except when records are added to the end'), but its two test-refs run only at 2002/2023 (l1_open_extend_position) and 2002/2014/2023 (pb5815). p06 writes CCCC, AAAA, BBBB, extends with DDDD and reads back CCCC AAAA BBBB DDDD at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p06_successor_extend.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12/p06_successor_extend.cob (run p06_successor_extend-001)",
+    "class": "other: the pointer states the whole rule but has no case at 85",
+    "needs": "needs-own-witness: place p06 (or give GR-14.9.51.4-17 an 85 case, then SAME)",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a sequential mass storage file opened I-O is updated in place: a same-size REWRITE succeeds",
+     "a replaced record of another size fails",
+     "no record can be added (WRITE in I-O mode fails)"
+    ],
+    "evidence-1985": {
+     "update in place": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-seq-update-in-place-85 (PASS, work/goldens-s-12.json: 00 for the same size, 44 for another size, 48 for a WRITE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.1 p2",
+      "quote": "a sequential mass storage file may be updated in place",
+      "check": "OK  §1985:VII.1.3.1 p2  (1.3.1 Organization)  the text is in p2"
+     }
+    ],
+    "reason": "The candidates are DELETE and organization rules; no 2023 rule states update in place with its two limits together, and none of the candidates has an 85 case. The prose85 golden (TESTED CONFORMS, UPHELD) passes on the mint build at 85.",
+    "probe": null,
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-seq-update-in-place-85.cob (PASS, run E:/COBOL-coord/scratch/pb5453/runs/pb5924-seq-update-in-place-85-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the golden pb5924-seq-update-in-place-85 as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the current volume pointer of a sequential file and its change by CLOSE, OPEN, READ and WRITE across volumes"
+    ],
+    "evidence-1985": {
+     "volume pointer": "not shown: it is observable only on a file of more than one physical volume"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.3 p1",
+      "quote": "The status of the current volume pointer is affected by the CLOSE, OPEN, READ, and WRITE statements",
+      "check": "OK  §1985:VII.1.3.3 p1  (1.3.3 Current Volume Pointer)  the text is in p1"
+     }
+    ],
+    "reason": "A conceptual entity 'used in this document to facilitate exact specification of the current physical volume'. On a single-volume file it always points at the one volume, so no program can see it change. WiseOwl files are single host files; the 2023 reel/unit swap rule GR-14.9.51.4-24 records DOCUMENTED-NON-SUPPORT.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer moves only across physical volumes, which no WiseOwl file has",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "unpopulatable-antecedent",
+     "names": "a sequential file of more than one physical volume (reel/unit): WiseOwl provides single-volume files only, the reel/unit swap of GR-14.9.51.4-24 being DOCUMENTED-NON-SUPPORT"
+    }
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the file position indicator is set only by CLOSE, OPEN and READ (REWRITE leaves it)",
+     "it has no meaning for a file opened OUTPUT or EXTEND (boxed)"
+    ],
+    "evidence-1985": {
+     "REWRITE does not move it": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p07_fpi_not_moved_by_rewrite.cob (READ, REWRITE, READ returns record 2)",
+     "OPEN sets it": "covered by p07 (a new OPEN INPUT reads record 1 first)",
+     "no meaning in OUTPUT/EXTEND": "not shown (no program reads in those modes; status 47 cases cover READ refused there)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.4 p1",
+      "quote": "The setting of the file position indicator is affected only by the CLOSE, OPEN, and READ statements",
+      "check": "OK  §1985:VII.1.3.4 p1  (1.3.4 File Position Indicator)  the text is in p1"
+     }
+    ],
+    "reason": "The candidates each state one statement's effect (OPEN sets it to 1, READ after an unsuccessful READ is 46, CLOSE of an absent optional file) and none states 'affected only by' with an 85 case. p07 shows the testable consequence: READ1 R1R1 00, REWRITE 00, READ2 R2R2 00, then after reopening AGAIN XXXX, AGAIN R2R2.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p07_fpi_not_moved_by_rewrite.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12/p07_fpi_not_moved_by_rewrite.cob (run p07_fpi_not_moved_by_rewrite-002)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p07",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the I-O status is set by CLOSE, OPEN, READ, REWRITE and WRITE",
+     "before the statement's imperative statement (AT END)",
+     "before an applicable USE AFTER STANDARD EXCEPTION procedure",
+     "the FILE STATUS data item makes it visible"
+    ],
+    "evidence-1985": {
+     "set by OPEN/WRITE/CLOSE/READ": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p08_io_status_before_imperative.cob (00 after each)",
+     "before AT END": "covered by p08 (AT END 2 FSF=10)",
+     "before USE": "covered by p08 (USE FSG=35) and conformance-suite/cases/VII.4.3@1985-OPEN-STATEMENT/pb5845_linage_open_refused_85 (USE-1 FS=90, 85)",
+     "REWRITE": "covered by p07 (REWRITE 00)",
+     "FILE STATUS": "covered by p08"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.5 p1",
+      "quote": "prior to the execution of any imperative statement associated with that input-output statement",
+      "check": "OK  §1985:VII.1.3.5 p1  (1.3.5 I-O Status)  the text is in p1"
+     }
+    ],
+    "reason": "Each candidate states one status value or one statement's update; GR-12.4.5.8.4-1 (FILE STATUS updated) and GR-14.9.27.4-1/GR-14.9.6.4-4 cover parts, and none states the ordering against the imperative statement and the USE procedure with an 85 case. p08 shows the order at 85: the AT END imperative sees 10, the USE procedure sees 35 before control returns.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p08_io_status_before_imperative.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12/p08_io_status_before_imperative.cob (run p08_io_status_before_imperative-002)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p08",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.5-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "3x and 4x statuses, and 9x the implementor calls critical, are critical",
+     "after a USE procedure, or after the system's error processing when none applies, the implementor decides the action"
+    ],
+    "evidence-1985": {
+     "critical, no USE": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-seq-critical-status-continues-85 (PASS)",
+     "critical, after USE": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-seq-critical-after-use-85 (PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.5 p3",
+      "quote": "any that begin with the digit 3 or 4",
+      "check": "OK  §1985:VII.1.3.5 p3  (1.3.5 I-O Status)  the text is in p3"
+     }
+    ],
+    "reason": "The action is implementor-defined (2023 DOC-A.1-218 and GR-14.9.49.4-7 describe it, with 85 cases of their own that show other behavior). Both prose85 goldens pass at 85: with FILE STATUS and no USE the run unit continues; after a USE procedure for 35/47 control returns to the next statement, the documented WiseOwl action. The prose85 refutation of sentence 2 was DOUBTFUL; it rests on whether the implementor's choice is documented, which the golden's header names (DOC-A.1-218).",
+    "probe": null,
+    "compiler-at-1985": "correct: goldens pb5924-seq-critical-status-continues-85 and pb5924-seq-critical-after-use-85 (PASS, runs E:/COBOL-coord/scratch/pb5453/runs/pb5924-seq-critical-*-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the two goldens; confirm the documented action (DOC-A.1-218) covers 1985",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.5-5",
+    "to": [
+     "GR-9.1.13.11-1"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the implementor-defined condition: an I-O statement unsuccessful for a reason the implementor specifies (the 9x values)"
+    ],
+    "evidence-1985": {
+     "implementor-defined unsuccessful completion": "covered by conformance-suite/cases/VII.4.3@1985-OPEN-STATEMENT/pb5845_linage_open_refused_85 (OPEN refused with 90, the file not open; accept: [85]) and VII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VII_1_3_5-5 (accept: [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.5 GR5",
+      "quote": "unsuccessfully executed as a result of a condition that is specified by the implementor",
+      "check": "OK  §1985:VII.1.3.5 GR5  (1.3.5 I-O Status)  the text is in GR5"
+     }
+    ],
+    "reason": "Reopened parent: the text left is item 5 alone ('Implementor Defined. The input-output statement was unsuccessfully executed as a result of a condition that is specified by the implementor'); the 'if more than one value applies' sentence went to p5. The old KEPT to GR-9.1.13.11-1 is a lead: that rule states the 9x condition, but its at-85 list is empty (its old 85 witness pb526 now runs at 2002/2023 only, per the record's retired-witness note). The 1985 cases pb5845 (85) and 1985-GR-VII_1_3_5-5 (85) witness the row on its own text.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VII.4.3@1985-OPEN-STATEMENT/pb5845_linage_open_refused_85 and VII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VII_1_3_5-5 (both accepted at 85)",
+    "class": "split-rule",
+    "needs": "needs-own-witness: name pb5845_linage_open_refused_85 and 1985-GR-VII_1_3_5-5 as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.5-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the I-O status values placed for sequential files are those of the list that follows (1985 values only)",
+     "when more than one value applies, the implementor chooses"
+    ],
+    "evidence-1985": {
+     "the 1985 list is what is placed": "covered by conformance-suite/cases/VII.1.3@1985-LANGUAGE-CONCEPTS/pb5882_io_status_1985_values (85: 00 not 09, 04 not 06)",
+     "implementor chooses among several": "not shown (an implementor choice; DOC-A.1-104 in 2023 needs no documentation of the procedure)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.5 p5",
+      "quote": "If more than one value applies, the implementor determines which of the applicable values to place in the I-O status",
+      "check": "OK  §1985:VII.1.3.5 p5  (1.3.5 I-O Status)  the text is in p5"
+     }
+    ],
+    "reason": "The paragraph leads the 1985 value list and leaves the choice among applicable values to the implementor. DOC-A.1-104 (2023) states the choice but has no 85 case; the other candidates each name one value. pb5882 shows that at 85 a program is given only 1985 list values. The choice itself has nothing to witness beyond any applicable value being placed.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VII.1.3@1985-LANGUAGE-CONCEPTS/pb5882_io_status_1985_values (accept: [85])",
+    "class": "own-text",
+    "needs": "needs-own-witness: name pb5882_io_status_1985_values as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.7-p1",
+    "to": [
+     "GR-13.18.34.4-7",
+     "GR-8.4.3.14.4-1",
+     "SR-8.4.3.14.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "LINAGE-COUNTER exists for a file with a LINAGE clause",
+     "it is an unsigned integer the size of integer-1 or of data-name-1",
+     "it may be referenced only in Procedure Division statements",
+     "only the input-output control system may change it (a receiving reference is refused)"
+    ],
+    "evidence-1985": {
+     "generated, read in procedure statements": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p09_linage_counter_read.cob (LC0 01, LC1 04) and cases/8.4.3.14-LINAGE-COUNTER/pb578_advancing_page_overflow_85",
+     "size of integer-1": "covered by p09 (LINAGE 20: two digits, MOVE to PIC X(4) gives '04  ')",
+     "only the IOCS changes it": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12/p09b_linage_counter_move_to.cob (refused COBOL2026), control p09",
+     "data-name-1 size": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.3.7 p1",
+      "quote": "only the input-output control system may change the value of LINAGE-COUNTER",
+      "check": "OK  §1985:VII.1.3.7 p1  (║1.3.7 Special Register LINAGE-COUNTER║)  the text is in p1"
+     },
+     {
+      "cite": "§1985:VII.1.3.7 p1",
+      "quote": "an unsigned integer whose size is equal to the size of integer-1",
+      "check": "OK  §1985:VII.1.3.7 p1  (║1.3.7 Special Register LINAGE-COUNTER║)  the text is in p1"
+     }
+    ],
+    "reason": "Three pointers each state part: GR-13.18.34.4-7 (generated by LINAGE; 85 case pb578), GR-8.4.3.14.4-1 (unsigned integer the page size; 85 case pb1153), SR-8.4.3.14.3-1 (Procedure Division only; no 85 case). None states 'only the input-output control system may change' with an 85 case, and the 1985 size is 'the size of integer-1 or the data item referenced by data-name-1'. p09 and p09b show the parts at 85; the data-name-1 size is not shown.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12/p09b_linage_counter_move_to.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12/p09_linage_counter_read.cob (accepted, run p09_linage_counter_read-001) and p09b_linage_counter_move_to.cob (refused COBOL2026, run p09b_linage_counter_move_to-001)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place p09/p09b and add a LINAGE data-name-1 sizing case",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.2.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the FILE-CONTROL paragraph holds the file control entries (file-related information)"
+    ],
+    "evidence-1985": {
+     "FILE-CONTROL with entries": "covered by conformance-suite/cases/VII.2.2@1985-FILE-CONTROL-PARAGRAPH/1985-FMT-VII_2_2_2 (accept: [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.2.2.1 p1",
+      "quote": "allows specification of file-related information",
+      "check": "OK  §1985:VII.2.2.1 p1  (2.2.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "Definitional flag, but a program shows it: an accepted FILE-CONTROL paragraph whose entries drive the file. FMT-12.4.4.2 has only a refused case at 85 (diagnosed-only), so it is not a witness of a grant; the other candidates are SAME/APPLY rules. The 1985 format case runs at 85.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VII.2.2@1985-FILE-CONTROL-PARAGRAPH/1985-FMT-VII_2_2_2 (accept: [85])",
+    "class": "own-text",
+    "needs": "needs-own-witness: name 1985-FMT-VII_2_2_2 as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.2.3.1-p1",
+    "to": [
+     "GR-12.4.5.3-8"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "the sequential file control entry (SELECT ... ASSIGN ... [ORGANIZATION IS SEQUENTIAL]) declares a sequential file"
+    ],
+    "evidence-1985": {
+     "sequential file control entry": "covered by wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85 (accept: [85, 2002]; SQF: SELECT and ASSIGN only, read and written)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.2.3.1 p1",
+      "quote": "declares the relevant physical attributes of a sequential file",
+      "check": "OK  §1985:VII.2.3.1 p1  (2.3.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR8",
+      "quote": "The sequential format defines a file connector for a sequential file",
+      "check": "OK  §2023:12.4.5.3 GR8  (General rules)  the text is in GR8"
+     }
+    ],
+    "reason": "Definitional flag, but testable: the 1985 function 'declares the relevant physical attributes of a sequential file' is what 2023 GR8 says of the sequential format. Its at-85 case pb742_legal_entry_formats_85 declares a sequential file with the 1985 minimum (SELECT and ASSIGN) and runs at 85.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85",
+    "class": null,
+    "needs": null,
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.2.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "ACCESS MODE IS SEQUENTIAL (the only Sequential I-O access mode): records accessed in the order written",
+     "no clause: sequential access assumed"
+    ],
+    "evidence-1985": {
+     "sequential order": "covered by conformance-suite/cases/VII.2.4@1985-ACCESS-MODE-CLAUSE/g85_bf19_05 (accept: [85]; records come in WRITE order)",
+     "explicit ACCESS MODE IS SEQUENTIAL": "not shown separately (g85_bf19_05 covers the omitted clause, 1985-GR-VII.2.4.3-1, and GR2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.2.4.1 p1",
+      "quote": "specifies the order in which records are to be accessed in the file",
+      "check": "OK  §1985:VII.2.4.1 p1  (2.4.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "The pointers are GR-12.4.5.5.3-1 (default sequential; no 85 case) and the 2023 format with RANDOM/DYNAMIC (whose 85 case is about those, not about a sequential file). The 1985 case g85_bf19_05 (rules 1985-GR-VII.2.4.3-1 and -2) runs at 85 and shows the access order.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VII.2.4@1985-ACCESS-MODE-CLAUSE/g85_bf19_05 (accept: [85])",
+    "class": "own-text",
+    "needs": "needs-own-witness: name g85_bf19_05 as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.2.10.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "I-O-CONTROL (boxed): RERUN points (obsolete)",
+     "SAME (RECORD) AREA sharing",
+     "MULTIPLE FILE TAPE (obsolete)"
+    ],
+    "evidence-1985": {
+     "I-O-CONTROL paragraph": "covered by conformance-suite/cases/VII.2.10@1985-I-O-CONTROL-PARAGRAPH/1985-FMT-VII_2_10_2 and 1985-GR-VII_2_10_4-1 (accept: [85])",
+     "RERUN": "covered by VII.2.12@1985-RERUN-CLAUSE/1985-GR-VII_2_12_4-1 and -2 (1985 cases)",
+     "SAME": "covered by cases/12.4.6.4-SAME/pb235_same_record_area_close (accept: [85, 2002])",
+     "MULTIPLE FILE TAPE": "covered by VII.2.11@1985-MULTIPLE-FILE-TAPE-CLAUSE/1985-FMT-VII_2_11_2 and 1985-GR-VII_2_11_3-1 (accept: [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.2.10.1 p1",
+      "quote": "The RERUN clause and the MULTIPLE FILE TAPE clause within the I-O-CONTROL paragraph are obsolete elements",
+      "check": "OK  §1985:VII.2.10.1 p1  (2.10.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "2023 I-O-CONTROL has APPLY COMMIT and SAME only; RERUN and MULTIPLE FILE TAPE are gone, so no pointer states the 1985 scope. The 1985 I-O-CONTROL, RERUN and MULTIPLE FILE TAPE cases and the SAME case run at 85.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VII.2.10@1985-I-O-CONTROL-PARAGRAPH/1985-GR-VII_2_10_4-1 (accept: [85]) with the RERUN, MULTIPLE FILE TAPE and SAME cases named in evidence",
+    "class": "removed-form",
+    "needs": "needs-own-witness: name the 1985 I-O-CONTROL case as this row's test",
+    "derivation": null
+   },
+   {
+    "rule-id": "1985-GR-VII.2.11.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "MULTIPLE FILE TAPE (boxed, obsolete): position of files on a multiple file reel"
+    ],
+    "evidence-1985": {
+     "MULTIPLE FILE TAPE accepted": "covered by conformance-suite/cases/VII.2.11@1985-MULTIPLE-FILE-TAPE-CLAUSE/1985-FMT-VII_2_11_2 and 1985-GR-VII_2_11_3-1 (accept: [85])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.2.11.1 p1",
+      "quote": "The MULTIPLE FILE TAPE clause specifies the location of files on a multiple file reel",
+      "check": "OK  §1985:VII.2.11.1 p1  (║2.11.1 Function║)  the text is in p1"
+     }
+    ],
+    "reason": "The clause was deleted after 1985; the candidates are unrelated (RECORD DELIMITER STANDARD-1, VARYING, VALUE). The 1985 MULTIPLE FILE TAPE cases run at 85.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/VII.2.11@1985-MULTIPLE-FILE-TAPE-CLAUSE/1985-GR-VII_2_11_3-1 (accept: [85])",
+    "class": "removed-form",
+    "needs": "needs-own-witness: name the 1985 MULTIPLE FILE TAPE cases as this row's test",
+    "derivation": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "defect",
+    "row": "1985-GR-VI.7.3-p1",
+    "what": "At --std 85 a debugging line of spaces from margin A to margin R placed before the OBJECT-COMPUTER paragraph is refused with COBOL7060; §1985:VI.7.3 p1 makes it 'the same as a blank line' and §1985:IV.7.2.3 p1 lets a blank line 'appear anywhere in the source program'. The same program with a plain blank line compiles and runs.",
+    "repro": "python E:/COBOL/scripts/orchestrator/run_probe.py --root E:/COBOL-coord/scratch/pb5453/runs --std 85 --exe <mint cobol.exe> E:/COBOL-coord/scratch/pb5453/probes/s-12/p04b_blank_debug_line_padded.cob (control: p04c_blank_line_control.cob)",
+    "site": "src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs (the COBOL7060 placement check, near line 695) and DebuggingLineRewriter#Rewrite"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-SR-VI.7.3-p2",
+    "what": "The prose85 golden pb5924-debug-line-not-source-syntax-85 expects the text 'The program is not syntactically correct', but the mint build refuses the program with COBOL7061 ('...syntactically correct with its debugging lines taken one way but not the other...'). run_goldens reports FAIL although the program is refused as required. The prose85 DEFECT recorded at 8244f1aa4b is fixed; the golden's .json expect should name COBOL7061, and the prose85 verdict is stale.",
+    "repro": "E:/COBOL-coord/scratch/pb5453/runs/pb5924-debug-line-not-source-syntax-85-001/stderr.txt",
+    "site": "E:/COBOL-coord/scratch/prose85/work/85p-11/goldens/pb5924-debug-line-not-source-syntax-85.json"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-GR-VII.1.2-p1",
+    "what": "The two Sequential I-O level-characteristics paragraphs (VII.1.2 p1, p2) describe the standard's level structure; no derivation arm fits, so every module's 1.2 LEVEL CHARACTERISTICS rows will come back DOUBTFUL until one decision says how they close.",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-GR-VII.1.2-p1 1985-GR-VII.1.2-p2",
+    "site": "docs/rearchitecture/DESIGN-spec-conformance-review.md section 1.1"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-12",
+  "cases": [
+   {
+    "rule-id": "1985-GR-VII.2.3.1-p1",
+    "verdict": "OVERTURNED",
+    "reason": "The 1985 function sentence governs the whole Sequential I-O file control entry, whose general format (VII.2.3.2) holds physical attributes 2023 dropped: the PADDING CHARACTER clause ('block padding on sequential files'; the 2023 text has no PADDING CHARACTER at all), plus OPTIONAL, RESERVE, RECORD DELIMITER and the any-order rule of SR1. The pointer GR-12.4.5.3-8 'defines a file connector' for the 2023 sequential format, which has no PADDING CHARACTER, so it does not state the 1985 scope. Its 85 witness pb742_legal_entry_formats_85 declares the sequential file with SELECT and ASSIGN only and exercises none of the entry's other physical-attribute clauses. Probe r01b (every 1985 clause, after SELECT in non-canonical order, variable-length records so RECORD DELIMITER is legal) is accepted and runs at 85: SEQ=HELLO FS=00. (r01, with fixed-length records, is correctly refused COBOL7599 under §1985:VII.2.8.3 SR1.)",
+    "citations": [
+     {
+      "cite": "§1985:VII.2.3.1 p1",
+      "quote": "declares the relevant physical attributes of a sequential file",
+      "check": "OK  §1985:VII.2.3.1 p1  (2.3.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§1985:VII.2.7.1 p1",
+      "quote": "specifies the character which is to be used for block padding on sequential files",
+      "check": "OK  §1985:VII.2.7.1 p1  (║2.7.1 Function║)  the text is in the clause"
+     },
+     {
+      "cite": "§1985:VII.2.3.3 SR1",
+      "quote": "The clauses which follow the SELECT clause may appear in any order",
+      "check": "OK  §1985:VII.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR8",
+      "quote": "The sequential format defines a file connector for a sequential file",
+      "check": "OK  §2023:12.4.5.3 GR8  (General rules)  the text is in GR8"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12-refute/r01b_seq_entry_all_clauses_var.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12-refute/r01b_seq_entry_all_clauses_var.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01b_seq_entry_all_clauses_var-001: SEQ=HELLO FS=00, exit 0); needs-own-witness with pb742 for the minimal entry"
+   }
+  ],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-12",
+  "cases": [
+   {
+    "rule-id": "1985-GR-VI.6.4.5-p1",
+    "arm": "undefined-in-rule",
+    "verdict": "UPHELD",
+    "attempt": "a program whose outcome the paragraph fixes: overlap by different entries (REDEFINES) is 'undefined', so any outcome conforms; the implied defined case (same entry, e.g. ADD A TO A) is fixed by each statement's own general rules, not by this paragraph, whose sentences 2-3 only point to those rules",
+    "reason": "No program can show a violation: the paragraph's only consequent is 'the result of the execution of such a statement is undefined' and the rest are pointers to other rows. The quotation contains 'undefined' and is in the row's text.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.3.3-p1",
+    "arm": "unpopulatable-antecedent",
+    "verdict": "UPHELD",
+    "attempt": "a two-volume sequential file: SELECT SQF ASSIGN TO \"r02v1.dat\" \"r02v2.dat\" with CLOSE SQF REEL between two WRITEs, at 85",
+    "reason": "Refused COBOL2256 (one operand per ASSIGN, implementor-defined under §1985:VII.2.3.3 SR3, DOC-A.1-71), run E:/COBOL-coord/scratch/pb5453/runs/r02_two_volume_assign-001; every file is one host path, so no file spans two volumes and the pointer's status never changes observably. Consistent with the signed DRV-1985-GR-VII.4.3.4-22 (OPEN GR22, same antecedent). Note the row is also a 'conceptual entity used in this document' presentation rule.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12-refute/r02_two_volume_assign.cob"
+   }
+  ]
+ },
+ "imported": {
+  "asked": "285bf4a8d50ade46aae9227a7fb928398788c38fe13872ac749c831da11ed9c1",
+  "derivation-refute": "887588c41d684c996168ea902a8d12b68cf18ebd07262fe1ed6bf61cdc90356f",
+  "read": "736c37d0d180e347af95b36ab60f572d62ad2d1566606d0261a1b623978c203b",
+  "refute": "a3dd9f2d575a7f2eae969c248a159f367c5eec31dd9382dd55c28c8354224b4f"
+ }
+}

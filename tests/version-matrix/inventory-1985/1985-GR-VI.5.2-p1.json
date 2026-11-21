@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.5.2-p1",
+ "rule-digest": "d9764e943532",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#workingStorageSection",
+ "test-ref": "conformance:cases/VI.5@1985-DATA-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_5_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-data.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional but testable. The candidates are 2023 static/initial-data rules, not this description; the WS records in the probe compile and hold their values. Code location located after the read: workingStorageSection rule defines the Working-Storage Section"
+}

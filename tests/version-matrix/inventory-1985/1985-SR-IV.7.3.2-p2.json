@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.3.2-p2",
+ "rule-digest": "c9e0caf8a86d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#paragraphDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sentence",
+ "test-ref": "conformance:cases/IV.7.3@1985-DIVISION-SECTION-PARAGRAPH-FORMATS/1985-SR-IV_7_3_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with its probe (t-section-contents-85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A section consists of zero, one, or more paragraphs in the Environment Division or Procedure Division or zero, one, or more entries in the Data Division.\" The candidates (prototype and USE rules) are wording-only; the rule grants empty sections, so it needs an accepted program, which the probe supplies. Code location located after the read: section/paragraph/sentence grammar rules"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2.2-p4",
+ "rule-digest": "71c3c2a9f93f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#ReferenceFormatDiagnostics",
+ "test-ref": "conformance:cases/IV.7.2@1985-REFERENCE-FORMAT-REPRESENTATION/pb5924-pseudo-delimiter-split-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.7.2@1985-REFERENCE-FORMAT-REPRESENTATION/pb5924-pseudo-delimiter-split-85), joined as the row's own test. The read: 'Both characters composing the separator == must be on the same line.' The 2023 SR-6.2.3.2-3 governs floating indicators, and the candidates offered are documentation items; the at-85 diagnosed case pb1492-pseudo-text-delimiter-split belongs to SR-6.3.5-2, which does not state this rule. The prose85 goldens (refusal and control) pass. Code location located after the read: ReferenceFormatDiagnostics cites 1985:IV.7.2.2 for the split == separator"
+}

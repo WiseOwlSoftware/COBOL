@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.1.4-p1",
+ "rule-digest": "6db39f6076a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#implementorSwitchEntry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimary",
+ "test-ref": "conformance:cases/VI.6.3.1@1985-Simple-Conditions/pb5924-switch-status-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.3.1@1985-Simple-Conditions/pb5924-switch-status-85), joined as the row's own test. The read: 1985: 'The implementor-name and the on or off value associated with the condition must be named in the SPECIAL-NAMES paragraph'. The candidates state SET's effect (GR-14.9.39.4-5), the SPECIAL-NAMES association (GR-12.3.7.4-2) and the format (FMT-8.8.4.6.2); none states the requirement with an 85 refusal. The prose85 goldens PASS on the mint build. Code location located after the read: switch names declared in SPECIAL-NAMES entry; switch-status condition bound in BindPrimary"
+}

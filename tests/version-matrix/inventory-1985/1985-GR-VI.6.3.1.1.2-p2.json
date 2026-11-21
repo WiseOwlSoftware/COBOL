@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.1.2-p2",
+ "rule-digest": "fcfea336a4b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#RelationComparability",
+ "test-ref": "conformance:cases/VI.6.3.1.1@1985-Relation-Condition/1985-GR-VI_6_3_1_1_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_nonnum_size.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: 'The size of an operand is the total number of standard data format characters in the operand. Numeric and nonnumeric operands may be compared only when their usage is the same.' 2023 has no usage restriction on the integer/alphanumeric pair, so no candidate states it. Code location located after the read: cites §1985:VI.6.3.1.1.2; numeric vs nonnumeric comparison checks"
+}

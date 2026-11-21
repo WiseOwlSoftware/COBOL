@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.7.4-p3",
+ "rule-digest": "b61c6e5c6774",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitFileDescriptionEntry; src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-GR-IV_7_4-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with its probe (t-level-indicators-85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program can show it: an entry beginning with each of \"FD, SD, CD, RD\" compiles and runs at 85. No 2023 candidate states the set (2023 has no CD). Code location located after the read: AreaPlacementPass and LevelNumberPass check level indicator/level-number placement"
+}

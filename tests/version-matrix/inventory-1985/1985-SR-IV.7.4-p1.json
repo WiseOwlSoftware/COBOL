@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.4-p1",
+ "rule-digest": "0320f2ccd0b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitFileDescriptionEntry; src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-SR-IV_7_4-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with its probe (t-data-entry-forms-85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"Each Data Division entry begins with a level indicator or a level-number, followed by a space, followed by the name of the subject of entry, if specified, followed by a sequence of independent clauses ... The last clause is always terminated by a separator period.\" Candidates are PICTURE/SAME AS/TYPE placement rules, none of the entry shape. Code location located after the read: AreaPlacementPass and LevelNumberPass check level indicator/level-number placement"
+}

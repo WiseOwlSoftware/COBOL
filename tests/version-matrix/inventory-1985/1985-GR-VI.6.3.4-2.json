@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.4-2",
+ "rule-digest": "6a1f553ed38a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02",
+ "notes": "Own witness from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02), joined as the row's own test. The read: Left after the split: 'Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary' (the figures folded into the row are not its words: see leads). GR-8.8.4.13-2 is identical but its at-85 lists are empty, so it cannot be the 85 pointer. g85_bf15_02 (accept 85) shows it; its rerun on the mint build matches its .out. Code location located after the read: short-circuit evaluation order of complex conditions"
+}

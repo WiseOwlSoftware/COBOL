@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p10",
+ "rule-digest": "775bb8ca4a15",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957_next_group_control_85",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/13.18.37-NEXT-GROUP/pb957_next_group_control_85), joined as the row's own test. The read: An introduction to the tables' next group rules. Its candidates have no 85 case (GR-13.18.37.4-2's at-85 lists are empty although pb957_next_group_control_85 names it in its rules), so no SAME; the 85 twin and the refusal show the rules applied. Code location located after the read: NEXT GROUP / LINE NUMBER combinations screened in ReportSectionBinder (cites 1985:XIII.3.10.6 to 3.10.10)"
+}

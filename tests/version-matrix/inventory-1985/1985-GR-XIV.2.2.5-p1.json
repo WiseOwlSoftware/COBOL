@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.5-p1",
+ "rule-digest": "94c9c222e75f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#MessageControl; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath",
+ "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_5-T1",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with its probe (p05_cd_status_65_error_6.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but programs show it: the status key \"at the completion of each statement shown\" takes the values of Table 1. Every value of the table is shown at 85 by a case or a probe; 2023 has no CD status key (the candidates are file-access and SEARCH rules, wording-only). Code location located after the read: status key / error key contents after each statement produced by MessageControl run-time; statements bound by CommunicationBinder"
+}

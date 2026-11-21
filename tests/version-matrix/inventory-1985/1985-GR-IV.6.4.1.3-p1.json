@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.1.3-p1",
+ "rule-digest": "65a5951c3a08",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/l1c22_pd_exec_order_sections; conformance:cases/14.2-Procedure-division-structure/l1c22_pd_exec_order_nosections",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.2.3-1, witnessed at 85 by the cases test-ref names. The read: The 1985 paragraph and GR-14.2.3-1 are word-for-word the same (sim 0.941). Both at-85 accepted cases exercise the whole 1985 scope in 1985-legal shapes: l1c22_pd_exec_order_sections places a USE declarative textually first and shows it skipped, then presentation order across an empty section, paragraphs and sections; l1c22_pd_exec_order_nosections shows Format 2 presentation order. Cited: §1985:IV.6.4.1.3 p1."
+}

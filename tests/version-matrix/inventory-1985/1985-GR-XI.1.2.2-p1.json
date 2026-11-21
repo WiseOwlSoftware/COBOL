@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XI.1.2.2-p1",
+ "rule-digest": "418e441a570c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge",
+ "test-ref": "conformance:cases/XI.1@1985-INTRODUCTION-OF-THE-SORT-MERGE-MODULE/1985-GR-XI_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-16.json: the reader showed the compiler correct at 85 with its probe (xi-sort-merge.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Candidates cover MERGE ordering and file repetition only. Code location located after the read: merge file is an SD described in BindFileSection and used by BindMerge"
+}

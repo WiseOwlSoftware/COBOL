@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.1-p1",
+ "rule-digest": "c81714dc2bd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileControlBinder; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#RecordFraming",
+ "test-ref": "conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/pb5924-logical-records-in-blocks-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/pb5924-logical-records-in-blocks-85), joined as the row's own test. The read: Flagged definitional; a program shows it: 'In order to separate the logical characteristics of data from the physical characteristics of the data storage media, separate clauses or phrases are used.' The golden gives a file both kinds of clause and reads back the logical records unaffected by the blocking. No candidate states it with an 85 witness: the candidates are wording matches only (CALL NESTED, condition-name). Code location located after the read: logical vs physical record: file section binder and record framing"
+}

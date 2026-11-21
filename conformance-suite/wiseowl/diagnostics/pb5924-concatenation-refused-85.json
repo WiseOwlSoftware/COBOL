@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL2633: the literal \"AB\" is immediately followed by 'X'"}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.3.3.1-2",
+ "rule-digest": "32fa800edc3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#CounterResolver; src/WiseOwl.Cobol.Compiler/Binding/LinageClauseRules.cs#LinageClauseRules",
+ "test-ref": "conformance:cases/IV.4.2.2.1.3.3@1985-Special-Purpose-Words/1985-GR-IV_4_2_2_1_3_3_1-2",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with its probe (p09_linage.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Item of 'There are four special registers'. Flagged definitional, but a program shows each register; its behaviour is the pointed page's rows. The candidates (Report Writer page rules, LINAGE-COUNTER SRs, PAGE-COUNTER GR) have no 85 witness. Code location located after the read: LINAGE-COUNTER resolved by CounterResolver"
+}

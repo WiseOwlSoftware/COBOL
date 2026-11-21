@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.14.1-p1",
+ "rule-digest": "a0f814f4fc01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLevelNumbers; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry",
+ "test-ref": "conformance:cases/XIII.3.12@1985-DATA-NAME-CLAUSE/1985-GR-XIII_3_12_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with its probe (p03_rw_dataname_level.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: \"The level-number indicates the position of a data item within the hierarchical structure of a report group.\" 2023 13.18.33.1 says the same in a General paragraph that is not a catalog rule; the candidates FMT-13.18.33.2 and GR-13.18.33.4-1 have an 85 case (pb1246_level_hierarchy_legal) with no report group, so it does not exercise this scope. Code location located after the read: report group data-name and level-number bound in BindReportEntry; level hierarchy checked by ScreenReportLevelNumbers (cites 1985:XIII.3.14.3 in LevelNumberPass)"
+}

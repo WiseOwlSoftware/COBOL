@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-9",
+ "rule-digest": "12501d527e42",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#WS; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR",
+ "test-ref": "conformance:cases/8.3.5-Separators/l1c17_separator_spaces",
+ "notes": "Own verdict from the read lineage-reads-1985/s-01.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.3.5-9, witnessed at 85 by the cases test-ref names. The read: The same rule; 2023 widens 'opening quotation mark' to every literal's opening delimiter, which covers the 1985 case. The pre-mint record was KEPT into SR-8.3.5-9 and four more; the split carved paragraphs p2 and p3 out of it, so only SR9 states what is left. Cited: §1985:IV.4.2.1 SR9."
+}

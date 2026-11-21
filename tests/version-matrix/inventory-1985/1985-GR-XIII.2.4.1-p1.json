@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.2.4.1-p1",
+ "rule-digest": "b12f15edfda7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph",
+ "test-ref": "conformance:cases/XIII.2.4@1985-I-O-CONTROL-PARAGRAPH/1985-GR-XIII_2_4_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (rw_iocontrol_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'specifies the memory area which is to be shared by different files and the location of files on a multiple file reel'. GR-12.4.6.4.4-1 states the SAME half only; the MULTIPLE FILE TAPE clause is not in 2023, so no pointer covers the whole scope. Code location located after the read: I-O-CONTROL paragraph bound by BindIoControl (cites 1985:XIII.2.4.3)"
+}

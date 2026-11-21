@@ -1916,7 +1916,14 @@ lines or a map of `<trigger>[: <detail>]` to the answer, several answers to one 
 for a rule the reader found no pointer for. A record it cannot interpret (a verdict outside the brief's, a `to` that is no
 list of ids, a refute of a rule the reader did not decide SAME, a rule of no catalog row, a rule read twice or in two
 slices, whether imported now or already recorded) refuses the whole import, by slice and rule, BEFORE anything is
-written (review R1-5). `load` recomputes each part's digest from the record's own content and refuses a record edited
+written (review R1-5). **A second read** is the one exception (kb/Work PB5453, 2026-11-21: the 1985 fleet's slice `s-99`
+re-read the 50 rows the first reads left undecided): a case that names `supersedes: <slice>` REPLACES that slice's read
+of the same rule. A rule may be read in several slices only as one line of such reads (`lineage_reads.supersede`, shared
+by the import and `load`): one first read, each later read naming the slice it replaces, every slice of the line reading
+the rule. The newest read decides; every older one is taken out of its slice, with its refuter's and derivation
+refuter's cases, so the decisions, the writers and the audit all see one read of each rule, while every record stays in
+the tree verbatim under its digests. A rule read twice with no such line, a `supersedes` naming a slice that does not read
+the rule, and a read superseding its own slice are refused as before. `load` recomputes each part's digest from the record's own content and refuses a record edited
 since its import (review R1-6). A judgment of the compiler that names
 none of correct, wrong or not probed is kept as written and its row listed `uninterpretable`, never defaulted.
 **Every case speaks of its record's own edition** (kb/Work PB5453): the record's `edition` keys the fields read from it,
@@ -2161,8 +2168,12 @@ becomes a register row; DECIDED here (kb/Work PB6003):
 1. The read's ARGUED arm is attacked by a derivation refuter, a `cobol-refuter` that tries to write the witness the
    derivation says cannot exist (section 1.1's `claude:` signer obligation), in `<slice>-derivation-refute.json` (the
    refute shape, UPHELD, OVERTURNED or DOUBTFUL). `import-reads` takes it as a fourth part of the slice's read record,
-   verbatim with its digest (`lineage_reads.PARTS`); a derivation refute of a read that proposes none, a definitional
-   class with no derivation, a derivation on a SAME or DOUBTFUL read and an arm the schema lacks are refused loudly.
+   verbatim with its digest (`lineage_reads.PARTS`); a derivation refute of a read that proposes none, a DIFFERENT read
+   of the definitional class with no derivation, a derivation on a SAME or DOUBTFUL read and an arm the schema lacks are
+   refused loudly. A DOUBTFUL read of the definitional class with none is a reader who found no arm that fits, and is read
+   as proposing nothing (`undecided`). A derivation refuter's case has the refuter brief's shape: the witness it tried to
+   write (`attempt`, required, carried into the refuter record and the register row's argument), its `reason`, and
+   citations only where it gives them; an `arm` other than the read's is refused.
 2. `decide` reads the derivation refuter FIRST, as a SAME's: DOUBTFUL leaves the row `undecided`; OVERTURNED (a program
    can show the rule) is the refuter's work item (`needs-own-witness` with its probe); UPHELD, or a MECHANICAL arm
    (`undefined-A.2`, `undefined-in-rule`, whose checker is its reader) with none, is the work item `derivation`, blocked

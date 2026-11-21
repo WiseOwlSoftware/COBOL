@@ -1,0 +1,35 @@
+      *>--- conformance-case
+      *> id: pb5924-linkage-record-grouped-85
+      *> rules: [1985-SR-X.4.1.2-p1]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> kb/Work PB5924. §1985:X.4.1.2 (cite.py: OK): "must be grouped into records according to the rules for formation of record descriptions"
+      *> Hierarchically related Linkage items grouped as an 01 record receive the caller's data.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. MAINP.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  W-A PIC X(4) VALUE "ABCD".
+       01  W-B PIC X(4) VALUE "WXYZ".
+       PROCEDURE DIVISION.
+       P1.
+           CALL "SUBP" USING W-A W-B.
+           STOP RUN.
+       END PROGRAM MAINP.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SUBP.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  WS-Y PIC X(4) VALUE "SSSS".
+       LINKAGE SECTION.
+       01  LK-A.
+           05  LK-A1 PIC X(2).
+           05  LK-A2 PIC X(2).
+       01  LK-B PIC X(4).
+       PROCEDURE DIVISION USING LK-A LK-B.
+       P2.
+           DISPLAY LK-A2 " " LK-A1 " " LK-B.
+           EXIT PROGRAM.
+       END PROGRAM SUBP.

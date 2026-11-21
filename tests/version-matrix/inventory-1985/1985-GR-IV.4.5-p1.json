@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.5-p1",
+ "rule-digest": "93ebe553f92a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#BindImplementorNameEntry",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.3.7.4-2, witnessed at 85 by the cases test-ref names. The read: 1985: \"An external switch is a hardware or software device, defined and named by the implementor, which is used to indicate that one of two alternate states exists. These alternate states are referred to as the on status and the off status\". 2023 GR-12.3.7.4-2 states the same: an implementor-defined external switch with an on status and an off status. Flagged definitional but observable: pb862_implementor_names runs at 85, names SWITCH-3 from the implementor's table and shows both statuses (SW3=OFF, then SW3=ON). Cited: §1985:IV.4.5 p1."
+}

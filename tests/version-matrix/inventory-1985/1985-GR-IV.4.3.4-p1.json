@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.4-p1",
+ "rule-digest": "52c4905dea19",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/StandardDataFormat.cs#CobolStandardData; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#ItemLength",
+ "test-ref": "conformance:cases/IV.4@1985-LANGUAGE-CONCEPTS/1985-GR-IV_4_3-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with its probe (p02_radix_usage.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional; observable in part: 'If more than one arithmetic radix is provided, the selection is dependent upon the specification of the USAGE clause.' GR-13.18.60.4-4/-6 state BINARY/COMPUTATIONAL radix but have no 85 case. Code location located after the read: standard data format cites 1985:IV.4.3.4"
+}

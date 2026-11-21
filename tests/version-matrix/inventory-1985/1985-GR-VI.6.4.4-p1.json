@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4.4-p1",
+ "rule-digest": "699a993e1e83",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindCompute",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (a2-size-error-control.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements. They have several common features.' The word-identical 2023 text is uncataloged prose, so no pointer states it; a2 L8 shows all five as arithmetic statements under the common SIZE ERROR rules at 85. Code location located after the read: arithmetic statements ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE bound in ArithmeticBinder"
+}

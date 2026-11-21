@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.2-p1",
+ "rule-digest": "265d99be6ad3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenImmediateMemberLevel; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#LevelNumberRules",
+ "test-ref": "conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/1985-GR-IV_4_3_1_2-p5",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with its probe (p03_working_storage_records.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'it may be further subdivided to permit more detailed data referral' (the 1985 words). The probe builds and references the structure at 85. No candidate states it with an 85 witness: the candidates are wording matches only (RENAMES operands, variable-length groups, INITIALIZE). Code location located after the read: level structure: group/elementary items by level-number (cites 1985:IV.4.3.2.1)"
+}

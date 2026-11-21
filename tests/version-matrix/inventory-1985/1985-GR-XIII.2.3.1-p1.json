@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.2.3.1-p1",
+ "rule-digest": "d9fe8897ce11",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/XIII.1@1985-INTRODUCTION-TO-THE-REPORT-WRITER-MODULE/1985-GR-XIII_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (rw_access_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: A function sentence: 'The file control entry declares the relevant physical attributes of a report file.' SR-12.4.5.2-11 (format 3 for a sequential or report file) restricts the format, which is not this statement. Shown by every report program at 85. Code location located after the read: file control entry of a report file bound in BindFileControl"
+}

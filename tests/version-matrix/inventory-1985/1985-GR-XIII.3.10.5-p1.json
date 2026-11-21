@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.5-p1",
+ "rule-digest": "ccea11e3a2eb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#AfterHeadingOrFootingNextGroup",
+ "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_5-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with its probe (p02_saved_next_group.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program shows it: \"When an absolute NEXT GROUP clause specifies a vertical positioning value which cannot be accommodated on the current page, the RWCS stores that value in saved next group integer. After page advance processing, the RWCS positions the next body group using the value\". GR-13.18.37.4-4 has a save location too, but its at-85 lists are empty and its effect differs from 1985: pb5823 carries a separate .85.out because from 2002 the saved integer forces the page advance before the next group, while 1985 reads it only when no body group is yet on the page. So it is no SAME pointer. Code location located after the read: saved next group integer: NEXT GROUP bound in BindNextGroupClauses, applied by ReportLinePlacement.AfterHeadingOrFootingNextGroup"
+}

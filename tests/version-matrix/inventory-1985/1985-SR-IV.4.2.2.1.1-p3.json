@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.1-p3",
+ "rule-digest": "57e15718eb0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BinderDriver",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-SR-IV_4_2_2_1_1-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-02.json: the reader showed the compiler correct at 85 with its probe (contained.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'Within a given source program, but excluding any contained program, the user-defined words are grouped into the following disjoint sets'. SR-11.10.3-3 (contained program-names) and SR-8.3.2.1-x do not state the per-program scope of the sets. The probe shows a contained program using ZQ as a paragraph-name while its container uses ZQ as a data-name, accepted; the same pair in one program is refused (ds04). Code location located after the read: cites 1985:IV.4.2.2.1.1 disjoint sets at BinderDriver line 952; DeclareUserWord funnel"
+}

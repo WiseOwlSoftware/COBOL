@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.2.1-p1",
+ "rule-digest": "5eebc5cb61ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities; src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ClosedFormats; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ClosedFormatPass",
+ "test-ref": "conformance:cases/IV.2@1985-NOTATION-USED-IN-FORMATS/pb5924-clause-sequence-refused-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-01.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.2@1985-NOTATION-USED-IN-FORMATS/pb5924-clause-sequence-refused-85), joined as the row's own test. The read: No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer). The rule is testable and prose85's goldens witness every part at 85. Code location located after the read: clause-sequence/format enforcement: closed formats and clause cardinality tables"
+}

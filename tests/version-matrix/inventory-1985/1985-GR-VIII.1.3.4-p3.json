@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-p3",
+ "rule-digest": "0a953276f9ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IoStatus1985.cs#IsCritical; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SetStatus",
+ "test-ref": "conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/pb5924-rel-critical-status-continues-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/pb5924-rel-critical-status-continues-85), joined as the row's own test. The read: \"Certain classes of I-O status values indicate critical error conditions. These are: any that begin with the digit 3 or 4 ... the implementor determines what action is taken\". DOC-A.1-218 is the 2023 documentation item for the action after USE. It has an 85 case, but it does not state the 3/4 critical classes for relative files. Both prose85 goldens pass on the mint build (work/goldens-s-13.json). Prose85 sentence 2 was refuted DOUBTFUL, so the after-USE golden should be re-read when it is placed. Code location located after the read: critical status classes"
+}

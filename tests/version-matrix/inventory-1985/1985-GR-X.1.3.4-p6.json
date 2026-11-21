@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.1.3.4-p6",
+ "rule-digest": "fcf7fb2ba483",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+ "test-ref": "conformance:cases/X.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-X_1_3_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-15.json: the reader showed the compiler correct at 85 with its probe (p02_external.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Shown by p02. GR-13.18.22.4-4 states the external half with no 85 case. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it. Code location located after the read: EXTERNAL file connector set at FD and checked"
+}

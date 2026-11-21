@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.1.3.7-p1",
+ "rule-digest": "e2e876169b9e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ReferenceFormatProcessor",
+ "test-ref": "conformance:cases/VI.1.3@1985-RESTRICTIONS-ON-OVERALL-LANGUAGE/pb5924-broken-word-literal-picture-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.1.3@1985-RESTRICTIONS-ON-OVERALL-LANGUAGE/pb5924-broken-word-literal-picture-85), joined as the row's own test. The read: \"In level 2 a word, numeric literal, or PICTURE character-string can be broken in such a way that part of it appears on a continuation line.\" The 2023 candidates cover literal continuation only. Code location located after the read: fixed-form continuation lines are joined to logical lines in the reference-format stage (words, literals, PICTURE strings)"
+}

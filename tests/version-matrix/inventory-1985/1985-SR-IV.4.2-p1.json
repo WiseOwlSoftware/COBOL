@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2-p1",
+ "rule-digest": "e37ffedaf12b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#SeparatorRule",
+ "test-ref": "conformance:cases/IV.4@1985-LANGUAGE-CONCEPTS/pb5924-concatenation-refused-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-01.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4@1985-LANGUAGE-CONCEPTS/pb5924-concatenation-refused-85), joined as the row's own test. The read: No 2023 rule with a case at 85 states it; prose85's golden witnesses it. Code location located after the read: separator concatenation rules decided over the token stream"
+}

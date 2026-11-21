@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-p4",
+ "rule-digest": "61971ad88d9c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader",
+ "test-ref": "conformance:cases/IV.4.4@1985-EXPLICIT-AND-IMPLICIT-SPECIFICATIONS/1985-GR-IV_4_4_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-05.json: the reader showed the compiler correct at 85 with its probe (s05_flow.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: GR-14.6.3-3 states the explicit-transfer and EXIT PROGRAM sentences and is witnessed at 85, but 2023 has no ALTER; the 1985 scope includes it, so the probe is the own witness. Code location located after the read: ControlFlowEmitter cites 1985:IV.4.4.2; paragraph table sequence; end program header in grammar"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IX.1.1-p1",
+ "rule-digest": "4a6a5ba2e928",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#IndexedConnector; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedConnector",
+ "test-ref": "conformance:cases/IX.1@1985-INTRODUCTION-TO-THE-INDEXED-I-O/1985-GR-IX_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985 grants random OR sequential access and identifies records by one or more keys. GR-12.4.5.10.3-5 (pb1098_organization_permanence_85) states only the key identification, not the two access manners. The probe reads one file sequentially (SEQ), randomly by prime key (GOT) and by alternate key (BY-AK). Code location located after the read: indexed random/sequential access"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.2.2-p2",
+ "rule-digest": "b6e8ede63b2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#configurationSection; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph",
+ "test-ref": "conformance:cases/IV.6.2@1985-ENVIRONMENT-DIVISION/1985-GR-IV_6_2_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p07_environment_division.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"This section is divided into three paragraphs: the SOURCE-COMPUTER paragraph ...; the OBJECT-COMPUTER paragraph ...; and the SPECIAL-NAMES paragraph, which provides a means for specifying the currency sign, choosing the decimal point, specifying symbolic-characters, relating implementor-names ..., relating alphabet-names ..., and relating class-names\". No candidate states the whole (GR-12.3.5.4-2/3 cover SOURCE-COMPUTER only, no 85 case). p07 exercises every listed means. Code location located after the read: configuration section and its paragraphs"
+}

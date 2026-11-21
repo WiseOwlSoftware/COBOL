@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.3.3-2",
+ "rule-digest": "c9e6f73cabf8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsUserWord; src/WiseOwl.Cobol.Editions/ReservedWords.cs#RejectsAt",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.2.2.1.3.3-2",
+ "notes": "Derivation from the read lineage-reads-1985/s-03.json: CONFORMS on a indistinguishable-consequent derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.4.2.2.1.3.3-2); the code location is where the compiler meets the rule's subject. The read: Item 2 of 'There are two types of special purpose words'. IV.4.2.2.1.3.3.2 only points to IV-10 (Figurative Constant Values), whose rows carry the content. The code location was located after the read (locations-all.json): named row 1985-SR-IV.4.2.2.2.3-p1: figurative constants are reserved words; same member. Sibling has no inventory-1985 record on main yet"
+}

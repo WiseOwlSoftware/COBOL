@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8-p2",
+ "rule-digest": "b372b0323842",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalRecordNameRules.cs#ExternalRecordNameRules; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGlobalNameUniquenessPass.cs#CheckGlobalNameUniquenessPass",
+ "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/1985-GR-IV_4_3_8-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-05.json: the reader showed the compiler correct at 85 with its probe (s05_scope_nested.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"These conventions ensure that the resource identified is that described in the program containing the reference.\" The candidates (TYPEDEF, program-name location, function prototypes) do not state it; the probe shows it at 85. Code location located after the read: same name in separate programs: external/global name uniqueness (cites 1985:IV.4.3.8.1 SR4)"
+}

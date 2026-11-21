@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.3.1-p1",
+ "rule-digest": "c00d6bffeed3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDivision",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.6.3.1-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.6.3.1-p1); the code location is where the compiler meets the rule's subject. The read: \"The Data Division describes the data that the object program is to accept as input, to manipulate, to create, or to produce as output.\" It names what the division is; it imposes nothing a program can observe beyond the section rows. The code location was located after the read (locations-all.json): dataDivision is the grammar rule for the Data Division (WORKING-STORAGE, FILE, LOCAL-STORAGE ... sections); the 'purpose' sentence defines nothing further in code"
+}

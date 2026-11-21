@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.2-3",
+ "rule-digest": "097ef8435a44",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#EnterStatementNotProvided; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.2.2.1.2-3",
+ "notes": "Derivation from the read lineage-reads-1985/s-03.json: CONFORMS on a unpopulatable-antecedent derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.4.2.2.1.2-3); the code location is where the compiler meets the rule's subject. The read: A language-name appears in no 1985 format but ENTER language-name-1 [routine-name-1]; 'An implementation of Standard COBOL may include the ENTER statement or not, at the option of the implementor', and this one does not (COBOL7240). So no accepted program contains a language-name. The code location was located after the read (locations-all.json): enterOperand (language-name) occurs only in enterStatement; refused by BindEnter/EnterStatementNotProvided"
+}

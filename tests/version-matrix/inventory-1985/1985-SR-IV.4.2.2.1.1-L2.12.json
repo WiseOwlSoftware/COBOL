@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.1-L2.12",
+ "rule-digest": "711f89deeb1a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#EnterStatementNotProvided; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-SR-IV.4.2.2.1.1-L2.12",
+ "notes": "Derivation from the read lineage-reads-1985/s-02.json: CONFORMS on a unpopulatable-antecedent derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-SR-IV.4.2.2.1.1-L2.12); the code location is where the compiler meets the rule's subject. The read: Set 12 'routine-names'. No accepted program can hold a routine-name because ENTER, its only context, is not included (§1985:I.1.5.2.5.5); 2023 has no ENTER. The code location was located after the read (locations-all.json): same: routineName occurs only in enterStatement, which is refused at 85"
+}

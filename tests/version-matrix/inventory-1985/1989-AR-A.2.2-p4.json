@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-AR-A.2.2-p4",
+ "rule-digest": "a131a3f2b5f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgumentsOf",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-AR-A_2_2-p4",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (s19_p20_fn_all.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL.\" A granting rule, shown accepted. The 15.3 candidates have no 85 case. Code location located after the read: ArgumentsOf expands table(ALL) subscript argument lists (class comment lines 29-31)"
+}

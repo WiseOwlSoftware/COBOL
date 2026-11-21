@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.2.1.5-p3",
+ "rule-digest": "4db9a3c60c63",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities; src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#UnrepeatedElements",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/1985-SR-IV_2_1_4-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-01.json: the reader showed the compiler correct at 85 with its probe (p01_notation.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No 2023 rule (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer). Code location located after the read: repetition scope per format: Repeatable set per ClauseList"
+}

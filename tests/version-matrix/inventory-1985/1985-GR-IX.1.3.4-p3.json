@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IX.1.3.4-p3",
+ "rule-digest": "0a953276f9ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IoStatus1985.cs#IsCritical; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SetStatus",
+ "test-ref": "conformance:cases/IX.1.3@1985-LANGUAGE-CONCEPTS/pb5924-io-critical-use-continues-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IX.1.3@1985-LANGUAGE-CONCEPTS/pb5924-io-critical-use-continues-85), joined as the row's own test. The read: The action is the implementor's (DOC-A.1-218 records WiseOwl's). No single 2023 rule states the 1985 critical classes, including the '9x the implementor defines as critical' clause. Both prose85 goldens PASS on the mint build (work/goldens-s-14.json). Code location located after the read: critical statuses"
+}

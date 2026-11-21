@@ -1,0 +1,1338 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-05 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-05",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-05",
+  "edition": 1985,
+  "ids": [
+   "1985-SR-IV.4.3.8-p1",
+   "1985-GR-IV.4.3.8-p2",
+   "1985-GR-IV.4.3.8-p3",
+   "1985-GR-IV.4.3.8-p4",
+   "1985-SR-IV.4.3.8.1-4",
+   "1985-SR-IV.4.3.8.1-p2",
+   "1985-SR-IV.4.3.8.1-p3",
+   "1985-GR-IV.4.3.8.3.1-p1",
+   "1985-GR-IV.4.3.8.5.1-p1",
+   "1985-SR-IV.4.3.8.5.1-p2",
+   "1985-SR-IV.4.3.8.6-p1",
+   "1985-SR-IV.4.3.8.6-p3",
+   "1985-SR-IV.4.3.8.6-p4",
+   "1985-SR-IV.4.3.8.6-p5",
+   "1985-GR-IV.4.4.1-p1",
+   "1985-GR-IV.4.4.2-p1",
+   "1985-GR-IV.4.4.2-3",
+   "1985-GR-IV.4.4.2-p4",
+   "1985-GR-IV.4.4.2-p5",
+   "1985-GR-IV.4.4.2-p6",
+   "1985-GR-IV.4.4.2-L2.5",
+   "1985-GR-IV.4.4.2-p7",
+   "1985-GR-IV.4.4.3-p1",
+   "1985-GR-IV.4.4.4-p1",
+   "1985-GR-IV.4.4.4-T1.1",
+   "1985-GR-IV.4.4.4-T1.2",
+   "1985-GR-IV.4.4.4-T1.3",
+   "1985-GR-IV.4.4.4-T1.4",
+   "1985-GR-IV.4.4.4-T1.5",
+   "1985-GR-IV.4.4.4-T1.6",
+   "1985-GR-IV.4.4.4-T1.7"
+  ],
+  "pointers": {
+   "1985-SR-IV.4.3.8-p1": {
+    "candidates-2023": [
+     "SR-8.3.2.2-3",
+     "DOC-A.1-219",
+     "SR-8.3.2.1-4"
+    ],
+    "nearest-2023": "SR-8.3.2.2-3",
+    "similarity": 0.296
+   },
+   "1985-GR-IV.4.3.8-p2": {
+    "candidates-2023": [
+     "GR-13.18.58.4-1",
+     "GR-14.9.5.4-2",
+     "GR-12.3.8.4-12"
+    ],
+    "nearest-2023": "GR-13.18.58.4-1",
+    "similarity": 0.276
+   },
+   "1985-GR-IV.4.3.8-p3": {
+    "candidates-2023": [
+     "RV-15.49.4-1",
+     "GR-14.2.3-2",
+     "FMT-15.27.2"
+    ],
+    "nearest-2023": "RV-15.49.4-1",
+    "similarity": 0.336
+   },
+   "1985-GR-IV.4.3.8-p4": {
+    "candidates-2023": [
+     "GR-14.6.4-7",
+     "GR-14.9.22.4-6",
+     "GR-14.6.13.1.4-4"
+    ],
+    "nearest-2023": "GR-14.6.4-7",
+    "similarity": 0.482
+   },
+   "1985-SR-IV.4.3.8.1-4": {
+    "candidates-2023": [
+     "FMT-8.4.2.2.2",
+     "SR-8.4.2.2.3-10",
+     "SR-8.4.2.2.3-9",
+     "SR-8.4.2.2.3-8",
+     "SR-8.4.2.2.1-5",
+     "SR-8.4.2.2.3-3",
+     "FMT-8.4.3.1.2",
+     "SR-11.10.3-3",
+     "FMT-8.4.3.15.2"
+    ],
+    "nearest-2023": "FMT-8.4.2.2.2",
+    "similarity": 0.32
+   },
+   "1985-SR-IV.4.3.8.1-p2": {
+    "candidates-2023": [
+     "SR-8.4.2.2.1-5",
+     "SR-8.4.2.2.1-4",
+     "SR-8.4.2.2.1-6",
+     "SR-8.4.2.2.3-5",
+     "SR-8.4.2.2.3-6",
+     "SR-8.4.2.2.3-1",
+     "GR-13.18.22.4-1",
+     "SR-13.18.22.3-2",
+     "GR-13.18.27.4-2"
+    ],
+    "nearest-2023": "SR-8.4.2.2.1-5",
+    "similarity": 0.356
+   },
+   "1985-SR-IV.4.3.8.1-p3": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-3",
+     "SR-8.4.2.2.3-2",
+     "SR-8.4.2.2.3-1",
+     "SR-8.4.2.2.1-6",
+     "SR-8.4.2.2.1-5",
+     "SR-8.4.2.2.3-6",
+     "SR-13.18.42.3-3",
+     "SR-8.4.3.14.3-3",
+     "SR-13.18.63.3-33"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-3",
+    "similarity": 0.377
+   },
+   "1985-GR-IV.4.3.8.3.1-p1": {
+    "candidates-2023": [
+     "SR-8.4.3.2.3-1",
+     "SR-8.4.3.2.3-2",
+     "SR-13.18.18.3-1"
+    ],
+    "nearest-2023": "SR-8.4.3.2.3-1",
+    "similarity": 0.387
+   },
+   "1985-GR-IV.4.3.8.5.1-p1": {
+    "candidates-2023": [
+     "SR-8.4.3.1.3-1",
+     "AR-15.87.3-1",
+     "SR-13.18.18.3-1"
+    ],
+    "nearest-2023": "SR-8.4.3.1.3-1",
+    "similarity": 0.379
+   },
+   "1985-SR-IV.4.3.8.5.1-p2": {
+    "candidates-2023": [
+     "SR-8.4.3.1.3-1",
+     "SR-8.4.2.2.1-5",
+     "SR-13.18.18.3-1"
+    ],
+    "nearest-2023": "SR-8.4.3.1.3-1",
+    "similarity": 0.296
+   },
+   "1985-SR-IV.4.3.8.6-p1": {
+    "candidates-2023": [
+     "SR-8.4.2.2.3-1",
+     "GR-8.4.6.2.1-1",
+     "GR-14.9.5.4-2"
+    ],
+    "nearest-2023": "SR-8.4.2.2.3-1",
+    "similarity": 0.353
+   },
+   "1985-SR-IV.4.3.8.6-p3": {
+    "candidates-2023": [
+     "GR-8.8.4.5.3-3",
+     "SR-13.18.38.3-5",
+     "GR-14.9.39.4-6"
+    ],
+    "nearest-2023": "GR-8.8.4.5.3-3",
+    "similarity": 0.295
+   },
+   "1985-SR-IV.4.3.8.6-p4": {
+    "candidates-2023": [
+     "AR-15.48.3-5",
+     "SR-8.4.2.2.3-3",
+     "SR-8.4.2.2.3-1"
+    ],
+    "nearest-2023": "AR-15.48.3-5",
+    "similarity": 0.242
+   },
+   "1985-SR-IV.4.3.8.6-p5": {
+    "candidates-2023": [
+     "SR-13.16.3-24",
+     "SR-8.4.2.2.3-5",
+     "SR-13.18.20.3-1"
+    ],
+    "nearest-2023": "SR-13.16.3-24",
+    "similarity": 0.316
+   },
+   "1985-GR-IV.4.4.1-p1": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-1",
+     "GR-14.9.28.4-12"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.485
+   },
+   "1985-GR-IV.4.4.2-p1": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-1",
+     "GR-14.6.3-2",
+     "GR-14.9.28.4-5",
+     "GR-14.9.11.4-17",
+     "GR-14.9.36.4-7"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.541
+   },
+   "1985-GR-IV.4.4.2-3": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-2",
+     "GR-14.6.3-1",
+     "GR-14.9.49.4-9",
+     "SR-14.9.49.3-4",
+     "GR-13.18.63.4-3",
+     "GR-14.9.40.4-13"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.477
+   },
+   "1985-GR-IV.4.4.2-p4": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-1",
+     "GR-14.6.3-2",
+     "GR-14.9.11.4-17",
+     "GR-14.9.40.4-13",
+     "GR-14.9.37.4-1"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.53
+   },
+   "1985-GR-IV.4.4.2-p5": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-1",
+     "GR-14.6.3-2",
+     "GR-14.9.37.4-1",
+     "GR-14.9.11.4-17",
+     "GR-13.18.18.4-6"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.474
+   },
+   "1985-GR-IV.4.4.2-p6": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-1",
+     "GR-14.6.3-2",
+     "GR-14.9.5.4-7",
+     "SR-14.2.2-11",
+     "SR-14.9.14.3-7"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.422
+   },
+   "1985-GR-IV.4.4.2-L2.5": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-2",
+     "GR-14.6.3-1",
+     "GR-10.7.4-1",
+     "SR-10.7.3-3",
+     "FMT-10.7.2"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.151
+   },
+   "1985-GR-IV.4.4.2-p7": {
+    "candidates-2023": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-1",
+     "GR-14.6.3-2",
+     "GR-14.9.14.4-3",
+     "GR-14.9.14.4-2",
+     "GR-14.9.4.4-3"
+    ],
+    "nearest-2023": "GR-14.6.3-3",
+    "similarity": 0.553
+   },
+   "1985-GR-IV.4.4.3-p1": {
+    "candidates-2023": [
+     "DOC-A.1-78",
+     "SR-8.4.6.3-2",
+     "SR-8.4.6.3-1"
+    ],
+    "nearest-2023": "DOC-A.1-78",
+    "similarity": 0.398
+   },
+   "1985-GR-IV.4.4.4-p1": {
+    "candidates-2023": [
+     "GR-14.5.3.3-3",
+     "GR-14.5.3.3-2",
+     "GR-14.5.3.3-1",
+     "GR-14.5.3.3-4",
+     "GR-14.5.3.2-2",
+     "GR-14.5.3.2-1",
+     "GR-14.9.5.4-2"
+    ],
+    "nearest-2023": "GR-14.5.3.3-3",
+    "similarity": 0.266
+   },
+   "1985-GR-IV.4.4.4-T1.1": {
+    "candidates-2023": [
+     "GR-14.5.3.3-1",
+     "GR-14.5.3.3-2",
+     "GR-14.5.3.3-3",
+     "GR-14.5.3.3-4",
+     "SR-14.9.37.3-4",
+     "SR-13.18.60.3-20",
+     "GR-14.9.36.4-7"
+    ],
+    "nearest-2023": "GR-14.5.3.3-1",
+    "similarity": 0.0
+   },
+   "1985-GR-IV.4.4.4-T1.2": {
+    "candidates-2023": [
+     "GR-14.5.3.3-1",
+     "GR-14.5.3.3-2",
+     "GR-14.5.3.3-3",
+     "GR-14.5.3.3-4",
+     "SR-13.18.60.3-20",
+     "GR-14.9.36.4-7",
+     "GR-14.9.28.4-16"
+    ],
+    "nearest-2023": "GR-14.5.3.3-1",
+    "similarity": 0.0
+   },
+   "1985-GR-IV.4.4.4-T1.3": {
+    "candidates-2023": [
+     "GR-14.5.3.3-1",
+     "GR-14.5.3.3-2",
+     "GR-14.5.3.3-3",
+     "GR-14.5.3.3-4",
+     "SR-13.18.60.3-20",
+     "GR-14.9.36.4-7",
+     "GR-9.1.16-p5"
+    ],
+    "nearest-2023": "GR-14.5.3.3-1",
+    "similarity": 0.0
+   },
+   "1985-GR-IV.4.4.4-T1.4": {
+    "candidates-2023": [
+     "GR-14.5.3.3-1",
+     "GR-14.5.3.3-2",
+     "GR-14.5.3.3-3",
+     "GR-14.5.3.3-4",
+     "SR-13.18.60.3-20",
+     "GR-14.9.36.4-7",
+     "GR-9.1.16-p5"
+    ],
+    "nearest-2023": "GR-14.5.3.3-1",
+    "similarity": 0.0
+   },
+   "1985-GR-IV.4.4.4-T1.5": {
+    "candidates-2023": [
+     "GR-14.5.3.3-1",
+     "GR-14.5.3.3-2",
+     "GR-14.5.3.3-3",
+     "GR-14.5.3.3-4",
+     "FMT-14.9.34.2",
+     "SR-13.18.60.3-20",
+     "GR-14.9.36.4-7"
+    ],
+    "nearest-2023": "GR-14.5.3.3-1",
+    "similarity": 0.0
+   },
+   "1985-GR-IV.4.4.4-T1.6": {
+    "candidates-2023": [
+     "GR-14.5.3.3-1",
+     "GR-14.5.3.3-2",
+     "GR-14.5.3.3-3",
+     "GR-14.5.3.3-4",
+     "SR-7.3.13.3-7",
+     "SR-13.18.60.3-20",
+     "GR-14.9.36.4-7"
+    ],
+    "nearest-2023": "GR-14.5.3.3-1",
+    "similarity": 0.0
+   },
+   "1985-GR-IV.4.4.4-T1.7": {
+    "candidates-2023": [
+     "GR-14.5.3.3-1",
+     "GR-14.5.3.3-2",
+     "GR-14.5.3.3-3",
+     "GR-14.5.3.3-4",
+     "FMT-7.3.16.2",
+     "SR-7.3.16.3-5",
+     "SR-13.18.60.3-20"
+    ],
+    "nearest-2023": "GR-14.5.3.3-1",
+    "similarity": 0.0
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-05",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-SR-IV.4.3.8-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a statement must reference a resource uniquely (an ambiguous reference is refused)",
+     "the grant: a user-defined name may be qualified, subscripted or reference modified to make it unique"
+    ],
+    "evidence-1985": {
+     "unique reference required": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-uniq-ref-ambiguous-85 (PASS, refused COBOL1639)",
+     "qualified / subscripted / reference modified accepted": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-uniq-ref-qualified-85 (PASS) and probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_uniq_ref.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_uniq_ref-001: Q1=AAAA Q2=BBBB S=TWO R=BB SR=I)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8 p1",
+      "quote": "a statement in a COBOL program must contain a reference which uniquely identifies that resource",
+      "check": "OK  §1985:IV.4.3.8 p1  (4.3.8 Uniqueness of Reference)  the text is in p1"
+     },
+     {
+      "cite": "§1985:IV.4.3.8 p1",
+      "quote": "a user-defined name may be qualified, subscripted, or reference modified",
+      "check": "OK  §1985:IV.4.3.8 p1  (4.3.8 Uniqueness of Reference)  the text is in p1"
+     }
+    ],
+    "reason": "\"a statement in a COBOL program must contain a reference which uniquely identifies that resource ... a user-defined name may be qualified, subscripted, or reference modified\". The three candidates are about kinds of user-defined words (wording only) and state neither the requirement nor the grant; the 85 goldens and the probe show both.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_uniq_ref.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_uniq_ref.cob; goldens pb5924-uniq-ref-ambiguous-85 and pb5924-uniq-ref-qualified-85 PASS",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.8-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Inter-Program Communication (nested programs): a name assigned in a containing and a contained program resolves, in each program, to the resource that program describes",
+     "a contained program without its own description sees the containing program's GLOBAL name"
+    ],
+    "evidence-1985": {
+     "own description wins in each program": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_nested.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_nested-001: OUT=OUTER IN1=INNER; paragraph PB in both programs resolves locally)",
+     "global seen where not redescribed": "covered by the same probe (IN2=OUTER)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8 p2",
+      "quote": "These conventions ensure that the resource identified is that described in the program containing the reference",
+      "check": "OK  §1985:IV.4.3.8 p2  (4.3.8 Uniqueness of Reference)  the text is in p2"
+     }
+    ],
+    "reason": "\"These conventions ensure that the resource identified is that described in the program containing the reference.\" The candidates (TYPEDEF, program-name location, function prototypes) do not state it; the probe shows it at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_nested.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_nested.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.8-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Intrinsic Function module (Amendment 1): a function reference specifies arguments whose values determine the value of the function for that reference"
+    ],
+    "evidence-1985": {
+     "arguments determine the value": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_func_args.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_func_args-001: MOD(11 3)=02, MOD(17 5)=02, MAX(4 9 2)=09, UPPER-CASE(W)=ABCDE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8 p3",
+      "quote": "the function definition may require the user to specify in the reference to the function a value or set of values for one or more parameters",
+      "check": "OK  §1985:IV.4.3.8 p3  (4.3.8 Uniqueness of Reference)  the text is in p3"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: the same function with different arguments yields the values its definition gives for that reference. The candidates (INTEGER-PART, USING phrase, FUNCTION E) do not state it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_func_args.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_func_args.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.8-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: unless a statement's rules say otherwise, subscripting is evaluated once as the first operation of the statement",
+     "the same for reference modification"
+    ],
+    "evidence-1985": {
+     "subscripting once": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_eval_once.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_eval_once-002: STRING ... WITH POINTER C (PTR) while B, which PTR redefines, becomes 123: C1=0004, C123=0000)",
+     "reference modification once": "covered by the same probe (DELIMITED BY D (PTR:1) stays the X of D (1:1): B2=121, not 101)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8 p4",
+      "quote": "evaluated only once as the first operation of the execution of that statement",
+      "check": "OK  §1985:IV.4.3.8 p4  (4.3.8 Uniqueness of Reference)  the text is in p4"
+     }
+    ],
+    "reason": "Added by Amendment 1. GR-14.6.4-7 states it in 2023, but its 85 cases are INSPECT/STRING/UNSTRING cases whose statements carry rules of their own; the probe uses STRING, which per the 1985 appendix has no rule of its own for its POINTER subscript, and shows the general rule for both subscripting and reference modification.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_eval_once.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_eval_once.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.8.1-4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Inter-Program Communication: a user-defined name is uniquely referenced because a program is contained within, or contains, another program (the scope-of-names conventions)"
+    ],
+    "evidence-1985": {
+     "containment makes a reference unique": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_nested.cob (X and paragraph PB described in S05OUT and S05IN1, each reference unqualified and resolved to its own program; S05IN2 sees the GLOBAL X)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.1 SR4",
+      "quote": "A program is contained within a program or contains another program",
+      "check": "OK  §1985:IV.4.3.8.1 SR4  (4.3.8.1 Qualification)  the text is in SR4"
+     }
+    ],
+    "reason": "Reopened parent. What is left is list item (4) alone: \"A program is contained within a program or contains another program.\" The old targets (COBOL6862 global-name screen, COBOL7282 external-record screen) witnessed the paragraph \"Regardless of the above, ...\" that the split moved to 1985-SR-IV.4.3.8.1-p2. The row text also carries the six general formats of qualification, which are p3's (lead). No candidate states item (4); the nested probe shows it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_nested.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_nested.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.8.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Inter-Program Communication EXTERNAL: one data-name for an external record and another external data item in a containing/contained program is refused",
+     "two programs describing the same external record share it (legal)",
+     "reach bounded to containing/contained programs (siblings escape at 85)",
+     "GLOBAL: a data-name of an item possessing the global attribute names no other data item of the program"
+    ],
+    "evidence-1985": {
+     "external refusal": "covered by conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/pb5427-external-record-name-reused-nested.cob run now at 85 (E:/COBOL-coord/scratch/pb5453/runs/pb5427-external-record-name-reused-nested-001: COBOL7282 at line 28)",
+     "external legal sharing": "covered by conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/pb5427-external-record-name-shared-legal.cob (accept: [85]; run E:/COBOL-coord/scratch/pb5453/runs/pb5427-external-record-name-shared-legal-001: Q)",
+     "sibling reach": "covered by conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/pb5427-external-record-name-reused-sibling-85.cob (accept: [85])",
+     "global refusal": "covered by conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/1985-SR-IV_4_3_8_1-4.cob run now at 85 (E:/COBOL-coord/scratch/pb5453/runs/1985-SR-IV_4_3_8_1-4-001: COBOL6862 at line 20) with control E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_global_ctl.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_global_ctl-001: accepted, AB)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.1 p2",
+      "quote": "must not be used as the name of an external record and as the name of any other external data item",
+      "check": "OK  §1985:IV.4.3.8.1 p2  (4.3.8.1 Qualification)  the text is in p2"
+     },
+     {
+      "cite": "§1985:IV.4.3.8.1 p2",
+      "quote": "must not be used as the name of an item possessing the global attribute",
+      "check": "OK  §1985:IV.4.3.8.1 p2  (4.3.8.1 Qualification)  the text is in p2"
+     }
+    ],
+    "reason": "The paragraph a split carved off 1985-SR-IV.4.3.8.1-4; its witnesses exist in the suite but are tagged to -4 (lead). The candidates are qualification rules (wording only). Note: a data-name subordinate to a GLOBAL record reused elsewhere in the program is accepted (E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_global_sub_dup.cob, run E:/COBOL-coord/scratch/pb5453/runs/s05_global_sub_dup-001), per the ruling kb/Work PB5629 that the record, not its subordinates, possesses the attribute; §1985:X.4.6.4 GR1 makes subordinates global NAMES, which that ruling weighed on the identical 2023 wording.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_global_ctl.cob",
+    "compiler-at-1985": "correct: conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/pb5427-external-record-name-reused-nested.cob, conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/pb5427-external-record-name-shared-legal.cob, conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/1985-SR-IV_4_3_8_1-4.cob with control E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_global_ctl.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: retag the five existing IV.4.3.8@1985 cases from 1985-SR-IV.4.3.8.1-4 to this row and place s05_global_ctl.cob as the global refusal's control",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.8.1-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Format 1: data-name-1 / condition-name-1 IN|OF data-name-2 ... IN|OF file-name-1 | cd-name-1",
+     "Format 2: paragraph-name-1 IN|OF section-name-1",
+     "Format 3: text-name-1 IN|OF library-name-1 (COPY)",
+     "Format 4: LINAGE-COUNTER IN|OF file-name-2",
+     "Format 5: PAGE-COUNTER | LINE-COUNTER IN|OF report-name-1",
+     "Format 6: data-name-3 IN|OF data-name-4 [IN|OF report-name-2] (Report Writer)"
+    ],
+    "evidence-1985": {
+     "Format 1 file-name": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_qual_formats.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_qual_formats-001: F1-K-ON F2-K-OFF)",
+     "Format 1 cd-name": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_qual_cd.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_qual_cd-001: CD=000003 W=000007)",
+     "Format 2": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_qual_formats.cob (S2-PX twice)",
+     "Format 3": "covered by sibling 85 witness wiseowl/cases/XII.2@1985-COPY-STATEMENT/pb5473-copy-every-text-qualified (row 1985-SR-IV.4.3.8.1-L2.7)",
+     "Format 4": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_qual_formats.cob (LC1=03 LC2=02)",
+     "Format 5": "covered by cases/8.4.2.2-Qualification/pb1456_other_report_counters_85",
+     "Format 6": "covered by cases/14.9.49-USE/pb365_report_group_qualified_85 (FMT-8.4.2.2.2 at-85 accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.1 p3",
+      "quote": "The general formats for qualification are",
+      "check": "OK  §1985:IV.4.3.8.1 p3  (4.3.8.1 Qualification)  the text is in p3"
+     }
+    ],
+    "reason": "The row text is only the lead-in \"The general formats for qualification are:\"; the six formats it introduces were folded into 1985-SR-IV.4.3.8.1-4 (lead) and are read here as this row's scope. FMT-8.4.2.2.2 is the 2023 format but has no cd-name or text-name/library-name format; the probes and sibling 85 cases accept every 1985 format.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_qual_formats.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_qual_formats.cob and E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_qual_cd.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.8.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Intrinsic Function module: a function-identifier references the data item that results from evaluating the function (reference modification applies to it)"
+    ],
+    "evidence-1985": {
+     "function-identifier references the result": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_func_args.cob (UP=ABCDE; UPR=BCD from FUNCTION UPPER-CASE (W) (2:3))"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.3.1 p1",
+      "quote": "uniquely references the data item resulting from the evaluation of a function",
+      "check": "OK  §1985:IV.4.3.8.3.1 p1  (4.3.8.3.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it: the function-identifier is used as a data item and reference-modified. The candidates (receiving-operand ban, FUNCTION omission, a MOVE-compatibility rule) do not state it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_func_args.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_func_args.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.8.5.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: an identifier (qualified, subscripted, reference-modified data-name, or a function-identifier) references data uniquely"
+    ],
+    "evidence-1985": {
+     "identifier references unique data": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_uniq_ref.cob (qualified, subscripted and reference-modified identifiers each resolve to one item)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.5.1 p1",
+      "quote": "used to reference data uniquely",
+      "check": "OK  §1985:IV.4.3.8.5.1 p1  (4.3.8.5.1 Function)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but a program shows it. SR-8.4.3.1.3-1 (recursive definition of identifier) has no 85 case and does not state uniqueness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_uniq_ref.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_uniq_ref.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.8.5.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a non-unique data-name must be followed by the qualifiers, subscripts or reference modifiers needed for uniqueness"
+    ],
+    "evidence-1985": {
+     "qualified+subscripted accepted": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-identifier-qual-subscript-85 (PASS)",
+     "insufficient qualification refused": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-identifier-subscript-unqualified-85 (PASS, refused COBOL1639)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.5.1 p2",
+      "quote": "must be followed by a syntactically correct combination of qualifiers, subscripts, or reference modifiers",
+      "check": "OK  §1985:IV.4.3.8.5.1 p2  (4.3.8.5.1 Function)  the text is in p2"
+     }
+    ],
+    "reason": "The candidates are wording-only matches without 85 cases for this requirement; the two prose85 goldens pass on the mint build.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-identifier-qual-subscript-85.cob",
+    "compiler-at-1985": "correct: goldens pb5924-identifier-qual-subscript-85 and pb5924-identifier-subscript-unqualified-85 PASS",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.8.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: an explicitly referenced condition-name must be unique or made unique by qualification and/or subscripting",
+     "except where scope-of-names conventions ensure uniqueness"
+    ],
+    "evidence-1985": {
+     "ambiguous refused / qualified accepted": "covered by goldens E:/COBOL-coord/scratch/prose85/work/85p-08/goldens/pb5924-condname-ambiguous-85 and pb5924-condname-qualified-85 (PASS)",
+     "subscripting": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob",
+     "scope-of-names exception": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_nested.cob for data-names; not shown for a condition-name specifically"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.6 p1",
+      "quote": "a condition-name must be unique or be made unique through qualification and/or subscripting",
+      "check": "OK  §1985:IV.4.3.8.6 p1  (4.3.8.6 Condition-Name)  the text is in p1"
+     }
+    ],
+    "reason": "SR-8.4.2.2.3-1 states uniqueness through qualifiers but has only a refusal (index-name) case at 85; the goldens and probe show the 1985 requirement for condition-names.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob",
+    "compiler-at-1985": "correct: goldens pb5924-condname-ambiguous-85, pb5924-condname-qualified-85 PASS; E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.8.6-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a condition-name of a conditional variable that requires subscripting requires the same subscripting"
+    ],
+    "evidence-1985": {
+     "unsubscripted refused": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_nosub.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_cond_nosub-001: COBOL2270 at line 14)",
+     "control subscripted accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_nosub_ctl.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_cond_nosub_ctl-001: ON)",
+     "two-level subscripting": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob (V-ON OF G1 (2 3))"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.6 p3",
+      "quote": "reference to any of its condition-names also requires the same combination of subscripting",
+      "check": "OK  §1985:IV.4.3.8.6 p3  (4.3.8.6 Condition-Name)  the text is in p3"
+     }
+    ],
+    "reason": "None of the candidates (condition test, OCCURS KEY, SET TRUE) states it; the refusal probe with its one-line control shows it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_nosub.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_nosub.cob with control E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_nosub_ctl.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.8.6-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a condition-name takes the identifier format (qualifiers, then subscripts) with condition-name-1 in place of data-name-1; IN and OF equivalent"
+    ],
+    "evidence-1985": {
+     "combined qualification and subscripting": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_cond_subscript-001: SET V-ON OF V IN E OF G1 (2 3) TO TRUE; IF V-ON IN V OF G1 (1 3); G1=NNNNNY)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.6 p4",
+      "quote": "is exactly that of 'identifier' except that data-name-1 is replaced by condition-name-1",
+      "check": "OK  §1985:IV.4.3.8.6 p4  (4.3.8.6 Condition-Name)  the text is in p4"
+     }
+    ],
+    "reason": "The candidates (date-time argument, IN/OF equivalence, qualifier uniqueness) do not state the condition-name format; the probe shows it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.8.6-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: where a general format writes condition-name, a qualified and/or subscripted condition-name is accepted (IF condition, SET TO TRUE)"
+    ],
+    "evidence-1985": {
+     "qualified/subscripted condition-name in general formats": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob (IF and SET ... TO TRUE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.8.6 p5",
+      "quote": "'condition-name' refers to a condition-name qualified or subscripted, as necessary",
+      "check": "OK  §1985:IV.4.3.8.6 p5  (4.3.8.6 Condition-Name)  the text is in p5"
+     }
+    ],
+    "reason": "Flagged definitional, but it grants a form a program can show: the condition-name operand of IF and SET accepts the qualified, subscripted form.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_cond_subscript.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: a name copied into the Procedure Division by COPY is an explicit reference (uniqueness required)",
+     "an implicit reference (group move over duplicate names) needs no qualification",
+     "PERFORM VARYING implicitly initializes, modifies and evaluates its identifier"
+    ],
+    "evidence-1985": {
+     "COPY text is explicit": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_refs.cob with cpy-bad/S05REF.cpy (run E:/COBOL-coord/scratch/pb5453/runs/s05_refs-002: COBOL1639 at the copied line) and control cpy-ok/S05REF.cpy (run E:/COBOL-coord/scratch/pb5453/runs/s05_refs-001: COPIED 1)",
+     "implicit reference": "covered by the same probe (MOVE G1 TO G2: G2=1)",
+     "PERFORM VARYING implicit references": "covered by the same probe (LOOP 1..3, I=4)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.1 p1",
+      "quote": "copied into the Procedure Division by the processing of a COPY statement",
+      "check": "OK  §1985:IV.4.4.1 p1  (4.4.1 Explicit and Implicit Procedure Division References)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but the definition decides what \"explicitly referenced\" (IV.4.3.8.1) reaches, which a program shows. The candidates are about transfers of control.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_refs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_refs.cob (cpy-ok accepted, cpy-bad refused)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: control passes from statement to statement in written order unless an explicit transfer overrides it"
+    ],
+    "evidence-1985": {
+     "sequential flow": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_flow-001: A1 A2 A3-AFTER-ALTER, falling from P1 into P2)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 p1",
+      "quote": "transfers control from statement to statement in the sequence in which they were written",
+      "check": "OK  §1985:IV.4.4.2 p1  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p1"
+     }
+    ],
+    "reason": "GR-14.6.3-1/-2/-3 state PERFORM/SORT ranges and exception procedures, not the statement-to-statement sequence; the probe shows it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.2-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/I-O declaratives: a statement whose execution invokes a declarative section transfers control to it implicitly",
+     "after the section control returns (per item 1)"
+    ],
+    "evidence-1985": {
+     "implicit transfer to USE section and back": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_decl_flow.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_decl_flow-001: BEFORE-OPEN, IN-DECL FS=35, AFTER-OPEN FS=35)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 GR3",
+      "quote": "an implicit transfer of control to the declarative section occurs",
+      "check": "OK  §1985:IV.4.4.2 GR3  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in GR3"
+     }
+    ],
+    "reason": "Reopened parent; what is left is item (3) on declaratives (the old record's ALTER and dispatcher sites belong to p4 and the other items). GR-14.6.3-3 states the 2023 exception-procedure transfer, but none of its 85 cases runs a declarative; the probe does.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_decl_flow.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_decl_flow.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.2-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: explicit transfer only by a procedure branching or conditional statement (GO TO, IF)",
+     "ALTER itself transfers nothing; the altered GO TO does",
+     "EXIT PROGRAM transfers control only in a called program"
+    ],
+    "evidence-1985": {
+     "GO TO / IF": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob (P4 reached, NOT-IF and NOT-P3 absent)",
+     "ALTER": "covered by the same probe (A3-AFTER-ALTER follows ALTER; GO TO P3 altered to P4)",
+     "EXIT PROGRAM in main / called": "covered by the same probe (AFTER-EXIT-PROGRAM) and by conformance-suite/cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1_transfer_of_control_implicit (accept 85)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 p4",
+      "quote": "The execution of the procedure branching statement ALTER does not in itself constitute an explicit transfer of control",
+      "check": "OK  §1985:IV.4.4.2 p4  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p4"
+     },
+     {
+      "cite": "§1985:IV.4.4.2 p4",
+      "quote": "EXIT PROGRAM causes an explicit transfer of control only when the statement is executed in a called program",
+      "check": "OK  §1985:IV.4.4.2 p4  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p4"
+     }
+    ],
+    "reason": "GR-14.6.3-3 states the explicit-transfer and EXIT PROGRAM sentences and is witnessed at 85, but 2023 has no ALTER; the 1985 scope includes it, so the probe is the own witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob",
+    "class": "removed-form",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.2-p5",
+    "to": [
+     "GR-14.6.3-3"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Nucleus: the next executable statement is the statement to which control passes under the transfer rules"
+    ],
+    "evidence-1985": {
+     "next executable statement followed": "covered by conformance-suite/cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1_transfer_of_control_implicit (accept: [85, 2023]; GR-14.6.3-3 at-85 accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 p5",
+      "quote": "the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred",
+      "check": "OK  §1985:IV.4.4.2 p5  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p5"
+     },
+     {
+      "cite": "§2023:14.6.3 GR3",
+      "quote": "the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred",
+      "check": "OK  §2023:14.6.3 GR3  (Explicit and implicit transfers of control)  the text is in GR3"
+     }
+    ],
+    "reason": "GR-14.6.3-3 carries this sentence word for word, and its 85 case l1_transfer_of_control_implicit follows control to each next executable statement through PERFORM, GO TO, CALL, EXIT PROGRAM and empty procedures.",
+    "probe": null,
+    "compiler-at-1985": "not probed: SAME, witnessed by the pointer's 85 case",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.2-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/Inter-Program Communication: a program with no Procedure Division has no next executable statement (with p7: a called one returns by an implicit EXIT PROGRAM)"
+    ],
+    "evidence-1985": {
+     "no Procedure Division": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob (CALL \"S05FNOP\", a nested program with no Procedure Division: BACK-FROM-NOPD)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 p6",
+      "quote": "There is no next executable statement when the program contains no Procedure Division",
+      "check": "OK  §1985:IV.4.4.2 p6  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p6"
+     }
+    ],
+    "reason": "GR-14.6.3-3 speaks of a program with no procedure division STATEMENTS (its 85 case has PROCEDURE DIVISION with none); 1985 names a program with no Procedure Division at all, which the probe calls.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.2-L2.5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/Inter-Program Communication: the end program header ends the statements; there is no next executable statement after it"
+    ],
+    "evidence-1985": {
+     "end program header": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob (S05FEND falls into END PROGRAM S05FEND and returns: IN-FEND BACK-FROM-END)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 GRL2.5",
+      "quote": "The end program header",
+      "check": "OK  §1985:IV.4.4.2 GRL2.5  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in GRL2.5"
+     }
+    ],
+    "reason": "Reopened parent; what is left is the list item \"The end program header.\" (the old dispatcher record covered the whole list). GR-10.7.4-1 says an end marker ends a unit, not that no statement follows; the probe shows the header ending flow.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.2-p7",
+    "to": [
+     "GR-14.6.3-3"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "Nucleus/Inter-Program Communication: with no next executable statement in the nondeclarative part of a called program, an implicit EXIT PROGRAM is executed",
+     "otherwise flow is undefined (nothing to show)"
+    ],
+    "evidence-1985": {
+     "implicit EXIT PROGRAM when called": "covered by conformance-suite/cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1_transfer_of_control_implicit (L1TOCSX and L1TOCSE return to the caller: M4, M5) and probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 p7",
+      "quote": "in which case an implicit EXIT PROGRAM statement is executed",
+      "check": "OK  §1985:IV.4.4.2 p7  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p7"
+     },
+     {
+      "cite": "§2023:14.6.3 GR3",
+      "quote": "an implicit GOBACK statement without any optional phrases is executed",
+      "check": "OK  §2023:14.6.3 GR3  (Explicit and implicit transfers of control)  the text is in GR3"
+     }
+    ],
+    "reason": "1985 defines only the called-program case: \"an implicit EXIT PROGRAM statement is executed\". GR-14.6.3-3 states an implicit GOBACK there, which in a called program returns to the caller as EXIT PROGRAM does; its 85 case l1_transfer_of_control_implicit calls two programs that end without EXIT PROGRAM and returns from both. The 2023 main-program case fills what 1985 leaves undefined.",
+    "probe": null,
+    "compiler-at-1985": "not probed: SAME, witnessed by the pointer's 85 case (also E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob)",
+    "class": null,
+    "needs": null,
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: an attribute not specified explicitly takes its default (e.g. USAGE DISPLAY)"
+    ],
+    "evidence-1985": {
+     "implicit attribute = default": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_attr.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_attr-001: G=123456, DISPLAY-USAGE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.3 p1",
+      "quote": "If an attribute has not been specified explicitly, then the attribute takes on the default specification",
+      "check": "OK  §1985:IV.4.4.3 p1  (4.4.3 Explicit and Implicit Attributes)  the text is in p1"
+     }
+    ],
+    "reason": "Flagged definitional, but its example is observable: an item with no USAGE clause is stored exactly as USAGE DISPLAY. The candidates (documentation item, program-name scope) do not state it.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_attr.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_attr.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: scope terminators delimit the scope of certain statements",
+     "two kinds: explicit (END-x) and implicit (separator period)"
+    ],
+    "evidence-1985": {
+     "explicit": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "implicit": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_flow.cob (IF N = 0 GO TO P5. ended by the period) and by cases/14.5.3.2-Explicit-scope-termination/l1c31_scope_termination (GR-14.5.3.3-1/-3 at-85 accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.4 p1",
+      "quote": "Scope terminators serve to delimit the scope of certain Procedure Division statements",
+      "check": "OK  §1985:IV.4.4.4 p1  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in p1"
+     }
+    ],
+    "reason": "GR-14.5.3.3-x state the 2023 implicit termination and GR-14.5.3.2-x the explicit; no one pointer states the 1985 paragraph whole; the probes show both kinds at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.4-T1.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/I-O/Sort-Merge/Communication: END-ADD, END-MULTIPLY, END-SEARCH are explicit scope terminators, each ending its statement's conditional phrase"
+    ],
+    "evidence-1985": {
+     "END-ADD": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-MULTIPLY": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-SEARCH": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.4 Table 1 row 1",
+      "quote": "END-ADD END-MULTIPLY END-SEARCH",
+      "check": "OK  §1985:IV.4.4.4 Table 1 row 1  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in Table 1 row 1"
+     }
+    ],
+    "reason": "A row of the 1985 table of explicit scope terminators (flagged definitional; a program shows each terminator ending its statement). Each conditional statement sits inside IF ... END-IF with a DISPLAY after its terminator, which runs only because the terminator closed the conditional phrase: END-ADD 0011, END-MULTIPLY 0022, END-SEARCH. GR-14.5.3.3-x state implicit termination only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.4-T1.2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/I-O/Sort-Merge/Communication: END-CALL, END-PERFORM, END-START are explicit scope terminators, each ending its statement's conditional phrase"
+    ],
+    "evidence-1985": {
+     "END-CALL": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-PERFORM": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-START": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.4 Table 1 row 2",
+      "quote": "END-CALL END-PERFORM END-START",
+      "check": "OK  §1985:IV.4.4.4 Table 1 row 2  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in Table 1 row 2"
+     }
+    ],
+    "reason": "A row of the 1985 table of explicit scope terminators (flagged definitional; a program shows each terminator ending its statement). Each conditional statement sits inside IF ... END-IF with a DISPLAY after its terminator, which runs only because the terminator closed the conditional phrase: END-CALL, END-PERFORM 0024, END-START 00 (indexed file). GR-14.5.3.3-x state implicit termination only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.4-T1.3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/I-O/Sort-Merge/Communication: END-COMPUTE, END-READ, END-STRING are explicit scope terminators, each ending its statement's conditional phrase"
+    ],
+    "evidence-1985": {
+     "END-COMPUTE": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-READ": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-STRING": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.4 Table 1 row 3",
+      "quote": "END-COMPUTE END-READ END-STRING",
+      "check": "OK  §1985:IV.4.4.4 Table 1 row 3  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in Table 1 row 3"
+     }
+    ],
+    "reason": "A row of the 1985 table of explicit scope terminators (flagged definitional; a program shows each terminator ending its statement). Each conditional statement sits inside IF ... END-IF with a DISPLAY after its terminator, which runs only because the terminator closed the conditional phrase: END-COMPUTE 0025, END-READ K1V1, END-STRING ABCD. GR-14.5.3.3-x state implicit termination only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.4-T1.4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/I-O/Sort-Merge/Communication: END-DELETE, END-RECEIVE, END-SUBTRACT are explicit scope terminators, each ending its statement's conditional phrase"
+    ],
+    "evidence-1985": {
+     "END-DELETE": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-RECEIVE": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_end_receive_run.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_end_receive_run-001)",
+     "END-SUBTRACT": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.4 Table 1 row 4",
+      "quote": "END-DELETE END-RECEIVE END-SUBTRACT",
+      "check": "OK  §1985:IV.4.4.4 Table 1 row 4  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in Table 1 row 4"
+     },
+     {
+      "cite": "§1985:XIV.3.5.4 GR5",
+      "quote": "control is then transferred as if data had been made available",
+      "check": "OK  §1985:XIV.3.5.4 GR5  (3.5.4 General Rules)  the text is in GR5"
+     }
+    ],
+    "reason": "A row of the 1985 table of explicit scope terminators (flagged definitional; a program shows each terminator ending its statement). Each conditional statement sits inside IF ... END-IF with a DISPLAY after its terminator, which runs only because the terminator closed the conditional phrase: END-DELETE 00, END-SUBTRACT 0024; END-RECEIVE by E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_end_receive_run.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_end_receive_run-001: END-RECEIVE printed; the queue is unknown so per §1985:XIV.3.5.4 GR5 c control goes on as if data were available and the NO DATA phrase does not run). GR-14.5.3.3-x state implicit termination only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob and E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_end_receive_run.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.4-T1.5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/I-O/Sort-Merge/Communication: END-DIVIDE, END-RETURN, END-UNSTRING are explicit scope terminators, each ending its statement's conditional phrase"
+    ],
+    "evidence-1985": {
+     "END-DIVIDE": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-RETURN": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-UNSTRING": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.4 Table 1 row 5",
+      "quote": "END-DIVIDE END-RETURN END-UNSTRING",
+      "check": "OK  §1985:IV.4.4.4 Table 1 row 5  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in Table 1 row 5"
+     }
+    ],
+    "reason": "A row of the 1985 table of explicit scope terminators (flagged definitional; a program shows each terminator ending its statement). Each conditional statement sits inside IF ... END-IF with a DISPLAY after its terminator, which runs only because the terminator closed the conditional phrase: END-DIVIDE 0012, END-RETURN AA, END-UNSTRING XY Z. GR-14.5.3.3-x state implicit termination only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.4-T1.6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/I-O/Sort-Merge/Communication: END-EVALUATE, END-REWRITE, END-WRITE are explicit scope terminators, each ending its statement's conditional phrase"
+    ],
+    "evidence-1985": {
+     "END-EVALUATE": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-REWRITE": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)",
+     "END-WRITE": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.4 Table 1 row 6",
+      "quote": "END-EVALUATE END-REWRITE END-WRITE",
+      "check": "OK  §1985:IV.4.4.4 Table 1 row 6  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in Table 1 row 6"
+     }
+    ],
+    "reason": "A row of the 1985 table of explicit scope terminators (flagged definitional; a program shows each terminator ending its statement). Each conditional statement sits inside IF ... END-IF with a DISPLAY after its terminator, which runs only because the terminator closed the conditional phrase: END-EVALUATE, END-REWRITE 00, END-WRITE 00. GR-14.5.3.3-x state implicit termination only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.4-T1.7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus/I-O/Sort-Merge/Communication: END-IF are explicit scope terminators, each ending its statement's conditional phrase"
+    ],
+    "evidence-1985": {
+     "END-IF": "covered by probe E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob (run E:/COBOL-coord/scratch/pb5453/runs/s05_scope_terms-002)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.4 Table 1 row 7",
+      "quote": null,
+      "check": "OK  §1985:IV.4.4.4 Table 1 row 7 (structure only) ok"
+     }
+    ],
+    "reason": "A row of the 1985 table of explicit scope terminators (flagged definitional; a program shows each terminator ending its statement). Each conditional statement sits inside IF ... END-IF with a DISPLAY after its terminator, which runs only because the terminator closed the conditional phrase: END-IF. GR-14.5.3.3-x state implicit termination only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05/s05_scope_terms.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness: place the probe as the row's own 85 test",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-SR-IV.4.3.8.1-4",
+    "what": "The row text carries, after list item (4), the six general formats of qualification (Format 1 to Format 6), which are the content of the paragraph 1985-SR-IV.4.3.8.1-p3 (\"The general formats for qualification are:\"); p3 holds only its lead-in. The formats belong to p3.",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py 1985-SR-IV.4.3.8.1-4 1985-SR-IV.4.3.8.1-p3",
+    "site": "docs/rearchitecture/spec-rule-catalog-1985.json#1985-SR-IV.4.3.8.1-4"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-SR-IV.4.3.8.1-p2",
+    "what": "Five suite cases tagged rules: [1985-SR-IV.4.3.8.1-4] witness the \"Regardless of the above, ...\" paragraph the split made 1985-SR-IV.4.3.8.1-p2: pb5427-external-record-name-reused-nested, pb5427-external-record-name-reused-sibling, pb5427-external-record-name-reused-sibling-85, pb5427-external-record-name-shared-legal, 1985-SR-IV_4_3_8_1-4. Their rules: lines (and the -4 record code-location/test-ref) should move to -p2.",
+    "repro": "grep -l \"1985-SR-IV.4.3.8.1-4\" \"conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/\"*.cob (mint tree)",
+    "site": "conformance-suite/cases/IV.4.3.8@1985-Uniqueness-of-Reference/"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-05",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.4.2-p5",
+    "verdict": "UPHELD",
+    "reason": "Strongest refutation tried: the term is defined 'according to the rules above', and the 1985 rules above differ from 2023's (ALTER, declaratives, no exception procedures), so the referent could differ. But p5 only names the term; it imposes no behaviour of its own beyond the rules it refers to, each of which is its own 1985 row (p1, -1..-3, p4, p6/L2.x, p7) judged separately. The 2023 sentence is word for word, and l1_transfer_of_control_implicit (accept [85, 2023]) runs at 85 following control to each next executable statement through PERFORM of empty procedures, CALL, EXIT PROGRAM and fall-through. No reachable 1985 form escapes the pointer for this sentence.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 p5",
+      "quote": "the term 'next executable statement' is used to refer",
+      "check": "OK  §1985:IV.4.4.2 p5  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p5"
+     },
+     {
+      "cite": "§2023:14.6.3 GR3",
+      "quote": "an implicit GOBACK statement without any optional phrases is executed",
+      "check": "OK  §2023:14.6.3 GR3  (Explicit and implicit transfers of control)  the text is in GR3"
+     }
+    ],
+    "class": null,
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite case l1_transfer_of_control_implicit runs at 85 (pointer's at-85 accepted)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.4.2-p7",
+    "verdict": "UPHELD",
+    "reason": "Strongest refutation tried: 1985 requires an implicit EXIT PROGRAM only in the nondeclarative portion of a CALLed program and leaves every other case (main program falling off its end, declaratives) undefined, while 2023 requires an implicit GOBACK in a main program too. Undefined permits the 2023 behaviour, so 85 need refuse nothing 2023 accepts; in a called program GOBACK acts as EXIT PROGRAM. Scope also reaches a called program with NO Procedure Division (p6) and a contained program reaching its end program header; the pointer's 85 case calls separately compiled programs that fall off their end (L1TOCSX) and have an empty Procedure Division (L1TOCSE), both returning (M4, M5). I re-ran the reader's probe at --std 85 as my own copy: contained S05FEND reaching END PROGRAM returns (BACK-FROM-END) and S05FNOP with no Procedure Division returns (BACK-FROM-NOPD). No difference found.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.4.2 p7",
+      "quote": "in which case an implicit EXIT PROGRAM statement is executed",
+      "check": "OK  §1985:IV.4.4.2 p7  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p7"
+     },
+     {
+      "cite": "§1985:IV.4.4.2 p6",
+      "quote": "There is no next executable statement when the program contains no Procedure Division",
+      "check": "OK  §1985:IV.4.4.2 p6  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in p6"
+     },
+     {
+      "cite": "§2023:14.6.3 GR3",
+      "quote": "an implicit GOBACK statement without any optional phrases is executed",
+      "check": "OK  §2023:14.6.3 GR3  (Explicit and implicit transfers of control)  the text is in GR3"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-05-refute/s05r_flow.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-05-refute/s05r_flow.cob at --std 85 prints IN-FEND, BACK-FROM-END, BACK-FROM-NOPD"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "8471164a8e80c5e54f56ed73d8bd450ca21b5c1596ff8c37566933a7535ca15a",
+  "read": "33114540b8e8d4c7289af1106ef8fc8a6d98978a7f303406904f27fe18350550",
+  "refute": "640e0557a59c78566d75565cf20da425d99b9de2772be23f15e0016b651be6fe"
+ }
+}

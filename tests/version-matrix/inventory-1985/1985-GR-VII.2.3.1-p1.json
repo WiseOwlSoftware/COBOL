@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.2.3.1-p1",
+ "rule-digest": "c2828a433cc7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#FileControlBinder; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlParagraph",
+ "test-ref": "conformance:cases/VII.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-VII_2_3_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (r01b_seq_entry_all_clauses_var.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Upholding the refuter: the entry 'declares the relevant physical attributes of a sequential file', and its 1985 format holds PADDING CHARACTER, which 2023 dropped; the pointer's 85 case declares SELECT and ASSIGN only. The refuter's r01b run (re-read this pass) accepts every clause in non-canonical order and does I-O correctly. Code location located after the read: FileControlBinder binds the file control entry; grammar fileControlParagraph"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.3.1-p1",
+ "rule-digest": "8bd745c91737",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitParagraphDefinition; src/WiseOwl.Cobol.Frontend/Preprocessor/AreaPlacement.cs#AreaPlacement",
+ "test-ref": "conformance:cases/IV.7.3@1985-DIVISION-SECTION-PARAGRAPH-FORMATS/pb5924-division-header-area-b-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.7.3@1985-DIVISION-SECTION-PARAGRAPH-FORMATS/pb5924-division-header-area-b-85), joined as the row's own test. The read: \"The division header must start in area A.\" No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope. The prose85 goldens (PASS on the mint build) refuse a header in area B and accept one at column 11. Code location located after the read: AreaPlacementPass cites 1985:IV.7.3.2/7.3.3"
+}

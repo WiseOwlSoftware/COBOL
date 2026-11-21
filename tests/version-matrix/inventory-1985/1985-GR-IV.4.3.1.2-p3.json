@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.1.2-p3",
+ "rule-digest": "70fe8a9fad60",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileControlBinder; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#RecordFraming",
+ "test-ref": "conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/pb5924-logical-records-in-blocks-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/pb5924-logical-records-in-blocks-85), joined as the row's own test. The read: 'The size of a physical record is hardware dependent and bears no direct relationship to the size of the file of information contained on a device.' The observable half (a file not a multiple of the block) is witnessed; the 'convenient to a particular computer' half obliges nothing observable. No candidate states it with an 85 witness: the candidates are wording matches only (RECORD, BLOCK CONTAINS CHARACTERS). Code location located after the read: logical vs physical record: file section binder and record framing"
+}

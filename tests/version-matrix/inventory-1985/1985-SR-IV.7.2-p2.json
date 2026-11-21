@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2-p2",
+ "rule-digest": "9717e77707a1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertLine; src/WiseOwl.Cobol.Frontend/Preprocessor/FixedFormLine.cs#FixedFormLine",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-GR-IV_7_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p08_refformat.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Definitional (catalog flag) but showable through what it bounds: 'Margin L is immediately to the left of the leftmost character position of a line.' No 2023 catalog row defines the margins (§2023:6.3.1 has none; DOC-A.1-158 is margin R documentation with no at-85 case). the 1985 reference format line diagram (IV.7.2): margins L, C, A, B, R bound the sequence number area (1-6), indicator area (7), area A (8-11) and area B (12 to margin R). Code location located after the read: FixedFormLine splits sequence/indicator/program-text regions"
+}

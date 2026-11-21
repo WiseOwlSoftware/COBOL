@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.4.2-p3",
+ "rule-digest": "145eded7c939",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#ConfigurationStep",
+ "test-ref": "conformance:cases/VI.4@1985-ENVIRONMENT-DIVISION-IN-THE-NUCLEUS-MODULE/pb5924-cfg-contained-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.4@1985-ENVIRONMENT-DIVISION-IN-THE-NUCLEUS-MODULE/pb5924-cfg-contained-85), joined as the row's own test. The read: \"The Configuration Section must not be stated in a program which is contained directly or indirectly within another program.\" SR-12.3.3-1 states the same rule but has no case running at 85, so it cannot carry the row; the prose85 goldens witness it at 85. Code location located after the read: cites §1985:VI.4.2 at DataBinder.cs:392 inside BindDeclarations; ConfigurationStep owns contained-unit configuration"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.2.1.4-p4",
+ "rule-digest": "b8be086bb293",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#ChoiceIndicators; src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#UnrepeatedElements",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/1985-SR-IV_2_1_4-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (r04_choice_indicators_ok.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'An option is selected by specifying one of the possibilities from a stack of alternative possibilities or by specifying a unique combination of possibilities from a series of brackets, braces, or choice indicators.' A grant: the refuter's accepted r04 selects COMMON INITIAL in both orders and COMMON alone, which p2 (braces alone) does not grant, so the arm naming p2 fails and the row has its own accepted witness at 85. Code location located after the read: ChoiceIndicators/UnrepeatedElements cite 1985:IV.2.1.4 for stacked alternatives"
+}

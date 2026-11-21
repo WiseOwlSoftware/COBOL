@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "PROCEDURE DIVISION USING parameter 'LK-G1' is not a level-01/77 LINKAGE SECTION item"}

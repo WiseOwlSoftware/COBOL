@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.3-p1",
+ "rule-digest": "94731a005d65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb528_picture_composition_legal_85",
+ "notes": "Own verdict from the read lineage-reads-1985/s-03.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.40.3-2, witnessed at 85 by the cases test-ref names. The read: Flagged definitional, but testable. The 1985 paragraph says a PICTURE string is the currency symbol and combinations of COBOL characters and defers to the PICTURE clause; 2023's SR2 says the same (its NOTE 1 names the currency symbol and the COBOL repertoire). The pointer's 85 case composes legal strings with the currency symbol. Cited: §1985:IV.4.2.2.3 p1."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.4-p1",
+ "rule-digest": "0d1a63603bd3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindCondition",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02",
+ "notes": "Own witness from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02), joined as the row's own test. The read: 'the evaluation of the conditions within an entire complex condition begins at the left of the entire complex condition and proceeds according to the following rule recursively applied'. The 2023 lead is uncataloged prose; GR-8.8.4.13-1 is not witnessed at 85 per the view. g85_bf15_02 (accept 85) observes the evaluation order through FUNCTION RANDOM seeds. Code location located after the read: hierarchy of same-operator sequences within a level of inclusiveness"
+}

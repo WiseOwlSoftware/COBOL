@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-AR-A.2.2-p1",
+ "rule-digest": "0f303c009aad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntrinsicArgumentRules",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-AR-A_2_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (s19_p18_fn_args.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"These arguments can be specified as identifiers, as arithmetic expressions, or as literals. The definition of a function specifies the number of arguments required, which can be zero, one, or more ... The order in which arguments are specified ... determines the interpretation\". The 2023 15.3 candidates have no 85 case (at-85 empty); the siblings' KEPT pointers do not witness this paragraph. Code location located after the read: BindIntrinsic binds function-identifier arguments; IntrinsicArgumentRules holds per-function argument schemas"
+}

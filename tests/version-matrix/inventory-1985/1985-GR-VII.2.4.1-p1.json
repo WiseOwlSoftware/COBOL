@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.2.4.1-p1",
+ "rule-digest": "8f2a088f0691",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessModeClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/VII.2.4@1985-ACCESS-MODE-CLAUSE/g85_bf19_05",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VII.2.4@1985-ACCESS-MODE-CLAUSE/g85_bf19_05), joined as the row's own test. The read: The pointers are GR-12.4.5.5.3-1 (default sequential; no 85 case) and the 2023 format with RANDOM/DYNAMIC (whose 85 case is about those, not about a sequential file). The 1985 case g85_bf19_05 (rules 1985-GR-VII.2.4.3-1 and -2) runs at 85 and shows the access order. Code location located after the read: ACCESS MODE grammar and file-control binder; cites 1985:VII.2.4"
+}

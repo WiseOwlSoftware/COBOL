@@ -1,0 +1,4 @@
+OK   INTEGER-PART value 1
+OK   INTEGER-PART value 2
+OK   INTEGER-PART is an integer operand
+PASS

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.3-p6",
+ "rule-digest": "ca40aa0b11cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#CobolLiteral",
+ "test-ref": "conformance:cases/IV.4.2.2.2@1985-Literals/1985-SR-IV_4_2_2_2_3-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with its probe (p16_figcon.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No candidate with an 85 witness states it; FMT-8.3.3.6.2 shows ALL as a separate word but has no 85 case. The probe witnesses it. Code location located after the read: ALL constructs distinct from the bare words; AllLiteralRaw"
+}

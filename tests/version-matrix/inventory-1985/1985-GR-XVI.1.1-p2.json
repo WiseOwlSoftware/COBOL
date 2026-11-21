@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XVI.1.1-p2",
+ "rule-digest": "21f0e20d3545",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#MeaningKept; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#Segmentation",
+ "test-ref": "conformance:cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-1), joined as the row's own test. The read: \"The Segmentation module is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.\" An obsolete element is still an element of 1985 (the element summary's letter Z marks the presence of the element within its level), so the sentence's observable consequent at 85 is the module's presence. Read as its siblings were (VI.3.2-p2, VI.4.4.1-p1, VII.2.12-p1, XV.1.1-p3: DIFFERENT removed-form, correct by a presence witness). 2023 has no Segmentation module. Code location located after the read: Segmentation.MeaningKept decides by edition whether segmentation keeps meaning (obsolete element)"
+}

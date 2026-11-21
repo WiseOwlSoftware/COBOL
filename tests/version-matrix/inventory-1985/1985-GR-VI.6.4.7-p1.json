@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4.7-p1",
+ "rule-digest": "c5843b7ab11d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindClassConditionOn",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_7-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with its probe (p02_class_cond_incompatible.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The candidates are unrelated (SR-13.18.63.3-7 is a VALUE rule; GR-13.18.11.4-3 is the 2023 CLASS clause; GR-8.8.4.4.4-3 is the class test alone). The 1985 text makes every reference undefined 'Except for the class condition', so the one observable consequence is that a class condition on incompatible content works. p02 puts 'A1B' in a PIC 9(3) item through a redefinition: NUMERIC answers NOT NUMERIC, and on '123' NUMERIC. The undefined remainder has nothing to witness. Code location located after the read: class condition is the exception to the content-compatibility rule"
+}

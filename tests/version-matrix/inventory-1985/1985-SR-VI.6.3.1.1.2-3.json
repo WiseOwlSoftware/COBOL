@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.1.1.2-3",
+ "rule-digest": "9b9e211f26e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#RelationComparability",
+ "test-ref": "conformance:cases/VI.6.3.1.1@1985-Relation-Condition/1985-SR-VI_6_3_1_1_2-3",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.3.1.1@1985-Relation-Condition/1985-SR-VI_6_3_1_1_2-3), joined as the row's own test. The read: Reopened parent: what is left is item (3) alone: 'A noninteger numeric operand cannot be compared to a nonnumeric operand.' The old target GR-8.8.4.2.1-6 lists the permitted integer pair; its 85 cases are accepted programs and it has no diagnosed-only case at 85, so it does not witness this restriction. The row's own suite case (named for this id) is refused at 85 with COBOL2532. Code location located after the read: noninteger numeric vs nonnumeric comparison refused; cites §1985:VI.6.3.1.1.2"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.5-T1",
+ "rule-digest": "e48fdb71973c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#MessageControl; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath",
+ "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_5-T1",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with its probe (p05_cd_status_65_error_6.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The table: each status value, its meaning and the statements it can follow. Every value is shown at 85: the cases under conformance-suite/cases/XIV.*@1985 run here and match, and p05 and p06 show 65 and 9x. No 2023 counterpart (the candidates DOC-A.1-103, DOC-A.1-218 and GR-9.1.13.2-2 are I-O status rules). Code location located after the read: status key / error key contents after each statement produced by MessageControl run-time; statements bound by CommunicationBinder"
+}

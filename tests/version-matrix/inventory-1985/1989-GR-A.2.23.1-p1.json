@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.23.1-p1",
+ "rule-digest": "05829f4d9a69",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#MaxExact; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/A.2.23@1985-MAX-FUNCTION/1989-GR-A_2_23_1-T1_4",
+ "notes": "Own witness from the read lineage-reads-1985/s-20.json: the reader showed the compiler correct at 85 with its probe (max-numeric-85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1989: 'The MAX function returns the content of the argument-1 that contains the maximum value. The type of this function depends upon the argument types as follows:' The 2023 text states each function's type only in its 15.n.1 General paragraph, which has no catalog row (no candidate's text names the type); the candidates (FMT-15.59.2 (85 accepted 0, diagnosed-only 0), RV-15.59.4-3 (85 accepted 0, diagnosed-only 0), AR-15.59.3-3 (85 accepted 0, diagnosed-only 0)) state the format, the arguments or the returned value, so no pointer states the whole 1985 paragraph with an 85 witness. The probes show the greatest argument's content returned for numeric, integer and alphanumeric arguments. Code location located after the read: A.2.23 function: runtime member computes it; IntrinsicCatalog declares its signature"
+}

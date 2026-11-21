@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.5-p3",
+ "rule-digest": "58827fee7d21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Configuration.cs#SymbolTable",
+ "test-ref": "conformance:cases/IV.4@1985-LANGUAGE-CONCEPTS/1985-GR-IV_4_5-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p01_switch_scope_rununit.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: \"The implementor defines the scope (program, run unit, etc.) of each external switch and any facility external to COBOL which may be used to modify the status\". GR-12.3.7.4-4 states the same requirement but has no case in at-85 (accepted and diagnosed-only empty), so it cannot carry a SAME. p01 shows the documented run-unit scope at 85; the external facility needs an environment-set run, which run_probe does not provide. Code location located after the read: external switch mapping handled in SymbolTable configuration (SPECIAL-NAMES switches)"
+}

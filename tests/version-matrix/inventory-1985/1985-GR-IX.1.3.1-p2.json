@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IX.1.3.1-p2",
+ "rule-digest": "43b65b8d1df4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#IndexedConnector",
+ "test-ref": "conformance:cases/IX.1.3@1985-LANGUAGE-CONCEPTS/pb5924-idx-prime-key-unique-unchanged-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IX.1.3@1985-LANGUAGE-CONCEPTS/pb5924-idx-prime-key-unique-unchanged-85), joined as the row's own test. The read: GR-14.9.51.4-36 (l1c37_indexed_dup_prime_key) covers uniqueness on WRITE only. The 1985 text also forbids changing the key when updating. The prose85 golden that witnesses both PASSES on the mint build. Code location located after the read: primary index maintained on write/rewrite/delete"
+}

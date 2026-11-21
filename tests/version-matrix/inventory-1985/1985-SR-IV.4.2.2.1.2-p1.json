@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.2-p1",
+ "rule-digest": "548ec5d33936",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameRegistry.cs#ImplementorNameRegistry; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#WordCharacterScreen",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/pb5924-sysname-trailing-hyphen-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.2.2.1@1985-COBOL-Words/pb5924-sysname-trailing-hyphen-85), joined as the row's own test. The read: 1985 restricts the characters of a system-name. DOC-A.1-198 (85 case l1c32) says only that the formation rules are implementor-defined; no 2023 row states the character set and the hyphen placement with an 85 witness. prose85's goldens witness it. Code location located after the read: system-name formation rules (trailing hyphen etc.)"
+}

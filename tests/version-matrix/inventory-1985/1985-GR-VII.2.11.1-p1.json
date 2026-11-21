@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.2.11.1-p1",
+ "rule-digest": "49fdf77fe6bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#multipleFileClause",
+ "test-ref": "conformance:cases/VII.2.11@1985-MULTIPLE-FILE-TAPE-CLAUSE/1985-GR-VII_2_11_3-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VII.2.11@1985-MULTIPLE-FILE-TAPE-CLAUSE/1985-GR-VII_2_11_3-1), joined as the row's own test. The read: The clause was deleted after 1985; the candidates are unrelated (RECORD DELIMITER STANDARD-1, VARYING, VALUE). The 1985 MULTIPLE FILE TAPE cases run at 85. Code location located after the read: MULTIPLE FILE TAPE binder screen; cites 1985:VII.2.11"
+}

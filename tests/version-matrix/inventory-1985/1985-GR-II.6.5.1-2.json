@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-II.6.5.1-2",
+ "rule-digest": "a97403eb7cbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#DispatchCall; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_perform_range_composition; conformance:cases/14.9.28-PERFORM/pb440_perform_empty_range_85; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted",
+ "notes": "Own verdict from the read lineage-reads-1985/s-01.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.28.4-5, witnessed at 85 by the cases test-ref names. The read: Item 2 of the list: PERFORM transfers control. 2023's PERFORM general rule 5 states the transfer to the first statement of the range and the implicit return; both pointer cases run at 85. Cited: §1985:II.6.5.1 GR2."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.1.2-p3",
+ "rule-digest": "21bb8eac0f9d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+ "test-ref": "conformance:cases/VI.6.3.1@1985-Simple-Conditions/1985-GR-VI_6_3_1_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_class.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985 (as amended): 'Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.' 2023 permits NUMERIC on any numeric item (SR-8.8.4.4.3-8) and national usage, so it differs; GR-8.8.4.4.4-1 has no 85 case. Code location located after the read: cites §1985:VI.6.3.1.2 at ClassConditionModel.cs:62 (usage DISPLAY rule)"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.4-p2",
+ "rule-digest": "522f7103c7ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicSig",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-GR-A_2_4-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (g3-fn-table.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The Arguments column defines the type and number of arguments as follows:\" The column constrains the user's program (which argument types and how many a call may give). g3-fn-table calls each function with the type and count its column gives and is accepted; g3-fn-argbad, one line changed (SQRT, column N1, given an alphanumeric item), is refused. The first reader's DOUBTFUL (presentation) is replaced: Table 1 and its legend state what a program may write, which a program can show. No 2023 rule states this text with an 85 witness. Code location located after the read: IntrinsicSig records type and argument count of each function"
+}

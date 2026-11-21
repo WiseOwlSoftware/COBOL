@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XV.1.2-p2",
+ "rule-digest": "1b97b16d8755",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useDebugTarget; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#debuggingModeClause; src/WiseOwl.Cobol.Compiler/Binding/ImplicitRegisters.cs#ActivateDebugRegisters",
+ "test-ref": "conformance:cases/XV.1@1985-INTRODUCTION-TO-THE-DEBUG-MODULE/1985-GR-XV_1_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (p02_dbg_switch.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"Debug level 2 provides the full COBOL debugging facility.\" Boxed, so --std 85 implements it; the level-2 subjects of USE FOR DEBUGGING (identifier, file-name, cd-name) each have an 85 case that is accepted and fires. 2023 removed the Debug module; the candidates (FMT-13.18.26.2 and its rules) are unrelated wording matches. Code location located after the read: Debug module: USE FOR DEBUGGING grammar, WITH DEBUGGING MODE clause, DEBUG-ITEM register activation"
+}

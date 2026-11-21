@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2-p9",
+ "rule-digest": "1dcd20db1f40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#AreaAt; src/WiseOwl.Cobol.Frontend/Preprocessor/FixedFormLine.cs#IsAreaAOffset",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-SR-IV_7_2-p9",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p09_areas_ok.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'Area A occupies character positions 8, 9, 10, and 11, and is between margin A and margin B.' No 2023 row (2023 fixed form has no areas). Accepted and refused placements fix area A at 8-11. Code location located after the read: ReferenceFormatMap.AreaAt and FixedFormLine.IsAreaAOffset define areas A and B"
+}

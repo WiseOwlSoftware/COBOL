@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2.5-p1",
+ "rule-digest": "c48e40be49de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertLine",
+ "test-ref": "conformance:cases/IV.7.2@1985-REFERENCE-FORMAT-REPRESENTATION/1985-SR-IV_7_2_5-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p11_pseudo_text_area_a.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The text words and the separator space comprising pseudo-text may start in either area A or area B. If, however, there is a hyphen in the indicator area of a line which follows the opening pseudo-text delimiter, area A of the line must be blank' (Amendment 2 wording). No 2023 row: 2023 has no areas. The grant needs an accepted program, which p11 supplies; the goldens cover the continuation half. (A first p11 draft placed DISPLAY in area A of pseudo-text-2; the compiler refused it because the word lands in area A of the result, which XII.2.4 GR9 / XII.3.4 GR10 require: that is not this row's permission.) Code location located after the read: pseudo-text text words placed in either area by the reference format converter and REPLACE processor"
+}

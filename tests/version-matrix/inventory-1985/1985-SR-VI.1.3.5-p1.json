@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.1.3.5-p1",
+ "rule-digest": "5d208e64cc41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#IntrinsicBinder; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/VI.1.3@1985-RESTRICTIONS-ON-OVERALL-LANGUAGE/1985-SR-VI_1_3_5-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with its probe (t-function-85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.\" The candidates are leap-second and foreign-runtime rules (wording-only). Code location located after the read: IntrinsicBinder binds FUNCTION references; functionCall is the grammar rule for function-identifiers"
+}

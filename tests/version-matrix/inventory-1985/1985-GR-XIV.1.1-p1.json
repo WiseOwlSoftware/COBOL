@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIV.1.1-p1",
+ "rule-digest": "96c922d393a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindReceive",
+ "test-ref": "conformance:cases/XIV.1@1985-INTRODUCTION-TO-THE-COMMUNICATION-MODULE/1985-GR-XIV_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with its probe (p07_cd_record_description.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program shows it: \"The Communication module provides the ability to access, process, and create messages or portions thereof. It provides the ability to communicate through a message control system (MCS) with communication devices.\" The 1985 communication module left the standard in 2014; the 2023 candidates (locale, SEND size, MODULE-NAME) are wording-only. The 85 SEND and RECEIVE cases run and match. Code location located after the read: Communication module: section grammar and SEND/RECEIVE binding"
+}

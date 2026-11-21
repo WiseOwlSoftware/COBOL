@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.3.3.1-p1",
+ "rule-digest": "d3c0baab5b08",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ImplicitRegisters.cs#ImplicitRegisters; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#CounterResolver",
+ "test-ref": "conformance:cases/IV.4.2.2.1.3.3@1985-Special-Purpose-Words/1985-GR-IV_4_2_2_1_3_3_1-2",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with its probe (p09_linage.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The candidates (GR-13.18.40.5-4, GR-8.5.1.6.4-2, GR-8.5.1.3.2-3) are wording matches with no bearing; no 2023 row with an 85 witness states the general special-register rule. The probes witness use as identifiers and qualification at 85; the one-per-program clause is not shown. Code location located after the read: special registers storage: ImplicitRegisters and CounterResolver"
+}

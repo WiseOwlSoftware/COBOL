@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VIII.2.3.1-p1",
+ "rule-digest": "b590c68e9a73",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#RegisterRelative; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+ "test-ref": "conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85",
+ "notes": "Own verdict from the read lineage-reads-1985/s-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.4.5.3-7, witnessed at 85 by the cases test-ref names. The read: 1985: \"The file control entry declares the relevant physical attributes of a relative file.\" 2023: \"The relative format defines a file connector for a relative file.\" Each is the statement of what the relative file control entry is for. pb742_legal_entry_formats_85 runs a relative-format entry at 85 and uses the attributes it declares (organization, relative key), so it exercises this scope. Cited: §1985:VIII.2.3.1 p1."
+}

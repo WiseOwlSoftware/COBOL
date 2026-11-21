@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.3.2.1-p2",
+ "rule-digest": "10f890e1835f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenImmediateMemberLevel; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#LevelNumberRules",
+ "test-ref": "conformance:cases/IV.4.3.2@1985-Concept-of-Levels/pb5924-level-numbers-not-identical-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.3.2@1985-Concept-of-Levels/pb5924-level-numbers-not-identical-85), joined as the row's own test. The read: prose85 (85p-07, TESTED, CONFORMS, UPHELD); both goldens pass on the mint build (E:/COBOL-coord/scratch/pb5453/work/goldens-s-04.json). No candidate states it with an 85 witness: the candidates are wording matches only. Code location located after the read: cites 1985:IV.4.3.2.1 at DataBinder 948; group membership and equal subordinate levels"
+}

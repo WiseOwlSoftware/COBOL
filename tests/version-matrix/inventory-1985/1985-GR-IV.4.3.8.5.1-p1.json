@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.5.1-p1",
+ "rule-digest": "ab001d2e893e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#DataItemNamed",
+ "test-ref": "conformance:cases/IV.4.3.8.5@1985-Identifier/1985-GR-IV_4_3_8_5_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-05.json: the reader showed the compiler correct at 85 with its probe (s05_uniq_ref.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program shows it. SR-8.4.3.1.3-1 (recursive definition of identifier) has no 85 case and does not state uniqueness. Code location located after the read: dataReference/qualification grammar parse identifier forms; NameResolution.DataItemNamed resolves a written qualified name"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.3.2.1-p5",
+ "rule-digest": "7abb9161197d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationSection; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CommunicationSectionBinder",
+ "test-ref": "conformance:cases/IV.6.3.2@1985-Physical-and-Logical-Aspects-of-Data/1985-GR-IV_6_3_2_1-p5",
+ "notes": "Own witness from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p13_communication.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The Communication Section describes the data item in the source program that will serve as the interface between the message control system (MCS) and the program.\" 2023 has no Communication Section (candidates are RECEIVE message-server rules, no 85 case). p13 shows the section and CD accepted at 85; the interface itself needs an MCS exchange. Code location located after the read: communicationSection grammar and binder"
+}

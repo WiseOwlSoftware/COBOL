@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.4.2.1-p1",
+ "rule-digest": "4be13058dde9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Close",
+ "test-ref": "conformance:cases/VII.3.6@1985-LABEL-RECORDS-CLAUSE/1985-GR-VII_3_6_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (seqoc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The CLOSE statement terminates the processing of reels/units and files with optional rewind and/or lock or removal where applicable.\" No 2023 row states the CLOSE function: FMT-14.9.6.2 is a format, and GR-14.9.6.4-3's table was judged CHANGED for sibling 1985-GR-VII.4.2.4-3. The seqoc probe runs every option at 85. Code location located after the read: CLOSE binder and runtime close"
+}

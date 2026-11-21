@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-II.6.5.1-1",
+ "rule-digest": "8d3543bb4b23",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#goToStatement",
+ "test-ref": "conformance:cases/II.6.5@1985-INTRA-PROGRAM-COMMUNICATION/1985-GR-II_6_5_1-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (r01_altered_go_to.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Upholding the refuter: item (1) 'A GO TO statement' reaches every 1985 GO TO, including the altered bare GO TO (VI.6.15.4 GR2: 'an ALTER statement, referring to this GO TO statement, must be executed'), a form 2023 removed with ALTER; the pointer GR-14.9.17.4-1 states only the transfer to procedure-name-1. No pointer states the whole scope, so DIFFERENT; the refuter's r01 probe (its run re-read this pass: ALTER-OK) is the own witness of the removed form. Code location located after the read: BindGoTo binds the GO TO statement; grammar rule goToStatement"
+}

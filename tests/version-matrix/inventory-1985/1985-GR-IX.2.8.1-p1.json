@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IX.2.8.1-p1",
+ "rule-digest": "1387f9410c6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph",
+ "test-ref": "conformance:cases/IX.1@1985-INTRODUCTION-TO-THE-INDEXED-I-O/1985-GR-IX_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: As 1985-GR-VIII.2.6.1-p1, for the indexed module. 2023 has no RERUN, so no 2023 rule states it. Code location located after the read: I-O-CONTROL binder"
+}

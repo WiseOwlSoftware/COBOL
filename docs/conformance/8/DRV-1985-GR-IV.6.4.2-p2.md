@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-IV.6.4.2-p2", "definitional", "defines the three types every sentence of the user's program belongs to: imperative, conditional and compiler directing sentences", "\"There are three types of sentences: imperative sentences, conditional sentences, and compiler directing sentences.\" A naming of classes; no candidate states it (all sim below 0.14). Cited: §1985:IV.6.4.2 p2. Proposed by the read lineage-reads-1985/s-06.json; its refuter, trying to write the witness the derivation says cannot exist (a sentence outside the three classes), UPHELD it: Same as p1: a closed naming of sentence classes; the definition rows carry the observable content.", "claude: 2026-11-21", "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-06.jsonl"]
+---

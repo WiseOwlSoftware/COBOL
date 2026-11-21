@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IX.4.1-p1",
+ "rule-digest": "be97151bcc0e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement",
+ "test-ref": "conformance:cases/IX.4@1985-PROCEDURE-DIVISION-IN-THE-INDEXED-I/1985-SR-IX_4_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p03_decl_control.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The candidates are unrelated (SR-14.2.2-11 is about method prototypes). The probe pair is accepted in the 1985 format and refused without the declaratives. Code location located after the read: declaratives with USE"
+}

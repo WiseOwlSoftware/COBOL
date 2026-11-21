@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.1.2-p1",
+ "rule-digest": "19881c59ebd1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+ "test-ref": "conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/1985-GR-IV_6_4_2_1_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p01_sentences.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Definitional but showable: 'A conditional sentence is a conditional statement, optionally preceded by an imperative statement, terminated by the separator period.' The nearest 2023 rule (GR-14.5.3.3-3) states only where a top-level conditional statement ends, not the sentence shape with its optional preceding imperative statement; the 2023 sentence definition (§2023:14.5.1) has no catalog row. p01 runs MOVE ... IF ... ELSE ... . as one sentence and prints C1 THEN. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.2.1.1; IsConditional classifies conditional statements"
+}

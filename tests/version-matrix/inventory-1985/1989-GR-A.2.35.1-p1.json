@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.35.1-p1",
+ "rule-digest": "16968501c888",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/A.2.35@1985-RANDOM-FUNCTION/1989-GR-A_2_35_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-21.json: the reader showed the compiler correct at 85 with its probe (s21-random.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The 1985 (Amendment 1) description reads \"a pseudo-random number from a rectangular distribution\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.75.1 description is not a catalog rule, and the candidates (FMT-15.75.2, AR-15.75.3-1, SR-8.4.3.2.3-6) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness. Code location located after the read: A.2.35 function: runtime member computes it; IntrinsicCatalog declares its signature"
+}

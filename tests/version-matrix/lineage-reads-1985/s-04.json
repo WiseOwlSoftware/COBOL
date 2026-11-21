@@ -1,0 +1,1241 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-04 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-04",
+ "edition": 1985,
+ "asked": {
+  "slice": "s-04",
+  "edition": 1985,
+  "ids": [
+   "1985-SR-IV.4.2.2.4-p1",
+   "1985-GR-IV.4.3-p1",
+   "1985-GR-IV.4.3.1-p1",
+   "1985-GR-IV.4.3.1.1-p1",
+   "1985-GR-IV.4.3.1.2-p1",
+   "1985-GR-IV.4.3.1.2-p2",
+   "1985-GR-IV.4.3.1.2-p3",
+   "1985-GR-IV.4.3.1.2-p4",
+   "1985-GR-IV.4.3.1.2-p5",
+   "1985-GR-IV.4.3.1.2-p6",
+   "1985-SR-IV.4.3.1.3-p1",
+   "1985-GR-IV.4.3.2-p1",
+   "1985-GR-IV.4.3.2-p2",
+   "1985-GR-IV.4.3.2-p3",
+   "1985-SR-IV.4.3.2.1-p1",
+   "1985-SR-IV.4.3.2.1-p2",
+   "1985-GR-IV.4.3.2.1-p5",
+   "1985-GR-IV.4.3.3-p1",
+   "1985-GR-IV.4.3.3-p2",
+   "1985-GR-IV.4.3.4-p1",
+   "1985-GR-IV.4.3.4-p2",
+   "1985-GR-IV.4.3.4-p3",
+   "1985-GR-IV.4.3.4-p4",
+   "1985-GR-IV.4.3.5-p1",
+   "1985-GR-IV.4.3.6-p1",
+   "1985-GR-IV.4.3.6-3",
+   "1985-GR-IV.4.3.7-p1",
+   "1985-GR-IV.4.3.7-p2",
+   "1985-GR-IV.4.3.7-p3",
+   "1985-GR-IV.4.3.7-p5"
+  ],
+  "pointers": {
+   "1985-SR-IV.4.2.2.4-p1": {
+    "candidates-2023": [
+     "GR-11.9.5.2-2",
+     "GR-7.2.2.5-3",
+     "GR-13.18.60.4-7"
+    ],
+    "nearest-2023": "GR-11.9.5.2-2",
+    "similarity": 0.267
+   },
+   "1985-GR-IV.4.3-p1": {
+    "candidates-2023": [
+     "GR-14.9.50.4-6",
+     "GR-14.9.20.4-5",
+     "GR-13.18.33.4-2"
+    ],
+    "nearest-2023": "GR-14.9.50.4-6",
+    "similarity": 0.273
+   },
+   "1985-GR-IV.4.3.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.4.4-7",
+     "GR-13.18.63.4-19",
+     "GR-14.9.4.4-6"
+    ],
+    "nearest-2023": "GR-14.9.4.4-7",
+    "similarity": 0.303
+   },
+   "1985-GR-IV.4.3.1.1-p1": {
+    "candidates-2023": [
+     "GR-14.9.51.4-4",
+     "GR-9.1.13.4-1",
+     "GR-14.9.51.4-18"
+    ],
+    "nearest-2023": "GR-14.9.51.4-4",
+    "similarity": 0.248
+   },
+   "1985-GR-IV.4.3.1.2-p1": {
+    "candidates-2023": [
+     "GR-14.9.27.4-15",
+     "GR-14.9.51.4-12",
+     "GR-12.4.5.13.4-1"
+    ],
+    "nearest-2023": "GR-14.9.27.4-15",
+    "similarity": 0.395
+   },
+   "1985-GR-IV.4.3.1.2-p2": {
+    "candidates-2023": [
+     "GR-12.4.5.13.4-1",
+     "GR-14.9.27.4-15",
+     "GR-9.1.16-p9"
+    ],
+    "nearest-2023": "GR-12.4.5.13.4-1",
+    "similarity": 0.387
+   },
+   "1985-GR-IV.4.3.1.2-p3": {
+    "candidates-2023": [
+     "GR-13.18.43.4-2",
+     "GR-13.18.10.4-3",
+     "GR-13.18.10.4-1"
+    ],
+    "nearest-2023": "GR-13.18.43.4-2",
+    "similarity": 0.389
+   },
+   "1985-GR-IV.4.3.1.2-p4": {
+    "candidates-2023": [
+     "GR-13.18.10.4-2",
+     "GR-14.9.51.4-12",
+     "GR-13.18.10.4-1"
+    ],
+    "nearest-2023": "GR-13.18.10.4-2",
+    "similarity": 0.563
+   },
+   "1985-GR-IV.4.3.1.2-p5": {
+    "candidates-2023": [
+     "GR-13.18.10.4-2",
+     "GR-14.9.27.4-15",
+     "GR-12.4.5.13.4-1"
+    ],
+    "nearest-2023": "GR-13.18.10.4-2",
+    "similarity": 0.32
+   },
+   "1985-GR-IV.4.3.1.2-p6": {
+    "candidates-2023": [
+     "GR-13.18.43.4-3",
+     "GR-13.18.10.4-2",
+     "GR-14.9.27.4-15"
+    ],
+    "nearest-2023": "GR-13.18.43.4-3",
+    "similarity": 0.344
+   },
+   "1985-SR-IV.4.3.1.3-p1": {
+    "candidates-2023": [
+     "SR-13.18.38.3-22",
+     "SR-13.16.3-6",
+     "GR-13.18.43.4-5"
+    ],
+    "nearest-2023": "SR-13.18.38.3-22",
+    "similarity": 0.432
+   },
+   "1985-GR-IV.4.3.2-p1": {
+    "candidates-2023": [
+     "GR-8.5.4-5",
+     "SR-13.16.3-20",
+     "GR-14.9.30.4-17"
+    ],
+    "nearest-2023": "GR-8.5.4-5",
+    "similarity": 0.2
+   },
+   "1985-GR-IV.4.3.2-p2": {
+    "candidates-2023": [
+     "SR-13.18.45.3-4",
+     "GR-14.9.20.4-5",
+     "GR-13.18.24.4-3"
+    ],
+    "nearest-2023": "SR-13.18.45.3-4",
+    "similarity": 0.326
+   },
+   "1985-GR-IV.4.3.2-p3": {
+    "candidates-2023": [
+     "SR-13.18.45.3-4",
+     "SR-14.9.25.3-9",
+     "SR-13.10.3-12"
+    ],
+    "nearest-2023": "SR-13.18.45.3-4",
+    "similarity": 0.394
+   },
+   "1985-SR-IV.4.3.2.1-p1": {
+    "candidates-2023": [
+     "GR-13.18.33.4-2",
+     "GR-8.5.1.3.2-3",
+     "GR-8.5.1.3.2-1",
+     "GR-8.5.1.3.2-2",
+     "GR-13.18.33.4-1",
+     "GR-13.18.33.4-3",
+     "SR-13.18.33.3-6",
+     "SR-13.18.33.3-4",
+     "SR-13.18.44.3-2"
+    ],
+    "nearest-2023": "GR-13.18.33.4-2",
+    "similarity": 0.296
+   },
+   "1985-SR-IV.4.3.2.1-p2": {
+    "candidates-2023": [
+     "GR-13.18.33.4-2",
+     "GR-8.5.1.3.2-3",
+     "GR-8.5.1.3.2-1",
+     "GR-8.5.1.3.2-2",
+     "GR-13.18.33.4-1",
+     "GR-13.18.33.4-3",
+     "FMT-13.18.33.2",
+     "SR-14.9.2.3-6",
+     "SR-14.9.44.3-6"
+    ],
+    "nearest-2023": "GR-13.18.33.4-2",
+    "similarity": 0.32
+   },
+   "1985-GR-IV.4.3.2.1-p5": {
+    "candidates-2023": [
+     "GR-8.5.1.3.2-3",
+     "GR-13.18.33.4-2",
+     "GR-8.5.1.3.2-2",
+     "GR-8.5.1.3.2-1",
+     "GR-13.18.33.4-1",
+     "GR-13.18.33.4-3",
+     "GR-11.9.10.4-6",
+     "GR-14.9.36.4-5",
+     "GR-13.18.63.4-4"
+    ],
+    "nearest-2023": "GR-8.5.1.3.2-3",
+    "similarity": 0.746
+   },
+   "1985-GR-IV.4.3.3-p1": {
+    "candidates-2023": [
+     "AR-15.3-2",
+     "GR-8.5.2.3-3",
+     "GR-13.18.40.4-3"
+    ],
+    "nearest-2023": "AR-15.3-2",
+    "similarity": 0.357
+   },
+   "1985-GR-IV.4.3.3-p2": {
+    "candidates-2023": [
+     "GR-8.4.3.2.4-1",
+     "GR-14.9.20.4-5",
+     "FMT-15.27.2"
+    ],
+    "nearest-2023": "GR-8.4.3.2.4-1",
+    "similarity": 0.4
+   },
+   "1985-GR-IV.4.3.4-p1": {
+    "candidates-2023": [
+     "GR-13.18.60.4-4",
+     "GR-13.18.60.4-6",
+     "GR-14.9.13.4-4"
+    ],
+    "nearest-2023": "GR-13.18.60.4-4",
+    "similarity": 0.334
+   },
+   "1985-GR-IV.4.3.4-p2": {
+    "candidates-2023": [
+     "GR-13.18.60.4-11",
+     "GR-13.18.60.4-4",
+     "GR-13.18.60.4-6"
+    ],
+    "nearest-2023": "GR-13.18.60.4-11",
+    "similarity": 0.381
+   },
+   "1985-GR-IV.4.3.4-p3": {
+    "candidates-2023": [
+     "AR-15.3-6",
+     "AR-15.83.3-1",
+     "AR-15.3-10"
+    ],
+    "nearest-2023": "AR-15.3-6",
+    "similarity": 0.45
+   },
+   "1985-GR-IV.4.3.4-p4": {
+    "candidates-2023": [
+     "DOC-A.1-213",
+     "GR-13.18.60.4-7",
+     "DOC-A.1-209"
+    ],
+    "nearest-2023": "DOC-A.1-213",
+    "similarity": 0.417
+   },
+   "1985-GR-IV.4.3.5-p1": {
+    "candidates-2023": [
+     "SR-13.18.63.3-3",
+     "GR-13.18.52.4-5",
+     "GR-13.18.52.4-4"
+    ],
+    "nearest-2023": "SR-13.18.63.3-3",
+    "similarity": 0.333
+   },
+   "1985-GR-IV.4.3.6-p1": {
+    "candidates-2023": [
+     "GR-14.6.8.2-3",
+     "GR-14.6.8.2-4",
+     "GR-14.6.8.2-5",
+     "GR-14.6.8.2-1",
+     "GR-14.6.8.2-2",
+     "GR-14.9.20.4-8",
+     "GR-14.9.20.4-5",
+     "GR-14.9.1.4-4"
+    ],
+    "nearest-2023": "GR-14.6.8.2-3",
+    "similarity": 0.215
+   },
+   "1985-GR-IV.4.3.6-3": {
+    "candidates-2023": [
+     "GR-14.6.8.2-4",
+     "GR-13.18.32.4-1",
+     "GR-13.18.32.4-2",
+     "GR-14.6.8.2-3",
+     "GR-14.6.8.2-1",
+     "GR-14.6.8.2-5",
+     "GR-13.18.40.5-14",
+     "GR-14.9.25.4-6",
+     "GR-14.9.1.4-4"
+    ],
+    "nearest-2023": "GR-14.6.8.2-4",
+    "similarity": 0.458
+   },
+   "1985-GR-IV.4.3.7-p1": {
+    "candidates-2023": [
+     "GR-8.5.1.6.4-2",
+     "GR-8.5.1.6.4-1",
+     "DOC-A.1-107",
+     "DOC-A.1-108",
+     "GR-13.18.55.4-3"
+    ],
+    "nearest-2023": "GR-8.5.1.6.4-2",
+    "similarity": 0.192
+   },
+   "1985-GR-IV.4.3.7-p2": {
+    "candidates-2023": [
+     "GR-8.5.1.6.4-2",
+     "GR-8.5.1.6.4-1",
+     "GR-13.18.55.4-2",
+     "GR-13.18.55.4-3",
+     "GR-14.9.1.4-4"
+    ],
+    "nearest-2023": "GR-8.5.1.6.4-2",
+    "similarity": 0.224
+   },
+   "1985-GR-IV.4.3.7-p3": {
+    "candidates-2023": [
+     "GR-8.5.1.6.4-2",
+     "GR-8.5.1.6.4-1",
+     "GR-13.18.55.4-3",
+     "GR-13.18.55.4-5",
+     "GR-13.18.55.4-4"
+    ],
+    "nearest-2023": "GR-8.5.1.6.4-2",
+    "similarity": 0.218
+   },
+   "1985-GR-IV.4.3.7-p5": {
+    "candidates-2023": [
+     "GR-8.5.1.6.4-2",
+     "GR-8.5.1.6.4-1",
+     "DOC-A.1-7",
+     "DOC-A.1-6",
+     "GR-13.18.60.4-6"
+    ],
+    "nearest-2023": "GR-8.5.1.6.4-2",
+    "similarity": 0.852
+   }
+  },
+  "flags": {}
+ },
+ "read": {
+  "slice": "s-04",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-SR-IV.4.2.2.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "scope-1985": [
+     "comment-entries of the Identification Division paragraphs AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY (Nucleus)",
+     "any combination of characters of the computer's character set, continued on Area-B lines",
+     "obsolete-element status (no compiler obligation)"
+    ],
+    "evidence-1985": {
+     "arbitrary characters (unbalanced quotes, braces, lowercase, punctuation, reserved words, a division header in Area B) in every comment-entry paragraph accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p01_comment_entry.cob (run E:/COBOL-coord/scratch/pb5453/runs/p01_comment_entry-001: COMMENT-ENTRIES ACCEPTED)",
+     "obsolete status": "not shown: states no compiler behaviour"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.4 p1",
+      "check": "OK  §1985:IV.4.2.2.4 p1  (4.2.2.4 Comment-Entries)  the text is in p1",
+      "quote": "may be any combination of characters from the computer's character set"
+     }
+    ],
+    "reason": "'A comment-entry is an entry in the Identification Division that may be any combination of characters from the computer's character set.' 2023 has no comment-entry paragraphs (AUTHOR etc. were removed), so there is no 2023 counterpart; the candidates are wording-only (STANDARD-BINARY, text-words, USAGE DISPLAY).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p01_comment_entry.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p01_comment_entry.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "data described in the standard data format, not an equipment format",
+     "numbers described in the decimal system",
+     "nonnumeric items described with the COBOL character set"
+    ],
+    "evidence-1985": {
+     "decimal standard data format of a numeric item": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-standard-data-format-default-85 (PASS, E:/COBOL-coord/scratch/pb5453/work/goldens-s-04.json) and E:/COBOL-coord/scratch/pb5453/probes/s-04/p02_radix_usage.cob (DISP-CHARS=1234, run E:/COBOL-coord/scratch/pb5453/runs/p02_radix_usage-001)",
+     "nonnumeric characters": "covered by the same golden (group reads 45AB)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3 p1",
+      "check": "OK  §1985:IV.4.3 p1  (4.3 CONCEPT OF COMPUTER INDEPENDENT DATA DESCRIPTION)  the text is in p1",
+      "quote": "uses the decimal system to represent numbers"
+     }
+    ],
+    "reason": "Flagged definitional, but a program can show it: 'the characteristics or properties of the data are described in relation to a standard data format' that 'uses the decimal system to represent numbers'. A DISPLAY numeric item redefined as alphanumeric reads as its decimal digits. No candidate states it with an 85 witness: the candidates are wording matches only (VALIDATE, INITIALIZE, level-numbers).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p02_radix_usage.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-standard-data-format-default-85.cob; E:/COBOL-coord/scratch/pb5453/probes/s-04/p02_radix_usage.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "separate clauses describe the logical (record description, RECORD CONTAINS) and physical (BLOCK CONTAINS, LABEL RECORDS) characteristics of a file (Sequential I-O file description entry)"
+    ],
+    "evidence-1985": {
+     "logical and physical described by separate clauses, both honoured": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85 (PASS: BLOCK CONTAINS 3 RECORDS with RECORD CONTAINS 4 CHARACTERS, seven records read back)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1 p1",
+      "check": "OK  §1985:IV.4.3.1 p1  (4.3.1 Logical Record Concept)  the text is in p1",
+      "quote": "separate clauses or phrases are used"
+     }
+    ],
+    "reason": "Flagged definitional; a program shows it: 'In order to separate the logical characteristics of data from the physical characteristics of the data storage media, separate clauses or phrases are used.' The golden gives a file both kinds of clause and reads back the logical records unaffected by the blocking. No candidate states it with an 85 witness: the candidates are wording matches only (CALL NESTED, condition-name).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.1.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "physical aspects of a file: (1) grouping of logical records within the medium (BLOCK CONTAINS); (2) the means of identifying the file (ASSIGN, LABEL RECORDS, VALUE OF)"
+    ],
+    "evidence-1985": {
+     "(1) grouping": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85 (PASS, BLOCK CONTAINS 3 RECORDS)",
+     "(2) identification": "covered by the same golden (ASSIGN TO BLKDISK, LABEL RECORDS ARE STANDARD)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1.1 p1",
+      "check": "OK  §1985:IV.4.3.1.1 p1  (4.3.1.1 Physical Aspects of a File)  the text is in p1",
+      "quote": "describe the data as it appears on the input or output media"
+     }
+    ],
+    "reason": "A lead-in whose two items ('(1) The grouping of logical records within the physical limitations of the file medium. (2) The means by which the file can be identified.') were not minted as rows (lead filed), so the lead-in carries them; the golden exercises both features at 85. No candidate states it with an 85 witness: the candidates are wording matches only (WRITE, AT END).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.1.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "input-output statements (READ, WRITE, REWRITE, ...) refer to one logical record"
+    ],
+    "evidence-1985": {
+     "each READ/WRITE transfers one logical record": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85 (PASS: seven WRITEs, seven READs, one record each, last block partial)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1.2 p1",
+      "check": "OK  §1985:IV.4.3.1.2 p1  (4.3.1.2 Conceptual Characteristics of a File)  the text is in p1",
+      "quote": "the input or output statements refer to one logical record"
+     }
+    ],
+    "reason": "'In a COBOL program, the input or output statements refer to one logical record.' The golden writes and reads records one per statement through three-record blocks. No candidate states it with an 85 witness: the candidates are wording matches only (OPEN EXTEND, WRITE release, relative numbering).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.1.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a logical record is a group of related information treated as a unit (file and working-storage records)"
+    ],
+    "evidence-1985": {
+     "record treated as a unit": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85 (PASS: each READ delivers the whole 4-character record) and E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob (REC displayed and moved as one unit, run E:/COBOL-coord/scratch/pb5453/runs/p03_working_storage_records-003)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1.2 p2",
+      "check": "OK  §1985:IV.4.3.1.2 p2  (4.3.1.2 Conceptual Characteristics of a File)  the text is in p2",
+      "quote": "a group of related information, uniquely identifiable, and treated as a unit"
+     }
+    ],
+    "reason": "Flagged definitional; observable as the record moving as one unit: 'A COBOL logical record is a group of related information, uniquely identifiable, and treated as a unit.' No candidate states it with an 85 witness: the candidates are wording matches only.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.1.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "physical record size is the implementation's; it bears no relationship to the size of the file"
+    ],
+    "evidence-1985": {
+     "block size independent of file size": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85 (PASS: 7 records in 3-record physical records, the last partial, all read back)",
+     "size convenient to the computer": "not shown: the implementor's choice, no observable"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1.2 p3",
+      "check": "OK  §1985:IV.4.3.1.2 p3  (4.3.1.2 Conceptual Characteristics of a File)  the text is in p3",
+      "quote": "bears no direct relationship to the size of the file"
+     }
+    ],
+    "reason": "'The size of a physical record is hardware dependent and bears no direct relationship to the size of the file of information contained on a device.' The observable half (a file not a multiple of the block) is witnessed; the 'convenient to a particular computer' half obliges nothing observable. No candidate states it with an 85 witness: the candidates are wording matches only (RECORD, BLOCK CONTAINS CHARACTERS).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.1.2-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "several logical records in one physical unit (BLOCK CONTAINS n RECORDS)",
+     "one logical record per unit",
+     "accessibility of logical records controlled by the object program",
+     "\"records\" means logical records"
+    ],
+    "evidence-1985": {
+     "several records per physical unit; access by logical record": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85 (PASS)",
+     "one record per unit (no BLOCK CONTAINS)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p04_code_set.cob (an unblocked file, two records read back, run E:/COBOL-coord/scratch/pb5453/runs/p04_code_set-001)",
+     "a record spanning units": "not shown: an implementor-permitted relationship"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1.2 p4",
+      "check": "OK  §1985:IV.4.3.1.2 p4  (4.3.1.2 Conceptual Characteristics of a File)  the text is in p4",
+      "quote": "several logical records may be contained within a single physical unit"
+     }
+    ],
+    "reason": "prose85 read this paragraph (85p-07, TESTED, CONFORMS, UPHELD) and its golden passes on the mint build (E:/COBOL-coord/scratch/pb5453/work/goldens-s-04.json). No candidate states it with an 85 witness: the candidates are wording matches only (BLOCK CONTAINS RECORDS restrictions, WRITE).",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-logical-records-in-blocks-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.1.2-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "working storage grouped into logical records (01 entries) defined by record description entries"
+    ],
+    "evidence-1985": {
+     "working-storage records of record description entries": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob (run E:/COBOL-coord/scratch/pb5453/runs/p03_working_storage_records-003: REC=1-23BB!)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1.2 p5",
+      "check": "OK  §1985:IV.4.3.1.2 p5  (4.3.1.2 Conceptual Characteristics of a File)  the text is in p5",
+      "quote": "working storage is grouped into logical records"
+     }
+    ],
+    "reason": "'working storage is grouped into logical records and defined by a series of record description entries.' No candidate states it with an 85 witness: the candidates are wording matches only.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.1.2-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "CODE-SET translation on transfer of a logical record to/from the physical unit (Sequential I-O FD)",
+     "padding added/deleted",
+     "record description clauses (JUSTIFIED, BLANK WHEN ZERO, ...) have no effect on the transfer"
+    ],
+    "evidence-1985": {
+     "translation": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p04b_code_set_ebcdic.cob (run E:/COBOL-coord/scratch/pb5453/runs/p04b_code_set_ebcdic-001: file bytes 40 40 40 c1 c2 40 40 40 c8 c5 d3 d3 d6 f0 f4 f2 = EBCDIC, read back [   AB   ] [HELLO042])",
+     "identity alphabet": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p04_code_set.cob (STANDARD-1, run E:/COBOL-coord/scratch/pb5453/runs/p04_code_set-001)",
+     "clauses not re-applied": "covered by both probes (JUSTIFIED RIGHT and BLANK WHEN ZERO content read back unchanged)",
+     "padding": "not shown: no padding arises for fixed records"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1.2 p6",
+      "check": "OK  §1985:IV.4.3.1.2 p6  (4.3.1.2 Conceptual Characteristics of a File)  the text is in p6",
+      "quote": "any translation required by the presence of a CODE-SET clause is accomplished"
+     }
+    ],
+    "reason": "'any translation required by the presence of a CODE-SET clause is accomplished ... None of the clauses used to describe the data in the logical record have any effect on this transfer.' The EBCDIC file holds translated bytes and READ restores the native characters. No candidate states it with an 85 witness: the candidates are wording matches only (RECORD size, BLOCK CONTAINS, OPEN EXTEND).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p04b_code_set_ebcdic.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p04b_code_set_ebcdic.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.1.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a record description is a set of data description entries",
+     "each entry: level-number, data-name if required (FILLER or none), then independent clauses in any order"
+    ],
+    "evidence-1985": {
+     "entries of level-number, optional name, clauses": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob (run E:/COBOL-coord/scratch/pb5453/runs/p03_working_storage_records-003: an unnamed 10 entry, VALUE before PIC in A1 and A22, accepted and DISPLAYed)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.1.3 p1",
+      "check": "OK  §1985:IV.4.3.1.3 p1  (4.3.1.3 Record Concepts)  the text is in p1",
+      "quote": "a level-number followed by a data-name, if required, followed by a series of independent clauses"
+     }
+    ],
+    "reason": "'Each data description entry consists of a level-number followed by a data-name, if required, followed by a series of independent clauses, as required.' A grant of form: the probe is accepted with the name omitted and the clauses in non-format order. No candidate states it with an 85 witness: the candidates are wording matches only (OCCURS subject, CONSTANT RECORD, implicit RECORD).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.2-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a record subdivided for data reference; a subdivision further subdivided"
+    ],
+    "evidence-1985": {
+     "nested subdivisions referenced": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob (REC > PART-A > A2 > A21/A22 each referenced, run E:/COBOL-coord/scratch/pb5453/runs/p03_working_storage_records-003)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.2 p1",
+      "check": "OK  §1985:IV.4.3.2 p1  (4.3.2 Concept of Levels)  the text is in p1",
+      "quote": "it may be further subdivided to permit more detailed data referral"
+     }
+    ],
+    "reason": "'it may be further subdivided to permit more detailed data referral' (the 1985 words). The probe builds and references the structure at 85. No candidate states it with an 85 witness: the candidates are wording matches only (RENAMES operands, variable-length groups, INITIALIZE).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.2-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "elementary items are the unsubdivided subdivisions",
+     "a record is a sequence of elementary items",
+     "a record may itself be elementary"
+    ],
+    "evidence-1985": {
+     "sequence of elementary items": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob (REC=1-23BB!)",
+     "elementary record": "covered by the same probe (01 REC-ELEM PIC X(3): REC-ELEM=ELM)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.2 p2",
+      "check": "OK  §1985:IV.4.3.2 p2  (4.3.2 Concept of Levels)  the text is in p2",
+      "quote": "or the record itself may be an elementary item"
+     }
+    ],
+    "reason": "'or the record itself may be an elementary item' (the 1985 words). The probe builds and references the structure at 85. No candidate states it with an 85 witness: the candidates are wording matches only (RENAMES operands, variable-length groups, INITIALIZE).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.2-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "groups are named sequences of elementary items",
+     "groups of groups",
+     "an elementary item belongs to several groups"
+    ],
+    "evidence-1985": {
+     "group of groups, item in several groups": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob (MOVE \"XY\" TO A2 changes A2, PART-A and REC; A21 IN A2 PART-A REC OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.2 p3",
+      "check": "OK  §1985:IV.4.3.2 p3  (4.3.2 Concept of Levels)  the text is in p3",
+      "quote": "an elementary item may belong to more than one group"
+     }
+    ],
+    "reason": "'an elementary item may belong to more than one group' (the 1985 words). The probe builds and references the structure at 85. No candidate states it with an 85 witness: the candidates are wording matches only (RENAMES operands, variable-length groups, INITIALIZE).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p03_working_storage_records.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.2.1-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "records start at 01",
+     "less inclusive items take higher, not necessarily successive, level-numbers not greater than 49",
+     "special level-numbers 66, 77, 88 are exceptions",
+     "a separate entry per level-number"
+    ],
+    "evidence-1985": {
+     "01..49, non-successive": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-level-numbers-non-successive-85 (PASS) and E:/COBOL-coord/scratch/pb5453/probes/s-04/p05_level_49_control.cob (run E:/COBOL-coord/scratch/pb5453/runs/p05_level_49_control-002: G=ABC W77=S RN=AB, 88 OK)",
+     "greater than 49 refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p05_level_50_refused.cob (run E:/COBOL-coord/scratch/pb5453/runs/p05_level_50_refused-001: COBOL1746 level-number 50)",
+     "66/77/88 accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p05_level_49_control.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.2.1 p1",
+      "check": "OK  §1985:IV.4.3.2.1 p1  (4.3.2.1 Level-Numbers)  the text is in p1",
+      "quote": "level-numbers not greater in value than 49"
+     }
+    ],
+    "reason": "'Less inclusive data items are assigned higher (not necessarily successive) level-numbers not greater in value than 49. There are special level-numbers, 66, 77, and 88'. The refusal probe has a conforming control. No candidate with an 85 accepted case states the 49 bound (GR-13.18.33.4-1 states only level 1; the 49-bound SRs are for screen and report entries).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p05_level_50_refused.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p05_level_50_refused.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-04/p05_level_49_control.cob)",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-SR-IV.4.3.2.1-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a group extends until a level-number <= its own",
+     "items immediately subordinate to a group carry identical level-numbers greater than the group's"
+    ],
+    "evidence-1985": {
+     "extent and non-successive identical levels": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-level-numbers-non-successive-85 (PASS)",
+     "non-identical levels refused": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-level-numbers-not-identical-85 (PASS, COBOL2771)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.2.1 p2",
+      "check": "OK  §1985:IV.4.3.2.1 p2  (4.3.2.1 Level-Numbers)  the text is in p2",
+      "quote": "must be described using identical level-numbers"
+     }
+    ],
+    "reason": "prose85 (85p-07, TESTED, CONFORMS, UPHELD); both goldens pass on the mint build (E:/COBOL-coord/scratch/pb5453/work/goldens-s-04.json). No candidate states it with an 85 witness: the candidates are wording matches only.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-level-numbers-not-identical-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-level-numbers-not-identical-85.cob; E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-level-numbers-non-successive-85.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.2.1-p5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "entries for noncontiguous items, not subdivisions and not subdivided, carry special level-number 77 (Working-Storage, Linkage)"
+    ],
+    "evidence-1985": {
+     "77 items accepted anywhere in the section": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p06_level_77_control.cob (run E:/COBOL-coord/scratch/pb5453/runs/p06_level_77_control-001: 77=A008BB R=R)",
+     "77 not subdivided": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p06_level_77_subdivided.cob (run E:/COBOL-coord/scratch/pb5453/runs/p06_level_77_subdivided-001: COBOL2771)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.2.1 p5",
+      "check": "OK  §1985:IV.4.3.2.1 p5  (4.3.2.1 Level-Numbers)  the text is in p5",
+      "quote": "have been assigned the special level-number 77"
+     },
+     {
+      "cite": "§2023:8.5.1.3.2 GR3",
+      "check": "OK  §2023:8.5.1.3.2 GR3  (Level-numbers)  the text is in GR3",
+      "quote": "have been assigned the special level-number 77"
+     }
+    ],
+    "reason": "'Entries that specify noncontiguous data items, which are not subdivisions of other items, and are not themselves subdivided, have been assigned the special level-number 77.' 2023 says it word for word inside GR-8.5.1.3.2-3 (a folded list close, lead filed), but that row has no case running at 85 (at-85 empty), and GR-13.18.33.4-2 neither; so no SAME.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p06_level_77_subdivided.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p06_level_77_control.cob; E:/COBOL-coord/scratch/pb5453/probes/s-04/p06_level_77_subdivided.cob",
+    "needs": "its own verdict: CONFORMS via the probes placed as this row's test; or SAME to GR-8.5.1.3.2-3 once that row has a case running at 85"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.3-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "five categories: alphabetic, numeric, numeric edited, alphanumeric edited, alphanumeric",
+     "three classes; the alphanumeric class covers the edited categories and alphanumeric",
+     "every elementary item has a class and category",
+     "a group is alphanumeric at object time"
+    ],
+    "evidence-1985": {
+     "categories and class tests": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p07_group_class.cob (run E:/COBOL-coord/scratch/pb5453/runs/p07_group_class-001: ALPHABETIC OK, NUMERIC OK, NED=[  12], AED=[AB C], AN=[  12])",
+     "group alphanumeric": "covered by the same probe (MOVE 12 TO a group of PIC 9 items gives [12  ], an alphanumeric move)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.3 p1",
+      "check": "OK  §1985:IV.4.3.3 p1  (4.3.3 Concept of Classes of Data)  the text is in p1",
+      "quote": "The class of a group item is treated at object time as alphanumeric"
+     }
+    ],
+    "reason": "'The class of a group item is treated at object time as alphanumeric regardless of the class of elementary items subordinate to that group item.' GR-13.18.40.4-3 (85 case pb535_picture_category_size_85) states the categories only, not the classes or the group's class; GR-8.5.2.3-3 has no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p07_group_class.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p07_group_class.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.3-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "a function is an elementary item",
+     "its category is alphanumeric or numeric (integer is numeric) per its definition (Intrinsic Function module, Amendment 1)"
+    ],
+    "evidence-1985": {
+     "alphanumeric function as elementary alphanumeric identifier (MOVE, reference modification, comparison)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p08_functions.cob (run E:/COBOL-coord/scratch/pb5453/runs/p08_functions-001: UPPER=[ABCDE   ], REFMOD=[dcb     ], ALNUM-FN-COMPARE OK)",
+     "numeric/integer function in arithmetic": "covered by the same probe (INT-FN-IN-EXPR=0011, NUM-FN=1.4142)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.3 p2",
+      "check": "OK  §1985:IV.4.3.3 p2  (4.3.3 Concept of Classes of Data)  the text is in p2",
+      "quote": "Every data item which is a function is an elementary item"
+     }
+    ],
+    "reason": "'Every data item which is a function is an elementary item, and belongs to one of the categories alphanumeric or numeric'. GR-8.4.3.2.4-1 has no 85 case; the others are wording matches.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p08_functions.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p08_functions.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.4-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "numeric values held in binary or decimal forms",
+     "radix selected by the USAGE clause when more than one is provided",
+     "alphanumeric items held in binary-coded character form"
+    ],
+    "evidence-1985": {
+     "USAGE selects the representation, value unchanged": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p02_radix_usage.cob (run E:/COBOL-coord/scratch/pb5453/runs/p02_radix_usage-001: DISPLAY, COMP, BINARY, PACKED-DECIMAL of 1234 compare equal, SUM=3702, DISPLAY bytes read 1234)",
+     "capability of the computer": "not shown: the implementor's"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.4 p1",
+      "check": "OK  §1985:IV.4.3.4 p1  (4.3.4 Selection of Character Representation and Radix)  the text is in p1",
+      "quote": "the selection is dependent upon the specification of the USAGE clause"
+     }
+    ],
+    "reason": "Flagged definitional; observable in part: 'If more than one arithmetic radix is provided, the selection is dependent upon the specification of the USAGE clause.' GR-13.18.60.4-4/-6 state BINARY/COMPUTATIONAL radix but have no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p02_radix_usage.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p02_radix_usage.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.4-p2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "standard data format used unless the data description says otherwise (integer/numeric functions excepted)",
+     "selection by USAGE, PICTURE etc.",
+     "implementor documents the forms and the selection method"
+    ],
+    "evidence-1985": {
+     "standard data format by default": "covered by golden E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-standard-data-format-default-85 (PASS)",
+     "selection by USAGE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p02_radix_usage.cob",
+     "documentation": "not shown here: the register's USAGE items (docs/CONFORMANCE DOC-A.1-205, DOC-A.1-209) are the documentation"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.4 p2",
+      "check": "OK  §1985:IV.4.3.4 p2  (4.3.4 Selection of Character Representation and Radix)  the text is in p2",
+      "quote": "the standard data format must be used for data items other than integer and numeric functions"
+     }
+    ],
+    "reason": "prose85 (85p-07, TESTED, CONFORMS, UPHELD); its golden passes on the mint build. GR-13.18.60.4-11/-4/-6 state particular usages but none states the default with an 85 case.",
+    "probe": "E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-standard-data-format-default-85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/prose85/work/85p-07/goldens/pb5924-standard-data-format-default-85.cob",
+    "needs": "its own verdict: CONFORMS witnessed by the golden, with the documentation clause pointed at the register's USAGE representation items"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.4-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "alphanumeric function in standard data format, its size by its definition",
+     "integer/numeric function representation is the implementor's",
+     "integer and numeric functions used only in arithmetic expressions",
+     "value without the composite-of-operands restriction",
+     "implementor documents evaluation techniques"
+    ],
+    "evidence-1985": {
+     "alphanumeric function standard format and size": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p08_functions.cob (LEN-ALNUM-FN=0005, UPPER compare)",
+     "in arithmetic expressions (accepted control)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p08_functions.cob (COMPUTE with LENGTH, SQRT)",
+     "refused outside arithmetic expressions": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p08b_int_fn_in_move.cob, E:/COBOL-coord/scratch/pb5453/probes/s-04/p08c_int_fn_in_display.cob, E:/COBOL-coord/scratch/pb5453/probes/s-04/p08d_num_fn_in_move.cob (runs -001: COBOL0900 each)",
+     "representation/techniques": "not shown: the implementor's documentation"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.4 p3",
+      "check": "OK  §1985:IV.4.3.4 p3  (4.3.4 Selection of Character Representation and Radix)  the text is in p3",
+      "quote": "Integer and numeric functions may be used only in arithmetic expressions"
+     },
+     {
+      "cite": "§1985:IV.4.3.8.3.3 SR4",
+      "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4",
+      "quote": "may be used only in an arithmetic expression"
+     }
+    ],
+    "reason": "'Integer and numeric functions may be used only in arithmetic expressions.' MOVE FUNCTION LENGTH, DISPLAY FUNCTION LENGTH and MOVE FUNCTION SQRT are refused at 85 (COBOL0900 citing SR4); the COMPUTE control runs. AR-15.3-6 (85 cases) is about integer ARGUMENTS, not where a function may appear; no candidate states the restriction (2023 lifts it).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p08b_int_fn_in_move.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p08b_int_fn_in_move.cob (control E:/COBOL-coord/scratch/pb5453/probes/s-04/p08_functions.cob)",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.4-p4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "size of an elementary or group item = its number of standard data format characters",
+     "synchronization and usage may make the internal size differ"
+    ],
+    "evidence-1985": {
+     "elementary and group sizes in characters": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p09_item_size.cob (run E:/COBOL-coord/scratch/pb5453/runs/p09_item_size-002: LEN-G=0011 = 2+3+6, LEN-GE=0006, group moved as 11 characters)",
+     "usage difference": "covered by conformance-suite/wiseowl/cases/A.1-Implementor-defined-language-element-list/l1c40_no_automatic_alignment (accept: [85, 2002]) (BINARY items occupy 4 and 2 bytes)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.4 p4",
+      "check": "OK  §1985:IV.4.3.4 p4  (4.3.4 Selection of Character Representation and Radix)  the text is in p4",
+      "quote": "is the number of characters in standard data format of the item"
+     }
+    ],
+    "reason": "'The size of an elementary data item or a group item is the number of characters in standard data format of the item.' DOC-A.1-213/209 are register items (no 85 case) and GR-13.18.60.4-7 has no 85 case.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p09_item_size.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p09_item_size.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "operational signs on signed numeric items and signed numeric literals carry the algebraic value",
+     "editing signs (+, -, CR, DB) show the sign in edited items"
+    ],
+    "evidence-1985": {
+     "operational sign": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p10_signs.cob (run E:/COBOL-coord/scratch/pb5453/runs/p10_signs-001: ADD -5 to -12 gives -17, NEGATIVE OK, unsigned receiver 017)",
+     "editing signs": "covered by the same probe (MINUS=[- 17] PLUS=[- 17] CR=[ 17CR]; PLUS=[+  7] CR=[  7  ])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.5 p1",
+      "check": "OK  §1985:IV.4.3.5 p1  (4.3.5 Algebraic Signs)  the text is in p1",
+      "quote": "operational signs, which are associated with signed numeric data items"
+     }
+    ],
+    "reason": "Flagged definitional; a program shows both categories. SR-13.18.63.3-3 and GR-13.18.52.4-4/-5 (85 cases) state the VALUE and SIGN-clause rules, not the two categories of sign; no single pointer states the whole scope.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p10_signs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p10_signs.cob",
+    "needs": "its own verdict: CONFORMS, witnessed by the probe/golden once placed as this row's own test (needs-own-witness)"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.6-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "positioning in an elementary receiver depends on its category (lead-in of items 1-3)"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown apart from its items: 1985-GR-IV.4.3.6-1, -2, -3 (siblings witnessed by g85_f04_01; item 3 by E:/COBOL-coord/scratch/pb5453/probes/s-04/p11_alnum_alignment.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.6 p1",
+      "check": "OK  §1985:IV.4.3.6 p1  (4.3.6 Standard Alignment Rules)  the text is in p1",
+      "quote": "depend on the category of the receiving item"
+     }
+    ],
+    "reason": "'The standard rules for positioning data within an elementary item depend on the category of the receiving item. These rules are:' A lead-in; its content is its items, each a row of its own. No program shows the lead-in apart from them.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a lead-in whose only consequence is its items'",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "indistinguishable-consequent",
+     "names": "1985-GR-IV.4.3.6-1"
+    }
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.6-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "receivers alphanumeric, alphanumeric edited, alphabetic",
+     "left alignment",
+     "space fill on the right",
+     "truncation on the right",
+     "(the JUSTIFIED modification is the next paragraph, not this row)"
+    ],
+    "evidence-1985": {
+     "alphanumeric short/long/from numeric": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04/p11_alnum_alignment.cob (run E:/COBOL-coord/scratch/pb5453/runs/p11_alnum_alignment-001: [AB  ] [ABCD] [12  ])",
+     "alphabetic": "covered by the same probe ([XY  ] [PQRS])",
+     "alphanumeric edited": "covered by the same probe ([AB C ] [AB CD])"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.6 GR3",
+      "check": "OK  §1985:IV.4.3.6 GR3  (4.3.6 Standard Alignment Rules)  the text is in GR3",
+      "quote": "aligned at the leftmost character position in the data item with space fill or truncation to the right"
+     },
+     {
+      "cite": "§2023:14.6.8.5",
+      "check": "OK  §2023:14.6.8.5  (Receiving data items of categories alphabetic, alphanumeric, alphanumeric-edited, national, and national edited)  the text is in the clause (unnumbered prose, pending)",
+      "quote": "aligned at the leftmost character position in the data item with space fill or truncation to the right"
+     }
+    ],
+    "reason": "Reopened parent: its old record pointed at the JUSTIFIED rules (GR-13.18.32.4-1/-2/-3), which belong to the carved-off closing paragraph 'If the JUSTIFIED clause is specified for the receiving item, these standard rules are modified' (unminted, lead filed). What is left is plain left alignment. 2023 states it in 14.6.8.5, unnumbered prose with no catalog row (show.py: GR-14.6.8.5* MISSING), so there is no 2023 id to point to; the JUSTIFIED candidates state the opposite alignment.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04/p11_alnum_alignment.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04/p11_alnum_alignment.cob",
+    "needs": "its own verdict: CONFORMS via the probe; or SAME once 2023's 14.6.8.5 paragraph is minted as a row with an 85 case"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "storage layout is the object program's and need not respect natural boundaries (items without SYNCHRONIZED)"
+    ],
+    "evidence-1985": {
+     "items stored contiguously, no implicit boundary alignment": "covered by conformance-suite/wiseowl/cases/A.1-Implementor-defined-language-element-list/l1c40_no_automatic_alignment (accept: [85, 2002]) (G is 9 bytes, no FILLER)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.7 p1",
+      "check": "OK  §1985:IV.4.3.7 p1  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p1",
+      "quote": "need not respect these natural boundaries"
+     }
+    ],
+    "reason": "'The way in which data is stored is determined by the object program, and need not respect these natural boundaries.' The case runs at 85 and shows items packed without alignment slack. It is recorded under DOC-A.1-7 (documented non-support of special alignment), which states the option, not this permission; GR-8.5.1.6.4-1/-2 have no 85 case.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/wiseowl/cases/A.1-Implementor-defined-language-element-list/l1c40_no_automatic_alignment (accept: [85, 2002])",
+    "needs": "its own verdict: CONFORMS with l1c40_no_automatic_alignment added to this row's rules"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p2",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "alignment on natural boundaries may make arithmetic and subscripting cheaper; misaligned data may need extra machine operations"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown: object-code efficiency has no observable in a program's results"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.7 p2",
+      "check": "OK  §1985:IV.4.3.7 p2  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p2",
+      "quote": "additional machine operations in the object program may be required"
+     }
+    ],
+    "reason": "'certain uses of data ... may be facilitated if the data is stored so as to be aligned ... additional machine operations in the object program may be required'. An explanation of object-code cost: it obliges nothing and no program can show it, but its subject is the implementation, so the definitional arm is barred, and no other arm fits (no closed antecedent, no other row's consequent, no 'undefined'). What would settle it: a ruling that explanatory text about object-code efficiency closes by an existing arm (e.g. unfalsifiable-under-determination against the register's alignment key DOC-A.1-7) or needs a new one.",
+    "probe": null,
+    "compiler-at-1985": "not probed: performance-only text"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "definitional",
+    "scope-1985": [
+     "the term synchronized for data items aligned on natural boundaries"
+    ],
+    "evidence-1985": {
+     "(none)": "not shown: a definition; the SYNCHRONIZED clause's effect is its own rules' (1985-GR-IV.4.3.7-1, -2 and the clause)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.7 p3",
+      "check": "OK  §1985:IV.4.3.7 p3  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p3",
+      "quote": "are defined to be synchronized"
+     }
+    ],
+    "reason": "'Data items which are aligned on these natural boundaries in such a way as to avoid such additional machine operations are defined to be synchronized.' A definition of a term for the user's data items; no program result depends on the term apart from the SYNCHRONIZED clause's rules.",
+    "probe": null,
+    "compiler-at-1985": "not probed: a term definition with no observable of its own",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "definitional",
+     "names": "defines \"synchronized\": a data item of the user's program aligned on natural boundaries so as to avoid additional machine operations"
+    }
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p5",
+    "to": [
+     "DOC-A.1-7"
+    ],
+    "verdict": "SAME",
+    "scope-1985": [
+     "special types of alignment are the implementor's option",
+     "an implementor providing them specifies interpretation, effect on groups, implicit FILLER and statement semantics"
+    ],
+    "evidence-1985": {
+     "no special alignment provided; groups see no implicit FILLER": "covered by conformance-suite/wiseowl/cases/A.1-Implementor-defined-language-element-list/l1c40_no_automatic_alignment (accept: [85, 2002]) (the pointer's at-85 accepted case)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.7 p5",
+      "check": "OK  §1985:IV.4.3.7 p5  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p5",
+      "quote": "Each implementor who provides for special types of alignment"
+     },
+     {
+      "cite": "§2023:A.1",
+      "check": "OK  §2023:A.1  (Implementor-defined language element list)  the text is in the clause (unnumbered prose, pending)",
+      "quote": "Alignment of data for increased efficiency (special or automatic alignment: interpretation, implicit filler, semantics of statements)"
+     }
+    ],
+    "reason": "1985: 'Each implementor who provides for special types of alignment will specify the precise interpretations ... will describe the effect of the implicit FILLER and the semantics of any statement referencing these groups.' 2023 A.1 item 7 states the same optional item with the same three subjects (interpretation, implicit filler, semantics of statements). The pointer's 85 case shows the declared choice (no special alignment: a group of DISPLAY and BINARY items is packed with no implicit FILLER), which is the whole 1985 scope for an implementor that does not provide the facility. GR-8.5.1.6.4-2 carries the same words but has no 85 case.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the pointer's case runs at 85 (accept: [85, 2002])",
+    "licence-1985": "§1985:IV.4.3.7 p5 'Each implementor who provides for special types of alignment': the facility is the implementor's option; WiseOwl provides none (docs/CONFORMANCE DOC-A.1-7: Not provided). check: OK  §1985:IV.4.3.7 p5  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p5"
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-IV.4.3.1.1-p1",
+    "what": "the lead-in's two list items '(1) The grouping of logical records within the physical limitations of the file medium.' and '(2) The means by which the file can be identified.' (page 159, IV-13) were not minted as rows",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py \"1985-GR-IV.4.3.1.1*\"",
+    "site": "scripts/spec/rule_catalog_1985.py"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-IV.4.3.5-p1",
+    "what": "IV.4.3.5's second and third paragraphs ('The SIGN clause permits the programmer to state explicitly the location of the operational sign ...', 'Editing signs are inserted into a data item through the use of the sign control symbols of the PICTURE clause.', page 162) have no rows",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py \"1985-GR-IV.4.3.5*\"",
+    "site": "scripts/spec/rule_catalog_1985.py"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-IV.4.3.6-3",
+    "what": "the list's closing paragraph 'If the JUSTIFIED clause is specified for the receiving item, these standard rules are modified. (See page VI-24 ...)' (page 163) was carved from item 3 and minted as no row; the old record's JUSTIFIED pointers (GR-13.18.32.4-1/-2/-3, cases pb339_into_current_record_85, l1c16_justified_spellings) belong to it",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py \"1985-GR-IV.4.3.6*\"",
+    "site": "scripts/spec/rule_catalog_1985.py"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-IV.4.3.3-p2",
+    "what": "IV.4.3.3's closing sentence 'The following table depicts the relationship of the class and categories of data items.' and its table (LEVEL OF ITEM / CLASS / CATEGORY, page 161) have no rows",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py \"1985-GR-IV.4.3.3*\"",
+    "site": "scripts/spec/rule_catalog_1985.py"
+   },
+   {
+    "kind": "segmentation",
+    "row": "GR-8.5.1.3.2-3",
+    "what": "the 2023 row for list item c) also holds the list's three closing paragraphs (special level-numbers 66, 77, 88); the same fold in GR-8.5.1.6.4-2, which holds the closing paragraph 'Each implementor who provides for special types of alignment ...' after item 2",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py GR-8.5.1.3.2-3 GR-8.5.1.6.4-2",
+    "site": "the 2023 rule catalog builder (scripts/spec)"
+   },
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-IV.4.3.6-3",
+    "what": "2023 §2023:14.6.8.5 (the alphanumeric-receiver alignment paragraph) has no catalog row, so no 1985 alignment row can point to it",
+    "repro": "python E:/COBOL-coord/scratch/pb5453/tools/show.py \"GR-14.6.8.5*\"  (MISSING)",
+    "site": "PB5451 (2023 paragraph rows)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "s-04",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p5",
+    "verdict": "UPHELD",
+    "reason": "Strongest counter-reading tried: 1985 lists the SYNCHRONIZED clause as a means of synchronization (IV.4.3.7 items 1-2), and SYNCHRONIZED GR1 makes unused positions part of the group, so if WiseOwl's SYNC inserted slack bytes it would PROVIDE special alignment and the pointer's witness (no SYNC clause at all) would not cover that scope. Probe r1_sync_group.cob at --std 85 (BINARY SYNC and COMP SYNC RIGHT in a group, REDEFINES at packed offsets) prints HC=C HE=E and a 7-space tail of a 16-byte copy: no implicit FILLER even with SYNC, so the implementation provides no special alignment in any form and p5's conditional obligations ('Each implementor who provides for special types of alignment') never arise. DOC-A.1-7 / §2023:8.5.1.6.4 GR2 states the same conditional with the same three subjects; its at-85 case l1c40_no_automatic_alignment (accept [85, 2002], fixed form, 1985-legal BINARY and reference modification) exercises the non-provision. The licence is p5's own conditional, checked.",
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.7 p5",
+      "quote": "Each implementor who provides for special types of alignment",
+      "check": "OK  §1985:IV.4.3.7 p5  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p5"
+     },
+     {
+      "cite": "§1985:VI.5.13.4 GR1",
+      "quote": "the unused character positions (or portions thereof) must not be used for any other data item",
+      "check": "OK  §1985:VI.5.13.4 GR1  (5.13.4 General Rules)  the text is in GR1"
+     },
+     {
+      "cite": "§2023:8.5.1.6.4",
+      "quote": "Each implementor who provides for these special types of alignment",
+      "check": "OK  §2023:8.5.1.6.4  (Item alignment for increased object-code efficiency)  the text is in the clause; it lies in GR2"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04-refute/r1_sync_group.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04-refute/r1_sync_group.cob (run E:/COBOL-coord/scratch/pb5453/runs/r1_sync_group-001: HC=C HE=E, TAIL 7 spaces) and the pointer's l1c40_no_automatic_alignment"
+   }
+  ],
+  "disputed-different": []
+ },
+ "derivation-refute": {
+  "slice": "s-04",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.3.6-p1",
+    "arm": "indistinguishable-consequent",
+    "verdict": "OVERTURNED",
+    "attempt": "E:/COBOL-coord/scratch/pb5453/probes/s-04-refute/r2_category_positioning.cob: one sending X(2) '12' moved to PIC 9(4) and to PIC X(4); --std 85 run E:/COBOL-coord/scratch/pb5453/runs/r2_category_positioning-001 prints N=[0012] A=[12  ]",
+    "reason": "The named row 1985-GR-IV.4.3.6-1 governs numeric receivers only ('If the receiving data item is described as numeric', §1985:IV.4.3.6 GR1, checked OK); the lead-in's consequent is that positioning DEPENDS ON THE CATEGORY ('depend on the category of the receiving item', §1985:IV.4.3.6 p1, checked OK), i.e. the union of items 1-3 (item 3: 'aligned at the leftmost character position', §1985:IV.4.3.6 GR3, checked OK). The probe shows the dependence (right-aligned zero fill vs left-aligned space fill), which row -1 alone does not state, so the consequent is not indistinguishable from the one row named. The row needs its own witness (this probe is a candidate) or an arm naming all three items.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04-refute/r2_category_positioning.cob"
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p3",
+    "arm": "definitional",
+    "verdict": "OVERTURNED",
+    "attempt": "No witness program written; attacked the arm's subject condition.",
+    "reason": "The definitional arm requires a property of the USER'S PROGRAM, never one about the implementation. The defined property is storage placement on machine natural boundaries 'in such a way as to avoid such additional machine operations' (p3), and §1985:IV.4.3.7 p1 (checked OK: 'The way in which data is stored is determined by the object program') puts that placement in the object program, i.e. the implementation. The reader itself barred the definitional arm for p2 on exactly this ground ('its subject is the implementation'), and p3 is defined in p2's terms. Not decisive for the arm, so refuted by default: the row needs the same ruling p2 awaits, or an indistinguishable-consequent arm naming the SYNCHRONIZED clause rows.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "asked": "f9f888461107e39e11ffef78d89d843fd8cc889f18ccc653e7de8cc18757359e",
+  "derivation-refute": "2edd7586d01e22095e6428a1de167865aa72a513cd52e08c0e24238b24dff45b",
+  "read": "79a713922bda9a6f1ce187c052214b94ba5f28d77215fadc451155b2ff4aed30",
+  "refute": "a7ead7a047ed358435da74ede36344412652bf18e9b57214b0f012daaf214cd2"
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.1.3.5-p5",
+ "rule-digest": "10ba3fe3d65f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IoStatus1985.cs#Report; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "test-ref": "conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/pb5882_io_status_1985_values",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/pb5882_io_status_1985_values), joined as the row's own test. The read: The paragraph leads the 1985 value list and leaves the choice among applicable values to the implementor. DOC-A.1-104 (2023) states the choice but has no 85 case; the other candidates each name one value. pb5882 shows that at 85 a program is given only 1985 list values. The choice itself has nothing to witness beyond any applicable value being placed. Code location located after the read: status values for sequential conditions; cites 1985:VII.1.3.5 in SequentialConnector"
+}

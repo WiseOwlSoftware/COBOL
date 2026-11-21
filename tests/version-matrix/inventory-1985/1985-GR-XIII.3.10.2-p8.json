@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p8",
+ "rule-digest": "62c17cb8f466",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#FirstLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#CobolReport",
+ "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_2-p8",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (paged_first_line_lc_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Upholding the refuter: the pointer GR5 sends the first body group on a page to FIRST DETAIL, while 1985 body rule 4b presents it 'on the line immediately following the line indicated by the value contained in LINE-COUNTER' (stated in 2023 by GR-13.18.37.4-4, added to `to` as a lead, not a SAME), and the pointer's 85 cases are unpaged only. The refuter's paged run (re-read this pass) prints P1 L04 RH, L05 PH, L07 D1A; P3 L09 D1A (saved integer 8 + 1); P3 L18 RF after PF at 16, as the 1985 tables require. Code location located after the read: FirstLine computes first print line position of a group"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.6-p1",
+ "rule-digest": "ed2c3b0902de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Store; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#MoveTable16",
+ "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/1985-GR-IV_4_3_6-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (r2_category_positioning.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The standard rules for positioning data within an elementary item depend on the category of the receiving item.' The refuter showed the lead-in's consequent (dependence on the category) is not item 1's alone. The one-sender, two-receiver probe shows the dependence at 85: the same '12' becomes [0012] in PIC 9(4) and [12 ] in PIC X(4). Code location located after the read: CobolString.Store positions alphanumeric data (justified/pad); MoveTable16 governs category moves"
+}

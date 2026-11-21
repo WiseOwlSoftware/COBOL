@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.4.3-p1",
+ "rule-digest": "56fe9c857312",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.DescriptionCompletion.cs#DataBinder",
+ "test-ref": "conformance:cases/IV.4.4@1985-EXPLICIT-AND-IMPLICIT-SPECIFICATIONS/1985-GR-IV_4_4_3-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-05.json: the reader showed the compiler correct at 85 with its probe (s05_attr.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but its example is observable: an item with no USAGE clause is stored exactly as USAGE DISPLAY. The candidates (documentation item, program-name scope) do not state it. Code location located after the read: explicit clauses parsed by dataDescriptionEntry; implicit attributes completed by DataBinder description completion"
+}

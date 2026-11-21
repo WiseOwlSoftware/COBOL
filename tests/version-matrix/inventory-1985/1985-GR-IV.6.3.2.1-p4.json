@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.3.2.1-p4",
+ "rule-digest": "b2559dd1c080",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#linkageSection",
+ "test-ref": "conformance:cases/IV.6.3.2@1985-Physical-and-Logical-Aspects-of-Data/1985-GR-IV_6_3_2_1-p4",
+ "notes": "Own witness from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p12_linkage.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The Linkage Section appears in the called program and describes data items that are to be referred to by the calling program and the called program. Its structure is the same as the Working-Storage Section.\" No candidate states it (DOC-A.1-116 is the non-COBOL caller item). Code location located after the read: linkageSection grammar rule"
+}

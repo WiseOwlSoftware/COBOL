@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.5.2.2-p1",
+ "rule-digest": "39485af4fb17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#workingStorageSection; src/WiseOwl.Cobol.Compiler/Binding/Passes/GroupBindPass.cs#GroupBindPass",
+ "test-ref": "conformance:cases/VI.5@1985-DATA-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_5_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-data.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No candidate states it. The grouping rule and the single-item record are witnessed; \"All clauses which are used in record descriptions in the File Section can be used\" is shown only for the clauses in the probe. Code location located after the read: working-storage records are grouped by GroupBindPass from the level numbers"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.1.2.3-p1",
+ "rule-digest": "bf0147899e48",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-AR-A_2_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (s19_p18_fn_args.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A function-identifier is used by the programmer to reference a function within the Procedure Division\". Flagged definitional, but any accepted program that references a function through a function-identifier shows it. The candidates (SR-8.4.3.2.3-1/-2, SR-14.9.51.3-4) have no 85 case. Code location located after the read: function-identifier reference in the Procedure Division: grammar functionCall bound by BindIntrinsic"
+}

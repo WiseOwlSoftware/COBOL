@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.4.3.1-p1",
+ "rule-digest": "a082cceb113b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Open",
+ "test-ref": "conformance:cases/VII.3.6@1985-LABEL-RECORDS-CLAUSE/1985-GR-VII_3_6_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (seqoc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The OPEN statement initiates the processing of files. The REVERSED phrase is an obsolete element\". 2023 removed REVERSED, and no 2023 row states the OPEN function. At 85, OPEN INPUT ... REVERSED is accepted and makes the records available in reverse order (§1985:VII.4.3.4 GR12). Code location located after the read: OPEN binder and runtime open"
+}

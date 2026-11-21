@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.1.3.4-p5",
+ "rule-digest": "9a35e48aa07c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#externalClause",
+ "test-ref": "conformance:cases/X.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-X_1_3_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-15.json: the reader showed the compiler correct at 85 with its probe (p02_external.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Shown by p02: the subordinates of an external record are one storage with another program's elementary description. GR-13.18.22.4-1 has no 85 case. No pointer: every 2023 candidate was proposed on wording only, and none states this 1985 text with an 85 case that exercises it. Code location located after the read: EXTERNAL clause record"
+}

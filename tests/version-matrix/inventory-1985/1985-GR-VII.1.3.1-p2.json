@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.1.3.1-p2",
+ "rule-digest": "9b87376e4dcb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite",
+ "test-ref": "conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/pb5924-seq-update-in-place-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/pb5924-seq-update-in-place-85), joined as the row's own test. The read: The candidates are DELETE and organization rules; no 2023 rule states update in place with its two limits together, and none of the candidates has an 85 case. The prose85 golden (TESTED CONFORMS, UPHELD) passes on the mint build at 85. Code location located after the read: sequential mass-storage REWRITE in place"
+}

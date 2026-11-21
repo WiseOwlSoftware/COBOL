@@ -1016,11 +1016,81 @@
  ],
  "derivations": [
   {
+   "key": "DRV-1985-GR-IV.4.2.2.1.1-15",
+   "arm": "unpopulatable-antecedent",
+   "names": "the ENTER statement, the one place a routine-name occurs, which this implementation does not include (§1985:I.1.5.2.5.5; docs/conformance/9.1/1985-SR-VI.6.12.3-1.md)",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.4.2.2.1.2-3",
+   "arm": "unpopulatable-antecedent",
+   "names": "language-name occurs only in the ENTER statement (§1985:VI.6.12.2), which this implementation declines under §1985:I.1.5.2.5.5 (COBOL7240), so no accepted program has one",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.4.2.2.1.3.3-1",
+   "arm": "indistinguishable-consequent",
+   "names": "1985-SR-IV.4.2.2.1.3.3.1-p1",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.4.2.2.1.3.3-2",
+   "arm": "indistinguishable-consequent",
+   "names": "1985-SR-IV.4.2.2.2.3-p1",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-03.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.4.3.7-p3",
+   "arm": "indistinguishable-consequent",
+   "names": "1985-GR-VI.5.13.4-2",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-99.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-IV.4.4.2-L2.1",
    "arm": "definitional",
    "names": "defines when a statement of the user's program has no next executable statement: the last statement of a declarative section whose paragraph is not being executed under the control of another statement",
    "signature": "claude: 2026-11-16",
    "refuter": "tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.6.3.1-p1",
+   "arm": "definitional",
+   "names": "defines the Data Division as the part of the user's program that describes the data the object program accepts, manipulates, creates or produces",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.6.4.2-p1",
+   "arm": "definitional",
+   "names": "defines the four types every statement of the user's program belongs to: imperative, conditional, compiler directing and delimited scope statements",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.6.4.2-p2",
+   "arm": "definitional",
+   "names": "defines the three types every sentence of the user's program belongs to: imperative, conditional and compiler directing sentences",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-06.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-IV.7.4-p5",
+   "arm": "definitional",
+   "names": "defines a data description entry as any Data Division entry of the user's program that begins with a level-number",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-08.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-VI.2.1-p1",
+   "arm": "definitional",
+   "names": "defines a COBOL source program as a syntactically correct set of COBOL statements written by the user",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-08.jsonl"
   },
   {
    "key": "DRV-1985-GR-VI.5.13.4-3",
@@ -1063,6 +1133,13 @@
    "names": "\"the result of the execution of this statement is undefined\"",
    "signature": "claude: 2026-11-16",
    "refuter": "—"
+  },
+  {
+   "key": "DRV-1985-GR-VII.1.3.3-p1",
+   "arm": "unpopulatable-antecedent",
+   "names": "a sequential file of more than one physical volume (reel/unit): WiseOwl provides single-volume files only, the reel/unit swap of GR-14.9.51.4-24 being DOCUMENTED-NON-SUPPORT",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-12.jsonl"
   },
   {
    "key": "DRV-1985-GR-VII.4.3.4-22",
@@ -1161,6 +1238,20 @@
    "names": "the set of communication devices that are character-imaging, line-oriented devices onto whose used line a SEND can be positioned (GR16's class, of which the device of GR17 that does not support replacement and the device of GR18 that does not support superimposition are the two cases) is empty: every device (a terminal, or a destination with no deliverTo) takes variable-length messages (GR2; section 3.3, \"Communication devices\"), McsStore.Transmit is its only writer and writes each complete message at the device's committed end, and ADVANCING and REPLACING LINE are ignored (GR12)",
    "signature": "claude: 2026-11-14",
    "refuter": "tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl"
+  },
+  {
+   "key": "DRV-1985-SR-IV.4.2.2.1.1-L2.12",
+   "arm": "unpopulatable-antecedent",
+   "names": "the ENTER statement, the one place a routine-name occurs, which this implementation does not include (§1985:I.1.5.2.5.5; docs/conformance/9.1/1985-SR-VI.6.12.3-1.md)",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-02.jsonl"
+  },
+  {
+   "key": "DRV-1985-SR-IV.5.1-p1",
+   "arm": "definitional",
+   "names": "defines a COBOL source program as a syntactically correct set of COBOL statements, a property of the user's program",
+   "signature": "claude: 2026-11-21",
+   "refuter": "tests/version-matrix/derivation-refutations/lineage-reads-1985-s-06.jsonl"
   },
   {
    "key": "DRV-1989-RV-A.2.11.3-2",

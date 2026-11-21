@@ -24,6 +24,13 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
+- **▶ 1985: THE PB5453 READS ARE RECORDED (2026-11-21, branch pb5453-import).** The 657 rows PB5452's mint opened were
+  read by the fleet (22 read records, `tests/version-matrix/lineage-reads-1985/`, the second read s-99 superseding 50
+  first reads) and 526 are recorded on their own verdicts: 25 own verdicts from pointers, 488 own witnesses (404 readers'
+  probes placed as 209 cases, 52 prose85 goldens and 32 suite cases joined), 13 derivations signed `claude: 2026-11-21`
+  (kb/Work PB6003). **1985 inventory GAP 657 → 131**; the 131 are claimed by kb/Work PB5453 (refusal probes with no
+  control 74, probes needing library staging 14 (PB6016), 11 presentation rows for a ruling, the rest named there).
+  The 156 prose85 goldens are in the suite under their minted rows. `edition_status.py --edition 1985` is the count.
 - **▶ THE FULL SOURCE LISTING HAS LANDED (2026-11-20, kb/Work PB5925, PB5932: `status: landed`).** Every step of
   `docs/rearchitecture/DESIGN-listing.md` section 11 is on main (pull requests #1895 to #1906, the last merged as
   99f658fbbf), with the owner's four listing reports (PB5948 to PB5951). It was the last 1985 item the owner named

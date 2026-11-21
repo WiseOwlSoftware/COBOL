@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.1-p1",
+ "rule-digest": "5d13675a04f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Open",
+ "test-ref": "conformance:cases/VIII.2.6@1985-I-O-CONTROL-PARAGRAPH/1985-GR-VIII_2_6_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p01_relative.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: 'The OPEN statement initiates the processing of files.' None of the candidate OPEN rules (GR-14.9.27.4-20/-2, SR-14.9.27.3-4) has a case that runs at 85. The probe opens a relative file in output mode and then in I-O mode, and writes, deletes and reads after each OPEN. Code location located after the read: OPEN binder and runtime"
+}

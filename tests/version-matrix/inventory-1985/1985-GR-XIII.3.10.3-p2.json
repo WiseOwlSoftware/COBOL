@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.3-p2",
+ "rule-digest": "0660e3a5e558",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder; src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#ReportLinePlacement",
+ "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (rw_seq_legal_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Second read. The paragraph defines what a table entry such as 'A R' means for the user's report group: \"'A R' refers to a report group description entry within which the 'A' sequence ... is immediately followed by the 'R' sequence\". That meaning is program-visible: an RH whose LINE 2 is followed by LINE PLUS 1 is a legal 'A R' sequence and is presented at lines 2 and 3 (rw_seq_legal_85.cob, rerun on the mint build). So the row is testable, not presentation; no 2023 rule restates the notation. Code location located after the read: LINE NUMBER clause sequence handled by ReportLinePlacement and bound by ReportSectionBinder"
+}

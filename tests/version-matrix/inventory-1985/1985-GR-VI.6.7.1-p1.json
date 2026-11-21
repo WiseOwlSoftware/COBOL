@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.7.1-p1",
+ "rule-digest": "4a306768f7c5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter",
+ "test-ref": "conformance:cases/VI.6.7@1985-ALTER-STATEMENT/1985-GR-VI_6_7_4-1",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.6.7@1985-ALTER-STATEMENT/1985-GR-VI_6_7_4-1), joined as the row's own test. The read: ALTER was deleted after 1985; 2023 has no ALTER statement, and the candidates (USE BEFORE REPORTING, sum counters, START) are unrelated wording matches. The 1985 ALTER cases run at 85 and show the altered GO TO taking the new target. Code location located after the read: ALTER binding and emission"
+}

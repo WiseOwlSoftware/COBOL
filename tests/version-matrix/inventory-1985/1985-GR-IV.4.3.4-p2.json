@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.4-p2",
+ "rule-digest": "27e7714bf529",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#ItemLength; src/WiseOwl.Cobol.Runtime/Values/StandardDataFormat.cs#CobolStandardData",
+ "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/pb5924-standard-data-format-default-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/pb5924-standard-data-format-default-85), joined as the row's own test. The read: prose85 (85p-07, TESTED, CONFORMS, UPHELD); its golden passes on the mint build. GR-13.18.60.4-11/-4/-6 state particular usages but none states the default with an 85 case. Code location located after the read: standard data format default for non-integer items"
+}

@@ -883,9 +883,10 @@ def case_15_a_derivation_a_read_proposes_has_a_route(expect):
              proposal(ids["mechanical"], "undefined-in-rule", '"the result is undefined in that case"'),
              proposal(ids["overturned"]), proposal(ids["doubtful"]),
              proposal(ids["shapeless"], names="defines it")]
-    drefs = [F.refute(ids["upheld"], citations=cite), F.refute(ids["shapeless"]),
-             F.refute(ids["overturned"], "OVERTURNED", probe="w.cob", **{"compiler-at-1985": "correct: w.cob"}),
-             F.refute(ids["doubtful"], "DOUBTFUL")]
+    drefs = [F.refute(ids["upheld"], citations=cite, attempt="a.cob"), F.refute(ids["shapeless"], attempt="b.cob"),
+             F.refute(ids["overturned"], "OVERTURNED", probe="w.cob", attempt="w.cob",
+                      **{"compiler-at-1985": "correct: w.cob"}),
+             F.refute(ids["doubtful"], "DOUBTFUL", attempt="d.cob")]
     s = R.normal_slice("s-05", F.record("s-05", reads, edition=1985, derivation_refutes=drefs))
     got = {d.rule_id: d for d in R.decide(ed85, [s], None, None, F.lineage(ids.values()))}
     expect("an upheld definitional derivation is the work item `derivation`, blocked by nothing",
@@ -928,7 +929,8 @@ def case_15_a_derivation_a_read_proposes_has_a_route(expect):
     lines = R.refutation_lines(1985, s).splitlines()
     expect("the slice's refuter records are one JSON line per derivation refute, in the form the Refuted cell's checker reads",
            len(lines) == 4 and json.loads(lines[0]) == {"rule-id": ids["upheld"], "outcome": "UPHELD", "citation": cite,
-                                                        "reason": "planted UPHELD", "source": "lineage-reads-1985/s-05.json"})
+                                                        "attempt": "a.cob", "reason": "planted UPHELD",
+                                                        "source": "lineage-reads-1985/s-05.json"})
     for label, case, needle in (
             ("a definitional class with no derivation", {**F.read("1985-SR-IV.2.1.9-p1", "DIFFERENT"),
                                                          "class": "definitional"}, "no `derivation`"),
@@ -941,7 +943,8 @@ def case_15_a_derivation_a_read_proposes_has_a_route(expect):
     expect("a derivation refute of a read that proposes none is refused",
            F.raises(lambda: R.normal_slice("s-07", F.record("s-07", [F.read("1985-SR-IV.2.1.9-p1", "DIFFERENT")],
                                                             edition=1985,
-                                                            derivation_refutes=[F.refute("1985-SR-IV.2.1.9-p1")])),
+                                                            derivation_refutes=[F.refute("1985-SR-IV.2.1.9-p1",
+                                                                                         attempt="x.cob")])),
                     "s-07", "proposes no derivation"))
     d = scratch_dir("lineage-reads-derivation")
     src, out = d / "out", d / "records"
@@ -964,6 +967,71 @@ def case_15_a_derivation_a_read_proposes_has_a_route(expect):
     jsonl.write_text(R.refutation_lines(1985, s).replace("UPHELD", "OVERTURNED"), encoding="utf-8", newline="\n")
     expect("and a hand edit of it is red, naming the file and the read record",
            any("lineage-reads-1985/s-05.json" in e for e in R.refutation_errors(1985, [s], repo)))
+
+
+def case_16_a_second_read_supersedes_the_first_and_the_refuter_brief_shapes_are_read(expect):
+    """kb/Work PB5453 (the import landing): the fleet's second read (slice s-99) re-decides rules other slices read first,
+    each case naming the slice it replaces (`supersedes`). Before the fix the import refused every such rule `read again`
+    and nothing was written; a derivation refuter's case in its brief's shape (`attempt`, no citations) and a DOUBTFUL
+    definitional read (a reader who found no arm that fits) were refused too."""
+    rid, other = "1985-GR-IV.1-p1", "1985-GR-IV.1-p2"
+    first = [F.read(rid, "DOUBTFUL", to=[]), F.read(other, "DIFFERENT", to=[])]
+    second = [{**F.read(rid, "DIFFERENT", to=[]), "supersedes": "s-01",
+               "compiler-at-1985": "correct: p.cob", "probe": "p.cob"}]
+    d = scratch_dir("lineage-reads-supersede")
+    src, out = d / "out", d / "records"
+    src.mkdir()
+    for name, cases in (("s-01", first), ("s-99", second)):
+        (src / f"{name}-read.json").write_text(json.dumps({"slice": name, "cases": cases}), encoding="utf-8",
+                                               newline="\n")
+    expect.equal("both slices import: the second read names the slice it replaces",
+                 R.import_records(1985, src, None, out), ["s-01", "s-99"])
+    loaded = {s.name: s for s in R.load(1985, out)}
+    expect("the newest read decides the rule; the first record keeps its other rules and stays verbatim",
+           set(loaded["s-01"].reads) == {other} and set(loaded["s-99"].reads) == {rid}
+           and json.loads((out / "s-01.json").read_text(encoding="utf-8"))["read"]["cases"][0]["rule-id"] == rid)
+    got = {x.rule_id: x for x in R.decide(R.edition(1985), list(loaded.values()), None, None, F.lineage([rid, other]))}
+    expect("the decision is the second read's, from its own slice",
+           got[rid].slice == "s-99" and got[rid].work == R.NEEDS_OWN_WITNESS)
+    for label, cases, needle in (
+            ("a second read naming no slice", [F.read(rid, "DIFFERENT", to=[])], "no line of second reads"),
+            ("a second read naming a slice that does not read the rule",
+             [{**F.read("1985-GR-IV.1-p3", "DIFFERENT", to=[]), "supersedes": "s-01"}], "does not read the rule"),
+            ("a slice superseding itself", [{**F.read(rid, "DIFFERENT", to=[]), "supersedes": "s-99"}], "supersedes")):
+        (src / "s-99-read.json").write_text(json.dumps({"slice": "s-99", "cases": cases}), encoding="utf-8",
+                                            newline="\n")
+        before = {p.name: p.read_text(encoding="utf-8") for p in out.iterdir()}
+        expect(f"REFUSED before any write: {label}",
+               F.raises(lambda: R.import_records(1985, src, None, out), needle)
+               and {p.name: p.read_text(encoding="utf-8") for p in out.iterdir()} == before)
+    proposal = {**F.read("1985-SR-IV.2.1.1-p1", "DIFFERENT", citations="§1985:IV.2.1.1 p1"), "to": [],
+                "class": "definitional", "derivation": {"arm": "definitional", "names": "defines the kinds of element"}}
+    brief = {"rule-id": "1985-SR-IV.2.1.1-p1", "arm": "definitional", "verdict": "UPHELD", "attempt": "w.cob refused",
+             "reason": "no program can show it", "probe": None}
+    s = R.normal_slice("s-05", F.record("s-05", [proposal], edition=1985, derivation_refutes=[brief]))
+    expect("a derivation refuter's case in the brief's shape is read: its attempt kept, its citations none",
+           s.derivation_refutes["1985-SR-IV.2.1.1-p1"].attempt == "w.cob refused"
+           and s.derivation_refutes["1985-SR-IV.2.1.1-p1"].citations == ()
+           and '"attempt": "w.cob refused"' in R.refutation_lines(1985, s))
+    for label, case, needle in (("a derivation refute with no attempt", {k: v for k, v in brief.items() if k != "attempt"},
+                                 "attempt"),
+                                ("a derivation refute of another arm", {**brief, "arm": "unpopulatable-antecedent"},
+                                 "arm")):
+        expect(f"REFUSED loudly: {label}",
+               F.raises(lambda: R.normal_slice("s-05", F.record("s-05", [proposal], edition=1985,
+                                                                derivation_refutes=[case])), "s-05", needle))
+    doubt = R.normal_read("s-16", {**F.read("1985-SR-X.2.3-p1", "DOUBTFUL", to=[]), "class": "definitional",
+                                   "derivation": None}, 1985)
+    expect("a DOUBTFUL definitional read with no derivation (no arm fits) is read: it proposes none",
+           doubt.derivation is None and doubt.verdict == "DOUBTFUL")
+    keyed = R.normal_slice("s-05", F.record("s-05", [{**proposal, "reason": "the reel swap is DOC-A.1-71's"}],
+                                            edition=1985, derivation_refutes=[brief]))
+    _rec, cells, _p = R.derivation_record(R.edition(1985), keyed.reads["1985-SR-IV.2.1.1-p1"],
+                                          keyed.derivation_refutes["1985-SR-IV.2.1.1-p1"], {}, "claude: 2026-11-21", SCHEMA)
+    expect("a register row's argument cites an A.1 determination as `A.1 item N`, never its row key (the register "
+           "anchors a row on the key by a word search over the whole file)",
+           "A.1 item 71's" in cells[3] and "DOC-A.1-71" not in cells[3])
+
 
 if __name__ == "__main__":
     ensure_utf8()

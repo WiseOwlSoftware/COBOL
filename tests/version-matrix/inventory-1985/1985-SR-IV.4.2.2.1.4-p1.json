@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.4-p1",
+ "rule-digest": "785d4194f9e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FunctionWord.cs#FunctionWord; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-SR-IV_4_2_2_1_4-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with its probe (p12_funcnames.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Amendment 2's sentence: 'With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word.' SR-8.3.2.1-4 (85 case l1c03) is the general system-name/user-word overlap and states neither the function-name rule nor its three exceptions. Code location located after the read: function-name classification (LENGTH/RANDOM/SUM exceptions)"
+}

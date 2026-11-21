@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.1.3.2-p1",
+ "rule-digest": "3aa031dbbcf9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#DataItemNamed",
+ "test-ref": "conformance:cases/VI.1.3@1985-RESTRICTIONS-ON-OVERALL-LANGUAGE/pb5924-fifty-qualifiers-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/VI.1.3@1985-RESTRICTIONS-ON-OVERALL-LANGUAGE/pb5924-fifty-qualifiers-85), joined as the row's own test. The read: \"50 qualifiers are permitted in level 2. In level 2, user-defined words need not be unique.\" The candidates are unrelated (TYPE clause, word documentation, name sharing) with no 85 case for this scope. Code location located after the read: qualification grammar and name resolution"
+}

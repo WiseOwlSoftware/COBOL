@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.1.1-p2",
+ "rule-digest": "0083951469aa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLevelNumbers; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry",
+ "test-ref": "conformance:cases/XIII.1@1985-INTRODUCTION-TO-THE-REPORT-WRITER-MODULE/1985-GR-XIII_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (rw_access_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'Each report is divided into report groups, which in turn are divided into sequences of items ... A report group contains one or more items to be presented on zero, one, or more lines.' None of the candidates (SR-13.18.54.3-4, SR-13.15.3-1, GR-14.9.49.4-9) states the hierarchy; the probe and the dummy-group 85 case show each part. Code location located after the read: report group hierarchy of levels: ScreenReportLevelNumbers and reportGroupEntry"
+}

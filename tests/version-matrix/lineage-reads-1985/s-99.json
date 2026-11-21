@@ -1,0 +1,1669 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-99 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-99",
+ "edition": 1985,
+ "asked": null,
+ "read": {
+  "slice": "s-99",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.1-p1",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the section's rules apply at the high level",
+     "boxes mark high-level text",
+     "module restrictions may affect other modules",
+     "flowcharts do not dictate implementation"
+    ],
+    "evidence-1985": {
+     "the section's rules apply at the high level": "not shown: no program can show a statement about the document",
+     "boxes mark high-level text": "not shown: no program can show a statement about the document",
+     "module restrictions may affect other modules": "not shown: no program can show a statement about the document",
+     "flowcharts do not dictate implementation": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.1 p1",
+      "quote": "are not meant to dictate implementation",
+      "check": "OK  §1985:IV.1 p1  (1. <u>INTRODUCTION</u>)  the text is in p1"
+     }
+    ],
+    "reason": "'Throughout this document, specifications unique to the high level are enclosed in boxes ... The flowcharts in this document ... are not meant to dictate implementation.' Every sentence describes the document's conventions; the high-level claim is the register's (kb/Work PB4885), not a property a program shows. no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling adding a derivation arm for presentation-only text (or a catalog disposition retiring it as not-a-rule); no program and no 2023 pointer can settle it, and the second read confirms the first reader's DOUBTFUL.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": null,
+    "needs": "a ruling (DESIGN-spec-conformance-review.md section 1.1) on how a presentation-only row closes: a new derivation arm, or retiring the row as not-a-rule in the 1985 catalog",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.2.1.5-p1",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "the ellipsis in running text (not general formats)"
+    ],
+    "evidence-1985": {
+     "the ellipsis in running text (not general formats)": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.5 p1",
+      "quote": "the ellipsis (...) shows omission of a word or words",
+      "check": "OK  §1985:IV.2.1.5 p1  (2.1.5 Ellipsis)  the text is in p1"
+     }
+    ],
+    "reason": "'In text, other than general formats, the ellipsis (...) shows omission of a word or words' governs the standard's prose only; the ellipsis in general formats is another row. no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling adding a derivation arm for presentation-only text (or a catalog disposition retiring it as not-a-rule); no program and no 2023 pointer can settle it, and the second read confirms the first reader's DOUBTFUL.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": null,
+    "needs": "a ruling (DESIGN-spec-conformance-review.md section 1.1) on how a presentation-only row closes: a new derivation arm, or retiring the row as not-a-rule in the 1985 catalog",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.3.1-p1",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "what a syntax rule of the standard is"
+    ],
+    "evidence-1985": {
+     "what a syntax rule of the standard is": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.3.1 p1",
+      "quote": "Syntax rules are those rules that define or clarify",
+      "check": "OK  §1985:IV.3.1 p1  (3.1 SYNTAX RULES)  the text is in p1"
+     }
+    ],
+    "reason": "'Syntax rules are those rules that define or clarify the order in which words or elements are arranged' defines a kind of rule of the document. no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling adding a derivation arm for presentation-only text (or a catalog disposition retiring it as not-a-rule); no program and no 2023 pointer can settle it, and the second read confirms the first reader's DOUBTFUL.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": null,
+    "needs": "a ruling (DESIGN-spec-conformance-review.md section 1.1) on how a presentation-only row closes: a new derivation arm, or retiring the row as not-a-rule in the 1985 catalog",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.3.2-p1",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "what a general rule of the standard is"
+    ],
+    "evidence-1985": {
+     "what a general rule of the standard is": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.3.2 p1",
+      "quote": "A general rule is a rule that defines or clarifies",
+      "check": "OK  §1985:IV.3.2 p1  (3.2 GENERAL RULES)  the text is in p1"
+     }
+    ],
+    "reason": "'A general rule is a rule that defines or clarifies the meaning or relationship of meanings of an element' defines a kind of rule of the document. no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling adding a derivation arm for presentation-only text (or a catalog disposition retiring it as not-a-rule); no program and no 2023 pointer can settle it, and the second read confirms the first reader's DOUBTFUL.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": null,
+    "needs": "a ruling (DESIGN-spec-conformance-review.md section 1.1) on how a presentation-only row closes: a new derivation arm, or retiring the row as not-a-rule in the 1985 catalog",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.1-p1",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a separator is one character (space, parentheses, quotation mark, colon) or two contiguous characters (comma, semicolon or period with a following space; the pseudo-text delimiter ==)",
+     "formed by rules (1) to (9), which are their own rows"
+    ],
+    "evidence-1985": {
+     "one-character separators": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g1_sep_lead.cob (run E:/COBOL-coord/scratch/pb5453/runs/g1_sep_lead-001: SEP-OK)",
+     "two-character separators": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g1_sep_lead.cob (comma-space, semicolon-space, period-space, ==...== in REPLACE)",
+     "rules (1)-(9)": "their own rows (1985-SR-IV.4.2.1-1..9)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.1 p1",
+      "quote": "A separator is a character or two contiguous characters",
+      "check": "OK  §1985:IV.4.2.1 p1  (4.2.1 Separators)  the text is in p1"
+     },
+     {
+      "cite": "§1985:IV.4.2.1 SR6",
+      "quote": "Pseudo-text delimiters are separators",
+      "check": "OK  §1985:IV.4.2.1 SR6  (4.2.1 Separators)  the text is in SR6"
+     }
+    ],
+    "reason": "Not presentation: 'A separator is a character or two contiguous characters formed according to the following rules' states what a program's separators are, and an accepted program using every one- and two-character separator shows it. The probe uses space, comma-space, semicolon-space, period-space, parentheses (subscripts), quotation marks, the colon of reference modification and the pseudo-text delimiter in REPLACE ==XADD== BY ==ADD==, and prints SEP-OK at --std 85. No 2023 paragraph row is minted for the lead of 2023 8.3.5, so there is no pointer.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g1_sep_lead.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g1_sep_lead.cob (runs/g1_sep_lead-001 prints SEP-OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g1_sep_lead.cob as the row's case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.4.2.2.1-p2",
+    "supersedes": "s-02",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the scope 'within a source program' of items (1) and (2): word classification holds within one source program, by context"
+    ],
+    "evidence-1985": {
+     "item (1)b within one program: one word as user-defined word and function-name, context classifies": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g1_words_lead.cob (run E:/COBOL-coord/scratch/pb5453/runs/g1_words_lead-001: WORDS-OK)",
+     "items (1) and (2) themselves": "their own rows, cases conformance:cases/IV.4.2.2@1985-Character-Strings/1985-SR-IV_4_2_2_1-1 and IV.4.2.2.1@1985-COBOL-Words/pb5848-copy-text-name-*"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.2.2.1 p2",
+      "quote": "Within a source program the following apply",
+      "check": "OK  §1985:IV.4.2.2.1 p2  (4.2.2.1 COBOL Words)  the text is in p2"
+     },
+     {
+      "cite": "§1985:IV.4.2.2.1 SR1",
+      "quote": "The same COBOL word may be used as a function-name",
+      "check": "OK  §1985:IV.4.2.2.1 SR1  (4.2.2.1 COBOL Words)  the text is in SR1"
+     }
+    ],
+    "reason": "'Within a source program the following apply:' scopes items (1) and (2) to one source program; a single program in which the same word is both a user-defined word and a function-name shows it. g1_words_lead.cob declares 01 MAX and computes FUNCTION MAX (MAX 9 2) in the same program; at --std 85 it prints WORDS-OK (RESULT 9, MAX 5). The first reader's DOUBTFUL asked only for a lead-in disposition; an own witness closes it without one.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g1_words_lead.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g1_words_lead.cob (runs/g1_words_lead-001 prints WORDS-OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g1_words_lead.cob as the row's case (or fold the lead-in into its items by a segmentation decision)",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p2",
+    "supersedes": "s-04",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "alignment on natural boundaries may make object code cheaper"
+    ],
+    "evidence-1985": {
+     "alignment on natural boundaries may make object code cheaper": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.7 p2",
+      "quote": "additional machine operations in the object program may be required",
+      "check": "OK  §1985:IV.4.3.7 p2  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p2"
+     }
+    ],
+    "reason": "'additional machine operations in the object program may be required' explains object-code cost: it obliges neither program nor implementation and no program output can show it; its subject is the implementation, so the definitional arm is barred (section 1.1), and no other arm fits (no closed antecedent, no equal consequent, no 'undefined'). Explanatory text, like the document's presentation: no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling that explanatory, non-normative text closes by a new derivation arm or a not-a-rule catalog disposition; no program can settle it.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": null,
+    "needs": "a ruling (DESIGN-spec-conformance-review.md section 1.1) on how a presentation-only row closes: a new derivation arm, or retiring the row as not-a-rule in the 1985 catalog",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.8-p1",
+    "supersedes": "s-08",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the reserved-word list (Tables 1 and 2) of the seven required and five optional modules"
+    ],
+    "evidence-1985": {
+     "the listed words are reserved at --std 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-08/rw_sweep.py (rw-sweep-result.json, rw2-sweep-result.json: every listed word refused as a user word, controls accepted), the witness of rows 1985-SR-IV.8-T1/T2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.8 p1",
+      "quote": "The following is a list of COBOL reserved words",
+      "check": "OK  §1985:IV.8 p1  (8. <u>COBOL RESERVED WORDS</u>)  the text is in p1"
+     }
+    ],
+    "reason": "'The following is a list of COBOL reserved words for the seven required modules and the five optional modules.' The sentence's content is that the tables' words are reserved, which a program shows; the s-08 sweep refuses every listed word as a user-defined word at 85 and accepts its controls. It is a lead-in whose requirement is the tables', not presentation-only text.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-08/rw_sweep.py",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-08/rw-sweep-result.json and rw2-sweep-result.json",
+    "class": "other: a lead-in whose requirement is its tables (1985-SR-IV.8-T1/T2)",
+    "needs": "needs-own-witness: share the T1/T2 sweep case, or a segmentation decision folding the lead-in into T1/T2",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.4-p2",
+    "supersedes": "s-11",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "figures 1-4 illustrate VI.6.3.4 and do not dictate implementation"
+    ],
+    "evidence-1985": {
+     "figures 1-4 illustrate VI.6.3.4 and do not dictate implementation": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.4 p2",
+      "quote": "These figures are not intended to dictate implementation",
+      "check": "OK  §1985:VI.6.3.4 p2  (║6.3.4 Order of Evaluation of Conditions║)  the text is in p2"
+     }
+    ],
+    "reason": "'Application of the above rules is shown in figures 1 through 4 ... These figures are not intended to dictate implementation.' The order-of-evaluation rules are VI.6.3.4's own rows; this sentence is about the figures. no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling adding a derivation arm for presentation-only text (or a catalog disposition retiring it as not-a-rule); no program and no 2023 pointer can settle it, and the second read confirms the first reader's DOUBTFUL.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": null,
+    "needs": "a ruling (DESIGN-spec-conformance-review.md section 1.1) on how a presentation-only row closes: a new derivation arm, or retiring the row as not-a-rule in the 1985 catalog",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4-p1",
+    "supersedes": "s-11",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "what paragraph 6.4 describes"
+    ],
+    "evidence-1985": {
+     "what paragraph 6.4 describes": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4 p1",
+      "quote": "provide a description of the common options and conditions",
+      "check": "OK  §1985:VI.6.4 p1  (6.4 COMMON OPTIONS AND RULES FOR STATEMENTS)  the text is in p1"
+     }
+    ],
+    "reason": "'Paragraph 6.4 and its subordinate paragraphs provide a description of the common options and conditions' describes the document's organization; the options are their own rows. no derivation arm fits a rule about the standard's own presentation. What would settle it: a ruling adding a derivation arm for presentation-only text (or a catalog disposition retiring it as not-a-rule); no program and no 2023 pointer can settle it, and the second read confirms the first reader's DOUBTFUL.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": null,
+    "needs": "a ruling (DESIGN-spec-conformance-review.md section 1.1) on how a presentation-only row closes: a new derivation arm, or retiring the row as not-a-rule in the 1985 catalog",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.2-p1",
+    "supersedes": "s-12",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O level 1: file control entry, file description entry, I-O-CONTROL entries (limited); CLOSE, OPEN, READ, USE, WRITE (limited); REWRITE (full)"
+    ],
+    "evidence-1985": {
+     "level-1 statements CLOSE, OPEN (INPUT/OUTPUT/I-O), READ, WRITE, REWRITE, USE in one accepted program": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob (run E:/COBOL-coord/scratch/pb5453/runs/g2-seqlvl-001: SEQLVL OK)",
+     "file control and FD entries": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.2 p1",
+      "check": "OK  §1985:VII.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1",
+      "quote": "full capabilities are provided for the REWRITE statement"
+     }
+    ],
+    "reason": "Second read. The paragraph grants elements to a level-1 implementation: \"Sequential I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, USE, and WRITE statements; full capabilities are provided for the REWRITE statement.\" A statement of what a level provides is a GRANT a program can exercise, so it is testable, not presentation: --std 85 implements the high subset, which contains level 1, and a program using level-1 forms of every element named is accepted and runs correctly. No 2023 rule states the level structure.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob (runs/g2-seqlvl-001: COUNT=3 FIRST=AAX LAST=CC USE=1, SEQLVL OK)",
+    "needs": "needs-own-witness: place g2-seqlvl.cob (its level-1 statements) as the row's own 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.1.2-p2",
+    "supersedes": "s-12",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Sequential I-O level 2 (boxed, high): full file control entry (RESERVE, FILE STATUS, ORGANIZATION, ACCESS MODE), full FD, full I-O-CONTROL (SAME RECORD AREA); full CLOSE (WITH NO REWIND), OPEN (EXTEND), READ, REWRITE, USE, WRITE"
+    ],
+    "evidence-1985": {
+     "level-2 file control (RESERVE 2 AREAS, FILE STATUS)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob",
+     "I-O-CONTROL SAME RECORD AREA": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob",
+     "OPEN EXTEND, CLOSE WITH NO REWIND, READ, REWRITE, WRITE, USE (a status-46 READ reaches the USE procedure)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob (runs/g2-seqlvl-001)",
+     "every format of every listed statement": "not shown here: those are the module's own VII.2-VII.4 rows"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.1.2 p2",
+      "check": "OK  §1985:VII.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2",
+      "quote": "Sequential I-O level 2 provides full capabilities"
+     }
+    ],
+    "reason": "Second read. \"Sequential I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph ... CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements.\" A grant of the high level, which --std 85 implements (boxed text). Testable: one program using level-2-only elements of each named entry and statement (RESERVE, SAME RECORD AREA, OPEN EXTEND, CLOSE WITH NO REWIND, USE after a status-46 READ) is accepted and runs correctly. The detailed semantics of each format are the module's own rows; this row's own claim, that the high level provides these elements, is what the probe shows.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-seqlvl.cob (runs/g2-seqlvl-001: SEQLVL OK)",
+    "needs": "needs-own-witness: place g2-seqlvl.cob as the row's own 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.2-p1",
+    "supersedes": "s-13",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Relative I-O level 1: file control, FD, I-O-CONTROL (limited); CLOSE, OPEN, READ, REWRITE, USE, WRITE (limited); DELETE (full)"
+    ],
+    "evidence-1985": {
+     "CLOSE, OPEN, READ, REWRITE, WRITE, DELETE, USE on a relative file": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob (rerun E:/COBOL-coord/scratch/pb5453/runs/relcon-003, exit 0, every line as expected)",
+     "file control and FD entries": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.2 p1",
+      "check": "OK  §1985:VIII.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1",
+      "quote": "full capabilities for the DELETE statement"
+     }
+    ],
+    "reason": "Second read. A level statement is a grant of elements, testable by a program that uses them: \"Relative I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements and full capabilities for the DELETE statement.\" relcon.cob, rerun now on the mint build, opens, writes, reads, rewrites, deletes and closes a relative file with a USE procedure and gets the 1985 statuses.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob (runs/relcon-003)",
+    "needs": "needs-own-witness: place relcon.cob (its level-1 statements) as the row's own 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.2-p2",
+    "supersedes": "s-13",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Relative I-O level 2 (boxed, high): full file control (ACCESS DYNAMIC, RELATIVE KEY, FILE STATUS, OPTIONAL), FD, I-O-CONTROL; CLOSE, DELETE, OPEN, READ (NEXT), REWRITE, START, USE, WRITE"
+    ],
+    "evidence-1985": {
+     "ACCESS MODE DYNAMIC, SELECT OPTIONAL, START, READ NEXT, DELETE, REWRITE, USE": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob (runs/relcon-003: START99 IK 23, NEXT1 THREE KEY 0003, OPTIONAL OPEN 05)",
+     "I-O-CONTROL on a relative file": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.2 p2",
+      "check": "OK  §1985:VIII.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2",
+      "quote": "Relative I-O level 2 provides full capabilities"
+     }
+    ],
+    "reason": "Second read. \"Relative I-O level 2 provides full capabilities for ... the CLOSE, DELETE, OPEN, READ, REWRITE, START, USE, and WRITE statements.\" A grant of the high level, testable: relcon.cob uses the level-2-only elements (dynamic access, START, READ NEXT, OPTIONAL) and runs correctly at 85. I-O-CONTROL for a relative file is not in the probe; the placed witness should add a SAME RECORD AREA entry.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13/relcon.cob (runs/relcon-003)",
+    "needs": "needs-own-witness: relcon.cob plus an I-O-CONTROL entry, placed as the row's own 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.3.1-p3",
+    "supersedes": "s-13",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "relative files: the positions reserved on the medium per logical record may differ from the record's description; what a program sees is the logical record"
+    ],
+    "evidence-1985": {
+     "records of different described sizes (5 and 20) in one relative file round-trip intact whatever is reserved": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-relvar.cob (runs/g2-relvar-001: RELVAR OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.3.1 p3",
+      "check": "OK  §1985:VIII.1.3.1 p3  (1.3.1 Organization)  the text is in p3",
+      "quote": "may be different from the number of character positions in the description of that record"
+     }
+    ],
+    "reason": "Second read. The permission (\"the number of character positions reserved on the medium to store a particular logical record may be different from the number of character positions in the description of that record in the program\") separates physical reservation from the logical record. Its program-visible content is that the reservation never shows through: a relative file with RECORD CONTAINS 5 TO 20 CHARACTERS stores a 5- and a 20-character record and reads each back unchanged. That accepted program witnesses the only behaviour the permission leaves the user, so the row is testable rather than unsettleable.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-relvar.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-relvar.cob (runs/g2-relvar-001: R1=SHORT R2=LONGRECORD-TWENTY!!, RELVAR OK)",
+    "needs": "needs-own-witness: place g2-relvar.cob as the row's own 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-X.2.3-p1",
+    "supersedes": "s-16",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Inter-Program Communication structure: the order of presentation of a source program's entries (Identification, Environment, Data, Procedure Division, contained source programs, end program headers)",
+     "the generic terms' meanings (a COBOL Identification Division ... a COBOL end program header)"
+    ],
+    "evidence-1985": {
+     "divisions in order with a contained program and END PROGRAM headers accepted and run": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-struct.cob (runs/g2-struct-001: INNER RAN, STRUCT OK)",
+     "order enforced (ENVIRONMENT DIVISION after DATA DIVISION refused)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-struct-order.cob (runs/g2-struct-order-001: COBOL0001 unexpected 'ENVIRONMENT' at 10,8)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.2.3 p1",
+      "check": "OK  §1985:X.2.3 p1  (║2.3 STRUCTURE║)  the text is in p1",
+      "quote": "the general format and order of presentation of the entries and statements which constitute a COBOL source program"
+     }
+    ],
+    "reason": "Second read. The paragraph is more than an introduction: it states \"the general format and order of presentation of the entries and statements which constitute a COBOL source program\", a property of the user's program that a program can show. g2-struct.cob presents the divisions in order with a contained program and both END PROGRAM headers and runs; its control, the one change being ENVIRONMENT DIVISION after DATA DIVISION, is refused. The generic terms' meanings are exercised by the same program.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-struct.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-struct.cob with control E:/COBOL-coord/scratch/pb5453/probes/s-99/g2-struct-order.cob",
+    "needs": "needs-own-witness: place g2-struct.cob and its control g2-struct-order.cob as the row's own 85 cases",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p1",
+    "supersedes": "s-17",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "class": null,
+    "scope-1985": [
+     "the standard's arrangement of its presentation rules tables: one each for RH, PH, PF, RF; a joint body-group table for DE, CH, CF"
+    ],
+    "evidence-1985": {
+     "table arrangement": "not shown: no program can show how the standard arranges its tables",
+     "DE/CH/CF governed by one set of rules": "the body-group rules are their own XIII.3.10.8 rows"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p1",
+      "check": "OK  §1985:XIII.3.10.2 p1  (3.10.2 Organization)  the text is in p1",
+      "quote": "There is an individual presentation rules table"
+     }
+    ],
+    "reason": "Second read agrees with the first: \"There is an individual presentation rules table for each of the following types of report groups\" is about the standard's own tables. no derivation arm fits a rule about the standard's own presentation. What settles it: a recorded PB5453 decision adding a presentation arm (or ruling that such a row closes when the tables' rows close); no probe can.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row states how the standard arranges its tables",
+    "needs": "a decision on a derivation arm for rules about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p3",
+    "supersedes": "s-17",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "class": null,
+    "scope-1985": [
+     "the standard's layout: the applicable-rules columns are split into PAGE specified and PAGE omitted"
+    ],
+    "evidence-1985": {
+     "column layout": "not shown: no program can show it",
+     "behaviour with and without PAGE": "XIII.3.10.2 p5/p7 and the tables' rows"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p3",
+      "check": "OK  §1985:XIII.3.10.2 p3 (structure only) ok"
+     }
+    ],
+    "reason": "Second read agrees: the paragraph describes the columns of the standard's tables. no derivation arm fits a rule about the standard's own presentation. What settles it: the same presentation-arm decision as XIII.3.10.2 p1.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row describes the standard's table columns",
+    "needs": "a decision on a derivation arm for rules about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-p1",
+    "supersedes": "s-17",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "class": null,
+    "scope-1985": [
+     "lead-in to the shorthand notation in column 1 of the presentation rules tables"
+    ],
+    "evidence-1985": {
+     "notation lead-in": "not shown: no program can show it; the sequences it introduces are items 1-3 and p2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.3 p1",
+      "check": "OK  §1985:XIII.3.10.3 p1 (structure only) ok"
+     }
+    ],
+    "reason": "Second read agrees: a lead-in to the notation the standard's tables use. no derivation arm fits a rule about the standard's own presentation. What settles it: the presentation-arm decision; the notation's program-visible meaning is witnessed on p2 and items 1-3.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row introduces the standard's notation",
+    "needs": "a decision on a derivation arm for rules about the standard's own presentation",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-p2",
+    "supersedes": "s-17",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "scope-1985": [
+     "Report Writer: a pair of abbreviations names a LINE NUMBER sequence made of the two consecutive sequences ('A R' = absolute lines immediately followed by relative lines) within one report group description entry"
+    ],
+    "evidence-1985": {
+     "an 'A R' report heading (LINE 2 then LINE PLUS 1) accepted and presented at lines 2 and 3": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob (rerun E:/COBOL-coord/scratch/pb5453/runs/rw_seq_legal_85-003: P1 L02 RH1, P1 L03 RH2)",
+     "'R A' (the reverse) refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_r_then_a_85.cob (s-17's refusal witness of XIII.3.15.3 SR3)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.3 p2",
+      "check": "OK  §1985:XIII.3.10.3 p2  (3.10.3 LINE NUMBER Clause Notation)  the text is in p2",
+      "quote": "is immediately followed by the 'R' sequence"
+     },
+     {
+      "cite": "§1985:XIII.3.15.3 SR3",
+      "check": "OK  §1985:XIII.3.15.3 SR3  (3.15.3 Syntax Rules)  the text is in SR3",
+      "quote": "all absolute LINE NUMBER clauses must precede all relative LINE NUMBER clauses"
+     }
+    ],
+    "reason": "Second read. The paragraph defines what a table entry such as 'A R' means for the user's report group: \"'A R' refers to a report group description entry within which the 'A' sequence ... is immediately followed by the 'R' sequence\". That meaning is program-visible: an RH whose LINE 2 is followed by LINE PLUS 1 is a legal 'A R' sequence and is presented at lines 2 and 3 (rw_seq_legal_85.cob, rerun on the mint build). So the row is testable, not presentation; no 2023 rule restates the notation.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17/rw_seq_legal_85.cob (runs/rw_seq_legal_85-003)",
+    "needs": "needs-own-witness: place rw_seq_legal_85.cob (its RH-1 'A R' group) as the row's own 85 case",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.7-p4",
+    "supersedes": "s-18",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer, Table 2 (page heading) footnote **: a blank entry in column 1 or 2 means the clause is absent from the entry",
+     "its consequence for a program: a page heading entry with neither LINE NUMBER nor NEXT GROUP takes the table's blank/blank row, so only the rules that row names apply"
+    ],
+    "evidence-1985": {
+     "a page heading / page footing entry with no LINE NUMBER and no NEXT GROUP clause takes the blank/blank row": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob (run E:/COBOL-coord/scratch/pb5453/runs/g3-blank-row-001: BEFORE DE LINE-COUNTER 00, BEFORE RF LINE-COUNTER 05, only DET at line 5 and RFT at line 22, BLANK-ROW OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.7 p4",
+      "quote": "indicates that the named clause is totally absent from the report group description entry",
+      "check": "OK  §1985:XIII.3.10.7 p4  (3.10.7 Page Heading Group Presentation Rules)  the text is in p4"
+     },
+     {
+      "cite": "§1985:XIII.3.10.7 GR3",
+      "quote": "The page heading report group is not presented",
+      "check": "OK  §1985:XIII.3.10.7 GR3  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:XIII.3.10.7 GR4",
+      "quote": "LINE-COUNTER is unaffected by the processing of a nonprintable report group",
+      "check": "OK  §1985:XIII.3.10.7 GR4  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR4"
+     }
+    ],
+    "reason": "The footnote is not presentation alone: it decides which row of the table governs a program whose report group omits a clause. \"A blank entry in column 1 or column 2 indicates that the named clause is totally absent from the report group description entry\": the blank/blank row is the entry with no LINE NUMBER and no NEXT GROUP clause. A program shows it: g3-blank-row's page heading with neither clause is not presented and leaves LINE-COUNTER where it was (00 before the detail, 05 before the report footing), and no limit or next group rule moves anything. The first reader's DOUBTFUL (a reading convention of the table) is replaced: the convention has an observable consequent. No 2023 rule states this footnote with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob (run E:/COBOL-coord/scratch/pb5453/runs/g3-blank-row-001, BLANK-ROW OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g3-blank-row as the row's own fixed-form test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.7-p5",
+    "supersedes": "s-18",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer, Table 2 (page heading) footnote ***: a blank applicable-rules entry means the rule does not apply to that combination",
+     "its consequence for a program: a page heading entry with neither LINE NUMBER nor NEXT GROUP takes the table's blank/blank row, so only the rules that row names apply"
+    ],
+    "evidence-1985": {
+     "a page heading / page footing entry with no LINE NUMBER and no NEXT GROUP clause takes the blank/blank row": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob (run E:/COBOL-coord/scratch/pb5453/runs/g3-blank-row-001: BEFORE DE LINE-COUNTER 00, BEFORE RF LINE-COUNTER 05, only DET at line 5 and RFT at line 22, BLANK-ROW OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.7 p5",
+      "quote": "indicates the absence of the named rule for the given combination",
+      "check": "OK  §1985:XIII.3.10.7 p5  (3.10.7 Page Heading Group Presentation Rules)  the text is in p5"
+     },
+     {
+      "cite": "§1985:XIII.3.10.7 GR3",
+      "quote": "The page heading report group is not presented",
+      "check": "OK  §1985:XIII.3.10.7 GR3  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:XIII.3.10.7 GR4",
+      "quote": "LINE-COUNTER is unaffected by the processing of a nonprintable report group",
+      "check": "OK  §1985:XIII.3.10.7 GR4  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR4"
+     }
+    ],
+    "reason": "The footnote is not presentation alone: it decides which row of the table governs a program whose report group omits a clause. \"A blank entry in an applicable rules column indicates the absence of the named rule for the given combination of LINE NUMBER and NEXT GROUP clauses\": for the blank/blank row no upper limit, lower limit or next group rule applies, only the first-print-line rule (not presented) and the final LINE-COUNTER rule (unaffected). A program shows it: g3-blank-row's page heading with neither clause is not presented and leaves LINE-COUNTER where it was (00 before the detail, 05 before the report footing), and no limit or next group rule moves anything. The first reader's DOUBTFUL (a reading convention of the table) is replaced: the convention has an observable consequent. No 2023 rule states this footnote with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob (run E:/COBOL-coord/scratch/pb5453/runs/g3-blank-row-001, BLANK-ROW OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g3-blank-row as the row's own fixed-form test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.9-p4",
+    "supersedes": "s-18",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer, Table 4 (page footing) footnote **: a blank entry in column 1 or 2 means the clause is absent from the entry",
+     "its consequence for a program: a page footing entry with neither LINE NUMBER nor NEXT GROUP takes the table's blank/blank row, so only the rules that row names apply"
+    ],
+    "evidence-1985": {
+     "a page heading / page footing entry with no LINE NUMBER and no NEXT GROUP clause takes the blank/blank row": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob (run E:/COBOL-coord/scratch/pb5453/runs/g3-blank-row-001: BEFORE DE LINE-COUNTER 00, BEFORE RF LINE-COUNTER 05, only DET at line 5 and RFT at line 22, BLANK-ROW OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.9 p4",
+      "quote": "indicates that the named clause is totally absent from the report group description entry",
+      "check": "OK  §1985:XIII.3.10.9 p4  (3.10.9 Page Footing Presentation Rules)  the text is in p4"
+     },
+     {
+      "cite": "§1985:XIII.3.10.9 GR3",
+      "quote": "The page footing report group is not presented",
+      "check": "OK  §1985:XIII.3.10.9 GR3  (3.10.9 Page Footing Presentation Rules)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:XIII.3.10.9 GR5",
+      "quote": "LINE-COUNTER is unaffected by the processing of a nonprintable report group",
+      "check": "OK  §1985:XIII.3.10.9 GR5  (3.10.9 Page Footing Presentation Rules)  the text is in GR5"
+     }
+    ],
+    "reason": "The footnote is not presentation alone: it decides which row of the table governs a program whose report group omits a clause. \"A blank entry in column 1 or column 2 indicates that the named clause is totally absent from the report group description entry\": the blank/blank row is the entry with no LINE NUMBER and no NEXT GROUP clause. A program shows it: g3-blank-row's page footing with neither clause is not presented and leaves LINE-COUNTER where it was (00 before the detail, 05 before the report footing), and no limit or next group rule moves anything. The first reader's DOUBTFUL (a reading convention of the table) is replaced: the convention has an observable consequent. No 2023 rule states this footnote with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob (run E:/COBOL-coord/scratch/pb5453/runs/g3-blank-row-001, BLANK-ROW OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g3-blank-row as the row's own fixed-form test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.9-p5",
+    "supersedes": "s-18",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer, Table 4 (page footing) footnote ***: a blank applicable-rules entry means the rule does not apply to that combination",
+     "its consequence for a program: a page footing entry with neither LINE NUMBER nor NEXT GROUP takes the table's blank/blank row, so only the rules that row names apply"
+    ],
+    "evidence-1985": {
+     "a page heading / page footing entry with no LINE NUMBER and no NEXT GROUP clause takes the blank/blank row": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob (run E:/COBOL-coord/scratch/pb5453/runs/g3-blank-row-001: BEFORE DE LINE-COUNTER 00, BEFORE RF LINE-COUNTER 05, only DET at line 5 and RFT at line 22, BLANK-ROW OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.9 p5",
+      "quote": "indicates the absence of the named rule for the given combination",
+      "check": "OK  §1985:XIII.3.10.9 p5  (3.10.9 Page Footing Presentation Rules)  the text is in p5"
+     },
+     {
+      "cite": "§1985:XIII.3.10.9 GR3",
+      "quote": "The page footing report group is not presented",
+      "check": "OK  §1985:XIII.3.10.9 GR3  (3.10.9 Page Footing Presentation Rules)  the text is in GR3"
+     },
+     {
+      "cite": "§1985:XIII.3.10.9 GR5",
+      "quote": "LINE-COUNTER is unaffected by the processing of a nonprintable report group",
+      "check": "OK  §1985:XIII.3.10.9 GR5  (3.10.9 Page Footing Presentation Rules)  the text is in GR5"
+     }
+    ],
+    "reason": "The footnote is not presentation alone: it decides which row of the table governs a program whose report group omits a clause. \"A blank entry in an applicable rules column indicates the absence of the named rule for the given combination of LINE NUMBER and NEXT GROUP clauses\": for the blank/blank row no upper limit, lower limit or next group rule applies, only the first-print-line rule (not presented) and the final LINE-COUNTER rule (unaffected). A program shows it: g3-blank-row's page footing with neither clause is not presented and leaves LINE-COUNTER where it was (00 before the detail, 05 before the report footing), and no limit or next group rule moves anything. The first reader's DOUBTFUL (a reading convention of the table) is replaced: the convention has an observable consequent. No 2023 rule states this footnote with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-blank-row.cob (run E:/COBOL-coord/scratch/pb5453/runs/g3-blank-row-001, BLANK-ROW OK)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g3-blank-row as the row's own fixed-form test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.1.2-p1",
+    "supersedes": "s-18",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication level 1: limited CD entry, limited RECEIVE and SEND, full ACCEPT MESSAGE COUNT",
+     "at --std 85 (the high subset, kb/Work PB4885) the level-1 facilities are a subset of level 2's, so what is reached is that each is provided"
+    ],
+    "evidence-1985": {
+     "ACCEPT MESSAGE COUNT (full)": "covered by conformance-suite/cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-GR-XIV_3_1_4-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_1_4-1-001)",
+     "RECEIVE": "covered by conformance-suite/cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_5_4-1-001)",
+     "SEND": "covered by conformance-suite/cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_6_4-1-001)",
+     "CD entry": "covered by the CD entries of the same three cases (input CD for RECEIVE and ACCEPT MESSAGE COUNT, output CD for SEND)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.1.2 p1",
+      "quote": "provides limited capabilities for the RECEIVE and SEND statements",
+      "check": "OK  §1985:XIV.1.2 p1  (1.2 LEVEL CHARACTERISTICS)  the text is in p1"
+     }
+    ],
+    "reason": "\"Communication level 1 provides limited capabilities for the communication description entry. Within the Procedure Division, Communication level 1 provides limited capabilities for the RECEIVE and SEND statements and full capabilities for the ACCEPT MESSAGE COUNT statement.\" The paragraph names facilities the implementation provides, an observable property: each is accepted and runs at 85. The three conformance cases were run this pass at 85 and match their .out. Communication was removed from the standard after 1985 (no 2023 counterpart).",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-GR-XIV_3_1_4-1, conformance-suite/cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-1, conformance-suite/cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-1 (each MATCH at 85, runs under E:/COBOL-coord/scratch/pb5453/runs/s-99/)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: the three cases' rules lists gain this row, or a combined level-1 probe",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIV.1.2-p2",
+    "supersedes": "s-18",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Communication level 2 (boxed, implemented at --std 85): full CD entry",
+     "full ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE and SEND"
+    ],
+    "evidence-1985": {
+     "ACCEPT MESSAGE COUNT": "covered by conformance-suite/cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-GR-XIV_3_1_4-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_1_4-1-001)",
+     "DISABLE": "covered by conformance-suite/cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_2_4-1-001)",
+     "ENABLE": "covered by conformance-suite/cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_3_4-1-001)",
+     "PURGE": "covered by conformance-suite/cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_4_4-3-001)",
+     "RECEIVE": "covered by conformance-suite/cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_5_4-1-001)",
+     "SEND": "covered by conformance-suite/cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XIV_3_6_4-1-001)",
+     "full CD entry": "covered in part by the CD entries of the six cases; the CD entry's full form is its own XIV.2 rows' witness"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIV.1.2 p2",
+      "quote": "provides full capabilities for the ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE, and SEND statements",
+      "check": "OK  §1985:XIV.1.2 p2  (1.2 LEVEL CHARACTERISTICS)  the text is in p2"
+     }
+    ],
+    "reason": "\"Communication level 2 provides full capabilities for the communication description entry. Within the Procedure Division, Communication level 2 provides full capabilities for the ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE, and SEND statements.\" Boxed (the high subset, which --std 85 implements); its own content is that all six statements are provided, and each of the six cases was run this pass at 85 and matches its .out. 'Full' is each statement's own rows. Communication was removed after 1985 (no 2023 counterpart).",
+    "probe": null,
+    "compiler-at-1985": "correct: the six XIV.3.x cases named in evidence (each MATCH at 85, runs under E:/COBOL-coord/scratch/pb5453/runs/s-99/)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: a combined probe, or the six cases' rules lists gain this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XVI.1.1-p2",
+    "supersedes": "s-19",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the Segmentation module is an obsolete element: present in 1985 and marked for deletion in the next revision, so --std 85 provides it"
+    ],
+    "evidence-1985": {
+     "the module is present and runs at 85": "covered by conformance-suite/cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-1 (MATCH against its .out, run E:/COBOL-coord/scratch/pb5453/runs/s-99/1985-GR-XVI_1_4_3-1-001)",
+     "the planned deletion": "not observable at 85 (it concerns a later edition)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XVI.1.1 p2",
+      "quote": "The Segmentation module is an obsolete element in Standard COBOL",
+      "check": "OK  §1985:XVI.1.1 p2  (1.1 FUNCTION)  the text is in p2"
+     }
+    ],
+    "reason": "\"The Segmentation module is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.\" An obsolete element is still an element of 1985 (the element summary's letter Z marks the presence of the element within its level), so the sentence's observable consequent at 85 is the module's presence. Read as its siblings were (VI.3.2-p2, VI.4.4.1-p1, VII.2.12-p1, XV.1.1-p3: DIFFERENT removed-form, correct by a presence witness). 2023 has no Segmentation module.",
+    "probe": null,
+    "compiler-at-1985": "correct: conformance-suite/cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-1 (MATCH at 85)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: the case's rules list gains this row",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.4-p1",
+    "supersedes": "s-20",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Intrinsic Function module: the functions Table 1 lists are the functions available"
+    ],
+    "evidence-1985": {
+     "every Table 1 function is available at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (run E:/COBOL-coord/scratch/pb5453/runs/s-99/g3-fn-table-001: all 42 functions called with checked values, FN-TABLE OK)",
+     "argument types A, I, N, X as the Arguments column gives them": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (PIC A, integer, numeric and PIC X arguments accepted where the column allows them) and the refusal E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-argbad.cob (run E:/COBOL-coord/scratch/pb5453/runs/s-99/g3-fn-argbad-001: SQRT given X refused, COBOL1627 at 64,12; its one-line control is g3-fn-table)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.4 p1",
+      "quote": "summarizes the functions that are available",
+      "check": "OK  §1989:A.2.4 p1  (2.4 DEFINITIONS OF FUNCTIONS)  the text is in p1"
+     }
+    ],
+    "reason": "\"Table 1 on pages A-30 through A-32 summarizes the functions that are available.\" Read as a requirement it says which functions a program may call: all 42. A program shows it: g3-fn-table calls every function of Table 1 at 85 with checked results and prints FN-TABLE OK. The first reader's DOUBTFUL (presentation) is replaced: Table 1 and its legend state what a program may write, which a program can show. No 2023 rule states this text with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (FN-TABLE OK) and E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-argbad.cob (refused, COBOL1627)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g3-fn-table (with g3-fn-argbad as its refusal pair) as the row's own test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.4-p2",
+    "supersedes": "s-20",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Table 1's Arguments column fixes the type and number of each function's arguments"
+    ],
+    "evidence-1985": {
+     "every Table 1 function is available at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (run E:/COBOL-coord/scratch/pb5453/runs/s-99/g3-fn-table-001: all 42 functions called with checked values, FN-TABLE OK)",
+     "argument types A, I, N, X as the Arguments column gives them": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (PIC A, integer, numeric and PIC X arguments accepted where the column allows them) and the refusal E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-argbad.cob (run E:/COBOL-coord/scratch/pb5453/runs/s-99/g3-fn-argbad-001: SQRT given X refused, COBOL1627 at 64,12; its one-line control is g3-fn-table)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.4 p2",
+      "quote": "defines the type and number of arguments",
+      "check": "OK  §1989:A.2.4 p2  (2.4 DEFINITIONS OF FUNCTIONS)  the text is in p2"
+     }
+    ],
+    "reason": "\"The Arguments column defines the type and number of arguments as follows:\" The column constrains the user's program (which argument types and how many a call may give). g3-fn-table calls each function with the type and count its column gives and is accepted; g3-fn-argbad, one line changed (SQRT, column N1, given an alphanumeric item), is refused. The first reader's DOUBTFUL (presentation) is replaced: Table 1 and its legend state what a program may write, which a program can show. No 2023 rule states this text with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (FN-TABLE OK) and E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-argbad.cob (refused, COBOL1627)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g3-fn-table (with g3-fn-argbad as its refusal pair) as the row's own test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.4-p3",
+    "supersedes": "s-20",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Arguments column legend: A alphabetic, I integer, N numeric, X alphanumeric"
+    ],
+    "evidence-1985": {
+     "every Table 1 function is available at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (run E:/COBOL-coord/scratch/pb5453/runs/s-99/g3-fn-table-001: all 42 functions called with checked values, FN-TABLE OK)",
+     "argument types A, I, N, X as the Arguments column gives them": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (PIC A, integer, numeric and PIC X arguments accepted where the column allows them) and the refusal E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-argbad.cob (run E:/COBOL-coord/scratch/pb5453/runs/s-99/g3-fn-argbad-001: SQRT given X refused, COBOL1627 at 64,12; its one-line control is g3-fn-table)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.4 p3",
+      "quote": "A means alphabetic I means integer N means numeric X means alphanumeric",
+      "check": "OK  §1989:A.2.4 p3  (2.4 DEFINITIONS OF FUNCTIONS)  the text is in p3"
+     }
+    ],
+    "reason": "\"A means alphabetic I means integer N means numeric X means alphanumeric\". Each letter fixes the class of item a call may pass: g3-fn-table passes a PIC A item to UPPER-CASE and MIN (A), an integer item to FACTORIAL (I), a numeric 9V9 item to SUM (N), a PIC X item to REVERSE and LOWER-CASE (X), all accepted with correct results; g3-fn-argbad passes X where N is required and is refused (COBOL1627). The first reader's DOUBTFUL (presentation) is replaced: Table 1 and its legend state what a program may write, which a program can show. No 2023 rule states this text with an 85 witness.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-table.cob (FN-TABLE OK) and E:/COBOL-coord/scratch/pb5453/probes/s-99/g3-fn-argbad.cob (refused, COBOL1627)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g3-fn-table (with g3-fn-argbad as its refusal pair) as the row's own test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-GR-A.2.4-p5",
+    "supersedes": "s-20",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Table 1's Type column legend: a function marked I is an integer function, N a numeric function, X an alphanumeric function (Intrinsic Function module, every function of Table 1)"
+    ],
+    "evidence-1985": {
+     "I = integer function (INTEGER)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g4-fn-types.cob",
+     "N = numeric function (SQRT)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g4-fn-types.cob",
+     "X = alphanumeric function (UPPER-CASE)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g4-fn-types.cob",
+     "every other function's Type entry": "not shown here: each function's own 'The type of this function is ...' row (A.2.5 onward) witnesses its own entry"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.4 p5",
+      "quote": "I means integer N means numeric X means",
+      "check": "OK  §1989:A.2.4 p5  (2.4 DEFINITIONS OF FUNCTIONS)  the text is in p5"
+     },
+     {
+      "cite": "§1989:A.2.3 GR3",
+      "quote": "These are of the class and category numeric",
+      "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+     },
+     {
+      "cite": "§1989:A.2.15.1 p1",
+      "quote": "The type of this function is integer",
+      "check": "OK  §1989:A.2.15.1 p1  (2.15.1 Description)  the text is in p1"
+     }
+    ],
+    "reason": "Second read of a DOUBTFUL. The legend 'I means integer N means numeric X means alphanumeric' is not only presentation: read with Table 1 it assigns each function its type, and those types are the A.2.3 categories ('Integer functions. These are of the class and category numeric'), which a program shows by using the returned value. So a program can show it: the probe uses one function of each letter (INTEGER, type I per A.2.15.1 p1; SQRT, N; UPPER-CASE, X) where the type matters and checks the value. No 2023 rule restates the 1989 Table 1 legend, so the row is own-text. Each function's own type sentence stays that function's row; this row's own witness is the legend's three letters.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g4-fn-types.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g4-fn-types.cob (run E:/COBOL-coord/scratch/pb5453/runs/g4-fn-types-001: I-OK N-OK X-OK ALL-OK, exit 0)",
+    "class": "own-text",
+    "needs": "needs-own-witness: place g4-fn-types.cob as the row's own test",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-II.6.5.1-1",
+    "supersedes": "s-01",
+    "to": [
+     "GR-14.9.17.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus GO TO format 1 with procedure-name-1 as a transfer of control",
+     "GO TO format 2 DEPENDING ON",
+     "high-level GO TO format 1 without procedure-name-1, its target set by ALTER (removed in 2023)"
+    ],
+    "evidence-1985": {
+     "format 1 with procedure-name": "covered by the pointer's 85 case pb413_go_to_out_of_inline_perform",
+     "format 2 DEPENDING": "covered by pb413_go_to_out_of_inline_perform (its T6-DEP leg, per the s-01 refuter)",
+     "altered GO TO": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r01_altered_go_to.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01_altered_go_to-001: ALTER-OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR1",
+      "quote": null,
+      "check": "OK  §1985:II.6.5.1 GR1 (structure only) ok"
+     },
+     {
+      "cite": "§1985:VI.6.15.4 GR2",
+      "quote": "an ALTER statement, referring to this GO TO statement, must be executed",
+      "check": "OK  §1985:VI.6.15.4 GR2  (6.15.4 General Rules)  the text is in GR2"
+     },
+     {
+      "cite": "§1985:VI.6.15.4 GR3",
+      "quote": "When a GO TO statement represented by format 2 is executed",
+      "check": "OK  §1985:VI.6.15.4 GR3  (6.15.4 General Rules)  the text is in GR3"
+     },
+     {
+      "cite": "§2023:14.9.17.4 GR1",
+      "quote": "control is transferred to procedure-name-1",
+      "check": "OK  §2023:14.9.17.4 GR1  (General rules)  the text is in GR1"
+     }
+    ],
+    "reason": "Upholding the refuter: item (1) 'A GO TO statement' reaches every 1985 GO TO, including the altered bare GO TO (VI.6.15.4 GR2: 'an ALTER statement, referring to this GO TO statement, must be executed'), a form 2023 removed with ALTER; the pointer GR-14.9.17.4-1 states only the transfer to procedure-name-1. No pointer states the whole scope, so DIFFERENT; the refuter's r01 probe (its run re-read this pass: ALTER-OK) is the own witness of the removed form.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r01_altered_go_to.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r01_altered_go_to.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01_altered_go_to-001: ALTER-OK)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: r01_altered_go_to.cob, with pb413 for formats 1 and 2",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-II.6.5.1-4",
+    "supersedes": "s-01",
+    "to": [
+     "GR-14.6.3-3",
+     "GR-14.6.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a USE AFTER ERROR declarative activated by an I-O condition (Sequential/Relative/Indexed I-O)",
+     "a USE FOR DEBUGGING declarative (Debug module, removed in 2023)",
+     "a USE BEFORE REPORTING declarative (Report Writer)",
+     "an input-output procedure's implicit return (Sort-Merge)"
+    ],
+    "evidence-1985": {
+     "USE AFTER ERROR": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r02_declarative_error.cob (run E:/COBOL-coord/scratch/pb5453/runs/r02_declarative_error-001: DECL-ACTIVATED FS=35, AFTER-OPEN FS=35)",
+     "USE FOR DEBUGGING": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r03_use_for_debugging.cob (run E:/COBOL-coord/scratch/pb5453/runs/r03_use_for_debugging-001: DEBUG-ACTIVATED P1, IN-P1)",
+     "USE BEFORE REPORTING": "not shown",
+     "input-output procedure return": "covered by pb3511_sort_merge_procedure_ends_at_last_paragraph at 85 (per the s-01 read)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:II.6.5.1 GR4",
+      "quote": "A declarative procedure which is activated whenever certain conditions, including errors and exceptions, occur",
+      "check": "OK  §1985:II.6.5.1 GR4  (6.5.1 Transfer of Control)  the text is in GR4"
+     },
+     {
+      "cite": "§1985:XV.3.2",
+      "quote": null,
+      "check": "OK  §1985:XV.3.2 (structure only) ok"
+     },
+     {
+      "cite": "§2023:14.6.3 GR3",
+      "quote": "results in the execution of exception processing procedures",
+      "check": "OK  §2023:14.6.3 GR3  (Explicit and implicit transfers of control)  the text is in GR3"
+     }
+    ],
+    "reason": "Upholding the refuter: no 85 case of the pointers activates a declarative, and the 1985 scope ('A declarative procedure which is activated whenever certain conditions, including errors and exceptions, occur') includes USE FOR DEBUGGING, a removed form, and USE BEFORE REPORTING. The r02 and r03 runs (re-read this pass) show the compiler correct for the I-O and Debug legs; the Report Writer leg is not yet shown.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r02_declarative_error.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r02_declarative_error.cob and r03_use_for_debugging.cob (runs -001); the USE BEFORE REPORTING leg not probed",
+    "class": "removed-form",
+    "needs": "needs-own-witness: r02 and r03 as the row's tests plus a USE BEFORE REPORTING probe",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.1-p2",
+    "supersedes": "s-01",
+    "to": [
+     "GR-8.1.3.2-5"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "a substitute graphic for a COBOL character that a national or international standard character set does not represent"
+    ],
+    "evidence-1985": {
+     "substitute graphic": "not shown: no program can show it (see compiler-at-1985)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.1 p2",
+      "quote": "a substitute graphic may be specified to replace the character",
+      "check": "OK  §1985:IV.4.1 p2  (4.1 CHARACTER SET)  the text is in p2"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR5",
+      "quote": "substitute graphics may be specified by the implementor",
+      "check": "OK  §2023:8.1.3.2 GR5  (General rules)  the text is in GR5"
+     },
+     {
+      "cite": "§1985:IV.4.1 p1",
+      "quote": null,
+      "check": "OK  §1985:IV.4.1 p1 (structure only) ok"
+     }
+    ],
+    "reason": "Upholding the refuter: GR-8.1.3.2-5 has no 85 case, and its antecedent differs (2023 gives the substitute to the implementor when the implementation lacks a graphic; 1985: 'Certain of the characters comprising the COBOL character set may not be graphically represented in definitions of national and international standard character sets ... a substitute graphic may be specified'). The antecedent is about the character set the source is written in, not about the program: this implementation reads source in a set (ASCII/UTF-8) that represents every character of the IV.4.1 p1 COBOL character set, so no substitution arises and no program can show one.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the source character set represents every COBOL character of §1985:IV.4.1 p1, so no program can exercise a substitute graphic",
+    "class": "other: implementor latitude whose antecedent is unpopulatable on this implementation",
+    "needs": "a signed derivation (unpopulatable-antecedent) and a docs/conformance entry stating that no substitute graphic is specified",
+    "derivation": {
+     "arm": "unpopulatable-antecedent",
+     "names": "the COBOL character set of §1985:IV.4.1 p1: every one of its characters is a graphic of ISO 646 IRV (ASCII), the set the source is read in, so 'characters ... not graphically represented' is empty"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.3-p5",
+    "supersedes": "s-07",
+    "to": [
+     "GR-14.5.3.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "an optional conditional phrase in nested statements binds to the nearest preceding unterminated statement that permits it (SIZE ERROR, OVERFLOW, INVALID KEY, AT END, END-OF-PAGE, ELSE, WHEN)",
+     "Communication module RECEIVE NO DATA / WITH DATA (removed in 2023)",
+     "definition of an unterminated statement"
+    ],
+    "evidence-1985": {
+     "Nucleus and I-O phrases": "covered by pb3830_phrase_association at 85 (the pointer's case)",
+     "RECEIVE NO DATA / WITH DATA": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-07-refute/r02_nested_receive_mcs.cob (run E:/COBOL-coord/scratch/pb5453/runs/r02_nested_receive_mcs-001: L1..L3 then DONE)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.3 p5",
+      "quote": "any optional conditional phrase encountered is considered to be the next phrase of the nearest preceding unterminated statement",
+      "check": "OK  §1985:IV.6.4.3 p5  (6.4.3 Scope of Statements)  the text is in p5"
+     },
+     {
+      "cite": "§1985:XIV.3.5.4 GR4",
+      "quote": "the NO DATA phrase, if specified, is ignored",
+      "check": "OK  §1985:XIV.3.5.4 GR4  (3.5.4 General Rules)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:14.9.31.2",
+      "quote": "RECEIVE FROM data-name-1 GIVING identifier-1",
+      "check": "OK  §2023:14.9.31.2  (General format)  the text is in the clause"
+     },
+     {
+      "cite": "§2023:14.5.3.3 GR4",
+      "quote": "Any phrase encountered is the next phrase of the most-recently preceding unterminated statement",
+      "check": "OK  §2023:14.5.3.3 GR4  (Implicit scope termination)  the text is in GR4"
+     }
+    ],
+    "reason": "Upholding the refuter: association is decided per statement format, and the 1985 scope includes the Communication RECEIVE NO DATA / WITH DATA phrases (§1985:XIV.3.5.4), which the 2023 RECEIVE does not have; no pointer case exercises them. The refuter's r02 run (re-read this pass) binds WITH DATA to the inner RECEIVE as 1985 requires ('any optional conditional phrase encountered is considered to be the next phrase of the nearest preceding unterminated statement').",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-07-refute/r02_nested_receive_mcs.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-07-refute/r02_nested_receive_mcs.cob (run E:/COBOL-coord/scratch/pb5453/runs/r02_nested_receive_mcs-001: L1-O-WD L1-I-ND L1-O-TAIL L2-O-ND L2-I-ND L2-O-TAIL L3-O-ND L3-I-ND L3-O-TAIL DONE)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: r02_nested_receive_mcs.cob beside pb3830_phrase_association",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-VI.6.3.3-2",
+    "supersedes": "s-11",
+    "to": [
+     "SR-8.8.4.12.1-2",
+     "FMT-8.8.4.12.2"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: omission of the subject and relational operator of a relation condition (item 2)",
+     "the 1985 format: connective AND or OR only (no XOR / EXCLUSIVE-OR)"
+    ],
+    "evidence-1985": {
+     "item 2 omission": "covered by pb1390_abbreviated_tail_and_or at 85",
+     "XOR refused at 85": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-11-refute/xor85.cob (run E:/COBOL-coord/scratch/pb5453/runs/xor85-001: COBOL0900 at 10,21), control E:/COBOL-coord/scratch/pb5453/probes/s-11-refute/ctl85.cob (run E:/COBOL-coord/scratch/pb5453/runs/ctl85-001: accepted, prints XOR-ACCEPTED; the control's DISPLAY text is a leftover label, the condition is A = B OR C)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.3 SR2",
+      "quote": "The format for an abbreviated combined relation condition is",
+      "check": "OK  §1985:VI.6.3.3 SR2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in SR2"
+     },
+     {
+      "cite": "§1985:VI.6.3.3 SR2",
+      "quote": "The omission of the subject and relational operator",
+      "check": "OK  §1985:VI.6.3.3 SR2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in SR2"
+     },
+     {
+      "cite": "§2023:8.8.4.12.2",
+      "quote": "AND, OR, EXCLUSIVE-OR, XOR, and NOT are underlined in the printed standard",
+      "check": "OK  §2023:8.8.4.12.2  (General format)  the text is in the clause"
+     }
+    ],
+    "reason": "Upholding the refuter: the row carries the 1985 format box ('The format for an abbreviated combined relation condition is'), whose connective is AND or OR; FMT-8.8.4.12.2 adds EXCLUSIVE-OR and XOR, a 2023 widening, so copying its verdict would assert the 2023 format at 85. The refusal of XOR at 85 is the own witness (re-read this pass), with its one-word-changed OR control accepted.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-11-refute/xor85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-11-refute/xor85.cob refused at 85 (COBOL0900, the XOR operator requires COBOL-2023); control ctl85.cob accepted and ran; item 2 by pb1390_abbreviated_tail_and_or",
+    "class": "other: the 2023 format pointer adds the XOR / EXCLUSIVE-OR connective the 1985 format excludes",
+    "needs": "needs-own-witness: xor85.cob with ctl85.cob as the refusal pair (relabel the control's DISPLAY), beside pb1390_abbreviated_tail_and_or",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VII.2.3.1-p1",
+    "supersedes": "s-12",
+    "to": [
+     "GR-12.4.5.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the Sequential I-O file control entry declares a sequential file's physical attributes: SELECT [OPTIONAL], ASSIGN, RESERVE, ORGANIZATION SEQUENTIAL, PADDING CHARACTER (removed in 2023), RECORD DELIMITER, ACCESS MODE, FILE STATUS, in any order after SELECT"
+    ],
+    "evidence-1985": {
+     "minimal SELECT ... ASSIGN": "covered by pb742_legal_entry_formats_85",
+     "every clause, any order": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-12-refute/r01b_seq_entry_all_clauses_var.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01b_seq_entry_all_clauses_var-001: SEQ=HELLO FS=00)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VII.2.3.1 p1",
+      "quote": "declares the relevant physical attributes of a sequential file",
+      "check": "OK  §1985:VII.2.3.1 p1  (2.3.1 Function)  the text is in p1"
+     },
+     {
+      "cite": "§1985:VII.2.7.1 p1",
+      "quote": "specifies the character which is to be used for block padding on sequential files",
+      "check": "OK  §1985:VII.2.7.1 p1  (║2.7.1 Function║)  the text is in the clause"
+     },
+     {
+      "cite": "§1985:VII.2.3.3 SR1",
+      "quote": "The clauses which follow the SELECT clause may appear in any order",
+      "check": "OK  §1985:VII.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR8",
+      "quote": "The sequential format defines a file connector for a sequential file",
+      "check": "OK  §2023:12.4.5.3 GR8  (General rules)  the text is in GR8"
+     }
+    ],
+    "reason": "Upholding the refuter: the entry 'declares the relevant physical attributes of a sequential file', and its 1985 format holds PADDING CHARACTER, which 2023 dropped; the pointer's 85 case declares SELECT and ASSIGN only. The refuter's r01b run (re-read this pass) accepts every clause in non-canonical order and does I-O correctly.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-12-refute/r01b_seq_entry_all_clauses_var.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-12-refute/r01b_seq_entry_all_clauses_var.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01b_seq_entry_all_clauses_var-001: SEQ=HELLO FS=00, exit 0)",
+    "class": "removed-form",
+    "needs": "needs-own-witness: r01b with pb742 for the minimal entry",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VIII.1.1-p1",
+    "supersedes": "s-13",
+    "to": [
+     "GR-12.4.5.10.3-4",
+     "GR-12.4.5.5.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Relative I-O: sequential access to a relative file (ACCESS MODE SEQUENTIAL, level 1)",
+     "random access (ACCESS MODE RANDOM, level 1) and dynamic (level 2)",
+     "each record identified by an integer > 0 giving its logical ordinal position"
+    ],
+    "evidence-1985": {
+     "sequential access": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-13-refute/relseq.cob (run E:/COBOL-coord/scratch/pb5453/runs/relseq-004)",
+     "random and dynamic": "covered by l1c12_access_mode_random_dynamic at 85",
+     "ordinal position, key 0 refused": "covered by pb1098_organization_permanence_85"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VIII.1.1 p1",
+      "quote": "access records of a mass storage file in either a random or sequential manner",
+      "check": "OK  §1985:VIII.1.1 p1  (1.1 FUNCTION)  the text is in p1"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR4",
+      "quote": "If the access mode is dynamic, records in the file may be accessed sequentially, randomly, or both",
+      "check": "OK  §2023:12.4.5.5.3 GR4  (General rules)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR2",
+      "quote": "For relative files this sequence is the order of ascending relative record numbers",
+      "check": "OK  §2023:12.4.5.5.3 GR2  (General rules)  the text is in GR2"
+     },
+     {
+      "cite": "§1985:VIII.2.3.2",
+      "quote": null,
+      "check": "OK  §1985:VIII.2.3.2 (structure only) ok"
+     }
+    ],
+    "reason": "Upholding the refuter: 1985 gives 'a capability to access records of a mass storage file in either a random or sequential manner'; GR-12.4.5.5.3-4 states only the dynamic mode, and no 85 case runs relative ACCESS MODE SEQUENTIAL. The refuter's relseq run (re-read this pass) writes RK 1..3 and reads them back in relative-record-number order, then status 10.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-13-refute/relseq.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-13-refute/relseq.cob (run E:/COBOL-coord/scratch/pb5453/runs/relseq-004: W1..W3 00, R AAAA/BBBB/CCCC in RRN order, END 10)",
+    "class": "other: the pointer states the dynamic access mode only; the level-1 sequential mode has no pointer with an 85 witness",
+    "needs": "needs-own-witness: relseq.cob with l1c12 and pb1098",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-X.5.1-4",
+    "supersedes": "s-16",
+    "to": [
+     "SR-13.7.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Inter-Program Communication: a Linkage item may be referenced iff (a) a USING operand, (b) subordinate to one, (c) a REDEFINES/RENAMES of one, (d) subordinate to (c), (e) a condition-name or index-name of these",
+     "the 'only if' half: any other Linkage item is refused"
+    ],
+    "evidence-1985": {
+     "'if' half, legs a-e": "covered by pb1249_linkage_referenceable_legs at 85",
+     "'only if' half": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-item.cob, E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-sub.cob, E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-redef.cob, E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-cond.cob, E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-index.cob (runs -002: each COBOL2746), control E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/ctrl.cob (run E:/COBOL-coord/scratch/pb5453/runs/ctrl-002: 0007, OK)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.5.1 GR4",
+      "quote": "may be referenced within the Procedure Division of that program if, and only if",
+      "check": "OK  §1985:X.5.1 GR4  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in GR4"
+     },
+     {
+      "cite": "§2023:13.7.3 SR4",
+      "quote": "may be referenced within the procedure division of that source element if, and only if",
+      "check": "OK  §2023:13.7.3 SR4  (Syntax rules)  the text is in SR4"
+     }
+    ],
+    "reason": "Upholding the refuter: the rule is 'if, and only if', and the pointer's sole 85 case is an accepted program for the 'if' half; its negative twins are free-form and run at no 85. The five fixed-form refusals and their control (runs re-read this pass: COBOL2746 on each, control 0007 / OK) are the own witness of the 'only if' half.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-16-refute/neg-item.cob",
+    "compiler-at-1985": "correct: neg-item.cob, neg-sub.cob, neg-redef.cob, neg-cond.cob, neg-index.cob under E:/COBOL-coord/scratch/pb5453/probes/s-16-refute refused COBOL2746; control ctrl.cob exit 0 printing 0007 / OK",
+    "class": "other: the pointer's 85 witness covers only the 'if' half",
+    "needs": "needs-own-witness: the five refusals with the control, beside pb1249_linkage_referenceable_legs",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p8",
+    "supersedes": "s-17",
+    "to": [
+     "GR-13.18.35.4-5",
+     "GR-13.18.37.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: the first print line position rules of all five presentation tables, paged and unpaged, including the body-group saved-integer arm (LINE-COUNTER + 1)"
+    ],
+    "evidence-1985": {
+     "unpaged arms": "covered by pb484 and pb1247 at 85 (the pointer's cases)",
+     "paged arms (RH, PH, FIRST DETAIL, saved integer, PF, RF)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/paged_first_line_lc_85-001)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.8 GR4b",
+      "quote": "presented on the line immediately following the line indicated by the value contained in LINE-COUNTER",
+      "check": "OK  §1985:XIII.3.10.8 GR4b  (3.10.8 Body Group Presentation Rules)  the text is in GR4b"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR5b",
+      "quote": "if that report group is the first body group to be printed on the current page, the line number is given by the FIRST DETAIL integer",
+      "check": "OK  §2023:13.18.35.4 GR5b  (General rules)  the text is in GR5b"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR4",
+      "quote": "its first line will be printed on the next line following the line number in the save location",
+      "check": "OK  §2023:13.18.37.4 GR4  (General rules)  the text is in GR4"
+     }
+    ],
+    "reason": "Upholding the refuter: the pointer GR5 sends the first body group on a page to FIRST DETAIL, while 1985 body rule 4b presents it 'on the line immediately following the line indicated by the value contained in LINE-COUNTER' (stated in 2023 by GR-13.18.37.4-4, added to `to` as a lead, not a SAME), and the pointer's 85 cases are unpaged only. The refuter's paged run (re-read this pass) prints P1 L04 RH, L05 PH, L07 D1A; P3 L09 D1A (saved integer 8 + 1); P3 L18 RF after PF at 16, as the 1985 tables require.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/paged_first_line_lc_85-001)",
+    "class": "other: the pointer states part of the scope and its 85 cases are unpaged only",
+    "needs": "needs-own-witness: paged_first_line_lc_85.cob beside pb484 and pb1247",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p11",
+    "supersedes": "s-17",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Report Writer: the final LINE-COUNTER setting rules of every presentation-rule table (RH XIII.3.10.6 GR5a-5e, PH, body XIII.3.10.8 GR6, PF XIII.3.10.9 GR5a-5d, RF), with absolute and relative NEXT GROUP, NEXT PAGE, and no NEXT GROUP"
+    ],
+    "evidence-1985": {
+     "body, no NEXT GROUP (6d)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob (run E:/COBOL-coord/scratch/pb5453/runs/paged_first_line_lc_85-001: LC 08, LC 10)",
+     "body, absolute NEXT GROUP (6a, both branches with the FOOTING substitution)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob (LC 12, LC 15, then D1A at P3 L09)",
+     "RH, absolute NEXT GROUP (GR5a)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g5-rh-pf-nextgroup.cob (run E:/COBOL-coord/scratch/pb5453/runs/g5-rh-pf-nextgroup-002: RH L02 NEXT GROUP 5, PH LINE PLUS 1 at L06)",
+     "PF, relative NEXT GROUP (GR5b)": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-99/g5-rh-pf-nextgroup.cob (PF L17 NEXT GROUP PLUS 2, RF LINE PLUS 1 at L20)",
+     "RH relative and NEXT PAGE (GR5b, GR5c), PF absolute (GR5a), CH and CF tables": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p11",
+      "check": "OK  §1985:XIII.3.10.2 p11  (3.10.2 Organization)  the text is in p11",
+      "quote": "specified by the final LINE-COUNTER setting rules"
+     },
+     {
+      "cite": "§1985:XIII.3.10.6 GR5a",
+      "check": "OK  §1985:XIII.3.10.6 GR5a  (3.10.6 Report Heading Group Presentation Rules)  the text is in GR5a",
+      "quote": "places the NEXT GROUP integer into LINE-COUNTER as the final LINE-COUNTER setting"
+     },
+     {
+      "cite": "§1985:XIII.3.10.9 GR5b",
+      "check": "OK  §1985:XIII.3.10.9 GR5b  (3.10.9 Page Footing Presentation Rules)  the text is in GR5b",
+      "quote": "places the sum of the NEXT GROUP integer and the line number"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR8",
+      "check": "OK  §2023:13.18.35.4 GR8  (General rules)  the text is in GR8",
+      "quote": "may be further altered as a result of the action of an optional NEXT GROUP clause"
+     }
+    ],
+    "reason": "p11: the terminal LINE-COUNTER values 'are specified by the final LINE-COUNTER setting rules' of every table. The refuter (out/s-17-refute.json) showed the SAME pointer GR-13.18.35.4-8 states only the last-printed-line value and leaves NEXT GROUP to 13.18.37, and its only 85 case (pb484) is an unpaged report with no NEXT GROUP, so no pointer carries the whole scope with an 85 witness. The compiler is correct where probed: the refuter's probe (body 6a/6d) and g5-rh-pf-nextgroup (RH GR5a: PH LINE PLUS 1 lands at L06 after RH NEXT GROUP 5; PF GR5b: RF LINE PLUS 1 lands at L20 after PF LINE 17 NEXT GROUP PLUS 2; LC 09 after the detail).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99/g5-rh-pf-nextgroup.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-99/g5-rh-pf-nextgroup.cob and E:/COBOL-coord/scratch/pb5453/probes/s-17-refute/paged_first_line_lc_85.cob (RH 5b/5c and PF 5a not probed)",
+    "class": "other: the pointer states only the no-NEXT-GROUP value; the NEXT GROUP settings are the per-table rule rows and GR-13.18.37.4-3/4/5, and its 85 case has no NEXT GROUP",
+    "needs": "needs-own-witness: place the two self-checking listing-dump probes as the row's 85 witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.1-p1",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DOUBTFUL",
+    "scope-1985": [
+     "General-format notation: the enumeration of the element kinds of a clause or statement (uppercase words, lowercase words, level-numbers, brackets, braces, connectives, special characters); each kind's meaning is IV.2.1.2 to IV.2.1.7"
+    ],
+    "evidence-1985": {
+     "the enumeration": "not shown: the paragraph obliges nothing of a program; each element kind's obligation is witnessed under its own row (IV.2.1.2 p1/p2, IV.2.1.4 p3/p4)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.1 p1",
+      "check": "OK  §1985:IV.2.1.1 p1  (2.1.1 Elements)  the text is in p1",
+      "quote": "consist of uppercase words, lowercase words, level-numbers"
+     }
+    ],
+    "reason": "'Elements which make up a clause or a statement consist of uppercase words, lowercase words, level-numbers, brackets, braces, connectives, and special characters.' The refuter overturned the indistinguishable-consequent arm: IV.2.1.2 p1 governs uppercase words only, and the enumeration is at most the union of IV.2.1.2 to IV.2.1.7. The sentence describes the standard's own notation (what a general format is made of), not a program: no program's outcome depends on it apart from the member rows, and no derivation arm fits a rule about the standard's own presentation.",
+    "probe": null,
+    "compiler-at-1985": "not probed: no program can show an enumeration of notation element kinds apart from the rows that give each kind its meaning",
+    "class": null,
+    "needs": "a ruling: a derivation arm for a rule about the standard's own presentation, or an indistinguishable-consequent arm that may name a set of rows (1985-SR-IV.2.1.2-p1, -p2, the IV.2.1.3 rows, 1985-SR-IV.2.1.4-p2/-p3/-p4, the IV.2.1.5 to IV.2.1.7 rows) whose union is the consequent",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.2-p2",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Every general format of every module: a lowercase word stands for an entry that must be supplied by the user; omitting it makes the source nonconforming",
+     "A number or letter appended to a repeated generic term only identifies it for discussion"
+    ],
+    "evidence-1985": {
+     "the entry must be supplied": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r06_lowercase_operand_omitted.cob (run E:/COBOL-coord/scratch/pb5453/runs/r06_lowercase_operand_omitted-001: COBOL5506 at 10,17 on MOVE TO X) with control E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r07_lowercase_operand_control.cob (run E:/COBOL-coord/scratch/pb5453/runs/r07_lowercase_operand_control-001: X=1)",
+     "appended numbers identify only": "not shown (no program outcome depends on it)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.2 p2",
+      "check": "OK  §1985:IV.2.1.2 p2  (2.1.2 Words)  the text is in p2",
+      "quote": "a complete syntactical entry that must be supplied by the user"
+     }
+    ],
+    "reason": "A lowercase word represents an entry 'that must be supplied by the user': an obligation on the program. The refuter's pair shows it at 85: MOVE with its sending operand omitted is refused (COBOL5506, citing §1985:IV.2.1), and the control with the operand supplied prints X=1. No 2023 rule is a witnessed pointer for this 1985 notation text.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r06_lowercase_operand_omitted.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r06_lowercase_operand_omitted.cob (refused) with control E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r07_lowercase_operand_control.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p3",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Choice indicators in a 1985 general format: one or more of the enclosed options must be specified, each at most once; the 1985 format that uses them is PROGRAM-ID COMMON/INITIAL (Inter-Program Communication, §1985:X.3.1.2)"
+    ],
+    "evidence-1985": {
+     "one or more options, in any combination, accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r04_choice_indicators_ok.cob (run E:/COBOL-coord/scratch/pb5453/runs/r04_choice_indicators_ok-001: BOTH N=1 / BOTH N=1 / REV / ONE)",
+     "an option specified twice refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r05_choice_indicator_twice_refused.cob (run E:/COBOL-coord/scratch/pb5453/runs/r05_choice_indicator_twice_refused-001: COBOL2104 COMMON specified 2 times)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.4 p3",
+      "check": "OK  §1985:IV.2.1.4 p3  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in p3",
+      "quote": "a single option may be specified only once"
+     },
+     {
+      "cite": "§1985:X.3.1.2",
+      "check": "OK  §1985:X.3.1.2 (structure only) ok"
+     }
+    ],
+    "reason": "'one or more of the unique options contained within the choice indicators must be specified, but a single option may be specified only once.' The refuter showed the antecedent is populated: PROGRAM-ID's COMMON and INITIAL sit in choice indicators (§1985:X.3.1.2, printed page V-2). At 85, IS COMMON INITIAL, IS INITIAL COMMON and IS COMMON are accepted and behave; IS COMMON COMMON is refused citing this clause.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r04_choice_indicators_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r04_choice_indicators_ok.cob (accepted) and E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r05_choice_indicator_twice_refused.cob (refused; r04 its control)",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.4-p4",
+    "supersedes": "s-01",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "General-format notation: an option is selected as one possibility from a vertical stack, or as a unique combination from a series of brackets, braces or choice indicators"
+    ],
+    "evidence-1985": {
+     "a unique combination from a series of choice indicators": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r04_choice_indicators_ok.cob (run E:/COBOL-coord/scratch/pb5453/runs/r04_choice_indicators_ok-001)",
+     "one possibility selected alone": "covered by the same probe (IS COMMON alone)",
+     "a combination from a series of brackets or braces": "not shown separately"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.4 p4",
+      "check": "OK  §1985:IV.2.1.4 p4  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in p4",
+      "quote": "specifying a unique combination of possibilities from a series of brackets"
+     }
+    ],
+    "reason": "'An option is selected by specifying one of the possibilities from a stack of alternative possibilities or by specifying a unique combination of possibilities from a series of brackets, braces, or choice indicators.' A grant: the refuter's accepted r04 selects COMMON INITIAL in both orders and COMMON alone, which p2 (braces alone) does not grant, so the arm naming p2 fails and the row has its own accepted witness at 85.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r04_choice_indicators_ok.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-01-refute/r04_choice_indicators_ok.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.6-p1",
+    "supersedes": "s-04",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: standard alignment within a receiving elementary item depends on the receiving category (numeric and numeric-edited: decimal-point aligned with zero fill; alphanumeric, alphanumeric-edited, alphabetic: left aligned with space fill), for MOVE and every implicit move"
+    ],
+    "evidence-1985": {
+     "numeric receiver": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-04-refute/r2_category_positioning.cob (run E:/COBOL-coord/scratch/pb5453/runs/r2_category_positioning-001: N=[0012])",
+     "alphanumeric receiver, same sender": "covered by the same probe (A=[12  ])",
+     "numeric-edited and alphabetic receivers": "not shown (their own rows IV.4.3.6-1 to -3)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.6 p1",
+      "check": "OK  §1985:IV.4.3.6 p1  (4.3.6 Standard Alignment Rules)  the text is in p1",
+      "quote": "depend on the category of the receiving item"
+     },
+     {
+      "cite": "§1985:IV.4.3.6 GR1",
+      "check": "OK  §1985:IV.4.3.6 GR1  (4.3.6 Standard Alignment Rules)  the text is in GR1",
+      "quote": "If the receiving data item is described as numeric"
+     },
+     {
+      "cite": "§1985:IV.4.3.6 GR3",
+      "check": "OK  §1985:IV.4.3.6 GR3  (4.3.6 Standard Alignment Rules)  the text is in GR3",
+      "quote": "aligned at the leftmost character position"
+     }
+    ],
+    "reason": "'The standard rules for positioning data within an elementary item depend on the category of the receiving item.' The refuter showed the lead-in's consequent (dependence on the category) is not item 1's alone. The one-sender, two-receiver probe shows the dependence at 85: the same '12' becomes [0012] in PIC 9(4) and [12  ] in PIC X(4).",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-04-refute/r2_category_positioning.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-04-refute/r2_category_positioning.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p3",
+    "supersedes": "s-04",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus: the term \"synchronized\" for data items aligned on natural boundaries so as to avoid additional machine operations; reached by the SYNCHRONIZED clause (VI.5.13) and IV.4.3.7 items 1-2"
+    ],
+    "evidence-1985": {
+     "the definition of synchronized": "not shown: alignment on machine boundaries is the object program's (IV.4.3.7 p1) and no 1985 program can observe a storage address; what a program can observe of SYNCHRONIZED is VI.5.13.4 GR1 to GR8"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.7 p3",
+      "check": "OK  §1985:IV.4.3.7 p3  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p3",
+      "quote": "in such a way as to avoid such additional machine operations are defined to be synchronized"
+     },
+     {
+      "cite": "§1985:IV.4.3.7 p1",
+      "check": "OK  §1985:IV.4.3.7 p1  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p1",
+      "quote": "The way in which data is stored is determined by the object program"
+     },
+     {
+      "cite": "§1985:VI.5.13.4 GR2",
+      "check": "OK  §1985:VI.5.13.4 GR2  (5.13.4 General Rules)  the text is in GR2",
+      "quote": "positioned between natural boundaries in such a way as to effect efficient utilization"
+     }
+    ],
+    "reason": "The refuter overturned the definitional arm: the defined property (placement 'in such a way as to avoid such additional machine operations') belongs to the object program (p1: 'The way in which data is stored is determined by the object program'), not to the user's program. Its consequent is the SYNCHRONIZED clause's: VI.5.13.4 GR2 positions the item 'between natural boundaries in such a way as to effect efficient utilization', the same placement for the same purpose; a program can observe nothing of p3 that it cannot observe of GR2, and no 1985 program observes an address.",
+    "probe": null,
+    "compiler-at-1985": "not probed: no 1985 program can observe storage alignment on a machine boundary; the observable consequence is the SYNCHRONIZED clause's rows",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "indistinguishable-consequent",
+     "names": "1985-GR-VI.5.13.4-2"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.6.4.1.2-p4",
+    "supersedes": "s-06",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Procedure Division, every module: a statement begins with a COBOL verb; a sentence whose first word is not a verb (a literal, a data-name) is not a statement"
+    ],
+    "evidence-1985": {
+     "a statement not beginning with a verb refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r01_stmt_noverb.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01_stmt_noverb-001: COBOL5506 citing §1985:IV.6.4.1.2)",
+     "the control beginning with the verb accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r01_stmt_noverb_ctl.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01_stmt_noverb_ctl-001: OK / BAD)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.2 p4",
+      "check": "OK  §1985:IV.6.4.1.2 p4  (6.4.1.2 Procedures)  the text is in p4",
+      "quote": "combination of words, literals, and separators beginning with a COBOL verb"
+     }
+    ],
+    "reason": "'A statement is a syntactically valid combination of words, literals, and separators beginning with a COBOL verb.' An SR row, which a refusal with a control witnesses: '\"BAD\" DISPLAY.' is refused at 85 (exit 65; the diagnostic cites this clause), and the control 'DISPLAY \"BAD\".' is accepted.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r01_stmt_noverb.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r01_stmt_noverb.cob (refused) with control E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r01_stmt_noverb_ctl.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.6.4.1.2-p5",
+    "supersedes": "s-06",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Nucleus and every module: an identifier is the word or words (qualifiers, subscripts, indices) necessary to make unique reference to a data item; an unqualified non-unique name is not an identifier"
+    ],
+    "evidence-1985": {
+     "a non-unique reference refused": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r02_ident_ambig.cob (run E:/COBOL-coord/scratch/pb5453/runs/r02_ident_ambig-001: COBOL1639)",
+     "the qualified unique reference accepted": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r02_ident_ambig_ctl.cob (run E:/COBOL-coord/scratch/pb5453/runs/r02_ident_ambig_ctl-001: 2)",
+     "subscripted or indexed identifiers": "not shown (sibling rows)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.6.4.1.2 p5",
+      "check": "OK  §1985:IV.6.4.1.2 p5  (6.4.1.2 Procedures)  the text is in p5",
+      "quote": "the word or words necessary to make unique reference to a data item"
+     }
+    ],
+    "reason": "'The term identifier is defined as the word or words necessary to make unique reference to a data item.' The refuter showed the definition has an observable consequence: DISPLAY X with an X under each of G1 and G2 is refused at 85 (COBOL1639), and 'X OF G2' is accepted and prints 2. The definitional arm is barred (the term is the standard's metalanguage) and a witness exists, so the row is read as own-text.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r02_ident_ambig.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r02_ident_ambig.cob (refused) with control E:/COBOL-coord/scratch/pb5453/probes/s-06-refute/r02_ident_ambig_ctl.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1989-AR-A.2.2-p3",
+    "supersedes": "s-19",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "Intrinsic Functions (Amendment 1): a function's argument value constraints bind at the time of reference; an out-of-range value makes only that reference's result undefined, so an unexecuted reference with out-of-range constant arguments leaves the program conforming"
+    ],
+    "evidence-1985": {
+     "unexecuted out-of-range references accepted and harmless": "covered by E:/COBOL-coord/scratch/pb5453/probes/s-19-refute/r01_unexec_outofrange.cob (run E:/COBOL-coord/scratch/pb5453/runs/r01_unexec_outofrange-001: R01 OK)",
+     "an executed out-of-range reference: result undefined": "not testable (undefined); the run continues (E:/COBOL-coord/scratch/pb5453/runs/r02_exec_outofrange-001: R02 AFTER)"
+    },
+    "citations": [
+     {
+      "cite": "§1989:A.2.2 p3",
+      "check": "OK  §1989:A.2.2 p3  (2.2 ARGUMENTS**)  the text is in p3",
+      "quote": "If, at the time a function is referenced"
+     },
+     {
+      "cite": "§1989:A.2.2 p3",
+      "check": "OK  §1989:A.2.2 p3  (2.2 ARGUMENTS**)  the text is in p3",
+      "quote": "then the result of such a reference is undefined"
+     }
+    ],
+    "reason": "p3 makes the per-function argument constraints run-time constraints: 'If, at the time a function is referenced, the arguments ... do not have values within the permissible range, then the result of such a reference is undefined.' The refuter showed an observable part beyond 'undefined': LOG(0), SQRT(-4) and MOD(7, 0) in an unexecuted branch must not make the program nonconforming; at 85 it compiles and prints R01 OK.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-19-refute/r01_unexec_outofrange.cob",
+    "compiler-at-1985": "correct: E:/COBOL-coord/scratch/pb5453/probes/s-19-refute/r01_unexec_outofrange.cob",
+    "class": "own-text",
+    "needs": "needs-own-witness",
+    "derivation": null,
+    "licence-1985": null
+   }
+  ],
+  "leads": [
+   {
+    "kind": "segmentation",
+    "row": "1985-GR-IV.1-p1, IV.2.1.5-p1, IV.3.1-p1, IV.3.2-p1, VI.6.3.4-p2, VI.6.4-p1, IV.4.3.7-p2",
+    "what": "seven presentation-only or explanatory rows stay DOUBTFUL on a second read: no derivation arm fits; a ruling is owed (a new arm or a not-a-rule disposition)",
+    "repro": "E:/COBOL-coord/scratch/pb5453/work/s-99-part1.json",
+    "site": "docs/rearchitecture/DESIGN-spec-conformance-review.md section 1.1"
+   },
+   {
+    "kind": "tooling",
+    "row": "1985-SR-VI.6.3.3-2",
+    "what": "The refusal pair's control ctl85.cob (condition A = B OR C) DISPLAYs the label XOR-ACCEPTED copied from xor85.cob; relabel it (e.g. OR-ACCEPTED) before it is placed as the row's own test, or its output misreads as an XOR acceptance.",
+    "repro": "E:/COBOL-coord/scratch/pb5453/probes/s-11-refute/ctl85.cob (run E:/COBOL-coord/scratch/pb5453/runs/ctl85-001)",
+    "site": null
+   }
+  ]
+ },
+ "refute": null,
+ "derivation-refute": {
+  "slice": "s-99",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p3",
+    "arm": "indistinguishable-consequent",
+    "verdict": "UPHELD",
+    "attempt": "E:/COBOL-coord/scratch/pb5453/probes/s-99-refute/sync.cob: four groups (X + S9(9) COMP) with the item plain, SYNCHRONIZED, SYNCHRONIZED LEFT, SYNCHRONIZED RIGHT, sizes read with FUNCTION LENGTH; --std 85 run E:/COBOL-coord/scratch/pb5453/runs/sync-003 prints G1=05 G2=05 G3=05 G4=05 (no size or value differs between the clause forms or from the plain item).",
+    "reason": "p3 only names the state 'aligned ... in such a way as to avoid such additional machine operations' as 'synchronized'; p1 leaves storage to the object program, and the placement is implementor-determined (VI.5.13.4 GR2: 'The specific positioning is, however, determined by the implementor'; GR8 only requires the implementor to document). So no conforming program outcome distinguishes p3's consequent from GR2's 'positioned between natural boundaries in such a way as to effect efficient utilization'; the observable effects (GR1 group size, GR5 original size, GR7) are other rows. Residual weakness: GR2 covers only the bare form while p3's term also covers LEFT/RIGHT (GR3/4) and unclaused alignment (item 2), but no program can show that difference either, since I could not produce a differing observable.",
+    "probe": "E:/COBOL-coord/scratch/pb5453/probes/s-99-refute/sync.cob"
+   }
+  ]
+ },
+ "imported": {
+  "derivation-refute": "fd4da9e62264e3023396a5bc042b00548da297f33aed194b44a870b5d95b44ba",
+  "read": "23c2e10fd2172e63446940cc11b89112ddcac4484cf77442ce9c4a794bce94c4"
+ }
+}

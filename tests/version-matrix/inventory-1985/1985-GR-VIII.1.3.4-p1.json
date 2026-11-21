@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-p1",
+ "rule-digest": "6fbbb7924e2f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IoStatus1985.cs#Report; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SetStatus",
+ "test-ref": "conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VIII_1_3_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (relcon.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The I-O status \"is set ... during the execution of a CLOSE, DELETE, OPEN, READ, REWRITE, START, or WRITE statement and prior to the execution of any imperative statement ... or ... USE AFTER STANDARD EXCEPTION procedure\" and is reached through FILE STATUS. GR-12.4.5.8.4-1 (the FILE STATUS update) has no 85 case. The per-statement pointers each state the update, not the ordering. The probe shows the status already set inside each imperative and each USE at 85. Code location located after the read: status after relative I-O; cites 1985:VIII.1.3.4 at IoStatus1985"
+}

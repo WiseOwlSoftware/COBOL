@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.1.2-p2",
+ "rule-digest": "91b6c5ca8f6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedIoBinder; src/WiseOwl.Cobol.Compiler/Binding/Model/IoPhraseAdmission.cs#IoPhraseAdmission",
+ "test-ref": "conformance:cases/VII.1@1985-INTRODUCTION-TO-THE-SEQUENTIAL-I-O/1985-GR-VII_1_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (g2-seqlvl.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Second read. \"Sequential I-O level 2 provides full capabilities for the file control entry, the file description entry, and the entries in the I-O-CONTROL paragraph ... CLOSE, OPEN, READ, REWRITE, USE, and WRITE statements.\" A grant of the high level, which --std 85 implements (boxed text). Testable: one program using level-2-only elements of each named entry and statement (RESERVE, SAME RECORD AREA, OPEN EXTEND, CLOSE WITH NO REWIND, USE after a status-46 READ) is accepted and runs correctly. The detailed semantics of each format are the module's own rows; this row's own claim, that the high level provides these elements, is what the probe shows. Code location located after the read: cites 1985:VII.1.2 (KeyedIoBinder line 263); IoPhraseAdmission gates I-O phrases by module level"
+}

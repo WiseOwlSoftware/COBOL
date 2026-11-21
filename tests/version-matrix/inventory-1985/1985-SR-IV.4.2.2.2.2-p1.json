@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.2-p1",
+ "rule-digest": "06987071063f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#NumericLiteral; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#LiteralScreen",
+ "test-ref": "conformance:cases/IV.4.2.2.2@1985-Literals/pb5924-numeric-literal-18-digits-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.4.2.2.2@1985-Literals/pb5924-numeric-literal-18-digits-85), joined as the row's own test. The read: The candidates cover the formation rules, not the character set or the 18-digit minimum, and the siblings already carry those rules. The golden and probe witness this paragraph at 85. Code location located after the read: numeric literal form and 18-digit limit"
+}

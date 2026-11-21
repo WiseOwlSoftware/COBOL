@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3-p1",
+ "rule-digest": "587af8c6804f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#condition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindCondition",
+ "test-ref": "conformance:cases/VI.6@1985-PROCEDURE-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_6_3-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_cond_contexts.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: 'Conditional expressions are specified in the EVALUATE, IF, PERFORM, and SEARCH statements' and each condition 'may be enclosed within any number of paired parentheses, in which case its category is not changed'. The candidates (SR-14.9.37.3-6, GR-14.9.37.4-2, GR-7.3.8.3-1) state only the SEARCH condition or the complex-condition evaluation; none states the whole paragraph with an 85 witness. The probe runs every statement context and nested parentheses at 85 and matches its expected output. Code location located after the read: condition grammar rule; ConditionBinder.BindCondition binds conditional expressions"
+}

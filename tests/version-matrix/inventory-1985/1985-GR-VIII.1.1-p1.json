@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VIII.1.1-p1",
+ "rule-digest": "994791452e37",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#RelativeConnector; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#FileControlBinder",
+ "test-ref": "conformance:cases/VIII.1@1985-INTRODUCTION-TO-THE-RELATIVE-I-O/1985-GR-VIII_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (relseq.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Upholding the refuter: 1985 gives 'a capability to access records of a mass storage file in either a random or sequential manner'; GR-12.4.5.5.3-4 states only the dynamic mode, and no 85 case runs relative ACCESS MODE SEQUENTIAL. The refuter's relseq run (re-read this pass) writes RK 1..3 and reads them back in relative-record-number order, then status 10. Code location located after the read: RelativeConnector implements relative file random/sequential access"
+}

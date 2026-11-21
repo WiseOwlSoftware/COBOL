@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p6",
+ "rule-digest": "dba39c72098a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#FirstLine; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb5823_saved_next_group_fit_test",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/13.18.37-NEXT-GROUP/pb5823_saved_next_group_fit_test), joined as the row's own test. The read: GR-13.18.35.4-4 states the page fit test for body groups but has no case in its at-85 lists, so it cannot be a SAME pointer. pb5823 runs at 85 and its derivation follows §1985:XIII.3.10.8 GR3b's trial sum. Code location located after the read: fit test for body groups in ReportLinePlacement (cites 1985:XIII.3.10.6, 9, 10)"
+}

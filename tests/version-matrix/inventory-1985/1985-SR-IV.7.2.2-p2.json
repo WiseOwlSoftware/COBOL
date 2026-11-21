@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2.2-p2",
+ "rule-digest": "a5f4ae1b2064",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#LiteralScreen",
+ "test-ref": "conformance:cases/IV.7.2@1985-REFERENCE-FORMAT-REPRESENTATION/pb5924-continuation-quote-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with a case of the suite (conformance:cases/IV.7.2@1985-REFERENCE-FORMAT-REPRESENTATION/pb5924-continuation-quote-85), joined as the row's own test. The read: The four prose85 goldens pass on the mint build and p08 adds the comment/blank-line exclusion and the trailing-space sentence. Pointers: SR-6.3.5-2 states the trailing-space and quotation parts and SR-6.2.3.2-6 the quotation symbol, but neither states the hyphen word join or 'Area A of a continuation line must be blank' (2023 has no areas), so no pointer set states the whole 1985 scope. Code location located after the read: LogicalLineBuilder.ContinueFixed joins continuation lines; LiteralScreen cites 1985:IV.7.2.2"
+}

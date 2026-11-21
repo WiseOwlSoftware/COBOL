@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.3-3",
+ "rule-digest": "b1a57250d561",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+ "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (rw_seq_legal_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: SR-13.18.35.3-7 (NEXT PAGE only in the first LINE clause) states part of it but has no 85 case; the probe and its refusal twin show both halves at 85. Code location located after the read: NEXT GROUP / LINE NUMBER combinations screened in ReportSectionBinder (cites 1985:XIII.3.10.6 to 3.10.10)"
+}

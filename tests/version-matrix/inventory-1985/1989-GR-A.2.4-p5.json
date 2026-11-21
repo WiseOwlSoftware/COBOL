@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.4-p5",
+ "rule-digest": "4b564fd8e3fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicType; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IntrinsicResultType",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-GR-A_2_4-p5",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (g4-fn-types.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Second read of a DOUBTFUL. The legend 'I means integer N means numeric X means alphanumeric' is not only presentation: read with Table 1 it assigns each function its type, and those types are the A.2.3 categories ('Integer functions. These are of the class and category numeric'), which a program shows by using the returned value. So a program can show it: the probe uses one function of each letter (INTEGER, type I per A.2.15.1 p1; SQRT, N; UPPER-CASE, X) where the type matters and checks the value. No 2023 rule restates the 1989 Table 1 legend, so the row is own-text. Each function's own type sentence stays that function's row; this row's own witness is the legend's three letters. Code location located after the read: IntrinsicType enum holds integer/numeric/alphanumeric result types"
+}

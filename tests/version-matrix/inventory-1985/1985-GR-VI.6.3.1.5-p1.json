@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.5-p1",
+ "rule-digest": "bdbcb1af184a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSignConditionOn; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckSignConditionHasVariable",
+ "test-ref": "conformance:cases/VI.6.3.1@1985-Simple-Conditions/1985-GR-VI_6_3_1_5-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_sign.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: 'The sign condition determines whether or not the algebraic value of an arithmetic expression is less than, greater than, or equal to zero.' The candidates are the SIGN and RANDOM function results and the relational-operator format; GR-8.8.4.7.4-1, the 2023 rule, is not witnessed at 85. The probe covers each phrase on identifiers and expressions. Code location located after the read: cites §1985:VI.6.3.1.5; sign condition binding"
+}
