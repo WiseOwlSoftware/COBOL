@@ -1638,6 +1638,25 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-IV.4.2.2.1.1-15", "1985-SR-IV.4.2.2.1.1-L2.12", "1985-GR-IV.4.2.2.1.2-3", "1985-GR-IV.4.2.2.1.3.3-1",
             "1985-GR-IV.4.2.2.1.3.3-2", "1985-GR-IV.4.3.7-p3", "1985-GR-IV.6.3.1-p1", "1985-GR-IV.6.4.2-p1",
             "1985-GR-IV.6.4.2-p2", "1985-SR-IV.5.1-p1", "1985-GR-IV.7.4-p5", "1985-GR-VI.2.1-p1", "1985-GR-VII.1.3.3-p1",
+            // ⚙ Fifty-nine more, added deliberately (kb/Work PB5453 and decision PB6003, signature `claude: 2026-11-21`): the
+            // §1985:III.2 glossary rows the 85w mint added (kb/Work PB5452), read in slices g-01..g-07 and g-99, each written by
+            // `audit_batch.py derivation-batch` on the UPHELD record of its slice's derivation refuter
+            // (tests/version-matrix/derivation-refutations/lineage-reads-1985-g-NN.jsonl); five of them (p91, p196, p198, p200, p220) on the informative arm
+            // (kb/Work PB6012).
+            "1985-GR-III.2-p2", "1985-GR-III.2-p20", "1985-GR-III.2-p21", "1985-GR-III.2-p22", "1985-GR-III.2-p29",
+            "1985-GR-III.2-p31", "1985-GR-III.2-p52", "1985-GR-III.2-p56", "1985-GR-III.2-p64", "1985-GR-III.2-p66",
+            "1985-GR-III.2-p68", "1985-GR-III.2-p8", "1985-GR-III.2-p101", "1985-GR-III.2-p111", "1985-GR-III.2-p112",
+            "1985-GR-III.2-p121", "1985-GR-III.2-p91", "1985-GR-III.2-p93", "1985-GR-III.2-p99", "1985-GR-III.2-p131",
+            "1985-GR-III.2-p135", "1985-GR-III.2-p137", "1985-GR-III.2-p147", "1985-GR-III.2-p149",
+            "1985-GR-III.2-p150", "1985-GR-III.2-p157", "1985-GR-III.2-p181", "1985-GR-III.2-p182",
+            "1985-GR-III.2-p183", "1985-GR-III.2-p185", "1985-GR-III.2-p187", "1985-GR-III.2-p189",
+            "1985-GR-III.2-p190", "1985-GR-III.2-p195", "1985-GR-III.2-p196", "1985-GR-III.2-p198",
+            "1985-GR-III.2-p200", "1985-GR-III.2-p204", "1985-GR-III.2-p208", "1985-GR-III.2-p220",
+            "1985-GR-III.2-p222", "1985-GR-III.2-p225", "1985-GR-III.2-p227", "1985-GR-III.2-p231",
+            "1985-GR-III.2-p236", "1985-GR-III.2-p240", "1985-GR-III.2-p241", "1985-GR-III.2-p243",
+            "1985-GR-III.2-p252", "1985-GR-III.2-p256", "1985-GR-III.2-p284", "1985-GR-III.2-p301",
+            "1985-GR-III.2-p304", "1985-GR-III.2-p305", "1985-GR-III.2-p313", "1985-GR-III.2-p315",
+            "1985-GR-III.2-p324", "1985-GR-III.2-p325", "1985-GR-III.2-p326",
         ];
 
         var s = LoadSchema();
