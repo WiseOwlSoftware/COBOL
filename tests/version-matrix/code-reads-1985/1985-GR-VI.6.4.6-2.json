@@ -1,70 +1,96 @@
 {
  "rule-id": "1985-GR-VI.6.4.6-2",
- "rule-digest": "ef0ce39d159d",
+ "rule-digest": "07661fe010b2",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-022",
+  "pin": "48f284b4d861c551e49d883832966cefbf25b4d9",
+  "slice": "1985-c01",
   "sources": {
-   "reader": "b4dc09eedfbd7b49c984491593390a3668618bbd6b562ba2120a0b2476979d7a",
-   "refuter": "0195d2811228bbe91c9c39dfacd1cf762db94dc3f53580199a91ba4b46c11e51"
+   "reader": "89b8ec57cee7d276eee0e88787a3b83149b98e62d796e3d6f6afee385c38e250",
+   "refuter": "b8884bc38efdc67fb665b28f79f7ee39e141c15715c8014f03339782e971f29a"
   },
   "imported": {
-   "reader": "58b97e9be635b82539f5c2d8c29e4214c40fc020d63a6f957af12983e8be664e",
-   "refuter": "a7a5fa369e81ddb5ae69a5753d6335e86c0dd0bb20bdf670e522d27db18503e6"
+   "reader": "21a7af770de0bfb5eb76e0485d3a13b9f17040fae04c55a01a17a7b7f059d044",
+   "refuter": "4a19d0ac38a25eb412cebb0e939e8b17bf4fda418e21c43ac80aee96927b9354"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.6.4.6-2",
   "verdict": "CONFORMS",
-  "requirement": "At 1985 the temporary is then combined with or transferred to each resultant in the left-to-right order written, each resultant identified (subscripts evaluated) when it is reached, so ADD a, b, c TO c, d (c), e uses the updated c to subscript d and MULTIPLY a (i) BY i, a (i) uses the updated i; the witnesses cover ADD TO, COMPUTE and DIVIDE REMAINDER with a subscript changed by an earlier receiver but not the clause's own MULTIPLY a (i) BY i, a (i) example or an ODO object as an earlier receiver.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitGiving; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceiverBracketEmitter.cs#Receive; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore",
+  "requirement": "At 1985 an ADD, COMPUTE, DIVIDE, MULTIPLY or SUBTRACT with several resultants evaluates its initial operands once into a temporary and then stores that value into (or combines it with) each resultant in the written left-to-right order, each resultant identified, with its subscripts, only when its own store is reached, so a subscript reads the value an earlier resultant of the same statement stored.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitGiving; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceiverBracketEmitter.cs#Receive",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
-    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 1985 a receiver whose store fails without a phrase keeps its content and the next receiver is still stored (GuardedStore per receiver in either arm)",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: below 2002 a statement without ON SIZE ERROR catches every condition and goes on to the next resultant and the next statement; from 2002 the condition is fatal",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers",
+    "switches": "only the citation text (Edition.Cite) of format diagnostics",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
+    "switches": "refuses the 2014 ROUNDED MODE IS phrase on a resultant at 1985 (COBOL0803)",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep DialectLevel|DialectBehaviors|EditionContext|CobolVersion over ArithmeticEmitter.cs, ReceiverBracketEmitter.cs, ExpressionBinder.cs, PlaceIdentification.cs: the receiver loop order and the identified-at-store resolution consult no edition",
-  "behaviour-differs-by-edition": "no: identical output at --std 85 and --std 2023 for the clause's two examples",
-  "witnesses-cover": "part: the clause's MULTIPLY a (i) BY i, a (i) example and an ODO object updated by an earlier receiver are not in the witnesses",
+  "edition-search": "grep of Edition.|CobolVersion|IsAtLeast|DialectBehavior in ArithmeticEmitter.cs, ReceiverBracketEmitter.cs, SendingValueTemp.cs and ArithmeticBinder.cs; the order of stores and identification at store is one arm",
+  "behaviour-differs-by-edition": "yes: only the unphrased size error, which at 1985 leaves the affected resultant undefined and continues (§1985:VI.6.4.2 GR3) and at 2023 ends the run unit for a zero divisor; the multiple-result sequence itself is the same",
+  "witnesses-cover": "part: the witnesses cover ADD/SUBTRACT/MULTIPLY receivers and identification at store; DIVIDE INTO and GIVING forms, COMPUTE with a subscripted later receiver, relative subscripts, packed and binary subscripts, two-level subscripts and the per-resultant size error are not exercised",
   "probes": [
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p2multi.cob",
-    "printed": "1 C=4 D=1010101310 E=23 | 2 I=2 A=020604",
-    "expected": "the clause's examples: a=b=c=1 -> temp 3, c=4, d(4)=13, e=23; a=(2,3,4), i=1 -> temp 2, i=2, a(2)=6"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p2multi.cob",
-    "printed": "10 N=3 O=010102",
-    "expected": "OE (N) identified after N is stored: OE(3) = 1 + 1"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/mres1.cob",
+    "printed": "ADD C=4 D1=00 D4=03 E=03 | MUL I=03 A1=003 A3=015 | ADDS I=03 A1=002 A3=008 | SUB I=02 D2=02 D4=00 | ADDG I=03 D3=03 | CMP I=05 D5=05 | DIV I=04 A4=005 A8=002 | MULG I=06 D6=06 | DIVG I=04 D4=04 | SUBG I=08 D8=08 | SIZE ERR SZ S1=7 S2=12 (EXPECT: MATCH)",
+    "expected": "the two printed equivalences of GR2 and their siblings for every verb and GIVING form: temp first, then each resultant left to right, a later subscript reading the earlier resultant's new value"
    },
    {
     "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p2multi.cob",
-    "printed": "11 S2=12 S3=6",
-    "expected": "the receivers to the right of an overflowing one are still stored in order"
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/mres5.cob",
+    "printed": "REL J=+03 D4=02 | TWO J=+02 K=2 D2=01 C22=01 | CMP K=3 D3=04 J=+03",
+    "expected": "relative subscript, a COMP-3 and a COMP subscript, a two-level subscript all identified after the earlier resultants are stored; COMPUTE K, D(K) ROUNDED stores D(3)"
    },
    {
-    "class": "b,c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p2ref.cob",
-    "printed": "COBOL1689 (literal as a receiver), COBOL0803 (ROUNDED MODE on one of several receivers requires COBOL-2014)",
-    "expected": "refused at 85"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/mres2.cob",
+    "printed": "SIZE ERR SZ I=05 D5=95 | R X1=1.5 X2=2 X3=+0.55 | G X3=-3.46 X4= 3.45 X5=-03",
+    "expected": "each resultant takes its own ROUNDED, scale, sign and editing; the size-error resultant keeps its value and the next resultant uses its unchanged subscript"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/mres6.cob",
+    "printed": "85: NOPHRASE S2=12 ZDIV A1=10 A2=20 SE SEI I=9 D9=3 (exit 0); 2023: EC-SIZE-ZERO-DIVIDE fatal",
+    "expected": "1985: without the phrase the other resultants are stored and control passes to the end of the statement"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/mres3.cob",
+    "printed": "COBOL0803 ROUNDED MODE IS requires COBOL-2014",
+    "expected": "refused at 1985"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/mres4.cob",
+    "printed": "COBOL1689 DIVIDE REMAINDER with 2 GIVING receivers (§1985:VI.6.11.2)",
+    "expected": "refused: REMAINDER formats take one quotient"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.6.4.6 GR2",
     "check": "OK  §1985:VI.6.4.6 GR2  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.4.6 GR1",
+    "check": "OK  §1985:VI.6.4.6 GR1  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in GR1"
    }
   ],
-  "notes": "The receiver loop stores left to right and each receiver's Place is identified at store (ResolveReceivingAtStore / debug.IdentifiedAtStore), so a subscript or ODO object changed by an earlier resultant selects the element the clause's equivalent sequence selects. Both examples printed in the clause give the equivalent-sequence result at --std 85.",
+  "notes": "Every verb's multiple-result form reproduces the GR2 equivalences, including subscripts that read an earlier resultant's new value (ReceiverBracketEmitter runs each receiver's identification at its own store). Probe class a and e do not apply to this rule. DISPLAY shows an unedited 9V9 as 1.5, which is the implementor's conversion under §1985:VI.6.10.4 GR1 and is outside this rule.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "mres1 semantics are one arm; mres6 at 2023 ends with EC-SIZE-ZERO-DIVIDE as 2002+ requires",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -73,8 +99,8 @@
  "refuter": {
   "rule-id": "1985-GR-VI.6.4.6-2",
   "refutation": "UPHELD",
-  "classes": "a,b,d,f",
-  "evidence": "refute-1985-022/r2multb-001 at --std 85 with ON SIZE ERROR (the two-phase shape the reader flagged as the 1985 arm): ADD 5 TO I, T (I) with I=7 overflowing -> I=7 unchanged and T(7)=6 (T identified with I's kept value); ADD 1 TO I, T (I) with T(3)=99 overflowing -> I=3 stored first, T(3)=99 unchanged; SUBTRACT 1 FROM 9 GIVING I, T (I) -> I=8, T(8)=8 (GIVING receivers left to right, each identified when reached); DIVIDE 2 INTO J GIVING I REMAINDER T (I) -> I=3, T(3)=1 (§1985:VI.6.11.4 GR4 subscript evaluated immediately before the remainder is stored); r2mfix2-001 ADD I K TO K, T (K), I -> T(4) selected by the updated K. All equal the clause's equivalent sequence. cite.py: OK  §1985:VI.6.4.6 GR2  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in GR2",
+  "classes": "b,c,d,f",
+  "evidence": "Probes aimed at a resultant that is also an initial-evaluation operand, which the reader's probes touched only through subscripts. rmr1 at --std 85 (runs/rmr1-001), the same at 2023 (rmr1-002): ADD A TO A, B gives A=+002 B=+011 (the temp is the original A); ADD A B TO B, C gives B=+023 C=+113; SUBTRACT A FROM A, B gives A=+000 B=+006; MULTIPLY A BY A, B gives A=+009 B=+030; DIVIDE A INTO A, B gives A=+001 B=+020; ADD A B GIVING A, C and MULTIPLY A BY B GIVING A, C store one temp into both (5,5 and 6,6); COMPUTE X, Y = X + 1 gives X=Y=+008; DIVIDE A BY B GIVING A, C gives 5,5; ADD 1 TO A, A applies twice (A=+007); ADD 50 TO P, P ON SIZE ERROR stores 60, then the second store overflows and P keeps 60 with SE shown; COMPUTE I, T (I) = T (I) + 1 reads T(2) initially and stores into T(6); ADD T (I) TO I, T (I) stores 4 into T(7); SUBTRACT T (I) FROM 9 GIVING I, T (I) ROUNDED stores 9 into T(9). Each matches the per-verb initial evaluation rules (VI.6.6.4 GR1/GR2, VI.6.26.4 GR1/GR2, VI.6.20.4 GR1, VI.6.11.4 GR1/GR2) and the GR2 sequence. rmrr1: the 2002 COMPUTE ... EQUAL form is refused at 85 (COBOL0001 near EQUAL; the 1985 format prints only =). Edition sites: ArithmeticEmitter.cs#EmitArith (DialectBehavior.UnphrasedSizeErrorIsFatal) is the only behavioural switch, already in the reader's list; ArithmeticBinder.cs consults the edition only for citation text. cite.py: OK §1985:VI.6.4.6 GR2; OK §1985:VI.6.4.6 GR1.",
   "edition-sites-missed": [],
   "corrected": ""
  }

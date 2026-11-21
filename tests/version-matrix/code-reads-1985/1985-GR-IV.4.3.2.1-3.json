@@ -1,58 +1,90 @@
 {
  "rule-id": "1985-GR-IV.4.3.2.1-3",
- "rule-digest": "deb0e8dd47cf",
+ "rule-digest": "337335cf772d",
  "read": {
-  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
-  "slice": "1985-187",
+  "pin": "48f284b4d861c551e49d883832966cefbf25b4d9",
+  "slice": "1985-c01",
   "sources": {
-   "reader": "6a998a4b1e57a690f7e45cdec6fe86e3fd296177f87d26c4e5397bed4746166a",
-   "refuter": "d6a21439328cab15932be6b7a4e5f211c8acebc58be757ed8d33d358dae71686"
+   "reader": "89b8ec57cee7d276eee0e88787a3b83149b98e62d796e3d6f6afee385c38e250",
+   "refuter": "b8884bc38efdc67fb665b28f79f7ee39e141c15715c8014f03339782e971f29a"
   },
   "imported": {
-   "reader": "ba836db125311236a7abcc03ae1e159620ea2ed65cc807cc679c037e4d663a78",
-   "refuter": "963307d2b6f6d066cb9845e24732ba419543abbe90a4cde50e0f2375e0b373b8"
+   "reader": "b7f63fec34ab218439685a6112a53c964269b051d649bf7acce6cb38f49b479e",
+   "refuter": "aeefbadfc4840bb7384b3b204957625487a6d2de269ddee771eb7fdd26ddb4ab"
   }
  },
  "reader": {
   "rule-id": "1985-GR-IV.4.3.2.1-3",
   "verdict": "CONFORMS",
-  "requirement": "The three entries with no true concept of level take the special level-numbers: 66 for a RENAMES regrouping entry, 77 for a noncontiguous working-storage or linkage item that is neither subordinate nor subdivided, 88 for a condition-name on the values of its conditional variable; the compiler must give each that meaning and refuse a special level used otherwise (77 in a record area, 77 subdivided or unnamed, 66 without RENAMES, 88 without a VALUE clause).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#AttachToHierarchy; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
-  "edition-consulted": [],
-  "edition-search": "grep Edition/DialectLevel/ConstructRegistry/DialectBehavior in LevelNumberPass.cs (its own remarks state the level sets are not edition-gated) and in DataBinder.BindEntries' 66/77/88 arms: none. The LOCAL-STORAGE section and the 88 WHEN SET TO FALSE phrase are refused at 85 by their own construct gates, not on this path",
-  "behaviour-differs-by-edition": "no: the 66/77/88 meanings and refusals are one code path at every edition; only the sections a 77 can sit in differ (85 has no LOCAL-STORAGE, refused by the section gate)",
-  "witnesses-cover": "part: g85_f03_04 covers the accepting half (one 66 THRU, two 77s, 88 with VALUE and THRU); not exercised are 66 renaming a single group or elementary item, the refusals, 88 on the largest signed item, ALL literal and ZERO condition values",
+  "requirement": "At 1985 a level-88 condition-name entry has no true level: it neither subdivides, opens nor closes a group and occupies no storage, so it is associated with the entry it immediately follows (elementary, group or 77) wherever it is written, and the level hierarchy around it continues as if it were absent.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ConditionName.cs#RecordConditionAssociation; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryNameObligation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+    "switches": "nothing but the diagnostic cursor (Edition.At); the level-88 arm leaves the level stack and lastDescribed untouched at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryNameObligation",
+    "switches": "only the citation text (edition.Cite)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
+    "switches": "refuses the 2002 WHEN SET TO FALSE phrase of a level-88 VALUE at 1985",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "read the level-88 arm of BindEntries; grep of Edition/CobolVersion in LevelNumberPass.cs",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness has 88s only under a 77; 88s under a group followed by its subordinates, between subordinates, written in area A, and the orphan 88 are not exercised",
   "probes": [
    {
-    "class": "d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/lvl1.cob",
-    "printed": "[7Z] [AB7ZCDE] [7] / MIN / NEG / CDE / NOT ALLC / ALLC / ZERO / [ABXYCCC] / NOT NEG after MOVE 0",
-    "expected": "66 RENAMES a group, a THRU range and an elementary item; 88 on 77 S9(18) at -999999999999999999 and a THRU range; 88 VALUE ALL \"C\" and ZERO; a MOVE to a 66 group alias stores into the record"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/lvl1.cob",
+    "printed": "G=ABCD|04 C2=CD|02 G-AB=Y A1-A=Y A1-Z=N B1-B=Y C2-CD=Y H-XY=Y K-3=Y G2=ABQQ| G-AB2=N C2-CD2=N",
+    "expected": "88s on a group, between subordinates and in area A do not change the hierarchy or the group's length (4, 2) and test their own conditional variable"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/lvl2.cob",
-    "printed": "COBOL1746 77 under an FD; COBOL1747 77 FILLER; COBOL2771 05 under a 77; COBOL1747 66 with no RENAMES (twice); COBOL1747 88 with no VALUE",
-    "expected": "each misuse of a special level refused"
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/lvlr1.cob",
+    "printed": "COBOL1977 level-88 entry does not immediately follow a data description entry (§1985:VI.5.3.4 GR2)",
+    "expected": "refused: no conditional variable"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/lvlr2.cob",
+    "printed": "COBOL2191 PICTURE only at the elementary level: A1 has 1 subordinate entry",
+    "expected": "the 88 does not open a level: a 10 after it is subordinate to A1, which has PICTURE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/lvlr3.cob",
+    "printed": "COBOL1747 level-number 88 ... body is not a value clause alone (§1985:VI.5.3.2)",
+    "expected": "refused: format 3 is level-number, condition-name, VALUE only"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/lvl3.cob",
-    "printed": "COBOL0900 WHEN SET TO FALSE requires COBOL-2002; COBOL0900 LOCAL-STORAGE SECTION requires COBOL-2002",
-    "expected": "a later-edition 88 phrase and the later section a 77 may sit in refused at 85"
+    "file": "E:/COBOL-coord/scratch/w20262131/coderead/out/work-1985-c01/src/lvlr4.cob",
+    "printed": "COBOL0900 the VALUE clause's WHEN SET TO FALSE phrase requires COBOL-2002",
+    "expected": "refused at 1985"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IV.4.3.2.1 GR3",
     "check": "OK  §1985:IV.4.3.2.1 GR3  (4.3.2.1 Level-Numbers)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.5.3.4 GR2",
+    "check": "OK  §1985:VI.5.3.4 GR2  (5.3.4 General Rules)  the text is in GR2"
    }
   ],
-  "notes": "BindEntries binds 88 as a condition on the last described entry, 66 as an alias on the open record, and treats 77 as a root (nest level 1) so a following 02-49 opens no record and is refused. LevelNumberPass refuses the special numbers by section and by entry format before binding.",
+  "notes": "lvl1 prints the same at --std 2023. Probe classes a, e and f do not apply to a level-number concept rule. FUNCTION LENGTH as a DISPLAY operand is refused at 1985 (integer function outside an arithmetic expression), so the length was read through COMPUTE.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "lvl1 prints the same lines",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -61,12 +93,9 @@
  "refuter": {
   "rule-id": "1985-GR-IV.4.3.2.1-3",
   "refutation": "UPHELD",
-  "classes": "b,c",
-  "evidence": "Probes refute-1985-187/lvok, lvr1-lvr4, lvr6-lvr9 (--std 85): accepted 66 after the record, 77 after an 01, 77 USAGE INDEX with no PICTURE, 88 under a 77; refused a 05 after the record's 66 (COBOL2740), an 88 under a 66 (COBOL1976, §1985:VI.5.3.4 GR2b), a 77 with neither PICTURE nor USAGE INDEX (COBOL0881), a 66 after a 77 or renaming a 77 or the 01 (COBOL2740), a 66 renaming an 88 (COBOL1655). SIBLING DEFECT, outside this rule: lvr7b.cob (runs/lvr7b-001) '66 X1 RENAMES A1 THRU A2. 66 X2 RENAMES X1.' compiles and prints X2 [ABCD] at --std 85, while --std 2023 refuses it (COBOL1655). §1985:VI.5.11.3 SR4: 'A 66 level entry cannot rename another 66 level entry' (cite.py OK). Cause (a): since PB5165 the 85 arm of DataBinder.RegionClauseCandidates searches the whole scope (QualifiedCandidates), which finds the level-66 alias; IsWithinRegion passes it and ResolveRedefinesPass.ScreenRenamesOperand tests only levels 1 and 77, its comment assuming 66 is unreachable. That is a RENAMES syntax-rule defect (under-rejects, cause a), not a failure of GR3's assignment of the special levels; no kb/Work note found (grep 'renam* a 66' / PB5165 notes). cite.py: 'OK  §1985:IV.4.3.2.1 GR3  (4.3.2.1 Level-Numbers)  the text is in GR3'; 'OK  §1985:VI.5.11.3 SR4  (5.11.3 Syntax Rules)  the text is in SR4'.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates: below 2002 the RENAMES operand candidates are the whole scope's (PB5165), which reaches level-66 entries",
-   "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand: refuses levels 1 and 77 only, so at 85 a 66 renaming a 66 passes"
-  ],
+  "classes": "a,b,c,d,e",
+  "evidence": "Probes at --std 85 (refute-1985-c01/src). rlv1 (runs/rlv1-001): 88s on an OCCURS group and on its subordinate leave the table at LT=08 and each entry at LTE=02, subscripted condition-names test and SET per occurrence (O1=Y O2=N A3=Y, T2=131313FZ); an 88 on a FILLER tests its value (FF=Y); 88s on a REDEFINES group and its subordinate leave R1 at 3; a 66 RENAMES written after the record's last 88 spans R1A THRU R1C (LRN=03 RN=ABC); a sequential FD record with 88s at three depths is written by SET and read back at length 4 (FR=OKNO FOK=Y). rlvr1 versus rlvr1b: an 88 between 05 A and 03 B under G does not hide the unequal level-numbers, the same COBOL2771 citing §1985:IV.4.3.2.1 with and without it. rlvr2: an 88 after a 66 refused COBOL1976 (GR2 b). rlvr3: an 88 on a group holding a COMP item refused COBOL1976 citing the 1985-only exclusion GR2 c. rlvr4: an 88 on an index item refused; an 88 indented under another 88 is associated with the same conditional variable, as GR2 a requires. cite.py: OK §1985:IV.4.3.2.1 GR3; OK §1985:VI.5.3.4 GR2; OK §1985:IV.4.3.2.1 (p2, the identical-level rule).",
+  "edition-sites-missed": [],
   "corrected": ""
  }
 }
