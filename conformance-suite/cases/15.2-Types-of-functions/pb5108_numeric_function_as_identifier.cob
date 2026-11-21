@@ -12,8 +12,8 @@
       *> arithmetic expression" (IV 4.3.8.3.3 SR4). The 1985 refusal is
       *> pb5108-numeric-function-as-identifier-85; the construct is
       *> numeric-function-identifier-operand-2002.
-      *> DERIVATION (N = 2 and Y = 10 at the start, W = "ABCD"):
-      *> MOVE SQRT (4) TO N gives 2 (15.4.1: the square root, exactly 2);
+      *> DERIVATION (N = 7 and Y = 10 at the start, W = "ABCD"):
+      *> MOVE SQRT (4) TO N gives N = 2 (15.4.1: the square root, 2);
       *> ADD LENGTH (W) TO Y gives 10 + 4 = 14; SUBTRACT SQRT (4) FROM Y
       *> gives 12; MULTIPLY MAX (N 3) BY Y gives 3 * 12 = 36; DIVIDE
       *> MAX (N 3) INTO Y gives 36 / 3 = 12; PERFORM INTEGER (2.5) TIMES
