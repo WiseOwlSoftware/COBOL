@@ -575,6 +575,10 @@ off-by-one through every later counter check.
   `ResolveRolledAddend` resolves the written name once (the qualifiers consumed against each entry's hierarchy, the
   report-name last — SR4 g) is the same arm, not a second one), screens it once per WRITTEN addend (SR4: a numeric item
   with a value, unsubscripted — COBOL2730; a) no UPON; b)/c)/d) the levels of repetition, `RolledRepetitionFault`;
+  these are the 2002 data-name-1 rules, and `DialectBehavior.SumDataNameRules` (VCR row 7.89, kb/Work PB5048) puts the
+  1985 rule in their place below 2002: §1985:XIII.3.19.3 SR1 asks a SUM operand of the report section to be a sum counter
+  (a SOURCE or VALUE entry is COBOL6764) of the same report (another report's is COBOL2731), and a non-repeating counter
+  of the SUM entry's own group is the crossfoot of §1985:XIII.3.19.4 GR9a, so the same-group arm of b) asks nothing;
   f) the report-type pairing, COBOL2731, within one report only; e) the chain terminates, `ScreenRolledChains` over
   every report, from 2002 only: at 1985 a self or mutual reference within a group is legal, see below) and then maps per COUNTER OCCURRENCE (GR8): the INNERMOST levels of the addend and the counter are the
   same levels (SR4 d) — "in order beginning with the lowest level of nesting"), so an addend occurrence belongs to the

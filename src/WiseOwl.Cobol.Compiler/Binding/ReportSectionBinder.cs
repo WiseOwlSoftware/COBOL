@@ -4335,8 +4335,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             return null;
         }
         // §1985:XIII.3.19.3 SR1 — "If identifier-1 is defined in the Report Section, identifier-1 must reference a sum
-        // counter." The 2002 SUM clause adds the operand of a SOURCE or VALUE entry (§2023:13.18.54.4 GR6).
-        if (Edition.DialectLevel < 2002 && data is not ReportSumFamily)
+        // counter." The 2002 SUM clause adds the operand of a SOURCE or VALUE entry (§2023:13.18.54.4 GR6): the edition fact is
+        // DialectBehavior.SumDataNameRules (VCR row 7.89), shared with the two arms below.
+        if (!DialectBehaviors.IsActive(DialectBehavior.SumDataNameRules, Edition.DialectLevel) && data is not ReportSumFamily)
         {
             Edition.Error(DiagnosticCatalog.ReportSumAddendNotSumCounter, $"{where} names the entry '{data.Name}', a SOURCE or "
                 + "VALUE entry of the report section: \"If identifier-1 is defined in the Report Section, identifier-1 must "
@@ -4368,8 +4369,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // §1985:XIII.3.19.3 SR1 — with no UPON phrase a sum counter addend "must be defined either in the same report
         // group that contains this SUM clause or in a report group which is at a lower level in the control hierarchy of
         // this report": a counter of ANOTHER report is in neither. SR4 g) ("there are no restrictions" for a different
-        // report description) is COBOL-2002's (§2002:13.16.52.2 SR3 g)), so below 2002 it is refused (kb/Work PB5253).
-        if (Edition.DialectLevel < 2002 && !ReferenceEquals(data.Report, target.Report))
+        // report description) is COBOL-2002's (§2002:13.16.52.2 SR3g), so below 2002 it is refused (kb/Work PB5253;
+        // DialectBehavior.SumDataNameRules, VCR row 7.89).
+        if (!DialectBehaviors.IsActive(DialectBehavior.SumDataNameRules, Edition.DialectLevel) && !ReferenceEquals(data.Report, target.Report))
         {
             Edition.Error(DiagnosticCatalog.ReportSumDataNameGroups, $"{where} names the sum counter '{data.Name}' of report "
                 + $"'{data.Report.Name}', another report than the SUM entry's '{model.Name}': it must be defined either in the "
@@ -4400,15 +4402,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the same number of levels of repetition as the subject of the entry"; d) "The maximum number of repetitions of
     /// data-name-1 and the subject of the entry shall be equal at each corresponding level taken in order beginning
     /// with the lowest level of nesting. Levels superordinate to those corresponding levels may specify any number of
-    /// repetitions." The rule is COBOL-2002's (§2002:13.16.52.2 SR3 b)); COBOL-85's SUM clause (§1985:XIII.3.19.3 SR1)
+    /// repetitions." The rule is COBOL-2002's (§2002:13.16.52.2 SR3b); COBOL-85's SUM clause (§1985:XIII.3.19.3 SR1)
     /// has no repetition and admits a sum counter of the SUM entry's own group — the crossfoot of
-    /// §1985:XIII.3.19.4 GR9 a) — so below 2002 the same-group arm asks nothing of repetition (kb/Work PB5022).</summary>
+    /// §1985:XIII.3.19.4 GR9a — so below 2002 the same-group arm asks nothing of repetition (kb/Work PB5022, PB5048;
+    /// <see cref="DialectBehavior.SumDataNameRules"/>, VCR row 7.89).</summary>
     private string? RolledRepetitionFault(ReportEntryFamily data, ReportSumFamily target)
     {
         int d = data.Extents.Count, t = target.Extents.Count;
         if (ReferenceEquals(data.Group, target.Group))
         {
-            if (Edition.DialectLevel < 2002) return null;
+            if (!DialectBehaviors.IsActive(DialectBehavior.SumDataNameRules, Edition.DialectLevel)) return null;
             if (d == 0)
                 return "it is in the same report group description as the SUM entry, so it shall be a repeating item "
                     + "(ISO §2023:13.18.54.3 SR4 b))";
