@@ -149,7 +149,7 @@ not a prototype (132 accepted assigned tests open with a prototype, function, cl
 `check17/first_unit.py`); it ends by DISPLAYing `*DONE`. "The compilation units in a compilation group may be all or
 part of a run unit or may be unrelated compilation units" (§2023:10.2); 50 NIST-85 programs, 41 green in WiseOwl's NIST
 lane, hold a caller and its callees (`check17/nist_multi.py`; `inferred`). Each adapter states how the driver becomes
-the entry (§5): "The implementor shall document how a main program is identified" (§2023:15.65.4 GR 5, MODULE-NAME; A.1
+the entry (§5): "The implementor shall document how a main program is identified" (§2023:15.65.4 RV5, MODULE-NAME; A.1
 item 136; the standard says nowhere else). A test's solo program, the driver and that test alone, defines what the test
 means; a grouped PASS stands for the solo verdict (§5). Bands stay per test: 216 of the 378 folders holding accepted
 tests mix `accept` sets, and splitting by band would make 1,215 files.
@@ -169,7 +169,7 @@ until it is placed in the inactive state, it is canceled, or the end of the comp
 5), and TURN enables checking "for the procedure division statements and procedure division headers that follow in the
 compilation group" (§2023:7.3.25.4 GR 6). So does a test touching run-unit state, one that sets the runtime locale, which "remains
 in effect for the run unit until another runtime locale is established" (§2023:8.2.1); references RANDOM, whose
-"subsequent references without specifying argument-1 return the next number in the current sequence" (§2023:15.75.3 GR 5);
+"subsequent references without specifying argument-1 return the next number in the current sequence" (§2023:15.75.3 AR5);
 or reads the last exception status, which "exists for the entire run unit" (§2023:14.6.13.1.1). Of 2,329 accepted assigned
 tests, 382 hold a directive or REPLACE statement (283 a TURN), 21 sit in the EXIT, GOBACK and STOP clauses, and 26
 more touch that state: 426 (`check17/solo_union.py`, `check17/run_unit_state.py`). A refused test, a flagged program,
@@ -301,6 +301,11 @@ generator refuses a run-time expectation at 85; exit status and abnormal termina
 with no mark (a refusal not yet made a flagged test) or one pinning each use of an obsolete element; otherwise the
 site's first line is the line. The in-process runner requires the code, with that severity, at each line and edition,
 and where the test is also accepted, compares output. Message text lives once, in `DiagnosticCatalog`.
+*As built (kb/Work PB5461):* the layer is one file per test, `wiseowl/diagnostics/<id>.json`, `{"refuse-at": [...], "warn-at": [...],
+"expect": "..."}`: `refuse-at` is the refusal of a test WiseOwl does not accept, and `warn-at` the editions at which WiseOwl compiles
+the test (accepted or flagged there) and reports `expect` as a warning, which `warns` on the test's own manifest entry carries to the
+in-process runner. A flagged test needs the file for one of the two lists. The `lines` and `severity` fields above are not built: a
+flagged test's site is its marked line, and the severity is the key.
 
 ### 3.3 Expected output that is portable
 

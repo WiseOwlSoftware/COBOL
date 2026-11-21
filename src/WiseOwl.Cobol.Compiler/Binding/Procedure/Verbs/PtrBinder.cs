@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -82,7 +83,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // a literal and an arithmetic expression are no data-pointer at all.
             if (arithmeticSender is not { Predefined: null, TemporaryItem: { Item.Pic.Category: PicCategory.Pointer } temp })
             {
-                string written = arithmeticSender?.Text ?? DataBinder.WrittenText(send);
+                string written = arithmeticSender?.Text ?? WrittenSource.Of(send);
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     $"'{written}': identifier-6, the sending operand of SET Format 7, shall be of category "
                     + "data-pointer — the predefined address NULL, a USAGE POINTER data item, a function-identifier or "
@@ -104,8 +105,8 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                               : source is { } ptrSend ? StrongTypeModel.PointerRestriction(ptrSend.Item)
                               : default;
         string senderText = toNull ? "NULL"
-            : send.dataAddressIdentifier()?.dataReference() is { } daiRef ? DataBinder.WrittenText(daiRef)
-            : senderRef is not null ? DataBinder.WrittenText(senderRef)
+            : send.dataAddressIdentifier()?.dataReference() is { } daiRef ? WrittenSource.Of(daiRef)
+            : senderRef is not null ? WrittenSource.Of(senderRef)
             : arithmeticSender!.Text;
 
         var receivers = new List<BoundPointerReceiver>(sa.setToReceiver().Length);
@@ -144,7 +145,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // data-pointer, identifier-6 shall be the predefined address NULL or shall reference a data-pointer
             // restricted to the same type") and SR20's converse, which the ADDRESS OF sender supplies through
             // §2023:8.4.3.11.4 GR2. ⛔ TO NULL is admitted by SR19's own words and is screened by neither.
-            if (!toNull && !ScreenPointerReceiverRestriction(tp, DataBinder.WrittenText(dref), senderRestriction, senderText,
+            if (!toNull && !ScreenPointerReceiverRestriction(tp, WrittenSource.Of(dref), senderRestriction, senderText,
                                                             addressSender: address is not null))
                 return BoundRejected.Reported(ctx.Edition);
             receivers.Add(new BoundPointerReceiver(tp, null));
@@ -290,7 +291,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     /// diagnostic.</summary>
     internal BoundOperand AddressIdentifierOperand(Core.AddressIdentifierContext ai, string site) =>
         BindAddressIdentifier(ai, site) as BoundOperand
-        ?? BoundOperandError.Refused(ctx.Edition, $"address-identifier '{DataBinder.WrittenText(ai)}'");
+        ?? BoundOperandError.Refused(ctx.Edition, $"address-identifier '{WrittenSource.Of(ai)}'");
 
     /// <summary>§2023:14.8.2's verdict for ONE address-identifier ARGUMENT against its formal parameter — the CALL
     /// argument (kb/Work PB239) and the INVOKE argument (kb/Work PB1021) alike, because §2023:14.9.23.3 SR5 c) sends
@@ -346,7 +347,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // The resolver's own §2023:8.4.2.3.3 screen already named the rule (kb/Work PB681) — once per reference.
             if (ctx.Refs.WasDiagnosed(addrRef)) return null;
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                $"ADDRESS OF '{DataBinder.WrittenText(addrRef)}': identifier-1 shall reference a data item defined in the file, "
+                $"ADDRESS OF '{WrittenSource.Of(addrRef)}': identifier-1 shall reference a data item defined in the file, "
                 + "working-storage, local-storage or linkage section (ISO §2023:8.4.3.11.3 SR1) — the operand names "
                 + "none (an undeclared name, a SCREEN SECTION or REPORT SECTION entry, a constant-name or a special "
                 + "register) or is mis-subscripted (ISO §2023:8.4.2.3)");
@@ -378,7 +379,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 : $"record '{root.CobolName ?? root.ClrName}' was not claimed for a cell by the data pass; its storage "
                   + $"tier is {(root.Class is { } stored ? stored.Tier.ToString() : "unassigned")}";
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-                $"ADDRESS OF '{DataBinder.WrittenText(addrRef)}': the operand's record could not be placed on addressable "
+                $"ADDRESS OF '{WrittenSource.Of(addrRef)}': the operand's record could not be placed on addressable "
                 + $"cell storage ({why}; ISO §2023:8.4.3.11)");
             return null;
         }
@@ -444,7 +445,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // being half-enforced: Form 1 and Form 2 are separate code paths.
             if (StrongTypeModel.PointerRestriction(returning.Item) is { IsRestricted: true } charsRestriction)
             {
-                RejectRestriction($"'{DataBinder.WrittenText(returningRef!)}'",
+                RejectRestriction($"'{WrittenSource.Of(returningRef!)}'",
                     $"the RETURNING data item is a data-pointer restricted to type '{charsRestriction}', which "
                     + "ALLOCATE CHARACTERS cannot satisfy — it specifies no data-name-1 to supply that type "
                     + "(ISO §2023:14.9.3.3 SR4)");
@@ -479,17 +480,17 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             var basedType = StrongTypeModel.TypedItemType(based);
             if (strongType.IsRestricted && !StrongTypeModel.SameRestriction(strongType, returningRestriction))
             {
-                RejectRestriction($"'{DataBinder.WrittenText(returningRef!)}'",
-                    $"'{DataBinder.WrittenText(basedRef)}' is a strongly-typed group item of type '{strongType}', so the "
+                RejectRestriction($"'{WrittenSource.Of(returningRef!)}'",
+                    $"'{WrittenSource.Of(basedRef)}' is a strongly-typed group item of type '{strongType}', so the "
                     + "RETURNING data item shall be a data-pointer restricted to that type (ISO §2023:14.9.3.3 SR5)");
                 return BoundRejected.Reported(ctx.Edition);
             }
             if (returningRestriction.IsRestricted
                 && !StrongTypeModel.SameRestriction(returningRestriction, basedType))
             {
-                RejectRestriction($"'{DataBinder.WrittenText(returningRef!)}'",
+                RejectRestriction($"'{WrittenSource.Of(returningRef!)}'",
                     $"the RETURNING data item is a data-pointer restricted to type '{returningRestriction}', so "
-                    + $"'{DataBinder.WrittenText(basedRef)}' shall reference a typed data item of that type — it is "
+                    + $"'{WrittenSource.Of(basedRef)}' shall reference a typed data item of that type — it is "
                     + $"{(basedType.IsRestricted ? $"of type '{basedType}'" : "untyped")} (ISO §2023:14.9.3.3 SR4)");
                 return BoundRejected.Reported(ctx.Edition);
             }
@@ -504,7 +505,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         return new BoundSequence([alloc, host.Init.BindAllocateInitialized(basedRef)]);
     }
 
-    /// <summary>Bind FREE (ISO §2023:14.9.15 SR1 — every operand shall be category data-pointer; the vendor
+    /// <summary>Bind FREE (ISO §2023:14.9.15.3 SR1 — every operand shall be category data-pointer; the vendor
     /// <c>FREE based-item</c> form is rejected, never silently mis-freed).</summary>
     public BoundStatement BindFree(Core.FreeStatementContext fr)
     {
@@ -558,7 +559,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // such a restriction exists to prevent (Annex D.9.2.2); asked of EVERY receiver, like SR23 above.
             if (StrongTypeModel.IsRestrictedToStrongType(p.Item))
             {
-                RejectRestriction($"'{DataBinder.WrittenText(dref)}'",
+                RejectRestriction($"'{WrittenSource.Of(dref)}'",
                     $"identifier-9 is a data-pointer restricted to type '{StrongTypeModel.PointerRestriction(p.Item)}', "
                     + "which is described with the STRONG phrase, so SET UP BY / DOWN BY shall not change it "
                     + "(ISO §2023:14.9.39.3 SR24)");
@@ -579,7 +580,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
     {
         if (host.Expr.IndexFieldOf(dref) is null) return false;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"SET '{DataBinder.WrittenText(dref)}': an index-name cannot be a receiving operand of a data-pointer SET — "
+            $"SET '{WrittenSource.Of(dref)}': an index-name cannot be a receiving operand of a data-pointer SET — "
             + "identifier-9 shall be of category data-pointer (ISO §2023:14.9.39.2 Format 10, §2023:14.9.39.3 SR23). An "
             + "index-name operand belongs to Format 2, whose receiving operand is index-name-3");
         return true;
@@ -596,11 +597,11 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             is not { } p) return null;
         if (p.Item.Pic?.Category is PicCategory.Pointer) return p;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"'{DataBinder.WrittenText(dref)}': {what} shall be a USAGE POINTER data item");
+            $"'{WrittenSource.Of(dref)}': {what} shall be a USAGE POINTER data item");
         return null;
     }
 
-    /// <summary>Resolve a reference that must be a BASED 01/77 item (SR18 / §2023:14.9.3 SR1).
+    /// <summary>Resolve a reference that must be a BASED 01/77 item (SR18 / §2023:14.9.3.3 SR1).
     /// <para>⛔ THE LOOKUP IS THE RESOLVER'S, AND IT IS SCOPE-AWARE (kb/Work PB467). This used to read
     /// <c>ctx.Data.ByName</c> — the UNIT-WIDE multimap, which has no notion of the reference's scope — and the
     /// SR18 verdict then went wrong in BOTH directions inside a method definition: a legal method-local
@@ -622,7 +623,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // send the reader hunting a BASED clause for a name that is not declared at all (the PB457 shape).
         if (item is null && ctx.Refs.WasDiagnosed(dref)) return null;
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
-            $"'{DataBinder.WrittenText(dref)}': the operand shall be a BASED level-01/77 item (ISO §2023:14.9.39.3 SR18 / "
+            $"'{WrittenSource.Of(dref)}': the operand shall be a BASED level-01/77 item (ISO §2023:14.9.39.3 SR18 / "
             + "§2023:14.9.3.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)");
         return null;
     }

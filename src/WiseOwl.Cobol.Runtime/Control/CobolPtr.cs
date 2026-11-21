@@ -293,7 +293,7 @@ public static class CobolPtr
         return Allocate(up, fill, out notAvail);
     }
 
-    /// <summary>FREE (ISO §2023:14.9.15 GR1): (a) a pointer addressing the START of storage obtained by ALLOCATE
+    /// <summary>FREE (ISO §2023:14.9.15.4 GR1): (a) a pointer addressing the START of storage obtained by ALLOCATE
     /// and not yet freed — release it (the cell's life ends, <see cref="StorageCell.End"/>, and its image is
     /// dropped; every dangling alias then fails loud at <see cref="Deref"/>, the "contents become undefined"
     /// license made loud) and the operand becomes NULL; (b) a NULL operand — no operation; (c) anything else

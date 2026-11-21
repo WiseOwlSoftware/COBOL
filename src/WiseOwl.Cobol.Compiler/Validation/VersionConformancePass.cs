@@ -2281,7 +2281,7 @@ internal sealed class VersionConformancePass
         public override object? VisitSharingClause(CobolParserCore.SharingClauseContext ctx)
         { _p.Check(Constructs.FileSharingClause2002, "the SHARING clause"); return base.VisitChildren(ctx); }
 
-        /// <summary>The SELECT … LOCK MODE clause (ISO §2023:12.4.5.9) — a COBOL-2002 introduction. The §2023:12.4.5.9 SR2
+        /// <summary>The SELECT … LOCK MODE clause (ISO §2023:12.4.5.9) — a COBOL-2002 introduction. The §2023:12.4.5.9.3 SR2
         /// (WITH LOCK ON MULTIPLE RECORDS vs sequential) validation stays in the binder; this arm only names the edition.</summary>
         public override object? VisitLockModeClause(CobolParserCore.LockModeClauseContext ctx)
         { _p.Check(Constructs.LockModeClause2002, "the LOCK MODE clause"); return base.VisitChildren(ctx); }
@@ -3198,7 +3198,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The LOGICAL NOT of an abbreviated relation (<c>A &gt; B AND NOT &gt;= C</c>; §1985:VI.6.3.3 GRL2.2) — the
-        /// grammar's one <c>negatedAbbreviatedRelation</c> node, which only the 85 reading produces. Its two shapes have two
+        /// grammar's one <c>negatedAbbreviatedRelation</c> node, which the superset grammar parses at every edition. Its two shapes have two
         /// edition histories, so the gate asks <see cref="NegatedAbbreviationForms.Of"/> which one it is (kb/Work PB5123,
         /// review R1-1). NOT before an IS-led simple relational operator (<c>NOT IS &gt; C</c>) stays legal in 2002, where
         /// §2002:8.8.4.2.4.3 GR2b makes it part of the operator, and leaves the format in 2014 (§2014:8.8.4.2.4.1). Every
@@ -3547,8 +3547,13 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>PROCEDURE DIVISION USING … [BY] REFERENCE (ISO §2023:14.2.1 using-phrase) — a COBOL-2002 introduction,
+        /// the twin of <see cref="VisitUsingByValue"/>: the 1985 header is <c>PROCEDURE DIVISION [USING {data-name-1} ...]</c>
+        /// with no BY phrase (§1985:X.5.1, kb/Work PB5901). Fires on recognition of REFERENCE, once per phrase; the
+        /// node exists only when REFERENCE is written, so a plain <c>USING L1</c> never reaches it.</summary>
         public override object? VisitUsingByReference(CobolParserCore.UsingByReferenceContext ctx)
         {
+            _p.Check(Constructs.PdHeaderByReference2002, "the PROCEDURE DIVISION USING BY REFERENCE phrase");
             if (ctx.OPTIONAL() is not null)
                 _p.Check(Constructs.OmittedArguments2002, "the OPTIONAL formal parameter");
             return base.VisitChildren(ctx);
@@ -3771,7 +3776,7 @@ internal sealed class VersionConformancePass
             string word = CobolNames.UpperFold(ctx.Start.Text);
             // A BARE word argument of a function reference may be a §15 PHRASE WORD (FIND-STRING ANYCASE,
             // CONVERT HEX/NAT/ANUM/BYTE, MODULE-NAME CURRENT/ACTIVATING/NESTED/STACK/TOP-LEVEL, …) — a use OF
-            // the reserved word, not a user-defined-word use (§2023:8.4.3.2 SR8 + the per-function §15 argument
+            // the reserved word, not a user-defined-word use (§2023:8.4.3.2.3 SR8 + the per-function §15 argument
             // rules; the EXCEPTION-OBJECT precedent below). The position is NOT provable: only the sole-word
             // shape skips — a subscripted/qualified/compound argument is provably an operand and stays
             // funneled, and a genuine data-item collision is still caught at its DECLARATION slot. (P7

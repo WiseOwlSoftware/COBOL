@@ -176,7 +176,6 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'local gate seconds are the sum of every verdict.json in the worktree',
         'complete reads the merge time, counts only failed merge-group runs as bounces and takes the CI wall of the successful run',
         'summary sets the after column beside the before column, names unattributed bounces and says UNMEASURED for a figure it never saw',
-        "the headline is the merge queue's rate from two landings and the retired trains' rate before that, each saying what its minutes measure",
         'freeze waits for a landing, refuses to rewrite the frozen copy, and the evidence figures are in the evidence file',
         "complete counts the pull request's own failed runs before the queue on its head branch (pre_queue_reds), and a branch with no pull-request run stays UNMEASURED, never 0",
         'a queue stall is recorded once per read with its cause and what the watch did, never as a bounce (complete re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls',
@@ -287,9 +286,10 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a queued gate whose place does not move still writes a heartbeat line at every interval (kb/Work PB5097)',
     ),
     'scripts/spec/audit_code_citations.py': (
-        '("SUBJECT",', '("HEADER",', '("PHANTOM",', '("FORMAT",', '("RULE",', '("SUBITEM",', '("FORMAT-NAME",',
-        '("FORMAT-RULE",',
-        '("QUOTE-RULE",',  # a QUOTATION resolved to its own top-level rule (kb/Work PB597)
+        '("SUBJECT",', '("HEADER",', '("PHANTOM",', '("FORMAT-NAME",', '("FORMAT-RULE",',
+        # the ordinal arms RESOLVE retired (RULE, SUBITEM, FORMAT, QUOTE-RULE) keep their legs, now RESOLVE's (kb/Work PB5318)
+        '("no-format", "/// PERFORM VARYING', '("no-sub-item", "/// serial SEARCH',
+        '("no-ordinal", "// the receiver rules (§2023:14.9.25.4 GR6/GR99)',  # citation-audit: example
         # RESOLVE: every citation of every edition through cite.resolve, and its shrink-only baseline (kb/Work PB5317)
         '("no-ordinal", "the SORT statement (§1985:XI.4.4.4 GR99)")', '("no-rule-list", "COMPUTE (§2023:14.9.8 GR1)")',  # citation-audit: example
         'the baseline allows its entries wherever their line moves',

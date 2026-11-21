@@ -1,0 +1,13 @@
+{
+ "id": "pd-header-by-reference-2002",
+ "status": "active",
+ "description": "PROCEDURE DIVISION USING ... BY REFERENCE formal-parameter phrase, ISO §2023:14.2.1 using-phrase - introduced 2002. The 1985 Procedure Division header has exactly one form, PROCEDURE DIVISION [USING {data-name-1} ...] (§1985:X.5.1, the general format read on the rendered page, kb/Work PB5901), with no BY phrase; 2002 adds [BY REFERENCE] beside BY VALUE. The header-side twin of pd-header-by-value-2002 (the CALL statement's BY REFERENCE is 1985's own and has no row). ACTIVE: the phrase parses at every edition (the usingByReference rule, BY optional), the introduction gate fires on recognition of REFERENCE in the VersionConformancePass parse arm (VisitUsingByReference), in programs, functions and methods alike. The meaning is the plain USING's (§2023:14.2.3 GR4: by reference when neither phrase is written), so the refusal is the only edition difference.",
+ "display": "the PROCEDURE DIVISION USING BY REFERENCE phrase",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.2.1 using-phrase / §2023:14.2.3 GR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 interprogram surface (kb/Work PB5901 - BY REFERENCE header formals)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PHBR.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LR PIC 9(4).\nPROCEDURE DIVISION USING BY REFERENCE LR.\nMAIN.\n    STOP RUN.\n"
+}

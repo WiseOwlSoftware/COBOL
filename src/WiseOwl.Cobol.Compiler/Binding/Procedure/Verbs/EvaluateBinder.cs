@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -112,7 +113,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private static bool ReferencesAFunction(Core.EvaluateWhenItemContext item) =>
         Antlr4.Runtime.Tree.Trees.FindAllRuleNodes(item, Core.RULE_functionCall).Count > 0;
 
-    /// <summary>One subject↔object pair → a boolean term (§2023:14.9.13 GR4–7):
+    /// <summary>One subject↔object pair → a boolean term (§2023:14.9.13.4 GR4–7):
     /// ANY → always true; a TRUE/FALSE subject pairs with a CONDITION object (TRUE → the condition, FALSE → its
     /// negation); a value subject pairs with an operand (equality), a THRU range (inclusive bounds), or — when
     /// the object IS a condition over the same item (the grammar's escape) — the condition itself. The bracketed
@@ -153,7 +154,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (word is null) return true;
         using var _ = ctx.Edition.At(negation.Symbol);
         ctx.Edition.Error(DiagnosticCatalog.EvaluateObjectNegationNotPermitted,
-            $"the selection object '{DataBinder.WrittenText(item)}' writes NOT before the word {word}; "
+            $"the selection object '{WrittenSource.Of(item)}' writes NOT before the word {word}; "
             + ctx.Edition.Edition.Cite(
                 "ISO §1985:VI.6.13.2 admits the bracketed NOT only before identifier-3, literal-3 and arithmetic-expression-1, "
                 + $"with the THROUGH phrase that ends their range, never before {word}",
@@ -291,7 +292,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// POSITIONLESS operand (figurative ZERO / <c>ALL B"…"</c>, whose length is its sibling's — §2023:8.3.3.6.4 GR4)
     /// and a boolean function whose length argument is a run-time value both report null, and both answer YES:
     /// against a TRUE-or-FALSE counterpart one boolean position is the only length that gives the pair a
-    /// meaning, and the §2023:8.8.4.3 SR1 screen on the resulting condition still refuses the rest. Failing OPEN is
+    /// meaning, and the §2023:8.8.4.3.3 SR1 screen on the resulting condition still refuses the rest. Failing OPEN is
     /// the direction that cannot reject legal source.</summary>
     private static bool IsOneBooleanCharacter(int? length) => length is null or 1;
 
@@ -318,7 +319,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             ? "§1985:VI.6.13.3 SR6b" : "§1985:VI.6.13.3 SR6a";
         ctx.Edition.Error(DiagnosticCatalog.EvaluateOperandCombinationInvalid,
             $"the selection subject is {EvaluateOperandCombinations.Label(s)} and the selection object "
-            + $"'{DataBinder.WrittenText(item)}' is {EvaluateOperandCombinations.Label(o)}; ISO "
+            + $"'{WrittenSource.Of(item)}' is {EvaluateOperandCombinations.Label(o)}; ISO "
             + ctx.Edition.Edition.Cite($"{rule85} does not admit that combination.",
                 "§2023:14.9.13.3 SR10 Table 15 marks that combination invalid."));
         return false;
@@ -337,7 +338,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     {
         if (objects == subjects) return;
         ctx.Edition.Error(DiagnosticCatalog.EvaluateSelectionObjectCount,
-            $"the WHEN phrase '{DataBinder.WrittenText(phrase)}' writes {objects} selection "
+            $"the WHEN phrase '{WrittenSource.Of(phrase)}' writes {objects} selection "
             + (objects == 1 ? "object" : "objects") + $" but the EVALUATE statement has {subjects} selection "
             + (subjects == 1 ? "subject" : "subjects")
             + $"; ISO {ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR5", "§2023:14.9.13.3 SR2")} requires the two counts to be equal (write ANY for a position the phrase "
@@ -382,7 +383,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                 $"the {(end == 0 ? "first" : "second")} operand of the range-expression "
-                + $"'{DataBinder.WrittenText(range)}' is of class {IntrinsicArgumentRules.Name(c)}; ISO §2023:14.9.13.3 SR4 "
+                + $"'{WrittenSource.Of(range)}' is of class {IntrinsicArgumentRules.Name(c)}; ISO §2023:14.9.13.3 SR4 "
                 + "excludes class boolean, message-tag, object and pointer from a range-expression");
         }
         // SR4, first half — the same class. Reported only when neither end is already excluded, so one written
@@ -395,7 +396,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             {
                 ok = false;
                 ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
-                    $"the two operands of the range-expression '{DataBinder.WrittenText(range)}' are of class "
+                    $"the two operands of the range-expression '{WrittenSource.Of(range)}' are of class "
                     + $"{IntrinsicArgumentRules.ClassNameOf(lo, lc)} and class {IntrinsicArgumentRules.ClassNameOf(hi, hc)}; ISO "
                     + ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4")
                     + " requires them to be of the same class (§2023:8.5.2.1 Table 2 — CLASS, not "
@@ -410,7 +411,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         {
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
-                $"the two operands of the range-expression '{DataBinder.WrittenText(range)}' are of class "
+                $"the two operands of the range-expression '{WrittenSource.Of(range)}' are of class "
                 + $"{IntrinsicArgumentRules.DescribeClasses(lo)} and class {IntrinsicArgumentRules.DescribeClasses(hi)}, "
                 + "which share no class; ISO "
                 + ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4")
@@ -428,7 +429,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             if (!DataItem.HasVariableLengthSubordinate(item)) continue;
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
-                $"the {(end == 0 ? "first" : "second")} operand of the range-expression '{DataBinder.WrittenText(range)}' "
+                $"the {(end == 0 ? "first" : "second")} operand of the range-expression '{WrittenSource.Of(range)}' "
                 + $"references '{item.CobolName ?? item.ClrName}', a variable-length group (ISO §2023:8.5.1.12.1 — a "
                 + "dynamic-length elementary item or a dynamic-capacity table is subordinate to it); ISO "
                 + "§2023:14.9.13.3 SR9 forbids either end of a range-expression to reference one");
@@ -623,7 +624,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     return new BoundNot(new BoundLogical("^",
                         [subjCond, host.Udf.UdfAttachPerEvaluation(objCond2, objMark2)]));
             }
-            return host.Cond.Refused($"EVALUATE condition-subject paired with non-boolean WHEN '{DataBinder.WrittenText(item)}'");
+            return host.Cond.Refused($"EVALUATE condition-subject paired with non-boolean WHEN '{WrittenSource.Of(item)}'");
         }
 
         // ⛔ TRUE-or-FALSE × TRUE-or-FALSE (Table 15's two 'Y' cells for the words) IS A CONSTANT, AND NO CONDITION
@@ -689,7 +690,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // 1989:2002 Annex F.2 item 48 adds ("A partial expression may now be used as a selection object").
             using (ctx.Edition.At(item))
                 ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.EvaluatePartialExpression2002,
-                    $"the partial expression '{DataBinder.WrittenText(item)}' as an EVALUATE selection object");
+                    $"the partial expression '{WrittenSource.Of(item)}' as an EVALUATE selection object");
             // The subject's operand node is null for a boolean-EXPRESSION subject (PB1412), which has none; it is a
             // subject all the same (Table 15's Partial-expression row is 'Y' under the Boolean-expression column).
             var subjOp = BareOperand(slot.Node);
@@ -704,11 +705,11 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     ? host.Cond.BindPartialExpression(leadingClass, spliced)
                 : pair.ObjectBare.ClassWord is { } classWord
                     ? host.Cond.BindPartialClassName(classWord, spliced)
-                    : host.Cond.Refused($"EVALUATE partial-expression '{DataBinder.WrittenText(item)}'");
+                    : host.Cond.Refused($"EVALUATE partial-expression '{WrittenSource.Of(item)}'");
             return host.Udf.UdfAttachPerEvaluation(partialCond, objMark);
         }
 
-        // Value subject vs operand / range: equality or inclusive bounds (§2023:14.9.13 GR5b/c).
+        // Value subject vs operand / range: equality or inclusive bounds (§2023:14.9.13.4 GR5b/c).
         // ⛔ THE SLOT'S ONE VALUE (§2023:14.9.13.4 GR3, kb/Work PB394) — NEVER a fresh bind of the subject's node. The
         // subject is "evaluated and assigned a value" at the beginning of the statement, and a RANGE object reads
         // that one value TWICE ("selection-subject >= left-part AND selection-subject <= right-part", GR4 a) 5.):
@@ -728,7 +729,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // exist at all.
             if (BindRangeObject(range) is not { } bound)
                 return host.Cond.Refused(
-                    $"EVALUATE range-expression '{DataBinder.WrittenText(range)}'");
+                    $"EVALUATE range-expression '{WrittenSource.Of(range)}'");
             var (lo, hi, rangeClass, collation) = bound;
             bool check = ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line);
             // §2023:14.7.8 GR2: an inverted alphanumeric/national THRU range sets the nonfatal EC-RANGE-INVALID, and
@@ -782,7 +783,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             return host.Udf.UdfAttachPerEvaluation(
                 host.Cond.CheckedRelational(left, "==", BindValueOperand(v)), objMark);
         }
-        return host.Cond.Refused($"EVALUATE WHEN object '{DataBinder.WrittenText(item)}'");
+        return host.Cond.Refused($"EVALUATE WHEN object '{WrittenSource.Of(item)}'");
     }
 
     /// <summary>A range-expression's two bound operands with the facts the rules below ask of the PAIR: its class and its

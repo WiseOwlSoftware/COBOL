@@ -122,7 +122,13 @@ NUMBERED_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?(\d+)")
 #: (kb/Work PB4969), where `GR1` is rule 1 of the first. The catalog's ids write it `-L2.1` (DESIGN-spec-conformance-review.md
 #: §2); `rule_designator` is the one writer of the citation form.
 SUBLIST_RULE = re.compile(rf"({'|'.join(RULE_KINDS)}) ?L(\d+)\.(\d+)")
-RULE = rf"(?:(?:{'|'.join(RULE_KINDS)}) ?(?:\d+(?:[a-z0-9.]*[a-z0-9])?|L\d+\.\d+)|Format \d+|Table \d+)"
+#: A UNIT OF UNNUMBERED TEXT (kb/Work PB5449, decision PB5448 point 5) is cited by its own designator: a margin paragraph
+#: `p<n>` (`§2023:8.4.2.1 p3`), a body row of a table `Table <t> row <r>` (`§2023:14.5.1 Table 12 row 2`, written before
+#: `Table <t>`, the whole table, so a scan takes the longer form). A numbered item of a prose clause has no designator
+#: yet: the tree writes `item <n>` for it and for other lists alike (`§2023:5.4 item 2` names no printed item), so the
+#: form waits until those citations are re-pointed (kb/Work PB5449's report).
+UNIT_RULE = r"p\d+|Table \d+ row \d+"
+RULE = rf"(?:(?:{'|'.join(RULE_KINDS)}) ?(?:\d+(?:[a-z0-9.]*[a-z0-9])?|L\d+\.\d+)|Format \d+|{UNIT_RULE}|Table \d+)"
 _RULE = re.compile(RULE + r"\Z")
 
 #: THE ONE CITATION PATTERN. `edition`/`locator` are the edition form (the locator read loosely here, and per edition
@@ -170,7 +176,7 @@ def _rule(raw: str | None) -> str | None:
     raw = raw.strip()
     if not _RULE.match(raw):
         raise CitationError(f"{raw!r} is not a rule designator: write SR n, GR n, AR n or RV n (its sub-item path "
-                            "glued: GR6d.2), Format n or Table n")
+                            "glued: GR6d.2), Format n, Table n, or a unit of unnumbered text: p<n>, Table <t> row <r>")
     return (SUBLIST_RULE.sub(r"\1L\2.\3", raw, count=1) if SUBLIST_RULE.match(raw)
             else NUMBERED_RULE.sub(r"\1\2", raw, count=1))
 
@@ -235,6 +241,28 @@ def scan(text: str, bare: bool = False) -> Iterator[Citation]:
     for m in _SCAN.finditer(text):
         if (c := from_match(m, bare)) is not None:
             yield c
+
+
+#: What may stand between two designators of ONE chain (`GR4/GR6/GR9`, `GR3, GR5`, `SR1 and SR2`) and the next designator,
+#: which must name its kind: a bare number after a comma (`GR6, 2 of them`) is prose.
+_CHAIN = re.compile(r"\s*(?:[/,;&–—-]|\band\b|\bor\b)\s*(?P<rule>(?:SR|GR|AR|RV) ?\d{1,3}(?:[a-z](?![a-z]))?)(?!\d|\.\d)")
+
+
+def chain(text: str, c: Citation) -> Iterator[Citation]:
+    """The citations a rule chain after `c` writes in the one breath: `§2023:14.9.25.4 GR6/GR7` cites GR6 and (of the
+    same clause) GR7. `scan` reads the first designator; a later one of the SAME kind is a citation of the same clause,
+    and a citation audit that read only the first left every other number of a chain unchecked (kb/Work PB5318: the
+    ordinal family that read them was retired once `cite.resolve` became the one reader). A designator of ANOTHER kind
+    (`SR17 / GR3`) lives in another subclause of the statement, so it is not attributed to this clause."""
+    if c.error or c.bare or c.edition is None or not c.rule or (kind := NUMBERED_RULE.match(c.rule)) is None:
+        return
+    at = c.end
+    while (m := _CHAIN.match(text, at)) is not None:
+        rule = _rule(m["rule"])
+        if rule is None or not rule.startswith(kind[1]):
+            return
+        yield Citation(c.edition, c.locator, rule, m.start("rule"), m.end("rule"))
+        at = m.end()
 
 
 #: The mark of a citation of the 2023 standard, just left of its clause number. The 2023-only checks (the rule-ordinal
@@ -691,6 +719,9 @@ def self_test() -> int:
          list(scan('$"(ISO §2023:{Clause} SR{rule})"')) == []),
         ("scan reads a regex group (§2023:(...)) as no citation", list(scan(r'@"ISO §2023:(\d+(?:\.\d+)+)"')) == []),
         ("scan keeps the full stop out of a rule", [c.rule for c in scan("as §2023:14.9.8.4 GR1.")] == ["GR1"]),
+        ("chain reads each later designator of the same kind a rule chain writes, and no bare number or other kind",
+         [c.rule for t in ("§2023:14.9.25.4 GR6/GR8b, GR9 and GR10.", "§2023:14.9.39.3 SR17 / GR3", "§2023:14.9.25.4 GR6, 2 of them")  # citation-audit: example
+          for c0 in scan(t) for c in chain(t, c0)] == ["GR8b", "GR9", "GR10"]),
         ("clause_pattern does not match a longer clause",
          re.search(clause_pattern("14.9.2"), "§2023:14.9.27") is None
          and re.search(clause_pattern("14.9.2"), "§2023:14.9.2.4 GR1") is not None),

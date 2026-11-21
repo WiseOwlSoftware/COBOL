@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -181,7 +182,7 @@ public sealed partial class FileControlBinder
             }
             if (DescriptionRepeated(sdNameCtx, sd.Start, sdName, "sort-merge file description entry")) continue;
             sdFile.HasFd = true;
-            sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§2023:13.4.6 SR3/SR4)
+            sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§2023:13.4.6.3 SR3/SR4)
             // ⛔ The SD arm does NOT inherit §2023:13.4.5.3 SR3's permission to omit the record descriptions — that is a
             // FORMATS 1 AND 2 rule, and §2023:13.4.6.3 SR2 requires them here. Until kb/Work PB345 a record-less SD
             // compiled and its SORT announced itself a COMPILER GAP (COBOL1756, "SORT 'S1' without an SD
@@ -241,7 +242,7 @@ public sealed partial class FileControlBinder
         using var _ = Edition.At(clause);
         if (row.HomeEntry is not null)
         {
-            Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({DataBinder.WrittenText(clause)}) is "
+            Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({WrittenSource.Of(clause)}) is "
                 + $"written in the file description entry for '{fdName}', but it is a clause of "
                 + $"{FileDescriptionFormats.HomeEntryOf(Edition.Edition, row, format, file.Organization)}, and no ISO "
                 + $"{FileDescriptionFormats.FormatCitation(Edition.Edition, format, file.Organization)} file description "
@@ -251,7 +252,7 @@ public sealed partial class FileControlBinder
         }
         if ((row.Formats & format) == 0)
         {
-            Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({DataBinder.WrittenText(clause)}) is not "
+            Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({WrittenSource.Of(clause)}) is not "
                 + $"a clause of {FileDescriptionFormats.Caption(Edition.Edition, format, file.Organization)} of the file description entry: file "
                 + $"'{fdName}' is {file.OrganizationFace}"
                 + (format == FileDescriptionFormat.Report ? ", and its entry specifies a REPORT clause" : "")
@@ -271,7 +272,7 @@ public sealed partial class FileControlBinder
             && (clause.blockContainsClause() is not null || clause.recordClause() is { } rc && rc.VARYING() is null))
         {
             Edition.Error(DiagnosticCatalog.LineSequentialBlockOrRecordContains, $"file '{fdName}' is LINE SEQUENTIAL "
-                + $"and its file description entry specifies {DataBinder.WrittenText(clause)} — ISO §2023:13.4.5.3 SR4: \"If the LINE "
+                + $"and its file description entry specifies {WrittenSource.Of(clause)} — ISO §2023:13.4.5.3 SR4: \"If the LINE "
                 + "SEQUENTIAL phrase of the ORGANIZATION clause … is specified neither the BLOCK CONTAINS clause nor "
                 + "the RECORD CONTAINS clause shall be specified.\" A line sequential record ends at its line "
                 + "delimiter; remove the clause (RECORD IS VARYING remains available).");
@@ -574,7 +575,8 @@ public sealed partial class FileControlBinder
         var (alnumWord, natWord) = ChoiceIndicators.AlphabetPair(Edition, cs.codeSetForPhrase(),
             f => f.NATIONAL() is not null, f => f.cobolWord(), cs.cobolWord(),
             $"file '{file.CobolName}' CODE-SET", "13.18.13.2");
-        string? alnumName = alnumWord?.GetText(), natName = natWord?.GetText();
+        string? alnumName = alnumWord is null ? null : WrittenSource.Of(alnumWord);
+        string? natName = natWord is null ? null : WrittenSource.Of(natWord);
         var alnumSet = alnumWord is null ? null : _host.SpecialNames.CodedCharacterSetOf(alnumWord, $"CODE-SET {alnumName}",
             "ISO §2023:13.18.13.3 SR1 — alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set");
         var natSet = natWord is null ? null : _host.SpecialNames.CodedCharacterSetOf(natWord, $"CODE-SET {natName}",

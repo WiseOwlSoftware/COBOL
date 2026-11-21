@@ -56,7 +56,7 @@ public sealed class CompileTimeExpressionEvaluator
     /// the BOOLEAN case (§2023:7.3.7 substitution); a defined-condition uses mere presence (§2023:7.3.8.4.4).</param>
     /// <param name="diag">The code-preserving diagnostic sink (§2023:5.2 of the design).</param>
     /// <param name="vocab">Per-consumer operand wording + citation.</param>
-    /// <param name="decimalPointIsComma">The active §2023:12.3.7 GR14a mode (binder: the real SPECIAL-NAMES setting;
+    /// <param name="decimalPointIsComma">The active §2023:12.3.7.4 GR14a mode (binder: the real SPECIAL-NAMES setting;
     /// frontend: false — a directive operand is processed before SPECIAL-NAMES is bound, so it is dot-decimal).</param>
     /// <param name="isRefusedName">Optional. A name that resolves to nothing BECAUSE its own definition was refused
     /// (a malformed or unevaluable <c>&gt;&gt;DEFINE</c>, already reported at that directive): an operand that names
@@ -255,7 +255,7 @@ public sealed class CompileTimeExpressionEvaluator
         }
     }
 
-    /// <summary>Parse one fixed-point numeric literal operand (§2023:7.3.6.2 SR1b): dot-decimal after the §2023:12.3.7 GR14a
+    /// <summary>Parse one fixed-point numeric literal operand (§2023:7.3.6.2 SR1b): dot-decimal after the §2023:12.3.7.4 GR14a
     /// normalization; a floating-point (E-form) literal is NOT fixed-point and rejects; a literal past the
     /// §2023:8.3.3.3.2 digit capacity rejects; the value then enters the edition's mode (<see cref="EnterOperand"/>),
     /// whose range is the §2023:7.3.6.2 SR2 limit — a separate rule from SR1b, reported as such.</summary>
@@ -284,7 +284,7 @@ public sealed class CompileTimeExpressionEvaluator
         return null;
     }
 
-    /// <summary>Report a §2023:12.3.7 GR14a decimal-separator violation through the code-preserving sink (the consumer
+    /// <summary>Report a §2023:12.3.7.4 GR14a decimal-separator violation through the code-preserving sink (the consumer
     /// routes <see cref="CtDiagCode.NumericSeparator"/> to COBOL0895 / its own code). The message matches the
     /// binder's historical wording so its diagnostic is unchanged.</summary>
     private void ReportSeparator(NumericSeparatorIssue issue, string text)

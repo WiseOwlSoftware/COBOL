@@ -344,6 +344,12 @@ public sealed class EditionCiteAnalyzerTests
                 static int Printed(int edition) => edition >= 2014 ? 2014 : 2002;
                 string Hole(int edition) => $"§{Printed(edition)}:8.12";
                 string Named(EditionInfo e) => $"targeting COBOL-{e.Year}";
+                string InlineInt(EditionInfo e) => $"§{(e.Year < 2002 ? 1985 : 2023)}:8.12";
+                string InlineSwitch(EditionInfo e) => $"§{(e.Year switch { 85 => 1985, _ => 2023 })}:8.12";
+                string CastHole(int edition) => $"§{(long)Printed(edition)}:8.12";
+                string CoalesceHole(int edition) => $"§{(int?)Printed(edition) ?? 1}:8.12";
+                string OwnEdition(EditionInfo e) => $"§{e.Year}:8.12";
+                string NotAnEditionQuestion(bool b) => $"§{(b ? 1985 : 2023)}:8.12";
             }
             """;
         Assert.Equal([
@@ -353,6 +359,8 @@ public sealed class EditionCiteAnalyzerTests
             "planted.cs:33: WOCA0001 conditional expression", "planted.cs:34: WOCA0001 conditional expression",
             "planted.cs:36: WOCA0001 conditional expression", "planted.cs:39: WOCA0001 switch statement",
             "planted.cs:47: WOCA0001 if/return", "planted.cs:51: WOCA0001 interpolation",
+            "planted.cs:53: WOCA0001 interpolation", "planted.cs:54: WOCA0001 interpolation",
+            "planted.cs:55: WOCA0001 interpolation", "planted.cs:56: WOCA0001 interpolation",
         ], Analyze([], ("EditionInfo.cs", Decider), ("planted.cs", planted)));
     }
 

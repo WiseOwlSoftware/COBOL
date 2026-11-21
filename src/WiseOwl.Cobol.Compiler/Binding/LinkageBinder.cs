@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Frontend.Generated;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -60,7 +61,7 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 /// and every reference windows it through the Tier-B view machinery. <see cref="Record"/> carries the record's own
 /// DataItem, which is ALL the emitter needs: the seed is composed by the ONE Tier-B seeder
 /// (<c>GroupImageCodec.ImageInitOf</c>), with VALUEs suppressed for a plain external item — whose VALUE takes
-/// effect only during INITIALIZE, not at initial state (§2023:13.18.63 GR4a) — and honoured for a CONSTANT RECORD,
+/// effect only during INITIALIZE, not at initial state (§2023:13.18.63.4 GR4a) — and honoured for a CONSTANT RECORD,
 /// which §2023:11.9.10.4 GR7 DOES initialize at initial state (the one external exception: external WS items are not
 /// initialized at initial state "except for those with the CONSTANT RECORD clause"). ⛔ There is no precomputed
 /// InitImage field any more: it was a SECOND seeder, hand-rolled in the binder from a char-fill model that
@@ -199,7 +200,7 @@ internal sealed record ProgramPrototype(string Name, string ExternalizedName, Pr
 /// belongs to the caller); the PROCEDURE DIVISION header's USING/RETURNING operands then designate which roots
 /// are formal parameters (§2023:14.2.2 SR1) and how each is carried. EXTERNAL level-01/77 records become Tier-B
 /// string windows over a run-unit <c>ExternalStore</c> cell (§2023:8.6.7 — one storage copy per name per run unit);
-/// GLOBAL level-01/77 roots are collected for the emitter's containment inheritance (§2023:13.18.27 GR1–2).
+/// GLOBAL level-01/77 roots are collected for the emitter's containment inheritance (§2023:13.18.27.4 GR1–2).
 /// <para>It binds INSIDE the data binder's passes, over the forest <paramref name="data"/> owns: the name tables, the
 /// entry binder and the cell-backing forcer are the binder's, the linkage facts are this type's.</para>
 /// </summary>
@@ -221,7 +222,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// mechanism provides the member: a carrier-resident LINKAGE formal has no field, because its storage is reached
     /// through its carrier (<see cref="DataItem.ResidentCarrier"/> — the caller owns the storage, ISO §2023:13.7.1 /
     /// §2023:14.2.3 GR8), and an inherited
-    /// GLOBAL table's index field is a <c>ref</c>-bridge to the containing instance (ISO §2023:13.18.27 GR2 —
+    /// GLOBAL table's index field is a <c>ref</c>-bridge to the containing instance (ISO §2023:13.18.27.4 GR2 —
     /// global index-names are shared, never duplicated). Written by this binder and by the OO binder
     /// (<see cref="SuppressRootField"/>). The inherited-index seeding member this comment once named was deleted by
     /// kb/Work PB919, whose per-table index declarations now carry an inherited GLOBAL index-name.</summary>
@@ -399,12 +400,13 @@ internal sealed class LinkageBinder(DataBinder data)
             // condition tests the carrier's presence — the staged OptionalFormal rejection is lifted.
 
             string pname = dref.GetText();
+            string pnameWritten = WrittenSource.Of(dref);
             var item = data.Symbols.IdentifyHeaderOperand(_roots, dref);
             if (item is null)
             {
                 // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
-                    $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
+                    $"PROCEDURE DIVISION USING parameter '{pnameWritten}' is not a level-01/77 LINKAGE SECTION item "
                     + $"(ISO {data.Edition.Edition.Cite("§1985:X.5.1", "§2023:14.2.2 SR1")})");
                 pos++;
                 continue;
@@ -471,7 +473,7 @@ internal sealed class LinkageBinder(DataBinder data)
             Returning = data.Symbols.IdentifyHeaderOperand(_roots, rref);
             if (Returning is null)
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
-                    $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
+                    $"PROCEDURE DIVISION RETURNING item '{WrittenSource.Of(rref)}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §2023:14.2.2 SR1)");
             else
                 header.CheckReturning(rref.GetText(), Returning);
@@ -595,7 +597,7 @@ internal sealed class LinkageBinder(DataBinder data)
     /// (after REDEFINES classification) so an EXTERNAL record that is also a redefines anchor folds its whole
     /// class onto the shared backing. The mechanism is the existing Tier-B string-canonical machinery: the
     /// backing becomes a <c>ref</c>-property over the external cell, every member an (offset,width) window —
-    /// ONE storage copy per name per run unit (§2023:8.6.7), not reset by CANCEL (§2023:14.9.5 GR8). FD-level EXTERNAL
+    /// ONE storage copy per name per run unit (§2023:8.6.7), not reset by CANCEL (§2023:14.9.5.4 GR8). FD-level EXTERNAL
     /// joins here too: the FD's record area is EXTERNAL record data (ISO §2023:13.18.22.4 GR4b — one record area per
     /// run unit, shared by every program describing the file), re-based through the SAME mechanism with the cell
     /// keyed by the file's externalized name (GR5 — so two programs' differently-named records over one EXTERNAL
@@ -627,7 +629,7 @@ internal sealed class LinkageBinder(DataBinder data)
             CallMakeExternal(item);
         }
 
-        // Records EXTERNAL BY TYPE (ISO §2023:13.18.22 GR3; P10 Step 16): a record whose TYPE clause names an
+        // Records EXTERNAL BY TYPE (ISO §2023:13.18.22.4 GR3; P10 Step 16): a record whose TYPE clause names an
         // EXTERNAL type declaration is itself external "subject to the same rules" — ExpandType marked it
         // (the record's own entry carries no EXTERNAL clause, so the parse-tree scan above cannot see it).
         // Re-based through the SAME cell mechanism, keyed by the record's own name (GR5). An entry that ALSO
@@ -666,7 +668,7 @@ internal sealed class LinkageBinder(DataBinder data)
         // GLOBAL FDs: the record-names of a GLOBAL FD are GLOBAL names (ISO §2023:13.18.27.4 GR1 — the file-name and the
         // record-names described subordinate to the FD are global names): the records join the GLOBAL roots so
         // contained programs reach the OWNER's record area through the standard containment bridges
-        // (§2023:13.18.27 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
+        // (§2023:13.18.27.4 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
         // contained unit's file lookup (SymbolTable.InheritFiles).
         foreach (var file in data.State.Files.Declared)
             if (file.IsGlobal)

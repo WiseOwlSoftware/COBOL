@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Expressions;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -365,7 +366,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             }
             if (_d.SpecialNames.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
             {
-                Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {lit.GetText()}, which is not an "
+                Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {WrittenSource.Of(lit)}, which is not an "
                     + $"alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO {CodeLiteralRule})");
                 return null;
             }
@@ -377,32 +378,32 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             if (k.Category != PicCategory.Alphanumeric)
             {
-                Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names the constant-name '{DataBinder.WrittenText(dref)}' "
+                Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names the constant-name '{WrittenSource.Of(dref)}' "
                     + $"for {k.StandsFor}, which is not an alphanumeric literal: literal-1 shall be an alphanumeric literal "
                     + $"(ISO {CodeLiteralRule}{Edition.Edition.Cite("", "; §2023:13.10.4 GR1")})");
                 return null;
             }
-            return Screen85CodeLiteral(k.Text, DataBinder.WrittenText(dref), where)
-                ? new ReportCodeModel { Literal = k.Text, Written = DataBinder.WrittenText(dref) } : null;
+            return Screen85CodeLiteral(k.Text, WrittenSource.Of(dref), where)
+                ? new ReportCodeModel { Literal = k.Text, Written = WrittenSource.Of(dref) } : null;
         }
         if (dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null)
         {
             // LINE-COUNTER / PAGE-COUNTER — the report's registers, numeric: never an alphanumeric data item.
-            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {DataBinder.WrittenText(dref)}, a report "
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {WrittenSource.Of(dref)}, a report "
                 + "counter, which is numeric: identifier-1 shall reference an alphanumeric data item (ISO §2023:13.18.12.3 SR2)");
             return null;
         }
         // §1985:XIII.3.6.2 prints `CODE IS literal-1` alone: the identifier-1 form is COBOL-2002's (§2023:13.18.12.2).
         if (Edition.DialectLevel < 2002)
         {
-            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names '{DataBinder.WrittenText(dref)}', an identifier; "
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names '{WrittenSource.Of(dref)}', an identifier; "
                 + "the CODE clause of this dialect names a literal (CODE IS literal-1), and literal-1 must be a two-character "
                 + "nonnumeric literal (ISO §1985:XIII.3.6.2; §1985:XIII.3.6.3 SR1)");
             return null;
         }
         // The WHOLE written reference rides on the model — a subscript and a reference modification are part of an
         // identifier (§2023:8.4.3.1.2) and bind in the procedure phase, exactly as the SOURCE clause's identifier-1 does.
-        return new ReportCodeModel { Reference = dref, Written = DataBinder.WrittenText(dref) };
+        return new ReportCodeModel { Reference = dref, Written = WrittenSource.Of(dref) };
     }
 
     /// <summary>The characters a figurative constant written as the CODE clause's literal-1 stands for, or null after a
@@ -417,7 +418,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (ConcatFolder.FoldAllLiteral(fig, _d.LiteralEnv, Edition) is { } folded)
         {
             if (folded.Category == PicCategory.Alphanumeric) return folded.Value;
-            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, whose literal-1 is not an "
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {WrittenSource.Of(fig)}, whose literal-1 is not an "
                 + $"alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO {CodeLiteralRule})");
             return null;
         }
@@ -428,12 +429,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (!symbolic.National) return symbolic.Value;
             // A symbol declared SYMBOLIC CHARACTERS FOR NATIONAL is a NATIONAL figurative constant (§2023:12.3.7.4 GR11c), the
             // same class ALL N"C" is refused for above (kb/Work PB5523).
-            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, a national symbolic character, "
+            Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {WrittenSource.Of(fig)}, a national symbolic character, "
                 + "whose literal-1 is not an alphanumeric literal: literal-1 shall be an alphanumeric literal "
                 + "(ISO §2023:13.18.12.3 SR1; §2023:12.3.7.4 GR11c)");
             return null;
         }
-        Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, which is no alphanumeric literal "
+        Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {WrittenSource.Of(fig)}, which is no alphanumeric literal "
             + $"(ISO {CodeLiteralRule})");
         return null;
     }
@@ -1027,9 +1028,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// a report heading with NEXT GROUP NEXT PAGE, alone on the first page, the page limit (§1985:XIII.3.10.6 GR2b); any
     /// other report heading and a page heading, the line before FIRST DETAIL (§1985:XIII.3.10.6 GR2a, §1985:XIII.3.8.4
     /// GR1c); a page footing and a report footing, the page limit (§1985:XIII.3.10.9 GR2, §1985:XIII.3.10.10 GR2), each
-    /// line past it presented outside the vertical subdivision of the page (§1985:XIII.3.15.3 SR1). A report heading
-    /// bounded above FIRST DETAIL by an absolute page heading line, and every group from COBOL-2002, take the
-    /// §2023:13.18.57.4 GR8 limit and §2023:13.18.39.4's words.</summary>
+    /// line past it presented outside the vertical subdivision of the page (§1985:XIII.3.15.3 SR1). Every group from
+    /// COBOL-2002 takes the §2023:13.18.57.4 GR8 limit and §2023:13.18.39.4's words.</summary>
     private static (int Limit, string Words) RelativeGroupLowerLimit(ReportGroupModel g, ReportModel model, int year, int lower)
     {
         const string Sr1 = "; neither integer-1 nor integer-2 may be specified in such a way as to cause any line of a report "
@@ -1044,7 +1044,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     return (model.PageLimit, $"the page limit {model.PageLimit}, the last line on which a report heading "
                         + "with NEXT GROUP NEXT PAGE, presented by itself on the first page, can be presented (ISO "
                         + "§1985:XIII.3.10.6 GR2b)" + Sr1 + " (ISO §1985:XIII.3.15.3 SR1)");
-                case ReportGroupKindModel.ReportHeading when lower == model.FirstDetail - 1:
+                case ReportGroupKindModel.ReportHeading:
                     return (lower, headingWords("§1985:XIII.3.8.4 GR1c; §1985:XIII.3.10.6 GR2a"));
                 case ReportGroupKindModel.PageHeading:
                     return (lower, headingWords("§1985:XIII.3.8.4 GR1c"));
@@ -1105,7 +1105,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the HEADING integer, else the line after the page footing's last line, or FOOTING + 1 with none.</item>
     /// <item>LOWER. a)/b) report heading: on a page by itself (its NEXT GROUP clause is NEXT PAGE, §2023:13.18.37.4 GR3 c)
     /// — the first body group takes no page-fit test, so nothing else separates it) the page limit; else the line before
-    /// the page heading's first line, or FIRST DETAIL − 1 with no page heading. c) page heading: FIRST DETAIL − 1.
+    /// the page heading's first line, or FIRST DETAIL − 1 with no page heading (at COBOL-85 FIRST DETAIL − 1 whatever the
+    /// page heading, §1985:XIII.3.10.6 GR2a; kb/Work PB5981). c) page heading: FIRST DETAIL − 1.
     /// d) control heading: LAST CONTROL HEADING. e) detail: LAST DETAIL. f) control footing: FOOTING. g) page footing
     /// and report footing: the page limit.</item>
     /// </list>
@@ -1159,8 +1160,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             case ReportGroupKindModel.ReportHeading:
             {
                 if (g.NextGroup?.Kind == WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.NextPage) return (model.Heading, model.PageLimit);
+                // ⚖ EDITION (kb/Work PB5981): COBOL-85 bounds a report heading not on a page by itself by FIRST DETAIL
+                // alone — "The last line number on which the report heading report group can be presented is the line
+                // number that is obtained by subtracting 1 from the value of integer-3 of the FIRST DETAIL phrase"
+                // (§1985:XIII.3.10.6 GR2a; §1985:XIII.3.8.3 SR8a, "to the line number specified by integer-3 minus 1").
+                // From COBOL-2002 a page heading's first absolute line bounds it instead (§2023:13.18.57.4 GR8b, "the line preceding the first line of the page heading").
                 var pageHeading = model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageHeading);
-                bool absoluteFirst = pageHeading is { Lines: [{ Kind: ReportLineKindModel.Absolute } first, ..] }
+                bool absoluteFirst = year >= 2002 && pageHeading is { Lines: [{ Kind: ReportLineKindModel.Absolute } first, ..] }
                     && first.PresentWhenCtxs.Count == 0;
                 return (model.Heading, absoluteFirst ? pageHeading!.Lines[0].Value - 1 : model.FirstDetail - 1);
             }
@@ -2254,7 +2260,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: the STEP phrase shall be specified when a "
                     + "repeating entry contains an absolute COLUMN clause, or is subordinate to an entry with a "
-                    + "LINE clause and has one subordinate to it (ISO §2023:13.18.38.3 SR25c/SR25d) — without it "
+                    + "LINE clause and has one subordinate to it (ISO §2023:13.18.38.3 SR25c / SR25 d)) — without it "
                     + "every repetition would print in the same column");
                 return null;
             }
@@ -2952,7 +2958,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     }
 
     /// <summary>True when any entry in <c>[start, end)</c> carries a COLUMN clause with an ABSOLUTE operand
-    /// (ISO §2023:13.18.38.3 SR25c/SR25d).</summary>
+    /// (ISO §2023:13.18.38.3 SR25c / SR25 d)).</summary>
     private static bool AbsoluteColumnClauseIn(Core.ReportGroupEntryContext[] entries, int start, int end)
     {
         for (int k = start; k < end; k++)
@@ -2972,7 +2978,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         && int.TryParse(entries[self + 1].levelNumber().GetText(), out int next) && next > level;
 
     /// <summary>True when <paramref name="self"/> "is subordinate to an entry with a LINE clause" — the
-    /// qualifier ISO §2023:13.18.38.3 SR25d and §2023:13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
+    /// qualifier ISO §2023:13.18.38.3 SR25 d) and §2023:13.18.38.4 GR10b/GR12b attach to the COLUMN legs. An ANCESTOR is a
     /// preceding entry with a strictly lower level-number, taken innermost-first (the §2023:13.15 level hierarchy).</summary>
     private static bool SubordinateToLineClause(Core.ReportGroupEntryContext[] entries, int self)
     {
@@ -3211,7 +3217,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         foreach (var o in ops.Where(o => !IsParenthesized(o)))
             Edition.Error(DiagnosticCatalog.ReportSourceOperandParens, $"{where}: the SOURCE clause has "
                 + $"{ops.Length} operands of which at least one is an arithmetic-expression, so each operand "
-                + $"shall be enclosed in parentheses (ISO §2023:13.18.53.3 SR7); '{o.GetText()}' is not.");
+                + $"shall be enclosed in parentheses (ISO §2023:13.18.53.3 SR7); '{WrittenSource.Of(o)}' is not.");
     }
 
     /// <summary>⛔ THE ONE FORM CLASSIFIER OF A REPORT VALUE-CLAUSE OPERAND (kb/Work PB852 × PB883 × PB1316): the bare
@@ -3250,8 +3256,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // §2023:13.18.53.3 SR5 makes an identifier-1 written WITH the ROUNDED phrase an arithmetic-expression, so the
         // two forms merge here and GR2's COMPUTE governs both (kb/Work PB852).
         if (SourceIdentifierOf(op) is not { } identifier || rounded is not null)
-            return new FieldComputeSource(op, DataBinder.WrittenText(op)) { Rounded = rounded };
-        return new FieldReferenceSource(identifier, DataBinder.WrittenText(op));
+            return new FieldComputeSource(op, WrittenSource.Of(op)) { Rounded = rounded };
+        return new FieldReferenceSource(identifier, WrittenSource.Of(op));
     }
 
     /// <summary>⛔ ISO §2023:13.18.54.4 GR1 — the sum counter's digit count, "derived from the corresponding number of
@@ -3595,7 +3601,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// expression binder, and the SR6 screen runs at resolution where the report-section name set is known.</para></summary>
     private ReportSumAddend SumAddendRef(Core.ReportValueOperandContext op, ReportModel model)
     {
-        string written = DataBinder.WrittenText(op);
+        string written = WrittenSource.Of(op);
         if (IdentifierOperandOf(op) is not { } dref)
             return new ReportSumAddend { Ctx = op, Reference = null, Operand = new WrittenDataName(""), Written = written };
         var addend = new ReportSumAddend
@@ -3628,7 +3634,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private ReportDetailRef? UponDetailRef(Core.DataReferenceContext dref, ReportModel model)
     {
         var quals = ReferenceResolver.ReadWritten(dref).Qualifiers;
-        string written = DataBinder.WrittenText(dref);
+        string written = WrittenSource.Of(dref);
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
         if (sfx.Subscripts > 0 || sfx.RefMods > 0)
         {
@@ -4857,14 +4863,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 {
                     subscriptRefused = true;
                     Edition.Error(DiagnosticCatalog.ClauseOperandSubscriptNotLiteral,
-                        $"{where} '{DataBinder.WrittenText(dref)}': the subscript is not an integer literal. The control operand "
+                        $"{where} '{WrittenSource.Of(dref)}': the subscript is not an integer literal. The control operand "
                         + "is one data item whose prior control is saved and compared at each GENERATE, so its occurrence is fixed "
                         + "when the program is compiled (ISO §2002:13.16.15.3 GR3).");
                 }
                 else subscripts = sfx.Subscript.Values;
             }
             else
-                Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is subscripted. A control operand may not be subject "
+                Edition.Error(code, $"{where} '{WrittenSource.Of(dref)}' is subscripted. A control operand may not be subject "
                     + Edition.Edition.Cite(
                         "to an OCCURS clause: data-name-1 \"may be qualified\" and its general format prints no subscript (ISO §1985:XIII.3.7.3 SR1), "
                         + "so a subscripted control operand is never legal.",
@@ -4872,11 +4878,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal."));
         }
         if (sfx.RefMods > 1)
-            Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{DataBinder.WrittenText(dref)}' carries {sfx.RefMods} reference "
+            Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{WrittenSource.Of(dref)}' carries {sfx.RefMods} reference "
                 + "modifications; a reference-modified item cannot itself be reference-modified (ISO §2023:8.4.3.3.3 "
                 + "SR3). Compose the positions into one modifier instead.");
         else if (sfx.NonLiteral)
-            Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is reference-modified with a leftmost-position or "
+            Edition.Error(code, $"{where} '{WrittenSource.Of(dref)}' is reference-modified with a leftmost-position or "
                 + $"length that is not an integer literal. The operand may be reference-modified, but if it is, "
                 + $"leftmost-position and length shall be integer literals (ISO {rule.In(Edition.Edition)}) — the prior control has the "
                 + "same data description as the slice (§2023:13.18.16.4 GR3), so its extent is fixed at compile time.");
@@ -4886,7 +4892,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // integer-n that sizes or positions something meets (COBOL2427), never a saturated bound allocated.
             Edition.Error(DiagnosticCatalog.IntegerOperandBeyondLimit,
                 WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where,
-                    $"the reference-modification of '{DataBinder.WrittenText(dref)}', a leftmost-position or length that", Edition.DialectLevel));
+                    $"the reference-modification of '{WrittenSource.Of(dref)}', a leftmost-position or length that", Edition.DialectLevel));
         return new ReportControlRef(operand, subscripts, sfx.Start, sfx.Length, subscriptRefused);
     }
 

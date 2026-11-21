@@ -131,9 +131,6 @@ UNMEASURED = "UNMEASURED"
 #: The line each cluster commit of a lander's train carries (`Report: <path>`), written by the retired train applier
 #: and by the last trains' landers; the commits stay in main's history, so the measurement still reads them.
 TRAILER_REPORT = re.compile(r"^Report:[ \t]*(\S[^\r\n]*?)[ \t]*$", re.M)
-#: What each headline's minutes measure, said where the figure is made so no reader re-labels it (finding R1-3).
-MEASURES_AFTER = "DONE → on main, per change"
-MEASURES_TRAINS = "lander start → push per landed change: a floor for DONE → on main, without the wait for a lander"
 
 #: The 2026-10-10 evidence's figures that the train records cannot give (the lander minutes in gates and in the former
 #: direct-push landing plus CI, the CI wall; "push-main + CI" is the frozen evidence's own label). Typed from the frozen evidence file; `self_test` re-reads that file and fails when a
@@ -496,26 +493,6 @@ def before_figures(trains: list[dict]) -> dict | None:
             "ejected": sum(r["ejected"] for r in rs), "ci_reds": sum(r["ci"] == "red" for r in rs)}
 
 
-def headline(recs: list[dict], trains: list[dict]) -> dict | None:
-    """The one landing rate the completion ledger and its remaining-work estimate use: the merge queue's own when at
-    least two pull requests have landed over a window above zero, else the retired trains' batched rate. Its
-    `median_measures` says what `median_min` is: DONE → on main only for the merge queue; the trains' minutes are
-    lander start → push, a floor (before_figures), and a reader prints that label, never its own."""
-    a = after_figures(recs)
-    if a["landings"] >= 2 and a.get("per_h"):
-        d = a["done_to_main"]
-        return {"per_h": a["per_h"], "changes": a["changes"], "window_h": a["window_h"], "landings": a["landings"],
-                "source": "pull requests through the merge queue", "median_min": d["median"] if d else None,
-                "median_measures": MEASURES_AFTER}
-    b = before_figures(trains)
-    if b:
-        f = b["floor"]
-        return {"per_h": b["per_h"], "changes": b["changes"], "window_h": b["window_h"], "landings": b["trains"],
-                "source": "the retired trains, batched gating", "median_min": f["median"] if f else None,
-                "median_measures": MEASURES_TRAINS}
-    return None
-
-
 def _cell(v: float | None, fmt: str = "{:.1f}") -> str:
     return UNMEASURED if v is None else fmt.format(v)
 
@@ -604,12 +581,6 @@ def summarize(recs: list[dict], trains: list[dict], since: dt.datetime | None = 
     w = max(len(r[0]) for r in rows)
     return [f"{'':<{w}}  AFTER (merge queue, this file)  |  BEFORE (retired trains, 2026-10-10 evidence)"] + \
            [f"{k:<{w}}  {x}  |  {y}" for k, x, y in rows]
-
-
-def landing_rate_input(coord_dir: pathlib.Path) -> dict | None:
-    """`headline` over the files on this machine (None when neither exists): the ledger's landing-rate input."""
-    recs = read_all(coord_dir / FILE) if coord_dir.is_dir() else []
-    return headline(recs, read_all(before_path(coord_dir)))
 
 
 def before_path(coord_dir: pathlib.Path | None = None) -> pathlib.Path:
@@ -939,8 +910,6 @@ ARMS = ("a record is a patch: later calls fill fields, the first enqueue time st
         "successful run",
         "summary sets the after column beside the before column, names unattributed bounces and says UNMEASURED for a "
         "figure it never saw",
-        "the headline is the merge queue's rate from two landings and the retired trains' rate before that, each "
-        "saying what its minutes measure",
         "freeze waits for a landing, refuses to rewrite the frozen copy, and the evidence figures are in the evidence file",
         "complete counts the pull request's own failed runs before the queue on its head branch (pre_queue_reds), and a "
         "branch with no pull-request run stays UNMEASURED, never 0",
@@ -963,7 +932,7 @@ ARMS = ("a record is a patch: later calls fill fields, the first enqueue time st
 
 def _self_test(tmp: pathlib.Path) -> list[str]:
     fails: list[str] = []
-    (patch_arm, refuse_arm, done_arm, gate_arm, complete_arm, summary_arm, headline_arm, freeze_arm, prequeue_arm,
+    (patch_arm, refuse_arm, done_arm, gate_arm, complete_arm, summary_arm, freeze_arm, prequeue_arm,
      stall_arm, stage_arm, red_arm, fix_arm) = ARMS
     path = tmp / FILE
     z = "2026-10-12T"
@@ -1325,7 +1294,7 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
             or "1 held for their fix" not in held_text or "cause Unit.FlakyCase: re-queued 2, held 1" not in held_text \
             or "1 jumped to the queue's front; 1 other landing(s) hit their named runs first" not in held_text:
         fails.append(f"{fix_arm}: {hf['reds']} {hf['fix_first']} {r903['fix_first']} refused={refusals}\n{held_text}")
-    # summary / headline
+    # summary
     record(path, {"pr": 17, "bounce_causes": ["cluster-defect"], "bounces": 1})
     trains = [{"gating": "batched", "started": "2026-10-10T10:00:00-07:00", "pushed": "2026-10-10T12:00:00-07:00",
                "landed": 4, "ejected": 1, "ci": "green"},
@@ -1346,17 +1315,6 @@ def _self_test(tmp: pathlib.Path) -> list[str]:
     record(path, {"pr": 17, "bounces": 2})
     if "1 UNATTRIBUTED" not in "\n".join(summarize(read_all(path), [])) or "UNMEASURED" not in "\n".join(summarize([], [])):
         fails.append(f"{summary_arm}: unattributed / empty\n" + "\n".join(summarize(read_all(path), [])))
-    # headline
-    h0 = headline(read_all(path), trains)
-    record(path, {"pr": 18, "branch": "b18", "done": t("12:00"), "enqueued": t("12:10")})
-    patch = {"pr": 18, "merged": "2026-10-12T20:00:00Z"}
-    record(path, patch)
-    h2 = headline(read_all(path), trains)
-    if not (h0 and h0["source"].startswith("the retired trains") and abs(h0["per_h"] - 2.0) < 1e-9
-            and h0["median_measures"] == MEASURES_TRAINS and h2 and h2["median_measures"] == MEASURES_AFTER
-            and h2 and h2["source"].startswith("pull requests") and h2["landings"] == 2 and h2["per_h"] > 0
-            and headline([], []) is None):
-        fails.append(f"{headline_arm}: {h0} / {h2}")
     # freeze + the evidence figures
     quotes_missing = [q for q in EVIDENCE_QUOTES if q not in EVIDENCE_MD.read_text(encoding="utf-8")] \
         if EVIDENCE_MD.exists() else ["(the evidence file is missing)"]

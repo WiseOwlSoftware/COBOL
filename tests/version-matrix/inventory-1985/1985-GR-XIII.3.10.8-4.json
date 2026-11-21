@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.3.10.8-4",
  "rule-digest": "3e4f1e3ae005",
- "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_02",
+ "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_02; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5853_unpaged_first_line_zero_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

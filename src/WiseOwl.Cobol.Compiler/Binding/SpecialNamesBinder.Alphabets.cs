@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Collation;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -100,12 +101,13 @@ public sealed partial class SpecialNamesBinder
         string where)
     {
         string alphabetName = written.GetText();
+        string alphabetNameWritten = WrittenSource.Of(written);
         // The TYPE first: a word that names no alphabet at all is not alphabet-name-1, whatever the range's class —
         // and since IN is an optional word (kb/Work PB983), a stray trailing word after a THROUGH range reaches here
         // too, so it must be told it names nothing rather than that the range's class forbids a phrase it never was.
         if (!IsAlphabetName(alphabetName))
         {
-            Edition.Error(DiagnosticCatalog.RangeAlphabetUndeclared, $"{where}: '{alphabetName}' after the THROUGH "
+            Edition.Error(DiagnosticCatalog.RangeAlphabetUndeclared, $"{where}: '{alphabetNameWritten}' after the THROUGH "
                 + "phrase is in the [ IN alphabet-name-1 ] position, but it does not name an alphabet declared in "
                 + "SPECIAL-NAMES (ISO §2023:12.3.7; §2023:14.9.13.3 SR3)");
             return null;
@@ -118,7 +120,7 @@ public sealed partial class SpecialNamesBinder
         // the IN phrase and the exception together, so the three sites read one antecedent (kb/Work PB401).
         if (!CollatingSelection.IsCollatedThroughRange(rangeClass))
         {
-            Edition.Error(DiagnosticCatalog.RangeAlphabetOperandClass, $"{where}: 'IN {alphabetName}' may be "
+            Edition.Error(DiagnosticCatalog.RangeAlphabetOperandClass, $"{where}: 'IN {alphabetNameWritten}' may be "
                 + "specified only when the operands of the THROUGH phrase are of class alphabetic, alphanumeric or "
                 + "national (ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31)");
             return null;
@@ -135,7 +137,7 @@ public sealed partial class SpecialNamesBinder
                 // column is empty, so they define no sequence this phrase could use.
                 if (!nd.HasCollatingSequence)
                 {
-                    Edition.Error(DiagnosticCatalog.RangeAlphabetClassMismatch, $"{where}: alphabet '{alphabetName}' "
+                    Edition.Error(DiagnosticCatalog.RangeAlphabetClassMismatch, $"{where}: alphabet '{alphabetNameWritten}' "
                         + $"({nd.Phrase}) names a national CODED CHARACTER SET only — it defines no national "
                         + "collating sequence (ISO §2023:12.3.7.4 GR7 Table 6; §2023:14.9.13.3 SR3)");
                     return null;
@@ -151,7 +153,7 @@ public sealed partial class SpecialNamesBinder
         Edition.Error(DiagnosticCatalog.RangeAlphabetClassMismatch, $"{where}: the THROUGH operands are of class "
             + $"{(national ? "national" : "alphabetic / alphanumeric")}, so alphabet-name-1 shall reference an "
             + $"alphabet that defines {(national ? "a national" : "an alphanumeric")} collating sequence — "
-            + $"'{alphabetName}' declares the other class (ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31)");
+            + $"'{alphabetNameWritten}' declares the other class (ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31)");
         return null;
     }
 
@@ -191,7 +193,7 @@ public sealed partial class SpecialNamesBinder
     /// records the use (kb/Work PB3153).</summary>
     internal CodedCharacterSet? CodedCharacterSetOf(Antlr4.Runtime.ParserRuleContext written, string site, string rule)
     {
-        string alphabetName = written.GetText();
+        string alphabetName = WrittenSource.Of(written);
         var a = _host.Symbols.Identify(written, NameClass.Alphabet, report: true)?.Symbol as AlphabetDef;
         var n = a is null ? _host.Symbols.Identify(written, NameClass.NationalAlphabet, report: true)?.Symbol as NationalAlphabetDef : null;
         if (a is null && n is null)
@@ -211,7 +213,7 @@ public sealed partial class SpecialNamesBinder
         return set;
     }
 
-    /// <summary>Build one <c>ALPHABET name IS …</c> clause (ISO §2023:12.3.7 GR7): NATIVE / STANDARD-1 / STANDARD-2 are
+    /// <summary>Build one <c>ALPHABET name IS …</c> clause (ISO §2023:12.3.7.4 GR7): NATIVE / STANDARD-1 / STANDARD-2 are
     /// the native (ISO/IEC 646) order — no table; a literal phrase assigns successive ascending positions per
     /// k)1–k)6 — a numeric literal is the 1-based NATIVE ordinal (k1a), a multi-character literal positions each
     /// character leftmost-first (k1b), THRU expands the native run in EITHER direction (k5), ALSO members share
@@ -507,7 +509,7 @@ public sealed partial class SpecialNamesBinder
         if (CodeSetNameOf(def, _host.CobolWords) is { } cs)
         {
             // UCS-4 references BOTH a coded set and a collating sequence; UTF-8/UTF-16 a coded set ONLY
-            // (§2023:12.3.7 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the
+            // (§2023:12.3.7.4 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the
             // difference is only WHERE the name may legally be referenced.
             _host.Symbols.Declare(word, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
             return;

@@ -340,7 +340,7 @@ public sealed class PredefinedNullArgument : ManagedPointer
 /// The uniform program ABI every compiled program class implements (design D2 — the typed analog of the
 /// rejected byte <c>Entry(ManagedPointer[])</c>). <see cref="Call"/> activates the program as a CALLed program
 /// (positional formal mapping, §2023:14.2.3 GR2); <see cref="Activate"/> runs it as the run-unit main program;
-/// <see cref="CloseFiles"/> closes this program's file connectors (CANCEL §2023:14.9.5 GR9 implicit CLOSE).
+/// <see cref="CloseFiles"/> closes this program's file connectors (CANCEL §2023:14.9.5.4 GR9 implicit CLOSE).
 /// </summary>
 public interface ICobolProgram : INonfatalSelector
 {
@@ -1043,7 +1043,7 @@ public static class CobolArgAdapt
     /// (space-padded when the caller's storage is shorter); writes SPLICE into the caller's storage, preserving
     /// the caller's own width invariant (§2023:14.2.3 GR8 — the callee touches only its formal's character positions).
     /// A native numeric cell gets a view of its STORAGE image under the description it carries (kb/Work PB873/PB970).
-    /// <para><paramref name="width"/> = <c>-1</c> is the ANY LENGTH mode (ISO §2023:13.18.2 GR1): the formal's length
+    /// <para><paramref name="width"/> = <c>-1</c> is the ANY LENGTH mode (ISO §2023:13.18.2.4 GR1): the formal's length
     /// IS the caller's argument length, so the callee sees the caller's FULL string (a zero-length argument
     /// yields the zero-length item, GR1a) and every write re-fits to the argument's CURRENT length (GR1b — the
     /// item behaves as n repetitions of its picture symbol, n fixed by the activation).</para>
@@ -1084,7 +1084,7 @@ public static class CobolArgAdapt
                     () => CobolVarGroup.ToImage(vp.Value ?? CobolVarGroup.Empty, pair.Argument, pair.Formal, width),
                     (v, received) => vp.Value = CobolVarGroup.OverlayImage(vp.Value ?? CobolVarGroup.Empty, pair.Argument,
                         CobolString.Store(v, width), pair.Formal, received));
-            case ManagedPointer<string> sp when width < 0:   // ANY LENGTH (§2023:13.18.2 GR1) — the full-string view
+            case ManagedPointer<string> sp when width < 0:   // ANY LENGTH (§2023:13.18.2.4 GR1) — the full-string view
                 return TextViews.AnyLength(sp);
             case ManagedPointer<string> sp:
                 return TextViews.Window(sp, width);
@@ -1097,7 +1097,7 @@ public static class CobolArgAdapt
                 // extra position, and a binary/packed one its bytes. After GR9/GR10's COMPUTE the carried
                 // description IS the formal's (LandForFormal), so the same arm serves both branches.
                 // ANY LENGTH (width -1): the view width is the argument's own image width — n follows the
-                // ARGUMENT's description (§2023:13.18.2 GR1), never the formal's one-symbol picture.
+                // ARGUMENT's description (§2023:13.18.2.4 GR1), never the formal's one-symbol picture.
                 int viewWidth = width < 0 ? image.Length : width;
                 // The cell's image is the UNDERLYING character storage; the formal is the same width window over it as the
                 // character arm above builds, so a formal passed on composes over this base (PB4768). A store touches only
@@ -1646,7 +1646,7 @@ public static class CobolArgAdapt
         Undeliverable(c, "the data-pointer result");
     }
 
-    /// <summary>Program-pointer RETURNING delivery (kb/Work PB133 wave B — §2023:13.18.60 GR24's identity
+    /// <summary>Program-pointer RETURNING delivery (kb/Work PB133 wave B — §2023:13.18.60.4 GR24's identity
     /// struct crosses by value; same CS1503 shape as the data pointer).</summary>
     public static void StoreReturn(CobolArg? ret, ProgramPointer value)
     {

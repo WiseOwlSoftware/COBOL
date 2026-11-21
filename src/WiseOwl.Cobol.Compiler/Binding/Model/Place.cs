@@ -953,7 +953,7 @@ public sealed record NationalBytesPlace(Place Inner) : PlaceDecorator(Inner);
 /// A GROUP item viewed as its CHARACTER IMAGE for reference modification (ISO §2023:8.4.3.3.3 SR1 — "an alphanumeric
 /// group item" / "a group item that is neither a strongly-typed group nor a variable-length group"; §2023:8.4.3.3.4 GR6 —
 /// the unique data item is an elementary alphanumeric item over the group's positions): reading is the generated
-/// <c>AsImage()</c> (an occurs-depending group with data-name-1 outside sends its CURRENT-count part, §2023:13.18.38 GR8);
+/// <c>AsImage()</c> (an occurs-depending group with data-name-1 outside sends its CURRENT-count part, §2023:13.18.38.4 GR8);
 /// writing distributes the spliced image back through the ONE group-image store (<c>PlaceRenderer.WriteGroupImage</c>
 /// — <c>FromImage</c>, or the GR8a current-extent splice). A variable-length group or a group with a pointer/object-class leaf has no image (every NUMERIC leaf kind joined the image across kb/Work PB164 + R40)
 /// (<see cref="DataItem.IsImageCapable"/>) and stays the loud Tier-C island. The <see cref="NumericImagePlace"/>
@@ -1020,7 +1020,7 @@ public sealed record BitImagePlace(Place Inner) : PlaceDecorator(Inner);
 public sealed record NatImagePlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
-/// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §2023:13.18.38 GR15 / §2023:8.5.1.9.1; data-model D9):
+/// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §2023:13.18.38.4 GR15 / §2023:8.5.1.9.1; data-model D9):
 /// a VIEW over the table's current capacity, NOT its own storage. Reading renders <c>{table-path}.Capacity</c> — the
 /// runtime <see cref="WiseOwl.Cobol.Runtime.CobolDynTable{T}.Capacity"/> (a native <c>long</c>, an unsigned integer per
 /// SR31), so <see cref="RegisterItem"/> carries a native-binary <see cref="PicInfo"/> (scale 0) and the numeric

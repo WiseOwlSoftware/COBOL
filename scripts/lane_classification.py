@@ -365,7 +365,7 @@ CLASSIFICATION = Classification(inert={
    # entry is a directory the readers read as data (its files, or its names through git). Narrow by design: a new
    # entry makes every change to its path a tooling change, which runs the self-tests.
    tooling_reads={
-       ".agent-fleet.json": "scripts/spec/ledger_plan.py, scripts/orchestrator/test_orchestrate_adopt.ps1 and _ledger.ps1",
+       ".agent-fleet.json": "scripts/orchestrator/test_orchestrate_adopt.ps1 and _ledger.ps1",
        ".gitmodules": "scripts/hooks/tooling_check.py (its PB2605 repro runs every registered hook), "
                      "scripts/hooks/test_forbidden_commands.py",
        "Directory.Build.props": "scripts/abi_pin.py (settling the ABI pin)",
@@ -408,7 +408,7 @@ CLASSIFICATION = Classification(inert={
                                 "scripts/orchestrator/test_orchestrate_account.ps1",
        "tests/nist/normalization-cases.json": "scripts/guard-verify.sh (the acceptance basis's parity table, kb/Work PB5460)",
        "tests/version-matrix/": "the inventory and its schema (and the evidence records beside them: derivation-refutations/, "
-                                "the lineage screen's fixture, the read records lineage-reads-<year>/): scripts/spec/audit_*.py, ledger_plan.py, "
+                                "the lineage screen's fixture, the read records lineage-reads-<year>/): scripts/spec/audit_*.py, the ledger's and edition_status's cases, "
                                 "scripts/orchestrator/land_lane.py, test_ledger_state.py, the rename audits and "
                                 "the eleven test_orchestrate_*.ps1 parts",
    },

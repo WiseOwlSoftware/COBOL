@@ -9,6 +9,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -18,10 +19,10 @@ using Core = CobolParserCore;
 /// Intrinsic-function binding (ISO §15; INTRINSICS_DESIGN spine 1). P7 Step 12: FUNCTION arguments
 /// are REAL parse trees — <c>functionCall : FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)?</c>
 /// (the argument-list parens carry their own token type since PB48 — ISO §2023:8.4.3.2.3 SR6), each
-/// <c>functionArgument</c> one of the §2023:8.4.3.2 SR8 shapes (phrase word / OMITTED / non-numeric literal /
+/// <c>functionArgument</c> one of the §2023:8.4.3.2.3 SR8 shapes (phrase word / OMITTED / non-numeric literal /
 /// arithmetic expression) — and every arithmetic argument binds through the ONE
 /// <see cref="ExpressionBinder.BindExpr"/> (nested <c>FUNCTION</c> calls recurse naturally through
-/// <c>BindPrimary</c>). The keyword-omitted form <c>name(args)</c> (§2023:8.4.3.2 SR2) arrives as a
+/// <c>BindPrimary</c>). The keyword-omitted form <c>name(args)</c> (§2023:8.4.3.2.3 SR2) arrives as a
 /// <c>dataReference</c> whose <c>subscriptPart</c> carries the arguments (D2 — a grammar alternative is an
 /// irreducible ambiguity); every item of that list is a <c>functionArgument</c>, the SAME rule the FUNCTION-keyword
 /// form's <c>functionArgList</c> uses (kb/Work PB2113 — it used to be a SUBSCRIPT-mode capture re-parsed from its
@@ -244,7 +245,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             using var _ = ctx.Edition.At(fc);
             ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.NumericFunctionIdentifierOperand2002,
-                $"{DataBinder.WrittenText(fc)} as an identifier operand");
+                $"{WrittenSource.Of(fc)} as an identifier operand");
         }
         return operand;
     }
@@ -330,7 +331,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private FunctionPrototypeReference? FunctionPrototypeWritten(IToken written, bool report) =>
         ctx.Symbols.Identify(WrittenWord.Of(written), NameClass.FunctionPrototype, report)?.Symbol as FunctionPrototypeReference;
 
-    /// <summary>The §2023:8.4.3.2 SR2 FUNCTION-keyword-OMITTED reference form (M2-UDF-4): a data reference whose head
+    /// <summary>The §2023:8.4.3.2.3 SR2 FUNCTION-keyword-OMITTED reference form (M2-UDF-4): a data reference whose head
     /// is a REPOSITORY-declared user-function / function-prototype-name (or the containing function's own name),
     /// or — when <c>FUNCTION ALL INTRINSIC</c> / <c>FUNCTION name INTRINSIC</c> is in effect — an
     /// intrinsic-function-name, followed by a single subscript part, is a FUNCTION CALL, not a subscripted data
@@ -579,7 +580,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         foreach (var item in list.subscriptItem())
         {
             if (item.functionArgument() is { } a) { args.Add(a); continue; }
-            ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"malformed function-argument list '{DataBinder.WrittenText(sp)}' — an "
+            ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm, $"malformed function-argument list '{WrittenSource.Of(sp)}' — an "
                 + "argument is an identifier, a literal, a boolean expression, or an arithmetic expression, and ALL is "
                 + $"none of them (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8")})");
             return null;
@@ -615,7 +616,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             {
                 using var _ = ctx.Edition.At(given!);
                 ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
-                    $"'{DataBinder.WrittenText(given!)}' follows '{WrittenBefore(arg, given!)}', "
+                    $"'{WrittenSource.Of(given!)}' follows '{WrittenBefore(arg, given!)}', "
                     + $"on which no subscript may be written (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2")}), so it begins the next argument — and an "
                     + $"argument written in parentheses is an arithmetic or a boolean expression, which this is not (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR1", "§2023:8.4.3.2.3 SR8")})");
                 return null;
@@ -679,7 +680,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // function-prototype-name refers to the USER-DEFINED function "and not to an intrinsic function of
         // the same name" (the spec's own factorial-override example, :43651) — so the user-function
         // dispatch PRECEDES the catalog. §2023:8.4.6.6 adds the CONTAINING function definition's own name with
-        // no repository declaration (self-recursion; a present self-entry is ignored, §2023:12.3.8 GR11).
+        // no repository declaration (self-recursion; a present self-entry is ignored, §2023:12.3.8.4 GR11).
         if (FunctionPrototypeWritten(written, report: true) is { } function)
             return host.Udf.UdfBindCall(function, argCtxs);
 
@@ -1025,7 +1026,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
             (name, written) = (word.GetText(), word);
         }
-        else name = DataBinder.WrittenText(argCtx);
+        else name = WrittenSource.Of(argCtx);
         // §2023:15.28.3 r1 / §2023:15.29.3 r1 (word for word): "Argument-1 is optional and when specified shall be the name of
         // a file connector that is specified in an FD statement." BOTH halves (kb/Work PB63): the name must be a
         // file-name, and that file must be FD-described — an SD (a sort-merge file description) or a SELECT with no
@@ -1116,7 +1117,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 continue;
             }
             if (mustBeName)
-                return Malformed($"argument-3 '{argCtxs[2].GetText().Trim()}' is not an ordering-name declared in an "
+                return Malformed($"argument-3 '{WrittenSource.Of(argCtxs[2]).Trim()}' is not an ordering-name declared in an "
                     + "ORDER TABLE clause of the SPECIAL-NAMES paragraph — with four arguments written, the "
                     + "§2023:15.85.2 general format's third position IS ordering-name-1 (ISO §2023:15.85.3 r5; §2023:15.3 "
                     + "argument type 12)"
@@ -1182,7 +1183,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 "LOCALE-TIME" => "ISO §2023:15.53.3 r4 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
                 _ => "ISO §2023:15.54.3 r2 — locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph",
             };
-            string site = $"FUNCTION {sig.Name}'s locale-name-1 '{a.GetText().Trim()}'";
+            string site = $"FUNCTION {sig.Name}'s locale-name-1 '{WrittenSource.Of(a).Trim()}'";
             if (KeywordWordOf(a) is { } word)
             {
                 var sym = ctx.Data.SpecialNames.ResolveLocaleName(KeywordWordContext(a)!, word, site, rule);
@@ -1236,7 +1237,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         else
         {
             ctx.Edition.Error(DiagnosticCatalog.LocaleNameUndeclared, $"FUNCTION {sig.Name}'s LOCALE phrase: the word after LOCALE shall be a locale-name declared by a "
-                + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{argCtxs[2].GetText().Trim()}'");
+                + $"SPECIAL-NAMES LOCALE clause ({rule}), not '{WrittenSource.Of(argCtxs[2]).Trim()}'");
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name}");
         }
         var operands = new List<BoundOperand> { operand };
@@ -1599,21 +1600,21 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // SR3 — source shall differ from destination (only ANUM→ANUM / NAT→NAT with no HEX collide, §2023:15.19.3).
         if ((src == 1 && dst == 1 && !hex) || (src == 3 && dst == 3 && !hex))
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: the source-format and destination-format are the "
-                + "same (ISO §2023:15.19.3 SR3)");
+                + "same (ISO §2023:15.19.3 AR3)");
         // SR8 — an ANY source requires an ANUM HEX or NAT HEX destination.
         if (src == 0 && !(hex && dst is 1 or 3))
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: a source-format of ANY requires a destination of "
-                + "ANUM HEX or NAT HEX (ISO §2023:15.19.3 SR8)");
+                + "ANUM HEX or NAT HEX (ISO §2023:15.19.3 AR8)");
         // SR9 — a BYTE destination requires a HEX source.
         if (dst == 4 && src != 2)
             ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: a destination-format of BYTE requires a "
-                + "source-format of HEX (ISO §2023:15.19.3 SR9)");
+                + "source-format of HEX (ISO §2023:15.19.3 AR9)");
         // SR1 — argument-1 shall not be zero length. This arm is the COMPILE-TIME catch for the one shape
         // knowable here (an empty literal — ISO 8.5.4's shape 8); the RUNTIME twin at the top of
         // CobolIntrinsics.Convert screens the other 8.5.4 zero-length shapes (a DYNAMIC LENGTH item at
         // length 0, a zero-occurrence ODO group, …) with EC-ARGUMENT-FUNCTION (fix-queue PB59 / AR-15.19.3-1).
         if (operands[0] is BoundStringLiteral { Value.Length: 0 })
-            ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: argument-1 is of zero length (ISO §2023:15.19.3 SR1)");
+            ctx.Edition.Error(DiagnosticCatalog.ConvertFunctionRule, "FUNCTION CONVERT: argument-1 is of zero length (ISO §2023:15.19.3 AR1)");
 
         // §2023:15.19.3 r4/r5/r6/r7 — the source-format keys what argument-1's STORAGE must hold, and the static
         // half of each rule is its REPRESENTATION (IntrinsicArgumentRules.StaticUsageOf — the keyword-dependent
@@ -1693,7 +1694,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundComputedOperand { Expr: BoundIntrinsicCall call } => ResultWidth(call),
         BoundFieldOperand { Place.Item: { IsAnyLength: true } or { IsDynamicLength: true } } => null,
         // A group's width is static exactly when nothing beneath it varies at run time — the §2023:15.50.4 r7
-        // dynamic guards plus an ODO subordinate's varying current length (§2023:8.5.1.8 GR7/GR8).
+        // dynamic guards plus an ODO subordinate's varying current length (§2023:13.18.38.4 GR7/GR8).
         BoundFieldOperand { Place.Item: { IsGroup: true } g } => HasRuntimeLength(g) ? null : g.ImageWidth,
         BoundFieldOperand { Place.Item: { } item } => item.ImageWidth,
         BoundAllLiteral a => a.Literal.Length,   // §2023:8.3.3.6.4 GR3c — a length-unspecified context takes the literal once
@@ -1873,7 +1874,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (k < 0 || kind >= 0)
             {
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionFormInvalid, "FUNCTION MODULE-NAME takes exactly one keyword argument "
-                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2), not '{DataBinder.WrittenText(a)}'");
+                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §2023:15.65.2), not '{WrittenSource.Of(a)}'");
                 return BoundExprError.Refused(ctx.Edition, "FUNCTION MODULE-NAME");
             }
             kind = k;
@@ -2219,7 +2220,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     continue;
                 }
                 // An unsigned integer literal satisfies r3 and goes on to r2's usage family below: a numeric literal's implied
-                // usage is DISPLAY (ISO §2023:9.3.6 SR3, "the implied usage is DISPLAY"), so it is refused
+                // usage is DISPLAY (ISO §2023:9.3.6 GRL4.3, "the implied usage is DISPLAY"), so it is refused
                 // beside a national argument like a numeric display item (kb/Work PB4801; PB4766 review R2-1).
             }
             // r2: the usage family.
@@ -2305,7 +2306,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // element — a per-occurrence loop) instead of miscounting it.
         BoundFieldOperand g when g.Place.Item.IsGroup && HasRuntimeLength(g.Place.Item) =>
             VariableLengthGroupSum(sig, g, bytes: false),
-        // An ANY LENGTH item's length exists only at RUNTIME (ISO §2023:13.18.2 GR1 — n = the length of the
+        // An ANY LENGTH item's length exists only at RUNTIME (ISO §2023:13.18.2.4 GR1 — n = the length of the
         // corresponding argument): never the compile-time fold, always the runtime .Length over the carrier
         // (the same BoundIntrinsicCall channel a nested string-function argument uses).
         BoundFieldOperand { Place.Item.IsAnyLength: true } =>
@@ -2583,7 +2584,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>
     /// The length of a group whose length is a RUNTIME value, as ONE expression — §2023:15.50.4 r4b + r7 (LENGTH) /
     /// §2023:15.14.4 r2b + r6 (BYTE-LENGTH), kb/Work PB61: the fixed subordinates, plus the CURRENT extent of an OCCURS
-    /// DEPENDING table (r4b — "the rules of the OCCURS clause for a sending data item", §2023:13.18.38 GR8), plus the
+    /// DEPENDING table (r4b — "the rules of the OCCURS clause for a sending data item", §2023:13.18.38.4 GR8), plus the
     /// CURRENT length of every dynamic-length elementary item (r7b), plus every dynamic-capacity table's current
     /// capacity × its element width (r7c). Every unit is BYTES: an alphanumeric group's r3 "alphanumeric character
     /// positions" ARE its bytes (<see cref="LengthPositions"/>), and r6 makes a dynamic-length item's length a
@@ -3102,13 +3103,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return args;
     }
 
-    /// <summary>Bind one function argument to a typed operand (the §2023:8.4.3.2 SR8 shapes): a non-numeric literal
+    /// <summary>Bind one function argument to a typed operand (the §2023:8.4.3.2.3 SR8 shapes): a non-numeric literal
     /// stays a categorized literal operand; a sole data reference stays a field operand through the ONE
     /// <c>BindExpr</c>→<c>RefExpr</c> mapping (its category decides string-vs-numeric rendering; a bare
     /// index-name reads its occurrence number, §2023:13.18.38); anything that is not a sole operand (an operator, a unary
     /// sign on an item, enclosing parentheses) is an arithmetic expression: it binds through the §2023:8.8.1.1-screened
     /// <c>BindExpr</c> and is a computed operand, a parenthesized item or literal included (kb/Work PB4635). OMITTED is barred for an intrinsic argument
-    /// (§2023:8.4.3.2 SR7); an unconsumed phrase word is a loud named operand — never a silent skip (§1.4).
+    /// (§2023:8.4.3.2.3 SR7); an unconsumed phrase word is a loud named operand — never a silent skip (§1.4).
     /// <para><paramref name="activationArgument"/> is true ONLY for a function-prototype activation (UdfBinder), the one
     /// position where the argument crosses to a formal parameter, and it decides two things an intrinsic argument does not
     /// (both kinds of argument are asked their WRITTEN shape, a parenthesized item or literal being an arithmetic
@@ -3276,8 +3277,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (host.Expr.NonNumericLiteralOperand(nn) is { } op) return op;
         // The F18 sibling one shape over (kb/Work R19): the null fallback was a silent runtime stage too.
         ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentNotAValue,
-            $"the literal '{nn.GetText()}' is not a form this intrinsic-argument position admits (ISO §2023:15.3)");
-        return BoundOperandError.Refused(ctx.Edition, $"literal argument '{nn.GetText()}'");
+            $"the literal '{WrittenSource.Of(nn)}' is not a form this intrinsic-argument position admits (ISO §2023:15.3)");
+        return BoundOperandError.Refused(ctx.Edition, $"literal argument '{WrittenSource.Of(nn)}'");
     }
 
     /// <summary>The word <see cref="KeywordWordOf"/> reads, as written: the argument's phrase word or its sole unqualified data

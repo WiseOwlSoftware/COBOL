@@ -1,7 +1,7 @@
-- **D-IO-STATUS-04 — I-O status '04' (record-length mismatch, §2023:14.9.30 GR14 / §2023:9.1.13.2 item 3)**: **emitted** on a
+- **D-IO-STATUS-04 — I-O status '04' (record-length mismatch, §2023:14.9.30.4 GR14 / §2023:9.1.13.2 item 3)**: **emitted** on a
   record-sequential READ (and, from PB5480, a relative or indexed READ) whose physical record is outside the reading connector's min/max record size (fixed leg: shorter than
   the record width; varying leg: outside [VaryMin, VaryMax]) — the READ is successful, the record is delivered,
-  status '04' (VCR 21; golden `2002/io_status_04`). Line-sequential is excluded (§2023:14.9.30 GR15 pads short records
+  status '04' (VCR 21; golden `2002/io_status_04`). Line-sequential is excluded (§2023:14.9.30.4 GR15 pads short records
   with trailing spaces — its '06' write path remains unimplemented). The value is version-invariant — the E.2
   item 15 2023 delta only clarifies *when* it is set.
   ⚖ **THE MEASURE IS THE FILE'S FIXED ATTRIBUTES, NOT THE READING PROGRAM'S DESCRIPTIONS** (kb/Work PB5238, a determination). §2023:14.9.30.4 GR14

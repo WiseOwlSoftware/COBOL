@@ -260,7 +260,7 @@ def dossier_sections(sections: list[str]) -> list[str]:
 
     ⛔ THE ROOT IS THE LOAD-BEARING PART. A subject's catalog rows sit in `.2` (format), `.3` (syntax) and `.4`
     (general) — §2023:14.9.27.2/.3/.4 for OPEN — but the code, the goldens and CONFORMANCE.md overwhelmingly cite the
-    CONSTRUCT clause, `§2023:14.9.27 SR8`. Scanning only the rows' own sections would miss every one of them and hand
+    CONSTRUCT clause with a bare rule suffix (clause 14.9.27, rule SR8). Scanning only the rows' own sections would miss every one of them and hand
     the agent an empty dossier for a construct with sixteen citing files. So the longest common prefix is added.
 
     ⚠ …but only when every row is a DIRECT CHILD of it. Otherwise a scattered concept subject
@@ -297,7 +297,7 @@ def clause_pattern(sections: list[str]) -> re.Pattern:
     ⛔ `(?![0-9])` IS THE WHOLE POINT. `§2023:14.9.2` and `§2023:14.9.27` are different statements (STRING and OPEN), and a
     plain prefix match on the shorter one sweeps in every citation of the longer — the dossier for STRING would
     have arrived full of OPEN's binder. The lookahead forbids a following DIGIT and nothing else, so a SUBCLAUSE
-    (`§2023:14.9.27.4`), a rule suffix (`§2023:14.9.27 GR10`) and the clause alone (`§2023:14.9.27`) all still match, which is exactly the
+    (`§2023:14.9.27.4`), a bare-clause rule suffix (clause 14.9.27, rule GR10) and the clause alone (`§2023:14.9.27`) all still match, which is exactly the
     set that is genuinely about this subject.
 
     The second arm matches the catalog's own rule-ids, `GR-14.9.27.4-10` — the code cites those directly

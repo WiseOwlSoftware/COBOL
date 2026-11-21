@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 
 /// <summary><c>ACCEPT identifier [FROM source]</c> (ISO §2023:14.9.1). <see cref="AcceptKind.Device"/> is Format 1 —
 /// the hardware-device transfer (a plain <c>ACCEPT</c>, GR5, or <c>FROM mnemonic-name</c> resolved through the
-/// SPECIAL-NAMES device registry, §2023:12.3.7 Format 4): data REPLACES the receiver's content, stored ALIGNED LEFT
+/// SPECIAL-NAMES device registry, §2023:12.3.7.2): data REPLACES the receiver's content, stored ALIGNED LEFT
 /// with additional transfers requested / excess ignored by size (GR1–GR4 — explicitly NOT the MOVE rules). Every
 /// other kind is Format 2 — a temporal source read from the system clock as a conceptual UNSIGNED INTEGER USAGE
 /// DISPLAY item and transferred BY THE MOVE RULES (GR6), of conceptual width 6/8/5/7/8/1 (GR7–GR12).</summary>

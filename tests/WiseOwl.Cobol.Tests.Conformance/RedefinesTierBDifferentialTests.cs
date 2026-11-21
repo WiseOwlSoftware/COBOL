@@ -88,7 +88,7 @@ public sealed class RedefinesTierBDifferentialTests
 
     [Fact]
     public void FixedOccursValue_SeedsEveryOccurrence()
-        // §2023:13.18.63 GR9: every occurrence of a fixed-OCCURS entry takes the VALUE — the Tier-B backing seeds the
+        // §2023:13.18.63.4 GR9: every occurrence of a fixed-OCCURS entry takes the VALUE — the Tier-B backing seeds the
         // WHOLE canonical image ("ABABAB"), not one occurrence padded ("AB    "). Regression for ImageInitOf.
         => AssertMatchesGolden(Program(
             "01 WS-G.\n   05 WS-E PIC XX OCCURS 3 VALUE \"AB\".\n01 WS-V REDEFINES WS-G PIC X(6).",

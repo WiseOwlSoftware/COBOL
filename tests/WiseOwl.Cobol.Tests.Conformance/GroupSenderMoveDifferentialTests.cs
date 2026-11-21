@@ -119,7 +119,7 @@ public sealed class GroupSenderMoveDifferentialTests
                 DISPLAY "[" RCV-J "]".
             """), "[   123ABC]");
 
-    /// <summary>The implicit-MOVE funnel (§2023:14.9.30 GR24 READ INTO is "the equivalent of … MOVE"): READ … INTO an
+    /// <summary>The implicit-MOVE funnel (§2023:14.9.30.4 GR24 READ INTO is "the equivalent of … MOVE"): READ … INTO an
     /// elementary numeric receiver from a (group) record area follows the same GR4 group-move rule — raw
     /// characters, no numeric conversion.</summary>
     [Fact]

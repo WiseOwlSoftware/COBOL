@@ -2580,6 +2580,17 @@ guessed at rule 5 on a parse error (COBOL0301/0302) are gone: the rule has one h
 compilation-group lex; the D2 keyword-omitted re-parse needs no second screen because every one of its tokens was
 already a SUBSCRIPT-mode token of the main lex.
 
+**COBOL-85's own operator spacing (kb/Work PB5989).** The §2023:8.7.1 exception for a unary operator beside a left parenthesis
+is a 2002 addition: §1985:VI.6.2.2 says its operators "must be preceded by a space and followed by a space", so at COBOL-85
+`ArithmeticOperatorViolations` admits a parenthesis AFTER a unary operator only from 2002 (`EditionInfo.UnaryOperatorMayTouchParenthesis`). A left parenthesis BEFORE a unary operator or a logical NOT stays accepted at 85, by the determination `docs/conformance/3/D-85-OPERATOR-SPACING.md`: the 1985 text itself writes `(NOT (a = b))` (§1985:VI.6.3.3) and `(- argument-2)` (§1985:p.A-34), so that one position admits two readings and GnuCOBOL decides it; every other position keeps the plain reading, and the glossary's Unary Operator (§1985:III.2) names the next symbol, not adjacency, so `-(M)` is refused. The same
+edition states two more spacing sentences no later one carries: §1985:VI.6.3.1.1 "A space must precede and follow each reserved word
+comprising the relational operator" and §1985:VI.6.3.2 "The logical operators must be preceded by a space and followed by a space".
+`SeparatorRule.ConditionOperatorViolations` asks them over the same parse tree (`EditionInfo.ConditionOperatorsNeedSeparatorSpaces`,
+COBOL-85 only; COBOL7672): every token of a `comparisonOperator` (a relation character is a special character word, a reserved word,
+§1985:IV.4.2.2.1.3.1) and every AND, OR and NOT that is a direct child of a condition tier, through the one `OperatorSpacingMessage`
+verdict with no parenthesis standing in for the space after, and one only before a NOT. The tree is what separates the OR of `GREATER THAN OR EQUAL TO` (a word of the
+operator) from the OR connective.
+
 **A prefixed literal is delimited whatever its content (kb/Work PB1441).** `X"`, `N"`, `B"`, `NX"` and `BX"` are
 opening delimiters (§2023:8.3.5 5)), so every prefixed body fragment is `<prefix> STR_BODY`; the §2023:8.3.3 content
 repertoires (hexadecimal digits for X / NX / BX, '0'/'1' for B) are `LiteralScreen`'s COBOL2630, never the
@@ -3161,8 +3172,14 @@ regression bisects to one step.
   `ZERO_ARITH` the same way — so `AdmittedKinds.Refusal` names "the figurative constant ZERO" wherever the parse expects
   `ZERO_ARITH`, with no neighbour test of its own. ⚠ The
   `ZERO_ARITH` token's text stays "0" (several readers parse the text of an arithmetic operand), so a diagnostic that
-  quotes an operand node spells it with `WrittenSource.Of` (`DataBinder.WrittenText`), never `GetText()` (kb/Work
-  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`).
+  quotes an operand node spells it with `WrittenSource.Of`, never `GetText()` (kb/Work
+  PB3961: `PERFORM VARYING X FROM 1 BY ZERO + 1` printed `'0+1'`). ⛔ `RepoDrift`'s `MessageOperandTextDriftTests` holds
+  this for the whole compiler (kb/Work PB5979: `X OF Q` printed `XOFQ`, `KY OF IREC` printed `KYOFIREC`): a `GetText()` of a
+  multi-token parse context (a one-token word, read from the grammar, and a terminal node are exempt) is refused in an
+  interpolation hole, in a `+` that holds a string literal, or in a local that feeds either. ⚠ A `GetText()` of a qualified
+  name that is a KEY or a compared VALUE stays (the glued text is the whitespace-insensitive identity two sites agree on: `StorageClaimScan`,
+  the linkage-root and report-counter keys), so the rule has no "anywhere" form; a text handed to a message through a method parameter
+  (`ExpressionBinder.ScreenIndexNameOperand`) is the caller's to spell with `WrittenSource.Of`.
 - **The five preprocessor stages and their order** — correct per the TURN-anchoring hazard analysis; only
   namespaces + the injected severity policy change.
 - **SUBSCRIPT lexer mode existence** — the `x(i)`/`(a+b)` disambiguation genuinely needs it; we dedup its

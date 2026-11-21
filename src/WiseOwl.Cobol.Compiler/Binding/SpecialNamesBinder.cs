@@ -8,6 +8,7 @@ using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Collation;
 
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -244,7 +245,7 @@ public sealed partial class SpecialNamesBinder
                 AlphabetBind(alpha);
             }
         }
-        // The PCS resolves AFTER the walk (OBJECT-COMPUTER precedes SPECIAL-NAMES in source, §2023:12.3.6 GR9); only
+        // The PCS resolves AFTER the walk (OBJECT-COMPUTER precedes SPECIAL-NAMES in source, §2023:12.3.6.4 GR9); only
         // the NAMED alphabets become the program sequences — other defined alphabets have no effect (NC219A's
         // unreferenced COLLATING-SEQ-2). A native-order alphabet leaves the sequence null (the fast path).
         if (pcsClause is not null) ResolveProgramCollating(pcsClause);
@@ -414,7 +415,7 @@ public sealed partial class SpecialNamesBinder
         _host.DeclareUserWord(name, UserWordKind.OrderingName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB1083)
         // literal-9, or a constant-name standing for it (§2023:13.10.3 SR2; kb/Work PB1942).
         Antlr4.Runtime.Tree.IParseTree written9 = (Antlr4.Runtime.Tree.IParseTree?)operand9.literal() ?? operand9.cobolWord();
-        string raw = operand9.literal() is { } lit ? ConcatFolder.Spelling(lit) : operand9.GetText();
+        string raw = operand9.literal() is { } lit ? ConcatFolder.Spelling(lit) : WrittenSource.Of(operand9);
         // SR10 / SR11 for literal-9 — the ONE text-literal rule the LOCALE clause's literal-4 shares.
         if (!TryClauseTextLiteral(written9, $"ORDER TABLE {name} IS {raw}", "literal-9", out string text)) return;
         // ⚠ ONE CLAUSE PER PARAGRAPH, measured off the PRINTED general format rather than inferred from GR17's

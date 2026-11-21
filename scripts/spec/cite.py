@@ -25,7 +25,7 @@ the text really sits under:
   3. the quotation carries at least MIN_WORDS real words (`quote-too-short`): the comparison is on words after `norm`
      (punctuation, underline markup and spacing are typography), and a shorter quotation occurs in almost any clause;
   4. with a rule designator, the clause has a rule list of that kind (`no-rule-list`; when a subclause has it, the
-     suggestion names the subclause: `§2023:14.9.39 SR17` is `§2023:14.9.39.3 SR17`), that list has a rule with the
+     suggestion names the subclause: `§2023:14.9.39 SR17` is `§2023:14.9.39.3 SR17`), that list has a rule with the (citation-audit: example)
      ordinal (`no-ordinal`, with the count), and the rule has the sub-item the designator names (`no-sub-item`, with
      the sub-items it has); a `Format n` names a general format the clause or its general-format subclause prints
      (`no-format`), a `Table n` a table captioned in the clause or under it (`no-table`);
@@ -213,6 +213,7 @@ FAILURE_KINDS = {
     "no-sub-item": "the rule has no sub-item with that path",
     "no-format": "the clause prints no general format with that number",
     "no-table": "no table with that number is captioned in the clause or under it",
+    "no-unit": "the clause has no unit of unnumbered text with that designator (p<n>, Table <t> row <r>)",
     "unanchored": "the catalog row the citation names was not found in the transcription (a drift of the catalog)",
     "quote-too-short": f"the quotation has fewer than {MIN_WORDS} real words",
     "text-not-in-rule": "the quotation is in the clause, but not inside the cited rule, sub-item, format or table",
@@ -227,6 +228,11 @@ DESIGNATOR = re.compile(rf"(?P<kind>{'|'.join(citation.RULE_KINDS)})(?:L(?P<list
                         r"(?P<path>(?:\.?(?:[a-z]|\d+))*))")
 FORMAT_DESIGNATOR = re.compile(r"Format (\d+)")
 TABLE_DESIGNATOR = re.compile(r"Table (\d+)")
+#: A unit of unnumbered text (kb/Work PB5449; citation.UNIT_RULE): a margin paragraph, a table's body row, a prose item.
+UNIT_DESIGNATOR = re.compile(citation.UNIT_RULE)
+#: The answer for a quotation in unnumbered text no row holds yet (kb/Work PB5449, PB222's repair): it names the clause
+#: and never the rule above the text.
+PENDING_MARK = "(unnumbered prose, pending)"
 #: A general format's own label inside its text (`Format 2:`, `<u>Format 2</u>:`).
 FORMAT_LABEL = re.compile(r"(?:<u>)?\bFormat\s+(\d+)\b")
 
@@ -365,10 +371,30 @@ class Rule:
     lines: tuple[int, ...]
     text: str
     provisional: bool
+    #: The unit label of a row of unnumbered text (`p3`, `T12.2`, `25`: its id's last part, kb/Work PB5449), "" for a
+    #: numbered rule.
+    unit: str = ""
 
     @property
     def designator(self) -> str:
-        return citation.rule_designator(self.kind, self.ordinal, self.sublist)
+        return unit_designator(self.unit) if self.unit else citation.rule_designator(self.kind, self.ordinal, self.sublist)
+
+
+def unit_designator(label: str) -> str:
+    """The citation designator of a unit of unnumbered text from its label (decision PB5448 point 5): `p3` is `p3`, a
+    table row `T12.2` is `Table 12 row 2`, a whole table `T1` is `Table 1`, a numbered prose item `25` is `item 25`."""
+    if m := re.fullmatch(r"T(\d+)\.(\d+)", label):
+        return f"Table {m[1]} row {m[2]}"
+    if m := re.fullmatch(r"T(\d+)", label):
+        return f"Table {m[1]}"
+    return f"item {label}" if label.isdigit() else label
+
+
+def unit_label(designator: str) -> str:
+    """The label of the unit a designator names (`unit_designator`'s inverse)."""
+    if m := re.fullmatch(r"Table (\d+) row (\d+)", designator):
+        return f"T{m[1]}.{m[2]}"
+    return designator.removeprefix("item ")
 
 
 @dataclasses.dataclass
@@ -522,15 +548,45 @@ def rule_book(edition: int, repo: pathlib.Path = spec_pdf.REPO, catalog: pathlib
             if at is None:
                 unanchored.append(r["id"])
                 rules.setdefault(loc, []).append(Rule(edition, loc, r["kind"], r["ordinal"], r["sublist"], (), r["text"],
-                                                      r.get("provisional", "none") != "none"))
+                                                      r.get("provisional", "none") != "none", _unit_of(r)))
                 continue
             anchors.append((at, r))
             pos = at + 1
         for k, (at, r) in enumerate(anchors):
             end = anchors[k + 1][0] if k + 1 < len(anchors) else len(ids)
             rules.setdefault(loc, []).append(Rule(edition, loc, r["kind"], r["ordinal"], r["sublist"], tuple(ids[at:end]),
-                                                  r["text"], r.get("provisional", "none") != "none"))
+                                                  r["text"], r.get("provisional", "none") != "none", _unit_of(r)))
     return RuleBook(edition, catalog, lines, regions, rules, formats, unanchored)
+
+
+def _unit_of(row: dict) -> str:
+    """The unit label of a catalog row of unnumbered text (its id's last part: `GR-9.1.16-p3` is `p3`), "" for a rule."""
+    return row["id"].rsplit("-", 1)[1] if row.get("shape") else ""
+
+
+@functools.lru_cache(maxsize=None)
+def pending_units(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> dict[str, dict[str, str]]:
+    """The units of unnumbered text of `edition` and their dispositions, by locator then unit label (kb/Work PB5449): the
+    content-keyed manifest's `paragraph-blocks`, keyed by bare clause (ISO) or by citation (1985, `§1989:` for
+    Amendment 1's Section A). Empty for an edition with no manifest."""
+    erc, _rc85 = _extractors()
+    source = citation.SOURCE_EDITION.get(edition, edition)
+    manifest = erc.UNHARVESTED_OF.get(source)
+    if manifest is None:
+        return {}
+    path = repo / manifest.relative_to(spec_pdf.REPO)
+    if not path.is_file():
+        return {}
+    blocks = json.loads(path.read_text(encoding="utf-8")).get(erc.PARAGRAPH_BLOCKS, {})
+    out: dict[str, dict[str, str]] = {}
+    for clause, units in erc.text_units.entries_of(blocks).items():
+        if clause.startswith("§"):
+            cited = citation.parse(clause)
+            if cited.edition != edition:
+                continue
+            clause = cited.locator
+        out[clause] = {u["unit"]: u["disposition"] for u in units}
+    return out
 
 
 def _anchor(lines: list[str], ids: list[int], pos: int, row: dict, ordinal: re.Pattern[str]) -> int | None:
@@ -671,8 +727,15 @@ def resolve(cited: citation.Citation, text: str | None = None, repo: pathlib.Pat
             return _elsewhere(book, cited, needle, text)
         mark = f" {RECONSTRUCTED_MARK}" if in_reconstruction(book.lines, at) else ""
         rule = book.rule_at(cited.locator, at)
+        if rule is None and text_units_pending(cited.edition, cited.locator, repo):
+            # In no row's text, in a clause whose unnumbered text awaits its dispositions (kb/Work PB5449): the answer
+            # names the clause and never a rule (kb/Work PB222).
+            return Verdict("ok", f"{shown}  ({title})  the text is in the clause {PENDING_MARK}{mark}",
+                           excerpt=book.lines[at].strip()[:220])
         under = f"; it lies in {book.where(cited.locator, needle) or rule.designator}{mode}" if rule else ""
         return Verdict("ok", f"{shown}  ({title})  the text is in the clause{under}{mark}", excerpt=book.lines[at].strip()[:220])
+    if UNIT_DESIGNATOR.fullmatch(cited.rule):
+        return _resolve_unit(book, cited, needle, text, title, regions, repo, mode)
     if m := DESIGNATOR.fullmatch(cited.rule):
         return _resolve_rule(book, cited, m, needle, text, title, regions, mode)
     if m := FORMAT_DESIGNATOR.fullmatch(cited.rule):
@@ -709,8 +772,8 @@ def _resolve_rule(book: RuleBook, cited, m: re.Match, needle, text, title, regio
     in_clause = book.rules.get(loc, [])
     of_kind = [r for r in in_clause if r.kind == kind]
     if not of_kind:
-        # The block the author meant: a subclause's (`§2023:14.9.39 SR17` is 14.9.39.3's) or, when exactly one has it,
-        # a sibling's (`§2023:13.18.40.2 SR13`, the general format's clause, is 13.18.40.3's).
+        # The block the author meant: a subclause's (`§2023:14.9.39 SR17` is 14.9.39.3's) or, when exactly one has it,  # citation-audit: example
+        # a sibling's (`§2023:13.18.40.2 SR13`, the general format's clause, is 13.18.40.3's).  # citation-audit: example
         parent = loc.rsplit(".", 1)[0] if "." in loc else None
         near = [r for k, rs in book.rules.items()
                 if k.startswith(loc + ".") or (parent and k != loc and k.rsplit(".", 1)[0] == parent)
@@ -755,6 +818,42 @@ def _resolve_rule(book: RuleBook, cited, m: re.Match, needle, text, title, regio
     if _hit(book.lines, regions, needle) is not None:
         return Verdict("text-not-in-rule", f"{clause_shown} has {text!r}, but under no rule (its lead-in, a note or a "
                                            f"table), not {cited.rule}{mode}", clause_shown)
+    return _elsewhere(book, cited, needle, text)
+
+
+def text_units_pending(edition: int, locator: str, repo: pathlib.Path = spec_pdf.REPO) -> bool:
+    """Does `locator` hold a unit of unnumbered text whose disposition is still pending (kb/Work PB5449)?"""
+    return "pending" in pending_units(edition, repo).get(locator, {}).values()
+
+
+def _resolve_unit(book: RuleBook, cited, needle, text, title, regions, repo, mode) -> Verdict:
+    """A unit of unnumbered text (`p3`, `Table 12 row 2`; kb/Work PB5449). A unit that is a row is read as every rule
+    is, its extent the catalog's (`rule_book`). A unit with no row yet exists when the content-keyed manifest disposes of
+    it; its quotation is checked against the clause and the answer says it is pending."""
+    shown, loc = citation.render(cited), cited.locator
+    clause_shown = citation.render(dataclasses.replace(cited, rule=None))
+    label = unit_label(cited.rule)
+    row = next((r for r in book.rules.get(loc, ()) if r.designator == cited.rule), None)
+    if row is not None:
+        if needle is None:
+            return Verdict("ok", f"{shown}  ({title})  {cited.rule} exists; no quotation checked{mode}")
+        if any(needle in t for t in book.text_of(row)):
+            return Verdict("ok", f"{shown}  ({title})  the text is in {cited.rule}{mode}", excerpt=row.text[:220])
+        where = book.where(loc, needle)
+        return Verdict("text-not-in-rule", f"{clause_shown} has {text!r} " + (f"under {where}" if where else
+                       "outside it") + f", not {cited.rule}{mode}", f"{clause_shown} {where}" if where else None)
+    units = pending_units(cited.edition, repo).get(loc, {})
+    if label not in units:
+        named = [unit_designator(u) for u in units]
+        have = (", ".join(named[:12]) + (f", ... ({len(named)} in all)" if len(named) > 12 else "")) or "none"
+        return Verdict("no-unit", f"{clause_shown} has no unit {cited.rule} of unnumbered text (its units: {have}){mode}")
+    # A unit with no row has no extent the catalog reads yet: its quotation is held to the clause, and the answer says so.
+    state = f" {PENDING_MARK}" if units[label] == "pending" else ""
+    if needle is None:
+        return Verdict("ok", f"{shown}  ({title})  {cited.rule} exists{state}; no quotation checked{mode}")
+    if (at := _hit(book.lines, regions, needle)) is not None:
+        return Verdict("ok", f"{shown}  ({title})  the text is in the clause{state}{mode}",
+                       excerpt=book.lines[at].strip()[:220])
     return _elsewhere(book, cited, needle, text)
 
 
@@ -1006,11 +1105,11 @@ def self_test() -> int:
          fails("§2023:14.9.8.4 GR1a", q23, "text-not-in-rule", "GR1b")
          and fails("§2023:14.9.8.4 GR1z", None, "no-sub-item")),  # citation-audit: example
         ("2023: a one-character quotation fails", fails("§2023:14.9.8.4 GR1", "x", "quote-too-short")),
-        ("2023: a clause with no syntax rules cited SR1 fails", fails("§2023:14.9.8.4 SR1", q23, "no-rule-list")),
+        ("2023: a clause with no syntax rules cited SR1 fails", fails("§2023:14.9.8.4 SR1", q23, "no-rule-list")),  # citation-audit: example
         ("2023: a statement's clause cited for its general rule names the subclause that has them",
-         fails("§2023:14.9.8 GR1", q23, "no-rule-list", "§2023:14.9.8.4 GR1")),
+         fails("§2023:14.9.8 GR1", q23, "no-rule-list", "§2023:14.9.8.4 GR1")),  # citation-audit: example
         ("2023: the general format's clause cited for a syntax rule names the sibling that has it",
-         fails("§2023:13.18.40.2 SR13", None, "no-rule-list", "§2023:13.18.40.3 SR13")),
+         fails("§2023:13.18.40.2 SR13", None, "no-rule-list", "§2023:13.18.40.3 SR13")),  # citation-audit: example
         ("2023: a list the transcription flattened onto column 0 keeps its levels (14.9.39.4 2) a) 1. a.)",
          v("§2023:14.9.39.4 GR2a1a", "the EC-BOUND-SUBSCRIPT exception condition is set to exist").ok
          and fails("§2023:14.9.39.4 GR2a3b", "If index-name-2 is associated with the same table as index-name-1",
@@ -1067,6 +1166,23 @@ def self_test() -> int:
         ("--find prints the edition form", find(lines, cls, "equivalent to a literal", 2023)[1][0].startswith("§2023:")),
         ("--find prints the 1985 path in the 1985 style",
          any(o.startswith("§1985:XI.4.4.4 (6) b.  (") for o in find(*load(1985), q85b, 1985)[1])),
+        # kb/Work PB5449: unnumbered text. Prose in no row answers pending and names no rule (kb/Work PB222's repair); a
+        # paragraph row is cited `p<n>`, a pending unit by its designator too, and a unit the clause lacks fails; a
+        # quotation inside a row's text answers as it did (the glued GR13 stays until the 2023 mint carves it).
+        ("prose in no row answers pending and names no rule",
+         (got := v("§2023:8.4.2.1", "The same name shall not be used both as the name of an external record")).ok
+         and PENDING_MARK in got.message and "lies in" not in got.message),
+        ("the same in 1985", PENDING_MARK in v("§1985:VI.5.13.1", "specifies the alignment of an elementary item").message),
+        ("a paragraph row is cited p<n>", v("§2023:9.1.16 p6", "the LOCK clause and the UNLOCK statement shall not be "
+                                                             "specified").message.endswith("the text is in p6")),
+        ("a pending unit and a pending table row are cited by their designators",
+         PENDING_MARK in v("§2023:8.4.2.1 p3", "The same name shall not be used both as the name").message
+         and PENDING_MARK in v("§2023:14.5.1 Table 12 row 2", "ADD [NOT] ON SIZE ERROR END-ADD").message),
+        ("fires on a unit the clause lacks",  # citation-audit: example
+         fails("§2023:8.4.2.1 p9", "The same name shall not be used both", "no-unit")),  # citation-audit: example
+        ("a quotation inside a row's text answers as before",
+         v("§2023:8.8.4.2.1 GR13", "For comparison, an alphanumeric group item shall be treated as an elementary "
+                                   "alphanumeric data item").ok),
     ]
     for name, ok in cases:
         print(f"{'PASS' if ok else 'FAIL'}  {name}")

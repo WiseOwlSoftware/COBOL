@@ -123,7 +123,7 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
             else if (toAlias is not null) serverLiteral = ScreenServerLiteral(host.Expr.AliasOperand(toAlias), to!, toAlias.Word, ref refusal);
             var (onException, notOnException) = BindExceptionPhrases(s.conditionalPhrases());
             if (ScreenSendRequiredPhrases(s, format, literalWritten)) refusal ??= BoundRejected.Reported(ctx.Edition);
-            string? serverName = !literalWritten && to is not null && toIsName ?DataBinder.WrittenText(to) : null;
+            string? serverName = !literalWritten && to is not null && toIsName ?WrittenSource.Of(to) : null;
             if (refusal is not null || from is null || returning is null || (serverLiteral is null && serverName is null))
                 return refusal ?? BoundRejected.Reported(ctx.Edition);
             bound = new BoundSendToServer(serverName, serverLiteral, from, returning, onException, notOnException);
@@ -168,7 +168,7 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
         else if (s.inlineMethodInvocation() is { } invocation) operand = host.Oo.OoInlineInvocationOperand(invocation);
         else if (DataReferencesAfter(s, Core.FROM).FirstOrDefault() is { } reference)
         {
-            // A repository function written without FUNCTION is a function-identifier too (§2023:8.4.3.2 SR2), read as FieldOperand reads it.
+            // A repository function written without FUNCTION is a function-identifier too (§2023:8.4.3.2.3 SR2), read as FieldOperand reads it.
             if (host.Intrinsic.KeywordOmittedFunction(reference) is { } keywordOmitted) operand = IntrinsicBinder.OperandOf(keywordOmitted, functionValue: true);
             else if (Sending(reference, ref refusal) is { } place)
             {
@@ -208,7 +208,7 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
     {
         using var at = ctx.Edition.At(operand);
         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.MessagingOperandClass,
-            $"{face} '{DataBinder.WrittenText(operand)}' (class {IntrinsicArgumentRules.ClassNameOf(actual)}) is not {required}; {rule}: \"{sentence}\"");
+            $"{face} '{WrittenSource.Of(operand)}' (class {IntrinsicArgumentRules.ClassNameOf(actual)}) is not {required}; {rule}: \"{sentence}\"");
     }
 
     /// <summary>⛔ SEND SR3 AND RECEIVE SR2, ONE WALK OVER identifier-1 AND ITS SUBORDINATES. "The data description entries of identifier-1 or any data items
@@ -239,7 +239,7 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
             string rule = receiving ? "ISO §2023:14.9.31.3 SR2" : "ISO §2023:14.9.38.3 SR3";
             using var at = ctx.Edition.At(operand);
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.MessagingMessageArea,
-                $"{statement} {(receiving ? "GIVING" : "FROM")} '{DataBinder.WrittenText(operand)}': "
+                $"{statement} {(receiving ? "GIVING" : "FROM")} '{WrittenSource.Of(operand)}': "
                 + (ReferenceEquals(item, root) ? "the item" : $"its subordinate '{item.CobolName}'") + $" has {clause}; {rule}: \"The data description entries of "
                 + "identifier-1 or any data items subordinate to it shall not contain " + (receiving
                     ? "the ANY LENGTH clause, the BASED clause, the CONSTANT RECORD clause, the DYNAMIC-LENGTH clause, the FUNCTION-POINTER clause, the "
@@ -296,9 +296,9 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
         else if (toAlias is not null) format1.Add($"the TO operand '{toAlias.Word}', {toAlias.Described} (ISO §2023:13.10.3 SR2)");
         if (s.RETURNING() is not null) format1.Add("the RETURNING phrase");
         if (s.RAISING() is not null) format2.Add("the RAISING phrase");
-        if (toIsMessageTag) format2.Add($"the TO operand '{DataBinder.WrittenText(to!)}', a message-tag data item");
+        if (toIsMessageTag) format2.Add($"the TO operand '{WrittenSource.Of(to!)}', a message-tag data item");
         else if (toIsQualified)
-            format2.Add($"the TO operand '{DataBinder.WrittenText(to!)}', which is qualified (a message-server-name-1 is a bare name)");
+            format2.Add($"the TO operand '{WrittenSource.Of(to!)}', which is qualified (a message-server-name-1 is a bare name)");
 
         if (format1.Count > 0 && format2.Count > 0)
         {

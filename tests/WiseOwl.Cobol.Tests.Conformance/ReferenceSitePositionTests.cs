@@ -121,7 +121,7 @@ public sealed class ReferenceSitePositionTests
         "          05 TN OCCURS 1 TO 5 DEPENDING ON CNT.\n" +
         "             10 EN PIC X.\n";
 
-    /// <summary>§2023:13.18.38.3 SR22, SR1(b)/SR10 + SR2, §2023:13.18.44.3 SR5, SR20 and SR17 of the OCCURS DEPENDING ON rules
+    /// <summary>§2023:13.18.38.3 SR22, SR1(b)/SR10 + SR2, §2023:13.18.44.3 SR5, and §2023:13.18.38.3 SR20 and SR17 of the OCCURS DEPENDING ON rules
     /// that ask what SURROUNDS the table, and SR2's counter lookup: each is reported at the clause's subject.</summary>
     [Theory]
     // SR22: the table is followed by a non-subordinate entry in the record the copy joins.

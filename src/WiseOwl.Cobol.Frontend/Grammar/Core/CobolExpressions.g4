@@ -248,8 +248,8 @@ succeedingAndExpression
     ;
 
 // A simple condition that is NOT the first of its sequence: §2023:8.8.4.12.1's abbreviated relation (subject, or
-// subject and relational operator, omitted), the 1985 logical NOT of one (negatedAbbreviatedRelation, below), or an
-// ordinary (NOT-)condition — a bare `object-1` is the latter's
+// subject and relational operator, omitted), a NOT before one (negatedAbbreviatedRelation, below: the logical NOT at
+// 85, NOT as part of the operator for the one shape 2002 keeps), or an ordinary (NOT-)condition — a bare `object-1` is the latter's
 // comparisonExpression with no operator, which the binder reads against the carried subject and operator.
 succeedingCondition
     : abbreviatedRelation
@@ -263,9 +263,14 @@ succeedingCondition
 // insertion of subject or relational operator results in a negated relation condition." So `A > B AND NOT >= C OR D`
 // is ((A > B) AND (NOT (A >= C))) OR (A >= D): the stated >= is the operator carried on. The left-edge predicate IS
 // GRL2.1 (the six words; a NOT after NOT is the relational operator's own, kb/Work PB5784), so this alternative never competes with the
-// comparisonOperator alternatives that open on NOT. The grammar is the superset: ISO 2002 prohibited the form
-// (§2002:F.1 item 22; §2023:8.8.4.12.4 GR1 NOTE: "NOT cannot immediately precede an extended-relational operator"),
-// and VersionConformancePass refuses it from 2002 on (construct abbreviated-not-logical-removed-2002, COBOL0902).
+// comparisonOperator alternatives that open on NOT. The grammar is the superset, and the node has two shapes with two
+// edition histories, told apart by the one reader NegatedAbbreviationForms.Of: NOT before an IS-led simple relational
+// operator with no NOT of its own (`NOT IS > C`), which 2002 keeps with the NOT read as part of the operator
+// (§2002:8.8.4.2.4.3 GR2b; ConditionBinder.BindNegatedAbbreviatedRelation) and 2014 drops (construct
+// abbreviated-not-is-simple-operator-removed-2014), and every other shape, which 2002 prohibits (§2002:F.1 item 22:
+// "The word NOT is prohibited before the relational operators meaning"; §2002:8.8.4.2.4.2 SR3) (construct
+// abbreviated-not-logical-removed-2002, COBOL0902). VersionConformancePass.VisitNegatedAbbreviatedRelation asks the
+// reader and gates each.
 negatedAbbreviatedRelation
     : NOT abbreviatedRelation
     ;
@@ -595,15 +600,15 @@ primaryExpression
 
 // FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions, ISO §15; function-identifier §2023:8.4.3.2).
 // P7 Step 12: the argument-list '(' after "FUNCTION functionName" stays in DEFAULT lexer mode (the lexer's
-// FUNCTION suppression — §2023:8.4.3.2 SR6: that '(' is ALWAYS the argument list), so each argument parses as a real
+// FUNCTION suppression — §2023:8.4.3.2.3 SR6: that '(' is ALWAYS the argument list), so each argument parses as a real
 // arithmeticExpression through the ONE expression grammar (SR8: an argument is an identifier, literal, boolean
 // expression, or arithmetic expression). Arguments are separated by separators only (§2023:8.3.5: space, or
 // comma/semicolon followed by space — both skipped by the lexer), so the list is plain juxtaposition; the
 // space-vs-adjacent sign distinction (MAX(A -4) = two args, MAX(A - 4) = one subtraction; §2023:8.7.1 operator
 // spacing + §2023:8.3.3.3.2 literal-sign adjacency) is preserved by the lexer's argument-region SIGNED_* twins.
 // A nested data-reference subscript inside an argument is a parsed subscriptPart like any other (kb/Work PB2113).
-// The empty-parens form (FUNCTION RANDOM ()) is the §2023:8.4.3.2 SR6 NOTE's shape.
-// The keyword-omitted form name(args) (§2023:8.4.3.2 SR2) has NO grammar alternative of its own (D2 — irreducible
+// The empty-parens form (FUNCTION RANDOM ()) is the §2023:8.4.3.2.3 SR6 NOTE's shape.
+// The keyword-omitted form name(args) (§2023:8.4.3.2.3 SR2) has NO grammar alternative of its own (D2 — irreducible
 // ambiguity with a subscripted dataReference): it parses as the dataReference's subscriptPart, whose items are
 // functionArguments, and the binder binds them as the arguments once it proves the name is a function.
 //
@@ -702,7 +707,7 @@ functionArgList
     : functionArgument (FNARG_SEPARATOR? functionArgument)*
     ;
 
-// One function argument (§2023:8.4.3.2 SR8 + the §15 per-function phrase words). The phrase-keyword alternative
+// One function argument (§2023:8.4.3.2.3 SR8 + the §15 per-function phrase words). The phrase-keyword alternative
 // admits the RESERVED words that appear inside §15 argument lists (TRIM LEADING/TRAILING §2023:15.96; FIND-STRING
 // LAST/START/AFTER §2023:15.37; SUBSTITUTE FIRST/LAST §2023:15.87; CONVERT ANY/ALPHANUMERIC/NATIONAL §2023:15.19) — words that
 // are plain IDENTIFIERs (ANYCASE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL) arrive

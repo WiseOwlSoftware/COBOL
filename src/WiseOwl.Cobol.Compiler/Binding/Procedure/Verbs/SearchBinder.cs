@@ -30,7 +30,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// downstream ever saw a subscript or a modifier at all. The resolution is now the ordinary §2023:8.4.2.2 one
     /// (<c>ReferenceResolver.ResolveTableOperand</c>) and the rules are the one check catalog's.</para>
     /// <para>⛔ A DYNAMIC-CAPACITY TABLE NESTED UNDER OTHER TABLES IS BOUNDED BY ONE INSTANCE'S CAPACITY (kb/Work
-    /// PB3365). Its scan bound (§2023:8.5.1.9.1 current capacity) and its EnterSearch/ExitSearch bracket (§2023:14.9.39 GR31)
+    /// PB3365). Its scan bound (§2023:8.5.1.9.1 current capacity) and its EnterSearch/ExitSearch bracket (§2023:14.9.39.4 GR31)
     /// are the <c>CobolDynTable</c> of ONE occurrence of the enclosing tables, and the statement names that occurrence
     /// in one of two places: identifier-1, which §2023:14.9.37.3 SR2 lets write the enclosing subscripts (read here, as the
     /// SORT table subject reads the same written subscripts, kb/Work PB1055), or — the spelling GR1 puts first and
@@ -69,7 +69,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>⛔ THE ACCESS PATH OF A DYNAMIC-CAPACITY TABLE'S INSTANCE, FOR THE SCAN BOUND AND THE EC-FLOW-SEARCH
-    /// BRACKET (kb/Work PB3365; ISO §2023:8.5.1.9.1, §2023:14.9.39 GR31) — null for every other table, whose bound is a number
+    /// BRACKET (kb/Work PB3365; ISO §2023:8.5.1.9.1, §2023:14.9.39.4 GR31) — null for every other table, whose bound is a number
     /// the declaration holds. The enclosing occurrences are identifier-1's own subscripts when it wrote them, else the
     /// ones the WHEN phrases wrote (§2023:14.9.37.4 GR1: "The subscript that is used to determine the occurrence of each
     /// superordinate table to search is specified by the user in the WHEN phrases"); a table in no other table needs
@@ -86,7 +86,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         IReadOnlyList<Position>? enclosing = written ?? fromWhens?.Subscripts ?? (table.SubscriptArity == 1 ? [] : null);
         if (enclosing is null)
         {
-            ctx.Validation.SearchNestedDynamicWithoutOccurrence(verb, DataBinder.WrittenText(dref), table);
+            ctx.Validation.SearchNestedDynamicWithoutOccurrence(verb, WrittenSource.Of(dref), table);
             bail = BoundRejected.Reported(ctx.Edition);
             return false;
         }
@@ -214,7 +214,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
                 // identifier-1, whose occurrence would otherwise move with every step of the scan (measured: the
                 // illegal spelling printed NONE where the legal one printed HIT). Both are reported; the bind
                 // stops at a refusal (§2023:4.2.2 — the compile has failed).
-                string text = DataBinder.WrittenText(v);
+                string text = WrittenSource.Of(v);
                 bool admitted = OperandClassScreen.Screen(ctx.Edition, OperandPositions.SearchVaryingIdentifier, p, text);
                 if (table.Indexes.Count > 0 && ctx.Refs.Subscripts.SubscriptNamesIndex(v, table.Indexes[0]))
                 {

@@ -86,7 +86,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         if (broken is null) return;
         using var _ = ctx.Edition.At(slit);
         ctx.Edition.Error(DiagnosticCatalog.StopLiteralOperand,
-            $"STOP {DataBinder.WrittenText(slit)}: the literal breaks §1985:VI.6.24.3 {broken}");
+            $"STOP {WrittenSource.Of(slit)}: the literal breaks §1985:VI.6.24.3 {broken}");
     }
 
     /// <summary>Decode a shared <c>statusPhrase</c> (<c>WITH? (ERROR|NORMAL) (STATUS (dataReference|literal)?)?</c>,
@@ -185,9 +185,9 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // §2023:13.18.38.3 r7 — the STATUS phrase is NOT one of the five contexts that may reference an
             // index-name (a subscript, PERFORM/SEARCH VARYING, SET, a relation condition). The R16 screen for
             // exactly this already existed and simply was not applied at this site.
-            if (host.Expr.ScreenIndexNameOperand(op, d.GetText(), "the STOP RUN / GOBACK status operand"))
-                return BoundOperandError.Refused(ctx.Edition, $"index-name '{d.GetText()}' in a termination-status phrase");
-            return ScreenStatusOperand(op, d.GetText());
+            if (host.Expr.ScreenIndexNameOperand(op, WrittenSource.Of(d), "the STOP RUN / GOBACK status operand"))
+                return BoundOperandError.Refused(ctx.Edition, $"index-name '{WrittenSource.Of(d)}' in a termination-status phrase");
+            return ScreenStatusOperand(op, WrittenSource.Of(d));
         }
         return null;   // WITH ERROR / NORMAL, no STATUS value — GR2/GR3's implementor indication
     }
@@ -333,7 +333,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                 bool resolved = true;
                 foreach (var n in names)
                 {
-                    // A section target transfers to its first paragraph (ISO §2023:14.9.17 GR1). An unresolvable
+                    // A section target transfers to its first paragraph (ISO §2023:14.9.17.4 GR1). An unresolvable
                     // procedure-name is REPORTED by the ONE operand resolution (kb/Work PB390) — GO TO states no
                     // syntax rule of its own about procedure-name-1, so §2023:8.4.2.1 alone decides. EVERY name in the
                     // series is screened: `GO TO A B C DEPENDING` with two bad names draws two diagnostics, not the
@@ -351,7 +351,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                     : g.inlineMethodInvocation() is { } imi ? (host.Oo.OoInlineInvocationOperand(imi), imi)
                     : (host.Expr.FieldOperand(g.dataReference()), g.dataReference());
                 bool admitted = OperandClassScreen.Screen(ctx.Edition, OperandPositions.GoToDependingSelector,
-                    selector, DataBinder.WrittenText(written));
+                    selector, WrittenSource.Of(written));
                 return resolved && admitted
                     ? new BoundGoToDepending(selector, targets, ctx.SourceLine(g))
                     : BoundRejected.Reported(ctx.Edition);
@@ -446,7 +446,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             }
             return new BoundExitPerform(e.CYCLE() is not null);
         }
-        if (e.PROGRAM() is not null)   // §2023:14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
+        if (e.PROGRAM() is not null)   // §2023:14.9.14.4 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
         {
             var element = ctx.Enclosing.SourceElement;
             if (!ctx.Enclosing.InProgramProcedureDivision)   // §2023:14.9.14.3 SR7
@@ -635,7 +635,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// but the grammar exposes it in two shapes: a direct child (<c>PERFORM proc TIMES</c>, alternatives without
     /// THRU) or wrapped in <c>performOptions</c> (the <c>PERFORM proc THRU proc [performOptions]</c> alternative and
     /// the inline <c>performOptions+</c> form). Resolving only the direct child dropped the count/condition on a THRU
-    /// range, silently running the range once instead of N times (§2023:14.9.28 GR9) — the NC106A/NC176A defect
+    /// range, silently running the range once instead of N times (§2023:14.9.28.4 GR9) — the NC106A/NC176A defect
     /// (DEVLOG 514). This one resolver handles every shape for both inline and out-of-line PERFORM.</summary>
     private BoundPerformControl BindPerformControl(Core.PerformStatementContext p)
     {
@@ -656,7 +656,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // is the programmer's job (inline: EXIT PERFORM; out-of-line: GOBACK/STOP). Introduction-gated in the
             // pass; §2023:14.9.28.3 SR8's placement was screened by CheckUntilExitPlacement before this runs.
             if (u.performUntilTarget().condition() is not { } condition) return new PerformForever();
-            // The UNTIL condition is evaluated per iteration (§2023:14.9.28 GR6/GR13), so a user-function
+            // The UNTIL condition is evaluated per iteration (§2023:14.9.28.4 GR6/GR13), so a user-function
             // reference inside it activates per evaluation — the drained-suffix wrapper, never the
             // once-per-statement hoist (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2).
             var udfMark = host.Udf.Mark;
@@ -687,7 +687,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             : BoundOperandError.Refused(ctx.Edition, "PERFORM TIMES count shape (ISO §2023:14.9.28.2 Format 2)");
         if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))
             ctx.Edition.Error(DiagnosticCatalog.PerformTimesCountNotInteger,
-                $"PERFORM TIMES count '{(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference())?.GetText()}' "
+                $"PERFORM TIMES count '{WrittenSource.Of(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference(), "")}' "
                 + $"shall be an integer (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.3 SR4", "§2023:14.9.28.3 SR2")}) — an integer data item, an integer literal, or an "
                 + "integer-type function-identifier (§2023:15.2 type 5)");
         return op;

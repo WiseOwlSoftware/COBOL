@@ -115,7 +115,7 @@ public sealed class SearchIndexRangeSpecTests
         Assert.Contains(Tagged(lines, "READ"), new[] { 1, 3, 5, 7, 9 });
     }
 
-    [Theory]   // §2023:13.18.38 GR7 makes an occurs-depending table's CURRENT count the last element, so GR9's bound
+    [Theory]   // §2023:13.18.38.4 GR7 makes an occurs-depending table's CURRENT count the last element, so GR9's bound
     [MemberData(nameof(AllEditions))]   // is 3 here even though storage for 5 exists — the case where "inside the
     // table" and "inside the storage" differ, and the one an off-by-one is likeliest to survive.
     public void SearchAll_UnsuccessfulOnAnOccursDependingTable_IsBoundedByTheCurrentCount(int edition)

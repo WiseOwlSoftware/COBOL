@@ -4,9 +4,9 @@ namespace WiseOwl.Cobol.Runtime.IO;
 
 /// <summary>
 /// The shared control logic of every file-organization connector (DESIGN-runtime-library §2.2): the ISO §2023:9.1.13
-/// FILE STATUS register, the §2023:14.9.30 GR21 / §2023:14.9.35 GR5 read-position guard pair, the OPEN/CLOSE preamble with
+/// FILE STATUS register, the §2023:14.9.30.4 GR21 / §2023:14.9.35.4 GR5 read-position guard pair, the OPEN/CLOSE preamble with
 /// its open-mode bookkeeping (§2023:14.9.49.4 GR6b–e USE-declarative mode scoping), the OPTIONAL-file absence flag,
-/// the RECORD IS VARYING bounds (§2023:13.18.43 GR9/GR10), and the record-area fit/store shaping. Organization-
+/// the RECORD IS VARYING bounds (§2023:13.18.43.4 GR9/GR10), and the record-area fit/store shaping. Organization-
 /// specific record SELECTION and the org-specific verb surfaces stay on the subclasses
 /// (<see cref="SequentialConnector"/> · <see cref="RelativeConnector"/> · <see cref="IndexedConnector"/>) —
 /// the base is the TRUE common denominator only; anything the organizations do differently remains theirs.
@@ -109,7 +109,7 @@ public abstract class FileConnector
     /// <summary>The record area's width in character positions.</summary>
     protected readonly int RecordWidth;
 
-    /// <summary>The RECORD IS VARYING bounds (ISO §2023:13.18.43 GR9/GR10); (-1,-1) = fixed-length records.</summary>
+    /// <summary>The RECORD IS VARYING bounds (ISO §2023:13.18.43.4 GR9/GR10); (-1,-1) = fixed-length records.</summary>
     protected readonly int VaryMin, VaryMax;
 
     /// <summary>True when the FD declares RECORD IS VARYING (the store then length-frames records).</summary>
@@ -257,7 +257,7 @@ public abstract class FileConnector
     /// registration (kb/Work PB63); the registry KEY is an emit-side namespace and is never displayed.</summary>
     public string SelectName { get; set; } = "";
 
-    /// <summary>True for a SELECT OPTIONAL file (ISO §2023:14.9.27 GR13/GR17).</summary>
+    /// <summary>True for a SELECT OPTIONAL file (ISO §2023:14.9.27.4 GR13/GR17).</summary>
     public bool IsOptional { get; set; }
 
     /// <summary>⛔ THE ISO EDITION THE PROGRAM THAT SELECTED THIS FILE WAS COMPILED FOR (85 / 2002 / 2014 /
@@ -699,10 +699,10 @@ public abstract class FileConnector
     public FileOpenMode? OpenModeIfOpen => _openMode ? Mode : null;
 
     /// <summary>OPEN INPUT/I-O of an absent OPTIONAL file: the connector is open but no physical store exists
-    /// (positioned at EOF / "not present", ISO §2023:14.9.27 GR13; §2023:9.1.13.2 item 5).</summary>
+    /// (positioned at EOF / "not present", ISO §2023:14.9.27.4 GR13; §2023:9.1.13.2 item 5).</summary>
     protected bool OptionalAbsent;
 
-    // Read-position state (ISO §2023:14.9.30 GR21 / §2023:14.9.35 GR5): a sequential READ after an unsuccessful READ with
+    // Read-position state (ISO §2023:14.9.30.4 GR21 / §2023:14.9.35.4 GR5): a sequential READ after an unsuccessful READ with
     // no reposition is itself unsuccessful ('46'); a sequential-access REWRITE/DELETE requires the immediately-
     // previous op be a successful READ (else '43'). The '43' gate drops in the Status SETTER (every outcome is
     // an operation; the READ terminals re-arm it after assigning) — kb/Work PB140's chokepoint. The '46' poison
@@ -717,7 +717,7 @@ public abstract class FileConnector
 
     /// <summary>A successful READ's terminal: assign the status (the setter drops the '43' gate like every
     /// other outcome) and then RE-ARM it — the ONE place a read outcome may do so (§2023:9.1.13.7 3)). A successful
-    /// READ is also a reposition, so the '46' poison clears (§2023:14.9.30 GR21).</summary>
+    /// READ is also a reposition, so the '46' poison clears (§2023:14.9.30.4 GR21).</summary>
     protected string ReadSucceeded(string status)
     {
         Status = status;
@@ -887,7 +887,7 @@ public abstract class FileConnector
     protected string? RandomReadAbsentOptionalGuard() =>
         OptionalAbsent ? FileStatusCode.RecordNotFound : null;   // '23' 3 b)
 
-    /// <summary>The length of the most recently read record (ISO §2023:13.18.43 GR15 — the frame length on a varying
+    /// <summary>The length of the most recently read record (ISO §2023:13.18.43.4 GR15 — the frame length on a varying
     /// file, the record width on a fixed one; the RECORD VARYING DEPENDING item receives it after a READ).
     /// Written only through <see cref="NoteRecordRead"/>, so it can never disagree with
     /// <see cref="CurrentRecord"/>.</summary>
@@ -946,13 +946,13 @@ public abstract class FileConnector
         IsVarying ? length < VaryMin || length > VaryMax : length < RecordWidth || length > MaxRecordSize;
 
     // ── Record-lock identity (ISO §2023:9.1.16 — record locking applies to EVERY organization; the READ/REWRITE/
-    //    WRITE/DELETE lock rules §2023:14.9.30 GR7–GR12 / §2023:14.9.35 GR11–GR12 / §2023:14.9.51 GR10–GR11 / §2023:14.9.10 GR6–GR7
+    //    WRITE/DELETE lock rules §2023:14.9.30.4 GR7–GR12 / §2023:14.9.35.4 GR11–GR12 / §2023:14.9.51.4 GR10–GR11 / §2023:14.9.10.4 GR6–GR7
     //    are ALL-FORMATS rules). Each organization names its records for the PhysicalFileTable: the RRN for
     //    relative, the prime record key for indexed, the record's 1-based ordinal position for sequential (the
     //    natural analogue — a relative store's frames ARE ordinals). Empty string = no identified record.
 
     /// <summary>The lock identity of the record most recently made available by a READ (§2023:9.1.16 — the record a
-    /// post-read lock acquisition targets; §2023:14.9.30 GR11c/d).</summary>
+    /// post-read lock acquisition targets; §2023:14.9.30.4 GR11c/d).</summary>
     public virtual string LastReadRecordId => "";
 
     /// <summary>The endpoint through which this connector's record locks are PUBLISHED to other run units
@@ -979,9 +979,9 @@ public abstract class FileConnector
     /// under multiple record locking is not this READ's to give up.</summary>
     internal bool? RecordLockHeldBeforeRead { get; set; }
 
-    /// <summary>The lock identity of the record a REWRITE/DELETE executed NOW would target (§2023:14.9.35 GR11 /
-    /// §2023:14.9.10 GR6 — the pre-operation conflict check; <paramref name="recordImage"/> supplies the key slice
-    /// for an indexed random/dynamic target, §2023:14.9.35 GR23 / §2023:14.9.10 GR3, and <paramref name="recordExtents"/> the
+    /// <summary>The lock identity of the record a REWRITE/DELETE executed NOW would target (§2023:14.9.35.4 GR11 /
+    /// §2023:14.9.10.4 GR6 — the pre-operation conflict check; <paramref name="recordImage"/> supplies the key slice
+    /// for an indexed random/dynamic target, §2023:14.9.35.4 GR23 / §2023:14.9.10.4 GR3, and <paramref name="recordExtents"/> the
     /// record area's EXTENT TABLE — D-FRA (v), kb/Work PB1053). "" when no record is identified.
     /// <para>⛔ A CONNECTOR NOT OPEN IN THE I-O MODE IDENTIFIES NO RECORD (kb/Work PB1194), the same contract the two
     /// READ peeks keep. §2023:14.9.35.4 GR3 (<i>"If the open mode is some other value or the file is not open, the I-O
@@ -1016,7 +1016,7 @@ public abstract class FileConnector
         PermanentErrorReplay()   // §2023:9.1.13.1 — a permanent error in effect answers first (kb/Work PB1541)
         ?? (IsOpen && Mode == FileOpenMode.IO ? null : FileStatusCode.DeleteRewriteNotOpenForIO);
 
-    /// <summary>The lock identity of the record released by the most recent successful WRITE (§2023:14.9.51 GR11 —
+    /// <summary>The lock identity of the record released by the most recent successful WRITE (§2023:14.9.51.4 GR11 —
     /// the WITH LOCK acquisition target).</summary>
     public virtual string LastWrittenRecordId => "";
 
@@ -1447,7 +1447,7 @@ public abstract class FileConnector
     /// <summary>This connector's fixed file attributes AS DECLARED — §2023:14.9.27.4 GR10's "the attributes of the
     /// file connector as specified in the file control paragraph and the file description entry". Assembled
     /// HERE, once, for every organization: the record type and the minimum/maximum logical record size are the
-    /// RECORD clause's (§2023:13.18.43 GR9/GR10 for a varying file; a fixed file's single record width for both
+    /// RECORD clause's (§2023:13.18.43.4 GR9/GR10 for a varying file; a fixed file's single record width for both
     /// bounds). Organizations contribute only what is theirs — <see cref="DeclaredOrganization"/> and, for an
     /// indexed file, <see cref="DeclaredKeys"/>.</summary>
     public FixedFileAttributes DeclaredAttributes => new(
@@ -1749,8 +1749,8 @@ public abstract class FileConnector
         && !ReferenceEquals(form, image) ? (form, null) : (image, extents);
 
     /// <summary>The stored image of a record being written: a varying record keeps exactly its declared length
-    /// (ISO §2023:13.18.43 GR13 — truncate/pad the area image to it); a fixed record fills the record width. Returns
-    /// null (→ '44') when a varying length violates the declared bounds (GR14 / §2023:14.9.35 GR20).</summary>
+    /// (ISO §2023:13.18.43.4 GR13 — truncate/pad the area image to it); a fixed record fills the record width. Returns
+    /// null (→ '44') when a varying length violates the declared bounds (GR14 / §2023:14.9.35.4 GR20).</summary>
     protected string? Stored(string image, int length)
     {
         if (!IsVarying) return Fit(image);

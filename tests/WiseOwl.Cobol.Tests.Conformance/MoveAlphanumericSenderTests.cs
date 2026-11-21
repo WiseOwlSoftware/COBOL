@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// sweep below, which is what proves the rule is not accidentally gated — the standard states it identically at
 /// all four editions, and the wrap it replaced was measured at all four.</para>
 ///
-/// <para>The RAISE half can only live here: EC-DATA-INCOMPATIBLE is fatal (§2023:14.6.13.1.1 Table 13), so the run
+/// <para>The RAISE half can only live here: EC-DATA-INCOMPATIBLE is fatal (§2023:14.6.13.1.6 Table 13), so the run
 /// unit terminates abnormally and no <c>.out</c> file can record it. Its positive control — checking ON, all-digit
 /// content, nothing raised — is 2002/pb426_alnum_sender_data_incompatible, so the raise is never pinned by a test
 /// that has only ever seen the failing case.</para>

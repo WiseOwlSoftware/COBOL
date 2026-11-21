@@ -849,7 +849,7 @@ public sealed class ProgramTable
             ?? (ProbeSiblingModule(target, wantFunction: false) ? Outermost(target, function: false) : null);
         notFound = located is null;
         if (located is not null) return new ProgramPointer(located.CallName);
-        return ProgramPointer.Null;   // §2023:8.4.3.13 GR4 — the value is the predefined address NULL
+        return ProgramPointer.Null;   // §2023:8.4.3.13.4 GR4 — the value is the predefined address NULL
     }
 
     /// <summary>Resolve a function-address-identifier (ISO §2023:8.4.3.12, <c>ADDRESS OF FUNCTION</c>): locate the
@@ -897,7 +897,7 @@ public sealed class ProgramTable
         return Outermost(p.Name!, function: true) is { } n && Math.Max(n.FormalCount, 0) == expectedFormals;   // an address no registration backs is not "the address of a function … with the same signature"
     }
 
-    /// <summary>Execute a CALL through a program-pointer (ISO §2023:14.9.4 SR1 — identifier-1 references a
+    /// <summary>Execute a CALL through a program-pointer (ISO §2023:14.9.4.3 SR1 — identifier-1 references a
     /// program-pointer item; GR at :26177 — the item "contains the location of the program being called").
     /// A NULL pointer has no program to call: §2023:14.9.4.4's "invalid program address" execution is undefined —
     /// this implementation defines it as the EC-PROGRAM-NOT-FOUND loud failure (never a silent no-op). The

@@ -49,6 +49,7 @@ from extract_rule_catalog import (  # noqa: E402
 )
 import inventory_schema  # noqa: E402  (the held editions: the schema's `editions.of`)
 import spec_pdf  # noqa: E402  (the one edition option)
+import text_units  # noqa: E402  (the dispositions of the units of unnumbered text, kb/Work PB5449)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -169,10 +170,15 @@ def audit(ed: IsoEdition, args: argparse.Namespace) -> int:
             if info.get("disposition") == "rules":
                 admitted[sec] = info["kind"]
 
+    # The clauses ADMITTED as paragraph rows: every unit of the clause's unnumbered text disposed as a row kind (kb/Work
+    # PB5449: `paragraph-blocks` holds the disposition of every unit of the normative region, most of them pending, so
+    # holding a key no longer means admitted). A clause some of whose units are rows and others not is held unit by unit
+    # by extract_rule_catalog.py's dispositions audit, never sentence for sentence against its whole body.
     prose_blocks: set[str] = set()
     if EDITION.unharvested.exists():
-        prose_blocks = {sec for sec in json.loads(EDITION.unharvested.read_text(encoding="utf-8")).get(PARAGRAPH_BLOCKS, {})
-                        if not sec.startswith("_")}
+        manifest = json.loads(EDITION.unharvested.read_text(encoding="utf-8")).get(PARAGRAPH_BLOCKS, {})
+        prose_blocks = {sec for sec, units in text_units.entries_of(manifest).items()
+                        if units and all(u.get("disposition") in text_units.ROW_KINDS for u in units)}
 
     catalog = json.loads(EDITION.catalog.read_text(encoding="utf-8"))
     # The clauses where the catalog itself records a finding that changes the count: kept in the rule it interrupts

@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding.Bound;
 // Binding/Procedure/Verbs/SortBinder.cs; these types STAY here — the emitter, BoundStores,
 // UsageCollectionPass, and the source-generated visitor key on this namespace).
 
-/// <summary>One sort/merge key (ISO §2023:14.9.40 GR1/GR2 — significance is statement order, direction is the nearest
+/// <summary>One sort/merge key (ISO §2023:14.9.40.4 GR1/GR2 — significance is statement order, direction is the nearest
 /// preceding ASCENDING/DESCENDING word): its BYTE window within the SD record image (<paramref name="Offset"/>,
 /// <paramref name="Length"/> — compile-time, §2023:14.9.40.3 SR6a/SR6e: the same byte positions are the key in EVERY
 /// record of the file; a national position occupies two of those bytes, §2023:13.18.60.4 GR8 / D-N1) and its
@@ -32,7 +32,7 @@ public sealed record BoundSortMergeKey(
 
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §2023:13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
-/// length into it (GR15) — and the min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §2023:14.9.40 GR12b;
+/// length into it (GR15) — and the min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §2023:14.9.40.4 GR12b;
 /// §2023:13.18.43.4 GR14 b) / GR19 b) for the RELEASE statement — tested by CobolSort, kb/Work PB1036).
 /// <paramref name="Depending"/> is null for a variable-length SD/FD with no DEPENDING phrase (RECORD m TO n —
 /// GR13b/c: each record then releases/writes at its own size; there is no length register to restore).</summary>
@@ -139,7 +139,7 @@ public sealed record BoundMerge(
 
 /// <summary><c>RELEASE record-name-1 [FROM x]</c> (ISO §2023:14.9.32): release the SD record's image to the initial
 /// phase of the active sort (GR2). FROM ≡ <c>MOVE x TO record-name-1</c> then the same RELEASE (GR4). A varying SD
-/// releases at the length the RECORD VARYING DEPENDING ON item holds (§2023:13.18.43 GR13); a fixed SD at its ONE record
+/// releases at the length the RECORD VARYING DEPENDING ON item holds (§2023:13.18.43.4 GR13); a fixed SD at its ONE record
 /// size, the largest record description's (§2023:13.18.43.4 GR5 a) — a shorter record description sends the record area's
 /// image, kb/Work PB322 F). A short USING-file record is filled by §2023:14.9.40.4 GR7, the USING transfer's own rule
 /// (kb/Work PB1140), and a short RETURNed record for a GIVING file by GR16. <paramref name="RangeFailsStatement"/> is
@@ -153,7 +153,7 @@ public sealed record BoundRelease(
 /// <summary><c>RETURN file-name-1 RECORD [INTO x] AT END … [NOT AT END …]</c> (ISO §2023:14.9.34): make the next record
 /// (in key order) available in the SD record area (GR3); INTO ≡ RETURN then MOVE record-area → x (GR5, skipped at
 /// end); at end → <paramref name="AtEnd"/>, else <paramref name="NotAtEnd"/> (GR3/GR4). A varying SD restores the
-/// returned record's length into the DEPENDING item (§2023:13.18.43 GR15).</summary>
+/// returned record's length into the DEPENDING item (§2023:13.18.43.4 GR15).</summary>
 public sealed record BoundReturn(
     FileModel File, Place RecordArea, BoundMove? IntoMove,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,

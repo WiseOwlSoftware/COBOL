@@ -50,7 +50,7 @@
       *> OTHER legally: they carry LOCK MODE IS AUTOMATIC.
       *> LEG 2 (F3/F4, SHARING plus LOCK MODE IS AUTOMATIC).  F3's PLAIN
       *> read locks record 1 (GR4), so F4's read of it is refused with
-      *> the record operation conflict status '51' (§2023:14.9.30 GR9,
+      *> the record operation conflict status '51' (§2023:14.9.30.4 GR9,
       *> §2023:9.1.13.8) and no record is made available.
       *> R2='00' against R4='51' IS the delegation: identical
       *> statements, opposite outcomes, decided only by 12.4.5.9.

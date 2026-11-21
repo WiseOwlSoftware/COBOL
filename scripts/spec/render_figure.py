@@ -752,7 +752,7 @@ def build(page, lo, hi, extract, classify_page):
                 grid[r][c + j] = ch
             # `underlined` is True/False, or [(offset, length), …] when the rule covers only PART of the word.
             # The partial case is the compiler-directive indicator printed hard against its keyword —
-            # `>>CALL-CONVENTION` underlines only the keyword, because `>>` is not a word (§2023:7.3 SR5 treats the
+            # `>>CALL-CONVENTION` underlines only the keyword, because `>>` is not a word (§2023:7.3.3 SR5 treats the
             # indicator as though a space followed it). Marking the whole token would state that `>>` is a
             # required WORD, which is a normative claim the printed page does not make.
             u = w["underlined"]

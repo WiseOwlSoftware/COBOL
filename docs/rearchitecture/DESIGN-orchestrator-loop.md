@@ -1480,19 +1480,10 @@ Owner 2026-10-04: "Publish ledger each time." The page is the owner's live view 
 its session has no `Artifact` tool (probed 2026-10-04 on Haiku: asked whether the tool is available, it answers NO), and a
 wrapper around the claude.ai API would be a second author of the page. So the work splits where the capability is:
 - **A unit renders** (`units/wave.md` step 5, `units/enqueue.md` step 7): `python scripts/spec/gen_ledger.py --out
-  {COORD}\ledger.html`; every figure on the page is computed and none is hand-written (the in-flight narrative was
-  removed, kb/Work PB2912).
-- **The trend series lives beside the page, never in a checkout** (`{COORD}\ledger-trend.json`, `gen_ledger.TREND`;
-  kb/Work PB2426). It is the publish's state: every point is measured from its own commit's tree, and `missed_points`
-  rebuilds any point a render skipped, so only the battery marks and the frozen `program` list exist nowhere else. While
-  it was the tracked `docs/rearchitecture/evidence/ledger-trend.json`, every render left the checkout it ran in dirty,
-  and in the main checkout `next_unit.py` then started a `resume` unit whose only finding was that file. Every worktree
-  shares the one file, so ONLY A RENDER OF MAIN'S PAGE APPENDS: `gen_ledger.py` asks `ledger_state.stale_checkout_line`
-  (the check behind its NOT MAIN'S PAGE line) before it writes, and a branch's or a stale checkout's render records
-  nothing. The series is read and written through `coord.read_json` / `coord.write_json` (a temp file renamed over
-  it), so a unit killed mid-render never leaves it torn, and a write to a path that is not absolute (the Windows
-  default read on Linux) is refused. A data correction to the series (kb/Work PB3115, PB3357) is applied to this file
-  by its fix, outside any branch, and stated in the fix's note.
+  {COORD}\ledger.html`; every figure on the page is computed and none is hand-written. The page is per edition (kb/Work
+  PB5994): each edition's state is `edition_status.py`'s, the work in flight is `prune_worktrees.live_survey`, the quota
+  is `budget.current`. It keeps no series: the GAP trend (`ledger-trend.json`) was removed with the 2023-only view, so a
+  render writes nothing but the page.
 - **The supervisor announces.** After every unit it runs `ledger_state.py owed`, which compares the page's own stamp (the
   last commit touching an input of the page, `gen_ledger.STAMP_PATHS`, imported so the two cannot disagree) with
   `ledger-published.json`, and prints `LEDGER PUBLISH OWED` in its log when they differ. `stop.ps1 -Status` shows the same.
@@ -2228,6 +2219,19 @@ marker), and, for a section that has entries, one file per entry named by the en
 | 5 the A.4 dispositions | `docs/conformance/5/` | `A.4-<n>.md`, frontmatter `cells:` |
 | 7 the A.1 register | `docs/conformance/7/` | `DOC-A.1-<item>.md`, frontmatter `cells:`; a body when the row has one |
 | 8 the derivations | `docs/conformance/8/` | `DRV-<rule-id>.md`, frontmatter `cells:`; a body when the row has one |
+| 9 the COBOL-85 conformance statement (kb/Work PB4997) | `docs/conformance/9/` | none: `index.md` only, frontmatter `generated: "conformance_1985"` |
+| 9.1 the rules the COBOL-85 claim does not support | `docs/conformance/9.1/` | `<rule-id>.md`, frontmatter `cells:` |
+| 9.2, 9.3 the COBOL-85 hardware components and character set | `docs/conformance/9.2/`, `9.3/` | none: `index.md` only |
+
+A section may be partly COMPUTED (kb/Work PB4997): an index whose frontmatter names a generator of
+`conformance_source.GENERATORS` (`generated:`) has the text the generator computes from tracked data appended to its
+preamble in the rendered whole (the view, the package's copy, `problems`), and the generator's findings are the sources'
+findings, so `conformance_doc.py --check` fails when the computed part and the hand-written parts it holds to disagree. A reader's `load` takes the frame alone: the computed text holds no register row,
+determination or key, and computing it reads the inventory view, whose state rule reads the registers, so a reader that
+computed it would pay for the view on every load and could reach the view computed from the document. Section 9 is
+the one such section: `scripts/spec/conformance_1985.py` computes the COBOL-85 claim from the 1985 inventory and holds
+section 9.1's rows to the rules the claim does not support, both ways (DESIGN-spec-conformance-review.md section 10.2,
+slice 6). A computed text is never committed, so it cannot go stale and two landings never collide on it.
 
 Every keyed entry is its own file, so two landings that add or edit different determinations or rows touch different
 files and plain git merges them (PB5110's rule, which supersedes the keyed-table driver this section first planned for

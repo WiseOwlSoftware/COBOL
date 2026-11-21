@@ -155,7 +155,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     }
 
     /// <summary>Enter a per-pc bind position as ONE scoped operation (10s — replaces the ambient ordered
-    /// quadruple mutation): section → method scope → the §2023:11.7 GR5 data shadowing
+    /// quadruple mutation): section → method scope → the §2023:11.7.4 GR5 data shadowing
     /// (<c>Data.Procedure.ActiveMethodScope</c>) → cursor, set coherently and restored together on dispose.</summary>
     public BindPositionScope EnterMethodScope(SectionInfo? section, OoMethodScope? scope, int pc)
     {

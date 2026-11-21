@@ -6,7 +6,7 @@ using WiseOwl.Cobol.Runtime.Repository;
 namespace WiseOwl.Cobol.Binding.Model;
 
 /// <summary>One program unit of the compilation group: its identity, containment, PROGRAM-ID attributes
-/// (ISO §2023:11.10 / §2023:8.6.6), bound model, and the GLOBAL bridges its class must emit (§2023:13.18.27 GR2).
+/// (ISO §2023:11.10 / §2023:8.6.6), bound model, and the GLOBAL bridges its class must emit (§2023:13.18.27.4 GR2).
 /// <para>Relocated from the emitter's private <c>CallUnit</c> (rearch PHASE-06 Step 2 — the BINDER owns the bound
 /// model; the emitter consumes it read-only through <see cref="BoundCompilation"/>).</para></summary>
 internal sealed class BoundUnit
@@ -111,7 +111,7 @@ internal sealed class BoundUnit
 }
 
 /// <summary>One inherited-GLOBAL bridge a nested class emits: a property aliasing the containing instance's
-/// member (ISO §2023:13.18.27 GR2 — the name is visible in every contained program; the STORAGE stays the
+/// member (ISO §2023:13.18.27.4 GR2 — the name is visible in every contained program; the STORAGE stays the
 /// container's). Built ONLY by <c>LinkageBinder.GlobalBridgesOf</c>, the one list of the members a reference to a
 /// global root can render (kb/Work PB1009). <paramref name="Formal"/> is set when the bridged member belongs to a
 /// FORMAL PARAMETER of the container — its carrier (<see cref="CallBridgeKind.Carrier"/>, whose cell type the emitter

@@ -227,7 +227,8 @@ class Inputs:
     requirable: frozenset[str]
     #: Annex A.1 item -> the values the standard enumerates for it (implementor-defined.json).
     implementor_defined: dict[int, tuple[str, ...]]
-    #: wiseowl/diagnostics/<id>.json: test id -> {"refuse-at": [...], "expect": "..."}.
+    #: wiseowl/diagnostics/<id>.json: test id -> {"refuse-at": [...], "warn-at": [...], "expect": "..."}: the editions at
+    #: which WiseOwl refuses the program and those at which it compiles it with a warning, and the code or text reported.
     diagnostics: dict[str, dict[str, Any]]
     #: The two evidence predicates of the report, injectable so the self-test can drive every witness kind.
     determined: Callable[[dict[str, Any]], bool]
@@ -959,20 +960,35 @@ def check_cases(reader: Reader) -> None:
         if case is None:
             reader.refuse(where, 1, f"an entry for {test_id!r}, which is no test")
             continue
-        at = entry.get("refuse-at") if isinstance(entry, dict) else None
         expect = entry.get("expect") if isinstance(entry, dict) else None
-        if not isinstance(at, list) or not at or not isinstance(expect, str) or not expect:
-            reader.refuse(where, 1, f"{test_id}: an entry is {{\"refuse-at\": [<editions>], \"expect\": "
-                                    f"\"<code or text>\"}}")
+        shape = isinstance(entry, dict) and set(entry) <= {"refuse-at", "warn-at", "expect"}
+        lists = {key: entry.get(key) for key in ("refuse-at", "warn-at")} if shape else {}
+        if (not shape or not isinstance(expect, str) or not expect or not any(lists.values())
+                or any(v is not None and (not isinstance(v, list) or not v) for v in lists.values())):
+            reader.refuse(where, 1, f"{test_id}: an entry is {{\"refuse-at\": [<editions>], \"warn-at\": [<editions>], "
+                                    f"\"expect\": \"<code or text>\"}}, with one of the two lists or both")
             continue
+        spelled: dict[str, list[str]] = {}
         try:
-            spelled = inputs.schema.spell_editions(at).split(inputs.schema.editions_sep)
+            for key, at in lists.items():
+                if at is not None:
+                    spelled[key] = inputs.schema.spell_editions(at).split(inputs.schema.editions_sep)
         except ValueError as e:
-            reader.refuse(where, 1, f"{test_id}: refuse-at: {e}")
+            reader.refuse(where, 1, f"{test_id}: {key}: {e}")
             continue
-        if overlap := sorted(set(spelled) & set(case.accept), key=inputs.editions.index):
+        if overlap := sorted(set(spelled.get("refuse-at", ())) & set(case.accept), key=inputs.editions.index):
             reader.refuse(where, 1, f"{test_id}: WiseOwl refuses it at {', '.join(overlap)}, where the test must be "
                                     f"accepted")
+        # A warning is the compiler's report on a program it COMPILES: at an edition the test is accepted at, or at one
+        # it is flagged at (a flagged test's judge is a diagnostic at its marked line, a warning or an error, §3.2),
+        # never where WiseOwl refuses it (kb/Work PB5461).
+        compiled = set(case.accept) | set(case.flag.at if case.flag else ())
+        if stray := sorted(set(spelled.get("warn-at", ())) - compiled, key=inputs.editions.index):
+            reader.refuse(where, 1, f"{test_id}: WiseOwl warns at {', '.join(stray)}, where the test is neither "
+                                    f"accepted nor flagged")
+        if both := sorted(set(spelled.get("warn-at", ())) & set(spelled.get("refuse-at", ())),
+                          key=inputs.editions.index):
+            reader.refuse(where, 1, f"{test_id}: WiseOwl both refuses and warns at {', '.join(both)}")
     # wiseowl/options/ (§4): WiseOwl's compile options, for WiseOwl's own tests only, one file per test or build step.
     for test_id, entry in inputs.options.items():
         where = sidecar_path(OPTIONS_DIR, test_id)
@@ -1004,7 +1020,7 @@ def check_cases(reader: Reader) -> None:
     for case in reader.cases:
         if case.flag is not None and case.test_id not in inputs.diagnostics:
             reader.refuse(case.path, 1, "a flagged test needs a file wiseowl/diagnostics/<id>.json: the editions at "
-                                        "which WiseOwl COBOL refuses it and what it reports (§4, §9)")
+                                        "which WiseOwl COBOL refuses it or warns of it, and what it reports (§4, §9)")
 
 
 def format_defined_at(source_format: str, edition: str, order: list[str]) -> bool:
@@ -1200,14 +1216,23 @@ def manifests(cases: list[Case], inputs: Inputs) -> dict[str, dict[str, Any]]:
                  if c.in_suite and (e in c.accept or (c.flag is not None and e in c.flag.at))]
         out[e] = {"edition": e, "generator": "conformance-suite/harness/generate.py", "tests": tests}
     wiseowl: dict[str, Any] = {"generator": "conformance-suite/harness/generate.py", "editions": {}, "diagnostics": {}}
+    def warned(case: Case, edition: str) -> dict[str, str]:
+        """`warns`: the diagnostic WiseOwl reports as a WARNING on a program it compiles at this edition (its
+        `wiseowl/diagnostics/` entry's `warn-at`), which the runner requires beside the test's own verdict."""
+        entry = inputs.diagnostics.get(case.test_id, {})
+        spelled = inputs.schema.spell_editions(entry.get("warn-at", [])).split(inputs.schema.editions_sep)
+        return {"warns": entry["expect"]} if edition in spelled else {}
+
     for e in inputs.editions:
         wiseowl["editions"][e] = [
             {**entry_for(c, e, inputs), "tree": c.tree, "portable": c.portable, "in-suite": c.in_suite,
-             "options": dict(inputs.options.get(c.test_id, {}))}
+             "options": dict(inputs.options.get(c.test_id, {})), **warned(c, e)}
             for c in ordered if e in c.accept or (c.flag is not None and e in c.flag.at)]
     by_id = {c.test_id: c for c in cases}
     for test_id in sorted(inputs.diagnostics):
         entry = inputs.diagnostics[test_id]
+        if "refuse-at" not in entry:
+            continue   # a warning alone is no refusal: it is carried on the test's own entry above
         case = by_id[test_id]
         # What a runner needs to compile the refused program as the suite compiles it: its source, its reference
         # format and its declared files (a copybook it COPYs), never a re-read of its header.
@@ -1528,7 +1553,8 @@ def _planted_inputs(diagnostics: dict[str, dict[str, Any]] | None = None) -> Inp
         requirable=frozenset({"A.4.11", "A.3-2"}), implementor_defined={9: ("one", "two")},
         diagnostics=diagnostics if diagnostics is not None else {
             "flagged": {"refuse-at": ["85", "2002", "2014", "2023"], "expect": "X1"},
-            "free-flag": {"refuse-at": ["2002"], "expect": "X2"}},
+            "free-flag": {"refuse-at": ["2002"], "expect": "X2"},
+            "own": {"warn-at": ["2023"], "expect": "W1"}},
         determined=lambda r: r["rule-id"] in ("DOC-A.1-9", "DOC-A.1-10"), derived=lambda r: bool(r.get("derivation")),
         reserved={"85": frozenset({"IDENTIFICATION", "DIVISION", "PROGRAM-ID", "DATA", "WORKING-STORAGE", "SECTION",
                                    "PIC", "VALUE", "PROCEDURE", "DISPLAY", "STOP", "RUN"})},
@@ -1737,6 +1763,11 @@ def self_test() -> int:
                   {k: mw["diagnostics"]["free-flag"][k] for k in ("source", "source-format", "files", "refuse-at")}
                   == {"source": "cases/2.2.2-Free/free-flag.cob", "source-format": "free", "files": [],
                       "refuse-at": ["2002"]}, mw["diagnostics"]["free-flag"])
+            check("arm: a test WiseOwl compiles with a warning carries it as `warns` on its own entry, at the edition named "
+                  "(and no other test or edition has the key), and is no refusal",
+                  w2023["own"].get("warns") == "W1" and "warns" not in w2023["loose"]
+                  and not any("warns" in t for t in mw["editions"]["85"]) and "own" not in mw["diagnostics"],
+                  (w2023["own"], sorted(mw["diagnostics"])))
             report = json.loads((root / "suites/completeness.json").read_text(encoding="utf-8"))
             r85 = report["85"]
             check("arm: completeness counts each row once under its first witness kind",
@@ -2139,6 +2170,9 @@ def self_test() -> int:
         "no-control", "late-control", "gr-flag", "unmarked", "loud", "ar-flag", "early-flag", "weak-ctl")}
     diagnostics["ghost"] = {"refuse-at": ["85"], "expect": "X"}
     diagnostics["ok"] = {"refuse-at": ["85"], "expect": "X"}
+    diagnostics["rough"] = {"warn-at": ["2002"], "expect": "X"}
+    diagnostics["copy-margin"] = {"refuse-at": ["2002"], "warn-at": ["2002"], "expect": "X"}
+    diagnostics["copy-display"] = {"warn-at": [], "expect": "X"}
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         _plant(root, base | {path: text for path, text, _ in bad.values()})
@@ -2154,6 +2188,12 @@ def self_test() -> int:
               any("an entry for 'ghost', which is no test" in r for r in refused), refused[:3])
         check("arm: a wiseowl/diagnostics/ refusal where the test must be accepted is refused",
               any("ok: WiseOwl refuses it at 85, where the test must be accepted" in r for r in refused))
+        check("arm: a warning at an edition the test is neither accepted nor flagged at is refused",
+              any("rough: WiseOwl warns at 2002, where the test is neither accepted nor flagged" in r for r in refused))
+        check("arm: an edition both refused and warned at is refused",
+              any("copy-margin: WiseOwl both refuses and warns at 2002" in r for r in refused))
+        check("arm: an entry with an empty list, or neither list, is refused",
+              any("copy-display: an entry is" in r for r in refused))
         check("arm: a problem in implementor-defined.json is refused", any("planted" in r for r in refused))
         check("arm: a refused tree writes nothing", not (root / "suites").exists())
     with tempfile.TemporaryDirectory() as d:

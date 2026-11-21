@@ -66,9 +66,9 @@ def code_files() -> list[pathlib.Path]:
     `audit_code_citations.py`'s DIAGNOSTIC-STRING checks run over (kb/Work PB838).
 
     ⛔ IT IS A NARROWER POPULATION THAN `prose_files()`, ON PURPOSE, AND THE SCOPE IS THE WHOLE CHECK. A
-    citation in a COMMENT sits beside the derivation that justifies it, and this repository deliberately writes
-    a rule block's clause both ways (`§14.9.39 GR29` and `§14.9.39.4 GR29`) — `_alias` exists for that. A
-    citation inside a MESSAGE STRING is all the user gets: it is read alone, in a terminal, by someone looking
+    citation in a COMMENT sits beside the derivation that justifies it, and this repository once wrote
+    a rule block's clause both ways (`§14.9.39 GR29` and `§14.9.39.4 GR29`; RESOLVE refuses the first, kb/Work
+    PB5318). A citation inside a MESSAGE STRING is all the user gets: it is read alone, in a terminal, by someone looking
     the rule up. Measured 2026-09-21: "a rule kind with no ordinal" is 2683 sites tree-wide (`SR 1` with a
     space, `SR-14.9.28.3-2` row ids, "the 1561-1563 SR band") and 5 inside message strings. The narrow
     population is the decidable one."""

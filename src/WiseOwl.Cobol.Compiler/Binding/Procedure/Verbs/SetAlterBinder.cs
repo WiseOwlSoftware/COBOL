@@ -117,7 +117,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
     /// <summary>Bind <c>ALTER {proc-1 TO [PROCEED TO] proc-2}…</c> (ANSI X3.23-1985; 85-ONLY — rejected at 2002+
     /// as a deleted element). Each proc-1 shall be a paragraph consisting of a single sentence that is exactly one
     /// GO TO Format 1 (with or without a written target); execution replaces that GO TO's transfer target with
-    /// proc-2 (a section proc-2 transfers to its first paragraph, the §2023:14.9.17 GR1 GO TO rule).</summary>
+    /// proc-2 (a section proc-2 transfers to its first paragraph, the §2023:14.9.17.4 GR1 GO TO rule).</summary>
     public BoundStatement BindAlter(Core.AlterStatementContext al)
     {
         // ALTER was REMOVED by ISO 2002; the edition gate moved to the post-bind VersionConformancePass
@@ -129,7 +129,7 @@ internal sealed class SetAlterBinder(BinderContext ctx)
         foreach (var entry in al.alterEntry())
         {
             if (entry.procedureName() is not { Length: >= 2 } names)
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"ALTER '{entry.GetText()}': each ALTER entry is procedure-name-1 TO "
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"ALTER '{WrittenSource.Of(entry)}': each ALTER entry is procedure-name-1 TO "
                     + "[PROCEED TO] procedure-name-2 (X3.23-1985 ALTER statement)");
             // ⛔ BOTH ALTER OPERANDS ARE procedure-names AND GO THROUGH THE ONE RESOLUTION (kb/Work PB390):
             // an unresolvable name is reported at COMPILE time, not staged to a run-time abort blaming a gap in

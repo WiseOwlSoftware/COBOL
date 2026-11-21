@@ -10,6 +10,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Validation;
 
@@ -228,7 +229,7 @@ internal sealed class StatementValidation(DataBinder data)
             return word;
         using var _ = data.Edition.At(operand);
         data.Edition.Error(DiagnosticCatalog.FileNameOperandShape,
-            $"{verb} '{DataBinder.WrittenText(operand)}' — a file-name is a user-defined word naming a file "
+            $"{verb} '{WrittenSource.Of(operand)}' — a file-name is a user-defined word naming a file "
             + "connector, and is written alone: "
             + data.Edition.Edition.Cite(
                 "ISO §1985:IV.4.3.8.1 gives a file-name no qualified format (it appears there only as the qualifier of a "
@@ -245,13 +246,21 @@ internal sealed class StatementValidation(DataBinder data)
                                  bool admitsReportFile, string? statementRule)
     {
         string name = written.GetText();
+        string nameWritten = WrittenSource.Of(written);
         file = data.Symbols.Identify(written, NameClass.File, report: true)?.Symbol as FileModel;
         if (file is not null)
             return admitsReportFile || ScreenReportFileReference(file, verb, statementRule);
+        // §1985:X.1.3.8.2 GR3a: a nearer declaration of the spelling (this program's own data item) hides a container's GLOBAL file, and
+        // then a SELECT of a containing program DOES give the name — the refusal says what the word names here instead (kb/Work PB5980).
+        var hider = data.Symbols.Declared.FileNameHiddenBy(name);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
-            $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
-            + "or file description entry in this source element gives that name, so the statement's reference "
-            + $"identifies no resource ({data.Edition.Edition.Quoted()}). Check the spelling, or add the file to the FILE-CONTROL paragraph.");
+            $"'{nameWritten}' is not defined as a file — {verb} names file-name-1 in its general format, and "
+            + (hider is null
+                ? "no SELECT or file description entry in this source element gives that name"
+                : NameResolution.HidingClause(hider.Value, nameWritten, "file-name", data.Edition.Edition))
+            + ", so the statement's reference "
+            + $"identifies no resource ({data.Edition.Edition.Quoted()}). "
+            + (hider is null ? "Check the spelling, or add the file to the FILE-CONTROL paragraph." : "Rename one of the two declarations."));
         return false;
     }
 
@@ -810,6 +819,16 @@ internal sealed class StatementValidation(DataBinder data)
                 + $"description entry of '{hiddenFile.CobolName}', or write the {verb} in the program that describes it.");
             return false;
         }
+        // §1985:X.1.3.8.2 GR3a: this program's own data item of the spelling hides a container's GLOBAL record-name, so the operand
+        // names the data item and the refusal says so, never that no file description entry has such a record (kb/Work PB5980).
+        if (record.Item.CobolName is { } recordName && data.Symbols.Declared.RecordNameHiddenBy(recordName) is { } hider)
+        {
+            data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
+                $"{verb} '{refText}' — {rule}; "
+                + NameResolution.HidingClause(hider, refText, "record-name", data.Edition.Edition)
+                + $", so '{refText}' is not a logical record of a file description entry visible here. Rename one of the two declarations.");
+            return false;
+        }
         DataItem root = record.Item;
         while (root.Parent is { } up) root = up;
         data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
@@ -904,7 +923,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <returns>The table identifier-1 names with the subscripts it wrote, or null after reporting when the statement cannot bind.</returns>
     public ReferenceResolver.TableOperand? ResolveSearchTable(Core.DataReferenceContext dref, string verb, ReferenceResolver refs)
     {
-        string written = dref.GetText();
+        string written = WrittenSource.Of(dref);
         if (refs.ResolveTableOperand(dref) is not { } operand)
         {
             // A name identifying no item is already reported (COBOL1639 — §2023:8.4.2.1 "In order to use a
@@ -1608,7 +1627,7 @@ internal sealed class StatementValidation(DataBinder data)
             if (data.Symbols.FileWhoseRecordIs(root) is not { IsSortMerge: true } sd) return;
             using var _ = data.Edition.At(dref);
             data.Edition.Error(DiagnosticCatalog.SortMergeRecordInIoStatement,
-                $"{verb} '{DataBinder.WrittenText(dref)}' — "
+                $"{verb} '{WrittenSource.Of(dref)}' — "
                 + (ReferenceEquals(root, probe.Item) ? "" : $"'{probe.Item.CobolName}' belongs to ")
                 + $"'{root.CobolName}', a record description entry of the sort-merge file '{sd.CobolName}', and {SortMergeRecordRuleCite}: \"A record description entry associated "
                 + "with file-name-1 shall not be specified in an input-output statement other than following the word "
@@ -1698,21 +1717,24 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>⛔ THE ONE ENFORCEMENT OF COBOL-85's "THE NEXT PHRASE MUST BE SPECIFIED FOR FILES IN DYNAMIC ACCESS MODE, WHEN
     /// RECORDS ARE TO BE RETRIEVED SEQUENTIALLY" (kb/Work PB5102) — §1985:VIII.4.5.3 SR3 (relative) and §1985:IX.4.5.3 SR5
-    /// (indexed). The 1985 READ prints the AT END phrase in format 1 only, and format 1 is the sequential retrieval, so a
-    /// READ of a dynamic-access file that writes AT END (or its NOT twin, which a later edition adds) is a sequential read
-    /// and must write NEXT. COBOL-2002 and later imply the NEXT phrase from those phrases (§2023:14.9.30.3 SR9), so
-    /// the requirement is the 1985 dialect's alone, and <c>KeyedIoBinder.BindRead</c> binds the READ as the implied
+    /// (indexed). The 1985 READ of both organizations prints AT END and NOT AT END in format 1 only, and format 1 is the
+    /// sequential retrieval (format 2, the random one, carries INVALID KEY), so a READ of a dynamic-access file that writes
+    /// either phrase is a sequential read and must write NEXT. COBOL-2002 and later imply the NEXT phrase from those
+    /// phrases (§2023:14.9.30.3 SR9), so the requirement is the 1985 dialect's alone, and <c>KeyedIoBinder.BindRead</c> binds the READ as the implied
     /// NEXT it reads either way, the refusal being reported beside it. Returns true when the statement conforms.</summary>
     public bool CheckReadDynamicNextWritten(FileModel file, bool atEnd, bool notAtEnd, bool next)
     {
         if (data.Edition.Edition.Year >= 2002 || file.AccessMode != FileAccessMode.Dynamic || next || !(atEnd || notAtEnd))
             return true;
-        bool indexed = file.Organization == FileOrganization.Indexed;
+        // Each organization's rule is quoted as its own module prints it: the indexed SR5 has a comma the relative SR3 lacks.
+        string rule = file.Organization == FileOrganization.Indexed
+            ? "§1985:IX.4.5.3 SR5: \"The NEXT phrase must be specified for files in dynamic access mode, when records are to be "
+              + "retrieved sequentially\""
+            : "§1985:VIII.4.5.3 SR3: \"The NEXT phrase must be specified for files in dynamic access mode when records are to be "
+              + "retrieved sequentially\"";
         data.Edition.Error(DiagnosticCatalog.ReadDynamicNextRequired,
             $"READ of {file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}' (ACCESS MODE IS DYNAMIC) retrieves "
-            + $"sequentially but specifies no NEXT phrase ({(indexed ? "§1985:IX.4.5.3 SR5" : "§1985:VIII.4.5.3 SR3")}: "
-            + "\"The NEXT phrase must be specified for files in dynamic access mode, when records are to be retrieved "
-            + "sequentially\")");
+            + $"sequentially but specifies no NEXT phrase ({rule})");
         return false;
     }
 
@@ -2046,7 +2068,7 @@ internal sealed class StatementValidation(DataBinder data)
     };
 
 
-    /// <summary>§2023:14.9.51 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
+    /// <summary>§2023:14.9.51.3 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
     /// a LINAGE clause in the file's file description entry.</summary>
     public bool CheckWriteEopLinage(FileModel file)
     {
@@ -2056,7 +2078,7 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>§2023:14.9.51 SR18 — <i>"The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a
+    /// <summary>§2023:14.9.51.3 SR18 — <i>"The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a
     /// single WRITE statement."</i> The END-OF-PAGE phrase is the AT phrase (GR27 b)'s imperative-statement-1);
     /// SR19 and GR28 name the NOT END-OF-PAGE phrase separately, so the caller passes true only when the WRITE
     /// carries ADVANCING PAGE AND the AT phrase (kb/Work PB578).</summary>
@@ -2084,7 +2106,7 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>§2023:14.9.51 SR13 — with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES
+    /// <summary>§2023:14.9.51.3 SR13 — with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES
     /// mnemonic (the caller resolves the mnemonic test through the per-unit registry).</summary>
     public bool CheckWriteAdvancingMnemonic(FileModel file, bool advancingNamesMnemonic)
     {

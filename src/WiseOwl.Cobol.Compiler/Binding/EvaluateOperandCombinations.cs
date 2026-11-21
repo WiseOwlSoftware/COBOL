@@ -68,9 +68,10 @@ public static class EvaluateOperandCombinations
 
     /// <summary>True when the edition <paramref name="editionYear"/> permits this subject/object pairing. From 2002 that is
     /// Table 15's 'Y' (§2002:14.8.12.2 SR9 prints the same table); a blank cell is a SYNTAX RULE violation, a compile-time
-    /// diagnostic, never a run-time fault. ⛔ Below 2002 the table does not exist: §1985:VI.6.13.3 SR6 a asks only that a
-    /// selection object be "a valid operand for comparison to the corresponding operand in the set of selection subjects",
-    /// and §1985:VI.6.13.4 GR1 gives a literal subject and a literal object "the value and class of the specified literal",
+    /// diagnostic, never a run-time fault. ⛔ Below 2002 the table does not exist: §1985:VI.6.13.3 SR6a asks only that the operands
+    /// of a selection object "must be valid operands for comparison to the corresponding operand in the set of selection
+    /// subjects", and §1985:VI.6.13.4 GR1b says a literal subject and a literal object "are assigned the value and class
+    /// of the specified literal",
     /// so the literal subject x literal object cell Table 15 leaves blank is permitted at <c>--std 85</c> (implementor
     /// latitude settled by GnuCOBOL 3.2 -std=cobol85, docs/CONFORMANCE.md; kb/Work PB5481;
     /// <c>DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject</c>). Every other blank cell stays blank: the 1985

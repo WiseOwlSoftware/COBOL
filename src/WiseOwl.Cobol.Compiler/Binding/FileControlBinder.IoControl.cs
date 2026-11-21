@@ -21,7 +21,7 @@ public sealed partial class FileControlBinder
 {
     /// <summary>Bind the I-O-CONTROL paragraph (ISO §2023:12.4.6). A record-area SAME clause (Format 2) makes the listed
     /// files "share a memory area for processing the current logical record … equivalent to an implicit redefinition
-    /// of the area with records aligned on the leftmost byte position" (§2023:12.4.6.4 GR2) — modeled by chaining each
+    /// of the area with records aligned on the leftmost byte position" (§2023:12.4.6.4.4 GR2) — modeled by chaining each
     /// listed file's FIRST record as a synthesized REDEFINES of the first LISTED file's first record, exactly the
     /// multi-01-under-one-FD mechanism (the singular-pattern rule): the tier machinery then aliases every record of
     /// every listed file over ONE backing, and READ/WRITE/RELEASE image distribution gives the
@@ -137,9 +137,13 @@ public sealed partial class FileControlBinder
         string word = name.GetText();
         if (_host.Symbols.Identify(name, NameClass.File, report: true) is { Symbol: FileModel file }) return file;
         using var _ = Edition.At(name);
+        var hider = _host.Symbols.Declared.FileNameHiddenBy(word);   // §1985:X.1.3.8.2 GR3a (kb/Work PB5980)
         Edition.Error(DiagnosticCatalog.UndefinedReference,
-            $"{clause} names '{word}', which is not defined as a file: no SELECT clause of this program gives that name, so "
-            + "the reference identifies no resource (§1985:IV.4.3.8: \"a statement in a COBOL program must contain a reference "
+            $"{clause} names '{word}', which is not defined as a file: "
+            + (hider is null
+                ? "no SELECT clause of this program gives that name"
+                : NameResolution.HidingClause(hider.Value, word, "file-name", Edition.Edition))
+            + ", so the reference identifies no resource (§1985:IV.4.3.8: \"a statement in a COBOL program must contain a reference "
             + "which uniquely identifies that resource\")");
         return null;
     }

@@ -636,7 +636,7 @@ public sealed class FileRegistry
     // ── Sequential-surface verbs (keyed connectors are reached via the keyed entries below) ─────────────────
 
     /// <summary>Plain <c>WRITE record</c> (ISO §2023:14.9.51); <paramref name="length"/> is the varying-record length
-    /// (§2023:13.18.43 GR13a), -1 = the record's own size.</summary>
+    /// (§2023:13.18.43.4 GR13a), -1 = the record's own size.</summary>
     public void Write(string name, string image, int length, LinagePage? page) =>
         SequentialOf(name, "WRITE").Write(image, length, page);
 
@@ -712,11 +712,11 @@ public sealed class FileRegistry
         return true;
     }
 
-    /// <summary>The file's LINAGE-COUNTER register (ISO §2023:8.4.3.14 / §2023:13.18.34 GR7).</summary>
+    /// <summary>The file's LINAGE-COUNTER register (ISO §2023:8.4.3.14 / §2023:13.18.34.4 GR7).</summary>
     public long LinageCounter(string name) =>
         _files.TryGetValue(name, out var c) && c is SequentialConnector f ? f.LinageCounter : 0;
 
-    /// <summary>The end-of-page condition of the file's most recent WRITE (ISO §2023:14.9.51 GR26a/b).</summary>
+    /// <summary>The end-of-page condition of the file's most recent WRITE (ISO §2023:14.9.51.4 GR26a/b).</summary>
     public bool EndOfPage(string name) =>
         _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.EndOfPage;
 
@@ -758,7 +758,7 @@ public sealed class FileRegistry
         return c.ProgramStatus + c.SelectName;
     }
 
-    /// <summary>The length of the most recently read record (ISO §2023:13.18.43 GR15).</summary>
+    /// <summary>The length of the most recently read record (ISO §2023:13.18.43.4 GR15).</summary>
     public int LastReadLength(string name) => _files.TryGetValue(name, out var c) ? c.LastReadLength : 0;
 
     /// <summary>The record the most recent successful READ made available, at its own length
@@ -812,7 +812,7 @@ public sealed class FileRegistry
         else throw MisroutedVerb("RELATIVE KEY staging", name, Require(name));
     }
 
-    /// <summary>The RRN last made available/released — the §2023:14.9.30 GR25 / §2023:14.9.51 GR29a MOVE-back source.</summary>
+    /// <summary>The RRN last made available/released — the §2023:14.9.30.4 GR25 / §2023:14.9.51.4 GR29a MOVE-back source.</summary>
     public long RelativeSlot(string name) =>
         _files.TryGetValue(name, out var c) && c is RelativeConnector r ? r.LastSlot : 0;
 
@@ -922,7 +922,7 @@ public sealed class FileRegistry
         };
     }
 
-    /// <summary>START on a relative file (§2023:14.9.41 GR8–GR12) — a numeric RRN comparison.</summary>
+    /// <summary>START on a relative file (§2023:14.9.41.4 GR8–GR12) — a numeric RRN comparison.</summary>
     public string StartRelative(string name, string op, long rrn)
     {
         var c = Require(name);
@@ -930,7 +930,7 @@ public sealed class FileRegistry
         return c is RelativeConnector r ? r.Start(op, rrn) : throw MisroutedVerb("START (relative)", name, c);
     }
 
-    /// <summary>START on an indexed file (§2023:14.9.41 GR13–GR17) — a leftmost-length partial-key comparison whose
+    /// <summary>START on an indexed file (§2023:14.9.41.4 GR13–GR17) — a leftmost-length partial-key comparison whose
     /// search key is sliced out of <paramref name="keyedRecordImage"/>, the RECORD AREA (GR17 a); kb/Work
     /// PB355), exactly as the random READ's and DELETE's key values are.</summary>
     public string StartIndexed(string name, int keyIndex, string op, string keyedRecordImage, StartKeyLength length,
@@ -972,7 +972,7 @@ public sealed class FileRegistry
     public string DeleteFile(string name, bool overridden = false) =>
         DeleteFile(name, FileRetryKind.None, 0, overridden);
 
-    /// <summary>DELETE FILE with a RETRY phrase (§2023:14.9.10 GR15 / §2023:14.7.9) and the GR18 OVERRIDE flag.</summary>
+    /// <summary>DELETE FILE with a RETRY phrase (§2023:14.9.10.4 GR15 / §2023:14.7.9) and the GR18 OVERRIDE flag.</summary>
     public string DeleteFile(string name, FileRetryKind retryKind, long retryAmount, bool overridden = false)
     {
         var c = Require(name);
@@ -2076,10 +2076,10 @@ public sealed class FileRegistry
             // IOException instead of as §2023:9.1.13.6 item 1's '30'. It now lives in SequentialConnector.OpenCore,
             // before that connector's own writer exists; the ONLY work left after a successful open is
             // arbitration bookkeeping and the LINAGE page model, neither of which reads a byte off the host.
-            // ISO §2023:13.18.34 GR6 b) 1 — the LINAGE operand values are read "at the completion of an OPEN statement
+            // ISO §2023:13.18.34.4 GR6 b) 1 — the LINAGE operand values are read "at the completion of an OPEN statement
             // with the OUTPUT phrase", so the page model is established HERE, with the page the EXECUTING element's
             // own LINAGE clause evaluated to (kb/Work PB673), and only for an open that actually succeeded.
-            // ⛔ AND THE PAGE MODEL CAN MAKE THE OPEN UNSUCCESSFUL (kb/Work PB526). §2023:13.18.34 GR6 b) 1 reads the
+            // ⛔ AND THE PAGE MODEL CAN MAKE THE OPEN UNSUCCESSFUL (kb/Work PB526). §2023:13.18.34.4 GR6 b) 1 reads the
             // operands "at the completion of" this OPEN and GR6 b) 2 applies its two value rules to them: a
             // violation sets EC-I-O-LINAGE to exist, so the statement has to report an unsuccessful I-O status
             // for §2023:9.1.12's exception processing to see it at all. The connector STAYS OPEN — GR6 b) 2's counter
@@ -2699,7 +2699,7 @@ public sealed class FileRegistry
         return status;
     }
 
-    /// <summary>Governed WRITE for a sharing-active connector, any organization (§2023:14.9.51 GR10/GR11 + §2023:14.7.9).
+    /// <summary>Governed WRITE for a sharing-active connector, any organization (§2023:14.9.51.4 GR10/GR11 + §2023:14.7.9).
     /// No '51' record-operation conflict is defined for WRITE — §2023:9.1.13.8's 51 covers "an attempt to ACCESS a
     /// record", the WRITE general rules define no 51 leg, and GR33/GR42 state the invalid-key checks ignore record
     /// locks; GR16's RETRY governs implementor "resources … locked by another run unit", which cannot arise
@@ -2733,7 +2733,7 @@ public sealed class FileRegistry
         // A file of FIXED-length records carries a variable-length record in its fixed form (D-FRA (vi)).
         var (medium, mediumExtents) = c.FixedForm(image, extents);
         // ⛔ §2023:12.4.5.9.4 GR7's ceiling ('54' / '53') is the LAST check of a statement that requests a new lock, and the
-        // statement still fails BEFORE the write (§2023:14.9.51 GR15): the organization asks the gate once its own rules
+        // statement still fails BEFORE the write (§2023:14.9.51.4 GR15): the organization asks the gate once its own rules
         // have passed, immediately before it changes the file (FileConnector.CommitGate, kb/Work PB2848). It used to
         // be asked here, ahead of the organization, so a record that broke GR14's size rule answered '54' where
         // DOC-A.1-104 (2) gives '44'. A permanent error in effect (§2023:9.1.13.1, kb/Work PB1541) is replayed by the
@@ -2767,7 +2767,7 @@ public sealed class FileRegistry
     private string RecordLockCeiling(PhysicalFileTable.State st, string name, FileRetryKind retryKind, long retryAmount) =>
         RetryLoop(() => RetryAttempt.InRunUnit(_physical.PreflightNewLock(st, name)), retryKind, retryAmount);
 
-    /// <summary>Governed REWRITE for a sharing-active connector, any organization (§2023:14.9.35 GR11/GR12 + §2023:14.7.9):
+    /// <summary>Governed REWRITE for a sharing-active connector, any organization (§2023:14.9.35.4 GR11/GR12 + §2023:14.7.9):
     /// the pre-operation conflict check against the record identified for rewriting (locked by another connector
     /// → RETRY re-checks, else 51 with the record NOT rewritten, the record area unaffected and the FPI unchanged
     /// — GR11a-c/GR14), then the GR12 lock actions. Returns the I-O status.</summary>
@@ -2799,7 +2799,7 @@ public sealed class FileRegistry
                 return conflict;
         }
         var (medium, mediumExtents) = c.FixedForm(image, extents);   // D-FRA (vi), as WriteShared
-        // §2023:12.4.5.9.4 GR7's ceiling, the last check of the statement and still before the update (§2023:14.9.35 GR14), asked
+        // §2023:12.4.5.9.4 GR7's ceiling, the last check of the statement and still before the update (§2023:14.9.35.4 GR14), asked
         // by the organization through the commit gate exactly as WriteShared does (kb/Work PB2848). Post-conflict-check
         // any surviving lock on the target is this connector's own — re-lock is idempotent per §2023:9.1.16 (a locked record "may be re-accessed
         // by the same file connector that holds the lock"), so only a genuinely NEW lock is gated.
@@ -2820,7 +2820,7 @@ public sealed class FileRegistry
         return status;
     }
 
-    /// <summary>Governed DELETE RECORD for a sharing-active connector (§2023:14.9.10 GR6/GR7 + §2023:14.7.9): the
+    /// <summary>Governed DELETE RECORD for a sharing-active connector (§2023:14.9.10.4 GR6/GR7 + §2023:14.7.9): the
     /// pre-operation conflict check against the record identified for deletion (locked by another connector →
     /// RETRY re-checks, else 51 with the record NOT removed — GR6a-c), then the GR7 releases: a self-lock on
     /// another record at the beginning (GR7a2, single), the deleted record's lock at completion (GR7a1/GR7b).
@@ -2896,7 +2896,7 @@ public sealed class FileRegistry
         _ => FileStatusCode.PermanentError,
     };
 
-    /// <summary>UNLOCK file [RECORD[S]] (§2023:14.9.47 GR1): release every record lock this connector holds and set
+    /// <summary>UNLOCK file [RECORD[S]] (§2023:14.9.47.4 GR1): release every record lock this connector holds and set
     /// status 00; UNLOCK of a file not open is status 42 (§2023:9.1.13.7 item 2). §2023:14.9.47.4 GR3 makes the I-O status
     /// update UNCONDITIONAL, so an unregistered name is a compiler defect and goes through <see cref="Require"/>
     /// like every other entry — the old <c>TryGetValue</c>-and-return set no status and raised nothing, a clean

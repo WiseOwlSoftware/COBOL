@@ -15,7 +15,7 @@ using Core = CobolParserCore;
 //  SORT / MERGE / RELEASE / RETURN (ISO/IEC 1989:2023 §2023:14.9.40 / §2023:14.9.24 / §2023:14.9.32 / §2023:14.9.34) — the sort-merge
 //  subsystem's bound nodes. The sort store is an in-memory, per-SD record-IMAGE buffer (WiseOwl.Cobol.Runtime.IO.CobolSort);
 //  keys are compile-time (offset, length, kind) descriptors into the SD record image, ONE comparison policy for
-//  numeric (algebraic, §2023:14.9.40 GR8 — never collated) and alphanumeric (collated per GR5 precedence) keys
+//  numeric (algebraic, §2023:14.9.40.4 GR8 — never collated) and alphanumeric (collated per GR5 precedence) keys
 //  (DESIGN §8.2 — typed key descriptors over serialized images, offsets computed at compile time).
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
@@ -139,7 +139,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase(), merge: false);
         if (collErr is { } ce) return ce;
 
-        // Release phase source (ISO §2023:14.9.40 GR9a): USING file list or INPUT PROCEDURE pc range.
+        // Release phase source (ISO §2023:14.9.40.4 GR9a): USING file list or INPUT PROCEDURE pc range.
         var usingFiles = new List<FileModel>();
         if (s.sortUsingPhrase() is { } up && !SortMapIoFiles(up.dataReferenceList(), usingFiles, merge: false, giving: false))
             return BoundRejected.Reported(ctx.Edition);   // SortMapIoFiles REPORTED (PB236, PB1171)
@@ -177,7 +177,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             usingFiles, inputProc, givingFiles, outputProc, SortVaryingOf(file), ctx.SourceLine(s));
     }
 
-    /// <summary>Bind the Format-2 in-place TABLE sort (ISO §2023:14.9.40 GR18–GR24) over the typed element array.
+    /// <summary>Bind the Format-2 in-place TABLE sort (ISO §2023:14.9.40.4 GR18–GR24) over the typed element array.
     /// Introduced by ISO/IEC 1989:2002 (the table-SORT format is absent from ANSI X3.23-1985; M2 feature catalog,
     /// docs/ISO2023_CONFORMANCE_PLAN.md) — rejected below <c>--std 2002</c>.</summary>
     private BoundStatement SortBindTable(Core.SortStatementContext s, Core.DataReferenceContext operand, string name)
@@ -310,7 +310,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             }
             foreach (var dref in drefs)
             {
-                string kn = DataBinder.WrittenText(dref);
+                string kn = WrittenSource.Of(dref);
                 // §2023:14.9.40.3 SR14 b) — "Key data names shall not be subscripted" — and §2023:8.4.3.3.3's NOTE (no
                 // reference-modifier where the format prints data-name-n): the one data-name-n screen, ahead of
                 // KeyReference, which keeps the qualifiers and DROPS every other suffix — `SORT E ON ASCENDING
@@ -498,7 +498,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindRelease(Core.ReleaseStatementContext rel)
     {
         if (rel.dataReference() is not { } rn)
-            return new BoundUnsupported($"RELEASE record '{rel.dataReference()?.GetText()}' (unresolvable record-name)");
+            return new BoundUnsupported($"RELEASE record '{WrittenSource.Of(rel.dataReference(), "")}' (unresolvable record-name)");
         if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } record)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         // ⛔ SR1 IS A SYNTAX RULE AND IS DECIDED HERE, NOT AT RUN TIME (kb/Work PB236, row SR-14.9.32.3-1).
@@ -511,7 +511,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // ResolveRecordName's, held in common with WRITE §2023:14.9.51.3 SR5 and REWRITE §2023:14.9.35.3 SR1 (and it is
         // what rejects `RELEASE SR-DATA` and `RELEASE SRT-REC(1:3)`); "in a SORT-MERGE file description entry"
         // is RELEASE's alone, and CheckReleaseRecord asks it of a reference that already IS a logical record.
-        if (!ctx.Validation.ResolveRecordName(record, rn.GetText(), "RELEASE",
+        if (!ctx.Validation.ResolveRecordName(record, WrittenSource.Of(rn), "RELEASE",
                 ctx.Edition.Edition.Cite("record-name-1 \"must be the name of a logical record in a sort-merge file description entry and it may be qualified\" "
                         + "(ISO §1985:XI.4.2.3 SR1)",
                     "record-name-1 \"shall be the name of a logical record in a sort-merge file description entry and it may be qualified\" "
@@ -520,7 +520,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 + "containing program, the file shall not be referenced directly or indirectly by any input-output "
                 + "statements in any contained program\"", out var file))
             return BoundRejected.Reported(ctx.Edition);
-        if (!ctx.Validation.CheckReleaseRecord(file, rn.GetText())) return BoundRejected.Reported(ctx.Edition);
+        if (!ctx.Validation.CheckReleaseRecord(file, WrittenSource.Of(rn))) return BoundRejected.Reported(ctx.Edition);
         // RELEASE ... FROM is an IMPLICIT MOVE and is bound as one (ISO §2023:14.9.32.4 GR4 a); kb/Work PB348), so
         // §2023:14.9.32.3 SR2 (the function-identifier class), SR3 (valid as a MOVE sending operand with
         // record-name-1 as the receiver) and SR4 (no zero-length literal-1) are applied HERE, at bind time,
@@ -642,7 +642,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         file.Records.Count == 1 && !file.SameRecordAreaPeers.Any() && !file.RecordSizeVaries
         && ActivationCrossing.LeafCarried(file.Records[0]) && file.Records[0].TransferImageCapable;
 
-    /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §2023:14.9.40 GR1 — the
+    /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §2023:14.9.40.4 GR1 — the
     /// direction word is transitive across the phrase's data-names; each <c>sortKeyPhrase</c>/<c>mergeKeyPhrase</c>
     /// begins with its own ASCENDING|DESCENDING, so per-phrase application IS GR1 — and GR2: significance is
     /// statement order, which the appended list preserves). Returns false when the phrase was REFUSED and reported.</summary>
@@ -674,10 +674,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             DataItem item = kp.Item;
             DataItem root = SortRootOf(item);
             if (!file.Records.Contains(root))
-                return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' is not described in a record of '{file.CobolName}' "
+                return Reject($"SORT/MERGE key '{WrittenSource.Of(dref)}' is not described in a record of '{file.CobolName}' "
                     + $"({SortKeyAdmission.Clause(rules, ctx.Edition.Edition)} a))");
             if (Model.RecordLayout.OffsetInRecord(root, item) is null)
-                return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
+                return Reject($"SORT/MERGE key '{WrittenSource.Of(dref)}' — key data-names shall not be subject to any OCCURS "
                     + $"clause ({SortKeyAdmission.Clause(rules, ctx.Edition.Edition)} {SortKeyAdmission.Occurs(ctx.Edition.Edition)})");
             // ⛔ THE CLASS IS THE OPERAND'S, AND IT IS ASKED ONCE (kb/Work PB678). §2023:14.9.40.4 GR5 / §2023:14.9.24.4 GR5
             // select the collating sequence by the KEY's class, so the key descriptor carries the class rather
@@ -692,7 +692,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // with ImageWidth the three keys N"A"/N"B"/N"C" all collapsed onto the shared high byte U+0000 and
             // compared EQUAL, which is a stable sort returning the release order.
             int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ByteWidth;
-            if (len <= 0) return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' has no character image");
+            if (len <= 0) return Reject($"SORT/MERGE key '{WrittenSource.Of(dref)}' has no character image");
             // ⛔ THE KEY'S WINDOW IN ITS RECORD, AND HOW FAR IT CAN REACH (kb/Work PB1025): RecordLayout.KeyWindowOf
             // is the ONE answer the indexed key rules read too. A key a dynamic-length item or a dynamic-capacity
             // table precedes has no fixed position in the contiguous image the store holds (§2023:8.5.1.11.2), so it
@@ -700,7 +700,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // name here (kb/Work PB981), which rejected legal source whenever trailing fixed material kept it
             // within the minimum record size.
             if (Model.RecordLayout.KeyWindowOf(root, item, len, []) is not { } win)
-                return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
+                return Reject($"SORT/MERGE key '{WrittenSource.Of(dref)}' — key data-names shall not be subject to any OCCURS "
                     + $"clause ({SortKeyAdmission.Clause(rules, ctx.Edition.Edition)} {SortKeyAdmission.Occurs(ctx.Edition.Edition)})");
             // §2023:14.9.40.3 SR6 g) / §2023:14.9.24.3 SR4 g): with variable-length records every key lies within the first
             // n bytes, n the minimum record size — for ANY record, so a key that follows a variable-length member is
@@ -709,7 +709,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // every file whose records vary, including the implied Format 2 of a variable-length record (D-FRA);
             // it used to fire only when a RECORD clause wrote integer-2.
             if (file.RecordSizeVaries && file.RecordSizeRange.Min is var min && win.MaxEnd > min)
-                ctx.Edition.Error(DiagnosticCatalog.SortKeyBeyondMinimumRecord, $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
+                ctx.Edition.Error(DiagnosticCatalog.SortKeyBeyondMinimumRecord, $"SORT/MERGE key '{WrittenSource.Of(dref)}' "
                     + (win.FollowsVariable
                         ? $"follows a variable-length member of record '{root.CobolName}' and can reach byte {win.MaxEnd}"
                         : $"occupies character positions {win.Offset + 1}..{win.MaxEnd}")
@@ -719,7 +719,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // A numeric key carries the LEAF ITSELF, so the runtime decodes its window with the leaf's own
             // profile — the one description of its bytes (zoned digits for DISPLAY, radix-2 / BCD for
             // BINARY / PACKED, the IEEE interchange forms for the float family — kb/Work PB164 wave 2; V59).
-            // §2023:14.9.40 GR8 + §2023:8.8.4.2.4: numeric keys compare by ALGEBRAIC value regardless of how their
+            // §2023:14.9.40.4 GR8 + §2023:8.8.4.2.4: numeric keys compare by ALGEBRAIC value regardless of how their
             // usage is described, so the decode must match the representation exactly — CobolSort's column
             // builder dispatches on the profile's ByteForm (a float key's raw big-endian IEEE bytes would
             // order every negative after every positive, so it takes the algebraic double lane).
@@ -1027,7 +1027,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             Segmentation.CheckProcedures(ctx, range, verb, rule);
     }
 
-    /// <summary>An INPUT/OUTPUT PROCEDURE name pair → the inclusive pc range (ISO §2023:14.9.40 GR10/GR13 — the range
+    /// <summary>An INPUT/OUTPUT PROCEDURE name pair → the inclusive pc range (ISO §2023:14.9.40.4 GR10/GR13 — the range
     /// composes like PERFORM: a single SECTION name is its whole paragraph range, THRU extends through the second
     /// procedure's end). Resolved by the ONE procedure resolver, so section/qualified semantics match PERFORM.</summary>
     private PcRange? SortRange(Core.ProcedureNameContext[] names, string phrase, string formatClause)
@@ -1047,7 +1047,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         return first.Range.Through(thru.Range);   // GR4-style composition, EMPTY-aware (kb/Work PB440)
     }
 
-    /// <summary>The varying-record model of an SD/FD for the sort verbs (§2023:13.18.43 GR13/GR15), with the DEPENDING
+    /// <summary>The varying-record model of an SD/FD for the sort verbs (§2023:13.18.43.4 GR13/GR15), with the DEPENDING
     /// item (when declared) resolved to its place; null when the file's records are fixed-length. Min/max default
     /// per GR9/GR10 (the smallest/largest record described) via the FileModel accessors.</summary>
     private SortVaryingInfo? SortVaryingOf(FileModel file)

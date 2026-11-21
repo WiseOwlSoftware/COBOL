@@ -1103,7 +1103,7 @@ wrong count, wrong clause, or a blocker that did not exist:
 · **PB52** — three causes; one had already been fixed by PB31, another was five functions rather than one.
 ⭐ **AND FOUR SWEEPS FOUND SOMETHING WORSE THAN THE ITEM BEING WORKED** — most sharply **PB54**, a SILENT WRONG
 ANSWER where `MIN(ZERO + 5, 2)` returned 0 while `FUNCTION MIN(ZERO + 5, 2)` returned 2, for a spelling
-§2023:8.4.3.2 SR2 makes the same reference.
+§2023:8.4.3.2.3 SR2 makes the same reference.
 
 ⛔ **THE SESSION'S OWN HARDEST LESSON: A GREEN LOCAL BATTERY CERTIFIED A TREE THAT COULD NOT BUILD FROM
 SCRATCH.** A tool edit wrote `CobolLexer.g4` with a UTF-8 BOM (Python's `utf-8-sig` STRIPS on read and ADDS on
@@ -2231,10 +2231,9 @@ result. Run the long legs ONE AT A TIME.
   **CITATION GATES (new 2026-09-02, DEVLOG 1439).** `python scripts/spec/audit_code_citations.py --check`
   — PHANTOM (the clause does not exist) · SUBJECT (the cited clause names a different construct) · HEADER
   (a definition-header cites a clause that is not its construct's) · and, since PB388, the ORDINAL family over
-  the number INSIDE a right clause: FORMAT (no such general format) · FORMAT-RULE (the rule is printed under a
+  the number INSIDE a right clause: FORMAT-RULE (the rule is printed under a
   DIFFERENT format banner than the one cited beside it) · FORMAT-NAME (the line names one format and cites
-  another) · QUOTE-RULE (a quotation sits beside a rule number that is not the top-level rule the quoted words are
-  printed in; kb/Work PB597) · DIAG-NO-RULE (a rule KIND with no ordinal inside a C# string literal under `src/` —
+  another) (its FORMAT, RULE, SUBITEM and QUOTE-RULE arms are RESOLVE's since kb/Work PB5318) · DIAG-NO-RULE (a rule KIND with no ordinal inside a C# string literal under `src/` —
   `(ISO §2023:14.9.18 SR)` names no rule at all; kb/Work PB838) · DIAG-UNQUALIFIED (a message string citing a construct
   clause where the rules live in its `.3`/`.4` child — GATING since PB388's wave-47 sweep qualified all 154
   sites) — baseline **ZERO findings** over 4666
@@ -3339,12 +3338,12 @@ already-derivable coverage; none change the pipeline.
   burn-down reports). `python scripts/spec/backfill_closes_rows.py`
   re-derives the back-link from the inventory's own commit history — idempotent, and it never overwrites an
   answer a human wrote.
-- Owner status page: `python scripts/spec/gen_ledger.py` renders the **WiseOwl COBOL Completion Ledger** artifact (what remains to v1.0, bucket by bucket with the lane that plans each note and an
-  estimate from measured inputs, measured by `scripts/spec/ledger_plan.py`; PB2912)
-  from the repo — inventory, `kb/Work` (through `work.py`'s own predicate), `audit_annex_a1.py --json`, `CONFORMANCE.md`
-  §2/§4/§5 and §0's CURRENT battery bullet — so a refresh is one run plus one publish to the artifact's existing URL,
-  never a hand rewrite; `--check` reports staleness and the GAP series, with the register's defect series beside it,
-  lives in `<coord>/ledger-trend.json` beside the page, never in a checkout (kb/Work PB2426).
+- Owner status page: `python scripts/spec/gen_ledger.py` renders the **WiseOwl COBOL Completion Ledger** artifact per
+  edition (kb/Work PB5994): one line per edition in the owner's order (1985, 2002, 2023, 2014) with its verdict, which is
+  `scripts/spec/edition_status.py`'s, then per edition its open notes, its normative text in no catalog row and the work
+  in flight on it (the branch survey), then pacing (`budget.py`'s reading; the landings and the notes each edition filed
+  and closed). A refresh is one run plus one publish to the artifact's existing URL; `--check` renders it from the
+  repository alone.
 
 ## §10 Document map (post-consolidation)
 
@@ -5241,7 +5240,7 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 >   `ExternalTable` (shim `ExternalStore`) / `ModuleStack` / `SwitchStore` (shim `ExternalSwitches`) /
 >   `FileRegistry` + `IO/Sharing/PhysicalFileTable`.
 > - BEYOND-RECIPE (the §5 hidden-mutable-static gate found it): `ExternalSwitches`' switch cache was a
->   process-global static holding run-unit-scoped state (§2023:12.3.7 GR4 NOTE 1) — converted to `SwitchStore` on
+>   process-global static holding run-unit-scoped state (§2023:12.3.7.4 GR4 NOTE 1) — converted to `SwitchStore` on
 >   `RunUnit` + static shim. Surviving statics are all genuinely immutable (`ExceptionCatalog`, `Pow10` tables,
 >   `SystemClock.Instance`).
 > - Exit criteria: 1 ✅ (`RunUnit.Run` + `ResetCurrent` reproduce the old reset semantics; the DEFAULT lazy-ambient

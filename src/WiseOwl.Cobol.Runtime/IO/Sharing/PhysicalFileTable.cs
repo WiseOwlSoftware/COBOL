@@ -373,7 +373,7 @@ internal sealed class PhysicalFileTable
 
     /// <summary>Release every record lock <paramref name="name"/> holds EXCEPT one on <paramref name="keepId"/>
     /// — the single-lock begin-of-statement discipline (§2023:12.4.5.9.4 GR6): a REWRITE/DELETE releases a self-lock
-    /// held on a record OTHER than its target at the beginning of execution (§2023:14.9.35 GR12a2 / §2023:14.9.10 GR7a2);
+    /// held on a record OTHER than its target at the beginning of execution (§2023:14.9.35.4 GR12a2 / §2023:14.9.10.4 GR7a2);
     /// the target's own lock survives to the completion rules.</summary>
     public static void ReleaseAllExcept(State st, string name, string keepId)
     {
@@ -386,7 +386,7 @@ internal sealed class PhysicalFileTable
 
     /// <summary>Would acquiring one NEW lock (a record <paramref name="name"/> does not already hold) exceed a
     /// §2023:12.4.5.9.4 GR7 ceiling? Returns 54/53/00 WITHOUT acquiring — the pre-flight for the mutating verbs, whose
-    /// statement must be unsuccessful with the operation NOT performed (§2023:14.9.51 GR15 / §2023:14.9.35 GR14) rather
+    /// statement must be unsuccessful with the operation NOT performed (§2023:14.9.51.4 GR15 / §2023:14.9.35.4 GR14) rather
     /// than lock-fail after the record already changed.</summary>
     public string PreflightNewLock(State st, string name)
     {

@@ -140,7 +140,7 @@ public enum ReportNextGroupKind
 public sealed record ReportNextGroup(ReportNextGroupKind Kind, int Value, bool Reset = false);
 
 /// <summary>One report group (ISO §2023:13.15 report group description entry): its TYPE, name (referenced by GENERATE
-/// for a detail, §2023:14.9.16 SR1), control level (CH/CF — index into the report's control hierarchy, −1 otherwise),
+/// for a detail, §2023:14.9.16.3 SR1), control level (CH/CF — index into the report's control hierarchy, −1 otherwise),
 /// and its report lines in declaration order.</summary>
 public sealed class ReportGroup(ReportGroupKind kind, string name, int controlLevel, ReportGroupLine[] lines)
 {
@@ -307,7 +307,11 @@ public sealed class CobolReport(
 
     /// <summary>A SUPPRESS naming <see cref="_hookGroup"/> executed during that group's own hook (§2023:14.9.45.4 GR1/GR2).</summary>
     private bool _hookSuppressed;
-    private int _physLine;                 // physical line position on the current page (0 = top, nothing printed)
+    /// <summary>The page line number the device stands on (null = nothing printed on this page yet). ⛔ NOT 0 for "empty"
+    /// (kb/Work PB5853): line 0 is a real line of a report not divided into pages — INITIATE leaves LINE-COUNTER 0
+    /// (§1985:XIII.3.5.6 GR4) and a first LINE PLUS 0 adds zero to it (§1985:XIII.3.10.8 GR4d) — so the empty page
+    /// cannot share the value of a line.</summary>
+    private long? _physLine;
 
     // ── The CODE clause (ISO §2023:13.18.12) ──────────────────────────────────────────────────────────────────────
     private Func<string>? _codeRead;       // literal-1 (a constant) or identifier-1 (read at each evaluation); null = no CODE clause
@@ -844,7 +848,7 @@ public sealed class CobolReport(
         _rhOnThisPage = false;
         _pfOnThisPage = false;
         ArmGroupIndicate();                            // §2023:13.18.28.4 GR1a — every detail's next GENERATE indicates
-        _physLine = 0;
+        _physLine = null;
         _nextGroupSave = 0;                            // §2023:13.18.37.4 — no NEXT GROUP carries across an INITIATE
         _resetPageCounterAtAdvance = false;
         foreach (var c in _controls) c.Prior = null;   // priors are saved by the first GENERATE (§2023:13.18.16.4 GR3)
@@ -1060,7 +1064,7 @@ public sealed class CobolReport(
     /// GR2: with NO GENERATE since INITIATE, no report group is processed at all — the sole effect is
     /// active→inactive. GR3: otherwise the control items revert to their prior values (GR3a), each control
     /// footing prints minor→major as though a most-major break occurred (GR3b), the page footing of the last
-    /// page prints (§2023:13.18.57.4 GR6f — every page's last group; "immediately followed by the report footing"),
+    /// page prints (§2023:13.18.57.4 GR6 f) — every page's last group; "immediately followed by the report footing"),
     /// the report footing prints (GR3c), and the control items are restored (GR3d). GR6: the file is NOT closed.</summary>
     public void Terminate(Func<int, bool>? beforeReporting = null)
     {
@@ -1440,7 +1444,7 @@ public sealed class CobolReport(
             group.SnapshotPresence();
             ApplyRolled(group, crossFoot: true);
         }
-        bool suppressed = RunBeforeReporting(group);   // §2023:14.9.49 GR8; true ⇒ a §2023:14.9.45 SUPPRESS executed
+        bool suppressed = RunBeforeReporting(group);   // §2023:14.9.49.4 GR8; true ⇒ a §2023:14.9.45 SUPPRESS executed
         first = BeginPresentation(group);
         // A data entry's contribution into ANOTHER group's counter follows the declarative (which may compute the entry's
         // SOURCE) and reads the presentation's ONE snapshot, taken after it (§2023:13.18.54.4 GR11).
@@ -1566,16 +1570,16 @@ public sealed class CobolReport(
         // the file description entry format for a file with a REPORT clause and its clause list carries no
         // linage-clause at all (only Format 1, sequential, does). The Report Writer owns this file's page model
         // through the RD PAGE clause instead (§2023:13.16 / PAGE-COUNTER + LINE-COUNTER above), so there is nothing
-        // for §2023:13.18.34 GR6 to evaluate here (kb/Work PB673).
+        // for §2023:13.18.34.4 GR6 to evaluate here (kb/Work PB673).
         ClaimDevice();
         FlushPendingLine();                       // no line on the NEW page can overprint the old page's last one
         // ⛔ BEFORE, not AFTER (kb/Work PB1667): the feed carries no record, so the empty image is presented FIRST and
         // the feed ends its (empty) line. An AFTER write would leave the connector standing on an "open" line — a
         // record presented after the feed — and the device is then NOT at the start of the new page's empty line 1,
-        // which is what `_physLine == 0` tells PresentLine (CobolFile.DeviceOnOpenLine) and what makes a zero
+        // which is what a null `_physLine` tells PresentLine (CobolFile.DeviceOnOpenLine) and what makes a zero
         // advance on it an overprint return (§2023:14.9.51.4 GR25 c)).
         CobolFile.WriteAdvancing(_fileName, "", -1, before: true, page: null);   // GR6b — form feed
-        _physLine = 0;
+        _physLine = null;
         // GR6d — "If the page advance was preceded by the printing of a group whose description has a NEXT GROUP
         // clause with the NEXT PAGE and WITH RESET phrases, PAGE-COUNTER is set to 1; otherwise PAGE-COUNTER is
         // incremented by 1" (§2023:13.18.37.4 GR6 — "immediately after the page feed caused by the next page advance").
@@ -1694,8 +1698,8 @@ public sealed class CobolReport(
     private bool _drainRegistered;
 
     /// <summary>The physical page line the device stands on once any held-back line is written (0 = nothing on
-    /// this page yet) — where an overlap or an overprint is measured from.</summary>
-    private long DeviceLine => _pendingImage is null ? _physLine : _pendingLine;
+    /// this page yet, null) — where an overlap or an overprint is measured from.</summary>
+    private long? DeviceLine => _pendingImage is null ? _physLine : _pendingLine;
 
     /// <summary>Present ONE report line: LINE-COUNTER is set to the computed line number FIRST (ISO §2023:13.18.35.4
     /// GR6 — load-bearing: a <c>SOURCE IS LINE-COUNTER</c> item prints THIS line's number), then the line is
@@ -1722,7 +1726,12 @@ public sealed class CobolReport(
     /// <returns>False when the rest of the group is abandoned (a raised EC-REPORT-PAGE-LIMIT).</returns>
     private bool PresentLine(long target, ReportGroupLine line)
     {
-        if (target < 1) target = 1;
+        // ⛔ NO CLAMP TO LINE 1 (kb/Work PB5853). The rules compute the line, and 0 is one of them: in a report not
+        // divided into pages INITIATE leaves LINE-COUNTER 0 and a first LINE PLUS 0 adds zero to it — "The sum of the
+        // content of LINE-COUNTER and the integer of the first LINE NUMBER clause defines the line number on which the
+        // first print line is presented" (§1985:XIII.3.10.8 GR4d; §2023:13.18.35.4 GR5c, the same arithmetic) — and the
+        // final LINE-COUNTER is that line (§1985:XIII.3.10.8 GR6d). Where line 0 sits on the device is the travel's
+        // business below, never LINE-COUNTER's.
         if (_paged && target > _pageLimit
             && ExceptionState.ReportPageLimitError($"report {Name}: line {target} is past the page limit {_pageLimit} "
                 + "- the report group is split between two pages (ISO §2023:13.18.35.4 GR2)"))
@@ -1733,9 +1742,8 @@ public sealed class CobolReport(
         // moving the seed would compound it.
         if (line.Anchor != 0 && (line.Kind != ReportLineKind.Step || Anchor(line.Anchor) == 0))
             SeedAnchor(line.Anchor, ReportLinePlacement.AnchorSeed(line.Kind, line.Value, target));
-        long device = DeviceLine;
         bool overprint = false;
-        if (device != 0 && target <= device)
+        if (DeviceLine is { } device && target <= device)
         {
             bool zeroRelative = target == device && line.Kind == ReportLineKind.Relative && line.Value == 0;
             // An abandoned line is never printed, so LINE-COUNTER keeps naming the line that was (GR1 — "the line
@@ -1764,19 +1772,23 @@ public sealed class CobolReport(
         // starts each page (INITIATE §2023:14.9.21.4 GR1b, and the §2023:14.9.16.4 GR6b form feed) positioned AT line 1
         // with nothing written there, so a record emitted with NO advance occupies line 1 and the travel to
         // line `target` is target − 1 while the page is still empty — target − _physLine only once a line has
-        // been printed. `_physLine == 0` IS that empty page, not a line zero to advance off; reading it as one
-        // put every report line of every report one line too low.
+        // been printed. A null `_physLine` IS that empty page, not a line zero to advance off; reading it as one
+        // put every report line of every report one line too low. Line 0 (a report not divided into pages, kb/Work
+        // PB5853) rests on the same first physical line as line 1 — the empty-page rest position of the ADVANCING
+        // ZERO determination (docs/conformance/4/ADVANCING-ZERO.md) — and every later line travels by its difference
+        // from it, so the page's physical shape is the one the relative spacing gives.
         // ⛔ …BUT ONLY WHILE THE DEVICE IS NOT ON A LINE ALREADY (kb/Work PB1667). The connector owns "the open
         // line" (CobolFile.DeviceOnOpenLine); a report file that stays open after a TERMINATE stands on that run's
-        // last line, and INITIATE's _physLine = 0 names an empty PAGE MODEL, not an empty device. The new page's
+        // last line, and INITIATE's null _physLine names an empty PAGE MODEL, not an empty device. The new page's
         // line 1 is then the line BELOW it, so the device stands at line 0 and the first line travels `target`
         // lines — one of which ends the open line. Reading it as "at line 1" gave a zero advance, which
         // §2023:14.9.51.4 GR25 c) makes an overprint: the new run's first line landed ON the old run's last one.
-        long from = _physLine != 0 ? _physLine : CobolFile.DeviceOnOpenLine(_fileName) ? 0 : 1;
+        long firstPhysical = Math.Min(target, 1);   // the line number the page's first physical line carries
+        long from = _physLine ?? (CobolFile.DeviceOnOpenLine(_fileName) ? firstPhysical - 1 : firstPhysical);
         int advance = (int)(target - from);
         // An unchecked overlap (GR3 — "the results are undefined"), or an overprint whose preceding line was
         // already written out by a close: the line goes on the next physical line, and is recorded THERE.
-        if (advance < 1 && _physLine != 0) advance = 1;
+        if (advance < 1 && _physLine is not null) advance = 1;
         _pendingImage = image;
         _pendingAdvance = advance;
         _pendingLine = from + advance;
@@ -1806,7 +1818,7 @@ public sealed class CobolReport(
         // decision kb/Work R47), or a medium the host reports full ('34') — "does not take place" (§2023:14.9.51.4
         // GR15), advance included; leaving _physLine behind makes the NEXT line's travel cover the refused line's
         // slot, so every later line of the page still lands on its own LINE-COUNTER line (kb/Work PB690).
-        if (CobolFile.Status(_fileName) is [ '0', _ ]) _physLine = (int)_pendingLine;
+        if (CobolFile.Status(_fileName) is [ '0', _ ]) _physLine = _pendingLine;
     }
 
     /// <summary>ISO §2023:13.18.35.4 GR3 — "the non-space characters of a relative line specified with an integer-2 of

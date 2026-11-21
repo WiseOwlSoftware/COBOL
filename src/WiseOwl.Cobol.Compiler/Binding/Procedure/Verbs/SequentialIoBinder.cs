@@ -181,10 +181,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // The call sits BEFORE the `file.IsSequential` reroute, so the RELATIVE and INDEXED arms are under
         // the rule too and not just this file's sequential one (feedback_two_arm_dispatch).
         if (w.recordName()?.dataReference() is not { } rn)
-            return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText()}' not resolvable to a file");
+            return new BoundUnsupported($"WRITE record '{WrittenSource.Of(w.recordName(), "")}' not resolvable to a file");
         if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } resolved)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
-        if (!ctx.Validation.ResolveRecordName(resolved, rn.GetText(), "WRITE",
+        if (!ctx.Validation.ResolveRecordName(resolved, WrittenSource.Of(rn), "WRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO "
                 + ctx.Edition.Edition.Cite("§1985:VII.4.7.3 SR2, §1985:VIII.4.9.3 SR2, §1985:IX.4.9.3 SR2", "§2023:14.9.51.3 SR5") + ")",
@@ -209,7 +209,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // for EVERY organization; the emitter routes a lock-relevant statement through the governed runtime entry.
         // The pair is ONE retryLockPhrases element in whichever place the edition prints it (kb/Work PB5620).
         BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.retryLockPhrases()?.recordLockPhrase(), "WRITE");   // §2023:14.9.51 SR22 → COBOL1512
-        RetrySpec? wretry = fileLock.BindVerbRetry(w.retryLockPhrases()?.retryPhrase());                                    // §2023:14.7.9 / §2023:14.9.51 GR16
+        RetrySpec? wretry = fileLock.BindVerbRetry(w.retryLockPhrases()?.retryPhrase());                                    // §2023:14.7.9 / §2023:14.9.51.4 GR16
         if (!file.IsSequential) return keyedIo.BindWrite(w, file, record, wlock, wretry, bindFrom);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
         // §2023:14.9.51.3 SR2 — "If the organization of the write file is sequential, format 1 shall be specified."
@@ -238,7 +238,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             winvalid = keyedIo.KeyedInvalidPhrase(w.conditionalPhrases());
         }
 
-        // END-OF-PAGE phrases (ISO §2023:14.9.51 GR27b/GR28): either may be written first (§2023:5.2.6.4), and
+        // END-OF-PAGE phrases (ISO §2023:14.9.51.4 GR27b/GR28): either may be written first (§2023:5.2.6.4), and
         // PhraseBlocks binds each by its role.
         List<BoundStatement>? atEop = null, notAtEop = null;
         if (ConditionalPhrases.HasFamily(w.conditionalPhrases(), ConditionalPhraseFamily.EndOfPage))
@@ -347,9 +347,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             Kind = previous ? ReadKind.Previous : ReadKind.Next,                          // §2023:14.9.30.4 GR19; SR8
             InvalidKey = invalid,                                                         // §2023:14.9.30.4 GR13c (permissive only)
             Lock = retention,
-            Retry = fileLock.BindVerbRetry(contention?.retryPhrase()),                    // §2023:14.7.9 / §2023:14.9.30 GR9
-            AdvancingOnLock = contention?.readAdvancingOnLock() is not null,              // §2023:14.9.30 GR22
-            IgnoringLock = fileLock.CheckIgnoringLock(file, contention, retention),       // §2023:14.9.30 GR12; SR3 → COBOL1818
+            Retry = fileLock.BindVerbRetry(contention?.retryPhrase()),                    // §2023:14.7.9 / §2023:14.9.30.4 GR9
+            AdvancingOnLock = contention?.readAdvancingOnLock() is not null,              // §2023:14.9.30.4 GR22
+            IgnoringLock = fileLock.CheckIgnoringLock(file, contention, retention),       // §2023:14.9.30.4 GR12; SR3 → COBOL1818
         };
     }
 
@@ -367,10 +367,10 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // the message (kb/Work PB347). Placed, like WRITE's, BEFORE the `file.IsSequential` reroute, so the
         // relative and indexed arms are under the rule too (feedback_two_arm_dispatch).
         if (rw.recordName()?.dataReference() is not { } rn)
-            return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
+            return new BoundUnsupported($"REWRITE record '{WrittenSource.Of(rw.recordName(), "")}' not resolvable to a file");
         if (host.Expr.ResolveSending(rn) is var recordAnswer && recordAnswer.Place is not { } resolved)
             return recordAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
-        if (!ctx.Validation.ResolveRecordName(resolved, rn.GetText(), "REWRITE",
+        if (!ctx.Validation.ResolveRecordName(resolved, WrittenSource.Of(rn), "REWRITE",
                 "record-name-1 \"is the name of a logical record in the file section of the data division and "
                 + "may be qualified\" (ISO "
                 + ctx.Edition.Edition.Cite("§1985:VII.4.5.3 SR2, §1985:VIII.4.6.3 SR2, §1985:IX.4.6.3 SR2", "§2023:14.9.35.3 SR1") + ")",
@@ -392,7 +392,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 + "not reference a report file or a sort-merge file description entry\"")))
             return BoundRejected.Reported(ctx.Edition);
         BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.retryLockPhrases()?.recordLockPhrase(), "REWRITE");   // §2023:14.9.35 SR4 → COBOL1512
-        RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryLockPhrases()?.retryPhrase());                                      // §2023:14.7.9 / §2023:14.9.35 GR11
+        RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryLockPhrases()?.retryPhrase());                                      // §2023:14.7.9 / §2023:14.9.35.4 GR11
         if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry, bindFrom);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
         // §2023:14.9.35.3 SR2, arm (a) — "Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be
         // specified for a REWRITE statement that references a file with SEQUENTIAL ORGANIZATION". This arm
@@ -492,7 +492,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // PAGE twin is a parse error because PAGE is a keyword. The word used to be dropped in silence.
             if ((wba.LINE() ?? wba.LINES()) is { } word)
                 ctx.Edition.Error(DiagnosticCatalog.StatementFormatShape,
-                    $"WRITE ADVANCING {DataBinder.WrittenText(m)} {word.GetText()}: '{name}' "
+                    $"WRITE ADVANCING {WrittenSource.Of(m)} {word.GetText()}: '{name}' "
                     + "is a mnemonic-name, and ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.7.2", "§2023:14.9.51.2 Format 1")
                     + " writes LINE or LINES only after the count "
                     + "alternative { identifier-2 | integer-1 } — the other alternative is { mnemonic-name-1 | PAGE } "
@@ -534,7 +534,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // operand-class screen classes each.
             case BoundFieldOperand or BoundComputedOperand or BoundNumericLiteral { FunctionValue: true }:
                 OperandClassScreen.Screen(ctx.Edition, OperandPositions.WriteAdvancingIdentifier, lines,
-                    DataBinder.WrittenText((Antlr4.Runtime.ParserRuleContext?)wba.functionCall()
+                    WrittenSource.Of((Antlr4.Runtime.ParserRuleContext?)wba.functionCall()
                         ?? (Antlr4.Runtime.ParserRuleContext?)wba.inlineMethodInvocation() ?? wba.dataReference()!));
                 return;
             // integer-1 is UNSIGNED (kb/Work PB5805): the integer of a general format "must be neither signed nor zero
@@ -548,9 +548,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             case BoundFigurative { Kind: 'Z' }:   // ZERO read numerically is the integer 0 (§2023:8.3.3.6.4 GR4)
                 return;
             default:
-                string text = wba.dataReference() is { } dr ? DataBinder.WrittenText(dr)
-                    : wba.literal() is { } l ? DataBinder.WrittenText(l)
-                    : DataBinder.WrittenText(wba.integerLiteral());
+                string text = wba.dataReference() is { } dr ? WrittenSource.Of(dr)
+                    : wba.literal() is { } l ? WrittenSource.Of(l)
+                    : WrittenSource.Of(wba.integerLiteral());
                 ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingOperand,
                     $"WRITE ADVANCING integer-1 '{text}' shall be an unsigned integer literal, positive or zero ("
                     + ctx.Edition.Edition.Cite(

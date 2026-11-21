@@ -520,7 +520,7 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     /// <summary>The '91' test asks what the WRITE TRANSFERS: a varying record's area positions past its length
-    /// never reach the medium, so a character there refuses nothing (§2023:13.18.43 GR13 — the record is written at
+    /// never reach the medium, so a character there refuses nothing (§2023:13.18.43.4 GR13 — the record is written at
     /// its length).</summary>
     [Fact]
     public void SequentialWrite_TestsOnlyTheTransferredLength_OfAVaryingRecord()

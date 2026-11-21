@@ -63,6 +63,15 @@ its rule is gone (an amendment deleted it) or moved (its id now names another ru
 adjudication moves as a record on its new id plus the withdrawal of the old one (kb/Work PB5045). A record the view
 accepts is never withdrawn, and a withdrawn id takes no other record in the same run.
 
+A MOVE — `{"rule-id": "<new id>", "move-from": "<old id>"}` — and a SPLIT — `{"rule-id": "<parent>", "split":
+{"old-text", "carved", "rows", "recheck"}}` — are the two operations a regeneration of the catalog asks of the store
+when it moves text under an id (kb/Work PB5449 item 6; decision PB5448 points 4 and 7). A move carries a record to the
+id its unchanged text now has (the regeneration writes the move batch); a split checks that the parent's old text is
+its text now plus the carved paragraphs, writes NO record for a carved row, and keeps the parent's record only through
+an UPHELD recheck of the remaining text (re-stamping its digest), withdrawing it otherwise. Both re-point the older
+editions' change records that name the ids (`next.to`, `next.digests`), sending to adjudication each whose `reason`
+quotes carved text. Their rules are `rule_moves.py`'s.
+
 ALL-OR-NOTHING. Every record in every named batch is validated before ANY of them is merged, and the merge itself
 writes through a temp file and an atomic replace. A batch that is half-right leaves the inventory untouched rather
 than half-adjudicated — a partially applied batch is the worst outcome available here, because the rows that DID
@@ -97,6 +106,8 @@ import inventory_view  # noqa: E402  (THE view: the rows a batch is validated ag
 import lineage  # noqa: E402  (THE definition of an older edition's change record and its state; kb/Work PB4993)
 import lineage_screen  # noqa: E402  (the flags a change record answers before it is written; kb/Work PB5597)
 import lineage_reads  # noqa: E402  (the one predicate of a witness's reference format; kb/Work PB5754)
+import rule_moves  # noqa: E402  (the MOVE and the SPLIT of an adjudicated row, and the chains that follow; kb/Work PB5449)
+from inventory_schema import EDITIONS  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -465,12 +476,27 @@ def main() -> int:
         for b in bad:
             print(f"   {b}")
         return 1
+    # THE MOVES AND SPLITS (kb/Work PB5449 item 6, rule_moves.py): operations on records, checked against the catalog's
+    # text and the store as it is, applied before the batch's adjudications; each answers the view's refusal of the ids
+    # it names.
+    ops = [rec for _, _, rec in records if rule_moves.structural(rec)]
+    stored = read_store(inventory_dir(ed))
+    texts = {r["id"]: r["text"] for r in ed.rules()}
+    if bad := rule_moves.errors(ops, texts, stored, {rec.get("rule-id", "") for _, _, rec in records
+                                                     if not rule_moves.structural(rec)}):
+        print(f"⛔ {len(bad)} move/split violation(s) — NOTHING was written:\n")
+        for b in bad:
+            print(f"   {b}")
+        return 1
     inventory_view.refuse(ed.year, [p for p in view.problems if not (p.drifted and p.rule_id in readjudicated)
-                                    and p.rule_id not in withdrawn])
+                                    and p.rule_id not in withdrawn and p.rule_id not in rule_moves.answered(ops)])
     for rid in withdrawn.keys() & by_id.keys():
         by_id[rid].update(ed.blank())
         by_id[rid]["state"] = inventory_view.state_of(ed, by_id[rid], schema, targets)
-    records = [(path, i, rec) for path, i, rec in records if WITHDRAW not in rec]
+    applied = rule_moves.apply(ops, by_id, stored, ed.adjudicated, ed.blank())
+    for rid in applied.changed() & by_id.keys():
+        by_id[rid]["state"] = inventory_view.state_of(ed, by_id[rid], schema, targets)
+    records = [(path, i, rec) for path, i, rec in records if WITHDRAW not in rec and not rule_moves.structural(rec)]
     # THE WRITER STAMPS A CHANGE RECORD'S TARGETS (kb/Work PB5256, branch review R1-4): each `to` rule's `rule-digest` as
     # the next edition's view holds it now, the text the record is decided against, so a later change of the text under
     # that id marks the record STALE (`lineage.stale_targets`). A batch that supplies its own digests is checked, not
@@ -543,6 +569,8 @@ def main() -> int:
 
     print(f"records        : {len(records)} across {len(args.batches)} batch file(s)")
     print(f"withdrawn      : {len(withdrawn)}")
+    print(f"moved          : {len(applied.moved)}; split parents upheld {len(applied.upheld)}, opened "
+          f"{len(applied.opened)}{': ' + ', '.join(applied.opened) if applied.opened else ''}")
     for rid, why in sorted(withdrawn.items()):
         print(f"    ⓘ WITHDRAWN {rid}: {why}")
     print(f"rows changed   : {changed}")
@@ -586,6 +614,13 @@ def main() -> int:
     store = inventory_dir(ed)
     changed = write_store([rec for r in rows if (rec := record_of(r, ed.adjudicated)) is not None], store)
     print(f"\nwrote {changed} store file(s) under {store.relative_to(REPO).as_posix()}/")
+    # THE CHAINS FOLLOW THE TEXT (decision PB5448 point 7): every older edition whose change records name this edition's
+    # rules has a moved id renamed and a split parent's digest re-stamped, or the record sent to adjudication.
+    for older in (e for e in EDITIONS if ops and e.held and e.next_held == ed.year):
+        fresh, restamped, sent = rule_moves.older_restamps(read_store(inventory_dir(older)), ops, texts, applied)
+        written = write_store(fresh.values(), inventory_dir(older))
+        print(f"{older.year} change records: {len(restamped)} re-pointed or re-stamped, {len(sent)} quote carved text "
+              f"and go to adjudication (STALE){': ' + ', '.join(sent) if sent else ''}; wrote {written} file(s)")
     print(f"⛔ NOW RUN THE GATE — it is what checks that these references actually resolve:\n    {GATE}")
     return 0
 

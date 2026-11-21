@@ -11,7 +11,7 @@
       *> §2023:8.4.2.2 qualification; a subscripted operand addresses the
       *> OCCURRENCE (a table lays its occurrences end-to-end in the
       *> record's storage). Each taken address is re-based onto a BASED
-      *> view (§2023:14.9.39 F7 / §2023:13.18.5 GR2-4) and read back — the DISPLAY
+      *> view (§2023:14.9.39 F7 / §2023:13.18.5.4 GR2-4) and read back — the DISPLAY
       *> content proves the address landed on the right storage.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. ADDROFQP10PT.
