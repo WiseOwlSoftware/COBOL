@@ -11,7 +11,7 @@
    table numbers it. §1985:XIII.3.10.7 and 3.10.9 lose the paragraph that held the table's markup (p2, pending) and gain
    `T2` and `T4` (data tables, pending); their later paragraphs move up one (p3..p7 -> p2..p6). A sibling the caption
    rule found: §1985:XIV.2.2.6's table prints "Table 2: Error Key Values" below it, and its row was
-   `1985-GR-XIV.2.2.6-T1` cited "§1985:XIV.2.2.6 Table 1" (a table the clause does not print): now `-T2`, "Table 2".
+   `1985-GR-XIV.2.2.6-T1` cited the clause's "Table 1" (a table the clause does not print): now `-T2`, "Table 2".
 3. **A refuter record is keyed by its unit's key** (clause, digest, order), never by its label: the relabel in 2 orphaned
    six UPHELD records whose words did not change (`text_units.keyed_to`).
 
