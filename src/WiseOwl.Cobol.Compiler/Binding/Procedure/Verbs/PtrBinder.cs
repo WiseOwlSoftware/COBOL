@@ -504,7 +504,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         return new BoundSequence([alloc, host.Init.BindAllocateInitialized(basedRef)]);
     }
 
-    /// <summary>Bind FREE (ISO §2023:14.9.15 SR1 — every operand shall be category data-pointer; the vendor
+    /// <summary>Bind FREE (ISO §2023:14.9.15.3 SR1 — every operand shall be category data-pointer; the vendor
     /// <c>FREE based-item</c> form is rejected, never silently mis-freed).</summary>
     public BoundStatement BindFree(Core.FreeStatementContext fr)
     {
@@ -600,7 +600,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         return null;
     }
 
-    /// <summary>Resolve a reference that must be a BASED 01/77 item (SR18 / §2023:14.9.3 SR1).
+    /// <summary>Resolve a reference that must be a BASED 01/77 item (SR18 / §2023:14.9.3.3 SR1).
     /// <para>⛔ THE LOOKUP IS THE RESOLVER'S, AND IT IS SCOPE-AWARE (kb/Work PB467). This used to read
     /// <c>ctx.Data.ByName</c> — the UNIT-WIDE multimap, which has no notion of the reference's scope — and the
     /// SR18 verdict then went wrong in BOTH directions inside a method definition: a legal method-local

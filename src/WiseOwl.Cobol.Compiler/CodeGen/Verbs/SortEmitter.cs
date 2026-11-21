@@ -27,7 +27,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// NOT AT END phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
     internal StatementEmitter Statements { get; set; } = null!;
 
-    /// <summary>SORT Format 1 (ISO §2023:14.9.40 GR9 — the three phases): (a) release — the USING files' records via
+    /// <summary>SORT Format 1 (ISO §2023:14.9.40.4 GR9 — the three phases): (a) release — the USING files' records via
     /// implicit OPEN INPUT / READ / RELEASE / CLOSE (GR12), or the INPUT PROCEDURE as a bounded dispatch (GR11);
     /// (b) sequence — one stable key sort (GR8; stability = the GR3 DUPLICATES IN ORDER order, safe without the
     /// phrase per GR4); (c) return — the GIVING files via implicit OPEN OUTPUT / RETURN / WRITE / CLOSE, each file
@@ -258,7 +258,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         EmitImplicitOpen(input, BoundOpenMode.Input,
             input.Sharing == SharingMode.AllOther ? SharingMode.ReadOnly : null,
             "implicit OPEN INPUT (ISO §2023:14.9.40.4 GR12a / §2023:14.9.24.4 GR7a)", TransferIo.UsingOpen, tx);
-        // §2023:14.9.40 GR12 b) / §2023:14.9.24 GR7 b): "Each record is obtained as if a READ statement with the NEXT
+        // §2023:14.9.40.4 GR12 b) / §2023:14.9.24.4 GR7 b): "Each record is obtained as if a READ statement with the NEXT
         // phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed." An IGNORING LOCK read is a
         // GOVERNED read (§2023:14.9.30.4 GR12 is what suppresses the GR9 conflict), so it renders the ONE governed
         // Format-1 entry with `ignoringLock: true` — never an ungoverned one, which would answer '51' against
@@ -700,7 +700,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
 
     /// <summary>RELEASE (ISO §2023:14.9.32): FROM first MOVEs into the record (GR4 — identical to the explicit MOVE),
     /// then the record's character image goes to the sort store (GR2). A varying SD releases the leading
-    /// DEPENDING-ON characters (§2023:13.18.43 GR13 — the current value of the data item names the released length);
+    /// DEPENDING-ON characters (§2023:13.18.43.4 GR13 — the current value of the data item names the released length);
     /// a fixed SD releases its ONE record size — the largest record description's (the implied Format 1,
     /// §2023:13.18.43.4 GR5 a); kb/Work PB322 F) — so a shorter record description sends the record AREA's image
     /// (<see cref="SequentialIoEmitter.SentRecordImage"/>, D-WRT1): §2023:14.9.32.4 GR6 leaves the bytes past the end of
@@ -728,7 +728,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         string call, length;
         if (rl.Varying is { Depending: { } dep })
         {
-            // §2023:13.18.43 GR13a: the released record's length = the RECORD VARYING DEPENDING ON item's current value.
+            // §2023:13.18.43.4 GR13a: the released record's length = the RECORD VARYING DEPENDING ON item's current value.
             // The runtime slices the area to it AFTER the range test — an emitted reference modification would
             // raise EC-BOUND-REF-MOD for a value past the area, a condition no RELEASE rule names.
             length = $"(int){PlaceRenderer.CountRead(dep)}";
@@ -768,7 +768,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         varying is { } v ? (v.Min, v.Max) : (0, recordWidth);
 
     /// <summary>RETURN (ISO §2023:14.9.34): pull the next record in key order into the SD record area (GR3); a varying
-    /// SD restores the returned record's length into the DEPENDING item (§2023:13.18.43 GR15); INTO then MOVEs the
+    /// SD restores the returned record's length into the DEPENDING item (§2023:13.18.43.4 GR15); INTO then MOVEs the
     /// record area to the receiver (GR5 — skipped when at end); control goes to NOT AT END / AT END (GR3/GR4).
     /// At end the record area is undefined and a further RETURN in the same output procedure is
     /// EC-SORT-MERGE-RETURN (GR3); with that checking off the store deterministically reports at-end again.</summary>
@@ -787,7 +787,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             if (rt.RecordArea is { } area && HoldsSlots(area.Item))
                 w.Line(PlaceRenderer.WriteGroupLeaves(area, RuntimeApi.SortLastReturnedSlots(sd) + "!"));
             else seqIo.EmitRecordAreaStore(rt.File, rt.RecordArea, tmp, tmp, RuntimeApi.SortLastReturnedExtents(sd));
-            if (rt.Varying is { Depending: { } dep })   // §2023:13.18.43 GR15 — the length restored into DEPENDING
+            if (rt.Varying is { Depending: { } dep })   // §2023:13.18.43.4 GR15 — the length restored into DEPENDING
                 arith.StoreArith(dep, new NumX(RuntimeApi.SortLastReturnedLength(sd), 0), CobolRounding.Truncation);
             // GR5 b) — RETURN then MOVE THE CURRENT RECORD → identifier-1, the move BOUND by
             // MoveBinder.BindIntoPhrase (kb/Work PB348): its sender is the record area sliced to the
@@ -811,7 +811,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         }
     }
 
-    /// <summary>SORT Format 2 — the in-place TABLE sort (ISO §2023:14.9.40 GR18–GR24): a stable typed-comparer sort over
+    /// <summary>SORT Format 2 — the in-place TABLE sort (ISO §2023:14.9.40.4 GR18–GR24): a stable typed-comparer sort over
     /// the table's CURRENT occurrences, the sorted elements placed back in data-name-2 (GR24). Stability preserves
     /// the pre-sort relative order of equal keys (GR3c DUPLICATES IN ORDER; without the phrase the order is
     /// undefined, GR4 — stable is conformant). Numeric keys compare by value (GR19 → the relation-condition rules,

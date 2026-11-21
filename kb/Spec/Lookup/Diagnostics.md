@@ -69,8 +69,8 @@ serves as the diagnostic→phase map). See [[kb/Semantics/Validation Rules]] and
 | `COBOL1555` | SAME AS subject-entry rule | Error | §2023:13.18.49.3 | Bind | SAME AS |
 | `COBOL1556` | SAME AS referenced-entry rule | Error | §2023:13.18.49.3 | Bind | SAME AS |
 | `COBOL1557` | SAME AS cyclic reference | Error | §2023:13.18.49.3 SR3/4 | Bind | SAME AS / TYPE |
-| `COBOL1558` | EXTERNAL type misuse | Error | §2023:13.18.22 SR5/GR2 | Bind | EXTERNAL TYPEDEF |
-| `COBOL1570` | numeric-edited VALUE oversize (2023) | Error / Warn | §2023:13.18.63 SR4/5 | Validate | VALUE (edition) |
+| `COBOL1558` | EXTERNAL type misuse | Error | §2023:13.18.22.3 SR5/GR2 | Bind | EXTERNAL TYPEDEF |
+| `COBOL1570` | numeric-edited VALUE oversize (2023) | Error / Warn | §2023:13.18.63.3 SR4/5 | Validate | VALUE (edition) |
 | `COBOL1625` | numeric VALUE out of PICTURE range | Error | §2023:13.18.63.3 SR2/3 | Bind | VALUE |
 | `COBOL1577` | method REDEFINES out of method scope | Error | §2023:13.18.44.3 | Bind | OO method data |
 | `COBOL1582` | file COLLATING SEQUENCE malformed | Error | §2023:12.4.5.7.3 SR3-8 | Bind | indexed key collation |

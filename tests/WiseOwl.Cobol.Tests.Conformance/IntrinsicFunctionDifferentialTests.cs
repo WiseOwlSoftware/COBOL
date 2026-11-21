@@ -1147,7 +1147,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.Contains("COBOL1517", detail);
     }
 
-    // ── P7 Step 12: FUNCTION arguments as real arithmetic expressions (§2023:8.4.3.2 SR8) ────────────────────────
+    // ── P7 Step 12: FUNCTION arguments as real arithmetic expressions (§2023:8.4.3.2.3 SR8) ────────────────────────
 
     [Theory]
     [InlineData("COMPUTE R = FUNCTION MAX(A / B, C).")]                     // division in an argument — the Step-12 probe
@@ -1213,13 +1213,13 @@ public sealed class IntrinsicFunctionDifferentialTests
 
     [Fact]
     public void EmptyParens_NoArgFunction_2014() =>
-        // FUNCTION PI () — the §2023:8.4.3.2 SR6 NOTE's empty-argument-list shape.
+        // FUNCTION PI () — the §2023:8.4.3.2.3 SR6 NOTE's empty-argument-list shape.
         AssertSpec(Program("01 R PIC 9.9(5).", "    COMPUTE R = FUNCTION PI ().\n    DISPLAY R."),
             "3.14159", 2014);
 
     [Fact]
     public void KeywordOmitted_ExpressionArgs_2002() =>
-        // The §2023:8.4.3.2 SR2 keyword-omitted form with COMPOUND arguments: the captured argument text re-parses
+        // The §2023:8.4.3.2.3 SR2 keyword-omitted form with COMPOUND arguments: the captured argument text re-parses
         // through the ONE functionArgList grammar (the D2 fragment re-parse), so expressions bind identically
         // to the FUNCTION-keyword form.
         AssertSpec("""
@@ -1243,10 +1243,10 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Fact]
     public void OmittedArgument_ToIntrinsic_1544()
     {
-        // §2023:8.4.3.2 SR7 — OMITTED shall not be specified for an intrinsic function.
+        // §2023:8.4.3.2.3 SR7 — OMITTED shall not be specified for an intrinsic function.
         var (ok, _, detail) = new WiseOwlCobolCompiler(2014).CompileAndRun(
             Program("01 R PIC 9(3).", "    COMPUTE R = FUNCTION MAX(OMITTED, 4).\n    DISPLAY R."));
-        Assert.False(ok, "OMITTED violates §2023:8.4.3.2 SR7 for an intrinsic");
+        Assert.False(ok, "OMITTED violates §2023:8.4.3.2.3 SR7 for an intrinsic");
         Assert.Contains("COBOL1544", detail);
     }
 

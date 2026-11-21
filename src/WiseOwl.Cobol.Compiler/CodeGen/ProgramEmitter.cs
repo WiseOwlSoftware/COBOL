@@ -178,7 +178,7 @@ internal sealed class ProgramEmitter
     /// <summary>⛔ THE ONE PLACE A CHARACTER-CARRIED LINKAGE FORMAL'S LENGTH REGIME IS DECIDED — and the
     /// standard describes THREE of them, where this dispatch used to have two (kb/Work PB165).
     /// <list type="bullet">
-    ///   <item><b>ANY LENGTH</b> (ISO §2023:13.18.2 GR1) — the formal's length IS the argument's, fixed for the
+    ///   <item><b>ANY LENGTH</b> (ISO §2023:13.18.2.4 GR1) — the formal's length IS the argument's, fixed for the
     ///     activation: the full-string view, width sentinel −1.</item>
     ///   <item><b>DYNAMIC LENGTH</b> (ISO §2023:13.18.19.4 GR1/GR2) — the length VARIES during execution, minimum
     ///     zero, maximum the LIMIT phrase: the full-string view whose store carries §2023:8.5.1.10.4's replace-and-
@@ -643,7 +643,7 @@ internal sealed class ProgramEmitter
                 {
                     // Per-access aliasing of the caller's storage (§2023:14.2.3 GR8): every reference to the formal
                     // reads/writes through this carrier (every access path to it starts at the carrier,
-                    // DataItem.ResidentCarrier). An ANY LENGTH formal (ISO §2023:13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
+                    // DataItem.ResidentCarrier). An ANY LENGTH formal (ISO §2023:13.18.2.4 GR1 — its length IS the caller's argument length) takes the FULL-STRING
                     // view (the width -1 sentinel), never a Pic.Length=1 window that would truncate the caller.
                     // A BY VALUE formal adopts the DETACHED value-copy cell instead (§2023:14.2.3 GR10 — the
                     // activated element's stores reach only the copy, never the caller; §2023:14.2.2 SR2 restricts

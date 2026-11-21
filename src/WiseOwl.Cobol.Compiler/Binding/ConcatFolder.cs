@@ -53,7 +53,7 @@ using Core = CobolParserCore;
 /// characters the <see cref="LiteralEnvironment"/> of the fold names for the pair's class. NULL has no character
 /// value (§2023:8.3.3.6.3 Format 8 — a pointer figurative) and is rejected. In class boolean only ZERO folds (a boolean
 /// character is 0 or 1, §2023:8.3.3.4 — SPACE/QUOTE/HIGH/LOW and a symbolic-character have no boolean value; the
-/// §2023:13.18.63 SR10 posture). §2023:8.8.3.3 GR2: the value is the concatenation of the operand values; two zero-length
+/// §2023:13.18.63.3 SR10 posture). §2023:8.8.3.3 GR2: the value is the concatenation of the operand values; two zero-length
 /// operands fold to a zero-length literal (which falls out of plain string concatenation).
 /// </remarks>
 internal static class ConcatFolder

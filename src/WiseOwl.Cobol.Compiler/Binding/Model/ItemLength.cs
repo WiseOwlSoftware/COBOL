@@ -38,7 +38,7 @@ internal static class ItemLength
             // (Place.NationalWindow.PositionsOf, the same count the storage geometry and the byte-window gate
             // read), never re-derived as pic.Length. ⛔ The two differ for exactly the shape §2023:13.18.60.3 SR12's
             // national-form numeric made reachable (kb/Work PB646): a SIGN IS SEPARATE position is a character
-            // position and not a digit position (§2023:13.18.52 GR6a), so `PIC S9(3) USAGE NATIONAL SIGN IS LEADING
+            // position and not a digit position (§2023:13.18.52.4 GR6a), so `PIC S9(3) USAGE NATIONAL SIGN IS LEADING
             // SEPARATE` is FOUR national positions while pic.Length is its three digits — and r3's DISPLAY arm
             // below already counted the separate sign, so the two arms of ONE rule disagreed.
             // A national GROUP is not elementary: PositionsOf answers null and §2023:13.18.29.4 GR2b's as-if

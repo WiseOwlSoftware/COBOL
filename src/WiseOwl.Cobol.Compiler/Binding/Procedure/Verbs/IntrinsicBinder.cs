@@ -18,10 +18,10 @@ using Core = CobolParserCore;
 /// Intrinsic-function binding (ISO §15; INTRINSICS_DESIGN spine 1). P7 Step 12: FUNCTION arguments
 /// are REAL parse trees — <c>functionCall : FUNCTION functionName (FNARG_LPAREN functionArgList? FNARG_RPAREN)?</c>
 /// (the argument-list parens carry their own token type since PB48 — ISO §2023:8.4.3.2.3 SR6), each
-/// <c>functionArgument</c> one of the §2023:8.4.3.2 SR8 shapes (phrase word / OMITTED / non-numeric literal /
+/// <c>functionArgument</c> one of the §2023:8.4.3.2.3 SR8 shapes (phrase word / OMITTED / non-numeric literal /
 /// arithmetic expression) — and every arithmetic argument binds through the ONE
 /// <see cref="ExpressionBinder.BindExpr"/> (nested <c>FUNCTION</c> calls recurse naturally through
-/// <c>BindPrimary</c>). The keyword-omitted form <c>name(args)</c> (§2023:8.4.3.2 SR2) arrives as a
+/// <c>BindPrimary</c>). The keyword-omitted form <c>name(args)</c> (§2023:8.4.3.2.3 SR2) arrives as a
 /// <c>dataReference</c> whose <c>subscriptPart</c> carries the arguments (D2 — a grammar alternative is an
 /// irreducible ambiguity); every item of that list is a <c>functionArgument</c>, the SAME rule the FUNCTION-keyword
 /// form's <c>functionArgList</c> uses (kb/Work PB2113 — it used to be a SUBSCRIPT-mode capture re-parsed from its
@@ -330,7 +330,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private FunctionPrototypeReference? FunctionPrototypeWritten(IToken written, bool report) =>
         ctx.Symbols.Identify(WrittenWord.Of(written), NameClass.FunctionPrototype, report)?.Symbol as FunctionPrototypeReference;
 
-    /// <summary>The §2023:8.4.3.2 SR2 FUNCTION-keyword-OMITTED reference form (M2-UDF-4): a data reference whose head
+    /// <summary>The §2023:8.4.3.2.3 SR2 FUNCTION-keyword-OMITTED reference form (M2-UDF-4): a data reference whose head
     /// is a REPOSITORY-declared user-function / function-prototype-name (or the containing function's own name),
     /// or — when <c>FUNCTION ALL INTRINSIC</c> / <c>FUNCTION name INTRINSIC</c> is in effect — an
     /// intrinsic-function-name, followed by a single subscript part, is a FUNCTION CALL, not a subscripted data
@@ -679,7 +679,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // function-prototype-name refers to the USER-DEFINED function "and not to an intrinsic function of
         // the same name" (the spec's own factorial-override example, :43651) — so the user-function
         // dispatch PRECEDES the catalog. §2023:8.4.6.6 adds the CONTAINING function definition's own name with
-        // no repository declaration (self-recursion; a present self-entry is ignored, §2023:12.3.8 GR11).
+        // no repository declaration (self-recursion; a present self-entry is ignored, §2023:12.3.8.4 GR11).
         if (FunctionPrototypeWritten(written, report: true) is { } function)
             return host.Udf.UdfBindCall(function, argCtxs);
 
@@ -2305,7 +2305,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // element — a per-occurrence loop) instead of miscounting it.
         BoundFieldOperand g when g.Place.Item.IsGroup && HasRuntimeLength(g.Place.Item) =>
             VariableLengthGroupSum(sig, g, bytes: false),
-        // An ANY LENGTH item's length exists only at RUNTIME (ISO §2023:13.18.2 GR1 — n = the length of the
+        // An ANY LENGTH item's length exists only at RUNTIME (ISO §2023:13.18.2.4 GR1 — n = the length of the
         // corresponding argument): never the compile-time fold, always the runtime .Length over the carrier
         // (the same BoundIntrinsicCall channel a nested string-function argument uses).
         BoundFieldOperand { Place.Item.IsAnyLength: true } =>
@@ -2583,7 +2583,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// <summary>
     /// The length of a group whose length is a RUNTIME value, as ONE expression — §2023:15.50.4 r4b + r7 (LENGTH) /
     /// §2023:15.14.4 r2b + r6 (BYTE-LENGTH), kb/Work PB61: the fixed subordinates, plus the CURRENT extent of an OCCURS
-    /// DEPENDING table (r4b — "the rules of the OCCURS clause for a sending data item", §2023:13.18.38 GR8), plus the
+    /// DEPENDING table (r4b — "the rules of the OCCURS clause for a sending data item", §2023:13.18.38.4 GR8), plus the
     /// CURRENT length of every dynamic-length elementary item (r7b), plus every dynamic-capacity table's current
     /// capacity × its element width (r7c). Every unit is BYTES: an alphanumeric group's r3 "alphanumeric character
     /// positions" ARE its bytes (<see cref="LengthPositions"/>), and r6 makes a dynamic-length item's length a
@@ -3102,13 +3102,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return args;
     }
 
-    /// <summary>Bind one function argument to a typed operand (the §2023:8.4.3.2 SR8 shapes): a non-numeric literal
+    /// <summary>Bind one function argument to a typed operand (the §2023:8.4.3.2.3 SR8 shapes): a non-numeric literal
     /// stays a categorized literal operand; a sole data reference stays a field operand through the ONE
     /// <c>BindExpr</c>→<c>RefExpr</c> mapping (its category decides string-vs-numeric rendering; a bare
     /// index-name reads its occurrence number, §2023:13.18.38); anything that is not a sole operand (an operator, a unary
     /// sign on an item, enclosing parentheses) is an arithmetic expression: it binds through the §2023:8.8.1.1-screened
     /// <c>BindExpr</c> and is a computed operand, a parenthesized item or literal included (kb/Work PB4635). OMITTED is barred for an intrinsic argument
-    /// (§2023:8.4.3.2 SR7); an unconsumed phrase word is a loud named operand — never a silent skip (§1.4).
+    /// (§2023:8.4.3.2.3 SR7); an unconsumed phrase word is a loud named operand — never a silent skip (§1.4).
     /// <para><paramref name="activationArgument"/> is true ONLY for a function-prototype activation (UdfBinder), the one
     /// position where the argument crosses to a formal parameter, and it decides two things an intrinsic argument does not
     /// (both kinds of argument are asked their WRITTEN shape, a parenthesized item or literal being an arithmetic

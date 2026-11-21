@@ -257,7 +257,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
 
     /// <summary>⛔ THE ONE RESOLUTION OF A COUNTER REFERENCE TO ITS REPORT, read by the SENDING
     /// (<c>ReportWriterBinder.CounterExpr</c>) and RECEIVING (<c>ReportWriterBinder.CounterPlace</c>) directions alike: the OF/IN
-    /// <c>cobolWord</c> is the report-name qualifier (ISO §2023:8.4.3.15 SR2 / §2023:8.4.2.2), and an unqualified counter
+    /// <c>cobolWord</c> is the report-name qualifier (ISO §2023:8.4.3.15.3 SR2 / §2023:8.4.2.2), and an unqualified counter
     /// resolves only when the program has exactly one report. Null — with the diagnostic already raised — when
     /// the qualifier names no report, when no report description entry exists, or when an unqualified reference
     /// is ambiguous. Written once so a program cannot be told the qualification rule on one side of a statement

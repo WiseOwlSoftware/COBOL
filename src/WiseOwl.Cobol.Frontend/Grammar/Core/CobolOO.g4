@@ -128,7 +128,7 @@ methodName
     ;
 
 // METHOD-ID. GET|SET PROPERTY prop-name — the explicit property-accessor selector (§2023:10.6 :12810-12814;
-// §2023:11.7 SR6/SR7 shape checks are pass-1, COBOL0842).
+// §2023:11.7.3 SR6/SR7 shape checks are pass-1, COBOL0842).
 methodPropertySelector
     : (GET | SET) PROPERTY defPropertyName1=propertyName
     ;

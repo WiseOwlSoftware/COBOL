@@ -21,7 +21,7 @@
       *> no vocabulary for the distinction: CobolClass had no Alphabetic member, ClassOfCategory answered
       *> Alphanumeric for a PIC A item, and this reference bound clean and ran. kb/Work PB124 wave 5 gave the
       *> class its member and routed a PIC A item to it through PicInfo.IsAlphabetic — the datum MoveTable16
-      *> and INITIALIZE's §2023:14.9.20 GR5c category matching had been reading all along.
+      *> and INITIALIZE's §2023:14.9.20.4 GR5c category matching had been reading all along.
       *>
       *> THE ADMIT SIDE IS conformance:cases/15.95.3-Argument-rule/l1_test_numval_f_class_screen, which requires a value from a
       *> numeric-edited item and from a group item. Both are class alphanumeric by Table 2, so a screen that

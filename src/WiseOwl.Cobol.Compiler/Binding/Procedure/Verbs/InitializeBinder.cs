@@ -177,7 +177,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return BoundImplicitSeries.Of(members);
     }
 
-    /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §2023:14.9.3 GR7): "the allocated storage is
+    /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §2023:14.9.3.4 GR7): "the allocated storage is
     /// initialized as if an INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO DEFAULT statement were
     /// executed" — bind EXACTLY that statement's expansion over the based item (the ONE INITIALIZE mechanism:
     /// WITH FILLER, the bare-ALL TO VALUE, no REPLACING, THEN TO DEFAULT), sequenced by the ALLOCATE bind
@@ -863,7 +863,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The INITIALIZE category of an elementary item (ISO §2023:8.5.2 via §2023:14.9.20.2 category-name), or null
     /// when the item is excluded (GR5a1 — an index data item is not a valid MOVE receiver; only SET stores it,
-    /// §2023:14.9.39 GR2b). Alphanumeric-edited = an X/A picture with insertion symbols; alphabetic = an all-A picture
+    /// §2023:14.9.39.4 GR2b). Alphanumeric-edited = an X/A picture with insertion symbols; alphabetic = an all-A picture
     /// (the COBOL-85 alphabetic-edited category folds into alphanumeric-edited per the 2023 categorization).</summary>
     private static InitializeCategory? InitializeItemCategory(DataItem item) => item.Pic switch
     {

@@ -492,7 +492,7 @@ public sealed class MoveEditionDifferentialTests
     }
 
     /// <summary>§2023:14.9.25.3 SR1 — "The class of identifier-1 or identifier-2 shall not be index" — is
-    /// version-INVARIANT (§2023:13.18.60 GR10 admits only SET/SEARCH/relation references), never an Annex-E
+    /// version-INVARIANT (§2023:13.18.60.4 GR10 admits only SET/SEARCH/relation references), never an Annex-E
     /// removal row: COBOL0809 error at EVERY edition, on the receiver AND the sender arm, and it stays an
     /// ERROR under --permissive (the review caught the 0902 row mislabeling this "permitted through 2014").</summary>
     [Theory]

@@ -2044,7 +2044,7 @@ internal sealed class StatementValidation(DataBinder data)
     };
 
 
-    /// <summary>§2023:14.9.51 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
+    /// <summary>§2023:14.9.51.3 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
     /// a LINAGE clause in the file's file description entry.</summary>
     public bool CheckWriteEopLinage(FileModel file)
     {
@@ -2054,7 +2054,7 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>§2023:14.9.51 SR18 — <i>"The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a
+    /// <summary>§2023:14.9.51.3 SR18 — <i>"The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a
     /// single WRITE statement."</i> The END-OF-PAGE phrase is the AT phrase (GR27 b)'s imperative-statement-1);
     /// SR19 and GR28 name the NOT END-OF-PAGE phrase separately, so the caller passes true only when the WRITE
     /// carries ADVANCING PAGE AND the AT phrase (kb/Work PB578).</summary>
@@ -2082,7 +2082,7 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>§2023:14.9.51 SR13 — with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES
+    /// <summary>§2023:14.9.51.3 SR13 — with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES
     /// mnemonic (the caller resolves the mnemonic test through the per-unit registry).</summary>
     public bool CheckWriteAdvancingMnemonic(FileModel file, bool advancingNamesMnemonic)
     {

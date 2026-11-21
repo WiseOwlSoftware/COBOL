@@ -112,7 +112,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     private static bool ReferencesAFunction(Core.EvaluateWhenItemContext item) =>
         Antlr4.Runtime.Tree.Trees.FindAllRuleNodes(item, Core.RULE_functionCall).Count > 0;
 
-    /// <summary>One subject↔object pair → a boolean term (§2023:14.9.13 GR4–7):
+    /// <summary>One subject↔object pair → a boolean term (§2023:14.9.13.4 GR4–7):
     /// ANY → always true; a TRUE/FALSE subject pairs with a CONDITION object (TRUE → the condition, FALSE → its
     /// negation); a value subject pairs with an operand (equality), a THRU range (inclusive bounds), or — when
     /// the object IS a condition over the same item (the grammar's escape) — the condition itself. The bracketed
@@ -291,7 +291,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// POSITIONLESS operand (figurative ZERO / <c>ALL B"…"</c>, whose length is its sibling's — §2023:8.3.3.6.4 GR4)
     /// and a boolean function whose length argument is a run-time value both report null, and both answer YES:
     /// against a TRUE-or-FALSE counterpart one boolean position is the only length that gives the pair a
-    /// meaning, and the §2023:8.8.4.3 SR1 screen on the resulting condition still refuses the rest. Failing OPEN is
+    /// meaning, and the §2023:8.8.4.3.3 SR1 screen on the resulting condition still refuses the rest. Failing OPEN is
     /// the direction that cannot reject legal source.</summary>
     private static bool IsOneBooleanCharacter(int? length) => length is null or 1;
 
@@ -708,7 +708,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             return host.Udf.UdfAttachPerEvaluation(partialCond, objMark);
         }
 
-        // Value subject vs operand / range: equality or inclusive bounds (§2023:14.9.13 GR5b/c).
+        // Value subject vs operand / range: equality or inclusive bounds (§2023:14.9.13.4 GR5b/c).
         // ⛔ THE SLOT'S ONE VALUE (§2023:14.9.13.4 GR3, kb/Work PB394) — NEVER a fresh bind of the subject's node. The
         // subject is "evaluated and assigned a value" at the beginning of the statement, and a RANGE object reads
         // that one value TWICE ("selection-subject >= left-part AND selection-subject <= right-part", GR4 a) 5.):

@@ -21,7 +21,7 @@ public sealed partial class FileControlBinder
 {
     /// <summary>Bind the I-O-CONTROL paragraph (ISO §2023:12.4.6). A record-area SAME clause (Format 2) makes the listed
     /// files "share a memory area for processing the current logical record … equivalent to an implicit redefinition
-    /// of the area with records aligned on the leftmost byte position" (§2023:12.4.6.4 GR2) — modeled by chaining each
+    /// of the area with records aligned on the leftmost byte position" (§2023:12.4.6.4.4 GR2) — modeled by chaining each
     /// listed file's FIRST record as a synthesized REDEFINES of the first LISTED file's first record, exactly the
     /// multi-01-under-one-FD mechanism (the singular-pattern rule): the tier machinery then aliases every record of
     /// every listed file over ONE backing, and READ/WRITE/RELEASE image distribution gives the

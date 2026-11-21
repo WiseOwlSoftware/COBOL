@@ -64,7 +64,7 @@ public readonly struct NameCandidates<T> where T : class
     /// <summary>The declaration the reference identifies — non-null only when exactly one survives.</summary>
     public T? Single => Count == 1 ? _items![0] : null;
 
-    /// <summary>The survivors a clause's OWN rule narrows the set to (e.g. §2023:12.4.5.12 SR2's "a record of this
+    /// <summary>The survivors a clause's OWN rule narrows the set to (e.g. §2023:12.4.5.12.3 SR2's "a record of this
     /// file"); the result is counted like any other set.</summary>
     public NameCandidates<T> Where(Func<T, bool> predicate) =>
         new(_items is null ? [] : _items.Where(predicate).ToList());

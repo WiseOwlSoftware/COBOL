@@ -42,7 +42,7 @@ the 1985 page regions (`GroupLimits`) never meet OR PAGE or LAST CONTROL HEADING
 ```
 ReportSectionBinder.cs            ReportWriterBinder.cs                ReportWriterEmitter.cs
 RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine field __RPT_n + per-line
-  geometry (§2023:13.18.39 GR3        BoundInitiate/Generate/Terminate;    compose methods; construction in
+  geometry (§2023:13.18.39.4 GR3        BoundInitiate/Generate/Terminate;    compose methods; construction in
   defaults), CONTROL list,       LINE-/PAGE-COUNTER →                 __Activate beside the file
   groups → lines → fields        BoundReportCounterRef                registration; verbs → engine calls
                 ↘                                ↘                                  ↘

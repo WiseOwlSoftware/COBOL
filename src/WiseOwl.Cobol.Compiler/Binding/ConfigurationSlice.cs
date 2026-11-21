@@ -53,22 +53,22 @@ public sealed class ConfigurationSlice
     /// ALPHABETIC class tests (§2023:8.8.4.4.4 GR3).</summary>
     public ClassificationSpec? Classification { get; internal set; }
 
-    /// <summary>The resolved ALPHANUMERIC PROGRAM COLLATING SEQUENCE (ISO §2023:12.3.6 GR9–GR11) — a literal-phrase table
+    /// <summary>The resolved ALPHANUMERIC PROGRAM COLLATING SEQUENCE (ISO §2023:12.3.6.4 GR9–GR11) — a literal-phrase table
     /// or a LOCALE sequence — or null when none is specified / the named alphabet is the native order. Drives
     /// relation, condition-name and SORT/MERGE-key comparisons (GR11/GR13), MAX/MIN, ORD/CHAR, and the HIGH-/LOW-VALUE
-    /// characters (§2023:8.3.3.6 GR6/GR7). The emitter renders it ONCE as the program's <c>__COLLATE</c> carrier.</summary>
+    /// characters (§2023:8.3.3.6.4 GR6/GR7). The emitter renders it ONCE as the program's <c>__COLLATE</c> carrier.</summary>
     public AlphabetDef? Collating { get; internal set; }
 
-    /// <summary>The resolved NATIONAL PROGRAM COLLATING SEQUENCE (ISO §2023:12.3.6 GR9 — alphabet-name-2 / the FOR
+    /// <summary>The resolved NATIONAL PROGRAM COLLATING SEQUENCE (ISO §2023:12.3.6.4 GR9 — alphabet-name-2 / the FOR
     /// NATIONAL form), or null when none is specified / the named alphabet is an identity sequence (NATIVE, UCS-4 —
     /// the native UTF-16 code-unit order, D-N3). Drives NATIONAL relation and condition-name comparisons (GR11 /
     /// §2023:8.8.4.2.9), CHAR-NATIONAL/ORD-over-national (§2023:15.16.4 / §2023:15.70.4 r2), and the national HIGH-/LOW-VALUE
-    /// characters (§2023:12.3.7 GR8/GR9). National SORT/MERGE keys (GR13 / §2023:14.9.40 GR5b) cannot yet EXIST — D-N2
+    /// characters (§2023:12.3.7.4 GR8/GR9). National SORT/MERGE keys (GR13 / §2023:14.9.40.4 GR5b) cannot yet EXIST — D-N2
     /// refuses national leaves in FD/SD records and the table-sort national key is staged loud — so no key
     /// consumer reads this yet.</summary>
     public NationalAlphabetDef? NationalCollating { get; internal set; }
 
-    /// <summary>DECIMAL-POINT IS COMMA (ISO §2023:12.3.7 GR14 — the decimal and grouping separator characters EXCHANGE
+    /// <summary>DECIMAL-POINT IS COMMA (ISO §2023:12.3.7.4 GR14 — the decimal and grouping separator characters EXCHANGE
     /// functionality in numeric literals [GR14a] and PICTURE character-strings / edited insertion [GR14b]).
     /// Version-invariant 85→2023 (no VERSION_CHANGE_REFERENCE row). Set BEFORE any literal or PICTURE binds —
     /// SPECIAL-NAMES is walked at the top of <c>DataBinder.Bind</c>.</summary>
@@ -81,7 +81,7 @@ public sealed class ConfigurationSlice
 
     /// <summary>
     /// The unit's CURRENCY SIGN SET (ISO §2023:12.3.7): every currency PICTURE SYMBOL (uppercase-keyed — §2023:12.3.7.3
-    /// r20 / §2023:8.1.3 GR3 make the letter cases equivalent) → the currency STRING it stands for (GR13) AND the CLASS
+    /// r20 / §2023:8.1.3.2 GR3 make the letter cases equivalent) → the currency STRING it stands for (GR13) AND the CLASS
     /// of the literal-7 that gave it (<see cref="CurrencyDefinition"/>; §2023:12.3.7.3 SR28 confines an alphanumeric
     /// literal-7's symbol to usage-display numeric-edited items and a national one's to usage-national ones, and a set
     /// of symbol → string alone cannot ask it — kb/Work PB1089). A bare
@@ -142,14 +142,14 @@ public sealed class ConfigurationSlice
 
 
     /// <summary>The unit's REPOSITORY intrinsic-function specifiers by name (§2023:12.3.8 —
-    /// <c>FUNCTION intrinsic-function-name INTRINSIC</c>): the §2023:8.4.3.2 SR2 precondition that lets the word
+    /// <c>FUNCTION intrinsic-function-name INTRINSIC</c>): the §2023:8.4.3.2.3 SR2 precondition that lets the word
     /// FUNCTION be OMITTED when referencing that intrinsic (GR13). Keyed by <see cref="StandardWord"/>: an
     /// intrinsic-function-name is a word of the standard (§2023:8.11), never a user-defined word, so it is no name of the
     /// symbol table's (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Step 6b, slice 7"). The user-defined-function
     /// specifiers beside it are the symbol table's (<see cref="SymbolTable.DeclareFunctionSpecifier"/>).</summary>
     internal HashSet<StandardWord> RepositoryIntrinsics { get; } = [];
 
-    /// <summary>True when the unit's REPOSITORY specifies <c>FUNCTION ALL INTRINSIC</c> (§2023:12.3.8 GR14): the word
+    /// <summary>True when the unit's REPOSITORY specifies <c>FUNCTION ALL INTRINSIC</c> (§2023:12.3.8.4 GR14): the word
     /// FUNCTION may be omitted for EVERY §2023:8.11 intrinsic-function-name in this scope (SR2/GR13). Read only through
     /// <c>DataBinder.IsRepositoryIntrinsic</c> — the membership that applies GR14's >>COBOL-WORDS clauses and the edition
     /// — which the SR13 user-word prohibition (<c>DataBinder.DeclareUserWord</c>) asks too.</summary>

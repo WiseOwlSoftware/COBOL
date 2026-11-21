@@ -289,7 +289,7 @@ public sealed class InitializeLaneDriftTests
     /// receiving operand", so identifier-1 is subject to every receiving-operand prohibition the standard states
     /// — a growing set, already six deep in <c>ExpressionBinder.ResolveReceiving</c> (LINE-COUNTER §2023:8.4.3.15.3
     /// SR3, a constant-name §2023:13.10.4 GR1, PAGE-COUNTER, an unimplemented receiver shape, the OCCURS DYNAMIC
-    /// CAPACITY register §2023:13.18.38 SR30–32, and a CONSTANT RECORD §2023:13.18.15.3 SR2). INITIALIZE used to resolve
+    /// CAPACITY register §2023:13.18.38.3 SR30–32, and a CONSTANT RECORD §2023:13.18.15.3 SR2). INITIALIZE used to resolve
     /// identifier-1 with the plain reference resolver, which answers only "where does this live", so NONE of them
     /// was asked and a structured constant was destroyed at run time in silence. Routing is what makes the
     /// seventh prohibition free; a re-introduced direct resolve would make it a seventh copy.</summary>

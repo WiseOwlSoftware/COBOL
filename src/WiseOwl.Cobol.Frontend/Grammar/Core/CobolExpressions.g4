@@ -595,15 +595,15 @@ primaryExpression
 
 // FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions, ISO §15; function-identifier §2023:8.4.3.2).
 // P7 Step 12: the argument-list '(' after "FUNCTION functionName" stays in DEFAULT lexer mode (the lexer's
-// FUNCTION suppression — §2023:8.4.3.2 SR6: that '(' is ALWAYS the argument list), so each argument parses as a real
+// FUNCTION suppression — §2023:8.4.3.2.3 SR6: that '(' is ALWAYS the argument list), so each argument parses as a real
 // arithmeticExpression through the ONE expression grammar (SR8: an argument is an identifier, literal, boolean
 // expression, or arithmetic expression). Arguments are separated by separators only (§2023:8.3.5: space, or
 // comma/semicolon followed by space — both skipped by the lexer), so the list is plain juxtaposition; the
 // space-vs-adjacent sign distinction (MAX(A -4) = two args, MAX(A - 4) = one subtraction; §2023:8.7.1 operator
 // spacing + §2023:8.3.3.3.2 literal-sign adjacency) is preserved by the lexer's argument-region SIGNED_* twins.
 // A nested data-reference subscript inside an argument is a parsed subscriptPart like any other (kb/Work PB2113).
-// The empty-parens form (FUNCTION RANDOM ()) is the §2023:8.4.3.2 SR6 NOTE's shape.
-// The keyword-omitted form name(args) (§2023:8.4.3.2 SR2) has NO grammar alternative of its own (D2 — irreducible
+// The empty-parens form (FUNCTION RANDOM ()) is the §2023:8.4.3.2.3 SR6 NOTE's shape.
+// The keyword-omitted form name(args) (§2023:8.4.3.2.3 SR2) has NO grammar alternative of its own (D2 — irreducible
 // ambiguity with a subscripted dataReference): it parses as the dataReference's subscriptPart, whose items are
 // functionArguments, and the binder binds them as the arguments once it proves the name is a function.
 //
@@ -702,7 +702,7 @@ functionArgList
     : functionArgument (FNARG_SEPARATOR? functionArgument)*
     ;
 
-// One function argument (§2023:8.4.3.2 SR8 + the §15 per-function phrase words). The phrase-keyword alternative
+// One function argument (§2023:8.4.3.2.3 SR8 + the §15 per-function phrase words). The phrase-keyword alternative
 // admits the RESERVED words that appear inside §15 argument lists (TRIM LEADING/TRAILING §2023:15.96; FIND-STRING
 // LAST/START/AFTER §2023:15.37; SUBSTITUTE FIRST/LAST §2023:15.87; CONVERT ANY/ALPHANUMERIC/NATIONAL §2023:15.19) — words that
 // are plain IDENTIFIERs (ANYCASE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL) arrive

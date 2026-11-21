@@ -84,7 +84,7 @@ public sealed class RunUnitStateDriftTests
         RunUnit.Run(ru =>
         {
             first = ru;
-            ru.Switches.Set("SWITCH-1", true);             // §2023:12.3.7 GR4 NOTE 1 — run-unit scope
+            ru.Switches.Set("SWITCH-1", true);             // §2023:12.3.7.4 GR4 NOTE 1 — run-unit scope
             int hostExitCode = Environment.ExitCode;
             ru.ExitStatus = 7;                            // a STOP RUN WITH STATUS 7
             ru.Clock = fixedClock;                        // host configuration: carried over

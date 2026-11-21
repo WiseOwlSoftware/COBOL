@@ -210,7 +210,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             foreach (var t in s.Targets) AugmentSetTarget(t, s.Down, new NumX(tmp, 0), verb);
     }
 
-    /// <summary>SET Format 14 (ISO §2023:14.9.39 GR29; OCCURS DYNAMIC, data-model D9): the amount is evaluated ONCE,
+    /// <summary>SET Format 14 (ISO §2023:14.9.39.4 GR29; OCCURS DYNAMIC, data-model D9): the amount is evaluated ONCE,
     /// then the owning table's current capacity is set / raised / lowered through the runtime — new occurrences
     /// seeded (§2023:8.5.1.9.5), clamped to the minimum, and EC-FLOW-SEARCH raised if a SEARCH of the same table is
     /// active (GR31). The register carries no storage; the operation is on the <c>CobolDynTable&lt;T&gt;</c> itself.</summary>
@@ -297,7 +297,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     }
 
     /// <summary>THE store into a SET-style target (shared by SET TO and PERFORM VARYING initialization): an
-    /// index-name field or index data item takes the integer value UNCHANGED (§2023:14.9.39 GR2a/2b — an index IS its
+    /// index-name field or index data item takes the integer value UNCHANGED (§2023:14.9.39.4 GR2a/2b — an index IS its
     /// occurrence number); a numeric data item takes it through its own PICTURE store (GR2c).
     /// <para>⛔ PRECONDITION — <paramref name="value"/> SHALL ALREADY HAVE COME THROUGH <see cref="LandAmount"/>
     /// when the target is an index (kb/Work PB459): the integrality (§2023:14.9.39.4 GR2 a) 1. a) and implementor-range
@@ -319,7 +319,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
                 // A WINDOWED index data item (Tier-B / image-stored — the Step D arm-1 dissolution) stores
                 // its 8 occurrence-number bytes (the R40 pin); a native one takes the raw long unchanged
-                // (§2023:14.9.39 GR2b). The raw arm against a window was CS1503 in generated code.
+                // (§2023:14.9.39.4 GR2b). The raw arm against a window was CS1503 in generated code.
                 ctx.Writer.Line(PlaceRenderer.Write(p, p.Item.StoreAsImage
                     ? RuntimeApi.NumFormatImage(NumericRenderer.Align(value, 0), p.Item.ProfileName)
                     : NumericRenderer.Align(value, 0)));
@@ -333,7 +333,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// <summary>THE augment of a SET-style target by ±amount (shared by SET UP/DOWN BY, PERFORM VARYING and
     /// SEARCH's varied item, §2023:14.9.37.4 GR3 b)/c)): index-name / index data item → THE GUARDED occurrence-number augment; a
     /// numeric data item → an in-place add through its PICTURE store (legal as a VARYING induction variable,
-    /// §2023:14.9.28 GR13). ⛔ A plain <c>SET</c> UP/DOWN on a numeric item is invalid COBOL and is now REFUSED AT
+    /// §2023:14.9.28.4 GR13). ⛔ A plain <c>SET</c> UP/DOWN on a numeric item is invalid COBOL and is now REFUSED AT
     /// BIND (§2023:14.9.39.2 Format 2's receiving operand is index-name-3; COBOL2112, kb/Work PB449) — this comment
     /// used to say "the edition validator will diagnose it", and no validator did: the statement compiled and
     /// ran. The numeric arm survives because PERFORM VARYING and SEARCH reach this same augment.
@@ -426,7 +426,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             // assignment: PlaceRenderer.Write's MemberPlace arm assigns the record struct, so handing it a string
             // is the CS0029 above. §2023:14.9.25.4 GR4 — a group receiver is "filled without consideration for the
             // individual elementary or group items" — and §2023:14.9.39.4 GR6's OCCURS-dependent length is exactly the
-            // §2023:13.18.38 GR8 splice WriteGroupImage already carries. A bit / national group is NOT an image group:
+            // §2023:13.18.38.4 GR8 splice WriteGroupImage already carries. A bit / national group is NOT an image group:
             // its as-if value is boolean positions / national positions, which Write routes to FromBits / FromNat.
             ctx.Writer.Line(imageGroup
                 ? PlaceRenderer.WriteGroupImage(parent, rhs, $"SET condition '{cond.Name}' TO {(toTrue ? "TRUE" : "FALSE")}")

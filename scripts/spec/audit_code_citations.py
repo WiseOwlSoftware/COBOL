@@ -871,11 +871,11 @@ _RULE_HOME = {"SR": ".3", "GR": ".4"}
 
 
 def _alias(d: dict):
-    """A rule block is cited BOTH ways — `§2023:14.9.39.4 GR29` and `§2023:14.9.39 GR29` — so key it both ways.
+    """A rule block is cited BOTH ways — `§2023:14.9.39.4 GR29` and `§2023:14.9.39.4 GR29` — so key it both ways.
 
     ⛔ WHEN TWO CHILDREN CARRY THE SAME KIND, THE ALIAS GOES TO THE KIND'S OWN SUBCLAUSE, never to whichever
     the catalog listed first. The catalog files the numbered paragraphs of a construct's `.1 General` subclause
-    as kind GR, and it lists `.1` before `.4` — so under first-wins `§2023:13.18.41 GR2` resolved to PRESENT WHEN's
+    as kind GR, and it lists `.1` before `.4` — so under first-wins `§2023:13.18.41.1 GR2` resolved to PRESENT WHEN's
     two-paragraph GENERAL text, and SUBITEM reported `GR2 has no sub-items — GR2b names nothing` about a rule
     whose b) is printed (`cite.py --check 13.18.41.4 "If condition-1 is false"` → `OK §2023:13.18.41.4 2) b)`), while
     RULE reported `§2023:13.18.41 has 2 GRs` of a clause with six (kb/Work PB388, wave 47). The `.3`/`.4` child
@@ -1310,7 +1310,7 @@ def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str
                            message strings, against 2683 tree-wide in prose (`§2023:13.5.3 SR 1`, `SR-14.9.28.3-2`,
                            "the 1561-1563 SR band"), which is why the scope IS the string literal.
       DIAG-UNQUALIFIED   — the clause carries no rule block of that kind DIRECTLY, while a child subclause does:
-                           `§2023:14.9.39 SR17`, where the syntax rules are §2023:14.9.39.3. The ordinal checks resolve
+                           `§2023:14.9.39.3 SR17`, where the syntax rules are §2023:14.9.39.3. The ordinal checks resolve
                            it through `_alias` and say nothing, which is right for prose and wrong here. It
                            arrived with 126 sites and sat in the MEASURED backlog until PB388's sweep qualified
                            the last of them; it gates now.

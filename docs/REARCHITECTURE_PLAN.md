@@ -1103,7 +1103,7 @@ wrong count, wrong clause, or a blocker that did not exist:
 · **PB52** — three causes; one had already been fixed by PB31, another was five functions rather than one.
 ⭐ **AND FOUR SWEEPS FOUND SOMETHING WORSE THAN THE ITEM BEING WORKED** — most sharply **PB54**, a SILENT WRONG
 ANSWER where `MIN(ZERO + 5, 2)` returned 0 while `FUNCTION MIN(ZERO + 5, 2)` returned 2, for a spelling
-§2023:8.4.3.2 SR2 makes the same reference.
+§2023:8.4.3.2.3 SR2 makes the same reference.
 
 ⛔ **THE SESSION'S OWN HARDEST LESSON: A GREEN LOCAL BATTERY CERTIFIED A TREE THAT COULD NOT BUILD FROM
 SCRATCH.** A tool edit wrote `CobolLexer.g4` with a UTF-8 BOM (Python's `utf-8-sig` STRIPS on read and ADDS on
@@ -5241,7 +5241,7 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 >   `ExternalTable` (shim `ExternalStore`) / `ModuleStack` / `SwitchStore` (shim `ExternalSwitches`) /
 >   `FileRegistry` + `IO/Sharing/PhysicalFileTable`.
 > - BEYOND-RECIPE (the §5 hidden-mutable-static gate found it): `ExternalSwitches`' switch cache was a
->   process-global static holding run-unit-scoped state (§2023:12.3.7 GR4 NOTE 1) — converted to `SwitchStore` on
+>   process-global static holding run-unit-scoped state (§2023:12.3.7.4 GR4 NOTE 1) — converted to `SwitchStore` on
 >   `RunUnit` + static shim. Surviving statics are all genuinely immutable (`ExceptionCatalog`, `Pow10` tables,
 >   `SystemClock.Instance`).
 > - Exit criteria: 1 ✅ (`RunUnit.Run` + `ResetCurrent` reproduce the old reset semantics; the DEFAULT lazy-ambient

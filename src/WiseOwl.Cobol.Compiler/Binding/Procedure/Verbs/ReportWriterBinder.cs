@@ -456,7 +456,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
               + $"'{written}' of a containing program ({NameResolution.NearerDeclarationRule(ctx.Edition.Edition)})"
             : "";
 
-    /// <summary><c>TERMINATE report-name…</c> (ISO §2023:14.9.46 SR1; §2023:14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
+    /// <summary><c>TERMINATE report-name…</c> (ISO §2023:14.9.46.3 SR1; §2023:14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
     /// report-name inside a <see cref="BoundImplicitSeries"/>, GR4's "as though a separate TERMINATE statement had
     /// been executed for each report-name-1" and its per-implicit-statement resumption point.</summary>
     public BoundStatement BindTerminate(Core.TerminateStatementContext stmt)

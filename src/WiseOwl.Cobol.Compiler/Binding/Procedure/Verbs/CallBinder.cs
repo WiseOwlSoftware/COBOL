@@ -347,7 +347,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 }
                 // kb/Work PB128: a BY REFERENCE argument is a RECEIVING operand and rides the ONE receiving
                 // chokepoint — the direct Refs.Resolve bypass skipped the CONSTANT RECORD (§2023:13.18.15.3 SR2),
-                // CAPACITY-register (§2023:13.18.38 SR30–32), constant-name and LINE-COUNTER screens, letting a
+                // CAPACITY-register (§2023:13.18.38.3 SR30–32), constant-name and LINE-COUNTER screens, letting a
                 // structured constant be silently overwritten by the callee (and a CAPACITY register reach
                 // PlaceRenderer.Write's internal throw — an unhandled compiler exception).
                 if (host.Expr.ResolveReceiving(byRefDref) is not { } p)
@@ -1381,7 +1381,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         Place? source = null;
         if (p.Returning is { } dref)
         {
-            // GOBACK RETURNING x ≡ move x into the procedure-division RETURNING item, then return (§2023:14.9.18 GR2
+            // GOBACK RETURNING x ≡ move x into the procedure-division RETURNING item, then return (§2023:14.9.18.4 GR2
             // — the activation result; the grammar already 2002-gates the phrase).
             if (host.Expr.ResolveSending(dref) is var gr && gr.Place is not { } rp)
                 return gr.Refusal(ctx.Edition);   // kb/Work PB1030

@@ -244,7 +244,7 @@ public sealed partial class SpecialNamesBinder
                 AlphabetBind(alpha);
             }
         }
-        // The PCS resolves AFTER the walk (OBJECT-COMPUTER precedes SPECIAL-NAMES in source, §2023:12.3.6 GR9); only
+        // The PCS resolves AFTER the walk (OBJECT-COMPUTER precedes SPECIAL-NAMES in source, §2023:12.3.6.4 GR9); only
         // the NAMED alphabets become the program sequences — other defined alphabets have no effect (NC219A's
         // unreferenced COLLATING-SEQ-2). A native-order alphabet leaves the sequence null (the fast path).
         if (pcsClause is not null) ResolveProgramCollating(pcsClause);

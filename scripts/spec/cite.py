@@ -25,7 +25,7 @@ the text really sits under:
   3. the quotation carries at least MIN_WORDS real words (`quote-too-short`): the comparison is on words after `norm`
      (punctuation, underline markup and spacing are typography), and a shorter quotation occurs in almost any clause;
   4. with a rule designator, the clause has a rule list of that kind (`no-rule-list`; when a subclause has it, the
-     suggestion names the subclause: `§2023:14.9.39 SR17` is `§2023:14.9.39.3 SR17`), that list has a rule with the
+     suggestion names the subclause: `§2023:14.9.39.3 SR17` is `§2023:14.9.39.3 SR17`), that list has a rule with the
      ordinal (`no-ordinal`, with the count), and the rule has the sub-item the designator names (`no-sub-item`, with
      the sub-items it has); a `Format n` names a general format the clause or its general-format subclause prints
      (`no-format`), a `Table n` a table captioned in the clause or under it (`no-table`);
@@ -709,8 +709,8 @@ def _resolve_rule(book: RuleBook, cited, m: re.Match, needle, text, title, regio
     in_clause = book.rules.get(loc, [])
     of_kind = [r for r in in_clause if r.kind == kind]
     if not of_kind:
-        # The block the author meant: a subclause's (`§2023:14.9.39 SR17` is 14.9.39.3's) or, when exactly one has it,
-        # a sibling's (`§2023:13.18.40.2 SR13`, the general format's clause, is 13.18.40.3's).
+        # The block the author meant: a subclause's (`§2023:14.9.39.3 SR17` is 14.9.39.3's) or, when exactly one has it,
+        # a sibling's (`§2023:13.18.40.3 SR13`, the general format's clause, is 13.18.40.3's).
         parent = loc.rsplit(".", 1)[0] if "." in loc else None
         near = [r for k, rs in book.rules.items()
                 if k.startswith(loc + ".") or (parent and k != loc and k.rsplit(".", 1)[0] == parent)
@@ -1006,11 +1006,11 @@ def self_test() -> int:
          fails("§2023:14.9.8.4 GR1a", q23, "text-not-in-rule", "GR1b")
          and fails("§2023:14.9.8.4 GR1z", None, "no-sub-item")),  # citation-audit: example
         ("2023: a one-character quotation fails", fails("§2023:14.9.8.4 GR1", "x", "quote-too-short")),
-        ("2023: a clause with no syntax rules cited SR1 fails", fails("§2023:14.9.8.4 SR1", q23, "no-rule-list")),
+        ("2023: a clause with no syntax rules cited SR1 fails", fails("§2023:14.9.8.3 SR1", q23, "no-rule-list")),
         ("2023: a statement's clause cited for its general rule names the subclause that has them",
-         fails("§2023:14.9.8 GR1", q23, "no-rule-list", "§2023:14.9.8.4 GR1")),
+         fails("§2023:14.9.8.4 GR1", q23, "no-rule-list", "§2023:14.9.8.4 GR1")),
         ("2023: the general format's clause cited for a syntax rule names the sibling that has it",
-         fails("§2023:13.18.40.2 SR13", None, "no-rule-list", "§2023:13.18.40.3 SR13")),
+         fails("§2023:13.18.40.3 SR13", None, "no-rule-list", "§2023:13.18.40.3 SR13")),
         ("2023: a list the transcription flattened onto column 0 keeps its levels (14.9.39.4 2) a) 1. a.)",
          v("§2023:14.9.39.4 GR2a1a", "the EC-BOUND-SUBSCRIPT exception condition is set to exist").ok
          and fails("§2023:14.9.39.4 GR2a3b", "If index-name-2 is associated with the same table as index-name-1",

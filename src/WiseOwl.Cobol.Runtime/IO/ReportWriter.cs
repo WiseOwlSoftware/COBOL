@@ -140,7 +140,7 @@ public enum ReportNextGroupKind
 public sealed record ReportNextGroup(ReportNextGroupKind Kind, int Value, bool Reset = false);
 
 /// <summary>One report group (ISO §2023:13.15 report group description entry): its TYPE, name (referenced by GENERATE
-/// for a detail, §2023:14.9.16 SR1), control level (CH/CF — index into the report's control hierarchy, −1 otherwise),
+/// for a detail, §2023:14.9.16.3 SR1), control level (CH/CF — index into the report's control hierarchy, −1 otherwise),
 /// and its report lines in declaration order.</summary>
 public sealed class ReportGroup(ReportGroupKind kind, string name, int controlLevel, ReportGroupLine[] lines)
 {
@@ -1440,7 +1440,7 @@ public sealed class CobolReport(
             group.SnapshotPresence();
             ApplyRolled(group, crossFoot: true);
         }
-        bool suppressed = RunBeforeReporting(group);   // §2023:14.9.49 GR8; true ⇒ a §2023:14.9.45 SUPPRESS executed
+        bool suppressed = RunBeforeReporting(group);   // §2023:14.9.49.4 GR8; true ⇒ a §2023:14.9.45 SUPPRESS executed
         first = BeginPresentation(group);
         // A data entry's contribution into ANOTHER group's counter follows the declarative (which may compute the entry's
         // SOURCE) and reads the presentation's ONE snapshot, taken after it (§2023:13.18.54.4 GR11).
@@ -1566,7 +1566,7 @@ public sealed class CobolReport(
         // the file description entry format for a file with a REPORT clause and its clause list carries no
         // linage-clause at all (only Format 1, sequential, does). The Report Writer owns this file's page model
         // through the RD PAGE clause instead (§2023:13.16 / PAGE-COUNTER + LINE-COUNTER above), so there is nothing
-        // for §2023:13.18.34 GR6 to evaluate here (kb/Work PB673).
+        // for §2023:13.18.34.4 GR6 to evaluate here (kb/Work PB673).
         ClaimDevice();
         FlushPendingLine();                       // no line on the NEW page can overprint the old page's last one
         // ⛔ BEFORE, not AFTER (kb/Work PB1667): the feed carries no record, so the empty image is presented FIRST and

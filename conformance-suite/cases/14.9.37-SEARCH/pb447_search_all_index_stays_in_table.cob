@@ -25,7 +25,7 @@
       *>     outside the permissible range of occurrence values." The
       *>     new value is formed and then judged, so the index ends at
       *>     6 over five occurrences — determined, and pinned exactly.
-      *> C — Format 2 over an occurs-depending table. §2023:13.18.38 GR7
+      *> C — Format 2 over an occurs-depending table. §2023:13.18.38.4 GR7
       *>     makes the CURRENT count the last element, so GR9's bound
       *>     is 3 here although storage for 5 exists.
       *> D — Format 2, successful. GR1 a): the index "remains set at

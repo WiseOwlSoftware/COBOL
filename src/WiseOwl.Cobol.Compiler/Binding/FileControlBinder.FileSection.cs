@@ -181,7 +181,7 @@ public sealed partial class FileControlBinder
             }
             if (DescriptionRepeated(sdNameCtx, sd.Start, sdName, "sort-merge file description entry")) continue;
             sdFile.HasFd = true;
-            sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§2023:13.4.6 SR3/SR4)
+            sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§2023:13.4.6.3 SR3/SR4)
             // ⛔ The SD arm does NOT inherit §2023:13.4.5.3 SR3's permission to omit the record descriptions — that is a
             // FORMATS 1 AND 2 rule, and §2023:13.4.6.3 SR2 requires them here. Until kb/Work PB345 a record-less SD
             // compiled and its SORT announced itself a COMPILER GAP (COBOL1756, "SORT 'S1' without an SD

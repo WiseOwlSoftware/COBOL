@@ -94,7 +94,7 @@ public sealed class WideSubscriptDiagnosticTests
         AssertNamesTheValue(exit, stdout, stderr, "EC-BOUND-ODO", "OCCURS DEPENDING value 100000000000000000000 is outside 1..3");
     }
 
-    /// <summary>An OCCURS DEPENDING count past <c>long</c> at the group's current extent (§2023:13.18.38 GR8 over GR7).</summary>
+    /// <summary>An OCCURS DEPENDING count past <c>long</c> at the group's current extent (§2023:13.18.38.4 GR8 over GR7).</summary>
     [Fact]
     public void OdoGroupExtent_WideCount_NamesTheCount()
     {

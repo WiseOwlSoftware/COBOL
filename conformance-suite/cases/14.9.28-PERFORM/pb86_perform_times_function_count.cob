@@ -9,7 +9,7 @@
       *> integer-1} TIMES`; §2023:8.4.3.2.4 GR1 makes a function-identifier an
       *> identifier referencing a temporary item, and §2023:14.9.28.3 SR2 asks only
       *> that identifier-1 be an integer — met by an integer-type function
-      *> (§2023:15.2 type 5). The keyword-omitted spelling (§2023:8.4.3.2 SR2, FUNCTION ALL
+      *> (§2023:15.2 type 5). The keyword-omitted spelling (§2023:8.4.3.2.3 SR2, FUNCTION ALL
       *> INTRINSIC) bound and ran the body ONCE (the emitter's `_ => "1"`
       *> default); the FUNCTION spelling was a parse error. GR7: the count is
       *> determined once. Expected counts are the functions' §15 values:

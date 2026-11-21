@@ -1452,7 +1452,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// <summary>The string image a place contributes ACROSS THE CALL BOUNDARY. An occurs-depending group reads
     /// its FULL maximum-allocation image here, never the ODO window: BY REFERENCE "operates as if the [formal]
     /// occupies the same storage area as the argument" (ISO §2023:14.2.3 GR8 — the STORAGE is the maximum allocation)
-    /// and a BY CONTENT copy is of the whole record (GR9); the current-extent window of §2023:13.18.38 GR8 is a
+    /// and a BY CONTENT copy is of the whole record (GR9); the current-extent window of §2023:13.18.38.4 GR8 is a
     /// SENDING-OPERAND rule for MOVE/compare/INSPECT, not a storage-aliasing rule (IC207A: CALL … USING TABLE-01
     /// with DN3=3 must still carry all 15 character positions in, and carry the callee's full table back out).
     /// Every call site of this helper (the BY REFERENCE carrier, BY CONTENT snapshot, callee copy-out, and

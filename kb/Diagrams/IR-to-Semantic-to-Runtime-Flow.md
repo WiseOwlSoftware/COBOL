@@ -70,7 +70,7 @@ classes from `src/WiseOwl.Cobol.Runtime/`.
 
 **Spec mapping.** `BoundProgram` is a program/class definition (ISO §11) — its procedure division becomes one flat pc space of `BoundParagraph`s, each a named paragraph whose pc index is its position in `Paragraphs` (§2023:14.4). `BoundDeclarative` is one USE declarative section (§2023:14.9.49 — Format 1 file/mode error, Format 2 BEFORE REPORTING, Format 3 EXCEPTION CONDITION, Format 4 EXCEPTION OBJECT). `BoundNop` carries bare `EXIT`/`CONTINUE` (§2023:14.9.14/§2023:14.9.9). `BoundContinueAfter` is `CONTINUE AFTER n SECONDS` (COBOL-2023, §2023:14.9.9). `BoundSequence` has no ISO construct — a bind-time desugar carrier (D-P2). See [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Language Features]].
 
-**Semantic rules.** Paragraph/section name uniqueness and pc-range containment are binder invariants; USE-declarative scope (files/open-mode/EC-name) is resolved in `BoundDeclarative` at bind. `CONTINUE AFTER … SECONDS` is edition-conditional — `VersionConformancePass` gates `Constructs.ContinueAfter2023`, rejecting it below COBOL-2023; a negative interval is forced to 0 and, under enabled checking, sets nonfatal EC-CONTINUE-LESS-THAN-ZERO (§2023:14.9.9 GR1a/GR1b). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
+**Semantic rules.** Paragraph/section name uniqueness and pc-range containment are binder invariants; USE-declarative scope (files/open-mode/EC-name) is resolved in `BoundDeclarative` at bind. `CONTINUE AFTER … SECONDS` is edition-conditional — `VersionConformancePass` gates `Constructs.ContinueAfter2023`, rejecting it below COBOL-2023; a negative interval is forced to 0 and, under enabled checking, sets nonfatal EC-CONTINUE-LESS-THAN-ZERO (§2023:14.9.9.4 GR1a/GR1b). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
 **Runtime behavior.** DispatchEmitter renders the paragraphs as one `switch(pc)` inside `__Dispatch(startPc, exitPc)`; the run unit (`RunUnit`, `ModuleStack`) owns lifetime state. Declaratives fire via generated `__RunUse`/`__EcDispatch`/`__IoCheckEc` on an I/O or EC event. `BoundContinueAfter` calls `CobolTiming.ContinueAfter`; `BoundNop` emits nothing; `BoundSequence` renders children in line. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
@@ -80,7 +80,7 @@ BoundProgram      --[ §11 program/class ]-->            emitted class + __Dispa
   BoundDeclarative--[ §2023:14.9.49 USE, I/O or EC event ]--> __RunUse / __EcDispatch / __IoCheckEc        (RunUnit.Exceptions)
 BoundSequence     --[ D-P2 desugar, no pc ]-->          children rendered consecutively in line       (StatementEmitter)
 BoundNop          --[ §2023:14.9.9/§2023:14.9.14 bare EXIT/CONTINUE ]--> no-op (nothing emitted)
-BoundContinueAfter--[ §2023:14.9.9 GR1a/b + ContinueAfter2023 gate ]--> timed pause / EC-CONTINUE-LESS-THAN-ZERO (CobolTiming)
+BoundContinueAfter--[ §2023:14.9.9.4 GR1a/b + ContinueAfter2023 gate ]--> timed pause / EC-CONTINUE-LESS-THAN-ZERO (CobolTiming)
 ```
 
 ## MOVE & data movement
@@ -95,7 +95,7 @@ BoundContinueAfter--[ §2023:14.9.9 GR1a/b + ContinueAfter2023 gate ]--> timed p
 ```text
 BoundMove          --[ SR1 index=0809 (MoveBinder) / SR5=0902/0903 (VCPass) §2023:14.9.25.3 ]--> category convert  (CobolNum.Store / CobolString)
 BoundCorresponding --[ pairs in decl order §2023:14.7.6; MOVE/ADD/SUBTRACT ]-------------------> per-pair store    (CobolNum / CobolString)
-BoundInitialize    --[ expand to implicit MOVEs §2023:14.9.20 GR4/GR5b2 ]---------------------> per-action store  (CobolNum / CobolString)
+BoundInitialize    --[ expand to implicit MOVEs §2023:14.9.20.4 GR4/GR5b2 ]---------------------> per-action store  (CobolNum / CobolString)
 BoundSetTo         --[ SET Format 1 §2023:14.9.39 ]-------------------------------------------> write index/target (Place lvalue)
 BoundSetUpDown     --[ amount-once GR3, per-index adjust GR4 §2023:14.9.39 ]------------------> read-modify-write  (Place lvalue)
 BoundSetConditions --[ store 88 first VALUE into parent ]-------------------------------> write parent       (Place lvalue)
@@ -115,7 +115,7 @@ BoundAddTo/AddGiving        --[ ADD §2023:14.9.2 ]------------------>  Σ adden
 BoundSubtractFrom/Giving    --[ SUBTRACT §2023:14.9.44 ]------------>  minuend − Σ, store              (CobolNum.TryStore)
 BoundMultiplyBy/Giving      --[ MULTIPLY §2023:14.9.26 ]------------>  a × b, store                    (CobolNum.TryStore)
 BoundDivideInto/Giving      --[ DIVIDE §2023:14.9.12; ÷0 ]---------->  quotient; ÷0 → CobolSizeError    (CobolNum.TryStore)
-BoundDivideRemainder        --[ DIVIDE §2023:14.9.12 GR7 ]---------->  trunc quotient, r = d−(q×dv)     (CobolNum.TryStore)
+BoundDivideRemainder        --[ DIVIDE §2023:14.9.12.4 GR7 ]---------->  trunc quotient, r = d−(q×dv)     (CobolNum.TryStore)
 BoundCompute                --[ COMPUTE §2023:14.9.8 ]-------------->  eval expr tree, store           (CobolNum.TryStore)
 BoundBinary/Negate/Power    --[ arith expr §2023:8.8.1 ]----------->  intermediate value (Int128/CobolDec/CobolFloat)
 Receiver.Rounding           --[ ROUNDED §2023:14.7.4 ]------------->  8 CobolRounding modes           (CobolRounding)
@@ -127,19 +127,19 @@ SizeErrorPhrase             --[ ON SIZE ERROR §2023:14.7.5 ]------->  try/catch
 
 **Spec mapping.** These leaves of the abstract `BoundCondition` (DESIGN §11) cover every ISO conditional expression. `BoundRelational` is the relation condition (§2023:8.8.4.2), including the Format-2 boolean relation (§2023:8.8.4.2.2); `BoundLogical`/`BoundNot` are the combined condition (§2023:8.8.4.13 — NOT > AND > OR precedence, short-circuit rules 1–2). `BoundCondition88` is the condition-name test (§2023:8.8.4.5), `BoundRangeMembership` its/EVALUATE THRU range (§2023:14.7.8). `BoundClassCondition` + `BoundUserClassCondition` are the class condition (§2023:8.8.4.4, SPECIAL-NAMES class §2023:12.3.7); `BoundSignCondition` the sign condition (§2023:8.8.4.7, IEEE Format-2 §2023:8.8.4.7.4 GR2); `BoundSwitchCondition` the switch-status condition (§2023:8.8.4.6); `BoundBooleanCondition` the simple boolean condition (§2023:8.8.4.3). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
 
-**Semantic rules.** Most rules are binder-invariant in `ConditionBinder`: a boolean relation admits only EQUAL/NOT EQUAL (§2023:8.8.4.2.2 — no ordering), both operands boolean-valued, a simple boolean condition references only length-1 boolean items (§2023:8.8.4.3 SR1) — all raise `COBOL1511`. Boolean-literal (`B"…"`) and boolean-operator *recognition* is edition-gated in `VersionConformancePass` (2002+). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
+**Semantic rules.** Most rules are binder-invariant in `ConditionBinder`: a boolean relation admits only EQUAL/NOT EQUAL (§2023:8.8.4.2.2 — no ordering), both operands boolean-valued, a simple boolean condition references only length-1 boolean items (§2023:8.8.4.3.3 SR1) — all raise `COBOL1511`. Boolean-literal (`B"…"`) and boolean-operator *recognition* is edition-gated in `VersionConformancePass` (2002+). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
 **Runtime behavior.** `ConditionRenderer` emits pure, short-circuiting parenthesized C# booleans (no side effects, §11). Relations lower to scale-aligned integer/`CobolDec.Compare`/`CobolString.Compare`; class tests to `CobolClass.IsNumeric`/`IsAlphabetic`/`IsInClass`; simple boolean to `CobolBool.IsTrue`; switches to `ExternalSwitches.Get`; ranges to `CobolString.ThruMember` (sets nonfatal EC-RANGE-INVALID). See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
 BoundRelational       --[ relation §2023:8.8.4.2 ]-------------->  scaled ints / CobolDec.Compare / CobolString.Compare
 BoundLogical / Not    --[ combined §2023:8.8.4.13 ]------------->  ( a && b ) / ( a || b ) / ^ / !(a)   short-circuit
-BoundCondition88      --[ cond-name §2023:8.8.4.5 GR2 ]--------->  OR of membership compares (CobolString.Compare)
+BoundCondition88      --[ cond-name §2023:8.8.4.5.3 GR2 ]--------->  OR of membership compares (CobolString.Compare)
 BoundRangeMembership  --[ THRU range §2023:14.7.8 r2 ]---------->  CobolString.ThruMember  (sets EC-RANGE-INVALID)
 BoundClassCondition   --[ class §2023:8.8.4.4 ]--------------->  CobolClass.IsNumeric/IsAlphabetic[Upper|Lower]
 BoundUserClassCondition --[ class §2023:12.3.7 ]--------------->  CobolClass.IsInClass(operand, members)
 BoundSignCondition    --[ sign §2023:8.8.4.7 / .7.4 GR2 ]------>  v>0 / v<0 / v==0  |  double.IsNegative (Format-2)
-BoundSwitchCondition  --[ switch §2023:8.8.4.6 GR1 ]----------->  ExternalSwitches.Get(name)  ([!])
+BoundSwitchCondition  --[ switch §2023:8.8.4.6.3 GR1 ]----------->  ExternalSwitches.Get(name)  ([!])
 BoundBooleanCondition --[ simple boolean §2023:8.8.4.3 ]------->  CobolBool.IsTrue(expr)
 ```
 
@@ -148,14 +148,14 @@ BoundBooleanCondition --[ simple boolean §2023:8.8.4.3 ]------->  CobolBool.IsT
 
 **Spec mapping.** `BoundIf` is the IF statement (ISO **§2023:14.9.19**): a condition whose truth selects `Then` vs `Else`. `BoundEvaluate` is EVALUATE (ISO **§2023:14.9.13**) — the general case/selection construct — carrying an ordered `Whens` list plus an optional `Other` (WHEN OTHER) tail. Each `BoundEvaluateWhen` is one arm: a single composed `BoundCondition Match` (the AND over its subject↔object pairs, consecutive WHEN phrases OR-folded over a shared body per §2023:14.9.13 GR) and its `Statements`. `BoundWhenOperand` is *not* an EVALUATE arm — it is the WHEN-selector operand of the Format-3 exception-checking PERFORM (§2023:14.9.28.3 SR16 / §2023:14.9.49.4): an exception-name, an optional paired FILE, or a bare file-name. See [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Language Features]].
 
-**Semantic rules.** Invariant binder rules (`EvaluateBinder`): subject↔object pairing is positional across ALSO and the per-WHEN object count must not exceed the subject count — a violation lowers to `BoundUnsupported` ("more WHEN objects than subjects", §2023:14.9.13 SR); TRUE/FALSE subjects pair with condition objects, value subjects with equality/THRU-range/condition objects (§2023:14.9.13 GR4–7). These selection semantics are edition-invariant (no VersionConformancePass gate). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]].
+**Semantic rules.** Invariant binder rules (`EvaluateBinder`): subject↔object pairing is positional across ALSO and the per-WHEN object count must not exceed the subject count — a violation lowers to `BoundUnsupported` ("more WHEN objects than subjects", §2023:14.9.13 SR); TRUE/FALSE subjects pair with condition objects, value subjects with equality/THRU-range/condition objects (§2023:14.9.13.4 GR4–7). These selection semantics are edition-invariant (no VersionConformancePass gate). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]].
 
 **Runtime behavior.** No runtime-library call. `ControlFlowEmitter.EmitIf` writes a C# `if`/`else`; `EvaluateEmitter.Emit` writes a chained `if / else if / else` (first true arm wins, `Other` = else tail, WHEN-OTHER-only = unconditional). Each match/condition is rendered by `ConditionRenderer` into a native boolean C# expression evaluated in place. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
 BoundIf            --[ §2023:14.9.19 truth of Condition        ]-->  C# if / else            (ControlFlowEmitter.EmitIf)
-BoundEvaluate      --[ §2023:14.9.13 GR1-3 first true arm       ]-->  C# if / else if / else  (EvaluateEmitter.Emit)
-  └ BoundEvaluateWhen --[ §2023:14.9.13 GR4-7 subject↔object AND/OR ]-->  one arm's condition (ConditionRenderer.Render)
+BoundEvaluate      --[ §2023:14.9.13.4 GR1-3 first true arm       ]-->  C# if / else if / else  (EvaluateEmitter.Emit)
+  └ BoundEvaluateWhen --[ §2023:14.9.13.4 GR4-7 subject↔object AND/OR ]-->  one arm's condition (ConditionRenderer.Render)
 BoundWhenOperand   --[ §2023:14.9.49.4 GR3c-g tiered EC/file match ]-->  Format-3 PERFORM WHEN selector (not EVALUATE)
 ```
 
@@ -187,7 +187,7 @@ BoundWhenOperand   --[ §2023:14.9.49.4 GR3c-g tiered EC/file match ]-->  Format
 
 **Semantic rules.** Transfer-target resolution to a pc is invariant binder work. Edition gating is recognition-based in `VersionConformancePass`: `AlterRemoved2002` (ALTER §2023:14.9.2), `BareGotoRemoved2002` (target-less/alterable GO TO §2023:14.9.17), `ExitSection2002`, `StopLiteralRemoved2002`, and `StopRunStatus2002`/GOBACK STATUS (2002/2023). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
-**Runtime behavior.** Transfers emit `__pc = target; break;` into the PC dispatcher switch (no runtime class). `BoundExitPerform` in a Format-3 (exception-checking) PERFORM handler unwinds via `ExitPerformSignal`. `BoundStop` throws `StopRun` (caught at the run-unit wrapper). `BoundGoback` and a called-program `BoundExitProgram` throw `ProgramReturn`, caught at that program's activation entry — for a main program the activation entry IS the run-unit wrapper, so a main-program GOBACK ends the run unit (≡ STOP, §2023:14.9.18 GR3); exit status flows through `RunUnit.ExitStatus`. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
+**Runtime behavior.** Transfers emit `__pc = target; break;` into the PC dispatcher switch (no runtime class). `BoundExitPerform` in a Format-3 (exception-checking) PERFORM handler unwinds via `ExitPerformSignal`. `BoundStop` throws `StopRun` (caught at the run-unit wrapper). `BoundGoback` and a called-program `BoundExitProgram` throw `ProgramReturn`, caught at that program's activation entry — for a main program the activation entry IS the run-unit wrapper, so a main-program GOBACK ends the run unit (≡ STOP, §2023:14.9.18.4 GR3); exit status flows through `RunUnit.ExitStatus`. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
   BoundGoTo / BoundGoToDepending  --[ §2023:14.9.20 F1/F2, invariant ]-->  __pc = target; break  (PC dispatcher)
@@ -198,7 +198,7 @@ BoundWhenOperand   --[ §2023:14.9.49.4 GR3c-g tiered EC/file match ]-->  Format
   BoundNextSentence               --[ §2023:14.9.19.4 GR4/GR6 ]-->       transfer to post-period CONTINUE
   BoundStop (STOP RUN)            --[ §2023:14.9.42 ]-->                 throw StopRun        -> RunUnit.ExitStatus (run-unit wrapper)
   BoundStopLiteral                --[ §2023:14.9.42 F2 / StopLiteralRemoved2002 ]-->  write operator channel; continue
-  BoundGoback / BoundExitProgram  --[ §2023:14.9.18 GR2/GR3 / §2023:14.9.14 GR2/GR3 ]-->  throw ProgramReturn  -> activation entry (main entry = run-unit wrapper ≡ STOP)
+  BoundGoback / BoundExitProgram  --[ §2023:14.9.18.4 GR2/GR3 / §2023:14.9.14.4 GR2/GR3 ]-->  throw ProgramReturn  -> activation entry (main entry = run-unit wrapper ≡ STOP)
 ```
 
 ## SEARCH / SEARCH ALL
@@ -208,14 +208,14 @@ BoundWhenOperand   --[ §2023:14.9.49.4 GR3c-g tiered EC/file match ]-->  Format
 
 **Semantic rules.** Binder-invariant (`SearchBinder`): the operand must be a table with `INDEXED BY` (§2023:14.9.37.3 SR2) — else `BoundUnsupported`; `NOT AT END` is rejected as non-ISO. Nested dynamic-capacity tables lacking a whole-table path are refused (D9). EC gating (§2023:14.9.37.4 GR4) is edition/turn-conditional via `ctx.EcState.Turn`: `CheckSearchIndex` (serial only) and `CheckSearchNoMatch`; `SEARCH ALL` forces index 1 (GR9) so only NO-MATCH can arise. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
-**Runtime behavior.** `ControlFlowEmitter.EmitSearch` is the entry for BOTH formats; `EmitSearchScan` is the shared FRAME (the scan bound, the EC-raise plumbing, the AT-END funnel — GR1 b) is an ALL FORMATS rule) and it dispatches to ONE LOWERING PER FORMAT over an inline label-loop (index-name a `long`). `EmitSerialScan` (GR4): the initial-index guard (`<1 || >bound`), WHEN tests in order, then advance-by-1 and judge — so an unsuccessful serial search ends at N+1, which GR4 contemplates. `EmitAllScan` (GR9): index := 1, then WHEN tests, then the bound is judged BEFORE advancing — so the index never exceeds the last element, and an empty table is probed not at all. `EmitSearchWhens` is the ONE WHEN emission (GR1/GR2). Failure funnels to `AT END`. Range ECs raise via `ExceptionState.Set`; a dynamic table brackets the scan with `EnterSearch`/`ExitSearch` in try/finally (EC-FLOW-SEARCH, §2023:14.9.39 GR31). See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
+**Runtime behavior.** `ControlFlowEmitter.EmitSearch` is the entry for BOTH formats; `EmitSearchScan` is the shared FRAME (the scan bound, the EC-raise plumbing, the AT-END funnel — GR1 b) is an ALL FORMATS rule) and it dispatches to ONE LOWERING PER FORMAT over an inline label-loop (index-name a `long`). `EmitSerialScan` (GR4): the initial-index guard (`<1 || >bound`), WHEN tests in order, then advance-by-1 and judge — so an unsuccessful serial search ends at N+1, which GR4 contemplates. `EmitAllScan` (GR9): index := 1, then WHEN tests, then the bound is judged BEFORE advancing — so the index never exceeds the last element, and an empty table is probed not at all. `EmitSearchWhens` is the ONE WHEN emission (GR1/GR2). Failure funnels to `AT END`. Range ECs raise via `ExceptionState.Set`; a dynamic table brackets the scan with `EnterSearch`/`ExitSearch` in try/finally (EC-FLOW-SEARCH, §2023:14.9.39.4 GR31). See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
 BoundSearch(IsAll=false)     --[ §2023:14.9.37 F1 GR3/GR4 serial from the CURRENT index ]-> EmitSearchScan → EmitSerialScan: init guard (idx<1||>bound), WHEN order, +1 THEN judge (ends N+1)
 BoundSearch(IsAll=true)      --[ §2023:14.9.37 F2 GR9 initial setting ignored ]-----------> EmitSearchScan → EmitAllScan: idx:=1, WHEN order, judge THEN +1 (never leaves [1,N])
   └─ BoundSearchWhen         --[ §2023:14.9.37.4 GR1 re-eval per probe ]-----------------> if(cond){ body; goto __searchEnd } (per-eval UDF wrapper)
      range EC (GR4/GR9)      --[ EC-RANGE-SEARCH-INDEX / -NO-MATCH ]-----------------> ExceptionState.Set(...)
-     DynTable (D9)           --[ §2023:14.9.39 GR31 EC-FLOW-SEARCH ]----------------------> Enter/ExitSearch try/finally
+     DynTable (D9)           --[ §2023:14.9.39.4 GR31 EC-FLOW-SEARCH ]----------------------> Enter/ExitSearch try/finally
 ```
 
 ## String operations (STRING/UNSTRING/INSPECT)
@@ -228,11 +228,11 @@ BoundSearch(IsAll=true)      --[ §2023:14.9.37 F2 GR9 initial setting ignored ]
 **Runtime behavior.** The emitter unrolls operand lists and calls `CobolStringOps.StringTransfer` (one per sender; per-character GR8 range check sets overflow) / `UnstringExtract` (one per receiver; earliest-match delimiter, ALL collapse, COUNT/pointer), and `CobolInspect.Tally`/`Replace`/`Convert` over one GR8 comparison cycle. Values flow in/out as .NET strings, stored once through the `Place` lvalue. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
-BoundStringStmt/BoundStringSending --[ §2023:14.9.43 SR2/4/5/7; GR8 overflow ]--> per-sender transfer, POINTER++ (CobolStringOps.StringTransfer)
-BoundUnstringStmt                  --[ §2023:14.9.48 GR9/GR10 earliest match ]--> split source into receivers/COUNT/DELIM (CobolStringOps.UnstringExtract)
+BoundStringStmt/BoundStringSending --[ §2023:14.9.43.3 SR2/4/5/7; GR8 overflow ]--> per-sender transfer, POINTER++ (CobolStringOps.StringTransfer)
+BoundUnstringStmt                  --[ §2023:14.9.48.4 GR9/GR10 earliest match ]--> split source into receivers/COUNT/DELIM (CobolStringOps.UnstringExtract)
   ├─ BoundUnstringReceiver         --[ SR4/SR10; GR11b size ]-----------> one extract → Place store
   └─ BoundUnstringDelimiter        --[ GR7 ALL collapse ]---------------> delimiter selection
-BoundInspect                       --[ §2023:14.9.22 GR8 shared cycle ]------> scan Target image once
+BoundInspect                       --[ §2023:14.9.22.4 GR8 shared cycle ]------> scan Target image once
   ├─ BoundInspectTally             --[ Format 1 ALL/LEADING/CHARS ]-----> counter += matches (CobolInspect.Tally)
   ├─ BoundInspectReplace           --[ Format 2 GR14 equal-length ]-----> in-place replace (CobolInspect.Replace)
   └─ BoundInspectConvert           --[ Format 4 GR20 positional map ]---> char translate (CobolInspect.Convert)
@@ -261,7 +261,7 @@ BoundAccept
 ## File I/O (OPEN/READ/WRITE/REWRITE/START/DELETE)
 *Nodes: `BoundOpen`, `BoundClose`, `BoundRead`, `BoundKeyedRead`, `BoundWrite`, `BoundKeyedWrite`, `BoundAdvancing`, `BoundRewrite`, `BoundKeyedRewrite`, `BoundKeyedStart`, `BoundKeyedDelete`, `BoundKeyedDeleteFile`, `BoundUnlock`*
 
-**Spec mapping.** These nodes bind the ISO §2023:14.9 I-O verbs. `BoundOpen`/`BoundClose` carry `OPEN {INPUT|OUTPUT|I-O|EXTEND}` (§2023:14.9.27) and `CLOSE … [WITH LOCK|REEL/UNIT]` (§2023:14.9.6), including the OPEN SHARING (§2023:14.9.27) and RETRY (§2023:14.7.9) phrases. `BoundRead` is sequential `READ … [NEXT] [AT END]` (§2023:14.9.30); `BoundKeyedRead` adds NEXT/PREVIOUS/random by key-of-reference. `BoundWrite`+`BoundAdvancing` cover `WRITE … {BEFORE|AFTER} ADVANCING` including the COBOL-2023 combined form (§2023:14.9.51 GR25e/f), `BoundKeyedWrite` the relative/indexed forms (§2023:14.9.51 GR29–GR42). `BoundRewrite`/`BoundKeyedRewrite` map §2023:14.9.35; `BoundKeyedStart` §2023:14.9.41 (FIRST/LAST are 2002+); `BoundKeyedDelete` §2023:14.9.10 Format 1, `BoundKeyedDeleteFile` the 2023 `DELETE FILE` Format 2; `BoundUnlock` §2023:14.9.47. See [[kb/Spec/Lookup/Grammar]] and [[kb/Spec/Lookup/IR Mapping]].
+**Spec mapping.** These nodes bind the ISO §2023:14.9 I-O verbs. `BoundOpen`/`BoundClose` carry `OPEN {INPUT|OUTPUT|I-O|EXTEND}` (§2023:14.9.27) and `CLOSE … [WITH LOCK|REEL/UNIT]` (§2023:14.9.6), including the OPEN SHARING (§2023:14.9.27) and RETRY (§2023:14.7.9) phrases. `BoundRead` is sequential `READ … [NEXT] [AT END]` (§2023:14.9.30); `BoundKeyedRead` adds NEXT/PREVIOUS/random by key-of-reference. `BoundWrite`+`BoundAdvancing` cover `WRITE … {BEFORE|AFTER} ADVANCING` including the COBOL-2023 combined form (§2023:14.9.51.4 GR25e/f), `BoundKeyedWrite` the relative/indexed forms (§2023:14.9.51.4 GR29–GR42). `BoundRewrite`/`BoundKeyedRewrite` map §2023:14.9.35; `BoundKeyedStart` §2023:14.9.41 (FIRST/LAST are 2002+); `BoundKeyedDelete` §2023:14.9.10 Format 1, `BoundKeyedDeleteFile` the 2023 `DELETE FILE` Format 2; `BoundUnlock` §2023:14.9.47. See [[kb/Spec/Lookup/Grammar]] and [[kb/Spec/Lookup/IR Mapping]].
 
 **Semantic rules.** Organization/access consistency and the last-read prerequisite for REWRITE/DELETE are invariant binder checks (KeyedIoBinder), carrying a loud `Unsupported` reason rather than silently dropping. INVALID KEY vs AT END phrase legality follows §2023:9.1.14. Edition gates — FIRST/LAST START, `DELETE FILE`, combined WRITE — fire on node SHAPE in the VersionConformancePass, not the binder ([[kb/Semantics/Passes]]). See [[kb/Semantics/Validation Rules]] and [[kb/Spec/Lookup/Semantic Rules]].
 
@@ -271,11 +271,11 @@ BoundAccept
 BoundOpen         --[ OPEN modes §2023:14.9.27 / SHARING §2023:14.9.27 ]--> registry.Open(mode)          (FileRegistry → FileConnector.Open)
 BoundClose        --[ CLOSE §2023:14.9.6 / WITH LOCK ]-------------->  registry.Close/CloseWithLock  (FileConnector.Close)
 BoundRead         --[ seq READ §2023:14.9.30, AT END '1x' ]-------->  registry.ReadKeyedNext/seq     (SequentialConnector)
-BoundKeyedRead    --[ NEXT/PREV/random §2023:14.9.30 GR19 ]--------->  ReadNext/ReadPrevious/ReadRandom (Relative/IndexedConnector)
-BoundWrite+Adv    --[ WRITE ADVANCING §2023:14.9.51 GR25 ]---------->  Write/WriteAdvancing (SequentialConnector; GR25 e/f place ONE advance)
-BoundKeyedWrite   --[ keyed WRITE §2023:14.9.51 GR29–42, INVALID KEY ]--> registry.WriteKeyed        (Relative/IndexedConnector.Write)
+BoundKeyedRead    --[ NEXT/PREV/random §2023:14.9.30.4 GR19 ]--------->  ReadNext/ReadPrevious/ReadRandom (Relative/IndexedConnector)
+BoundWrite+Adv    --[ WRITE ADVANCING §2023:14.9.51.4 GR25 ]---------->  Write/WriteAdvancing (SequentialConnector; GR25 e/f place ONE advance)
+BoundKeyedWrite   --[ keyed WRITE §2023:14.9.51.4 GR29–42, INVALID KEY ]--> registry.WriteKeyed        (Relative/IndexedConnector.Write)
 BoundRewrite      --[ REWRITE §2023:14.9.35, last-read ]------------>  registry.RewriteKeyed / Rewrite (connector.Rewrite)
-BoundKeyedRewrite --[ keyed REWRITE §2023:14.9.35 GR18–25 ]--------->  registry.RewriteKeyed         (Relative/IndexedConnector.Rewrite)
+BoundKeyedRewrite --[ keyed REWRITE §2023:14.9.35.4 GR18–25 ]--------->  registry.RewriteKeyed         (Relative/IndexedConnector.Rewrite)
 BoundKeyedStart   --[ START §2023:14.9.41, FIRST/LAST 2002+ ]------->  StartRelative/StartIndexed/StartFirstLast
 BoundKeyedDelete  --[ DELETE §2023:14.9.10 F1, '43'/'23' ]---------->  registry.DeleteRecord         (connector.Delete)
 BoundKeyedDeleteFile --[ DELETE FILE §2023:14.9.10 F2 (2023) ]------>  registry.DeleteFile           (FileRegistry.DeleteFile)
@@ -292,10 +292,10 @@ BoundUnlock       --[ UNLOCK §2023:14.9.47, else '42' ]------------>  registry 
 **Runtime behavior.** File sorts route through `CobolSort` (its own per-SD image store, mirroring `CobolFile`'s typed↔image design): `Init → Release … → Sort/Merge → Return …`. `Sort` is a stable key sort (GR3 DUPLICATES); `Merge` is a strict-less-than k-way merge (GR4a/b); `CompareKeys` decodes a `Key` — NUMERIC keys compare algebraically, alphanumeric keys character-wise under the resolved collating weights (GR5/GR8). Format 2 (`BoundTableSort`) bypasses the image store and sorts the typed element array directly with a typed comparer. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
-  BoundRelease     --[ §2023:14.9.32 GR2 / varying len §2023:13.18.43 GR13 ]-->  append image (CobolSort.Release)
-  BoundSort        --[ §2023:14.9.40 GR9 stable key sort ]------------------>  CobolSort.Sort → CompareKeys
-  BoundMerge       --[ §2023:14.9.24 GR4a/b strict k-way ]----------------->  CobolSort.Merge → CompareKeys
-  BoundReturn      --[ §2023:14.9.34 GR3 next-in-order / AT END ]---------->  cursor read (CobolSort.Return)
+  BoundRelease     --[ §2023:14.9.32.4 GR2 / varying len §2023:13.18.43.4 GR13 ]-->  append image (CobolSort.Release)
+  BoundSort        --[ §2023:14.9.40.4 GR9 stable key sort ]------------------>  CobolSort.Sort → CompareKeys
+  BoundMerge       --[ §2023:14.9.24.4 GR4a/b strict k-way ]----------------->  CobolSort.Merge → CompareKeys
+  BoundReturn      --[ §2023:14.9.34.4 GR3 next-in-order / AT END ]---------->  cursor read (CobolSort.Return)
   BoundTableSort   --[ §2023:14.9.40 Fmt2, TableSort2002 gate ]----------->  in-place typed-array comparer
        │
   BoundSortMergeKey / BoundTableSortKey
@@ -305,18 +305,18 @@ BoundUnlock       --[ UNLOCK §2023:14.9.47, else '42' ]------------>  registry 
 ## Interprogram & pointers (CALL/CANCEL/ALLOCATE)
 *Nodes: `BoundCallProgram`, `BoundCallArg`, `BoundCancel`, `BoundAllocate`, `BoundFree`, `BoundAddressOf`, `BoundSetPointer`, `BoundSetAddressOfBased`, `BoundSetProgramPointer`*
 
-**Spec mapping.** These bind the interprogram-communication and dynamic-storage verbs. `BoundCallProgram`/`BoundCallArg` carry `CALL {literal|identifier} [USING…][RETURNING…]` (ISO §2023:14.9.4 Format 1), each arg's resolved `CobolPassMode` (BY REFERENCE/CONTENT/VALUE, §2023:14.9.4.3 SR4); `BoundCancel` is `CANCEL …` (§2023:14.9.5). `BoundAllocate`/`BoundFree` are `ALLOCATE` (§2023:14.9.3) and `FREE` (§2023:14.9.15). The SET pointer family maps §2023:14.9.39: `BoundSetPointer` Format 4 (data-pointer TO NULL/pointer), `BoundSetAddressOfBased` Format 7 (`SET ADDRESS OF based`), `BoundSetProgramPointer` Format 9 (program-pointer), with `BoundAddressOf` the `ADDRESS OF` value operand (§2023:8.4.3.11 GR1). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
+**Spec mapping.** These bind the interprogram-communication and dynamic-storage verbs. `BoundCallProgram`/`BoundCallArg` carry `CALL {literal|identifier} [USING…][RETURNING…]` (ISO §2023:14.9.4 Format 1), each arg's resolved `CobolPassMode` (BY REFERENCE/CONTENT/VALUE, §2023:14.9.4.3 SR4); `BoundCancel` is `CANCEL …` (§2023:14.9.5). `BoundAllocate`/`BoundFree` are `ALLOCATE` (§2023:14.9.3) and `FREE` (§2023:14.9.15). The SET pointer family maps §2023:14.9.39: `BoundSetPointer` Format 4 (data-pointer TO NULL/pointer), `BoundSetAddressOfBased` Format 7 (`SET ADDRESS OF based`), `BoundSetProgramPointer` Format 9 (program-pointer), with `BoundAddressOf` the `ADDRESS OF` value operand (§2023:8.4.3.11.4 GR1). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
 
-**Semantic rules.** Invariant (binder, `CallBinder`): pass-mode transitivity is pre-applied (§2023:14.9.4.4 GR5); `ALLOCATE … CHARACTERS` requires RETURNING (§2023:14.9.3 SR2); `SET ADDRESS OF` receiver must be BASED (§2023:14.9.39 SR18); program-pointer sides share category (SR21). Edition-conditional (`VersionConformancePass`): `CALL … BY VALUE`/`RETURNING` are 2002 introductions (`CallByValue2002`, `CallReturning2002`); `ON OVERFLOW` spelling is REMOVED at 2023 (`CallOnOverflowRemoved2023`, flagged via `UsedOverflowSpelling`). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
+**Semantic rules.** Invariant (binder, `CallBinder`): pass-mode transitivity is pre-applied (§2023:14.9.4.4 GR5); `ALLOCATE … CHARACTERS` requires RETURNING (§2023:14.9.3.3 SR2); `SET ADDRESS OF` receiver must be BASED (§2023:14.9.39.3 SR18); program-pointer sides share category (SR21). Edition-conditional (`VersionConformancePass`): `CALL … BY VALUE`/`RETURNING` are 2002 introductions (`CallByValue2002`, `CallReturning2002`); `ON OVERFLOW` spelling is REMOVED at 2023 (`CallOnOverflowRemoved2023`, flagged via `UsedOverflowSpelling`). See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
-**Runtime behavior.** Activation flows through `ProgramRegistry.CallProgram` (name string) or `CallPointer` (held `ProgramPointer`); `Cancel` resets callee state (§2023:14.9.5 GR3). Pointers use the one `ManagedPointer<T>` carrier; `CobolPtr.Allocate`/`CobolPtr.Free` back `StorageCell` (freed cells trip a loud deref). See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
+**Runtime behavior.** Activation flows through `ProgramRegistry.CallProgram` (name string) or `CallPointer` (held `ProgramPointer`); `Cancel` resets callee state (§2023:14.9.5.4 GR3). Pointers use the one `ManagedPointer<T>` carrier; `CobolPtr.Allocate`/`CobolPtr.Free` back `StorageCell` (freed cells trip a loud deref). See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
 BoundCallProgram/Arg   --[ §2023:14.9.4 pass-mode/RETURNING; GR3h ON ]-->  ProgramRegistry.CallProgram / CallPointer
-BoundCancel            --[ §2023:14.9.5 GR3 reset callee state       ]-->  ProgramRegistry.Cancel
-BoundAllocate          --[ §2023:14.9.3 GR3/GR4a size + set pointer  ]-->  CobolPtr.Allocate (StorageCell)
-BoundFree              --[ §2023:14.9.15 GR1 release/null/EC         ]-->  CobolPtr.Free (StorageCell)
-BoundAddressOf         --[ §2023:8.4.3.11 GR1 address value          ]-->  ManagedPointer.At(cell, offset)
+BoundCancel            --[ §2023:14.9.5.4 GR3 reset callee state       ]-->  ProgramRegistry.Cancel
+BoundAllocate          --[ §2023:14.9.3.4 GR3/GR4a size + set pointer  ]-->  CobolPtr.Allocate (StorageCell)
+BoundFree              --[ §2023:14.9.15.4 GR1 release/null/EC         ]-->  CobolPtr.Free (StorageCell)
+BoundAddressOf         --[ §2023:8.4.3.11.4 GR1 address value          ]-->  ManagedPointer.At(cell, offset)
 BoundSetPointer        --[ §2023:14.9.39 F4 carrier copy / NULL      ]-->  ManagedPointer copy / ManagedPointer.Null
 BoundSetAddressOfBased --[ §2023:14.9.39 F7 SR18 based-only          ]-->  based item __addr = pointer
 BoundSetProgramPointer --[ §2023:14.9.39 F9 SR21 program-pointer     ]-->  ProgramPointer carrier copy
@@ -325,22 +325,22 @@ BoundSetProgramPointer --[ §2023:14.9.39 F9 SR21 program-pointer     ]-->  Prog
 ## Object orientation (INVOKE/METHOD)
 *Nodes: `BoundInvoke`, `BoundInvokeArg`, `BoundInvokeUniversal`, `BoundMethod`, `BoundMethodReturn`, `BoundSetObjectRef`*
 
-**Spec mapping.** These nodes realize COBOL's OO core. `BoundInvoke` is the INVOKE statement (§2023:14.9.23), carrying the binder-resolved `InvokeForm` — `NEW` (§2023:16.2.1 predefined factory), `Instance`/`Self`/`Super` (§2023:8.4.3.8 GR2/GR3 dispatch), or `Factory` (§2023:11.4). `BoundInvokeArg` is one positional USING argument (§2023:14.9.23.4 GR6); `BoundInvokeUniversal` is the descriptor-typed dynamic path where the selector is a literal or runtime data item (§2023:14.9.23.3 SR7). `BoundMethod` is a METHOD definition (§11) with entry/end PCs. `BoundMethodReturn` is method-context GOBACK/EXIT METHOD (§2023:14.9.18.4 GR4). `BoundSetObjectRef` is SET Format 5 object-reference assignment (§2023:14.9.39). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
+**Spec mapping.** These nodes realize COBOL's OO core. `BoundInvoke` is the INVOKE statement (§2023:14.9.23), carrying the binder-resolved `InvokeForm` — `NEW` (§2023:16.2.1 predefined factory), `Instance`/`Self`/`Super` (§2023:8.4.3.8.4 GR2/GR3 dispatch), or `Factory` (§2023:11.4). `BoundInvokeArg` is one positional USING argument (§2023:14.9.23.4 GR6); `BoundInvokeUniversal` is the descriptor-typed dynamic path where the selector is a literal or runtime data item (§2023:14.9.23.3 SR7). `BoundMethod` is a METHOD definition (§11) with entry/end PCs. `BoundMethodReturn` is method-context GOBACK/EXIT METHOD (§2023:14.9.18.4 GR4). `BoundSetObjectRef` is SET Format 5 object-reference assignment (§2023:14.9.39). See [[kb/Spec/Lookup/IR Mapping]], [[kb/Spec/Lookup/Grammar]], [[kb/Spec/Language Features]].
 
-**Semantic rules.** The OoBinder resolves receivers, USING arity/conformance (§2023:14.8.2 GR3), and RETURNING pairing (§2023:14.9.23.4 GR8) at bind — invariant compile-time analogs of EC-OO-METHOD (GR7b) and EC-OO-UNIVERSAL. A typed receiver takes a §2023:14.8 conformance check; NEW requires a USAGE OBJECT REFERENCE RETURNING with no USING args. OO availability is edition-conditional (2002+), gated by the VersionConformancePass. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
+**Semantic rules.** The OoBinder resolves receivers, USING arity/conformance (§2023:14.8.2.3.2 GR3), and RETURNING pairing (§2023:14.9.23.4 GR8) at bind — invariant compile-time analogs of EC-OO-METHOD (GR7b) and EC-OO-UNIVERSAL. A typed receiver takes a §2023:14.8 conformance check; NEW requires a USAGE OBJECT REFERENCE RETURNING with no USING args. OO availability is edition-conditional (2002+), gated by the VersionConformancePass. See [[kb/Semantics/Validation Rules]], [[kb/Spec/Lookup/Semantic Rules]], [[kb/Semantics/Passes]].
 
 **Runtime behavior.** Every CLASS-ID emits a C# class rooted at `CobolObject`. Resolved invokes render as `new`, virtual `RequireNonNull(recv).M(...)`, `base.M(...)`, or factory-singleton calls; the universal path calls `CobolObject.__CobolInvoke(name, CobolInvokeArg[], returning)` — a reflection-free per-class switch (AOT-safe) that descriptor-checks each `CobolInvokeArg` and chains to `base` for §2023:9.3.6 resolution order. `BoundMethodReturn` throws `MethodReturn`, caught at the method entry to unwind nested `__Dispatch` frames. See [[kb/Runtime/Execution Model]], [[kb/Spec/Lookup/Runtime Mapping]].
 
 ```text
 BoundInvoke(New)        --[ §2023:16.2.1.2 GR1: allocate + return OBJECT REF ]-->  new Class()                     (CobolObject)
 BoundInvoke(Instance)   --[ §2023:14.9.23.4 GR5 null guard + §2023:9.3.6 virtual  ]-->  RequireNonNull(recv).M(..)      (CobolObject)
-BoundInvoke(Self/Super) --[ §2023:8.4.3.8 GR2/GR3 dispatch start            ]-->  this.M(..) / base.M(..)         (CobolObject)
+BoundInvoke(Self/Super) --[ §2023:8.4.3.8.4 GR2/GR3 dispatch start            ]-->  this.M(..) / base.M(..)         (CobolObject)
 BoundInvoke(Factory)    --[ §2023:11.4 factory singleton                    ]-->  CLS__FACTORY.__Instance.M(..)   (CobolObject)
   └ BoundInvokeArg      --[ §2023:14.9.23.4 GR6 positional / conformance    ]-->  marshaled arg (writeback if BY REF)
 BoundInvokeUniversal    --[ §2023:14.9.23.3 SR7 / GR7c descriptor check     ]-->  __CobolInvoke(name,args,ret)    (CobolObject/CobolInvokeArg)
 BoundMethod             --[ §11 METHOD definition                      ]-->  emitted C# method + __Dispatch  (CobolObject)
 BoundMethodReturn       --[ §2023:14.9.18.4 GR4 terminate method only       ]-->  throw new MethodReturn()        (MethodReturn)
-BoundSetObjectRef       --[ §2023:14.9.39 GR9/GR10 ref copy; §2023:9.3.8.2 narrow ]-->  target = src / this / __Instance(CobolObject)
+BoundSetObjectRef       --[ §2023:14.9.39.4 GR9/GR10 ref copy; §2023:9.3.8.2 narrow ]-->  target = src / this / __Instance(CobolObject)
 ```
 
 ## Conditions & Exceptions (EC engine)
@@ -354,10 +354,10 @@ BoundSetObjectRef       --[ §2023:14.9.39 GR9/GR10 ref copy; §2023:9.3.8.2 nar
 
 ```text
   BoundEcChecked/EcStatementInfo --[ >>TURN ON §2023:7.3.25.4 GR6 ]--> per-raise guards + ambient *Checking flags (ExceptionEngine)
-  BoundRaise                     --[ §2023:14.9.29 SR1 level-3 ]-----> Set(name,fatal) [+throw CobolFatalException if fatal] (ExceptionState)
+  BoundRaise                     --[ §2023:14.9.29.3 SR1 level-3 ]-----> Set(name,fatal) [+throw CobolFatalException if fatal] (ExceptionState)
   BoundRaiseObject               --[ §2023:14.6.13.1.5 never fatal ]-> SetObject(obj) → F4 declarative (ExceptionState/ExceptionEngine)
   BoundRaising                   --[ §2023:14.9.18 GOBACK RAISING ]--> SetPropagating / SetPropagatingLast / SetPropagatingObject → activator pickup (ExceptionEngine)
-  BoundResume                    --[ §2023:14.9.33 SR3 nondecl pc ]--> throw ResumeSignal(TargetPc) (DispatchEmitter/__EcDispatch)
+  BoundResume                    --[ §2023:14.9.33.3 SR3 nondecl pc ]--> throw ResumeSignal(TargetPc) (DispatchEmitter/__EcDispatch)
   BoundSetLastException          --[ §2023:14.9.39 Fmt 13 ]---------> Clear() (ExceptionState)
   BoundExceptionPerform ┐        --[ §2023:14.9.28.4 GR17 tier match ]
   BoundExceptionMatch   ┘------------------------------------->  PushPerformFrame → RunTopFrame(ec,file) (PerformFrame/ExceptionEngine)
@@ -375,13 +375,13 @@ BoundSetObjectRef       --[ §2023:14.9.39 GR9/GR10 ref copy; §2023:9.3.8.2 nar
 
 ```text
 BoundInitiate         --[ §2023:14.9.21 reset counters/activate ]-->  CobolReport.Initiate()
-BoundGenerate         --[ §2023:14.9.16 GR1/GR2 detail|summary  ]-->  CobolReport.Generate(detailName)
+BoundGenerate         --[ §2023:14.9.16.4 GR1/GR2 detail|summary  ]-->  CobolReport.Generate(detailName)
 BoundTerminate        --[ §2023:14.9.46 final footings/inactive ]-->  CobolReport.Terminate()
-BoundSuppress         --[ §2023:14.9.45 SR1 USE BEFORE REPORTING]-->  CobolReport.SuppressPrinting()  (one-shot flag)
+BoundSuppress         --[ §2023:14.9.45.3 SR1 USE BEFORE REPORTING]-->  CobolReport.SuppressPrinting()  (one-shot flag)
      registers (source-only BoundExpr, rejected in receiving positions):
-BoundReportCounterRef --[ §2023:8.4.3.15 GR1-4  ]-->  CobolReport.LineCounter / .PageCounter
+BoundReportCounterRef --[ §2023:8.4.3.15.4 GR1-4  ]-->  CobolReport.LineCounter / .PageCounter
 BoundReportSumRef     --[ §2023:13.18.54.4 GR4  ]-->  report engine sum counter
-BoundReportVaryingRef --[ §2023:13.18.64 GR3/GR4]-->  compose-local counter var
+BoundReportVaryingRef --[ §2023:13.18.64.4 GR3/GR4]-->  compose-local counter var
 BoundLinageCounterRef --[ §2023:13.18.34.4 GR7b ]-->  connector LINAGE-COUNTER
 ```
 

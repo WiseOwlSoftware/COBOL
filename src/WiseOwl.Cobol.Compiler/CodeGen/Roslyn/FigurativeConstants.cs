@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.CodeGen;
 /// (<c>EmitText.FigurativeFill</c>, <c>EmitContext.FigFill</c> ×2, <c>FieldEmitter.FillCharFor</c>,
 /// <c>ConditionRenderer.FigurativeFillChar</c>, <c>CSharpEmitter.FigurativeWordFill</c>, and the Report-Writer
 /// word map). ISO §2023:8.3.3.6: HIGH-/LOW-VALUE under a PROGRAM COLLATING SEQUENCE are the sequence's extreme
-/// CHARACTERS (GR6/GR7 + §2023:12.3.7 GR8/GR9 — character identity, not just comparison weight), natively
+/// CHARACTERS (GR6/GR7 + §2023:12.3.7.4 GR8/GR9 — character identity, not just comparison weight), natively
 /// U+FFFF/U+0000 (WiseOwl.Cobol.Runtime.NativeCollatingSequence, owner R52); category national/boolean use their OWN sequence, so the alphanumeric
 /// PCS never applies to them (the D-N3 pin). It is also THE OPERAND CLASSIFIER (<see cref="Classify"/>, kb/Work
 /// PB461): the five ALL-strip variants that once lived at the call sites (whitespace-only, whitespace-or-letter,
@@ -77,9 +77,9 @@ internal static class FigurativeConstants
 
     /// <summary>The RAW fill character for a figurative kind: the PCS extremes for H/L when a collating
     /// sequence is active and no category pin applies. National/boolean anchors never take the alphanumeric
-    /// PCS (§2023:8.3.3.6 GR6/GR7 — each category reads its OWN sequence): a NATIONAL anchor under an explicit
+    /// PCS (§2023:8.3.3.6.4 GR6/GR7 — each category reads its OWN sequence): a NATIONAL anchor under an explicit
     /// non-native NATIONAL program collating sequence (<paramref name="natCollate"/> — an <c>ALPHABET … FOR
-    /// NATIONAL</c> literal phrase, §2023:12.3.7 GR8/GR9) takes THAT sequence's extremes; otherwise the NATIVE
+    /// NATIONAL</c> literal phrase, §2023:12.3.7.4 GR8/GR9) takes THAT sequence's extremes; otherwise the NATIVE
     /// sequence's extremes, U+FFFF / U+0000 for both classes (<see cref="WiseOwl.Cobol.Runtime.NativeCollatingSequence"/>,
     /// owner decision kb/Work R52).
     /// <para>⛔ <paramref name="cat"/> IS A CHARACTER CONTEXT, NOT A PICTURE CATEGORY (kb/Work PB442): a caller

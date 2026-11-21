@@ -88,7 +88,7 @@ public static class CobolSort
 
     private static SortStore Get(string name) => Stores.Get(name);
 
-    /// <summary>Begin a SORT/MERGE statement on <paramref name="name"/>: a fresh, empty store (ISO §2023:14.9.40 GR9a — the
+    /// <summary>Begin a SORT/MERGE statement on <paramref name="name"/>: a fresh, empty store (ISO §2023:14.9.40.4 GR9a — the
     /// release phase starts; re-executing a SORT on the same SD reuses the connector with a clean store), ordered by
     /// <paramref name="keys"/> — the compile-time key descriptors (§2023:14.9.40.3 SR6e), given here rather than to the
     /// sequence phase because the store orders a run whenever the release phase fills its memory limit (kb/Work
@@ -313,7 +313,7 @@ public static class CobolSort
     }
 
     /// <summary>Mark the start of the next USING stream (MERGE only): records released after this call belong to
-    /// the next file-name-2/-3 in statement order — the tie-break order ISO §2023:14.9.24 GR4 prescribes.</summary>
+    /// the next file-name-2/-3 in statement order — the tie-break order ISO §2023:14.9.24.4 GR4 prescribes.</summary>
     public static void NextInput(string name) => Get(name).Work.NextStream();
 
     /// <summary>⛔ THE SHORT-RECORD FILL OF A SORT/MERGE TRANSFER (§2023:14.9.40.4 GR7 / GR16, §2023:14.9.24.4 GR2 / GR13; kb/Work
@@ -326,7 +326,7 @@ public static class CobolSort
     public static string FillTo(string image, int width, bool national, RecordExtents? extents = null) =>
         extents?.Layout is not null ? image : RecordFill.Fit(image, width, national);
 
-    /// <summary>RELEASE one record image at its released length (ISO §2023:14.9.32 GR2; §2023:14.9.40 GR12b for the implicit
+    /// <summary>RELEASE one record image at its released length (ISO §2023:14.9.32.4 GR2; §2023:14.9.40.4 GR12b for the implicit
     /// USING release) — the RELEASE STATEMENT's §2023:14.9.32.4 GR1 test lives in <see cref="ReleaseStatement"/>, and
     /// this implicit release is not a RELEASE statement. Its one test is the size rule of §2023:14.9.40.4 GR12 b) /
     /// §2023:14.9.24.4 GR7 b) (kb/Work PB1036): "If the size of the record read from the file referenced by file-name-2
@@ -390,7 +390,7 @@ public static class CobolSort
                 + $"({mode}) (ISO §2023:14.9.40.4 GR9, §2023:14.9.24.4 GR7 / GR12)");
     }
 
-    /// <summary>The sequence phase (ISO §2023:14.9.40 GR9b): a STABLE key sort (<see cref="SortWork.Sequence"/> — in memory
+    /// <summary>The sequence phase (ISO §2023:14.9.40.4 GR9b): a STABLE key sort (<see cref="SortWork.Sequence"/> — in memory
     /// when the records fit, else the merge of the sorted runs the release phase wrote; kb/Work PB3339). Stability
     /// realizes GR3's DUPLICATES IN ORDER (equal keys keep USING-file / RELEASE order); without the phrase the relative
     /// order is undefined (GR4), so the stable result is conformant there too — <paramref name="duplicatesInOrder"/> is
@@ -409,7 +409,7 @@ public static class CobolSort
         f.Work.Sequence();
     }
 
-    /// <summary>The merge operation (ISO §2023:14.9.24 GR1): a k-way merge of the pre-sorted USING streams. Equal keys
+    /// <summary>The merge operation (ISO §2023:14.9.24.4 GR1): a k-way merge of the pre-sorted USING streams. Equal keys
     /// take the record from the EARLIEST stream first, and within one stream the records keep their file order —
     /// exactly GR4a/GR4b (<see cref="SortWork"/>: from memory when the streams fit, else from their runs).
     /// <para>EC-SORT-MERGE-SEQUENCE (kb/Work PB1036): §2023:14.9.24.4 GR6 — "If the records in the file referenced by
@@ -438,7 +438,7 @@ public static class CobolSort
         f.Work.Sequence();
     }
 
-    /// <summary>RETURN the next record in key order (ISO §2023:14.9.34 GR3): <see langword="true"/> with the record's
+    /// <summary>RETURN the next record in key order (ISO §2023:14.9.34.4 GR3): <see langword="true"/> with the record's
     /// image at its own length, or <see langword="false"/> at end — the UNCHECKED primitive the implicit GIVING
     /// transfer uses; the RETURN statement's GR1 / GR3 tests live in <see cref="ReturnStatement"/>. A post-end
     /// call deterministically reports at-end again (a conformant refinement of GR3's "undefined"). Reading the merge of
@@ -468,7 +468,7 @@ public static class CobolSort
     }
 
     /// <summary>The length of the most recently RETURNed record — the value a varying SD's RECORD VARYING
-    /// DEPENDING ON item receives (ISO §2023:13.18.43 GR15: each returned record restores its own length).</summary>
+    /// DEPENDING ON item receives (ISO §2023:13.18.43.4 GR15: each returned record restores its own length).</summary>
     public static int LastReturnedLength(string name) => Get(name).LastReturnedLength;
 
     /// <summary>The most recently RETURNed record's image at its own length (kb/Work PB5785) — the current record a RETURN … INTO
@@ -486,7 +486,7 @@ public static class CobolSort
     public static object?[]? LastReturnedSlots(string name) => Get(name).LastReturnedSlots;
 
     /// <summary>Rewind the return phase to the first record — emitted before EACH GIVING file's write-out, so
-    /// every file-name-3/-4 receives the FULL sorted/merged result (ISO §2023:14.9.40 GR15 / §2023:14.9.24 GR12).</summary>
+    /// every file-name-3/-4 receives the FULL sorted/merged result (ISO §2023:14.9.40.4 GR15 / §2023:14.9.24.4 GR12).</summary>
     public static void Rewind(string name) => Get(name).Work.Rewind();
 
     /// <summary>End the SORT/MERGE statement: drop the store, closing (and so deleting) every temporary run file it

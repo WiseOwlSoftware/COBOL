@@ -197,7 +197,7 @@ def self_test() -> int:
     worse, because it reads as working. Each case below breaks exactly one rule.
     """
     register = load_register()
-    good = '| DOC-A.1-2 | ACCEPT statement device used when FROM is unspecified, §2023:14.9.1 GR5 | det | — |'
+    good = '| DOC-A.1-2 | ACCEPT statement device used when FROM is unspecified, §2023:14.9.1.4 GR5 | det | — |'
     cases = [
         ('control: a correct row passes', good, None),
         ('a wrong item number is caught',
@@ -220,7 +220,7 @@ def self_test() -> int:
         # it cannot be an anchor (`#7` matched the digit 7 anywhere in the file), so a row still spelling it
         # discharges nothing and must be reported rather than silently skipped.
         ('the OLD bare-number key form is caught',
-         '| 2 | ACCEPT statement device used when FROM is unspecified, §2023:14.9.1 GR5 | det | — |',
+         '| 2 | ACCEPT statement device used when FROM is unspecified, §2023:14.9.1.4 GR5 | det | — |',
          'carry no A.1 item number'),
         # ⛔ THE TOKEN SET: a `DOC-A.1-<n>` token anywhere but a row key would resolve as a filed determination
         # under the C# gate's word search over the whole file.
