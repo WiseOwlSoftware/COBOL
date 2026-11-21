@@ -710,12 +710,13 @@ internal static class RuntimeApi
     public static string CheckedIntegerArgumentExact(string value, IntegerArgumentSite site) =>
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.CheckedIntegerArgumentExact)}({value}, {site})";
 
-    /// <summary>Where a run-time integer check stands (kb/Work PB5889): the function, the argument's 1-based position and whether a
-    /// failure terminates the run unit (COBOL-85) rather than raising EC-ARGUMENT-FUNCTION, rendered as the check's trailing
-    /// arguments. A function name is a catalogued intrinsic name (letters, digits and hyphens), so it needs no escape.</summary>
-    internal readonly record struct IntegerArgumentSite(string Function, int Argument, bool Terminates)
+    /// <summary>Where a run-time integer check stands (kb/Work PB5889): the function and the argument's 1-based position, rendered as
+    /// the check's trailing arguments. What a failure does is the activation's edition's, decided at run time by the one answer to
+    /// every broken argument rule (<c>ExceptionEngine.ArgumentError</c>, kb/Work PB6019), never by the site. A function name is a
+    /// catalogued intrinsic name (letters, digits and hyphens), so it needs no escape.</summary>
+    internal readonly record struct IntegerArgumentSite(string Function, int Argument)
     {
-        public override string ToString() => $"\"{Function}\", {Argument}, {(Terminates ? "true" : "false")}";
+        public override string ToString() => $"\"{Function}\", {Argument}";
     }
 
     /// <summary>The §2023:15.3 type-6 intake for a value on ONE of the operand carriers, keyed by carrier KIND — the ONE
