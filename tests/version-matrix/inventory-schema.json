@@ -1172,7 +1172,9 @@
       "7) an `undefined-in-rule` arm whose quotation is not in the row's own catalog text, or on a row an Annex A.2",
       "   item resolves to (one fact, one arm: that row keeps `undefined-A.2`);",
       "8) an ARGUED arm signed by a signer whose `refuter` is true, with no UPHELD refuter record of the row;",
-      "9) an `unfalsifiable-under-determination` arm naming a key that is not a row of the conformance register (kb/Work PB5831)."
+      "9) an `unfalsifiable-under-determination` arm naming a key that is not a row of the conformance register (kb/Work PB5831);",
+      "10) an `informative` arm whose quotation is not in the row's own catalog text, or whose `explains` names a rule that is",
+      "   not of the row's own edition's catalog, or the row itself (kb/Work PB6012)."
     ],
     "arms": {
       "$comment": [
@@ -1216,6 +1218,12 @@
         "check": "register-key",
         "argued": true,
         "meaning": "kb/Work PB5831: a term of the rule is the implementor's to settle (the standard says so), this implementation's determination of that term is documented in the conformance register, and under that meaning of the term alone the rule's requirement is true of every state a compiler could produce, a defective one included, so no program can fail on it. The Names cell is the register key of the determination, alone: a section 7 item (DOC-A.1-<n>) or a section 3 determination (D-<NAME>); it must be a row of the register's extract (`Schema.register_items` or `Schema.determination_keys`). The argument cites the words that leave the term to the implementor, quotes the determination of the term, says why every behaviour satisfies the rule under that meaning alone (never the behaviour a register entry promises beside it), and that the derivation is CONTINGENT on it."
+      },
+      "informative": {
+        "names-pattern": "^(?:describes the standard's ([^\"]{10,}?): \"([^\"\\s]+(?:\\s+[^\"\\s]+){3,})\"|explains ((?:[0-9]{4}-)?[A-Za-z]+-[A-Za-z0-9.]+-[A-Za-z0-9.]+): \"([^\"\\s]+(?:\\s+[^\"\\s]+){3,})\")$",
+        "check": "informs",
+        "argued": true,
+        "meaning": "kb/Work PB6012: every sentence of the rule INFORMS the reader of the standard and requires nothing of a program or of an implementation: it describes the standard's own text (its notation, organization, figures, tables, kinds of rule, the scope of a section), or it explains a requirement that another rule states; no behaviour of any compiler, a defective one included, and no program makes it false. The Names cell is `describes the standard's <what>: \"<quotation>\"` (<what> at least ten characters) or `explains <rule-id>: \"<quotation>\"`; the quotation, in double quotes, of four or more words, must lie inside the row's own catalog text in its edition (each whitespace run compared as one space), and an `explains` rule-id must be a rule of the row's own edition's catalog and not the row's own. ARGUED, never mechanical: the refuter reads the whole row, sentence by sentence, and describes a behaviour of a compiler or a program that would violate a sentence; if one exists the derivation is overturned and the row takes a test. A sentence that restates a requirement is informative only because the requirement has its own row, which the argument names."
       }
     }
   }
