@@ -1226,6 +1226,21 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     protected override void ReportInputMismatch(Parser recognizer, InputMismatchException e)
         => Report(recognizer, e.OffendingToken ?? recognizer.CurrentToken, e, ErrorKind.InputMismatch);
 
+    /// <summary>⛔ THE AREA-A GUARD REFUSES ITS TOKEN, NEVER THE GRAMMAR (kb/Work PB6018). A rule whose one alternative opens with
+    /// <c>{!nextEntryOpensHere()}?</c> (<c>integerLiteral</c>, <c>signedIntegerLiteral</c>) asserts it on entry where the
+    /// enclosing decision could not see it (a required operand: <c>PERFORM</c> then <c>100.</c> in area A), and ANTLR's
+    /// default report is the raw COBOL0001 "rule … failed predicate". The guard's refusal is the token's (the reference format
+    /// puts it after a separator period), so it is reported as the token's mismatch, and the recovery's own reading of the
+    /// same fact (<see cref="OffendingPosition.OpensTheNextEntry"/>) names the period. Every other predicate keeps the
+    /// default report.</summary>
+    protected override void ReportFailedPredicate(Parser recognizer, FailedPredicateException e)
+    {
+        if (e.Predicate is { } predicate && predicate.Contains("nextEntryOpensHere", StringComparison.Ordinal))
+            Report(recognizer, e.OffendingToken ?? recognizer.CurrentToken, e, ErrorKind.InputMismatch);
+        else
+            base.ReportFailedPredicate(recognizer, e);
+    }
+
     protected override void ReportMissingToken(Parser recognizer)
     {
         if (errorRecoveryMode) return;
