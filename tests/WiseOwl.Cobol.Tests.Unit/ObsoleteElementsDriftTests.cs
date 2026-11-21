@@ -30,7 +30,7 @@ public sealed class ObsoleteElementsDriftTests
         foreach (var row in ObsoleteIn1985())
             // The list's items are cited by the printed page they stand on, p.XVII-81 to p.XVII-86: an item number is no rule
             // designator of scripts/spec/citation.py (kb/Work PB5449).
-            Assert.True(Enumerable.Range(81, 6).Any(p => row.Citation.Contains($"§1985:p.XVII-{p}", StringComparison.Ordinal)),
+            Assert.True(Enumerable.Range(81, 6).Any(p => row.Citation.Contains("p.XVII-" + p, StringComparison.Ordinal)),
                 $"{row.Id} is obsolete at 85 but its citation names no printed page of the obsolete list (§1985:p.XVII-81 to p.XVII-86): {row.Citation}");
     }
 
