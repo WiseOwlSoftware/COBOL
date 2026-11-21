@@ -42,14 +42,21 @@ internal enum FileDescriptionFormat
 /// clauses: a user who writes <c>FD F ORGANIZATION IS RELATIVE</c> is told where the clause goes, not handed a
 /// token error).</param>
 /// <param name="DeletedAt2002">A COBOL-85 FD clause ISO/IEC 1989:2002 deleted (LABEL RECORDS, DATA RECORDS,
-/// VALUE OF). It stood in every '85 FD format, so it is admitted in all three here and its edition is decided by
-/// its removal gate; it is left out of the "admits only" sentence, which quotes the current §2023:13.4.5.2.</param>
+/// VALUE OF). Its edition from 2002 is decided by its removal gate, so its <paramref name="Formats"/> name every format it stood
+/// in in 1985 and it is left out of the "admits only" sentence, which quotes the current §2023:13.4.5.2.</param>
 /// <param name="IntroducedIn">The edition that introduced the clause (85 unless stated): the "admits only" sentence of a COBOL-85
 /// diagnostic lists what the 1985 file description entries held, which has neither this clause nor, where it was deleted, lacks
 /// the <paramref name="DeletedAt2002"/> ones (kb/Work PB4950).</param>
+/// <param name="Formats1985">The 1985 entries that print the clause, where they differ from <paramref name="Formats"/>: ANSI
+/// X3.23-1985 states one entry per module (§1985:VII.3.2.2, VIII.3.2.2, IX.3.2.2, XIII.3.2.2, and with EXTERNAL and GLOBAL
+/// §1985:X.4.2.2's three formats), and its report-file entry prints no DATA RECORDS clause (kb/Work PB6027). Null: the same.</param>
 internal sealed record FileDescriptionClauseRow(
     Type Context, string Name, FileDescriptionFormat Formats, string? HomeEntry = null, bool DeletedAt2002 = false,
-    int IntroducedIn = 85);
+    int IntroducedIn = 85, FileDescriptionFormat? Formats1985 = null)
+{
+    /// <summary>The formats whose printed clause list contains the clause in <paramref name="edition"/>'s text.</summary>
+    public FileDescriptionFormat FormatsIn(EditionInfo edition) => edition.Has(2002) ? Formats : Formats1985 ?? Formats;
+}
 
 /// <summary>⛔ THE ONE PLACE THE FILE DESCRIPTION ENTRY'S FORMAT IS DECIDED AND ITS CLAUSE ADMISSIBILITY IS ASKED
 /// (kb/Work PB1238, PB1081, PB865).
@@ -83,7 +90,9 @@ internal static class FileDescriptionFormats
         new(typeof(Core.LabelRecordsClauseContext), "LABEL RECORDS clause", FileDescriptionFormat.All,
             DeletedAt2002: true),
         new(typeof(Core.DataRecordsClauseContext), "DATA RECORDS clause", FileDescriptionFormat.All,
-            DeletedAt2002: true),
+            DeletedAt2002: true,
+            // §1985:XIII.3.2.2 and §1985:X.4.2.2 Format 3 print the report-file entry without it (kb/Work PB6027).
+            Formats1985: FileDescriptionFormat.Sequential | FileDescriptionFormat.RelativeOrIndexed),
         new(typeof(Core.ValueOfClauseContext), "VALUE OF clause", FileDescriptionFormat.All, DeletedAt2002: true),
         new(typeof(Core.OrganizationClauseContext), "ORGANIZATION clause", FileDescriptionFormat.None,
             FileControlEntry),
@@ -182,7 +191,7 @@ internal static class FileDescriptionFormats
     /// ones COBOL-2002 deleted, and not the ones it introduced.</summary>
     public static string Admitted(EditionInfo edition, FileDescriptionFormat format) =>
         string.Join(", ", Rows
-            .Where(r => (r.Formats & format) != 0
+            .Where(r => (r.FormatsIn(edition) & format) != 0
                 && (edition.Year < 2002 ? r.IntroducedIn <= 85 : !r.DeletedAt2002))
             .Select(r => r.Name));
 }

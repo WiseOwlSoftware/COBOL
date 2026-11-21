@@ -79,6 +79,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 WrittenEntries = rd.reportGroupEntry(),
                 CsIndex = _scope.Declared.Count,
                 Uid = _d.TakeUid(),
+                // §2023:13.18.39.4 GR5 — "If integer-2 is omitted, a value of 999 is assumed for the page width" (the PAGE clause
+                // below replaces it with integer-2); ANSI X3.23-1985 gives a report no page width at all (kb/Work PB6024).
+                PageWidth = DialectBehaviors.IsActive(DialectBehavior.ReportPageWidth, Edition.DialectLevel)
+                    ? ReportModel.DefaultPageWidth : null,
                 // §2023:8.4.3.15.4 GR1 — the counter exists per REPORT, so its register is built here, once, with the
                 // RD (kb/Work PB429). The SUM counter's Register is built the same way a few hundred lines below.
                 PageCounterRegister = new DataItem
@@ -200,7 +204,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // §2023:13.18.39.4 GR2a — integer-1 is the page limit, and "If integer-1 is not specified, the report
                 // consists of a single page of indefinite length": a PAGE clause that gives only integer-2 (the page
                 // width, GR2b) leaves the report UNPAGED. GR5 — "If integer-2 is omitted, a value of 999 is assumed
-                // for the page width": ReportModel.PageWidth already holds that default.
+                // for the page width": ReportModel.PageWidth already holds that default (none at COBOL-85, kb/Work PB6024).
                 // Every integer of the clause is a literal position, so an integer constant-name stands there
                 // (§2023:13.10.3 SR2) — read through the ONE reader (kb/Work PB1947); a refused constant reads as 1, the
                 // recovery value no range rule below trips on (the compile has already failed).
@@ -944,10 +948,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 continue;
             }
             bool absolute = ng.Kind == ReportNextGroupKind.Absolute;
-            if (ng.Value > model.VerticalLimit)
+            // §2023:13.18.37.3 SR1 (§2002:13.16.35.2 SR1 the same) bounds both integers by the page limit, or 9999. COBOL-85 has no
+            // such rule (kb/Work PB6025): §1985:XIII.3.16.3 SR2 bounds both to three significant digits, and each group type's
+            // presentation rules bound the rest. The absolute integer of a body group lies between FIRST DETAIL and FOOTING
+            // (§1985:XIII.3.10.8 GR5), of a report heading below FIRST DETAIL (§1985:XIII.3.10.6 GR4a), of a page footing at most
+            // the page limit (§1985:XIII.3.10.9 GR4a); a relative one is bounded for a report heading and a page footing
+            // (GR4b of each), and for a body group by nothing: its final LINE-COUNTER setting stops at the FOOTING integer
+            // (§1985:XIII.3.10.8 GR6b), and a report with no PAGE clause has no vertical subdivisions (§1985:XIII.3.10.2).
+            if (Edition.Edition.Has(2002) && ng.Value > model.VerticalLimit)
                 Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} exceeds {model.VerticalLimitWords}"
                     + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
-                    + $"divided into pages ({EditionInfo.Designated(NextGroupRule("SR1", "§1985:XIII.3.10.8 GR5 and §1985:XIII.3.16.3 SR2"))})");
+                    + $"divided into pages ({EditionInfo.Designated("§2023:13.18.37.3 SR1")})");
             else if (ExceedsThreeSignificantDigits85(ng.Value))
                 Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} has more than three "
                     + "significant digits; integer-1 and integer-2 must not exceed three significant digits in length "
@@ -974,6 +985,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     when ng.Value < model.FirstDetail || ng.Value > model.Footing:
                     Violation($"integer-1 {ng.Value} shall lie between the FIRST DETAIL integer {model.FirstDetail} and "
                         + $"the FOOTING integer {model.Footing}, inclusive ({EditionInfo.Designated(NextGroupRule("SR6b", "§1985:XIII.3.10.8 GR5"))})");
+                    break;
+                case (ReportGroupKindModel.PageFooting, true) when !Edition.Edition.Has(2002) && ng.Value > model.PageLimit:
+                    // §1985:XIII.3.10.9 GR4a's second half, which SR1 states for every group type from 2002 (kb/Work PB6025).
+                    Violation($"integer-1 {ng.Value} is greater than the page limit {model.PageLimit}; the NEXT GROUP integer must "
+                        + "not be greater than the line number specified by integer-1 of the PAGE clause (§1985:XIII.3.10.9 GR4a)");
                     break;
                 case (ReportGroupKindModel.PageFooting, true) when minLast is { } m && ng.Value <= m:
                     Violation($"integer-1 {ng.Value} shall be greater than the minimum last line number of the page "
@@ -2481,11 +2497,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             ?? ConstantEntryBinder.RecoveredIntegerOperand;
                         // §2023:13.18.14.3 SR6 — "Neither integer-1 nor integer-2 shall exceed the page width": the
                         // absolute column and the relative offset are both written integers, so the rule is
-                        // decidable here against ReportModel.PageWidth (the PAGE clause's integer-2, else GR5's 999).
-                        if (column > model.PageWidth)
+                        // decidable here against ReportModel.PageWidth (the PAGE clause's integer-2, else GR5's 999). A
+                        // COBOL-85 report has no page width, and its COLUMN NUMBER clause no bound (§1985:XIII.3.11.3; PB6024).
+                        if (model.PageWidth is { } pageWidth && column > pageWidth)
                             Edition.Error(DiagnosticCatalog.ReportColumnBeyondPageWidth, $"RD '{model.Name}' entry "
                                 + $"'{entryName ?? "FILLER"}': the COLUMN clause's {(relative ? "relative offset" : "column")} "
-                                + $"{column} exceeds the page width {model.PageWidth}"
+                                + $"{column} exceeds the page width {pageWidth}"
                                 + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
                                 + " (ISO §2023:13.18.14.3 SR6)");
                         columns.Add(new ReportColumnSpec(relative, column, alignment));
@@ -4091,9 +4108,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             var pj = all[j];
             // SR8 b)
-            if (pj.Spec.Kind == ReportColumnKindModel.Absolute && pj.Right > model.PageWidth)
+            if (pj.Spec.Kind == ReportColumnKindModel.Absolute && model.PageWidth is { } width && pj.Right > width)
                 Report(pj, null, Sr8b, $"the absolute item '{EntryName(pj.Field)}' at COLUMN {pj.Spec.Value} ends in column "
-                    + $"{pj.Right}, past the page width {model.PageWidth}"
+                    + $"{pj.Right}, past the page width {width}"
                     + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
                     + "; the rightmost column positions of all absolute items shall not exceed the page width "
                     + "(ISO §2023:13.18.14.3 SR8 b)" + NotInCobol85("a page width") + ")");
@@ -4134,18 +4151,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // a different PRESENT WHEN clause, and then by the largest alone: the item that, with every item before the
         // tail present and no other tail item, ends furthest right.
         int lastAbsolute = all.FindLastIndex(p => p.Spec.Kind == ReportColumnKindModel.Absolute);
-        if (lastAbsolute == all.Count - 1) return;
+        if (lastAbsolute == all.Count - 1 || model.PageWidth is not { } pageWidth) return;   // no page width at COBOL-85 (PB6024)
         var tail = all.Skip(lastAbsolute + 1).ToList();
         int prefixEnd = lastAbsolute >= 0 ? all[lastAbsolute].Right : 0;
         int extent = EachDifferentPresentWhen(tail.Select(p => (IReadOnlyList<object>)PresentWhenClausesOf(p.Field, Edition.DialectLevel)).ToList())
             ? tail.Max(p => p.Spec.Kind is ReportColumnKindModel.Relative or ReportColumnKindModel.AnchorSeed
                 ? prefixEnd + p.Spec.Value + p.Size - 1 : p.Right)
             : tail.Max(p => p.Right);
-        if (extent > model.PageWidth)
+        if (extent > pageWidth)
         {
             var widest = tail.OrderByDescending(p => p.Right).First();
             Report(widest, null, Sr8c, $"the report line ends in relative items, and they reach column {extent}, past the page "
-                + $"width {model.PageWidth}" + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
+                + $"width {pageWidth}" + (model.PageWidthWritten ? "" : " (assumed 999, §2023:13.18.39.4 GR5)")
                 + " although they are not each subject to a different PRESENT WHEN clause, or the largest of those that "
                 + "are is itself too wide; relative printable items at the end of a report line shall not cause the "
                 + "page width to be exceeded (ISO §2023:13.18.14.3 SR8 c)" + NotInCobol85("a page width") + ")");
@@ -4825,14 +4842,29 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             + "here may not name. "
             + (isSumCounter
                 ? sectionRule
-                // COBOL-85 has no section rule (SumCounterOperand85); its rule is the entry's: "Data-name-1 may be referenced only
-                // if the entry defines a sum counter" (kb/Work PB5310), and this entry defines none.
-                : Edition.Edition.Cite(
-                    "§1985:XIII.3.9.3 SR10d: \"Data-name-1 may be referenced only if the entry defines a sum counter\", and the "
-                    + "entry defines none.",
-                    sectionRule)));
+                // COBOL-85 has no section rule (SumCounterOperand85); its rule is the entry's, one per format (kb/Work PB5310,
+                // PB6026), and this entry defines no sum counter.
+                : Edition.Edition.Cite(EntryDataNameRule1985(entry.ReportFormat), sectionRule)));
         return true;
     }
+
+    /// <summary>The COBOL-85 rule a report group description entry's data-name is held to, by the entry's format (§1985:XIII.3.9.2;
+    /// kb/Work PB6026): §1985:XIII.3.9.3 SR5 for the level 1 entry, SR7 for a group entry below it, SR10d for an elementary entry.</summary>
+    private static string EntryDataNameRule1985(ReportEntryFormat? format) => format switch
+    {
+        ReportEntryFormat.ReportGroup =>
+            "§1985:XIII.3.9.3 SR5: \"In a format 1 entry, data-name-1 is required only when\" a detail report group is referenced "
+            + "by a GENERATE statement or by the UPON phrase of a SUM clause, a report group is referenced in a USE BEFORE "
+            + "REPORTING sentence, or the name of a control footing report group qualifies a reference to a sum counter, and this "
+            + "reference is none of those.",
+        ReportEntryFormat.Group =>
+            "§1985:XIII.3.9.3 SR7: \"In a format 2 entry, data-name-1 is optional. If present it may be used only to qualify a sum "
+            + "counter reference.\"",
+        ReportEntryFormat.Elementary =>
+            "§1985:XIII.3.9.3 SR10d: \"Data-name-1 may be referenced only if the entry defines a sum counter\", and the entry "
+            + "defines none.",
+        _ => throw new System.Diagnostics.UnreachableException("a report entry's declaration fact carries its format"),
+    };
 
     /// <summary>⛔ THE ONE CAPTURE OF A CONTROL-CLAUSE OPERAND REFERENCE, shared by the THREE clauses that write
     /// one (kb/Work PB205): the CONTROL clause itself (§2023:13.18.16.3), a TYPE CH/CF operand (§2023:13.18.57.3 SR10) and a

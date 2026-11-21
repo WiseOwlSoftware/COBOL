@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Model;
@@ -592,7 +593,7 @@ internal sealed class ReportWriterEmitter(
         {
             if (r.File is null) continue;   // diagnosed at bind (§2023:13.18.46) — compile already failed
             w.Line($"__RPT_{r.CsIndex} = new CobolReport({CsLiteral(r.Name)}, {FileKeyExpr(r.File)}, "
-                + $"{r.LineWidth}, {r.PageWidth}, {(r.Paged ? "true" : "false")}, {r.PageLimit}, {r.Heading}, {r.FirstDetail}, "
+                + $"{r.LineWidth}, {(r.PageWidth is { } pageWidth ? pageWidth.ToString(CultureInfo.InvariantCulture) : "CobolReport.NoPageWidth")}, {(r.Paged ? "true" : "false")}, {r.PageLimit}, {r.Heading}, {r.FirstDetail}, "
                 + $"{r.LastControlHeading}, {r.LastDetail}, {r.Footing}) {{ Edition = {ctx.Data.DialectLevel} }};");
             // The CODE clause (§2023:13.18.12): the characters every logical record of this report begins with (GR1). A
             // literal is a constant; an identifier is READ by the engine at each body group (GR3 — the value is used

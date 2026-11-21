@@ -160,6 +160,11 @@
       "changedIn": 2014
     },
     {
+      "id": "report-page-width",
+      "vcrRow": "7.89",
+      "changedIn": 2002
+    },
+    {
       "id": "saved-next-group-forces-page-advance",
       "vcrRow": "7.82",
       "changedIn": 2002
