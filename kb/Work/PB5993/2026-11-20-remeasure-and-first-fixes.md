@@ -1,9 +1,3 @@
----
-title: "PB5993 re-measure 13 of the 20 measured codes were never offenders; the 1985-rule arms are fixed; the class beyond the suite's 85 refusals is 336 codes"
-kind: analysis
-parent: PB5993
-filed: 2026-11-20
----
 # PB5993 - re-measure and first fixes (wave 20262118, group A)
 
 **Re-measure.** The note's 20 measured codes were counted without the net's own two ways out. On this tree: COBOL0880, 0804, 0877,
