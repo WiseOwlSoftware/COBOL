@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.4.1.1-p1",
+ "rule-digest": "8c0efdc90eaf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement",
+ "test-ref": "conformance:cases/X.4@1985-DATA-DIVISION-IN-THE-INTER-PROGRAM/1985-GR-X_4_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-16.json: the reader showed the compiler correct at 85 with its probe (x41-linkage-77-using.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No candidate states the 77-level Linkage form; SR-13.18.33.3-5 lists permitted level-numbers only. Code location located after the read: required/optional clauses of a Linkage entry (cites 1985:X.4.1.1 in LevelNumberPass; clause placement in DataBinder.ClausePlacement)"
+}

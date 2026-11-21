@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.3-p2",
+ "rule-digest": "00693ae5b6b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ConditionName.cs#DataBinder; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimary",
+ "test-ref": "conformance:cases/VI.6.3.1@1985-Simple-Conditions/1985-GR-VI_6_3_1_3-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_condname.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: 'the conditional variable is tested to determine whether or not its value falls in this range, including the end values.' GR-8.8.4.5.3-1 says the same but has no 85 case (its test-ref l1_value_thru_through_equivalent is not in its at-85 list). The probe shows the end values at 85. Code location located after the read: condition-name value set tested against the conditional variable"
+}

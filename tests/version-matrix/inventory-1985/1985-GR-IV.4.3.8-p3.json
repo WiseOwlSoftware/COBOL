@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8-p3",
+ "rule-digest": "f51c2d6895a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/1985-GR-IV_4_3_8-p3",
+ "notes": "Own verdict from the read lineage-reads-1985/s-05.json: the reader showed the compiler correct at 85 with its probe (s05_func_args.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program shows it: the same function with different arguments yields the values its definition gives for that reference. The candidates (INTEGER-PART, USING phrase, FUNCTION E) do not state it. Code location located after the read: IntrinsicBinder binds a function-identifier and its arguments; functionCall grammar rule"
+}

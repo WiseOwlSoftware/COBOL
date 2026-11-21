@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.1.3.1-p1",
+ "rule-digest": "703af75cd4c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#SequentialConnector",
+ "test-ref": "conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VII_1_3_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with its probe (p06_successor_extend.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: GR-14.9.51.4-17 states the same ('established by the order of execution of WRITE statements ... does not change except when records are added to the end'), but its two test-refs run only at 2002/2023 (l1_open_extend_position) and 2002/2014/2023 (pb5815). p06 writes CCCC, AAAA, BBBB, extends with DDDD and reads back CCCC AAAA BBBB DDDD at 85. Code location located after the read: runtime sequential file connector: records in WRITE order, successor relation"
+}

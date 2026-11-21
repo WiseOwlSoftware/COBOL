@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.7-p5",
+ "rule-digest": "88489976ed67",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#PhysicalWidth",
+ "test-ref": "conformance:wiseowl/cases/A.1-Implementor-defined-language-element-list/l1c40_no_automatic_alignment",
+ "notes": "Own verdict from the read lineage-reads-1985/s-04.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer DOC-A.1-7, witnessed at 85 by the cases test-ref names. The read: 1985: 'Each implementor who provides for special types of alignment will specify the precise interpretations ... will describe the effect of the implicit FILLER and the semantics of any statement referencing these groups.' 2023 A.1 item 7 states the same optional item with the same three subjects (interpretation, implicit filler, semantics of statements). The pointer's 85 case shows the declared choice (no special alignment: a group of DISPLAY and BINARY items is packed with no implicit FILLER), which is the whole 1985 scope for an implementor that does not provide the facility. GR-8.5.1.6.4-2 carries the same words but has no 85 case. Cited: §1985:IV.4.3.7 p5."
+}

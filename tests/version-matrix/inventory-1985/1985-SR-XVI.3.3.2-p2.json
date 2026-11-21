@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.2-p2",
+ "rule-digest": "fab9291d6333",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation",
+ "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_2-p2",
+ "notes": "Own verdict from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (s19_p12_perform_ind_ok.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A PERFORM statement that appears in an independent segment can have within its range, in addition to any declarative sections whose execution is caused within that range, only one of the following\". No 2023 counterpart. Code location located after the read: PERFORM/MERGE range containment in independent segments: Segmentation.CheckProcedures, SortBinder.CheckSegmentation"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.4.5.1-p1",
+ "rule-digest": "217b993203c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/VII.2@1985-ENVIRONMENT-DIVISION-IN-THE-SEQUENTIAL-I/1985-GR-VII_2_12-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (seqobs.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The REWRITE statement logically replaces a record existing in a mass storage file.\" GR-14.9.35.4-13 (file position unaffected) and GR-14.9.35.4-23 (an indexed prime key) do not state replacement for a sequential file. The probe shows replacement in place at 85. Code location located after the read: REWRITE binder and runtime"
+}

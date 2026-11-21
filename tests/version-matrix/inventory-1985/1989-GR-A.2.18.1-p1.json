@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.18.1-p1",
+ "rule-digest": "b488013043c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Truncate; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/A.2.18@1985-INTEGER-PART-FUNCTION/1989-GR-A_2_18_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-20.json: the reader showed the compiler correct at 85 with its probe (integer-part-85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1989: 'The INTEGER-PART function returns an integer that is the integer portion of argument-1. The type of this function is integer.' The 2023 text states each function's type only in its 15.n.1 General paragraph, which has no catalog row (no candidate's text names the type); the candidates (FMT-15.49.2 (85 accepted 1, diagnosed-only 0), FMT-15.44.2 (85 accepted 1, diagnosed-only 0), AR-15.49.3-1 (85 accepted 0, diagnosed-only 0)) state the format, the arguments or the returned value, so no pointer states the whole 1985 paragraph with an 85 witness. The probe checks the value at 85 and the integer type by its use (accepted as an integer argument of MOD). Code location located after the read: A.2.18 function: runtime member computes it; IntrinsicCatalog declares its signature"
+}

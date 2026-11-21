@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.2.2-T1.4",
+ "rule-digest": "7e94e4bb9dad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#ArithmeticFormationRules; src/WiseOwl.Cobol.Compiler/Validation/ExpressionFormationPass.cs#ExpressionFormationPass",
+ "test-ref": "conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/1985-GR-VI_6_2_2-T1_1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-arith.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Operator-table row \"/ binary: division\". The candidates are compile-time-expression rules (7.3.6) and GR-8.8.1.2-7, none with an 85 case; the probe computes the operator's result at 85. Code location located after the read: operator-pair formation table enforced by ArithmeticFormationRules.Check and ExpressionFormationPass"
+}

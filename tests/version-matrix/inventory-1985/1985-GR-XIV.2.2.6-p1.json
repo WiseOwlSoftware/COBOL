@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.6-p1",
+ "rule-digest": "fd3bfec15992",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#MessageControl; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath",
+ "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_5-T1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with its probe (p05_cd_status_65_error_6.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but programs show it: \"Table 2 below indicates the possible content of the data item referenced by data-name-4 for format 2 at the completion of each statement shown\". Every defined value is shown at 85; no 2023 counterpart (the candidates are file-access, PICTURE and SEARCH rules). Code location located after the read: status key / error key contents after each statement produced by MessageControl run-time; statements bound by CommunicationBinder"
+}

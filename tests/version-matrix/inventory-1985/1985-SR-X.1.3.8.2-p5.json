@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.1.3.8.2-p5",
+ "rule-digest": "dfd0ec55d10e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Declarations.cs#DeclaredNearerThan; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#DropShadowed",
+ "test-ref": "conformance:cases/X.1.3.8@1985-Scope-of-Names/1985-SR-X_1_3_8_2-p5",
+ "notes": "Own verdict from the read lineage-reads-1985/s-16.json: the reader showed the compiler correct at 85 with its probe (x13882-p5-same-word.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: A grant (\"both programs may define ... using the same user-defined word\") needs an accepted program; the 2023 8.4.6.2.1 rows state the resolution, not this grant, so no pointer carries the whole scope. Code location located after the read: cites 1985:X.1.3.8.2 GR3a; nearer declaration hides inherited name"
+}

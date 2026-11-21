@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.1-p1",
+ "rule-digest": "1bd5f231c3c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#CobolCharacterRepertoire; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#WordCharacterScreen",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/1985-SR-IV_2_1_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-01.json: the reader showed the compiler correct at 85 with its probe (p01_notation.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The 2023 candidates (§2023:8.1.2) speak of the coded character set in other terms; no 2023 row states the literal/comment expansion with a case that runs at 85, so the probe is the witness. Code location located after the read: the language character set is the character repertoire; word characters screened"
+}

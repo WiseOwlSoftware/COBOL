@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.2.3-p1",
+ "rule-digest": "0db169bab199",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalOrExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalAndExpression",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/1985-GR-VI_6_3_2-T1_1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (c1-logic.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The order of precedence is 'NOT', 'AND', 'OR'.' 2023 adds XOR between AND and OR in uncataloged §2023:8.8.4.11.3 prose; the candidates (format rows, the constant-conditional rule) have no 85 case. c1-logic evaluates the standard's own example over 8 tuples and counts 00 disagreements with its stated equivalent. Code location located after the read: NOT>AND>OR precedence is the grammar's rule nesting"
+}

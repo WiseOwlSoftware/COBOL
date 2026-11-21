@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.2.1-p1",
+ "rule-digest": "925c7017c612",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ArithmeticOperandRule.cs#ArithmeticOperandRule",
+ "test-ref": "conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/1985-GR-VI_6_2_2-T1_1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-arith.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: GR-8.8.1.2-5 (at 85) states only the begin/end symbols; the 1985 definition (including ZERO as an operand) is witnessed by the probe and its refusal. Code location located after the read: cites §1985:VI.6.2.1 at line 18; operand kinds admitted in arithmetic expressions"
+}

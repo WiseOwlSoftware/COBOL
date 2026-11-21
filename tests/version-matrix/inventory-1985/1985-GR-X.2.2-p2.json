@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.2.2-p2",
+ "rule-digest": "3f0d09b7c3ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Run; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader",
+ "test-ref": "conformance:cases/X.2@1985-NESTED-SOURCE-PROGRAMS/1985-GR-X_2_2-p2",
+ "notes": "Own verdict from the read lineage-reads-1985/s-16.json: the reader showed the compiler correct at 85 with its probe (x22-end-by-end-header.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Candidates do not state how a program ends; the probe shows both ends at 85. Code location located after the read: end program header and program end ordering; EndMarkerPass cites 1985:X.2.5.3 and X.2.5.4"
+}

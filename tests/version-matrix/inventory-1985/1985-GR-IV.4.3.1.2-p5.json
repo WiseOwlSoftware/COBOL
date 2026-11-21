@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.1.2-p5",
+ "rule-digest": "4c04ae45261d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DataBinder; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#DataBinder",
+ "test-ref": "conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/1985-GR-IV_4_3_1_2-p5",
+ "notes": "Own verdict from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with its probe (p03_working_storage_records.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'working storage is grouped into logical records and defined by a series of record description entries.' No candidate states it with an 85 witness: the candidates are wording matches only. Code location located after the read: working storage grouped into logical records by the data binder"
+}

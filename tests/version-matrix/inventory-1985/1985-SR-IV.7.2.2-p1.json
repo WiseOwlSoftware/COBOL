@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2.2-p1",
+ "rule-digest": "549cd600a9d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#LiteralScreen",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-GR-IV_7_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p08_refformat.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'Any sentence, entry, phrase, or clause may be continued by starting subsequent line(s) in area B ... Any word, literal, or PICTURE character-string may be broken in such a way that part of it appears on a continuation line.' SR-6.3.5-2 (nearest) covers only literal continuation; 2023 has no row for continuing words and PICTURE strings in fixed form. p08 breaks each kind and runs. Code location located after the read: LogicalLineBuilder.ContinueFixed joins continuation lines; LiteralScreen cites 1985:IV.7.2.2"
+}

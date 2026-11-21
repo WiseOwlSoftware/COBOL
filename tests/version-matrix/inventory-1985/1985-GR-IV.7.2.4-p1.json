@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.7.2.4-p1",
+ "rule-digest": "82a88ff9a504",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertLine; src/WiseOwl.Cobol.Frontend/Preprocessor/PhysicalLineKind.cs#PhysicalLineKind",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-GR-IV_7_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p08_refformat.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'A comment line is any line with an asterisk or slant in the indicator area ... will not be checked syntactically. The slant in the indicator area causes page ejection prior to printing the comment line in the listing of the source program; an asterisk ... causes printing of the line at the next available line position in the listing.' GR-6.5-2 (2023) only discards comment lines and says nothing of the listing, so the pointer does not state the whole scope. The probes and the .lst show each part. Code location located after the read: FixedFormConverter classifies comment/blank lines; PhysicalLineKind cites 1985:IV.7.2.4"
+}

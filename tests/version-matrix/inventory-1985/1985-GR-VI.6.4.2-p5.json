@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4.2-p5",
+ "rule-digest": "138d0b3cd857",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrespondingBinder; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitSizeHandling",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-p2",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (a2-size-error-control.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'imperative-statement-1 in the ON SIZE ERROR phrase is not executed until all of the individual additions or subtractions are completed.' 2023 states it in GR-14.7.6-6 for every arithmetic CORRESPONDING, with no 85 case; GR-14.7.7-4 does not state it. The 85 suite case and a2 L7 show the handler running after the later pair was stored. Code location located after the read: ADD/SUBTRACT CORRESPONDING pairwise ops; size error imperative deferred to end"
+}

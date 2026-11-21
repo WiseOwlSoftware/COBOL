@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.7-p3",
+ "rule-digest": "b867308ae9da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#syncClause",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.3.7-p3",
+ "notes": "Derivation from the read lineage-reads-1985/s-99.json: CONFORMS on a indistinguishable-consequent derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.4.3.7-p3); the code location is where the compiler meets the rule's subject. The read: The refuter overturned the definitional arm: the defined property (placement 'in such a way as to avoid such additional machine operations') belongs to the object program (p1: 'The way in which data is stored is determined by the object program'), not to the user's program. Its consequent is the SYNCHRONIZED clause's: VI.5.13.4 GR2 positions the item 'between natural boundaries in such a way as to effect efficient utilization', the same placement for the same purpose; a program can observe nothing of p3 that it cannot observe of GR2, and no 1985 program observes an address. The code location was located after the read (locations-all.json): SYNCHRONIZED clause binding (natural boundary alignment) and grammar rule syncClause"
+}

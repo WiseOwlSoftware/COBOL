@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.3.2-p2",
+ "rule-digest": "c70cb706e603",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationBody; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph",
+ "test-ref": "conformance:cases/VI.3@1985-IDENTIFICATION-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_3_2-p2",
+ "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-id-paragraphs.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program shows it: an obsolete element is still present in its level (the module element tables mark it Z, \"present ... however this element is an obsolete element\"), so the five paragraphs must compile at 85. 2023 deleted them. The compiler accepts all five, comment-entries on one and two lines. Code location located after the read: identificationParagraph defines AUTHOR/INSTALLATION/DATE-WRITTEN etc. paragraphs"
+}

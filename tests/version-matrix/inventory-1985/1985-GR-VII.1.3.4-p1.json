@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.1.3.4-p1",
+ "rule-digest": "39995a40739d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ApplyUnsuccessfulReadPosition; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "test-ref": "conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VII_1_3_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with its probe (p07_fpi_not_moved_by_rewrite.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The candidates each state one statement's effect (OPEN sets it to 1, READ after an unsuccessful READ is 46, CLOSE of an absent optional file) and none states 'affected only by' with an 85 case. p07 shows the testable consequence: READ1 R1R1 00, REWRITE 00, READ2 R2R2 00, then after reopening AGAIN XXXX, AGAIN R2R2. Code location located after the read: position invalidation after unsuccessful read; sequential read advances position"
+}

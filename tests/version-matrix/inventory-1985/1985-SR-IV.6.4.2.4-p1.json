@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.2.4-p1",
+ "rule-digest": "56146ec0b847",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#TerminatorFor; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement",
+ "test-ref": "conformance:cases/IV.6.4.2@1985-Statements-and-Sentences/1985-SR-IV_6_4_2_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p07_delimited_scope.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Definitional but showable: 'A delimited scope statement is any statement which includes its explicit scope terminator.' The 2023 candidates (GR-14.5.3.2-1/-2) say what a terminator terminates, not what a delimited scope statement is. p07 writes every 1985 terminator inside an imperative-statement position and the program runs. Code location located after the read: ConditionalStatements.TerminatorFor maps verbs to scope terminators; statement grammar rules"
+}

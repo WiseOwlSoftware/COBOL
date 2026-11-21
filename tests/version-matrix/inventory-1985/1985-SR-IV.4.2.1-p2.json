@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-p2",
+ "rule-digest": "c8991a33ea2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/PictureSeparatorPeriodRule.cs#PictureSeparatorPeriodRule; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#NumericLiteral",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/1985-SR-IV_2_1_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-01.json: the reader showed the compiler correct at 85 with its probe (p01_notation.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The 2023 counterpart is spread over §2023:8.3.5 SR2/SR3 exceptions; none with an accepted case at 85 for the PICTURE part. The probe witnesses it. Code location located after the read: punctuation inside a PICTURE string or numeric literal is not a separator"
+}

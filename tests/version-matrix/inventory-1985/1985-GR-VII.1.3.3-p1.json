@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.1.3.3-p1",
+ "rule-digest": "8cfeb3408411",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VII.1.3.3-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-12.json: CONFORMS on a unpopulatable-antecedent derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-VII.1.3.3-p1); the code location is where the compiler meets the rule's subject. The read: A conceptual entity 'used in this document to facilitate exact specification of the current physical volume'. On a single-volume file it always points at the one volume, so no program can see it change. WiseOwl files are single host files; the 2023 reel/unit swap rule GR-14.9.51.4-24 records DOCUMENTED-NON-SUPPORT. The code location was located after the read (locations-all.json): only single-volume files are provided; reel/unit swap is DOCUMENTED-NON-SUPPORT (same site as 2023 GR-14.9.51.4-24 inventory record). PhysicalFileCategory enumerates the file kinds, no multi-volume pointer exists"
+}

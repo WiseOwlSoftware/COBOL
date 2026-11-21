@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.4-p3",
+ "rule-digest": "e9f141182403",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicSig; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-GR-A_2_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (g3-fn-table.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A means alphabetic I means integer N means numeric X means alphanumeric\". Each letter fixes the class of item a call may pass: g3-fn-table passes a PIC A item to UPPER-CASE and MIN (A), an integer item to FACTORIAL (I), a numeric 9V9 item to SUM (N), a PIC X item to REVERSE and LOWER-CASE (X), all accepted with correct results; g3-fn-argbad passes X where N is required and is refused (COBOL1627). The first reader's DOUBTFUL (presentation) is replaced: Table 1 and its legend state what a program may write, which a program can show. No 2023 rule states this text with an 85 witness. Code location located after the read: IntrinsicSig.ArgKind decodes the argument kind letters"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.2.3-p1",
+ "rule-digest": "304829ba62d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#SourceUnitShape; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#compilationUnit",
+ "test-ref": "conformance:cases/X.2@1985-NESTED-SOURCE-PROGRAMS/1985-SR-X_2_3-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (g2-struct.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Second read. The paragraph is more than an introduction: it states \"the general format and order of presentation of the entries and statements which constitute a COBOL source program\", a property of the user's program that a program can show. g2-struct.cob presents the divisions in order with a contained program and both END PROGRAM headers and runs; its control, the one change being ENVIRONMENT DIVISION after DATA DIVISION, is refused. The generic terms' meanings are exercised by the same program. Code location located after the read: SourceUnitShape cites 1985:X.2.3.1; grammar compilationUnit"
+}

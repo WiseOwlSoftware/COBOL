@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.2.3-p2",
+ "rule-digest": "f0819fce54bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimary",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/1985-GR-VI_6_3_2-T1_1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (c1-logic.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'Parentheses can, therefore, be used to depart from the normal precedence of logical operators'. Uncataloged §2023:8.8.4.11.3 prose; no witnessed pointer. c1-logic prints PAREN FTFFFTFT (hand-derived) for the standard's example. Code location located after the read: parenthesized conditions are primaryCondition alternatives bound by BindPrimary"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.1.2-p1",
+ "rule-digest": "92357f7a1bb7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#callStatement",
+ "test-ref": "conformance:cases/X.1@1985-INTRODUCTION-TO-THE-INTER-PROGRAM-COMMUNICATION/1985-GR-X_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p04_ipc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: A level characteristic whose capabilities are shown at 85. --std 85 is the high subset (kb/Work PB4885), so it claims no level-1 restriction. The candidates are unrelated. Code location located after the read: CALL literal names known at compile time"
+}

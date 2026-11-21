@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.1.2-p1",
+ "rule-digest": "d83cf0302a37",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitProcedureDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#paragraphDefinition",
+ "test-ref": "conformance:cases/IV.6.4.1@1985-General-Description/1985-SR-IV_6_4_1_2-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p16_procedure_names.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The row both restricts (\"all paragraphs must be in sections\") and grants (\"a paragraph-name (which may be qualified)\"). The golden shows the refusal, p16 the accepted qualified names. SR-8.4.2.2.3-7 (pb466 at 85) states only paragraph-name uniqueness, not this scope. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.1.2; section/paragraph grammar"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.4-p6",
+ "rule-digest": "1a4b276b4f0c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#levelNumber",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-SR-IV_7_4-p6",
+ "notes": "Own verdict from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with its probe (t-level-values-85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A level-number has a value taken from the set of values 01, 02, ... , 49, 66, 77, 88 ... may be written either as a single digit ... At least one space must separate a level-number from the word following\". SR-13.18.33.3-3 states only the 01-09 form and its 85 case covers neither the set nor the space; the other candidates have no 85 witness. Code location located after the read: LevelNumberPass checks level-number values; levelNumber grammar"
+}

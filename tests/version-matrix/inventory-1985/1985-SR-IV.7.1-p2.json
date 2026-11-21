@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.1-p2",
+ "rule-digest": "7d718102210b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#NormalizeToFreeFormMapped; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#ConvertLine",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-GR-IV_7_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p08_refformat.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The rules for spacing given in the discussion of the reference format take precedence over all other rules for spacing.' No 2023 rule states it (candidates are LINAGE/PICTURE/INSPECT rules, wording only). p08 shows the reference-format spacing winning both ways: a word split across a continuation line has no separator, and adjoining words on separate lines with no blank written between them are separated. Code location located after the read: reference format processor converts fixed-form lines; cites 1985:IV.7.1"
+}

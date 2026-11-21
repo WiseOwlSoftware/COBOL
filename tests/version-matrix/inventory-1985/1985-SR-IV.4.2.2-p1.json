@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2-p1",
+ "rule-digest": "7239453b274d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#cobolWord; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#WordCharacterScreen",
+ "test-ref": "conformance:cases/IV.4.2@1985-LANGUAGE-STRUCTURE/1985-SR-IV_4_2_2-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-02.json: the reader showed the compiler correct at 85 with its probe (charstr.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The 1985 text defines a character-string as one 'which forms a COBOL word, a literal, a PICTURE character-string, or a comment-entry' and says it 'is delimited by separators'. The three candidates (GR-8.5.2.x) are PICTURE category rules matched on wording only, and none has an 85 case. The probe shows every kind accepted and delimited at 85. Code location located after the read: character-string forming a COBOL word is the cobolWord rule; word characters screened"
+}

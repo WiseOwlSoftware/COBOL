@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.3-p4",
+ "rule-digest": "ea2ed0774963",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readStatement; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#COBOL0306",
+ "test-ref": "conformance:cases/14.5.3.2-Explicit-scope-termination/l1_if_nested_else_endif_match",
+ "notes": "Own verdict from the read lineage-reads-1985/s-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.5.3.2-1, witnessed at 85 by the cases test-ref names. The read: 1985: 'each explicit scope terminator terminates the statement begun by the most recently preceding, and as yet unterminated, occurrence of that verb.' §2023:14.5.3.2 GR1 states the same binding (the most-recently preceding unterminated statement having the statement-name). Its at-85 case l1_if_nested_else_endif_match nests IF within IF and binds each END-IF to its own level with distinguishable output, which is the 1985 same-verb case. Cited: §1985:IV.6.4.3 p4."
+}

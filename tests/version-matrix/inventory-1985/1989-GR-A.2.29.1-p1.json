@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.29.1-p1",
+ "rule-digest": "fcc92d00cffe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/A.2.29@1985-NUMVAL-FUNCTION/1989-GR-A_2_29_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-21.json: the reader showed the compiler correct at 85 with its probe (s21-numval.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The 1985 (Amendment 1) description reads \"Leading and trailing spaces are ignored\"; the probe shows the value and the numeric (non-integer) type at --std 85. No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.67.1 description is not a catalog rule, and the candidates (RV-15.67.4-1, FMT-15.67.2, AR-15.67.3-2) state only the format, argument or returned-value rules and none carries an 85 accepted case. So no pointer states the whole 1985 scope with an 85 witness. Code location located after the read: A.2.29 function: runtime member computes it; IntrinsicCatalog declares its signature"
+}

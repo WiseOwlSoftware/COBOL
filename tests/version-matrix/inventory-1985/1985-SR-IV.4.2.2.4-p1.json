@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.4-p1",
+ "rule-digest": "d2eb5cf5f717",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CommentEntryResolver.cs#CommentEntryResolver; src/WiseOwl.Cobol.Frontend/Parsing/CommentEntryTokens.cs#CommentEntryTokens; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#commentEntry",
+ "test-ref": "conformance:cases/IV.4.2.2@1985-Character-Strings/1985-SR-IV_4_2_2_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with its probe (p01_comment_entry.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'A comment-entry is an entry in the Identification Division that may be any combination of characters from the computer's character set.' 2023 has no comment-entry paragraphs (AUTHOR etc. were removed), so there is no 2023 counterpart; the candidates are wording-only (STANDARD-BINARY, text-words, USAGE DISPLAY). Code location located after the read: comment-entry in Identification Division: resolver, token handling, grammar rule"
+}

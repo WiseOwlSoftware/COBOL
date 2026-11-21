@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.2-2",
+ "rule-digest": "e73156f2a95f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameRegistry.cs#ImplementorNameRegistry; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-GR-IV_4_2_2_1_2-1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with its probe (p04_sysnames.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Item 2 of 'There are three types of system-names'. Testable: an accepted program names implementor-names. Code location located after the read: implementor-name registry"
+}

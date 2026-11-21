@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-p3",
+ "rule-digest": "338c6a6b038f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#SeparatorRule; src/WiseOwl.Cobol.Frontend/Parsing/CommentEntryTokens.cs#CommentEntryTokens",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/1985-SR-IV_2_1_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-01.json: the reader showed the compiler correct at 85 with its probe (p01_notation.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: No 2023 row with a case at 85 states it. Code location located after the read: no separator formation inside nonnumeric literals and comment-entries"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.1.2-p2",
+ "rule-digest": "2ef3efb072af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitProcedureDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#paragraphDefinition",
+ "test-ref": "conformance:cases/IV.6.4.1@1985-General-Description/1985-GR-IV_6_4_1_2-p2",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p17_section_extent.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"A section consists of a section header followed by zero, one, or more successive paragraphs. A section ends immediately before the next section or at the end of the Procedure Division or, in the declaratives portion ..., at the key words END DECLARATIVES.\" No candidate states it (SR-14.9.49.3-1 is the USE placement). p17 performs each kind of section and shows where each ends. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.1.2; section/paragraph grammar"
+}

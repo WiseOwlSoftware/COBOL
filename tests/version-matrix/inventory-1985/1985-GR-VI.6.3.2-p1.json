@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.2-p1",
+ "rule-digest": "5ce35655dcb5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#condition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindCondition",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/1985-GR-VI_6_3_2-T1_1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (c1-logic.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'The truth value of a complex condition, whether parenthesized or not, is that truth value which results from the interaction of the stated logical operators'. The 2023 counterpart is unnumbered prose that the 2023 catalog does not carry as a rule (§2023:8.8.4.9 prose); candidate GR-7.3.8.3-1 governs only constant conditional expressions and has no 85 case, SR-7.3.8.2-1 and FMT-8.8.4.10.2 none either. c1-logic shows the truth values at 85. Code location located after the read: complex conditions: condition grammar and BindCondition"
+}

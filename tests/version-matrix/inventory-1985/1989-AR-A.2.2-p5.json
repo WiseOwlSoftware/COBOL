@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-AR-A.2.2-p5",
+ "rule-digest": "0af771e3c0c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgumentsOf",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-AR-A_2_2-p4",
+ "notes": "Own verdict from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (s19_p20_fn_all.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"the next specification being the same identifier with the rightmost subscript specified by the word ALL incremented by one ... If the ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of values is determined by the object\". ORD-MAX/ORD-MIN expose the order. The 15.3 candidates have no 85 case. Code location located after the read: ArgumentsOf expands ALL subscripts into one argument per table element"
+}

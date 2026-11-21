@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2-p1",
+ "rule-digest": "c7136fddaf55",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.6.4.2-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.6.4.2-p1); the code location is where the compiler meets the rule's subject. The read: \"There are four types of statements: imperative statements, conditional statements, compiler directing statements, and delimited scope statements.\" It names the classes; no program can show the count of classes. The code location was located after the read (locations-all.json): IsConditional classifies a statement as conditional or imperative from the parse, and delimited scope via explicit END- terminator; compiler-directing statements are separate grammar. Covers imperative/conditional/delimited-scope; compiler directing has no single member"
+}

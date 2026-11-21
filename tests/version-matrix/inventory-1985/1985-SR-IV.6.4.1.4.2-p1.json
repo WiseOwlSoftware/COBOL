@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.1.4.2-p1",
+ "rule-digest": "7334b036c617",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitProcedureDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#paragraphDefinition",
+ "test-ref": "conformance:cases/IV.6.4.1.4@1985-Procedure-Division-Structure/1985-SR-IV_6_4_1_4_2-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p19_pd_body_format1_segments.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The body of the Procedure Division must conform to one of the following formats\". 2023's FMT-14.2.1 admits a leading sentence that 1985 does not, so it cannot stand for the 1985 scope; no candidate given here states it. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.1.2; section/paragraph grammar"
+}

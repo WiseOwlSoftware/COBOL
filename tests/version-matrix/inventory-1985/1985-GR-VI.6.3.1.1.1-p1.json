@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.1.1-p1",
+ "rule-digest": "b7322c3947ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#RelationComparability",
+ "test-ref": "conformance:cases/VI.6.3.1.1@1985-Relation-Condition/1985-GR-VI_6_3_1_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_relation.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: 'a comparison is made with respect to the algebraic value of the operands ... Zero is considered a unique value regardless of the sign.' The candidates (GR-8.8.4.2.7-2, -10-2, -8-2) are unequal-length rules for alphanumeric, national and boolean operands, not numeric comparison. The probe shows the three properties at 85. Code location located after the read: relation conditions bound by BindComparison; operand pairing by RelationComparability"
+}

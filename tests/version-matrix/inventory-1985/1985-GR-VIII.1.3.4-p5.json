@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-p5",
+ "rule-digest": "45c01a85aea6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IoStatus1985.cs#Report; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom",
+ "test-ref": "conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VIII_1_3_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (relcon.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The following is a list of the values placed in the I-O status ... on a relative file. If more than one value applies, the implementor determines which\". The values themselves belong to the list items (siblings -1 to -6, decided). This paragraph adds the precedence latitude, which no witnessed 2023 row states (DOC-A.1-104 has no 85 case). Code location located after the read: relative status values"
+}

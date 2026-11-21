@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.5.1-p6",
+ "rule-digest": "82912e07d1be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ProcedureHeaderScreen.cs#AdmitFormal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindLinkage; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#usingClause",
+ "test-ref": "conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/1985-SR-X_5_1-p6",
+ "notes": "Own verdict from the read lineage-reads-1985/s-16.json: the reader showed the compiler correct at 85 with its probe (x51-six-using.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: A minimum limit; no 2023 candidate states it; the probe passes six. Code location located after the read: USING phrase operands screened by ProcedureHeaderScreen (cites 1985:X.5.1); usingClause grammar"
+}

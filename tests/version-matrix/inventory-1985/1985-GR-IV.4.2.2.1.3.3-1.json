@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.3.3-1",
+ "rule-digest": "a1c3da5df334",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsUserWord; src/WiseOwl.Cobol.Editions/ReservedWords.cs#RejectsAt",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.2.2.1.3.3-1",
+ "notes": "Derivation from the read lineage-reads-1985/s-03.json: CONFORMS on a indistinguishable-consequent derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.4.2.2.1.3.3-1); the code location is where the compiler meets the rule's subject. The read: Item 1 of 'There are two types of special purpose words'. The classification has no consequence a program can show apart from the special-register paragraph and list (IV.4.2.2.1.3.3.1), read in this slice with probes. The code location was located after the read (locations-all.json): named row 1985-SR-IV.4.2.2.1.3.3.1-p1: special registers are reserved words; the one observable consequence (refusal as a user-defined word) is ReservedWordSet.AdmitsAsUserWord/RejectsAt. The named sibling has no inventory-1985 record on main yet; its own code-location will be the same member"
+}

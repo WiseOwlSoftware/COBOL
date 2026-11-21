@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4.2-p2",
+ "rule-digest": "4b66642bdf53",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitSizeHandling; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindSizeError",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_2-p2",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (a2-size-error-control.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'the values of the affected resultant identifiers remain unchanged ... The values of resultant identifiers for which no size error condition exists are the same as they would have been ... If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement'. 2023 states it in GR-14.7.5-L2.2/L2.3 (no 85 case); GR-14.7.7-4, the one candidate with 85 cases, states the storing order, not the control transfer. a2 shows every clause at 85. Code location located after the read: ON SIZE ERROR phrase binding and emission"
+}

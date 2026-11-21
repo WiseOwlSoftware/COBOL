@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2-p10",
+ "rule-digest": "2ee48decb745",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/MarginRCut.cs#MarginRCut; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#AreaAt",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-SR-IV_7_2-p10",
+ "notes": "Own verdict from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p10_text_past_margin_r.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'Area B occupies a finite number of character positions specified by the implementor; it begins immediately to the right of margin B and terminates immediately to the left of margin R.' The text spans a page break (IV-41/IV-42) and the row holds both halves. No 2023 row states area B. Code location located after the read: MarginRCut cites 1985:IV.7.2 (area B ends at margin R)"
+}

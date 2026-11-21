@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.3.2.1-p6",
+ "rule-digest": "3eaa8fa7d108",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSection",
+ "test-ref": "conformance:cases/IV.6.3.2@1985-Physical-and-Logical-Aspects-of-Data/1985-GR-IV_6_3_2_1-p6",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p14_report_section.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program shows it: the RD's line and columns fix the generated line's content and format. FMT-13.18.46.2 is the REPORT clause format, not this statement. Code location located after the read: reportSection grammar rule"
+}

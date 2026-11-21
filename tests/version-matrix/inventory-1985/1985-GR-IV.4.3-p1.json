@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3-p1",
+ "rule-digest": "bb6ff05910e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/StandardDataFormat.cs#CobolStandardData; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#ItemLength",
+ "test-ref": "conformance:cases/IV.4@1985-LANGUAGE-CONCEPTS/1985-GR-IV_4_3-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with its probe (p02_radix_usage.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program can show it: 'the characteristics or properties of the data are described in relation to a standard data format' that 'uses the decimal system to represent numbers'. A DISPLAY numeric item redefined as alphanumeric reads as its decimal digits. No candidate states it with an 85 witness: the candidates are wording matches only (VALIDATE, INITIALIZE, level-numbers). Code location located after the read: standard data format size/representation"
+}

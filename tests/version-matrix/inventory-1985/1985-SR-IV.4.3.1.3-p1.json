@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.3.1.3-p1",
+ "rule-digest": "6978b8ca3b52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenImmediateMemberLevel; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#LevelNumberRules",
+ "test-ref": "conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/1985-GR-IV_4_3_1_2-p5",
+ "notes": "Own verdict from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with its probe (p03_working_storage_records.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'Each data description entry consists of a level-number followed by a data-name, if required, followed by a series of independent clauses, as required.' A grant of form: the probe is accepted with the name omitted and the clauses in non-format order. No candidate states it with an 85 witness: the candidates are wording matches only (OCCURS subject, CONSTANT RECORD, implicit RECORD). Code location located after the read: level structure: group/elementary items by level-number (cites 1985:IV.4.3.2.1)"
+}

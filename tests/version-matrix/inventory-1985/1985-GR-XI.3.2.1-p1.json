@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XI.3.2.1-p1",
+ "rule-digest": "7e31f16b6c9c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
+ "test-ref": "conformance:cases/XI.3.2@1985-SORT-MERGE-FILE-DESCRIPTION-ENTRY/1985-GR-XI_3_2_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (sd_sort_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The row states the function of the SD entry: 'furnishes information concerning the physical structure and record-names pertaining to a sort or merge file'. It is flagged definitional but a program shows it: an SD whose record-names and RECORD clause describe the sort record. No candidate states it (SR-12.4.5.2-13 is the SELECT format 4 rule; SR-13.4.6.3-1/2 have no accepted 85 case and state other requirements). Code location located after the read: SD entry parsed by sortMergeDescriptionEntry and bound in BindFileSection (cites 1985:XI.3.2.3)"
+}

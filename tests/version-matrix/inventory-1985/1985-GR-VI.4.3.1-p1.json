@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.4.3.1-p1",
+ "rule-digest": "dd395fe7e33a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph",
+ "test-ref": "conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/1985-GR-VI_4_3_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-env.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Function paragraph, testable: a SOURCE-COMPUTER paragraph naming a computer is accepted. GR-12.3.5.4-2/3 state defaults when the name or paragraph is absent, which this sentence does not; FMT-12.3.5.2 is a format, not this statement. Code location located after the read: sourceComputerParagraph is the SOURCE-COMPUTER paragraph rule"
+}

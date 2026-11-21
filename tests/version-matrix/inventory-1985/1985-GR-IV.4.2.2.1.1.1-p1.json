@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.1.1-p1",
+ "rule-digest": "62445172e1a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88",
+ "test-ref": "conformance:cases/13.16-Data-description/pb501_condition_name_entry_format",
+ "notes": "Own verdict from the read lineage-reads-1985/s-03.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.16.4-3, witnessed at 85 by the cases test-ref names. The read: Flagged definitional, but a program shows it. 1985: 'a name which is assigned to a specific value, set of values, or range of values, within a complete set of values that a data item may assume. The data item itself is called a conditional variable.' 2023 format 3 'contains the name of the condition and the value, values, or range of values associated with the condition-name'. The pointer's 85 case declares all three kinds on one conditional variable and tests each. Cited: §1985:IV.4.2.2.1.1.1 p1."
+}

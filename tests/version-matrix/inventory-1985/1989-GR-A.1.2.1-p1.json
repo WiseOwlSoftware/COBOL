@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.1.2.1-p1",
+ "rule-digest": "b05be9449180",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-AR-A_2_2-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (s19_p18_fn_args.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"a function is a temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced ... A function-name is a COBOL word that is one of a specified list\". The candidates (GR-8.4.3.12.4-2, GR-8.4.3.2.4-1, GR-8.3.2.2-L4.1) have no accepted 85 case, so no witnessed 2023 rule states it. Code location located after the read: function-identifier bound by BindIntrinsic; grammar rule functionCall"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.1.1-p1",
+ "rule-digest": "dd11014f81e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#callStatement",
+ "test-ref": "conformance:cases/X.1@1985-INTRODUCTION-TO-THE-INTER-PROGRAM-COMMUNICATION/1985-GR-X_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p04_ipc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The candidates (GR-9.1.5-2, GR-8.6.7-2) cover only GLOBAL sharing. The probe shows all four facilities. Code location located after the read: CALL transfers control between programs"
+}

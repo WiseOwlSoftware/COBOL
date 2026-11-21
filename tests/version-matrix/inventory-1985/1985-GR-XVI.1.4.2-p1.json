@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XVI.1.4.2-p1",
+ "rule-digest": "4a71b50fee6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ValueOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#MeaningKept",
+ "test-ref": "conformance:cases/XVI.1@1985-INTRODUCTION-TO-THE-SEGMENTATION-MODULE/1985-GR-XVI_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (s19_p07_seg_fixed_state.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The fixed portion is defined as that part of the object program which is logically treated as if it were always in memory.\" Flagged definitional; 'logically always in memory' is observable as retained ALTER state, which p07 shows for both kinds of fixed segment. No 2023 counterpart. Code location located after the read: segment-number from section header (Segmentation.ValueOf); segmentation meaning kept per edition (MeaningKept)"
+}

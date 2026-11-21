@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XV.1.3.4-p2",
+ "rule-digest": "fb5566f698f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#debuggingModeClause; src/WiseOwl.Cobol.Compiler/Binding/ImplicitRegisters.cs#ActivateDebugRegisters",
+ "test-ref": "conformance:cases/XV.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-XV_1_3_4-p2",
+ "notes": "Own verdict from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (p03_dbg_nomode.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The object time switch has no effect on the execution of the object program if the WITH DEBUGGING MODE clause was not specified\". p03 is p02 without the clause; with the switch explicitly ON no debugging section runs. 2023 has no Debug module. Code location located after the read: debugging code active only when WITH DEBUGGING MODE is specified: DebuggingModeDeclared drives ActivateDebugRegisters"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-II.6.5.1-4",
+ "rule-digest": "f236bb08df61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+ "test-ref": "conformance:cases/II.6.5@1985-INTRA-PROGRAM-COMMUNICATION/1985-GR-II_6_5_1-4",
+ "notes": "Own verdict from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (r02_declarative_error.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Upholding the refuter: no 85 case of the pointers activates a declarative, and the 1985 scope ('A declarative procedure which is activated whenever certain conditions, including errors and exceptions, occur') includes USE FOR DEBUGGING, a removed form, and USE BEFORE REPORTING. The r02 and r03 runs (re-read this pass) show the compiler correct for the I-O and Debug legs; the Report Writer leg is not yet shown. Code location located after the read: USE statement / declarative sections bound by DeclBindUse"
+}

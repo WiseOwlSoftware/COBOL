@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4.1-p1",
+ "rule-digest": "ea741b000130",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitCompute",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (a1-round-trunc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'When rounding is requested, the absolute value of the resultant identifier is increased by one in the low-order position whenever the most significant digit of the excess is greater than or equal to five.' 2023 expresses this as the NEAREST-AWAY-FROM-ZERO and TRUNCATION modes (GR-14.7.4.3-4, -10) of a ROUNDED MODE facility, with no case in their at-85 lists. a1 shows 1.2389 -> 1.23, -1.2389 -> -1.23, 1.235 ROUNDED -> 1.24, -1.235 ROUNDED -> -1.24, 1.2349 ROUNDED -> 1.23. Code location located after the read: ROUNDED phrase resolved by RoundingOf; stores emitted by ArithmeticEmitter"
+}

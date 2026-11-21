@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.1.1-p1",
+ "rule-digest": "057c8aa0c5d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph",
+ "test-ref": "conformance:cases/IV.6.1@1985-IDENTIFICATION-DIVISION/1985-GR-IV_6_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p05_id_division_paras.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but the second sentence grants a form: \"the user may include the date the program is written, the date the compilation of the source program is accomplished and such other information as desired\". An accepted program shows it: p05. No candidate states it. Code location located after the read: identificationDivision grammar with its paragraphs"
+}

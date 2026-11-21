@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.7.2.2-p3",
+ "rule-digest": "b12dbbd6b09a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#LiteralScreen",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-GR-IV_7_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p08_refformat.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'If there is no hyphen in the indicator area of a line, it is assumed that the first nonblank character in the line is preceded by a space.' The candidates (GR-6.5-5/-7/-8) are logical-conversion rules that do not state the assumed space. p08 places a word flush against margin R and another at the start of the next line; they are read as two words. Code location located after the read: LogicalLineBuilder.ContinueFixed joins continuation lines; LiteralScreen cites 1985:IV.7.2.2"
+}

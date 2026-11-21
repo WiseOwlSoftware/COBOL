@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.4-p1",
+ "rule-digest": "bc05af7601d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/A.2@1985-EVOLUTION-OF-CODASYL-COBOL/1989-GR-A_2_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (g3-fn-table.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"Table 1 on pages A-30 through A-32 summarizes the functions that are available.\" Read as a requirement it says which functions a program may call: all 42. A program shows it: g3-fn-table calls every function of Table 1 at 85 with checked results and prints FN-TABLE OK. The first reader's DOUBTFUL (presentation) is replaced: Table 1 and its legend state what a program may write, which a program can show. No 2023 rule states this text with an 85 witness. Code location located after the read: IntrinsicCatalog is the table of available functions (name, type, arity, argument kinds)"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.2-1",
+ "rule-digest": "e517fb734722",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameRegistry.cs#ImplementorNameRegistry; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-GR-IV_4_2_2_1_2-1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-03.json: the reader showed the compiler correct at 85 with its probe (p04_sysnames.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Item 1 of 'There are three types of system-names'. Flagged definitional, but an accepted program shows a computer-name in its system-name positions. The candidates (SR-8.3.2.1-1 etc.) are about reserved words. Code location located after the read: computer-name is an implementor system-name kind in the registry"
+}

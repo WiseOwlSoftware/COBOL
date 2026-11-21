@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.2-T1.1",
+ "rule-digest": "19d3099bccdf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalAndExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/1985-GR-VI_6_3_2-T1_1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (c1-logic.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false'. The 2023 meaning table is in uncataloged §2023:8.8.4.9 prose; the candidates (VALUE FALSE, MOVE, figurative rows) are unrelated. c1-logic prints AND FFFT over (X,Y) = 00,01,10,11. Code location located after the read: AND conjunction grammar and flat-sequence binding"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.4.7.1-p1",
+ "rule-digest": "9eab59db546b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing",
+ "test-ref": "conformance:cases/VII.3.6@1985-LABEL-RECORDS-CLAUSE/1985-GR-VII_3_6_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (seqoc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The WRITE statement releases a logical record for an output file. It can also be used for vertical positioning of lines within a logical page.\" GR-14.9.51.4-12 (release) has no 85 case. GR-14.9.51.4-26 covers only LINAGE end-of-page. The probe shows both halves at 85. The positioning half is checked on the output file's bytes, not by DISPLAY. Code location located after the read: WRITE binder and advancing runtime"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.3.2.1-p3",
+ "rule-digest": "5651d26c8dfe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#workingStorageSection",
+ "test-ref": "conformance:cases/IV.6.3.2@1985-Physical-and-Logical-Aspects-of-Data/1985-GR-IV_6_3_2_1-p3",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p11_working_storage.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but observable: \"describes records and subordinate data items which are not part of external data files but are developed and processed internally. It also describes data items whose values are assigned in the source program\". No candidate states it (GR-13.5.4-1 is static data, no 85 case). Code location located after the read: workingStorageSection grammar rule"
+}

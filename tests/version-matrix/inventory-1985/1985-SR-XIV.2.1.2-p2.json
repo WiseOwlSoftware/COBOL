@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-XIV.2.1.2-p2",
+ "rule-digest": "d7755ba9dcb4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#Entry",
+ "test-ref": "conformance:cases/XIV.1@1985-INTRODUCTION-TO-THE-COMMUNICATION-MODULE/1985-GR-XIV_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with its probe (p07_cd_record_description.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but a program shows it: \"A record description consists of a set of data description entries ... A record description may have a hierarchical structure\". p07's record redescribes the 87-character input CD area with three levels, OCCURS and FILLER, and the MCS reads the queue name written through it. 2023 has no Communication Section; the candidates are OCCURS and CONSTANT RECORD rules. Code location located after the read: CD entry and its record descriptions: communicationDescriptionEntry grammar, CommunicationSectionBinder"
+}

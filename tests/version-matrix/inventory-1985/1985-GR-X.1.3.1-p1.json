@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.1.3.1-p1",
+ "rule-digest": "3aa6aae37590",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BinderDriver",
+ "test-ref": "conformance:cases/X.1@1985-INTRODUCTION-TO-THE-INTER-PROGRAM-COMMUNICATION/1985-GR-X_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p04_ipc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The candidates (GR-8.4.3.13.4-2, SR-11.10.3-3, SR-8.4.6.3-2) state neither containment nor resource reference as such. The probe shows both. Code location located after the read: contained program grammar and unit collection"
+}

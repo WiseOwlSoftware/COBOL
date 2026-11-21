@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.7.2-p3",
+ "rule-digest": "39e24051cc13",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#DebuggingLineRewriter; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#DebuggingModeDeclared",
+ "test-ref": "conformance:cases/VI.7@1985-DEBUGGING-IN-THE-NUCLEUS-MODULE/1985-GR-VI_7_2-p3",
+ "notes": "Own verdict from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with its probe (p03_replace_sets_mode.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 2023 has no debugging lines or WITH DEBUGGING MODE (no 'debugging' in the 2023 text about source lines); the candidates are COPY/REPLACE effect rules that do not state the switch. The three probes decide the switch after text manipulation: XMODE replaced by WITH DEBUGGING MODE prints DEBUG LINE COMPILED; the written clause replaced by empty pseudo-text prints only START/END; the clause copied from library text prints DEBUG LINE COMPILED. Code location located after the read: debugging-mode switch decided after text manipulation; DebuggingModeDeclared read at bind time"
+}

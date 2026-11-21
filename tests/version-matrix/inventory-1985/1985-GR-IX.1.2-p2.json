@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IX.1.2-p2",
+ "rule-digest": "86c2bbbe099f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+ "test-ref": "conformance:cases/IX.1@1985-INTRODUCTION-TO-THE-INDEXED-I-O/1985-GR-IX_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p02_indexed.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Boxed text, which --std 85 implements as the high subset. Every statement and entry it names is used at level-2 strength in the probe. No 2023 rule speaks of levels. Code location located after the read: per-dialect-level file control rule sets"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8-p4",
+ "rule-digest": "b181d0bc5409",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#DeclarationOf",
+ "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/1985-GR-IV_4_3_8-p4",
+ "notes": "Own verdict from the read lineage-reads-1985/s-05.json: the reader showed the compiler correct at 85 with its probe (s05_eval_once.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Added by Amendment 1. GR-14.6.4-7 states it in 2023, but its 85 cases are INSPECT/STRING/UNSTRING cases whose statements carry rules of their own; the probe uses STRING, which per the 1985 appendix has no rule of its own for its POINTER subscript, and shows the general rule for both subscripting and reference modification. Code location located after the read: SubscriptBinder cites 1985:IV.4.3.8; ReadSubscripts evaluates subscripts of a reference; NameResolution resolves user-defined names"
+}

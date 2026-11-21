@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.7.3-p4",
+ "rule-digest": "38b32ceed75c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#DebugLines",
+ "test-ref": "conformance:cases/VI.7@1985-DEBUGGING-IN-THE-NUCLEUS-MODULE/1985-SR-VI_7_3-p4",
+ "notes": "Own verdict from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with its probe (p05_successive_debug_lines.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: A grant ('Successive debugging lines are allowed') of a form 2023 dropped; the candidates are unrelated. p05 has four successive D lines with the mode on: START, D1, D2, A=2 (ADD 1 TO A spans two D lines); p05b, the same lines without the mode: START, A=1. Code location located after the read: collects successive debugging lines as extents"
+}

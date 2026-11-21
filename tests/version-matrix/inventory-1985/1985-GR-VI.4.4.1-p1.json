@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.4.4.1-p1",
+ "rule-digest": "361702ce67be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph",
+ "test-ref": "conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/1985-GR-VI_4_3_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-env.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The OBJECT-COMPUTER paragraph provides a means of describing the computer on which the program is to be executed. The MEMORY SIZE clause is an obsolete element\". MEMORY SIZE is gone from 2023; the candidates are 2023 default rules. Code location located after the read: objectComputerParagraph is the OBJECT-COMPUTER paragraph rule"
+}

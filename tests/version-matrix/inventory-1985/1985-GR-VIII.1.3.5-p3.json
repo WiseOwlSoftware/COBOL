@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.5-p3",
+ "rule-digest": "4cd23496a060",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+ "test-ref": "conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VIII_1_3_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (relcon.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"If the invalid key condition does not exist ..., the INVALID KEY phrase is ignored, if specified. The I-O status ... is updated\". In the 2023 catalog these words sit inside GR-9.1.14-4 (folded paragraph, lead below), whose at-85 list is empty. GR-9.1.14-L2.2 states only the NOT INVALID KEY transfer. The probe shows the paragraph at 85. Code location located after the read: invalid key phrase handling in binder"
+}

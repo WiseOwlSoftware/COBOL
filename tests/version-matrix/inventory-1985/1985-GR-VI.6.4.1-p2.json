@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4.1-p2",
+ "rule-digest": "2f8d56a6b708",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitCompute",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (a1-round-trunc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'rounding or truncation occurs relative to the rightmost integer position for which storage is allocated.' The candidates (GR-14.7.4.3-8/-9/-10, rounding modes) state no P-scaling rule and have no 85 case. a1 stores into PIC 999PP and shows truncation and rounding at the hundreds position. Code location located after the read: rounding/truncation relative to stored positions of the resultant (P-scaling) at store emit"
+}

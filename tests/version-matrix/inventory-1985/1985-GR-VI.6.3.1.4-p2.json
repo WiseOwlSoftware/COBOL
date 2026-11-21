@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.4-p2",
+ "rule-digest": "ac3f3dd0fea6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#Get",
+ "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms; conformance:cases/8.8.4.6-Simple-switch-status-condition/l1_search_when_condition_forms",
+ "notes": "Own verdict from the read lineage-reads-1985/s-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.8.4.6.3-1, witnessed at 85 by the cases test-ref names. The read: Word for word the same rule. The pointer's 85 case sets SWITCH-1 on and off (format 3 SET exists in 1985, VI.6.23) and tests the ON STATUS and OFF STATUS condition-names, which is the whole 1985 scope. Cited: §1985:VI.6.3.1.4 p2."
+}

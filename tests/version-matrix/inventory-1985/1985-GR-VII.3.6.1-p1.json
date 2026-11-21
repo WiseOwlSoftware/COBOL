@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.3.6.1-p1",
+ "rule-digest": "53d58c528b77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#CaptureLabelRecords; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause",
+ "test-ref": "conformance:cases/VII.3.6@1985-LABEL-RECORDS-CLAUSE/1985-GR-VII_3_6_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (seqoc.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The LABEL RECORDS clause specifies whether labels are present\" and it is obsolete. 2023 removed the clause. Both forms are accepted at 85. The implementation's label specification has no label records (CaptureLabelRecords: 'Labels are not processed'), so the clause changes no I-O. GR2 leaves the labels to \"the implementor's label specifications\". Code location located after the read: LABEL RECORDS capture"
+}

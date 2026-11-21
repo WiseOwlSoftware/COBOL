@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XVI.3.3.1-p2",
+ "rule-digest": "4119ada7f89f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckAlter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter",
+ "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-GR-XVI_3_3_1-p2",
+ "notes": "Own verdict from the read lineage-reads-1985/s-19.json: the reader showed the compiler correct at 85 with its probe (s19_p10_alter_other_uses.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"All other uses of the ALTER statement are valid and are performed even if the GO TO to which the ALTER refers is in a fixed overlayable segment.\" A granting rule, shown by an accepted program. No 2023 counterpart. Code location located after the read: ALTER of a GO TO checked against segment numbers by Segmentation.CheckAlter"
+}

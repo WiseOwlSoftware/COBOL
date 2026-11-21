@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.5.2.3-p1",
+ "rule-digest": "c82796828653",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DataBinder",
+ "test-ref": "conformance:cases/VI.5@1985-DATA-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_5_2-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-data.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional but testable: a hierarchical record of level-numbers, data-names, FILLER and clauses compiles and its group reads its subordinates. SR-13.18.38.3-22 and the others are unrelated OCCURS/RECORD rules. Code location located after the read: record description = level-number, name or FILLER, clauses: dataDescriptionEntry, bound by DataBinder"
+}

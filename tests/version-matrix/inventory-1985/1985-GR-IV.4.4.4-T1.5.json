@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.4.4-T1.5",
+ "rule-digest": "b50668e995df",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#TerminatorFor; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement",
+ "test-ref": "conformance:cases/IV.4.4@1985-EXPLICIT-AND-IMPLICIT-SPECIFICATIONS/1985-GR-IV_4_4_4-T1_1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-05.json: the reader showed the compiler correct at 85 with its probe (s05_scope_terms.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: A row of the 1985 table of explicit scope terminators (flagged definitional; a program shows each terminator ending its statement). Each conditional statement sits inside IF ... END-IF with a DISPLAY after its terminator, which runs only because the terminator closed the conditional phrase: END-DIVIDE 0012, END-RETURN AA, END-UNSTRING XY Z. GR-14.5.3.3-x state implicit termination only. Code location located after the read: ConditionalStatements.TerminatorFor maps verbs to scope terminators; statement grammar rules"
+}

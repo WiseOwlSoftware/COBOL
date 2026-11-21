@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.1.3.4-p1",
+ "rule-digest": "6cd2a9d7569d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#OdoResolvePass; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subscriptList",
+ "test-ref": "conformance:cases/VI.1.3@1985-RESTRICTIONS-ON-OVERALL-LANGUAGE/1985-SR-VI_1_3_4-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with its probe (t-seven-subscripts-85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"One through seven subscripts are permitted in level 2.\" SR-8.4.2.3.3-3 has only a refusal case at 85; a permission needs an accepted program, which the probe supplies. Code location located after the read: OdoResolvePass cites 1985:VI.1.3.4 (seven subscripts)"
+}

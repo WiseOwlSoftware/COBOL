@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-p5",
+ "rule-digest": "dbfe846f4153",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1_transfer_of_control_implicit; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_go_to_out_of_perform; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_two_performs_deep; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_input_procedure; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_output_procedure",
+ "notes": "Own verdict from the read lineage-reads-1985/s-05.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.6.3-3, witnessed at 85 by the cases test-ref names. The read: GR-14.6.3-3 carries this sentence word for word, and its 85 case l1_transfer_of_control_implicit follows control to each next executable statement through PERFORM, GO TO, CALL, EXIT PROGRAM and empty procedures. Cited: §1985:IV.4.4.2 p5."
+}

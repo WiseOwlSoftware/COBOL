@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-GR-A.2.27.1-T1.4",
+ "rule-digest": "14a4c9e70184",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IntrinsicResultType; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#MinExact; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/A.2.27@1985-MIN-FUNCTION/1989-GR-A_2_27_1-T1_4",
+ "notes": "Own verdict from the read lineage-reads-1985/s-21.json: the reader showed the compiler correct at 85 with its probe (s21-min-num.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The table row reads \"Numeric (some arguments may be integer) | Numeric\". No 2023 catalog row states the 1985 description paragraph or the function type: the 2023 clause 15.63.1 description is not a catalog rule, and the candidates (FMT-15.63.2, AR-15.44.3-1, AR-15.83.3-1) state only the format, argument or returned-value rules (AR-15.44.3-1 carry an 85 accepted case, but for the returned value only, not the type). So no pointer states the whole 1985 scope with an 85 witness. Code location located after the read: A.2.27 function: runtime member computes it; IntrinsicCatalog declares its signature; IntrinsicResultType decides type per Table 1 row"
+}

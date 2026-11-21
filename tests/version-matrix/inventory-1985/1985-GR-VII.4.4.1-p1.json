@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.4.4.1-p1",
+ "rule-digest": "1638cf35047c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "test-ref": "conformance:cases/VII.2@1985-ENVIRONMENT-DIVISION-IN-THE-SEQUENTIAL-I/1985-GR-VII_2_12-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (seqobs.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The READ statement makes available the next logical record from a file.\" The catalog flags it definitional, but a program shows it. The candidates (GR-14.9.30.4-19, -22, -16) say nothing about the next record, and none has an 85 case. The seqobs probe shows the next record made available at 85. Code location located after the read: READ binder and runtime read"
+}

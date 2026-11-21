@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.1.2-p6",
+ "rule-digest": "421221f06452",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#CodeSetConversion; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckCodeSetRecordItemsPass.cs#CheckCodeSetRecordItemsPass",
+ "test-ref": "conformance:cases/IV.4.3.1@1985-Logical-Record-Concept/1985-GR-IV_4_3_1_2-p6",
+ "notes": "Own verdict from the read lineage-reads-1985/s-04.json: the reader showed the compiler correct at 85 with its probe (p04b_code_set_ebcdic.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'any translation required by the presence of a CODE-SET clause is accomplished ... None of the clauses used to describe the data in the logical record have any effect on this transfer.' The EBCDIC file holds translated bytes and READ restores the native characters. No candidate states it with an 85 witness: the candidates are wording matches only (RECORD size, BLOCK CONTAINS, OPEN EXTEND). Code location located after the read: CODE-SET translation on transfer"
+}

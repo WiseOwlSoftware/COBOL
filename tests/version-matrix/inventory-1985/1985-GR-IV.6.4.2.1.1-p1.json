@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.1.1-p1",
+ "rule-digest": "b8945d99ed52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+ "test-ref": "conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/1985-GR-IV_6_4_2_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with its probe (p20_conditional_statement_phrase.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional, but the dependency is observable: \"A conditional statement specifies that the truth value of a condition is to be determined and that the subsequent action of the object program is dependent on this truth value.\" p20 shows the same statement taking different actions on each truth value. FMT-14.9.4.2 (CALL format) is a sibling's clause, not this statement. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.2.1.1; IsConditional classifies conditional statements"
+}

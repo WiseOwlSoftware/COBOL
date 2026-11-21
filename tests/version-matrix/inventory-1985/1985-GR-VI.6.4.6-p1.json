@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4.6-p1",
+ "rule-digest": "394fcc7e6655",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_6-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with its probe (p01_multi_results.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The paragraph grants a form ('The ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements may have multiple results'), so each of the five statements needs an accepted program. GR-14.7.7-4 states the grant, but its 85 cases (l1c04_arith_multiple_receivers, pb5386_arith_receiver_identified_at_store) write multiple receivers only for ADD, COMPUTE and MULTIPLY; DIVIDE appears only as GIVING ... REMAINDER and SUBTRACT not at all. Probe p01 runs all five at 85 (INTO/FROM/BY and GIVING forms) and each receiver gets its own result: ADD 011 021 031, SUB 010 020 030, MUL 020 040 060, DIV 010 020 030, DVG 020 020 020, SBG 049 049 049, CMP 021 021 021. Code location located after the read: multiple receivers per arithmetic statement resolved by Receivers"
+}

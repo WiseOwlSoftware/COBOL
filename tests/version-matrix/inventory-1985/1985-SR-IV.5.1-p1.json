@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.5.1-p1",
+ "rule-digest": "2e435da3d1a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#compilationUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-SR-IV.5.1-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-06.json: CONFORMS on a definitional derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-SR-IV.5.1-p1); the code location is where the compiler meets the rule's subject. The read: \"A COBOL source program is a syntactically correct set of COBOL statements.\" It names what the term means; every syntax rule of the standard carries the obligation, none is added here. No candidate states it (all 'wording only'). The code location was located after the read (locations-all.json): compilationUnit/programUnit is the grammar that decides 'a syntactically correct set of COBOL statements'; a source failing it is refused"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.1.2-p1",
+ "rule-digest": "e431d37f479e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#KeyedIoBinder; src/WiseOwl.Cobol.Compiler/Binding/Model/IoPhraseAdmission.cs#IoPhraseAdmission",
+ "test-ref": "conformance:cases/VII.1@1985-INTRODUCTION-TO-THE-SEQUENTIAL-I-O/1985-GR-VII_1_2-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with its probe (g2-seqlvl.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Second read. The paragraph grants elements to a level-1 implementation: \"Sequential I-O level 1 provides limited capabilities for the CLOSE, OPEN, READ, USE, and WRITE statements; full capabilities are provided for the REWRITE statement.\" A statement of what a level provides is a GRANT a program can exercise, so it is testable, not presentation: --std 85 implements the high subset, which contains level 1, and a program using level-1 forms of every element named is accepted and runs correctly. No 2023 rule states the level structure. Code location located after the read: cites 1985:VII.1.2 (KeyedIoBinder line 263); IoPhraseAdmission gates I-O phrases by module level"
+}

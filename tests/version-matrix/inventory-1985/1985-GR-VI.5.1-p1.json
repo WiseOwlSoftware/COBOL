@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.5.1-p1",
+ "rule-digest": "da9b2f28f695",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDivision",
+ "test-ref": "conformance:cases/VI.4@1985-ENVIRONMENT-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_4_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-09.json: the reader showed the compiler correct at 85 with its probe (s09-minimal.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Flagged definitional but testable: \"The Data Division is optional in a COBOL source program.\" No candidate states it. Code location located after the read: dataDivision rule defines the division and its sections"
+}

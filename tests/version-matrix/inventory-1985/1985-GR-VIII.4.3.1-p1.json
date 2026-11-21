@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VIII.4.3.1-p1",
+ "rule-digest": "288ab50c8dc3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete",
+ "test-ref": "conformance:cases/VIII.2.6@1985-I-O-CONTROL-PARAGRAPH/1985-GR-VIII_2_6_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-14.json: the reader showed the compiler correct at 85 with its probe (p01_relative.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: 'logically removes a record from a mass storage file'. GR-14.9.10.4-2 says this, but it has no case that runs at 85 and it is written for sequential access. The probe deletes RRN 1 in dynamic mode: a READ of 1 gives 23, and RRN 2 is still there. Code location located after the read: DELETE binder and relative runtime"
+}

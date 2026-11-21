@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VII.3.9.1-p1",
+ "rule-digest": "b01ac7b72d67",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#CaptureValueOf; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueOfClause",
+ "test-ref": "conformance:cases/VII.2@1985-ENVIRONMENT-DIVISION-IN-THE-SEQUENTIAL-I/1985-GR-VII_2_12-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-13.json: the reader showed the compiler correct at 85 with its probe (seqobs.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: \"The VALUE OF clause particularizes the description of an item in the label records\" and it is obsolete. 2023 has no VALUE OF clause (GR-13.18.57.4-3 and the other candidates are wording-only matches). The literal form is accepted at 85. Labels are not processed (the ObsoleteFdClauses.cs header), so the particularized label item is not observable. The data-name-1 form needs its own case. Code location located after the read: VALUE OF capture"
+}

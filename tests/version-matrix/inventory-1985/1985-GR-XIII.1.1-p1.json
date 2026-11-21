@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.1.1-p1",
+ "rule-digest": "d2b751bd4384",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSection; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportSection",
+ "test-ref": "conformance:cases/XIII.1@1985-INTRODUCTION-TO-THE-REPORT-WRITER-MODULE/1985-GR-XIII_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (rw_access_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: The module's function sentence. A program shows it: page heading, control headings, two-line detail and control footings placed from the RD and group description alone. GR-13.4.5.4-4 (record structure implementor-defined) and the REPORT clause rows do not state it. Code location located after the read: Report Section parsed and bound by BindReportSection (cites 1985:XIII.3.4)"
+}

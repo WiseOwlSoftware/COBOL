@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.2.1-p1",
+ "rule-digest": "652ae53085b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
+ "test-ref": "conformance:cases/XIII.1@1985-INTRODUCTION-TO-THE-REPORT-WRITER-MODULE/1985-GR-XIII_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (rw_access_85.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: Function of the report-file FD. SR-13.4.5.3-8 ('Format 3 is the file description entry for a report file. No record description entries ...') has an 85 case but its requirement is the no-record-entries rule, not the information the FD furnishes; no candidate states this sentence. Code location located after the read: FD for report file bound in BindFileSection (cites 1985:XIII.3.2.3)"
+}

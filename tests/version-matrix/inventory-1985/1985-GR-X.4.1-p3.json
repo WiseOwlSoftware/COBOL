@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.4.1-p3",
+ "rule-digest": "739d0f06d2fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Call; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#LinkageFormal",
+ "test-ref": "conformance:cases/13.7-Linkage-section/l1c17_linkage_index_separate",
+ "notes": "Own verdict from the read lineage-reads-1985/s-16.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.7.4-2, witnessed at 85 by the cases test-ref names. The read: GR-13.7.4-2 restates the 1985 paragraph (mechanism pointer and \"index-names ... always refer to separate indices\"); its at-85 case l1c17_linkage_index_separate passes a table BY REFERENCE and shows both the data correspondence and the separate indices. Cited: §1985:X.4.1 p3."
+}

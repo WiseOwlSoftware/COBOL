@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-II.6.5.1-3",
+ "rule-digest": "19b3ab109c34",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/l1c09_sort_merge_procedure_transfer",
+ "notes": "Own verdict from the read lineage-reads-1985/s-01.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.6.3-2, witnessed at 85 by the cases test-ref names. The read: Item 3: the SORT input and SORT/MERGE output procedures are entered by a transfer of control. 2023 14.6.3 GR2 says the same of SORT and MERGE; MERGE has no input procedure in either edition. Cited: §1985:II.6.5.1 GR3."
+}

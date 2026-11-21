@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.1.1-p4",
+ "rule-digest": "1c0b611d39e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Frontend/Expressions/RelationalOperatorGate.cs#RelationalOperatorGate",
+ "test-ref": "conformance:cases/VI.6.3.1.1@1985-Relation-Condition/1985-GR-VI_6_3_1_1_1-p1",
+ "notes": "Own verdict from the read lineage-reads-1985/s-10.json: the reader showed the compiler correct at 85 with its probe (s10_relation.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 1985: 'A space must precede and follow each reserved word comprising the relational operator' and the two stated equivalences. The candidates are 2023 abbreviation rules (SR-8.7.5.2-9/-10) and START's KEY restriction (SR-14.9.41.3-3); none states the spacing rule. The prose85 read recorded a DEFECT here (N=M compiled); both refusal goldens now PASS on the mint build, so the defect is fixed at 9fdf39b9e8. Code location located after the read: relational operators grammar and gate"
+}

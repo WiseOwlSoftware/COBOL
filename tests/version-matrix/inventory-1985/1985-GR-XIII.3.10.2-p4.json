@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p4",
+ "rule-digest": "6546eb3e75b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RelativeFirstLineFloor; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb484_report_line_placement; conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries",
+ "notes": "Own verdict from the read lineage-reads-1985/s-17.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.39.4-1, witnessed at 85 by the cases test-ref names. The read: 'These rules specify the vertical subdivisions of the page within which the specified report group may be represented.' GR-13.18.39.4-1: 'The PAGE clause and its phrases subdivide the printed page into vertical regions. Depending on its type, each report group shall be confined within one or more of these regions.' pb1270 places RH, PH, DE, PF and RF on the edges of their regions at 85. Cited: §1985:XIII.3.10.2 p4."
+}

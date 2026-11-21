@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.3-p1",
+ "rule-digest": "10d82101a614",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#abbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/1985-GR-VI_6_3_3-p5",
+ "notes": "Own verdict from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with its probe (c2-abbrev-examples.cob), placed as the row's own test; its expected output is the reader's judged run, equal on this build. The read: 'any relation condition except the first may be abbreviated by:' (the lead of SR1/SR2). The 2023 text is word-identical but lives in uncataloged §2023:8.8.4.12.1 prose; the cataloged SR-8.8.4.12.1-1/-2 state only the items, so no cataloged rule states the lead's conditions. The compiler accepts and expands the forms at 85. Code location located after the read: abbreviated combined relation conditions"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.1.1-15",
+ "rule-digest": "d33d92f1f753",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#EnterStatementNotProvided; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.2.2.1.1-15",
+ "notes": "Derivation from the read lineage-reads-1985/s-02.json: CONFORMS on a unpopulatable-antecedent derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.4.2.2.1.1-15); the code location is where the compiler meets the rule's subject. The read: Item 15 'routine-name'. Its only use is the ENTER statement, which 'An implementation of Standard COBOL may include ... or not, at the option of the implementor'; this implementation does not (docs/conformance/9.1/1985-SR-VI.6.12.3-1.md), and 2023 has no ENTER. No program can carry a routine-name, so the row has no witness to give. The code location was located after the read (locations-all.json): BindEnter returns BoundRejected (COBOL7240) for every ENTER, the only statement carrying a routine-name (enterStatement: nnRoutineName1=routineName?); StatementBinder.cs:681-698 cites §1985:I.1.5.2.5.5"
+}
