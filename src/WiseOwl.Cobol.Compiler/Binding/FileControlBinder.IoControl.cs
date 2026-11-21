@@ -137,9 +137,13 @@ public sealed partial class FileControlBinder
         string word = name.GetText();
         if (_host.Symbols.Identify(name, NameClass.File, report: true) is { Symbol: FileModel file }) return file;
         using var _ = Edition.At(name);
+        var hider = _host.Symbols.Declared.FileNameHiddenBy(word);   // §1985:X.1.3.8.2 GR3a (kb/Work PB5980)
         Edition.Error(DiagnosticCatalog.UndefinedReference,
-            $"{clause} names '{word}', which is not defined as a file: no SELECT clause of this program gives that name, so "
-            + "the reference identifies no resource (§1985:IV.4.3.8: \"a statement in a COBOL program must contain a reference "
+            $"{clause} names '{word}', which is not defined as a file: "
+            + (hider is null
+                ? "no SELECT clause of this program gives that name"
+                : NameResolution.HidingClause(hider.Value, word, "file-name", Edition.Edition))
+            + ", so the reference identifies no resource (§1985:IV.4.3.8: \"a statement in a COBOL program must contain a reference "
             + "which uniquely identifies that resource\")");
         return null;
     }

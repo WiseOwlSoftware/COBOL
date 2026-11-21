@@ -605,7 +605,11 @@ collector. (Step 1:) `Compile` builds the facts, runs `CompileCore`, returns at 
 which it folds into the result. (Step 2, review R1-4:) `ListingWriter.Write` renders each requested format through
 `ListingOutput` (`Each`, `Extension`, `Render`) into `BASE` plus that format's extension; `Files` lists each file written
 and `Errors` holds one error per file the host refused, the other formats being written all the same (witness
-`ListingJsonTests.ARefusedJsonFile_IsOneError_AndTheTextIsStillWritten`); with `OutputBase` `-` both lists are empty and
+`ListingJsonTests.ARefusedJsonFile_IsOneError_AndTheTextIsStillWritten`); a place the USER named (`--listing-output`) in a
+missing directory is such a refusal, while the DEFAULT place, beside the assembly, is the compilation's own directory:
+`ListingWriter.Write` makes it, as the backend does for the assembly, so a compilation that fails before the backend still
+lists its source (kb/Work PB5940; witness
+`ListingOutcomeTests.AFailedCompilation_ListsBesideAnAssemblyInADirectoryItNeverMade`); with `OutputBase` `-` both lists are empty and
 the caller prints the one format; the driver maps its `Outcome` to `ListingOutcome` (`ListingOutcomeOf`). The front end is
 built by the one `CompilerDriver.NewFrontend`, which the no-work drift test reads. (Step 1, review R1-2:) each kind of
 outcome is a test (section 10 item 8): `Listing1985Tests.AFailedCompilation_StillListsItsSource` (front-end error, bind

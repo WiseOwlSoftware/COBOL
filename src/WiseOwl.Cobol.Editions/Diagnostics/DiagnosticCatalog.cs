@@ -4911,6 +4911,22 @@ public static class DiagnosticCatalog
         + "a different matter and are untouched: a comment-entry is arbitrary text by definition, which is why "
         + "ISO/IEC 1989:2023 defines no syntax for one anywhere.",
         "ISO §2023:4.2.2 / §2023:12.3.2 / §2023:11.2.1");
+    /// <summary>COBOL7654 — something that is no system-name is written where the SOURCE-COMPUTER or OBJECT-COMPUTER paragraph's
+    /// computer-name-1 stands (kb/Work PB5920): a nonnumeric literal or a number, the paragraph's
+    /// header followed at once by the run the closed format's error production takes. §1985:VI.4.3.3 SR1 and §1985:VI.4.4.3 SR1:
+    /// "Computer-name is a system-name."; §2002:8.3.1.1.2, §2014:8.3.1.1.2 and §2023:8.3.2.3.1 name the computer-name among the
+    /// system-names, whose formation adds restrictions to a COBOL word's. Reported in place of COBOL1971 (which says a literal is
+    /// "not a paragraph of the CONFIGURATION SECTION") and COBOL1970 (which says it is "not a clause" of the OBJECT-COMPUTER
+    /// paragraph): the user wrote a computer-name, and the message says what a computer-name is. Reported by
+    /// <c>ClosedFormatPass</c> at every edition, from the one reading of the slot, <c>ClosedFormats.ComputerNameSlotOf</c>.</summary>
+    public static readonly DiagnosticDescriptor ComputerNameNotASystemName = new(
+        "COBOL7654", "computer-name-not-a-system-name", EditionSeverity.Error,
+        "A literal or a number is written where the computer-name of the SOURCE-COMPUTER or OBJECT-COMPUTER "
+        + "paragraph stands. A computer-name is a system-name (\"Computer-name is a system-name.\", §1985:VI.4.3.3 SR1 and "
+        + "§1985:VI.4.4.3 SR1), and a system-name is a COBOL word to whose formation the implementor adds restrictions "
+        + "(§2023:8.3.2.3.1), so it is never a literal or a number. Refused at every edition and every strictness.",
+        "§1985:VI.4.3.3 SR1; §1985:VI.4.4.3 SR1; §2002:8.3.1.1.2; §2014:8.3.1.1.2; §2023:8.3.2.3.1");
+
     /// <summary>COBOL1994 — the INTO phrase written where its verb's ADMISSIBILITY rule does not admit it:
     /// ISO §2023:14.9.30.3 syntax rule 1 for READ, §2023:14.9.34.3 syntax rule 2 for RETURN (kb/Work PB337). ONE descriptor
     /// because it is one rule stated twice with one difference — the FD arm admits a record-less description
@@ -9719,9 +9735,9 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReadDynamicNextRequired = new(
         "COBOL7144", "read-dynamic-next-required", EditionSeverity.Error,
         "§1985:IX.4.5.3 SR5: \"The NEXT phrase must be specified for files in dynamic access mode, when records are to be "
-        + "retrieved sequentially.\" §1985:VIII.4.5.3 SR3 words the relative file's rule the same. A READ of a dynamic-access file "
-        + "that writes the AT END phrase (format 1 of the 1985 READ, the sequential retrieval) omits NEXT. COBOL-2002 and later "
-        + "imply the NEXT phrase from AT END (§2023:14.9.30.3 SR9).",
+        + "retrieved sequentially.\" §1985:VIII.4.5.3 SR3 words the relative file's rule the same, without the comma. A READ of a "
+        + "dynamic-access file that writes the AT END or the NOT AT END phrase (format 1 of the 1985 READ, the sequential "
+        + "retrieval) omits NEXT. COBOL-2002 and later imply the NEXT phrase from AT END or NOT AT END (§2023:14.9.30.3 SR9).",
         "ISO §1985:VIII.4.5.3 SR3; §1985:IX.4.5.3 SR5");
 
     /// <summary>COBOL7165 — a COBOL-85 comment-entry continued by a hyphen in the indicator area (kb/Work PB5169). The
