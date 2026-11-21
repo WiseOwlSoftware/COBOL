@@ -78,6 +78,10 @@ public sealed class ReportModel
     /// report file's record, §1985:XIII.3.2.4 GR2; kb/Work PB6024): no column rule measures against it then.</summary>
     public int? PageWidth { get; set; }
 
+    /// <summary>The page width the run-time engine is constructed with: <see cref="PageWidth"/>, or
+    /// <see cref="WiseOwl.Cobol.Runtime.IO.CobolReport.NoPageWidth"/> for a report that has none (kb/Work PB6024).</summary>
+    public int EnginePageWidth => PageWidth ?? WiseOwl.Cobol.Runtime.IO.CobolReport.NoPageWidth;
+
     /// <summary>The PAGE clause wrote integer-2 (so <see cref="PageWidth"/> is the program's, not GR5's default).</summary>
     public bool PageWidthWritten { get; set; }
 

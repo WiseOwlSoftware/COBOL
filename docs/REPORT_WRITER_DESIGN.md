@@ -205,7 +205,11 @@ off-by-one through every later counter check.
   SR1/SR3/SR4/SR5/SR6/SR7 per group on **COBOL2284**; "the minimum last line number of the report group" is
   the GR5/GR7 placement walked over the group's UNCONDITIONAL lines (`MinimumLastLine` — a PRESENT WHEN or
   OCCURS DEPENDING line may be absent, and absence can only leave the last line higher up). The binding is the
-  runtime's own `ReportNextGroup` record, which the emitter writes verbatim.
+  runtime's own `ReportNextGroup` record, which the emitter writes verbatim. At `--std 85` SR1's page-limit bound is not
+  asked (it is COBOL-2002's): §1985:XIII.3.16.3 SR2 bounds both integers to three significant digits, and each group
+  type's presentation rules bound the rest; a relative body-group integer is bounded by nothing, since §1985:XIII.3.10.8
+  GR6b stops LINE-COUNTER at the FOOTING integer, and an absolute page footing integer keeps §1985:XIII.3.10.9 GR4a's
+  page-limit half (kb/Work PB6025).
 - **A REPEATING ENTRY IS A SUBTREE REPLAY, AND THAT IS THE ONLY REPETITION MECHANISM** (§2023:13.18.38 format 3 —
   `OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]`; kb/Work PB565).
   `ReportOccursOf` reads the clause and enforces its syntax rules (one bundled code, `COBOL2021`: SR1a no
@@ -497,7 +501,9 @@ off-by-one through every later counter check.
   resolved), so each reference draws one verdict.
   **COBOL-85 has no section rule** (kb/Work PB5310): §2023:13.8.6.2.3 is ISO/IEC 1989:2002's (§2002:13.7.5.1.3), and
   §1985:XIII.3.9.3 SR10d ("Data-name-1 may be referenced only if the entry defines a sum counter") limits only which
-  entry a reference names. So below 2002 the data-division OCCURS … DEPENDING ON lookup and `ResolveClauseOperand` (outside
+  entry a reference names: an elementary (format 3) entry's; a level 1 (format 1) entry's data-name serves only the uses
+  SR5 lists and a group (format 2) entry's only qualifies a sum counter (SR7), so the refusal cites the rule of the entry's
+  format (`ReportNamedEntry.Format`, `ReportEntryFormat`; kb/Work PB6026). So below 2002 the data-division OCCURS … DEPENDING ON lookup and `ResolveClauseOperand` (outside
   the report section) ask `SymbolTable.SumCounterOperand85` before the refusal: a reference that names one
   non-repeating sum counter resolves to the counter's register (`ReportSumFamily.Register`), whose place the ONE place
   builder answers as the counter's `ReportSumCounterPlace` (`IPlaceFacts.SumCounterPlaceOf`; the place table holds the
@@ -831,7 +837,10 @@ clause of an entry it is subordinate to; and `ScreenReportDescriptionHasGroup` r
 §2023:13.18.20.3 SR3), read through `CstExtensions.NameOrNull`; and `reportPageClause` carries the page-width operand
 (`integer-2 {COLS | COLUMNS}`, `ReportModel.PageWidth`, default 999 by §2023:13.18.39.4 GR5 → `CobolReport`'s page
 width, the one the `Place` truncation and EC-REPORT-PAGE-WIDTH measure; §2023:13.18.14.3 SR6 screens each written COLUMN
-operand against it, COBOL2710), `LAST {CONTROL HEADING | CH} IS integer-5` (`ReportModel.LastControlHeading`,
+operand against it, COBOL2710). The default is `DialectBehavior.ReportPageWidth`'s: at `--std 85` a report has NO page
+width (`ReportModel.PageWidth` null, `CobolReport.NoPageWidth` at run time), since the 1985 PAGE clause prints no width
+phrase (§1985:XIII.3.8.2) and its COLUMN NUMBER clause bounds no column, so SR6 and SR8 b)/c) do not arise there and only the
+report file's record cuts a line (kb/Work PB6024; VCR row 7.89), `LAST {CONTROL HEADING | CH} IS integer-5` (`ReportModel.LastControlHeading`,
 the control headings' lower limit, GR8 d)) and the `FIRST DE`/`LAST DE` synonyms; §2023:13.18.39.3 SR3 (a phrase
 without integer-1) is COBOL2709. The TYPE clause's control rows are `{CONTROL HEADING | CH} (reportControlName
 (OR PAGE)?)?` and `{CONTROL FOOTING | CF} reportControlName?` (`reportControlName : (ON | FOR)? (FINAL | dataReference)`,
@@ -873,7 +882,8 @@ standard states no outcome for — is COBOL2712 (CONFORMANCE §3). The phrase ga
   element is described (the printable-size is a picture's), over `NominalPlacements` — THE one nominal horizontal walk,
   shared with the line-width computation: SR7 (absolute items by written column number, in order), SR8 a) (overlap),
   SR8 b) (an absolute item's rightmost column past the page width) and SR8 c) (a relative tail past the page width,
-  judged whole unless `EachDifferentPresentWhen`, and then by the largest alone). SR7 and SR8 a) hold for
+  judged whole unless `EachDifferentPresentWhen`, and then by the largest alone); the last two only where the report has a
+  page width (none at `--std 85`, kb/Work PB6024). SR7 and SR8 a) hold for
   items "each subject to a different PRESENT WHEN clause": `DifferentPresentWhen` — each carries a clause (its own or an
   ancestor entry's below the line entry, or a GROUP INDICATE) the other does not. Pairs are over WRITTEN entries
   (`ReportFieldModel.Entry`), so a repeating entry's repetitions are never compared with each other (SR26 owns them).
