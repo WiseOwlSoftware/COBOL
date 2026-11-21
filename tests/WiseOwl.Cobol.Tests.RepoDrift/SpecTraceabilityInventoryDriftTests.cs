@@ -1649,6 +1649,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // `claude: 2026-11-21`): undefined-in-rule derivations the import refused for an unquoted Names cell and no code
             // location, read again in s-100 (superseding s-12 and s-16) with both; a mechanical arm, its checker the reader.
             "1985-GR-VI.6.4.5-p1", "1985-GR-X.4.1-p6",
+            // ⚙ Two more, added deliberately (kb/Work PB5453's last two rows, decision PB6003, signature `claude: 2026-11-21`):
+            // `unpopulatable-antecedent` (every reading SourceTextDecoder.Decode gives a source or library text represents all
+            // 78 characters of the 1985 COBOL character set), read in s-101 (superseding s-99 and s-01), standing on the UPHELD
+            // records of tests/version-matrix/derivation-refutations/lineage-reads-1985-s-101.jsonl.
+            "1985-GR-IV.4.1-p2", "1985-SR-IV.4.1-p3",
         ];
 
         var s = LoadSchema();

@@ -6,7 +6,7 @@
       *>---
       *> §1985:IV.4.2.2.1.3 p1 (COBOL Words). A refusal: the rule
       *> forbids line 7 of the program below, and WiseOwl refuses it at
-      *> 85 with COBOL1971 there; a compiler that accepts it fails.
+      *> 85 with COBOL7654 there; a compiler that accepts it fails.
       *> Placed from written and run by the PB5453 reader of
       *> lineage-reads-1985/s-03.json by scripts/spec/place_witnesses.py
       *> (kb/Work PB4995).
