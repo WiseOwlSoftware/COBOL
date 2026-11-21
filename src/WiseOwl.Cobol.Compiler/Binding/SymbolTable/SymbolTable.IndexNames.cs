@@ -103,6 +103,8 @@ public sealed partial class SymbolTable
             _methodNames.TryGetValue(m, out var own);
             if (own is not null && own.DataNames.TryGetValue(key, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
             if (own is not null && own.IndexNames.Declares(key))
+                // A word the method declares names the method's declaration only (§2023:11.7.4 GR5 replaces, it does not rank), so
+                // an empty set here stands for the refusal even when the object declares the spelling in another class.
                 return WithLapsedTypeIndexes(key,
                     own.IndexNames.Candidates(key, d => IndexQualifierChainMatches(d, qualifiers), out _),
                     d => IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
@@ -116,8 +118,12 @@ public sealed partial class SymbolTable
         // written qualifiers reach, declared in a NEARER source element than every such index-name, is the referenced
         // item — a contained program's `01 IX` or its `88 IX` hides its container's GLOBAL table's `INDEXED BY IX`,
         // exactly as its `01 X` hides the container's global `X` (kb/Work PB4432). At EQUAL depth the index-name keeps
-        // the reference, as before.
-        if (indexes.Count > 0 && NearerNameOfAnotherClassHides(name, qualifiers, indexDepth, NameSetClass.IndexName)) return null;
+        // the reference, as before. When the written qualifiers reach NO index-name, indexDepth is int.MaxValue, so ANY
+        // declaration of another class they reach takes the reference: §1985:X.1.3.8.2 GR1, "Using this set of names, the normal
+        // rules for qualification and any other rules for uniqueness of reference are applied", qualifies over the whole set
+        // before any class claims it, so an own `INDEXED BY X` never refuses `X OF G` that a container's GLOBAL `G` reaches
+        // (kb/Work PB5975 review R1-1). Only when nothing else is reached does the empty set stand, for the index-name refusal.
+        if (NearerNameOfAnotherClassHides(name, qualifiers, indexDepth, NameSetClass.IndexName)) return null;
         return WithLapsedTypeIndexes(key, indexes, d => IndexQualifierChainMatches(d, qualifiers), null);
     }
 

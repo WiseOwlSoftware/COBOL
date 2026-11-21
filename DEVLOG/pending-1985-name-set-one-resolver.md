@@ -32,3 +32,10 @@ those editions as the note decided.
 **Self-review** (architecture, code, performance, duplication): one mechanism for cross-class rank; the capacity-register arm reads
 its table only in `SymbolTable.CapacityRegisters.cs` (`CapacityRegisterReferenceDriftTests`); the resolver runs only for a tier at
 depth > 0, so a program with no containers pays nothing; `CapacityRegisterClassPhrase` folded into `ClassPhrase`.
+
+**Review round 1, R1-1 (PB5975).** The index-name lookup still claimed a qualified reference when the written qualifiers reached
+no index-name: a contained program's own `INDEXED BY X` refused `X OF G`, which only the container's GLOBAL `G` satisfies
+(COBOL0900, COBOL1639, COBOL1637 at `--std 85`). `SymbolTable.IndexCandidates` now asks the resolver whatever its set's count, so
+qualification is applied over GR1's whole set before the index-name class claims the reference; an `X OF Q` that reaches nothing
+keeps the index-name refusal. The method arm keeps its own set (§2023:11.7.4 GR5 replaces, it does not rank). Golden:
+`pb5975-qualified-global-data-beside-own-index-85` (`Y=7`, `E=B`).
