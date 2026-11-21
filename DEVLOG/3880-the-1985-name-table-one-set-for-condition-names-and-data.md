@@ -1,4 +1,4 @@
-## The 1985 name table: one set for condition-names and data-names, and a contained program's names hide its container's in every class
+## Entry 3880 — 2026-11-20 16:48 PST — The 1985 name table: one set for condition-names and data-names, and a contained program's names hide its container's in every class
 
 ### The re-reads that found it
 
@@ -66,3 +66,4 @@ R1-1: hiding an inherited report-name also hid it as the report-name qualifier o
 LINAGE file was refused COBOL0863 the same way (on main since PB5786). A qualifier position is now its own reach,
 `NameReach.Qualifier`, which reaches a hidden name (§1985:X.1.3.8.2 GR1), and both counter qualifiers use it. Golden
 pb5973-hidden-global-names-qualify-counters-85.
+
