@@ -642,9 +642,8 @@ public sealed class Frontend
         // ISO §2023:8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
         // (kb/Work PB2017). The two operator clauses that need no tree (§2023:8.7.3, §2023:8.7.4) were asked with the rest above.
-        foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree, edition))
-            sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
-                $"[{v.Descriptor.Code}] {v.Message}", null!);
+        ReportArithmeticOperatorScreen(text, tree, edition,
+            (t, message) => sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, message, null!));
 
         // ISO §2023:8.3.2.1 / §2023:8.1.3.2 GR4 / Annex B.3 — the characters of every COBOL word the lexer produced. The binder driver
         // screens the words of a tree it binds, but it does not run on a compilation whose frontend reported ANY error
@@ -737,6 +736,16 @@ public sealed class Frontend
             report(v.Token, $"[{v.Descriptor.Code}] {v.Message}");
     }
 
+    /// <summary>The §2023:8.7.1 arithmetic operators' own separator context, decided from the characters beside each operator the
+    /// PARSE TREE found (kb/Work PB2017). The tree-level twin of <see cref="ReportTokenScreens"/>, run by the main parse and by the
+    /// as-source reading of a hidden debugging line (kb/Work PB5990).</summary>
+    private static void ReportArithmeticOperatorScreen(string text, CobolParserCore.CompilationUnitContext tree, EditionInfo edition,
+        Action<IToken, string> report)
+    {
+        foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree, edition))
+            report(v.Token, $"[{v.Descriptor.Code}] {v.Message}");
+    }
+
     /// <summary>The ONE place a text gets its lexer: primed with the group's synonyms, the de-reserved words and the edition's
     /// spellings (<see cref="TokenRetypes.PrimeLexer"/>) before any tokenization.</summary>
     private static CobolLexer NewLexer(string text, TokenRetypes retypes, EditionInfo edition)
@@ -768,9 +777,14 @@ public sealed class Frontend
         if (EmbeddedBlockReading.Read(asSource, () => ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts).Clean).Any)
             return;
         // The screens source text gets, into a bag nothing reads: any error is a source-level refusal the line's being source causes.
-        int screenLine = lexErrors.FirstLine ?? int.MaxValue;
-        ReportTokenScreens(asSourceText, asSource.GetTokens(), edition, (t, _) => screenLine = Math.Min(screenLine, t.Line));
+        // Only an error ON a hidden line is that line's doing: one on a plain line is the program's own, reported by the main
+        // pass, and must not blame a valid debugging line (review R2-2).
+        var hiddenOn = hiddenLines.Select(t => t.Line).ToHashSet();
+        int screenLine = lexErrors.FirstLineWhere(hiddenOn.Contains) ?? int.MaxValue;
+        void Note(IToken t, string _) { if (hiddenOn.Contains(t.Line)) screenLine = Math.Min(screenLine, t.Line); }
+        ReportTokenScreens(asSourceText, asSource.GetTokens(), edition, Note);
         var verdict = ParseCopyOf(asSource.GetTokens(), retypes, edition, cobolWordsMap, sourcePath, cuts);
+        ReportArithmeticOperatorScreen(asSourceText, verdict.Tree, edition, Note);
         if (verdict.Clean && screenLine == int.MaxValue) return;
         int errorLine = Math.Min(screenLine, verdict.Offender?.Line ?? int.MaxValue);
         var at = hiddenLines.Where(t => t.Line <= errorLine).MaxBy(t => t.Line) ?? hiddenLines.MinBy(t => t.Line)!;
@@ -786,18 +800,18 @@ public sealed class Frontend
     /// <summary>Does the token list parse with no syntax error as it stands, and where is its first one? Asked by <see cref="EmbeddedBlockReading.Read"/> of an
     /// EXEC only the grammar can classify (kb/Work PB4381): one whole parse, the gate's loop included, of a COPY of the
     /// stream (the loop retypes the tokens it is handed) into a bag nothing reads.</summary>
-    private (bool Clean, IToken? Offender) ParseCopyOf(IList<IToken> tokens, TokenRetypes retypes, EditionInfo edition,
+    private (bool Clean, IToken? Offender, CobolParserCore.CompilationUnitContext Tree) ParseCopyOf(IList<IToken> tokens, TokenRetypes retypes, EditionInfo edition,
         CobolWordsMap cobolWordsMap, string sourcePath, IMarginRCutLocator cuts)
     {
         var copy = new CommonTokenStream(new ListTokenSource(tokens.Select(t => (IToken)new CommonToken(t)).ToList()));
         var parser = NewParser(copy, edition, cobolWordsMap);
         var first = new FirstOffender();
-        ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(), (bag, witness) =>
+        var tree = ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(), (bag, witness) =>
         {
             first.Offender = null;   // only the last pass of the gate's loop describes the stream
             return ParsePass(parser, copy, bag, new Tee(witness, first), sourcePath, cuts, edition);
         });
-        return (parser.NumberOfSyntaxErrors == 0, first.Offender);
+        return (parser.NumberOfSyntaxErrors == 0, first.Offender, tree);
     }
 
     /// <summary>Remembers the offending token of the first syntax error of a pass.</summary>

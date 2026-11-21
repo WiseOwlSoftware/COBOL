@@ -21,3 +21,5 @@ screens, run by the main parse and by the as-source reading (lexer errors includ
 literal-as-source and pb5990-debugging-line-separator-as-source witness each. A misplaced D line before OBJECT-COMPUTER in a unit
 without the mode drew COBOL7060 and COBOL7675 for one cause; it is now COBOL7060 alone (pb5990-misplaced-debugging-line-reported-once).
 The arithmetic-operator separator screen needs the parse tree and is not part of the as-source reading.
+
+Second review: the as-source reading also runs the parse-tree arithmetic-operator screen (COBOL2993, `Frontend.ReportArithmeticOperatorScreen`, one implementation called by the main parse and the as-source reading; `ParseCopyOf` now returns its tree), so the earlier stated gap is closed (golden pb5990-debugging-line-arithmetic-operator-as-source). A valid D line is no longer blamed for an error on a plain line: only errors on a hidden line count (golden pb5990-valid-debugging-line-not-blamed-for-a-plain-line-error, COBOL2633 alone).
