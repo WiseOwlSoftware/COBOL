@@ -87,12 +87,12 @@ internal sealed partial class ControlFlowBinder
     {
         var levels = new List<VaryingLevel>();
         if (BindVaryingLevel(v.receivingIdentifier(), v.valueOperand(), v.performUntilTarget(), firstLevel: true) is not { } head)
-            return Unsupported($"PERFORM VARYING induction variable '{v.receivingIdentifier().GetText()}'");
+            return Unsupported($"PERFORM VARYING induction variable '{WrittenSource.Of(v.receivingIdentifier())}'");
         levels.Add(head);
         foreach (var a in v.performVaryingAfter())
         {
             if (BindVaryingLevel(a.receivingIdentifier(), a.valueOperand(), a.performUntilTarget(), firstLevel: false) is not { } level)
-                return Unsupported($"PERFORM VARYING AFTER induction variable '{a.receivingIdentifier().GetText()}'");
+                return Unsupported($"PERFORM VARYING AFTER induction variable '{WrittenSource.Of(a.receivingIdentifier())}'");
             levels.Add(level);
         }
         // §2023:14.9.28.4 GR3: an index-name varied/AFTER from an IDENTIFIER FROM whose value is non-positive raises
@@ -188,7 +188,7 @@ internal sealed partial class ControlFlowBinder
         // division": the varied identifier is a class-closed position of the ONE operand-class screen. A PIC X
         // induction variable used to compile and throw at run time.
         if (var is SetPlaceTarget { Place: var vp })
-            OperandClassScreen.Screen(ctx.Edition, OperandPositions.PerformVaryingIdentifier, vp, dref.GetText());
+            OperandClassScreen.Screen(ctx.Edition, OperandPositions.PerformVaryingIdentifier, vp, WrittenSource.Of(dref));
         var from = BindVaryingOperand(ops[0], firstLevel ? VaryingSlot.FirstFrom : VaryingSlot.AfterFrom);
         var by = ops.Length > 1 ? BindVaryingOperand(ops[1], VaryingSlot.By) : OmittedBy;
         CheckVaryingOperandRules(dref, var, from, by);
@@ -333,7 +333,7 @@ internal sealed partial class ControlFlowBinder
             // draws SR2 alone rather than both rules.
             if (var is SetPlaceTarget { Place: var p }
                 && OperandClassScreen.Admits(OperandPositions.PerformVaryingIdentifier, p))
-                OperandClassScreen.Screen(ctx.Edition, OperandPositions.PerformVaryingIdentifierFromIndex, p, dref.GetText());
+                OperandClassScreen.Screen(ctx.Edition, OperandPositions.PerformVaryingIdentifierFromIndex, p, WrittenSource.Of(dref));
             // b) "The identifier in the associated BY phrase shall reference an integer data item."
             if (by.Present && by.Kind is VaryingOperandKind.Identifier && !by.IsInteger) Sr(by.Text, "BY", "SR5 b)",
                 "The identifier in the associated BY phrase shall reference an integer data item");

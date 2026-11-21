@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime.Collation;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding;
 
@@ -100,7 +101,7 @@ public sealed partial class FileControlBinder
                 if (clauses.assignClause() is null)
                 {
                     using var beyond = Edition.At(clauses);
-                    file.BeyondAssign.Add((DataBinder.WrittenText(clauses), Edition.Cursor));   // §1985:XI.2.3.3 SR2's subject (PB5071)
+                    file.BeyondAssign.Add((WrittenSource.Of(clauses), Edition.Cursor));   // §1985:XI.2.3.3 SR2's subject (PB5071)
                 }
                 // ISO §2023:12.4.5.3 GR3 — BOTH phrases of the ASSIGN clause, on both general-format arms
                 // (`ASSIGN TO? assignTarget (USING dataReference)?` and the bare `ASSIGN USING dataReference`).
@@ -307,7 +308,7 @@ public sealed partial class FileControlBinder
             {
                 using var rsv2 = Edition.At(reserveAt);
                 Edition.Error(DiagnosticCatalog.ReserveOnLineSequentialFile, $"file '{name}': the RESERVE clause "
-                    + $"({DataBinder.WrittenText(reserveAt)}) may not be specified for a LINE SEQUENTIAL file (ISO §2023:12.4.5.2 SR12)");
+                    + $"({WrittenSource.Of(reserveAt)}) may not be specified for a LINE SEQUENTIAL file (ISO §2023:12.4.5.2 SR12)");
             }
             // §2023:12.4.5.9.3 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
             // or sequential-organization file. The organization half is `FileModel.IsSequential` — the ONE

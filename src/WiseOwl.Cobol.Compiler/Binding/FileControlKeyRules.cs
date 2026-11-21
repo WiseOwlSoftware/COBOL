@@ -1112,8 +1112,9 @@ internal static class FileControlKeyRules
                 + "file-name-1 in the FILE-CONTROL paragraph.\" (§1985:XI.2.3.2 prints SELECT file-name-1 ASSIGN TO and "
                 + "nothing else)");
         }
-        // ⛔ THE ASSIGN CLAUSE'S FORMAT-LEVEL REFUSALS (kb/Work PB5587): a figurative constant as literal-1 and a list the
-        // SR5 determination does not allow are 2023 rules (§2023:12.4.5.2 SR4, SR5). The 1985 sort-merge entry has neither
+        // ⛔ THE ASSIGN CLAUSE'S FORMAT-LEVEL REFUSALS (kb/Work PB5587, PB5565): a figurative constant or a numeric literal as
+        // literal-1 (the two arms of §2023:12.4.5.2 SR4, COBOL2645) and a list the SR5 determination does not allow
+        // (COBOL2256) are 2023 rules. The 1985 sort-merge entry has none of them
         // (§1985:XI.2.3.2 prints `ASSIGN TO {implementor-name-1 | literal-1} …`, §1985:XI.2.3.3 restricts only what may
         // follow the ASSIGN clause), so the entry's kind decides, here, where it is known.
         if (!sortMerge1985)

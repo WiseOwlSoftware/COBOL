@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -47,7 +48,7 @@ internal sealed partial class OoBinder
     private BoundExpr OoBindSelfOperand(Core.SelfAndSuperContext s)
     {
         if (UnreservedPredefinedObjectRefusal(s) is { } unreserved) return unreserved;   // kb/Work PB4153
-        string written = DataBinder.WrittenText(s);
+        string written = WrittenSource.Of(s);
         using var at = ctx.Edition.At(s);   // every refusal below is about the SELF / SUPER word (kb/Work PB4652)
         if (s.SUPER() is not null)
             return BoundExprError.Report(ctx.Edition, DiagnosticCatalog.SuperPosition,

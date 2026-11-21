@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -53,7 +54,7 @@ internal sealed partial class OoBinder
             // predefined object reference NULL shall be specified."
             if (!probe)
                 ctx.Edition.Error(DiagnosticCatalog.PropertyObject,
-                    $"'{DataBinder.WrittenText(po.Parent.Parent as Antlr4.Runtime.ParserRuleContext ?? po)}': its object "
+                    $"'{WrittenSource.Of(po.Parent.Parent as Antlr4.Runtime.ParserRuleContext ?? po)}': its object "
                     + "shall not be the predefined object reference NULL (ISO §2023:8.4.3.9.3 SR2)");
             return null;
         }

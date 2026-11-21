@@ -121,12 +121,21 @@ public sealed class ClosedFormatReservedWordTests
         { "object-computer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ \"LIT\".\n" + Proc,
           "COBOL1970", "'\"LIT\"' is not a clause of the OBJECT-COMPUTER paragraph" },
         { "object-computer-without-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. N\"LIT\".\n" + Proc,
-          "COBOL1970", "'N\"LIT\"' is not a clause of the OBJECT-COMPUTER paragraph" },
+          "COBOL7654", "'N\"LIT\"' is written where the OBJECT-COMPUTER paragraph's computer-name-1 stands" },
         { "object-computer-integer", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. 12.\n" + Proc,
-          "COBOL1970", "'12' is not a clause of the OBJECT-COMPUTER paragraph" },
+          "COBOL7654", "'12' is written where the OBJECT-COMPUTER paragraph's computer-name-1 stands" },
         { "special-names", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           DECIMAL-POINT IS COMMA B\"1\".\n" + Proc,
           "COBOL1970", "'B\"1\"' is not a clause of the SPECIAL-NAMES paragraph" },
         { "configuration-section", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       \"LIT\".\n" + Proc,
+          "COBOL1971", "'\"LIT\"' is not a paragraph of the CONFIGURATION SECTION" },
+        // ... but a run right after a SOURCE-COMPUTER paragraph that wrote no name IS the name, written as what is none
+        // (kb/Work PB5920): the paragraph's own rule ends at the period, so the grammar meets the run as the next
+        // configuration paragraph. A paragraph that wrote its name keeps the configuration section's refusal.
+        { "source-computer-literal-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. \"LIT\".\n" + Proc,
+          "COBOL7654", "'\"LIT\"' is written where the SOURCE-COMPUTER paragraph's computer-name-1 stands" },
+        { "source-computer-integer-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. 12.\n" + Proc,
+          "COBOL7654", "'12' is written where the SOURCE-COMPUTER paragraph's computer-name-1 stands" },
+        { "paragraph-after-a-named-source-computer", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ.\n       \"LIT\".\n" + Proc,
           "COBOL1971", "'\"LIT\"' is not a paragraph of the CONFIGURATION SECTION" },
         { "identification", Head + "       X\"41\".\n" + Proc,
           "COBOL1971", "'X\"41\"' is not a paragraph of the IDENTIFICATION DIVISION" },
@@ -152,7 +161,7 @@ public sealed class ClosedFormatReservedWordTests
         { "object-computer-signed-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ -1.\n" + Proc,
           "COBOL1970", "'-1' is not a clause of the OBJECT-COMPUTER paragraph" },
         { "object-computer-signed-without-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. -1.\n" + Proc,
-          "COBOL1970", "'-1' is not a clause of the OBJECT-COMPUTER paragraph" },
+          "COBOL7654", "'-1' is written where the OBJECT-COMPUTER paragraph's computer-name-1 stands" },
         { "object-computer-signed-in-run", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ FOO -1 \"A\" & ZERO.\n" + Proc,
           "COBOL1970", "'FOO' is not a clause of the OBJECT-COMPUTER paragraph" },
         { "data-entry-signed-opening", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X -1.\n" + Proc,
@@ -252,7 +261,8 @@ public sealed class ClosedFormatReservedWordTests
         Assert.True(errors.Count == 1, $"[{name}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
         Assert.Contains($"error {code}: ", errors[0]);
         Assert.Contains(sentence, errors[0]);
-        Assert.Contains("is a closed list", errors[0]);
+        // A closed format's own sentence, except where the run stands in a computer-name slot, whose sentence says what the slot holds.
+        Assert.Contains(code == "COBOL7654" ? "it is no system-name" : "is a closed list", errors[0]);
         // The "a data-name is expected here" guess yields to the structural refusal (kb/Work PB3373).
         Assert.DoesNotContain("data-name is expected", errors[0]);
     }
@@ -354,12 +364,26 @@ public sealed class ClosedFormatReservedWordTests
     [Theory]
     [InlineData("SOURCE-COMPUTER. XYZ \"LIT\".", "SOURCE-COMPUTER")]
     [InlineData("OBJECT-COMPUTER. XYZ \"LIT\".", "OBJECT-COMPUTER")]
-    [InlineData("OBJECT-COMPUTER. \"LIT\".", "OBJECT-COMPUTER")]
     public void LiteralAfterTheComputerName_AtCobol85_IsTheOneRefusal(string paragraph, string subject)
     {
         var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       " + paragraph + "\n" + Proc, 85);
         Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
         Assert.Contains($"error COBOL1970: '\"LIT\"' is not a clause of the {subject} paragraph", errors[0]);
+    }
+
+    /// <summary>kb/Work PB5920: the literal written IN PLACE of the computer-name is one refusal too, about the name it is
+    /// (COBOL7654), not about a stray paragraph or clause, in either paragraph and at every edition.</summary>
+    [Theory]
+    [InlineData("SOURCE-COMPUTER. \"LIT\".", "SOURCE-COMPUTER", 85)]
+    [InlineData("OBJECT-COMPUTER. \"LIT\".", "OBJECT-COMPUTER", 85)]
+    [InlineData("SOURCE-COMPUTER. \"LIT\".", "SOURCE-COMPUTER", 2002)]
+    [InlineData("OBJECT-COMPUTER. \"LIT\".", "OBJECT-COMPUTER", 2014)]
+    [InlineData("OBJECT-COMPUTER. \"LIT\".", "OBJECT-COMPUTER", 2023)]
+    public void LiteralInPlaceOfTheComputerName_IsTheOneRefusal(string paragraph, string subject, int edition)
+    {
+        var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       " + paragraph + "\n" + Proc, edition);
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains($"error COBOL7654: '\"LIT\"' is written where the {subject} paragraph's computer-name-1 stands", errors[0]);
     }
 
     /// <summary>An unsigned integer the data division's run never holds keeps the missing-period diagnosis where it may

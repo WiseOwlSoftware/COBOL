@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -452,8 +453,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// TERMINATE, whose report-name positions are resolved by the one report-name lookup.</summary>
     private string HidingOfReportName(string written) =>
         ctx.Data.Symbols.Declared.ReportNameHiddenBy(written) is { } hider
-            ? $"; '{written}' here names {hider.Placed(ctx.Edition.Edition)}, which hides the GLOBAL report-name "
-              + $"'{written}' of a containing program ({NameResolution.NearerDeclarationRule(ctx.Edition.Edition)})"
+            ? "; " + NameResolution.HidingClause(hider, written, "report-name", ctx.Edition.Edition)
             : "";
 
     /// <summary><c>TERMINATE report-name…</c> (ISO §2023:14.9.46 SR1; §2023:14.9.46.4 GR4) — one <see cref="BoundTerminate"/> per
@@ -653,7 +653,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         string reg = isPage ? "PAGE-COUNTER" : "LINE-COUNTER";
         return ctx.Refs.Counters.ReportOf(dref) is { } report
             ? new BoundReportCounterRef(report, isPage, ctx.Data.State.Reports.Depth(report))
-            : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{DataBinder.WrittenText(dref)}'");
+            : BoundExprError.Refused(ctx.Edition, $"{reg} reference '{WrittenSource.Of(dref)}'");
     }
 
     /// <summary>The <see cref="ReportPageCounterPlace"/> for a PAGE-COUNTER RECEIVING reference (ISO §2023:8.4.3.15.3
