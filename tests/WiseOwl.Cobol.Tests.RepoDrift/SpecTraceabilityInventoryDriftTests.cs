@@ -2560,11 +2560,14 @@ public sealed class SpecTraceabilityInventoryDriftTests
             },
             Catalog = new Dictionary<string, (int Year, string Text)>(cs.Catalog, StringComparer.Ordinal)
             {
-                ["1985-X-2"] = (1985, "An item is aligned on the boundary the implementor specifies."),
+                ["1985-GR-X.1-2"] = (1985, "An item is aligned on the boundary the implementor specifies."),
+                ["GR-14.9.5.4-7"] = (2023, "If the program to be canceled is not located, no action is taken."),
             },
         };
+        // The fabricated row's id, 1985-X-1, is not of the rule-id shape an `explains` takes, so the row that explains
+        // itself (`explains-itself`) is the parity fixture's case, which both engines evaluate.
         const string Describes = "describes the standard's kinds of overlap: \"the result of the transfer is undefined\"";
-        const string Explains = "explains 1985-X-2: \"If the operands overlap, the result\"";
+        const string Explains = "explains 1985-GR-X.1-2: \"If the operands overlap, the result\"";
         foreach (string names in new[] { Describes, Explains })
         {
             Assert.Equal("OK", StateAt(derivedKept, older, Informing(names), closedChain));    // a chained row
@@ -2573,11 +2576,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Equal(["quote-not-in-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
             Informing("describes the standard's kinds of overlap: \"the content is undefined when\""), closedChain)));
         Assert.Equal(["unknown-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
-            Informing("explains 1985-X-9: \"If the operands overlap, the result\""), closedChain)));
+            Informing("explains 1985-GR-X.1-9: \"If the operands overlap, the result\""), closedChain)));
         Assert.Equal(["unknown-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
-            Informing("explains X-6: \"If the operands overlap, the result\""), closedChain)));       // another edition's
-        Assert.Equal(["explains-itself"], Codes(DerivationRefusalsAt(ownVerdict, older,
-            Informing("explains 1985-X-1: \"If the operands overlap, the result\""), closedChain)));
+            Informing("explains GR-14.9.5.4-7: \"If the operands overlap, the result\""), closedChain)));       // another edition's
         Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(derivedKept, older, Informing(Describes, "—"), closedChain)));
         Assert.Equal(["names-shape"], Codes(DerivationRefusalsAt(ownVerdict, older,
             Informing("describes the standard's text: \"the result of the transfer is undefined\""), closedChain)));
