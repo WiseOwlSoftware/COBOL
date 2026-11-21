@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL2773: the COBOL word 'WX-' has the hyphen as its last character"}

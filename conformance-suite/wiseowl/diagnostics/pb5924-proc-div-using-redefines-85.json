@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "PROCEDURE DIVISION: formal parameter 'LK-B' shall not contain a REDEFINES clause"}

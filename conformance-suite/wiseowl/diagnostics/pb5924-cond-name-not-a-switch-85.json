@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL2241: SPECIAL-NAMES: 'CONSOLE' is a device-name, and only a switch-name-1 entry may carry ON STATUS / OFF STATUS condition-names"}

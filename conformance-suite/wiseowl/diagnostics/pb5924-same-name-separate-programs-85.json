@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "PROGRAM-ID 'DUPP' and PROGRAM-ID 'DUPP' both externalize the name 'DUPP'"}
