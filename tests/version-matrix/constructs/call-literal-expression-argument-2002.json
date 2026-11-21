@@ -4,6 +4,7 @@
  "display": "a literal or expression as a CALL argument",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO/IEC 1989:2002 Annex F.2 item 15; ISO §2023:14.9.4.2 Format 2; §2023:14.9.4.4 GR8",
+ "rule1985": "§1985:X.5.2.2 (the CALL USING phrase prints identifiers only)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

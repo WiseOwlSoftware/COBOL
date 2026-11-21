@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Symbols;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -82,10 +83,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     {
         if (!ctx.Enclosing.InDeclarative) return;
         ctx.Edition.Error(DiagnosticCatalog.SortMergePlacement, merge
-            ? "a MERGE statement shall not appear in a declarative procedure (ISO " + ctx.Edition.Edition.Cite(
+            ? "a MERGE statement shall not appear in a declarative procedure (" + ctx.Edition.Edition.CiteRule(
                 "§1985:XI.4.1.3 SR1: \"A MERGE statement may appear anywhere in the Procedure Division except in the declaratives portion\")",
                 "§2023:14.9.24.3 SR1: \"A MERGE statement may appear anywhere in the procedure division except … in a declarative procedure\")")
-            : "a SORT statement shall not appear in a declarative procedure (ISO " + ctx.Edition.Edition.Cite(
+            : "a SORT statement shall not appear in a declarative procedure (" + ctx.Edition.Edition.CiteRule(
                 "§1985:XI.4.4.3 SR1: \"A SORT statement may appear anywhere in the Procedure Division except in the declarative portion\")",
                 "§2023:14.9.40.3 SR3: \"A SORT statement shall not appear in imperative-statement-1 of an exception-checking PERFORM "
                 + "statement, in an input or output procedure, or in a declarative procedure\")"));
@@ -101,7 +102,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!file.IsSortMerge)
         {
             ctx.Validation.RejectStatementOperand($"SORT file '{file.CobolName}' is not described in a sort-merge "
-                + $"description entry (ISO {ctx.Edition.Edition.Cite("§1985:XI.4.4.3 SR2", "§2023:14.9.40.3 SR4")} — file-name-1 shall be described in an SD)");
+                + $"description entry ({ctx.Edition.Edition.CiteRule("§1985:XI.4.4.3 SR2", "§2023:14.9.40.3 SR4")} — file-name-1 shall be described in an SD)");
             return BoundRejected.Reported(ctx.Edition);
         }
         if (RecordLessSd(file)) return new BoundNop();
@@ -118,8 +119,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (s.sortKeyPhrase().Length == 0)
         {
             ctx.Validation.RejectStatementOperand($"SORT of file '{file.CobolName}' requires at least one "
-                + "ASCENDING/DESCENDING KEY phrase (ISO "
-                + ctx.Edition.Edition.Cite("§1985:XI.4.4.2 general format — the KEY phrase is braced with an ellipsis",
+                + "ASCENDING/DESCENDING KEY phrase ("
+                + ctx.Edition.Edition.CiteRule("§1985:XI.4.4.2 general format — the KEY phrase is braced with an ellipsis",
                     "§2023:14.9.40.2 Format 1 general format — the KEY phrase is braced with an ellipsis; only the Format-2 table "
                     + "sort may omit it, §2023:14.9.40.3 SR15") + ")");
             return BoundRejected.Reported(ctx.Edition);
@@ -166,7 +167,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if ((usingFiles.Count == 0 && inputProc is null) || (givingFiles.Count == 0 && outputProc is null))
         {
             ctx.Validation.RejectStatementOperand("SORT Format 1 requires {INPUT PROCEDURE | USING} and "
-                + $"{{OUTPUT PROCEDURE | GIVING}} (ISO {ctx.Edition.Edition.Cite("§1985:XI.4.4.2", "§2023:14.9.40.2")} general format)");   // PB236
+                + $"{{OUTPUT PROCEDURE | GIVING}} ({ctx.Edition.Edition.CiteRule("§1985:XI.4.4.2", "§2023:14.9.40.2")} general format)");   // PB236
             return BoundRejected.Reported(ctx.Edition);
         }
         if (!ScreenSameClauses(file, usingFiles, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);   // SR10
@@ -411,7 +412,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!file.IsSortMerge)
         {
             ctx.Validation.RejectStatementOperand($"MERGE file '{file.CobolName}' is not described in a sort-merge "
-                + $"description entry (ISO {ctx.Edition.Edition.Cite("§1985:XI.4.1.3 SR2", "§2023:14.9.24.3")} — file-name-1 shall be described in an SD)");
+                + $"description entry ({ctx.Edition.Edition.CiteRule("§1985:XI.4.1.3 SR2", "§2023:14.9.24.3")} — file-name-1 shall be described in an SD)");
             return BoundRejected.Reported(ctx.Edition);
         }
         if (RecordLessSd(file)) return new BoundNop();
@@ -443,8 +444,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Reported(ctx.Edition);   // SortMapIoFiles REPORTED (PB236, PB1171)
         if (usingFiles.Count < 2)
         {
-            ctx.Validation.RejectStatementOperand("MERGE requires at least two USING files (ISO "
-                + $"{ctx.Edition.Edition.Cite("§1985:XI.4.1.2", "§2023:14.9.24.2")} general format — USING file-name-2 {{file-name-3}}…)");   // PB236
+            ctx.Validation.RejectStatementOperand("MERGE requires at least two USING files ("
+                + $"{EditionInfo.Designated(ctx.Edition.Edition.Cite("§1985:XI.4.1.2", "§2023:14.9.24.2"))} general format — USING file-name-2 {{file-name-3}}…)");   // PB236
             return BoundRejected.Reported(ctx.Edition);
         }
 
@@ -462,7 +463,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (givingFiles.Count == 0 && outputProc is null)
         {
             ctx.Validation.RejectStatementOperand("MERGE requires {OUTPUT PROCEDURE | GIVING} "
-                + $"(ISO {ctx.Edition.Edition.Cite("§1985:XI.4.1.2", "§2023:14.9.24.2")} general format)");   // PB236
+                + $"({ctx.Edition.Edition.CiteRule("§1985:XI.4.1.2", "§2023:14.9.24.2")} general format)");   // PB236
             return BoundRejected.Reported(ctx.Edition);
         }
         // SR7 — "File-names shall not be repeated within the MERGE statement" (kb/Work PB1139): over file-name-1 (an SD,
@@ -473,7 +474,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (!written.Add(f))
             {
                 ctx.Validation.RejectStatementOperand($"MERGE file '{f.CobolName}' is repeated: "
-                    + ctx.Edition.Edition.Cite("\"File-names must not be repeated within the MERGE statement\" (ISO §1985:XI.4.1.3 SR7)",
+                    + ctx.Edition.Edition.Cite("\"File-names must not be repeated within the MERGE statement\" (§1985:XI.4.1.3 SR7)",
                         "\"File-names shall not be repeated within the MERGE statement\" (ISO §2023:14.9.24.3 SR7)"));
                 return BoundRejected.Reported(ctx.Edition);
             }
@@ -513,7 +514,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // is RELEASE's alone, and CheckReleaseRecord asks it of a reference that already IS a logical record.
         if (!ctx.Validation.ResolveRecordName(record, WrittenSource.Of(rn), "RELEASE",
                 ctx.Edition.Edition.Cite("record-name-1 \"must be the name of a logical record in a sort-merge file description entry and it may be qualified\" "
-                        + "(ISO §1985:XI.4.2.3 SR1)",
+                        + "(§1985:XI.4.2.3 SR1)",
                     "record-name-1 \"shall be the name of a logical record in a sort-merge file description entry and it may be qualified\" "
                         + "(ISO §2023:14.9.32.3 SR1)"),
                 "ISO §2023:13.18.27.3 SR3 — \"If the GLOBAL clause is not specified in the file description entry of a "
@@ -598,7 +599,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             + " gives that phrase "
             + "the only defined destination for control when no next logical record exists — without it a "
             + "RETURN at end of data falls through onto a record area the same rule leaves undefined",
-            "ISO " + ctx.Edition.Edition.Cite("§1985:XI.4.3.2", "§2023:14.9.34.2"));
+            ctx.Edition.Edition.CiteRule("§1985:XI.4.3.2", "§2023:14.9.34.2"));
         return new BoundReturn(file, area, into, atEnd, notAtEnd, SortVaryingOf(file));
     }
 
@@ -651,8 +652,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     {
         var drefs = list?.dataReference() ?? [];
         if (drefs.Length == 0)
-            return Reject("SORT/MERGE key phrase without data-name-1 — the file formats require key data-names (ISO "
-                + ctx.Edition.Edition.Cite("§1985:XI.4.4.2 / §1985:XI.4.1.2", "§2023:14.9.40.2 Format 1 / §2023:14.9.24.2") + ")");
+            return Reject("SORT/MERGE key phrase without data-name-1 — the file formats require key data-names ("
+                + ctx.Edition.Edition.CiteRule("§1985:XI.4.4.2 / §1985:XI.4.1.2", "§2023:14.9.40.2 Format 1 / §2023:14.9.24.2") + ")");
         foreach (var dref in drefs)
         {
             // §2023:14.9.40.2 Format 1 / §2023:14.9.24.2 print `KEY { data-name-1 } …` — a qualified-data-name, never an
@@ -801,10 +802,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// <summary>The clauses the bound verb states its COLLATING SEQUENCE phrase under: the general format that prints
     /// the FOR ALPHANUMERIC / FOR NATIONAL pair, and the syntax rules that alphabet-name-1 "shall reference an alphabet
     /// that defines an alphanumeric collating sequence" and alphabet-name-2 "a national collating sequence" — SORT
-    /// §2023:14.9.40.3 SR1 / SR2, MERGE §2023:14.9.24.3 SR5 / SR6.</summary>
-    private static (string Format, string Alphanumeric, string National) SortCollatingClauses(bool merge) => merge
-        ? ("14.9.24.2", "ISO §2023:14.9.24.3 SR5", "ISO §2023:14.9.24.3 SR6")
-        : ("14.9.40.2", "ISO §2023:14.9.40.3 SR1", "ISO §2023:14.9.40.3 SR2");
+    /// §2023:14.9.40.3 SR1 / SR2, MERGE §2023:14.9.24.3 SR5 / SR6. ANSI X3.23-1985 states the alphanumeric rule once, for SORT
+    /// and MERGE alike, in the ALPHABET clause (§1985:VI.4.5.4 GR4: when alphabet-name-1 is referenced "in the COLLATING
+    /// SEQUENCE phrase of a SORT or MERGE statement", the clause "specifies a collating sequence"); its FOR NATIONAL half has
+    /// no 1985 counterpart (kb/Work PB6010).</summary>
+    private (string Format, string Alphanumeric, string National) SortCollatingClauses(bool merge) => merge
+        ? ("14.9.24.2", ctx.Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "ISO §2023:14.9.24.3 SR5"), "ISO §2023:14.9.24.3 SR6")
+        : ("14.9.40.2", ctx.Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "ISO §2023:14.9.40.3 SR1"), "ISO §2023:14.9.40.3 SR2");
 
     /// <summary>Map a USING/GIVING file list to <see cref="FileModel"/>s. Each shall be an FD file — never an SD
     /// (ISO §2023:14.9.40.3 SR8) — of ANY organization: the implicit OPEN/READ/WRITE/CLOSE of GR12/GR15 run through the
@@ -832,7 +836,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (f.IsSortMerge)
                 return ctx.Validation.RejectStatementOperand(
                     $"{verb} file '{f.CobolName}' shall not be a sort-merge file "
-                    + $"({(merge ? ctx.Edition.Edition.Cite("ISO §1985:XI.4.1.3 SR5", "ISO §2023:14.9.24.3 SR9") : ctx.Edition.Edition.Cite("ISO §1985:XI.4.4.3 SR6", "ISO §2023:14.9.40.3 SR8"))})");
+                    + $"({(merge ? ctx.Edition.Edition.Cite("§1985:XI.4.1.3 SR5", "ISO §2023:14.9.24.3 SR9") : ctx.Edition.Edition.Cite("§1985:XI.4.4.3 SR6", "ISO §2023:14.9.40.3 SR8"))})");
             // ⛔ THE ACCESS-MODE RULE, BY NAME (kb/Work PB994). §2023:12.4.5.5.2 SR1 — "The RANDOM clause shall not be
             // specified for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement" — holds for
             // both phrases; §2023:14.9.40.3 SR12 / §2023:14.9.24.3 SR13 restate it for USING ("If file-name-2 references a
@@ -843,8 +847,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                     $"{verb} file '{f.CobolName}' is described with ACCESS MODE IS RANDOM: \""
                     // COBOL-85 words it of the ACCESS MODE clause in the relative and indexed modules (§1985:VIII.2.4.3 SR4, IX.2.4.3 SR1).
                     + ctx.Edition.Edition.Cite("The ACCESS MODE IS RANDOM clause must not", "The RANDOM clause shall not")
-                    + " be specified for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement\" (ISO "
-                    + (ctx.Edition.Edition.Cite(
+                    + " be specified for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement\" ("
+                    + (ctx.Edition.Edition.CiteRule(
                         f.Organization is FileOrganization.Indexed ? "§1985:IX.2.4.3 SR1)" : "§1985:VIII.2.4.3 SR4)",
                         "§2023:12.4.5.5.2 SR1" + (giving ? ")" : merge ? "; §2023:14.9.24.3 SR13)" : "; §2023:14.9.40.3 SR12)"))));
             files.Add(f);
@@ -881,7 +885,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (why is null) continue;
             return ctx.Validation.RejectStatementOperand($"{(merge ? "MERGE" : "SORT")} GIVING file '{g.CobolName}' is an indexed file, "
                 + $"so the first key shall be ASCENDING and lie at the prime record key's byte location and size: {why} "
-                + $"({(merge ? ctx.Edition.Edition.Cite("ISO §1985:XI.4.1.3 SR10", "ISO §2023:14.9.24.3 SR10") : ctx.Edition.Edition.Cite("ISO §1985:XI.4.4.3 SR8", "ISO §2023:14.9.40.3 SR9"))})");
+                + $"({(merge ? ctx.Edition.Edition.Cite("§1985:XI.4.1.3 SR10", "ISO §2023:14.9.24.3 SR10") : ctx.Edition.Edition.Cite("§1985:XI.4.4.3 SR8", "ISO §2023:14.9.40.3 SR9"))})");
         }
         return true;
 
@@ -929,10 +933,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (!tooSmall && !tooLarge) continue;
             string rule = (merge, giving) switch
             {
-                (false, false) => ctx.Edition.Edition.Cite("ISO §1985:XI.4.4.3 SR3", "ISO §2023:14.9.40.3 SR5"),
-                (false, true) => ctx.Edition.Edition.Cite("ISO §1985:XI.4.4.3 SR10", "ISO §2023:14.9.40.3 SR11"),
-                (true, false) => ctx.Edition.Edition.Cite("ISO §1985:XI.4.1.3 SR3", "ISO §2023:14.9.24.3 SR3"),
-                (true, true) => ctx.Edition.Edition.Cite("ISO §1985:XI.4.1.3 SR11", "ISO §2023:14.9.24.3 SR12"),
+                (false, false) => ctx.Edition.Edition.Cite("§1985:XI.4.4.3 SR3", "ISO §2023:14.9.40.3 SR5"),
+                (false, true) => ctx.Edition.Edition.Cite("§1985:XI.4.4.3 SR10", "ISO §2023:14.9.40.3 SR11"),
+                (true, false) => ctx.Edition.Edition.Cite("§1985:XI.4.1.3 SR3", "ISO §2023:14.9.24.3 SR3"),
+                (true, true) => ctx.Edition.Edition.Cite("§1985:XI.4.1.3 SR11", "ISO §2023:14.9.24.3 SR12"),
             };
             string Describe(FileModel f) =>
                 f.RecordSizeVaries ? $"variable-length records of {f.RecordSizeRange.Min} to {f.RecordSizeRange.Max} bytes"
@@ -968,7 +972,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         statement.AddRange(usingFiles.Concat(givingFiles).Where(f => !ReferenceEquals(f, sd)).Distinct().ToList());
         string verb = merge ? "MERGE" : "SORT";
         bool held1985 = ctx.Edition.Edition.Year < 2002;
-        string rule = merge ? ctx.Edition.Edition.Cite("ISO §1985:XI.4.1.3 SR8", "ISO §2023:14.9.24.3 SR11") : ctx.Edition.Edition.Cite("ISO §1985:XI.4.4.3 SR9", "ISO §2023:14.9.40.3 SR10");
+        string rule = merge ? ctx.Edition.Edition.Cite("§1985:XI.4.1.3 SR8", "ISO §2023:14.9.24.3 SR11") : ctx.Edition.Edition.Cite("§1985:XI.4.4.3 SR9", "ISO §2023:14.9.40.3 SR10");
         foreach (var clause in statement.SelectMany(f => f.SameClauses).Distinct())
         {
             var named = statement.Where(clause.Members.Contains).ToList();
@@ -1035,7 +1039,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (names.Length == 0)
         {
             ctx.Validation.RejectStatementOperand(
-                $"{phrase} — the general format prints procedure-name-1 (ISO {formatClause})");
+                $"{phrase} — the general format prints procedure-name-1 ({EditionInfo.Designated(formatClause)})");
             return null;
         }
         // ⛔ EACH NAME REPORTS ITSELF (kb/Work PB390). SORT's own private "unknown procedure" message folded

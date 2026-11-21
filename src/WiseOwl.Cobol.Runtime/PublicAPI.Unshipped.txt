@@ -1048,6 +1048,11 @@ static WiseOwl.Cobol.Runtime.CobolIntrinsics.AcosWide(WiseOwl.Cobol.Runtime.Cobo
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AnnuityDec(WiseOwl.Cobol.Runtime.DecArithmetic ar, WiseOwl.Cobol.Runtime.CobolDec rate, WiseOwl.Cobol.Runtime.CobolDec periods) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AnnuityExact(WiseOwl.Cobol.Runtime.CobolRounding mode, WiseOwl.Cobol.Runtime.CobolExact rate, WiseOwl.Cobol.Runtime.CobolDec periods) -> WiseOwl.Cobol.Runtime.CobolExact
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.AsinWide(WiseOwl.Cobol.Runtime.CobolWide? x, int scale) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentDec(WiseOwl.Cobol.Runtime.CobolDec v, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentExact(WiseOwl.Cobol.Runtime.CobolExact v, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolExact
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentReal(double v, string! function, int argument, bool terminates) -> double
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentScaled(System.Int128 unscaled, int scale, string! function, int argument, bool terminates) -> System.Int128
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CheckedIntegerArgumentWide(WiseOwl.Cobol.Runtime.CobolWide v, int scale, string! function, int argument, bool terminates) -> WiseOwl.Cobol.Runtime.CobolWide
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.CosWide(WiseOwl.Cobol.Runtime.CobolWide x, int scale) -> double
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.CurrencyStringViolatesContentRules(string! currency) -> bool
 static WiseOwl.Cobol.Runtime.CobolIntrinsics.DomainWideAdmitted(WiseOwl.Cobol.Runtime.CobolWide value, int scale, WiseOwl.Cobol.Runtime.CobolIntrinsics.ArgumentDomain domain, string! function, string! rule) -> WiseOwl.Cobol.Runtime.CobolWide?

@@ -217,4 +217,55 @@ public sealed class AreaPlacementPassTests
             L("    STOP RUN.")),
             "ARCONT.cpy(2,8): error COBOL3735",
             ("ARCONT.cpy", Source(L("    DISPLAY \"" + FirstPartOfContinuedLiteral), C("\"JK\"."), C("        "))));
+
+    /// <summary>⛔ THE PARSE KNOWS AREA A (kb/Work PB6011). "Each Data Division entry begins with a level indicator or a
+    /// level-number ... The last clause is always terminated by a separator period" (§1985:IV.7.4), and an entry continued
+    /// on a later line goes on in area B (§1985:IV.7.3.3), so an integer that begins its line in area A is the next entry's
+    /// level-number. A literal list (VALUE, a condition-name's VALUE THRU) whose period is forgotten before it used to read
+    /// the level-number and the next entry's name as two more operands: COBOL3735 at the 01 and four cascades. At --std 85 it
+    /// is now the ONE report, at the place the period is missing; from COBOL-2002 on there are no areas (§2023:6.3.1), the
+    /// parse has no such fact, and the source is refused as it was.</summary>
+    [Theory]
+    [InlineData("01  A PIC X VALUE \"A\"", "01  B PIC X.")]
+    [InlineData("01  A PIC 9 VALUE 1.  88 A-OK VALUE 1 THRU 5", "01  B PIC X.")]
+    [InlineData("77  A PIC 9 VALUE 3", "77  B PIC X.")]
+    [InlineData("01  A PIC 9 VALUE 3", "05  B PIC X.")]   // any level-number may begin in area A (§1985:IV.7.4)
+    public void AMissingPeriodBeforeAnAreaALevelNumber_IsReportedOnce_WhereItIsMissing(string entry, string next)
+    {
+        string source = Source(
+            L("IDENTIFICATION DIVISION."),
+            L("PROGRAM-ID. ARNOPER."),
+            L("DATA DIVISION."),
+            L("WORKING-STORAGE SECTION."),
+            L(entry),
+            L(next),
+            L("PROCEDURE DIVISION."),
+            L("MAIN-PARA."),
+            L("    STOP RUN."));
+        var at85 = Check(85, source);
+        Assert.False(at85.Success);
+        string only = Assert.Single(at85.Errors);
+        Assert.Contains($"(6,8): error COBOL0307: cannot parse construct near '{next[..2]}'. A period may be missing", only);
+        Assert.False(Check(2002, source).Success);
+    }
+
+    /// <summary>The other side of the same rule: a literal list continued on a later line in AREA B is one entry
+    /// (§1985:IV.7.3.3), and the next entry's level-number after the period begins in area A as it must (kb/Work PB6011).</summary>
+    [Fact]
+    public void ALiteralListContinuedInAreaB_IsOneEntry_At85()
+    {
+        var r = Check(85, Source(
+            L("IDENTIFICATION DIVISION."),
+            L("PROGRAM-ID. ARVLIST."),
+            L("DATA DIVISION."),
+            L("WORKING-STORAGE SECTION."),
+            L("01  A PIC 9 VALUE 1."),
+            L("    88 A-OK VALUE 1 2"),
+            L("        3 THRU 5."),
+            L("01  B PIC X VALUE \"B\"."),
+            L("PROCEDURE DIVISION."),
+            L("MAIN-PARA."),
+            L("    STOP RUN.")));
+        Assert.True(r.Success, string.Join("\n", r.Errors));
+    }
 }

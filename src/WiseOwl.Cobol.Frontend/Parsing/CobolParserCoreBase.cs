@@ -809,6 +809,48 @@ public abstract class CobolParserCoreBase : Parser
         return null;
     }
 
+    /// <summary>⛔ A WORD §2023:8.9 RESERVES, WRITTEN AS THE NAME OF AN ENTRY WHOSE CLAUSE READING TOOK IT (kb/Work PB382) — the word
+    /// and its §2023:8.9 message when the syntax error at <paramref name="offending"/> falls in an entry that wrote no name, the
+    /// word right after the entry's level-number is a keyword reserved at this edition (any keyword, gated or not:
+    /// <see cref="ReservedWordHere"/>), and the entry reads COMPLETELY with that word taken as a user-defined word (retyped
+    /// <c>IDENTIFIER</c> in a copy, so it stands in the entry's <c>dataName</c>); else null. ISO §2023:8.3.2.1 1) and
+    /// §1985:IV.4.2.2.1.3: a reserved word may not be a user-defined word, and a data-name is one.
+    /// <para>The name slot of an entry is optional (§1985:VI.5.3.2 Format 1 brackets <c>data-name-1 | FILLER</c>; §2023:13.16.3
+    /// SR4), so a word that BEGINS a clause is read as that clause: <c>01 CLASS PIC X.</c> parsed as the CLASS clause and died at
+    /// PIC, where a class-name was due, with a COBOL5506 that never named the word, while <c>01 MOVE PIC X.</c>, whose word begins
+    /// no clause, dies AT the word and has always drawn COBOL0901 (<c>OffendingPosition.EntryNameIsDue</c>, kb/Work PB4604). The
+    /// question is the grammar's, never a list of the words that begin a clause, so a clause a format gains tomorrow is covered.
+    /// A genuine fault elsewhere in the entry fails the re-read too, and its own report stands. <c>Through</c> is the stream index of
+    /// the entry's separator period: the one fault covers the entry. Read-only.</para></summary>
+    internal (IToken Word, string Message, int Through)? ReservedEntryName(IToken offending)
+    {
+        for (var ctx = Context; ctx is not null; ctx = ctx.Parent as ParserRuleContext)
+        {
+            if (!Cst.ClosedFormats.LevelNumberEntryRules.Contains(RuleNames[ctx.RuleIndex])) continue;
+            if (ctx.Start is not { } level
+                || ctx.children?.OfType<ParserRuleContext>().Any(c => c.RuleIndex == CobolParserCore.RULE_dataName) == true)
+                return null;
+            var span = new List<IToken>();
+            for (int i = level.TokenIndex; i < TokenStream.Size; i++)
+            {
+                var t = TokenStream.Get(i);
+                if (t.Type == TokenConstants.EOF) break;
+                if (t.Channel != Lexer.DefaultTokenChannel) continue;
+                span.Add(t);
+                if (t.Type == CobolLexer.DOT && t.TokenIndex >= offending.TokenIndex) break;
+            }
+            if (span.Count < 3 || span[1] is not { } word || word.TokenIndex >= offending.TokenIndex
+                || ReservedWordHere(word) is null || ClosesAHeader(span[2].Type))
+                return null;
+            var copies = span.Select(t => (IToken)new CommonToken(t)).ToList();
+            ((CommonToken)copies[1]).Type = CobolLexer.IDENTIFIER;
+            return Reading(copies, ctx.RuleIndex, out _) is { Next: TokenConstants.EOF }
+                ? (word, UserWordViolationOf(word), span[^1].TokenIndex)
+                : null;
+        }
+        return null;
+    }
+
     /// <summary>Whether <paramref name="span"/>, the tokens of one sentence, reads completely as <paramref name="rule"/> with its
     /// token <paramref name="at"/> taken as a user-defined word (the token is retyped <c>IDENTIFIER</c> in a copy) and that
     /// word then stands in a <c>procedureName</c> (<see cref="NamesAProcedure"/>): the one question "is this reserved word
@@ -1565,6 +1607,38 @@ public abstract class CobolParserCoreBase : Parser
             if (a is null || b is null || a.StopIndex + 1 != b.StartIndex) return false;
         }
         return true;
+    }
+
+    /// <summary>The indexes of the tokens that begin their fixed-form line in area A, at an edition whose reference format has
+    /// areas (<see cref="Preprocessor.FixedFormAreas.LineOpeningsInAreaA"/>; kb/Work PB6011), set by the front end beside
+    /// <see cref="Edition"/> for every parse; empty from COBOL-2002 on, in free form, and for a parser no front end set up.</summary>
+    public IReadOnlySet<int> AreaAOpenings { get; set; } = System.Collections.Frozen.FrozenSet<int>.Empty;
+
+    /// <summary>Does <paramref name="token"/> begin its fixed-form line in area A (<see cref="AreaAOpenings"/>)? The one
+    /// question the parse and its error recovery (<c>CobolErrorStrategy</c>) ask of a token's reference-format area.</summary>
+    internal bool OpensAreaA(IToken token) => AreaAOpenings.Count != 0 && AreaAOpenings.Contains(token.TokenIndex);
+
+    /// <summary>⛔ THE INTEGER AT <c>LT(1)</c> IS THE NEXT ENTRY'S LEVEL-NUMBER, SO NO OPERAND OF THIS ENTRY TAKES IT (kb/Work
+    /// PB6011). In the COBOL-85 reference format "each Data Division entry begins with a level indicator or a level-number"
+    /// and "the last clause is always terminated by a separator period" (§1985:IV.7.4); an entry continued on a later line
+    /// goes on in area B (§1985:IV.7.3.3: "Successive sentences or entries either begin in area B"), and only an area-A
+    /// item or a level-number begins its line in area A ("each new data description entry may begin any number of positions
+    /// to the right of margin A", §1985:IV.7.4). So an integer that begins its line in area A inside the data division is a
+    /// level-number: <c>01 A PIC X VALUE "A"</c> then <c>01 B PIC X.</c> has lost its period before the 01, and the VALUE
+    /// list must not read <c>01 B</c> as two more operands. Every grammar alternative that takes an INTEGERLIT as an
+    /// operand opens with <c>{!nextEntryOpensHere()}?</c> (<c>AreaAOpeningDriftTests</c> holds the inventory), so the entry
+    /// ends there and the recovery reports the one missing period. A left-edge predicate: it steers prediction. False at
+    /// every edition without areas (<see cref="AreaAOpenings"/> is empty), so the parse there is unchanged.</summary>
+    protected bool nextEntryOpensHere()
+        => AreaAOpenings.Count != 0 && TokenStream.LT(1) is { Type: CobolLexer.INTEGERLIT } token
+           && AreaAOpenings.Contains(token.TokenIndex) && InsideTheDataDivision();
+
+    /// <summary>Is the parser inside the data division? Asked by <see cref="nextEntryOpensHere"/> only.</summary>
+    private bool InsideTheDataDivision()
+    {
+        for (RuleContext? context = Context; context is not null; context = context.Parent)
+            if (context.RuleIndex == CobolParserCore.RULE_dataDivision) return true;
+        return false;
     }
 
     /// <summary>⛔ A NUMERIC LITERAL THAT IS THE LEFT OPERAND OF AN ARITHMETIC OPERATOR IS NOT A STANDALONE ARGUMENT

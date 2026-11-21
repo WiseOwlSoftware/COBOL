@@ -43,7 +43,7 @@ The measured population before the door opened was **eight rows** — every CONF
 except `DOC-A.1-93`, which is a real defect (`kb/Work/PB383`).
 
 A **derivation** is a determination recorded in `docs/CONFORMANCE.md` §8, keyed by the inventory `rule-id`,
-naming ONE of six arms and signed by a dated decision. It stands in place of §1(c) **and of nothing else**: (a) and
+naming ONE of seven arms and signed by a dated decision. It stands in place of §1(c) **and of nothing else**: (a) and
 (b) are paid in full, and a `kind: DOC` row still pays its register anchor and its observability cost.
 
 **Every edition's rows** (`kb/Work/PB5374`). §8 holds rows of every held edition, keyed `DRV-<rule-id>`; a rule-id
@@ -93,6 +93,7 @@ record of the row's rule-id in it reading UPHELD. An overturned derivation becom
 | `definitional` | the rule DEFINES a property of the user's program (§2023:4.4's conforming run unit) and obliges the implementation to nothing — owner decision `kb/Work/R43` item 4, extending `PB386` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must open `defines` and state the property and whose it is (≥20 characters after the word). A rule whose subject is the implementation or the implementor is never this arm. |
 | `undefined-in-rule` | the rule's OWN text declares the result undefined or unpredictable — how an edition with no Annex A.2 says it (the 1985 standard); `kb/Work/PB5373` class 1 | **MECHANICAL.** The `Names` cell is a quotation in double quotes, of four or more words, containing `undefined` or `unpredictable`; the checker requires it to lie inside the row's own catalog text in its edition (each whitespace run compared as one space). A row an Annex A.2 item resolves to is refused here: it keeps `undefined-A.2`, so one fact has one arm. |
 | `unfalsifiable-under-determination` | a term of the rule is the implementor's to settle (the standard says so), this implementation's determination of that term is documented in the conformance register, and under that meaning of the term ALONE the rule's requirement is true of every state a compiler could produce, **any behaviour, a defective one included**, so no program can fail on it; `kb/Work/PB5831` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell is the register key of the determination, alone: a section 7 item (`DOC-A.1-<n>`) or a section 3 determination (`D-<NAME>`); the checker requires it to be a row of the register, read through the extract the DOC anchors read (`Schema.register_items`, `Schema.determination_keys`; no second parser). The argument cites the words that leave the term to the implementor, quotes the determination of the term, says why every behaviour satisfies the rule under that meaning alone, and that the derivation is CONTINGENT on it. |
+| `informative` | EVERY sentence of the rule INFORMS the reader of the standard and requires nothing of a program or of an implementation: it describes the standard's own text (its notation, organization, figures, tables, kinds of rule, the scope of a section), or it explains a requirement that another rule states; no behaviour of any compiler, a defective one included, and no program makes it false; `kb/Work/PB6012` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell takes one of two forms, each ending in a quotation in double quotes, of four or more words, that must lie inside the row's own catalog text in its edition (the comparison `undefined-in-rule` uses): `describes the standard's <what>: "<quotation>"` (`<what>` at least ten characters), or `explains <rule-id>: "<quotation>"`, the rule-id a rule of the row's own edition's catalog and not the row's own. The quotation is the words that make the document, or the reason, the sentence's subject. Never mechanical: a `claude:` signature needs its UPHELD refuter record (refusal 8). |
 
 **What is REFUSED, by the writer and by the gate.** Each of these is a bound the owner set, encoded rather than
 described:
@@ -114,7 +115,29 @@ described:
    item resolves to;
 8. an ARGUED arm signed by a signer whose `refuter` is set with **no UPHELD refuter record** of the row;
 9. an `unfalsifiable-under-determination` arm naming a key that is **not a row of the conformance register**
-   (code `determination-not-in-register`, `kb/Work/PB5831`).
+   (code `determination-not-in-register`, `kb/Work/PB5831`);
+10. an `informative` arm whose quotation is **not in the row's own catalog text** (code `quote-not-in-rule`), or whose
+    `explains` names a rule that is **not of the row's own edition's catalog** (`unknown-rule`) or **the row itself**
+    (`explains-itself`), `kb/Work/PB6012`.
+
+⚖ **The bound on `informative`: every sentence, and the refuter writes the violation if one exists** (`kb/Work/PB6012`).
+The arm closes a row the standard wrote to inform its reader: ten 1985 rows describe the document (1985-GR-IV.1-p1 on
+the section's scope, boxes and flowcharts, the paragraphs of IV.2 and IV.3 on general formats, the ellipsis and the kinds
+of rule, 1985-GR-VI.6.3.4-p2 and 1985-GR-VI.6.4-p1 on figures and what a paragraph holds, and the three XIII.3.10 rows on
+the presentation rules tables), and 1985-GR-IV.4.3.7-p2 gives the reason for alignment on natural boundaries. A class
+of `not-a-rule` would take them out of the denominator, and section 3 point 3 closes that door on purpose: no textual
+test separates informative prose from a rule (precision 73 to 77 %), so each such row stays a row and closes on a signed,
+refuter-upheld derivation. `definitional` does not fit: its claim is a property of the USER'S program. The bounds:
+- EVERY sentence of the row must inform. A row with one sentence a program or a compiler can violate takes a test for
+  that sentence and no derivation; the refuter reads the whole row, sentence by sentence, and says so in its record.
+- The refuter's job, as on `unfalsifiable-under-determination`, is to describe a behaviour of a compiler, or a program,
+  that would violate a sentence. If one exists the derivation is OVERTURNED and the row takes a test.
+- A sentence that RESTATES a requirement (an example that is itself a rule elsewhere, as "qualification is not allowed
+  in level 1 of the Nucleus" in IV.1 p1) is informative here only because the requirement has its own row, and the
+  argument names that row.
+- It is edition-local like every arm: the 2002 and 2023 texts have such prose too (2023 clause 5, "Description
+  techniques"), and each such row is argued and refuted on its own edition's words when its mint reaches it, with no
+  change to any tool. Refusals 1, 2 and 3 apply unchanged.
 
 ⚖ **The bound on `unfalsifiable-under-determination`: the term alone, never the behaviour.** Every rule a correct
 compiler implements is true in every state that compiler reaches; that is not this arm. The test is whether ANY
@@ -313,6 +336,11 @@ they close nothing.
      next, since the 1985 PDF prints a list one item per line (§1985:IV.4.2.2.1.1, page 152) and its transcription keeps
      no blank line between them. A clause may print more than one list (§1985:IV.4.2.2.1.1 two, §1985:X.1.3.8 five):
      a list starts where an item's number is not the last item's next, and point 2 numbers each (kb/Work PB5998).
+     A list is HELD (no unit) PER LIST, by its marker, never per clause (kb/Work PB6001): a content-keyed block
+     disposition holds the list its scan measured, which is the edition's rule ordinal (1985's `(n)`, ISO's `n)`/`n.`),
+     and a later list of the same clause printed in another marker is units (§1985:IV.4.2.2.1.3, page 154: its `(n)`
+     list is disposed `not-rules`, its "1. required words" list is `L2.1` to `L2.3`); a rule's own text holds every list
+     (`text_units.segment`'s `held`). Each unit records the lines its text holds (`Unit.lines`), a held list's never.
    - **Not units at all**: a NOTE or EXAMPLE (it stays inside the unit it follows), a general format, and code. Text of
      these kinds that the transcription failed to mark (an unmarked NOTE, a format line outside its fence) is a
      transcription defect: it is repaired as the page prints it (`scripts/render-spec-page.py <page>`) in the landing of
@@ -334,7 +362,11 @@ they close nothing.
      both cells empty (ALLOCATE, CANCEL, CLOSE, ...) are expected to be `restates` of their statement's general-format
      row, checked mechanically (that row holds no conditional phrase and no `END-` terminator) and refuted. The
      fourteen held 1985 records (step PB5454) name the Table 12 rows of their statements and §2023:14.5.1's paragraph
-     rows as their 2023 targets.
+     rows as their 2023 targets. A table the transcription holds in HTML markup (the 1985 text holds sixteen) is read
+     as a `|` table is, each `<tr>` a row and its first the header (`text_units.html_rows`: one table reading for both
+     markups; kb/Work PB6001, §1985:XIII.3.10.7 and 3.10.9). A caption printed right BELOW a table that had none above
+     numbers it, as the 1985 text captions its tables ("Table 2: Page Heading Group Presentation Rules Table"), unless
+     another table of the clause has that number; a table under another header after it is not its continuation.
 2. **The ids.** A margin paragraph's row is `<kind>-<clause>-p<n>` (2023, PB284's form, unchanged) and
    `<year>-<kind>-<locator>-p<n>` (1985, 2002), where `n` is the paragraph's position among ALL the clause's margin
    paragraphs, counted from its heading, whether or not each has a row: the number is the text's, so deciding one
@@ -403,7 +435,9 @@ they close nothing.
      the refuter record of an argued derivation (one form for every refuter record a checker reads; whichever of
      PB5374 and PB5449 lands first builds it). The RULE CATALOGS audit refuses a disposition without its record, a
      record that is not UPHELD, and a record whose digest is not the unit's; and it holds, per class, that the number
-     of `not-a-rule` dispositions equals the number of UPHELD records keyed to them. The same question one level up,
+     of `not-a-rule` dispositions equals the number of UPHELD records keyed to them. A record is keyed to its unit by
+     the unit's KEY (its clause, its digest, its order; `text_units.keyed_to`), never by the unit's label, which a
+     repair before it in the clause moves while its words and its record stand (kb/Work PB6001). The same question one level up,
      the manifests' existing block disposition `not-rules` (a whole numbered list kept out of the denominator with a
      free-text reason: 4 in 2023, 37 in 1985), takes the same record: its entries are refuted in steps PB5450 (2023)
      and PB5452 (1985), and the audit refuses one without it.
@@ -536,10 +570,14 @@ of the remaining text (re-stamped, its notes marked `split-recheck:`), withdrawi
 held editions' change records (`next.to` and `next.digests` renamed for a move, a parent's digest re-stamped for a
 split, but only for a record decided against the parent's old text: one already stale, or whose `reason` quotes eight
 consecutive words of carved text, is left STALE for adjudication). The writer copies each applied batch that holds a
-split to the edition's tracked split batches (`rule_moves.SPLIT_DIR`, `docs/rearchitecture/spec-splits-<year>/<the
-batch file's name>`, its splits alone) in the same operation (`rule_moves.split_copies`, kb/Work PB6002): the WITNESS
-LOSS audit reads that copy to tell a parent a split withdrew from a hand edit (`audit_witness_loss.recorded_splits`), and
-a copy whose file holds another batch's splits is refused before anything is written. A
+move or a split to the edition's tracked moves (`rule_moves.MOVES_DIR`, `docs/rearchitecture/spec-moves-<year>/<the
+batch file's name>`, its moves and splits alone) in the same operation (`rule_moves.tracked_copies`, kb/Work PB6002,
+PB6020): the WITNESS LOSS audit reads a split there to tell a parent a split withdrew from a hand edit
+(`audit_witness_loss.recorded_splits`), and each move names the read records (section 10.6) that read its OLD id when it
+was applied (`reads`). A read record is sealed by its digests, so it is never re-keyed: `lineage_reads.load` reads those
+slices' reads of the old id under the new one (`rule_moves.recorded_moves`, each batch's moves one simultaneous
+renaming), and a slice imported after the move means by the old id whatever rule holds it then. A copy whose file holds
+another batch is refused before anything is written. A
 regeneration that relabels a decided row unit writes the move batch itself (`text_units.moves`,
 `TestResults/rule-moves/<year>.json`) and prints the command; until it is applied the view refuses the moved records.
 The margin levels of point 4 are `scripts/spec/measure_margin_levels.py`, one mechanism for every edition: the
@@ -1138,7 +1176,7 @@ row, cross-checked against a register PARSED by one reader per language.
 
 | part | file | owns |
 |---|---|---|
-| the rules, as DATA | `tests/version-matrix/inventory-schema.json` → `derivation` | the record field, the anchor template, the §8 heading, the signers and signatures (one per dated decision), and the six arms with their `names-pattern` + `check` |
+| the rules, as DATA | `tests/version-matrix/inventory-schema.json` → `derivation` | the record field, the anchor template, the §8 heading, the signers and signatures (one per dated decision), and the seven arms with their `names-pattern` + `check` (each arm's `argued` flag is what the read path reads, `lineage_reads.argued`, so an argued arm a read proposes waits for its refuter: `informative`, `kb/Work/PB6012`) |
 | the register | `docs/CONFORMANCE.md` **§8** | the determinations themselves — one row per closed rule, keyed `DRV-<rule-id>` |
 | the register parser | `conformance_source.Conformance.rows_at` / `tests/_shared/ConformanceRegister.cs` | ONE markdown-table reader per language, addressing a section by its NUMBER and stopping at the section's next heading — §7 and §8 are two calls, not two parsers |
 | the undefined-element list | `tests/version-matrix/annex-a2-undefined.json`, generated by `scripts/spec/extract_annex_a2.py` | Annex A.2's 66 items, each item's own trailing citation, and the catalog `rule-id`s that citation RESOLVES to |
@@ -1334,11 +1372,33 @@ kb/Work PB5256), its change records do not yet.
   (`admitted_kinds`: one kind, a per-item map, a per-sub-list map whose entry may itself be a per-item map, as
   VI.6.3.1.1.2 needs), and `not-rules` records why its list states no requirement (a worked example, an index, a
   technique the text calls one, a glossary entry, the history and the element lists of the appendices, a verbatim
-  restatement of a module paragraph that is admitted). The blocks whose heading names rules that KINDS does not type
+  restatement of a module paragraph that is admitted), and `units` decides the paragraph UNIT BY UNIT
+  (`text_units.UNITS`, kb/Work PB6001): its whole text, its lists included, is segmented into units wherever it lies
+  (outside the normative region too), each disposed like any other. It is the disposition of a block whose refuter
+  overturned `not-rules` where neither admitting the list nor keeping it out is right: §1985:III.2, the glossary, whose
+  rule sentences ("integer must be a numeric literal ...") are no item of its lists, and §1985:B.2.1, whose 107 items
+  summarise changes and mostly restate module rules but item (9) states one no row holds ("50 levels of
+  qualification"). The blocks whose heading names rules that KINDS does not type
   ("Standard Alignment Rules", "Formation and Evaluation Rules", the Report Writer's counter and presentation rules,
   IV.4.2.1 Separators and VI.5.15.6) are entries of the same manifest: there is no second adjudication table in the code.
   `EXCLUDED_BLOCKS` (IV.3, VI.6.4, XIII.3.10) and `KNOWN_EMPTY_BLOCKS` (VI.5.9.6) stay, as in the 2023 arm. The Index and
   the appendices open no rule block: a rule-block heading there is reported.
+- **The catalog's prose holes** (`scripts/spec/catalog_prose_holes.py`, kb/Work PB5924's measure, PB6001's wiring;
+  the fourth term of `edition_status.py`). The unit is a PRINTED paragraph of the normative region (Sections IV, VI to
+  XVI and Section A) as `rule_catalog_1985.parse` walks it, its line recorded; tables in either markup, captions and
+  labels (`RULE_LABEL`), a page's repeated section title, headings, `<pre>` blocks and fragments are no prose, as the
+  segmentation reads them. A printed paragraph is COVERED when a row at or under its locator holds every sentence;
+  or when the unit whose text holds its line (`Unit.lines`) is disposed `restates` or `not-a-rule` on an UPHELD refuter
+  record of the unit's key (`text_units.record_refusal`); or when no unit holds it and its clause's `not-rules` block
+  stands on its record at the digest the text has now (`text_units.block_refusal`: the block's held list). It reads the
+  one store, the content-keyed manifest, through the one segmentation (`extract_rule_catalog.units_1985`): no second
+  reader and no list of paragraphs. A paragraph in a pending unit, in a unit whose record does not stand, or in no
+  unit and no recorded block is counted; the deontic floor and the elsewhere lead are measured over what is counted,
+  and `Holes.discounted` reports each cover by its cause. On 2026-11-21 (branch train85b-cat): 357 before the wiring,
+  17 after (3,862 printed paragraphs covered by a row, 235 by a `restates`, 52 by a `not-a-rule`, 22 by a `not-rules`
+  block; 31 are no prose: 21 lines of the two HTML tables, 5 captions, 5 section titles); the 17 are the pending
+  §1985:IV.4.2.2.1.3 p3 and the 16 printed paragraphs of §1985:VI.6.18.5, a paragraph headed "Examples" that the
+  segmentation keeps out of the units (`EXAMPLES_TITLE`) with no refuter record, so nothing establishes its cover.
 - **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
   both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat.
 - **The scan's missing pages come from another scan** (kb/Work PB4952, PB5789). Our scan lacks printed pages XIII-30,

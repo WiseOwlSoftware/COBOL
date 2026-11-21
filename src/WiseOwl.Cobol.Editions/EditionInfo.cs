@@ -165,6 +165,22 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     public string Cite(string y1985, string later, string? y2002 = null, string? y2014 = null) =>
         Year < 2002 ? y1985 : Year < 2014 ? y2002 ?? later : Year < 2023 ? y2014 ?? y2002 ?? later : later;
 
+    /// <summary>The rule <see cref="Cite"/> chooses, as a message prints it: through <see cref="Designated"/>, so <c>ISO §2023:14.9.37.3 SR7</c>
+    /// from COBOL-2002 on and the bare <c>§1985:VI.6.22.3 SR1</c> at COBOL-85 (kb/Work PB6013).</summary>
+    public string CiteRule(string y1985, string later, string? y2002 = null, string? y2014 = null) =>
+        Designated(Cite(y1985, later, y2002, y2014));
+
+    /// <summary>⛔ A CITATION AS A MESSAGE PRINTS IT, THE STANDARD NAMED BY THE CITATION'S OWN EDITION (kb/Work PB6013): a rule of
+    /// ISO/IEC 1989 (its 2002, 2014 and 2023 editions) is preceded by <c>ISO </c>; a rule of American National Standard
+    /// X3.23-1985 (<see cref="StandardName"/> at 85) or of its 1989 intrinsic-function amendment, ANSI X3.23a-1989, is printed bare in
+    /// its edition form (<c>§1985:VII.2.7.3 SR1</c>, <c>§1989:A.2.2</c>), which names it: the 1985 text this compiler reads is ANSI's (specs/ANSI_COBOL_1985.md). The one place
+    /// a message's citation takes its designation, so no message types <c>ISO</c> in front of a citation that can be 1985's
+    /// (<c>StandardDesignationDriftTests</c>). An empty citation stays empty.</summary>
+    public static string Designated(string citation) =>
+        citation.Length == 0 || citation.StartsWith("§1985:", StringComparison.Ordinal) || citation.StartsWith("§1989:", StringComparison.Ordinal)
+            ? citation
+            : "ISO " + citation;
+
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one
     /// predicate behind the grammar's <c>{isXXXX()}?</c> introduction gates and every version-varying bind
     /// decision.</summary>

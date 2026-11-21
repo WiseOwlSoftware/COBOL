@@ -47,6 +47,23 @@ public static class EditionCitationNet
         .Select(g => g.Key)
         .ToHashSet(StringComparer.Ordinal);
 
+    /// <summary>The 1985 clauses of each code whose every descriptor records the 1985 rule its message cites at 85
+    /// (<see cref="DiagnosticDescriptor.Rule1985"/>, several joined by <c> / </c>; kb/Work PB5993): asked at the clause, so a family
+    /// descriptor whose message names another rule of a clause it records is not mis-recorded.</summary>
+    public static IReadOnlyDictionary<string, string[]> Rules1985 { get; } = DiagnosticCatalog.All
+        .GroupBy(d => d.Code, StringComparer.Ordinal)
+        .Where(g => g.All(d => d.Rule1985 is not null))
+        .ToDictionary(g => g.Key,
+            g => g.SelectMany(d => d.Rule1985!.Split(" / ", StringSplitOptions.TrimEntries)).Select(r => r.Split(' ')[0])
+                .Distinct(StringComparer.Ordinal).ToArray(),
+            StringComparer.Ordinal);
+
+    /// <summary>The lines whose code's descriptors record their 1985 rule and that cite a 1985 rule but none of those: the catalog
+    /// says one rule and the message another (kb/Work PB5993).</summary>
+    public static IReadOnlyList<string> MisRecorded(IEnumerable<string> diagnostics) =>
+        [.. diagnostics.Where(d => Cobol85Citation.IsMatch(d) && CodeOf(d) is { } code
+            && Rules1985.TryGetValue(code, out var rules) && !rules.Any(r => d.Contains(r, StringComparison.Ordinal)))];
+
     /// <summary>Whether a rendered diagnostic cites a later edition's rule and no 1985 rule.</summary>
     public static bool CitesOnlyALaterEdition(string diagnostic) =>
         LaterEditionCitation.IsMatch(diagnostic) && !Cobol85Citation.IsMatch(diagnostic) && !EditionGate.IsMatch(diagnostic);
@@ -67,5 +84,9 @@ public static class EditionCitationNet
         Assert.True(offences.Count == 0,
             $"{subject}: a diagnostic at --std 85 cites only a later edition's rule (kb/Work PB4950): cite the 1985 rule through "
             + "EditionInfo.Cite, or record in the descriptor's No1985Rule why 1985 has none:\n  " + string.Join("\n  ", offences));
+        var misRecorded = MisRecorded(diagnostics);
+        Assert.True(misRecorded.Count == 0,
+            $"{subject}: a diagnostic at --std 85 cites a 1985 rule its descriptor's Rule1985 does not record (kb/Work PB5993): make "
+            + "the descriptor's Rule1985 the rule the message cites:\n  " + string.Join("\n  ", misRecorded));
     }
 }

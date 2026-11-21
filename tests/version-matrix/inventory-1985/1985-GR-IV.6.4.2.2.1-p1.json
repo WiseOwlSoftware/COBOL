@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.2.1-p1",
+ "rule-digest": "fd4b7fa3e25f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitProcedureDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
+ "test-ref": "conformance:cases/IV.6.4.2.2@1985-Compiler-Directing-Statements-and-Compiler-Directing/1985-GR-IV_6_4_2_2_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler correct at 85 with its probe (p05_directing.cob), placed as the row's own test with the library texts the reader staged (P05CPY; run_probe.py could not stage them before kb/Work PB6016, so the import left the row GAP); its expected output is the reader's judged run, equal on this build.  The read: 'The compiler directing verbs are COPY, ENTER, REPLACE, and USE ... A compiler directing statement causes the compiler to take a specific action during compilation.' (Amendment 2 text). No 2023 pointer states this list (the candidates are COBOL-WORDS/directive rules, wording only). COPY, REPLACE and USE are accepted and act at compile time; ENTER is refused under the implementor option of §1985:I.1.5.2.5.5 ('may include the ENTER statement or not, at the option of the implementor'), so the row's ENTER part is closed by that option, not by an accepted program. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.2.2.1; COPY/REPLACE preprocessing; ENTER statement grammar"
+}

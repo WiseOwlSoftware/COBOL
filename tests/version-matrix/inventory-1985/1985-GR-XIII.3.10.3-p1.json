@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.3-p1",
+ "rule-digest": "0a8eb5c91992",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIII.3.10.3-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-XIII.3.10.3-p1); the code location is where the compiler meets the rule's subject. The read: S1 says column 1 of the tables uses a shorthand for LINE NUMBER sequences. S2 is a lead-in to the abbreviations. The meaning of each abbreviation, which classifies a report group's LINE NUMBER clauses and so decides which rules apply, is carried by 1985-GR-XIII.3.10.3-1 ('A'), -2 ('R'), -3 ('NP') and -p2 (combinations). These two sentences only announce the notation; no program or RWCS behaviour can violate an announcement of the document's notation."
+}

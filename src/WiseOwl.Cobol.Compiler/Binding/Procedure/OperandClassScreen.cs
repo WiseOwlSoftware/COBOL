@@ -191,13 +191,13 @@ internal static class OperandClassScreen
         IntrinsicResultType.OperandCategory(op) is PicCategory.Numeric
             ? "a numeric function-identifier, and " + edition.Cite(
                 "\"A function-identifier which references an integer or numeric function may be used only in an arithmetic "
-                + "expression\" (ISO §1985:IV.4.3.8.3.3 SR4)",
+                + "expression\" (§1985:IV.4.3.8.3.3 SR4)",
                 "\"A numeric function shall not be specified where an integer operand is required\" (ISO §2023:8.4.3.2.3 SR11)")
             : $"a function-identifier of category {IntrinsicResultType.OperandCategory(op)?.ToString().ToLowerInvariant() ?? "unknown"}";
 
     private static void Report(EditionContext edition, OperandPosition pos, string text, string what) =>
         edition.Error(pos.Diagnostic,
-            $"{pos.Statement} {pos.Operand} '{text}' shall reference {pos.Requirement} (ISO {edition.Edition.Cite(pos.Rule1985 ?? pos.Rule, pos.Rule)}); "
+            $"{pos.Statement} {pos.Operand} '{text}' shall reference {pos.Requirement} ({edition.Edition.CiteRule(pos.Rule1985 ?? pos.Rule, pos.Rule)}); "
             + $"'{text}' is {what}");
 
     private static string Describe(Place p)

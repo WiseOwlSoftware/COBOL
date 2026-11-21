@@ -29,7 +29,11 @@
   "is judged at the newest held edition.",
   "",
   "The world's `determinations` are the register's section 3 keys (D-<NAME>), beside its section 7 `register-items`:",
-  "the keys an `unfalsifiable-under-determination` derivation may name (kb/Work PB5831)."
+  "the keys an `unfalsifiable-under-determination` derivation may name (kb/Work PB5831).",
+  "",
+  "The 1985 rules 1985-GR-IV.3.1-8x and 1985-GR-IV.4.3.7-9x are fabricated prose ABOUT the standard for the",
+  "`informative` arm (kb/Work PB6012): a quotation of the row's own text, a rule the row explains, and each refusal",
+  "the arm's check adds (quote-not-in-rule, unknown-rule for a missing and for another edition's rule, explains-itself)."
  ],
 
  "world": {
@@ -108,7 +112,25 @@
     "refuter": "—"},
    {"key": "DRV-1985-GR-VI.5.13.4-95", "arm": "unfalsifiable-under-determination", "names": "DOC-A.1-19",
     "argument": "a chained 1985 row's own derivation on the arm; refuted and upheld", "signature": "claude: 2026-11-12",
-    "refuter": "adjudication/pb5373-1985/refute.jsonl"}
+    "refuter": "adjudication/pb5373-1985/refute.jsonl"},
+   {"key": "DRV-1985-GR-IV.3.1-80", "arm": "informative", "names": "describes the standard's kinds of rule: \"rules that define or clarify the order\"",
+    "argument": "every sentence says what a syntax rule is; nothing a program or a compiler does can make it false", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-IV.4.3.7-81", "arm": "informative", "names": "explains 1985-GR-IV.4.3.7-82: \"additional machine operations in the object program may be required\"",
+    "argument": "the sentence gives the reason for the requirement 1985-GR-IV.4.3.7-82 states; refuted and upheld", "signature": "claude: 2026-11-12", "refuter": "adjudication/pb5373-1985/refute.jsonl"},
+   {"key": "DRV-1985-GR-IV.3.1-83", "arm": "informative", "names": "describes the standard's kinds of rule: \"rules that govern the run unit\"",
+    "argument": "a quotation that is not in the row's own text", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-IV.4.3.7-84", "arm": "informative", "names": "explains 1985-GR-IV.4.3.7-99: \"additional machine operations in the object program may be required\"",
+    "argument": "explains a rule no catalog carries", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-IV.4.3.7-85", "arm": "informative", "names": "explains GR-14.9.5.4-7: \"additional machine operations in the object program may be required\"",
+    "argument": "explains a rule of another edition's catalog", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-IV.4.3.7-86", "arm": "informative", "names": "explains 1985-GR-IV.4.3.7-86: \"additional machine operations in the object program may be required\"",
+    "argument": "explains itself", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-IV.3.1-87", "arm": "informative", "names": "describes the standard's kinds of rule: \"rules that define or clarify the order\"",
+    "argument": "argued, signed by the deciding session, with no refuter record", "signature": "claude: 2026-11-12", "refuter": "—"},
+   {"key": "DRV-1985-GR-IV.3.1-88", "arm": "informative", "names": "describes the standard's rules: \"rules that define or clarify the order\"",
+    "argument": "a <what> shorter than ten characters", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-IV.3.1-89", "arm": "informative", "names": "describes the standard's kinds of rule: \"rules that define or clarify the order\"",
+    "argument": "a chained 1985 row's own derivation on the arm; refuted and upheld", "signature": "claude: 2026-11-12", "refuter": "adjudication/pb5373-1985/refute.jsonl"}
   ],
   "register-items": ["DOC-A.1-19"],
   "determinations": ["D-WORLD"],
@@ -138,7 +160,17 @@
     "1985-GR-VII.4.7.4-17": "When a file is on a reel, the next reel is mounted.",
     "1985-GR-VII.4.7.4-18": "When the program to be canceled is not located, no action is taken.",
     "1985-GR-XIV.3.6.4-9": "If a program pointer is set to the program before it is canceled, a later reference to it is undefined.",
-    "1985-GR-XIV.3.6.4-10": "If a program pointer is set to the program before it is canceled, its later use is not stated here."
+    "1985-GR-XIV.3.6.4-10": "If a program pointer is set to the program before it is canceled, its later use is not stated here.",
+    "1985-GR-IV.3.1-80": "A syntax rule is one of the rules that define or clarify the order in which words are arranged.",
+    "1985-GR-IV.4.3.7-81": "Items are aligned on natural boundaries because additional machine operations in the object program may be required to reach an item that is not.",
+    "1985-GR-IV.4.3.7-82": "An item described as synchronized is aligned on the natural boundary the implementor specifies.",
+    "1985-GR-IV.3.1-83": "A syntax rule is one of the rules that define or clarify the order in which words are arranged.",
+    "1985-GR-IV.4.3.7-84": "Items are aligned on natural boundaries because additional machine operations in the object program may be required to reach an item that is not.",
+    "1985-GR-IV.4.3.7-85": "Items are aligned on natural boundaries because additional machine operations in the object program may be required to reach an item that is not.",
+    "1985-GR-IV.4.3.7-86": "Items are aligned on natural boundaries because additional machine operations in the object program may be required to reach an item that is not.",
+    "1985-GR-IV.3.1-87": "A syntax rule is one of the rules that define or clarify the order in which words are arranged.",
+    "1985-GR-IV.3.1-88": "A syntax rule is one of the rules that define or clarify the order in which words are arranged.",
+    "1985-GR-IV.3.1-89": "A syntax rule is one of the rules that define or clarify the order in which words are arranged."
    }
   },
   "refuter-records": {
@@ -147,7 +179,9 @@
     "1985-GR-VII.4.7.4-15": "UPHELD",
     "1985-GR-VII.4.7.4-17": "OVERTURNED",
     "1985-GR-VI.5.13.4-90": "UPHELD",
-    "1985-GR-VI.5.13.4-95": "UPHELD"
+    "1985-GR-VI.5.13.4-95": "UPHELD",
+    "1985-GR-IV.4.3.7-81": "UPHELD",
+    "1985-GR-IV.3.1-89": "UPHELD"
    }
   }
  },
@@ -332,6 +366,24 @@
 
   {"name": "PB5831: the argued arm under the deciding session's signature with NO refuter record is refused", "row": {"rule-id": "1985-GR-VI.5.13.4-94", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-94"}, "state": "GAP", "refusals": ["no-refuter-record"]},
 
-  {"name": "PB5831: a KEPT 1985 row whose chain is closed CLOSES on its own derivation of this arm", "edition": 1985, "row": {"rule-id": "1985-GR-VI.5.13.4-95", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "next": {"kind": "KEPT", "to": ["GR-14.9.5.4-11"]}, "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-95"}, "next-states": {"GR-14.9.5.4-11": {"state": "OK", "editions": "85,2002,2014,2023"}}, "state": "OK", "refusals": []}
+  {"name": "PB5831: a KEPT 1985 row whose chain is closed CLOSES on its own derivation of this arm", "edition": 1985, "row": {"rule-id": "1985-GR-VI.5.13.4-95", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "next": {"kind": "KEPT", "to": ["GR-14.9.5.4-11"]}, "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-95"}, "next-states": {"GR-14.9.5.4-11": {"state": "OK", "editions": "85,2002,2014,2023"}}, "state": "OK", "refusals": []},
+
+  {"name": "PB6012: the informative arm CLOSES an own-verdict row that describes the standard's own text, quoted from it, under the owner's signature", "row": {"rule-id": "1985-GR-IV.3.1-80", "section": "IV.3.1", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.3.1-80"}, "state": "OK", "refusals": []},
+
+  {"name": "PB6012: ... and one that explains a requirement another rule of its edition states, on an UPHELD refuter record under the deciding session's signature", "row": {"rule-id": "1985-GR-IV.4.3.7-81", "section": "IV.4.3.7", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.3.7-81"}, "state": "OK", "refusals": []},
+
+  {"name": "PB6012: a quotation that is not in the row's own text is refused", "row": {"rule-id": "1985-GR-IV.3.1-83", "section": "IV.3.1", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.3.1-83"}, "state": "GAP", "refusals": ["quote-not-in-rule"]},
+
+  {"name": "PB6012: an `explains` naming a rule no catalog carries is refused", "row": {"rule-id": "1985-GR-IV.4.3.7-84", "section": "IV.4.3.7", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.3.7-84"}, "state": "GAP", "refusals": ["unknown-rule"]},
+
+  {"name": "PB6012: an `explains` naming a rule of another edition's catalog is refused", "row": {"rule-id": "1985-GR-IV.4.3.7-85", "section": "IV.4.3.7", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.3.7-85"}, "state": "GAP", "refusals": ["unknown-rule"]},
+
+  {"name": "PB6012: a row that explains itself is refused", "row": {"rule-id": "1985-GR-IV.4.3.7-86", "section": "IV.4.3.7", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.3.7-86"}, "state": "GAP", "refusals": ["explains-itself"]},
+
+  {"name": "PB6012: the argued arm under the deciding session's signature with NO refuter record is refused", "row": {"rule-id": "1985-GR-IV.3.1-87", "section": "IV.3.1", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.3.1-87"}, "state": "GAP", "refusals": ["no-refuter-record"]},
+
+  {"name": "PB6012: a <what> shorter than ten characters is refused by its shape", "row": {"rule-id": "1985-GR-IV.3.1-88", "section": "IV.3.1", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.3.1-88"}, "state": "GAP", "refusals": ["names-shape"]},
+
+  {"name": "PB6012: a KEPT 1985 row whose chain is closed CLOSES on its own informative derivation", "edition": 1985, "row": {"rule-id": "1985-GR-IV.3.1-89", "section": "IV.3.1", "kind": "GR", "ordinal": 0, "subject": "fabricated", "next": {"kind": "KEPT", "to": ["GR-14.9.5.4-11"]}, "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.3.1-89"}, "next-states": {"GR-14.9.5.4-11": {"state": "OK", "editions": "85,2002,2014,2023"}}, "state": "OK", "refusals": []}
  ]
 }

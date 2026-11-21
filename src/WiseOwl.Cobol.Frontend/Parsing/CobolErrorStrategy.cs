@@ -142,6 +142,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             // the first sentence in source order names it, and the others are recovered silently, as the funnel's are accepted.
             repeatedProcedureWord = !(_procedureWordsNamed ??= []).Add(violation);
         }
+        // A reserved word written as the name of an entry whose clause reading took it (kb/Work PB382): `01 CLASS PIC X.` dies at
+        // PIC inside the CLASS clause; the entry reads whole with CLASS as its name, so the report names the word, and the rest
+        // of the entry is the misreading's orphaned tail.
+        else if (violation is null && recognizer is CobolParserCoreBase entryParser
+                 && entryParser.ReservedEntryName(at.Token) is { } entryWord)
+        {
+            (named, violation) = (entryWord.Word, entryWord.Message);
+            _lastReported = (_lastReported.From, Math.Max(_lastReported.Through, entryWord.Through));
+            _orphansItsTail = true;
+        }
         // The recovery consumes the named token as the operand it stood for only when it is the offending token itself.
         _reportedReservedWordUse = violation is not null && named == at.Token;
         // A refusal about an earlier token stands at that token (DiagnosticHint.Subject, kb/Work PB4301).
@@ -1639,7 +1649,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
             ? words.SynonymBy(written) : null;
         string rule = EditionOf(recognizer).Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10");
-        return $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO {rule}; docs/CONFORMANCE.md D-RW1)"
+        return $"{reserved} is a word this implementation reserves for a nonstandard extension ({EditionInfo.Designated(rule)}; docs/CONFORMANCE.md D-RW1)"
             + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
                 ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §2023:7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word"
                 : isSynonym ? $" and '{Truncate(written, 40)}' is its synonym here (ISO §2023:7.3.10.4 GR2), so neither is a user-defined word"
@@ -1744,12 +1754,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                         "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase: the "
                         + "general format brackets it as a single phrase FOLLOWING the repeated WHEN group, and an "
                         + "ellipsis applies only to the portion between the delimiters immediately to its left "
-                        + CiteAt(recognizer, "(ISO §1985:VI.6.13.2, with ISO §1985:IV.2.1.5).",
+                        + CiteAt(recognizer, "(§1985:VI.6.13.2, with §1985:IV.2.1.5).",
                             "(ISO §2023:14.9.13.2 / §2023:14.9.28.2 Format 3, with ISO §2023:5.2.7)."), 0)
                     : new(Diagnostics.DiagnosticDescriptors.COBOL2072,
                         "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
                         + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
-                        + "it (ISO " + EditionOf(recognizer).Cite("§1985:IV.2.1.4, with §1985:VI.6.13.2",
+                        + "it (" + EditionOf(recognizer).CiteRule("§1985:IV.2.1.4, with §1985:VI.6.13.2",
                             "§2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3") + ").", 0));
         }
 
@@ -1830,7 +1840,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 + "the verb — Format 1 is 'MOVE { identifier-1 | literal-1 } TO { identifier-2 } …' and Format 2 "
                 + EditionOf(recognizer).Cite(
                     "is 'MOVE { CORRESPONDING | CORR } identifier-1 TO identifier-2' — so no format admits a "
-                    + "CORRESPONDING phrase after a sending operand (ISO §1985:VI.6.19.2).",
+                    + "CORRESPONDING phrase after a sending operand (§1985:VI.6.19.2).",
                     "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
                     + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2)."), 0));
 
@@ -1853,7 +1863,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 $"The {endedStatement} statement ends before this token: no general format of {endedStatement} "
                 + "prints it after what is written, and no missing period would let it begin the next sentence. "
                 + CiteAt(recognizer,
-                    "Clauses must be written in the sequence given in the general formats (ISO §1985:IV.2.1).",
+                    "Clauses must be written in the sequence given in the general formats (§1985:IV.2.1).",
                     "The words, phrases, clauses, punctuation, and operands in each general format shall be written in the "
                     + "compilation group in the sequence given in the general format (ISO §2023:5.2.1)."), 0));
 
@@ -1963,12 +1973,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // ⛔ At the entry-name slot the question is OffendingPosition.PeriodIsMissingBeforeTheEntrySlot, the one the slot itself
         // asks (kb/Work PB4706). The expected set above is predicate-blind, so it holds a word the name's predicate refused
         // (CobolParserCoreBase.noHeaderWrittenHere: LOCAL-STORAGE before SECTION), and that word is the missing period's too.
+        // ⛔ And at a token that begins its fixed-form line in area A the reference format answers what the expected set cannot
+        // (OffendingPosition.PeriodIsMissingBeforeAnAreaAOpening, kb/Work PB6011): the parse refused it as an operand, so the
+        // predicate-blind set holds it and is read as null above.
         if (!(token.Text is { } spelled && CobolKeywords.StartsWith(spelled, "END-"))
             && !HasStructuralHint(hints)
             && !(recognizer is CobolParserCoreBase { CobolWords.IsEmpty: false } directed
                  && PreviousDefault(stream, token.TokenIndex) is { } previousWord
                  && directed.CobolWords.DirectingStatementSynonymOf(WrittenSource.Of(previousWord)) is not null)
-            && (at.PeriodIsMissingBeforeTheEntrySlot || expected?.Contains(CobolLexer.DOT) == true && at.APeriodLetsTheSentenceFollow()))
+            && (at.PeriodIsMissingBeforeTheEntrySlot || at.PeriodIsMissingBeforeAnAreaAOpening
+                || expected?.Contains(CobolLexer.DOT) == true && at.APeriodLetsTheSentenceFollow()))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
         // ⛔ NO "A DATA-NAME IS EXPECTED HERE" / "A LITERAL VALUE IS EXPECTED HERE" GUESS (kb/Work PB3861). Hints 15
@@ -1998,8 +2012,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static string EmptyBlockMessage(string stmtName, EditionInfo edition)
         => $"The {stmtName} statement's general format shows an imperative-statement here that is not "
            + "bracketed, so at least one statement shall be specified: brackets are what license an "
-           + $"omission (ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2")}), and one alternative of a brace group shall be explicitly specified "
-           + $"(ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.3")}).";
+           + $"omission ({edition.CiteRule("§1985:IV.2.1.4", "§2023:5.2.6.2")}), and one alternative of a brace group shall be explicitly specified "
+           + $"({edition.CiteRule("§1985:IV.2.1.4", "§2023:5.2.6.3")}).";
 
     /// <summary>The name of the statement <paramref name="context"/> is, or of the innermost one around it, for a message
     /// (<c>EVALUATE</c>, <c>PERFORM</c>; <see cref="StatementName"/>).</summary>
@@ -2101,8 +2115,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
         // no separator, ISO §2023:8.3.5 2)), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
         // A word refused where its prediction failed is exempt (kb/Work PB3391, above).
-        bool beginsWhatFollows = probe.AfterPeriod.Contains(token.Type)
-                                 && CobolParserCoreBase.NumericLiteralWidth(stream, k) <= 1;
+        // A token that begins its fixed-form line in area A begins what follows the period whatever the walk collects: the
+        // reference format says so (OffendingPosition.OpensAreaA, kb/Work PB6011).
+        bool beginsWhatFollows = at.OpensAreaA
+                                 || probe.AfterPeriod.Contains(token.Type)
+                                    && CobolParserCoreBase.NumericLiteralWidth(stream, k) <= 1;
         return probe.Format is { } format && (refusedWord || !beginsWhatFollows)
             ? new Residue(format, probe.Production)
             : null;
@@ -2115,6 +2132,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static DiagnosticHint ResidueRefusal(Parser recognizer, OffendingPosition at, ClosedFormat closedFormat)
     {
         var run = at.ResidueRunOpening;
+        // ⛔ A RESERVED WORD WHERE COMPUTER-NAME-1 STANDS IS THE NAME WRITTEN AS SOMETHING THAT IS NONE (kb/Work PB5985, PB6011):
+        // `OBJECT-COMPUTER. GLOBAL.` and `SOURCE-COMPUTER. MERGE.` are refused here, before any error production can take the
+        // word, so the parse layer asks the one reading of the slot and says what ClosedFormatPass says of a literal there
+        // (COBOL7654), not that the word is a stray clause or paragraph.
+        // A user word there is not asked: the paragraph's own computerName would have taken it, so the parse refused it for what
+        // follows it (`OBJECT-COMPUTER. FOO IS 12.`, a clause shape with no clause word), which is the clause list's refusal.
+        if (run is null && at.Token.Type != CobolLexer.IDENTIFIER
+            && ClosedFormats.ComputerNameSlotAt(recognizer.Context, at.Token) is { } paragraph)
+            return new(new Diagnostics.DiagnosticDescriptor(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ComputerNameNotASystemName.Code,Diagnostics.DiagnosticSeverity.Error, "{0}"),
+                ClosedFormats.ComputerNameRefusal(WrittenResidueItem(recognizer, at.Token), paragraph, EditionOf(recognizer),
+                    reserved: true) + ".", 0, null, LeavesNoTail: true);
         return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                 Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
             closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token), at.OwnerName(),
@@ -2825,7 +2853,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// </list></summary>
     private static string? SearchFormatShapeMessage(Parser recognizer, IToken token, ITokenStream stream)
     {
-        string formats = " ISO " + CiteAt(recognizer, "§1985:VI.6.22.2", "§2023:14.9.37.2") + " prints two SEARCH formats and ";
+        string formats = " " + CiteRuleAt(recognizer, "§1985:VI.6.22.2", "§2023:14.9.37.2") + " prints two SEARCH formats and ";
         var ctx = recognizer.Context;
         if (token.Type == CobolLexer.KEY && NearestSearchBeforeWhen(ctx) is { } keyed)
             return (keyed is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
@@ -2853,8 +2881,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     if (d is CobolParserCore.SearchAllStatementContext sa && sa.Stop is { } stop
                         && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
                         return "SEARCH ALL with a second WHEN phrase: Format 2 prints exactly ONE WHEN phrase — its "
-                            + "ellipsis sits on the [ AND … ] bracket, not on the WHEN brace (ISO "
-                            + CiteAt(recognizer, "§1985:VI.6.22.2, with §1985:IV.2.1.5", "§2023:14.9.37.2, with §2023:5.2.7")
+                            + "ellipsis sits on the [ AND … ] bracket, not on the WHEN brace ("
+                            + CiteRuleAt(recognizer, "§1985:VI.6.22.2, with §1985:IV.2.1.5", "§2023:14.9.37.2, with §2023:5.2.7")
                             + "), so a further key condition is written as an AND phrase of the one WHEN.";
         return null;
     }
@@ -3182,6 +3210,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <see cref="EditionInfo.Cite"/>), so a syntax diagnostic cites the rule of the edition the program is compiled under.</summary>
     private static string CiteAt(Parser recognizer, string y1985, string later) => EditionOf(recognizer).Cite(y1985, later);
 
+    /// <summary><see cref="CiteAt"/> as a message prints it, the standard named by <c>EditionInfo.Designated</c> (kb/Work PB6013).</summary>
+    private static string CiteRuleAt(Parser recognizer, string y1985, string later) => EditionOf(recognizer).CiteRule(y1985, later);
+
     /// <summary>⛔ THE ONE EDITION READ OF THE ERROR STRATEGY (kb/Work PB4950 review R1-2): the edition the parse is diagnosed for,
     /// through <see cref="CobolParserCoreBase.EditionInForce"/>. This strategy is installed only on a COBOL parser, so a recognizer
     /// that is not one is an internal error, never a silent later-edition default.</summary>
@@ -3206,9 +3237,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         string required = string.Join(" or ", wanted.Select(Spell));
         return $"The general format requires the keyword {required} here, and {WrittenSource.Of(token).ToUpperInvariant()} is a "
             + CiteAt(recognizer,
-                "different reserved word (ISO §1985:IV.4.2.2.2.3): the singular and plural forms of a figurative constant are "
+                "different reserved word (§1985:IV.4.2.2.2.3): the singular and plural forms of a figurative constant are "
                 + "interchangeable only where the figurative constant itself is written, and a keyword underlined in a general "
-                + "format is required as printed (ISO §1985:IV.2.1.2).",
+                + "format is required as printed (§1985:IV.2.1.2).",
                 "different reserved word (ISO §2023:8.9): the spellings of a figurative constant are interchangeable only "
                 + "where the figurative constant itself is written (ISO §2023:8.3.3.6.2), and a keyword underlined in a "
                 + "general format is required as printed (ISO §2023:5.2.2).");
@@ -3245,7 +3276,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return $"The sign condition's general format requires the keyword ZERO here, and "
             + $"{WrittenSource.Of(next).ToUpperInvariant()} is a different reserved word "
             + CiteAt(recognizer,
-                "(ISO §1985:IV.4.2.2.2.3): its format is 'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §1985:VI.6.3.1.5), and the "
+                "(§1985:IV.4.2.2.2.3): its format is 'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (§1985:VI.6.3.1.5), and the "
                 + "singular and plural forms of a figurative constant are interchangeable only where the figurative constant itself is written.",
                 "(ISO §2023:8.9): its format is 'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §2023:8.8.4.7.2), and the spellings of a "
                 + "figurative constant are interchangeable only where the figurative constant itself is written (ISO §2023:8.3.3.6.2).")
@@ -3586,6 +3617,22 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                && walk.TakesAll([CobolLexer.DOT, Token.Type, next.Type]);
 
         private bool? _periodIsMissingBeforeTheEntrySlot;
+
+        /// <summary>⛔ DOES THE TOKEN BEGIN ITS FIXED-FORM LINE IN AREA A (kb/Work PB6011)? The reference format's own fact
+        /// (<see cref="CobolParserCoreBase.OpensAreaA"/>), not a guess: in the COBOL-85 reference format only an area-A item or
+        /// a level-number begins its line there, and the entry or sentence before it, continued on a later line, goes on in
+        /// area B (§1985:IV.7.3.3), so such a token begins what FOLLOWS a separator period, never more of the construct before
+        /// it. False at every edition without areas (from COBOL-2002 on, §2023:6.3.1) and in free form, where the guesses
+        /// stand alone.</summary>
+        public bool OpensAreaA => _recognizer is CobolParserCoreBase parser && parser.OpensAreaA(Token);
+
+        /// <summary>⛔ IS THE SEPARATOR PERIOD BEFORE AN AREA-A OPENING MISSING (kb/Work PB6011)? The token begins its line in
+        /// area A (<see cref="OpensAreaA"/>) and a period lets the sentence that starts at it follow
+        /// (<see cref="APeriodLetsTheSentenceFollow"/>). The parse refuses such a token as an operand
+        /// (<c>CobolParserCoreBase.nextEntryOpensHere</c>), so <c>01 A PIC X VALUE "A"</c> then <c>01 B PIC X.</c> fails a
+        /// prediction AT the 01, whose expected set (predicate-blind) still holds the integer the predicate refused: the
+        /// expected-set reading of hint 14 cannot see the period there, and the area says it is missing.</summary>
+        public bool PeriodIsMissingBeforeAnAreaAOpening => OpensAreaA && APeriodLetsTheSentenceFollow();
 
         /// <summary>Is the token the first word after the level-number of an entry that has written no name? The parser
         /// stands inside the entry (its context holds the level-number, <see cref="ClosedFormats.EntryAwaitingItsName"/>), or

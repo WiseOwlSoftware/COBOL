@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.8-p1",
+ "rule-digest": "36f231a68b1d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#ReservedWords; src/WiseOwl.Cobol.Editions/ReservedWords.cs#ReservedWords",
+ "test-ref": "repo-drift:ReservedWords1985TablesDriftTests.EveryWordOfThe1985List_IsReservedAt85_AndNoOtherWordIs",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler correct at 85 with tests the suite already holds, joined as the row's own by the PB5453 rows pass (w20262131i); the import left the row GAP because the read named them in prose, not as a runnable probe. The reader's sweep (rw_sweep.py, 350 probes) is no placeable case; the witness is the drift test that holds the compiler's reservations at 85 equal to the words of the 1985 catalog's own tables, both ways (written by the PB5453 rows pass, w20262131i). The read: 'The following is a list of COBOL reserved words for the seven required modules and the five optional modules.' The sentence's content is that the tables' words are reserved, which a program shows; the s-08 sweep refuses every listed word as a user-defined word at 85 and accepts its controls. It is a lead-in whose requirement is the tables', not presentation-only text. Code location located after the read: ReservedWords table holds the reserved-word list per edition"
+}

@@ -76,7 +76,7 @@ public sealed partial class SpecialNamesBinder
             if (nn?.predefinedNull() is not null)
             {
                 PredefinedNullRule.Report(Edition, $"the {op.Name} of a CURRENCY SIGN clause — {op.Requirement} "
-                    + $"(ISO {op.CitationAt(Edition.Edition)})");
+                    + $"({EditionInfo.Designated(op.CitationAt(Edition.Edition))})");
                 return null;
             }
             // The literal's CLASS is the grammar's answer (§2023:8.3.3.3.1: "Numeric literals are of the class and category
@@ -119,7 +119,7 @@ public sealed partial class SpecialNamesBinder
                 value = new(k.Text, hex, k.Category is PicCategory.National ? LiteralClass.National : LiteralClass.Alphanumeric);
         }
         if (value is not null) return value;
-        Report($"CURRENCY SIGN {spelling}: {op.Name} shall be {op.Requirement} — this is {what} (ISO {op.CitationAt(Edition.Edition)})");
+        Report($"CURRENCY SIGN {spelling}: {op.Name} shall be {op.Requirement} — this is {what} ({EditionInfo.Designated(op.CitationAt(Edition.Edition))})");
         return null;
 
         // The clause's one report: the pre-catalog COBOL0892 band of CURRENCY SIGN operand rules.
@@ -183,7 +183,7 @@ public sealed partial class SpecialNamesBinder
         // literal's own introduction gate refuses it.
         if (bare.Hexadecimal && Edition.DialectLevel >= 2014)
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
-                + "SYMBOL phrase (ISO " + HexadecimalCurrencyRule + ")");
+                + "SYMBOL phrase (" + EditionInfo.Designated(HexadecimalCurrencyRule) + ")");
         if (bare.Text.Length != 1)
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
@@ -214,8 +214,8 @@ public sealed partial class SpecialNamesBinder
         if (!exempt && literal7.Text.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "
-                + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO "
-                + CurrencyStringRule + ")");
+                + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' ("
+                + EditionInfo.Designated(CurrencyStringRule) + ")");
             return false;
         }
         return true;
@@ -313,7 +313,7 @@ internal sealed record CurrencySymbolExclusion(string UppercaseLetters, bool Eve
     internal const string SpecialCharacters = " +-,.*/;()\"=";
 
     internal static readonly CurrencySymbolExclusion Cobol85 =
-        new("ABCDPRSVXZ", EveryLowercaseLetter: true, Year: 1985, "ISO §1985:VI.4.5.4 GR11");
+        new("ABCDPRSVXZ", EveryLowercaseLetter: true, Year: 1985, "§1985:VI.4.5.4 GR11");
 
     internal static readonly CurrencySymbolExclusion Cobol2002 =
         new("ABCDENPRSVXZ", EveryLowercaseLetter: false, Year: 2002, "ISO §2002:12.2.6.2 SR19/SR23");

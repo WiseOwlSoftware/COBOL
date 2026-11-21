@@ -173,7 +173,7 @@ public static class LiteralScreen
         string written = WrittenSource.Of((ParserRuleContext)node);
         Error(sink, DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"the numeric literal `{written}` has its sign "
             + $"separated from its digits — {ArithmeticFormationRules.SignRuleQuote(edition)}, and a space or line break is a "
-            + $"separator (ISO {edition.Cite("§1985:IV.4.2.1 SR1", "§2023:8.3.5")}). Write `{sign.Text}{first.Text}` if the sign belongs to the literal.");
+            + $"separator ({edition.CiteRule("§1985:IV.4.2.1 SR1", "§2023:8.3.5")}). Write `{sign.Text}{first.Text}` if the sign belongs to the literal.");
         return false;
     }
 
@@ -258,7 +258,7 @@ public static class LiteralScreen
         return $"the literal {CobolLiteral.Abbreviated(literal.TrimEnd(' '))} is not closed — its line ends before the closing "
                + $"{closing}, and no continuation line continues it. "
                + edition.Cite(
-                   "ISO §1985:IV.7.2.2: \"if the continued line contains a nonnumeric literal without closing quotation mark, the "
+                   "§1985:IV.7.2.2: \"if the continued line contains a nonnumeric literal without closing quotation mark, the "
                    + "first nonblank character in area B of the continuation line must be a quotation mark\"",
                    UnterminatedRule2002);
     }

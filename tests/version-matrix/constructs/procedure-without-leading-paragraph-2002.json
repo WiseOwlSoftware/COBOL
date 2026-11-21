@@ -4,6 +4,7 @@
  "display": "sentences before the first paragraph-name of the procedure division or of a section",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:14.4.3; ISO/IEC 1989:2002 Annex F.2 item 90",
+ "rule1985": "§1985:IV.6.4.1.4.2 (the Procedure Division body formats: a section header is followed by paragraphs)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

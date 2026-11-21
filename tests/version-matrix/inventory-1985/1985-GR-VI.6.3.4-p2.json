@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.4-p2",
+ "rule-digest": "d62bff6a0ceb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.6.3.4-p2",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-VI.6.3.4-p2); the code location is where the compiler meets the rule's subject. The read: S1 says the figures illustrate the application of the rules above; the order-of-evaluation requirements are 1985-GR-VI.6.3.4-p1, -1 and -2. S2 says the figures do not dictate implementation, a freedom every compiler behaviour satisfies. Neither sentence states anything a program or a compiler can violate."
+}

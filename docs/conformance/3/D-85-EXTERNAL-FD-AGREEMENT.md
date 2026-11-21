@@ -4,7 +4,9 @@
   description entries in the run unit which are associated with this file connector must have" a LINAGE clause and its values
   in common (`§1985:VII.3.7.4 GR11`), and none states a consequence; `§1985:I.1.6` gives the result of a violation: "The
   results of violating the formats or rules of Standard COBOL are undefined unless otherwise specified in this standard".
-  WiseOwl COBOL checks these rules where both descriptions are in one compilation group. It does not compare the descriptions
+  WiseOwl COBOL checks these rules where both descriptions are in one compilation group (COBOL6847), and the same for the
+  descriptions of one external record, which "must define the same number of standard data format characters"
+  (`§1985:X.4.5.4 GR2`; COBOL7735, kb/Work PB5996). It does not compare the descriptions
   of two separately compiled programs at `--std 85`, at compile time or at run time; a run unit that violates them has
   undefined results, as the text says. Each declaring program's own description must still name external data items where
   the text requires one (the LINAGE data-names, kb/Work PB5982; the PADDING CHARACTER data item, `§1985:VII.2.7.4 GR6`).

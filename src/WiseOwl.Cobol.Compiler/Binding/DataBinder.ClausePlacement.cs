@@ -145,8 +145,11 @@ internal static class ClausePlacementRules
             + "local-storage, or linkage section.",
             DiagnosticCatalog.DataClausePlacement,
             Sections: EntrySections.File | EntrySections.WorkingStorage | EntrySections.LocalStorage | EntrySections.Linkage,
-            Rule1985: "§1985:X.4.3.3 SR4",
-            Sentence1985: "The GLOBAL clause may be specified only in data description entries whose level-number is 01."),
+            // The GLOBAL clause's own SR1 states both halves at 85, the level and the sections; the data description skeleton's
+            // X.4.3.3 SR4 states the level alone, so a GLOBAL record of the communication section cited it wrongly (kb/Work PB6010).
+            Rule1985: "§1985:X.4.6.3 SR1",
+            Sentence1985: "The GLOBAL clause may be specified only in data description entries whose level-number is 01 in the "
+                + "File Section or the Working-Storage Section, file description entries, or report description entries."),
         // §2023:13.18.22.3 SR1 — PB518's sibling: the registration scan's `externalLegal` filter was its only site.
         new(DataClauseKind.External, ClausePlacementKind.Residence, "§2023:13.18.22.3 SR1",
             "The EXTERNAL clause may be specified only in file description entries, in level 1 data description "
@@ -255,7 +258,7 @@ public sealed partial class DataBinder
             if (why is null) continue;
             bool one = (subject & (subject - 1)) == 0;
             Edition.Error(rule.Code, $"{entryWhere}: the {DataClauseKinds.Name(subject)} clause{(one ? " is" : "s are")} "
-                + $"not admitted here — {why}. \"{rule.SentenceIn(Edition.Edition)}\" (ISO {rule.RuleIn(Edition.Edition)})");
+                + $"not admitted here — {why}. \"{rule.SentenceIn(Edition.Edition)}\" ({EditionInfo.Designated(rule.RuleIn(Edition.Edition))})");
             refused |= subject;
         }
         return refused;
@@ -337,7 +340,7 @@ public sealed partial class DataBinder
                         + $"{DataClauseKinds.Name(clauses[0].Kind)} but shall immediately follow the entry-name clause"
                         + (kind == DataClauseKind.Redefines
                             ? ", or the level-number when the entry-name clause is not specified" : "")
-                        + $" (ISO {Edition.Edition.Cite(rule1985, rule)})");
+                        + $" ({Edition.Edition.CiteRule(rule1985, rule)})");
     }
 
     internal static string SectionWords(EntrySection section) => section switch
@@ -355,14 +358,14 @@ public sealed partial class DataBinder
         if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
             return edition.Cite(
                     "the BLANK WHEN ZERO clause can be specified only for an elementary item whose PICTURE is specified as numeric or "
-                    + "numeric edited (ISO §1985:VI.5.4.3 SR1)",
+                    + "numeric edited (§1985:VI.5.4.3 SR1)",
                     "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
                     + "character-string as category numeric-edited or as numeric without the picture symbol 'S' (ISO §2023:13.18.8.3 SR1)")
                 + $" — this item is of category {ItemCategory.CategoryName(pic)}";
         if (!UsageFamilies.IsDisplayOrNational(pic.Usage))
             return edition.Cite(
                     "the numeric or numeric edited data description entry to which the BLANK WHEN ZERO clause applies must be described, "
-                    + "either implicitly or explicitly, as USAGE IS DISPLAY (ISO §1985:VI.5.4.3 SR2)",
+                    + "either implicitly or explicitly, as USAGE IS DISPLAY (§1985:VI.5.4.3 SR2)",
                     "the subject of a BLANK WHEN ZERO clause shall be implicitly or explicitly described as usage display or usage "
                     + "national (ISO §2023:13.18.8.3 SR2)")
                 + $" — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
@@ -387,7 +390,7 @@ public sealed partial class DataBinder
         if (pic.Category is not (PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             || pic.EditMask is not null)
             return "the JUSTIFIED clause may be specified only for a data item whose category is alphabetic, "
-                + $"alphanumeric, boolean, or national (ISO {edition.Cite("§1985:VI.5.6.3 SR3", "§2023:13.18.32.3 SR3")}) — this item is of category "
+                + $"alphanumeric, boolean, or national ({edition.CiteRule("§1985:VI.5.6.3 SR3", "§2023:13.18.32.3 SR3")}) — this item is of category "
                 + ItemCategory.CategoryName(pic);
         return null;
     }

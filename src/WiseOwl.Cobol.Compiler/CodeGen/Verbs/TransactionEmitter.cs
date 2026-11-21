@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.CodeGen.Emit;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.CodeGen;
 
@@ -102,7 +103,7 @@ internal sealed class TransactionEmitter(EmitContext ctx, PlaceTable places, Seq
         var w = ctx.Writer;
         string verb = n.IsCommit ? "COMMIT" : "ROLLBACK";
         string refused = $"__refused{ctx.Names.NextEc()}";
-        w.Line($"string? {refused} = {(n.IsCommit ? RuntimeApi.Commit() : RuntimeApi.Rollback())};   // ISO {(n.IsCommit ? "§2023:14.9.7" : "§2023:14.9.36")}");
+        w.Line($"string? {refused} = {(n.IsCommit ? RuntimeApi.Commit() : RuntimeApi.Rollback())};   // {EditionInfo.Designated((n.IsCommit ? "§2023:14.9.7" : "§2023:14.9.36"))}");
         using (w.Block($"if ({refused} is not null)"))
         {
             bool first = true;

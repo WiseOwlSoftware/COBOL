@@ -314,10 +314,13 @@ internal sealed class BinderDriver
         // and the externality of the items their clauses name (ExternalFileConnectorRules; kb/Work PB5069).
         ExternalFileConnectorRules.Check(units, edition);
         ExternalFileConnectorRules.ShareAdvancing(units, classes);   // the connector's print-file fact is the group's, not each describer's (kb/Work PB5570)
-        // The external RECORD half of the data-name uniqueness rule, over every source element of the group (kb/Work PB5427).
-        ExternalRecordNameRules.Check([.. units.Select(u => new ExternalRecordNameRules.Element(u, u.Data, session.Binders.Of(u).Data.Symbols)),
+        // The external RECORD rules, over every source element of the group: the external half of the data-name uniqueness rule
+        // (kb/Work PB5427) and the agreement of one external record's descriptions (kb/Work PB5996).
+        ExternalRecordNameRules.Element[] externalRecordDescribers = [.. units.Select(u => new ExternalRecordNameRules.Element(u, u.Data, session.Binders.Of(u).Data.Symbols)),
             .. classes.SelectMany(c => new[] { new ExternalRecordNameRules.Element(null, c.Data, session.Binders.ObjectOf(c).Data.Symbols),
-                new ExternalRecordNameRules.Element(null, c.FactoryData, session.Binders.FactoryOf(c).Data.Symbols) })], edition);
+                new ExternalRecordNameRules.Element(null, c.FactoryData, session.Binders.FactoryOf(c).Data.Symbols) })];
+        ExternalRecordNameRules.Check(externalRecordDescribers, edition);
+        ExternalRecordDescriptionRules.Check(externalRecordDescribers, edition);
         // The OO analogue (M2-OO-1i): an OBJECT/FACTORY file connector is scoped to its class, not a program unit,
         // so the program loop above never sees it. A factory or instance file keys per object (a minted key held
         // in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys
@@ -521,8 +524,8 @@ internal sealed class BinderDriver
                 + "§2023:11.10.3 SR5–6, checked above against the container chain");
         if (common && parent is null)
             edition.Error(DiagnosticCatalog.CommonProgramNotContained,
-                $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO "
-                + edition.Edition.Cite("§1985:X.3.1.3 SR3", "§2023:11.10.3 SR4") + ")");
+                $"program '{name}': COMMON may be specified only in a CONTAINED program ("
+                + edition.Edition.CiteRule("§1985:X.3.1.3 SR3", "§2023:11.10.3 SR4") + ")");
 
         // §2023:8.6.6 (:8821) "Functions and methods are always recursive" / §2023:9.4 (:12529) "a user defined
         // function always possesses the recursive attribute and may call itself" — implicit, never the
@@ -976,7 +979,7 @@ internal sealed class BinderDriver
                         + $"contained in '{root.Name}' — "
                         + edition.Edition.Cite(
                             "when two programs in a run unit are identically named, at least one of them must be directly or indirectly "
-                            + "contained within another separately compiled program which does not contain the other (ISO §1985:X.1.3.8.1)",
+                            + "contained within another separately compiled program which does not contain the other (§1985:X.1.3.8.1)",
                             "the names assigned to programs that are contained directly or indirectly within the same outermost program "
                             + "shall be unique within that outermost program (ISO §2023:8.4.6.3)"));
                 }

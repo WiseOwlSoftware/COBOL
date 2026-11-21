@@ -6,8 +6,8 @@
       *>---
       *> kb/Work PB5924. §1985:IV.6.4.1.1 (cite.py: OK): "Declarative sections must be grouped at the beginning of the Procedure Division"
       *> The DECLARATIVES portion follows a nondeclarative section; it is not at the beginning: refused.
-      *> DEFECT (misleads_diagnosis): refused today as "reserved word ... user-defined word"; fails until the
-      *> diagnostic names the placement rule.
+      *> Refused with COBOL2797, which names the placement rule (kb/Work PB5924, fixed; it was refused as a
+      *> reserved-word misuse, which misled).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. DCLLATE.
        ENVIRONMENT DIVISION.

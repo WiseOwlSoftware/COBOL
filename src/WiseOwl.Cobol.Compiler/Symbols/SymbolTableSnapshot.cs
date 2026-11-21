@@ -260,7 +260,7 @@ internal sealed record FileKey(string Name, IReadOnlyList<int> Items, bool Dupli
 /// <param name="Global">The GLOBAL clause.</param>
 internal sealed record ReportAttributes(int? File, bool Global) : SymbolAttributes;
 
-/// <summary>A cd-name's attributes (a communication description entry, ISO §1985:XIV.2.2).</summary>
+/// <summary>A cd-name's attributes (a communication description entry, §1985:XIV.2.2).</summary>
 /// <param name="Mode">The entry's FOR phrase without INITIAL: <c>INPUT</c>, <c>OUTPUT</c> or <c>I-O</c>.</param>
 /// <param name="Initial">The INITIAL clause.</param>
 /// <param name="Area">The entry of the implicit description of its record area.</param>

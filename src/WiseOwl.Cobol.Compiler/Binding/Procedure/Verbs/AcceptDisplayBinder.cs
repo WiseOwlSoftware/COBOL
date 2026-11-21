@@ -54,7 +54,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (ac.receivingIdentifier().dataReference() is { } dref && host.Expr.IndexFieldOf(dref) is not null)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext, $"ACCEPT receiver '{WrittenSource.Of(dref)}' is an index-name — an "
-                + $"index-name is not an identifier (ISO {ctx.Edition.Edition.NotAnIdentifier()}) and ACCEPT is not among the contexts that "
+                + $"index-name is not an identifier ({EditionInfo.Designated(ctx.Edition.Edition.NotAnIdentifier())}) and ACCEPT is not among the contexts that "
                 + $"may reference one ({ctx.Edition.Edition.Contexts()}); SET a data item to it first ({ctx.Edition.Edition.Cite("§1985:VI.6.23.1", "§2023:14.9.39")})");
         }
 
@@ -87,9 +87,9 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (excluded is not null)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
-                + (temporal ? "the temporal format excludes (ISO " + ctx.Edition.Edition.Cite("§1985:VI.5.14.3 SR5",
+                + (temporal ? "the temporal format excludes (" + ctx.Edition.Edition.CiteRule("§1985:VI.5.14.3 SR5",
                                   "§2023:14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §2023:14.9.25.3 SR2 via §2023:14.9.1.4 GR6" : "")) + ")"
-                            : "the device format excludes (ISO " + ctx.Edition.Edition.Cite("§1985:VI.5.14.3 SR5", "§2023:14.9.1.3 SR1") + ")"));
+                            : "the device format excludes (" + ctx.Edition.Edition.CiteRule("§1985:VI.5.14.3 SR5", "§2023:14.9.1.3 SR1") + ")"));
         }
 
         // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§2023:8.5.1.12 —
@@ -139,7 +139,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (MoveTable16.Validity(sender, target, MoveTable16.CitationsOf(ctx.Edition.Edition)) is { } refusal)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
-                + $"stores by the MOVE rules (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.5.4 GR6", "§2023:14.9.1.4 GR6 / §2023:14.9.1.3 SR3")}) and this move is invalid — {refusal.Reason}");
+                + $"stores by the MOVE rules ({ctx.Edition.Edition.CiteRule("§1985:VI.6.5.4 GR6", "§2023:14.9.1.4 GR6 / §2023:14.9.1.3 SR3")}) and this move is invalid — {refusal.Reason}");
         }
         return new BoundAccept(target, kind)
         {
@@ -202,7 +202,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
     /// <summary>The rule DISPLAY's operand-class screen cites: COBOL-85's index data item rule is the USAGE clause's, which has
     /// no class message-tag, object or pointer to name.</summary>
     private string DisplayClassCite() => ctx.Edition.Edition.Cite(
-        "ISO §1985:VI.5.14.3 SR5 (an index data item can be referenced explicitly only in a SEARCH or SET statement, a relation "
+        "§1985:VI.5.14.3 SR5 (an index data item can be referenced explicitly only in a SEARCH or SET statement, a relation "
         + "condition, the USING phrase of a Procedure Division header, or the USING phrase of a CALL statement)",
         DisplayClassCite2002);
 
@@ -257,7 +257,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             ? $"{verb} {ConditionalPhrases.KindOf(phrase).Words}: "
               + (operand is null ? "the operand" : $"'{WrittenSource.Of(operand)}'")
               + " is not declared in the SCREEN SECTION, "
-              + $"so this is ISO {format1}, which prints no exception phrase — only {screenFormat}, "
+              + $"so this is {EditionInfo.Designated(format1)}, which prints no exception phrase — only {screenFormat}, "
               + "prints [NOT] ON EXCEPTION — and the phrase may be syntactically associated with no statement open here "
               + "(ISO §2023:14.5.3.3)"
             : null;
@@ -342,7 +342,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (!ctx.Mnemonics.TryUse(at, out var row))
         {
             ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': not a mnemonic-name declared in SPECIAL-NAMES "
-                + "(ISO " + ctx.Edition.Edition.Cite(
+                + "(" + ctx.Edition.Edition.CiteRule(
                     $"{rule1985} — mnemonic-name-1 shall be specified in SPECIAL-NAMES and associated with a hardware device, §1985:VI.4.5.3 SR2",
                     $"§2023:{sr2} SR2 — mnemonic-name-1 shall be associated with an implementor device-name, §2023:12.3.7.2 'device-name-1 IS mnemonic-name-3'")
                 + ")");
@@ -352,14 +352,14 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         {
             ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': '{name}' is the mnemonic-name of the "
                 + $"{ImplementorNames.KindWord(row.Kind)} '{row.Name}', not of a device-name — only a device-name's "
-                + "mnemonic-name-3 may be specified in the ACCEPT and DISPLAY statements (ISO "
-                + ctx.Edition.Edition.Cite($"§1985:VI.4.5.3 SR2; {rule1985}", $"§2023:12.3.7.3 SR7; §2023:{sr2} SR2") + ")");
+                + "mnemonic-name-3 may be specified in the ACCEPT and DISPLAY statements ("
+                + ctx.Edition.Edition.CiteRule($"§1985:VI.4.5.3 SR2; {rule1985}", $"§2023:12.3.7.3 SR7; §2023:{sr2} SR2") + ")");
             return null;
         }
         if (!row.Device.HasFlag(need))
         {
-            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': device '{row.Name}' is not {capable} (ISO "
-                + ctx.Edition.Edition.Cite($"{rule1985}; the available device-names and their capabilities are this implementation's "
+            ctx.Edition.Error(DiagnosticCatalog.MnemonicNameNotDevice, $"{verb} '{name}': device '{row.Name}' is not {capable} ("
+                + ctx.Edition.Edition.CiteRule($"{rule1985}; the available device-names and their capabilities are this implementation's "
                     + "specification of the hardware devices",
                     $"§2023:{sr2} SR2; the available device-names and their capabilities are this implementation's §2023:12.3.7.3 SR7/SR8 specification")
                 + $": {ImplementorNames.DescribeDevices()})");

@@ -41,8 +41,8 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
     /// production never begins with (kb/Work PB3373, PB3390).
     /// <paramref name="owner"/> is the entry's own name (<see cref="ClosedFormats.OwnerName"/>) or null.</summary>
     public string Refusal(string word, string? owner, EditionInfo edition)
-        => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the ISO "
-           + $"{edition.Cite(Clause1985 is { } c1985 ? $"§1985:{c1985}" : $"§2023:{Clause}", $"§2023:{Clause}")} "
+        => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the "
+           + $"{edition.CiteRule(Clause1985 is { } c1985 ? $"§1985:{c1985}" : $"§2023:{Clause}", $"§2023:{Clause}")} "
            + $"{FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
 }
 
@@ -207,6 +207,64 @@ public static class ClosedFormats
             default:
                 return null;
         }
+    }
+
+    /// <summary>The same reading of the computer-name slot asked of the parse in progress (kb/Work PB5985, PB6011): the parse
+    /// layer refuses a RESERVED word (<c>OBJECT-COMPUTER. GLOBAL.</c>, <c>SOURCE-COMPUTER. MERGE.</c>) before any error
+    /// production can take it, so it asks here, of its half-built context, whether the word stands where computer-name-1
+    /// does: inside an OBJECT-COMPUTER paragraph that holds no name and no clause yet, or right after a SOURCE-COMPUTER paragraph
+    /// that its period closed with nothing written (the shape <see cref="ComputerNameSlotOf"/> reads from the finished tree).</summary>
+    public static string? ComputerNameSlotAt(ParserRuleContext? context, IToken word)
+    {
+        for (var c = context; c is not null; c = c.Parent as ParserRuleContext)
+            if (c is Core.ObjectComputerParagraphContext objectComputer)
+                return objectComputer.nnComputerName1 is null && objectComputer.objectComputerClause().All(k => k.ChildCount == 0)
+                    ? "OBJECT-COMPUTER" : null;
+        // The CONFIGURATION SECTION the parse stands in or has just closed: an ancestor, or the last-written descendant.
+        Core.ConfigurationSectionContext? section = null;
+        for (var c = context; c is not null && section is null; c = c.Parent as ParserRuleContext)
+            section = c as Core.ConfigurationSectionContext;
+        for (var last = context; section is null && last is { ChildCount: > 0 } && last.GetChild(last.ChildCount - 1) is ParserRuleContext child; last = child)
+            section = child as Core.ConfigurationSectionContext;
+        if (section is null) return null;
+        // Its last paragraph written (a paragraph the parse opened for the word and holds nothing yet is not one).
+        for (int i = section.ChildCount - 1; i >= 0; i--)
+        {
+            if (section.GetChild(i) is not Core.ConfigurationParagraphContext { ChildCount: > 0 } written) continue;
+            // On the header's own line (the paragraph holds nothing else): a word on a later line begins what follows it (a
+            // misplaced FILE-CONTROL. is no name).
+            return written.sourceComputerParagraph() is { nnComputerName1: null } source
+                   && source.debuggingModeClause() is null && source.unrecognizedClause() is null && source.Start.Line == word.Line
+                ? "SOURCE-COMPUTER" : null;
+        }
+        return null;
+    }
+
+    /// <summary>What §2023:8.3.2.3.1 (and its 2002 and 2014 twins) say of a system-name's formation.</summary>
+    private const string SystemNameFormation =
+        "\"The implementor may define rules for the formation of a system-name that add restrictions to the rules for formation of a COBOL word\"";
+
+    /// <summary>The COBOL7654 sentence (kb/Work PB5920), the one wording of both its reporters, the closed-format pass and the
+    /// parse layer: the paragraph whose computer-name-1 <paramref name="word"/> stands in, the rule that makes the computer-name
+    /// a system-name in the edition in force, and what the standard says a system-name is. The 1985 text prints the rule once
+    /// per paragraph (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1); the later texts define the system-name types in one subclause.</summary>
+    /// <param name="reserved">The word is a reserved word, which no edition lets stand as a system-name (§1985:III.2 "Reserved
+    /// Word", §2023:8.3.2.1 1)), so that rule is cited beside the computer-name's.</param>
+    public static string ComputerNameRefusal(string word, string paragraph, EditionInfo edition, bool reserved = false)
+    {
+        string rule = edition.Cite(
+            $"§1985:{(paragraph == "SOURCE-COMPUTER" ? "VI.4.3.3" : "VI.4.4.3")} SR1 \"Computer-name is a system-name.\"",
+            "§2023:8.3.2.3.1: " + SystemNameFormation,
+            y2002: "§2002:8.3.1.1.2: " + SystemNameFormation,
+            y2014: "§2014:8.3.1.1.2: " + SystemNameFormation);
+        string head = $"'{word}' is written where the {paragraph} paragraph's computer-name-1 stands, and it is no system-name — ";
+        if (!reserved)
+            return head + $"a computer-name is a system-name, which is a COBOL word, never a literal or a number ({EditionInfo.Designated(rule)})";
+        const string Later = ": \"Reserved words shall not be used as user-defined words or system-names\"";
+        string reservedRule = edition.Cite(
+            "§1985:III.2: a reserved word \"must not appear in the program as user-defined words or system-names\"",
+            "§2023:8.3.2.1 1)" + Later, y2002: "§2002:8.3.1.1 1)" + Later, y2014: "§2014:8.3.1.1 1)" + Later);
+        return head + $"a computer-name is a system-name, and a reserved word is never one ({EditionInfo.Designated(rule)}; {reservedRule})";
     }
 
     /// <summary>⛔ THE ENTRY WHOSE OWN NAME IS STILL DUE (kb/Work PB4604, PB4788), or null where no entry waits for one.

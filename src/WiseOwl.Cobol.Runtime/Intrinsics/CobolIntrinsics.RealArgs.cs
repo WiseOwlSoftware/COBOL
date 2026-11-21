@@ -131,7 +131,7 @@ public static partial class CobolIntrinsics
         if (!exponent.HasOddDenominator(out bool oddNumerator))
             throw new CobolSizeError(
                 $"exponentiation: no real number is the result of the negative base ({b}) raised to {e} "
-                + "(ISO §1985:VI.6.2.3 GR5c)", "EC-SIZE-EXPONENTIATION");
+                + "(§1985:VI.6.2.3 GR5c)", "EC-SIZE-EXPONENTIATION");
         double magnitude = Math.Pow(-b, e);
         return oddNumerator ? -magnitude : magnitude;
     }

@@ -1395,8 +1395,26 @@ reference formats, and the only place source comments are recognized. Its model:
   headers a rule writes INLINE (`X DIVISION`, `METHOD-ID.`, `END METHOD`, `END DECLARATIVES`) by their spelling among a
   rule's children — and asks every token once. A token that heads nothing is screened by the area-B arm automatically,
   so a new statement, clause or entry needs no change; a new kind of HEADER is one line in the pass. Rejected: a parse
-  predicate (PB2720 removed the last one; the rule is an edition's, not the grammar's) and a front-end check (a
-  FrontendError would hide every bind-time edition gate of the same program).
+  predicate for the area RULE (PB2720 removed the last one; the rule is an edition's, not the grammar's) and a front-end
+  check (a FrontendError would hide every bind-time edition gate of the same program).
+  **The parse READS the same fact for the separator period** (kb/Work PB6011). "The last clause is always terminated by a
+  separator period" (§1985:IV.7.4), and an entry continued on a later line goes on in area B (§1985:IV.7.3.3), so an integer
+  that begins its fixed-form line in area A inside the data division can only be the next entry's level-number. Without
+  that fact `01 A PIC X VALUE "A"` then `01 B PIC X.` parsed as one entry whose VALUE list took `01` and `B`, and the user
+  got COBOL3735 at the 01 and four cascades. `FixedFormAreas.LineOpeningsInAreaA` (the one reading of "begins its line",
+  `LastLineOf`, shared with the pass) lists the tokens of the stream that begin their line in area A, at an edition without
+  the `fixed-form-text-in-area-a-2002` row only; `Frontend.NewParser`, the one place a whole-group parser is made, hands it
+  to `CobolParserCoreBase.AreaAOpenings` for every parse of every stream (a debugging line read as source has its own). The
+  grammar asks `{!nextEntryOpensHere()}?` at the left edge of every alternative that BEGINS with an INTEGERLIT operand
+  (`integerLiteral`, `signedIntegerLiteral`, `numericLiteralCore`, `residueInteger`; `AreaAOpeningDriftTests` holds the
+  inventory, `levelNumber` and the procedure-division `procedureName` exempt), so the entry ends at the level-number and the
+  recovery's one report stands where the period is missing (COBOL0307: the predicate-blind expected set still holds the
+  integer, so hint 14 asks `OffendingPosition.PeriodIsMissingBeforeAnAreaAOpening`, and `ClosedFormatResidue` counts an
+  area-A opening as what follows the period). The predicate does not decide legality (every source it changes is refused
+  by COBOL3735 or the missing period either way); it decides which refusal is reported. From COBOL-2002 on there are no
+  areas (§2023:6.3.1) and free form never had them (§2023:6.4.1): the set is empty, the parse is the earlier one, and the
+  same source keeps the operand reading and its cascades, which no layout fact can settle there. The procedure division's
+  twin (a paragraph header after a sentence without its period, read as one more operand) is kb/Work PB6018.
   **The one half the pass cannot ask is the CONTINUATION line** (kb/Work PB3168): X3.23-1985 also requires "Area A of a
   continuation line must be blank" (IBM Enterprise COBOL states it outright; VCR row 7.35), the same
   `fixed-form-text-in-area-a-2002` row. A continued literal's tail is no token's start, and a resultant position has no
@@ -2027,6 +2045,16 @@ joined the table the same way, which is the table doing its job: a tenth format 
   its COBOL0313 sentence (`ExtensionReservationSentence`, shared with the JSON/XML hint). The word after a name or a
   clause is a clause position alone and keeps COBOL1941. Pinned by `ClosedFormatReservedWordTests`
   (`ReservedWordAtTheEntryNameSlot_NamesTheReservation`) and the `pb4604-*` conformance cases.
+  **A reserved word that BEGINS a clause, written as the name (kb/Work PB382).** The slot is optional, so a word that begins a
+  clause is read as that clause, and the fault falls after it: `01 CLASS PIC X.` parsed as the 2023 CLASS clause and died at
+  PIC, where a class-name was due (COBOL5506), and at 85, which has no CLASS clause, the word was never named. The question
+  is asked after the fact, as `ReservedProcedureName` asks it of a procedure-name: `CobolParserCoreBase.ReservedEntryName`
+  takes the entry that wrote no name around the error, the keyword after its level-number (any keyword reserved at the
+  edition), and re-reads the entry to its period with that word retyped `IDENTIFIER`; where the entry then reads whole, the
+  report is the word's COBOL0901 at the word, and the rest of the entry is the misreading's orphaned tail. A genuine fault
+  elsewhere fails the re-read and keeps its own report; a word whose clause reading parses the entry whole is the clause of
+  an unnamed entry (`01 DISPLAY PIC X.` accepted, `01 BINARY PIC X.` the binder's COBOL0881), the conforming reading.
+  `ReservedEntryNameDriftTests` sweeps the generated reserved-word table at all four editions.
   Two more readings of the slot (kb/Work PB4645, PB4646). A dangling level-number whose next line begins what
   follows the entry (`01` then `LINKAGE SECTION.`) is the entry's missing period, not a reserved word written as its
   name: `OffendingPosition.EntryNameIsDue` is false when a period, the word and the one after it read on from the slot

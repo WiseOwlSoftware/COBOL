@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.3.3-p2",
+ "rule-digest": "93098b0102ee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitParagraphDefinition; src/WiseOwl.Cobol.Frontend/Preprocessor/AreaPlacement.cs#AreaPlacement",
+ "test-ref": "conformance:cases/IV.7.3@1985-DIVISION-SECTION-PARAGRAPH-FORMATS/1985-SR-IV_7_3_3-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler refuse at 85 with its probe (t-paragraph-name-area-b-85.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 8 made conforming (the paragraph-name starts in area A) and compiles and runs at 85. The read: \"The paragraph header or paragraph-name starts in area A of any line following the first line of a division or a section.\" No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope. Code location located after the read: AreaPlacementPass cites 1985:IV.7.3.2/7.3.3"
+}

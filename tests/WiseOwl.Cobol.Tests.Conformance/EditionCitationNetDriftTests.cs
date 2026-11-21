@@ -29,4 +29,15 @@ public sealed class EditionCitationNetDriftTests
         string exempt = Assert.IsType<string>(EditionCitationNet.Exempt.Order(StringComparer.Ordinal).FirstOrDefault());
         Assert.Empty(EditionCitationNet.Offences([$"prog.cob(1,8): error {exempt}: planted (ISO §2023:14.9.37.3 SR7)"]));
     }
+
+    /// <summary>A code whose descriptors record their 1985 rule (<see cref="DiagnosticDescriptor.Rule1985"/>, kb/Work PB5993): a
+    /// message citing that rule passes, one citing another 1985 rule is mis-recorded, and one citing no 1985 rule is not this arm's.</summary>
+    [Fact]
+    public void ARecorded1985Rule_IsTheRuleTheMessageCites()
+    {
+        var (code, rules) = EditionCitationNet.Rules1985.OrderBy(p => p.Key, StringComparer.Ordinal).First();
+        Assert.Empty(EditionCitationNet.MisRecorded([$"prog.cob(1,8): error {code}: planted ({rules[0]})"]));
+        Assert.Single(EditionCitationNet.MisRecorded([$"prog.cob(1,8): error {code}: planted (§1985:XVII.9.9.9 SR99)"])); // citation-audit: example
+        Assert.Empty(EditionCitationNet.MisRecorded([$"prog.cob(1,8): error {code}: planted (ISO §2023:14.9.37.3 SR7)"]));
+    }
 }

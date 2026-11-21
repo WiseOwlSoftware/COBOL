@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.1.2-p1",
+ "rule-digest": "ff516c2be576",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph",
+ "test-ref": "conformance:cases/IV.6.1@1985-IDENTIFICATION-DIVISION/1985-SR-IV_6_1_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-06.json: the reader showed the compiler refuse at 85 with its probe (p06_id_division_order_bad.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 7 made conforming (AUTHOR is written before DATE-WRITTEN, the format's order of presentation) and compiles and runs at 85. The read: \"The name of the program must be given in the first paragraph, which is the PROGRAM-ID paragraph. The other paragraphs are optional and may be included ... in order of presentation shown by the format below.\" No candidate states it (SR-11.10.3-4 etc. are about COMMON and REPOSITORY). Code location located after the read: identificationDivision grammar with its paragraphs"
+}

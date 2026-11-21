@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.1-L2.7",
+ "rule-digest": "a8ce8658678f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CopyNameCensus.cs#CopyNameCensus; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord",
+ "test-ref": "conformance:wiseowl/cases/IV.4.2.2.1@1985-COBOL-Words/1985-SR-IV_4_2_2_1_1-L2_7",
+ "notes": "Own witness written by the PB5453 rows pass (w20262131i) for the read lineage-reads-1985/s-02.json, whose reader could not stage a library directory (kb/Work PB6016, now fixed): a library-name ZQ that is also a data-name is refused at 85 with COBOL2692 at the data-name's line, and the control (the data-name ZR) compiles and runs. The read: Set 7 'library-names' of the disjoint sets (§1985:IV.4.2.2.1.1); 2023 groups the words differently and no 2023 rule states this 1985 set with an 85 case. Code location: the located site of the sibling set 1985-SR-IV.4.2.2.1.1-L2.15 (text-names): CopyNameCensus collects a COPY statement's text-name and library-name, DeclareUserWord refuses a word of two disjoint sets (COBOL2692 names library-name and data-name here)"
+}

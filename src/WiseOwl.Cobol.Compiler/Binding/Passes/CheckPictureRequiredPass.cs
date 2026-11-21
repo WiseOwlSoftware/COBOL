@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
+using WiseOwl.Cobol.Editions;
 
 namespace WiseOwl.Cobol.Binding.Passes;
 
@@ -52,7 +53,7 @@ internal sealed class CheckPictureRequiredPass : IBindPass
                 int n = item.Children.Count;
                 using var _ = binder.Edition.At(item);
                 binder.Edition.Error(rule.Code, $"data item '{item.CobolName ?? "FILLER"}': the {DataClauseKinds.Name(present)} "
-                    + $"clause may be specified only at the elementary level (ISO {rule.RuleIn(binder.Edition.Edition)}) — this entry has {n} "
+                    + $"clause may be specified only at the elementary level ({EditionInfo.Designated(rule.RuleIn(binder.Edition.Edition))}) — this entry has {n} "
                     + $"subordinate {(n == 1 ? "entry" : "entries")}, so it is not an elementary item ("
                     + binder.Edition.Edition.Cite("§1985:III.2: an elementary item is a data item \"described as not being further logically subdivided\"",
                         "§2023:8.5.1.3.1: the elementary items are the subdivisions \"not further subdivided\"")
@@ -108,7 +109,7 @@ internal sealed class CheckPictureRequiredPass : IBindPass
             using var _ = binder.Edition.At(item);
             binder.Edition.Error(DiagnosticCatalog.UsageClauseCompatibility,
                 $"data item '{item.CobolName ?? "FILLER"}': a PICTURE clause shall be specified for an elementary "
-                + "item (ISO " + binder.Edition.Edition.Cite("§1985:VI.5.3.3 SR3", "§2023:13.16.3 SR8")
+                + "item (" + binder.Edition.Edition.CiteRule("§1985:VI.5.3.3 SR3", "§2023:13.16.3 SR8")
                 + ") — it may be omitted only for "
                 + binder.Edition.Edition.Cite("an index data item or the subject of the RENAMES clause",
                     "an item whose usage is "

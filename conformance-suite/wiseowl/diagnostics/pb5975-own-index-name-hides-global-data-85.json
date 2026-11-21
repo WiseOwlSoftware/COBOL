@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "data-name-1 'XN' is declared as an index-name (an INDEXED BY phrase, ISO §1985:VI.5.8), not as a data item"}
+{"refuse-at": ["85"], "expect": "data-name-1 'XN' is declared as an index-name (an INDEXED BY phrase, §1985:VI.5.8), not as a data item"}

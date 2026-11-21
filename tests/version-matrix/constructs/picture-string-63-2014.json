@@ -4,6 +4,7 @@
  "display": "a PICTURE character-string longer than 50 characters",
  "diagnosticCode": "COBOL2146",
  "citation": "ISO §2023:13.18.40.3 SR4 (63 characters in the 2023 text) - the 50-character bound at COBOL-2002 is quoted from the 2002 draft's SR4 and the 2014 edge is DERIVED (VCR row 7.46)",
+ "rule1985": "§1985:VI.5.9.3 SR4 (at most 30 characters in the PICTURE character-string)",
  "introducedIn": 2014,
  "removedIn": null,
  "expectDiagnostic": "COBOL2146",

@@ -31,7 +31,7 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
 
     private void Refuse(string requirement, string rule, string? rule1985 = null) =>
         edition.Error(DiagnosticCatalog.ProcedureHeaderParameter,
-            $"{where}: {requirement} (ISO {edition.Edition.Cite(rule1985 ?? $"§2023:14.2.2 {rule}", $"§2023:14.2.2 {rule}")})");
+            $"{where}: {requirement} ({edition.Edition.CiteRule(rule1985 ?? $"§2023:14.2.2 {rule}", $"§2023:14.2.2 {rule}")})");
 
     /// <summary>Screen one formal parameter (data-name-1) against SR1. Returns false when the parameter shall not be
     /// admitted as a formal — a repeated one, whose second occurrence would be a second formal of the same item.

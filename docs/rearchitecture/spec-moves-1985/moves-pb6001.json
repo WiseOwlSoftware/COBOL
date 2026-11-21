@@ -1,0 +1,44 @@
+{
+ "batch": "train-1985-b-pb6001-relabel-moves",
+ "records": [
+  {
+   "rule-id": "1985-GR-XIII.3.10.7-p3",
+   "move-from": "1985-GR-XIII.3.10.7-p4",
+   "reads": [
+    "s-18",
+    "s-99"
+   ]
+  },
+  {
+   "rule-id": "1985-GR-XIII.3.10.7-p4",
+   "move-from": "1985-GR-XIII.3.10.7-p5",
+   "reads": [
+    "s-18",
+    "s-99"
+   ]
+  },
+  {
+   "rule-id": "1985-GR-XIII.3.10.9-p3",
+   "move-from": "1985-GR-XIII.3.10.9-p4",
+   "reads": [
+    "s-18",
+    "s-99"
+   ]
+  },
+  {
+   "rule-id": "1985-GR-XIII.3.10.9-p4",
+   "move-from": "1985-GR-XIII.3.10.9-p5",
+   "reads": [
+    "s-18",
+    "s-99"
+   ]
+  },
+  {
+   "rule-id": "1985-GR-XIV.2.2.6-T2",
+   "move-from": "1985-GR-XIV.2.2.6-T1",
+   "reads": [
+    "s-18"
+   ]
+  }
+ ]
+}

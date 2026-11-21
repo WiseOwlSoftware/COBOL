@@ -45,7 +45,7 @@ internal static class ChoiceIndicators
         where T : ParserRuleContext
     {
         AtMostOnce(edition, occurrences.Length, statement, alternative,
-            $"ISO {edition.Edition.Cite($"§1985:{clause1985 ?? clause}", $"§2023:{clause}")}");
+            $"{edition.Edition.CiteRule($"§1985:{clause1985 ?? clause}", $"§2023:{clause}")}");
         return occurrences.Length > 0 ? occurrences[0] : null;
     }
 

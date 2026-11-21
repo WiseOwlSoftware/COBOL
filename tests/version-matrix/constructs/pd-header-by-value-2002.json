@@ -5,6 +5,7 @@
  "display": "the PROCEDURE DIVISION USING BY VALUE phrase",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:14.2.2 using-phrase / §2023:14.2.3 GR4/GR10 / §2023:8.4.3.2.4 GR5c",
+ "rule1985": "§1985:X.5.1 (the Procedure Division header: USING data-name-1, no BY VALUE)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

@@ -71,7 +71,7 @@ its text now plus the carved paragraphs, writes NO record for a carved row, and 
 an UPHELD recheck of the remaining text (re-stamping its digest), withdrawing it otherwise. Both re-point the older
 editions' change records that name the ids (`next.to`, `next.digests`), sending to adjudication each whose `reason`
 quotes carved text. Their rules are `rule_moves.py`'s. An applied batch that holds a split is copied, in the same
-operation, to the edition's tracked split batches (`rule_moves.split_copies`, kb/Work PB6002), which the WITNESS LOSS
+operation, to the edition's tracked moves and splits (`rule_moves.tracked_copies`, kb/Work PB6002), which the WITNESS LOSS
 audit reads.
 
 ALL-OR-NOTHING. Every record in every named batch is validated before ANY of them is merged, and the merge itself
@@ -484,10 +484,17 @@ def main() -> int:
     ops = [rec for _, _, rec in records if rule_moves.structural(rec)]
     stored = read_store(inventory_dir(ed))
     texts = {r["id"]: r["text"] for r in ed.rules()}
-    # Each applied batch that holds a split is copied, in the same operation, to the edition's tracked split batches
-    # (kb/Work PB6002): the WITNESS LOSS audit reads the copy, never a scratch file a hand step had to copy.
-    split_files, split_bad = rule_moves.split_copies(
-        [(path, [rec for p, _, rec in records if p == path]) for path in args.batches], ed.year, REPO)
+    # Each applied batch that holds a move or a split is copied, in the same operation, to the edition's tracked moves
+    # (kb/Work PB6002, PB6020): the WITNESS LOSS audit reads a split there, never a scratch file a hand step had to copy,
+    # and each move names the read records that read its old id, which `lineage_reads.load` then reads under the new id.
+    read_slices = {}
+    if any(rule_moves.is_move(rec) for _, _, rec in records):
+        for s in lineage_reads.load(ed.year, superseded=True):
+            for rid in s.reads:
+                read_slices.setdefault(rid, []).append(s.name)
+    split_files, split_bad = rule_moves.tracked_copies(
+        [(path, [rec for p, _, rec in records if p == path]) for path in args.batches], ed.year, REPO,
+        lambda rid: read_slices.get(rid, []))
     if bad := rule_moves.errors(ops, texts, stored, {rec.get("rule-id", "") for _, _, rec in records
                                                      if not rule_moves.structural(rec)}) + split_bad:
         print(f"⛔ {len(bad)} move/split violation(s) — NOTHING was written:\n")
@@ -623,7 +630,7 @@ def main() -> int:
     for path, text in split_files.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8", newline="\n")
-        print(f"wrote the tracked split batch {path.relative_to(REPO).as_posix()} (kb/Work PB6002)")
+        print(f"wrote the tracked move/split batch {path.relative_to(REPO).as_posix()} (kb/Work PB6002, PB6020)")
     # THE CHAINS FOLLOW THE TEXT (decision PB5448 point 7): every older edition whose change records name this edition's
     # rules has a moved id renamed and a split parent's digest re-stamped, or the record sent to adjudication.
     for older in (e for e in EDITIONS if ops and e.held and e.next_held == ed.year):

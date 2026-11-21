@@ -54,10 +54,15 @@ QUOTE_WORDS = 8
 #: The mark an upheld recheck leaves in the parent's notes: the record's history, after its prose.
 RECHECK_MARK = "split-recheck:"
 
-#: Where an edition's applied split batches are kept, tracked: a split is an operation on the store whose batch file is
-#: otherwise gone once applied, and the WITNESS LOSS audit reads it here to tell a parent whose record a split withdrew
-#: (kb/Work PB5452) from a hand edit.
-SPLIT_DIR = "docs/rearchitecture/spec-splits-{year}"
+#: Where an edition's applied moves and splits are kept, tracked: a move or a split is an operation on the store whose
+#: batch file is otherwise gone once applied. The WITNESS LOSS audit reads a split here to tell a parent whose record a
+#: split withdrew (kb/Work PB5452) from a hand edit, and the read records follow a move from here (`recorded_moves`).
+MOVES_DIR = "docs/rearchitecture/spec-moves-{year}"
+#: A move's field in its tracked copy: the read records (slice names) that read its OLD id when the move was applied. A
+#: read record is sealed by its digests (`lineage_reads.digest_errors`), so it is never re-keyed in place; these slices,
+#: and only these, read the moved rule under its old id (a slice imported after the move that names the old id means
+#: whatever rule holds that id then).
+READS = "reads"
 
 Record = dict[str, Any]
 
@@ -81,34 +86,52 @@ def explains(split: Record, was: str | None, now: str | None) -> bool:
     return rule_digest(split["old-text"]) == was and split["recheck"]["digest"] == now
 
 
-def split_copies(batches: list[tuple[pathlib.Path, list[Record]]], year: int, repo: pathlib.Path
-                 ) -> tuple[dict[pathlib.Path, str], list[str]]:
-    """The TRACKED COPY of each applied batch that holds a split (kb/Work PB6002): `SPLIT_DIR/<the batch file's name>`,
-    holding the batch's splits (`{"batch", "records"}`), which the WITNESS LOSS audit reads to tell a parent a split
-    withdrew from a hand edit (`audit_witness_loss.recorded_splits`). The writer (`record_verdicts.py`) writes it in the
-    same operation as the apply, so no split reaches the store without its tracked batch. Returns the files to write
-    and the refusals, both before anything is written: a copy whose file already holds other text (a different batch of
-    the same name) is refused, never overwritten. A batch applied from its own tracked file is its copy already."""
+def tracked_copies(batches: list[tuple[pathlib.Path, list[Record]]], year: int, repo: pathlib.Path,
+                   reads_of: Callable[[str], list[str]]) -> tuple[dict[pathlib.Path, str], list[str]]:
+    """The TRACKED COPY of each applied batch that holds a move or a split (kb/Work PB6002, PB6020):
+    `MOVES_DIR/<the batch file's name>`, holding the batch's moves and splits (`{"batch", "records"}`), each move with
+    the read records that read its old id now (`READS`, from `reads_of`). The WITNESS LOSS audit reads a split there to
+    tell a parent a split withdrew from a hand edit (`audit_witness_loss.recorded_splits`), and the read records follow
+    a move from there (`recorded_moves`, read by `lineage_reads.load`). The writer (`record_verdicts.py`) writes it in
+    the same operation as the apply, so no move or split reaches the store without its tracked batch. Returns the files
+    to write and the refusals, both before anything is written: a copy whose file already holds other text (a different
+    batch of the same name) is refused, never overwritten. A batch applied from its own tracked file is its copy
+    already."""
     out: dict[pathlib.Path, str] = {}
     errs: list[str] = []
-    folder = repo / SPLIT_DIR.format(year=year)
+    folder = repo / MOVES_DIR.format(year=year)
     for path, records in batches:
-        splits = [r for r in records if is_split(r)]
-        if not splits:
+        ops = [{**r, READS: sorted(reads_of(r[MOVE_FROM]))} if is_move(r) else r for r in records if structural(r)]
+        if not ops:
             continue
         dest = folder / path.name
         if dest.exists() and dest.resolve() == path.resolve():
             continue
         raw = json.loads(path.read_text(encoding="utf-8"))
         label = raw.get("batch") if isinstance(raw, dict) and isinstance(raw.get("batch"), str) else path.stem
-        text = json.dumps({"batch": label, "records": splits}, indent=1, ensure_ascii=False) + "\n"
+        text = json.dumps({"batch": label, "records": ops}, indent=1, ensure_ascii=False) + "\n"
         if dest.exists() and dest.read_text(encoding="utf-8") != text:
-            errs.append(f"{dest.relative_to(repo).as_posix()} already holds another split batch: name {path} apart")
+            errs.append(f"{dest.relative_to(repo).as_posix()} already holds another batch: name {path} apart")
         elif dest in out and out[dest] != text:
             errs.append(f"two batches of this run copy to {dest.relative_to(repo).as_posix()}: name them apart")
         else:
             out[dest] = text
     return out, errs
+
+
+def recorded_moves(year: int, repo: pathlib.Path) -> list[list[tuple[str, str, frozenset[str]]]]:
+    """The moves of the edition's tracked copies (`MOVES_DIR`), one list per batch in the files' name order, each move
+    `(old id, new id, the slices that read the old id when it was applied)`. A batch's moves are SIMULTANEOUS (a
+    renumbering moves p4 to p3 and p5 to p4 at once), so a reader applies each batch's as one renaming, never chained."""
+    folder = repo / MOVES_DIR.format(year=year)
+    out = []
+    for path in sorted(folder.glob("*.json")) if folder.is_dir() else []:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        moves = [(r[MOVE_FROM], r["rule-id"], frozenset(r.get(READS, ())))
+                 for r in (raw["records"] if isinstance(raw, dict) else raw) if is_move(r)]
+        if moves:
+            out.append(moves)
+    return out
 
 
 def structural(rec: Record) -> bool:

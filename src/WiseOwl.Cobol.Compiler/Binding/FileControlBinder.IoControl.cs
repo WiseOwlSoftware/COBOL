@@ -616,7 +616,7 @@ public sealed partial class FileControlBinder
                 complete = false;
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
                     $"{written}: '{name}' is not a file specified in the FILE-CONTROL paragraph of this source element "
-                    + "(ISO " + Edition.Edition.Cite(sortFamily ? "§1985:XI.2.5.3 SR1" : "§1985:VII.2.13.3 SR1",
+                    + "(" + Edition.Edition.CiteRule(sortFamily ? "§1985:XI.2.5.3 SR1" : "§1985:VII.2.13.3 SR1",
                         "§2023:12.4.6.4.3 SR2") + ": "
                     + Edition.Edition.Cite("\"File-name-1 and file-name-2 must be specified in the FILE-CONTROL paragraph of the same program.\"",
                         "\"File-name-1 and file-name-2 shall be specified in the FILE-CONTROL paragraph of the source element that contains this SAME clause.\"")
@@ -627,8 +627,8 @@ public sealed partial class FileControlBinder
             {
                 complete = false;
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
-                    $"{written}: file '{name}' references an external file connector (ISO "
-                    + Edition.Edition.Cite(sortFamily ? "§1985:XI.2.5.3 SR2" : "§1985:VII.2.13.3 SR2", "§2023:12.4.6.4.3 SR3") + ": "
+                    $"{written}: file '{name}' references an external file connector ("
+                    + Edition.Edition.CiteRule(sortFamily ? "§1985:XI.2.5.3 SR2" : "§1985:VII.2.13.3 SR2", "§2023:12.4.6.4.3 SR3") + ": "
                     + Edition.Edition.Cite("\"File-name-1 and file-name-2 may not reference an external file connector.\"",
                         "\"File-name-1 and file-name-2 shall not reference an external file connector.\"") + ")");
                 continue;
@@ -640,11 +640,11 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(same);
             Edition.Error(DiagnosticCatalog.SameClauseRule,
                 $"{written} names {(distinct == 0 ? "no file" : "only one file")}: every SAME format prints "
-                + "\"file-name-1 { file-name-2 } …\" (ISO "
-                + Edition.Edition.Cite(sortFamily ? "§1985:XI.2.5.2" : "§1985:VII.2.13.2", "§2023:12.4.6.4.2")
+                + "\"file-name-1 { file-name-2 } …\" ("
+                + Edition.Edition.CiteRule(sortFamily ? "§1985:XI.2.5.2" : "§1985:VII.2.13.2", "§2023:12.4.6.4.2")
                 + ") and the clause is defined over \"two or more "
-                + "files referenced by file-name-1, file-name-2\" (ISO "
-                + Edition.Edition.Cite(sortFamily ? "§1985:XI.2.5.4 GR1" : "§1985:VII.2.13.4 GR1", "§2023:12.4.6.4.4 GR1, GR2") + ")");
+                + "files referenced by file-name-1, file-name-2\" ("
+                + Edition.Edition.CiteRule(sortFamily ? "§1985:XI.2.5.4 GR1" : "§1985:VII.2.13.4 GR1", "§2023:12.4.6.4.4 GR1, GR2") + ")");
         }
         return (members, complete);
     }
@@ -800,8 +800,8 @@ public sealed partial class FileControlBinder
                 if (where is null) continue;
                 using var _ = Edition.At(site.Ctx);
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
-                    $"{site.Clause.Written}: the {where} of file '{f.CobolName}' includes the GLOBAL clause (ISO "
-                    + Edition.Edition.Cite("§1985:X.4.6.3 SR3", "§2023:13.18.27.3 SR2")
+                    $"{site.Clause.Written}: the {where} of file '{f.CobolName}' includes the GLOBAL clause ("
+                    + Edition.Edition.CiteRule("§1985:X.4.6.3 SR3", "§2023:13.18.27.3 SR2")
                     + ": \"If the SAME RECORD AREA clause is specified for several files, the record description "
                     + "entries or the file description entries for these files "
                     + Edition.Edition.Cite("must", "shall") + " not include the GLOBAL clause.\")");
@@ -813,8 +813,8 @@ public sealed partial class FileControlBinder
                 || site.Clause.Members.Any(m => m.IsSortMerge)) continue;
             using var _ = Edition.At(site.Ctx);
             Edition.Error(DiagnosticCatalog.SameClauseRule,
-                $"{site.Clause.Written} names no sort or merge file (ISO "
-                + Edition.Edition.Cite("§1985:XI.2.5.4 GR2: \"If the SAME SORT AREA or SAME SORT-MERGE AREA clause is used, at least one "
+                $"{site.Clause.Written} names no sort or merge file ("
+                + Edition.Edition.CiteRule("§1985:XI.2.5.4 GR2: \"If the SAME SORT AREA or SAME SORT-MERGE AREA clause is used, at least one "
                         + "of the file-names must represent a sort or merge file.\"",
                     "§2023:12.4.6.4.3 SR8: \"At least one file-name specified in a sort-merge-area format SAME clause shall represent "
                         + "a sort or merge file.\"") + ")");
@@ -828,7 +828,7 @@ public sealed partial class FileControlBinder
                 using var _ = Edition.At(record.Ctx);
                 Edition.Error(DiagnosticCatalog.SameClauseRule,
                     $"{record.Clause.Written} shares files with {area.Clause.Written} but omits {SameNames(missing)} "
-                    + "(ISO " + Edition.Edition.Cite("§1985:VII.2.13.3 SR3c: \"If one or more file-names of a SAME AREA clause appear in a "
+                    + "(" + Edition.Edition.CiteRule("§1985:VII.2.13.3 SR3c: \"If one or more file-names of a SAME AREA clause appear in a "
                             + "SAME RECORD AREA clause, all of the file-names in that SAME AREA clause must appear in the SAME RECORD AREA clause.\"",
                         "§2023:12.4.6.4.3 SR9: \"If one or more file-names specified in a file-area format SAME clause "
                             + "are also specified in a record-area format SAME clause, all of the file-names specified in the "
@@ -849,7 +849,7 @@ public sealed partial class FileControlBinder
                     using var _ = Edition.At(sm.Ctx);
                     Edition.Error(DiagnosticCatalog.SameClauseRule,
                         $"{sm.Clause.Written} names '{f.CobolName}', which {area.Clause.Written} also names, but omits "
-                        + $"{SameNames(missing)} (ISO " + Edition.Edition.Cite("§1985:XI.2.5.3 SR5c: \"If a file-name that does not represent "
+                        + $"{SameNames(missing)} (" + Edition.Edition.CiteRule("§1985:XI.2.5.3 SR5c: \"If a file-name that does not represent "
                                 + "a sort or merge file appears in a SAME clause (see page VII-19) and one or more SAME SORT AREA or SAME SORT-MERGE AREA clauses, all of "
                                 + "the files named in that SAME clause must be named in that SAME SORT AREA or SAME SORT-MERGE AREA clause(s).\"",
                             "§2023:12.4.6.4.3 SR10: \"If a file-name that represents a file other "

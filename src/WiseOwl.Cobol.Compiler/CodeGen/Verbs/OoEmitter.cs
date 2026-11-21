@@ -234,20 +234,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     public static bool WantsExternalDescribes(DataBindResult data) =>
         data.UnitChecking.ExternalDescribe && (data.Linkage.ExternalBackings.Count > 0 || data.Files.Declared.Any(f => f.IsExternal));
 
-    // ⛔ THE VALUE-IDENTITY KEY OF A RECORD NAME'S VALUE CLAUSE (kb/Work PB1236). §2023:13.18.22.4 GR6 compares the
-    // specification, and a literal's CHARACTERS are its content: "ABCD" and "abcd" are two different VALUE clauses.
-    // Only the WORDS of the clause are case-insensitive — a figurative constant's keyword (SPACE / space, ALL,
-    // the N / B / X literal prefix) and a hexadecimal literal's digits (X"4a" is X"4A") — so those are folded and a
-    // quoted literal's text is kept exactly.
-    internal static string ValueSpecificationKey(string raw)
-    {
-        int q = raw.IndexOfAny(['"', (char)39]);
-        if (q < 0) return raw.ToUpperInvariant();                    // no literal text at all: keywords and numbers
-        string head = raw[..q].ToUpperInvariant();
-        string body = raw[q..];
-        return head.TrimEnd().EndsWith('X') ? head + body.ToUpperInvariant() : head + body;   // X"…" hex digits: any case
-    }
-
     /// <summary>Emit the <c>DescribeExternals()</c> ABI method — one <c>ExternalStore.Describe</c> per external
     /// record (§2023:14.8.4.3 / §2023:13.18.22.4 GR6 facts: byte count, record-name VALUE clause spec, strong TYPE name,
     /// CONSTANT RECORD presence) and per external file connector (§2023:14.8.4.2 file-referencing control-item
@@ -274,14 +260,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         {
             foreach (var ext in data.Linkage.ExternalBackings)
             {
-                // §2023:13.18.22.4 GR6: the VALUE identity is the RECORD NAME's own VALUE clause specification ("the
-                // VALUE clause specification, if any, for each record name ... shall be identical") — the
-                // record-level clause text, not the subordinate items' clauses.
-                string valueSpec = ext.Record.RawValue is { } rv ? CsLiteral(ValueSpecificationKey(rv)) : "null";
-                string strongKey = ext.Record.StrongType && ext.Record.TypeName is { } tn ? CsLiteral(CobolNames.UpperFold(tn)) : "null";
+                // §2023:13.18.22.4 GR6: the ONE description of the record, the one the compile-time agreement compares too
+                // (CallExternalBacking.Descriptor, kb/Work PB5996); its VALUE identity is the RECORD NAME's own VALUE clause
+                // specification, not the subordinate items' clauses.
+                var d = ext.Descriptor;
+                string valueSpec = d.ValueImage is { } vs ? CsLiteral(vs) : "null";
+                string strongKey = d.StrongTypeKey is { } tn ? CsLiteral(tn) : "null";
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(ext.ExternalName)}, "
-                    + $"new ExternalDescriptor(\"record\", ByteCount: {ext.Width}, ValueImage: {valueSpec}, "
-                    + $"StrongTypeKey: {strongKey}, ConstantRecord: {(ext.Record.IsConstantRecord ? "true" : "false")}), "
+                    + $"new ExternalDescriptor(\"record\", ByteCount: {d.ByteCount}, ValueImage: {valueSpec}, "
+                    + $"StrongTypeKey: {strongKey}, ConstantRecord: {(d.ConstantRecord ? "true" : "false")}), "
                     + $"{selfMask});   // §2023:14.8.4.3 / §2023:13.18.22.4 GR6");
             }
             foreach (var f in data.Files.Declared.Where(f => f.IsExternal))

@@ -8,7 +8,10 @@
       *> §1985:IV.7.2 p10; §1985:IV.7.2 p6 (REFERENCE FORMAT). An output
       *> test: the program must translate and run at 85 and DISPLAY
       *> exactly the lines its .out holds, the outcome the rule
-      *> requires. Placed from written and run by the PB5453 reader of
+      *> requires. Its expected outcome rests on the implementor's
+      *> determination DOC-A.1-158 (margin R is immediately to the right
+      *> of character position 72; area B ends at 72), not on the rule
+      *> alone. Placed from written and run by the PB5453 reader of
       *> lineage-reads-1985/s-07.json by scripts/spec/place_witnesses.py
       *> (kb/Work PB4995).
        IDENTIFICATION DIVISION.

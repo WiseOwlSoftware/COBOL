@@ -672,6 +672,43 @@ public sealed class SpecTraceabilityInventoryDriftTests
                         + "register (a section 7 item or a section 3 determination)"));
                 }
                 break;
+            case "informs":
+                // kb/Work PB6012: the row only INFORMS the reader of the standard. `describes the standard's <what>:
+                // "<quotation>"` (groups 1, 2) or `explains <rule-id>: "<quotation>"` (groups 3, 4); the quotation lies
+                // inside the row's own catalog text, and an explained rule is another rule of the row's own edition.
+                string quote = m.Groups[2].Success ? m.Groups[2].Value : m.Groups[4].Value;
+                bool hasOwn = s.Catalog.TryGetValue(r.RuleId, out var ownEntry);
+                if (m.Groups[3].Success)
+                {
+                    string explained = m.Groups[3].Value;
+                    if (string.Equals(explained, r.RuleId, StringComparison.Ordinal))
+                    {
+                        bad.Add(new("explains-itself",
+                            $"{r.RuleId}: determination '{key}': a rule cannot explain itself — `explains` names the "
+                            + "requirement another rule states"));
+                        break;
+                    }
+                    if (!s.Catalog.TryGetValue(explained, out var explainedEntry) || !hasOwn
+                        || explainedEntry.Year != ownEntry.Year)
+                    {
+                        bad.Add(new("unknown-rule",
+                            $"{r.RuleId}: determination '{key}': explains '{explained}', not a rule of the catalog of its "
+                            + "own edition"));
+                        break;
+                    }
+                }
+                if (!hasOwn)
+                {
+                    bad.Add(new("unknown-rule",
+                        $"{r.RuleId}: determination '{key}': the rule is in no held catalog"));
+                }
+                else if (!Spaced(ownEntry.Text).Contains(Spaced(quote), StringComparison.Ordinal))
+                {
+                    bad.Add(new("quote-not-in-rule",
+                        $"{r.RuleId}: determination '{key}': the quotation '{quote}' is not in the rule's text in its "
+                        + "edition's catalog"));
+                }
+                break;
             default:
                 bad.Add(new("unknown-check",
                     $"{r.RuleId}: determination '{key}': arm {entry.Arm} declares check '{arm.Check}', which "
@@ -1601,6 +1638,22 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-IV.4.2.2.1.1-15", "1985-SR-IV.4.2.2.1.1-L2.12", "1985-GR-IV.4.2.2.1.2-3", "1985-GR-IV.4.2.2.1.3.3-1",
             "1985-GR-IV.4.2.2.1.3.3-2", "1985-GR-IV.4.3.7-p3", "1985-GR-IV.6.3.1-p1", "1985-GR-IV.6.4.2-p1",
             "1985-GR-IV.6.4.2-p2", "1985-SR-IV.5.1-p1", "1985-GR-IV.7.4-p5", "1985-GR-VI.2.1-p1", "1985-GR-VII.1.3.3-p1",
+            // ⚙ Eleven more, added deliberately (kb/Work PB6012, the `informative` arm, signature `claude: 2026-11-21`): the
+            // s-99 presentation rows read again under the arm (tests/version-matrix/lineage-reads-1985/s-100.json), each
+            // written by `audit_batch.py derivation-batch` on the UPHELD record of
+            // tests/version-matrix/derivation-refutations/lineage-reads-1985-s-100.jsonl.
+            "1985-GR-IV.1-p1", "1985-SR-IV.2.1.1-p1", "1985-GR-IV.2.1.5-p1", "1985-GR-IV.3.1-p1", "1985-GR-IV.3.2-p1",
+            "1985-GR-IV.4.3.7-p2", "1985-GR-VI.6.3.4-p2", "1985-GR-VI.6.4-p1", "1985-GR-XIII.3.10.2-p1",
+            "1985-GR-XIII.3.10.2-p3", "1985-GR-XIII.3.10.3-p1",
+            // ⚙ Two more, added deliberately (kb/Work PB5453, the rows pass w20262131i; decision PB6003, signature
+            // `claude: 2026-11-21`): undefined-in-rule derivations the import refused for an unquoted Names cell and no code
+            // location, read again in s-100 (superseding s-12 and s-16) with both; a mechanical arm, its checker the reader.
+            "1985-GR-VI.6.4.5-p1", "1985-GR-X.4.1-p6",
+            // ⚙ Two more, added deliberately (kb/Work PB5453's last two rows, decision PB6003, signature `claude: 2026-11-21`):
+            // `unpopulatable-antecedent` (every reading SourceTextDecoder.Decode gives a source or library text represents all
+            // 78 characters of the 1985 COBOL character set), read in s-101 (superseding s-99 and s-01), standing on the UPHELD
+            // records of tests/version-matrix/derivation-refutations/lineage-reads-1985-s-101.jsonl.
+            "1985-GR-IV.4.1-p2", "1985-SR-IV.4.1-p3",
         ];
 
         var s = LoadSchema();
@@ -2515,5 +2568,42 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(derivedKept, older, Under("DOC-A.1-197", "—"), closedChain)));
         Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("DOC-A.1-197", "—"), closedChain)));
         Assert.Equal(["names-shape"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("DOC-A.1-197 and the rest"), closedChain)));
+
+        // ⛔ THE SEVENTH ARM, `informative` (kb/Work PB6012): the Names cell describes the standard's own text or explains
+        // another rule of the row's edition, ending in a quotation of the row's OWN text; argued, so a refuter-bound
+        // signature stands only on an UPHELD refuter record of the row.
+        Schema Informing(string names, string refuter = "refute.jsonl") => Under("D-NATURAL-BOUNDARY", refuter) with
+        {
+            Derivation = Under("D-NATURAL-BOUNDARY", refuter).Derivation! with
+            {
+                Register = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
+                {
+                    ["DRV-1985-X-1"] = new("DRV-1985-X-1", "informative", names, "…", deciding, refuter),
+                },
+            },
+            Catalog = new Dictionary<string, (int Year, string Text)>(cs.Catalog, StringComparer.Ordinal)
+            {
+                ["1985-GR-X.1-2"] = (1985, "An item is aligned on the boundary the implementor specifies."),
+                ["GR-14.9.5.4-7"] = (2023, "If the program to be canceled is not located, no action is taken."),
+            },
+        };
+        // The fabricated row's id, 1985-X-1, is not of the rule-id shape an `explains` takes, so the row that explains
+        // itself (`explains-itself`) is the parity fixture's case, which both engines evaluate.
+        const string Describes = "describes the standard's kinds of overlap: \"the result of the transfer is undefined\"";
+        const string Explains = "explains 1985-GR-X.1-2: \"If the operands overlap, the result\"";
+        foreach (string names in new[] { Describes, Explains })
+        {
+            Assert.Equal("OK", StateAt(derivedKept, older, Informing(names), closedChain));    // a chained row
+            Assert.Equal("OK", StateAt(ownVerdict, older, Informing(names), closedChain));     // an own-verdict row
+        }
+        Assert.Equal(["quote-not-in-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("describes the standard's kinds of overlap: \"the content is undefined when\""), closedChain)));
+        Assert.Equal(["unknown-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("explains 1985-GR-X.1-9: \"If the operands overlap, the result\""), closedChain)));
+        Assert.Equal(["unknown-rule"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("explains GR-14.9.5.4-7: \"If the operands overlap, the result\""), closedChain)));       // another edition's
+        Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(derivedKept, older, Informing(Describes, "—"), closedChain)));
+        Assert.Equal(["names-shape"], Codes(DerivationRefusalsAt(ownVerdict, older,
+            Informing("describes the standard's text: \"the result of the transfer is undefined\""), closedChain)));
     }
 }

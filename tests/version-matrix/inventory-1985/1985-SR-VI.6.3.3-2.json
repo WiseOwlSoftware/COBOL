@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.3-2",
+ "rule-digest": "af91c3ef6643",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/1985-SR-VI_6_3_3-2",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler refuse at 85 with its probe (xor85.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 10 made conforming (the abbreviated combined relation condition's connective is OR, which the 1985 format admits) and compiles and runs at 85. The read: Upholding the refuter: the row carries the 1985 format box ('The format for an abbreviated combined relation condition is'), whose connective is AND or OR; FMT-8.8.4.12.2 adds EXCLUSIVE-OR and XOR, a 2023 widening, so copying its verdict would assert the 2023 format at 85. The refusal of XOR at 85 is the own witness (re-read this pass), with its one-word-changed OR control accepted. Code location located after the read: ConditionBinder cites 1985:VI.6.3.3 (line 981) for abbreviated relation omission"
+}

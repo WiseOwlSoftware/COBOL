@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.8-p1",
+ "rule-digest": "63244a19a06d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#FirstLine; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+ "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_02",
+ "notes": "Own witness from the read lineage-reads-1985/s-18.json: the reader showed the compiler correct at 85 with tests the suite already holds, joined as the row's own by the PB5453 rows pass (w20262131i); the import left the row GAP because the read named them in prose, not as a runnable probe.  The read: 1985: \"... points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a control heading, detail, and control footing report groups\". A lead-in that makes the table govern the group's presentation. 2023 has no tables, and each candidate states one placement rule (GR-13.18.35.4-5, GR-13.18.35.4-8, ...), none the set of rules a table row names, so no pointer covers the scope. The table's own rules are the siblings 1985-GR-XIII.3.10.8-1..-6, each with an 85 case. Code location located after the read: presentation rules table for one group kind: line/next-group combinations screened in ReportSectionBinder (cites 1985:XIII.3.10.6 to 3.10.10) and placed by ReportLinePlacement"
+}

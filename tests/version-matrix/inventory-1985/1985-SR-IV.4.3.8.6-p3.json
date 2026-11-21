@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.6-p3",
+ "rule-digest": "576e5925245c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#MisqualifiedConditionText; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder",
+ "test-ref": "conformance:cases/IV.4.3.8@1985-Uniqueness-of-Reference/1985-SR-IV_4_3_8_6-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-05.json: the reader showed the compiler refuse at 85 with its probe (s05_cond_nosub.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 14 made conforming (the condition-name carries the subscript its conditional variable requires) and compiles and runs at 85. The read: None of the candidates (condition test, OCCURS KEY, SET TRUE) states it; the refusal probe with its one-line control shows it. Code location located after the read: ConditionBinder cites 1985:IV.4.3.8.6; condition-name qualification/subscripting via NameResolution and SubscriptBinder"
+}

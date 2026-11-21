@@ -9,7 +9,7 @@
 #
 # Input:
 #   tests/version-matrix/constructs/<id>.json — the canonical rows: id / display / introducedIn / removedIn / obsoleteIn /
-#                                           diagnosticCode / citation / directiveWords (+ description / vcr / source /
+#                                           diagnosticCode / citation / rule1985 / directiveWords (+ description / vcr / source /
 #                                           status / expectDiagnostic used by the version-matrix tests, not the
 #                                           registry). directiveWords (kb/Work PB725) lists the ISO §2023:7.3 compiler-
 #                                           directive words the row gates; CompilerDirectiveCatalog inverts them into
@@ -102,8 +102,11 @@ foreach ($r in $rows) {
     $line = '        new("{0}", "{1}", {2}, {3}, {4}, "{5}", "{6}")' -f `
         (Esc $r.id), (Esc $r.display), ([int]$r.introducedIn), (NullOrInt $r.removedIn), (NullOrInt $r.obsoleteIn), `
         (Esc $r.diagnosticCode), (Esc $r.citation)
-    # The ISO §2023:7.3 directive words this row gates (kb/Work PB725) — an object initializer only on the rows
-    # that carry them, so the 200-odd non-directive rows keep their one-line rendering.
+    # The object initializer carries only the fields a row has, so the 200-odd plain rows keep their one-line rendering.
+    $inits = [System.Collections.Generic.List[string]]::new()
+    # The COBOL-85 rule a relaxation row's 85 program breaks (kb/Work PB6010): the edition gate cites it at --std 85.
+    if (-not [string]::IsNullOrEmpty($r.rule1985)) { $inits.Add('Rule1985 = "{0}"' -f (Esc $r.rule1985)) }
+    # The ISO §2023:7.3 directive words this row gates (kb/Work PB725).
     if ($null -ne $r.directiveWords -and @($r.directiveWords).Count -gt 0) {
         $words = (@($r.directiveWords) | ForEach-Object { '"' + (Esc $_) + '"' }) -join ', '
         $init = 'DirectiveWords = [{0}]' -f $words
@@ -132,8 +135,9 @@ foreach ($r in $rows) {
             $rule = $r.directivePlacement.rule
             $init += ', Placement = new(DirectivePlacementRule.{0}, "{1}", "{2}")' -f ($rule.Substring(0,1).ToUpper() + $rule.Substring(1)), (Esc $r.directivePlacement.citation), (Esc $r.directivePlacement.text)
         }
-        $line += (' {{ {0} }}' -f $init)
+        $inits.Add($init)
     }
+    if ($inits.Count -gt 0) { $line += (' {{ {0} }}' -f ($inits -join ', ')) }
     [void]$sb.AppendLine($line + ',')
 }
 [void]$sb.AppendLine('    ];')

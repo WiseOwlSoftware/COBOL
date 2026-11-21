@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "COBOL7654: unexpected 'MERGE'. 'MERGE' is written where the SOURCE-COMPUTER paragraph's computer-name-1 stands"}

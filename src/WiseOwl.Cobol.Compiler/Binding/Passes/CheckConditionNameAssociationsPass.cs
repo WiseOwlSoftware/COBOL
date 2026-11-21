@@ -41,13 +41,13 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
                     + "this level-88 entry does not immediately follow a data description entry describing a "
                     + "data item — the condition-name entries for a particular conditional variable shall "
                     + "immediately follow the entry describing the item with which the condition-name is "
-                    + $"associated (ISO {binder.Edition.Edition.Cite("§1985:VI.5.3.4 GR2", "§2023:13.16.3 SR24")})");
+                    + $"associated ({binder.Edition.Edition.CiteRule("§1985:VI.5.3.4 GR2", "§2023:13.16.3 SR24")})");
                 continue;
             }
             if (ConditionalVariableExclusion(variable) is not { } excluded) continue;
             binder.Edition.Error(DiagnosticCatalog.ConditionNameVariableExcluded, $"condition-name '{name}': the entry "
                 + $"it follows describes '{variable.CobolName ?? "FILLER"}', and a condition-name may not be "
-                + $"associated with {excluded.Article} — ISO {excluded.Excludes(binder.Edition.Edition)}");
+                + $"associated with {excluded.Article} — {EditionInfo.Designated(excluded.Excludes(binder.Edition.Edition))}");
         }
     }
 
@@ -149,7 +149,7 @@ internal sealed class CheckConditionNameAssociationsPass : IBindPass
             Also: "; the same prohibition is ISO §2023:13.18.60.3 SR11, \"An elementary data item of class index, "
                 + "message-tag, object, or pointer shall not be a conditional variable\"",
             Letter1985: 'd', Text1985: "An index data item.",
-            Also1985: "; the same prohibition is ISO §1985:VI.5.14.3 SR7, \"An elementary data item described with a USAGE IS INDEX "
+            Also1985: "; the same prohibition is §1985:VI.5.14.3 SR7, \"An elementary data item described with a USAGE IS INDEX "
                 + "clause must not be a conditional variable\""),
 
         // f) A data item described with the ANY LENGTH clause.

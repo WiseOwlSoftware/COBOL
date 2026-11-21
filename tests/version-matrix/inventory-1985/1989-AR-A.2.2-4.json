@@ -1,0 +1,8 @@
+{
+ "rule-id": "1989-AR-A.2.2-4",
+ "rule-digest": "47d015dc6144",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerArgument; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntrinsicArgumentRules",
+ "test-ref": "conformance:cases/A.2@1985-GENERAL-DESCRIPTION/1989-AR-A_2_2-4",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json, a reopened parent (a case of its id was placed before the mint and the reader wrote another), decided by the PB5453 rows pass (w20262131i): The row's own case exercises the whole item: integer arithmetic expressions as arguments (W-B + 3, W-B + 1) and the operational sign of a negative argument used (MOD (-11, 5) = 004); the reader's s19_p19 adds MOD (11, -5), the same sign rule. The read: Reopened parent; what is left is item (4) alone. AR-15.3-6 states the whole requirement (2023 adds 'or an integer data item', which an always-integer expression already includes), but its 85 cases never pass a negative integer argument, so the \"including operational sign\" half has no 85 witness on the pointer. s19_p19 supplies it; with s19_p19 placed as an AR-15.3-6 case accepted at 85, this becomes SAME to AR-15.3-6. Code location: integer-argument classification of arithmetic-expression arguments for integer-typed positions."
+}

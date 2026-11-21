@@ -71,7 +71,9 @@ internal static class RecoverySources
     /// <summary>Does the check-only compile of <paramref name="source"/> (as <see cref="Errors"/> compiles) accept it?</summary>
     public static bool Accepts(string source, int edition = DefaultEdition) => Check(source, edition).Success;
 
-    private static CompilerDriver.Result Check(string source, int edition)
+    /// <summary>The check-only compile of <paramref name="source"/> (free form, at <paramref name="edition"/>): the whole
+    /// result, for a test that asks which stage refused the source.</summary>
+    internal static CompilerDriver.Result Check(string source, int edition)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_PBREC_");
         try

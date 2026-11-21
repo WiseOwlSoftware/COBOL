@@ -236,7 +236,7 @@ The seven shapes, and the functions each covers:
 | `FollowsDestinationFormat` | CONVERT §2023:15.19 | keyed on the destination KEYWORDS, not an argument |
 | `Fixed` | everything else | §15.x.1 states one type, or §2023:15.2/§2023:15.6 does |
 
-**WHAT "INTEGER ARGUMENT" MEANS to those rows (kb/Work PB4635, PB4709, PB5886).** `IntrinsicResultType.IsIntegerArgument` reads §2023:15.3 AR6 (at COBOL-85 §1989:A.2.2 AR4): an argument is Integer when it is an integer item, an integer literal, an integer-type function, or "an arithmetic expression that will always result in an integer value" - and the last is decided by `IntrinsicArgumentRules.IsAlwaysIntegral`, the SAME classifier the §2023:15.3 type-6 refusal screen asks (kb/Work PB5886 review round 2, R2-1: there is one answer to "is this expression an integer"). It fails closed and decides by the VALUE of the expression, normalised to a polynomial in its terms (kb/Work PB5891; the type-6 intake section below states the classifier). So `ABS(I2 + 1)`, `ABS(- I2)`, `ABS((I2))`, `MAX(I2 + 1 1)`, `ABS(FUNCTION INTEGER(S) + 1)`, `ABS(LINAGE-COUNTER OF F + 1)`, `MAX(WN / 2 * 2)` and `MAX(S * 10)` are INTEGER functions (and `FACTORIAL(ABS(I2 + 1))`, `FACTORIAL(MAX(S * 10) - 12)` compile), while `ABS(S2 + 1)` over a scaled item and `ABS(I2 / 2)` stay Numeric. The VALUE is read, not the form, and it is the value the ARITHMETIC stores (kb/Work PB4758): a literal-only subtree holding a quotient whose exact value is a non-terminating decimal (`1 / 3 * 3`, exactly 1, stored as 0.99999999 by the arithmetic), or a terminating one longer than the 14 fraction digits a nested quotient is certain to keep (`1 / 1048576 * 1048576`; kb/Work PB4794), is not proof, so `ABS(1 / 3 * 3)` stays Numeric and returns what `COMPUTE` stores (`IntrinsicArgumentRules.QuotientsAreExact`, reading `CobolNum.NestedQuotientScale`). A call is a term, never read as the expression it stands for: `SQRT(N) - SQRT(N) + 5` is 5 (the same pure term cancels), while `S2 - FUNCTION MAX(S2)` over a scaled S2 is refused (MAX(S2) and S2 are different terms; the residue of kb/Work PB5889). The value-not-form reading: `ABS(I2 + 1.0)`, `ABS(1.5 + 0.5)` and `ABS(4 / 2)` are Integer too, while a LONE literal, bare or parenthesized, keeps the FORM reading of §2023:8.3.3.3.2 (`ABS(1.0)` and `ABS((1.0))` are Numeric, and a floating-point literal keeps its established device image). An integer function has "no digits to the right of the decimal point" (§2023:15.2), and ABS, MAX, MIN, RANGE and SUM return their argument at the argument's own scale, so the binder hands a call that RESOLVED to the Integer row its arguments in scale-0 form (`IntrinsicResultType.IntegerRowArguments`, rewriting through `IntrinsicArgumentRules.IntegralForm`): a literal written with fraction digits becomes its integer literal (`MOVE FUNCTION ABS(I2 + 1.0) TO A10` stores `4`, as `ABS(I2 + 1)` does), and an argument still computed above scale 0 (`S * 10`, `WN / 2 * 2`) is wrapped in `FUNCTION INTEGER-PART` (§2023:15.49.1), which keeps its exact integral value. A row DECLARED Integer (FACTORIAL, MOD) takes type-6 arguments that the renderer's intake already reads as integers. The statement positions that read `IntrinsicResultType.IsIntegerOperand` (PERFORM ... TIMES, the §2023:8.8.4.2.5 relation screen) still want an integer ITEM, literal (by FORM, §2023:8.3.3.3.2) or integer function.
+**WHAT "INTEGER ARGUMENT" MEANS to those rows (kb/Work PB4635, PB4709, PB5886).** `IntrinsicResultType.IsIntegerArgument` reads §2023:15.3 AR6 (at COBOL-85 §1989:A.2.2 AR4): an argument is Integer when it is an integer item, an integer literal, an integer-type function, or "an arithmetic expression that will always result in an integer value" - and the last is decided by `IntrinsicArgumentRules.IsAlwaysIntegral`, the SAME classifier the §2023:15.3 type-6 refusal screen asks (kb/Work PB5886 review round 2, R2-1: there is one answer to "is this expression an integer"). It decides by the VALUE of the expression, normalised to a polynomial in its terms (kb/Work PB5891; the type-6 intake section below states the classifier). So `ABS(I2 + 1)`, `ABS(- I2)`, `ABS((I2))`, `MAX(I2 + 1 1)`, `ABS(FUNCTION INTEGER(S) + 1)`, `ABS(LINAGE-COUNTER OF F + 1)`, `MAX(WN / 2 * 2)` and `MAX(S * 10)` are INTEGER functions (and `FACTORIAL(ABS(I2 + 1))`, `FACTORIAL(MAX(S * 10) - 12)` compile), while `ABS(S2 + 1)` over a scaled item and `ABS(I2 / 2)` stay Numeric. The VALUE is read, not the form, and it is the value the ARITHMETIC stores (kb/Work PB4758): a literal-only subtree holding a quotient whose exact value is a non-terminating decimal (`1 / 3 * 3`, exactly 1, stored as 0.99999999 by the arithmetic), or a terminating one longer than the 14 fraction digits a nested quotient is certain to keep (`1 / 1048576 * 1048576`; kb/Work PB4794), is not proof, so `ABS(1 / 3 * 3)` stays Numeric and returns what `COMPUTE` stores (`IntrinsicArgumentRules.QuotientsAreExact`, reading `CobolNum.NestedQuotientScale`). A call is a term, never read as the expression it stands for: `SQRT(N) - SQRT(N) + 5` is 5 (the same pure term cancels), while `S2 - FUNCTION MAX(S2)` over a scaled S2 is not proven (MAX(S2) and S2 are different terms), so it is an undecided argument, accepted and checked at run time (kb/Work PB5889), and a Numeric one for the type tables. The value-not-form reading: `ABS(I2 + 1.0)`, `ABS(1.5 + 0.5)` and `ABS(4 / 2)` are Integer too, while a LONE literal, bare or parenthesized, keeps the FORM reading of §2023:8.3.3.3.2 (`ABS(1.0)` and `ABS((1.0))` are Numeric, and a floating-point literal keeps its established device image). An integer function has "no digits to the right of the decimal point" (§2023:15.2), and ABS, MAX, MIN, RANGE and SUM return their argument at the argument's own scale, so the binder hands a call that RESOLVED to the Integer row its arguments in scale-0 form (`IntrinsicResultType.IntegerRowArguments`, rewriting through `IntrinsicArgumentRules.IntegralForm`): a literal written with fraction digits becomes its integer literal (`MOVE FUNCTION ABS(I2 + 1.0) TO A10` stores `4`, as `ABS(I2 + 1)` does), and an argument still computed above scale 0 (`S * 10`, `WN / 2 * 2`) is wrapped in `FUNCTION INTEGER-PART` (§2023:15.49.1), which keeps its exact integral value. A row DECLARED Integer (FACTORIAL, MOD) takes type-6 arguments that the renderer's intake already reads as integers. The statement positions that read `IntrinsicResultType.IsIntegerOperand` (PERFORM ... TIMES, the §2023:8.8.4.2.5 relation screen) still want an integer ITEM, literal (by FORM, §2023:8.3.3.3.2) or integer function.
 
 **MAX/MIN in full** (§2023:15.59.1/§2023:15.63.1, over the uniform §2023:15.59.3/§2023:15.63.3 r2 argument list): alphabetic or alphanumeric → an ALPHANUMERIC result (the selected string); NATIONAL → a NATIONAL result (the selected national string — NOT alphanumeric); INDEX → an INDEX result; all-integer → an INTEGER result; otherwise → NUMERIC. The size of an alphanumeric or national result is the size of the selected argument-1 (§2023:15.59.4/§2023:15.63.4 r3). ⚠ The INDEX row is **not** a `PicCategory` — an index item is PICTURE-less and this model carries it as `PicInfo.IndexItem`, category Numeric with usage Index, so a category-keyed test would route it to the numeric arm and, since its scale is 0, answer INTEGER: a plausible wrong type rather than a visible failure.
 
@@ -331,10 +331,10 @@ the usage-keyed arm in `ClassOfItem` beside `Usage.Index`'s.
 
 `IntegerViolation` decides §2023:15.3 type 6 — "an arithmetic expression that will always result in an
 integer value **or** an integer data item" — for four operand shapes: a DATA ITEM, a nested numeric function
-(§2023:8.4.3.2.3 SR11), a numeric LITERAL, and an arithmetic EXPRESSION, which the screen admits only when it SHOWS it is an integer
-for every valuation: it FAILS CLOSED (kb/Work PB5886; the section on the type-6 intake below lists what it shows). "Always results in
-an integer value" is not generally decidable, and the requirement is on the program (§2023:15.3 AR6 "shall be specified", §1989:A.2.2
-AR4 "must be specified"), so an expression the compiler cannot show integral is refused rather than admitted. The item test is `PicInfo.IsIntegerDescription` — **the ONE primitive**, and both of
+(§2023:8.4.3.2.3 SR11), a numeric LITERAL, and an arithmetic EXPRESSION, which the screen refuses only when it names a value of the
+operands at which it is not an integer (kb/Work PB5889; the section on the type-6 intake below states the three outcomes). "Always results
+in an integer value" is not generally decidable, and the requirement is on the program (§2023:15.3 AR6 "shall be specified", §1989:A.2.2
+AR4 "must be specified"), so an expression the compiler can neither prove nor refute is accepted and its value checked at run time. The item test is `PicInfo.IsIntegerDescription` — **the ONE primitive**, and both of
 type 6's disqualifying shapes live in it: a declared SCALE > 0, and a FLOATING-POINT usage (kb/Work PB248 — a float
 item is PICTURE-less, so it carries scale 0 and a scale-only test admitted it; §2023:14.6.8.3 sets its content to "the
 algebraic value of the sending operand", so its declared value set contains non-integers and no reference to it is
@@ -362,8 +362,8 @@ characters to coerce (`IsDigitDecodable`): a pointer or object-reference operand
 coercion has nothing to render or decode. Every catalogued function has a row in `Verified` or a
 cited reason in `DeliberatelyUnscreened` (`IntrinsicArgumentClassDriftTests.EveryCataloguedFunction_HasARow`), so a
 function can no longer be silently unscreened; the CLASS screen is fail-open by construction (an operand whose class is
-undecidable is never rejected) and its leniency is `--permissive`'s. The type-6 EXPRESSION arm is the exception: it fails closed
-(kb/Work PB5886). Pinned by `pb58_argument_predicates_legal` (the shapes that
+undecidable is never rejected) and its leniency is `--permissive`'s. The type-6 EXPRESSION arm refuses only on a counterexample and checks the rest at run time
+(kb/Work PB5889). Pinned by `pb58_argument_predicates_legal` (the shapes that
 must NOT be rejected) and the `pb58-*` negatives (one per rule instance).
 
 ### FUNCTION LENGTH (§2023:15.50) and BYTE-LENGTH (§2023:15.14): one fold per function, its arms enumerated from the RULE BRANCHES, and ONE builder for a group whose length is a runtime value (PB24 → PB43 → PB61).
@@ -978,15 +978,49 @@ said 24:00:00, §2023:15.54.4 r2). Goldens `pb1379_time_form_floor_float_carrier
 (total, `Int128`), keyed on `NumX.Carrier` (scaled, SDIDI, binary64; the unsigned-wide lane funnels through
 `NumericRenderer.DeU` first — the bounded intake had no arm for it and a COMP-5 PIC 9(19+) operand reached Roslyn as a
 CS1503). Each landing asks `CobolNum.HasFraction` / `CobolDec.HasFraction` / the binary64 truncation test of the EXACT value
-and raises EC-ARGUMENT-FUNCTION (§2023:15.3's closing paragraph) before the truncating narrowing. Since kb/Work PB5886 the
-compile-time screen fails closed, so a program the compiler accepts reaches this test with an integral value; the test stays the
-run-time net under `--permissive`, which admits a floating-point operand at an integer position as a coercion extension.
+and raises EC-ARGUMENT-FUNCTION (§2023:15.3's closing paragraph) before the truncating narrowing.
+
+**The run-time check of an UNDECIDED argument (kb/Work PB5889).** An argument the compile-time screen neither proves nor refutes
+(below) is accepted, and `IntrinsicRenderer.RawWideArg` (with `IntArgWideSaturating` and `IntegerIntake`, the intakes of every integer
+position) wraps its value in `CobolIntrinsics.CheckedIntegerArgument{Scaled,Dec,Real,Wide,Exact}` before the landing, ONE check per
+carrier, rendered through `RuntimeApi.CheckedIntegerArgument*` with the site `RuntimeApi.IntegerArgumentSite` (the function, the
+argument's position, and the edition's failure). The check returns the value unchanged when it is an integer; otherwise its one raise
+site `NotAnIntegerArgument` names the function, the argument and the value. From COBOL-2002 that is EC-ARGUMENT-FUNCTION through
+`ExceptionState.ArgumentError` (§2023:15.3 AR14; fatal when checking is enabled, otherwise the landing's truncated integer is the
+implementor's result, DOC-A.1-124); at COBOL-85, which has no exception conditions and leaves the result undefined (§1985:I.1.6), the run
+unit is terminated through `CobolImplementorFatalException`, as the Correction Amendment's clarification allows ("allows an
+implementation of amended third Standard COBOL to terminate processing", §1985:p.B-46; docs/conformance D-INTEGER-ARGUMENT-SCREEN). A
+proven argument, a literal and a scale-0 integer carrier take no check. Goldens `pb5889_run_time_check_85`, `pb5889_run_time_check`,
+`pb5889_run_time_check_unchecked`, and the 23 converted refusals below. The landing's own test stays the run-time net under
+`--permissive`, which admits a refused operand at an integer position as a coercion extension.
 `IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
 Golden `pb638_unsigned_wide_item_as_integer_argument`.
 
-**The compile-time screen FAILS CLOSED and decides EXACTLY by a polynomial normal form (kb/Work PB5886, PB5891).**
-`IntrinsicArgumentRules.IsAlwaysIntegral` is the ONE answer to "is this arithmetic expression always an integer": the type-6 screen
-refuses an argument exactly when it is false, and `IntrinsicResultType.IsIntegerArgument` reads it for the type tables. §2023:15.3 AR6
+**The compile-time screen has THREE outcomes, and refuses only on a counterexample (kb/Work PB5889, the ruling of 2026-11-21).**
+`IntrinsicArgumentRules.ClassifyTypeSix` answers PROVEN (the polynomial proof below: accepted), REFUTED (COBOL1627, naming a value of the
+operands at which the expression is not an integer) or UNDECIDED (accepted, and checked at run time, above). A form that always results
+in an integer is conforming source and must be accepted at every edition (§2023:4.2.2 "shall accept the syntax and provide the
+functionality"; §1985:I.1.5.2 "must fully support all the language elements of that subset"); detecting a breach is the implementor's
+(§2023:4.2.2 "it is left to the implementor's discretion to determine what is syntactically distinguishable"; undefined at 1985,
+§1985:I.1.6). So the absence of a proof is never a refusal: `S2 - FUNCTION MAX (S2)`, `FUNCTION MEAN (N, N) + 1` and
+`S2 - FUNCTION ABS (S2)` are accepted (`pb5889_function_meaning_identities`). The REFUTATION (`Refutation`, with the walks
+`CollectOperands` and `ValueAt`) evaluates the EXACT value of the expression at points of its OPERANDS, its fixed-point data items
+(k + 1 consecutive values of each item's least unit, 0, 1, -1, ... when signed; at most 4096 points, 0..12 for up to three items, which
+for a polynomial of degree at most k holds a non-integer point whenever one exists) and its floating-point items (steps of 0.5, exact in
+binary64). Its other leaves may be INTEGER terms (an integer function, a counter register, an index-name, a VARYING counter, an ODO
+extent), whose ranges the screen does not know: there the value is a polynomial in those terms, refuted only when it is a non-integer
+constant plus a part that is an integer for every integer value of them (`I2 + 0.5 + FUNCTION INTEGER (S2)`, `LINAGE-COUNTER + 0.5`). A
+value of a FUNCTION is never taken as a counterexample (`FUNCTION FACTORIAL (N + 2) / 2` is never odd), so `FUNCTION ORD (A) / 2` and
+`FUNCTION MOD (N 3) * 0.5` are undecided; a numeric function's leaf leaves no counterexample at all. Two or more operands are refuted
+together only when each holds storage of its own (WORKING-STORAGE or LOCAL-STORAGE, no REDEFINES, RENAMES or BASED on its path) and two
+references to one item are distinct constant elements (`T (1) - T (2) + 1` refuted; `T (I) - T (J) + 5` undecided). Refused: `N / 2`
+(N = 1), `N * (N + 1) / 3`, `N ** M` over a signed M (N = 2, M = -1), `A / B` (A = 1, B = 2), `WS-F + 1` (WS-F = 0.5). The value is the
+algebraic one, so `WN / 3 * 3` (exactly WN, but the arithmetic truncates WN / 3) and the STANDARD-DECIMAL rounding of
+`pb5886-standard-decimal-intermediate` are undecided and their computed values meet the run-time check.
+
+**The PROOF decides EXACTLY by a polynomial normal form (kb/Work PB5886, PB5891).**
+`IntrinsicArgumentRules.IsAlwaysIntegral` is the ONE answer to "is this arithmetic expression always an integer" (PROVEN), and
+`IntrinsicResultType.IsIntegerArgument` reads it for the type tables (an undecided argument is a numeric one there). §2023:15.3 AR6
 and §1989:A.2.2 AR4 put the requirement on the program and set no method of proof, and COBOL-85 has no EC-ARGUMENT-FUNCTION, so the
 screen that refused only on a witness valuation (PB124, PB617, PB5208, PB5345, PB5832) let `FUNCTION FACTORIAL (FUNCTION ORD (A) / 2)`
 compile there and return 33! for 33.5 (PB5886), and the screen of shapes that replaced it refused `FUNCTION FACTORIAL (N * (N + 1) / 2)`,
@@ -1086,20 +1120,24 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    (`pb5886-standard-decimal-power`). The INTEGER-PART wrap of an Integer-row argument (`IntegralForm`) is therefore a no-op on every
    argument it is given.
 5. **One classifier, every node kind named.** The node walks (the polynomial builder `Build`, the term comparer `SameTerm`,
-   `ProvablyIntegral` and the fold `ExactValue`) name every concrete `BoundExpr` kind in an explicit arm and
-   refuse in their default; `TypeSixWalkCoverageDriftTests` enumerates the kinds by reflection and holds each walk to naming them.
+   `ProvablyIntegral`, the fold `ExactValue`, and the refutation's `CollectOperands` and `ValueAt`) name every concrete `BoundExpr` kind
+   in an explicit arm and decide nothing in their default; `TypeSixWalkCoverageDriftTests` enumerates the kinds by reflection and holds
+   each walk to naming them.
 
-Everything else is refused with COBOL1627 at every edition: a quotient by a non-literal, a power outside rule 2, a real term that does not
-cancel, a polynomial that is not integer-valued (`FUNCTION ORD (A) / 2`, `FUNCTION MOD (N 3) * 0.5`, `WN * 0.5`), an inexact
-intermediate, and a term no rule classifies. `S2 - FUNCTION MAX (S2)` over a scaled S2 stays refused: MAX(S2) and S2 are different atoms,
-and the difference is an integer only by MAX's meaning (the residue of kb/Work PB5889). `RANDOM - RANDOM + 1` is refused (RANDOM is
-impure, so the two calls are two atoms). `IntrinsicTypeSixPowerShapesDriftTests` holds the node verdict table (a new `BoundExpr` node
-needs a verdict) and the shape table (each shape refused or admitted, with its reason); `IntegerArgumentConstantWitnessTests` holds the
-literal-constant rows; `ArgumentPolynomialTests` holds the grid test, the cap and the term comparer.
-Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`,
-`pb5832-product-by-literal`, `-quotient-in-sum`, `-item-quotient`, `-numeric-function-term`, `-date-of-integer-function-term`,
-`-day-of-integer-function-term`, the ten `pb5886-*` refusals, `pb5891-not-integer-valued`, `-impure-identity`, `-degree-over-cap`, `-table-subscripts`, `-table-two-subscripts`, `-sdidi-lane-identity`; complements `pb5208_power_integral_exponents`,
-`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`, `pb5891_polynomial_integer_arguments`, `pb5891_standard_decimal_identity`, `pb5891_native_exact_lane`, `pb5891_p_scaled_exponent`, `pb5891_p_scaled_exponent_85`, `pb5891_scaled_product_exponent`, `pb5891_argument_float_receiver`; refusal `pb5891-wide-exponent-power`.
+Everything the proof does not show is REFUTED or UNDECIDED (above), at every edition. `IntrinsicTypeSixPowerShapesDriftTests` holds the
+node verdict table (a new `BoundExpr` node needs a verdict) and the shape table (each shape proven, refuted or checked, read from the
+diagnostics and from the emitted C# of the admitted shapes); `IntegerArgumentConstantWitnessTests` holds the literal-constant rows in the
+same three outcomes; `ArgumentPolynomialTests` holds the grid test, the cap and the term comparer.
+Refusals `pb5208-power-negative-exponent`, `-signed-exponent`, `pb5345-power-literal-base`, `pb5832-product-by-literal`,
+`-quotient-in-sum`, `-item-quotient`, `pb5891-not-integer-valued`, `-table-subscripts`, `pb4709-counter-register-non-integral-sum`,
+`pb4709-integer-function-term-non-integral-sum`, `pb248-integer-expr-float-term`, `pb617-integer-expr-literal-sum`; accepted (kb/Work
+PB5889) `pb5886-numeric-function-terms`, `-item-quotients`, `-power-shapes`, `pb5891-degree-over-cap`; checked at run time from 2002
+(RAISED) `pb4757-*`, `pb4795-*`, `pb4796-abs-signed-difference-non-integral`, `pb5208-power-fractional-exponent`, `pb5832-mean-term`,
+`-numeric-function-term`, `-date-of-integer-function-term`, `-day-of-integer-function-term`, `pb5886-argument-2-quotient`,
+`-char-quotient`, `-integer-function-fraction-factor`, `-integer-function-quotient`, `-quotient-of-integer-functions`,
+`-random-seed-quotient`, `-standard-decimal-intermediate`, `-standard-decimal-power`, `pb5891-sdidi-lane-identity`,
+`-wide-exponent-power`, `-table-two-subscripts`, and `pb5891-impure-identity` (DONE); complements `pb5208_power_integral_exponents`,
+`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`, `pb5891_polynomial_integer_arguments`, `pb5891_standard_decimal_identity`, `pb5891_native_exact_lane`, `pb5891_p_scaled_exponent`, `pb5891_p_scaled_exponent_85`, `pb5891_scaled_product_exponent`, `pb5891_argument_float_receiver`, `pb5889_function_meaning_identities`.
 
 ### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
 

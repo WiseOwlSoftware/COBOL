@@ -54,7 +54,7 @@ public sealed partial class DataBinder
             + (ReferenceEquals(redefining, item)
                 ? "in a data description entry that contains a REDEFINES clause"
                 : $"in an entry subordinate to '{redefining.CobolName ?? "FILLER"}', which contains a REDEFINES clause")
-            + " (ISO " + Edition.Edition.Cite("§1985:VI.5.10.3 SR9",
+            + " (" + Edition.Edition.CiteRule("§1985:VI.5.10.3 SR9",
                 $"§2023:13.18.63.3 SR12{(format2 ? ", applied to format 2 by SR16" : "")}") + ") — the redefined entry "
             + $"'{redefining.RedefinesTargetName}' is the one that may carry an initial value");
     }

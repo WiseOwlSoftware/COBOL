@@ -4,6 +4,7 @@
  "display": "a class condition that tests an alphabet-name",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:8.8.4.4.4 GR3; ISO/IEC 1989:2002 Annex F.2 item 16",
+ "rule1985": "§1985:VI.6.3.1.2 (the class condition names NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER or a class-name)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XII.1.2-p2",
+ "rule-digest": "652a898bbe08",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/XII.1@1985-INTRODUCTION-TO-THE-SOURCE-TEXT-MANIPULATION/1985-GR-XII_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler correct at 85 with its probe (copy_replace_85.cob), placed as the row's own test with the library texts the reader staged (S17PAR.cpy, S17TXT.cpy; run_probe.py could not stage them before kb/Work PB6016, so the import left the row GAP); its expected output is the reader's judged run, equal on this build.  The read: 'replacing all occurrences of a given literal, identifier, word, or group of words in the library text ... more than one COBOL library at compile time and the substitution of new text for text appearing in the source program'. No candidate states the level-2 capabilities (SR-7.3.3-8, GR-7.3.24.3-5 are directive rules; GR-7.2.3.4-7 is the no-REPLACING case), so DIFFERENT; every part is shown at 85. Code location located after the read: level 2 REPLACING / REPLACE replaces text in CopyProcessor.ApplyReplacements"
+}

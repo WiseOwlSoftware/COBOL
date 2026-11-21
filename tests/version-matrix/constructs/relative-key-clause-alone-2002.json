@@ -4,6 +4,7 @@
  "display": "a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:12.4.5.13.2; ISO/IEC 1989:2002 Annex F.2 item 112",
+ "rule1985": "§1985:VIII.2.3.2 (RELATIVE KEY is a phrase of the ACCESS MODE clause)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",

@@ -35,8 +35,8 @@ public sealed partial class FileControlBinder
             if (file.HasFd) continue;
             using var _ = Edition.At(file.EntryAt);
             Edition.Error(DiagnosticCatalog.SelectWithoutFileDescription, $"file '{name}' is specified in a SELECT "
-                + "clause but has no file description entry (FD) or sort-merge file description entry (SD); ISO "
-                + Edition.Edition.Cite(file.Organization switch
+                + "clause but has no file description entry (FD) or sort-merge file description entry (SD); "
+                + Edition.Edition.CiteRule(file.Organization switch
                     {
                         FileOrganization.Relative => "§1985:VIII.2.3.3 SR2",
                         FileOrganization.Indexed => "§1985:IX.2.3.3 SR2",
@@ -67,7 +67,7 @@ public sealed partial class FileControlBinder
                 // cascade of undefined names (kb/Work PB1237; it used to compile clean and run I-O against an
                 // empty assignment).
                 Edition.Error(DiagnosticCatalog.FileDescriptionWithoutSelect, $"file description entry '{name}' names "
-                    + "a file that no file control entry specifies; ISO " + Edition.Edition.Cite(
+                    + "a file that no file control entry specifies; " + Edition.Edition.CiteRule(
                         "§1985:VII.2.3.3 SR2 (§1985:VIII.2.3.3 SR2, §1985:IX.2.3.3 SR2): \"Each file-name in the Data Division must be "
                         + "specified only once in the FILE-CONTROL paragraph.\"",
                         "§2023:13.4.5.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
@@ -146,8 +146,8 @@ public sealed partial class FileControlBinder
             if (file.IsReportFile && fd.dataDescriptionEntry() is { Length: > 0 } entries)
                 Edition.Error(DiagnosticCatalog.ReportFileRecordEntry, $"file description entry '{name}' specifies a "
                     + $"REPORT clause and has {entries.Length} record description or constant "
-                    + $"entr{(entries.Length == 1 ? "y" : "ies")} subordinate to it — ISO "
-                    + Edition.Edition.Cite("§1985:XIII.3.2.3 SR4: \"No record description entries may follow the file description entry for a report file.\"",
+                    + $"entr{(entries.Length == 1 ? "y" : "ies")} subordinate to it — "
+                    + Edition.Edition.CiteRule("§1985:XIII.3.2.3 SR4: \"No record description entries may follow the file description entry for a report file.\"",
                         "§2023:13.4.5.3 SR8: \"No record description entries or constant entries shall be associated with the file description entry for a report file.\"")
                     + " Remove them; the report's lines come from its REPORT SECTION description.");
             // §2023:13.16.3 SR7's FD half — every WRITTEN record of an EXTERNAL / GLOBAL FD has a data-name
@@ -173,7 +173,7 @@ public sealed partial class FileControlBinder
             {
                 // ISO §2023:13.4.6.3 SR1 — the SD twin of the FD arm above (kb/Work PB1290).
                 Edition.Error(DiagnosticCatalog.FileDescriptionWithoutSelect, $"sort-merge file description entry "
-                    + $"'{sdName}' names a file that no file control entry specifies; ISO " + Edition.Edition.Cite(
+                    + $"'{sdName}' names a file that no file control entry specifies; " + Edition.Edition.CiteRule(
                         "§1985:XI.2.3.3 SR1: \"Each sort or merge file described in the Data Division must be specified only once in "
                         + "the FILE-CONTROL paragraph.\"",
                         "§2023:13.4.6.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
@@ -193,7 +193,7 @@ public sealed partial class FileControlBinder
                 Edition.Error(DiagnosticCatalog.FileDescriptionRecordRequired, $"sort-merge file description entry "
                     + $"'{sdName}': one or more record description entries shall be associated with the sort-merge "
                     + "file description entry " + Edition.Edition.Cite(
-                        "(ISO §1985:XI.3.2.3 SR3) — a SORT or MERGE key is a data item within a record of this file, so there is "
+                        "(§1985:XI.3.2.3 SR3) — a SORT or MERGE key is a data item within a record of this file, so there is "
                         + "nothing for the KEY phrase to name.",
                         "(ISO §2023:13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
                         + "record of this file (§2023:14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name."));
@@ -225,7 +225,7 @@ public sealed partial class FileControlBinder
         if (!_host.Symbols.DescribedEarlier(written, entryStart)) return false;
         Edition.Error(DiagnosticCatalog.SpecialNameDeclaredTwice,
             $"the file-name '{name}' is described a second time by this {entry} — no qualifier can tell the two descriptions "
-            + $"apart, so no reference to the file could uniquely identify one (ISO {Edition.Edition.Citation()}); the first stands");
+            + $"apart, so no reference to the file could uniquely identify one ({EditionInfo.Designated(Edition.Edition.Citation())}); the first stands");
         return true;
     }
 
@@ -244,8 +244,8 @@ public sealed partial class FileControlBinder
         {
             Edition.Error(DiagnosticCatalog.FileDescriptionClauseFormat, $"the {row.Name} ({WrittenSource.Of(clause)}) is "
                 + $"written in the file description entry for '{fdName}', but it is a clause of "
-                + $"{FileDescriptionFormats.HomeEntryOf(Edition.Edition, row, format, file.Organization)}, and no ISO "
-                + $"{FileDescriptionFormats.FormatCitation(Edition.Edition, format, file.Organization)} file description "
+                + $"{FileDescriptionFormats.HomeEntryOf(Edition.Edition, row, format, file.Organization)}, and no "
+                + $"{EditionInfo.Designated(FileDescriptionFormats.FormatCitation(Edition.Edition, format, file.Organization))} file description "
                 + "format contains it — write it in the SELECT entry for "
                 + $"'{fdName}'. It is not bound here, so it has no effect on the file.");
             return false;
@@ -651,7 +651,7 @@ public sealed partial class FileControlBinder
             if (record.CobolName is not null) continue;
             using var _ = Edition.At(record);
             Edition.Error(rule.Code, $"a record description entry of file '{file.CobolName}' has no data-name, and "
-                + $"the file description entry contains the {clause} clause. \"{rule.SentenceIn(Edition.Edition)}\" (ISO {rule.RuleIn(Edition.Edition)})");
+                + $"the file description entry contains the {clause} clause. \"{rule.SentenceIn(Edition.Edition)}\" ({EditionInfo.Designated(rule.RuleIn(Edition.Edition))})");
         }
     }
 }

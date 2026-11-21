@@ -1,0 +1,6 @@
+
+      * A COMMENT LINE IN LIBRARY TEXT (IV.7.2.4).
+      / A SLANT COMMENT LINE IN LIBRARY TEXT.
+           DISPLAY "LIB"
+
+               " TEXT".

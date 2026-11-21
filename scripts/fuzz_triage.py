@@ -49,6 +49,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
 sys.path.insert(0, str(HERE / "spec"))
 import citation  # noqa: E402  (scripts/spec: the one citation format and its parser, kb/Work PB4887)
+import work_editions  # noqa: E402  (scripts/spec: a filed note declares the editions it blocks, kb/Work PB5995)
 BRIEFS = HERE / "fuzz_triage_briefs"
 NL = "\n"
 
@@ -963,7 +964,7 @@ def render_note(d: Draft, pb: str, date: str) -> str:
         if key not in used and not key.lower().startswith("witnesses"):
             body += [f"## {key}", "", text.strip(), ""]
     body += ["## Witnesses", "", f"- {d.run_id}: {' '.join(d.programs)}", ""]
-    return NL.join(fm + body)
+    return work_editions.seeded(NL.join(fm + body))
 
 
 def add_witness(text: str, run_id: str, programs: list[str]) -> str:

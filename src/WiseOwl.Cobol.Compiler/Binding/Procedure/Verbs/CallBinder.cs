@@ -1129,8 +1129,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // screen asks the category reader).
         return OperandTargetRefusal(name) is { } face
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
-                $"CALL target '{written}' is {face}; ISO "
-                + ctx.Edition.Edition.Cite("§1985:X.5.2.3 SR2 admits an alphanumeric data item whose value can be a program-name",
+                $"CALL target '{written}' is {face}; "
+                + ctx.Edition.Edition.CiteRule("§1985:X.5.2.3 SR2 admits an alphanumeric data item whose value can be a program-name",
                     "§2023:14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item"))
             : null;
     }
@@ -1187,12 +1187,12 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         string rule = ctx.Edition.Edition.Cite(clause1985, clause);
         if (fault == ProgramNameFault.ZeroLength)
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
-                $"{verb} with a zero-length literal program name (ISO {rule})");
+                $"{verb} with a zero-length literal program name ({EditionInfo.Designated(rule)})");
         else if (fault == ProgramNameFault.NotAlphanumericOrNational)
             ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass,
                 $"{verb} '{literal1.Spelling}': the literal program name "
                 + ctx.Edition.Edition.Cite("must be a nonnumeric literal", "shall be an alphanumeric or national literal")
-                + $" (ISO {rule})");
+                + $" ({EditionInfo.Designated(rule)})");
         return name;
     }
 
@@ -1333,7 +1333,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     {
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
                             $"CANCEL target '{WrittenSource.Of(dref)}' is {targetFace}; "
-                            + "ISO " + ctx.Edition.Edition.Cite("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1")
+                            + ctx.Edition.Edition.CiteRule("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1")
                             + ctx.Edition.Edition.Cite(" admits an alphanumeric data item", " admits an alphanumeric or national data item"));
                         continue;
                     }
@@ -1351,7 +1351,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     using (ctx.Edition.At(t))
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
                             $"CANCEL target '{WrittenSource.Of(t)}' is {computedFace}; "
-                            + "ISO " + ctx.Edition.Edition.Cite("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1")
+                            + ctx.Edition.Edition.CiteRule("§1985:X.5.3.3 SR2", "§2023:14.9.5.3 SR1")
                             + ctx.Edition.Edition.Cite(" admits an alphanumeric data item", " admits an alphanumeric or national data item"));
                     continue;
                 }

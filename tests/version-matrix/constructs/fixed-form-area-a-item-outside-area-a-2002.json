@@ -4,6 +4,7 @@
  "display": "an area-A item that does not start in area A of its fixed-form line (DECLARATIVES and END DECLARATIVES must also begin their line)",
  "diagnosticCode": "COBOL3734",
  "citation": "ANSI X3.23-1985 reference format, area A; ISO §2023:6.3.1: no areas from 2002",
+ "rule1985": "§1985:IV.7.3.1, §1985:IV.7.3.2, §1985:IV.7.3.3, §1985:IV.7.4, §1985:IV.7.5 (each area-A item begins in area A)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL3734",

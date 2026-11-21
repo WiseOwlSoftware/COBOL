@@ -125,11 +125,11 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             if (data.Symbols.IdentifyDataName(written, report: false).Single is not null) return null;
             if (report && refs.Diagnosed.Add(dref))
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{WrittenSource.Of(dref)}': '{name}' is a sum counter "
-                    + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5")}), "
+                    + $"({data.Edition.Edition.CiteRule("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5")}), "
                     + "but none is subordinate to the qualifiers written — a sum counter is "
                     + "qualified by the data-names of the report group description entries above it, innermost "
-                    + "first, and by the report-name last (ISO "
-                    + data.Edition.Edition.Cite("§1985:XIII.3.19.3 SR5", "§2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1") + ").");
+                    + "first, and by the report-name last ("
+                    + data.Edition.Edition.CiteRule("§1985:XIII.3.19.3 SR5", "§2023:8.4.2.2.3 SR4, §2023:8.4.2.2.2 Format 1") + ").");
             return null;
         }
         // §2023:8.4.6.2.1 3) b) ACROSS NAME CLASSES (kb/Work PB3154 review R3-1): a counter of a container's GLOBAL report
@@ -165,15 +165,15 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
                 int ordinary = sameSpelling - matches.Count;
                 data.Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"'{WrittenSource.Of(dref)}': the reference is ambiguous — "
                     + (ordinary == 0
-                        ? $"{matches.Count} entries establish a sum counter named '{name}' (ISO "
-                          + data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR1", "§2023:13.18.54.4 GR1")
+                        ? $"{matches.Count} entries establish a sum counter named '{name}' ("
+                          + data.Edition.Edition.CiteRule("§1985:XIII.3.19.4 GR1", "§2023:13.18.54.4 GR1")
                           + " gives each entry its own counter)."
                         : $"'{name}' is the name of {(matches.Count == 1 ? "a sum counter" : $"{matches.Count} sum counters")} "
-                          + $"(ISO {data.Edition.Edition.Cite("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5")}) "
+                          + $"({data.Edition.Edition.CiteRule("§1985:XIII.3.19.4 GR5", "§2023:13.18.54.4 GR5")}) "
                           + $"and of {(ordinary == 1 ? "a data item" : $"{ordinary} data items")} "
                           + "the written qualifiers also reach.")
-                    + " A reference shall uniquely identify one resource (ISO "
-                    + data.Edition.Edition.Cite("§1985:IV.4.3.8.1 SR3", "§2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1")
+                    + " A reference shall uniquely identify one resource ("
+                    + data.Edition.Edition.CiteRule("§1985:IV.4.3.8.1 SR3", "§2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1")
                     + "); qualify it by report group entry, group or report-name, or give the entries distinct data-names.");
             }
             return null;
@@ -206,12 +206,12 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             if (data.Symbols.Identify(q, NameClass.File, report: true, NameReach.Qualifier) is not { Symbol: FileModel named })
                 data.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': '{q.GetText()}' "
                     + "names no file this program can reference — a file-name declared in another program is referenced here "
-                    + "only when it is global, its file description entry specifying the GLOBAL clause (ISO "
-                    + data.Edition.Edition.Cite("§1985:II.6.2.1", "§2023:8.4.6.2.1", y2002: "§2002:8.4.5.1", y2014: "§2014:8.4.5.1") + ")");
+                    + "only when it is global, its file description entry specifying the GLOBAL clause ("
+                    + data.Edition.Edition.CiteRule("§1985:II.6.2.1", "§2023:8.4.6.2.1", y2002: "§2002:8.4.5.1", y2014: "§2014:8.4.5.1") + ")");
             else if (named.Linage is null)
                 data.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
                     + $"file whose file description entry contains a LINAGE clause, and the entry of '{q.GetText()}' has none "
-                    + $"(ISO {LinageCounterRule})");
+                    + $"({EditionInfo.Designated(LinageCounterRule)})");
             else return named;
             return null;
         }
@@ -236,7 +236,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         }
         if (linageFiles.Count == 1) return linageFiles[0];
         data.Edition.Error(DiagnosticCatalog.LinageCounterWithoutLinage, linageFiles.Count == 0
-            ? $"LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause (ISO {LinageCounterRule}: "
+            ? $"LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause ({EditionInfo.Designated(LinageCounterRule)}: "
               + "the register is generated by the presence of a LINAGE clause)"
             : "unqualified LINAGE-COUNTER with more than one LINAGE file: qualify by file-name ("
               + UnqualifiedLinageCounterRule(data.Edition.Edition));
@@ -272,7 +272,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
             if (data.Symbols.Identify(q, NameClass.Report, report: true, NameReach.Qualifier)?.Symbol is ReportModel named) return named;
             data.Edition.Error(DiagnosticCatalog.ReportCounterQualification, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + $"description entry — a counter of a DIFFERENT report is referenced \"qualified explicitly by the report-name "
-                + $"associated with the different report\" (ISO {CounterQualificationRule(reg)}"
+                + $"associated with the different report\" ({EditionInfo.Designated(CounterQualificationRule(reg))}"
                 + data.Edition.Edition.Cite("", "; the qualification requirements for the counters are those of §2023:8.4.2.2, §2023:8.4.3.15.3 SR2")
                 + ")");
             return null;
@@ -290,7 +290,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
               + "counters are generated per report)"
             : $"unqualified {reg} with more than one report description entry: {reg} shall be qualified each time it is "
               + $"referenced in the procedure division if more than one report description entry is specified in the "
-              + $"source element (ISO {CounterQualificationRule(reg)})");
+              + $"source element ({EditionInfo.Designated(CounterQualificationRule(reg))})");
         return null;
     }
 
@@ -305,6 +305,6 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
     private static string UnqualifiedLinageCounterRule(EditionInfo edition)
     {
         const string from2014 = "ISO §2023:8.4.2.2.3 SR8)";
-        return edition.Cite("ISO §1985:IV.4.3.8.1 SRL2.8)", from2014, y2002: "ISO §2002:8.4.1.1.2 SR6)", y2014: from2014);
+        return edition.Cite("§1985:IV.4.3.8.1 SRL2.8)", from2014, y2002: "ISO §2002:8.4.1.1.2 SR6)", y2014: from2014);
     }
 }

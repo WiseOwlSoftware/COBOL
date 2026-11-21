@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-X.4.1-p6", "undefined-in-rule", "\"is accessed in a program which is not a called program, the effect is undefined\"", "The rule's only consequence is \"the effect is undefined\"; no program can show a required behaviour. Read again by the PB5453 rows pass (w20262131i) only to give the Names cell its shape (the quoted words of the row's own text that say \"undefined\") and the code location where the compiler meets the rule's subject; the import refused the first read for want of both. Cited: §1985:X.4.1 p6. Proposed by the read lineage-reads-1985/s-100.json; a mechanical arm, whose checker is its reader.", "claude: 2026-11-21", "—"]
+---

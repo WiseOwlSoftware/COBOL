@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-XI.3.1.1-p1",
+ "rule-digest": "0827ee97bf68",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
+ "test-ref": "conformance:cases/XI.3.1@1985-FILE-SECTION/1985-SR-XI_3_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-16.json: the reader showed the compiler refuse at 85 with its probe (xi-sd-no-period.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 10 made conforming (the sort-merge file description entry is terminated by a period (the probe's refusal is reported at the next entry's first word, line 10)) and compiles and runs at 85. The read: Candidates SR-12.4.5.2-9/-11/-13 are file control format rules; none describes the SD entry. Code location located after the read: SD entry parsed by sortMergeDescriptionEntry and bound in BindFileSection (cites 1985:XI.3.2.3)"
+}

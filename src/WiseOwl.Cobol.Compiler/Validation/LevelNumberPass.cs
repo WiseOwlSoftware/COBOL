@@ -78,7 +78,7 @@ internal static class LevelNumberRules
     /// <param name="Requirement">The rule sentence, verbatim from §2023:13.18.33.3 but for its leading capital — the
     /// diagnostic quotes the standard rather than paraphrasing it.</param>
     /// <param name="Specials">The special level-numbers this arm admits (§2023:13.18.33.4 GR2). 1–49 is universal.</param>
-    /// <param name="Citation1985">The 1985 rule's printed citation ("ISO §1985:VI.5.7.3 SR2"), the one a program compiled at
+    /// <param name="Citation1985">The 1985 rule's printed citation ("§1985:VI.5.7.3 SR2"), the one a program compiled at
     /// <c>--std 85</c> reads (kb/Work PB4950); <see langword="null"/> when 1985 has no such arm (the screen).</param>
     /// <param name="Requirement1985">The 1985 rule's sentence, verbatim but for its leading capital.</param>
     internal readonly record struct Arm(string Citation, string Requirement, int[] Specials,
@@ -104,22 +104,22 @@ internal static class LevelNumberRules
         [LevelNumberArm.FileRecord] = new("ISO §2023:13.18.33.3 SR2",
             "data description entries subordinate to a FD or SD entry shall have level-numbers with the values "
             + "66, 88, or 1 through 49", [66, 88],
-            "ISO §1985:VI.5.7.3 SR2", "data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the "
+            "§1985:VI.5.7.3 SR2", "data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the "
             + "values 01 through 49, 66, or 88"),
         [LevelNumberArm.CommunicationRecord] = new("ISO/IEC 1989:2002 13.16.31 SR2",
             "data description entries subordinate to a CD entry shall have level-numbers with the values "
             + "66, 88, or 1 through 49", [66, 88],
-            "ISO §1985:VI.5.7.3 SR2", "data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the "
+            "§1985:VI.5.7.3 SR2", "data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the "
             + "values 01 through 49, 66, or 88"),
         [LevelNumberArm.NoncontiguousCapable] = new("ISO §2023:13.18.33.3 SR5",
             "data description entries in the working-storage section, local-storage section, and linkage section "
             + "shall have level-numbers 66, 77, 88, or 1 through 49", [66, 77, 88],
-            "ISO §1985:VI.5.7.3 SR3", "data description entries in the Working-Storage Section and Linkage Section must have "
+            "§1985:VI.5.7.3 SR3", "data description entries in the Working-Storage Section and Linkage Section must have "
             + "level-numbers 01 through 49, 66, 77, or 88"),
         [LevelNumberArm.ReportGroup] = new("ISO §2023:13.18.33.3 SR4",
             "report group description entries that are subordinate to an RD entry shall have level-numbers with "
             + "the values 1 through 49", [],
-            "ISO §1985:XIII.3.14.3 SR2", "data description entries subordinate to an RD entry must have level-numbers 01 through 49 only"),
+            "§1985:XIII.3.14.3 SR2", "data description entries subordinate to an RD entry must have level-numbers 01 through 49 only"),
         [LevelNumberArm.ScreenItem] = new("ISO §2023:13.18.33.3 SR6",
             "screen description entries shall have level-numbers 1 through 49", []),
     };
@@ -213,24 +213,24 @@ internal static class LevelNumberRules
             // 2. data-name ..." (§1985:VI.5.2.1 for working storage, §1985:X.4.1.1 for the linkage section).
             77 when name is null || isFiller => edition.Cite(
                 "a data-name is one of the data clauses required in each level-77 data description entry — a noncontiguous "
-                + "item cannot be FILLER, explicitly or by omission (ISO §1985:VI.5.2.1; §1985:X.4.1.1 in the Linkage Section)",
+                + "item cannot be FILLER, explicitly or by omission (§1985:VI.5.2.1; §1985:X.4.1.1 in the Linkage Section)",
                 "the data-name format of the entry-name clause shall be specified if level-number is 77 — a "
                 + "noncontiguous item cannot be FILLER, explicitly or by omission (ISO §2023:13.16.3 SR2, SR4)"),
             66 when name is null || isFiller =>
                 "the renames format of the data description entry is written `66 data-name-1 RENAMES …` and "
                 + "names data-name-1 unconditionally; it carries no entry-name clause, so the entry can be "
-                + $"neither unnamed nor FILLER (ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.16.2 format 2, §2023:13.18.45.2, §2023:13.18.33.4 GR2b")})",
+                + $"neither unnamed nor FILLER ({edition.CiteRule("§1985:VI.5.3.2", "§2023:13.16.2 format 2, §2023:13.18.45.2, §2023:13.18.33.4 GR2b")})",
             88 when isFiller =>
                 "a condition-name entry names a condition-name — `88 condition-name-1 value-clause .` or "
                 + "`88 [condition-name-2] value-clause .` — and carries no entry-name clause, so FILLER, the "
                 + "entry-name clause's filler format, is not a name either format admits "
-                + $"(ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.16.2 formats 3 and 4, §2023:13.18.20.2 format 3, §2023:13.16.3 SR24")})",
+                + $"({edition.CiteRule("§1985:VI.5.3.2", "§2023:13.16.2 formats 3 and 4, §2023:13.18.20.2 format 3, §2023:13.16.3 SR24")})",
             88 when name is null && !HasContentValidationPhrase(entry) =>
                 "the condition-name format of the data description entry is written `88 condition-name-1 "
                 + "value-clause .` and names condition-name-1 unconditionally; only the validation format, "
                 + "`88 [condition-name-2] value-clause .`, may omit it, and its value clause requires the "
                 + "INVALID or VALID phrase, which this entry has not got — so this entry is neither format "
-                + $"(ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.16.2 formats 3 and 4, §2023:13.18.63.2 format 5, §2023:13.16.3 SR24")})",
+                + $"({edition.CiteRule("§1985:VI.5.3.2", "§2023:13.16.2 formats 3 and 4, §2023:13.18.63.2 format 5, §2023:13.16.3 SR24")})",
             _ => null,
         };
     }
@@ -326,7 +326,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
                 Report(ctx, DiagnosticCatalog.LevelNumberOutOfRange, text,
                     edition.Cite(
                         "a level-number is expressed as a one or two digit number, and a level-number in the "
-                        + "range of 1 through 9 may be written either as a single digit or as a zero followed by a significant digit (ISO §1985:III.2)",
+                        + "range of 1 through 9 may be written either as a single digit or as a zero followed by a significant digit (§1985:III.2)",
                         "a level-number is expressed as a one-digit or two-digit number, and a level-number in the "
                         + "range of 1 through 9 may be specified as 01 through 09 (ISO §2023:8.3.2.2.13, §2023:13.18.33.3 SR3)"));
             else if (!known || !arm.Permits(level))
@@ -361,7 +361,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
                 Report(ctx, DiagnosticCatalog.LevelNumberEntryFormat, text,
                     "level-number 66 is assigned to identify RENAMES entries and may be used only as described "
                     + "by the renames format of the data description entry, which is written `66 data-name-1 "
-                    + $"RENAMES …` (ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.18.33.4 GR2b, §2023:13.16.2 format 2")})");
+                    + $"RENAMES …` ({edition.CiteRule("§1985:VI.5.3.2", "§2023:13.18.33.4 GR2b, §2023:13.16.2 format 2")})");
                 break;
 
             // §2023:13.18.33.4 GR2b again, the other direction: a level-66 entry that is not a renames entry is a
@@ -371,7 +371,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
                     "level-number 66 is assigned to identify RENAMES entries and may be used only as described "
                     + "by the renames format of the data description entry; this entry has no RENAMES clause, so "
                     + "it is a format-1 entry, whose level-number may be 77 or 1 through 49 "
-                    + $"(ISO {edition.Cite("§1985:VI.5.3.3 SR1", "§2023:13.18.33.4 GR2b, §2023:13.16.3 SR1")})");
+                    + $"({edition.CiteRule("§1985:VI.5.3.3 SR1", "§2023:13.18.33.4 GR2b, §2023:13.16.3 SR1")})");
                 break;
 
             // §2023:13.18.33.4 GR2c: "Level-number 88 … may be used only as described by the condition-name format or
@@ -383,7 +383,7 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition)
                     + "validation format of the data description entry, and both are written `88 "
                     + "[condition-name] value-clause .`; this entry's body is not a value clause alone, so it is "
                     + "a format-1 entry, whose level-number may be 77 or 1 through 49 "
-                    + $"(ISO {edition.Cite("§1985:VI.5.3.2", "§2023:13.18.33.4 GR2c, §2023:13.16.2 formats 3 and 4, §2023:13.16.3 SR1")})");
+                    + $"({edition.CiteRule("§1985:VI.5.3.2", "§2023:13.18.33.4 GR2c, §2023:13.16.2 formats 3 and 4, §2023:13.16.3 SR1")})");
                 break;
 
             // §2023:13.16.2 Format 3, THE OTHER HALF OF THE ARM ABOVE (kb/Work PB501). That arm asks whether the body

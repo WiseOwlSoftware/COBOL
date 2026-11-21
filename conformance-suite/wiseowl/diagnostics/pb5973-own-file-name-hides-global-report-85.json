@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "'R1' here names a file-name (a file control entry, ISO §1985:VII.2.3) declared at line 46 in this program, which hides the GLOBAL report-name 'R1' of a containing program"}
+{"refuse-at": ["85"], "expect": "'R1' here names a file-name (a file control entry, §1985:VII.2.3) declared at line 46 in this program, which hides the GLOBAL report-name 'R1' of a containing program"}

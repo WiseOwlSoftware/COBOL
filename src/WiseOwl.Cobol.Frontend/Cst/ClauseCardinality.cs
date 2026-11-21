@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// (<see cref="Earlier"/>; kb/Work PB2532).</param>
 /// <param name="FormatLabel">"Format 1 " where the subclause prints several formats; the empty string otherwise.</param>
 /// <param name="Format1985">How a diagnostic at COBOL-85 names this figure when it has no <see cref="Earlier"/> figure of its
-/// own: <c>"ISO §1985:VI.5.3.2"</c> where one 1985 clause prints it, <c>"ANSI X3.23-1985"</c> where the figure is spread over
+/// own: <c>"§1985:VI.5.3.2"</c> where one 1985 clause prints it, <c>"ANSI X3.23-1985"</c> where the figure is spread over
 /// the I-O modules (the file description and file control entries), kb/Work PB4950.</param>
 /// <param name="Subject">The construct as the standard names it ("data description entry").</param>
 /// <param name="Repeatable">The figure's elements that ARE allowed to repeat: an ellipsis follows them in the figure
@@ -140,12 +140,12 @@ public static class ClauseCardinalities
                 new("ISO §2023:13.16.2", "Format 1 ", "data description entry",
                     new HashSet<Type> { typeof(Core.ValidationClauseContext) },
                     new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) },
-                    Sequence: null, Format1985: "ISO §1985:VI.5.3.2"),
+                    Sequence: null, Format1985: "§1985:VI.5.3.2"),
 
             // §2023:13.15.2: sixteen brackets and one braced choice {source | sum | value}, no ellipsis. ORDER: free,
             // §2023:13.15.3 SR2 ("All other clauses may be written in any order").
             [typeof(Core.ReportGroupClauseContext)] =
-                new("ISO §2023:13.15.2", "", "report group description entry", None, None, Sequence: null, Format1985: "ISO §1985:XIII.3.9.2"),
+                new("ISO §2023:13.15.2", "", "report group description entry", None, None, Sequence: null, Format1985: "§1985:XIII.3.9.2"),
 
             // §2023:13.4.5.2 Formats 1-3: every element in its own bracket (`IS EXTERNAL` and `IS GLOBAL` are two). ORDER:
             // free, §2023:13.4.5.3 SR2 ("The clauses that follow file-name-1 may appear in any order").
@@ -194,7 +194,7 @@ public static class ClauseCardinalities
                     [
                         typeof(Core.SourceComputerParagraphContext), typeof(Core.ObjectComputerParagraphContext),
                         typeof(Core.SpecialNamesParagraphContext), typeof(Core.RepositoryParagraphContext),
-                    ], Format1985: "ISO §1985:VI.4.2"),
+                    ], Format1985: "§1985:VI.4.2"),
 
             // §2023:11.2.1: the identification division prints `[ options-paragraph ]` ONCE after the PROGRAM-ID (or other
             // identifying) paragraph, which the grammar already places first — so a second OPTIONS paragraph, which

@@ -403,7 +403,7 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         if (SectionDataItem.NonSectionKind(p) is not { } kind || ctx.Refs.ObjectProperties.IsObjectPropertyReference(written))
             return true;
         ctx.Edition.Error(code,
-            $"{subject} '{WrittenSource.Of(written)}' references {kind}; ISO {rule.Clause} requires "
+            $"{subject} '{WrittenSource.Of(written)}' references {kind}; {EditionInfo.Designated(rule.Clause)} requires "
             + (addressAdmitted ? "an address-identifier or " : "")
             + rule.Sections);
         return false;
@@ -434,18 +434,18 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
                 ctx.Edition.Error(code,
                     $"{subject} '{p.Item.CobolName}': a bit item's reference-modification "
                     + (rule.WholeRefMod ? "leftmost position and length" : "leftmost position")
-                    + $" shall consist of only fixed-point numeric literals (ISO {rule.Clause})");
+                    + $" shall consist of only fixed-point numeric literals ({EditionInfo.Designated(rule.Clause)})");
                 return;
             case BitStartFault.NonLiteralSubscript:
                 ctx.Edition.Error(code,
                     $"{subject} '{p.Item.CobolName}': a bit item's subscripts shall consist of only fixed-point numeric "
-                    + $"literals or all-literal arithmetic expressions without exponentiation (ISO {rule.Clause})");
+                    + $"literals or all-literal arithmetic expressions without exponentiation ({EditionInfo.Designated(rule.Clause)})");
                 return;
         }
         if (start.Bits is { } bits && bits % BitLayout.BitsPerCharacter != 0)
             ctx.Edition.Error(code,
                 $"{subject} '{p.Item.CobolName}' starts at bit {bits} of its record — a bit item passed by "
-                + $"reference shall be aligned on a byte boundary (ISO {rule.Clause} / {rule.AlignmentClause})");
+                + $"reference shall be aligned on a byte boundary ({EditionInfo.Designated(rule.Clause)} / {rule.AlignmentClause})");
     }
 
     /// <summary>Why <see cref="BitStartOf"/> could not give a start bit: the operand is not statically placed.</summary>

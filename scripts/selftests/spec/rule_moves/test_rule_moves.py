@@ -187,37 +187,43 @@ def case_06_the_move_batch_names_only_recorded_ids(expect):
     expect.equal("one move record, for the id the store holds", batch, [{"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p6"}])
 
 
-def case_07_an_applied_split_batch_leaves_its_tracked_copy(expect):
-    """kb/Work PB6002: the writer copies each applied batch that holds a split to SPLIT_DIR in the same operation (until
-    2026-11-21 the copy the WITNESS LOSS audit reads existed only by a hand copy); a batch with no split leaves none, a
+def case_07_an_applied_move_or_split_batch_leaves_its_tracked_copy(expect):
+    """kb/Work PB6002, PB6020: the writer copies each applied batch that holds a move or a split to MOVES_DIR in the
+    same operation (until 2026-11-21 a split's copy existed only by a hand copy, and a move left none, so the read
+    records could not follow it); each move carries the slices that read its old id; a batch with neither leaves none, a
     batch applied from its own tracked file is its copy, and another batch's file of the same name is refused."""
     repo = scratch_dir("rule-moves-split-copy")
     split = {"rule-id": "GR-9.9.4-2", "split": {"old-text": OLD_PARENT, "carved": [], "rows": ["GR-9.9.4-p9"],
                                                "recheck": {}}}
     move = {"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p6"}
+    verdict = {"rule-id": "GR-1", "verdict": "x"}
     scratch = repo / "scratch"
     scratch.mkdir()
     applied = scratch / "mint-splits.json"
-    applied.write_text(json.dumps({"batch": "the mint", "records": [move, split, {"rule-id": "GR-1", "verdict": "x"}]}),
+    applied.write_text(json.dumps({"batch": "the mint", "records": [move, split, verdict]}),
                        encoding="utf-8", newline="\n")
-    moves_only = scratch / "moves.json"
-    moves_only.write_text(json.dumps([move]), encoding="utf-8", newline="\n")
-    files, errs = M.split_copies([(applied, [move, split]), (moves_only, [move])], 1985, repo)
-    dest = repo / M.SPLIT_DIR.format(year=1985) / "mint-splits.json"
-    expect.equal("the copy is the batch's splits alone, under its label, at SPLIT_DIR/<the batch's name>; a batch of "
-                 "moves alone leaves none", (list(files), errs), ([dest], []))
-    expect.equal("its text is the record the audit reads", json.loads(files[dest]),
-                 {"batch": "the mint", "records": [split]})
+    plain = scratch / "verdicts.json"
+    plain.write_text(json.dumps([verdict]), encoding="utf-8", newline="\n")
+    readers = {"GR-9.9.4-p6": ["s-02", "s-01"]}.get
+    files, errs = M.tracked_copies([(applied, [move, split, verdict]), (plain, [verdict])], 1985, repo,
+                                   lambda rid: readers(rid, []))
+    dest = repo / M.MOVES_DIR.format(year=1985) / "mint-splits.json"
+    expect.equal("the copy is the batch's moves and splits alone, under its label, at MOVES_DIR/<the batch's name>; a "
+                 "batch of verdicts alone leaves none", (list(files), errs), ([dest], []))
+    expect.equal("its text is the record the audit and the reads read: each move with the slices that read its old id",
+                 json.loads(files[dest]), {"batch": "the mint", "records": [{**move, M.READS: ["s-01", "s-02"]}, split]})
     dest.parent.mkdir(parents=True)
     dest.write_text(files[dest], encoding="utf-8", newline="\n")
+    expect.equal("recorded_moves reads the copy back: (old, new, its readers), one list per batch",
+                 M.recorded_moves(1985, repo), [[("GR-9.9.4-p6", "GR-9.9.4-p7", frozenset({"s-01", "s-02"}))]])
     expect.equal("a batch applied again whose copy is there, byte for byte, writes it again unchanged",
-                 M.split_copies([(applied, [split])], 1985, repo)[1], [])
+                 M.tracked_copies([(applied, [move, split])], 1985, repo, lambda rid: readers(rid, []))[1], [])
     expect.equal("a batch applied from its own tracked file is its copy already",
-                 M.split_copies([(dest, [split])], 1985, repo), ({}, []))
+                 M.tracked_copies([(dest, [split])], 1985, repo, lambda rid: []), ({}, []))
     dest.write_text(json.dumps({"batch": "another", "records": []}), encoding="utf-8", newline="\n")
     expect("another batch's tracked file of the same name refuses the apply, never overwritten",
-           "already holds another split batch" in " ".join(M.split_copies([(applied, [split])], 1985, repo)[1]))
-
+           "already holds another batch" in " ".join(M.tracked_copies([(applied, [split])], 1985, repo,
+                                                                      lambda rid: [])[1]))
 
 if __name__ == "__main__":
     ensure_utf8()

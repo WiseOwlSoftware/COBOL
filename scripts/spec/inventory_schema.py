@@ -1067,6 +1067,31 @@ class Derivation:
                                 f"determination '{entry.key}': names '{key}', which is no row of the conformance "
                                 "register (a section 7 item or a section 3 determination)")]
             return []
+        if check == "informs":
+            # kb/Work PB6012: the row only INFORMS the reader of the standard. The Names cell is `describes the
+            # standard's <what>: "<quotation>"` (groups 1, 2) or `explains <rule-id>: "<quotation>"` (groups 3, 4); the
+            # quotation lies inside the row's own catalog text, and an explained rule is another rule of the row's own
+            # edition. The argument that every sentence informs is the refuter's to attack (an argued arm).
+            named, quote = m.group(3), m.group(2) if m.group(2) is not None else m.group(4)
+            own = schema.catalog_entry(rid)
+            if named is not None:
+                if named == rid:
+                    return [Refusal("explains-itself",
+                                    f"determination '{entry.key}': a rule cannot explain itself — `explains` names the "
+                                    "requirement another rule states")]
+                other = schema.catalog_entry(named)
+                if other is None or own is None or other[0] != own[0]:
+                    return [Refusal("unknown-rule",
+                                    f"determination '{entry.key}': explains '{named}', not a rule of the catalog of "
+                                    f"{rid}'s own edition")]
+            if own is None:
+                return [Refusal("unknown-rule",
+                                f"determination '{entry.key}': {rid} is not a rule of any held catalog")]
+            if spaced(quote) not in spaced(own[1]):
+                return [Refusal("quote-not-in-rule",
+                                f"determination '{entry.key}': the quotation {quote!r} is not in the text of {rid} in "
+                                "its edition's catalog")]
+            return []
         return [Refusal("unknown-check",
                         f"determination '{entry.key}': arm {entry.arm} declares check '{check}', which this "
                         "evaluator does not implement — the schema and the writer disagree")]

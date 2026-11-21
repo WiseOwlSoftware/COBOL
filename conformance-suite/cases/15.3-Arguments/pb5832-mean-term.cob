@@ -1,18 +1,33 @@
       *>--- conformance-case
       *> id: pb5832-mean-term
       *> rules: [AR-15.3-6]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5832 (review R1-1) - FUNCTION MEAN over an item
-      *> and a literal as a term of an integer argument.
+      *> kb/Work PB5832 refused FUNCTION MEAN (A, 0) + 1.
       *>
-      *> §2023:15.3 AR6: "An arithmetic expression that will
-      *> always result in an integer value or an integer data
-      *> item shall be specified"; §1989:A.2.2 AR4 says the same
-      *> at COBOL-85. FUNCTION MEAN (A, 0) is (A + 0) / 2
-      *> (§2023:15.60.4 RV1), 0.5 at A = 1, so MEAN (A, 0) + 1 is
-      *> no integer there. Refused (COBOL1627) at every edition.
+      *> kb/Work PB5889 (the ruling of 2026-11-21): the integer-
+      *> argument screen refuses an argument only when it can name a
+      *> value of the operands at which the expression is not an
+      *> integer, and accepts the rest with a run-time check of the
+      *> value. §2023:15.3 AR6 (cite.py --check): "An arithmetic
+      *> expression that will always result in an integer value or an
+      *> integer data item shall be specified"; §1989:A.2.2 AR4
+      *> (cite.py --check) the same at COBOL-85.
+      *>
+      *> MEAN (A, 0) is A / 2 (§2023:15.60.1), so the argument is 1.5
+      *> at A = 1; MEAN is a numeric function, so the value is
+      *> checked at run time.
+      *>
+      *> From COBOL-2002 a value that is not an integer is an
+      *> incorrect argument: §2023:15.3 AR14 (cite.py --check) "the
+      *> EC-ARGUMENT-FUNCTION exception condition is set to exist".
+      *> Checking is turned on, so the declarative shows RAISED and
+      *> RESUME continues with the next statement (EXPECTED: RAISED,
+      *> DONE). At COBOL-85 the same run terminates
+      *> (pb5889_run_time_check_85).
+       >>TURN EC-ARGUMENT-FUNCTION CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5832M.
        DATA DIVISION.
@@ -20,6 +35,15 @@
        01  A  PIC 9 VALUE 1.
        01  R  PIC 9(8).
        PROCEDURE DIVISION.
+       DECLARATIVES.
+       H SECTION.
+           USE AFTER EXCEPTION CONDITION EC-ARGUMENT-FUNCTION.
+       H-P.
+           DISPLAY "RAISED".
+           RESUME AT NEXT STATEMENT.
+       END DECLARATIVES.
+       MAIN-SECTION SECTION.
        MAIN-PARA.
            COMPUTE R = FUNCTION MOD (FUNCTION MEAN (A, 0) + 1, 3).
+           DISPLAY "DONE".
            STOP RUN.

@@ -7,10 +7,12 @@
       *>---
       *> §1989:A.2.31.1 p1 (THE ORD FUNCTION). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the
-      *> lines its .out holds, the outcome the rule requires. Placed
-      *> from written and run by the PB5453 reader of
-      *> lineage-reads-1985/s-21.json by scripts/spec/place_witnesses.py
-      *> (kb/Work PB4995).
+      *> lines its .out holds, the outcome the rule requires. Its
+      *> expected outcome rests on the implementor's determination
+      *> DOC-A.1-8 (the ordinal position of a native character is its
+      *> code unit plus one), not on the rule alone. Placed from written
+      *> and run by the PB5453 reader of lineage-reads-1985/s-21.json by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. S21ORD.
        DATA DIVISION.

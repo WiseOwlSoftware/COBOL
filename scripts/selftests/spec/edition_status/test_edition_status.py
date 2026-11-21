@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Is edition N complete (kb/Work PB5924): the verdict is COMPLETE only when all four parts are measured and zero, and
 NOT COMPLETE when any one is nonzero or unmeasured; a reader's refusal is an unmeasured part and never a zero, for the
-real readers too (an unheld edition, an unreadable register); the work part reads a planted register, body and addenda
-included (review R1-1); and the prose holes are measured on a planted 1985 transcription through the catalog's own walk:
+real readers too (an unheld edition, an unreadable register); the work part reads the notes' declared `editions:` and
+nothing else, and an open note that declares none leaves it unmeasured (kb/Work PB5995); and the prose holes are measured on a planted 1985 transcription through the catalog's own walk:
 every printed paragraph in no row AT OR UNDER its locator counts (R1-2, R1-4), the deontic sentences are a floor inside
 it, a catalog row the walk does not reach refuses (R1-3), and an edition no reader here reads is refused."""
 import sys
@@ -37,36 +37,44 @@ def case_02_an_unmeasured_part_is_never_a_zero(expect):
     expect.equal("the json says unmeasured", C.as_doc(1985, parts)["parts"]["catalog prose holes"]["measured"], False)
 
 
-def case_03_the_work_part_reads_a_planted_register(expect):
+def case_03_the_work_part_reads_the_declared_editions(expect):
     d = scratch_dir("edition-status-work-")
     files = {
-        "PB1": F.note("PB1", wrong_answer="true", tags="[std85]"),                        # HARM, std85
-        "PB2": F.note("PB2", kind="analysis", spec_refs="['§1985:IV.7.1']"),              # QUESTION
-        "PB3": F.note("PB3", process_only="true", process_only_reason='"x"', title='"PB3 - 1985 listing"'),   # TOOLING
-        "PB4": F.note("PB4", title='"PB4 - the 1985 thing"'),                              # OTHER
-        "PB5": F.note("PB5", "landed", title='"PB5 - 1985 landed"'),                       # terminal: excluded
-        "PB6": F.note("PB6", title='"PB6 - the 2002 thing"'),                              # another edition
-        "PB7": F.note("PB7", "blocked", title='"PB7 - a --std 85 refusal"'),               # blocked is open
-        "PB8": F.note("PB8", title='"PB8 - 19850 is no year"'),                             # digits around the year
-        "PB9": F.note("PB9", body="The listing of §1989:A.2 is owed."),                    # the BODY names it (R1-1)
-        "PB10": F.note("PB10", body="Under --std 2023 the rule GR-14.9.1-3 holds."),       # 2023 by citation shape
-        "PB11": F.note("PB11", title='"PB11 - ISO/IEC 1989:2023 and PB2014"'),             # neither 2023 nor 2014
+        "PB1": F.note("PB1", wrong_answer="true", editions="[1985]"),                       # HARM
+        "PB2": F.note("PB2", kind="analysis", editions="[1985, 2002]"),                     # QUESTION
+        "PB3": F.note("PB3", process_only="true", process_only_reason='"x"', editions="[1985]"),   # TOOLING
+        "PB4": F.note("PB4", editions="[1985, 2014]"),                                      # OTHER
+        "PB5": F.note("PB5", "landed", editions="[1985]"),                                  # terminal: excluded
+        "PB6": F.note("PB6", title='"PB6 - the 1985 thing"', editions="[2002]"),            # the TEXT is not read
+        "PB7": F.note("PB7", "blocked", editions="[1985]"),                                 # blocked is open
+        "PB8": F.note("PB8", body="Under --std 2023 the rule GR-14.9.1-3 holds.", editions="[]"),   # blocks none
+        "PB9": F.note("PB9", "retired"),                                                    # terminal, undeclared: fine
     }
     for name, text in files.items():
         (d / f"{name}.md").write_text(text, encoding="utf-8", newline="\n")
-    (d / "PB4").mkdir()
-    (d / "PB4" / "2026-11-20-addendum.md").write_text("## 2026-11-20 - an addendum\n\nThe 2014 text differs.\n",
-                                                      encoding="utf-8", newline="\n")
     p = C.work_part(1985, d)
     expect.equal("PB1 HARM", p.data["HARM"], ["PB1"])
     expect.equal("PB2 QUESTION", p.data["QUESTION"], ["PB2"])
     expect.equal("PB3 TOOLING", p.data["TOOLING"], ["PB3"])
-    expect.equal("PB4, PB7 and the body-only PB9 OTHER", p.data["OTHER"], ["PB4", "PB7", "PB9"])
-    expect.equal("the total counts every category", p.count, 6)
-    expect.equal("2002 sees only its own", C.work_part(2002, d).data["OTHER"], ["PB6"])
-    expect.equal("2014 is read from an addendum, never from a note id", C.work_part(2014, d).data["OTHER"], ["PB4"])
-    expect.equal("2023 by citation and --std, never by the standard's number", C.work_part(2023, d).data["OTHER"], ["PB10"])
+    expect.equal("PB4 and PB7 OTHER; PB6's text names 1985 but it declares 2002", p.data["OTHER"], ["PB4", "PB7"])
+    expect.equal("the total counts every category", p.count, 5)
+    expect.equal("2002 reads the field", (C.work_part(2002, d).data["QUESTION"], C.work_part(2002, d).data["OTHER"]),
+                 (["PB2"], ["PB6"]))
+    expect.equal("2014 reads the field", C.work_part(2014, d).data["OTHER"], ["PB4"])
+    expect.equal("2023: a note citing it but declaring [] blocks none", C.work_part(2023, d).count, 0)
 
+
+def case_03b_an_open_note_that_declares_none_is_unmeasured(expect):
+    d = scratch_dir("edition-status-undeclared-")
+    (d / "PB1.md").write_text(F.note("PB1", editions="[1985]"), encoding="utf-8", newline="\n")
+    (d / "PB2.md").write_text(F.note("PB2", title='"PB2 - the 1985 thing"'), encoding="utf-8", newline="\n")
+    (d / "PB3.md").write_text(F.note("PB3", editions="[1977]"), encoding="utf-8", newline="\n")
+    p = C.work_part(1985, d)
+    expect.equal("never a count", p.count, None)
+    expect("the reason names each undeclared note", "2 non-terminal note(s) declare no editions" in p.why
+           and "PB2 PB3" in p.why, p.why)
+    expect.equal("so the edition is not complete",
+                 C.verdict(1985, [*(C.Part(n, 0) for n in F.NAMES[:2]), p, C.Part(F.NAMES[3], 0)])[0], False)
 
 def case_04_an_unreadable_register_is_unmeasured(expect):
     d = scratch_dir("edition-status-unreadable-")
@@ -134,6 +142,52 @@ def case_07_a_catalog_row_the_walk_does_not_reach_refuses(expect):
                  False)
 
 
+def case_07b_a_paragraph_leaves_the_count_only_on_a_disposition_and_its_record(expect):
+    # kb/Work PB6001: the measure reads the one disposition store through the one segmentation and the one test of a
+    # record; a disposition with no UPHELD record of the unit's text, a pending unit and a stale block stay counted.
+    import json  # noqa: PLC0415
+    H = C.catalog_prose_holes
+    E, U = H.extract_rule_catalog, H.text_units
+    root = F.planted_1985(scratch_dir("edition-status-disposed-"), [], F.DISPOSED_1985)
+    lines = F.DISPOSED_1985.splitlines()
+    manifest = root / E.UNHARVESTED_OF[1985].relative_to(E.REPO)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    records_at = "docs/planted-refute.jsonl"
+    scan = H.rule_catalog_1985.parse(lines).unharvested
+    blocks = {c: {**{k: scan[c][k] for k in ("title", "ordinals", "lists", "longest")}, "disposition": "not-rules",
+                  "why": "planted", "digest": scan[c]["digest"] if c.endswith("2.5") else "000000000000",
+                  "refuted": records_at} for c in ("§1985:VI.2.5", "§1985:VI.2.6")}
+    manifest.write_text(json.dumps({"blocks": blocks}), encoding="utf-8", newline="\n")
+    _cat, units, _a, _m = E.units_1985(lines, root)
+    unit = {c: us[0] for c, us in units.items()}
+    records = [{"unit": c, "clause": c, "digest": b["digest"], "outcome": "UPHELD"} for c, b in blocks.items()]
+    entries = {}
+    for c, (d, outcome, read) in {"§1985:VI.2.1": ("restates", "UPHELD", None),
+                                  "§1985:VI.2.2": ("not-a-rule", "OVERTURNED", None),
+                                  "§1985:VI.2.3": ("restates", "UPHELD", "0123456789ab"),
+                                  "§1985:VI.2.4": ("pending", None, None),
+                                  "§1985:VI.2.5": ("not-a-rule", "UPHELD", None),
+                                  "§1985:VI.2.6": ("pending", None, None)}.items():
+        u = unit[c]
+        entries[c] = {"units": [{"unit": u.label, "digest": u.digest, "order": 0, "disposition": d,
+                                 "refuted": records_at}]}
+        if outcome:
+            records.append({"unit": u.label, "clause": c, "digest": read or u.digest, "outcome": outcome})
+    manifest.write_text(json.dumps({"blocks": blocks, "paragraph-blocks": entries}), encoding="utf-8", newline="\n")
+    (root / records_at).write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8", newline="\n")
+    expect.equal("the planted units are the clauses' paragraphs, the held lists none of them",
+                 {c: [u.label for u in us] for c, us in units.items() if c != "§1985:VI.2.7"},
+                 {f"§1985:VI.2.{n}": ["p1"] for n in range(1, 7)})
+    h = H.holes(1985, root)
+    expect.equal("counted: an OVERTURNED record, a record of other words, a pending unit, and a block whose text moved "
+                 "(its lead-in pending, its two items)", [u.locator for u in h.uncovered],
+                 ["VI.2.2", "VI.2.3", "VI.2.4", "VI.2.6", "VI.2.6", "VI.2.6"])
+    expect.equal("covered by cause: a restates and a not-a-rule on their records, a not-rules block's two items",
+                 h.discounted, {"row": 0, "restates": 1, "not-a-rule": 1, "not-rules block": 2})
+    expect.equal("an HTML table, a caption below it, a figure's caption and the repeated section title are no prose",
+                 h.printed_paragraphs, 10)
+
+
 def case_08_an_edition_no_reader_reads_is_refused(expect):
     for year in (2002, 2014, 2023):
         try:
@@ -143,15 +197,14 @@ def case_08_an_edition_no_reader_reads_is_refused(expect):
             expect(f"{year} refused", True)
 
 
-def case_09_the_one_pattern_table_covers_every_edition(expect):
-    expect.equal("an edition per row", sorted(C.EDITION_PATTERNS), list(C.EDITIONS))
-    expect("a --std 85 spelling", C.touches({"title": "x --std 85 y"}, 1985))
-    expect("a section citation", C.touches({"spec_refs": ["§1985:VI.5.3"]}, 1985))
-    expect("a rule id", C.touches({"inventory_rows": ["1985-GR-XII.2.4-8"]}, 1985))
-    expect("the body is read", C.touches({"_body": "see X3.23-1985"}, 1985))
-    expect("a note id is no year", not C.touches({"title": "PB1985 and PB2014"}, 1985))
-    expect("the reader's other keys are not text", not C.touches({"_file": "1985.md"}, 1985))
-
+def case_09_the_one_reader_of_the_field(expect):
+    expect.equal("the editions", C.work.EDITIONS, (1985, 2002, 2014, 2023))
+    expect.equal("a list", C.work.declared_editions({"editions": ["1985", "2023"]}), frozenset({1985, 2023}))
+    expect.equal("an empty list blocks none", C.work.declared_editions({"editions": []}), frozenset())
+    expect.equal("absent is no declaration", C.work.declared_editions({}), None)
+    expect.equal("an unknown edition is no declaration", C.work.declared_editions({"editions": ["1977"]}), None)
+    expect.equal("a scalar is no declaration", C.work.declared_editions({"editions": "1985"}), None)
+    expect("the text patterns are gone", not hasattr(C, "EDITION_PATTERNS") and not hasattr(C, "touches"))
 
 if __name__ == "__main__":
     ensure_utf8()

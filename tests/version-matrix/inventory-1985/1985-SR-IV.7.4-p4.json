@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.4-p4",
+ "rule-digest": "20974d492298",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitFileDescriptionEntry; src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-SR-IV_7_4-p4",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler refuse at 85 with its probe (t-fd-area-b-85.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 14 made conforming (the level indicator FD begins in area A) and compiles and runs at 85. The read: \"the level indicator begins in area A, followed by at least one space\". No 2023 counterpart: 2023 fixed form has no areas A and B (the compiler gates the area rules to 85, citing §2023:6.3.1), and every candidate is a wording-only match with no 85 witness for this scope. Each refusal differs from the control by one line. Code location located after the read: AreaPlacementPass and LevelNumberPass check level indicator/level-number placement"
+}

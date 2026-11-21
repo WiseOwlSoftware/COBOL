@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.4.1-p6",
+ "rule-digest": "6c45f3dbe0be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalCrossing",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-X.4.1-p6",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a undefined-in-rule derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-X.4.1-p6); the code location is where the compiler meets the rule's subject. The read: The rule's only consequence is \"the effect is undefined\"; no program can show a required behaviour. Read again by the PB5453 rows pass (w20262131i) only to give the Names cell its shape (the quoted words of the row's own text that say \"undefined\") and the code location where the compiler meets the rule's subject; the import refused the first read for want of both."
+}

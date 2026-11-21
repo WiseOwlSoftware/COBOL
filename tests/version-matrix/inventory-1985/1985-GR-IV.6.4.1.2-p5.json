@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.1.2-p5",
+ "rule-digest": "78bda48dc70f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#NameResolution",
+ "test-ref": "conformance:cases/IV.6.4.1@1985-General-Description/1985-GR-IV_6_4_1_2-p5",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler refuse at 85 with its probe (r02_ident_ambig.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 13 made conforming (the identifier X OF G2 makes unique reference to a data item) and compiles and runs at 85. The read: 'The term identifier is defined as the word or words necessary to make unique reference to a data item.' The refuter showed the definition has an observable consequence: DISPLAY X with an X under each of G1 and G2 is refused at 85 (COBOL1639), and 'X OF G2' is accepted and prints 2. The definitional arm is barred (the term is the standard's metalanguage) and a witness exists, so the row is read as own-text. Code location located after the read: NameResolution resolves identifiers to unique references and reports ambiguity"
+}

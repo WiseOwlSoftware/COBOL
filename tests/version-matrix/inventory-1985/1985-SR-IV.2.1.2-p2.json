@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.2.1.2-p2",
+ "rule-digest": "132c5f21dfc7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#ChoiceIndicators; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#StatementValidation",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/1985-SR-IV_2_1_2-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler refuse at 85 with its probe (r06_lowercase_operand_omitted.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 10 made conforming (the sending operand the lowercase word of the MOVE format represents is supplied) and compiles and runs at 85. The read: A lowercase word represents an entry 'that must be supplied by the user': an obligation on the program. The refuter's pair shows it at 85: MOVE with its sending operand omitted is refused (COBOL5506, citing §1985:IV.2.1), and the control with the operand supplied prints X=1. No 2023 rule is a witnessed pointer for this 1985 notation text. Code location located after the read: StatementValidation cites 1985:IV.2.1.4 for omissible operands; ChoiceIndicators checks format operands"
+}

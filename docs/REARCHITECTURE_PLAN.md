@@ -24,6 +24,18 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 
 ### Where we are
 
+- **▶ 1985: TRAIN B (2026-11-21, branch train-1985-b, wave 20262131).** Eleven fix branches in one landing: one
+  reach walk for segmentation and the sort-merge range (PB6007, PB6008), the `informative` derivation arm (PB6012), the
+  `editions:` field every open note declares (PB5995; backfilled, then narrowed by a reader and a refuter), in-group
+  EXTERNAL record agreement (PB5996, COBOL7735), the 1985 catalog segmentation and the prose-holes measure on the
+  dispositions (PB6001; 357 holes to 16), the 85w mint (PB5452: 195 new rows, 0 units pending), the 129 import rows
+  (PB5453 + its last two), small 1985 defects (PB942, PB382, PB5139, PB4955, PB672, PB5548), the area-A
+  missing-period recovery (PB6011), every 1985 refusal citing the 1985 rule with the edition's designation (PB5993,
+  PB6013, PB6009, PB6010, PB5978), the integer-argument screen (PB5889), and the read records following a move
+  (PB6020). `python scripts/spec/edition_status.py --edition 1985`:
+  `=== EDITION 1985: NOT COMPLETE — 195 inventory GAP · 8 code reads · 52 open work notes · 16 catalog prose holes ===`
+  (the 195 GAP are the mint's new rows, read next by wave 20262131 group o; the next train takes groups o, p, q, r, s,
+  t, u, v).
 - **▶ 1985: THE PB5453 READS ARE RECORDED (2026-11-21, branch pb5453-import).** The 657 rows PB5452's mint opened were
   read by the fleet (22 read records, `tests/version-matrix/lineage-reads-1985/`, the second read s-99 superseding 50
   first reads) and 526 are recorded on their own verdicts: 25 own verdicts from pointers, 488 own witnesses (404 readers'

@@ -70,14 +70,17 @@ public static partial class ConstructRegistry
     {
         if (VerdictAt(edition, id) is not { } verdict) return;
         var c = Find(id)!;
+        // A relaxation row cites, at COBOL-85, the 1985 rule the program breaks (ConstructDialectStatus.Rule1985; kb/Work PB6010).
+        string citation = verdict.Availability == ConstructAvailability.NotYetIntroduced
+            ? edition.Cite(c.Rule1985 ?? c.Citation, c.Citation) : c.Citation;
         string message = verdict.Availability switch
         {
             ConstructAvailability.NotYetIntroduced =>
-                $"{c.Display} requires COBOL-{c.IntroducedIn} (targeting COBOL-{edition.Year}) — {where} ({c.Citation})",
+                $"{c.Display} requires COBOL-{c.IntroducedIn} (targeting COBOL-{edition.Year}) — {where} ({citation})",
             ConstructAvailability.Removed =>
-                $"{c.Display} was removed in COBOL-{c.RemovedIn} (targeting COBOL-{edition.Year}) — {where} ({c.Citation})",
-            _ => $"{c.Display} is obsolete as of COBOL-{c.ObsoleteIn} — {where} ({c.Citation})",
+                $"{c.Display} was removed in COBOL-{c.RemovedIn} (targeting COBOL-{edition.Year}) — {where} ({citation})",
+            _ => $"{c.Display} is obsolete as of COBOL-{c.ObsoleteIn} — {where} ({citation})",
         };
-        sink.Report(new EditionDiagnostic(verdict.Code, verdict.Severity, c.Id, message, where, c.Citation, verdict.Flag));
+        sink.Report(new EditionDiagnostic(verdict.Code, verdict.Severity, c.Id, message, where, citation, verdict.Flag));
     }
 }

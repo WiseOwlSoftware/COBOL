@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.2.1.6-p2",
+ "rule-digest": "22e7e47876e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Cst/ParagraphPeriods.cs#ParagraphPeriods",
+ "test-ref": "conformance:cases/IV.2.1@1985-DEFINITION-OF-A-GENERAL-FORMAT/1985-SR-IV_2_1_6-p2",
+ "notes": "Own witness from the read lineage-reads-1985/s-01.json: the reader showed the compiler refuse at 85 with its probe (p02_period_missing.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 3 made conforming (the separator period the PROGRAM-ID format requires is written after PROGRAM-ID) and compiles and runs at 85. The read: No 2023 rule states it (the 2023 notation (§2023:5) has no catalog row: PB5451 has not minted 2023's paragraph rows, so no 2023 rule is this rule's pointer; §2023:8.3.5 SR3 only says where a period may be used). Code location located after the read: the separator period required in paragraph formats: ParagraphPeriod rows"
+}

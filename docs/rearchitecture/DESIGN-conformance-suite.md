@@ -453,7 +453,10 @@ for the clause pass), each `portable: unverified` until that pass clears it. A d
 placed beside its test and declared in its header (`files`, §3.1), the same texts the harness staged when it judged the
 draft; a clause folder holds one file of a name, so a draft needing a name another test of the folder holds with other
 text refuses the placement until the draft is given its own text-name, and a draft whose text lies in a library folder
-is not placed (only a WiseOwl test may declare one) (kb/Work PB5067). Its witness is recorded on the rule's store
+is placed as a WiseOwl test of the same clause folder under `wiseowl/cases/` (only a WiseOwl test may declare one: where
+a library-name's text is found is the implementor's; kb/Work PB5067, PB5453). A draft whose expected outcome rests on
+an implementor's determination (a native ordinal, where margin R stands) carries it (`determination`), and the placed
+test's comment names it, so the header never says the rule alone requires that outcome (kb/Work PB5453). Its witness is recorded on the rule's store
 row as a witness-only `test-ref` where the rule's verdict is its own (CHANGED or REMOVED); a KEPT rule's test is its
 chain's and stays unrecorded there, and a rule with no change record yet is placed and listed as unclassified, its
 witness recorded once a change record classifies it. A rule is placed once, whichever pass's records place it: a run

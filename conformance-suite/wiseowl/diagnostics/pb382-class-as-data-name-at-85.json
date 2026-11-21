@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0901: 'CLASS' is a reserved word in COBOL-85 and cannot be used as a user-defined word"}

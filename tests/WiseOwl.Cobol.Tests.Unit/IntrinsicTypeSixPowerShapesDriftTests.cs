@@ -14,8 +14,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 /// <remarks>
 /// <para>§2023:15.3 type 6 (cite.py --check): "An arithmetic expression that will always result in an integer value or an integer data
-/// item shall be specified"; §1989:A.2.2 AR4 the same at COBOL-85. Since kb/Work PB5886 the screen admits only what it SHOWS to be an
-/// integer for every valuation (<c>IntrinsicArgumentRules.NotAlwaysIntegral</c>) and refuses everything else.
+/// item shall be specified"; §1989:A.2.2 AR4 the same at COBOL-85. Since kb/Work PB5889 the screen (<c>IntrinsicArgumentRules.ClassifyTypeSix</c>)
+/// accepts what it proves an integer for every valuation, refuses what it can show is not one at a value of the operands, and accepts
+/// the rest with a run-time check of the value.
 /// <see cref="EveryBoundExpressionShape_HasAVerdict"/> forces a decision for a NEW <c>BoundExpr</c> node, and
 /// <see cref="Shapes_AreRefusedOrAdmittedAsRecorded"/> compiles each recorded shape and reads the screen's answer.</para>
 /// </remarks>
@@ -55,95 +56,106 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         Assert.True(stale.Count == 0, "NodeVerdicts names a node type that no longer exists:\n  " + string.Join("\n  ", stale));
     }
 
+    /// <summary>The three outcomes of the screen (kb/Work PB5889): PROVEN (accepted, no run-time check), REFUTED (COBOL1627, naming a
+    /// value of the operands at which the expression is not an integer) and CHECKED (accepted, the value tested at run time).</summary>
+    private enum Screen { Proven, Refuted, Checked }
+
+    private const Screen Proven = Screen.Proven, Refuted = Screen.Refuted, Checked = Screen.Checked;
+
     /// <summary>(expression over N PIC 9, M PIC S9, K PIC 9V9, U PIC 9, A PIC X, F COMP-2, T PIC 9V9 OCCURS 2, TN PIC 99 OCCURS 2,
-    /// I and J PIC 9, PZ PIC 9P; refused; why). The data names are fixed by
-    /// <see cref="Shapes_AreRefusedOrAdmittedAsRecorded"/>. Every refused row with "PB5886" is an integer argument the screen
-    /// before kb/Work PB5886 admitted.</summary>
-    private static readonly (string Expression, bool Refused, string Why)[] Shapes =
+    /// I and J PIC 9, PZ PIC 9P; the screen's outcome; why). The data names are fixed by
+    /// <see cref="Shapes_AreRefusedOrAdmittedAsRecorded"/>. A row with "PB5886" is an integer argument the screen before kb/Work
+    /// PB5886 admitted unchecked; since kb/Work PB5889 each such row is refused only with a counterexample, otherwise checked.</summary>
+    private static readonly (string Expression, Screen Outcome, string Why)[] Shapes =
     [
+        // kb/Work PB5889: the forms the ruling names.
+        ("FUNCTION MEAN (N N) + 1", Checked, "PB5889: MEAN (N N) is a numeric function, a real atom, and the sum is N + 1"),
+        ("N - N + 0.5", Refuted, "PB5889: the constant 0.5 whatever N holds"),
+        ("FUNCTION ORD (A) + 0.5", Refuted, "PB5889: 0.5 plus an integer whatever value the integer function takes"),
+        ("FUNCTION FACTORIAL (N + 2) / 2", Checked, "PB5889: never odd, so a point that gives the function the value 1 is no counterexample"),
         // Powers.
-        ("N ** -1", true, "a negative exponent: N = 3 gives 1/3"),
-        ("N ** 0.5", true, "a fraction exponent"),
-        ("N ** M", true, "a signed exponent item: M = -1"),
-        ("N ** K", true, "an exponent item with fraction digits"),
-        ("N ** (- U)", true, "a negated unsigned exponent: U = 1"),
-        ("2 ** M", true, "a signed exponent item under a literal base"),
-        ("2 ** 0.5", true, "a fraction literal exponent"),
-        ("2 ** -65", true, "a negative exponent beyond the fold"),
-        ("4 ** 0.5", true, "PB5886: a fraction exponent is no integer power, although this one is 2"),
-        ("(N + 1) ** -1", true, "PB5886: a negative exponent"),
-        ("(N ** -1) * 2520", true, "PB5886: the power is no integer term"),
-        ("1024 ** K", true, "PB5886: an exponent item with fraction digits"),
-        ("1 ** M", false, "PB5886 round 2: the literal 1 to any integer exponent is 1"),
-        ("N ** -1 - N ** -1", true, "PB5886: neither power is an integer term"),
-        ("K + K ** -1", true, "PB5886: K has digits right of the decimal point"),
-        ("N ** U", false, "an unsigned integer exponent item"),
-        ("N ** - (- U)", false, "an unsigned integer exponent item under two negations"),
-        ("2 ** U", false, "a literal base to an unsigned integer item"),
-        ("N ** 2", false, "a non-negative integer literal exponent"),
-        ("(K * 10) ** 2", false, "a base shown integral by its literal factor"),
+        ("N ** -1", Refuted, "a negative exponent: N = 3 gives 1/3"),
+        ("N ** 0.5", Checked, "a fraction exponent"),
+        ("N ** M", Refuted, "a signed exponent item: M = -1"),
+        ("N ** K", Checked, "an exponent item with fraction digits"),
+        ("N ** (- U)", Refuted, "a negated unsigned exponent: U = 1"),
+        ("2 ** M", Refuted, "a signed exponent item under a literal base"),
+        ("2 ** 0.5", Checked, "a fraction literal exponent"),
+        ("2 ** -65", Checked, "a negative exponent beyond the fold"),
+        ("4 ** 0.5", Checked, "PB5886: a fraction exponent is no integer power, although this one is 2"),
+        ("(N + 1) ** -1", Refuted, "PB5886: a negative exponent"),
+        ("(N ** -1) * 2520", Checked, "PB5886: the power is no integer term; PB5889: 2520 / N is an integer for every N of PIC 9, so no counterexample"),
+        ("1024 ** K", Checked, "PB5886: an exponent item with fraction digits"),
+        ("1 ** M", Proven, "PB5886 round 2: the literal 1 to any integer exponent is 1"),
+        ("N ** -1 - N ** -1", Checked, "PB5886: neither power is an integer term"),
+        ("K + K ** -1", Refuted, "PB5886: K has digits right of the decimal point"),
+        ("N ** U", Proven, "an unsigned integer exponent item"),
+        ("N ** - (- U)", Proven, "an unsigned integer exponent item under two negations"),
+        ("2 ** U", Proven, "a literal base to an unsigned integer item"),
+        ("N ** 2", Proven, "a non-negative integer literal exponent"),
+        ("(K * 10) ** 2", Proven, "a base shown integral by its literal factor"),
         // Quotients (PB5886: an integer term only as a literal fold with an integral value).
-        ("N / 2", true, "N = 3 gives 1.5"),
-        ("N / 2 * 2", false, "PB5886 round 2: a quotient by 2 is the product by 0.5, so N's net factor is 1"),
-        ("N / 3 * 3", true, "the reciprocal of 3 does not terminate, and the arithmetic truncates N / 3"),
-        ("(N / 2) / 0.5", false, "the product by 0.5 and then by 2: N's net factor is 1"),
-        ("N / N", true, "a quotient by an item: N = 0 is a size error, not an integer"),
-        ("362880 / N", true, "PB5886: a quotient over an item"),
-        ("K / 0.1", false, "PB5886 round 2: a quotient by 0.1 is the product by 10, which cancels K's fraction digit"),
-        ("FUNCTION ORD (A) / 2", true, "PB5886: an integer function under the net factor 0.5, 33.5 for A = 'B'"),
-        ("N - FUNCTION MAX (N)", false, "PB5886 round 2: MAX of integer arguments is an integer function (its type table)"),
-        ("FUNCTION SUM (N U) / 2 * 2", false, "SUM of integer arguments is an integer function, under the net factor 1"),
-        ("FUNCTION ABS (M) + 1", false, "ABS of an integer argument is an integer function"),
+        ("N / 2", Refuted, "N = 3 gives 1.5"),
+        ("N / 2 * 2", Proven, "PB5886 round 2: a quotient by 2 is the product by 0.5, so N's net factor is 1"),
+        ("N / 3 * 3", Checked, "the arithmetic truncates N / 3, and the exact value is N: neither proven nor refuted"),
+        ("(N / 2) / 0.5", Proven, "the product by 0.5 and then by 2: N's net factor is 1"),
+        ("N / N", Checked, "a quotient by an item: N = 0 is a size error, not an integer"),
+        ("362880 / N", Checked, "PB5886: a quotient over an item"),
+        ("K / 0.1", Proven, "PB5886 round 2: a quotient by 0.1 is the product by 10, which cancels K's fraction digit"),
+        ("FUNCTION ORD (A) / 2", Checked, "PB5889: 33.5 for A = 'B', but a value of a FUNCTION is no value of the operands, so no counterexample"),
+        ("N - FUNCTION MAX (N)", Proven, "PB5886 round 2: MAX of integer arguments is an integer function (its type table)"),
+        ("FUNCTION SUM (N U) / 2 * 2", Proven, "SUM of integer arguments is an integer function, under the net factor 1"),
+        ("FUNCTION ABS (M) + 1", Proven, "ABS of an integer argument is an integer function"),
         // PB5886 round 2, R2-1: a function's type takes its argument's type from the SAME classifier as the screen.
-        ("FUNCTION MAX (N / 2 * 2)", false, "N / 2 * 2 is an integer argument, so MAX of it is an integer function"),
-        ("FUNCTION MAX (K * 10) - 12", false, "K * 10 is an integer argument, so MAX of it is an integer function"),
-        ("FUNCTION MAX (FUNCTION MIN (N / 2 * 2), 1)", false, "two functions deep: MIN of an integer argument, then MAX of integers"),
-        ("FUNCTION MAX (N / 2)", true, "N / 2 is no integer argument, so MAX of it is a numeric function"),
-        ("FUNCTION INTEGER (N) / FUNCTION INTEGER (U)", true, "PB5886: a quotient of two integer functions"),
-        ("N * N * N / 2", true, "PB5886: a quotient over a product of items"),
-        ("1 / 3 * 3", true, "a literal quotient the arithmetic does not keep exactly (PB4758)"),
-        ("4 / 2 + N", false, "a literal quotient that is the integer 2"),
-        ("1.5 + 0.5 + N", false, "literal terms that sum to an integer"),
+        ("FUNCTION MAX (N / 2 * 2)", Proven, "N / 2 * 2 is an integer argument, so MAX of it is an integer function"),
+        ("FUNCTION MAX (K * 10) - 12", Proven, "K * 10 is an integer argument, so MAX of it is an integer function"),
+        ("FUNCTION MAX (FUNCTION MIN (N / 2 * 2), 1)", Proven, "two functions deep: MIN of an integer argument, then MAX of integers"),
+        ("FUNCTION MAX (N / 2)", Refuted, "N / 2 is no integer argument, so MAX of it is a numeric function"),
+        ("FUNCTION INTEGER (N) / FUNCTION INTEGER (U)", Checked, "PB5886: a quotient of two integer functions"),
+        ("N * N * N / 2", Refuted, "PB5886: a quotient over a product of items"),
+        ("1 / 3 * 3", Checked, "a literal quotient the arithmetic does not keep exactly (PB4758); its exact value is 1"),
+        ("4 / 2 + N", Proven, "a literal quotient that is the integer 2"),
+        ("1.5 + 0.5 + N", Proven, "literal terms that sum to an integer"),
         // Function terms (PB5886: judged by the function's type).
-        ("FUNCTION ORD (A) + 1", false, "an integer function is an integer term"),
-        ("FUNCTION ORD (A) * FUNCTION MOD (N 3)", false, "a product of integer functions"),
-        ("FUNCTION ORD (A) * 0.5 * 2", false, "an integer function under the net factor 1"),
-        ("FUNCTION MOD (N 3) * 0.5", true, "PB5886: an integer function under the net factor 0.5"),
-        ("FUNCTION SQRT (N) - FUNCTION SQRT (N) + 5", false, "PB5891: the same pure term cancels, so the value is the constant 5"),
-        ("0 * FUNCTION SQRT (N) + 5", false, "PB5891: a real term under the coefficient 0 is the constant 0"),
-        ("FUNCTION SQRT (N) + 1 - FUNCTION SQRT (N)", true, "PB5891: the intermediate SQRT (N) + 1 holds a real term and is not shown exact"),
-        ("FUNCTION RANDOM - FUNCTION RANDOM + 1", true, "PB5891: RANDOM's value is not fixed by its arguments, so the two calls are two atoms"),
-        ("K - FUNCTION MAX (K)", true, "PB5889's residue: MAX (K) and K are two atoms, equal only by MAX's meaning"),
-        ("FUNCTION MAX (K) - K", true, "PB5886: MAX of a scaled item is a numeric function"),
-        ("FUNCTION RANDOM (1) * 10", true, "PB5886: a numeric function"),
+        ("FUNCTION ORD (A) + 1", Proven, "an integer function is an integer term"),
+        ("FUNCTION ORD (A) * FUNCTION MOD (N 3)", Proven, "a product of integer functions"),
+        ("FUNCTION ORD (A) * 0.5 * 2", Proven, "an integer function under the net factor 1"),
+        ("FUNCTION MOD (N 3) * 0.5", Checked, "PB5889: an integer function under the net factor 0.5; the function's value is no operand's"),
+        ("FUNCTION SQRT (N) - FUNCTION SQRT (N) + 5", Proven, "PB5891: the same pure term cancels, so the value is the constant 5"),
+        ("0 * FUNCTION SQRT (N) + 5", Proven, "PB5891: a real term under the coefficient 0 is the constant 0"),
+        ("FUNCTION SQRT (N) + 1 - FUNCTION SQRT (N)", Checked, "PB5891: the intermediate SQRT (N) + 1 holds a real term and is not shown exact"),
+        ("FUNCTION RANDOM - FUNCTION RANDOM + 1", Checked, "PB5891: RANDOM's value is not fixed by its arguments, so the two calls are two atoms"),
+        ("K - FUNCTION MAX (K)", Checked, "PB5889: MAX (K) and K are two atoms, equal only by MAX's meaning, so neither proven nor refuted"),
+        ("FUNCTION MAX (K) - K", Checked, "PB5886: MAX of a scaled item is a numeric function"),
+        ("FUNCTION RANDOM (1) * 10", Checked, "PB5886: a numeric function"),
         // Items under literal factors (a product by a literal is exact in decimal arithmetic).
-        ("K * 10", false, "the factor 10 cancels K's one fraction digit"),
-        ("K - K + 1", false, "K nets to zero"),
-        ("N * 0.5 + N * 0.5", false, "N's net factor is 1"),
-        ("N * 0.5", true, "N's net factor 0.5"),
-        ("K + 1", true, "K has digits right of the decimal point"),
-        ("N * K", true, "a product of two items, K not shown integral"),
-        ("N * U * 2", false, "a product of integer items"),
+        ("K * 10", Proven, "the factor 10 cancels K's one fraction digit"),
+        ("K - K + 1", Proven, "K nets to zero"),
+        ("N * 0.5 + N * 0.5", Proven, "N's net factor is 1"),
+        ("N * 0.5", Refuted, "N's net factor 0.5"),
+        ("K + 1", Refuted, "K has digits right of the decimal point"),
+        ("N * K", Refuted, "a product of two items, K not shown integral"),
+        ("N * U * 2", Proven, "a product of integer items"),
         // kb/Work PB5891: the value is a polynomial, integer-valued exactly when it is an integer on the grid of its degrees.
-        ("N * (N + 1) / 2", false, "PB5891: a product of two consecutive integers is even"),
-        ("N * (N + 1) * (N + 2) / 6", false, "PB5891: a product of three consecutive integers is a multiple of 6, so the quotient is exact"),
-        ("N * (N - 1) / 2 + 65", false, "PB5891: N (N - 1) / 2 is an integer"),
-        ("N ** 2 * (N + 1) ** 2 / 4", false, "PB5891: the square of N (N + 1) / 2"),
-        ("N * (N + 1) / 3", true, "PB5891: 2/3 at N = 1"),
-        ("(N ** 13 - N) / 13", true, "PB5891: an integer by Fermat, but degree 13 passes the grid cap and the quotient is not shown exact"),
-        ("K * K * 100", false, "PB5891: K is a tenth of an integer atom, so K * K * 100 is that atom squared"),
-        ("K * K * 10", true, "PB5891: 0.1 at K = 0.1"),
-        ("T (1) - T (2)", true, "PB5891: two subscripts are two places (the item keyed by its description cancelled them)"),
-        ("T (1) - T (1) + 1", false, "PB5891: one place is one atom"),
-        ("T (I) - T (I) + 5", false, "PB5891 review R1-1: one subscript item read twice is one place"),
-        ("T (I) - T (J) + 5", true, "PB5891 review R1-1: two subscript items are two places (0.1 at T (I) = 0.1, T (J) = 0)"),
-        ("TN (I) * (TN (I) + 1) / 2", false, "PB5891 review R1-1: TN (I) is one atom, and a product of two consecutive integers is even"),
-        ("TN (I) * (TN (J) + 1) / 2", true, "PB5891 review R1-1: TN (I) and TN (J) are two atoms (1/2 at 1 and 0)"),
-        ("2 ** PZ", false, "PB5891 review R2-2: a P-scaled exponent is an integer by value, so the power is exact"),
-        ("2 ** (U / 2 * 2)", true, "PB5891 review R2-1: an exponent integer by value but not by its carrier is a binary64 power"),
-        ("F - F + 1", false, "PB5891: F - F is exactly 0 in binary64"),
-        ("F + 1 - F", true, "PB5891: the intermediate F + 1 holds a floating-point term and is not shown exact"),
-        ("(F - F + N * 0.1) * 10", true, "PB5891: the intermediate F - F + N * 0.1 is computed in binary64 and is not an integer"),
+        ("N * (N + 1) / 2", Proven, "PB5891: a product of two consecutive integers is even"),
+        ("N * (N + 1) * (N + 2) / 6", Proven, "PB5891: a product of three consecutive integers is a multiple of 6, so the quotient is exact"),
+        ("N * (N - 1) / 2 + 65", Proven, "PB5891: N (N - 1) / 2 is an integer"),
+        ("N ** 2 * (N + 1) ** 2 / 4", Proven, "PB5891: the square of N (N + 1) / 2"),
+        ("N * (N + 1) / 3", Refuted, "PB5891: 2/3 at N = 1"),
+        ("(N ** 13 - N) / 13", Checked, "PB5891: an integer by Fermat, but degree 13 passes the grid cap and the quotient is not shown exact"),
+        ("K * K * 100", Proven, "PB5891: K is a tenth of an integer atom, so K * K * 100 is that atom squared"),
+        ("K * K * 10", Refuted, "PB5891: 0.1 at K = 0.1"),
+        ("T (1) - T (2)", Refuted, "PB5891: two subscripts are two places; PB5889: two constant elements are independent operands (0.1 at T (1) = 0.1, T (2) = 0)"),
+        ("T (1) - T (1) + 1", Proven, "PB5891: one place is one atom"),
+        ("T (I) - T (I) + 5", Proven, "PB5891 review R1-1: one subscript item read twice is one place"),
+        ("T (I) - T (J) + 5", Checked, "PB5891 review R1-1: two subscript items are two places (0.1 at T (I) = 0.1, T (J) = 0)"),
+        ("TN (I) * (TN (I) + 1) / 2", Proven, "PB5891 review R1-1: TN (I) is one atom, and a product of two consecutive integers is even"),
+        ("TN (I) * (TN (J) + 1) / 2", Checked, "PB5891 review R1-1: TN (I) and TN (J) are two atoms (1/2 at 1 and 0)"),
+        ("2 ** PZ", Proven, "PB5891 review R2-2: a P-scaled exponent is an integer by value, so the power is exact"),
+        ("2 ** (U / 2 * 2)", Checked, "PB5891 review R2-1: an exponent integer by value but not by its carrier is a binary64 power"),
+        ("F - F + 1", Proven, "PB5891: F - F is exactly 0 in binary64"),
+        ("F + 1 - F", Checked, "PB5891: the intermediate F + 1 holds a floating-point term and is not shown exact"),
+        ("(F - F + N * 0.1) * 10", Checked, "PB5891: the intermediate F - F + N * 0.1 is computed in binary64 and is not an integer"),
     ];
 
     [Fact]
@@ -187,16 +199,42 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         // R1-3: an admitted row counts only when its statement compiled without any other diagnostic (a parse error would admit it falsely).
         var otherErrors = compiled.Errors.Where(e => !e.Contains("error COBOL1627", StringComparison.Ordinal)).ToList();
         Assert.True(otherErrors.Count == 0, "the shape table's source drew a diagnostic other than COBOL1627:\n  " + string.Join("\n  ", otherErrors));
+        // A REFUTED row is a COBOL1627 on its line; a CHECKED one is a statement whose emitted C# (mapped back by its #line directive)
+        // holds the run-time check. The admitted rows are compiled alone, so the refusals leave the emission in place.
+        var checkedLines = CheckedLines(string.Join("\n", lines.Where((_, at) => !refusedLines.Contains(at + 1))));
         var wrong = new List<string>();
         for (int i = 0; i < Shapes.Length; i++)
         {
-            bool refused = refusedLines.Contains(firstShapeLine + i);
-            if (refused != Shapes[i].Refused)
-                wrong.Add($"{Shapes[i].Expression}: {(refused ? "refused" : "admitted")}, recorded as "
-                    + $"{(Shapes[i].Refused ? "refused" : "admitted")} ({Shapes[i].Why})");
+            int line = firstShapeLine + i;
+            Screen outcome = refusedLines.Contains(line) ? Refuted : checkedLines.Contains(lines[line - 1].Trim()) ? Checked : Proven;
+            if (outcome != Shapes[i].Outcome)
+                wrong.Add($"{Shapes[i].Expression}: {outcome}, recorded as {Shapes[i].Outcome} ({Shapes[i].Why})");
         }
         Assert.True(wrong.Count == 0,
-            "the type 6 screen answered differently from the shape table (kb/Work PB5345, PB5886). Errors:\n  "
+            "the type 6 screen answered differently from the shape table (kb/Work PB5345, PB5886, PB5889). Errors:\n  "
             + string.Join("\n  ", compiled.Errors) + "\nWrong:\n  " + string.Join("\n  ", wrong));
+    }
+
+    /// <summary>The statements (as written) of the admitted shapes whose emitted C# holds <c>CheckedIntegerArgument</c>: the program
+    /// is compiled without its refused lines, and each emitted line is attributed to the COBOL line its <c>#line</c> directive names.</summary>
+    private HashSet<string> CheckedLines(string admitted)
+    {
+        string srcPath = Path.Combine(TempDir, "pb5889admitted.cob");
+        File.WriteAllText(srcPath, admitted);
+        var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
+            srcPath, Path.Combine(TempDir, "pb5889admitted.dll"), DialectLevel: 2023, SourceFormat: InitialReferenceFormat.Free));
+        Assert.True(compiled.Success && compiled.GeneratedCsPath is not null,
+            "the admitted shapes did not compile:\n  " + string.Join("\n  ", compiled.Errors));
+        string[] cobol = admitted.Split('\n');
+        var result = new HashSet<string>(StringComparer.Ordinal);
+        int current = 0;
+        foreach (string cs in File.ReadAllLines(compiled.GeneratedCsPath!))
+        {
+            var m = Regex.Match(cs, @"^\s*#line \((\d+),");
+            if (m.Success) current = int.Parse(m.Groups[1].Value);
+            else if (current > 0 && cs.Contains("CheckedIntegerArgument", StringComparison.Ordinal)) result.Add(cobol[current - 1].Trim());
+        }
+        Assert.True(result.Count > 0 || !Shapes.Any(s => s.Outcome == Checked), "no admitted shape's C# holds the run-time check");
+        return result;
     }
 }

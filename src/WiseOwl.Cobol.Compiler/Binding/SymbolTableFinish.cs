@@ -91,7 +91,7 @@ internal static class SymbolTableFinish
         var roots = data.Forest.Roots.Concat(data.Linkage.Roots)
             .Concat(methods.SelectMany(static m => m.Binding is { } b ? b.LocalRoots.Concat(b.LinkageRoots) : []))
             .Concat(data.Forest.TypeDeclarations).Concat(methods.SelectMany(static m => m.DataScope.TypeDeclarations));
-        // A CD entry declares its cd-name, then the implicit description of its record area (ISO §1985:XIV.2.2, ISO/IEC
+        // A CD entry declares its cd-name, then the implicit description of its record area (§1985:XIV.2.2, ISO/IEC
         // 1989:2002 A.1.2.3), which the binder adds to the forest as a root standing on the CD entry; the area is declared with its
         // cd-name, never a second time as a root of its own.
         foreach (var (id, entry) in made)
@@ -248,7 +248,7 @@ internal static class SymbolTableFinish
             Implicit: implicitly);
     }
 
-    /// <summary>Declare the communication description entry <paramref name="cd"/>: its cd-name (ISO §1985:XIV.2.2), then the implicit
+    /// <summary>Declare the communication description entry <paramref name="cd"/>: its cd-name (§1985:XIV.2.2), then the implicit
     /// description of its record area, each entry of it marked implicit. The level-1 entries written after the CD are roots of their
     /// own (<see cref="Declarations"/>).</summary>
     private static void DeclareCommunication(SymbolTableWriter into, SymbolTable.EntryStore entries, SymbolId id, CommunicationDescription cd)

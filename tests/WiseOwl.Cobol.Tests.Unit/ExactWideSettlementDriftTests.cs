@@ -248,7 +248,7 @@ public sealed class ExactWideSettlementDriftTests
         string arithmetic = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "ArithmeticEmitter.cs"));
         Assert.Contains("v.Exact ? RuntimeApi.ExactType", arithmetic);
         string intrinsic = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
-        Assert.Contains("if (x.Exact) return new NumX(RuntimeApi.IntegerArgExact(x.Expr)", BodyOf(intrinsic, "private NumX RawWideArg("));
+        Assert.Contains("return new NumX(RuntimeApi.IntegerArgExact(site is { } e ? RuntimeApi.CheckedIntegerArgumentExact(x.Expr, e) : x.Expr)", BodyOf(intrinsic, "private NumX RawWideArg("));
         Assert.Contains("xs.Any(x => x.Dec || x.Real || x.Exact)", BodyOf(intrinsic, "private NumX? RenderWide("));
         string device = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "FunctionDeviceText.cs"));
         Assert.Contains(": value.Exact ? RuntimeApi.FunctionFieldOfExact(value.Expr, num.IntermediateMode)", device);

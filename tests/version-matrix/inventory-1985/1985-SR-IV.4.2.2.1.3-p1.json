@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.3-p1",
+ "rule-digest": "be6c0d569699",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#ReservedWordSet; src/WiseOwl.Cobol.Editions/ReservedWords.cs#ReservedWords",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-SR-IV_4_2_2_1_3-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler refuse at 85 with its probe (p07_resv_sysname.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 7 made conforming (the computer-name is a word that is not reserved) and compiles and runs at 85. The read: SR-8.3.2.1-1 states the prohibition, but its 85 cases exercise only the user-defined-word half; the system-name half is shown only by the probe, so no pointer is witnessed for the whole scope. The 1985 list is the edition's own. The system-name refusal's message (COBOL1971 'not a paragraph of the CONFIGURATION SECTION') reads MERGE as the next paragraph: a correct refusal with a weak message (lead). Code location located after the read: reserved words rejected as user words per edition (RejectsAt/UserWordVerdictAt)"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.2-p8",
+ "rule-digest": "b96d4da85df6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+ "test-ref": "conformance:cases/VI.6.3.1@1985-Simple-Conditions/1985-GR-VI_6_3_1_2-p8",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler refuse at 85 with its probe (s10_cls_upper_num.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 14 made conforming (the ALPHABETIC-UPPER test is used with an alphanumeric item, not a numeric one) and compiles and runs at 85. The read: 1985: the ALPHABETIC-UPPER test 'cannot be used with an item whose data description describes the item as numeric' and is true when the content is entirely of its letters (and space). 2023's SR-8.8.4.4.3-4 also forbids numeric-edited and boolean operands, so it is not the 1985 scope, and GR-8.8.4.4.4-3's 85 case does not test ALPHABETIC-UPPER truth on mixed content. Probes refuse the numeric operand, accept the numeric edited one and show the truth value at 85. Code location located after the read: ALPHABETIC-UPPER test operand rules in ClassConditionModel"
+}

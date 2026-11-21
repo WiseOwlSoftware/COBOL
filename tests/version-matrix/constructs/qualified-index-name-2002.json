@@ -4,6 +4,7 @@
  "display": "a qualified index-name",
  "diagnosticCode": "COBOL0900",
  "citation": "ISO §2023:8.4.2.2.3 SR6; ISO/IEC 1989:2002 Annex F.2 item 108",
+ "rule1985": "§1985:IV.4.3.8.1 (the qualification rules, which qualify no index-name)",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
