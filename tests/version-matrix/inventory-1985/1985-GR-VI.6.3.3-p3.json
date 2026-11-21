@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.3-p3",
+ "rule-digest": "64460f2e218b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#abbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/1985-GR-VI_6_3_3-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-11.json: the reader showed the compiler refuse at 85 with its probe (c3-insert-not-not.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 15 made conforming (the abbreviation AND NOT 2 inserts to A NOT = 2, which Table 1 admits) and compiles and runs at 85. The read: The paragraph's four statements are split in 2023 across SR-8.8.4.12.1-2 ('both forms of omission may be used'), GR-8.8.4.12.4-1 (effect and termination) and SR-8.8.4.12.3-2 ('The result of implied insertion shall comply with the rules of Table 5'); SR-8.8.4.12.3-2 has no 85 case in its at-85 lists, so not every pointer is witnessed at 85. The compiler shows all four at 85: pb1390/g85_f11_02 for insertion and termination, c3 for Table 1 compliance (AND NOT NOT 2 refused, AND NOT 2 accepted and true). Code location located after the read: cites §1985:VI.6.3.3 (11 hits); abbreviated combined relation conditions"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.3.2-p1",
+ "rule-digest": "37e702d28186",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationBody; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph",
+ "test-ref": "conformance:cases/VI.3@1985-IDENTIFICATION-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_3_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler refuse at 85 with its probe (s09-id-order-bad.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 7 made conforming (AUTHOR is written before DATE-WRITTEN, the general format's order of presentation) and compiles and runs at 85. The read: \"The name of the program must be given in the first paragraph, which is the PROGRAM-ID paragraph. The other paragraphs are optional ... in order of presentation shown by the general format below.\" The candidates (COMMON, REPOSITORY rules) state nothing of this; 2023 has no AUTHOR..SECURITY paragraphs. Code location located after the read: identificationBody orders PROGRAM-ID then optional paragraphs"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-3",
+ "rule-digest": "b05f45f45437",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitDispatchSelector",
+ "test-ref": "conformance:cases/IV.4.4@1985-EXPLICIT-AND-IMPLICIT-SPECIFICATIONS/1985-GR-IV_4_4_2-3",
+ "notes": "Own witness from the read lineage-reads-1985/s-05.json, a reopened parent (a case of its id was placed before the mint and the reader wrote another), decided by the PB5453 rows pass (w20262131i): The row's own case exercises the whole remaining item: a READ past the end with no AT END runs the USE AFTER ERROR section (IN DECLARATIVE 10) and control returns to the statement after the READ (AFTER READ); the reader's s05_decl_flow.cob shows the same through an OPEN, so the case is kept as the witness (its ALTER lines are p4's and do not change what it shows of item 3). The read: Reopened parent; what is left is item (3) on declaratives (the old record's ALTER and dispatcher sites belong to p4 and the other items). GR-14.6.3-3 states the 2023 exception-procedure transfer, but none of its 85 cases runs a declarative; the probe does. Code location: EmitUseMachinery and the EC dispatch selector run the declarative section a statement's I-O condition selects and return to the statement after it."
+}

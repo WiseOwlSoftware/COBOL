@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-XIII.1.2.4-p1",
+ "rule-digest": "c2982a9fdb9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.Declarations.cs#IsReportSectionOnlyName; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportSection",
+ "test-ref": "conformance:cases/XIII.1.2@1985-LANGUAGE-CONCEPTS/1985-SR-XIII_1_2_4-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-17.json: the reader showed the compiler refuse at 85 with its probe (rw_ctr_sub_lc_85.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 31 made conforming (the subscript is a working-storage item, not LINE-COUNTER) and compiles and runs at 85. The read: SR-8.4.2.3.3-8 states the same requirement word for word, but it has no case that runs at 85 (its at-85 lists are empty), so it cannot be a SAME pointer. The three refusals and their one-line-changed control show the rule at 85. Code location located after the read: sum counter / LINE-COUNTER / PAGE-COUNTER only in Report Section, cites 1985:XIII.1.2.4 in ReportSectionBinder.cs"
+}

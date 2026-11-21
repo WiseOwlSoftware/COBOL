@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-XVI.1.4.1-p1",
+ "rule-digest": "a4f231e277ff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#ValueOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ProcedureTableBuilder",
+ "test-ref": "conformance:cases/XVI.1.4@1985-ORGANIZATION/1985-SR-XVI_1_4_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler refuse at 85 with its probe (s19_p08_seg_qual_bad.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 10 made conforming (the nonunique paragraph-name P is qualified by its section-name) and compiles and runs at 85. The read: \"when segmentation is used, the entire Procedure Division must be in sections. In addition, each section must be classified ... Segmentation in no way affects the need for qualification of procedure-names\". The candidates (PERFORM, Linkage, transfers) do not hold segments. Code location located after the read: segmentation applies to procedure sections only: section segment-number recorded by ProcedureTableBuilder"
+}

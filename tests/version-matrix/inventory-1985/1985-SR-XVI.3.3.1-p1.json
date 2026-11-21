@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.1-p1",
+ "rule-digest": "ab0e8e35f686",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckAlter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter",
+ "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json: the reader showed the compiler refuse at 85 with its probe (s19_p09_alter_bad.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 8 made conforming (the GO TO is in a section of segment-number 49, less than 50, so an ALTER in another segment may refer to it) and compiles and runs at 85. The read: \"A GO TO statement in a section whose segment-number is greater than or equal to 50 must not be referred to by an ALTER statement in a section with a different segment-number.\" Refusal with a one-line-moved control. No 2023 counterpart (no segments). Code location located after the read: ALTER of a GO TO checked against segment numbers by Segmentation.CheckAlter"
+}

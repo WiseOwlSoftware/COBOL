@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.1.1.3-p1",
+ "rule-digest": "760c94030f73",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#RelationComparability; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands",
+ "test-ref": "conformance:cases/VI.6.3.1.1@1985-Relation-Condition/1985-SR-VI_6_3_1_1_3-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler refuse at 85 with its probe (s10_idx_xd_lit.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 14 made conforming (the index data item is compared with another index data item, a listed pair) and compiles and runs at 85. The read: The lead of the list: 'Relation tests may be made only between:' the three pairs. The items have their own rows (1985-GR-VI.6.3.1.1.3-1..3); this row is the restriction 'only'. The 2023 candidates (GR-8.8.4.2.13-*) state the meanings of the pairs, not the exclusion. The probes refuse the unlisted pairings and accept each listed one at 85. Code location located after the read: permitted operand pairings of relation tests; cites §1985:VI.6.3.1.1.3"
+}

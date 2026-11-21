@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.4-2",
+ "rule-digest": "4ee94643065d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#CheckSegmentation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#Segmentation",
+ "test-ref": "conformance:cases/XVI.3.3@1985-RESTRICTIONS-ON-PROGRAM-FLOW/1985-SR-XVI_3_3_4-2",
+ "notes": "Own witness from the read lineage-reads-1985/s-19.json, a reopened parent (a case of its id was placed before the mint and the reader wrote another), decided by the PB5453 rows pass (w20262131i): The row's own refused case (a SORT in section 0 whose INPUT PROCEDURE IA THRU IB spans segments 60 and 70, COBOL6877) is the bound of the item. The grant (a procedure wholly in one independent segment, the reader's accepted s19_p15) is unwitnessed in the suite: place_witnesses places one case per rule id and the row's id holds the refusal. The read: Reopened parent: what is left is item (2) of the first list, \"Wholly contained in a single independent segment\". The row's refusal case is a SORT in section 0 and still fits; the item grants a form, so the accepted s19_p15 joins it. No 2023 counterpart. Code location: SortBinder.CheckSegmentation cites 1985:XVI.3.3.4 (lines 152,164) for the SORT procedure segment check."
+}

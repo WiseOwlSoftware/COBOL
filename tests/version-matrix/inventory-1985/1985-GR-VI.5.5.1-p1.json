@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.5.5.1-p1",
+ "rule-digest": "099685012e1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry",
+ "test-ref": "conformance:cases/VI.5.5@1985-DATA-NAME-OR-FILLER-CLAUSE/1985-GR-VI_5_5_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler refuse at 85 with its probe (s09-filler-ref.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 14 made conforming (the MOVE names the data-name F1; the FILLER item is not referenced explicitly) and compiles and runs at 85. The read: GR-13.18.20.4-1 states the FILLER half but has no case at 85; the probes witness both halves at 85. Code location located after the read: dataName admits data-name or FILLER"
+}

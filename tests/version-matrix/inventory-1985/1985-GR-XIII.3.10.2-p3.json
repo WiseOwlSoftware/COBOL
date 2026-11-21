@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p3",
+ "rule-digest": "23978174e285",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIII.3.10.2-p3",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-XIII.3.10.2-p3); the code location is where the compiler meets the rule's subject. The read: S1 says the columns are split in two. S2 says the first part holds the rules for a report with a PAGE clause and the second for one without: which rules then apply is stated by the tables' rows themselves and by 1985-GR-XIII.3.10.2-p5 (no upper or lower limit rule without PAGE) and -p7 (no fit test without PAGE). S3 ('The purpose of the rules ... is discussed below:') is a lead-in to p4 onward. All three describe the document's tables; no program or RWCS behaviour bears on how the table columns are laid out."
+}

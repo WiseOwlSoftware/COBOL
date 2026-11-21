@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.3.1-p1",
+ "rule-digest": "29aa72ca3711",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph",
+ "test-ref": "conformance:cases/VI.3@1985-IDENTIFICATION-DIVISION-IN-THE-NUCLEUS-MODULE/1985-GR-VI_3_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-09.json: the reader showed the compiler refuse at 85 with its probe (s09-no-id-header.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 4 made conforming (the Identification Division header is written) and compiles and runs at 85. The read: \"The Identification Division is required in a COBOL source program.\" 2023 makes the header optional (its 11.2.1 format brackets IDENTIFICATION DIVISION); no candidate states the 1985 requirement and none has an 85 case. The compiler refuses a header-less unit at 85 and accepts the informational paragraphs. Code location located after the read: identificationDivision/programIdParagraph rules define the division header and PROGRAM-ID"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2-p4",
+ "rule-digest": "ba5e120b3c2e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#AreaAt; src/WiseOwl.Cobol.Frontend/Preprocessor/FixedFormLine.cs#IsAreaAOffset",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-SR-IV_7_2-p4",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler refuse at 85 with its probe (p10_asterisk_col8.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 12 made conforming (the asterisk is in the indicator area, before margin A, so the line is a comment line) and compiles and runs at 85. The read: Definitional (catalog flag) but showable: 'Margin A is between the 7th and 8th character positions of a line.' No 2023 catalog row. the 1985 reference format line diagram (IV.7.2): margins L, C, A, B, R bound the sequence number area (1-6), indicator area (7), area A (8-11) and area B (12 to margin R). Code location located after the read: ReferenceFormatMap.AreaAt and FixedFormLine.IsAreaAOffset define areas A and B"
+}

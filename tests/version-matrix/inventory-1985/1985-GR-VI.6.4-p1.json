@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.4-p1",
+ "rule-digest": "29f2075b8b02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#StatementValidation",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.6.4-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-VI.6.4-p1); the code location is where the compiler meets the rule's subject. The read: One sentence: it states what paragraph 6.4 and its subordinates contain. The common options (ROUNDED, SIZE ERROR, CORRESPONDING, arithmetic statements, overlapping operands, ...) are their own VI.6.4.x rows. A statement of what a paragraph of the document holds cannot be falsified by any program or compiler."
+}

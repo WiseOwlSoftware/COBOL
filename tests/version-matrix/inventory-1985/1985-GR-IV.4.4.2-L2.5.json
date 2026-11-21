@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-L2.5",
+ "rule-digest": "7b7e76353524",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader",
+ "test-ref": "conformance:cases/IV.4.4@1985-EXPLICIT-AND-IMPLICIT-SPECIFICATIONS/1985-GR-IV_4_4_2-L2_5",
+ "notes": "Own witness from the read lineage-reads-1985/s-05.json, a reopened parent (a case of its id was placed before the mint and the reader wrote another), decided by the PB5453 rows pass (w20262131i): The row's own case exercises the whole item: the called program reaches its end program header and control returns to the caller (AFTER CALL); the reader's s05_flow.cob, placed for p1, shows it too. The read: Reopened parent; what is left is the list item \"The end program header.\" (the old dispatcher record covered the whole list). GR-10.7.4-1 says an end marker ends a unit, not that no statement follows; the probe shows the header ending flow. Code location: EmitDispatchMethod's implicit GOBACK at the end program header (the header in the grammar)."
+}

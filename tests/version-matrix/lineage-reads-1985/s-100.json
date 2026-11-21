@@ -1,0 +1,537 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice s-100 of the 1985 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "s-100",
+ "edition": 1985,
+ "asked": null,
+ "read": {
+  "slice": "s-100",
+  "edition": 1985,
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.1-p1",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the section's rules apply at the high level",
+     "boxes mark high-level text",
+     "module restrictions may affect other modules",
+     "flowcharts do not dictate implementation"
+    ],
+    "evidence-1985": {
+     "the section's rules apply at the high level": "not shown: no program can show a statement about the document",
+     "boxes mark high-level text": "not shown: no program can show a statement about the document",
+     "module restrictions may affect other modules": "not shown: no program can show a statement about the document",
+     "flowcharts do not dictate implementation": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.1 p1",
+      "quote": "specifications unique to the high level are enclosed in boxes",
+      "check": "OK  §1985:IV.1 p1  (1. INTRODUCTION)  the text is in p1"
+     },
+     {
+      "cite": "§1985:IV.1 p1",
+      "quote": "qualification is not allowed in level 1 of the Nucleus",
+      "check": "OK  §1985:IV.1 p1  (1. INTRODUCTION)  the text is in p1"
+     },
+     {
+      "cite": "§1985:IV.1 p1",
+      "quote": "are not meant to dictate implementation",
+      "check": "OK  §1985:IV.1 p1  (1. INTRODUCTION)  the text is in p1"
+     },
+     {
+      "cite": "§1985:VI.1.3.2 p1",
+      "quote": "Qualification is not included in level 1",
+      "check": "OK  §1985:VI.1.3.2 p1  (1.3.2 Name Characteristics)  the text is in p1"
+     }
+    ],
+    "reason": "S1 ('The language considerations and rules specified in this section, apply to the highest level') states the scope of the section's text; the rules themselves are their own rows. S2 ('the restrictions will be pointed out in the section describing that language element') describes where the document places level restrictions. S3 ('specifications unique to the high level are enclosed in boxes') describes the document's notation. S4 ('restrictions contained in one module might possibly affect other modules') informs the reader about how the module descriptions interact. S5 restates a requirement as an example: 'qualification is not allowed in level 1 of the Nucleus' is carried by 1985-SR-VI.1.3.2-p1 ('Qualification is not included in level 1', cite.py OK §1985:VI.1.3.2 p1); its consequence for a module combined with Nucleus level 1 is that row applied to the combination, and the row is tested there. S6 ('The flowcharts in this document ... are not meant to dictate implementation') describes the figures and grants the implementor freedom: every compiler behaviour satisfies it. No sentence other than S5 says anything of a program or a compiler, and S5's requirement has its own row. Restated requirements, each its own row: \"qualification is not allowed in level 1 of the Nucleus\" is 1985-SR-VI.1.3.2-p1.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's scope of Section IV, its boxes and its flowcharts: \"specifications unique to the high level are enclosed in boxes\"",
+     "code-location": "src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ClosedFormats"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.1-p1",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "General-format notation: the enumeration of the element kinds of a clause or statement (uppercase words, lowercase words, level-numbers, brackets, braces, connectives, special characters); each kind's meaning is IV.2.1.2 to IV.2.1.7"
+    ],
+    "evidence-1985": {
+     "the enumeration": "not shown: the paragraph obliges nothing of a program; each element kind's obligation is witnessed under its own row (IV.2.1.2 p1/p2, IV.2.1.4 p3/p4)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.1 p1",
+      "quote": "Elements which make up a clause or a statement consist of",
+      "check": "OK  §1985:IV.2.1.1 p1  (2.1.1 Elements)  the text is in p1"
+     }
+    ],
+    "reason": "One sentence: it enumerates the kinds of element the standard's general formats are written with (uppercase words, lowercase words, level-numbers, brackets, braces, connectives, special characters). It is about how the document writes a format, not about a program: what each element kind requires of source text is stated by its own rows (1985-SR-IV.2.1.2-p1/-p2, 1985-SR-IV.2.1.3-p1, 1985-SR-IV.2.1.4-p1..p4, 1985-SR-IV.2.1.5-p2/-p3, 1985-SR-IV.2.1.6-p1/-p2, 1985-SR-IV.2.1.7-p1). No program text and no compiler output can contradict an enumeration of the notation's parts.",
+    "probe": null,
+    "compiler-at-1985": "not probed: no program can show an enumeration of notation element kinds apart from the rows that give each kind its meaning",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's general-format notation: \"Elements which make up a clause or a statement consist of\"",
+     "code-location": "src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ClosedFormats"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.2.1.5-p1",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the ellipsis in running text (not general formats)"
+    ],
+    "evidence-1985": {
+     "the ellipsis in running text (not general formats)": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.2.1.5 p1",
+      "quote": "the ellipsis (...) shows omission of a word or words",
+      "check": "OK  §1985:IV.2.1.5 p1  (2.1.5 Ellipsis)  the text is in p1"
+     }
+    ],
+    "reason": "S1 limits itself to 'text, other than general formats': the ellipsis in the standard's prose marks omitted words. S2 says this is the conventional meaning and becomes apparent in context. Both are about how to read the document's prose; the ellipsis in general formats, which does govern source text, is 1985-SR-IV.2.1.5-p2/-p3. No program and no compiler behaviour bears on the meaning of an ellipsis in the standard's prose.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's use of the ellipsis in its running prose: \"the ellipsis (...) shows omission of a word or words\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#UnrepeatedElements"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.3.1-p1",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "what a syntax rule of the standard is"
+    ],
+    "evidence-1985": {
+     "what a syntax rule of the standard is": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.3.1 p1",
+      "quote": "Syntax rules are those rules that define or clarify the order",
+      "check": "OK  §1985:IV.3.1 p1  (3.1 SYNTAX RULES)  the text is in p1"
+     }
+    ],
+    "reason": "S1 defines what the document means by a 'syntax rule'. S2 says what syntax rules may do (impose or relax restrictions). Both classify the standard's own rules; each actual restriction is its own SR row. No program and no compiler behaviour can make a statement about the document's rule kinds false.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's kind of rule called a syntax rule: \"Syntax rules are those rules that define or clarify the order\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ClosedFormatPass"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.3.2-p1",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "what a general rule of the standard is"
+    ],
+    "evidence-1985": {
+     "what a general rule of the standard is": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.3.2 p1",
+      "quote": "A general rule is a rule that defines or clarifies",
+      "check": "OK  §1985:IV.3.2 p1  (3.2 GENERAL RULES)  the text is in p1"
+     }
+    ],
+    "reason": "S1 defines what the document means by a 'general rule'. S2 says what general rules are used for (the semantics of a statement and its effect on execution or compilation). Both classify the standard's own rules; each semantic requirement is its own GR row. No program and no compiler behaviour can falsify a classification of the document's rules.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's kind of rule called a general rule: \"A general rule is a rule that defines or clarifies\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ClosedFormatPass"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p2",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "alignment on natural boundaries may make object code cheaper"
+    ],
+    "evidence-1985": {
+     "alignment on natural boundaries may make object code cheaper": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:IV.4.3.7 p2",
+      "quote": "additional machine operations in the object program may be required",
+      "check": "OK  §1985:IV.4.3.7 p2  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p2"
+     },
+     {
+      "cite": "§1985:IV.4.3.7 p3",
+      "quote": "are defined to be synchronized",
+      "check": "OK  §1985:IV.4.3.7 p3  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in p3"
+     }
+    ],
+    "reason": "S1 says some uses of data 'may be facilitated' by alignment on natural boundaries: a statement of possible efficiency, obliging nothing (p1 already says storage 'need not respect these natural boundaries'). S2 says additional machine operations 'may be required' when items straddle boundaries: it gives the reason for, and the referent of 'such additional machine operations' in, 1985-GR-IV.4.3.7-p3, which defines 'synchronized' (cite.py OK §1985:IV.4.3.7 p3 'are defined to be synchronized'). Neither sentence requires any layout or result; an object program that uses extra operations, or none, is consistent with both 'may' statements, and no program's output can show the count of machine operations. The SYNCHRONIZED requirements are their own rows (p3, -1, -2, p5 and the SYNCHRONIZED clause rows).",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "explains 1985-GR-IV.4.3.7-p3: \"additional machine operations in the object program may be required\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SynchronizedPhrase.cs#SynchronizedPhrase"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.4-p2",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "figures 1-4 illustrate VI.6.3.4 and do not dictate implementation"
+    ],
+    "evidence-1985": {
+     "figures 1-4 illustrate VI.6.3.4 and do not dictate implementation": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.3.4 p2",
+      "quote": "These figures are not intended to dictate implementation",
+      "check": "OK  §1985:VI.6.3.4 p2  (6.3.4 Order of Evaluation of Conditions)  the text is in p2"
+     }
+    ],
+    "reason": "S1 says the figures illustrate the application of the rules above; the order-of-evaluation requirements are 1985-GR-VI.6.3.4-p1, -1 and -2. S2 says the figures do not dictate implementation, a freedom every compiler behaviour satisfies. Neither sentence states anything a program or a compiler can violate.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's figures 1 through 4 on condition evaluation: \"These figures are not intended to dictate implementation\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4-p1",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "what paragraph 6.4 describes"
+    ],
+    "evidence-1985": {
+     "what paragraph 6.4 describes": "not shown: no program can show a statement about the document"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4 p1",
+      "quote": "provide a description of the common options and conditions",
+      "check": "OK  §1985:VI.6.4 p1  (6.4 COMMON OPTIONS AND RULES FOR STATEMENTS)  the text is in p1"
+     }
+    ],
+    "reason": "One sentence: it states what paragraph 6.4 and its subordinates contain. The common options (ROUNDED, SIZE ERROR, CORRESPONDING, arithmetic statements, overlapping operands, ...) are their own VI.6.4.x rows. A statement of what a paragraph of the document holds cannot be falsified by any program or compiler.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the text is about the standard's own presentation, not a program or an obligation on the implementation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's organization of paragraph 6.4: \"provide a description of the common options and conditions\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#StatementValidation"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p1",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the standard's arrangement of its presentation rules tables: one each for RH, PH, PF, RF; a joint body-group table for DE, CH, CF"
+    ],
+    "evidence-1985": {
+     "table arrangement": "not shown: no program can show how the standard arranges its tables",
+     "DE/CH/CF governed by one set of rules": "the body-group rules are their own XIII.3.10.8 rows"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p1",
+      "quote": "There is an individual presentation rules table",
+      "check": "OK  §1985:XIII.3.10.2 p1  (3.10.2 Organization)  the text is in p1"
+     },
+     {
+      "cite": "§1985:XIII.3.10.2 p1",
+      "quote": "are treated jointly in the body group presentation rules table",
+      "check": "OK  §1985:XIII.3.10.2 p1  (3.10.2 Organization)  the text is in p1"
+     }
+    ],
+    "reason": "S1 says there is one table each for RH, PH, PF and RF. S2 says DE, CH and CF groups are 'treated jointly in the body group presentation rules table'; the presentation rules those groups obey are carried by 1985-GR-XIII.3.10.8-p1 ('Table 3 ... points to the appropriate presentation rules for ... control heading, detail, and control footing report groups') and 1985-GR-XIII.3.10.8-1..6; the other tables' rules are XIII.3.10.6, .7, .9, .10. S3 is a page cross-reference. All three describe where the document puts its rules; a report's presented lines are tested against the rules themselves, so no program or RWCS behaviour can contradict how the document groups its tables.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row states how the standard arranges its tables",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's arrangement of its presentation rules tables: \"There is an individual presentation rules table\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p3",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "the standard's layout: the applicable-rules columns are split into PAGE specified and PAGE omitted"
+    ],
+    "evidence-1985": {
+     "column layout": "not shown: no program can show it",
+     "behaviour with and without PAGE": "XIII.3.10.2 p5/p7 and the tables' rows"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.2 p3",
+      "quote": "The applicable rules columns of a presentation rules table are partitioned into two parts",
+      "check": "OK  §1985:XIII.3.10.2 p3  (3.10.2 Organization)  the text is in p3"
+     }
+    ],
+    "reason": "S1 says the columns are split in two. S2 says the first part holds the rules for a report with a PAGE clause and the second for one without: which rules then apply is stated by the tables' rows themselves and by 1985-GR-XIII.3.10.2-p5 (no upper or lower limit rule without PAGE) and -p7 (no fit test without PAGE). S3 ('The purpose of the rules ... is discussed below:') is a lead-in to p4 onward. All three describe the document's tables; no program or RWCS behaviour bears on how the table columns are laid out.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row describes the standard's table columns",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's layout of the applicable rules columns: \"The applicable rules columns of a presentation rules table are partitioned into two parts\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-p1",
+    "supersedes": "s-99",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "lead-in to the shorthand notation in column 1 of the presentation rules tables"
+    ],
+    "evidence-1985": {
+     "notation lead-in": "not shown: no program can show it; the sequences it introduces are items 1-3 and p2"
+    },
+    "citations": [
+     {
+      "cite": "§1985:XIII.3.10.3 p1",
+      "quote": "Column 1 of the presentation rules table uses a shorthand notation",
+      "check": "OK  §1985:XIII.3.10.3 p1  (3.10.3 LINE NUMBER Clause Notation)  the text is in p1"
+     }
+    ],
+    "reason": "S1 says column 1 of the tables uses a shorthand for LINE NUMBER sequences. S2 is a lead-in to the abbreviations. The meaning of each abbreviation, which classifies a report group's LINE NUMBER clauses and so decides which rules apply, is carried by 1985-GR-XIII.3.10.3-1 ('A'), -2 ('R'), -3 ('NP') and -p2 (combinations). These two sentences only announce the notation; no program or RWCS behaviour can violate an announcement of the document's notation.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the row introduces the standard's notation",
+    "class": "definitional",
+    "needs": "a signed derivation (the informative arm, kb/Work PB6012)",
+    "derivation": {
+     "arm": "informative",
+     "names": "describes the standard's shorthand notation in column 1 of its tables: \"Column 1 of the presentation rules table uses a shorthand notation\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder"
+    },
+    "licence-1985": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4.5-p1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "every Nucleus statement (and every module's statements, by its rules) whose sending and receiving items share storage while defined by different data description entries",
+     "a pointer to statements whose general rules make same-entry overlap undefined"
+    ],
+    "evidence-1985": {
+     "overlap by different entries: result undefined": "not shown (no program can show an undefined result)",
+     "pointer to per-statement rules": "not shown (it imposes nothing of its own; each statement's rule is its own row)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:VI.6.4.5 p1",
+      "quote": "the result of the execution of such a statement is undefined",
+      "check": "OK  §1985:VI.6.4.5 p1  (6.4.5 Overlapping Operands)  the text is in p1"
+     }
+    ],
+    "reason": "Definitional flag: can a program show it? No. The paragraph's only requirement is 'the result of the execution of such a statement is undefined'; its second and third sentences point to the general rules of other statements. The earlier prose85 read classed both sentences NOT-NORMATIVE (refutation UPHELD). 2023 GR-14.6.10-1 repeats sentence 1, but an undefined result has no observable outcome to witness at 85, so the undefined-in-rule arm closes it. Read again by the PB5453 rows pass (w20262131i) only to give the Names cell its shape (the quoted words of the row's own text that say \"undefined\") and the code location where the compiler meets the rule's subject; the import refused the first read for want of both.",
+    "probe": null,
+    "compiler-at-1985": "not probed: an undefined result has no outcome a program can check",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "undefined-in-rule",
+     "names": "\"the result of the execution of such a statement is undefined\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveOverlap.cs#Classify; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#EmitOverlapStore"
+    },
+    "supersedes": "s-12"
+   },
+   {
+    "rule-id": "1985-GR-X.4.1-p6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "scope-1985": [
+     "effect of accessing Linkage data in a program that is not a called program"
+    ],
+    "evidence-1985": {
+     "undefined effect": "not shown (undefined by the rule)"
+    },
+    "citations": [
+     {
+      "cite": "§1985:X.4.1 p6",
+      "quote": "is accessed in a program which is not a called program, the effect is undefined",
+      "check": "OK  §1985:X.4.1 p6  (4.1 LINKAGE SECTION)  the text is in p6"
+     }
+    ],
+    "reason": "The rule's only consequence is \"the effect is undefined\"; no program can show a required behaviour. Read again by the PB5453 rows pass (w20262131i) only to give the Names cell its shape (the quoted words of the row's own text that say \"undefined\") and the code location where the compiler meets the rule's subject; the import refused the first read for want of both.",
+    "probe": null,
+    "compiler-at-1985": "not probed: the rule defines no behaviour to observe (\"the effect is undefined\")",
+    "class": "definitional",
+    "needs": "a signed derivation",
+    "derivation": {
+     "arm": "undefined-in-rule",
+     "names": "\"is accessed in a program which is not a called program, the effect is undefined\"",
+     "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalCrossing"
+    },
+    "licence-1985": null,
+    "supersedes": "s-16"
+   }
+  ],
+  "leads": []
+ },
+ "refute": null,
+ "derivation-refute": {
+  "slice": "s-100",
+  "cases": [
+   {
+    "rule-id": "1985-GR-IV.1-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "S4/S5: a --std 85 program qualifying a name (e.g. a record field OF a file record) under a module combined with Nucleus level 1, accepted by the compiler; S1: a high-level construct rejected as outside 'the highest level'; S3: a boxed (level-2) element mishandled.",
+    "reason": "S5's restriction is carried by 1985-SR-VI.1.3.2-p1 (exists; cite.py OK 'Qualification is not included in level 1'), and qualification is a Nucleus facility, so its absence in a level-1 combination is that row applied to the combination; S4 ('restrictions contained in one module might possibly affect other modules', cite.py OK) only announces S5. The compiler implements the high level, where no level-1 restriction applies, so no behaviour of it can contradict S1-S4. S3 is notation (the catalog's box field derives from it, a transcription matter, not compiler behaviour). S6 grants freedom. All three quotations OK in p1.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-SR-IV.2.1.1-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "Read the list as a constraint on source text: a clause containing an element outside the list (e.g. a picture string or literal) would then be illegal, or a compiler accepting such text would break it.",
+    "reason": "The list names brackets, braces and lowercase words, which never occur in source text, so the sentence can only be about how the document writes a general format; the element kinds' source-text consequences are their own rows (1985-SR-IV.2.1.2-p1, 1985-SR-IV.2.1.7-p1 and the others named exist). The SR kind label does not make the enumeration falsifiable. Quote OK in p1.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-IV.2.1.5-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "A program using an ellipsis-repeated format element (e.g. MOVE x TO y z w) accepted or rejected by the compiler.",
+    "reason": "S1 is limited to 'text, other than general formats', i.e. the standard's prose; the general-format ellipsis is 1985-SR-IV.2.1.5-p2/-p3 (exist). Quote OK.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-IV.3.1-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "S2 'relax restrictions implied by words or elements': a compiler that enforces a format restriction an SR relaxes.",
+    "reason": "That error is a violation of the relaxing SR itself, not of this sentence, which only says SRs may do so. Both sentences classify the document's rules. Quote OK.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-IV.3.2-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "A compiler whose effect on compilation or execution differs from a GR.",
+    "reason": "Such a defect falsifies that GR, not this definition of what a GR is. Quote OK.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-IV.4.3.7-p2",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "(a) Read 'may be facilitated if ... aligned' as obliging alignment of arithmetic or subscript operands; (b) a program whose output depends on whether straddling items cost extra machine operations; (c) unaligned non-SYNC data computed wrongly.",
+    "reason": "(a) 'may be facilitated' states possible efficiency, and p1 says storage 'need not respect these natural boundaries'; (b) no COBOL output exposes a count of machine operations; (c) correctness of unaligned data is p1 plus the data rows, not this sentence. S2 supplies the referent of 'such additional machine operations' in 1985-GR-IV.4.3.7-p3 (exists; cite.py OK 'are defined to be synchronized'), so 'explains' names a real row; the observable SYNCHRONIZED effects (implicit FILLER, group results) are p5 and the SYNC clause rows. Quotes OK in p2 and p3.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.3.4-p2",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "An evaluation order differing from the figures, or a figure disagreeing with the rules.",
+    "reason": "S2 says the figures do not dictate implementation; the order requirements are 1985-GR-VI.6.3.4-p1/-1/-2 (exist). Quote OK.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-VI.6.4-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "Any ROUNDED / SIZE ERROR / CORRESPONDING behaviour.",
+    "reason": "The sentence states only what paragraph 6.4 contains; each option is its own VI.6.4.x row. Quote OK.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "S2: an RWCS that applies body-group rules to a CF group differently from a DE group.",
+    "reason": "The joint treatment is restated as a requirement in 1985-GR-XIII.3.10.8-p1 (exists; cite.py OK 'points to the appropriate presentation rules for all permissible combinations'), whose rules -1..-6 name control heading, detail and control footing groups; S1 and S3 are organization and a page cross-reference. Quotes OK.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.2-p3",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "S2: a report with no PAGE clause where the RWCS applies the PAGE-present rules (e.g. a report heading R / relative, first print line by 3b instead of 3d).",
+    "reason": "The selection is stated by the tables themselves: Table 1's header reads 'If the PAGE clause is specified.' / 'If the PAGE clause is omitted.' (ANSI_COBOL_1985.md near line 23037), and the tables are pointed to by the XIII.3.10.6-p1 .. 3.10.10-p1 rows; p5 and p7 restate the PAGE-absent omissions. S2 is the legend for those column headers and adds no rule. Quote OK.",
+    "probe": null
+   },
+   {
+    "rule-id": "1985-GR-XIII.3.10.3-p1",
+    "arm": "informative",
+    "verdict": "UPHELD",
+    "attempt": "'the sequence of LINE NUMBER clauses that may appear': read as a permission constraint, where a compiler that accepts an unlisted sequence would break it.",
+    "reason": "The permissible combinations are listed by the tables (1985-GR-XIII.3.10.2-p2 'list all of the permissible combinations'), and the abbreviations by 1985-GR-XIII.3.10.3-1/-2/-3/-p2 (exist); this sentence only announces the notation. Quote OK.",
+    "probe": null
+   }
+  ]
+ },
+ "imported": {
+  "derivation-refute": "fdb2c3c7cf1f085a87f4921ad1b0e8a0fb9574fc88d7e9767b5f37f506f7f98f",
+  "read": "ff0fee76132160727e80fcfc850cd9ff7f68ac41d1f3a287a294856e803ff8b7"
+ }
+}

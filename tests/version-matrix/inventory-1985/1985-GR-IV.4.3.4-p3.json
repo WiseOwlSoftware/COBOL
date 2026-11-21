@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.4-p3",
+ "rule-digest": "ca7595386b99",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ExpressionBinder; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IntrinsicResultType",
+ "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/1985-GR-IV_4_3_4-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler refuse at 85 with its probe (p08b_int_fn_in_move.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 12 made conforming (the integer function is used in an arithmetic expression) and compiles and runs at 85. The read: 'Integer and numeric functions may be used only in arithmetic expressions.' MOVE FUNCTION LENGTH, DISPLAY FUNCTION LENGTH and MOVE FUNCTION SQRT are refused at 85 (COBOL0900 citing SR4); the COMPUTE control runs. AR-15.3-6 (85 cases) is about integer ARGUMENTS, not where a function may appear; no candidate states the restriction (2023 lifts it). Code location located after the read: alphanumeric function in standard data format; size from function definition"
+}

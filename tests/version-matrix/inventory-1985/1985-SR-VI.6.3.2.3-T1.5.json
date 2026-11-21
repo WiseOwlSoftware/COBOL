@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.2.3-T1.5",
+ "rule-digest": "53ae3ba56f97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#condition",
+ "test-ref": "conformance:cases/VI.6.3.2@1985-Complex-Conditions/1985-SR-VI_6_3_2_3-T1_5",
+ "notes": "Own witness from the read lineage-reads-1985/s-11.json: the reader showed the compiler refuse at 85 with its probe (t1-r5-paren-then-paren.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 13 made conforming (the right parenthesis is followed by AND, which row 5 admits) and compiles and runs at 85. The read: Table 1 row 5 (): never first, may be last; preceded only by simple-condition, ); followed only by OR, AND, )). 2023's Table 5 (uncataloged, §2023:8.8.4.11.3) adds EXCLUSIVE-OR/XOR to every row; the candidates (SR-14.9.25.3-10 is the MOVE validity table, GR-7.3.8.3-1 constant conditions, format rows) state nothing of this table and have no 85 case for it. The permitted pairs run in c1-logic / t1-control; the forbidden pair is refused, and the control with only that line changed is accepted. Code location located after the read: right parenthesis adjacency: primaryCondition's parenthesized alternative"
+}

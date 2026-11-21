@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.3.2.1-p5",
+ "rule-digest": "e5bcd6ba1f41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#LevelNumberRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DataBinder",
+ "test-ref": "conformance:cases/IV.4.3.2@1985-Concept-of-Levels/1985-GR-IV_4_3_2_1-p5",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler refuse at 85 with its probe (p06_level_77_subdivided.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 8 made conforming (the subdivided item is a record, level-number 01, not a level-77 item) and compiles and runs at 85. The read: 'Entries that specify noncontiguous data items, which are not subdivisions of other items, and are not themselves subdivided, have been assigned the special level-number 77.' 2023 says it word for word inside GR-8.5.1.3.2-3 (a folded list close, lead filed), but that row has no case running at 85 (at-85 empty), and GR-13.18.33.4-2 neither; so no SAME. Code location located after the read: level-77 noncontiguous items; DataBinder cites 1985:IV.4.3.2.1 at 880"
+}

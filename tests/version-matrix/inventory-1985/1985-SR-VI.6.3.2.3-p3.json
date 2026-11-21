@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.2.3-p3",
+ "rule-digest": "5b631704bfb3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#condition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition",
+ "test-ref": "conformance:cases/VI.6.3.2@1985-Complex-Conditions/pb5924-paren-nested-conditions-85; conformance:cases/VI.6.3.2@1985-Complex-Conditions/pb5924-paren-right-before-left-85; conformance:cases/VI.6.3.2@1985-Complex-Conditions/pb5924-paren-unbalanced-left-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-11.json: the reader showed the compiler correct at 85 with tests the suite already holds, joined as the row's own by the PB5453 rows pass (w20262131i); the import left the row GAP because the read named them in prose, not as a runnable probe.  The read: 'There must be a one-to-one correspondence between left and right parentheses such that each left parenthesis is to the left of its corresponding right parenthesis.' The identical 2023 sentence is uncataloged §2023:8.8.4.11.3 prose; the nearest candidate SR-8.8.2-3 states it for boolean expressions (no 85 case) and SR-8.3.5-4 (85 cases) states balance but not Table 1. The three prose85 goldens PASS on the mint build. Code location located after the read: balanced parentheses and Table 1 combinations by the condition grammar"
+}

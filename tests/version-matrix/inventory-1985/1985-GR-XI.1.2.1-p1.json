@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XI.1.2.1-p1",
+ "rule-digest": "ce339a08196c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindSort",
+ "test-ref": "conformance:cases/XI.1.2@1985-LANGUAGE-CONCEPTS/1985-GR-XI_1_2_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-16.json: the reader showed the compiler refuse at 85 with its probe (xi-sd-label-records.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 9 made conforming (the sort file description carries no label clause) and compiles and runs at 85. The read: Candidates (GR-14.9.40.4-6/-11/-14) cover procedure control flow, not the sort-file description. Code location located after the read: sort file is an SD described in BindFileSection (cites 1985:XI.3.2.3) and used by BindSort"
+}

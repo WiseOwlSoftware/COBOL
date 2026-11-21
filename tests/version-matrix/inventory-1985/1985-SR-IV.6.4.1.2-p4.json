@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.1.2-p4",
+ "rule-digest": "8ac8c682a21c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#ProcedureFormatPass; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureDivision",
+ "test-ref": "conformance:cases/IV.6.4.1@1985-General-Description/1985-SR-IV_6_4_1_2-p4",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler refuse at 85 with its probe (r01_stmt_noverb.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 8 made conforming (the statement begins with the COBOL verb DISPLAY) and compiles and runs at 85. The read: 'A statement is a syntactically valid combination of words, literals, and separators beginning with a COBOL verb.' An SR row, which a refusal with a control witnesses: '\"BAD\" DISPLAY.' is refused at 85 (exit 65; the diagnostic cites this clause), and the control 'DISPLAY \"BAD\".' is accepted. Code location located after the read: statement structure checked by ProcedureFormatPass (cites 1985:IV.6.4.1.2 line 222)"
+}

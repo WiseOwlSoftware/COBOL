@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.6.3.1.2-p9",
+ "rule-digest": "f182ee20ec41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+ "test-ref": "conformance:cases/VI.6.3.1@1985-Simple-Conditions/1985-SR-VI_6_3_1_2-p9",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json: the reader showed the compiler refuse at 85 with its probe (s10_cls_name_num.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 14 made conforming (the class-name test is used with an alphanumeric item, not a numeric one) and compiles and runs at 85. The read: 1985: 'The class-name-1 test must not be used with an item whose data description describes the item as numeric.' 2023's SR-8.8.4.4.3-4 adds numeric-edited and boolean, so its scope differs; no candidate has a diagnosed-only case at 85. The refusal probe with its one-line control shows it. Code location located after the read: class-name test on numeric item refused in ClassConditionModel"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.5.1-4",
+ "rule-digest": "990482496376",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#NameResolution; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#LinkageBinder",
+ "test-ref": "conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/1985-GR-X_5_1-4",
+ "notes": "Own witness from the read lineage-reads-1985/s-99.json: the reader showed the compiler refuse at 85 a Linkage Section record that is not a USING operand (neg-item.cob, COBOL2746); the suite already holds that refusal as the row's own case (placed before the mint from the audit's confirmed draft), joined here by the PB5453 rows pass (w20262131i) instead of a second copy. The read: Upholding the refuter: the rule is 'if, and only if', and the pointer's sole 85 case is an accepted program for the 'if' half; its negative twins are free-form and run at no 85. The five fixed-form refusals and their control (runs re-read this pass: COBOL2746 on each, control 0007 / OK) are the own witness of the 'only if' half. Code location located after the read: cites 1985:X.5.1 GR4 at NameResolution lines 226-281 and LinkageBinder line 410"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.8-T2",
+ "rule-digest": "47bf547bb5a5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#ReservedWords; src/WiseOwl.Cobol.Editions/ReservedWords.cs#IsReservedAt",
+ "test-ref": "repo-drift:ReservedWords1985TablesDriftTests.EveryWordOfThe1985List_IsReservedAt85_AndNoOtherWordIs",
+ "notes": "Own witness from the read lineage-reads-1985/s-08.json: the reader showed the compiler correct at 85 with tests the suite already holds, joined as the row's own by the PB5453 rows pass (w20262131i); the import left the row GAP because the read named them in prose, not as a runnable probe. The reader's sweep (rw_sweep.py, 350 probes) is no placeable case; the witness is the drift test that holds the compiler's reservations at 85 equal to the words of the 1985 catalog's own tables, both ways (written by the PB5453 rows pass, w20262131i). The read: The 1985 reserved-word list (Table 2); 2023's list differs (words added and removed), and the candidates are wording-only formats. The sweep refuses every listed word in a user-defined-word position at 85 and accepts the controls; the operator symbols in Table 2 (+ - * / ** > < = >= <=) are not words and were not probed. Runners: E:/COBOL-coord/scratch/pb5453/probes/s-08/rw_sweep.py, rw_sweep2.py. Code location located after the read: reserved word table with per-edition reservation"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.1.3.8.2-p1",
+ "rule-digest": "ea89a70baf66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SymbolTable/SymbolTable.NameSet.cs#NearestInNameSet; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.NameUniqueness.cs#ScreenGlobalNameUniqueness",
+ "test-ref": "conformance:cases/X.1.3.8@1985-Scope-of-Names/1985-SR-X_1_3_8_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-16.json: the reader showed the compiler refuse at 85 with its probe (x13882-p1-data-noglobal.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 16 made conforming (the data-name W-A is declared GLOBAL, so the contained program may reference it and its condition-name) and compiles and runs at 85. The read: \"these names may be referenced only by that program except when one or more of the names is global\": GR-8.4.6.2.1-1's 85 cases exercise resolution among visible names, not the refusal of a non-global container name; no candidate states the restriction with an 85 witness of it. Code location located after the read: cites 1985:X.1.3.8.2 GR1 in NameSet.cs; global name uniqueness screened in DataBinder.NameUniqueness"
+}

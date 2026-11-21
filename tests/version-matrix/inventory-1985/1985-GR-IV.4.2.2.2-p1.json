@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2-p1",
+ "rule-digest": "19ea537fb9e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#literal; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#LiteralScreen",
+ "test-ref": "conformance:cases/IV.4.2.2@1985-Character-Strings/1985-GR-IV_4_2_2_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler refuse at 85 with its probe (p13_hexlit.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 7 made conforming (the literal is a nonnumeric literal, one of the two types) and compiles and runs at 85. The read: Flagged definitional, but it withholds a property a refusal shows: at 85 only two literal types exist. No candidate states it (2023 adds national, boolean, hexadecimal and floating-point literals). Code location located after the read: literal definition: grammar literal rule and LiteralScreen"
+}

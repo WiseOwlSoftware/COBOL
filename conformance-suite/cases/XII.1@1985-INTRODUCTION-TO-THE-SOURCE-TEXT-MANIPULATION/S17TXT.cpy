@@ -1,0 +1,3 @@
+       01  OLDNAME  PIC X(6) VALUE "LIT-01".
+       01  W-WORD   PIC X(5) VALUE "PLAIN".
+       01  GRPA     PIC 99 VALUE 7.

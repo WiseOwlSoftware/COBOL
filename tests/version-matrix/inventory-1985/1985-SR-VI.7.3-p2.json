@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.7.3-p2",
+ "rule-digest": "9ed09040e6c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite",
+ "test-ref": "conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-syntax-both-ways; conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-syntax-no-mode; conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-no-mode-parses-both-ways",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with tests the suite already holds, joined as the row's own by the PB5453 rows pass (w20262131i); the import left the row GAP because the read named them in prose, not as a runnable probe.  The read: No 2023 counterpart (debugging lines are gone; the candidates are report LINE and LINAGE rules). The refusals witness the syntax rule from both sides and the accepted controls show the legal form. The prose85 read recorded a DEFECT at 8244f1aa4b (the as-source direction not checked); at the mint build the same golden program is refused with COBOL7061, so the defect is fixed. run_goldens marked that golden FAIL only because its expect text 'The program is not syntactically correct' predates COBOL7061's message (see leads). Code location located after the read: keeps or hides debugging lines as source or comment"
+}

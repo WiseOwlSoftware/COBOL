@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XI.2.3.1-p1",
+ "rule-digest": "4f63182c06c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve",
+ "test-ref": "conformance:cases/XI.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-XI_2_3_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-16.json: the reader showed the compiler refuse at 85 with its probe (xi-sd-no-select.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 11 made conforming (a file control entry declares the sort file SF) and compiles and runs at 85. The read: Candidates SR-12.4.5.2-9/-11 concern other file control formats; SR-13.4.5.3-1 has only a diagnosed 85 case for FD/SD without SELECT and is not this function statement. Code location located after the read: sort/merge file control entry (SELECT with ASSIGN only) cites 1985:XI.2.3.3 SR2 in FileControlBinder.cs"
+}

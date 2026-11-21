@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.2-p1",
+ "rule-digest": "8fc09509eb3c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionBinder",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIII.3.10.2-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-XIII.3.10.2-p1); the code location is where the compiler meets the rule's subject. The read: S1 says there is one table each for RH, PH, PF and RF. S2 says DE, CH and CF groups are 'treated jointly in the body group presentation rules table'; the presentation rules those groups obey are carried by 1985-GR-XIII.3.10.8-p1 ('Table 3 ... points to the appropriate presentation rules for ... control heading, detail, and control footing report groups') and 1985-GR-XIII.3.10.8-1..6; the other tables' rules are XIII.3.10.6, .7, .9, .10. S3 is a page cross-reference. All three describe where the document puts its rules; a report's presented lines are tested against the rules themselves, so no program or RWCS behaviour can contradict how the document groups its tables."
+}

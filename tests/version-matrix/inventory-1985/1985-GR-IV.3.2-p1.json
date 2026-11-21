@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.3.2-p1",
+ "rule-digest": "6abff0860363",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ClosedFormatPass",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.3.2-p1",
+ "notes": "Derivation from the read lineage-reads-1985/s-100.json: CONFORMS on a informative derivation of its own (docs/CONFORMANCE.md section 8, DRV-1985-GR-IV.3.2-p1); the code location is where the compiler meets the rule's subject. The read: S1 defines what the document means by a 'general rule'. S2 says what general rules are used for (the semantics of a statement and its effect on execution or compilation). Both classify the standard's own rules; each semantic requirement is its own GR row. No program and no compiler behaviour can falsify a classification of the document's rules."
+}

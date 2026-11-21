@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.1.1-p1",
+ "rule-digest": "8dbb29459b3c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#ProcedureFormatPass",
+ "test-ref": "conformance:cases/IV.6.4.1@1985-General-Description/pb5924-declaratives-not-first-85; conformance:cases/IV.6.4.1@1985-General-Description/pb5924-declaratives-first-85",
+ "notes": "Own witness from the read lineage-reads-1985/s-06.json: the reader showed the compiler correct at 85 with tests the suite already holds, joined as the row's own by the PB5453 rows pass (w20262131i); the import left the row GAP because its read recorded the kb/Work PB5924 defect (the refusal named a reserved-word misuse); on this build the golden pb5924-declaratives-not-first-85 is refused with COBOL2797, which names the placement rule, and pb5924-declaratives-first-85 runs (re-probed by the rows pass).  The read: \"Declarative sections must be grouped at the beginning of the Procedure Division preceded by the key word DECLARATIVES and followed by the key words END DECLARATIVES.\" No candidate states it. The prose85 read (85p-08) recorded DEFECT, refutation UPHELD, and its golden still fails on the mint build: the refusal names a reserved-word misuse, not the rule broken (misleads diagnosis). Code location located after the read: ProcedureFormatPass refuses a DECLARATIVES portion that follows a nondeclarative section, paragraph or sentence (COBOL2797, citing §1985:IV.6.4.1.1); the grammar parses the misplaced portion so the pass can name the rule"
+}

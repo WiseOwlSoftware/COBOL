@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.2-5",
+ "rule-digest": "ebfd196f391e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindClassConditionOn; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel",
+ "test-ref": "conformance:cases/VI.6.3.1@1985-Simple-Conditions/1985-GR-VI_6_3_1_2-5",
+ "notes": "Own witness from the read lineage-reads-1985/s-10.json, a reopened parent (a case of its id was placed before the mint and the reader wrote another), decided by the PB5453 rows pass (w20262131i): The row's own case tests class-name-1 (CLASS VOWEL) true and false over items of all and not all its characters, the whole of item 5; the reader's s10_class.cob is placed for p1. The read: Reopened parent: what is left is item (5), 'An operand is in conformance to class-name-1, if it consists entirely of the characters listed in the definition of class-name-1 in the SPECIAL-NAMES paragraph', plus the class-condition general format, which is not item 5's text (lead filed). The pointer GR-8.8.4.4.4-3 b) states class-name-1 the same way, but its only 85 case (pb823_refmod_class_numeric) does not use a class-name, so SAME is not witnessed. The suite case named for this row and the probe show it at 85. Code location: user-defined class-name condition bound by BindClassConditionOn/BindUserWordClassCondition."
+}

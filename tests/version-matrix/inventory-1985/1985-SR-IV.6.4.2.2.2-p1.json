@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.2.2.2-p1",
+ "rule-digest": "62f077d456e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitProcedureDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
+ "test-ref": "conformance:cases/IV.6.4.2.2@1985-Compiler-Directing-Statements-and-Compiler-Directing/1985-SR-IV_6_4_2_2_2-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler refuse at 85 with its probe (p06_directing_no_period_copy.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 13 made conforming (the COPY statement is terminated by the separator period (the probe's refusal is reported at the next statement's first word, line 13)) and compiles and runs at 85. The read: 'A compiler directing sentence is a single compiler directing statement terminated by the separator period.' No 2023 rule states it (candidates are wording only). The compiler accepts each directing statement with its period and refuses COPY and REPLACE written without it, the one line changed from the control. Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.2.2.1; COPY/REPLACE preprocessing; ENTER statement grammar"
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.3.2.1-p1",
+ "rule-digest": "a5b9b4514eed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#LevelNumberRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DataBinder",
+ "test-ref": "conformance:cases/IV.4.3.2@1985-Concept-of-Levels/1985-SR-IV_4_3_2_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-04.json: the reader showed the compiler refuse at 85 with its probe (p05_level_50_refused.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 8 made conforming (the subordinate level-number is 49, not greater than 49) and compiles and runs at 85. The read: 'Less inclusive data items are assigned higher (not necessarily successive) level-numbers not greater in value than 49. There are special level-numbers, 66, 77, and 88'. The refusal probe has a conforming control. No candidate with an 85 accepted case states the 49 bound (GR-13.18.33.4-1 states only level 1; the 49-bound SRs are for screen and report entries). Code location located after the read: level-numbers organization; cites 1985:IV.4.3.2.1 at DataBinder 880 (record first entry level 01)"
+}

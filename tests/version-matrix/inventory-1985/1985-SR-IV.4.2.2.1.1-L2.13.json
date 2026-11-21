@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.1-L2.13",
+ "rule-digest": "5df2dbda13aa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#DeclareUserWord",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-SR-IV_4_2_2_1_1-L2_13",
+ "notes": "Own witness from the read lineage-reads-1985/s-02.json: the reader showed the compiler refuse at 85 with its probe (ds13_section_data.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 12 made conforming (the section-name is a word other than the data-name) and compiles and runs at 85. The read: Set 13 'section-names' of the disjoint sets. 2023 (SR-8.3.2.2-3) groups words differently (constant-name, data-name, property-name, record-key-name, record-name; no condition-name) and the candidates are wording-only; no 2023 rule states this 1985 set with an 85 case. The probes show the word refused as another type (COBOL2692) and a duplicate within the set refused. Code location located after the read: one disjoint-set member of the user-defined word list: its declaring site and the DeclareUserWord funnel (one-type-per-word rule)"
+}

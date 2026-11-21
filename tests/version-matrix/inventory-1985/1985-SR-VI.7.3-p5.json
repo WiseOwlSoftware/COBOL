@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-VI.7.3-p5",
+ "rule-digest": "be3c02dfe11d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite",
+ "test-ref": "conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5212-debugging-line-before-object-computer; conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5466-debugging-line-no-mode-parses-both-ways",
+ "notes": "Own witness from the read lineage-reads-1985/s-12.json: the reader showed the compiler correct at 85 with tests the suite already holds, joined as the row's own by the PB5453 rows pass (w20262131i); the import left the row GAP because the read named them in prose, not as a runnable probe.  The read: A placement syntax rule with no 2023 counterpart (the candidates are OBJECT-COMPUTER general rules). The refusals and the accepted control witness it at 85. Its reach stops at debugging lines that hold text: an all-space D line is a blank line (§1985:VI.7.3 p1), and refusing one is the defect recorded on 1985-GR-VI.7.3-p1, not a defect of this rule. Code location located after the read: rewriter decides debugging-line placement by unit after SOURCE-COMPUTER"
+}
