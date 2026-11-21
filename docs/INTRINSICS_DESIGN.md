@@ -1009,9 +1009,19 @@ unit's, so a COBOL-85 program CALLed from a 2023 one terminates and a 2023 progr
 PB6019 the integer check carried a compile-time `terminates` flag of its own while every other check returned 0 at 85 and the run went on;
 `ArgumentBreachEditionTests.EveryBreach_TakesTheOnePath` now refuses a runtime site that reads the checking flag, raises
 EC-ARGUMENT-FUNCTION by name other than straight after `ArgumentError`, or terminates from an intrinsic body itself. The DETECTION of each
-constraint stays in the function's body, on the carrier the value is computed in; making the constraints data on the function's
-descriptor checked by one emitter is the open redesign of kb/Work PB6023. Determination D-85-ARGUMENT-BREACH; goldens
+constraint stays in the function's body, on the carrier the value is computed in, beside its rule (kb/Work PB6023's ruling: a
+descriptor form of the constraints is not built, because most are not ranges). Determination D-85-ARGUMENT-BREACH; goldens
 `pb6019_argument_breach_85` (FACTORIAL), `pb6019_argument_breach_text_85` (CHAR, the text twin).
+
+**THE MESSAGE CITES THE ELEMENT'S EDITION (kb/Work PB6023).** A breach message names the rule broken through
+`ExceptionEngine.EditionRule(rule1985, later)`, the run-time twin of `EditionInfo.CiteRule` and a reader of the same `IsCobol85`: at
+COBOL-85 the 1989 amendment's rule (`FACTORIAL argument -1 violates §1989:A.2.14.3 AR1`, the general intakes §1989:A.2.2 p3 / AR4 / p5),
+after it the COBOL-2023 rule exactly as written before. A rule the COMPILER hands the run time, a binary64 domain screen's, is chosen
+where it is emitted: the catalog row carries `DomainRule` and `DomainRule1985`, and `IntrinsicRenderer.DomainRuleCited` passes the
+edition's through `EditionInfo.CiteRule`. The same flag makes a reference modification out of range at COBOL-85 terminate without
+naming EC-BOUND-REF-MOD (`ExceptionEngine.RefModViolation`; §1985:IV.4.3.8.4.4 GR4). `RuntimeMessageEditionDriftTests` refuses a raise
+of a 1989 function's rule that cites a later clause with no 1985 rule beside it; a rule a `DialectBehaviors` row adds from 2002 (NUMVAL-C's
+argument-2 content, 15.68.3 AR2) is not asked at 85 and needs none.
 
 **The compile-time screen has THREE outcomes, and refuses only on a counterexample (kb/Work PB5889, the ruling of 2026-11-21).**
 `IntrinsicArgumentRules.ClassifyTypeSix` answers PROVEN (the polynomial proof below: accepted), REFUTED (COBOL1627, naming a value of the

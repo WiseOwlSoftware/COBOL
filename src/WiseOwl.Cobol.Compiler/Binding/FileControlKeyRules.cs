@@ -1118,10 +1118,10 @@ internal static class FileControlKeyRules
         // (§1985:XI.2.3.2 prints `ASSIGN TO {implementor-name-1 | literal-1} …`, §1985:XI.2.3.3 restricts only what may
         // follow the ASSIGN clause), so the entry's kind decides, here, where it is known.
         if (!sortMerge1985)
-            foreach (var (code, cursor, message) in file.EntryShapeFindings)
+            foreach (var (code, cursor, before, rule2023, after) in file.EntryShapeFindings)
             {
                 using var at = edition.At(cursor);
-                edition.Error(code, message(AssignTargetRule.Rule1985Of(file.Organization)));
+                edition.Error(code, before + edition.Edition.CiteRule(AssignTargetRule.Rule1985Of(file.Organization), rule2023) + after);
             }
         // The entry's REQUIRED members first (§2023:12.4.5.1: a clause printed with no bracket): an entry that lacks its
         // ASSIGN clause is told so before any rule over the clauses it did write.

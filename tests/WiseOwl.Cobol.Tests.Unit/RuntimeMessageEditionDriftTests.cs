@@ -27,8 +27,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (<see cref="IntrinsicCatalog.Paragraph1989"/>), their COBOL-2023 sections are read off the 2023 text, and every raise statement
 /// of the run time (an <c>ArgumentError</c> call or one of its twins, a <c>RefModViolation</c>) that cites the 2023 section of such a
 /// function, §2023:15.3 (the general argument rules) or §2023:8.4.3.3.4 (reference modification) must also carry the 1985 rule:
-/// through <c>EditionRule</c>, or as the other arm of the edition-parameter choice the date family makes (<c>unbounded ?
-/// "§1989:…" : "§2023:…"</c>). A statement that names only functions a later edition introduced cannot run at 85 and is not
+/// through <c>EditionRule</c>, or as the other arm of the edition-parameter choice the date family makes (<c>unbounded</c>
+/// choosing between a 1989 rule and a 2023 one). A statement that names only functions a later edition introduced cannot run at 85 and is not
 /// read; the LOCALE forms (<c>CobolLocale.cs</c>, <c>CobolIntrinsics.NumvalLocale.cs</c>) are a 2002+ facility and are not
 /// read either, nor is a rule a later edition ADDED to a 1989 function, which its <c>DialectBehaviors</c> row keeps from 85.</para>
 /// </summary>

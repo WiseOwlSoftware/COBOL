@@ -1024,7 +1024,7 @@ public static class DiagnosticCatalog
         "ISO §2023:14.9.4.3 SR1",
         Rule1985: "§1985:X.5.2.3 SR2");
     /// <summary>COBOL7736 — the program-name LITERAL of a CALL or CANCEL statement (kb/Work PB6029: it was reported under
-    /// COBOL1627, the intrinsic functions' argument-class code, whose name and rule said nothing of CALL).</summary>
+    /// the intrinsic functions' argument-class code, whose name and rule said nothing of CALL).</summary>
     public static readonly DiagnosticDescriptor CallProgramNameLiteral = new(
         "COBOL7736", "call-program-name-literal", EditionSeverity.Error,
         "The literal that names the program of a CALL or CANCEL statement is not a literal that can name one. ISO §2023:14.9.4.3 "

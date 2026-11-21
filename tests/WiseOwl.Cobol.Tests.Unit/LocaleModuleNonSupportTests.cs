@@ -80,7 +80,10 @@ public sealed class LocaleModuleNonSupportTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOL1518"));
         if (gated) Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("LOCALE phrase"));
         else Assert.DoesNotContain(errors, e => e.Contains("COBOL0900"));
-        Assert.Contains(errors, e => e.Contains("COBOL1664"));
+        // Below 2014 the gate is the one report: the locale-name rule is the 2014 phrase's, not asked where the edition has no
+        // phrase (kb/Work PB6028).
+        if (gated) Assert.DoesNotContain(errors, e => e.Contains("COBOL1664"));
+        else Assert.Contains(errors, e => e.Contains("COBOL1664"));
     }
 
     /// <summary>⚙ THE SUPPRESSION LIFTED (kb/Work PB64 T4 — the forcing function the class summary promised): the four

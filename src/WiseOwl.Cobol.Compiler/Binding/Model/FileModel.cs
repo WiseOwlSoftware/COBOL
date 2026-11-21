@@ -378,9 +378,11 @@ public sealed class FileModel
     /// a figurative constant as literal-1 (§2023:12.4.5.2 SR4) and a list the SR5 determination does not allow
     /// (COBOL2256) — recorded when the TO phrase is read and REPORTED by <see cref="FileControlKeyRules.Screen"/>, because the
     /// 1985 sort-merge entry (§1985:XI.2.3.2, §1985:XI.2.3.3) restricts neither and whether this entry is a sort-merge file's
-    /// is known only once its SD has been read (kb/Work PB5587). The message is built where it is reported,
-    /// from the 1985 rule of the module the entry turned out to belong to (<c>AssignTargetRule.Rule1985Of</c>, kb/Work PB6029).</summary>
-    public List<(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor Code, WiseOwl.Cobol.Editions.DiagnosticCursor At, Func<string, string> Message)>
+    /// is known only once its SD has been read (kb/Work PB5587). The message is
+    /// <c>Before</c>, the rule, <c>After</c>: the rule is chosen where it is reported, the COBOL-2023 rule <c>Rule2023</c> or at COBOL-85
+    /// the one of the module the entry turned out to belong to (<c>AssignTargetRule.Rule1985Of</c>, kb/Work PB6029).</summary>
+    public List<(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor Code, WiseOwl.Cobol.Editions.DiagnosticCursor At, string Before,
+        string Rule2023, string After)>
         EntryShapeFindings { get; } = [];
 
     /// <summary>The FILE STATUS data-name as written, resolved to <see cref="FileStatusItem"/> post-build; null if none. Its
