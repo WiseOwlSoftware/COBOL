@@ -61,13 +61,10 @@ internal static class ExternalRecordDescriptionRules
                     + $": this description and the one in {earlier.Describer} describe the same "
                     + $"external data record and differ in {differs} — "
                     + edition.Edition.Cite(
-                        "the records must define the same number of standard data format characters (ISO §1985:X.4.5.4 GR2)",
+                        "the records must define the same number of standard data format characters",
                         "the VALUE clause specification, if any, for each record name shall be identical and the records shall define "
-                        + "the same number of bytes (ISO §2023:13.18.22.4 GR6)",
-                        y2002: "the VALUE clause specification, if any, for each record name shall be identical and the records shall define "
-                        + "the same number of bytes (ISO §2002:13.16.20.3 GR4)",
-                        y2014: "the VALUE clause specification, if any, for each record name shall be identical and the records shall define "
-                        + "the same number of bytes (ISO §2014:13.18.22.3 GR4)"));
+                        + "the same number of bytes")
+                    + $" ({edition.Edition.CiteRule("§1985:X.4.5.4 GR2", "§2023:13.18.22.4 GR6", y2002: "§2002:13.16.20.3 GR4", y2014: "§2014:13.18.22.3 GR4")})");
             }
     }
 

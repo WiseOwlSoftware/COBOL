@@ -10559,7 +10559,8 @@ public static class DiagnosticCatalog
         + "record, whose externalized name is the file's (§2002:13.16.20.3 GR2b, GR3); at COBOL-85 their size is the file "
         + "description entry's rule, COBOL6847 (§1985:VII.3.8.4 GR2). A complete REDEFINES of the record need not agree. At COBOL-2023 the same rule "
         + "(§2023:13.18.22.4 GR6) is checked at run time, EC-EXTERNAL-FORMAT-CONFLICT (§2023:14.8.4.3), and is not reported here.",
-        "ISO §1985:X.4.5.4 GR2; ISO §2002:13.16.20.3 GR4; ISO §2014:13.18.22.3 GR4");
+        "ISO §2002:13.16.20.3 GR4; ISO §2014:13.18.22.3 GR4",
+        Rule1985: "§1985:X.4.5.4 GR2");
 
     /// <summary>COBOL7354 — a subscript written on a data-name-n clause operand is not one integer literal (kb/Work PB5602).
     /// COBOL-2002 reads a clause's data-name-n as "a user-defined word, including qualification and subscription if needed"

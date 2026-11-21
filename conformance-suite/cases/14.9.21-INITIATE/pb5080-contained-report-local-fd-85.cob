@@ -5,7 +5,7 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §1985:X.4.6.4 GR2: "A statement in a program contained directly or indirectly within a program
+      *> §1985:X.4.6.4 GR2: "A statement in a program contained directly or indirectly within a program
       *> which describes a global name may reference that name without describing it again." RPT1 is a
       *> report-name described with GLOBAL (§1985:X.4.4.4 GR2 sends the report description entry's GLOBAL
       *> clause to X.4.6.4), so the contained program PB5080B may INITIATE, GENERATE and TERMINATE it. The only
