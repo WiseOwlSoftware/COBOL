@@ -1496,7 +1496,8 @@ internal sealed class VersionConformancePass
         //    elements DELETED by ISO 2002 that formerly had no grammar at all. Each now parses unconditionally,
         //    binds inert at 85, and gates here. ──────────────────────────────────────────────────────────────
 
-        /// <summary>RERUN (I-O-CONTROL) — the '85 checkpoint hint, deleted 2002. Parsed-and-ignored at 85.</summary>
+        /// <summary>RERUN (I-O-CONTROL) — the '85 checkpoint hint, deleted 2002. At 85 the integer-1 RECORDS form writes its
+        /// rerun information (kb/Work PB5198) and the other forms have no effect.</summary>
         public override object? VisitRerunClause(CobolParserCore.RerunClauseContext ctx)
         {
             _p.Check(Constructs.RerunRemoved2002, "the I-O-CONTROL RERUN clause");

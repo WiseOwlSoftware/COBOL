@@ -166,7 +166,7 @@ semantics).
 · MEMORY SIZE · SEGMENT-LIMIT · WITH DEBUGGING MODE (modelled clauses gated at
 their nodes — kb/Work PB830) · the five identification comment paragraphs · REMARKS (≥2002 only — CCVS carve-out)
 · STOP literal (85 semantics implemented: `BoundStopLiteral` → operator channel/stderr + continue) · OPEN
-REVERSED · **the notInGrammar 85-acceptance gates (VCR Table 7 rows 7.15–7.18): RERUN (parsed-and-ignored)
+REVERSED · **the notInGrammar 85-acceptance gates (VCR Table 7 rows 7.15–7.18): RERUN (the integer-1 RECORDS form provided, the other forms without effect)
 · ENTER (BoundNop; system-name operands outside the funnel) · USE FOR DEBUGGING (the '85 debug module, VCR
 Table 7 row 7.17 — the '85 dual posture: comment-treated without WITH DEBUGGING MODE [DB103M], and, WITH the
 switch, the ON procedure-name / ALL PROCEDURES leg is MODELED — the DEBUG-ITEM special register + procedure-entry
