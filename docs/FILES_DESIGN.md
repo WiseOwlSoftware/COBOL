@@ -3163,6 +3163,25 @@ description entries** out of them "other than following the word FROM or the wor
 statements are the eight §2023:9.1.13.1 names as those whose execution sets the I-O status: CLOSE, DELETE (both
 formats), OPEN, READ, REWRITE, START, UNLOCK and WRITE.
 
+**Which statements are input-output statements is an edition fact, held in one place (kb/Work PB6032).**
+`InputOutputStatementSet` (`src/WiseOwl.Cobol.Editions/InputOutputStatements.cs`) holds one `IoStatementForms` value per
+edition, and `InputOutputStatementForms` (`src/WiseOwl.Cobol.Compiler/Binding/InputOutputStatementForms.cs`) is the one
+classification of a parsed statement against it; no rule spells its own list of statement contexts.
+
+| Edition | Set | Its text |
+|---|---|---|
+| COBOL-85 | ACCEPT (with the identifier phrase), CLOSE, DELETE, DISABLE, DISPLAY, ENABLE, OPEN, PURGE, READ, RECEIVE, REWRITE, SEND, SET (with the TO ON or TO OFF phrase), START, WRITE | the definition, §1985:III.2 p139 |
+| 2002, 2014, 2023 | CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE | the statements that set the I-O status: §2002:9.1.12, §2014:9.1.12, §2023:9.1.13.1 |
+
+At 85, "ACCEPT with the identifier phrase" is the nucleus ACCEPT (both formats, §1985:VI.6.5), never the communication
+module's ACCEPT cd-name MESSAGE COUNT, which the module lists apart (§1985:XIV.3.1) and the definition omits; RECEIVE and
+SEND are the communication module's, never the 2023 message-control statements. `InputOutputStatementSetTests` re-reads
+each edition's sentence from its transcription and parses a 1985 program that writes every form. The SR4 screen below
+asks the set at every edition and asks nothing below 2002 (kb/Work PB5827), so the wider 1985 set changes no 1985
+outcome; the 1985 rules that name the term are §1985:XI.3.2.3 SR3 (the SD file, `ScreenSortMergeFile`, asked by every
+statement that can name a file) and §1985:VI.5.14.4 GR8 (no conversion of an index data item in a group, which the
+alphanumeric group move gives every statement).
+
 - SR3, and the WRITE / REWRITE record-name slot (where the record names its file): `StatementValidation.ScreenSortMergeFile`
   (COBOL1692), asked by each verb binder of the file it resolved.
 - SR4 everywhere else: `StatementValidation.ScreenSortMergeRecordReferences` (COBOL2973), asked ONCE per
