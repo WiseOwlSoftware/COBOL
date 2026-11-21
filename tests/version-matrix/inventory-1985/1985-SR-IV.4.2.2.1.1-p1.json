@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.1-p1",
+ "rule-digest": "0fd1a5ac300b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#WordCharacterScreen; src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#CobolCharacterRepertoire",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-SR-IV_4_2_2_1_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-02.json: the reader showed the compiler refuse at 85 with its probe (lead_hyphen.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 8 made conforming (the data-name AB has no hyphen as its first character) and compiles and runs at 85. The read: 'Each character of a user-defined word is selected from the set of characters 'A', ... 'Z', '0', ... '9', and '-', except that the '-' may not appear as the first or last character.' The candidates (SR-8.3.2.1-4, SR-8.3.2.2-1, GR-7.3.10.4-4) speak of system-names, compilation variables and other words, not this character set, and 2023 widens it (extended letters, underscore). The goldens and the probe show it at 85. Code location located after the read: user-defined word character selection / hyphen position checks"
+}

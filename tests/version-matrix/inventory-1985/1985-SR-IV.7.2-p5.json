@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.7.2-p5",
+ "rule-digest": "5b56615db9e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#AreaAt; src/WiseOwl.Cobol.Frontend/Preprocessor/FixedFormLine.cs#IsAreaAOffset",
+ "test-ref": "conformance:cases/IV.7@1985-REFERENCE-FORMAT/1985-SR-IV_7_2-p5",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler refuse at 85 with its probe (p10_sentence_in_area_a.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 12 made conforming (the statement begins at margin B, in area B) and compiles and runs at 85. The read: Definitional (catalog flag) but showable: 'Margin B is between the 11th and 12th character positions of a line.' No 2023 catalog row. The compiler places the area-A/area-B boundary exactly there in both directions. Code location located after the read: ReferenceFormatMap.AreaAt and FixedFormLine.IsAreaAOffset define areas A and B"
+}

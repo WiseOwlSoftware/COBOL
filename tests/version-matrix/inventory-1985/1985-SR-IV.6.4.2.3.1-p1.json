@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.6.4.2.3.1-p1",
+ "rule-digest": "aca56712bb29",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sentence",
+ "test-ref": "conformance:cases/IV.6.4.2.3@1985-Imperative-Statements-and-Imperative-Sentences/1985-SR-IV_6_4_2_3_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-07.json: the reader showed the compiler refuse at 85 with its probe (p02_cond_in_imperative_if.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 16 made conforming (the IF statement is delimited by its explicit scope terminator END-IF, so it is imperative) and compiles and runs at 85. The read: 'An imperative statement begins with an imperative verb ... or is a conditional statement that is delimited by its explicit scope terminator ... may consist of a sequence of imperative statements, each possibly separated from the next by a separator.' The 2023 definition (§2023:14.5.1) has no catalog row; the candidates (14.5.3.3) state scope termination, not what is imperative. The probes show every form accepted and the conditional forms refused (COBOL2796 cites this paragraph). Code location located after the read: ProcedureFormatPass cites 1985:IV.6.4.2.3.1; imperative/conditional split and sentences"
+}

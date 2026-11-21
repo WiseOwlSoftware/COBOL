@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1-p1",
+ "rule-digest": "58aec438316a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#CobolWordRule; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#WordCharacterScreen",
+ "test-ref": "conformance:cases/IV.4.2.2@1985-Character-Strings/1985-SR-IV_4_2_2_1-p1",
+ "notes": "Own witness from the read lineage-reads-1985/s-02.json: the reader showed the compiler refuse at 85 with its probe (w31_refused.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 8 made conforming (the data-name is 30 characters, 'not more than 30 characters') and compiles and runs at 85. The read: 'not more than 30 characters' is 1985's own limit (2023 allows longer words), so no 2023 candidate states the whole scope; SR-8.3.2.1-x govern the reserved/system-name/function-name sets, not formation or length. The goldens and probes show the 30/31 boundary, the character set, both hyphen positions and case equivalence at 85. Code location located after the read: 30-character limit (CobolWordRule.MaxLength) and word-character rule"
+}

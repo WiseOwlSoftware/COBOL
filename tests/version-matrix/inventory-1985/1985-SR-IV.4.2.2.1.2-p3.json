@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.2-p3",
+ "rule-digest": "7db0bf7cd347",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameRegistry.cs#ImplementorNameRegistry",
+ "test-ref": "conformance:cases/IV.4.2.2.1@1985-COBOL-Words/1985-SR-IV_4_2_2_1_2-p3",
+ "notes": "Own witness from the read lineage-reads-1985/s-03.json: the reader showed the compiler refuse at 85 with its probe (p06_disjoint.cob), placed as the row's own refused test; its control, written from the 1985 text by the PB5453 rows pass (w20262131i), is the program with line 7 made conforming (the computer-name is a word that is no implementor-name) and compiles and runs at 85. The read: Flagged definitional, but the compiler enforces it and a program shows it: 'Within a given implementation these three types of system-names form disjoint sets'. The glossary sentence is a pointer only. No candidate states it. Code location located after the read: quotes the three-system-name-types-disjoint sentence at line 37"
+}
