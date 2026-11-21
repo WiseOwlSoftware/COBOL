@@ -1027,9 +1027,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// a report heading with NEXT GROUP NEXT PAGE, alone on the first page, the page limit (§1985:XIII.3.10.6 GR2b); any
     /// other report heading and a page heading, the line before FIRST DETAIL (§1985:XIII.3.10.6 GR2a, §1985:XIII.3.8.4
     /// GR1c); a page footing and a report footing, the page limit (§1985:XIII.3.10.9 GR2, §1985:XIII.3.10.10 GR2), each
-    /// line past it presented outside the vertical subdivision of the page (§1985:XIII.3.15.3 SR1). A report heading
-    /// bounded above FIRST DETAIL by an absolute page heading line, and every group from COBOL-2002, take the
-    /// §2023:13.18.57.4 GR8 limit and §2023:13.18.39.4's words.</summary>
+    /// line past it presented outside the vertical subdivision of the page (§1985:XIII.3.15.3 SR1). Every group from
+    /// COBOL-2002 takes the §2023:13.18.57.4 GR8 limit and §2023:13.18.39.4's words.</summary>
     private static (int Limit, string Words) RelativeGroupLowerLimit(ReportGroupModel g, ReportModel model, int year, int lower)
     {
         const string Sr1 = "; neither integer-1 nor integer-2 may be specified in such a way as to cause any line of a report "
@@ -1044,7 +1043,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     return (model.PageLimit, $"the page limit {model.PageLimit}, the last line on which a report heading "
                         + "with NEXT GROUP NEXT PAGE, presented by itself on the first page, can be presented (ISO "
                         + "§1985:XIII.3.10.6 GR2b)" + Sr1 + " (ISO §1985:XIII.3.15.3 SR1)");
-                case ReportGroupKindModel.ReportHeading when lower == model.FirstDetail - 1:
+                case ReportGroupKindModel.ReportHeading:
                     return (lower, headingWords("§1985:XIII.3.8.4 GR1c; §1985:XIII.3.10.6 GR2a"));
                 case ReportGroupKindModel.PageHeading:
                     return (lower, headingWords("§1985:XIII.3.8.4 GR1c"));
@@ -1105,7 +1104,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the HEADING integer, else the line after the page footing's last line, or FOOTING + 1 with none.</item>
     /// <item>LOWER. a)/b) report heading: on a page by itself (its NEXT GROUP clause is NEXT PAGE, §2023:13.18.37.4 GR3 c)
     /// — the first body group takes no page-fit test, so nothing else separates it) the page limit; else the line before
-    /// the page heading's first line, or FIRST DETAIL − 1 with no page heading. c) page heading: FIRST DETAIL − 1.
+    /// the page heading's first line, or FIRST DETAIL − 1 with no page heading (at COBOL-85 FIRST DETAIL − 1 whatever the
+    /// page heading, §1985:XIII.3.10.6 GR2a; kb/Work PB5981). c) page heading: FIRST DETAIL − 1.
     /// d) control heading: LAST CONTROL HEADING. e) detail: LAST DETAIL. f) control footing: FOOTING. g) page footing
     /// and report footing: the page limit.</item>
     /// </list>
@@ -1159,8 +1159,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             case ReportGroupKindModel.ReportHeading:
             {
                 if (g.NextGroup?.Kind == WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.NextPage) return (model.Heading, model.PageLimit);
+                // ⚖ EDITION (kb/Work PB5981): COBOL-85 bounds a report heading not on a page by itself by FIRST DETAIL
+                // alone — "The last line number on which the report heading report group can be presented is the line
+                // number that is obtained by subtracting 1 from the value of integer-3 of the FIRST DETAIL phrase"
+                // (§1985:XIII.3.10.6 GR2a; §1985:XIII.3.8.3 SR8a, "to the line number specified by integer-3 minus 1").
+                // From COBOL-2002 a page heading's first absolute line bounds it instead (§2023:13.18.57.4 GR8b, "the line preceding the first line of the page heading").
                 var pageHeading = model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageHeading);
-                bool absoluteFirst = pageHeading is { Lines: [{ Kind: ReportLineKindModel.Absolute } first, ..] }
+                bool absoluteFirst = year >= 2002 && pageHeading is { Lines: [{ Kind: ReportLineKindModel.Absolute } first, ..] }
                     && first.PresentWhenCtxs.Count == 0;
                 return (model.Heading, absoluteFirst ? pageHeading!.Lines[0].Value - 1 : model.FirstDetail - 1);
             }
