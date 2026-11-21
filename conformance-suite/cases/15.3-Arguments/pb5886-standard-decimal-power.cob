@@ -1,22 +1,34 @@
       *>--- conformance-case
       *> id: pb5886-standard-decimal-power
       *> rules: [AR-15.3-6]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5886 review R4-1 - a power is bounded by its base:
-      *> the base of (...) ** 1 below is the argument of
-      *> pb5886-standard-decimal-intermediate, whose intermediate
-      *> B27 / 0.0001 / 16384 needs up to 37 significant digits, 10
-      *> of them fraction digits, against the 34 a standard-decimal
-      *> intermediate data item keeps (§2023:8.8.1.5.2). The power
-      *> to 1 is the base, so the argument is not shown to be an
-      *> integer and the program is refused (COBOL1627).
+      *> kb/Work PB5886 refused the same expression to the power 1
+      *> under STANDARD-DECIMAL.
       *>
-      *> §2023:15.3 AR6 (cite.py --check): "An arithmetic
-      *> expression that will always result in an integer value
-      *> or an integer data item shall be specified". Its native
-      *> twin is the second line of pb5886_native_quotient_chain.
+      *> kb/Work PB5889 (the ruling of 2026-11-21): the integer-
+      *> argument screen refuses an argument only when it can name a
+      *> value of the operands at which the expression is not an
+      *> integer, and accepts the rest with a run-time check of the
+      *> value. §2023:15.3 AR6 (cite.py --check): "An arithmetic
+      *> expression that will always result in an integer value or an
+      *> integer data item shall be specified"; §1989:A.2.2 AR4
+      *> (cite.py --check) the same at COBOL-85.
+      *>
+      *> As pb5886-standard-decimal-intermediate: the computed value
+      *> is ...998.9999 (§2023:8.8.1.5.2), and ** 1 keeps it; the
+      *> value is checked at run time.
+      *>
+      *> From COBOL-2002 a value that is not an integer is an
+      *> incorrect argument: §2023:15.3 AR14 (cite.py --check) "the
+      *> EC-ARGUMENT-FUNCTION exception condition is set to exist".
+      *> Checking is turned on, so the declarative shows RAISED and
+      *> RESUME continues with the next statement (EXPECTED: RAISED,
+      *> DONE). At COBOL-85 the same run terminates
+      *> (pb5889_run_time_check_85).
+       >>TURN EC-ARGUMENT-FUNCTION CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5886N.
        OPTIONS.
@@ -26,7 +38,16 @@
        01  B27 PIC 9(27) VALUE 999999999999999999999999999.
        01  R   PIC 9(4).
        PROCEDURE DIVISION.
+       DECLARATIVES.
+       H SECTION.
+           USE AFTER EXCEPTION CONDITION EC-ARGUMENT-FUNCTION.
+       H-P.
+           DISPLAY "RAISED".
+           RESUME AT NEXT STATEMENT.
+       END DECLARATIVES.
+       MAIN-SECTION SECTION.
        MAIN-PARA.
            COMPUTE R = FUNCTION MOD
                ((B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1, 1000).
+           DISPLAY "DONE".
            STOP RUN.
