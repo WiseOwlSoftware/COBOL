@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// <summary>⛔ A 1985 CITATION NAMES NO ISO STANDARD (kb/Work PB6013, PB6010). The 1985 text is American National Standard
 /// X3.23-1985; no ISO standard has a <c>§1985</c> clause, so a message saying <c>ISO §1985:VII.2.7.3 SR1</c> sends the user to a
 /// document that does not exist. A message's citation takes its designation from ONE function, <c>EditionInfo.Designated</c>
-/// (<c>ISO </c> before a rule of ISO/IEC 1989, nothing before the edition form <c>§1985:…</c> / <c>§1989:…</c>), or from
+/// (<c>ISO </c> before a rule of ISO/IEC 1989, nothing before the edition form of a 1985 or 1989 rule, <c>§1985:VII.2.7.3 SR1</c>), or from
 /// <c>EditionInfo.CiteRule</c>, which chooses the rule by edition and designates it through that function. So no source line
 /// types <c>ISO §1985</c>, and no message types <c>ISO</c> in front of a COMPUTED citation (an interpolation <c>ISO {…}</c>, or a
-/// literal ending <c>ISO "</c> joined by <c>+</c> to anything but a literal later-edition citation <c>"§2023:…"</c>), which renders
+/// literal ending <c>ISO "</c> joined by <c>+</c> to anything but a literal later-edition citation such as <c>"§2023:13.10.3 SR11)"</c>), which renders
 /// <c>ISO §1985</c> whenever it computes a 1985 rule. Comments are not messages and are not counted. The runtime is outside the
 /// computed-citation half: it has no edition and cites the rule its own text names; a literal <c>ISO §1985</c> there is still
 /// refused.</summary>

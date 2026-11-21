@@ -174,6 +174,16 @@ public static class DiagnosticCatalog
     private const string No1985SumRounded =
         "The ROUNDED phrase of the SUM clause is not in ANSI X3.23-1985, so the 1985 text has no rule of it.";
 
+    /// <summary>The reason a Screen rule has no 1985 counterpart (kb/Work PB5993; <see cref="DiagnosticDescriptor.No1985Rule"/>).</summary>
+    private const string No1985Screen =
+        "The screen facility (SCREEN SECTION, screen description entries, ACCEPT and DISPLAY of a screen, SET ... ATTRIBUTE, EC-SCREEN) is not in ANSI X3.23-1985, so the 1985 text has no rule of it.";
+    /// <summary>The reason a SetContent rule has no 1985 counterpart (kb/Work PB5993; <see cref="DiagnosticDescriptor.No1985Rule"/>).</summary>
+    private const string No1985SetContent =
+        "The FARTHEST-FROM-ZERO and NEAREST-TO-ZERO phrases of SET (and its SIGN phrase) are not in ANSI X3.23-1985, whose SET statement sets index-names, index data items, switches and condition-names, so the 1985 text has no rule of them.";
+    /// <summary>The reason a Encoding rule has no 1985 counterpart (kb/Work PB5993; <see cref="DiagnosticDescriptor.No1985Rule"/>).</summary>
+    private const string No1985Encoding =
+        "ANSI X3.23-1985 names no source-file encoding and no byte-order mark: its character set is the implementor-defined representation of the COBOL character set, so the 1985 text has no rule of how source bytes are decoded.";
+
     // ── Edition band (single-sourced from EditionCodes) ──────────────────────────────────────────────
     public static readonly DiagnosticDescriptor EditionIntroduction = new(
         EditionCodes.Introduction, "edition-introduction", EditionSeverity.Error,
@@ -200,7 +210,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor CurrencySymbolClassUsage = new(
         "COBOL2883", "currency-symbol-class-usage", EditionSeverity.Error,
         "A currency symbol defined by an alphanumeric literal-7 defines a numeric-edited item with usage national, or one "
-        + "defined by a national literal-7 defines one with usage display.", "ISO §2023:12.3.7.3 SR28");
+        + "defined by a national literal-7 defines one with usage display.", "ISO §2023:12.3.7.3 SR28",
+        No1985Rule: No1985National);
     // ── §2023:4.2.10's WARNING MECHANISM (kb/Work PB1525): emitted by EditionContext.Extension, and only under
     //    --flag-extensions, so a compile that did not ask for it is byte-identical to one that never had the option.
     public static readonly DiagnosticDescriptor NonstandardExtensionUsed = new(
@@ -209,7 +220,8 @@ public static class DiagnosticCatalog
         + "that ISO/IEC 1989 does not define. Reported only when the user asks (--flag-extensions), once per use, and "
         + "only for an extension that is syntactically distinguishable. The register of claimed extensions, with the "
         + "standard construct to write instead, is docs/CONFORMANCE.md §3.2.",
-        "ISO §2023:4.2.10");
+        "ISO §2023:4.2.10",
+        Rule1985: "§1985:I.1.5.2.5.2");
     // ── The §2023:8.3.2.1 word-length ceiling — ONE rule (CobolWordRule), reported from the tree-walk funnel
     //    (VersionConformancePass.VisitCobolWord) AND the directive stages (>>TURN operands, >>DEFINE names),
     //    which never reach the tree walk (kb/Work R05's sweep). ─────────────────────────────────────────
@@ -368,7 +380,8 @@ public static class DiagnosticCatalog
         "COBOL0895", "numeric-literal-decimal-separator", EditionSeverity.Error,
         "A numeric literal's decimal separator does not match the DECIMAL-POINT mode: under DECIMAL-POINT IS COMMA "
         + "the decimal separator written in numeric literals shall be the comma, and without it only the period is "
-        + "a decimal point.", "ISO §2023:12.3.7.4 GR14a / §2023:8.3.3.3.2");
+        + "a decimal point.", "ISO §2023:12.3.7.4 GR14a / §2023:8.3.3.3.2",
+        Rule1985: "§1985:VI.4.5.4 GR12");
 
     // ── COBOL0899 — a file's IMPLICITLY shared record area of a shape the storage model cannot share (kb/Work PB836)
     /// <summary>An FD/SD's level-1 records (ISO §2023:13.18.33.4 GR3) or a record-area SAME clause's files' records
@@ -464,7 +477,8 @@ public static class DiagnosticCatalog
         + "obligation is §2023:14.9.30.4 GR13c, which transfers control to NOT INVALID KEY on a successful read "
         + "(kb/Work PB334).",
         "ISO §2023:14.9.10.3 SR2 · §2023:14.9.35.3 SR2 · §2023:14.9.51.3 SR2 · §2023:14.9.51.3 SR3 · §2023:14.9.30.3 SR6 · §2023:14.9.30.3 SR7 "
-        + "· §2023:14.9.30.3 SR8 · §2023:14.9.30.3 SR9 · §2023:14.9.30.4 GR19 · §2023:14.9.30.2 Format 1");
+        + "· §2023:14.9.30.3 SR8 · §2023:14.9.30.3 SR9 · §2023:14.9.30.4 GR19 · §2023:14.9.30.2 Format 1",
+        Rule1985: "§1985:IX.4.5.2 / §1985:IX.4.5.3 SR4 / §1985:IX.4.5.3 SR6 / §1985:IX.4.9.2 / §1985:VII.4.4.2 / §1985:VII.4.5.2 / §1985:VII.4.7.2 / §1985:VIII.4.3.3 SR1 / §1985:VIII.4.5.2 / §1985:VIII.4.5.3 SR2 / §1985:VIII.4.5.3 SR4 / §1985:VIII.4.6.3 SR3 / §1985:VIII.4.9.2");
     // The MIRROR of COBOL1720, and the falsely-PERMISSIVE twin of the OCR's falsely-restrictive bias
     // (kb/Work PB350). §2023:5.2.6.2 makes BRACKETS the only thing that lets a portion of a general format be
     // omitted, and §2023:5.2.2 makes an underlined keyword required subject to those conventions — so a phrase
@@ -570,7 +584,8 @@ public static class DiagnosticCatalog
         + "variable-length group or a dynamic-length elementary item.\" A variable-length group is "
         + "\"a group item whose data description has at least one dynamic-length elementary item or "
         + "dynamic-capacity table as a subordinate item\" (ISO §2023:8.5.1.12.1).",
-        "ISO §2023:13.18.44.3 SR17");
+        "ISO §2023:13.18.44.3 SR17",
+        No1985Rule: No1985Dynamic);
 
     // ── The program-prototype registry's two conformance rejections (kb/Work PB237; §2023:12.3.8.2 program-specifier) ──
     // ONE code per rule FAMILY, message-differentiated, the COBOL1720/1707 shape: 1760 answers "is this word a
@@ -853,7 +868,8 @@ public static class DiagnosticCatalog
         + "ISO §2023:13.18.38.3 SR10: an OCCURS clause may be subordinate to an entry containing another OCCURS clause "
         + "\"as long as the number of subscripts required does not exceed seven\", and §2023:8.4.2.3.3 SR3 states the same "
         + "limit: \"This allows a maximum of seven subscripts to be specified.\"",
-        "ISO §2023:13.18.38.3 SR10 / §2023:8.4.2.3.3 SR3");
+        "ISO §2023:13.18.38.3 SR10 / §2023:8.4.2.3.3 SR3",
+        Rule1985: "§1985:VI.1.3.4");
 
     /// <summary>COBOL2645 — the ASSIGN clause's literal-1 is not an alphanumeric literal, or is a figurative constant
     /// or a zero-length literal (kb/Work PB1078). <c>AssignTargetRule.Text</c> is its only reporter.</summary>
@@ -864,7 +880,8 @@ public static class DiagnosticCatalog
         + "alphanumeric literal and a concatenation expression of alphanumeric operands are alphanumeric literals "
         + "(§2023:8.3.3.2.2; §2023:8.8.3.3 GR3), so they are admitted; a national or boolean literal, a figurative constant and "
         + "the zero-length literal are not.",
-        "ISO §2023:12.4.5.2 SR4");
+        "ISO §2023:12.4.5.2 SR4",
+        Rule1985: "§1985:IV.4.2.2.2.1 / §1985:VII.2.3.3 SR3 / §1985:XI.2.3.3");
 
     /// <summary>COBOL2644 — an OO definition's environment division carries a part its kind may not (kb/Work
     /// PB1076 + PB813). ONE code for the one placement table, <c>OoEnvironmentRules.Screen</c>, its only reporter.</summary>
@@ -959,7 +976,8 @@ public static class DiagnosticCatalog
         + "SCREEN SECTION entry is not such an item (and the SCREEN SECTION is an unsupported optional "
         + "facility — COBOL1560). At COBOL-85 the rule is §1985:X.5.2.3 SR3 (File, Working-Storage, "
         + "Communication or Linkage Section), which refuses the DEBUG-ITEM register's subordinates alike.",
-        "ISO §2023:14.9.4.3 SR3/SR7");
+        "ISO §2023:14.9.4.3 SR3/SR7",
+        Rule1985: "§1985:X.5.2.3 SR3");
     public static readonly DiagnosticDescriptor CallByReferenceObjectData = new(
         "COBOL1678", "call-by-reference-object-data", EditionSeverity.Error,
         "ISO §2023:14.9.4.3 syntax rule 3: \"If the BY REFERENCE phrase is specified or implied, identifier-2 "
@@ -979,7 +997,8 @@ public static class DiagnosticCatalog
         "ISO §2023:14.9.4.3 syntax rule 12 (Format 1): \"Identifier-2 shall not reference a variable-length "
         + "group.\" A group with a DYNAMIC LENGTH elementary item or a dynamic-capacity table subordinate to "
         + "it (§2023:8.5.1.12.1) has no prototype-less byte image to pass.",
-        "ISO §2023:14.9.4.3 SR12 / §2023:8.5.1.12.1");
+        "ISO §2023:14.9.4.3 SR12 / §2023:8.5.1.12.1",
+        No1985Rule: No1985Dynamic);
     public static readonly DiagnosticDescriptor CallTargetCategory = new(
         "COBOL1681", "call-target-category", EditionSeverity.Error,
         "ISO §2023:14.9.4.3 syntax rule 1: \"Identifier-1 shall be defined as an alphanumeric, national, or "
@@ -1099,7 +1118,8 @@ public static class DiagnosticCatalog
         + "function-identifier (§2023:8.4.3.2.3 SR1) or an inline method invocation (§2023:8.4.3.4.3 SR1) there is "
         + "illegal; and every BY form of DIVIDE prints GIVING. The old binders silently dropped the extra "
         + "operands, the ROUNDED or an inline-invocation receiver, or crashed.",
-        "ISO §2023:14.9.2.2 / §2023:14.9.44.2 / §2023:14.9.26.2 / §2023:14.9.12.2 / §2023:8.4.3.2.3 SR1 / §2023:8.4.3.4.3 SR1");
+        "ISO §2023:14.9.2.2 / §2023:14.9.44.2 / §2023:14.9.26.2 / §2023:14.9.12.2 / §2023:8.4.3.2.3 SR1 / §2023:8.4.3.4.3 SR1",
+        Rule1985: "§1985:VI.6.11.2 / §1985:VI.6.26.2 / §1985:VI.6.6.2");
     public static readonly DiagnosticDescriptor CommitRollbackContext = new(
         "COBOL1690", "commit-rollback-context", EditionSeverity.Error,
         "A COMMIT or ROLLBACK statement in a context its syntax rules ban: \"This statement shall not be "
@@ -1131,7 +1151,8 @@ public static class DiagnosticCatalog
         + "or a dynamic-capacity table subordinate to it at any depth (ISO §2023:8.5.1.12). \"Neither identifier-1 "
         + "nor identifier-2 shall reference a variable-length group\" — both the device and the temporal "
         + "format exclude it.",
-        "ISO §2023:14.9.1.3");
+        "ISO §2023:14.9.1.3",
+        No1985Rule: No1985Dynamic);
     public static readonly DiagnosticDescriptor SortMergeFileInIoStatement = new(
         "COBOL1692", "sd-file-io-statement", EditionSeverity.Error,
         "An input-output statement names a sort-merge (SD) file. ISO §2023:13.4.6.3 SR3: \"File-name-1 shall not be "
@@ -1183,14 +1204,16 @@ public static class DiagnosticCatalog
         + "statement, of which only the CLOSE spelling had a screen. It is also what keeps §2023:14.9.27.4 GR11 "
         + "answerable: GR11 keys on the storage medium, and a relative or indexed file is §2023:14.9.6.4 GR2 "
         + "category (d), for which neither GR11 nor GR12 defines a NO REWIND effect.",
-        "ISO §2023:14.9.27.3");
+        "ISO §2023:14.9.27.3",
+        Rule1985: "§1985:VII.4.3.2");
     public static readonly DiagnosticDescriptor OpenNoRewindOpenMode = new(
         "COBOL1803", "open-norewind-open-mode", EditionSeverity.Error,
         "An OPEN statement's WITH NO REWIND phrase in an I-O or EXTEND group: \"The NO REWIND phrase may be "
         + "specified only when the INPUT or OUTPUT phrase is specified.\" §2023:14.9.27.4 GR12 a) corroborates the "
         + "rule by naming only EXTEND as the mode that suppresses the beginning-of-file positioning the phrase "
         + "talks about. The phrase used to be parsed and dropped, so every mode accepted it silently.",
-        "ISO §2023:14.9.27.3");
+        "ISO §2023:14.9.27.3",
+        Rule1985: "§1985:VII.4.3.2");
     public static readonly DiagnosticDescriptor OpenReportFileMode = new(
         "COBOL2371", "open-report-file-mode", EditionSeverity.Error,
         "An OPEN statement opens a REPORT FILE (an FD carrying a REPORT clause) in the INPUT or I-O mode: \"The "
@@ -1199,7 +1222,8 @@ public static class DiagnosticCatalog
         + "an FD may be referenced in the procedure division only by USE, the WHEN phrase of a PERFORM, CLOSE, "
         + "or \"the OPEN statement with the OUTPUT or EXTEND phrase\". A report file is written only by the "
         + "report writer's own implicit output, so neither mode has anything to read.",
-        "ISO §2023:14.9.27.3");
+        "ISO §2023:14.9.27.3",
+        Rule1985: "§1985:XIII.4.5.3 SR1");
     public static readonly DiagnosticDescriptor OpenExtendAccessLinage = new(
         "COBOL2372", "open-extend-access-linage", EditionSeverity.Error,
         "An OPEN statement's EXTEND phrase names a file whose access mode is not sequential, or whose file "
@@ -1208,7 +1232,8 @@ public static class DiagnosticCatalog
         + "specified in the file description entry for file-name-1.\" (ISO §2023:14.9.27.3 SR2). The predicate is the "
         + "ACCESS MODE, not the organization: EXTEND stays legal on a relative or indexed file whose ACCESS MODE "
         + "IS SEQUENTIAL. The site names which of the two conjuncts the statement violated.",
-        "ISO §2023:14.9.27.3");
+        "ISO §2023:14.9.27.3",
+        Rule1985: "§1985:VII.4.3.3 SR3 / §1985:VIII.4.4.3 SR1");
     public static readonly DiagnosticDescriptor OpenReversedOrganization = new(
         "COBOL2210", "open-reversed-organization", EditionSeverity.Error,
         "An OPEN statement's REVERSED phrase on a file whose organization is not RECORD sequential. REVERSED "
@@ -1219,7 +1244,8 @@ public static class DiagnosticCatalog
         + "defines and §2023:14.9.30.3 SR7 denies to LINE SEQUENTIAL organization — so the phrase is admitted for "
         + "record sequential organization alone, one narrower step than its sibling WITH NO REWIND "
         + "(open-norewind-organization, §2023:14.9.27.3 SR5, which §2023:9.1.7.2 lets reach both sequential kinds).",
-        "ISO §2023:14.9.30.3");
+        "ISO §2023:14.9.30.3",
+        Rule1985: "§1985:VII.4.3.2 / §1985:VII.4.3.3 SR1");
     public static readonly DiagnosticDescriptor OpenReversedOpenMode = new(
         "COBOL2211", "open-reversed-open-mode", EditionSeverity.Error,
         "An OPEN statement's REVERSED phrase in an OUTPUT, I-O or EXTEND group. REVERSED is the COBOL-85 tape "
@@ -1399,7 +1425,8 @@ public static class DiagnosticCatalog
         + "SR17); a VARYING entry shall also contain an OCCURS clause or a multiple LINE or multiple COLUMN "
         + "clause (§2023:13.18.64.3 SR1); its data-name shall not be defined elsewhere in the source element (SR2) "
         + "nor referenced in arithmetic-expression-1 of the same clause (SR3).",
-        "ISO §2023:13.15.3 SR16/SR17 / §2023:13.18.64.3 SR1–SR3");
+        "ISO §2023:13.15.3 SR16/SR17 / §2023:13.18.64.3 SR1–SR3",
+        Rule1985: "§1985:XIII.3.19.2");
 
     // ── COBOL2021 — the report-writer OCCURS (§2023:13.18.38 format 3) syntax-rule family, one code for the
     //    family (the COBOL1559 bundling precedent); kb/Work PB565. ──
@@ -1438,7 +1465,8 @@ public static class DiagnosticCatalog
         + "COBOL-85 the code also carries the page's presentation limits: a group that cannot be presented on one page "
         + "(§1985:XIII.3.8.3 SR9), a report heading or page heading that reaches FIRST DETAIL (§1985:XIII.3.8.4 GR1c), and "
         + "a line presented outside the vertical subdivision of the page (§1985:XIII.3.15.3 SR1).",
-        "ISO §2023:13.18.35.3 SR3/SR4/SR5/SR6/SR7/SR8/SR10");
+        "ISO §2023:13.18.35.3 SR3/SR4/SR5/SR6/SR7/SR8/SR10",
+        Rule1985: "§1985:XIII.3.10.10 GR2 / §1985:XIII.3.10.6 GR2b / §1985:XIII.3.10.9 GR2 / §1985:XIII.3.15.3 SR1 / §1985:XIII.3.15.3 SR2 / §1985:XIII.3.15.3 SR3 / §1985:XIII.3.15.3 SR4 / §1985:XIII.3.15.3 SR5 / §1985:XIII.3.15.3 SR6 / §1985:XIII.3.15.3 SR7 / §1985:XIII.3.15.3 SR9 / §1985:XIII.3.15.4 GR4 / §1985:XIII.3.8.3 SR8 / §1985:XIII.3.8.3 SR9 / §1985:XIII.3.8.4 GR1c");
 
     // ── COBOL2247 — the §2023:13.15.3 CLAUSE-PRESENCE family of a report group description entry, one code for
     //    the family (the COBOL2021 / COBOL2199 bundling precedent); kb/Work PB853. ──
@@ -1511,7 +1539,8 @@ public static class DiagnosticCatalog
         + "group description entries that follow fully describe one report.\" A constant entry written after the RD "
         + "(§2023:13.8.2) describes no report group, so it does not satisfy the rule. Describe at least one report "
         + "group (a level-01 entry with a TYPE clause) under the RD.",
-        "ISO §2023:13.8.4");
+        "ISO §2023:13.8.4",
+        Rule1985: "§1985:XIII.3.4");
 
     /// <summary>COBOL2709 — a PAGE clause that writes one of its five subdividing phrases (HEADING, FIRST
     /// DETAIL, LAST CONTROL HEADING, LAST DETAIL, FOOTING) without integer-1, the page limit. ISO §2023:13.18.39.3 SR3;
@@ -1523,7 +1552,8 @@ public static class DiagnosticCatalog
         + "FOOTING phrase may be specified only if integer-1 is specified.\" Integer-1 is the page limit "
         + "(§2023:13.18.39.4 GR2a) and the phrases subdivide the page it bounds, so a PAGE clause that gives only the "
         + "page width (integer-2 COLUMNS) cannot carry them. Write the page limit, or drop the phrases.",
-        "ISO §2023:13.18.39.3 SR3");
+        "ISO §2023:13.18.39.3 SR3",
+        Rule1985: "§1985:XIII.3.8.2");
 
     /// <summary>COBOL2744 — a PAGE clause whose integers break §2023:13.18.39.3 SR5 or SR6: integer-1 (the page limit)
     /// over 9999, or the HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL and FOOTING integers and the page
@@ -1567,7 +1597,8 @@ public static class DiagnosticCatalog
         + "defined for each control data item or FINAL of the CONTROL clause for any given report.\" SR15: \"Each "
         + "report description shall include at least one body group\", a DETAIL, CONTROL HEADING or CONTROL FOOTING "
         + "group.",
-        "ISO §2023:13.18.57.3 SR13/SR14/SR15");
+        "ISO §2023:13.18.57.3 SR13/SR14/SR15",
+        Rule1985: "§1985:XIII.3.20.3 SR2 / §1985:XIII.3.20.3 SR4 / §1985:XIII.3.20.3 SR7");
 
     /// <summary>COBOL2750 — a report group entry that contains a SUM clause whose PICTURE category cannot receive a
     /// numeric sender. ISO §2023:13.18.54.3 SR2: "The category of the subject of the entry shall be valid as the category
@@ -1580,7 +1611,8 @@ public static class DiagnosticCatalog
         + "operand in a MOVE statement for a sending operand of the category numeric.\" Table 16 (§2023:14.9.25.3 SR10) "
         + "makes a numeric to alphabetic move and a numeric to boolean move invalid. Describe the entry as numeric, "
         + "numeric-edited, alphanumeric or national.",
-        "ISO §2023:13.18.54.3 SR2");
+        "ISO §2023:13.18.54.3 SR2",
+        Rule1985: "§1985:XIII.3.19.3 SR1");
 
     /// <summary>COBOL2751 — a report section subscript that is a sum counter or the LINE-COUNTER or PAGE-COUNTER
     /// identifier. ISO §2023:8.4.2.3.3 SR8: "In the report section, neither a sum counter nor the LINE-COUNTER and
@@ -1592,7 +1624,8 @@ public static class DiagnosticCatalog
         "A report group description entry uses a sum counter, LINE-COUNTER or PAGE-COUNTER as a subscript. ISO "
         + "§2023:8.4.2.3.3 SR8: \"In the report section, neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER "
         + "identifiers may be used as a subscript.\" Subscript with a data item described outside the report section.",
-        "ISO §2023:8.4.2.3.3 SR8");
+        "ISO §2023:8.4.2.3.3 SR8",
+        Rule1985: "§1985:XIII.1.2.4");
 
     /// <summary>COBOL2710 — a COLUMN clause operand larger than the page width. ISO §2023:13.18.14.3 SR6: "Neither
     /// integer-1 nor integer-2 shall exceed the page width." The page width is the PAGE clause's integer-2, or 999
@@ -1694,7 +1727,8 @@ public static class DiagnosticCatalog
         + "identifier-1 shall reference an alphanumeric data item that is not an occurs-depending-on group item, a "
         + "variable-length group, or a dynamic-length elementary item (SR2); and if the CODE clause is specified for "
         + "any report it shall be specified for each report associated with the same report file (SR3).",
-        "ISO §2023:13.18.12.3 SR1–SR3");
+        "ISO §2023:13.18.12.3 SR1–SR3",
+        Rule1985: "§1985:XIII.3.6.2 / §1985:XIII.3.6.3 SR1 / §1985:XIII.3.6.3 SR2");
     /// <summary>COBOL7441 — a report file whose RECORD clause gives a record shorter than the RD's CODE characters (kb/Work PB5788).
     /// The CODE characters are placed in the first positions of each logical record (§1985:XIII.3.6.4 GR1; §2023:13.18.12.4 GR1) and count in
     /// the logical record size (§2023:13.18.12.4 GR2), so a record that cannot hold them has no structure the rule describes; the program is
@@ -1752,13 +1786,15 @@ public static class DiagnosticCatalog
         + "§2023:13.18.60.3 SR7: \"Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause "
         + "associated with a report group item.\" The same code carries SR2's group/subordinate agreement "
         + "(\"the same usage shall be specified in both entries\"), which is what makes §2023:13.18.60.4 GR1's "
-        + "inheritance of a group entry's usage unambiguous.", "ISO §2023:13.18.60.3 SR7 / SR2");
+        + "inheritance of a group entry's usage unambiguous.", "ISO §2023:13.18.60.3 SR7 / SR2",
+        Rule1985: "§1985:XIII.3.21.3 SR3");
     // SUPPRESS PRINTING (§2023:14.9.45) syntax-rule violation: the statement may appear ONLY in a USE BEFORE
     // REPORTING procedure (§2023:14.9.45.3 SR1), which fixes the affected report group (§2023:14.9.45.4 GR1). Written
     // anywhere else there is no group to inhibit — a genuine user error, not a non-support.
     public static readonly DiagnosticDescriptor ReportSuppressContext = new(
         "COBOL1581", "report-suppress-context", EditionSeverity.Error,
-        "A SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.", "ISO §2023:14.9.45.3 SR1");
+        "A SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.", "ISO §2023:14.9.45.3 SR1",
+        Rule1985: "§1985:XIII.4.6.3 SR1");
     // §2023:12.4.5.7 file-control COLLATING SEQUENCE (INDEXED record-key collating).
     // ⛔ THE NON-INDEXED ARM IS §2023:12.4.5.2 SR8, NOT §2023:12.4.5.7.1. §2023:12.4.5.1 prints the collating-sequence-clause
     // in Format 1 (indexed) and in no other format, so writing it SPECIFIES Format 1 and SR8 — "Format 1 shall
@@ -1935,7 +1971,8 @@ public static class DiagnosticCatalog
         + "shall terminate at an entry that does not contain a SUM clause referring to a data-name-1 defined in the "
         + "report section.\" The value added is that of the entry's sum counter, or of the operand of its SOURCE or "
         + "VALUE clause (§2023:13.18.54.4 GR6), so an entry with none of the three has no value to add.",
-        "ISO §2023:13.18.54.3 SR4");
+        "ISO §2023:13.18.54.3 SR4",
+        Rule1985: "§1985:XIII.3.19.3 SR1");
 
     /// <summary>COBOL2731 — the combination of report group TYPEs of a SUM entry and the entry its data-name-1
     /// names is not one §2023:13.18.54.3 SR4 f) permits within a report description (SR4 g) lifts the restriction across
@@ -1950,7 +1987,8 @@ public static class DiagnosticCatalog
         + "data-name-1 may be defined in any other report group other than a report heading. The current report "
         + "group may be a page footing and data-name-1 may be defined in any body group.\" SR4 g) — \"If data-name-1 "
         + "specifies an entry in a different report description, there are no restrictions\" — is the exception.",
-        "ISO §2023:13.18.54.3 SR4 f)");
+        "ISO §2023:13.18.54.3 SR4 f)",
+        Rule1985: "§1985:XIII.3.19.3 SR1");
     // ⛔ `ReportMultipleOnFile` (`report-multiple-on-file`) LIVED HERE AND IS GONE (kb/Work PB1050): a file description
     // entry may name several reports (§2023:13.18.46.2 `REPORTS ARE report-name-1 …`; GR1 "more than one report may be
     // written to the file"); each report has its own engine over the one file connector.
@@ -1971,7 +2009,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportPageTypeRequiresPage = new(
         NotImplemented, "report-page-type-requires-page", EditionSeverity.Error,
         "A PAGE HEADING/FOOTING group, or a control heading with the OR PAGE phrase, requires a PAGE clause defining "
-        + "the page limit.", "ISO §2023:13.18.57.3 SR12");
+        + "the page limit.", "ISO §2023:13.18.57.3 SR12",
+        Rule1985: "§1985:XIII.3.20.3 SR3");
     /// <summary>COBOL2714 — the report-name ↔ REPORT-clause correspondence is broken (kb/Work PB1285): a REPORT clause
     /// names a report with no report description entry (ISO §2023:13.18.46.3 SR1), a report is named in more than one
     /// REPORT clause (§2023:13.18.46.3 SR2), or a report description entry is named in none (§2023:13.14.3 SR1 — "one and only
@@ -1981,7 +2020,8 @@ public static class DiagnosticCatalog
         "A REPORT clause and the report description entries disagree: each report-name-1 of a REPORT clause shall be the "
         + "subject of a report description entry (ISO §2023:13.18.46.3 SR1), may appear in only one REPORT clause (SR2), and "
         + "every report description entry shall be named by one and only one REPORT clause (§2023:13.14.3 SR1).",
-        "ISO §2023:13.18.46.3 SR1/SR2; §2023:13.14.3 SR1");
+        "ISO §2023:13.18.46.3 SR1/SR2; §2023:13.14.3 SR1",
+        Rule1985: "§1985:XIII.3.3.3 SR1 / §1985:XIII.3.3.3 SR2 / §1985:XIII.3.5.3 SR1");
     // ⛔ CITATION REPAIRED (kb/Work PB177 arm C). This descriptor and its two message sites all cited
     // "ISO §2023:13.18.16.3 SR3" for an UNRESOLVABLE CONTROL operand — a REAL clause answering a DIFFERENT
     // question: SR3 is "Data-name-1 shall not be subject to any OCCURS clauses." Nothing in §2023:13.18.16.3
@@ -2010,7 +2050,8 @@ public static class DiagnosticCatalog
         + "have an occurs-depending table subordinate to it.\"; syntax rule 6: \"Data-name-1 shall be unique "
         + "in any given CONTROL clause.\"; syntax rule 7: \"Data-name-1 shall not reference a variable-length "
         + "group.\"",
-        "ISO §2023:13.18.16.3 SR2/SR3/SR4/SR5/SR6/SR7");
+        "ISO §2023:13.18.16.3 SR2/SR3/SR4/SR5/SR6/SR7",
+        Rule1985: "§1985:XIII.3.7.3 SR1 / §1985:XIII.3.7.3 SR2 / §1985:XIII.3.7.3 SR3");
     // An INDEX CONTROL operand is illegal for a reason that lives OUTSIDE §2023:13.18.16.3, which is why it gets its
     // own code rather than riding COBOL1699's clause list (kb/Work PB177 arm C follow-up): §2023:13.18.60.3 SR10
     // closes the set of contexts in which an index data item may be referenced explicitly, and §2023:8.4.5 makes a
@@ -2040,7 +2081,8 @@ public static class DiagnosticCatalog
         + "contain an OCCURS clause.\" (Sentence 2 permits data-name-2 to be SUBORDINATE to such an item; that "
         + "is a different shape and is not screened here. Sentence 4's occurs-depending prohibition is "
         + "COBOL0855's, and owns the entries where data-name-2 IS an occurs-depending table.)",
-        "ISO §2023:13.18.44.3 SR5");
+        "ISO §2023:13.18.44.3 SR5",
+        Rule1985: "§1985:VI.5.10.3 SR5");
     // ⛔ THE GROUP-LEVEL VALUE SUBORDINATE SCREEN (kb/Work PB184). §2023:13.18.63.3 SR13/SR14 restrict what may sit
     // UNDER an entry that carries a group-level VALUE, and NONE of the three restrictions existed: measured on
     // 99bc08c8, `01 GV VALUE "40537". 05 GB PIC 9 COMP-5 OCCURS 5.` compiled CLEAN and left every occurrence
@@ -2062,7 +2104,8 @@ public static class DiagnosticCatalog
         + "subordinate to an alphanumeric group item shall be explicitly or implicitly described with usage "
         + "DISPLAY.\"; syntax rule 13, sentence 2: \"The VALUE clause shall not be specified at subordinate "
         + "levels within this group.\" (Syntax rule 16 applies both to the format 2 (table) VALUE.)",
-        "ISO §2023:13.18.63.3 SR13/SR14");
+        "ISO §2023:13.18.63.3 SR13/SR14",
+        Rule1985: "§1985:VI.5.15.6 GR3 / §1985:VI.5.15.6 GR4");
     // The SUBJECT half of the same screen. SR1 restricts what the VALUE-carrying entry may BE, and it is the
     // rule that keeps SR14's second conjunct honest: §2023:13.18.29.4 GR3 makes a group an ALPHANUMERIC group item
     // only when it is "not strongly typed and is not a variable-length group", so without SR1 those two shapes
@@ -2327,7 +2370,8 @@ public static class DiagnosticCatalog
         + "user at compile time to indicate violations of the general formats and the explicit syntax rules\". "
         + "The common cause is the MicroFocus/GnuCOBOL level-78 constant, which ISO does not define — the "
         + "conforming spelling is the §2023:13.10 CONSTANT entry, `01 name CONSTANT AS literal.`",
-        "ISO §2023:13.18.33.3 / §2023:8.3.2.2.13");
+        "ISO §2023:13.18.33.3 / §2023:8.3.2.2.13",
+        Rule1985: "§1985:III.2 / §1985:VI.5.7.3 SR2 / §1985:VI.5.7.3 SR3 / §1985:XIII.3.14.3 SR2");
     // The SECOND level-number axis: the entry FORMAT. §2023:13.18.33.3 above bounds the level-number by the SECTION;
     // §2023:13.18.33.4 GR2 and §2023:13.16.3 bound it by the general format the entry is WRITTEN in, and the two are
     // independent — 78 in working-storage is a section violation, `05 R RENAMES A THRU B.` is a format one and its
@@ -2349,7 +2393,8 @@ public static class DiagnosticCatalog
         + "and 3 print their names UNBRACKETED and carry no entry-name clause, so a nameless or FILLER 66 entry and "
         + "a FILLER 88 entry are neither format either; only format 4 brackets its condition-name (kb/Work PB849). This is "
         + "the FORMAT axis; COBOL1746 is the SECTION axis, and a level-number can violate either alone.",
-        "ISO §2023:13.18.33.4 GR2 / §2023:13.16.3");
+        "ISO §2023:13.18.33.4 GR2 / §2023:13.16.3",
+        Rule1985: "§1985:VI.5.2.1 / §1985:VI.5.3.2 / §1985:VI.5.3.3 SR1 / §1985:X.4.1.1");
     // §2023:13.18.57.3 SR10 governs the whole WRITTEN reference, not just its name (kb/Work PB205): the operand
     // "may be qualified and reference-modified", the ref-mod's positions "shall be integer literals", and the
     // reference "shall be the same as one of the operands of the CONTROL clause" — so CX(4:3) is not CX(1:3),
@@ -2357,7 +2402,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportControlTypeOperand = new(
         NotImplemented, "report-control-type-operand", EditionSeverity.Error,
         "A TYPE CH/CF operand is not the same as one of the operands of the CONTROL clause, or its reference "
-        + "modification is not written with integer literals.", "ISO §2023:13.18.57.3 SR10/SR11");
+        + "modification is not written with integer literals.", "ISO §2023:13.18.57.3 SR10/SR11",
+        Rule1985: "§1985:XIII.3.20.3 SR4");
     // ⛔ `ReportSourceOperandUnresolved` (`report-source-operand-unresolved`) LIVED HERE AND IS GONE (kb/Work PB1292). A
     // SOURCE identifier-1 that names nothing is the ordinary unresolved-name diagnostic of the one operand binder now,
     // and one that names a report section item which is no counter is `ReportExpressionOperandSection` (§2023:13.18.53.3 SR4).
@@ -2370,14 +2416,16 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportResetNotControlOperand = new(
         NotImplemented, "report-reset-not-control-operand", EditionSeverity.Error,
         "A RESET ON operand is not an operand of the CONTROL clause, or its reference modification is not "
-        + "written with integer literals.", "ISO §2023:13.18.54.3 SR8");
+        + "written with integer literals.", "ISO §2023:13.18.54.3 SR8",
+        Rule1985: "§1985:XIII.3.19.3 SR4");
     // ⛔ ITS OWN CODE, NOT THE 0899 BAND (kb/Work PB429). §2023:8.4.3.15.3 SR3 is a RULE the program broke, and a
     // rule-rejection wearing the "recognized but not implemented" code tells the reader their legal program is
     // unsupported by this compiler when in fact their program is illegal by the standard — indistinguishable,
     // to a reader and to a selector, from the PAGE-COUNTER defect this note actually fixed.
     public static readonly DiagnosticDescriptor ReportLineCounterReceiving = new(
         "COBOL2197", "report-line-counter-receiving", EditionSeverity.Error,
-        "LINE-COUNTER shall not be referenced as a receiving operand.", "ISO §2023:8.4.3.15.3 SR3");
+        "LINE-COUNTER shall not be referenced as a receiving operand.", "ISO §2023:8.4.3.15.3 SR3",
+        Rule1985: "§1985:VII.1.3.7 / §1985:XIII.1.2.3");
     // ⛔ `ReportCounterQualifierNotReport` (`report-counter-qualifier-not-report`) AND `ReportCounterNoReport`
     // (`report-counter-no-report`) LIVED HERE AND ARE GONE (kb/Work PB1049, PB1456), and this comment stands where
     // they did so neither is re-added. Both reported a PROGRAM that breaks a qualification rule under the
@@ -2397,7 +2445,8 @@ public static class DiagnosticCatalog
         + "describes no report at all (§2023:8.4.3.15.1).", "ISO §2023:8.4.2.2.3 SR9/SR10; §2023:8.4.3.15.3 SR2");
     public static readonly DiagnosticDescriptor ReportGenerateNeedsControl = new(
         NotImplemented, "report-generate-needs-control", EditionSeverity.Error,
-        "GENERATE report-name requires a CONTROL clause in the report description.", "ISO §2023:14.9.16.3 SR2");
+        "GENERATE report-name requires a CONTROL clause in the report description.", "ISO §2023:14.9.16.3 SR2",
+        Rule1985: "§1985:XIII.4.3.3 SR2");
     public static readonly DiagnosticDescriptor ReportGenerateNotDetail = new(
         NotImplemented, "report-generate-not-detail", EditionSeverity.Error,
         "GENERATE names a report group that is not a DETAIL group.", "ISO §2023:14.9.16.3 SR1");
@@ -2548,7 +2597,8 @@ public static class DiagnosticCatalog
         + "specify the RELATIVE KEY clause naming the same corresponding external data item (ISO §2023:12.4.5.3 GR1(h); "
         + "§2023:14.8.4.2; Annex E.2 item 24) — a corresponding SELECT omitting RELATIVE KEY, or naming a non-external / "
         + "different external item, is rejected. Below 2023 the requirement did not exist.",
-        "ISO §2023:12.4.5.3 GR1(h) / §2023:14.8.4.2 / Annex E.2 item 24 (VCR row 31)");
+        "ISO §2023:12.4.5.3 GR1(h) / §2023:14.8.4.2 / Annex E.2 item 24 (VCR row 31)",
+        Rule1985: "§1985:VIII.2.4.4 GR8");
     public static readonly DiagnosticDescriptor ExternalFileItemNotExternal = new(
         "COBOL1624", "external-file-item-not-external", EditionSeverity.Error,
         "At COBOL-2023, for an external file connector the FILE STATUS, RELATIVE KEY and LINAGE data items shall "
@@ -2565,7 +2615,8 @@ public static class DiagnosticCatalog
         + "not representable in the subject without truncation of a leading or trailing nonzero digit (SR2), or a "
         + "signed literal (written with a '+' or a '-') seeds an unsigned subject (SR3). A syntax-rule violation, rejected at bind time rather "
         + "than silently mis-stored as an out-of-range native value.",
-        "ISO §2023:13.18.63.3 SR2/SR3");
+        "ISO §2023:13.18.63.3 SR2/SR3",
+        Rule1985: "§1985:VI.5.15.3 SR2 / §1985:VI.5.15.3 SR3");
     // 1626 — the character-operand USAGE syntax rules of INSPECT / STRING / UNSTRING (DA7). These constructs were
     // already REJECTED correctly; the defect was the STAGE. Each violation was reported as a run-time
     // NotImplementedCobolFeatureException, so an illegal program compiled clean and then crashed when control
@@ -2583,7 +2634,8 @@ public static class DiagnosticCatalog
         + "rejected: §2023:14.9.43.4 GR3a transfers into STRING's receiver \"in accordance with the MOVE statement rules "
         + "for alphanumeric-to-alphanumeric moves\", so a group takes whatever an alphanumeric MOVE may deposit, "
         + "including a group holding a BINARY/PACKED leaf (V59 gave those leaves a byte image).",
-        "ISO §2023:14.9.22.3 SR1 / §2023:14.9.43.3 SR1 / §2023:14.9.48.3 SR4");
+        "ISO §2023:14.9.22.3 SR1 / §2023:14.9.43.3 SR1 / §2023:14.9.48.3 SR4",
+        Rule1985: "§1985:VI.6.18.3 SR1 / §1985:VI.6.25.3 SR2 / §1985:VI.6.27.3 SR3");
     // 1627 — the ISO §2023:15.3 intrinsic ARGUMENT-CLASS screen (fix-queue PB1). IntrinsicCatalog declared an
     // ArgKinds class code on all 79 rows and IntrinsicSig.ArgKind had ZERO callers, so no §15 argument rule was
     // enforced from the table built for it: FUNCTION REVERSE(<PIC 9(4)>) and FUNCTION ABS(<PIC X(4)>) both
@@ -2655,7 +2707,8 @@ public static class DiagnosticCatalog
         + "REDEFINES or RENAMES clause whose object satisfies one of those conditions, subordinate to such a "
         + "redefinition, or a condition-name or index-name associated with such an item — or it is a BASED item "
         + "(§2023:13.18.5). Name the item in USING (or RETURNING), or describe it BASED.",
-        "ISO §2023:13.7.3 SR4");
+        "ISO §2023:13.7.3 SR4",
+        Rule1985: "§1985:X.5.1 GR4");
     /// <summary>COBOL2747 — a formal parameter of a FUNCTION is used as a receiving operand (kb/Work PB1250). ISO
     /// §2023:13.7.3 SR5: "A formal parameter of a function shall not be used as a receiving operand." The prohibition is
     /// over the operand ROLE, so it is one arm of <c>ExpressionBinder.ReceivingPlaceBar</c> and every statement's
@@ -2708,7 +2761,8 @@ public static class DiagnosticCatalog
         + "FUNCTION's declared type (§2023:15.2), not the shape of its arguments — FUNCTION MAX over alphanumeric "
         + "arguments IS an alphanumeric function and is legal here. --permissive does NOT relax it: unlike a "
         + "removed-construct leniency there is no defined value to fall back on.",
-        "ISO §2023:8.4.3.3.3 SR2 / §2023:15.2");
+        "ISO §2023:8.4.3.3.3 SR2 / §2023:15.2",
+        Rule1985: "§1985:IV.4.3.8.3.3 SR2");
     // 1630 — reference-modifying a reference modification (ISO §2023:8.4.3.3.3 SR3). Found by the PB8 sibling sweep
     // (CLAUDE.md rule 4), NOT by PB8's own repro: the grammar's `dataReferenceSuffix*` admits unlimited
     // refModParts, and ReferenceResolver kept only the FIRST of each carrier via `??=` while the DEFAULT-mode
@@ -2755,7 +2809,8 @@ public static class DiagnosticCatalog
         + "where §2023:14.9.22.4 GR1 treats it as sending, and barred in Formats 2/3/4 (REPLACING / "
         + "TALLYING-and-REPLACING / CONVERTING), where GR7 replaces its characters and GR20 makes format 4 "
         + "execute as a format 2 over the same identifier-1. Move the function result into a data item first.",
-        "ISO §2023:8.4.3.2.3 SR1 (with §2023:14.9.22.4 GR1/GR7/GR20 for INSPECT's per-format split)");
+        "ISO §2023:8.4.3.2.3 SR1 (with §2023:14.9.22.4 GR1/GR7/GR20 for INSPECT's per-format split)",
+        Rule1985: "§1985:IV.4.3.8.3.3 SR3a");
     // PB11's VALUE half. Decidable at BIND time and therefore a diagnostic rather than a run-time check:
     // §2023:15.40.3 r1 / §2023:15.41.3 r1 make argument-1 a LITERAL, so the format's zone is known at compile time, and the
     // offset argument's PRESENCE is syntactic. Before this the argument was accepted and silently DISCARDED.
@@ -2825,7 +2880,8 @@ public static class DiagnosticCatalog
         + "of PERFORM or SEARCH, the SET statement, and a relation-condition operand. To use the index's "
         + "occurrence number elsewhere, SET a data item to it first (SET data-item TO index-name, §2023:14.9.39) "
         + "and reference the data item.",
-        "ISO §2023:13.18.38.3 r7 / §2023:8.4.3.1.2");
+        "ISO §2023:13.18.38.3 r7 / §2023:8.4.3.1.2",
+        Rule1985: "§1985:VI.5.8.3 SR13");
     // kb/Work R19 (ledger F18). The OMITTED arm one line above it reports (COBOL1544) while this arm
     // returned a silent BoundOperandError — the program compiled with zero diagnostics and threw
     // NotImplementedCobolFeatureException at run time. §2023:4.2.2 ¶3 obliges the warning mechanism to indicate a
@@ -2890,7 +2946,8 @@ public static class DiagnosticCatalog
         "COBOL1648", "all-literal-zero-length", EditionSeverity.Error,
         "The literal-1 of the figurative constant ALL literal-1 is a zero-length literal. ISO §2023:8.3.3.6.3 SR2: "
         + "\"Literal-1 shall be an alphanumeric, boolean, or national literal … The literal shall be neither a "
-        + "figurative constant nor a zero-length literal.\" Write at least one character.", "ISO §2023:8.3.3.6.3 SR2");
+        + "figurative constant nor a zero-length literal.\" Write at least one character.", "ISO §2023:8.3.3.6.3 SR2",
+        Rule1985: "§1985:IV.4.2.2.2.3 GR6");
     // §2023:8.3.3.6.3 SR2's first sentence — literal-1 "shall be an alphanumeric, boolean, or national literal" (kb/Work
     // PB1627). A quoted literal-1 is one of the three by construction of the grammar; the one spelling that can be of
     // another class is a constant-name (§2023:13.10.3 SR2 lets it stand for a literal of its OWN class), so `ALL K` with K
@@ -2906,7 +2963,8 @@ public static class DiagnosticCatalog
         + "\"a variable-length group is not equivalent to an alphanumeric data item and may not undergo a comparison "
         + "or a move operation, in either direction, explicitly or otherwise, unless the other operand is a compatible "
         + "group.\" Compare it with a group whose dynamic-length items and dynamic-capacity tables correspond "
-        + "(§2023:8.5.1.12.2) and match (§2023:8.5.1.12.3), or compare its elementary items.", "ISO §2023:8.5.1.12.1");
+        + "(§2023:8.5.1.12.2) and match (§2023:8.5.1.12.3), or compare its elementary items.", "ISO §2023:8.5.1.12.1",
+        No1985Rule: No1985Dynamic);
     // §2023:8.8.4.2.1's CLOSED "Comparisons are defined for the following:" list over the general relation (kb/Work
     // PB1468), asked of the ONE table RelationComparability at the ONE relation checkpoint. Before it, a COMP /
     // packed / float / non-integer / arithmetic-expression operand against an alphanumeric one compiled clean and ran
@@ -2923,7 +2981,8 @@ public static class DiagnosticCatalog
         + "integer or index intrinsic function (ISO §2023:15.2 4), 5) and 6) state no usage for the item it returns; "
         + "docs/CONFORMANCE.md D-FNUSE) has no defined comparison with a character operand. MOVE the value to a data item of the character operand's class "
         + "first, or compare it with a numeric operand. --permissive accepts it with a warning as the character "
-        + "comparison of the value's text.", "ISO §2023:8.8.4.2.5");
+        + "comparison of the value's text.", "ISO §2023:8.8.4.2.5",
+        Rule1985: "§1985:VI.6.3.1.1.2");
     public static readonly DiagnosticDescriptor RelationIndexPair = new(
         "COBOL2533", "relation-index-pair", EditionSeverity.Error,
         "A relation compares an index-name or an index data item with an operand ISO §2023:8.8.4.2.13 does not pair it "
@@ -2931,7 +2990,8 @@ public static class DiagnosticCatalog
         + "item or numeric literal … 3) an index data item and an index-name or another index data item.\" An "
         + "index-name compared with an alphanumeric operand or an arithmetic expression, and an index data item "
         + "compared with a numeric literal, a numeric data item or a figurative constant, are none of these. SET a "
-        + "numeric data item from the index first and compare that.", "ISO §2023:8.8.4.2.13");
+        + "numeric data item from the index first and compare that.", "ISO §2023:8.8.4.2.13",
+        Rule1985: "§1985:VI.6.3.1.1.3");
     // kb/Work PB1427 — the ONE §2023:8.4.3.10.3 SR1 context screen for the predefined NULL. It replaced the per-statement
     // NULL arms (STOP/GOBACK status 1704, DISPLAY 1694, MOVE 0809 …) that each re-stated the rule for one verb while
     // every verb nobody had written an arm for ran NULL as LOW-VALUE (STRING, INSPECT, UNSTRING, FUNCTION LENGTH).
@@ -2960,7 +3020,8 @@ public static class DiagnosticCatalog
         + "SR9; §2023:13.18.46.3 SR3). The statements restate it for their own operands: SORT §2023:14.9.40.3 SR8 and MERGE "
         + "§2023:14.9.24.3 SR9 (a USING or GIVING file \"not for a report file\"), WRITE §2023:14.9.51.3 SR12 and REWRITE "
         + "§2023:14.9.35.3 SR11. A report file is written only by INITIATE, GENERATE and TERMINATE; use an ordinary "
-        + "sequential file for any other input-output.", "ISO §2023:13.4.5.3 SR9");
+        + "sequential file for any other input-output.", "ISO §2023:13.4.5.3 SR9",
+        Rule1985: "§1985:XIII.3.3.3 SR3");
     public static readonly DiagnosticDescriptor ReportFileRecordEntry = new(
         "COBOL2578", "report-file-record-entry", EditionSeverity.Error,
         "A file description entry that specifies a REPORT clause has record description entries or constant "
@@ -2968,7 +3029,8 @@ public static class DiagnosticCatalog
         + "description entries or constant entries shall be associated with the file description entry for a report "
         + "file.\" (ISO §2023:13.4.5.3 SR8). The report file's lines are composed by the report writer from the report "
         + "description entries of the REPORT SECTION; remove the entries, or describe a separate file for records.",
-        "ISO §2023:13.4.5.3 SR8");
+        "ISO §2023:13.4.5.3 SR8",
+        Rule1985: "§1985:XIII.3.2.3 SR4");
     public static readonly DiagnosticDescriptor FileDescriptionClauseFormat = new(
         "COBOL2604", "file-description-clause-format", EditionSeverity.Error,
         "A clause is written in a file description entry whose general format does not contain it. ISO §2023:13.4.5.2 "
@@ -3069,7 +3131,8 @@ public static class DiagnosticCatalog
         "The REDEFINES clause's data-name-2 does not name a preceding data description entry in the same scope. "
         + "ISO §2023:13.18.44.3 SR4/SR7/SR10 place data-name-2 among the entries preceding the subject at the same level; "
         + "§2023:8.4.2.1 requires every reference to identify a resource. Name the entry that defines the area.",
-        "ISO §2023:13.18.44.3 / §2023:8.4.2.1");
+        "ISO §2023:13.18.44.3 / §2023:8.4.2.1",
+        Rule1985: "§1985:VI.5.10.3 SR11");
     // kb/Work PB1281: the REDEFINES operand was captured as the dataReference's GLUED text, so `REDEFINES A OF G`
     // reached the resolver as the one word AOFG — refused as COBOL1654 naming the wrong rule when no AOFG existed,
     // and bound SILENTLY to an unrelated item AOFG when one did. The base data-name is now what resolves, and the
@@ -3079,7 +3142,8 @@ public static class DiagnosticCatalog
         "The REDEFINES clause's data-name-2 is written with a qualifier (OF / IN). ISO §2023:13.18.44.3 SR6: \"Data-name-2 "
         + "shall not be qualified.\" — the required placement (SR4: data-name-2 precedes the subject at the same "
         + "level) already makes the reference unambiguous (NOTE 1). Write the bare data-name.",
-        "ISO §2023:13.18.44.3 SR6");
+        "ISO §2023:13.18.44.3 SR6",
+        Rule1985: "§1985:VI.5.10.3 SR7");
     // kb/Work PB2040: the procedure-division file-name positions that share the dataReference production (OPEN, SORT,
     // MERGE, SORT/MERGE USING and GIVING, FUNCTION EXCEPTION-FILE / EXCEPTION-FILE-N) handed the resolver the
     // reference's GLUED text, so `OPEN OUTPUT A OF B` opened a file named AOFB and `SORT S OF X` sorted S with the
@@ -3090,13 +3154,15 @@ public static class DiagnosticCatalog
         + "register. A file-name is a user-defined word naming a file connector: ISO §2023:8.4.2.2.2 gives it no qualified "
         + "format (it appears there only as the file-report-qualifier of another name), and subscripting (§2023:8.4.2.3) "
         + "and reference modification (§2023:8.4.3.3) decorate identifiers. Write the file-name alone.",
-        "ISO §2023:8.4.2.2.2");
+        "ISO §2023:8.4.2.2.2",
+        Rule1985: "§1985:IV.4.3.8.1 / §1985:IV.4.3.8.2.1 / §1985:IV.4.3.8.4.1");
     public static readonly DiagnosticDescriptor RenamesOperandUnresolved = new(
         "COBOL1655", "renames-operand-unresolved", EditionSeverity.Error,
         "A RENAMES clause's data-name-2 or data-name-3 does not name an elementary item or group of elementary items in "
         + "the same record (ISO §2023:13.18.45.3 SR4; §2023:8.4.2.1 requires every reference to identify a resource). Name an "
         + "item of the record the level-66 entry follows.",
-        "ISO §2023:13.18.45.3 / §2023:8.4.2.1");
+        "ISO §2023:13.18.45.3 / §2023:8.4.2.1",
+        Rule1985: "§1985:VI.5.11.3 SR4");
     // kb/Work PB93 (sweep): SR7 — "Multiple redefinitions of the same storage area shall each specify as data-name-2
     // the data-name of the entry that originally defined the area" — a REDEFINES naming a REDEFINER is illegal ISO
     // source that GnuCOBOL/IBM accept as a chain (the anchor is chased); error strict, warning + the chain semantics
@@ -3106,7 +3172,8 @@ public static class DiagnosticCatalog
         "A REDEFINES clause names an entry that is itself a redefinition. ISO §2023:13.18.44.3 SR7 requires each of multiple "
         + "redefinitions of one storage area to name the entry that ORIGINALLY defined the area. Name the original "
         + "entry; under --permissive the chain is accepted with this warning (the anchor is the original entry).",
-        "ISO §2023:13.18.44.3 SR7");
+        "ISO §2023:13.18.44.3 SR7",
+        Rule1985: "§1985:VI.5.10.3 SR8");
     // kb/Work PB94: §2023:13.18.63.3 SR2 ("If the category of the subject of the entry is numeric, all literals in the VALUE
     // clause shall be numeric") and SR4 ("If the item is of category alphabetic, alphanumeric, or alphanumeric-edited
     // literals in the VALUE clause shall be alphanumeric literals") were unenforced — `PIC 9 VALUE "abc"` reached the
@@ -3124,7 +3191,8 @@ public static class DiagnosticCatalog
         + "subject (SR13 sentence 1 — kb/Work PB206): the leniency promises the literal's digits are stored as MOVE "
         + "would store them, and §2023:13.18.63.4 GR5's area deposit is over the operand's CHARACTERS, which a numeric "
         + "literal has none of — the measured result was a group seeded with SPACES.",
-        "ISO §2023:13.18.63.3 SR2 / SR4 / SR13");
+        "ISO §2023:13.18.63.3 SR2 / SR4 / SR13",
+        Rule1985: "§1985:VI.5.15.4 GR1a / §1985:VI.5.15.4 GR1b / §1985:VI.5.15.6 GR3");
     // kb/Work PB66 (data-model design D21): the floating-point numeric-edited PICTURE (the symbol E) — its syntax rules.
     public static readonly DiagnosticDescriptor PictureFloatEdited = new(
         "COBOL1658", "picture-float-edited", EditionSeverity.Error,
@@ -3248,7 +3316,8 @@ public static class DiagnosticCatalog
         + "b/c) the names pair with the integers by position, one-to-one; e/f) the ordinal position shall exist in the "
         + "native character set of the clause's class or, under IN, in the character set referenced by alphabet-name-3, "
         + "which shall define a set of that class. (A LOCALE alphabet under IN is COBOL1669 — SR16 g.)",
-        "ISO §2023:12.3.7.3 SR16");
+        "ISO §2023:12.3.7.3 SR16",
+        Rule1985: "§1985:VI.4.5.3 SR10 / §1985:VI.4.5.3 SR7 / §1985:VI.4.5.3 SR8 / §1985:VI.4.5.3 SR9");
     public static readonly DiagnosticDescriptor ClassClauseViolation = new(
         "COBOL1671", "class-clause", EditionSeverity.Error,
         "A SPECIAL-NAMES CLASS clause violates one of ISO §2023:12.3.7.3 SR17's class-dependent sub-rules (the message names "
@@ -3258,7 +3327,8 @@ public static class DiagnosticCatalog
         + "alphabet-name-4 (the ordinal resolves in THAT set — §2023:12.3.7.4 GR12 a); 3) each noninteger literal shall be "
         + "of the clause's class; 4) each literal of a THROUGH phrase shall be one character; 5) the characters "
         + "specified shall not outnumber that set. (A LOCALE alphabet under IN is COBOL1669 — SR17 d.)",
-        "ISO §2023:12.3.7.3 SR17");
+        "ISO §2023:12.3.7.3 SR17",
+        Rule1985: "§1985:VI.4.5.3 SR11a / §1985:VI.4.5.3 SR11b / §1985:VI.4.5.3 SR5");
     public static readonly DiagnosticDescriptor CodeSetClauseViolation = new(
         "COBOL1672", "code-set-clause", EditionSeverity.Error,
         "An FD CODE-SET clause violates one of ISO §2023:13.18.13.3's syntax rules (the message names which): SR1/SR2 — "
@@ -3342,7 +3412,8 @@ public static class DiagnosticCatalog
         + "elementary item described in the data division. Identifier-1 shall be an integer.\" — an integer data item "
         + "(category numeric, no fraction digits, not USAGE INDEX), an integer literal, or a function-identifier whose "
         + "type is integer (§2023:15.2 type 5). Write an integer count.",
-        "ISO §2023:14.9.28.3 SR2");
+        "ISO §2023:14.9.28.3 SR2",
+        Rule1985: "§1985:VI.6.21.3 SR4");
     public static readonly DiagnosticDescriptor AllSubscriptNotRepeatable = new(
         "COBOL1645", "all-subscript-not-repeatable-argument", EditionSeverity.Error,
         "A table(ALL) argument is written to an intrinsic function whose general format does not repeat an argument. "
@@ -3376,7 +3447,8 @@ public static class DiagnosticCatalog
         + "identifier or word is not a REPLACE operand in any ISO edition, and §2023:7.2.4.3 SR7 explicitly bars "
         + "alphanumeric, boolean and national literals as partial-words. Write ==operand== (empty "
         + "==== deletes under LEADING/TRAILING).",
-        "ISO §2023:7.2.4.2 / §2023:7.2.4.3 SR7");
+        "ISO §2023:7.2.4.2 / §2023:7.2.4.3 SR7",
+        Rule1985: "§1985:XII.3.2");
     public static readonly DiagnosticDescriptor CopyReplacingNestedCopy = new(
         "COBOL1640", "copy-replacing-nested-copy", EditionSeverity.Error,
         "A COPY statement with the REPLACING phrase names library text that itself contains a COPY statement. "
@@ -3413,7 +3485,8 @@ public static class DiagnosticCatalog
         + "ISO/IEC 8859-1: each byte is the character with that code point. ISO §2023:8.1.3.2 GR1 leaves the mapping of "
         + "the COBOL character repertoire to the implementor, and Annex A.1 item 25 requires it documented. Save the "
         + "file as UTF-8 (or with a byte-order mark) if the characters are not the Latin-1 ones.",
-        "ISO §2023:8.1.3.2 GR1 / Annex A.1 item 25");
+        "ISO §2023:8.1.3.2 GR1 / Annex A.1 item 25",
+        No1985Rule: No1985Encoding);
     /// <summary>COBOL5788 — the NOTE that accompanies a syntax error whose cause may be the text a fixed-form line carries past
     /// margin R (kb/Work PB2555; ISO §2023:6.3.1, Annex A.1 item 158). Margin R is the implementor's (position 72 here), so the
     /// compiler is right to drop what lies past it, but a statement that runs past it ends early and the parse fails at the
@@ -3490,7 +3563,8 @@ public static class DiagnosticCatalog
         "COBOL2616", "fixed-indicator-invalid", EditionSeverity.Error,
         "The indicator area (column 7) of a fixed-form line holds a character that is not a fixed indicator. ISO "
         + "§2023:6.2.2 lists * and / (comment line), - (continuation line) and space (source line); write one of them, or "
-        + "compile a NIST CCVS program with --nist.", "ISO §2023:6.2.2 / §2023:6.3.3");
+        + "compile a NIST CCVS program with --nist.", "ISO §2023:6.2.2 / §2023:6.3.3",
+        Rule1985: "§1985:IV.7.2.2 / §1985:IV.7.2.4");
 
     /// <summary>COBOL2653 — a free-form line longer than 255 character positions (kb/Work PB1496). §2023:6.1 3) a) bounds
     /// the number of positions on a free-form line at 255; only a fixed-form line logically converted to free form may
@@ -3516,7 +3590,8 @@ public static class DiagnosticCatalog
         + "literal's opening delimiter. ISO §2023:6.2.3.2 SR6: \"the first nonblank character of each continuation line "
         + "shall be the quotation symbol used in the opening delimiter of the literal\". Begin the continuation "
         + "line with the same quotation symbol (a quotation mark for a literal opened with one, an apostrophe for "
-        + "one opened with an apostrophe).", "ISO §2023:6.2.3.2 SR6 / §2023:6.3.5 2) / §2023:6.4.2");
+        + "one opened with an apostrophe).", "ISO §2023:6.2.3.2 SR6 / §2023:6.3.5 2) / §2023:6.4.2",
+        Rule1985: "§1985:IV.7.2.2");
 
     /// <summary>COBOL2685 — a national literal continued by the fixed continuation indicator (kb/Work PB1492).
     /// §2023:6.3.5 2): "National literals may be continued only with a floating literal continuation indicator."</summary>
@@ -3567,7 +3642,8 @@ public static class DiagnosticCatalog
         "A continuation line completes a multiple-character separator or operator (== or ::) begun at the end of the "
         + "line it continues. ISO §2023:6.3.5 2): \"All characters composing any multiple-character separator or "
         + "multiple-character indicator shall be specified on the same line. All characters forming an invocation "
-        + "operator shall be specified on the same line.\" Write all its characters on one line.", "ISO §2023:6.3.5 2)");
+        + "operator shall be specified on the same line.\" Write all its characters on one line.", "ISO §2023:6.3.5 2)",
+        Rule1985: "§1985:IV.7.2.2");
 
     /// <summary>COBOL3473 — a debugging line (indicator <c>D</c>) that is SOURCE, because its source unit's
     /// SOURCE-COMPUTER paragraph says WITH DEBUGGING MODE, written between the parts of a continued literal (kb/Work
@@ -3579,7 +3655,8 @@ public static class DiagnosticCatalog
         "A debugging line (indicator D or >>D) stands between the parts of a continued literal, and under WITH DEBUGGING MODE "
         + "it is source, not a comment. ISO §2023:6.3.5 2): \"Comment lines and blank lines may be interspersed among lines "
         + "containing the parts of a literal\" - a source line may not. Move the debugging line out of the literal, or "
-        + "remove WITH DEBUGGING MODE so that the line is a comment.", "ISO §2023:6.3.5 2)");
+        + "remove WITH DEBUGGING MODE so that the line is a comment.", "ISO §2023:6.3.5 2)",
+        Rule1985: "§1985:IV.7.2.2");
 
     /// <summary>COBOL7060 - a debugging line that begins before the end of the program's OBJECT-COMPUTER paragraph (kb/Work
     /// PB5212). §1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the
@@ -3728,7 +3805,8 @@ public static class DiagnosticCatalog
         "A user-defined word that is not a section-name, paragraph-name or level-number contains no letter — for "
         + "example the data-name 1-2. ISO §2023:8.3.2.2: \"With the exception of section-names, paragraph-names, and "
         + "level-numbers, each user-defined word shall contain at least one basic letter or extended letter.\" "
-        + "Add a letter to the name.", "ISO §2023:8.3.2.2");
+        + "Add a letter to the name.", "ISO §2023:8.3.2.2",
+        Rule1985: "§1985:IV.4.2.2.1.1");
 
     /// <summary>COBOL2696 — a compiler directive continued onto a following line (kb/Work PB1360). §2023:7.3.3 SR1: every
     /// directive is specified on ONE line (the IF and EVALUATE directives' own lines too, §2023:7.3.16.3 SR1 / §2023:7.3.13.3 SR2),
@@ -3808,7 +3886,8 @@ public static class DiagnosticCatalog
         "COBOL2573", "pseudo-text-delimiter-placement", EditionSeverity.Error,
         "A pseudo-text delimiter is not separated from its neighbour: an opening == shall be immediately preceded by a "
         + "space, and a closing == immediately followed by a space, comma, semicolon or period.",
-        "ISO §2023:8.3.5 6) / 8) c)");
+        "ISO §2023:8.3.5 6) / 8) c)",
+        Rule1985: "§1985:IV.4.2.1 SR6");
 
     /// <summary>COBOL2574 — a replacing action that produces text its statement's rule forbids (kb/Work PB1356):
     /// §2023:7.2.3.4 GR13 (COPY: a COPY statement, a SOURCE FORMAT directive, a comment or a blank line) and §2023:7.2.4.4 GR9
@@ -3919,7 +3998,8 @@ public static class DiagnosticCatalog
         + "user-defined-word position (kb/Work PB590): §2023:8.8.4.4.2 offers exactly two there — alphabet-name-1 "
         + "and class-name-1 — so a word that declares neither identifies no resource. That arm used to fall to "
         + "a loud RUN-TIME stage, so `IF X IS NOSUCHCLASS` compiled with no diagnostic at all.",
-        "ISO §2023:8.4.2.1 / §2023:8.4.2.2");
+        "ISO §2023:8.4.2.1 / §2023:8.4.2.2",
+        Rule1985: "§1985:IV.4.2.2.1.1 / §1985:IV.4.3.8 / §1985:IV.4.3.8.1 SR3 / §1985:IV.4.3.8.1 SRL2.1 / §1985:VI.6.18.3 SR3 / §1985:VII.2.12.4 GR2 / §1985:X.1.3.8.2 GR3a / §1985:XIII.3.3.3 SR3");
     // ⛔ THE TWO PROCEDURE-NAME UNIQUENESS RULES (kb/Work PB466). COBOL1639 above is "identifies NO
     // resource"; these two are "identifies MORE THAN ONE", and they are separate codes because the two rules
     // have different repairs: rule-1 ambiguity is cured by writing the qualifier the standard asks for, and an
@@ -3940,7 +4020,8 @@ public static class DiagnosticCatalog
         + "general format prints procedure-name — PERFORM (both operands of a THRU range), GO TO in both "
         + "formats, ALTER, RESUME AT and the SORT/MERGE INPUT and OUTPUT PROCEDURE phrases — from the ONE "
         + "resolution step, ProcedureTableBuilder.ResolveProcedureOperand.",
-        "ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1");
+        "ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1",
+        Rule1985: "§1985:IV.4.3.8.1 / §1985:IV.4.3.8.1 SRL2.1");
     public static readonly DiagnosticDescriptor ParagraphNameDuplicatedInSection = new(
         "COBOL2122", "paragraph-name-duplicated-in-section", EditionSeverity.Error,
         "A paragraph-name that is explicitly referenced is declared more than once within one section. ISO "
@@ -3950,7 +4031,8 @@ public static class DiagnosticCatalog
         + "paragraphs shall be renamed. A duplicated paragraph-name that is never referenced is legal and is "
         + "not reported: SR7 is conditioned on the explicit reference, which is why the check lives at the "
         + "reference and not at the declaration.",
-        "ISO §2023:8.4.2.2.3 SR7");
+        "ISO §2023:8.4.2.2.3 SR7",
+        Rule1985: "§1985:IV.4.3.8.1 / §1985:IV.4.3.8.1 SRL2.6");
     // ⛔ COBOL1576 ("ref-mod-zero-length-malformed-operand") is RETIRED — NEVER REALLOCATE IT. It was
     //    >>REF-MOD-ZERO-LENGTH's own copy of "a directive's operand shall be one its general format admits"
     //    (ISO §2023:7.3.3 SR6), one of six such codes; kb/Work PB794 made the rule DATA on the directive's
@@ -4273,7 +4355,8 @@ public static class DiagnosticCatalog
         + "EC-SCREEN name with no raise site reads as implemented to every consumer that can see it. "
         + "See docs/CONFORMANCE.md §5.",
         "ISO §2023:4.2.7 / Annex A.4.1 / Annex A.4.2 items 1, 9, 10, 24 / §2023:14.9.1 / §2023:14.9.11 / §2023:14.9.39",
-        Annex: DeclinedAnnex.A4);
+        Annex: DeclinedAnnex.A4,
+        No1985Rule: No1985Screen);
 
     // ── THE THREE BAND CODES THAT HAD NO DESCRIPTOR AT ALL (kb/Work PB175) ────────────────────────────
     //    COBOL0869 / 0881 / 1529 were emitted from 38 BARE STRING LITERALS across five binders and from
@@ -4314,7 +4397,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor UsageClauseCompatibility = new(
         "COBOL0881", "usage-clause-compatibility", EditionSeverity.Error,
         "A data description entry combines a USAGE with a clause its syntax rules exclude, or omits one they require (ISO §2023:13.18.60.3 / §2023:13.18.60.4) — a PICTURE (§2023:13.18.40.3) or VALUE (§2023:13.18.63) clause on a usage that admits neither, a restricted `USAGE POINTER TO type-name` whose subject carries no TYPEDEF clause (SR18), and the neighbouring clause exclusions. The site names the rule it caught.",
-        "ISO §2023:13.18.60.3 / §2023:13.18.60.4 / §2023:13.18.40.3 / §2023:13.18.63");
+        "ISO §2023:13.18.60.3 / §2023:13.18.60.4 / §2023:13.18.40.3 / §2023:13.18.63",
+        Rule1985: "§1985:VI.5.14.3 SR3 / §1985:VI.5.14.3 SR6 / §1985:VI.5.14.4 GR1 / §1985:VI.5.3.3 SR3");
     /// <summary>COBOL1529 — the TYPE DECLARATION band: the shape a TYPEDEF entry and a TYPE reference must
     /// have. Covers ISO §2023:13.18.58 (the TYPEDEF clause), §2023:13.18.57.3 (the TYPE clause's syntax rules) and
     /// §2023:8.5.3.1 / §2023:8.5.3.3 (type declarations and strong typing — including SR1's prohibition on an
@@ -4367,7 +4451,8 @@ public static class DiagnosticCatalog
         + "described with, or subordinate to, an OCCURS inside data-name-2 (§2023:14.9.40.3 SR14 e). Rejected at "
         + "bind — the statement is not run.",
         "ISO §2023:14.9.2.3 / §2023:14.9.16.3 / §2023:14.9.21.3 / §2023:14.9.25.3 / §2023:14.9.32.3 / §2023:14.9.34.3 / §2023:14.9.35.3 / "
-        + "§2023:14.9.40.3 / §2023:14.9.44.3 / §2023:14.9.46.3 / §2023:14.9.51.3");
+        + "§2023:14.9.40.3 / §2023:14.9.44.3 / §2023:14.9.46.3 / §2023:14.9.51.3",
+        Rule1985: "§1985:IV.4.2.2.1.2 / §1985:IV.4.2.2.2.1 / §1985:IV.4.3.8.4.2 / §1985:IV.4.3.8.4.4 GR2 / §1985:IX.2.4.3 SR1 / §1985:IX.4.6.3 SR2 / §1985:IX.4.9.3 SR2 / §1985:VI.4.5.4 GR2 / §1985:VI.5.14.3 SR5 / §1985:VI.6.18.3 SR3 / §1985:VI.6.19.3 SR3 / §1985:VI.6.22.2 / §1985:VI.6.22.3 SR3 / §1985:VI.6.23.3 SR5 / §1985:VI.6.23.3 SR6 / §1985:VI.6.25.3 SR1 / §1985:VI.6.4.3 GR3 / §1985:VI.6.6.3 SR1 / §1985:VII.4.5.3 SR2 / §1985:VII.4.7.3 SR2 / §1985:VIII.2.4.3 SR4 / §1985:VIII.4.6.3 SR2 / §1985:VIII.4.9.3 SR2 / §1985:X.1.3.8.2 GR3a / §1985:XI.4.1.2 / §1985:XI.4.1.3 SR10 / §1985:XI.4.1.3 SR11 / §1985:XI.4.1.3 SR2 / §1985:XI.4.1.3 SR3 / §1985:XI.4.1.3 SR4 / §1985:XI.4.1.3 SR5 / §1985:XI.4.1.3 SR7 / §1985:XI.4.1.3 SR8 / §1985:XI.4.2.3 SR1 / §1985:XI.4.3.3 SR2 / §1985:XI.4.4.2 / §1985:XI.4.4.3 SR10 / §1985:XI.4.4.3 SR2 / §1985:XI.4.4.3 SR3 / §1985:XI.4.4.3 SR4 / §1985:XI.4.4.3 SR6 / §1985:XI.4.4.3 SR8 / §1985:XI.4.4.3 SR9 / §1985:XIII.4.3.3 SR1 / §1985:XIII.4.4.3 SR1 / §1985:XIII.4.7.3 SR1");
     /// <summary>COBOL2700 — a SORT or MERGE statement written where its syntax rules bar it (kb/Work PB1139). The
     /// FILE-format SORT "shall not appear in imperative-statement-1 of an exception-checking PERFORM statement, in an
     /// input or output procedure, or in a declarative procedure" (§2023:14.9.40.3 SR3, FORMAT 1 — a table SORT is not
@@ -4389,7 +4474,8 @@ public static class DiagnosticCatalog
         + "procedure of another SORT or MERGE; the exception-checking PERFORM has COBOL1615/1617 and MERGE in a "
         + "sort-merge procedure is the COBOL-2023 removal COBOL1572. A Format-2 table SORT is not subject to SR3. "
         + "Move the statement out of the region, or perform it from outside.",
-        "ISO §2023:14.9.40.3 SR3 / §2023:14.9.24.3 SR1");
+        "ISO §2023:14.9.40.3 SR3 / §2023:14.9.24.3 SR1",
+        Rule1985: "§1985:XI.4.1.3 SR1 / §1985:XI.4.4.3 SR1");
 
     /// <summary>COBOL1756 — the DEFERRAL announcing itself. A statement the grammar accepted but this
     /// compiler binds to <c>BoundUnsupported</c> is staged to a loud run-time refusal (DESIGN §1.4);
@@ -4438,7 +4524,8 @@ public static class DiagnosticCatalog
         + "admitted. Rewrite the statement in a printed format — e.g. an INSPECT … REPLACING TRAILING becomes "
         + "a reference-modified INSPECT … REPLACING ALL over the trailing span, and SEARCH … NOT AT END "
         + "becomes a WHEN branch.",
-        "ISO §2023:4.2.2");
+        "ISO §2023:4.2.2",
+        Rule1985: "§1985:I.1.5.2.5.2 / §1985:IV.2.1 / §1985:IV.4.3.8.1 / §1985:VI.4.5.3 SR2 / §1985:VI.6.10.2 / §1985:VI.6.16.2 / §1985:VI.6.18.2 / §1985:VI.6.22.2 / §1985:VI.6.23.2 / §1985:VI.6.5.2 / §1985:VII.4.7.2");
     // ── The ASSIGN … USING operand screens (kb/Work PB324): §2023:12.4.5.2 SR7's two halves, checked post-build once
     // the data forest is indexed. Two codes, not one, because the halves have different causes and different
     // repairs — a wrong category is a declaration to change, a subordinate operand is a whole design to move. ──
@@ -4526,7 +4613,8 @@ public static class DiagnosticCatalog
         + "by the RECORD clause\" — which has no record-name, so the INTO phrase is the only way the program can "
         + "receive the record. Applies to the sequential, relative and indexed formats (Formats 1 and 2); a report "
         + "file (Format 3) is not read at all (§2023:13.4.5.3 SR9).",
-        "ISO §2023:13.4.5.3 SR3 c)");
+        "ISO §2023:13.4.5.3 SR3 c)",
+        Rule1985: "§1985:VII.3.1");
 
     /// <summary>COBOL0862 — the I-O STATEMENT OPERAND/PHRASE band: a START or WRITE statement writes an
     /// operand or a phrase its own syntax rules do not admit. Covers ISO §2023:14.9.41.3 (START — the access mode,
@@ -4542,7 +4630,8 @@ public static class DiagnosticCatalog
         + "file-name-1 is sequential, either the FIRST or the LAST phrase shall be specified.\"), and what "
         + "data-name-1 may name on each organization; or WRITE's ADVANCING operand and its malformed "
         + "BEFORE/AFTER pair (§2023:14.9.51.3 / §2023:14.9.51.4). The site names the rule it caught.",
-        "ISO §2023:14.9.41.3 / §2023:14.9.51.3 / §2023:14.9.51.4");
+        "ISO §2023:14.9.41.3 / §2023:14.9.51.3 / §2023:14.9.51.4",
+        Rule1985: "§1985:IX.4.7.2 / §1985:IX.4.7.3 SR1 / §1985:IX.4.7.3 SR4 / §1985:VII.4.7.3 SR3 / §1985:VIII.4.7.1 / §1985:VIII.4.7.3 SR1 / §1985:VIII.4.7.3 SR4 / §1985:VIII.4.7.4 GR2");
 
     /// <summary>COBOL5701 — a file control entry omits a clause that the general format of its kind prints with NO
     /// bracket around it (ISO §2023:12.4.5.1, kb/Work PB4236): ASSIGN in all four formats, and RECORD KEY in Format 1. The
@@ -4594,7 +4683,8 @@ public static class DiagnosticCatalog
         + "§2023:12.4.5.6.3 SR2, the other half of the same sentence). The LINAGE-COUNTER qualifier "
         + "(§2023:8.4.3.14 / §2023:13.18.34.4 GR7 a) names a file description entry the same way and lands here too. "
         + "The site names the rule it caught.",
-        "ISO §2023:12.4.5.1 / §2023:12.4.5.2 / §2023:12.4.5.12.3 / §2023:12.4.5.6.3 / §2023:12.4.5.13.3 / §2023:8.4.3.14 / §2023:13.18.34");
+        "ISO §2023:12.4.5.1 / §2023:12.4.5.2 / §2023:12.4.5.12.3 / §2023:12.4.5.6.3 / §2023:12.4.5.13.3 / §2023:8.4.3.14 / §2023:13.18.34",
+        Rule1985: "§1985:II.6.2.1 / §1985:IV.4.3.8.2.3 SR4 / §1985:IX.2.3.2 / §1985:IX.2.5.3 SR2 / §1985:IX.2.5.3 SR3 / §1985:IX.2.5.3 SR4 / §1985:IX.2.5.3 SR5 / §1985:IX.2.7.3 SR2 / §1985:IX.2.7.3 SR3 / §1985:IX.2.7.3 SR4 / §1985:VII.2.6.3 GR3 / §1985:VIII.2.3.2 / §1985:VIII.2.4.2 / §1985:VIII.2.4.3 SR2 / §1985:VIII.2.4.3 SR3 / §1985:X.1.3.8.2 GR1");
 
     /// <summary>COBOL1900 — §2023:12.4.5.2 SR8, SR9 and SR11's SECOND sentence, which all print verbatim: "The
     /// associated file description entry shall not be a sort-merge file description entry" (kb/Work PB742,
@@ -4634,7 +4724,8 @@ public static class DiagnosticCatalog
         + "\"Format 3 shall be specified only for a sequential file or a report file.\" The ORGANIZATION clause "
         + "is what makes the file indexed or relative, so either the Format-3 clause is removed or the "
         + "organization is changed.",
-        "ISO §2023:12.4.5.2 SR11");
+        "ISO §2023:12.4.5.2 SR11",
+        Rule1985: "§1985:IX.2.3.2 / §1985:VIII.2.3.2");
 
     /// <summary>COBOL1858 — §2023:12.4.5.5.2 SR2, the ACCESS MODE clause's own organization rule, checked on the
     /// FILE CONTROL ENTRY (kb/Work PB692). One descriptor, not one per phrase: DYNAMIC and RANDOM are two
@@ -4650,7 +4741,8 @@ public static class DiagnosticCatalog
         + "the RECORD SEQUENTIAL phrase\". Accepting the combination "
         + "makes a keyless connector reachable under the keyed access rules: with no NEXT implied (§2023:14.9.30.3 "
         + "SR8/SR9), §2023:14.9.30.4 GR19 reads the file as a Format-2 random read on a file that has no keys.",
-        "ISO §2023:12.4.5.5.2 SR2");
+        "ISO §2023:12.4.5.5.2 SR2",
+        Rule1985: "§1985:VII.2.4.2");
 
     /// <summary>COBOL1910 — §2023:14.9.51.3 SR17, the ONE rule that restricts the COBOL-2023 combined
     /// <c>BEFORE AFTER ADVANCING</c> phrase (kb/Work PB712). The pair itself is legal (Annex §2023:E.3.3 item 2);
@@ -4771,7 +4863,8 @@ public static class DiagnosticCatalog
         + "shall not exceed the native set's — follows from a): distinct characters of a set cannot outnumber "
         + "the set. An unsupported code-name is COBOL1907, SR15; a form violation of the clause itself is "
         + "the COBOL0898 band.)",
-        "ISO §2023:12.3.7.3 SR14");
+        "ISO §2023:12.3.7.3 SR14",
+        Rule1985: "§1985:VI.4.5.3 SR3 / §1985:VI.4.5.3 SR4a / §1985:VI.4.5.3 SR4b / §1985:VI.4.5.3 SR5");
     public static readonly DiagnosticDescriptor AlphabetCodeNameUnsupported = new(
         "COBOL1907", "alphabet-code-name", EditionSeverity.Error,
         "An ALPHABET clause names a code-name-1 (alphanumeric) or code-name-2 (national) this implementation does "
@@ -4785,7 +4878,8 @@ public static class DiagnosticCatalog
         + "that is none of those used to be silently reinterpreted as the CHARACTERS OF ITS OWN SPELLING — "
         + "ALPHABET A IS ASCII built an alphabet whose first four positions were A, S, C, I — which every "
         + "downstream reference then read (kb/Work PB770 leg e).",
-        "ISO §2023:12.3.7.3 SR15");
+        "ISO §2023:12.3.7.3 SR15",
+        Rule1985: "§1985:VI.4.5.4 GR4c");
 
     // kb/Work PB732. The VALUE clause resolves its own operands and never enters the R30 chokepoint
     // (ReferenceResolver.Resolve), so its literal-position screen is DataBinder.IsLiteralValueOperand. A word
@@ -4821,7 +4915,8 @@ public static class DiagnosticCatalog
         + "two groups are refused when their variable-length components do not correspond by relative byte "
         + "position (§2023:8.5.1.12.2) or do not match (§2023:8.5.1.12.3). INITIALIZE is the statement that fills such a "
         + "group without a compatible sender (§2023:14.9.20.4 GR7/GR10).",
-        "ISO §2023:14.9.25.3 SR9 / §2023:8.5.1.12");
+        "ISO §2023:14.9.25.3 SR9 / §2023:8.5.1.12",
+        No1985Rule: No1985Dynamic);
     // kb/Work PB495. ISO §2023:13.18.60.4 GR1 lets a group's USAGE clause reach an elementary item that never wrote
     // one; §2023:13.18.60.3 SR2 is the rule that governs what happens when the item DID write one — the two clauses
     // are permitted to coexist, but not to disagree. The compiler had no site for SR2 at all, so the nearer
@@ -4838,7 +4933,8 @@ public static class DiagnosticCatalog
         + "implementor), and COMP-3 and PACKED-DECIMAL are likewise one. The violation is reported against the "
         + "SUBORDINATE entry, against the NEAREST enclosing entry that wrote a clause, so a chain of "
         + "contradictions reports each link once.",
-        "ISO §2023:13.18.60.3 SR2");
+        "ISO §2023:13.18.60.3 SR2",
+        Rule1985: "§1985:VI.5.14.3 SR2");
     // kb/Work PB528 (data-model design D24). The COMPOSITION of a Format-1 PICTURE character-string, which
     // ISO §2023:13.18.40.3 SR2 states in two halves: the symbols shall be picture symbols (MEMBERSHIP — COBOL0808)
     // and they shall form "an allowable COMBINATION", whose allowable combinations "are specified in 13.18.40.6,
@@ -4857,7 +4953,8 @@ public static class DiagnosticCatalog
         + "editing sign control symbol as FIXED insertion; SR29 — for floating insertion, at least one insertion "
         + "symbol to the LEFT of the decimal point position. Under DECIMAL-POINT IS COMMA every rule written for "
         + "the period reads for the comma and vice versa (SR13), so the message names the separator in force.",
-        "ISO §2023:13.18.40.3 SR12-SR29");
+        "ISO §2023:13.18.40.3 SR12-SR29",
+        Rule1985: "§1985:VI.5.4.3 SR1 / §1985:VI.5.9.3 SR7 / §1985:VI.5.9.4 GR7 / §1985:VI.5.9.4 GR8 / §1985:VI.5.9.5 GR3 / §1985:VI.5.9.5 GR5 / §1985:VI.5.9.5 GR6 / §1985:VI.5.9.5 GR7 / §1985:VI.5.9.6");
     public static readonly DiagnosticDescriptor PicturePrecedence = new(
         "COBOL1935", "picture-precedence", EditionSeverity.Error,
         "A Format-1 PICTURE character-string is not an ALLOWABLE COMBINATION of picture symbols: ISO "
@@ -4871,7 +4968,8 @@ public static class DiagnosticCatalog
         + "position). This is also how SR25 and SR26 bind — the leading-sign row is empty, so nothing may "
         + "precede a leading sign; the trailing-sign and 'CR'/'DB' columns are empty, so nothing may follow one. "
         + "Under DECIMAL-POINT IS COMMA the precedence rules for comma and period are interchanged.",
-        "ISO §2023:13.18.40.3 SR2 / §2023:13.18.40.6 Table 10");
+        "ISO §2023:13.18.40.3 SR2 / §2023:13.18.40.6 Table 10",
+        Rule1985: "§1985:VI.5.9.5 GR6 / §1985:VI.5.9.6");
     // ── SET statement Format 15 (numeric-content), ISO §2023:14.9.39.3 SR31/SR32 — kb/Work PB452 ────────────────
     public static readonly DiagnosticDescriptor SetContentNotNumeric = new(
         "COBOL1938", "set-content-not-numeric", EditionSeverity.Error,
@@ -4882,7 +4980,8 @@ public static class DiagnosticCatalog
         + "numeric or numeric-edited\" and this one does not. An index item, a group, an alphanumeric item and a "
         + "reference-modified item are refused here for the same reason: none of them is a numeric data item "
         + "under §2023:8.5.2.12.",
-        "ISO §2023:14.9.39.3 SR31");
+        "ISO §2023:14.9.39.3 SR31",
+        No1985Rule: No1985SetContent);
     public static readonly DiagnosticDescriptor SetContentSignRequired = new(
         "COBOL1939", "set-content-sign-required", EditionSeverity.Error,
         "ISO §2023:14.9.39.3 syntax rule 31 a)/b): when identifier-14 describes a SIGNED numeric item whose positive "
@@ -4893,7 +4992,8 @@ public static class DiagnosticCatalog
         + "−32768..32767, so FARTHEST-FROM-ZERO alone would have to choose between two different magnitudes. "
         + "Write SIGN POSITIVE or SIGN NEGATIVE. A DIGIT-COUNT item (PIC S9(4) DISPLAY, ±9999) is symmetric and "
         + "needs no phrase.",
-        "ISO §2023:14.9.39.3 SR31 a)/b)");
+        "ISO §2023:14.9.39.3 SR31 a)/b)",
+        No1985Rule: No1985SetContent);
     public static readonly DiagnosticDescriptor SetContentNotStandardFloat = new(
         "COBOL1940", "set-content-not-standard-float", EditionSeverity.Error,
         "ISO §2023:14.9.39.3 syntax rule 32: \"If FLOAT-INFINITY, FLOAT-NOT-A-NUMBER, or FLOAT-NOT-A-NUMBER-SIGNALING "
@@ -4931,7 +5031,8 @@ public static class DiagnosticCatalog
         + "edition and every strictness: §2023:4.2.2 makes a general format's syntax the definition of what may be "
         + "written, and this implementation declares no vendor dialect under which an extension clause could be "
         + "admitted. A vendor extension is admitted only under the dialect that owns it, never by a catch-all.",
-        "ISO §2023:13.16.2 / §2023:4.2.2");
+        "ISO §2023:13.16.2 / §2023:4.2.2",
+        Rule1985: "§1985:IX.2.3.2 / §1985:IX.2.8.2 / §1985:IX.3.2.2 / §1985:VI.5.3.2 / §1985:VIII.2.3.2 / §1985:VIII.2.6.2 / §1985:VIII.3.2.2 / §1985:XI.2.3.2 / §1985:XI.2.4.2");
 
     /// <summary>COBOL1942 — ISO §2023:13.18.1.3 SR1, the ALIGNED clause's one syntax rule. ALIGNED had no grammar
     /// rule at all until kb/Work PB487 and was swallowed by the catch-all, so `05 B2 PIC 1(4) USAGE BIT ALIGNED.`
@@ -4984,7 +5085,8 @@ public static class DiagnosticCatalog
         + "(§2023:8.4.2.3.2). Refused in BOTH dialect lanes: the reference has a computable occurrence number, so "
         + "accepting it would silently read or write the wrong table element rather than fail — there is no "
         + "leniency to offer that is not a wrong answer.",
-        "ISO §2023:8.4.2.3.3 SR4");
+        "ISO §2023:8.4.2.3.3 SR4",
+        Rule1985: "§1985:IV.4.3.8.2.3 SR3");
 
     // ── COBOL1964–1966 — the SEARCH ALL Format-2 operand rules (ISO §2023:14.9.37.3 SR7–SR13) ──────────────────
     //    SEVEN consecutive syntax rules that all read the SAME two things — the OCCURS KEY phrase of identifier-1
@@ -5083,7 +5185,8 @@ public static class DiagnosticCatalog
         + "NEXT SENTENCE targets (§2023:14.9.37.4 GR1 a)), so the standard gives the pair no meaning. Write CONTINUE in "
         + "the WHEN phrase (control then goes to the end of the SEARCH statement), or drop END-SEARCH and end the "
         + "sentence with a period.",
-        "ISO §2023:14.9.37.3 SR4");
+        "ISO §2023:14.9.37.3 SR4",
+        Rule1985: "§1985:VI.6.22.3 SR5");
 
     // ── COBOL1976–1977 — the level-88 condition-name association rules (ISO §2023:13.16.3 SR24) ──────────
 
@@ -5120,7 +5223,8 @@ public static class DiagnosticCatalog
         + "is a constant entry (§2023:13.10), which describes no data item. A condition-name with no conditional "
         + "variable has nothing to test, so it is refused at compile time rather than bound to whatever entry "
         + "happens to precede it.",
-        "ISO §2023:13.16.3 SR24");
+        "ISO §2023:13.16.3 SR24",
+        Rule1985: "§1985:VI.5.3.4 GR2");
 
     // ── COBOL1970/1971 — the CLOSED general formats OUTSIDE the data description entry (kb/Work PB829).
     //    ONE grammar rule — `genericClause : IDENTIFIER (IDENTIFIER|literal)*`, described in the grammar as a
@@ -5152,7 +5256,8 @@ public static class DiagnosticCatalog
         + "vendor extension is admitted only under the dialect that owns it, never by a catch-all. The clauses "
         + "each format admits are listed in its own subclause, and are reproduced — rendered from the printed "
         + "page, not read off the OCR — above each alternative list in the grammar.",
-        "ISO §2023:4.2.2 / §2023:13.4.5.2 / §2023:13.4.6.2 / §2023:12.4.5.1 / §2023:12.4.6.2 / §2023:12.3.7.2");
+        "ISO §2023:4.2.2 / §2023:13.4.5.2 / §2023:13.4.6.2 / §2023:12.4.5.1 / §2023:12.4.6.2 / §2023:12.3.7.2",
+        Rule1985: "§1985:IX.2.3.2 / §1985:IX.2.8.2 / §1985:IX.3.2.2 / §1985:VI.4.3.2 / §1985:VI.4.4.2 / §1985:VI.4.5.2 / §1985:VIII.2.3.2 / §1985:VIII.2.6.2 / §1985:VIII.3.2.2 / §1985:XI.2.3.2 / §1985:XI.2.4.2 / §1985:XI.3.2.2");
 
     /// <summary>COBOL1971 — a paragraph header that is not one of the paragraphs its enclosing general format
     /// lists: the configuration section (§2023:12.3.2, four bracketed paragraphs) and the identification division
@@ -5171,7 +5276,8 @@ public static class DiagnosticCatalog
         + "edition and every strictness (§2023:4.2.2). ⚠ The COMMENT-ENTRY bodies of the removed paragraphs are "
         + "a different matter and are untouched: a comment-entry is arbitrary text by definition, which is why "
         + "ISO/IEC 1989:2023 defines no syntax for one anywhere.",
-        "ISO §2023:4.2.2 / §2023:12.3.2 / §2023:11.2.1");
+        "ISO §2023:4.2.2 / §2023:12.3.2 / §2023:11.2.1",
+        Rule1985: "§1985:IX.2.3.2 / §1985:IX.2.8.2 / §1985:IX.3.2.2 / §1985:VI.3.2.1 / §1985:VI.4.2 / §1985:VIII.2.3.2 / §1985:VIII.2.6.2 / §1985:VIII.3.2.2 / §1985:XI.2.3.2 / §1985:XI.2.4.2");
     /// <summary>COBOL7654 — something that is no system-name is written where the SOURCE-COMPUTER or OBJECT-COMPUTER paragraph's
     /// computer-name-1 stands (kb/Work PB5920): a nonnumeric literal or a number, the paragraph's
     /// header followed at once by the run the closed format's error production takes. §1985:VI.4.3.3 SR1 and §1985:VI.4.4.3 SR1:
@@ -5414,7 +5520,8 @@ public static class DiagnosticCatalog
         + "GREATER, not \"greater than or equal\", and a fixed-size file is written in Format 1. Until "
         + "kb/Work PB721 an inverted RECORD range compiled clean and the program learned about it only as an I-O "
         + "status '44' from §2023:13.18.43.4 GR14 a) at run time, on the first WRITE.",
-        "ISO §2023:13.18.43.3 SR5 / SR9; §2023:13.18.10.3 SR1");
+        "ISO §2023:13.18.43.3 SR5 / SR9; §2023:13.18.10.3 SR1",
+        Rule1985: "§1985:VII.3.3.1 / §1985:VII.3.3.3 GR4 / §1985:VII.3.8.3 SR3");
 
     /// <summary>COBOL2010 — a record description entry of the file describes a record whose size falls outside
     /// the range the FD's RECORD clause states: ISO §2023:13.18.43.3 SR3 (Format 1) and SR4 (Format 2, whose single
@@ -5476,7 +5583,8 @@ public static class DiagnosticCatalog
         + "so no reference-modified spelling can be the numeric data item SR5 requires. (The SUBSCRIPTED "
         + "spelling is legal and supported — identifier-1 is §2023:8.4.3.1.2 Format 2's "
         + "qualified-data-name-with-subscripts.)",
-        "ISO §2023:13.18.54.3 / §2023:13.18.54.4 / §2023:8.4.3.3.4");
+        "ISO §2023:13.18.54.3 / §2023:13.18.54.4 / §2023:8.4.3.3.4",
+        Rule1985: "§1985:IV.4.3.8.4.4 GR5 / §1985:XIII.3.19.3 SR1");
 
     /// <summary>COBOL2046 — an <c>UPON</c> operand that is not the name of a detail, or is qualified by
     /// something other than a single report-name (§2023:13.18.54.3 SR7).</summary>
@@ -5489,7 +5597,8 @@ public static class DiagnosticCatalog
         + "the report-name of §2023:8.4.2.2.2 Format 1; a subscript or a reference modifier is not admitted at all, "
         + "since §2023:8.4.2.3.3 SR2 permits a subscript only for an item with an OCCURS clause and §2023:8.4.3.3.3 SR5's "
         + "NOTE bars reference modification wherever a general format writes data-name-n.",
-        "ISO §2023:13.18.54.3 / §2023:13.18.54.4 / §2023:14.9.16.3");
+        "ISO §2023:13.18.54.3 / §2023:13.18.54.4 / §2023:14.9.16.3",
+        Rule1985: "§1985:XIII.3.19.3 SR2");
 
     /// <summary>COBOL2024 — a file's clause operand is written in a shape a <i>data-name-n</i> position does
     /// not admit (kb/Work PB489). Where a general format prints data-name-n the reference is a
@@ -5555,7 +5664,8 @@ public static class DiagnosticCatalog
         + "permanent property of the language, not a feature awaiting implementation. The counter is set by "
         + "OPEN OUTPUT and by each WRITE (GR7 c / GR7 d); a program that needs its own line count shall keep it "
         + "in its own data item.",
-        "ISO §2023:8.4.3.14.3 SR2 / §2023:13.18.34.4 GR7 b)");
+        "ISO §2023:8.4.3.14.3 SR2 / §2023:13.18.34.4 GR7 b)",
+        Rule1985: "§1985:VII.1.3.7");
 
     /// <summary>COBOL2904 — LINAGE-COUNTER written in a DATA DIVISION operand that is not a data-name-n clause
     /// position (kb/Work PB1431): a report-section SOURCE operand or arithmetic expression, a PRESENT WHEN
@@ -5571,7 +5681,8 @@ public static class DiagnosticCatalog
         + "referenced only in procedure division statements.\" The register is generated by a LINAGE clause "
         + "(§2023:8.4.3.14.1) and maintained by the input-output control system, so a report-section SOURCE operand or "
         + "expression, PRESENT WHEN condition, SUM addend or VARYING expression cannot name it. Move it to a data "
-        + "item in a procedure division statement and name that item.", "ISO §2023:8.4.3.14.3 SR1");
+        + "item in a procedure division statement and name that item.", "ISO §2023:8.4.3.14.3 SR1",
+        Rule1985: "§1985:VII.1.3.7");
 
     /// <summary>COBOL3146 — a relation condition whose subject and object are both literals (kb/Work PB1470).
     /// ISO §2023:8.8.4.2.1 closes its general rules with an unnumbered sentence (cite.py stamps it "13)"): "A relation
@@ -5640,7 +5751,8 @@ public static class DiagnosticCatalog
         + "identifier-1 alone (ISO §2023:8.8.4.4.2), and the condition tests the characters of the data item identifier-1 "
         + "references; a parenthesized operand, an arithmetic or boolean expression or a literal is a value, not a data item "
         + "(§2023:8.8.1.2 GR1). Write the identifier without parentheses.",
-        "ISO §2023:8.8.4.4.2; §2023:8.8.1.2 GR1");
+        "ISO §2023:8.8.4.4.2; §2023:8.8.1.2 GR1",
+        Rule1985: "§1985:VI.6.3.1.2");
 
     // ── COBOL2030/2031 — the two §2023:14.9.20.3 screens INITIALIZE never asked at the one place identifier-1 and
     //    its REPLACING operands are resolved (kb/Work PB416). The statement's other two unasked rules need no new
@@ -5660,7 +5772,8 @@ public static class DiagnosticCatalog
         + "excludes an index item CONTAINED IN identifier-1 from the receiver set and leaves it silently "
         + "unchanged; applying that exclusion to identifier-1 itself is what turned this syntax error into a "
         + "no-op, so a subordinate index item is still skipped without a word and only the target is diagnosed.",
-        "ISO §2023:14.9.20.3 / §2023:8.5.2.1 / §2023:8.5.2.8");
+        "ISO §2023:14.9.20.3 / §2023:8.5.2.1 / §2023:8.5.2.8",
+        Rule1985: "§1985:VI.6.17.3 SR5");
 
     /// <summary>COBOL2031 — §2023:14.9.20.3 SR4's MOVE half: the implicit MOVE the REPLACING phrase names would not
     /// be a valid MOVE statement.</summary>
@@ -5676,7 +5789,8 @@ public static class DiagnosticCatalog
         + "group happens to contain an item of that category. The same screen answers both statements "
         + "(MoveTable16), so an INITIALIZE REPLACING pair and the MOVE a programmer would write by hand can no "
         + "longer disagree.",
-        "ISO §2023:14.9.20.3 / §2023:14.9.20.4 / §2023:14.9.25.3");
+        "ISO §2023:14.9.20.3 / §2023:14.9.20.4 / §2023:14.9.25.3",
+        Rule1985: "§1985:VI.6.17.3 SR2");
     /// <summary>COBOL2048 — §2023:13.18.63.3 SR27: the VALUE clause's <c>WHEN SET TO FALSE</c> literal-4 names a
     /// value the condition-name is TRUE for. kb/Work PB555: unreachable until <c>Condition88</c> carried
     /// literal-4 at all.</summary>
@@ -5736,7 +5850,8 @@ public static class DiagnosticCatalog
         + "implementation. Remove the subscript, or describe the item (or a containing group) with an OCCURS "
         + "clause. ⚠ If the parenthesis was meant to be reference modification, write the colon form "
         + "(§2023:8.4.3.3) — `ITEM (1:4)`.",
-        "ISO §2023:8.4.2.3.3 SR2");
+        "ISO §2023:8.4.2.3.3 SR2",
+        Rule1985: "§1985:IV.4.3.8.2.3 SR1 / §1985:IV.4.3.8.4");
 
     /// <summary>COBOL2097 — §2023:8.4.2.3.3 SR3: the reference writes a number of subscripts other than the number
     /// of OCCURS clauses in the description of the table element being referenced.</summary>
@@ -5771,7 +5886,8 @@ public static class DiagnosticCatalog
         + "As a data-name addend in the SUM clause of a report description entry.\" A table element is an item whose "
         + "description contains an OCCURS clause or is subordinate to one; write one subscript per OCCURS clause, "
         + "outermost first (SR3), or name the containing group instead if the whole table was meant.",
-        "ISO §2023:8.4.2.3.3 SR5");
+        "ISO §2023:8.4.2.3.3 SR5",
+        Rule1985: "§1985:IV.4.3.8.2.3 SR4");
 
     // ── COBOL2106 / COBOL2107 — EVALUATE's TWO REMAINING SYNTAX-RULE SCREENS (kb/Work PB399) ───────
     //    §2023:14.9.13.3 SR2 (the selection-object count) and SR4/SR9 (the range-expression's operands). Both were
@@ -5965,7 +6081,8 @@ public static class DiagnosticCatalog
         + "END-PERFORM: one bracket over three stacked alternatives, which admits at most one of them. A "
         + "varying-phrase already carries its own UNTIL condition; to iterate a fixed count under a further "
         + "condition, nest one inline PERFORM inside another.",
-        "ISO §2023:4.2.2 / §2023:14.9.28.2 Format 2");
+        "ISO §2023:4.2.2 / §2023:14.9.28.2 Format 2",
+        Rule1985: "§1985:VI.6.21.2");
 
     /// <summary>COBOL2118 — an exception-checking (Format-3) PERFORM carries a loop-control phrase.
     /// §2023:14.9.28.2 Format 3's head is <c>[ WITH LOCATION ]</c> and nothing else: it prints no times-phrase, no
@@ -5995,7 +6112,8 @@ public static class DiagnosticCatalog
         + "{ identifier-4 | literal-2 } — an identifier in every §2023:8.4.3.1.2 form (qualified, subscripted, "
         + "reference-modified, a function-identifier), an index-name, or a numeric literal including the "
         + "figurative ZERO, but not an arithmetic expression. Compute the expression into a data item first.",
-        "ISO §2023:4.2.2 / §2023:14.9.28.2");
+        "ISO §2023:4.2.2 / §2023:14.9.28.2",
+        Rule1985: "§1985:VI.6.21.2");
 
     /// <summary>COBOL2120 — a PERFORM VARYING operand violates one of §2023:14.9.28.3's lettered operand rules:
     /// SR4 a)/b)/c) (an index-name in the VARYING or AFTER phrase), SR5 a)/b)/c) (an index-name in the FROM
@@ -6012,7 +6130,8 @@ public static class DiagnosticCatalog
         + "identifier shall reference integer data items and the BY literal shall be an integer. SR6 forbids a "
         + "zero BY literal outright, in every case — the augment value would be zero, so no induction variable "
         + "would ever change and the UNTIL condition could never become true through the phrase.",
-        "ISO §2023:14.9.28.3 SR4 / SR5 / SR6");
+        "ISO §2023:14.9.28.3 SR4 / SR5 / SR6",
+        Rule1985: "§1985:VI.6.21.3 / §1985:VI.6.21.3 SR4 / §1985:VI.6.21.3 SR7a");
     /// <summary>A TYPE entry violates §2023:13.16.3 SR14's same-entry composition rule — the TYPE clause's twin of
     /// SR12, which COBOL1555 carries for SAME AS. The two rules are the WARRANT for the one description copy
     /// (<c>DataBinder.CopyEntryDescription</c>, whose receiver-wins <c>??=</c> is safe only while neither
@@ -6049,7 +6168,8 @@ public static class DiagnosticCatalog
         + "error at --std 85 and one of 51 to 63 at --std 2002, the message naming the edition's bound and where "
         + "63 begins (constructs rows picture-string-50-2002 and picture-string-63-2014, VCR row 7.46; "
         + "kb/Work PB4304).",
-        "ISO §2023:13.18.40.3 SR4");
+        "ISO §2023:13.18.40.3 SR4",
+        Rule1985: "§1985:VI.5.9.3 SR4");
 
     /// <summary>COBOL2147 — a parenthesized repetition factor that is not an unsigned nonzero integer (ISO
     /// §2023:13.18.40.3 SR6).</summary>
@@ -6063,7 +6183,8 @@ public static class DiagnosticCatalog
         + "System.ArgumentOutOfRangeException with no COBOL diagnostic and no source location, by both the "
         + "literal route and the constant-name route (`01 N CONSTANT AS -3.` + `PIC 9(N)`), and the signed "
         + "positive spelling was accepted silently (kb/Work PB531).",
-        "ISO §2023:13.18.40.3 SR6");
+        "ISO §2023:13.18.40.3 SR6",
+        Rule1985: "§1985:VI.5.9.4 GR7");
 
     /// <summary>COBOL7078 — at COBOL-85, a parenthesized repetition factor follows a symbol the 1985 list does not name (kb/Work
     /// PB5118): S, V, the decimal point, CR or DB.</summary>
@@ -6089,7 +6210,8 @@ public static class DiagnosticCatalog
         + "whose UTF-16 image (2 bytes per character position, alphanumeric and national alike) stays inside "
         + ".NET's single-object ceiling. Past it the compiler used to die with an OutOfMemoryException out of "
         + "`StringBuilder.Append(char, int)` rather than name the source line (kb/Work PB531).",
-        "ISO §2023:13.18.40.3 SR4 / SR14; Annex A.1 (no maximum-item-size item)");
+        "ISO §2023:13.18.40.3 SR4 / SR14; Annex A.1 (no maximum-item-size item)",
+        Rule1985: "§1985:VI.5.9.3 SR4");
 
     /// <summary>COBOL2149 — a PICTURE EDITING phrase whose character-1 is written as a quoted literal
     /// (ISO §2023:13.18.40.2 Format 1 writes it bare).</summary>
@@ -6171,7 +6293,8 @@ public static class DiagnosticCatalog
         + "the addend is arithmetic-expression-1, any identifiers it contains may reference entries in any "
         + "section of the data division other than the report section.\" The two clauses draw the line in "
         + "different places and each is enforced against its own rule.",
-        "ISO §2023:13.18.53.3 / §2023:13.18.54.3");
+        "ISO §2023:13.18.53.3 / §2023:13.18.54.3",
+        Rule1985: "§1985:XIII.3.18.3 SR1 / §1985:XIII.3.19.2");
 
     /// <summary>COBOL2145 — a procedure division reference to a SUM COUNTER that identifies no single counter:
     /// the qualifiers written reach no counter of the name, or the name with its qualifiers is established by more
@@ -6189,7 +6312,8 @@ public static class DiagnosticCatalog
         + "REFERENCE that §2023:8.4.2.2.1 requires to identify one resource uniquely, and a sum counter is qualified "
         + "by the data-names of the report group description entries it is subordinate to (§2023:8.4.2.2.3 SR4) and "
         + "by its report-name (§2023:8.4.2.2.2 Format 1).",
-        "ISO §2023:13.18.54.4 / §2023:8.4.2.2.1 / §2023:8.4.2.2.2");
+        "ISO §2023:13.18.54.4 / §2023:8.4.2.2.1 / §2023:8.4.2.2.2",
+        Rule1985: "§1985:IV.4.3.8.1 SR3 / §1985:XIII.3.19.3 SR5 / §1985:XIII.3.19.4 GR1 / §1985:XIII.3.19.4 GR5");
     /// <summary>A reference to a report group description entry's data-name from a procedure division statement or from
     /// a clause of a data division section other than the report section (kb/Work PB1046). The name IS declared — in the
     /// report section — so the refusal is for the position, not for the name: §2023:13.8.6.2.3 closes the list of ways a
@@ -6267,7 +6391,8 @@ public static class DiagnosticCatalog
         + "character. If a sign is used, it shall appear as the leftmost character of the literal\" — and a space "
         + "is a separator (§2023:8.3.5), so `- 5` is two things, not the literal -5. Screened in every signed literal slot "
         + "(LiteralScreen) and in the VALUE clause's literal positions, which admit no arithmetic expression.",
-        "ISO §2023:8.3.3.3.2 2)");
+        "ISO §2023:8.3.3.3.2 2)",
+        Rule1985: "§1985:IV.4.2.1 SR1 / §1985:IV.4.2.2.2.2 SR2 / §1985:VI.5.15.2");
 
     /// <summary>The literal of the EXTERNAL clause's <c>AS</c> phrase violated §2023:13.18.22.3 SR3: "Literal-1
     /// shall be an alphanumeric or national literal and shall be neither a figurative constant nor a
@@ -6458,7 +6583,8 @@ public static class DiagnosticCatalog
         + "('The words VALUE and VALUES are equivalent') is a FORMAT 2 rule, reached by Format 3 through SR24 and "
         + "by Format 4 through SR34; Format 1 applies neither, which is why VALUES is not a Format-1 spelling. "
         + "§2023:13.18.63.3 SR39 states the same pairing for Format 5, the one format that detaches the connective.",
-        "ISO §2023:13.18.63.2 / §2023:13.18.63.3 SR17 / SR39 / §2023:5.2.6.3");
+        "ISO §2023:13.18.63.2 / §2023:13.18.63.3 SR17 / SR39 / §2023:5.2.6.3",
+        Rule1985: "§1985:VI.5.15.2");
     /// <summary>A <c>PERFORM procedure-name-1 THRU procedure-name-2</c> range has one end in the DECLARATIVES
     /// portion of the procedure division and the other outside it, or its two ends in two DIFFERENT declarative
     /// sections — §2023:14.9.28.3 SR11: "When procedure-name-1 and procedure-name-2 are both specified and either is
@@ -6472,7 +6598,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor PerformRangeDeclaratives = new(
         "COBOL2186", "perform-range-declaratives", EditionSeverity.Error,
         "A PERFORM THRU range crosses the declaratives boundary or two declarative sections.",
-        "ISO §2023:14.9.28.3");
+        "ISO §2023:14.9.28.3",
+        Rule1985: "§1985:VI.6.21.3 SR11 / §1985:VI.6.21.4 GR7");
 
     /// <summary>A <c>&gt;&gt;TURN</c>, <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> directive is written lexically
     /// within an exception-checking (Format-3) PERFORM statement — §2023:7.3.25.3 SR5, §2023:7.3.22.3 SR4 and §2023:7.3.20.3
@@ -6771,7 +6898,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor PictureAtElementaryLevel = new(
         "COBOL2191", "picture-at-elementary-level", EditionSeverity.Error,
         "A PICTURE clause was specified on an entry that has subordinate entries.",
-        "ISO §2023:13.18.40.3 SR1 / §2023:8.5.1.3.1");
+        "ISO §2023:13.18.40.3 SR1 / §2023:8.5.1.3.1",
+        Rule1985: "§1985:VI.5.3.4 GR1 / §1985:VI.5.9.3 SR1");
     /// <summary>EXCEPTION-OBJECT was written as a receiving operand. §2023:8.4.3.6.3 SR1 states the rule for EVERY
     /// receiving operand in the language — "EXCEPTION-OBJECT shall not be specified as a receiving operand" —
     /// and §2023:8.4.3.6.4 GR1 gives the reason: the predefined object reference denotes "the current exception
@@ -6810,7 +6938,8 @@ public static class DiagnosticCatalog
         + "pointer, or a variable-length group. ISO §2023:8.8.4.4.3 SR1: \"Identifier-1 shall not reference a data "
         + "item of class index, message-tag, object, or pointer, nor a strongly-typed group, nor a "
         + "variable-length group.\"",
-        "ISO §2023:8.8.4.4.3 SR1 / §2023:13.18.60.4");
+        "ISO §2023:8.8.4.4.3 SR1 / §2023:13.18.60.4",
+        Rule1985: "§1985:VI.6.3.1.2");
     /// <summary>BOOLEAN was specified in a class condition over a numeric or numeric-edited operand. ISO
     /// §2023:8.8.4.4.3 SR5: "BOOLEAN shall not be specified if the category of the data item referenced by
     /// identifier-1 is numeric or numeric-edited." One category short of SR4's list (which also names boolean),
@@ -6876,7 +7005,8 @@ public static class DiagnosticCatalog
         "Two programs contained within one outermost program share a program-name. ISO §2023:8.4.6.3: \"The names "
         + "assigned to programs that are contained directly or indirectly within the same outermost program "
         + "shall be unique within that outermost program.\"",
-        "ISO §2023:8.4.6.3");
+        "ISO §2023:8.4.6.3",
+        Rule1985: "§1985:X.1.3.8.1");
 
     /// <summary>COBOL2215 — a FLOAT-INFINITY / FLOAT-NOT-A-NUMBER[-QUIET|-SIGNALING] class condition over an
     /// operand that is not described with a STANDARD floating-point usage (ISO §2023:8.8.4.4.3 SR7; kb/Work PB225). The
@@ -6899,7 +7029,8 @@ public static class DiagnosticCatalog
         "A FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE or NEAREST-TO-ZERO class condition references an operand whose "
         + "category is not numeric. ISO §2023:8.8.4.4.3 SR6: \"If FARTHEST-FROM-ZERO, IN-ARITHMETIC-RANGE, or "
         + "NEAREST-TO-ZERO is specified, identifier-1 shall reference a data item whose category is numeric.\"",
-        "ISO §2023:8.8.4.4.3 SR6");
+        "ISO §2023:8.8.4.4.3 SR6",
+        Rule1985: "§1985:IV.4.3.3 / §1985:VI.6.3.1.2");
     /// <summary>A function-identifier names a function-pointer but writes no argument-list parentheses (kb/Work
     /// PB847). ISO §2023:8.4.3.2.3 SR5: <i>"If function-pointer-name-1 is specified, the parentheses shall be
     /// specified."</i> A prototype or intrinsic reference may omit an empty list; a function-pointer reference may
@@ -6976,7 +7107,8 @@ public static class DiagnosticCatalog
         + "within the brackets may be explicitly specified\". §2023:12.3.7.4 GR7 places a THROUGH run on ascending "
         + "positions and an ALSO group on ONE shared position, so a merged entry has no meaning: write the range "
         + "and the equivalences as separate entries.",
-        "ISO §2023:12.3.7.2; §2023:5.2.6.2");
+        "ISO §2023:12.3.7.2; §2023:5.2.6.2",
+        Rule1985: "§1985:VI.4.5.2");
 
     /// <summary>The ADVANCING operand of a WRITE is a mnemonic-name that is not a feature-name's (kb/Work PB862):
     /// a switch's or a device's mnemonic used to bind as a zero-line advance.</summary>
@@ -6987,7 +7119,8 @@ public static class DiagnosticCatalog
         + "feature-name specified by the implementor.\" §2023:12.3.7.3 SR5 and SR7 confine a switch's mnemonic to SET and "
         + "a device's to ACCEPT and DISPLAY. WiseOwl COBOL's feature-names are C01 (top of the next page) and CSP "
         + "(suppress spacing).",
-        "ISO §2023:14.9.51.3 SR16");
+        "ISO §2023:14.9.51.3 SR16",
+        Rule1985: "§1985:VI.4.5.3 SR1 / §1985:VII.4.7.3 SR6");
 
     /// <summary>COBOL2272 — the body of a program, function or method PROTOTYPE carries something ISO §2023:10.6.2
     /// SR4 a)–f) forbids (kb/Work PB894). ONE code for the one rule, whichever kind of prototype and whichever of
@@ -7123,7 +7256,8 @@ public static class DiagnosticCatalog
         + "general format identifier-1( leftmost-position : [ length ] ): only the LENGTH is bracketed, so the "
         + "leftmost-position is required and the colon cannot lead. To take the first characters, write the position "
         + "explicitly — X (1:2) — and to run to the rightmost position omit the length, X (3:).",
-        "ISO §2023:8.4.3.3.2");
+        "ISO §2023:8.4.3.3.2",
+        Rule1985: "§1985:IV.4.3.8.4.2");
 
     /// <summary>A SPECIAL-NAMES FOR ALPHANUMERIC / FOR NATIONAL phrase written after the clause's definition
     /// (kb/Work PB977) — refused by name in ClosedFormatPass for the ALPHABET, CLASS and SYMBOLIC CHARACTERS
@@ -7177,7 +7311,8 @@ public static class DiagnosticCatalog
         + "around a simple condition change nothing (§2023:8.8.4.2.1), and make nothing else one. Within an abbreviated "
         + "combined relation condition the same operand is the object of the carried relation (§2023:8.8.4.12) and is "
         + "not refused.",
-        "ISO §2023:8.8.4.2.1; §2023:8.8.4.1");
+        "ISO §2023:8.8.4.2.1; §2023:8.8.4.1",
+        Rule1985: "§1985:VI.6.3.1");
 
     // kb/Work PB1390 — the termination half of §2023:8.8.4.12.4 GR1. An abbreviated relation (subject omitted) whose
     // sequence has no stated subject to insert used to be refused with no diagnostic (the COBOL2319 internal net).
@@ -7189,7 +7324,8 @@ public static class DiagnosticCatalog
         + "and/or relational operator terminates once a complete simple condition is encountered within a complex "
         + "condition.\" So an abbreviated relation that follows a class, sign, condition-name, switch-status, boolean "
         + "or parenthesized condition, or that opens a parenthesized group, has no subject. Write the subject.",
-        "ISO §2023:8.8.4.12.1; §2023:8.8.4.12.4 GR1");
+        "ISO §2023:8.8.4.12.1; §2023:8.8.4.12.4 GR1",
+        Rule1985: "§1985:VI.6.3.3");
 
     // kb/Work PB1391 — the first syntax rule of §2023:8.8.4.12.3, decided on the relation's CATEGORY where the abbreviation
     // carry is seeded (it used to hold only where the boolean-operator parse path happened to bind the relation).
@@ -7202,7 +7338,8 @@ public static class DiagnosticCatalog
         + "items, boolean literals or boolean expressions (B1 = B2, B1 B-AND B2 = B\"0\") has no abbreviation: a "
         + "succeeding relation that omits its subject, or its subject and relational operator, has nothing it may "
         + "inherit. Write the subject and the operator in full.",
-        "ISO §2023:8.8.4.12.3 SR1");
+        "ISO §2023:8.8.4.12.3 SR1",
+        No1985Rule: No1985Boolean);
 
     /// <summary>The internal-error net under the ONE <c>BoundConditionError</c> construction site (kb/Work PB982):
     /// a condition refused with no failing diagnostic recorded would compile clean and throw at run time.</summary>
@@ -7223,7 +7360,8 @@ public static class DiagnosticCatalog
         + "statement's transfer is defined only for an integer value (§2023:14.9.17.4 GR2), and before this screen a "
         + "PIC 9V9 selector holding 2.7 was truncated to 2 and silently selected the second procedure-name. "
         + "Refused in both dialect lanes.",
-        "ISO §2023:14.9.17.3 SR1");
+        "ISO §2023:14.9.17.3 SR1",
+        Rule1985: "§1985:VI.6.15.3 SR1");
 
     /// <summary>SEARCH … VARYING identifier-2 is neither an index data item nor an integer data item, or is
     /// subscripted by identifier-1's first index-name (kb/Work PB211).</summary>
@@ -7236,7 +7374,8 @@ public static class DiagnosticCatalog
         + "alphanumeric or group item is refused (§2023:14.9.37.4 GR3 b) increments it in step with the search "
         + "index), and so is an item subscripted by the search index itself, whose occurrence would move with "
         + "every step of the scan. Refused in both dialect lanes.",
-        "ISO §2023:14.9.37.3 SR5");
+        "ISO §2023:14.9.37.3 SR5",
+        Rule1985: "§1985:VI.6.22.3 SR2");
 
     /// <summary>The WRITE … ADVANCING count is neither an integer data item (identifier-2, §2023:14.9.51.3 SR14) nor an
     /// integer literal that is positive or zero (integer-1, SR15) — kb/Work PB1023. identifier-2 is the
@@ -7250,7 +7389,8 @@ public static class DiagnosticCatalog
         + "defined only for an integer), and so is a literal that is not an unsigned integer; before this screen a PIC X item holding \"2\" advanced two lines and a PIC 9V9 "
         + "holding 1.5 advanced one. A constant-name standing for an integer literal is integer-1. Refused in both "
         + "dialect lanes.",
-        "ISO §2023:14.9.51.3 SR14 / SR15");
+        "ISO §2023:14.9.51.3 SR14 / SR15",
+        Rule1985: "§1985:VII.4.7.3 SR4 / §1985:VII.4.7.3 SR5");
 
     /// <summary>A SET Format-1 (index-assignment) operand violates §2023:14.9.39.3 SR1–SR4 (kb/Work PB212).</summary>
     public static readonly DiagnosticDescriptor SetIndexAssignmentOperand = new(
@@ -7262,7 +7402,8 @@ public static class DiagnosticCatalog
         + "defines the statement for exactly the admitted pairings. SR1 and SR2 are refused in both dialect "
         + "lanes; under --permissive, SR3 and SR4 (an arithmetic value or index data item sent to an integer "
         + "item, an arithmetic value sent to an index data item) are warnings and the value is stored.",
-        "ISO §2023:14.9.39.3 SR1-SR4");
+        "ISO §2023:14.9.39.3 SR1-SR4",
+        Rule1985: "§1985:VI.6.23.3 SR2 / §1985:VI.6.23.4 GR3b / §1985:VI.6.23.4 GR3c");
 
     /// <summary>§2023:13.16.3 SR21 — a PROPERTY clause in the same data description entry as a BASED or a TYPEDEF clause
     /// (kb/Work PB521, landed with kb/Work PB956: the a) leg used to be "enforced" only by the whole-unit refusal of
@@ -7288,7 +7429,8 @@ public static class DiagnosticCatalog
         + "the entry containing the OCCURS clause. Subsequent specification of data-name-2 shall be subordinate to "
         + "the entry containing the OCCURS clause.\" Name a data item of the table, qualified (K OF B) where the table "
         + "holds more than one item of that name.",
-        "ISO §2023:13.18.38.3 SR3");
+        "ISO §2023:13.18.38.3 SR3",
+        Rule1985: "§1985:VI.5.8.3 SR3");
 
     /// <summary>The internal-error net under EVERY refusal node (kb/Work PB1029) — the statement-level
     /// <c>BoundRejected</c> and the operand-level <c>BoundExprError</c> / <c>BoundOperandError</c> /
@@ -7334,7 +7476,8 @@ public static class DiagnosticCatalog
         + "division. ISO §2023:14.9.49.3 SR3: \"Within a declarative procedure, there shall be no reference to any "
         + "nondeclarative procedures except in a RESUME statement.\" The program compiles and the statement runs "
         + "as written; the warning is the §2023:4.2.2 indication that the source is outside the standard.",
-        "ISO §2023:14.9.49.3 SR3");
+        "ISO §2023:14.9.49.3 SR3",
+        Rule1985: "§1985:IX.4.8.4 GR2 / §1985:VII.4.6.4 GR2 / §1985:VIII.4.8.4 GR2");
 
     /// <summary>§2023:14.9.49.3 SR4 — a procedure of a declarative section is referenced from outside that section by a
     /// statement other than PERFORM (kb/Work PB362). An ERROR by determination (docs/CONFORMANCE.md §3).</summary>
@@ -7345,7 +7488,8 @@ public static class DiagnosticCatalog
         + "referenced in a different declarative section or in a nondeclarative procedure only with a PERFORM "
         + "statement.\" A USE procedure is entered by its USE dispatch or by a PERFORM, which returns; a transfer "
         + "into it has no activating USE to return to.",
-        "ISO §2023:14.9.49.3 SR4");
+        "ISO §2023:14.9.49.3 SR4",
+        Rule1985: "§1985:IX.4.8.4 GR3 / §1985:VII.4.6.4 GR3 / §1985:VIII.4.8.4 GR3");
 
     /// <summary>§2023:14.9.49.3 SR1 — a USE statement written anywhere other than immediately after a declarative
     /// section header (kb/Work PB361). The grammar admits USE as an ordinary statement so that the misplacement is
@@ -7357,7 +7501,8 @@ public static class DiagnosticCatalog
         + "portion. ISO §2023:14.9.49.3 SR1: \"A USE statement, when present, shall immediately follow a section header "
         + "in the declaratives portion of the procedure division and shall appear in a sentence by itself.\" A USE "
         + "statement is not executable; it describes when its declarative section runs.",
-        "ISO §2023:14.9.49.3 SR1");
+        "ISO §2023:14.9.49.3 SR1",
+        Rule1985: "§1985:VII.4.6.3 SR1 / §1985:VIII.4.8.3 SR1 / §1985:IX.4.8.3 SR1 / §1985:XIII.4.9.3 SR1 / §1985:XV.3.2.3 SR1");
 
     /// <summary>§2023:14.9.49.3 SR10 / SR11 — the two restrictions on a USE BEFORE REPORTING procedure (kb/Work PB363):
     /// no GENERATE, INITIATE, or TERMINATE statement in its paragraphs, and no alteration of a control data
@@ -7369,7 +7514,8 @@ public static class DiagnosticCatalog
         + "REPORTING procedure.\" SR11: \"A USE BEFORE REPORTING procedure shall not alter the value of any "
         + "control data item.\" The procedure runs inside the report writer's processing of a report group, and "
         + "the report's control break detection has already read the control data items.",
-        "ISO §2023:14.9.49.3 SR10 / SR11");
+        "ISO §2023:14.9.49.3 SR10 / SR11",
+        Rule1985: "§1985:XIII.4.9.3 SR3 / §1985:XIII.4.9.3 SR4");
 
     /// <summary>§2023:11.9.7 — an ENTRY-CONVENTION clause written where §2023:11.9.7.3 SR1 does not permit it, or naming an
     /// entry-convention-name-1, of which this implementation defines none (§2023:11.9.7.4 GR3; Annex A.1 item 64,
@@ -7445,7 +7591,8 @@ public static class DiagnosticCatalog
         + "GLOBAL clause. ISO §2023:14.9.21.3 SR2 / §2023:14.9.46.3 SR2 / §2023:14.9.16.3 SR4: \"If report-name-1 is defined in a "
         + "containing program, the file description entry associated with report-name-1 shall contain a GLOBAL "
         + "clause\"; §2023:14.9.16.3 SR3 says the same of a detail group's report and file. Add IS GLOBAL to the FD.",
-        "ISO §2023:14.9.16.3 SR3/SR4 · §2023:14.9.21.3 SR2 · §2023:14.9.46.3 SR2");
+        "ISO §2023:14.9.16.3 SR3/SR4 · §2023:14.9.21.3 SR2 · §2023:14.9.46.3 SR2",
+        Rule1985: "§1985:X.4.6.4 GR2 / §1985:XIII.4.4.3 SR1 / §1985:XIII.4.7.3 SR1");
 
     // ── The data-description CLAUSE-PLACEMENT screen (kb/Work PB507 / PB512 / PB518 / PB519). One table —
     //    DataClausePlacement.Rules in the binder — reports through these three codes plus COBOL2191 (the
@@ -7461,7 +7608,8 @@ public static class DiagnosticCatalog
         "A JUSTIFIED or BLANK WHEN ZERO clause was specified on an entry that has subordinate entries. ISO §2023:13.16.3 "
         + "SR11: \"The PICTURE, JUSTIFIED, and BLANK WHEN ZERO clauses may be specified only for an elementary data "
         + "item.\"",
-        "ISO §2023:13.16.3 SR11 / §2023:13.18.32.3 SR1");
+        "ISO §2023:13.16.3 SR11 / §2023:13.18.32.3 SR1",
+        Rule1985: "§1985:VI.5.3.4 GR1");
 
     /// <summary>The OCCURS clause's own level rule joined this row in kb/Work PB1260 (§2023:13.18.38.3 SR1 a): no OCCURS
     /// at level 01 or 77). Below that: the EXTERNAL / GLOBAL clause's RESIDENCE rules: the level-number (§2023:13.16.3 SR6, §2023:13.18.22.3 SR1,
@@ -7477,7 +7625,8 @@ public static class DiagnosticCatalog
         "An EXTERNAL or GLOBAL clause was specified where its syntax rules do not admit it: below level 1, "
         + "outside the sections that admit it, on an entry without a data-name, or (EXTERNAL) in the same entry "
         + "as REDEFINES or BASED; or an OCCURS clause was specified on an entry whose level-number is 01 or 77.",
-        "ISO §2023:13.16.3 SR5/SR6/SR7 · §2023:13.18.22.3 SR1 · §2023:13.18.27.3 SR1 b) · §2023:13.18.38.3 SR1 a)");
+        "ISO §2023:13.16.3 SR5/SR6/SR7 · §2023:13.18.22.3 SR1 · §2023:13.18.27.3 SR1 b) · §2023:13.18.38.3 SR1 a)",
+        Rule1985: "§1985:VI.5.10.3 SR1 / §1985:VI.5.3.4 GR1 / §1985:VI.5.8.3 SR1 / §1985:X.4.3.3 SR2 / §1985:X.4.3.3 SR3 / §1985:X.4.3.3 SR5 / §1985:X.4.6.3 SR1");
 
     /// <summary>The SUBJECT rules of the BLANK WHEN ZERO, JUSTIFIED and (COBOL-85) SYNCHRONIZED clauses — what the
     /// elementary item they are written on may be. §2023:13.18.8.3 SR1 (category numeric-edited, or numeric without 'S') and SR2 (usage display
@@ -7506,7 +7655,8 @@ public static class DiagnosticCatalog
         + "contains the CONSTANT RECORD clause, or in any data description entry subordinate to a data description "
         + "entry that contains the CONSTANT RECORD clause.\" Initialize the redefined entry instead; a level-88 "
         + "entry under a REDEFINES entry and the format 1 VALUEs that give a CONSTANT RECORD its content remain legal.",
-        "ISO §2023:13.18.63.3 SR12 / SR16 / SR25");
+        "ISO §2023:13.18.63.3 SR12 / SR16 / SR25",
+        Rule1985: "§1985:VI.5.10.3 SR9");
 
     /// <summary>COBOL2421 — the §2023:13.18.16.2 CONTROL clause general format (kb/Work PB483): FINAL is ONE
     /// optional word written BEFORE the repeated data-name-1 bracket, never a repeatable operand. The grammar
@@ -7520,7 +7670,8 @@ public static class DiagnosticCatalog
         + "the determined pair of delimiters\"). §2023:13.18.16.4 GR2: \"FINAL, if specified, is associated with the "
         + "highest level in the hierarchy\" — a FINAL written anywhere else would be a level that is not the "
         + "highest, and a second FINAL a level that can never break. Write FINAL once, as the first operand.",
-        "ISO §2023:13.18.16.2 · §2023:5.2.7 · §2023:13.18.16.4 GR2");
+        "ISO §2023:13.18.16.2 · §2023:5.2.7 · §2023:13.18.16.4 GR2",
+        Rule1985: "§1985:XIII.3.7.2 / §1985:XIII.3.7.4 GR1");
 
     /// <summary>COBOL2422 — the SIGN clause's placement rules, §2023:13.18.52.3 SR1 (what the clause may be written
     /// on) and SR2 (the usage of an elementary subject) — kb/Work PB537. One screen for the data description
@@ -7564,7 +7715,8 @@ public static class DiagnosticCatalog
         + "DEFAULT ROUNDED, ENTRY-CONVENTION, FLOAT-BINARY, FLOAT-DECIMAL, INITIALIZE, INTERMEDIATE ROUNDING) and the "
         + "CONFIGURATION SECTION (§2023:12.3.2: SOURCE-COMPUTER, OBJECT-COMPUTER, SPECIAL-NAMES, REPOSITORY) — write the "
         + "elements in the printed sequence.",
-        "ISO §2023:5.2.1");
+        "ISO §2023:5.2.1",
+        Rule1985: "§1985:IV.2.1");
 
     /// <summary>COBOL2424 — the OPTIONS paragraph's FLOAT-DECIMAL clause (§2023:11.9.9), the §2023:4.2.6 ¶3 warning a
     /// declined processor-dependent element owes. Annex A.3 item 13 makes the clause dependent "both on the
@@ -7729,7 +7881,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor SeparatorCommaWithoutSpace = new(
         "COBOL2631", "separator-comma-without-space", EditionSeverity.Error,
         "A comma or semicolon is not immediately followed by a space, so it is not a separator.",
-        "ISO §2023:8.3.5 2)");
+        "ISO §2023:8.3.5 2)",
+        Rule1985: "§1985:IV.4.2.1 SR2");
 
     /// <summary>COBOL2632 — a period not followed by a space (kb/Work PB1394). §2023:8.3.5 3): "The COBOL character
     /// period, when followed by a space, is a separator" — so <c>N.DISPLAY</c> ends no sentence. A period inside a
@@ -7738,7 +7891,8 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor SeparatorPeriodWithoutSpace = new(
         "COBOL2632", "separator-period-without-space", EditionSeverity.Error,
         "A period is not followed by a space, so it is not a separator period.",
-        "ISO §2023:8.3.5 3)");
+        "ISO §2023:8.3.5 3)",
+        Rule1985: "§1985:IV.4.2.1 SR3");
 
     /// <summary>COBOL2633 — a literal whose opening or closing delimiter is not separated as §2023:8.3.5 5) requires
     /// (kb/Work PB1394): "The opening delimiter shall be immediately preceded by a space, left parenthesis, or opening
@@ -7750,7 +7904,8 @@ public static class DiagnosticCatalog
         "A literal's opening delimiter is not immediately preceded by a space, left parenthesis or opening "
         + "pseudo-text delimiter, or its closing delimiter is not immediately followed by a space, comma, semicolon, "
         + "period, right parenthesis or closing pseudo-text delimiter.",
-        "ISO §2023:8.3.5 5)");
+        "ISO §2023:8.3.5 5)",
+        Rule1985: "§1985:IV.4.2.1 SR5");
 
     /// <summary>COBOL5563 — an alphanumeric, boolean or national literal its line ends inside (kb/Work PB3245). The general
     /// formats close every such literal (ISO §2023:8.3.3.2.2, §2023:8.3.3.4.2, §2023:8.3.3.5.2), and one may be left open at the end of a
@@ -7793,7 +7948,8 @@ public static class DiagnosticCatalog
         "An arithmetic operator (+ - * / **), a concatenation operator (&) or an invocation operator (::) is not "
         + "immediately preceded and followed by a separator space (a unary arithmetic operator may instead touch a "
         + "left parenthesis).",
-        "ISO §2023:8.7.1 · §2023:8.7.3 · §2023:8.7.4");
+        "ISO §2023:8.7.1 · §2023:8.7.3 · §2023:8.7.4",
+        Rule1985: "§1985:VI.6.2.2");
 
     /// <summary>COBOL7672 — a relational operator or a logical connective of a condition not immediately preceded and followed by a
     /// separator space, at COBOL-85 (kb/Work PB5989). §1985:VI.6.3.1.1: "A space must precede and follow each reserved word
@@ -7954,7 +8110,8 @@ public static class DiagnosticCatalog
         + "file (SR8); a file-area clause that shares a file with a record-area clause (SR9), or a non-sort file with "
         + "sort-merge-area clauses (SR10), is wholly contained in each. The file description entries and record "
         + "description entries of files sharing a record area do not include the GLOBAL clause (§2023:13.18.27.3 SR2).",
-        "ISO §2023:12.4.6.4.3 SR2, SR3, SR5-SR10; §2023:12.4.6.4.4 GR1, GR2; §2023:13.18.27.3 SR2");
+        "ISO §2023:12.4.6.4.3 SR2, SR3, SR5-SR10; §2023:12.4.6.4.4 GR1, GR2; §2023:13.18.27.3 SR2",
+        Rule1985: "§1985:VII.2.13.2 / §1985:VII.2.13.3 SR1 / §1985:VII.2.13.3 SR2 / §1985:VII.2.13.3 SR3a / §1985:VII.2.13.3 SR3b / §1985:VII.2.13.3 SR3c / §1985:VII.2.13.4 GR1 / §1985:X.4.6.3 SR3 / §1985:XI.2.5.2 / §1985:XI.2.5.3 SR1 / §1985:XI.2.5.3 SR2 / §1985:XI.2.5.3 SR4 / §1985:XI.2.5.3 SR5a / §1985:XI.2.5.3 SR5b / §1985:XI.2.5.3 SR5c / §1985:XI.2.5.4 GR1 / §1985:XI.2.5.4 GR2 / §1985:XIII.2.4.3 SR2");
 
     /// <summary>COBOL2739 — a REDEFINES clause violates one of its ENTRY-level syntax rules (kb/Work PB1280): not the
     /// first clause of its entry (§2023:13.18.44.3 SR1), a subject and data-name-2 of different level-numbers (SR2), a
@@ -7970,7 +8127,8 @@ public static class DiagnosticCatalog
         + "data-name-2, without intervening entries that define new storage areas (SR10); data-name-2 shall not be "
         + "described with the CONSTANT RECORD clause (SR13); and the subject's required alignment shall be the same as "
         + "the alignment of data-name-2 (SR15).",
-        "ISO §2023:13.18.44.3 SR1, SR2, SR3, SR10, SR13, SR15");
+        "ISO §2023:13.18.44.3 SR1, SR2, SR3, SR10, SR13, SR15",
+        Rule1985: "§1985:VI.5.10.3 SR1 / §1985:VI.5.10.3 SR11 / §1985:VI.5.10.3 SR2 / §1985:VI.5.10.3 SR3 / §1985:VI.5.10.3 SR4");
 
     /// <summary>COBOL2740 — a RENAMES entry violates one of its entry-level syntax rules (kb/Work PB1283): it does not
     /// immediately follow the last entry of its record (§2023:13.18.45.3 SR2), an operand is subject to an OCCURS clause
@@ -7984,7 +8142,8 @@ public static class DiagnosticCatalog
         + "not subject to any OCCURS clause (SR3); data-name-2 and data-name-3 do not refer to a level-1, 66, 77 or 88 "
         + "entry (SR5) nor to an entry within a CONSTANT RECORD (SR6); and data-name-3 does not begin before "
         + "data-name-2 and ends after it (SR11).",
-        "ISO §2023:13.18.45.3 SR2, SR3, SR5, SR6, SR11");
+        "ISO §2023:13.18.45.3 SR2, SR3, SR5, SR6, SR11",
+        Rule1985: "§1985:VI.5.11.3 SR2 / §1985:VI.5.11.3 SR3 / §1985:VI.5.11.3 SR4 / §1985:VI.5.11.3 SR8");
 
     /// <summary>COBOL2771 — a data description entry stands at a position in the record hierarchy its level-number
     /// cannot take (kb/Work PB1246): it opens a record at a level other than 1 (§2023:13.11.1, §2023:13.18.33.4 GR1) — a
@@ -8005,7 +8164,8 @@ public static class DiagnosticCatalog
         + "the level-number used to describe that group item\" (§2023:8.5.1.3.2), in a record description and in a report "
         + "group description alike (§2023:13.18.33.1: level-numbers 1 through 49 indicate position in the hierarchy of "
         + "a data description entry or a report group description entry).",
-        "ISO §2023:13.11.1 / §2023:13.18.33.4 GR1 / §2023:8.5.1.3.2 / §2023:13.18.33.1");
+        "ISO §2023:13.11.1 / §2023:13.18.33.4 GR1 / §2023:8.5.1.3.2 / §2023:13.18.33.1",
+        Rule1985: "§1985:IV.4.3.2.1 / §1985:VI.5.7.4 GR1");
 
     /// <summary>COBOL2770 — a SOURCE clause identifier-1 violates one of its operand syntax rules (kb/Work PB1293):
     /// the implicit MOVE of §2023:13.18.53.4 GR1 from identifier-1 to the printable item is not a valid MOVE (§2023:13.18.53.3
@@ -8028,7 +8188,8 @@ public static class DiagnosticCatalog
         + "`qualified-condition-name-1 [ ( subscript … ) ]` — and a reference modifier follows the whole identifier "
         + "(§2023:8.4.3.1.2 Format 3, `identifier-1 reference-modifier-1`). Write `E OF T (1)`, not `E (1) OF T`, and "
         + "`S OF G (2:2)`, not `S (2:2) OF G`.",
-        "ISO §2023:8.4.2.3.2; §2023:8.4.3.1.2; §2023:8.4.3.1.3 SR3");
+        "ISO §2023:8.4.2.3.2; §2023:8.4.3.1.2; §2023:8.4.3.1.3 SR3",
+        Rule1985: "§1985:IV.4.3.8.2.2 / §1985:IV.4.3.8.4.2");
 
     /// <summary>COBOL2777 — `object-class-name-1 OF SUPER` names a class that is not the one the containing class
     /// definition's INHERITS clause specifies (kb/Work PB1425; §2023:8.4.3.8.3 SR4). Bound in
@@ -8359,7 +8520,8 @@ public static class DiagnosticCatalog
         + "unterminated statement with which it may be syntactically associated, so a NOT phrase written after a "
         + "nested statement that can take it is that statement's phrase. Close the inner statement with its END- "
         + "terminator (END-IF, END-READ, END-ADD, END-SEARCH, …).",
-        "ISO §2023:14.5.1; Table 12; §2023:14.5.3.3; §2023:14.9.19.3 SR1");
+        "ISO §2023:14.5.1; Table 12; §2023:14.5.3.3; §2023:14.9.19.3 SR1",
+        Rule1985: "§1985:IV.6.4.2.1.1 / §1985:IV.6.4.2.3.1");
 
     /// <summary>COBOL2797 — the procedure division body mixes §2023:14.2.1 Format 1 (with sections) and Format 2
     /// (without sections) (kb/Work PB1146): a sentence or a paragraph outside every section in a division that has
@@ -8450,7 +8612,8 @@ public static class DiagnosticCatalog
         + "'A conforming implementation may place such limits.' §2023:12.4.5.14.3 GR1 requires the number allocated to "
         + "equal integer-1, so the count is never reduced; write a smaller integer-1. The limit is documented in "
         + "docs/CONFORMANCE.md DOC-A.1-164.",
-        "ISO §2023:4.2.15; §2023:12.4.5.14.3 GR1");
+        "ISO §2023:4.2.15; §2023:12.4.5.14.3 GR1",
+        Rule1985: "§1985:VII.2.9.3 GR1");
 
     /// <summary>COBOL2921 — §2023:12.4.5.2 SR12: a RESERVE clause in the file control entry of a LINE SEQUENTIAL
     /// file (kb/Work PB781). Reported at the RESERVE clause once the whole entry is read, because the
@@ -8517,7 +8680,8 @@ public static class DiagnosticCatalog
         + "EXIT statement shall appear in a sentence by itself that shall be the only sentence in the paragraph or "
         + "in a section without paragraphs.\" The statement only gives a procedure-name a point to name "
         + "(§2023:14.9.14.4 GR1): put it alone in its own paragraph, or write CONTINUE where a no-op statement is meant.",
-        "ISO §2023:14.9.14.3 SR1");
+        "ISO §2023:14.9.14.3 SR1",
+        Rule1985: "§1985:VI.6.14.3 SR1");
 
     /// <summary>COBOL2967 — §2023:14.9.17.3 SR2: a Format 1 GO TO followed by an imperative statement in its
     /// consecutive sequence of imperative statements (a following CONDITIONAL statement ends that sequence; kb/Work
@@ -8531,7 +8695,8 @@ public static class DiagnosticCatalog
         + "conditional phrase is written without its explicit scope terminator, such as an IF with no END-IF) ends "
         + "that sequence, so a GO TO may precede one. Move the GO TO to the end of its sequence, or end the sentence "
         + "with a period; a Format 2 (DEPENDING) GO TO may be followed by a statement.",
-        "ISO §2023:14.9.17.3 SR2");
+        "ISO §2023:14.9.17.3 SR2",
+        Rule1985: "§1985:VI.6.15.3 SR4");
 
     /// <summary>COBOL2968 — §2023:14.9.42.3 SR1: a STOP RUN statement followed by an imperative statement in its block
     /// (read as §2023:14.9.17.3 SR2's consecutive sequence of imperative statements; D-SEQ, kb/Work PB2610).</summary>
@@ -8544,7 +8709,8 @@ public static class DiagnosticCatalog
         + "of another statement, and ended by a conditional statement) that "
         + "§2023:14.9.17.3 SR2 states for GO TO and that IBM and Micro Focus document for STOP "
         + "(docs/CONFORMANCE.md §3, D-SEQ).",
-        "ISO §2023:14.9.42.3 SR1");
+        "ISO §2023:14.9.42.3 SR1",
+        Rule1985: "§1985:VI.6.24.3 SR2");
 
     /// <summary>COBOL2960 — a TYPE clause in the file section whose type-name-1 describes a USAGE OBJECT REFERENCE
     /// item, at any depth (kb/Work PB545). The third route of one prohibition: the direct USAGE clause is
@@ -8572,7 +8738,8 @@ public static class DiagnosticCatalog
         + "range is the IN alphabet-name-1 phrase's alphabet, else the PROGRAM COLLATING SEQUENCE, else the native "
         + "order; every such sequence is known at compile time, and only a LOCALE sequence is not, so a range "
         + "ordered by a locale is not screened here (an inverted one raises EC-RANGE-INVALID at run time, §2023:14.7.8).",
-        "ISO §2023:13.18.63.3 SR26");
+        "ISO §2023:13.18.63.3 SR26",
+        Rule1985: "§1985:VI.5.15.5 GR2");
 
 
     /// <summary>COBOL3734 — at COBOL-85, an AREA-A ITEM of a fixed-form line that does not begin in area A (kb/Work
@@ -8638,7 +8805,8 @@ public static class DiagnosticCatalog
         + "\"paragraph-name-1.\" — a name being defined is a bare user-defined word (§2023:8.3.2.2); qualification "
         + "(§2023:8.4.2.2.2) is written by a procedure-name that REFERS to a paragraph (§2023:14.4.1: \"a paragraph-name (that may "
         + "be qualified)\"). Write the bare name in the header and qualify the references.",
-        "ISO §2023:14.2.1; §2023:14.4.1; §2023:8.4.2.2.2");
+        "ISO §2023:14.2.1; §2023:14.4.1; §2023:8.4.2.2.2",
+        Rule1985: "§1985:IV.6.4.1.4.2");
 
     // kb/Work PB4309: FUNCTION LENGTH after >>COBOL-WORDS UNDEFINE "LENGTH" was refused with COBOL1501's "is not an
     // intrinsic function of ISO/IEC 1989" — the sentence a misspelling draws, and false of LENGTH (§2023:15.50). The cause is
@@ -8712,7 +8880,8 @@ public static class DiagnosticCatalog
         + "used to refer to a paragraph or section in the source element in which it occurs\"), so it identifies no "
         + "data item (ISO §2023:8.4.2.1). A procedure is a debug subject by the plain operand, USE FOR DEBUGGING ON "
         + "procedure-name, or with every procedure by ALL PROCEDURES.",
-        "ISO §2023:14.4.1; ISO §2023:8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)");
+        "ISO §2023:14.4.1; ISO §2023:8.4.2.1 / VCR Table 7 row 7.17 (X3.23-1985 debug module)",
+        Rule1985: "§1985:XV.3.2.2");
 
     // kb/Work PB4810: the identifier-1 of a data-name USE FOR DEBUGGING target is written as the data item, never as an
     // element of it. X3.23-1985 USE FOR DEBUGGING syntax rules 10 and 12, which the debug triggers' DEBUG-SUB-n and
@@ -8869,7 +9038,8 @@ public static class DiagnosticCatalog
         "COBOL0850", "occurs-depending-bounds-invalid", EditionSeverity.Error,
         "The bounds of an OCCURS integer-1 TO integer-2 phrase (formats 2 and 3) are out of order. §2023:13.18.38.3 SR16: "
         + "\"Integer-1 shall be greater than or equal to zero and integer-2 shall be greater than integer-1.\"",
-        "ISO §2023:13.18.38.3 SR16");
+        "ISO §2023:13.18.38.3 SR16",
+        Rule1985: "§1985:VI.5.8.3 SR5");
 
     /// <summary>COBOL0851 — occurs depending object undefined (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OccursDependingObjectUndefined = new(
@@ -8878,21 +9048,24 @@ public static class DiagnosticCatalog
         + "is not defined (or not under the given qualifiers), or it is declared as something other than a data item. "
         + "§2023:8.4.2.1: a statement \"shall contain a reference that uniquely identifies that resource\"; §2023:13.18.38.2 format 2 "
         + "names data-name-1 as the object of DEPENDING ON.",
-        "ISO §2023:8.4.2.1; §2023:13.18.38.2 Format 2");
+        "ISO §2023:8.4.2.1; §2023:13.18.38.2 Format 2",
+        Rule1985: "§1985:IV.4.3.8 / §1985:IV.4.3.8.1 SR3 / §1985:VI.5.8");
 
     /// <summary>COBOL0852 — occurs depending object not integer (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OccursDependingObjectNotInteger = new(
         "COBOL0852", "occurs-depending-object-not-integer", EditionSeverity.Error,
         "The data-name-1 of an OCCURS DEPENDING ON phrase does not describe an integer. §2023:13.18.38.3 SR17: \"Data-name-1 "
         + "shall describe an integer.\" (An index item is not an integer data item; a trailing-P item is.)",
-        "ISO §2023:13.18.38.3 SR17");
+        "ISO §2023:13.18.38.3 SR17",
+        Rule1985: "§1985:VI.5.8.3 SR6");
 
     /// <summary>COBOL0853 — occurs depending object subscripted (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OccursDependingObjectSubscripted = new(
         "COBOL0853", "occurs-depending-object-subscripted", EditionSeverity.Error,
         "The data-name-1 of an OCCURS DEPENDING ON phrase is subscripted, or is or lies within a table. §2023:13.18.38.3 SR2: "
         + "\"Data-name-1 and data-name-2 shall not be subscripted.\"",
-        "ISO §2023:13.18.38.3 SR2");
+        "ISO §2023:13.18.38.3 SR2",
+        Rule1985: "§1985:III.2 / §1985:VI.5.8.3 SR2");
 
     /// <summary>COBOL0854 — occurs depending table nested (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OccursDependingTableNested = new(
@@ -8900,14 +9073,16 @@ public static class DiagnosticCatalog
         "An occurs-depending table is subordinate to another OCCURS item. §2023:13.18.38.3 SR1 b): the OCCURS clause shall not "
         + "be specified in an entry that \"Has an occurs-depending table subordinate to it\"; SR10: an OCCURS clause may be "
         + "subordinate to another OCCURS entry only \"if the DEPENDING ON phrase is not specified\".",
-        "ISO §2023:13.18.38.3 SR1 b), SR10");
+        "ISO §2023:13.18.38.3 SR1 b), SR10",
+        Rule1985: "§1985:VI.5.8.3 SR1b");
 
     /// <summary>COBOL0855 — occurs depending table in redefines area (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OccursDependingTableInRedefinesArea = new(
         "COBOL0855", "occurs-depending-table-in-redefines-area", EditionSeverity.Error,
         "An occurs-depending table lies within a REDEFINES area. §2023:13.18.44.3 SR5: \"Neither the original definition nor "
         + "the redefinition shall include an occurs-depending table.\"",
-        "ISO §2023:13.18.44.3 SR5");
+        "ISO §2023:13.18.44.3 SR5",
+        Rule1985: "§1985:VI.5.10.3 SR5");
 
     /// <summary>COBOL0856 — occurs depending table not last (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OccursDependingTableNotLast = new(
@@ -8915,7 +9090,8 @@ public static class DiagnosticCatalog
         "The subject of an OCCURS DEPENDING ON entry is followed, within its record, by an entry that is not subordinate "
         + "to it. §2023:13.18.38.3 SR22: \"The subject of the entry may be followed within that record description only by data "
         + "description entries that are subordinate to it.\"",
-        "ISO §2023:13.18.38.3 SR22");
+        "ISO §2023:13.18.38.3 SR22",
+        Rule1985: "§1985:VI.5.8.3 SR10");
 
     /// <summary>COBOL0857 — occurs depending object in table range (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OccursDependingObjectInTableRange = new(
@@ -8924,7 +9100,8 @@ public static class DiagnosticCatalog
         + "§2023:13.18.38.3 SR20: \"The data item defined by data-name-1 shall not occupy a byte position within the range of the "
         + "first byte position defined by the data description entry containing the OCCURS clause and the last byte "
         + "position defined by the record description entry containing that OCCURS clause.\"",
-        "ISO §2023:13.18.38.3 SR20");
+        "ISO §2023:13.18.38.3 SR20",
+        Rule1985: "§1985:VI.5.8.3 SR7");
 
     /// <summary>COBOL1526 — dynamic capacity table in file section (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor DynamicCapacityTableInFileSection = new(
@@ -8970,7 +9147,8 @@ public static class DiagnosticCatalog
         + "without the EXTERNAL clause. §2023:13.18.44.3 SR8: \"The storage area required for the subject of the entry shall not "
         + "be larger than the storage area required for the data item referenced by data-name-2, unless the data item "
         + "referenced by data-name-2 has been specified with level number 1 and without the EXTERNAL clause.\"",
-        "ISO §2023:13.18.44.3 SR8");
+        "ISO §2023:13.18.44.3 SR8",
+        Rule1985: "§1985:VI.5.10.3 SR6");
 
     /// <summary>COBOL1542 — any length placement (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor AnyLengthPlacement = new(
@@ -9101,14 +9279,16 @@ public static class DiagnosticCatalog
         + "statement, does not reference an alphabet of the required kind. §2023:12.3.6.3 SR1: \"Alphabet-name-1 shall reference "
         + "an alphabet that defines an alphanumeric collating sequence.\"; SR2: \"Alphabet-name-2 shall reference an alphabet "
         + "that defines a national collating sequence.\"",
-        "ISO §2023:12.3.6.3 SR1, SR2");
+        "ISO §2023:12.3.6.3 SR1, SR2",
+        Rule1985: "§1985:VI.4.5.4 GR4");
 
     /// <summary>COBOL5990 — order table repeated (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OrderTableRepeated = new(
         "COBOL5990", "order-table-repeated", EditionSeverity.Error,
         "The ORDER TABLE clause is specified more than once in a SPECIAL-NAMES paragraph. The general format of §2023:12.3.7.2 "
         + "brackets the clause without an ellipsis, unlike the repeatable clauses beside it.",
-        "ISO §2023:12.3.7.2 general format");
+        "ISO §2023:12.3.7.2 general format",
+        No1985Rule: No1985OrderTable);
 
     /// <summary>COBOL1532 — strong type level rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor StrongTypeLevelRule = new(
@@ -9264,7 +9444,8 @@ public static class DiagnosticCatalog
         + "a device-name, or names a device that cannot do what the statement asks. §2023:14.9.1.3 SR2: \"Mnemonic-name-1 shall "
         + "be specified in the SPECIAL-NAMES paragraph of the environment division and shall be associated with an "
         + "implementor-defined device-name\"; DISPLAY's syntax rules say the same.",
-        "ISO §2023:14.9.1.3 SR2; §2023:12.3.7.3 SR7");
+        "ISO §2023:14.9.1.3 SR2; §2023:12.3.7.3 SR7",
+        Rule1985: "§1985:VI.4.5.3 SR2 / §1985:VI.6.10.3 SR1 / §1985:VI.6.5.3 SR1");
 
     /// <summary>COBOL0819 — move shape invalid (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor MoveShapeInvalid = new(
@@ -9313,14 +9494,16 @@ public static class DiagnosticCatalog
         "COBOL0834", "initialize-category-repeated", EditionSeverity.Error,
         "An INITIALIZE statement's REPLACING phrase repeats a category. §2023:14.9.20.3 SR6: \"The same category shall not be "
         + "repeated in a REPLACING phrase.\"",
-        "ISO §2023:14.9.20.3 SR6");
+        "ISO §2023:14.9.20.3 SR6",
+        Rule1985: "§1985:VI.6.17.3 SR3");
 
     /// <summary>COBOL0835 — initialize renames item (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor InitializeRenamesItem = new(
         "COBOL0835", "initialize-renames-item", EditionSeverity.Error,
         "An INITIALIZE statement names an item whose data description entry contains a RENAMES clause. §2023:14.9.20.3 SR5: "
         + "\"The data description entry for the data item referenced by identifier-1 shall not contain a RENAMES clause.\"",
-        "ISO §2023:14.9.20.3 SR5");
+        "ISO §2023:14.9.20.3 SR5",
+        Rule1985: "§1985:VI.6.17.3 SR6");
 
     /// <summary>COBOL0843 — object property reference rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ObjectPropertyReferenceRule = new(
@@ -9338,7 +9521,8 @@ public static class DiagnosticCatalog
         + "\"An arithmetic expression may be an identifier referencing a numeric data item, a numeric literal, the "
         + "figurative constant ZERO (ZEROS, ZEROES)\"; a concatenation expression, an alphanumeric, national or boolean "
         + "literal, an object reference or any other figurative constant is not one.",
-        "ISO §2023:8.8.1.1");
+        "ISO §2023:8.8.1.1",
+        Rule1985: "§1985:VI.6.2.1");
 
     /// <summary>COBOL5995 — boolean relation form (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor BooleanRelationForm = new(
@@ -9391,14 +9575,16 @@ public static class DiagnosticCatalog
         "A WRITE statement specifies END-OF-PAGE or NOT END-OF-PAGE for a file whose description has no LINAGE clause. "
         + "§2023:14.9.51.3 SR19: \"If the END-OF-PAGE or the NOT END-OF-PAGE phrase is specified, the LINAGE clause shall be "
         + "specified in the file description entry associated with the write file.\"",
-        "ISO §2023:14.9.51.3 SR19");
+        "ISO §2023:14.9.51.3 SR19",
+        Rule1985: "§1985:VII.4.7.3 SR8");
 
     /// <summary>COBOL0861 — write advancing page with end of page (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor WriteAdvancingPageWithEndOfPage = new(
         "COBOL0861", "write-advancing-page-with-end-of-page", EditionSeverity.Error,
         "A WRITE statement specifies both ADVANCING PAGE and END-OF-PAGE. §2023:14.9.51.3 SR18: \"The phrases ADVANCING PAGE "
         + "and END-OF-PAGE shall not both be specified in a single WRITE statement.\"",
-        "ISO §2023:14.9.51.3 SR18");
+        "ISO §2023:14.9.51.3 SR18",
+        Rule1985: "§1985:VII.4.7.3 SR7");
 
     /// <summary>COBOL0864 — read key on non indexed file (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ReadKeyOnNonIndexedFile = new(
@@ -9406,7 +9592,8 @@ public static class DiagnosticCatalog
         "A READ statement's KEY phrase is specified for a file that is not indexed, or names a key the file does not "
         + "define. §2023:14.9.30.3 SR10: \"The KEY phrase may be specified only if ORGANIZATION IS INDEXED is specified in the "
         + "file control entry for file-name-1.\"",
-        "ISO §2023:14.9.30.3 SR10");
+        "ISO §2023:14.9.30.3 SR10",
+        Rule1985: "§1985:IX.2.4.4 GR1 / §1985:IX.2.4.4 GR3 / §1985:IX.4.5.2 / §1985:IX.4.5.3 SR2 / §1985:IX.4.5.3 SR4 / §1985:IX.4.5.3 SR6 / §1985:IX.4.5.4 GR2");
 
     /// <summary>COBOL5997 — linage counter without linage (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor LinageCounterWithoutLinage = new(
@@ -9445,14 +9632,16 @@ public static class DiagnosticCatalog
         "COBOL0887", "common-program-not-contained", EditionSeverity.Error,
         "The COMMON clause is specified for a program that is not contained within another program. §2023:11.10.3 SR4: \"The "
         + "COMMON clause may be specified only if the program is contained within another program.\"",
-        "ISO §2023:11.10.3 SR4");
+        "ISO §2023:11.10.3 SR4",
+        Rule1985: "§1985:X.3.1.3 SR3");
 
     /// <summary>COBOL0888 — procedure header item not linkage root (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ProcedureHeaderItemNotLinkageRoot = new(
         "COBOL0888", "procedure-header-item-not-linkage-root", EditionSeverity.Error,
         "A PROCEDURE DIVISION USING or RETURNING item is not a level 01 or 77 linkage section entry. §2023:14.2.2 SR1: "
         + "\"Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section.\"",
-        "ISO §2023:14.2.2 SR1");
+        "ISO §2023:14.2.2 SR1",
+        Rule1985: "§1985:X.5.1");
 
     /// <summary>COBOL0897 — declarative use rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor DeclarativeUseRule = new(
@@ -9462,7 +9651,8 @@ public static class DiagnosticCatalog
         + "sentence by itself\"; SR2 \"File-name-1 or file-name-2 shall not be a sort or a merge file.\"; SR7 each open mode "
         + "once; SR8 \"The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same "
         + "procedure division.\"; SR9 \"Identifier-1 shall reference a report group.\"",
-        "ISO §2023:14.9.49.3 SR1, SR2, SR7, SR8, SR9");
+        "ISO §2023:14.9.49.3 SR1, SR2, SR7, SR8, SR9",
+        Rule1985: "§1985:II.2.2.2.1.1 / §1985:II.2.2.2.1.2 / §1985:IX.4.8.3 SR3 / §1985:VII.4.6.3 SR3 / §1985:VII.4.6.3 SR6 / §1985:VIII.4.8.3 SR3");
 
     /// <summary>COBOL5998 — perform when file unknown (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor PerformWhenFileUnknown = new(
@@ -9516,7 +9706,8 @@ public static class DiagnosticCatalog
         + "national, character-string-1 shall contain only one or more occurrences of the symbol 'N'.\"; GR11 requires at "
         + "least one symbol '9' of a fixed-point numeric string; GR6 and GR7 define the alphanumeric and "
         + "alphanumeric-edited strings, and §2023:13.18.40.3 SR2 limits the string to the allowable picture symbols.",
-        "ISO §2023:13.18.40.3 SR2; §2023:13.18.40.4 GR6-GR11");
+        "ISO §2023:13.18.40.3 SR2; §2023:13.18.40.4 GR6-GR11",
+        Rule1985: "§1985:VI.5.9.3 SR2");
 
     /// <summary>COBOL1501 — intrinsic function unknown (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor IntrinsicFunctionUnknown = new(
@@ -9689,7 +9880,8 @@ public static class DiagnosticCatalog
         + "parenthesis immediately follows function-prototype-name-1 or intrinsic-function-name-1, the left parenthesis is "
         + "always treated as the left parenthesis of that function's arguments.\"; SR8 \"Argument-1 shall be an identifier, a "
         + "literal, a boolean expression, or an arithmetic expression.\"",
-        "ISO §2023:8.4.3.2.3 SR2, SR6, SR8");
+        "ISO §2023:8.4.3.2.3 SR2, SR6, SR8",
+        Rule1985: "§1985:IV.4.3.8.2.3 SR1 / §1985:IV.4.3.8.3.2 / §1985:IV.4.3.8.3.3 SR1");
 
     /// <summary>COBOL1544 — omitted intrinsic argument (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor OmittedIntrinsicArgument = new(
@@ -9895,7 +10087,8 @@ public static class DiagnosticCatalog
         + "reference neither a strongly-typed group item nor a data item of class index, message-tag, object, or "
         + "pointer.\" §2023:14.9.1.3 SR3: \"Identifier-2 shall not reference a data item of class alphabetic, boolean, index, "
         + "message-tag, object, or pointer.\"",
-        "ISO §2023:14.9.1.3 SR1, SR3");
+        "ISO §2023:14.9.1.3 SR1, SR3",
+        Rule1985: "§1985:VI.5.14.3 SR5 / §1985:VI.6.5.4 GR6");
 
     /// <summary>COBOL0823 — the method name or target of an INVOKE (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor InvokeMethodNameInvalid = new(
@@ -9951,7 +10144,8 @@ public static class DiagnosticCatalog
         "COBOL0865", "delete-record-on-sequential-file", EditionSeverity.Error,
         "A DELETE statement names a file of sequential organization. §2023:14.9.10.3 SR1: \"The DELETE RECORD statement shall "
         + "not be specified for a file with sequential organization.\"",
-        "ISO §2023:14.9.10.3 SR1");
+        "ISO §2023:14.9.10.3 SR1",
+        Rule1985: "§1985:VII.1.2");
 
     /// <summary>COBOL0866 — an INVOKE through a universal object reference, or by a dynamic method name (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor InvokeUniversalReferenceRule = new(
@@ -9997,7 +10191,8 @@ public static class DiagnosticCatalog
         + "boolean, numeric or numeric-edited item. §2023:8.8.4.4.3 SR4: \"ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or "
         + "class-name-1 shall not be specified if the category of the data item referenced by identifier-1 is boolean, "
         + "numeric, or numeric-edited.\"",
-        "ISO §2023:8.8.4.4.3 SR4");
+        "ISO §2023:8.8.4.4.3 SR4",
+        Rule1985: "§1985:IV.4.3.3 / §1985:VI.6.3.1.2");
 
     /// <summary>COBOL6001 — the CAPACITY register as a receiving operand; split from COBOL1523 (kb/Work PB4463, review
     /// round 1 R1-1).</summary>
@@ -10016,7 +10211,8 @@ public static class DiagnosticCatalog
         "A NUMERIC class condition is written over a data item whose usage is neither display nor national and whose "
         + "category is not numeric. §2023:8.8.4.4.3 SR8: \"If the NUMERIC phrase is specified, identifier-1 shall reference a "
         + "data item whose usage is display or national or whose category is numeric.\"",
-        "ISO §2023:8.8.4.4.3 SR8");
+        "ISO §2023:8.8.4.4.3 SR8",
+        Rule1985: "§1985:IV.4.3.3 / §1985:VI.6.3.1.2");
 
     // kb/Work PB4488: `>>COBOL-WORDS EQUATE "COPY" WITH "CPY"` then `CPY BOOK.` is no COPY statement, and the syntax error it
     // drew said "A period may be missing" of a sentence that has its period. The error stands (the source is not legal);
@@ -10061,7 +10257,8 @@ public static class DiagnosticCatalog
         + "RECEIVE identifier-1 shall be of category alphanumeric (ISO/IEC 1989:2002 A.2.5.2 SR2), SEND identifier-1 of class "
         + "alphanumeric (A.2.6.2 SR2, SR7), identifier-2 a one-character integer without an operational sign (SR3), identifier-3 "
         + "an integer data item (SR4), and mnemonic-name-1 the name of a feature (SR5).",
-        "ISO/IEC 1989:2002 A.2.5.2; A.2.6.2");
+        "ISO/IEC 1989:2002 A.2.5.2; A.2.6.2",
+        Rule1985: "§1985:IV.4.3.8.3.3 SR3 / §1985:VI.5.9.4 GR8 / §1985:XIV.3.2.3 SR4 / §1985:XIV.3.3.3 SR4 / §1985:XIV.3.6.3 SR2 / §1985:XIV.3.6.3 SR3 / §1985:XIV.3.6.3 SR4 / §1985:XIV.3.6.3 SR6");
 
     /// <summary>COBOL6265 — an operand of the asynchronous messaging facility's SEND or RECEIVE is not of the class its syntax rule requires.</summary>
     public static readonly DiagnosticDescriptor MessagingOperandClass = new(
