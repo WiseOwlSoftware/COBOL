@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: pb5421-set-up-by-index-amount-2002
-      *> rules: [FMT-14.9.39.2, GR-14.9.39.4-2]
+      *> rules: [FMT-14.9.39.2, GR-14.9.39.4-2, GR-14.9.39.4-3,
+      *>    GR-14.9.39.4-4]
       *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

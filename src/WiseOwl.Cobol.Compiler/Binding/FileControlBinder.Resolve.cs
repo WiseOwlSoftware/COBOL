@@ -51,7 +51,7 @@ public sealed partial class FileControlBinder
             // An operand refused and reported here is marked on its own carrier (`refused`), never collected by name: two key
             // operands may share a spelling and only one of them be refused, and the key screen's rows stay silent about that one
             // alone (kb/Work PB5932, step 6b's remainder slice 5).
-            DataItem? InRecords(WrittenDataName key, string face, Editions.DiagnosticCursor at, out bool refused)
+            DataItem? ResolveKeyOperand(WrittenDataName key, string face, Editions.DiagnosticCursor at, out bool refused)
             {
                 refused = false;
                 string keyName = key.Name;
@@ -60,7 +60,7 @@ public sealed partial class FileControlBinder
                 // row then added "references nothing described in this program" under COBOL0863 — a false
                 // second verdict about an operand whose only fault is its shape. The RELATIVE KEY arm below never
                 // had the cascade because ResolveClauseOperand already asks this set; the two record-key arms
-                // resolve through their own SR2 selection and now ask it too (feedback_two_arm_dispatch).
+                // resolve through this function and ask it too (feedback_two_arm_dispatch).
                 if (_host.State.Clauses.RefusedClauseOperands.Contains(keyName)) { refused = true; return null; }
                 var cands = _host.Symbols.IdentifyDataName(key, Model.Scope.Program);
                 bool inFile = cands.Any(i => RecordLayout.IsInRecordOfFile(file, i));
@@ -90,14 +90,15 @@ public sealed partial class FileControlBinder
             }
             // ⛔ ONE RESOLUTION FOR BOTH KEY FORMS (kb/Work PB1099 Q1): data-name-1 is the key's one segment, and
             // each data-name-2 of a SOURCE phrase is one segment of the concatenation (§2023:12.4.5.12.4 GR2 /
-            // §2023:12.4.5.6.4 GR2), resolved by the same SR2 selection. A key any of whose operands references nothing
-            // describable has no value to build, and that operand's SR2 row reports it.
+            // §2023:12.4.5.6.4 GR2), resolved by the same ResolveKeyOperand; whether the item lies in the file's records is
+            // SR2's question, which FileControlKeyRules asks of the resolved item (kb/Work PB5566). A key any of whose
+            // operands references nothing describable has no value to build, and that operand's SR2 row reports it.
             RecordKey? KeyOf(WrittenDataName key, IReadOnlyList<int> subscripts, RecordKeySource? source, string face,
                              Editions.DiagnosticCursor at, Action<DataItem?, bool> dataName1)
             {
                 if (source is null)
                 {
-                    var item = InRecords(key, face, at, out bool refused);
+                    var item = ResolveKeyOperand(key, face, at, out bool refused);
                     // COBOL-2002's key names the occurrence its integer-literal subscripts select (§2002:5.1.3), judged once the
                     // item is known (§2002:8.4.1.2.2 SR2/SR3/SR5, §2002:8.4.1.2.3 GR2); a refusal makes it no key, with no cascade (kb/Work PB5602).
                     if (!ScreenClauseOperandOccurrence(item, subscripts, face, key, at))
@@ -110,7 +111,7 @@ public sealed partial class FileControlBinder
                 }
                 foreach (var op in source.Operands)
                 {
-                    op.Item = InRecords(op.Operand, $"{face} SOURCE", op.At, out bool refused);
+                    op.Item = ResolveKeyOperand(op.Operand, $"{face} SOURCE", op.At, out bool refused);
                     if (!ScreenClauseOperandOccurrence(op.Item, op.Subscripts, $"{face} SOURCE", op.Operand, op.At))
                     {
                         refused = true;

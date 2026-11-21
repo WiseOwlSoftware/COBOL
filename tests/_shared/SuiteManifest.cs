@@ -30,12 +30,14 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// fed, relative to the suite root; null for a test whose input is closed (end of file).</param>
 /// <param name="OutputFile">An accepted test's declared output file (the header's <c>output-file</c>, design §3.1), judged after the
 /// process ends; null for a test that declares none.</param>
+/// <param name="Warns">The code or text of the WARNING WiseOwl reports on this program at this edition, where it compiles it
+/// (<c>wiseowl/diagnostics/</c>'s <c>warn-at</c>, kb/Work PB5461); null where it reports none to pin.</param>
 internal sealed record SuiteTest(
     string Id, string Clause, string Source, string SourceFormat, IReadOnlyList<string> Files,
     IReadOnlyList<string> Requires, IReadOnlyList<string> Words, string Expect, IReadOnlyList<int> ImplementorDefined,
     IReadOnlyDictionary<string, string> ExpectedOutput, int Line, string? Control, bool InSuite,
     IReadOnlyDictionary<string, string> Options, IReadOnlyList<SuiteBuildStep>? Build, IReadOnlyList<SuiteServer>? Servers,
-    string? Stdin = null, SuiteOutputFile? OutputFile = null);
+    string? Stdin = null, SuiteOutputFile? OutputFile = null, string? Warns = null);
 
 /// <summary>A test's declared output file (<c>conformance-suite/harness/generate.py#entry_for</c>, the manifest's
 /// <c>output-file</c>).</summary>
@@ -62,7 +64,8 @@ internal sealed record SuiteServer(string Name, string File, string Output, IRea
 
 /// <summary>One of WiseOwl COBOL's refusals (<c>conformance-suite/wiseowl/diagnostics/</c>, carried into the
 /// wiseowl manifest): the editions at which WiseOwl refuses the program, and the code or message substring it
-/// reports.</summary>
+/// reports. An entry that only warns is no refusal: the generator carries it as <see cref="SuiteTest.Warns"/> on the
+/// test's own entry (kb/Work PB5461).</summary>
 internal sealed record SuiteRefusal(
     string Id, string Source, string SourceFormat, IReadOnlyList<string> Files, IReadOnlyList<string> RefuseAt,
     string Expect, IReadOnlyDictionary<string, string> Options);
@@ -215,7 +218,8 @@ internal sealed record WiseOwlManifest(
             t.TryGetProperty("stdin", out JsonElement stdin) ? stdin.GetString()! : null,
             t.TryGetProperty("output-file", out JsonElement outputFile)
                 ? new SuiteOutputFile(outputFile.GetProperty("name").GetString()!, outputFile.GetProperty("expected").GetString()!)
-                : null);
+                : null,
+            t.TryGetProperty("warns", out JsonElement warns) ? warns.GetString()! : null);
     }
 
     private static SuiteServer Server(JsonElement server) => new(
