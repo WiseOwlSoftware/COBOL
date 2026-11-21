@@ -2115,6 +2115,14 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static DiagnosticHint ResidueRefusal(Parser recognizer, OffendingPosition at, ClosedFormat closedFormat)
     {
         var run = at.ResidueRunOpening;
+        // ⛔ A RESERVED WORD WHERE COMPUTER-NAME-1 STANDS IS THE NAME WRITTEN AS SOMETHING THAT IS NONE (kb/Work PB5985, PB6011):
+        // `OBJECT-COMPUTER. GLOBAL.` and `SOURCE-COMPUTER. MERGE.` are refused here, before any error production can take the
+        // word, so the parse layer asks the one reading of the slot and says what ClosedFormatPass says of a literal there
+        // (COBOL7654), not that the word is a stray clause or paragraph.
+        if (run is null && ClosedFormats.ComputerNameSlotAt(recognizer.Context) is { } paragraph)
+            return new(new Diagnostics.DiagnosticDescriptor(WiseOwl.Cobol.Editions.Diagnostics.DiagnosticCatalog.ComputerNameNotASystemName.Code,Diagnostics.DiagnosticSeverity.Error, "{0}"),
+                ClosedFormats.ComputerNameRefusal(WrittenResidueItem(recognizer, at.Token), paragraph, EditionOf(recognizer),
+                    reserved: true) + ".", 0, null, LeavesNoTail: true);
         return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                 Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
             closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token), at.OwnerName(),
