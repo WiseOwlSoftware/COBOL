@@ -13,3 +13,5 @@ Re-probe on this build (`--std 85`, `PIC $`): the refusal reproduced and now rea
 Golden: `13.18.40-PICTURE/pb5988-picture-no-digit-position-cites-1985` with `wiseowl/diagnostics/...json` pinning
 "(ISO §1985:VI.5.9.6)" at 85. Rows closed: none (the catalog holds no row for the VI.5.9.6 prose). Left unfixed and noted in
 the report: the message's symbol list still names 'N' and '1' at 85.
+
+Review round 1 (R1-1): the refusal message at --std 85 still listed the 2023 symbol set (N, 1, character-1). It now names the §1985:VI.5.9.6 set (A, X, Z, 9, *; +, -, cs) through Edition.Cite, the 2002+ text unchanged; the golden expect pins the 1985 list. The 2023 arm SR12 a became SR12 (cite.py rejects a sub-item a). PB5988 Sites no longer names PictureAnalyzer.cs (R1-2).

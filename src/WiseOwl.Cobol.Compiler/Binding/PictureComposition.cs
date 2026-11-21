@@ -418,8 +418,13 @@ internal static class PictureComposition
         if (!anyContent)
             return Fail(DiagnosticCatalog.PictureComposition,
                 "character-string-1 describes no digit position and no character position — it shall contain at "
-                + "least one of the symbols 'A', 'N', 'X', 'Z', '1', '9', '*', or at least two occurrences of one "
-                + $"of character-1, 'X', '+', '-', '{cs}' (ISO {Rule("SR12 a", "§1985:VI.5.9.6")})");
+                + edition.Edition.Cite(
+                    // §1985:VI.5.9.6 names 'A', 'X', 'Z', '9', '*' and the '+', '-', 'cs' pairs: no 'N', '1' or character-1.
+                    "least one of the symbols 'A', 'X', 'Z', '9', '*', or at least two occurrences of one "
+                    + $"of '+', '-', '{cs}'",
+                    "least one of the symbols 'A', 'N', 'X', 'Z', '1', '9', '*', or at least two occurrences of one "
+                    + $"of character-1, 'X', '+', '-', '{cs}'")
+                + $" (ISO {Rule("SR12", "§1985:VI.5.9.6")})");
 
         // The DECIMAL POINT POSITION — derived ONCE, here, because two rules count from it: SR29 just below and
         // the Table-10 role assignment (which of the eight two-row symbols' halves an occurrence takes).
