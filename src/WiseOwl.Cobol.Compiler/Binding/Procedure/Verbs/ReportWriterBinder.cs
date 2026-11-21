@@ -388,7 +388,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1")})"
                     + HidingOfReportName(rn.GetText()));
-            if (RejectContainedReportFile(r, $"INITIATE {r.Name}", "ISO §2023:14.9.21.3 SR2") is { } notGlobal) return notGlobal;
+            if (RejectContainedReportFile(r, $"INITIATE {r.Name}", ContainedReportRule.Initiate) is { } notGlobal) return notGlobal;
             members.Add(new BoundInitiate([r]));
         }
         return BoundImplicitSeries.Of(members);
@@ -416,7 +416,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateDetailCount, $"GENERATE {name}: the report description entry "
                     + $"holds {details} detail report groups; when a GENERATE report-name statement is specified, the report "
                     + "description entry must include no more than one detail report group (ISO §1985:XIII.3.20.3 SR6)");
-            if (RejectContainedReportFile(summary, $"GENERATE {name}", "ISO §2023:14.9.16.3 SR4") is { } notGlobal) return notGlobal;
+            if (RejectContainedReportFile(summary, $"GENERATE {name}", ContainedReportRule.GenerateReport) is { } notGlobal) return notGlobal;
             // Summary reporting (GR2). §1985:XIII.3.20.4 GR11: a report with exactly one detail report group processes the
             // statement "as though a GENERATE data-name statement were being executed" for it, so the subtotalling designated
             // for that detail (SUM ... UPON) is performed though the detail is not printed (kb/Work PB5249).
@@ -437,7 +437,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             // SR3's REPORT half ("the report description entry in which data-name-1 is specified ... shall contain a
             // GLOBAL clause") holds by construction — a container's non-GLOBAL report is not visible here at all,
             // so its groups resolve to nothing (§2023:13.18.27.4 GR2). The FILE half is asked here.
-            if (RejectContainedReportFile(report!, where, "ISO §2023:14.9.16.3 SR3") is { } notGlobal) return notGlobal;
+            if (RejectContainedReportFile(report!, where, ContainedReportRule.GenerateGroup) is { } notGlobal) return notGlobal;
             return Presenting(new BoundGenerate(report!, group, null));
         }
         // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
@@ -469,7 +469,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
                     + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1")})"
                     + HidingOfReportName(rn.GetText()));
-            if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §2023:14.9.46.3 SR2") is { } notGlobal) return notGlobal;
+            if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", ContainedReportRule.Terminate) is { } notGlobal) return notGlobal;
             members.Add(Presenting(new BoundTerminate([r])));
         }
         return BoundImplicitSeries.Of(members);
@@ -523,14 +523,32 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// §2002:14.8.15.2 SR3/SR4 (GENERATE) carry it word for word. The 1985 statements have only "Report-name-1 must be
     /// defined by a report description entry" (§1985:XIII.4.4.3 SR1, §1985:XIII.4.7.3 SR1), and a global name may be
     /// referenced by every contained program without describing it again (§1985:X.4.6.4 GR2), so a 1985 compilation
-    /// asks nothing here.</para></summary>
-    private BoundStatement? RejectContainedReportFile(ReportModel report, string where, string rule) =>
+    /// asks nothing here.</para>
+    /// <para>The message cites the rule of the edition compiled (kb/Work PB5139): <paramref name="rule"/> holds the verb's
+    /// rule in each edition that has it.</para></summary>
+    private BoundStatement? RejectContainedReportFile(ReportModel report, string where, ContainedReportRule rule) =>
         ctx.Edition.Edition.Has(2002) && ctx.Data.State.Reports.Depth(report) > 0 && report.File is { IsGlobal: false } file
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ContainedReportFileNotGlobal,
                 $"{where}: report '{report.Name}' is defined in a containing program and its file description entry "
                 + $"'{file.CobolName}' does not contain a GLOBAL clause; the file description entry associated with a "
-                + $"containing program's report shall contain a GLOBAL clause ({rule})")
+                + $"containing program's report shall contain a GLOBAL clause (ISO {rule.In(ctx.Edition.Edition)})")
             : null;
+
+    /// <summary>The rule a report-driving verb restates for a containing program's report, in each edition that has it
+    /// (<see cref="RejectContainedReportFile"/>; kb/Work PB5080, PB5139). The 1985 statements have none, so a 1985 compilation
+    /// never asks for one; every citation was checked with <c>cite.py --check</c> against its edition's text.</summary>
+    private sealed record ContainedReportRule(string Y2002, string Y2014, string Y2023)
+    {
+        public static readonly ContainedReportRule Initiate = new("§2002:14.8.20.2 SR2", "§2014:14.9.20.2 SR2", "§2023:14.9.21.3 SR2");
+        public static readonly ContainedReportRule Terminate = new("§2002:14.8.42.2 SR2", "§2014:14.9.42.2 SR2", "§2023:14.9.46.3 SR2");
+        public static readonly ContainedReportRule GenerateReport = new("§2002:14.8.15.2 SR4", "§2014:14.9.15.2 SR4", "§2023:14.9.16.3 SR4");
+        public static readonly ContainedReportRule GenerateGroup = new("§2002:14.8.15.2 SR3", "§2014:14.9.15.2 SR3", "§2023:14.9.16.3 SR3");
+
+        /// <summary>The rule's citation in <paramref name="edition"/>, from COBOL-2002 on (the check runs from 2002 alone).</summary>
+        public string In(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Has(2002)
+            ? edition.Cite(Y2002, Y2023, Y2002, Y2014)
+            : throw new InvalidOperationException("the contained-report file rule begins at COBOL-2002 (kb/Work PB5080)");
+    }
 
     /// <summary>ISO §2023:14.9.49.3 SR10 (kb/Work PB363): "The GENERATE, INITIATE, or TERMINATE statements shall not
     /// appear in a paragraph within a USE BEFORE REPORTING procedure." ONE guard read by all three verbs, over the

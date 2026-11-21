@@ -67,14 +67,24 @@ public sealed class GlobalReportScopeTests
 
     // ── §2023:14.9.16.3 SR3/SR4 · §2023:14.9.21.3 SR2 · §2023:14.9.46.3 SR2 — the report's FD must be GLOBAL too ──────────────
 
+    /// <summary>Refused at each edition that has the rule, citing that edition's own rule (kb/Work PB5139; each citation checked
+    /// with cite.py --check against its edition's text).</summary>
     [Theory]
-    [InlineData("GENERATE DET-1.", "§2023:14.9.16.3 SR3")]
-    [InlineData("GENERATE R-1.", "§2023:14.9.16.3 SR4")]
-    [InlineData("INITIATE R-1.", "§2023:14.9.21.3 SR2")]
-    [InlineData("TERMINATE R-1.", "§2023:14.9.46.3 SR2")]
-    public void AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused(string stmt, string rule)
+    [InlineData("GENERATE DET-1.", 2002, "§2002:14.8.15.2 SR3")]
+    [InlineData("GENERATE R-1.", 2002, "§2002:14.8.15.2 SR4")]
+    [InlineData("INITIATE R-1.", 2002, "§2002:14.8.20.2 SR2")]
+    [InlineData("TERMINATE R-1.", 2002, "§2002:14.8.42.2 SR2")]
+    [InlineData("GENERATE DET-1.", 2014, "§2014:14.9.15.2 SR3")]
+    [InlineData("GENERATE R-1.", 2014, "§2014:14.9.15.2 SR4")]
+    [InlineData("INITIATE R-1.", 2014, "§2014:14.9.20.2 SR2")]
+    [InlineData("TERMINATE R-1.", 2014, "§2014:14.9.42.2 SR2")]
+    [InlineData("GENERATE DET-1.", 2023, "§2023:14.9.16.3 SR3")]
+    [InlineData("GENERATE R-1.", 2023, "§2023:14.9.16.3 SR4")]
+    [InlineData("INITIATE R-1.", 2023, "§2023:14.9.21.3 SR2")]
+    [InlineData("TERMINATE R-1.", 2023, "§2023:14.9.46.3 SR2")]
+    public void AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused(string stmt, int edition, string rule)
     {
-        var d = BindDiagnostics(Group(rdGlobal: true, fdGlobal: false, "", "", "           " + stmt), 2002);
+        var d = BindDiagnostics(Group(rdGlobal: true, fdGlobal: false, "", "", "           " + stmt), edition);
         Assert.Single(d, x => x.Contains("COBOL2392") && x.Contains(rule));
     }
 
