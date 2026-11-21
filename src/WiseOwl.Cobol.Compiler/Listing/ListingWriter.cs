@@ -27,6 +27,12 @@ internal static class ListingWriter
             string path = outputBase + ListingOutput.Extension(format);
             try
             {
+                // The DEFAULT place is the output assembly's own directory, which the backend makes when the compilation gets
+                // that far; a compilation that stops in the front end or the bind never does, and the listing is what such a
+                // compilation is read for (kb/Work PB5940). The user named no place, so the directory is the compilation's to
+                // make. An explicit --listing-output names the place: a missing directory there is a refused write, below.
+                if (facts.Request.OutputBase is null && Path.GetDirectoryName(Path.GetFullPath(path)) is { Length: > 0 } directory)
+                    Directory.CreateDirectory(directory);
                 using (var file = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, FileBufferSize))   // not a compilation input: the listing the compilation writes
                     ListingOutput.Write(format, document, facts.Request, file);
                 files.Add(Path.GetFullPath(path));

@@ -181,6 +181,34 @@ public static class ClosedFormats
         return null;
     }
 
+    /// <summary>⛔ THE ONE READING OF THE COMPUTER-NAME SLOT (kb/Work PB5920): the header of the SOURCE-COMPUTER or
+    /// OBJECT-COMPUTER paragraph whose <c>computer-name-1</c> position <paramref name="production"/> fills, or null where
+    /// it fills none. A computer-name is a system-name, a COBOL word (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1), so a run that
+    /// opens right after the header of a paragraph with no name and nothing else written is the name written as something
+    /// that is none, whether the grammar met it as the next CONFIGURATION SECTION paragraph (after SOURCE-COMPUTER, whose
+    /// rule ends the paragraph at the period when no name follows) or as the first clause of the OBJECT-COMPUTER
+    /// paragraph (whose rule takes clauses after the name slot). The two shapes are one question asked of two
+    /// contexts: a name word would have been taken by the paragraph's own <c>computerName</c>.</summary>
+    public static string? ComputerNameSlotOf(Core.UnrecognizedClauseContext production)
+    {
+        switch (production.Parent)
+        {
+            case Core.ObjectComputerClauseContext clause
+                when clause.Parent is Core.ObjectComputerParagraphContext { nnComputerName1: null } paragraph
+                     && paragraph.objectComputerClause(0) == clause:
+                return "OBJECT-COMPUTER";
+            case Core.ConfigurationParagraphContext header when header.Parent is { } section:
+                int at = Enumerable.Range(0, section.ChildCount).First(i => section.GetChild(i) == header);
+                return at > 0 && section.GetChild(at - 1) is Core.ConfigurationParagraphContext previous
+                       && previous.sourceComputerParagraph() is { nnComputerName1: null } source
+                       && source.debuggingModeClause() is null && source.unrecognizedClause() is null
+                    ? "SOURCE-COMPUTER"
+                    : null;
+            default:
+                return null;
+        }
+    }
+
     /// <summary>⛔ THE ENTRY WHOSE OWN NAME IS STILL DUE (kb/Work PB4604, PB4788), or null where no entry waits for one.
     /// ISO §2023:13.16.3 SR4: "the entry-name clause shall immediately follow the level-number" and, when it is not specified,
     /// the entry is a filler; so a data description entry whose context holds no data-name has two readings of the first

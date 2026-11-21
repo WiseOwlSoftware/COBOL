@@ -1723,8 +1723,12 @@ public sealed partial class SequentialConnector : FileConnector
         // text (GnuCOBOL reclassifies the last two line sequential): the record less its trailing spaces, unframed.
         bool recordStream = IsRecordPrintStream;
         bool framed = recordStream && IsVarying;
-        string record = recordStream || IsVarying ? FitRecord(image, len, national) : image;
-        string text = recordStream ? record : TrimRecordEnd(record, national);
+        // ⛔ A LINE-FRAMED FILE OF AN EDITION BEFORE 2023 KEEPS THE RECORD AT ITS SIZE ON THIS ARM TOO (kb/Work PB5914):
+        // the line delimiter only frames it (§1985:VII.2.8.4 GR1), so the plain arm's rule (WriteRecord, kb/Work PB5903)
+        // binds the ADVANCING write of the same file; §2023:14.9.51.4 GR21's strip is the 2023 line sequential rule.
+        bool lineDelimiterOnlyFrames = _lineSequential && !LineSequentialFileRules;
+        string record = recordStream || lineDelimiterOnlyFrames || IsVarying ? FitRecord(image, len, national) : image;
+        string text = recordStream || lineDelimiterOnlyFrames ? record : TrimRecordEnd(record, national);
         RecordExtents? frameExtents = framed ? Framed(record, image, extents).Extents : null;   // as WriteRecord's frame
         // §2023:14.9.51.4 GR25 e)/f) — the ONE advance, placed before or after the presentation by the statement's
         // own word. On a LINAGE file both halves travel the LOGICAL page (GR25 g), GR26 a)); on any other print
