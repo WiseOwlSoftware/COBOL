@@ -5,7 +5,7 @@ Re-probe at `--std 85` (`E:/COBOL-coord/scratch/w20262045a/p54/rm.cob`): `IF X (
 (a function argument in MOVE) was discharged in wave 20262044: it is refused COBOL0900 at 85.
 
 The decision the earlier addendum left open (CLAUDE.md "Ownership"; recorded in `docs/conformance/7/DOC-A.1-70.md`):
-- §1985:B.2.2 item 45 restates §1985:VI.6.4.2 GR3, whose subject is "the affected resultant identifiers" of an arithmetic statement; a reference
+- §1985:B.2.2 item 45 restates §1985:VI.6.4.2 p2, whose subject is "the affected resultant identifiers" of an arithmetic statement; a reference
   modifier has no resultant identifier (a 1985 subscript admits no arithmetic expression, COBOL0900).
 - A position whose value could not be formed (a zero divisor, §1985:VI.6.4.2 GR2, "always causes a size error condition") would have to be invented
   to continue, and §1985:IV.4.3.8.4.4 GR4a asks that the evaluation "must result in a positive nonzero integer". An invented zero ends at the

@@ -576,6 +576,27 @@ stale until it is read again). Pending units: 2023 2,298 before and after, 2002 
 relabelled), 1985 956 to 1,026 (the 15 list units re-segmented into 81 items, §1989:A.2.4's 42 table rows relabelled
 `T1.1` to `T1.42`, and 4 more margin paragraphs at level 0).
 
+**Step 6 as built (kb/Work PB5452, the 1985 mint).** The campaign's records enter the manifest through ONE importer,
+`scripts/spec/import_dispositions.py` (later slices win, an OVERTURNED refuter's correction wins, a `restates` chain
+resolves, and a key no unit has, a unit no record disposes, or a `restates`/`not-a-rule` with no UPHELD record of its own
+slice is refused); the refuter records are committed beside the manifest, `docs/rearchitecture/spec-dispositions-1985/`.
+The 1985 reader then mints: a decided margin paragraph's own lines leave its rule's text (`rule_catalog_1985.carved_lines`,
+`parse(carved=...)`; a display among or after them, a `<pre>` figure, code or a format band, stays in the rule), and every
+unit disposed a row kind is a row (`rule_catalog_1985.mint`) placed among its clause's rows in text order (cite.py
+anchors a clause's rows in that order), with `shape`, `box` read on its printed lines, `level`, `definitional` and, on
+every row of a list a colon unit leads, numbered rules included, the `lead` of point 1. A paragraph or table row is cited
+by its unit designator and never by the rule number its `ordinal` shares (`cite.cited_by_number`); an ITEM's row is cited
+by the numbered rule's designator its id already is (`§1985:IV.4.2.2.1.1 GR1`), since `item <n>` cannot become a
+designator while the tree writes it for lists that are no unit. A paragraph headed "Examples" and a format band on a line
+of its own are no unit (point 1's "an example and a general format are never units"). The 1985 pointer grammar reads the
+text's own phrasings (`text_units.POINTER`: "is located on page", "the glossary beginning on page", a footnote's marker
+and purpose, "See paragraph <n>, <title>, page <folio>", "explained elsewhere in these specifications"). A `not-rules`
+block's record is keyed by the digest the content-keyed scan reads its body under (the scan now records one), and an
+OVERTURNED block is admitted as a rule block when its items are the rules, or else held `pending` (`pending-clauses` in
+the 1985 catalog's outside block). The parents the carve shrank are split through `record_verdicts.py --edition 1985`,
+their pieces checked wherever they lie in the old text (`rule_moves.carved_from`). Counts: kb/Work PB5452's
+`2026-11-21-mint.md`.
+
 **Attacked.** Run on the current `prose_paragraphs` (the code PB284 landed), on the clauses the dispositions will
 admit, and once more by an adversarial review of the design (2026-11-12, kb/Work PB479's dated file of that day):
 

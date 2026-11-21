@@ -735,7 +735,9 @@ def resolve(cited: citation.Citation, text: str | None = None, repo: pathlib.Pat
                            excerpt=book.lines[at].strip()[:220])
         under = f"; it lies in {book.where(cited.locator, needle) or rule.designator}{mode}" if rule else ""
         return Verdict("ok", f"{shown}  ({title})  the text is in the clause{under}{mark}", excerpt=book.lines[at].strip()[:220])
-    if UNIT_DESIGNATOR.fullmatch(cited.rule):
+    if UNIT_DESIGNATOR.fullmatch(cited.rule) or any(r.unit and r.designator == cited.rule
+                                                    for r in book.rules.get(cited.locator, ())):
+        # (a whole data table's row is cited `Table <t>` too, numbered by its place when the clause captions none)
         return _resolve_unit(book, cited, needle, text, title, regions, repo, mode)
     if m := DESIGNATOR.fullmatch(cited.rule):
         return _resolve_rule(book, cited, m, needle, text, title, regions, mode)
@@ -764,13 +766,22 @@ def _lists(rules: list[Rule]) -> str:
     return ", ".join(out)
 
 
+def cited_by_number(rule: Rule) -> bool:
+    """Is `rule` cited by a rule designator (`GR2`, `GRL2.1`)? A numbered rule is, and so is the row of a prose clause's
+    numbered item (its id is a numbered rule's, kb/Work PB5452); a paragraph or table row is cited by its unit's
+    designator (`p3`, `Table 1 row 2`), never by the rule number its `ordinal` shares."""
+    return not rule.unit or re.fullmatch(r"\d+|L\d+\.\d+", rule.unit) is not None
+
+
 def _resolve_rule(book: RuleBook, cited, m: re.Match, needle, text, title, regions, mode) -> Verdict:
     shown, loc = citation.render(cited), cited.locator
     clause_shown = citation.render(dataclasses.replace(cited, rule=None))
     kind, sub = m["kind"], int(m["list"] or 1)
     n = int(m["lord"] or m["n"])
     path = tuple(re.findall(r"[a-z]|\d+", m["path"] or ""))
-    in_clause = book.rules.get(loc, [])
+    # A 1985 clause holds numbered rules and paragraph rows side by side (kb/Work PB5452): a rule designator names
+    # only a rule cited by number.
+    in_clause = [r for r in book.rules.get(loc, []) if cited_by_number(r)]
     of_kind = [r for r in in_clause if r.kind == kind]
     if not of_kind:
         # The block the author meant: a subclause's (`§2023:14.9.39 SR17` is 14.9.39.3's) or, when exactly one has it,  # citation-audit: example
@@ -778,7 +789,7 @@ def _resolve_rule(book: RuleBook, cited, m: re.Match, needle, text, title, regio
         parent = loc.rsplit(".", 1)[0] if "." in loc else None
         near = [r for k, rs in book.rules.items()
                 if k.startswith(loc + ".") or (parent and k != loc and k.rsplit(".", 1)[0] == parent)
-                for r in rs if r.kind == kind and r.sublist == sub and r.ordinal == n]
+                for r in rs if r.kind == kind and r.sublist == sub and r.ordinal == n and cited_by_number(r)]
         has = sorted({KIND_NAMES[r.kind] + "s" for r in in_clause})
         hint = f" (it has {' and '.join(has)})" if has else " (no numbered rule of any kind)"
         child = next((r for r in near if r.locator.startswith(loc + ".")), None) or (near[0] if len(near) == 1 else None)
@@ -1173,7 +1184,8 @@ def self_test() -> int:
         ("prose in no row answers pending and names no rule",
          (got := v("§2023:8.4.2.1", "The same name shall not be used both as the name of an external record")).ok
          and PENDING_MARK in got.message and "lies in" not in got.message),
-        ("the same in 1985", PENDING_MARK in v("§1985:VI.5.13.1", "specifies the alignment of an elementary item").message),
+        # (a unit kb/Work PB5452 leaves pending: the list it leads is no unit yet)
+        ("the same in 1985", PENDING_MARK in v("§1985:IV.4.2.2.1.3 p3", "There are three types of reserved words").message),
         ("a paragraph row is cited p<n>", v("§2023:9.1.16 p6", "the LOCK clause and the UNLOCK statement shall not be "
                                                              "specified").message.endswith("the text is in p6")),
         ("a pending unit and a pending table row are cited by their designators",

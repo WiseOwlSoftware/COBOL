@@ -1636,6 +1636,26 @@ def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
     return 0
 
 
+def units_1985(lines: list[str]):
+    """THE 1985 READER'S UNITS OF UNNUMBERED TEXT (kb/Work PB5449), the one reading `main_1985` and the dispositions'
+    importer (import_dispositions.py) make: the catalog as the transcription gives it (its rules hold every paragraph
+    printed after them), the units by clause (rule_catalog_1985.units), every paragraph after a rule
+    (`block_paragraphs`) and those the margin-level data measures at the block's margin, each a unit."""
+    import measure_margin_levels  # noqa: PLC0415
+    import rule_catalog_1985  # noqa: PLC0415
+    cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
+    # THE UNITS OF UNNUMBERED TEXT (kb/Work PB5449): segmented by the ISO arm's one segmentation, disposed in the
+    # manifest's `paragraph-blocks` (a regeneration enters a new unit pending), audited, and counted outside.
+    # A paragraph after a rule is a unit when the margin-level data measures it at the block's margin (kb/Work PB5449
+    # item 3, measure_margin_levels.py), and every such paragraph is held to the data.
+    levels = measure_margin_levels.load(1985)
+    after = rule_catalog_1985.block_paragraphs(lines, cat.rules)[1]
+    cat.margin_levels = measure_margin_levels.refusals(after, levels)
+    cat.margin_tally = measure_margin_levels.tally(list(levels.values()))
+    margin = measure_margin_levels.at_margin(after, levels)
+    return cat, rule_catalog_1985.units(lines, cat.rules, cat.declared, margin), after, margin
+
+
 def main_1985(args: argparse.Namespace) -> int:
     """The 1985 arm (kb/Work PB4886; DESIGN-spec-conformance-review.md §10): the 1985 document's own structure, read by
     rule_catalog_1985.py. `--check` prints the counts and the findings and writes nothing; otherwise the catalog is
@@ -1646,19 +1666,7 @@ def main_1985(args: argparse.Namespace) -> int:
     if not spec.exists():
         sys.exit(f"spec not found: {spec}")
     lines = spec.read_text(encoding="utf-8").splitlines()
-    cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
-    rule_catalog_1985.cite_check(cat)
-    cat.standing = element_standing.apply(cat.rules, "locator", lines, citation.regions_1985(lines), STANDING_OF[1985])
-    # THE UNITS OF UNNUMBERED TEXT (kb/Work PB5449): segmented by the ISO arm's one segmentation, disposed in the
-    # manifest's `paragraph-blocks` (a regeneration enters a new unit pending), audited, and counted outside.
-    # A paragraph after a rule is a unit when the margin-level data measures it at the block's margin (kb/Work PB5449
-    # item 3, measure_margin_levels.py), and every such paragraph is held to the data.
-    import measure_margin_levels  # noqa: PLC0415
-    levels = measure_margin_levels.load(1985)
-    after = rule_catalog_1985.block_paragraphs(lines, cat.rules)[1]
-    cat.margin_levels = measure_margin_levels.refusals(after, levels)
-    cat.margin_tally = measure_margin_levels.tally(list(levels.values()))
-    units = rule_catalog_1985.units(lines, cat.rules, cat.declared, measure_margin_levels.at_margin(after, levels))
+    cat, units, after, margin = units_1985(lines)
     titles = {f"§{1989 if r[0].startswith('A.') else 1985}:{r[0]}": r[1]
               for r in (*citation.regions_1985(lines), *citation.amendment_regions(lines, 1989))}
     if not args.check and regenerate_dispositions(UNHARVESTED_OF[1985], units, lines, 1985,
@@ -1666,16 +1674,31 @@ def main_1985(args: argparse.Namespace) -> int:
         print(f"wrote {UNHARVESTED_OF[1985].relative_to(REPO)}")
     raw = json.loads(UNHARVESTED_OF[1985].read_text(encoding="utf-8"))
     blocks = raw.get(PARAGRAPH_BLOCKS, {})
+    # THE MINT (kb/Work PB5452): a decided margin paragraph leaves the text of the rule it follows, so the catalog is
+    # read again without it, and every unit disposed a row kind becomes a row among its clause's rules.
+    carved = rule_catalog_1985.carved_lines(lines, cat, units, blocks, after, margin)
+    if carved:
+        read = cat
+        cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]), carved)
+        cat.margin_levels, cat.margin_tally = read.margin_levels, read.margin_tally
+    minted = rule_catalog_1985.mint(cat, lines, units, blocks, after)
+    rule_catalog_1985.cite_check(cat)
+    cat.standing = element_standing.apply(cat.rules, "locator", lines, citation.regions_1985(lines), STANDING_OF[1985])
     ctx = unit_context(1985, cat.rules)
     cat.dispositions = (text_units.audit(units, blocks, str, rule_catalog_1985.unit_kinds, ctx)
-                        + text_units.block_refusals(cat.declared, ctx, required=bool(raw.get(NOT_RULES_REFUTED))))
+                        + text_units.block_refusals(cat.declared, ctx, required=bool(raw.get(NOT_RULES_REFUTED)),
+                                                    measured=cat.unharvested))
     cat.pending_units = text_units.pending(blocks)
+    cat.minted = minted
     print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
     for line in rule_catalog_1985.summary(cat):
         print(line)
     doc = {"generated_from": spec.relative_to(REPO).as_posix(), "rule_count": len(cat.rules), "blocks": len(cat.blocks)}
-    if cat.pending_units:
-        doc[OUTSIDE] = {PENDING_UNITS: cat.pending_units}
+    # A clause whose content-keyed disposition awaits a decision (a `not-rules` block its refuter overturned, kb/Work
+    # PB5452) is outside the count as the ISO arm's are (`pending-clauses`).
+    pending_clauses = [c for c, v in cat.declared.items() if v.get("disposition") == "pending"]
+    if cat.pending_units or pending_clauses:
+        doc[OUTSIDE] = ({"pending-clauses": pending_clauses} if pending_clauses else {}) | {PENDING_UNITS: cat.pending_units}
     doc["rules"] = cat.rules
     stale = False
     if out.exists():
