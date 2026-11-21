@@ -93,8 +93,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// paragraph-name-OMITTED paragraph with no sentences: like <see cref="AddAnonymousParagraph"/> it is named nowhere
     /// (kb/Work PB990 — it used to be registered under the SECTION's own name, so every such section declared a paragraph
     /// its source never wrote, and <c>PERFORM</c> of the section was ambiguous with it). Its DEBUG-LINE is the section header's
-    /// line: the section has no first statement to identify, and §1985:XV.3.2.4 GR12 leaves the identification to the
-    /// implementor.</summary>
+    /// line where §1985:XV.3.2.4 GR16a asks for "the first statement of that procedure" (an empty first section's START
+    /// PROGRAM): the section has none, and GR12 leaves the identification to the implementor (the golden
+    /// pb5633_debug_line_empty_section_85 pins it, kb/Work PB5633).</summary>
     public void AddEmptyAnonymousParagraph(SectionInfo section, HashSet<string> used)
     {
         AddUnnamedParagraph([], section, used);

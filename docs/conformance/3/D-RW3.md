@@ -17,7 +17,7 @@
   previous COBOL standard and this" one (`cite.py --check E.1 "substantive changes between the previous COBOL standard
   and this"` → OK): its 16 words were user-defined at 2014, which the generator ASSERTS of the 2014 list. SEND, RECEIVE
   and END-RECEIVE are on the 2002 §2002:8.9 list, like the rest of the communication facility's vocabulary (CD, DISABLE,
-  ENABLE, PURGE, …), obsolete there and removed at 2014. ORDER is reserved at 85 as well (kb/Work PB3957): GnuCOBOL's 85 list holds it, the 2002 standard's Annex F.1 item 6 (printed page 835 of its
+  ENABLE, PURGE, …), obsolete there and removed at 2014. ORDER is reserved at 85 as well (kb/Work PB3957): the 1985 standard's own list holds it (§1985:IV.8, the 85 flag's source since kb/Work PB5138, with GnuCOBOL's 85 list its net), the 2002 standard's Annex F.1 item 6 (printed page 835 of its
   post-ballot text, "The following reserved words have been added") does not name it among the words 2002 added although
   the same text's 8.9 list holds it, and `scripts/gen-reserved-words.ps1` asserts that for EVERY 8.9 word
   (`reserved-words-2002.json` `addedByAnnexF1`: a 2002 word the item does not name must be in the 85 source). An earlier revision cleared ORDER at 85

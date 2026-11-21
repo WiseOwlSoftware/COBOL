@@ -84,7 +84,35 @@ public sealed class ReservedWordsDriftTests
         Assert.All(entries, e => Assert.True(e.Confidence is "high" or "medium", $"bad confidence: {e.Word}"));
     }
 
-    /// <summary>⛔ THE 85 FLAG IS HELD TO THE 2002 TEXT (kb/Work PB3957). No 1985 text is in the repository, but the 2002
+    /// <summary>⛔ THE 85 FLAG IS THE 1985 TEXT'S OWN LIST (kb/Work PB5138): the words the table reserves at 85 are exactly the
+    /// cells of ANSI X3.23-1985 Section IV paragraph 8 (<c>specs/ANSI_COBOL_1985.md</c>, as amended in place), read here
+    /// independently of the generator, and no row names GnuCOBOL's 85 list as its source (that list is the generator's net,
+    /// which must equal the text, never the flag's source). The 2023 flag is read from §2023:8.9 the same way.</summary>
+    [Fact]
+    public void The85Flag_IsTheReservedWordListOfThe1985Text()
+    {
+        var text = new HashSet<string>(StringComparer.Ordinal);
+        bool inList = false;
+        foreach (string line in File.ReadLines(Path.Combine(TestRepo.Root, "specs", "ANSI_COBOL_1985.md")))
+        {
+            if (!inList) { inList = line.StartsWith("## 8. <u>COBOL RESERVED WORDS</u>", StringComparison.Ordinal); continue; }
+            if (line.StartsWith("# SECTION V", StringComparison.Ordinal)) break;
+            if (!line.StartsWith('|')) continue;
+            foreach (string cell in line.Split('|'))
+                if (System.Text.RegularExpressions.Regex.IsMatch(cell.Trim(), "^[A-Z][A-Z0-9-]*$")) text.Add(cell.Trim());
+        }
+        Assert.InRange(text.Count, 320, 380);   // the scan found the list
+        var at85 = ReservedWords.Entries.Where(e => e.R85).Select(e => e.Word).ToHashSet(StringComparer.Ordinal);
+        var onlyText = text.Except(at85).Order(StringComparer.Ordinal).ToList();
+        var onlyTable = at85.Except(text).Order(StringComparer.Ordinal).ToList();
+        Assert.True(onlyText.Count == 0 && onlyTable.Count == 0,
+            $"the 85 flag and §1985:IV.8 differ: {onlyText.Count} only in the text (first: {onlyText.FirstOrDefault()}), {onlyTable.Count} only in "
+            + $"the table (first: {onlyTable.FirstOrDefault()}); fix scripts/gen-reserved-words.ps1 and regenerate");
+        var gnuSourced = ReservedWords.Entries.Where(e => e.Provenance.Contains("GnuCOBOL 85", StringComparison.Ordinal)).Select(e => e.Word).ToList();
+        Assert.True(gnuSourced.Count == 0, $"{gnuSourced.Count} row(s) name GnuCOBOL's 85 list as the 85 flag's source (first: {gnuSourced.FirstOrDefault()})");
+    }
+
+    /// <summary>⛔ THE 85 FLAG IS ALSO HELD TO THE 2002 TEXT (kb/Work PB3957). The 2002
     /// standard's Annex F.1 item 6 ("The following reserved words have been added") names every reserved word 2002 added
     /// to the previous standard's, so a word of the 2002 §2002:8.9 list that the item does not name was already reserved at
     /// 1985. ORDER sat outside that on a "CCVS proof" that misread ST127A (the SORT keyword, not a data-name), and
