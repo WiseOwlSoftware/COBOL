@@ -173,8 +173,7 @@ public sealed partial class SymbolTable
     /// <summary>The symbol of a report-section class the written context names here, or null.</summary>
     private (object? Symbol, SymbolId Id) ReportSymbolNamed(ParserRuleContext written, NameClass wanted, NameReach reach, ReportSite site) => wanted switch
     {
-        NameClass.Report => WordOf(written) is { } key && (reach == NameReach.Own || !_hiddenReportNames.Contains(key))
-            ? Entered((reach == NameReach.Own ? _ownReports : _visibleReports).GetValueOrDefault(key)) : default,
+        NameClass.Report => WordOf(written) is { } key ? Entered(ReportNamed(key, reach)) : default,
         NameClass.ReportGroup => (ReportGroupsNamed(written, reach), default),
         NameClass.SumCounter => written is Core.DataReferenceContext dref ? (SumCountersReached(dref, site.Report), default) : default,
         NameClass.ReportVarying => WordOf(written) is { } key && site.Varyings is { } varyings
@@ -182,6 +181,16 @@ public sealed partial class SymbolTable
         NameClass.ReportEntry => written is Core.DataReferenceContext dref ? (ReportEntriesWritten(dref), default) : default,
         NameClass.ReportSumOperand => written is Core.DataReferenceContext dref ? (RolledEntriesNamed(dref), default) : default,
         _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not a report-section class"),
+    };
+
+    /// <summary>The report a report-name denotes here: this element's own (<see cref="NameReach.Own"/>), else every visible one
+    /// unless a nearer declaration of the spelling hides it, which a qualifier position (<see cref="NameReach.Qualifier"/>, the
+    /// report-name of LINE-COUNTER OF and PAGE-COUNTER OF) reaches all the same (§1985:X.1.3.8.2 GR1; kb/Work PB5973 review R1-1).</summary>
+    private ReportModel? ReportNamed(CobolName key, NameReach reach) => reach switch
+    {
+        NameReach.Own => _ownReports.GetValueOrDefault(key),
+        NameReach.Visible when _hiddenReportNames.Contains(key) => null,
+        _ => _visibleReports.GetValueOrDefault(key),
     };
 
     /// <summary>The candidates <paramref name="hits"/>, each with the entry of the written entry it is a view of.</summary>

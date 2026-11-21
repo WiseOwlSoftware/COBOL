@@ -10,11 +10,17 @@ using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
 /// <summary>How far a file-name lookup reaches: <see cref="Visible"/>, the element's own file-names and its containers'
 /// GLOBAL ones (§2023:13.18.27.4 GR1); <see cref="Own"/>, the element's own alone, for a position that names an entry of
 /// this element's own FILE-CONTROL (an FD or SD's file-name, §2023:13.4.5.3 SR1, §2023:13.4.6.3 SR1; the I-O-CONTROL
-/// clauses and APPLY COMMIT's file-names).</summary>
+/// clauses and APPLY COMMIT's file-names); <see cref="Qualifier"/>, Visible's names HIDDEN OR NOT, for a position where the name
+/// is a qualifier of another reference (LINAGE-COUNTER OF file-name, LINE-COUNTER and PAGE-COUNTER OF report-name): "the normal
+/// rules for qualification ... are applied until one or more objects is identified" over the whole set of names (§1985:X.1.3.8.2
+/// GR1) before a nearer declaration of another class is preferred (GR3a), so a contained program's own data-name R1 hides its
+/// container's GLOBAL report R1 as a reference to the report but not as the qualifier of that report's counters (kb/Work PB5973
+/// review R1-1).</summary>
 internal enum NameReach
 {
     Visible,
     Own,
+    Qualifier,
 }
 
 public sealed partial class SymbolTable
@@ -56,10 +62,12 @@ public sealed partial class SymbolTable
     }
 
     /// <summary>The file a file-name denotes here: the element's own, which hides a container's of the same spelling
-    /// (§2023:8.4.6.2.1 3) a)), else the nearest container's GLOBAL file unless a nearer declaration hides it.</summary>
+    /// (§2023:8.4.6.2.1 3) a)), else the nearest container's GLOBAL file unless a nearer declaration hides it (a qualifier
+    /// position, <see cref="NameReach.Qualifier"/>, reaches it hidden or not).</summary>
     private FileModel? FileNamed(CobolName name, NameReach reach) =>
         _ownFiles.TryGetValue(name, out var own) ? own
-        : reach == NameReach.Visible && !_hiddenFileNames.Contains(name) && _inheritedFiles.TryGetValue(name, out var inherited) ? inherited
+        : reach != NameReach.Own && (reach == NameReach.Qualifier || !_hiddenFileNames.Contains(name))
+            && _inheritedFiles.TryGetValue(name, out var inherited) ? inherited
         : null;
 
     /// <summary>Whether a file-name of <paramref name="name"/> is declared at some depth below <paramref name="depth"/>, hidden or not:

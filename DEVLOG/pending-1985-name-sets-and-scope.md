@@ -58,3 +58,11 @@ Characterization up to date ...` (run 000003-20261121T001908Z, at d83dd1bd18). T
 DOC CITATIONS (run 000001) found a quotation of §1985:X.1.3.8 written after a §1985:X.1.3.8.2 citation; Conformance (run 000002)
 found pb990-data-name-and-condition-name still expecting COBOL2692 at 85, the refusal PB5972 removed there, so its `refuse-at`
 lost 85 and keeps 2002, 2014 and 2023.
+
+### Review round 1
+
+R1-1: hiding an inherited report-name also hid it as the report-name qualifier of LINE-COUNTER and PAGE-COUNTER, so
+`PAGE-COUNTER OF R1` in a contained program with its own `01 R1` was refused COBOL2729; `LINAGE-COUNTER OF LF` over a hidden GLOBAL
+LINAGE file was refused COBOL0863 the same way (on main since PB5786). A qualifier position is now its own reach,
+`NameReach.Qualifier`, which reaches a hidden name (§1985:X.1.3.8.2 GR1), and both counter qualifiers use it. Golden
+pb5973-hidden-global-names-qualify-counters-85.
