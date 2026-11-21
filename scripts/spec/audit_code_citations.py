@@ -1072,7 +1072,7 @@ def _diagnostic_findings(rel: str, lines: list[str], direct: dict[tuple[str, str
                            message strings, against 2683 tree-wide in prose (`§2023:13.5.3 SR 1`, `SR-14.9.28.3-2`,
                            "the 1561-1563 SR band"), which is why the scope IS the string literal.
       DIAG-UNQUALIFIED   — the clause carries no rule block of that kind DIRECTLY, while a child subclause does:
-                           `§2023:14.9.39.3 SR17`, where the syntax rules are §2023:14.9.39.3. The ordinal checks resolve
+                           `§2023:14.9.39 SR17`, where the syntax rules are §2023:14.9.39.3. The ordinal checks resolve (citation-audit: example)
                            it for prose, where this repository once wrote a block's clause both ways, and a message
                            the user is sent to look up must carry the subclause. It arrived with 126 sites and sat
                            in the MEASURED backlog until PB388's sweep qualified the last of them; it gates now.

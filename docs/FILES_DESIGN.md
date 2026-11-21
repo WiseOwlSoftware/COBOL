@@ -1346,7 +1346,7 @@ FIRST KEYED VERB naming the file — and a program whose procedure division only
 such verb. Measured on the pre-fix tree: an entry with `RECORD KEY IS IX-KEY` and `ALTERNATE RECORD KEY IS
 IX-ALT` both under `OCCURS` compiled with **zero diagnostics**, and adding one `READ … NEXT` grew two
 COBOL0863s. Two citations were wrong in the same site — the required-clause rule was filed under §2023:12.4.5.13,
-a clause that has no syntax rules at all, and SR2/SR3 were cited as "§2023:12.4.5.13.3 SR2/SR3" — and one rule was
+a clause that has no syntax rules at all, and SR2/SR3 were cited as "§2023:12.4.5.13 SR2/SR3" — and one rule was (citation-audit: example)
 missing entirely in a way the resolution path hid: an ALTERNATE RECORD KEY whose data-name-1 resolved to nothing
 was *dropped silently* from `FileModel.AlternateKeys`, leaving the file with fewer access paths than the entry
 declared and every index-aligned list downstream out of step with the written clauses.
