@@ -286,8 +286,9 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         var nearest = data.State.Reports.NearestInScope(data.State.Reports.Visible, r => r);
         if (nearest.Count == 1) return nearest[0];
         data.Edition.Error(DiagnosticCatalog.ReportCounterQualification, nearest.Count == 0
-            ? $"{reg} referenced, but the program has no report description entry (ISO §2023:8.4.3.15.1 — the "
-              + "counters are generated per report)"
+            ? $"{reg} referenced, but the program has no report description entry ("
+              + data.Edition.Edition.Cite(reg == "PAGE-COUNTER" ? "§1985:XIII.1.2.2" : "§1985:XIII.1.2.3", "ISO §2023:8.4.3.15.1")
+              + " — the counters are generated per report)"
             : $"unqualified {reg} with more than one report description entry: {reg} shall be qualified each time it is "
               + $"referenced in the procedure division if more than one report description entry is specified in the "
               + $"source element ({EditionInfo.Designated(CounterQualificationRule(reg))})");

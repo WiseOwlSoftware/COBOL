@@ -2386,7 +2386,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             var group = st.Group;
             if (group is null)
             {
-                Edition.Error(DiagnosticCatalog.ReportGroupBefore01, $"RD '{model.Name}': report group entry before any 01-level entry");
+                Edition.Error(DiagnosticCatalog.ReportGroupBefore01, $"RD '{model.Name}': report group entry before any 01-level entry"
+                    + Edition.Edition.Cite(" (§1985:XIII.3.9.3 SR4a: \"The first entry that describes a report group must be a format 1 entry\")", ""));
                 return;
             }
             var chain = st.Chain;
@@ -3755,7 +3756,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                 + $"section ({Edition.Edition.CiteRule("§1985:XIII.3.7.3 SR1", "§2023:13.18.16.3 SR2")})");
                         else
                             Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{op}' does not "
-                                + "resolve to a data item (ISO §2023:8.4.2.1)");
+                                + $"resolve to a data item ({EditionInfo.Designated(Edition.Edition.Citation())})");
                     }
                     // COBOL-2002 names an OCCURS item by its subscripted reference (§2002:8.4.1.2.2 SR5), so its SR3-equivalent
                     // is the written subscripts' own rules (kb/Work PB5602); the later editions' "subject to an OCCURS clause" is

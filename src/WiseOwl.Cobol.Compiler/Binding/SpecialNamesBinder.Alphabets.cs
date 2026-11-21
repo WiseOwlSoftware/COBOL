@@ -199,7 +199,7 @@ public sealed partial class SpecialNamesBinder
         if (a is null && n is null)
         {
             Edition.Error(DiagnosticCatalog.AlphabetNameNotDeclared, $"{site}: '{alphabetName}' is not an alphabet-name declared by a "
-                + $"SPECIAL-NAMES ALPHABET clause ({rule}; §2023:12.3.7)");
+                + "SPECIAL-NAMES ALPHABET clause (" + Edition.Edition.Cite("§1985:III.2; §1985:VI.4.5.4 GR4", $"{rule}; §2023:12.3.7") + ")");
             return null;
         }
         var set = a is not null ? a.CodedSet : n!.CodedSet;   // a LOCALE alphabet has a null CodedSet — never fall to the OTHER class

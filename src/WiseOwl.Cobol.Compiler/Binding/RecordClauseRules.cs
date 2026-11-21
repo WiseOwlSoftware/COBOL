@@ -164,16 +164,18 @@ internal static class RecordClauseRules
     /// its rows. The rule has two OBLIGATIONS and therefore two rows, but it is ONE sentence and the reader
     /// needs all of it to see which half was broken; the same sentence spelled into two message expressions
     /// is one rule written down twice, and the second copy is the one that would not be corrected.</summary>
-    private const string Sr4Sentence =
+    private static string Sr4Sentence(EditionContext edition) => edition.Edition.Cite(
+        "record descriptions for the file must not describe records which contain a lesser number of character positions than "
+        + "that specified by integer-2 nor records which contain a greater number of character positions than that specified by integer-3",
         "record descriptions for the file shall describe neither records that contain a lesser number of "
         + "bytes than that specified by integer-2 nor records that contain a greater number of bytes than "
-        + "that specified by integer-3";
+        + "that specified by integer-3");
 
     /// <summary>The whole of §2023:13.18.43.3 SR6, shipped by its three rows for the reason <see cref="Sr4Sentence"/>
     /// is shipped by SR4's two.</summary>
     private static string Sr6Sentence(EditionContext edition) =>
-        "data-name-1 shall describe an elementary unsigned integer in the "
-        + edition.Edition.Cite("working-storage or linkage section", "working-storage, local-storage, or linkage section");
+        edition.Edition.Cite("data-name-1 must describe an elementary unsigned integer in the Working-Storage or Linkage Section",
+            "data-name-1 shall describe an elementary unsigned integer in the working-storage, local-storage, or linkage section");
 
     /// <summary>Every RECORD clause size syntax rule this compiler screens. ⛔ Order is significant only in that
     /// a clause-level row is stated before the record-level rows it can make vacuous: an inverted range (SR5/SR9)
@@ -189,9 +191,9 @@ internal static class RecordClauseRules
             "No record description entry for the file may specify a number of bytes greater than integer-1",
             RecordClauseFormat.Fixed, RecordRuleSubject.RecordDescription, 85,
             (c, s) => c.Upper is { } n && s.MaxBytes > n,
-            (f, c, s, _) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, but the RECORD "
+            (f, c, s, ed) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, but the RECORD "
                 + $"clause states {c.UpperName} = {c.Upper}; no record description entry for the file may specify "
-                + "a number of bytes greater than integer-1",
+                + ed.Edition.Cite("a number of character positions greater than integer-1", "a number of bytes greater than integer-1"),
             DiagnosticCatalog.RecordClauseDescriptionSize)
             { Of1985 = new("VII.3.8.3", 1, "No record description entry for the file may specify a number of character positions greater than integer-1") },
 
@@ -214,9 +216,9 @@ internal static class RecordClauseRules
             "shall describe neither records that contain a lesser number of bytes than that specified by integer-2",
             RecordClauseFormat.Varying, RecordRuleSubject.RecordDescription, 85,
             (c, s) => c.Lower is { } lo && s.MinBytes < lo,
-            (f, c, s, _) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is fewer "
+            (f, c, s, ed) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is fewer "
                 + $"than the {c.LowerName} = {c.Lower} its RECORD IS VARYING IN SIZE clause states; "
-                + Sr4Sentence,
+                + Sr4Sentence(ed),
             DiagnosticCatalog.RecordClauseDescriptionSize)
             { Of1985 = new("VII.3.8.3", 2, "must not describe records which contain a lesser number of character positions than that specified by integer-2") },
 
@@ -226,9 +228,9 @@ internal static class RecordClauseRules
             "nor records that contain a greater number of bytes than that specified by integer-3",
             RecordClauseFormat.Varying, RecordRuleSubject.RecordDescription, 85,
             (c, s) => c.Upper is { } hi && s.MaxBytes > hi,
-            (f, c, s, _) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is more "
+            (f, c, s, ed) => $"{f.EntryFace} '{f.CobolName}': {s.Face} describes {s.SizeFace}, which is more "
                 + $"than the {c.UpperName} = {c.Upper} its RECORD IS VARYING IN SIZE clause states; "
-                + Sr4Sentence,
+                + Sr4Sentence(ed),
             DiagnosticCatalog.RecordClauseDescriptionSize)
             { Of1985 = new("VII.3.8.3", 2, "nor records which contain a greater number of character positions than that specified by integer-3") },
 

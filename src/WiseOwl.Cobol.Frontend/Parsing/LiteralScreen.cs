@@ -157,7 +157,8 @@ public static class LiteralScreen
                 + "(§1985:IV.4.2.2.2.2)",
                 "this compiler limits a fixed-point numeric literal to the 31 digits §2023:8.3.3.3.2 requires an implementor to allow")
             : $"the numeric literal '{written}' has {digits} digits; COBOL-85 limits fixed-point items and literals to 18 "
-              + $"digits — 19–31 digits require --std 2002 or later (targeting COBOL-{edition.Year})");
+              + $"digits — 19–31 digits require --std 2002 or later (targeting COBOL-{edition.Year})"
+              + edition.Cite("; the implementor must allow for numeric literals of 1 through 18 digits, and this compiler allows no more (§1985:IV.4.2.2.2.2)", ""));
         return false;
     }
 

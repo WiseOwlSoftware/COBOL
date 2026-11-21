@@ -4098,8 +4098,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (gluedMultiLiteral)
         {
             Edition.Error(DiagnosticCatalog.ValueFormat1SingleLiteral, $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
-                + "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase "
-                + $"({Edition.Edition.CiteRule("§1985:VI.5.15.5 GR2", "§2023:13.18.63.2")})");
+                + Edition.Edition.Cite(
+                    "literal; a list of literals is Format 2, which \"can be used only in connection with condition-names\"",
+                    "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase")
+                + $" ({Edition.Edition.CiteRule("§1985:VI.5.15.5 GR2", "§2023:13.18.63.2")})");
             rawValue = null;
         }
 
@@ -5005,8 +5007,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             return;
         }
         Edition.Error(DiagnosticCatalog.ValueOperandNotALiteral, $"{where}: {position.Operand} "
-            + $"'{WrittenSource.Of(op)}' is not a literal — {position.Format(Edition.Edition)}. A figurative constant (ISO §2023:8.3.3.6.3 SR1), a constant-name (ISO §2023:13.10.3 SR2) "
-            + "and a symbolic-character (ISO §2023:8.3.3.6.2 Format 7) stand where a literal stands, each written "
+            + $"'{WrittenSource.Of(op)}' is not a literal — {position.Format(Edition.Edition)}. " + Edition.Edition.Cite(
+                "A figurative constant, the symbolic-characters among them (§1985:IV.4.2.2.2.3: \"A figurative constant may be used "
+                    + "whenever 'literal' appears in a format\"), stands where a literal stands, written ",
+                "A figurative constant (ISO §2023:8.3.3.6.3 SR1), a constant-name (ISO §2023:13.10.3 SR2) "
+                    + "and a symbolic-character (ISO §2023:8.3.3.6.2 Format 7) stand where a literal stands, each written ")
             + "as a BARE word; an arithmetic expression, a function-identifier and a qualified, subscripted or "
             + "reference-modified reference do not.");
     }
@@ -5517,7 +5522,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"data item '{name}': the VALUE clause shall not "
                 + $"be specified with USAGE {UsageFamilies.UsageWord(effective)}, inherited from its group "
-                + $"'{fromGroup.FromName ?? "FILLER"}' ({UsageFamilies.NoValueClauseRule(effective, Edition.Edition)}; §2023:13.18.60.4 GR1)");
+                + $"'{fromGroup.FromName ?? "FILLER"}' ({UsageFamilies.NoValueClauseRule(effective, Edition.Edition)}; {Edition.Edition.Cite("§1985:VI.5.14.4 GR1", "§2023:13.18.60.4 GR1")})");
             item.RawValue = null;
             item.TableValues = null;
         }

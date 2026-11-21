@@ -138,9 +138,9 @@ internal static class FileDescriptionFormats
         edition.Cite($"the {Kind1985(format, organization)}-file form", Caption(format));
 
     /// <summary>The citation of the clause list the format prints, in the edition in force: the general format of §2023:13.4.5.2 or
-    /// the file description entry's of §1985:VII.3.2 / VIII.3.2 / IX.3.2 / XIII.3.2.</summary>
+    /// the general format of the file description entry, §1985:VII.3.2.2 / VIII.3.2.2 / IX.3.2.2 / XIII.3.2.2.</summary>
     public static string FormatCitation(EditionInfo edition, FileDescriptionFormat format, FileOrganization organization) =>
-        edition.Cite($"§1985:{Module1985(format, organization)}.3.2", "§2023:13.4.5.2");
+        edition.Cite($"§1985:{Module1985(format, organization)}.3.2.2", "§2023:13.4.5.2");
 
     /// <summary>The entry the clause belongs to, as a message names it, in the edition in force: the file control entry of §2023:12.4.5.1
     /// or, at COBOL-85, of the module that holds the file (§1985:VII.2.3, VIII.2.3, IX.2.3).</summary>

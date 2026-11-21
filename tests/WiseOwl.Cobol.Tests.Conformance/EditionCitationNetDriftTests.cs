@@ -40,4 +40,17 @@ public sealed class EditionCitationNetDriftTests
         Assert.Single(EditionCitationNet.MisRecorded([$"prog.cob(1,8): error {code}: planted (§1985:XVII.9.9.9 SR99)"])); // citation-audit: example
         Assert.Empty(EditionCitationNet.MisRecorded([$"prog.cob(1,8): error {code}: planted (ISO §2023:14.9.37.3 SR7)"]));
     }
+
+    /// <summary>A code whose every descriptor records that 1985 has no such rule (<see cref="DiagnosticDescriptor.No1985Rule"/>):
+    /// a message at 85 that cites a 1985 rule contradicts it (kb/Work PB5993); one citing only the later rule does not, and a code
+    /// that records its 1985 rule is not this arm's.</summary>
+    [Fact]
+    public void ANo1985RuleCode_CitingA1985Rule_IsContradicted()
+    {
+        string exempt = EditionCitationNet.Exempt.Order(StringComparer.Ordinal).First();
+        Assert.Single(EditionCitationNet.Contradicted([$"prog.cob(1,8): error {exempt}: planted (§1985:X.4.5.3 SR2)"]));
+        Assert.Empty(EditionCitationNet.Contradicted([$"prog.cob(1,8): error {exempt}: planted (ISO §2023:14.9.37.3 SR7)"]));
+        string recorded = EditionCitationNet.Rules1985.Keys.Order(StringComparer.Ordinal).First();
+        Assert.Empty(EditionCitationNet.Contradicted([$"prog.cob(1,8): error {recorded}: planted (§1985:X.4.5.3 SR2)"]));
+    }
 }

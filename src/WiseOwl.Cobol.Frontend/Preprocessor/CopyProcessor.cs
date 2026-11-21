@@ -718,9 +718,7 @@ public sealed class CopyProcessor(
         // pseudo-text delimiter. (A COPY glued behind a period, comma or semicolon is not even a text-word of its
         // own — see FindStatementKeyword.)
         if (copyIdx > 0 && !CobolSpace.IsSeparator(text[copyIdx - 1]))
-            ReportPlacement(at, $"COPY is not preceded by a space (it follows '{text[copyIdx - 1]}') — §2023:7.2.3.3 SR2: "
-                + "\"A COPY statement shall be preceded by a space except when it is the first statement in a "
-                + "compilation group\"");
+            ReportPlacement(at, $"COPY is not preceded by a space (it follows '{text[copyIdx - 1]}') — " + CopyPrecedingRule);
 
         var statement = ParseCopyStatement(mapped, copyIdx);
         afterCopy = statement.End;
@@ -964,7 +962,7 @@ public sealed class CopyProcessor(
         if (CobolWordRule.LengthViolation(word, dialectLevel) is { } length)
             sink.Report(new EditionDiagnostic(Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Code,
                 EditionSeverity.Error, Editions.Diagnostics.DiagnosticCatalog.WordLengthExceeded.Id, length, "",
-                "ISO §2023:8.3.2.1"));
+                EditionInfo.Of(dialectLevel).Cite("§1985:IV.4.2.2.1", "ISO §2023:8.3.2.1")));
     }
 
     /// <summary>The reserved words of the COPY statement's own general format — never a text-name or library-name
@@ -1031,8 +1029,11 @@ public sealed class CopyProcessor(
         else if (FigurativeConstantWords.Contains(w.Value))
         {
             LiteralForm(w.Start, $"the figurative constant {w.Value.ToUpperInvariant()} names no library text — "
-                + "§2023:7.2.3.3 SR4: \"A concatenation expression or figurative constant shall not be specified for "
-                + "literal-1, or literal-2\"");
+                + EditionInfo.Of(dialectLevel, permissive).Cite(
+                    "text-name-1 and library-name-1 are user-defined words (§1985:IV.4.2.2.1.1), and \"Reserved words form "
+                    + "disjoint sets with user-defined words, system-names, and function-names\" (§1985:IV.4.2.2.1 SR1a)",
+                    "§2023:7.2.3.3 SR4: \"A concatenation expression or figurative constant shall not be specified for "
+                    + "literal-1, or literal-2\""));
             if (w.IsWord("ALL") && c.TryPeek(out var allLiteral) && allLiteral.Kind == TextWordKind.Literal)
                 c.Advance(allLiteral);
             name = null;
@@ -1046,8 +1047,10 @@ public sealed class CopyProcessor(
 
         if (c.TryPeek(out var amp) && amp.IsWord("&"))
         {
-            LiteralForm(amp.Start, "a concatenation expression names no library text — §2023:7.2.3.3 SR4: \"A "
-                + "concatenation expression or figurative constant shall not be specified for literal-1, or literal-2\"");
+            LiteralForm(amp.Start, "a concatenation expression names no library text — " + EditionInfo.Of(dialectLevel, permissive).Cite(
+                "§1985:XII.2.2: the COPY statement names its library text by text-name-1, a user-defined word",
+                "§2023:7.2.3.3 SR4: \"A "
+                + "concatenation expression or figurative constant shall not be specified for literal-1, or literal-2\""));
             while (c.TryPeek(out amp) && amp.IsWord("&"))
             {
                 c.Advance(amp);
@@ -1066,6 +1069,12 @@ public sealed class CopyProcessor(
     private string NestedCopyRule => EditionInfo.Of(dialectLevel, permissive).Cite(
         "§1985:XII.2.3 SR7: \"a COPY statement must not occur within a COPY statement\"",
         "§2023:7.2.3.3 SR1: \"a COPY statement shall not appear within a COPY statement\"");
+
+    /// <summary>The rule that a COPY statement is preceded by a space, in the edition in force (kb/Work PB4950):
+    /// §1985:XII.2.3 SR2 at COBOL-85, §2023:7.2.3.3 SR2 from 2002.</summary>
+    private string CopyPrecedingRule => EditionInfo.Of(dialectLevel, permissive).Cite(
+        "§1985:XII.2.3 SR2: \"The COPY statement must be preceded by a space and terminated by the separator period\"",
+        "§2023:7.2.3.3 SR2: \"A COPY statement shall be preceded by a space except when it is the first statement in a compilation group\"");
 
     /// <summary>Report a §2023:7.2.3.3 SR1 / SR2 placement violation (COBOL2451) at a SOURCE position.</summary>
     private void ReportPlacement(SourceLocation at, string message)
@@ -1109,8 +1118,7 @@ public sealed class CopyProcessor(
         {
             int copyIdx = FindStatementKeyword(text, pos, "COPY", EditionInfo.Of(dialectLevel, permissive), glued => ReportPlacement(mapped.LocateAt(glued),
                 "COPY is glued to the character-string before it (no space follows the period, comma or semicolon), "
-                + "so it forms no COPY statement — §2023:7.2.3.3 SR2: \"A COPY statement shall be preceded by a space "
-                + "except when it is the first statement in a compilation group\""));
+                + "so it forms no COPY statement — " + CopyPrecedingRule));
             if (copyIdx < 0)
             {
                 w.AppendSlice(mapped, pos, text.Length - pos);
@@ -1485,8 +1493,12 @@ public sealed class CopyProcessor(
         public void TextWordTooLong(int at, int length, string place)
         {
             string later = $"{Rules.Clause} SR{Rules.Length}";
-            Content(at, edition.Cite(later, later, y2002: Rules.Length2002, y2014: later),
-                edition.Cite(Rules.LengthQuote, Rules.LengthQuote, y2002: Rules.LengthQuote2002, y2014: Rules.LengthQuote),
+            bool copy = Rules.Statement == "COPY";
+            Content(at, edition.Cite(copy ? "§1985:XII.2.3 SR8" : "§1985:XII.3.3 SR6", later, y2002: Rules.Length2002, y2014: later),
+                edition.Cite(copy
+                        ? "The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text and within library text"
+                        : "The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text",
+                    Rules.LengthQuote, y2002: Rules.LengthQuote2002, y2014: Rules.LengthQuote),
                 $"a text-word of {length} characters is written in {place}; the limit is {edition.MaxTextWordLength:N0}");
         }
 
@@ -1595,8 +1607,10 @@ public sealed class CopyProcessor(
             if (from.IsPseudoText && from.MatchWords.Count == 0)
                 screen.Content(from.Start, r.PseudoText1, "Pseudo-text-1 shall contain one or more text-words, at least "
                     + "one of which shall be neither a separator comma nor a separator semicolon",
-                    "pseudo-text-1 holds no text-word to match", r.PseudoText1Rule1985,
-                    "Pseudo-text-1 must contain one or more text words");
+                    "pseudo-text-1 holds no text-word to match",
+                    from.Elements.Count == 0 ? r.PseudoText1Rule1985 : r.Statement == "COPY" ? "§1985:XII.2.3 SR9" : "§1985:XII.3.3 SR7",
+                    from.Elements.Count == 0 ? "Pseudo-text-1 must contain one or more text words"
+                        : "Pseudo-text-1 must not consist entirely of a separator comma or a separator semicolon");
             return;
         }
         if (from.IsPseudoText && from.MatchWords.Count != 1)

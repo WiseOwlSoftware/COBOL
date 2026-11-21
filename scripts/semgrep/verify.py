@@ -75,6 +75,11 @@ WHOLE_FILE_UNREADABLE = {
     "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs": "first failing member: MultipleLineOperands (line 1586)",
     "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs":
         "first failing member: Owners (line 253), a dictionary initializer of collection expressions with `with { .. }`",
+    "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.cs":
+        "first failing member: SourceElementOf (line 193), after the unread span the tuple-array deconstruction "
+        "`foreach (var ((data, refs), roster, bound) in new[] { (…), (…) })` opens (kb/Work PB5932's change, 312fa3cab9)",
+    "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs":
+        "first failing member: UsageConstructId (line 790), a conditional chain of `is { } x && …` arms",
     "src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs":
         "line 137: `Expected explicit type`, a target-typed collection expression as one arm of a conditional",
     "src/WiseOwl.Cobol.Runtime/IO/Store/BTree.cs":

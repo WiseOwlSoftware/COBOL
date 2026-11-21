@@ -64,6 +64,13 @@ public static class EditionCitationNet
         [.. diagnostics.Where(d => Cobol85Citation.IsMatch(d) && CodeOf(d) is { } code
             && Rules1985.TryGetValue(code, out var rules) && !rules.Any(r => d.Contains(r, StringComparison.Ordinal)))];
 
+    /// <summary>The lines whose code's every descriptor records that 1985 has no such rule (<see cref="Exempt"/>) and that cite a
+    /// 1985 rule all the same: the catalog says one thing and the message another (kb/Work PB5993, group q's audit: COBOL2159 at
+    /// 85 cited §1985:X.4.5.3 SR2 under a descriptor that said the 1985 text has no rule of it). The fix is the descriptor's
+    /// <see cref="DiagnosticDescriptor.Rule1985"/>, never a message that drops its 1985 rule.</summary>
+    public static IReadOnlyList<string> Contradicted(IEnumerable<string> diagnostics) =>
+        [.. diagnostics.Where(d => Cobol85Citation.IsMatch(d) && CodeOf(d) is { } code && Exempt.Contains(code))];
+
     /// <summary>Whether a rendered diagnostic cites a later edition's rule and no 1985 rule.</summary>
     public static bool CitesOnlyALaterEdition(string diagnostic) =>
         LaterEditionCitation.IsMatch(diagnostic) && !Cobol85Citation.IsMatch(diagnostic) && !EditionGate.IsMatch(diagnostic);
@@ -88,5 +95,9 @@ public static class EditionCitationNet
         Assert.True(misRecorded.Count == 0,
             $"{subject}: a diagnostic at --std 85 cites a 1985 rule its descriptor's Rule1985 does not record (kb/Work PB5993): make "
             + "the descriptor's Rule1985 the rule the message cites:\n  " + string.Join("\n  ", misRecorded));
+        var contradicted = Contradicted(diagnostics);
+        Assert.True(contradicted.Count == 0,
+            $"{subject}: a diagnostic at --std 85 cites a 1985 rule under a code whose descriptor says 1985 has none (No1985Rule; "
+            + "kb/Work PB5993): record the rule in the descriptor's Rule1985 instead:\n  " + string.Join("\n  ", contradicted));
     }
 }

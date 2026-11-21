@@ -1136,7 +1136,8 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (numeric || (edited && editedOk)) return p;
         // The category words are the place's own (ItemCategory.CategoryName): a slice has the category §2023:8.4.3.3.4 GR6 gives it,
         // alphanumeric or national for a numeric or edited item and alphabetic for an alphabetic one (kb/Work PB5881).
-        string actual = p is RefModPlace ? $"a reference-modified slice (category {ItemCategory.CategoryName(p)}, §2023:8.4.3.3.4 GR6)"
+        string actual = p is RefModPlace ? $"a reference-modified slice (category {ItemCategory.CategoryName(p)}, "
+                + $"{ctx.Edition.Edition.Cite("§1985:IV.4.3.8.4.4 GR5", "§2023:8.4.3.3.4 GR6")})"
             : p.Item.IsGroup ? "a group item"
             : pic is { Usage: Usage.Index } ? $"an index data item ({ctx.Edition.Edition.Cite("§1985:VI.5.14.3 SR5", "§2023:13.18.60.3 SR10")})"
             : edited ? "a numeric-edited item, which this receiver position does not admit"
