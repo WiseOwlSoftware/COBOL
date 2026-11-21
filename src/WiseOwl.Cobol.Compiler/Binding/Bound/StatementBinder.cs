@@ -433,11 +433,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         int unbuiltMark = data.Edition.UnbuiltMark;
         int deferredMark = data.Edition.ExpansionDeferredMark;
         int controlStoreMark = _controlStoreReports;
-        // ISO §2023:13.4.6.3 SR4 (kb/Work PB1291) — asked HERE, of every input-output statement of the edition
-        // (InputOutputStatementForms, kb/Work PB6032), because this is the one funnel every statement passes through: a new
-        // operand position in any of them is screened without a verb binder remembering to ask.
-        if (InputOutputStatementForms.Of(s, Ctx.Edition.Edition) is { } io)
-            Ctx.Validation.ScreenSortMergeRecordReferences(io, io.Start.Text.ToUpperInvariant(), Ctx.Refs);
+        // ISO §2023:13.4.6.3 SR4 (kb/Work PB1291) — asked HERE, of every statement, because this is the one funnel every statement
+        // passes through: the screen asks whether the statement is an input-output statement of the edition (kb/Work PB6032), so a
+        // new operand position in any of them is screened without a verb binder remembering to ask.
+        Ctx.Validation.ScreenSortMergeRecordReferences(s, Ctx.Refs);
         // ⛔ BELOW THE MESSAGE-TAG INTRODUCTION A STATEMENT NAMING A GATED TAG IS THE GATE'S, WHATEVER ITS VERB (kb/Work PB4771, PB4836, PB4868): asked
         // HERE, once, because this is the one funnel every statement passes through, so no verb binder has to remember to stay quiet beside COBOL0900.
         var core = NamesGatedMessageTag(s) ? new BoundNop() : BindStatementCore(s);   // no-op: the tag's entry draws COBOL0900 in this compilation

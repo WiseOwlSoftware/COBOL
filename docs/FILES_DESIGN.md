@@ -3177,7 +3177,7 @@ At 85, "ACCEPT with the identifier phrase" is the nucleus ACCEPT (both formats, 
 module's ACCEPT cd-name MESSAGE COUNT, which the module lists apart (§1985:XIV.3.1) and the definition omits; RECEIVE and
 SEND are the communication module's, never the 2023 message-control statements. `InputOutputStatementSetTests` re-reads
 each edition's sentence from its transcription and parses a 1985 program that writes every form. The SR4 screen below
-asks the set at every edition and asks nothing below 2002 (kb/Work PB5827), so the wider 1985 set changes no 1985
+is the set's one consumer in the compiler, and it asks nothing below 2002 (kb/Work PB5827), so the wider 1985 set changes no 1985
 outcome; the 1985 rules that name the term are §1985:XI.3.2.3 SR3 (the SD file, `ScreenSortMergeFile`, asked by every
 statement that can name a file) and §1985:VI.5.14.4 GR8 (no conversion of an index data item in a group, which the
 alphanumeric group move gives every statement).
@@ -3185,7 +3185,8 @@ alphanumeric group move gives every statement).
 - SR3, and the WRITE / REWRITE record-name slot (where the record names its file): `StatementValidation.ScreenSortMergeFile`
   (COBOL1692), asked by each verb binder of the file it resolved.
 - SR4 everywhere else: `StatementValidation.ScreenSortMergeRecordReferences` (COBOL2973), asked ONCE per
-  input-output statement by `StatementBinder.BindStatement`, the funnel every statement passes through. It walks the
+  statement by `StatementBinder.BindStatement`, the funnel every statement passes through, and it asks
+  `InputOutputStatementForms.Of` whether the statement is an input-output statement of the edition. It walks the
   statement's parse subtree, subscripts included, skipping the FROM / INTO phrases, the nested imperative statements
   (each screened as its own statement) and the record-name / file-name operand itself, and refuses any reference
   whose record is an SD record (the record description entry is the 01 and everything under it). A new operand

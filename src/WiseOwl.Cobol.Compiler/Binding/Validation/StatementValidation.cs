@@ -1580,7 +1580,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// input-output statement other than following the word FROM or the word INTO."</i> The input-output statements
     /// are the edition's own set (<see cref="InputOutputStatementForms"/>, kb/Work PB6032): from 2002 the eight statements
     /// §2023:9.1.13.1 names as those whose execution sets the I-O status — CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK
-    /// and WRITE — and the statement binder calls this for each of them from its ONE funnel, so a new operand position in
+    /// and WRITE — and the statement binder calls this for every statement from its ONE funnel, so a new operand position in
     /// any of them is screened by construction.
     /// <para>It used to be asked only at the WRITE / REWRITE record-name slot (<see cref="ScreenSortMergeFile"/> on
     /// the record's file), so an SD record anywhere else — <c>WRITE IN-REC AFTER ADVANCING SRT-N LINES</c>, a
@@ -1596,10 +1596,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// naming an SD record's items as an operand of ANOTHER file's statement (<c>WRITE OF-REC AFTER ADVANCING SW-N
     /// LINES</c> needs only an integer item, §1985:VII.4.7.3 SR4). So below 2002 this screen asks nothing, and from
     /// 2002 the message cites the edition's own rule (<see cref="SortMergeRecordRuleCite"/>).</para></summary>
-    public void ScreenSortMergeRecordReferences(Antlr4.Runtime.ParserRuleContext statement, string verb,
-                                                ReferenceResolver refs)
+    public void ScreenSortMergeRecordReferences(Core.StatementContext s, ReferenceResolver refs)
     {
         if (data.Edition.DialectLevel < 2002) return;
+        if (InputOutputStatementForms.Of(s, data.Edition.Edition) is not { } statement) return;
+        string verb = statement.Start.Text.ToUpperInvariant();
         Walk(statement);
 
         void Walk(IParseTree node)
