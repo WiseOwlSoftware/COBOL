@@ -1021,7 +1021,7 @@
       "from": "WiseOwl.Cobol.Binding.Bound",
       "to": "WiseOwl.Cobol.Binding.Procedure",
       "uses": 43,
-      "walkUses": 41,
+      "walkUses": 40,
       "removedBy": [
         "PB2347"
       ],
@@ -1296,13 +1296,6 @@
         {
           "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
           "to": "WiseOwl.Cobol.Binding.Procedure.UdfBinder",
-          "removedBy": [
-            "PB2347"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.Binding.Bound.StatementBinder",
-          "to": "WiseOwl.Cobol.Binding.Procedure.UntilExitPlacement",
           "removedBy": [
             "PB2347"
           ]
