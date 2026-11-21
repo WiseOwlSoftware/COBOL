@@ -429,8 +429,8 @@ def audit(units: dict[str, list[Unit]], blocks: dict[str, dict], label, kinds, c
                 out.append(f"{where}: an entry no unit has (digest {key[0]}): its text changed or left the clause; "
                            "decide the unit again")
             elif u.label != e.get("unit"):
-                out.append(f"{where}: the unit moved to {u.label}; regenerate the manifest (a move of a decided unit "
-                           "moves its row: kb/Work PB5449 item 6)")
+                out.append(f"{where}: the unit moved to {u.label}; regenerate the catalog, which relabels the manifest "
+                           "and writes the move batch of a decided row for record_verdicts.py (text_units.moves)")
             if d not in DISPOSITIONS:
                 out.append(f"{where}: disposition {d!r} is not one of {', '.join(DISPOSITIONS)}")
             elif d in ROW_KINDS and d not in kinds(clause):
@@ -510,6 +510,22 @@ def regenerated(units: dict[str, list[Unit]], blocks: dict[str, dict], title) ->
             continue
         info = {k: v for k, v in blocks.get(clause, {"title": title(clause)}).items() if k != "units"}
         out[clause] = {**info, "units": new}
+    return out
+
+
+def moves(units: dict[str, list[Unit]], blocks: dict[str, dict], row_id) -> list[tuple[str, str]]:
+    """THE MOVES of a regeneration (decision PB5448 point 4; kb/Work PB5449 item 6), read BEFORE `regenerated` relabels
+    `blocks`: for every DECIDED row unit (a `ROW_KINDS` disposition) whose text is where it was (its digest and order)
+    and whose label moved, because a repair split, joined or re-levelled a paragraph before it, (its row's old id, its
+    new id), in the order of the manifest. `row_id(kind, clause, label)` spells the edition's id. The regeneration hands
+    them to `rule_moves.write_move_batch`, and the view refuses the moved records until `record_verdicts.py` applies it."""
+    out = []
+    for clause, es in entries_of(blocks).items():
+        have = {(u.digest, order): u for u, order in keyed(units.get(clause, []))}
+        for e in es:
+            u = have.get((e.get("digest"), e.get("order", 0)))
+            if (d := e.get("disposition")) in ROW_KINDS and u is not None and u.label != e.get("unit"):
+                out.append((row_id(d, clause, e.get("unit")), row_id(d, clause, u.label)))
     return out
 
 

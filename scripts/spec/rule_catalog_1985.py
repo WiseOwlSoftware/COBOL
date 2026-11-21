@@ -655,6 +655,13 @@ def unit_kinds(clause: str) -> set[str]:
     return {"SR", "GR"} | ({"AR", "RV"} if clause.startswith("§1989:A.") else set())
 
 
+def unit_rule_id(kind: str, clause: str, label: str) -> str:
+    """The row id of the unit `label` of the 1985 paragraph `clause` (its citation, `§1985:VI.5.13.1`) disposed as `kind`:
+    `<year>-<kind>-<locator>-<label>` (decision PB5448 point 2: `1985-GR-VI.5.13.1-p3`), `add_row`'s form."""
+    year, _, loc = clause.removeprefix("§").partition(":")
+    return f"{year}-{kind}-{loc}-{label}"
+
+
 def units(lines: list[str], rows: list[dict], declared: dict[str, dict]) -> dict[str, list]:
     """THE UNITS OF 1985'S UNNUMBERED TEXT (kb/Work PB5449, decision PB5448 point 6), by paragraph citation
     (`§1985:VI.5.13.1`, `§1989:A.2.1`: the key the content-keyed manifest's `blocks` already use), in the order of the

@@ -1543,16 +1543,32 @@ def catalog_document(ed: IsoEdition, cat: IsoCatalog, units_pending: int = 0) ->
     return doc
 
 
-def regenerate_dispositions(manifest: pathlib.Path, units: dict[str, list], lines: list[str],
+#: Where a regeneration writes the MOVE BATCH of the adjudicated rows it renumbered (kb/Work PB5449 item 6): a local
+#: file the operator applies with record_verdicts.py in the same change (the view refuses the moved records until then).
+MOVE_BATCH = REPO / "TestResults" / "rule-moves"
+
+
+def regenerate_dispositions(manifest: pathlib.Path, units: dict[str, list], lines: list[str], year: int, row_id,
                             title=None) -> dict[str, dict] | None:
     """Regenerate the `paragraph-blocks` of the content-keyed `manifest` over `units` (text_units.regenerated: a new unit
     entered pending, a pending entry no unit has dropped, a decided one kept for the audit to refuse) and write it when
     that changes it; returns the new map, or None when the manifest was already current. `title(clause)` names a new
-    clause (default: its ISO heading's title in `lines`)."""
+    clause (default: its ISO heading's title in `lines`). A decided row whose unit moved (`text_units.moves`, ids spelled
+    by `row_id(kind, clause, label)`) and whose id the `year` store holds a record of is written to the move batch
+    (`MOVE_BATCH`, rule_moves.write_move_batch), and the command that applies it is printed."""
+    import inventory_store  # noqa: PLC0415  (the store a moved id's record is in; only a regeneration reads it)
+    import rule_moves  # noqa: PLC0415
     raw = json.loads(manifest.read_text(encoding="utf-8")) if manifest.exists() else {"blocks": {}}
     if title is None:
         titles = {clause: t for clause, t, _s, _e in citation.iso_regions(lines)}
         title = titles.get
+    moved = text_units.moves(units, raw.get(PARAGRAPH_BLOCKS, {}), row_id)
+    if moved:
+        stored = set(inventory_store.read_store(inventory_store.inventory_dir(inventory_schema.edition(year))))
+        flag = "" if year == inventory_schema.NEWEST.year else f" --edition {year}"
+        if line := rule_moves.write_move_batch(moved, stored, MOVE_BATCH / f"{year}.json",
+                                               lambda p: f"python scripts/spec/record_verdicts.py{flag} {p}"):
+            print(line)
     fresh = text_units.regenerated(units, raw.get(PARAGRAPH_BLOCKS, {}), title)
     if fresh == raw.get(PARAGRAPH_BLOCKS, {}):
         return None
@@ -1571,7 +1587,8 @@ def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
     declared, paragraph_blocks = manifest_of(ed)
     refute = refute_blocks_of(ed.unharvested)
     cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed), refute_blocks=refute)
-    if not args.check and (fresh_blocks := regenerate_dispositions(ed.unharvested, cat.units, lines)) is not None:
+    if not args.check and (fresh_blocks := regenerate_dispositions(ed.unharvested, cat.units, lines, ed.year,
+                                                                   ed.rule_id)) is not None:
         # The manifest entered a new unit pending, or dropped a pending entry no unit has: extract again over it, so
         # the catalog written is the one the committed manifest yields (`--check` reproduces it).
         print(f"wrote {ed.unharvested.relative_to(REPO)}  ({text_units.pending(fresh_blocks)} units pending)")
@@ -1634,7 +1651,8 @@ def main_1985(args: argparse.Namespace) -> int:
     units = rule_catalog_1985.units(lines, cat.rules, cat.declared)
     titles = {f"§{1989 if r[0].startswith('A.') else 1985}:{r[0]}": r[1]
               for r in (*citation.regions_1985(lines), *citation.amendment_regions(lines, 1989))}
-    if not args.check and regenerate_dispositions(UNHARVESTED_OF[1985], units, lines, titles.get) is not None:
+    if not args.check and regenerate_dispositions(UNHARVESTED_OF[1985], units, lines, 1985,
+                                                  rule_catalog_1985.unit_rule_id, titles.get) is not None:
         print(f"wrote {UNHARVESTED_OF[1985].relative_to(REPO)}")
     raw = json.loads(UNHARVESTED_OF[1985].read_text(encoding="utf-8"))
     blocks = raw.get(PARAGRAPH_BLOCKS, {})

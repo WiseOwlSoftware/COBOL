@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""The move and the split of an adjudicated row on planted data (kb/Work PB5449 item 6, decision PB5448 points 4 and 7):
+a chain of moves carries each record once and only with its text; a split checks the old text against the parent's text
+and the carved paragraphs, writes no record for a carved row, and keeps the parent's record only through an upheld
+recheck; the older edition's change records follow (a move renames, a split re-stamps, a quoting reason goes STALE);
+and every refusal fires on its planted failure."""
+import copy
+import sys
+
+import selftest_cases
+from standard_streams import ensure_utf8
+
+M = selftest_cases.subject(__file__)   # scripts/spec/rule_moves.py
+D = M.rule_digest
+
+#: The planted catalog after a regeneration: a paragraph was inserted before p6, so the clause's p6 and p7 now read p7
+#: and p8; GR-9.9.4-2 lost its glued margin paragraph to the new row GR-9.9.4-p9.
+TEXTS = {"GR-9.9.4-p6": "A new paragraph the repair split off.",
+         "GR-9.9.4-p7": "The lock is held until the file is closed.",
+         "GR-9.9.4-p8": "A record lock is released by an UNLOCK statement.",
+         "GR-9.9.4-2": "The file is opened in the mode named.",
+         "GR-9.9.4-p9": "If the file is shared, every lock it holds is released at its close."}
+OLD_PARENT = TEXTS["GR-9.9.4-2"] + " " + TEXTS["GR-9.9.4-p9"]
+FIELDS = ("verdict", "code-location", "test-ref", "notes")
+BLANK = {f: "" for f in FIELDS}
+
+
+def _store() -> dict:
+    """The store before the batch: the records of the old p6 and p7 (decided against the texts p7 and p8 hold now), and
+    the parent's record (decided against its text with the margin paragraph)."""
+    return {"GR-9.9.4-p6": {"rule-id": "GR-9.9.4-p6", "rule-digest": D(TEXTS["GR-9.9.4-p7"]), "verdict": "CONFORMS",
+                            "test-ref": "unit:LockTests.Held"},
+            "GR-9.9.4-p7": {"rule-id": "GR-9.9.4-p7", "rule-digest": D(TEXTS["GR-9.9.4-p8"]), "verdict": "CONFORMS",
+                            "test-ref": "unit:LockTests.Unlock"},
+            "GR-9.9.4-2": {"rule-id": "GR-9.9.4-2", "rule-digest": D(OLD_PARENT), "verdict": "CONFORMS",
+                           "test-ref": "unit:OpenTests.Mode", "notes": "Opened in its mode."}}
+
+
+def _rows(store: dict) -> dict:
+    return {rid: {"rule-id": rid, **BLANK, **{f: store.get(rid, {}).get(f, "") for f in FIELDS}} for rid in TEXTS}
+
+
+MOVES = [{"rule-id": "GR-9.9.4-p8", "move-from": "GR-9.9.4-p7"},
+         {"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p6"}]
+
+
+def _split(outcome: str = "UPHELD", **over) -> dict:
+    s = {"old-text": OLD_PARENT, "carved": [TEXTS["GR-9.9.4-p9"]], "rows": ["GR-9.9.4-p9"],
+         "recheck": {"outcome": outcome, "refuter": "planted-refuter", "attempt": "the mode rule stands alone",
+                     "date": "2026-11-20", "digest": D(TEXTS["GR-9.9.4-2"])}}
+    return {"rule-id": "GR-9.9.4-2", "split": {**s, **over}}
+
+
+def case_00_a_chain_of_moves_carries_each_record_once(expect):
+    store = _store()
+    expect.equal("the chain is valid", M.errors(MOVES, TEXTS, store, set()), [])
+    rows = _rows(store)
+    applied = M.apply(MOVES, rows, store, FIELDS, BLANK)
+    expect.equal("p6's record is at p7, p7's at p8",
+                 (rows["GR-9.9.4-p7"]["test-ref"], rows["GR-9.9.4-p8"]["test-ref"]),
+                 ("unit:LockTests.Held", "unit:LockTests.Unlock"))
+    expect.equal("the vacated p6 holds nothing (the new paragraph is unadjudicated)", rows["GR-9.9.4-p6"], {"rule-id": "GR-9.9.4-p6", **BLANK})
+    expect.equal("the moves are reported", sorted(applied.moved), [("GR-9.9.4-p6", "GR-9.9.4-p7"), ("GR-9.9.4-p7", "GR-9.9.4-p8")])
+    expect.equal("the answered ids", M.answered(MOVES), {"GR-9.9.4-p6", "GR-9.9.4-p7", "GR-9.9.4-p8"})
+
+
+def case_01_a_move_is_refused_unless_its_text_moved_with_it(expect):
+    store = _store()
+
+    def refused(moves, others=frozenset(), st=None) -> list:
+        return M.errors(moves, TEXTS, st or store, set(others))
+
+    expect("a record moves only with its text", any("other text" in e for e in refused(
+        [{"rule-id": "GR-9.9.4-p8", "move-from": "GR-9.9.4-p6"}, {"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p7x"}])))
+    expect("a move of nothing", any("move of nothing" in e for e in refused([{"rule-id": "GR-9.9.4-p9", "move-from": "GR-9.9.4-p1"}])))
+    expect("a target holding a record no move takes away", any("withdraw or move it first" in e for e in refused(
+        [{"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p6"}])))
+    st = copy.deepcopy(store)
+    st["GR-9.9.4-p7"]["rule-digest"] = D(TEXTS["GR-9.9.4-p7"])
+    expect("the view still accepts the record where it is", any("nothing moved" in e for e in refused(
+        [{"rule-id": "GR-9.9.4-p8", "move-from": "GR-9.9.4-p7"}], st=st)))
+    expect("an id moved twice", any("twice" in e for e in refused(MOVES + [{"rule-id": "GR-9.9.4-p8", "move-from": "GR-9.9.4-2"}])))
+    expect("another record names a moved id", any("another record" in e for e in refused(MOVES, {"GR-9.9.4-p8"})))
+    expect("a move carries only its two ids", any("carries only" in e for e in refused(
+        [{"rule-id": "GR-9.9.4-p8", "move-from": "GR-9.9.4-p7", "verdict": "CONFORMS"}])))
+
+
+def case_02_an_upheld_split_keeps_the_parent_and_writes_no_carved_record(expect):
+    store = _store()
+    split = [_split()]
+    expect.equal("the split is valid", M.errors(split, TEXTS, store, set()), [])
+    rows = _rows(store)
+    applied = M.apply(split, rows, store, FIELDS, BLANK)
+    parent = rows["GR-9.9.4-2"]
+    expect("the parent keeps its verdict and test", parent["verdict"] == "CONFORMS" and parent["test-ref"] == "unit:OpenTests.Mode")
+    expect("its notes keep their prose and mark the recheck",
+           parent["notes"].startswith("Opened in its mode. ") and M.RECHECK_MARK in parent["notes"]
+           and "GR-9.9.4-p9" in parent["notes"] and "planted-refuter" in parent["notes"], parent["notes"])
+    expect.equal("the carved row inherits nothing", rows["GR-9.9.4-p9"], {"rule-id": "GR-9.9.4-p9", **BLANK})
+    expect.equal("upheld", applied.upheld, ["GR-9.9.4-2"])
+
+
+def case_03_a_split_whose_recheck_fails_opens_the_parent(expect):
+    store = _store()
+    split = [_split("REFUTED")]
+    expect.equal("a refuted recheck is a valid split", M.errors(split, TEXTS, store, set()), [])
+    rows = _rows(store)
+    applied = M.apply(split, rows, store, FIELDS, BLANK)
+    expect.equal("the parent opens", (rows["GR-9.9.4-2"], applied.opened), ({"rule-id": "GR-9.9.4-2", **BLANK}, ["GR-9.9.4-2"]))
+
+
+def case_04_a_split_is_refused_unless_its_text_and_recheck_hold(expect):
+    store = _store()
+
+    def refused(rec, st=None) -> list:
+        return M.errors([rec], TEXTS, st or store, set())
+
+    expect("old text other than the record's", any("decided against" in e for e in refused(_split(**{"old-text": OLD_PARENT + " More."}))))
+    expect("carved text out of order or missing", any("in order" in e for e in refused(
+        _split(**{"carved": [TEXTS["GR-9.9.4-p9"], "Another sentence."]}))))
+    st = copy.deepcopy(store)
+    st["GR-9.9.4-p9"] = {"rule-id": "GR-9.9.4-p9", "rule-digest": D(TEXTS["GR-9.9.4-p9"]), "verdict": "CONFORMS"}
+    expect("a carved row with a record", any("inherits nothing" in e for e in refused(_split(), st)))
+    expect("a carved row holding none of the carved text", any("holds none" in e for e in refused(_split(rows=["GR-9.9.4-p8"]))))
+    bare = _split()
+    del bare["split"]["recheck"]
+    expect("no recheck record", any("recheck record" in e for e in refused(bare)))
+    other = _split()
+    other["split"]["recheck"]["digest"] = D(OLD_PARENT)
+    expect("a recheck of other text", any("recheck read other text" in e for e in refused(other)))
+    expect("a split of an unrecorded rule", any("nothing to split" in e for e in refused(
+        {"rule-id": "GR-9.9.4-p9", "split": _split()["split"]})))
+
+
+def case_05_the_older_change_records_follow(expect):
+    store = _store()
+    ops = MOVES + [_split()]
+    rows = _rows(store)
+    applied = M.apply(ops, rows, store, FIELDS, BLANK)
+    older = {
+        "1985-GR-IX.1-1": {"rule-id": "1985-GR-IX.1-1", "next": {
+            "kind": "KEPT", "to": ["GR-9.9.4-p6", "GR-9.9.4-p7"], "reason": "the lock rules",
+            "digests": {"GR-9.9.4-p6": D(TEXTS["GR-9.9.4-p7"]), "GR-9.9.4-p7": D(TEXTS["GR-9.9.4-p8"])}}},
+        "1985-GR-IX.1-2": {"rule-id": "1985-GR-IX.1-2", "next": {
+            "kind": "KEPT", "to": ["GR-9.9.4-2"], "reason": "the open mode rule",
+            "digests": {"GR-9.9.4-2": D(OLD_PARENT)}}},
+        "1985-GR-IX.1-3": {"rule-id": "1985-GR-IX.1-3", "next": {
+            "kind": "CHANGED", "to": ["GR-9.9.4-2"],
+            "reason": "2023 adds that if the file is shared, every lock it holds is released at its close",
+            "digests": {"GR-9.9.4-2": D(OLD_PARENT)}}},
+        "1985-GR-IX.1-4": {"rule-id": "1985-GR-IX.1-4", "verdict": "CONFORMS"}}
+    fresh, changed, sent = M.older_restamps(older, ops, TEXTS, applied)
+    n1 = fresh["1985-GR-IX.1-1"]["next"]
+    expect.equal("a chain renames each id once and keeps its digest",
+                 (n1["to"], n1["digests"]), (["GR-9.9.4-p7", "GR-9.9.4-p8"],
+                                            {"GR-9.9.4-p7": D(TEXTS["GR-9.9.4-p7"]), "GR-9.9.4-p8": D(TEXTS["GR-9.9.4-p8"])}))
+    expect.equal("a split parent is re-stamped", fresh["1985-GR-IX.1-2"]["next"]["digests"],
+                 {"GR-9.9.4-2": D(TEXTS["GR-9.9.4-2"])})
+    expect.equal("a reason quoting the carved paragraph is left STALE for adjudication",
+                 (fresh["1985-GR-IX.1-3"], sent), (older["1985-GR-IX.1-3"], ["1985-GR-IX.1-3"]))
+    expect.equal("a record naming nothing moved is untouched", fresh["1985-GR-IX.1-4"], older["1985-GR-IX.1-4"])
+    expect.equal("the changed records", sorted(changed), ["1985-GR-IX.1-1", "1985-GR-IX.1-2"])
+    expect("a quotation is eight consecutive words, or the whole of a shorter paragraph",
+           M.quotes("it says the lock is held until it is", TEXTS["GR-9.9.4-p7"]) is False
+           and M.quotes("x the lock is held until the file is closed y", TEXTS["GR-9.9.4-p7"])
+           and M.quotes("so: a short rule.", "A short rule."))
+
+
+def case_06_the_move_batch_names_only_recorded_ids(expect):
+    batch = M.move_batch([("GR-9.9.4-p6", "GR-9.9.4-p7"), ("GR-9.9.4-p2", "GR-9.9.4-p3")], {"GR-9.9.4-p6"})
+    expect.equal("one move record, for the id the store holds", batch, [{"rule-id": "GR-9.9.4-p7", "move-from": "GR-9.9.4-p6"}])
+
+
+if __name__ == "__main__":
+    ensure_utf8()
+    sys.exit(selftest_cases.run(sys.modules[__name__]))

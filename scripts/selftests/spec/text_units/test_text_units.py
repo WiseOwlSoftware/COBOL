@@ -144,6 +144,14 @@ def case_07_the_dispositions_are_regenerated_and_audited(expect):
     moved = {"9.9": _seg("A new first paragraph.\n\nThe record is locked.\n\nThe lock is released at CLOSE.")}
     expect("a decided unit whose label moved is refused", any("moved to p2" in f for f in U.audit(moved, decided, label,
                                                                                                   kinds)))
+    # THE MOVE BATCH (kb/Work PB5449 item 6): read before the relabel, a decided ROW's old and new id; a pending unit
+    # that moved has no row and no record, so it moves nothing.
+    expect.equal("a moved decided row is a move; a moved pending unit is none",
+                 U.moves(moved, decided, lambda k, c, lab: f"{k}-{c}-{lab}"), [("GR-9.9-p1", "GR-9.9-p2")])
+    relabelled = U.regenerated(moved, decided, lambda clause: "Planted")
+    expect.equal("after the regeneration nothing moves and the audit accepts the labels",
+                 (U.moves(moved, relabelled, lambda k, c, lab: lab),
+                  [f for f in U.audit(moved, relabelled, label, kinds) if "moved" in f]), ([], []))
     wrong = {"9.9": {"units": [dict(fresh["9.9"]["units"][0], disposition="RV"),
                                dict(fresh["9.9"]["units"][1], disposition=U.NOT_A_RULE, **{"class": "lead-in"})]}}
     found = U.audit(units, wrong, label, kinds, _context())
