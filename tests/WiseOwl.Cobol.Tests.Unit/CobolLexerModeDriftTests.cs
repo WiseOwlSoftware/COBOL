@@ -398,7 +398,7 @@ public sealed class CobolLexerModeDriftTests
     }
 
     /// <summary>kb/Work PB1465 — the reference-paren trigger is narrowed PER COMPILE to the words the compile admits as
-    /// user-defined words (ISO §2023:8.3.2.1 GR1: "Reserved words shall not be used as user-defined words"). A '(' after
+    /// user-defined words (ISO §2023:8.3.2.1 SR1: "Reserved words shall not be used as user-defined words"). A '(' after
     /// a boolean operator §2023:8.9 reserves (2002+) groups a boolean sub-expression, which §2023:8.8.2 Table 4 permits; at
     /// COBOL-85, where B-OR is a user word, the same '(' is still a subscript. A data-name and an intrinsic-function
     /// name (a keyword-omitted call, §2023:8.4.3.2.3 SR2 — SUM is reserved at every edition) keep their reference paren.</summary>

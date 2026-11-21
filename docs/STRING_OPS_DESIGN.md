@@ -27,7 +27,7 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 
 **Rationale.** ISO §2023:8.4.3.3.4 GR4 defines leftmost = ordinal position 1; GR5b/5c require positive integers with leftmost+length-1<=size, else EC-BOUND-REF-MOD (and §2023:7.3.23.3 GR1: zero length raises it unless REF-MOD-ZERO-LENGTH on). Splice `dst[..(p-1)] + slice + dst[(p-1+len)..]` is the exact value-semantics write; slice is pre-sized by CobolString.Store so editing is not re-applied (spec NOTE line 21209).
 
-**Rejected alternatives.** Storing ref-mod slices as separate fields (no — a slice is a transient view of the parent, not its own datum, §2023:8.4.3.3 GR5 'unique data item that is a subset'). Silently clamping out-of-range (rejected as default — masks bugs; throw is conformant since results are otherwise undefined; clamp left as an owner-gated lenient dialect).
+**Rejected alternatives.** Storing ref-mod slices as separate fields (no — a slice is a transient view of the parent, not its own datum, §2023:8.4.3.3.4 GR5 'unique data item that is a subset'). Silently clamping out-of-range (rejected as default — masks bugs; throw is conformant since results are otherwise undefined; clamp left as an owner-gated lenient dialect).
 
 ### D3. Counters (TALLYING), COUNT IN, and WITH POINTER route through the numeric subsystem (CobolNum + NumProfile), never a parallel int path.
 

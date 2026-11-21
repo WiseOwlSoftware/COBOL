@@ -7,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime;
 /// <summary>
 /// ⛔ THE ACTIVATION-BOUNDARY CARRIER OF A VARIABLE-LENGTH GROUP (ISO §2023:8.5.1.12; kb/Work PB204).
 /// <para>A fixed-length group crosses a CALL / INVOKE boundary as ONE string — its record image — because
-/// §2023:14.2.3 GR8 makes the formal "occupy the same storage area as the argument" and that storage has a fixed
+/// §2023:14.2.3 GR8: the formal "occupies the same storage area as the argument" and that storage has a fixed
 /// window. A VARIABLE-LENGTH group has no such window, so a flat string cannot be inverted: the receiver
 /// cannot tell where a dynamic member's content ends and the next fixed member begins. This carrier is the
 /// §2023:8.5.1.12 model made into a wire form, and nothing more:</para>

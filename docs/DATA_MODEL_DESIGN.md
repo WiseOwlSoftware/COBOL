@@ -129,12 +129,12 @@ Concrete kinds:
     display-form — stays boolean, an ALPHABETIC slice stays alphabetic (`Table16Operand.Of(Place)` carries the rider); `--permissive` keeps GnuCOBOL's
     any-slice-is-alphanumeric reading as a warning.
   • NumericImagePlace(inner) — a numeric USAGE DISPLAY item viewed as its zoned character image (§2023:8.4.3.3.4 GR2/GR6): Read=`FormatImage(inner)`, Write=decode back.
-  • OdoGroupPlace(inner,…)  — wraps ANY group place whose subtree holds an occurs-depending table (§2023:13.18.38 GR8): a record-struct member OR a Tier-B / BASED class-tier window
+  • OdoGroupPlace(inner,…)  — wraps ANY group place whose subtree holds an occurs-depending table (§2023:13.18.38.4 GR8): a record-struct member OR a Tier-B / BASED class-tier window
     (kb/Work PB80, 2026-08-18 — a BASED ODO record sent its maximum image; `PlaceBuilder.WrapIfOdoGroup` is the ONE wrap rule, `PlaceRenderer.GroupImage` the ONE image reader
     over both storage shapes: a struct's `AsImage()`, a window's `Read`, a wrapper's inner). LENGTH/BYTE-LENGTH's ODO term (`BoundOdoExtent.BasedAddress`) answers r4a's maximum for an
     UNASSOCIATED based entry through the runtime's null-pointer test (`RuntimeApi.PtrIsNull` — the null pointer is a singleton, never a C# null).
   • GroupImagePlace(inner)   — a GROUP viewed as its character image for reference modification (§2023:8.4.3.3.3 SR1 bullets 3/9; kb/Work PB70, 2026-08-18):
-    Read=`inner.AsImage()` (an occurs-depending group with data-name-1 outside: its CURRENT-count part, §2023:13.18.38 GR8), Write=`PlaceRenderer.WriteGroupImage(inner, image)` — THE ONE
+    Read=`inner.AsImage()` (an occurs-depending group with data-name-1 outside: its CURRENT-count part, §2023:13.18.38.4 GR8), Write=`PlaceRenderer.WriteGroupImage(inner, image)` — THE ONE
     group-image store every image-depositing verb calls (MOVE, INSPECT, STRING, UNSTRING, ACCEPT, the ref-mod splice): FromImage / the GR8a current-extent splice / the Tier-B window /
     the OCCURS DYNAMIC receiving accessor; a group with a float / COMP-5 / INDEX leaf is the loud Tier-C island. Its sibling `PlaceRenderer.WriteFullGroupImage` is the STORAGE-BOUNDARY
     store (a record area receiving a READ, a FILE STATUS group, CALL's copy-in/out — the WHOLE image, never GR8's current-extent slice; it unwraps an occurs-depending wrapper — kb/Work PB80:
@@ -274,7 +274,7 @@ that clause's refusal plus COBOL1547.
 **⛔ A LENGTH PHRASE MEASURES THE COMPLETED DESCRIPTION** (kb/Work PB2465). §2023:13.10.4 GR5/GR6 take the value "as
 specified in" the BYTE-LENGTH / LENGTH intrinsic, which measures the item as described — and four clauses that decide
 an item's size apply only through the description-completion passes of `BindPipeline` (the §2023:13.16.3 SR9 implied
-PICTURE, TYPE / SAME AS composition, §2023:13.18.60.4 GR1 group USAGE, §2023:13.18.52 GR1 group SIGN), which run after the
+PICTURE, TYPE / SAME AS composition, §2023:13.18.60.4 GR1 group USAGE, §2023:13.18.52.4 GR1 group SIGN), which run after the
 whole DATA DIVISION is bound, while a constant binds during it. So `DataBinder.DescriptionCompletion.cs#CompleteDescriptionAhead`
 completes the operand's subtree when the length phrase measures it, through those passes' OWN bodies
 (`SynthesizeImpliedPicturesUnder`, `ExpandType` / `ExpandSameAs`, `UsageInheritanceWalk` and `InheritSignWalk` started
@@ -757,7 +757,7 @@ content-validation half is separately answered by the declined A.4.14 facility (
   sparse `NationalCollatingTable`/`__COLLATE_NAT` channel; the coded-set names collapse to the D-N3 identity:
   UCS-4's ISO 10646 order over one-code-unit-per-position characters IS code-unit order (§2023:8.5.1.4 — COBOL
   recognizes no surrogate pairs, so the supplementary-plane codepoint/code-unit divergence is unreachable), and
-  UTF-8/UTF-16 name coded character sets only (§2023:12.3.7 GR7 Table 6 — never a collating sequence).
+  UTF-8/UTF-16 name coded character sets only (§2023:12.3.7.4 GR7 Table 6 — never a collating sequence).
 - **D-N4 repertoire**: the FULL national repertoire — one UTF-16 code unit per position (the Latin-1-only
   staged guard was lifted with the DISPLAY-OF/NATIONAL-OF wave). **The alphanumeric↔national correspondence is
   the TOTAL UTF-16 IDENTITY in both directions** (Annex A.1 item 33, CONFORMANCE.md §7 — declared with the
@@ -985,7 +985,7 @@ with PICTURE 1(m), where m is the bit length of the group"; storage per §2023:8
 class/category national, "as though … PICTURE N(m), where m is the length of the group"), GR3 (no clause ⇒ an
 alphanumeric group item); §2023:8.5.2.10 item 3 (category national includes a national group); §2023:8.5.1.6.3 (the
 trailing-filler NOTE excludes "a record that is entirely a bit group"); §2023:15.50.4 r1/r2 (LENGTH of a bit / national
-group in boolean / national positions); §2023:14.9.24 Table 16 (a national group sends/receives as category
+group in boolean / national positions); §2023:14.9.25.3 Table 16 (a national group sends/receives as category
 national); §2023:8.4.3.3.3 SR1 last sentence (a bit/national group is treated as elementary for reference
 modification).*
 
@@ -1524,7 +1524,7 @@ over an occurs-depending group** · the 2014 edition gate + matrix/VCR rows. **S
 FIXED record window — WRITE/RELEASE (§2023:14.6.9; the two shapes CONFORMANCE.md A.1 item 57 excludes - a dynamic-capacity
 table of variable-length elements as a MOVE / comparison / CALL operand, and a record holding an OCCURS DEPENDING
 table of them - stay loud) · ref-mod of a
-subordinate (**1526**, §2023:13.7.1 SR6) · REDEFINES **object** carries an OCCURS clause of any format, dynamic included
+subordinate (**1526**, withdrawn: see below) · REDEFINES **object** carries an OCCURS clause of any format, dynamic included
 (**1701**, §2023:13.18.44.3 SR5 sentence 1) · REDEFINES **subject** IS a dynamic table (**1525**, §2023:13.18.44.4 GR1 +
 §2023:8.5.1.9.1 — the one side no syntax rule names) · REDEFINES either side a variable-length group, i.e. with a
 dynamic-length item or dynamic-capacity table SUBORDINATE (**1698**, §2023:13.18.44.3 SR17 + §2023:8.5.1.12.1).
@@ -1614,7 +1614,7 @@ SUBORDINATE to a dynamic table). Each forces the class `Rejected`. **1527** (the
 group INITIALIZE `InitializeErrorAction` message; the whole-dynamic-table value op stays a runtime `NotImplemented`
 loud) — the §2023:14.6.9 variable-length-group family. **1526 is unnecessary and omitted:** reference modification of a
 dynamic-table element works correctly (a `RefModPlace` over the
-`DynTablePlace` — `WS-E(i)(1:2)` gives the right substring), and the cited "§2023:13.7.1 SR6" restriction is actually the
+`DynTablePlace` — `WS-E(i)(1:2)` gives the right substring), and the restriction cited from §2023:13.7.1 (as its SR6) is actually the
 §2023:8.4.3.11.4 ADDRESS-OF/bit-item SR6, not a general ref-mod prohibition — so a 1526 guard would over-restrict valid
 code. Negative tests: `OccursDynamicGuardTests` (1522/1525 + the positive companions, which now include both halves
 of the Format 1 VALUE pair — see the §2023:13.18.63 BAND SCOPING paragraph below). **EC-BOUND-OVERFLOW**
@@ -1710,7 +1710,7 @@ mirrors `ByName`). The TYPEDEF entry allocates NO storage (not in `Roots`) and i
 referenceable (§2023:13.18.58.4 GR2/GR1) — the template is built WITHOUT `RegisterName`. (2) **TYPE reference cloning**
 (`TYPE [IS] type-name`, the grammar ALREADY exists at `CobolData.g4:253`): a deep clone of the template subtree into
 the referencing entry (§2023:13.18.57.4 GR1/GR2), handling elementary + group types, subject-owned OCCURS (array-of-type,
-§2023:13.16 SR14) and subject VALUE override (GR3), GR1 exclusions (the type's level/name/GLOBAL/SELECT WHEN/TYPEDEF are
+§2023:13.16.3 SR14) and subject VALUE override (GR3), GR1 exclusions (the type's level/name/GLOBAL/SELECT WHEN/TYPEDEF are
 not copied). (3) **STRONG typing** (§2023:13.18.58.2): declaration SRs (§2023:13.18.57.3 SR3/SR4/SR6) + same-type gating at MOVE
 (§2023:14.9.25.3 SR2 — a strongly-typed group RECEIVER wants a same-type sender), comparison (§2023:8.8.4.2.3 SR1),
 class-condition (§2023:8.8.4.4.3 SR1);
@@ -1742,7 +1742,7 @@ stays out.
 `DataItem.SameAs` (the operand's written words, a `WrittenDataName`, resolved by `SymbolTable.IdentifyEntryClauseOperand`) → `ExpandSameAs` (inside the ONE `ExpandTypes` pass, AFTER the TYPE loop so
 targets copy their expanded description; chains recurse, cycles = the expanding-set + subject-ancestor walks). The
 copy = the shared `CopyEntryDescription` (also ExpandType's §2023:13.18.58.4 GR3 body; SYNCHRONIZED copies for SAME AS
-only — §2023:13.18.49 GR1 has no alignment exclusion, §2023:13.18.57.4 GR1 does) + `CloneItem` with a `levelDelta` (GR2b
+only — §2023:13.18.49.4 GR1 has no alignment exclusion, §2023:13.18.57.4 GR1 does) + `CloneItem` with a `levelDelta` (GR2b
 subordinate renumbering relative to the subject, may exceed 49 per GR2c; TYPE flows pass 0). GR1 exclusions honored:
 data-name-1's level/name/CONSTANT RECORD/EXTERNAL/GLOBAL/REDEFINES are not copied. GR3/GR5: a USAGE/SIGN on a group
 containing data-name-1 applies as though specified for the subject (mirrored onto the copied Pic at expansion —
@@ -1766,7 +1766,7 @@ in a class condition — split by descriptor: `strong-move-mismatch`/`strong-com
 **1535** `strong-compare-ordering` (§2023:8.8.4.2.3 SR4 — a boolean/object/pointer-bearing
 strong group compares for equality/inequality only; the NAMED spec rule; its second descriptor, the staged
 RENAMES-in-TYPEDEF refusal, is gone — a TYPEDEF's RENAMES clauses are cloned onto each subject, kb/Work PB1304); **1555/1556/1557** SAME AS subject-entry / referenced-entry / cycle rule families
-(§2023:13.16.3 SR12 + §2023:13.18.49.3); **1558** EXTERNAL-type conformance (§2023:13.18.22 GR2/SR5); **0899**
+(§2023:13.16.3 SR12 + §2023:13.18.49.3); **1558** EXTERNAL-type conformance (§2023:13.18.22.4 GR2/SR5); **0899**
 `strong-group-comparison-member` (a strong-group relation that reaches a dynamic-capacity table member, an OCCURS
 DEPENDING ON object inside a table, or a REDEFINES storage tier the element walk cannot reach — the residue of the
 §2023:8.8.4.2.12 element order below).
@@ -1822,7 +1822,7 @@ inside one — an alias of its own with the same operand names, and the one post
 (`RenamesOwners()`, every item that owns level-66 entries, not only roots) resolves, screens and tiles each in its owner's
 scope with offsets measured from the record's root. Two groups of one type get two independent aliases (`AB OF R1`,
 `AB OF R2`). Golden `2002/pb1304_typedef_renames`.
-(4) the residue rules: **1558** EXTERNAL-type conformance (§2023:13.18.22 GR2/SR5 in
+(4) the residue rules: **1558** EXTERNAL-type conformance (§2023:13.18.22.4 GR2/SR5 in
 `ExpandType` — the external-record attribution itself is LIVE, see the EXTERNAL-type paragraph above), **1535**
 the NAMED §2023:8.8.4.2.3 SR4 equality-only rule for a strong group with boolean/object/pointer elements (descriptor
 `strong-compare-ordering`, in the relation checkpoint; asked of the CLASS), and the §2023:8.8.4.2.12 element-order
@@ -2503,7 +2503,7 @@ CONCRETE COBOL→C# MAPPINGS:
   05 BIG   PIC 9(30).                     →  public Int128 Big;  // WidePrecision → Int128
   05 RATE  COMP-2.                        →  public double Rate;
   05 FLAG  PIC 1(4).                      →  public string Flag; // boolean: one '0'/'1' CHAR per position (D8) — NOT a C# bool (multi-position PIC 1(n), MOVE fills, and ref-mod need character semantics; §2023:13.18.40.4 GR14 R14 licenses the character representation). 2002+ — 0900 at --std 85.
-  05 NNAME PIC N(4).                      →  public string Nname; // national: one UTF-16 char per national position (D8); usage NATIONAL implied (§2023:13.18.60.4 SR13a). 2002+ — 0900 at --std 85.
+  05 NNAME PIC N(4).                      →  public string Nname; // national: one UTF-16 char per national position (D8); usage NATIONAL implied (§2023:13.18.60.3 SR13a). 2002+ — 0900 at --std 85.
 
 — Group → nested record struct —
   01 WS-REC.                              →  record struct _T_WsRec { public string Name; public long Ct; }
@@ -2526,7 +2526,7 @@ CONCRETE COBOL→C# MAPPINGS:
 — OCCURS DEPENDING ON —
   05 N PIC 9(3).                           →  public long N;            // the length var
   05 ITM OCCURS 1 TO 100 DEPENDING ON N    →  public _T_Itm[] Itm;      // allocated at MAX (100); N bounds the live range
-      PIC X(4).                                // sending op uses [0..N); a receiving whole-group uses [0..N) when N is OUTSIDE the group (ISO §2023:13.18.38 GR8a), MAX only when N is INSIDE (GR8b)
+      PIC X(4).                                // sending op uses [0..N); a receiving whole-group uses [0..N) when N is OUTSIDE the group (ISO §2023:13.18.38.4 GR8a), MAX only when N is INSIDE (GR8b)
   ITM(K)                                   →  Itm[K - 1]                // bounds checked vs N at runtime if EC enabled
 
 — Index-name (INDEXED BY) = occurrence number —

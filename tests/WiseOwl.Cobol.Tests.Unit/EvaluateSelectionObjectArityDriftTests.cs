@@ -196,7 +196,7 @@ public sealed class EvaluateSelectionObjectArityDriftTests
             foreach (var call in calls)
                 Assert.True(call.functionArgList() is not null,
                     $"the function-identifier '{call.GetText()}' took NO argument list — its argument parenthesis "
-                    + "was peeled off and re-read as a second selection object (PB45). ISO §2023:8.4.3.2 SR6: when a "
+                    + "was peeled off and re-read as a second selection object (PB45). ISO §2023:8.4.3.2.3 SR6: when a "
                     + "function's definition permits arguments, that left parenthesis is always its argument list.");
         }
         finally { FileHarness.TryDelete(path); }

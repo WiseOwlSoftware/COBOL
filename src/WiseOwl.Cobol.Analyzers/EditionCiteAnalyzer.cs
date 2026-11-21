@@ -292,9 +292,26 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
                     // surely as a ternary does: a string, or a number spliced into a citation (right after "§" or right before its ":").
                     // A hole that prints the compile edition itself (COBOL-{DialectLevel}) names it, and one that hands the edition to a
                     // helper as an argument (Format(DialectLevel, "SR1")) leaves the choice to the helper, which is read where it is written.
-                    case InterpolationSyntax h when !PrintsTheEdition(h.Expression) && HeadOf(h.Expression, model, cancel) is { } head
+                    // A cast, a `!` and a `??` wrap the hole without changing what chooses it (HeadsOf); an INLINE int choice
+                    // (§{(edition.Year < 2002 ? 1985 : 2023)}:8.12) is the ternary itself, spliced, and is read like one (PB5935).
+                    case InterpolationSyntax h when !PrintsTheEdition(h.Expression)
                         && (model.GetTypeInfo(h.Expression, cancel).Type?.SpecialType == SpecialType.System_String || SplicedIntoCitation(h)):
-                        _candidates.Add(new Candidate(h.GetLocation(), "interpolation", [head], fires: false, derivedOnly: true));
+                        switch (Unwrap(h.Expression))
+                        {
+                            case ConditionalExpressionSyntax c when !(Str(c.WhenTrue) && Str(c.WhenFalse)):   // a string-armed one is its own candidate
+                                Add(h, "interpolation", [c.Condition]);
+                                break;
+                            case SwitchExpressionSyntax s when s.Arms.Count(a => Str(a.Expression)) < 2:
+                                Add(h, "interpolation",
+                                    [s.GoverningExpression, .. s.Arms.Select(a => a.WhenClause?.Condition).OfType<ExpressionSyntax>()],
+                                    fires: NamesEdition(s.GoverningExpression)
+                                        && s.Arms.Any(a => a.Pattern.DescendantNodesAndSelf().OfType<LiteralExpressionSyntax>().Any(IsEditionValue)));
+                                break;
+                            default:
+                                foreach (var head in HeadsOf(h.Expression, model, cancel))
+                                    _candidates.Add(new Candidate(h.GetLocation(), "interpolation", [head], fires: false, derivedOnly: true));
+                                break;
+                        }
                         break;
                 }
             }
@@ -412,14 +429,30 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
         _ => false,
     };
 
-    /// <summary>The symbol whose value a hole is: the method a call invokes, or the member or local it reads.</summary>
-    private static ISymbol? HeadOf(ExpressionSyntax e, SemanticModel model, CancellationToken cancel) => e switch
+    /// <summary>The expression a cast, a `!` suppression or parentheses wrap: the one whose value the hole is.</summary>
+    private static ExpressionSyntax Unwrap(ExpressionSyntax e) => e switch
     {
-        ParenthesizedExpressionSyntax p => HeadOf(p.Expression, model, cancel),
-        InvocationExpressionSyntax or MemberAccessExpressionSyntax or IdentifierNameSyntax =>
-            model.GetSymbolInfo(e, cancel) is var info && (info.Symbol ?? info.CandidateSymbols.FirstOrDefault()) is { } s ? Normalize(s) : null,
-        _ => null,
+        ParenthesizedExpressionSyntax p => Unwrap(p.Expression),
+        CastExpressionSyntax c => Unwrap(c.Expression),
+        PostfixUnaryExpressionSyntax u when u.IsKind(SyntaxKind.SuppressNullableWarningExpression) => Unwrap(u.Operand),
+        _ => e,
     };
+
+    /// <summary>The symbols whose value a hole is: the method a call invokes, or the member or local it reads; both sides of a `??`.</summary>
+    private static IEnumerable<ISymbol> HeadsOf(ExpressionSyntax e, SemanticModel model, CancellationToken cancel)
+    {
+        switch (Unwrap(e))
+        {
+            case BinaryExpressionSyntax b when b.IsKind(SyntaxKind.CoalesceExpression):
+                foreach (var side in HeadsOf(b.Left, model, cancel).Concat(HeadsOf(b.Right, model, cancel)))
+                    yield return side;
+                break;
+            case InvocationExpressionSyntax or MemberAccessExpressionSyntax or IdentifierNameSyntax:
+                if (model.GetSymbolInfo(Unwrap(e), cancel) is var info && (info.Symbol ?? info.CandidateSymbols.FirstOrDefault()) is { } s)
+                    yield return Normalize(s);
+                break;
+        }
+    }
 
     /// <summary>A hole spliced into a citation: the text before it ends in "§", or the text after it begins with ":".</summary>
     private static bool SplicedIntoCitation(InterpolationSyntax h)

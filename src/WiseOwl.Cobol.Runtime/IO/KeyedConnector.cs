@@ -287,7 +287,7 @@ public abstract partial class KeyedConnector : FileConnector
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
-                    OptionalAbsent = true;               // positioned "not present" (§2023:14.9.27 GR13)
+                    OptionalAbsent = true;               // positioned "not present" (§2023:14.9.27.4 GR13)
                     // NO file lock: §2023:9.1.15 establishes one on a PHYSICAL FILE, and there is none here. What a CLOSE under commit
                     // control kept belonged to a file that is not there any more (removed or renamed away outside the run unit): the
                     // OPEN handed it to the registry before this body (RetireWhatWasKeptOfAnotherFile), so nothing of its store
@@ -314,7 +314,7 @@ public abstract partial class KeyedConnector : FileConnector
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
-                    // Created as if OPEN OUTPUT + CLOSE (§2023:14.9.27 GR17): the file the lock just created has no bytes,
+                    // Created as if OPEN OUTPUT + CLOSE (§2023:14.9.27.4 GR17): the file the lock just created has no bytes,
                     // and the adoption of a file of no bytes through a writable handle creates the empty store.
                     if ((JournalCreation() ?? LockCreating(FileTaking.Creating)) is { } refusedCreated) return refusedCreated;
                     // The file the kept state belonged to is not there (it was removed or renamed away outside the run unit): the

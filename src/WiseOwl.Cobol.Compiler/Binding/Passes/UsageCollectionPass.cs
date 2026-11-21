@@ -214,7 +214,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundKeyedStart n) { P(n.Operand); return false; }
         public bool Visit(BoundKeyedDeleteFile n) => false;
         public bool Visit(BoundReturn n) { P(n.RecordArea); return false; }
-        public bool Visit(BoundRelease n) { P(n.Record); return false; }   // RELEASE record FROM x ≡ MOVE x TO record (§2023:14.9.32 GR4) — the MOVE is a CHILD node now (PB348), so Visit(BoundMove) collects both sides
+        public bool Visit(BoundRelease n) { P(n.Record); return false; }   // RELEASE record FROM x ≡ MOVE x TO record (§2023:14.9.32.4 GR4) — the MOVE is a CHILD node now (PB348), so Visit(BoundMove) collects both sides
         public bool Visit(BoundInitialize n) { foreach (var a in n.Actions) InitAct(a); return false; }
         public bool Visit(BoundValidate n) { foreach (var e in n.Elements) Cond(e.FormatValid); return false; }
         public bool Visit(BoundCorresponding n)

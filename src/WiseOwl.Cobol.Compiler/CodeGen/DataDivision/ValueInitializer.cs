@@ -305,7 +305,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         {
             // A numeric-edited item's NUMERIC VALUE was composed above (EditedImageOfNumericValue); an alphanumeric
             // literal stores verbatim (§2023:13.18.63.3 SR7 / NOTE 3: the programmer supplies the edited form).
-            // National VALUE stores like alphanumeric on the char substrate (§2023:13.18.63 SR5 — the N"…" literal,
+            // National VALUE stores like alphanumeric on the char substrate (§2023:13.18.63.3 SR5 — the N"…" literal,
             // already prefix-stripped by DecodeCobolString). The BOOLEAN arm returned above, through
             // <see cref="BooleanCarrierOf"/>.
             PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
@@ -336,7 +336,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// fixed-point one through <see cref="RuntimeApi.EditCompose"/> — the SAME runtime the MOVE uses, so the baked
     /// image is what MOVE literal TO item would store (BLANK WHEN ZERO included, NOTE 2).</summary>
     /// <param name="dialectLevel">The compilation's edition (<c>EditionContext.DialectLevel</c>).</param>
-    /// <param name="decimalPointIsComma">ISO §2023:12.3.7 GR14a's DECIMAL-POINT IS COMMA.</param>
+    /// <param name="decimalPointIsComma">ISO §2023:12.3.7.4 GR14a's DECIMAL-POINT IS COMMA.</param>
     /// <remarks>⛔ THE PARAMETERS ARE THE TWO FACTS THE RULE NEEDS, NOT AN <c>EmitContext</c>, and that is
     /// deliberate (kb/Work PB920). §2023:13.18.63.3 SR6 is not only a code-generation rule: SR26 and SR27 compare
     /// "<i>the value of</i>" two VALUE-clause operands, and on a numeric-edited subject that value IS this

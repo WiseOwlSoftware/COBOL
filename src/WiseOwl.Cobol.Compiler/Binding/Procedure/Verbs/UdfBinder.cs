@@ -451,7 +451,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// already drained its own suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper BEFORE the
     /// statement completed
     /// binding, so what remains pending is evaluated exactly once per statement execution (a plain operand,
-    /// a sole IF condition, a TIMES count — §2023:14.9.28 GR7, a first-level VARYING FROM — GR13a init, an
+    /// a sole IF condition, a TIMES count — §2023:14.9.28.4 GR7, a first-level VARYING FROM — GR13a init, an
     /// EVALUATE subject occurrence).</summary>
     internal BoundStatement UdfWrapCalls(BoundStatement core, int mark) =>
         DrainPending(mark) is { } taken ? new BoundSequence([.. taken, core]) : core;

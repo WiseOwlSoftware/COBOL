@@ -332,9 +332,9 @@ public sealed class FileIoDifferentialTests
         Assert.Equal(viaPage, viaC01);
     }
 
-    /// <summary>READ on a file connector that is NOT open: I-O status '47' (§2023:9.1.13.7 item 7 / §2023:14.9.30 GR2),
+    /// <summary>READ on a file connector that is NOT open: I-O status '47' (§2023:9.1.13.7 item 7 / §2023:14.9.30.4 GR2),
     /// the statement is unsuccessful, and AT END does NOT fire ('47' is not the at-end family, §2023:9.1.13.4).
-    /// SPEC-PINNED: the record area's content after an unsuccessful READ is spec-UNDEFINED (§2023:14.9.30 GR18
+    /// SPEC-PINNED: the record area's content after an unsuccessful READ is spec-UNDEFINED (§2023:14.9.30.4 GR18
     /// "unless otherwise specified…"); WiseOwl COBOL's documented refinement is that the area is UNCHANGED —
     /// extending the spec's own rule for every other unsuccessful I-O verb (REWRITE GR14 / WRITE GR15 /
     /// DELETE GR8 / START GR2: "unaffected"). The legacy LOW-VALUE-filled it (a byte-engine artifact — the

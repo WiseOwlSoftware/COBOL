@@ -62,7 +62,7 @@ public sealed class ReadPreconditionOrderDriftTests
 
     /// <summary>True when <paramref name="source"/> carries a LOCAL copy of the absent-OPTIONAL READ arm — an
     /// <c>OptionalAbsent</c> test that produces a READ status ('10' AtEnd or '23' RecordNotFound) rather than
-    /// delegating. START's own absent-optional rule (§2023:14.9.41 GR5, <c>StartFail()</c>) is a different rule of a
+    /// delegating. START's own absent-optional rule (§2023:14.9.41.4 GR5, <c>StartFail()</c>) is a different rule of a
     /// different statement and is deliberately NOT matched.</summary>
     internal static bool HasLocalAbsentOptionalReadArm(string source) =>
         source.Split('\n').Any(line =>
@@ -143,7 +143,7 @@ public sealed class ReadPreconditionOrderDriftTests
             "if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.AtEnd; }"));
         Assert.True(HasLocalAbsentOptionalReadArm(
             "if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.RecordNotFound; }"));
-        Assert.False(HasLocalAbsentOptionalReadArm("if (OptionalAbsent) return StartFail();   // '23' §2023:14.9.41 GR5"));
+        Assert.False(HasLocalAbsentOptionalReadArm("if (OptionalAbsent) return StartFail();   // '23' §2023:14.9.41.4 GR5"));
         Assert.False(HasLocalAbsentOptionalReadArm("if (SequentialReadGuard() is { } pre) return Status = pre;"));
     }
 }

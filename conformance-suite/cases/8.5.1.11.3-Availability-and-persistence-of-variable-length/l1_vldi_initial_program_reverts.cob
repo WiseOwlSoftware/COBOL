@@ -39,7 +39,7 @@
       *>   capacity is initialized to zero".            OK  §2023:8.5.1.9.1
       *> §2023:8.5.1.9.3: MOVE to TE (5) past capacity 0 creates the element
       *>   and raises the capacity to 5.                OK  §2023:8.5.1.9.3
-      *> §2023:8.5.1.10.4 / §2023:15.50.4 GR6: MOVE "ABCD" makes the current
+      *> §2023:8.5.1.10.4 / §2023:15.50.4 RV6: MOVE "ABCD" makes the current
       *>     length
       *>   4, which FUNCTION LENGTH returns.            OK  both
       *> No TO phrase, so no expected capacity and no EC-BOUND-OVERFLOW.

@@ -58,7 +58,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | typedef-def-2002 | TYPEDEF clause (named template, no storage) | §2023:13.18.58 | 2002 | | 0900 | active |
 | same-as-clause-2002 | SAME AS clause (copies another entry's description) | §2023:13.18.49 | 2002 | | 0900 | active |
 | external-type-declaration-2023 | Strongly-typed EXTERNAL type (STRONG+EXTERNAL TYPEDEF) | §2023:13.18.22.3 | 2023 | | 0900 | active |
-| value-numeric-literal-numeric-edited-2023 | Non-zero numeric VALUE for numeric-edited item | §2023:13.18.63 SR6 | 2023 | | 0900 | active |
+| value-numeric-literal-numeric-edited-2023 | Non-zero numeric VALUE for numeric-edited item | §2023:13.18.63.3 SR6 | 2023 | | 0900 | active |
 | picture-editing-2023 | PICTURE EDITING phrase (user-defined editing) | §2023:13.18.40.2 | 2023 | | 0900 | active |
 | sync-on-group-2023 | SYNCHRONIZED on a group item | §2023:13.18.55 | 2023 | | 0900 | active |
 | local-storage-section-2002 | LOCAL-STORAGE SECTION (per-activation data) | §2023:13.6 | 2002 | | 0900 | active |
@@ -70,7 +70,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | pic-external-float-2002 | External floating-point PICTURE (symbol E) | §2023:13.18.40 | 2002 | | 0900 | pending |
 | usage-pointer-2002 | USAGE POINTER data item | §2023:13.18.60 | 2002 | | 0900 | active |
 | usage-object-reference-2002 | USAGE OBJECT REFERENCE (OO reference field) | §2023:13.18.60 | 2002 | | 0900 | active |
-| usage-program-pointer-2002 | USAGE PROGRAM-POINTER | §2023:13.18.60 GR24 | 2002 | | 0900 | active |
+| usage-program-pointer-2002 | USAGE PROGRAM-POINTER | §2023:13.18.60.4 GR24 | 2002 | | 0900 | active |
 | usage-function-pointer-2014 | USAGE FUNCTION-POINTER | §2023:13.18.60 | 2014 | | 0900 | pending |
 | usage-binary-char-family-2002 | BINARY-CHAR/-SHORT/-LONG/-DOUBLE integers | §2023:13.18.60.4 GR12 | 2002 | | 0900 | active |
 | usage-float-short-2002 | USAGE FLOAT-SHORT (native float) | §2023:13.18.60.4 GR13 | 2002 | | 0900 | active |

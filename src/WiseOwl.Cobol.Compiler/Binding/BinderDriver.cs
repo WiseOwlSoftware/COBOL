@@ -620,7 +620,7 @@ internal sealed class BinderDriver
 
     /// <summary>The DATA half of unit binding (phase 1 of the two-phase bind): the unit's DATA DIVISION on a
     /// per-unit <see cref="DataBinder"/> with a disjoint uid band (so nested-class struct/profile names never
-    /// shadow a container's), then inject the containers' GLOBAL names (ISO §2023:13.18.27 GR1–2 — nearest container
+    /// shadow a container's), then inject the containers' GLOBAL names (ISO §2023:13.18.27.4 GR1–2 — nearest container
     /// first, each at its nesting depth; which one a reference names is §2023:8.4.6.2.1 3)'s question, asked at the
     /// reference by <c>SymbolTable.NearestDeclaring</c>) and record the <c>ref</c>-bridges the nested class needs to reach the
     /// container's storage. Every unit passes through here BEFORE any unit's procedure binds
@@ -633,7 +633,7 @@ internal sealed class BinderDriver
         // DataBinder.UnitStaticWs): a RECURSIVE-and-not-INITIAL unit — including every FUNCTION-ID unit
         // (§2023:8.6.6 :8821 / §2023:9.4 :12529, the implicit attribute set in MakeUnit) — owns ONE last-used WS copy
         // shared across activations, so its WS roots emit STATIC — with or without contained programs. A
-        // containee's GLOBAL bridges alias the container's members (§2023:13.18.27 GR2): an INSTANCE member is reached
+        // containee's GLOBAL bridges alias the container's members (§2023:13.18.27.4 GR2): an INSTANCE member is reached
         // through the `__outer` chain, a STATIC one through the container's class name, which C# requires
         // (CS0176: `instance.staticField` is not a C# expression). BoundUnit.AnchorOf chooses per member, so the
         // composition is one rule in one place (kb/Work PB1133; the staged COBOL0899 refusal is gone).

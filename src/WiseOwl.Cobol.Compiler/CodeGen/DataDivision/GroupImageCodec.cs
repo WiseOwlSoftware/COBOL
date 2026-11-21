@@ -17,10 +17,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <summary>The C# string-expression for an item's INITIAL character image (used to seed a Tier-B backing from
     /// the canonical's VALUE): a group concatenates its leaves' images; an elementary item formats its VALUE (numeric
     /// → <c>CobolNum.FormatDisplay</c>; alphanumeric/edited → the stored string; figurative/default per width). A
-    /// fixed-OCCURS entry's image repeats <c>Occurs</c> times — every occurrence takes the VALUE (ISO §2023:13.18.63 GR9;
+    /// fixed-OCCURS entry's image repeats <c>Occurs</c> times — every occurrence takes the VALUE (ISO §2023:13.18.63.4 GR9;
     /// the recursion runs through this wrapper, so nested OCCURS repeat too).
     /// <para><paramref name="useValues"/> false suppresses every VALUE and composes the CATEGORY-DEFAULT initial
-    /// image instead — the §2023:13.18.63 GR4a shape, where "a PLAIN external item's VALUE takes effect only during
+    /// image instead — the §2023:13.18.63.4 GR4a shape, where "a PLAIN external item's VALUE takes effect only during
     /// INITIALIZE", so its run-unit cell must seed blank/zero rather than VALUE-composed. It is the SAME
     /// composition either way, which is the point: a byte-form leaf's default is the ZERO ENCODING of its pinned
     /// form (radix-2 / BCD / IEEE / INDEX bytes), never a run of ASCII '0' characters. The EXTERNAL path used to

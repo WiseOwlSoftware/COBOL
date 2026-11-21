@@ -144,7 +144,7 @@ public sealed class KeyedOffsetSpecTests
     }
 
     /// <summary>Key retrieval with a LEGAL (narrower) redefinition ahead of the key: the key's byte position is
-    /// unchanged by the overlay (§2023:13.18.44 GR1 — the redefinition begins at the target's first position and, per
+    /// unchanged by the overlay (§2023:13.18.44.4 GR1 — the redefinition begins at the target's first position and, per
     /// SR8, cannot extend past it), and the declared alternate key retrieves correctly.</summary>
     [Fact]
     public void Start_DeclaredAlternateKey_AfterLegalRedefinition_Retrieves()

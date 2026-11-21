@@ -141,7 +141,7 @@ public sealed class UdfInvocationTests
     /// <summary>Per-evaluation activation (P10 Step 10 — §2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2): a function
     /// reference in a conditionally- or repeatedly-evaluated CONDITION window now BINDS — the activations
     /// attach to the condition (<c>BoundUdfEvaluated</c>) and run once per evaluation of that window.
-    /// Legs: PERFORM UNTIL (per iteration, §2023:14.9.28 GR6), PERFORM VARYING UNTIL (GR13), an EVALUATE
+    /// Legs: PERFORM UNTIL (per iteration, §2023:14.9.28.4 GR6), PERFORM VARYING UNTIL (GR13), an EVALUATE
     /// selection OBJECT (per WHEN consideration, §2023:14.9.13.4 GR4), and a non-first AND/OR operand
     /// (§2023:8.8.4.13 r1 short-circuit). Runtime cardinality is proven by the udf_per_eval golden.</summary>
     [Theory]
@@ -318,7 +318,7 @@ public sealed class UdfInvocationTests
     }
 
     /// <summary>§2023:8.4.6.6: within a function definition its OWN user-function-name is referable with NO
-    /// repository declaration — self-recursion binds (a present self-entry would be ignored, §2023:12.3.8 GR11).
+    /// repository declaration — self-recursion binds (a present self-entry would be ignored, §2023:12.3.8.4 GR11).
     /// The runtime behavior (5! = 120 through five nested activations) is the udf_recursion golden.</summary>
     [Fact]
     public void SelfRecursion_WithoutRepositoryEntry_Binds()
@@ -654,7 +654,7 @@ public sealed class UdfInvocationTests
     // ── M2-UDF-3: function prototypes (ISO §2023:11.5 Format 2 / §2023:10.6 / §2023:12.3.8; DEVLOG 624) ─────────────────────
 
     /// <summary>UDF-3: a FUNCTION-ID … IS PROTOTYPE (§2023:11.5 Format 2) preceding the caller (§2023:10.6.2 SR1) supplies
-    /// the signature; the same-name in-group DEFINITION that follows is authoritative (§2023:12.3.8 GR11a) — the pair
+    /// the signature; the same-name in-group DEFINITION that follows is authoritative (§2023:12.3.8.4 GR11a) — the pair
     /// is NOT a COBOL1508 duplicate. Binds clean at 2002.</summary>
     [Fact]
     public void Prototype_WithDefinition_NotDuplicate_Binds()
@@ -827,7 +827,7 @@ public sealed class UdfInvocationTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOL0900");
     }
 
-    // ── M2-UDF-4: REPOSITORY specifiers + the §2023:8.4.3.2 SR2 keyword-omitted reference form (DEVLOG 626) ────────
+    // ── M2-UDF-4: REPOSITORY specifiers + the §2023:8.4.3.2.3 SR2 keyword-omitted reference form (DEVLOG 626) ────────
 
     /// <summary>A function prototype of the user-defined function UDFDBL, ahead of every unit (ISO §2023:10.6.2 SR1): what a
     /// REPOSITORY <c>FUNCTION UDFDBL</c> entry names when the group has no definition of it (§2023:12.3.8.4 GR11 b); a specifier
@@ -867,7 +867,7 @@ public sealed class UdfInvocationTests
         END PROGRAM {{pid}}.
         """;
 
-    /// <summary>§2023:8.4.3.2 SR2 + §2023:12.3.8 GR13/GR14 — with FUNCTION ALL INTRINSIC in the REPOSITORY the word
+    /// <summary>§2023:8.4.3.2.3 SR2 + §2023:12.3.8.4 GR13/GR14 — with FUNCTION ALL INTRINSIC in the REPOSITORY the word
     /// FUNCTION may be omitted for an intrinsic reference (SR6: the '(' is the argument list). Binds at 2002.</summary>
     [Fact]
     public void KeywordOmitted_AllIntrinsic_Binds()

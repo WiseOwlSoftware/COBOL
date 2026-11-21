@@ -37,8 +37,8 @@ public sealed partial class FileControlBinder
                 ScreenFileStatusItem(file);   // §2023:12.4.5.8.3 — the clause's own syntax rules over the resolved item
             }
             // Keyed organizations: RECORD KEY / ALTERNATE RECORD KEY name items WITHIN the file's record
-            // descriptions (ISO §2023:12.4.5.12 SR2 / §2023:12.4.5.6 SR2), possibly IN/OF-qualified (§2023:8.4.2.2 — same-named
-            // keys under different areas, IX215A); RELATIVE KEY is OUTSIDE the record (ISO §2023:12.4.5.13 SR3) —
+            // descriptions (ISO §2023:12.4.5.12.3 SR2 / §2023:12.4.5.6.3 SR2), possibly IN/OF-qualified (§2023:8.4.2.2 — same-named
+            // keys under different areas, IX215A); RELATIVE KEY is OUTSIDE the record (ISO §2023:12.4.5.13.3 SR3) —
             // a plain name lookup.
             // ⛔ THE KEY CLAUSES RESOLVE THROUGH THE ONE QUALIFIED-REFERENCE RESOLUTION, then SR2 judges the item
             // (kb/Work PB5566). SR2 puts the key INSIDE one of this file's record descriptions, but that is a

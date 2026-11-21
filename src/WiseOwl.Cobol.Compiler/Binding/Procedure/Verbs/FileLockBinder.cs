@@ -13,10 +13,10 @@ using Core = CobolParserCore;
 /// The COBOL-2002 file-sharing / record-locking verb binder (ISO §2023:14.9.47 UNLOCK, the READ/WRITE/REWRITE
 /// record-lock phrases §2023:14.9.30/.51/.35, the RETRY phrase §2023:14.7.9). The SHARING clause + OPEN SHARING phrase +
 /// connector-registry semantics live in DataBinder / BindOpen / the runtime; this collaborator binds UNLOCK,
-/// validates the per-verb lock-phrase syntax rules (COBOL1512 for the AUTOMATIC-locking ban §2023:14.9.30 SR4 and
-/// its WRITE/REWRITE twins; COBOL1818 for §2023:14.9.30 SR3's IGNORING-LOCK/LOCK exclusion), and supplies the lock/RETRY services the
+/// validates the per-verb lock-phrase syntax rules (COBOL1512 for the AUTOMATIC-locking ban §2023:14.9.30.3 SR4 and
+/// its WRITE/REWRITE twins; COBOL1818 for §2023:14.9.30.3 SR3's IGNORING-LOCK/LOCK exclusion), and supplies the lock/RETRY services the
 /// verb binders thread into their bound nodes — READ/WRITE/REWRITE carry <c>Lock</c>+<c>Retry</c> (all
-/// organizations), DELETE RECORD / DELETE FILE carry <c>Retry</c> (§2023:14.9.10 GR6/GR15) — which the emitters
+/// organizations), DELETE RECORD / DELETE FILE carry <c>Retry</c> (§2023:14.9.10.4 GR6/GR15) — which the emitters
 /// route through the runtime's governed entries (ReadShared/ReadKeyedShared/WriteShared/RewriteShared/
 /// DeleteShared). <c>BindRetry</c> stays a shared spine member on the host (OPEN consumes it directly).
 /// </summary>
@@ -41,8 +41,8 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind and validate a verb's LOCK-RETENTION phrase — the printed <c>[ WITH LOCK | WITH NO LOCK ]</c>
-    /// bracket of ISO §2023:14.9.30.2 / §2023:14.9.51.2 / §2023:14.9.35.2 — against the file's effective LOCK MODE (§2023:14.9.30 SR4
-    /// / §2023:14.9.51 SR22 / §2023:14.9.35 SR4 → COBOL1512): no explicit lock phrase is permitted when the effective
+    /// bracket of ISO §2023:14.9.30.2 / §2023:14.9.51.2 / §2023:14.9.35.2 — against the file's effective LOCK MODE (§2023:14.9.30.3 SR4
+    /// / §2023:14.9.51.3 SR22 / §2023:14.9.35 SR4 → COBOL1512): no explicit lock phrase is permitted when the effective
     /// LOCK MODE is AUTOMATIC, because the lock is then implicit. Called from the READ/WRITE/REWRITE binders,
     /// which thread the returned <see cref="BoundRecordLock"/> into their bound nodes for the emitters'
     /// governed-verb routing (§2023:9.1.16).

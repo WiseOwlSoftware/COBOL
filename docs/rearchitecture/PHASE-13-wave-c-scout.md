@@ -411,7 +411,7 @@ DONE
 - §2023:14.9.51.3 SR18 — ADVANCING PAGE and END-OF-PAGE mutually exclusive; SR14/15 (identifier-2 integer, integer-1 ≥0).
 - §2023:14.9.51.4 GR25 (a–h) — the advancing engine; GR25e (BEFORE: present-then-advance), GR25f (the combined case: AFTER advance happens AFTER the line was presented per 25e).
 - §2023:14.9.51.4 GR26/GR27/GR28 — LINAGE end-of-page (EC-I-O-EOP / EC-I-O-EOP-OVERFLOW) interaction.
-- §2023:13.18.34 GR7c/GR7d — LINAGE-COUNTER: =1 at OPEN OUTPUT, incremented by the advance line count (the observable used by the golden).
+- §2023:13.18.34.4 GR7c/GR7d — LINAGE-COUNTER: =1 at OPEN OUTPUT, incremented by the advance line count (the observable used by the golden).
 - Annex E.3.3 item 2 (page ~1212) — "BEFORE and AFTER phrases. Both BEFORE and AFTER are allowed together in WRITE ADVANCING." (E.3.3 = "Not affecting" = pure additive, accepts previously-invalid programs.)
 
 B (SUPPRESS WHEN):
@@ -441,9 +441,9 @@ Ordering: WITH DUPLICATES precedes SUPPRESS WHEN; both optional and independent.
 
 **Introduced edition:** 2023
 
-**Semantics:** A — Dual-advance (§2023:14.9.51.4 GR25). Advancing amount rules GR25a–d unchanged: positive n ⇒ advance n lines; zero ⇒ no reposition; negative identifier ⇒ undefined; mnemonic ⇒ implementor rule; PAGE ⇒ next logical/physical page. The COMBINED sequence, derived literally from GR25e+GR25f: (1) the line is PRESENTED at the current position (GR25e, because BEFORE is present); (2) the page is advanced by the BEFORE amount (GR25e); (3) THEN the page is advanced by the AFTER amount (GR25f: "the printed page is advanced … after the line was presented as specified in General rule 25e"). Net effect: the record prints once at the current line, followed by (before+after) blank-line advances. This is the exact opposite of the naïve "AFTER advances before printing" intuition — when BEFORE co-occurs, AFTER's advance is RELOCATED to after presentation. LINAGE-COUNTER (§2023:13.18.34 GR7c2) therefore increments by (before + after). SR17 forbids PAGE with the combined form. A single BEFORE or single AFTER keeps its classic meaning and is edition-invariant (85+).
+**Semantics:** A — Dual-advance (§2023:14.9.51.4 GR25). Advancing amount rules GR25a–d unchanged: positive n ⇒ advance n lines; zero ⇒ no reposition; negative identifier ⇒ undefined; mnemonic ⇒ implementor rule; PAGE ⇒ next logical/physical page. The COMBINED sequence, derived literally from GR25e+GR25f: (1) the line is PRESENTED at the current position (GR25e, because BEFORE is present); (2) the page is advanced by the BEFORE amount (GR25e); (3) THEN the page is advanced by the AFTER amount (GR25f: "the printed page is advanced … after the line was presented as specified in General rule 25e"). Net effect: the record prints once at the current line, followed by (before+after) blank-line advances. This is the exact opposite of the naïve "AFTER advances before printing" intuition — when BEFORE co-occurs, AFTER's advance is RELOCATED to after presentation. LINAGE-COUNTER (§2023:13.18.34.4 GR7c2) therefore increments by (before + after). SR17 forbids PAGE with the combined form. A single BEFORE or single AFTER keeps its classic meaning and is edition-invariant (85+).
 
-B — Alternate-key suppression. On WRITE (§2023:14.9.51 GR41) and REWRITE (§2023:14.9.35 GR24), for each alternate key declared WITH SUPPRESS WHEN literal-1, if that record's alternate-key VALUE compares equal (per the file's collating sequence, relation-condition rules — §2023:14.9.51 GR35) to literal-1, NO alternate access-path entry is created for that record under that key; the record is positioned so it will not be found via that key. Multiple records may share the suppression value with NO DUPLICATES clause, and such suppressed values never raise the '22' duplicate-alternate-key condition (GR41 tail). REWRITE maintains this dynamically: moving the value TO the literal drops the path; moving it AWAY re-provides and repositions the path (GR24). On READ with an alternate key of reference (§2023:14.9.30 GR21c) and on START with an alternate key of reference (§2023:14.9.41 GR), suppressed records "are not considered to exist" / "are ignored" — sequential reads skip them and START never positions on them. The prime-key path and non-suppressed alternate paths are unaffected; the physical record is fully intact and reachable via prime key or any other alternate.
+B — Alternate-key suppression. On WRITE (§2023:14.9.51.4 GR41) and REWRITE (§2023:14.9.35.4 GR24), for each alternate key declared WITH SUPPRESS WHEN literal-1, if that record's alternate-key VALUE compares equal (per the file's collating sequence, relation-condition rules — §2023:14.9.51.4 GR35) to literal-1, NO alternate access-path entry is created for that record under that key; the record is positioned so it will not be found via that key. Multiple records may share the suppression value with NO DUPLICATES clause, and such suppressed values never raise the '22' duplicate-alternate-key condition (GR41 tail). REWRITE maintains this dynamically: moving the value TO the literal drops the path; moving it AWAY re-provides and repositions the path (GR24). On READ with an alternate key of reference (§2023:14.9.30.4 GR21c) and on START with an alternate key of reference (§2023:14.9.41 GR), suppressed records "are not considered to exist" / "are ignored" — sequential reads skip them and START never positions on them. The prime-key path and non-suppressed alternate paths are unaffected; the physical record is fully intact and reachable via prime key or any other alternate.
 
 **Below-2023 gate:** Both reject below 2023 via the standard introduction gate — COBOL0900 ("construct not available before the introducing edition"), single-sourced through VersionConformancePass.ParseArm (fire-on-RECOGNITION, DEVLOG-724 rule: never a bound-arm, so a below-edition occurrence still diagnoses even on a parse/bind error path). Must REJECT at --std 85, 2002, 2014; ACCEPT at 2023 (default).
 
@@ -471,8 +471,8 @@ Gating: VersionConformancePass.cs ParseArm ~818 (add VisitAlternateKeyClause + V
 **Golden program:**
 
 ```
-*> Golden A — WRITE … BEFORE ADVANCING 1 AFTER ADVANCING 2 (ISO 2023, §2023:14.9.51 GR25e/25f).
-*> Observable = LINAGE-COUNTER (§2023:13.18.34 GR7c/GR7d) — combined advance increments it by before+after.
+*> Golden A — WRITE … BEFORE ADVANCING 1 AFTER ADVANCING 2 (ISO 2023, §2023:14.9.51.4 GR25e/25f).
+*> Observable = LINAGE-COUNTER (§2023:13.18.34.4 GR7c/GR7d) — combined advance increments it by before+after.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. WBA.
        ENVIRONMENT DIVISION.
@@ -498,7 +498,7 @@ Gating: VersionConformancePass.cs ParseArm ~818 (add VisitAlternateKeyClause + V
            STOP RUN.
 
 *> ---------------------------------------------------------------------
-*> Golden B — SUPPRESS WHEN on ALTERNATE RECORD KEY (ISO 2023, §2023:12.4.5.6 GR6, §2023:14.9.51 GR41, §2023:14.9.30 GR21c).
+*> Golden B — SUPPRESS WHEN on ALTERNATE RECORD KEY (ISO 2023, §2023:12.4.5.6.4 GR6, §2023:14.9.51.4 GR41, §2023:14.9.30.4 GR21c).
 *> The record whose alt key = "SUP" gets no alternate access path; reading via the alt key skips it.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. SUPWHEN.
@@ -547,13 +547,13 @@ Gating: VersionConformancePass.cs ParseArm ~818 (add VisitAlternateKeyClause + V
 Golden A (wba.out) — exact bytes, two lines each terminated by the platform newline:
 OPEN LC=001
 WRITE LC=004
-Derivation: OPEN OUTPUT sets LINAGE-COUNTER=1 (§2023:13.18.34 GR7d) → MOVE to PIC 9(3) → "001". WRITE presents "AAA" at line 1 (GR25e), advances BEFORE amount 1 (GR25e) then AFTER amount 2 (GR25f) → counter 1+1+2=4 (GR7c2, incremented by the total advance) → "004". 20-line page, no footing, 4<20 ⇒ no end-of-page (GR26), WRITE successful. (A single AFTER ADVANCING 2 alone would give "003"; a single BEFORE ADVANCING 1 alone "002" — so "004" uniquely proves BOTH phrases were parsed and both amounts applied.)
+Derivation: OPEN OUTPUT sets LINAGE-COUNTER=1 (§2023:13.18.34.4 GR7d) → MOVE to PIC 9(3) → "001". WRITE presents "AAA" at line 1 (GR25e), advances BEFORE amount 1 (GR25e) then AFTER amount 2 (GR25f) → counter 1+1+2=4 (GR7c2, incremented by the total advance) → "004". 20-line page, no footing, 4<20 ⇒ no end-of-page (GR26), WRITE successful. (A single AFTER ADVANCING 2 alone would give "003"; a single BEFORE ADVANCING 1 alone "002" — so "004" uniquely proves BOTH phrases were parsed and both amounts applied.)
 
 Golden B (supwhen.out) — exact bytes, three lines:
 GOT P01 AAA
 GOT P03 BBB
 END
-Derivation: three records written; P02/"SUP" matches SUPPRESS WHEN "SUP" so no alternate-index entry is created for it (§2023:14.9.51 GR41a/b). OPEN INPUT; MOVE LOW-VALUES TO IX-ALT then START KEY NOT LESS THAN IX-ALT sets the alternate as key of reference and positions at the lowest alt value; suppressed records are ignored by START (§2023:14.9.41). READ NEXT walks alternate-key ascending order ("AAA" < "BBB"), and P02 "is not considered to exist" (§2023:14.9.30 GR21c): first read → P01/AAA → "GOT P01 AAA"; second → P03/BBB → "GOT P03 BBB"; third → AT END, WS-ST='10' → "END"; the PERFORM UNTIL WS-ST="10" then exits. DISPLAY concatenates the literal "GOT ", IX-PRIME(3), the literal " ", IX-ALT(3). (P02 remains fully present and readable by prime key — suppression is per-alternate-path only, GR6 NOTE.)
+Derivation: three records written; P02/"SUP" matches SUPPRESS WHEN "SUP" so no alternate-index entry is created for it (§2023:14.9.51.4 GR41a/b). OPEN INPUT; MOVE LOW-VALUES TO IX-ALT then START KEY NOT LESS THAN IX-ALT sets the alternate as key of reference and positions at the lowest alt value; suppressed records are ignored by START (§2023:14.9.41). READ NEXT walks alternate-key ascending order ("AAA" < "BBB"), and P02 "is not considered to exist" (§2023:14.9.30.4 GR21c): first read → P01/AAA → "GOT P01 AAA"; second → P03/BBB → "GOT P03 BBB"; third → AT END, WS-ST='10' → "END"; the PERFORM UNTIL WS-ST="10" then exits. DISPLAY concatenates the literal "GOT ", IX-PRIME(3), the literal " ", IX-ALT(3). (P02 remains fully present and readable by prime key — suppression is per-alternate-path only, GR6 NOTE.)
 ```
 
 **Gotchas / audit-drift:** 1. FORMAT-DIAGRAM DRIFT (A): §2023:14.9.51.2's Format-1 diagram STILL shows BEFORE/AFTER as a single stacked CHOICE and was not updated for 2023; only SR17 + GR25f + E.3.3 item 2 authorize the combination. Do not "trust the format" — implement per the General Rules (owner rule #1). The audit row confirms current grammar is single-choice (CobolIO.g4:355).
@@ -562,8 +562,8 @@ Derivation: three records written; P02/"SUP" matches SUPPRESS WHEN "SUP" so no a
 4. GATE IS ON CO-OCCURRENCE, NOT THE PHRASE (A): single BEFORE / single AFTER is edition-invariant (85+) and must NOT diagnose. Gate only when Length==2 (parse-arm recognition). A bound-arm gate would drop the 0900 on a bind-error path (DEVLOG-724).
 5. SUPPRESS ≠ DELETE (B): the physical record is intact and reachable by prime key or any non-suppressed alternate — only the one alternate access PATH is withheld (GR6 NOTE). Do not remove the record from _recs.
 6. DUPLICATES INDEPENDENCE (B): suppressed alt values must bypass BOTH the no-DUPLICATES '22' write check AND the READ-NEXT GR27 '02' duplicate-lookahead — GR41 tail: "Key entries that are suppressed shall not cause a duplicate key condition." Any number of records may carry the suppression value with no DUPLICATES clause. A naïve `_recs.Any(KeyOf==value)` duplicate check (IndexedConnector.cs:296-301) will wrongly reject the 2nd suppressed record — must skip suppressed entries in that scan.
-7. REWRITE DYNAMICS (B): §2023:14.9.35 GR24 requires live maintenance — moving an alt value TO the literal drops its path; moving it AWAY re-provides+repositions it. Suppression is recomputed per WRITE/REWRITE from the record image, not cached at open.
-8. COLLATING (B): the equal-to-literal test uses the file's collating sequence per relation-condition rules (§2023:14.9.51 GR35), and the literal may be a figurative constant (SR7) — decode SPACE/LOW-VALUE/ALL "x"/HIGH-VALUE to the key width; ALL literal must be exactly 1 char (SR7).
+7. REWRITE DYNAMICS (B): §2023:14.9.35.4 GR24 requires live maintenance — moving an alt value TO the literal drops its path; moving it AWAY re-provides+repositions it. Suppression is recomputed per WRITE/REWRITE from the record image, not cached at open.
+8. COLLATING (B): the equal-to-literal test uses the file's collating sequence per relation-condition rules (§2023:14.9.51.4 GR35), and the literal may be a figurative constant (SR7) — decode SPACE/LOW-VALUE/ALL "x"/HIGH-VALUE to the key width; ALL literal must be exactly 1 char (SR7).
 9. START/READ skip surface (B): the skip must apply to the DERIVED alternate ordering only (Ordered(keyIndex≥0) and ReadRandom's alt scan and SetStart's alt search) — prime-key reads (keyIndex=-1) never suppress. A suppressed-only alt value that no record exposes must yield '23' invalid-key on START and at-end/'23' on random READ, not a false hit.
 10. Golden-A observability caveat: LINAGE-COUNTER proves the summed advance and that both phrases parsed, but not the physical line placement; the present→before→after ordering (gotcha 2) is additionally the runtime's WriteAdvancing responsibility and would be pinned by a byte-level print-stream unit test (FileIoDifferential/Linage pattern) alongside the stdout golden.
 

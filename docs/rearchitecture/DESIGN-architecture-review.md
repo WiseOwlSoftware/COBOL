@@ -1560,7 +1560,7 @@ builds those windows over `StatementLocal` positions. *Steps:* PB2299, PB2371–
 in PB2300); with `IntrinsicArgumentRules` (R0-0020) and `IntrinsicCatalog` (a table written as
 code).
 *Responsibilities.* FUNCTION-reference binding per §15 family: argument binding and the argument screens, result
-typing (`IntrinsicResultType`), the catalog lookup, the keyword-omitted routing below 2002 (§2023:8.4.3.2 SR2, the
+typing (`IntrinsicResultType`), the catalog lookup, the keyword-omitted routing below 2002 (§2023:8.4.3.2.3 SR2, the
 sanctioned behavioural read of `DESIGN-version-conformance-pipeline.md` §1.1 item 3), and the per-function windows
 (TRIM's argument 2, the FORMATTED-* family, the NUMVAL family, RANDOM, LENGTH and BYTE-LENGTH, the EC-ARGUMENT
 functions).

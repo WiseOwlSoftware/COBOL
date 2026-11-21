@@ -106,7 +106,7 @@ public sealed class Condition88DifferentialTests
             """));
 
     [Fact]
-    // A level-88 condition-name on a GROUP conditional variable. Per ISO §2023:8.8.4.5 GR2 the test follows the relation-
+    // A level-88 condition-name on a GROUP conditional variable. Per ISO §2023:8.8.4.5.3 GR2 the test follows the relation-
     // condition rules, and §2023:8.8.4.1 treats an alphanumeric group as an elementary alphanumeric item — so the group's
     // character IMAGE is compared, not the raw struct (the NC211A/NC250A TABLE-86 shape).
     public void ConditionName_OnGroupItem()

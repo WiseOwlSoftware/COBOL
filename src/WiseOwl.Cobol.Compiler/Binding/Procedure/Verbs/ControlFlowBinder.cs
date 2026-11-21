@@ -333,7 +333,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
                 bool resolved = true;
                 foreach (var n in names)
                 {
-                    // A section target transfers to its first paragraph (ISO §2023:14.9.17 GR1). An unresolvable
+                    // A section target transfers to its first paragraph (ISO §2023:14.9.17.4 GR1). An unresolvable
                     // procedure-name is REPORTED by the ONE operand resolution (kb/Work PB390) — GO TO states no
                     // syntax rule of its own about procedure-name-1, so §2023:8.4.2.1 alone decides. EVERY name in the
                     // series is screened: `GO TO A B C DEPENDING` with two bad names draws two diagnostics, not the
@@ -446,7 +446,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             }
             return new BoundExitPerform(e.CYCLE() is not null);
         }
-        if (e.PROGRAM() is not null)   // §2023:14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
+        if (e.PROGRAM() is not null)   // §2023:14.9.14.4 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
         {
             var element = ctx.Enclosing.SourceElement;
             if (!ctx.Enclosing.InProgramProcedureDivision)   // §2023:14.9.14.3 SR7
@@ -635,7 +635,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     /// but the grammar exposes it in two shapes: a direct child (<c>PERFORM proc TIMES</c>, alternatives without
     /// THRU) or wrapped in <c>performOptions</c> (the <c>PERFORM proc THRU proc [performOptions]</c> alternative and
     /// the inline <c>performOptions+</c> form). Resolving only the direct child dropped the count/condition on a THRU
-    /// range, silently running the range once instead of N times (§2023:14.9.28 GR9) — the NC106A/NC176A defect
+    /// range, silently running the range once instead of N times (§2023:14.9.28.4 GR9) — the NC106A/NC176A defect
     /// (DEVLOG 514). This one resolver handles every shape for both inline and out-of-line PERFORM.</summary>
     private BoundPerformControl BindPerformControl(Core.PerformStatementContext p)
     {
@@ -656,7 +656,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // is the programmer's job (inline: EXIT PERFORM; out-of-line: GOBACK/STOP). Introduction-gated in the
             // pass; §2023:14.9.28.3 SR8's placement was screened by CheckUntilExitPlacement before this runs.
             if (u.performUntilTarget().condition() is not { } condition) return new PerformForever();
-            // The UNTIL condition is evaluated per iteration (§2023:14.9.28 GR6/GR13), so a user-function
+            // The UNTIL condition is evaluated per iteration (§2023:14.9.28.4 GR6/GR13), so a user-function
             // reference inside it activates per evaluation — the drained-suffix wrapper, never the
             // once-per-statement hoist (§2023:8.4.3.2.4 GR1/GR6a; §2023:8.8.4.13 r2).
             var udfMark = host.Udf.Mark;

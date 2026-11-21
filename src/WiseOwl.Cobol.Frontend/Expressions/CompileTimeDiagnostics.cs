@@ -13,7 +13,7 @@ public enum CtDiagCode
     /// zero, SR1b operand-not-a-literal, SR2 overflow, or an unsupported expression shape).</summary>
     ArithmeticRule,
 
-    /// <summary>A §2023:12.3.7 GR14a numeric-literal decimal-separator violation (the DECIMAL-POINT IS COMMA rule).</summary>
+    /// <summary>A §2023:12.3.7.4 GR14a numeric-literal decimal-separator violation (the DECIMAL-POINT IS COMMA rule).</summary>
     NumericSeparator,
 
     /// <summary>A compiler-directive expression formation rule OTHER than the shared §2023:7.3.6 arithmetic core — the

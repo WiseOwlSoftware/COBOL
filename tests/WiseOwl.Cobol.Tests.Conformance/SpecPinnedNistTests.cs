@@ -45,7 +45,7 @@ public sealed class SpecPinnedNistTests
     /// <summary>NC235A: the golden marks IDX-TEST-F2-9 / F2-12 "TEST DELETED" — a legacy artifact: its SEARCH ALL
     /// over an OCCURS-DEPENDING table with a CONDITION-NAME WHEN (<c>WHEN LASTA (IDX-1)</c>) fell through to the
     /// CCVS DE-LETE paragraph. Per ISO §2023:14.9.37 Format 2 (a WHEN condition-name over a table element keyed by the
-    /// search index) + §2023:13.18.38 GR7 (the table's count IS data-name-1's value) both tests execute and PASS — the
+    /// search index) + §2023:13.18.38.4 GR7 (the table's count IS data-name-1's value) both tests execute and PASS — the
     /// conforming run is 013 OF 013 with nothing deleted.</summary>
     [Fact]
     public void NC235A_SearchAllConditionNameOverOdo_ExecutesAllTests()

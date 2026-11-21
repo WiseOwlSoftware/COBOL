@@ -137,7 +137,7 @@ utilities, now reachable by both layers:
 
 * **`CobolLiteral`** (the ONE literal codec) relocated Compiler → `Frontend/Common` (namespace `WiseOwl.Cobol.Common`
   unchanged; all Compiler `using`s still resolve). **Done, build-verified.**
-* **`NumericLiteral.Normalize`** — the §2023:12.3.7 GR14a numeric-literal normalizer extracted to `Frontend/Common`;
+* **`NumericLiteral.Normalize`** — the §2023:12.3.7.4 GR14a numeric-literal normalizer extracted to `Frontend/Common`;
   `SpecialNamesBinder.NormalizeNumericLiteral` delegates to it and keeps emitting COBOL0895 byte-identically. **Done,
   build-verified.**
 
@@ -227,7 +227,7 @@ public sealed class CompileTimeExpressionEvaluator(
     Func<string, CtValue?> resolveName,     // a name → its bound value, or null if undefined
     ICtDiagnostics diag,                     // CODE-preserving sink (§5.2) — not a bare Action<string>
     CtOperandVocabulary vocab,               // per-consumer operand-source clause / noun (§5.2)
-    bool decimalPointIsComma,                // §2023:12.3.7 GR14a normalization (binder: real; frontend: false, §5.3)
+    bool decimalPointIsComma,                // §2023:12.3.7.4 GR14a normalization (binder: real; frontend: false, §5.3)
     Func<string, bool>? isRefusedName = null) // frontend only: a name whose >>DEFINE was refused and reported (PB3119)
 {
     // Public operand boundary — applies §2023:7.3.11.4 GR5 reclassification + §2023:7.3.6.3 GR3 truncation ITSELF.
@@ -293,7 +293,7 @@ text may differ by that one clause from today (CONSTANT goldens updated same com
 
 ### 5.3 Numeric-literal normalization
 
-The one chokepoint is `WiseOwl.Cobol.Common.NumericLiteral.Normalize` (Frontend, §3) — §2023:12.3.7 GR14a. The binder
+The one chokepoint is `WiseOwl.Cobol.Common.NumericLiteral.Normalize` (Frontend, §3) — §2023:12.3.7.4 GR14a. The binder
 passes its real `DecimalPointIsComma` and routes the issue to COBOL0895; the **frontend passes `false`** —
 directives are processed before SPECIAL-NAMES is bound (§2023:7.2), so a directive numeric literal is always
 dot-decimal (a stated, spec-grounded limitation).

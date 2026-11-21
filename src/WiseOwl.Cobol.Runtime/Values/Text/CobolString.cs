@@ -19,7 +19,7 @@ public static class CobolString
     /// Store <paramref name="value"/> into a character receiver of <paramref name="width"/> positions,
     /// applying COBOL MOVE rules (ISO/IEC 1989:2023 §2023:14.9.25 / §2023:14.6.8): left-justified by default — pad on the
     /// right with <paramref name="pad"/>, truncate on the right when too long; right-justified
-    /// (<c>JUSTIFIED RIGHT</c>, §2023:13.18.32 GR1/GR2) — pad/truncate on the left.
+    /// (<c>JUSTIFIED RIGHT</c>, §2023:13.18.32.4 GR1/GR2) — pad/truncate on the left.
     /// </summary>
     public static string Store(string? value, int width, bool justifiedRight = false, char pad = ' ')
     {
@@ -233,7 +233,7 @@ public static class CobolString
     /// <paramref name="length"/> characters at 1-based <paramref name="leftmost"/> replaced by
     /// <paramref name="slice"/> (left-justified, <paramref name="pad"/>-filled, truncated to the slice length).
     /// <paramref name="dst"/>'s overall length is preserved; only the targeted positions change (editing is not
-    /// re-applied). A boolean receiver splices with boolean-zero fill (§2023:14.6.8.6; §2023:8.4.3.3 GR5a — a bit position
+    /// re-applied). A boolean receiver splices with boolean-zero fill (§2023:14.6.8.6; §2023:8.4.3.3.4 GR5a — a bit position
     /// IS a char index under D-B1). An out-of-range/zero-length ref-mod raises the fatal EC-BOUND-REF-MOD
     /// (§2023:8.4.3.3.4) when checking is enabled and TERMINATES the run unit when it is not — the same
     /// <see cref="RefModOutOfRange"/> and the same outcome as the read (<see cref="RefMod"/>; kb/Work R60).

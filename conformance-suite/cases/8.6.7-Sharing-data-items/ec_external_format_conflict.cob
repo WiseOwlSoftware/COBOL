@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> EC-EXTERNAL-FORMAT-CONFLICT (ISO §2023:14.8.4.3 / §2023:13.18.22 GR6; raise point §2023:14.9.4.4
+      *> EC-EXTERNAL-FORMAT-CONFLICT (ISO §2023:14.8.4.3 / §2023:13.18.22.4 GR6; raise point §2023:14.9.4.4
       *> GR3e; VCR 15). MAIN describes external record XFC-SHARED as 4 bytes, the CALLed
       *> sub as 8 bytes — a GR6 byte-count conflict. Checking is enabled in BOTH elements
       *> (§2023:14.8.4.1: the activating side at the CALL statement, the activated side before
