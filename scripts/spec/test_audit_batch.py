@@ -21,6 +21,7 @@ import dataclasses
 import io
 import json
 import pathlib
+import shutil
 import sys
 import tempfile
 
@@ -493,6 +494,66 @@ def main() -> int:
               and "no own-edition witness" in own_refused[0]["reasons"][0])
         check("own-verdict-batch refuses a run not imported from reads, by name",
               isinstance(refused_run, str) and "not imported from reads" in refused_run)
+        # THE DERIVATION FROM A READ (kb/Work PB5453; section 10.6): a 1985 read that proposes a derivation its refuter
+        # UPHELD becomes, in one derivation-batch, its section 8 register row, its slice's refuter record file and its
+        # store record; the 1985 read's `compiler-at-1985` is read (until 2026-11-21 only `compiler-at-2002` was).
+        ed85 = inventory_schema.edition(1985)
+        store_1985 = A.read_store(A.inventory_dir(ed85, spec_pdf.REPO))
+        bare85 = [r for r in ed85.rules() if r["kind"] == "GR" and r["id"] not in store_1985][:3]
+        drv_reads = root / "drv-reads"
+        drv_reads.mkdir()
+        names = "defines a property of the user's program that no output of a compiler can show"
+        (drv_reads / "s-01-read.json").write_text(json.dumps({"slice": "s-01", "cases": [
+            {"rule-id": bare85[0]["id"], "to": [], "verdict": "DIFFERENT", "class": "definitional",
+             "reason": "planted definitional rule", "citations": [{"cite": bare85[0]["citation"], "check": "OK"}],
+             "probe": None, "compiler-at-1985": "not probed: no program can show it",
+             "derivation": {"arm": "definitional", "names": names,
+                            "code-location": "src/WiseOwl.Cobol.Compiler/A.cs#M"}},
+            {"rule-id": bare85[1]["id"], "to": [], "verdict": "DIFFERENT", "class": "definitional",
+             "reason": "planted, unrefuted", "citations": [{"cite": bare85[1]["citation"], "check": "OK"}],
+             "probe": None, "compiler-at-1985": "not probed", "derivation": {"arm": "definitional", "names": names}},
+            {"rule-id": bare85[2]["id"], "to": [], "verdict": "DIFFERENT", "class": "own-text",
+             "reason": "planted, proven correct", "citations": [{"cite": bare85[2]["citation"], "check": "OK"}],
+             "probe": "p.cob", "compiler-at-1985": "correct: p.cob"}]}), encoding="utf-8", newline="\n")
+        (drv_reads / "s-01-derivation-refute.json").write_text(json.dumps({"slice": "s-01", "cases": [
+            {"rule-id": bare85[0]["id"], "verdict": "UPHELD", "reason": "no program can show it",
+             "citations": [bare85[0]["citation"]], "probe": None}]}), encoding="utf-8", newline="\n")
+        drv_state = root / "drv-imported"
+        code, out = run(["import-reads", "--edition", "1985", "--reads", str(drv_reads), "--record",
+                         str(root / "drv-records"), "--state", str(drv_state)], fake)
+        drv_summary = json.loads((drv_state / "reads-decisions.json").read_text(encoding="utf-8"))["summary"]
+        check("import-reads at 1985 reads compiler-at-1985 (needs-own-witness, not undecided) and lists each proposed "
+              "derivation as the work item `derivation`",
+              code == 0 and drv_summary["work"] == {lineage_reads.DERIVATION: 2, lineage_reads.NEEDS_OWN_WITNESS: 1})
+        repo = root / "repo"
+        shutil.copytree(spec_pdf.REPO / "docs" / "conformance", repo / "docs" / "conformance")
+        (repo / "tests" / "version-matrix").mkdir(parents=True)
+        shutil.copy(spec_pdf.REPO / inventory_schema.SCHEMA_REL, repo / inventory_schema.SCHEMA_REL)
+        drv_batch = root / "drv.json"
+        unsigned, _ = run(["derivation-batch", "--edition", "1985", "--state", str(drv_state), "--out", str(drv_batch),
+                           "--signature", "claude: 1999-01-01", "--repo", str(repo)], fake)
+        check("derivation-batch refuses a signature that is no key of the schema's signatures, by name",
+              isinstance(unsigned, str) and "claude: 1999-01-01" in unsigned)
+        code, out = run(["derivation-batch", "--edition", "1985", "--state", str(drv_state), "--out", str(drv_batch),
+                         "--signature", "claude: 2026-11-16", "--repo", str(repo)], fake)
+        drv_written = json.loads(drv_batch.read_text(encoding="utf-8"))["records"]
+        drv_refused = json.loads(drv_batch.with_name("drv.refused.json").read_text(encoding="utf-8"))["refused"]
+        drv_key = f"DRV-{bare85[0]['id']}"
+        entry = repo / "docs" / "conformance" / "8" / f"{drv_key}.md"
+        jsonl = repo / lineage_reads.refutations_file(1985, "s-01")
+        extract = json.loads((repo / inventory_schema.REGISTER_EXTRACT_REL).read_text(encoding="utf-8"))
+        check("derivation-batch writes the upheld derivation's store record (CONFORMS, the read's code location, the "
+              "computed anchor), its register row signed and naming the slice's refuter record file, that file, and "
+              "the register's extract; the unrefuted one is refused with why",
+              code == 0 and [r["rule-id"] for r in drv_written] == [bare85[0]["id"]]
+              and drv_written[0]["verdict"] == "CONFORMS"
+              and drv_written[0]["derivation"] == f"docs/CONFORMANCE.md#{drv_key}"
+              and entry.is_file() and "claude: 2026-11-16" in entry.read_text(encoding="utf-8")
+              and lineage_reads.refutations_file(1985, "s-01") in entry.read_text(encoding="utf-8")
+              and json.loads(jsonl.read_text(encoding="utf-8").splitlines()[0])["outcome"] == "UPHELD"
+              and any(d["key"] == drv_key for d in extract["derivations"])
+              and [r["rule-id"] for r in drv_refused] == [bare85[1]["id"]]
+              and drv_refused[0]["reasons"][0].startswith(lineage_reads.NO_REFUTER))
         planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"],
                                           "change": {"kind": "KEPT", "to": ["SR-13.18.38.3-1"]}},
                    "1985-SR-VI.5.8.3-2": {"disposition": A.DISPUTED, "rules_2023": ["SR-13.18.38.3-1"], "contested": True},

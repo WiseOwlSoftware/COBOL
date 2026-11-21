@@ -93,9 +93,17 @@ SUITE = REPO / "conformance-suite"
 
 READ_VERDICTS = ("SAME", "DIFFERENT", "DOUBTFUL")
 REFUTE_VERDICTS = ("UPHELD", "OVERTURNED", "DOUBTFUL")
-#: The judgments of the compiler at the edition a reader or refuter states (`compiler-at-2002`, by the brief's words).
+#: The judgments of the compiler at the edition a reader or refuter states (`compiler-at-<year>`, the read's OWN edition:
+#: `compiler-at-2002` in a 2002 read, `compiler-at-1985` in a 1985 one; kb/Work PB5453).
 CORRECT, WRONG, NOT_PROBED = "correct", "wrong", "not probed"
 COMPILER = re.compile(r"\A\s*(correct|wrong|not probed)\b", re.I)
+#: THE EDITION-KEYED FIELDS of a read or refute case (kb/Work PB5453): each names the edition it speaks of, and a case
+#: speaks only of its record's own edition. `compiler-at` and `licence` are read (`_judgment`, `normal_read`); `scope`
+#: and `evidence` are the brief's own-edition fields, kept verbatim. A key of these families that names another edition,
+#: or no edition at all, is REFUSED by slice and rule, never dropped: until 2026-11-21 `_judgment` read only
+#: `compiler-at-2002`, so a 1985 read's `compiler-at-1985` was ignored and 13 rows the pilot proved correct imported
+#: `undecided`. A suffix after the year (`compiler-at-2002-probe`, `answer-evidence-2002`) is the same edition's.
+EDITION_KEY = re.compile(r"(?:\A|-)(compiler-at|licence|scope|evidence)(?:-(?P<year>[^-]*))?(?=-|\Z)")
 #: Why a SAME read upheld by its refuter is still refused a kept record.
 NO_REFUTER, FLAG_UNANSWERED, NO_OWN_WITNESS = "no refuter record", "flag unanswered", "no own-edition witness"
 #: ... and why a read's targets cannot be a KEPT record's (kb/Work PB5597, branch review R1-1, R1-2).
@@ -152,10 +160,22 @@ class Read:
     #: trigger -> each (detail the answer names, or None when it names none; the answer): a trigger whose flag named
     #: several terms may be answered once per term
     answers: dict[str, list[tuple[str | None, str]]]
-    #: The read's `licence-2002` as written (None when absent or empty): `licence_problem` decides whether it is one.
+    #: The read's `licence-<year>` as written (None when absent or empty): `licence_problem` decides whether it is one.
     licence: str | None = None
     #: Each citation the read names, as written (`cite`): an own verdict's notes carry those of the row's own edition.
     citations: tuple[str, ...] = ()
+    #: The derivation the reader proposes for a rule no program can witness (DESIGN-spec-conformance-review.md section
+    #: 1.1; `derivation_problems`, `derivation_record`): None when it proposes none.
+    derivation: "Derivation | None" = None
+
+
+@dataclasses.dataclass(frozen=True)
+class Derivation:
+    """A reader's proposed derivation (section 1.1): one of the schema's arms, its `Names` cell, and the code location
+    the row's verdict needs when the store holds no record of the rule (None when the read gives none)."""
+    arm: str
+    names: str
+    code_location: str | None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -166,6 +186,8 @@ class Refute:
     reason: str
     probe: str | None
     compiler: Judgment | None
+    #: Each citation the refuter names, as written (`cite`): a derivation's refuter record carries them.
+    citations: tuple[str, ...] = ()
 
 
 def _fail(slice_name: str, rule: Any, message: str) -> RecordError:
@@ -199,8 +221,17 @@ def _citations(case: dict[str, Any], slice_name: str, rid: str) -> list[dict[str
     return out
 
 
-def _judgment(case: dict[str, Any], slice_name: str, rid: str) -> Judgment | None:
-    text = _text(case, "compiler-at-2002", slice_name, rid, required=False)
+def _edition_keys(case: dict[str, Any], slice_name: str, rid: Any, year: int) -> None:
+    """Refuse a case key of the edition-keyed families (`EDITION_KEY`) that names another edition than the record's own
+    `year`, or none: the field would otherwise be silently unread (kb/Work PB5453)."""
+    for key in case:
+        if isinstance(key, str) and (m := EDITION_KEY.search(key)) and m.group("year") != str(year):
+            raise _fail(slice_name, rid, f"`{key}` speaks of {'no edition' if m.group('year') is None else 'edition ' + repr(m.group('year'))}, "
+                                         f"and a {year} record's case speaks only of {year}: write `{m.group(1)}-{year}`")
+
+
+def _judgment(case: dict[str, Any], slice_name: str, rid: str, year: int) -> Judgment | None:
+    text = _text(case, f"compiler-at-{year}", slice_name, rid, required=False)
     if text is None:
         return None
     m = COMPILER.match(text)
@@ -243,10 +274,39 @@ def _flag_answers(case: dict[str, Any], slice_name: str, rid: str) -> dict[str, 
     return out
 
 
-def normal_read(slice_name: str, case: Any) -> Read:
+#: The read class whose rule no program can show (BRIEF-reader step 4): its read proposes a `derivation`.
+DEFINITIONAL_CLASS = "definitional"
+
+
+def _derivation(case: dict[str, Any], slice_name: str, rid: str, verdict: str) -> Derivation | None:
+    """A read's proposed derivation: `{"arm", "names"[, "code-location"]}` on a DIFFERENT read, its arm one of the
+    schema's (section 1.1). A `definitional` class with none, a derivation on a SAME or DOUBTFUL read, an unknown arm or
+    an empty `names` is refused loudly: the read would otherwise land `undecided` with its proposal unread."""
+    raw = case.get("derivation")
+    if raw is None:
+        if case.get("class") == DEFINITIONAL_CLASS:
+            raise _fail(slice_name, rid, f"class `{DEFINITIONAL_CLASS}` proposes a derivation: the read carries no "
+                                         "`derivation` {arm, names}")
+        return None
+    if verdict != "DIFFERENT":
+        raise _fail(slice_name, rid, f"a derivation is proposed by a DIFFERENT read (no pointer states the rule), not a "
+                                     f"{verdict}")
+    if not isinstance(raw, dict):
+        raise _fail(slice_name, rid, f"`derivation` is a map {{arm, names[, code-location]}}, not {raw!r}")
+    arms = sorted(_schema().derivation.arms)
+    arm = raw.get("arm")
+    if arm not in arms:
+        raise _fail(slice_name, rid, f"the derivation's arm {arm!r} is not one of the schema's {arms}")
+    names = _text(raw, "names", slice_name, rid)
+    loc = _text(raw, "code-location", slice_name, rid, required=False)
+    return Derivation(arm, names.strip(), loc.strip() if loc and loc.strip() else None)
+
+
+def normal_read(slice_name: str, case: Any, year: int) -> Read:
     if not isinstance(case, dict):
         raise _fail(slice_name, None, f"a read case is a map, not {type(case).__name__}")
     rid = _text(case, "rule-id", slice_name, case.get("rule-id"))
+    _edition_keys(case, slice_name, rid, year)
     to = case.get("to")
     if not isinstance(to, list) or not all(isinstance(t, str) and t for t in to):
         raise _fail(slice_name, rid, f"`to` must be a list of rule ids (empty for a rule with no pointer), not {to!r}")
@@ -254,23 +314,25 @@ def normal_read(slice_name: str, case: Any) -> Read:
     if verdict not in READ_VERDICTS:
         raise _fail(slice_name, rid, f"the reader's verdict {verdict!r} is not one of {READ_VERDICTS}")
     cites = tuple(c["cite"].strip() for c in _citations(case, slice_name, rid))
-    licence = _text(case, "licence-2002", slice_name, rid, required=False)
+    licence = _text(case, f"licence-{year}", slice_name, rid, required=False)
     return Read(rid, slice_name, tuple(to), verdict, _text(case, "reason", slice_name, rid),
-                _text(case, "probe", slice_name, rid, required=False), _judgment(case, slice_name, rid),
+                _text(case, "probe", slice_name, rid, required=False), _judgment(case, slice_name, rid, year),
                 _flag_answers(case, slice_name, rid),
-                licence.strip() if licence and licence.strip() else None, cites)
+                licence.strip() if licence and licence.strip() else None, cites,
+                _derivation(case, slice_name, rid, verdict))
 
 
-def normal_refute(slice_name: str, case: Any) -> Refute:
+def normal_refute(slice_name: str, case: Any, year: int) -> Refute:
     if not isinstance(case, dict):
         raise _fail(slice_name, None, f"a refute case is a map, not {type(case).__name__}")
     rid = _text(case, "rule-id", slice_name, case.get("rule-id"))
+    _edition_keys(case, slice_name, rid, year)
     verdict = case.get("verdict")
     if verdict not in REFUTE_VERDICTS:
         raise _fail(slice_name, rid, f"the refuter's verdict {verdict!r} is not one of {REFUTE_VERDICTS}")
-    _citations(case, slice_name, rid)
+    cites = tuple(c["cite"].strip() for c in _citations(case, slice_name, rid))
     return Refute(rid, slice_name, verdict, _text(case, "reason", slice_name, rid),
-                  _text(case, "probe", slice_name, rid, required=False), _judgment(case, slice_name, rid))
+                  _text(case, "probe", slice_name, rid, required=False), _judgment(case, slice_name, rid, year), cites)
 
 
 @dataclasses.dataclass
@@ -281,28 +343,52 @@ class Slice:
     refutes: dict[str, Refute]
     asked: dict[str, dict[str, str]]
     disputed: set[str]
+    #: the derivation refuter's case of each read that proposes a derivation (`<slice>-derivation-refute.json`): it tried
+    #: to write the witness the derivation says cannot exist (section 1.1)
+    derivation_refutes: dict[str, Refute] = dataclasses.field(default_factory=dict)
+
+
+#: The parts of a read record, each imported verbatim from its own file with its digest (`import_records`): the reader's
+#: `<slice>-read.json`, the refuter's `<slice>-refute.json`, the derivation refuter's `<slice>-derivation-refute.json` and
+#: the slice's input `<slice>.json` (its asked flags).
+PARTS = {"read": "-read.json", "refute": "-refute.json", "derivation-refute": "-derivation-refute.json"}
 
 
 def normal_slice(name: str, doc: dict[str, Any]) -> Slice:
     """A read record (the tracked file's content) as a `Slice`; a RecordError names the slice and rule of the first case
-    it cannot interpret. A rule read twice, a refute of a rule the slice did not read, or a refute of a read that is not
-    SAME is uninterpretable too."""
+    it cannot interpret. A rule read twice, a refute of a rule the slice did not read, a refute of a read that is not
+    SAME, or a derivation refute of a read that proposes no derivation is uninterpretable too. Every case is read at the
+    record's own `edition` (`_edition_keys`)."""
+    year = doc.get("edition")
+    if not isinstance(year, int) or isinstance(year, bool):
+        raise _fail(name, None, f"the record names no edition year (`edition`: {year!r}): its cases' fields are keyed by it")
     read = doc.get("read")
     if not isinstance(read, dict) or not isinstance(read.get("cases"), list):
         raise _fail(name, None, "the record holds no reader's `cases`")
     reads: dict[str, Read] = {}
     for c in read["cases"]:
-        r = normal_read(name, c)
+        r = normal_read(name, c, year)
         if r.rule_id in reads:
             raise _fail(name, r.rule_id, "the reader decides the rule twice")
         reads[r.rule_id] = r
+    derivation_refutes: dict[str, Refute] = {}
+    if (dref := doc.get("derivation-refute")) is not None:
+        if not isinstance(dref, dict) or not isinstance(dref.get("cases"), list):
+            raise _fail(name, None, "the derivation refuter's record holds no `cases`")
+        for c in dref["cases"]:
+            f = normal_refute(name, c, year)
+            if f.rule_id in derivation_refutes:
+                raise _fail(name, f.rule_id, "the derivation refuter decides the rule twice")
+            if f.rule_id not in reads or reads[f.rule_id].derivation is None:
+                raise _fail(name, f.rule_id, "the derivation refuter attacks a rule whose read proposes no derivation")
+            derivation_refutes[f.rule_id] = f
     refutes: dict[str, Refute] = {}
     disputed: set[str] = set()
     if (refute := doc.get("refute")) is not None:
         if not isinstance(refute, dict) or not isinstance(refute.get("cases"), list):
             raise _fail(name, None, "the refuter's record holds no `cases`")
         for c in refute["cases"]:
-            f = normal_refute(name, c)
+            f = normal_refute(name, c, year)
             if f.rule_id in refutes:
                 raise _fail(name, f.rule_id, "the refuter decides the rule twice")
             if f.rule_id not in reads or reads[f.rule_id].verdict != "SAME":
@@ -320,7 +406,7 @@ def normal_slice(name: str, doc: dict[str, Any]) -> Slice:
     flags = asked_doc.get("flags", {}) if isinstance(asked_doc, dict) else None
     if not isinstance(flags, dict) or not all(isinstance(v, dict) for v in flags.values()):
         raise _fail(name, None, "the slice's asked flags must be a map of rule to {trigger: detail}")
-    return Slice(name, reads, refutes, {k: dict(v) for k, v in flags.items()}, disputed)
+    return Slice(name, reads, refutes, {k: dict(v) for k, v in flags.items()}, disputed, derivation_refutes)
 
 
 def record_path(year: int, slice_name: str, directory: pathlib.Path | None = None) -> pathlib.Path:
@@ -366,7 +452,7 @@ def digest_errors(name: str, doc: dict[str, Any]) -> list[str]:
     held = doc.get("imported")
     if not isinstance(held, dict) or "read" not in held:
         return [f"{name}: the record carries no digest of its sources (`imported`)"]
-    return [f"{name}: its {k} no longer matches the digest it was imported with" for k in ("read", "refute", "asked")
+    return [f"{name}: its {k} no longer matches the digest it was imported with" for k in (*PARTS, "asked")
             if (k in held) != (doc.get(k) is not None) or (k in held and held[k] != digest(doc[k]))]
 
 
@@ -381,7 +467,11 @@ def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, o
     if not reads.is_dir():
         raise SystemExit(f"{TOOL}: {reads} is not a directory of read files")
     names = sorted(p.name[:-len("-read.json")] for p in reads.glob("*-read.json"))
-    if orphans := sorted(p.name for p in reads.glob("*-refute.json") if not (reads / p.name.replace("-refute", "-read")).exists()):
+
+    def slice_of(path: pathlib.Path) -> str:   # the longest part suffix wins: `-derivation-refute.json` over `-refute.json`
+        suffix = max((s for s in PARTS.values() if path.name.endswith(s)), key=len)
+        return path.name[:-len(suffix)]
+    if orphans := sorted(p.name for p in reads.glob("*-refute.json") if slice_of(p) not in names):
         raise SystemExit(f"{TOOL}: refuter records with no reader's record: {orphans}")
     docs, errs = {}, []
     seen: dict[str, str] = {}
@@ -394,9 +484,8 @@ def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, o
         if not SLICE.match(name):
             errs.append(f"{name}: a slice's name pairs <name>-read.json with <name>-refute.json; this one is no file label")
             continue
-        sources: dict[str, pathlib.Path] = {"read": reads / f"{name}-read.json"}
-        if (f := reads / f"{name}-refute.json").exists():
-            sources["refute"] = f
+        sources: dict[str, pathlib.Path] = {part: f for part, suffix in PARTS.items()
+                                            if (f := reads / f"{name}{suffix}").exists()}
         if asked is not None and (f := asked / f"{name}.json").exists():
             sources["asked"] = f
         raw = {k: p.read_bytes() for k, p in sources.items()}
@@ -410,7 +499,10 @@ def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, o
                             "verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only "
                             "through lineage_reads.load, the one normalization."],
                "slice": name, "edition": year, "asked": loaded.get("asked"), "read": loaded["read"],
-               "refute": loaded.get("refute"), "imported": {k: digest(v) for k, v in sorted(loaded.items())}}
+               "refute": loaded.get("refute"),
+               # only when the slice has one, so a record of a slice with none stays byte for byte as it was imported
+               **({"derivation-refute": loaded["derivation-refute"]} if "derivation-refute" in loaded else {}),
+               "imported": {k: digest(v) for k, v in sorted(loaded.items())}}
         try:
             s = normal_slice(name, doc)
         except RecordError as e:
@@ -932,6 +1024,92 @@ def own_verdict(ed: Edition, read: Read, lin: Lineage, w: Witnesses) -> dict[str
             "test-ref": schema.test_ref_sep.join(f"{lineage.SUITE_FORM}:{k}" for k in keys), "notes": notes}
 
 
+# -- a derivation from a read (kb/Work PB5453; DESIGN-spec-conformance-review.md section 10.6, "A derivation from a read") --
+
+#: The work item of a read that proposes a derivation its refuter UPHELD (or of a mechanical arm, which needs none):
+#: `audit_batch.py derivation-batch` writes its section 8 register row, its refuter record and its store record.
+DERIVATION = "derivation"
+#: Why a proposed derivation is not yet written (beside NO_REFUTER, NO_OWN_CITATION and NO_CODE_LOCATION).
+NAMES_SHAPE, HAS_TEST, VERDICT_OPEN = "names out of the arm's shape", "has a spec-derived test", "verdict does not resolve"
+#: The verdict a derivation's row takes when the store holds no record of the rule: section 1.1's derivation stands in
+#: for the covering test and for nothing else, so (a) is the read's located `code-location` and (b) the one resolving
+#: verdict that states the implementation meets a rule that obliges it to nothing observable.
+DERIVED_VERDICT = "CONFORMS"
+#: How a derivation's store `notes` open, naming its read record (its provenance).
+DERIVATION_LEAD = "Derivation from the read"
+#: Where a slice's derivation refuter records are kept, in the refuter-record form the section 8 `Refuted` cell names
+#: (`Schema.refuter_outcome` reads JSON lines): generated from the tracked read record, one file per slice.
+REFUTATIONS = "tests/version-matrix/derivation-refutations/lineage-reads-{year}-{slice}.jsonl"
+
+
+def argued(arm: str) -> bool:
+    """Does the schema's `arm` need a reader beyond the checker (an UPHELD refuter record for a refuter-bound signer)?"""
+    return _schema().derivation.arms[arm]["argued"] is not False
+
+
+def derivation_problems(ed: Edition, read: Read) -> list[tuple[str, str]]:
+    """Why a read's proposed derivation cannot be written from the read alone: its `Names` cell out of its arm's shape
+    (the schema's `names-pattern`, what `Derivation.refusals` reads), or no citation of the row's own edition. The rest
+    of section 1.1's refusals read the store and the register (`derivation_record`, `record_verdicts.validate`)."""
+    d = read.derivation
+    out = []
+    pattern = _schema().derivation.arms[d.arm]["names"]
+    if not pattern.match(d.names):
+        out.append((NAMES_SHAPE, f"the {d.arm} arm's Names cell matches {pattern.pattern!r}, not {d.names!r}"))
+    if not own_citations(ed, read):
+        out.append((NO_OWN_CITATION, f"{read.rule_id}: the read cites nothing of {ed.year} that parses: "
+                                     f"{list(read.citations)}"))
+    return out
+
+
+def refutations_file(year: int, slice_name: str) -> str:
+    return REFUTATIONS.format(year=year, slice=slice_name)
+
+
+def refutation_lines(year: int, s: Slice) -> str:
+    """The derivation refuter records of slice `s`, one JSON line each in the refuter-record form (`rule-id`, `outcome`,
+    `citation`, `reason`, and `source`, the read record): a function of the tracked read record alone, so the file is
+    rewritten identically and `--check` holds it to the record."""
+    return "".join(json.dumps({"rule-id": f.rule_id, "outcome": f.verdict, "citation": "; ".join(f.citations),
+                               "reason": f.reason, "source": source_of(year, s.name)}, ensure_ascii=False) + "\n"
+                   for _rid, f in sorted(s.derivation_refutes.items()))
+
+
+def derivation_record(ed: Edition, read: Read, refute: Refute | None, row: dict[str, Any], signature: str,
+                      schema: inventory_schema.Schema) -> tuple[dict[str, Any], list[str], list[tuple[str, str]]]:
+    """A proposed derivation's store record, its section 8 register cells (Rule, Arm, Names, The derivation, Signed,
+    Refuted) and what the store holds against it. The record is the anchor COMPUTED from the rule id; a row the store
+    already adjudicates (a verdict that resolves, or a chained KEPT record) gains the derivation alone, an unrecorded
+    row takes `DERIVED_VERDICT` with the read's `code-location`. Refused: a row with a spec-derived test (refusal 1), a
+    verdict that does not resolve (refusal 2), an unrecorded row with no code location."""
+    rid, d = read.rule_id, read.derivation
+    anchor, key = schema.derivation.anchor_for({"rule-id": rid}), schema.derivation.key_for({"rule-id": rid})
+    problems: list[tuple[str, str]] = []
+    if schema.has_spec_derived_test(row):
+        problems.append((HAS_TEST, f"{rid} carries a spec-derived test-ref: it has an observable obligation"))
+    kind = schema.next.kinds.get((row.get("next") or {}).get("kind", ""))
+    if row.get("verdict") or (kind is not None and kind.chained):
+        if row.get("verdict") and row["verdict"] not in schema.resolving:
+            problems.append((VERDICT_OPEN, f"{rid}'s verdict {row['verdict']} does not resolve"))
+        record: dict[str, Any] = {"rule-id": rid, "derivation": anchor}
+    else:
+        if not d.code_location:
+            problems.append((NO_CODE_LOCATION, f"{rid} has no record, and its read's derivation names no "
+                                               f"`code-location`, which {DERIVED_VERDICT} requires"))
+        record = {"rule-id": rid, "verdict": DERIVED_VERDICT, "code-location": d.code_location or "",
+                  "derivation": anchor,
+                  "notes": f"{DERIVATION_LEAD} {source_of(ed.year, read.slice)}: {DERIVED_VERDICT} on a {d.arm} "
+                           f"derivation of its own (docs/CONFORMANCE.md section 8, {key}); "
+                           f"the code location is where the compiler meets the rule's subject. The read: {read.reason.strip()}"}
+    refuted = refutations_file(ed.year, read.slice) if refute is not None else "—"
+    cited = "; ".join(dict.fromkeys(own_citations(ed, read)))
+    argument = (f"{read.reason.strip()} Cited: {cited}. Proposed by the read {source_of(ed.year, read.slice)}; "
+                + (f"its refuter, trying to write the witness the derivation says cannot exist, UPHELD it: "
+                   f"{refute.reason.strip()}" if refute is not None else "a mechanical arm, whose checker is its reader."))
+    cells = [key, d.arm, d.names, argument, signature, refuted]
+    return record, cells, problems
+
+
 def own_reads(ed: Edition, slices: Iterable[Slice], lin: Lineage) -> dict[str, Read]:
     """Each rule whose tracked read decides `own-verdict-from-pointer` (a SAME its refuter UPHELD, of a rule with no
     candidate pair: `decide`), with that read: the rules whose stored own verdict the audit holds (review R1-4: found
@@ -1039,6 +1217,25 @@ def work_of(judgment: Judgment | None, probe: str | None, who: str) -> tuple[str
     return UNDECIDED, f"the {who} did not probe the compiler at the edition"
 
 
+def derivation_decision(ed: Edition, s: Slice, r: Read, base: dict[str, Any]) -> Decision:
+    """A DIFFERENT read that proposes a derivation (kb/Work PB5453): its derivation refuter is read first, as a SAME's
+    refuter is. DOUBTFUL leaves it `undecided`; OVERTURNED (a program can show the rule) is the refuter's work item; an
+    UPHELD record, or none for a mechanical arm, makes it the `DERIVATION` work item, blocked by `derivation_problems`
+    and, for an argued arm with no refuter record, by NO_REFUTER."""
+    g, arm = s.derivation_refutes.get(r.rule_id), r.derivation.arm
+    if g is not None and g.verdict == "DOUBTFUL":
+        return Decision(**base, work=UNDECIDED, probe=g.probe, why="the derivation's refuter is DOUBTFUL: " + g.reason)
+    if g is not None and g.verdict == "OVERTURNED":
+        kind, why = work_of(g.compiler, g.probe, "derivation refuter")
+        return Decision(**base, work=kind, probe=g.probe, why="the refuter OVERTURNED the derivation; " + why)
+    refused = [] if g is not None or not argued(arm) else [
+        (NO_REFUTER, f"no refuter has attacked the {arm} derivation: an argued arm stands on an UPHELD refutation")]
+    return Decision(**base, work=DERIVATION, probe=None, refused=tuple(refused + derivation_problems(ed, r)),
+                    why=f"a {arm} derivation" + (", its refuter UPHELD" if g is not None else
+                                                 (" awaiting its refuter" if argued(arm) else
+                                                  ", a mechanical arm whose checker is its reader")))
+
+
 def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
            witnesses: Witnesses | None, lin: Lineage) -> list[Decision]:
     """Each read rule's `Decision` (module docstring). The own-edition evidence (`kept_witnesses`, at every edition) is
@@ -1052,10 +1249,13 @@ def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
             f = s.refutes.get(rid)
             if r.verdict == "DOUBTFUL":
                 out.append(Decision(**base, work=UNDECIDED, probe=r.probe, why="the reader is DOUBTFUL: " + r.reason))
+            elif r.verdict == "DIFFERENT" and rid in s.disputed:
+                out.append(Decision(**base, work=UNDECIDED, probe=r.probe or (r.compiler.text if r.compiler else None),
+                                    why="the refuter disputes the reader's DIFFERENT"))
+            elif r.verdict == "DIFFERENT" and r.derivation is not None:
+                out.append(derivation_decision(ed, s, r, base))
             elif r.verdict == "DIFFERENT":
                 kind, why = work_of(r.compiler, r.probe, "reader")
-                if rid in s.disputed:
-                    kind, why = UNDECIDED, "the refuter disputes the reader's DIFFERENT"
                 out.append(Decision(**base, work=kind, probe=r.probe or (r.compiler.text if r.compiler else None), why=why))
             elif f is None:
                 out.append(Decision(**base, refused=((NO_REFUTER, "no refuter has attacked the SAME"),)))
@@ -1498,6 +1698,24 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
     return list(dict.fromkeys(errs))
 
 
+def refutation_errors(year: int, slices: Iterable[Slice], repo: pathlib.Path = REPO) -> list[str]:
+    """Why a derivation refuter record file generated from the read records (`REFUTATIONS`) no longer is what its slice's
+    tracked record gives (`refutation_lines`): edited by hand, or left behind by a slice that no longer has one. A file
+    `derivation-batch` has not written yet is no error: the register names the files its rows stand on."""
+    by = {s.name: s for s in slices}
+    pattern = pathlib.Path(REFUTATIONS.format(year=year, slice="*"))
+    out = []
+    for path in sorted((repo / pattern.parent).glob(pattern.name)):
+        name = path.name[len(f"lineage-reads-{year}-"):-len(".jsonl")]
+        s = by.get(name)
+        if s is None or not s.derivation_refutes:
+            out.append(f"{path.relative_to(repo).as_posix()}: no read record of {year} holds a derivation refute of slice {name}")
+        elif path.read_text(encoding="utf-8") != refutation_lines(year, s):
+            out.append(f"{path.relative_to(repo).as_posix()}: not what the read record {source_of(year, name)} gives "
+                       "(rewrite it with audit_batch.py derivation-batch)")
+    return out
+
+
 def older_years() -> list[int]:
     """Every held edition older than the newest: each one's chained rows close by the one own-edition rule."""
     return [e.year for e in inventory_schema.load_schema().all_editions if e.held and not e.newest]
@@ -1519,7 +1737,8 @@ def check(years: list[int]) -> int:
         owned = own_reads(ed, slices, lin)
         own = [r for r in rows if not (r.get("next") or {}).get("kind") and r.get("verdict")
                and (r["rule-id"] in owned or OWN_SOURCE.match(r.get("notes") or ""))]
-        errs = stored_errors(ed, rows, slices, Witnesses.of(ed.next_held, suite), lin, schema)
+        errs = stored_errors(ed, rows, slices, Witnesses.of(ed.next_held, suite), lin, schema) \
+            + refutation_errors(y, slices)
         print(f"{y}: {len(slices)} read record(s), {sum(len(s.reads) for s in slices)} rule(s) read, each record's "
               f"digests verified; {len(from_reads)} stored record(s) from reads; {len(kept)} KEPT record(s), "
               f"{len(witnessed)} with a witness of their own, each held to a case that runs at {ed.spelling} of the kind "

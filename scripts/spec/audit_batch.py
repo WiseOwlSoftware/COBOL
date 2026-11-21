@@ -83,6 +83,11 @@ A ninth pass serves the 1985 transcription, not the change records (kb/Work PB49
                                                                                    # pointers (a rule with no candidate
                                                                                    # pair), each pointer witnessed at
                                                                                    # the edition (section 10.6)
+    python scripts/spec/audit_batch.py derivation-batch --edition 1985 --state DIR --out FILE --signature "claude: <date>"
+                                                                                   # an imported run's derivations (a
+                                                                                   # read's proposal its refuter UPHELD):
+                                                                                   # section 8 rows, refuter records and
+                                                                                   # their store records (kb/Work PB5453)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written by `plan`: custom id -> the item, every input its prompt
@@ -1288,13 +1293,7 @@ def own_verdict_batch(a: argparse.Namespace) -> int:
     if ed.next_held is None:
         raise SystemExit(f"{TOOL}: own-verdict-batch --edition {a.edition}: the newest held edition has no pointers")
     state = pathlib.Path(a.state)
-    if not (state / READS).exists():
-        raise SystemExit(f"{TOOL}: {state} was not imported from reads ({READS} is absent): an own verdict from a "
-                         "pointer follows only from a read")
-    imported = json.loads((state / READS).read_text(encoding="utf-8"))
-    if imported["edition"] != a.edition:
-        raise SystemExit(f"{TOOL}: {state} holds the reads of {imported['edition']}, not {a.edition}")
-    slices = lineage_reads.load(a.edition, pathlib.Path(imported["record"]))
+    slices = imported_slices(state, a.edition, "an own verdict from a pointer")
     reads = {rid: r for s in slices for rid, r in s.reads.items()}
     w, lin = witnesses_of(ed.next_held), lineage_reads.Lineage.of(ed)
     held = read_store(inventory_dir(ed, pathlib.Path(a.repo)))
@@ -1321,6 +1320,91 @@ def own_verdict_batch(a: argparse.Namespace) -> int:
     verdicts = collections.Counter(r["verdict"] for r in kept)
     print(f"own-verdict-batch: {len(kept)} own verdict(s) {dict(sorted(verdicts.items()))} -> {out}; refused "
           f"{len(refused)} {dict(sorted(by_reason.items()))}; recorded already {len(already)} -> {refused_file}\n"
+          f"  validate: python scripts/spec/record_verdicts.py --edition {a.edition} --dry-run {out}", flush=True)
+    return 0
+
+
+def imported_slices(state: pathlib.Path, year: int, verb: str) -> list[Any]:
+    """The read records of a run `import-reads` wrote, normalized (`lineage_reads.load`); a run that was not imported, or
+    imported the reads of another edition, is refused: what `verb` writes follows only from a read."""
+    import lineage_reads  # noqa: PLC0415
+    if not (state / READS).exists():
+        raise SystemExit(f"{TOOL}: {state} was not imported from reads ({READS} is absent): {verb} follows only from a read")
+    imported = json.loads((state / READS).read_text(encoding="utf-8"))
+    if imported["edition"] != year:
+        raise SystemExit(f"{TOOL}: {state} holds the reads of {imported['edition']}, not {year}")
+    return lineage_reads.load(year, pathlib.Path(imported["record"]))
+
+
+def derivation_batch(a: argparse.Namespace) -> int:
+    """`derivation-batch` (kb/Work PB5453; DESIGN-spec-conformance-review.md section 10.6, "A derivation from a read"):
+    every read of an IMPORTED run that proposes a derivation its refuter UPHELD (or a mechanical arm, which needs none;
+    `lineage_reads.decide`'s `derivation` work item) becomes, in ONE operation, (1) its section 8 register row,
+    `docs/conformance/8/DRV-<rule-id>.md`, signed `--signature` (a key of the schema's `signatures`: the signing decision
+    adds it in the change that writes its rows), its `Refuted` cell naming (2) the slice's refuter record file, generated
+    from the tracked read record (`lineage_reads.refutation_lines`), and the register's extract regenerated; and (3) the
+    row's store record in a record_verdicts batch `--out` (`lineage_reads.derivation_record`), applied by
+    `record_verdicts.py --edition YEAR`, whose `validate` judges every refusal of section 1.1 against the register this
+    wrote. A row whose store already carries a derivation is left as it is; every other row not written is listed with
+    its reasons in `<out>.refused.json`. `--dry-run` writes the batch and the list and nothing in the tree."""
+    import conformance_source  # noqa: PLC0415  (the register's one layout: a section's directory, one file per entry)
+    import lineage_reads  # noqa: PLC0415
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))   # scripts/, for the docchecks package
+    from docchecks import register  # noqa: PLC0415  (the register's extract the derivation checkers read)
+    ed = edition(a.edition)
+    if ed.next_held is None:
+        raise SystemExit(f"{TOOL}: derivation-batch --edition {a.edition}: the newest edition's rows are not read")
+    state, repo = pathlib.Path(a.state), pathlib.Path(a.repo)
+    slices = imported_slices(state, a.edition, "a derivation from a read")
+    schema = load_schema()
+    if a.signature not in schema.derivation.signatures:
+        raise SystemExit(f"{TOOL}: --signature {a.signature!r} is not a key of the schema's derivation signatures "
+                         f"{sorted(schema.derivation.signatures)}: the decision that signs these rows adds its key "
+                         "(tests/version-matrix/inventory-schema.json) in the change that writes them")
+    by_slice = {s.name: s for s in slices}
+    held = read_store(inventory_dir(ed, repo))
+    section = repo / "docs" / "conformance" / "8"
+    records, entries, refused, already = [], {}, [], []
+    for d in lineage_reads.decide(ed, slices, None, None, lineage_reads.Lineage.of(ed)):
+        if d.work != lineage_reads.DERIVATION:
+            continue
+        stored = held.get(d.rule_id) or {}
+        s = by_slice[d.slice]
+        if stored.get("derivation"):
+            already.append(d.rule_id)
+            continue
+        record, cells, problems = lineage_reads.derivation_record(
+            ed, s.reads[d.rule_id], s.derivation_refutes.get(d.rule_id), stored, a.signature, schema)
+        entry = section / f"{conformance_source.file_name(cells[0])}.md"
+        text = conformance_source.with_frontmatter({"cells": cells}, "")
+        if entry.exists() and entry.read_text(encoding="utf-8") != text:
+            problems.append(("register row differs", f"{entry.relative_to(repo).as_posix()} holds another determination"))
+        problems = list(d.refused) + problems
+        if problems:
+            refused.append({"rule-id": d.rule_id, "slice": d.slice, "reasons": [f"{r}: {x}" for r, x in problems]})
+            continue
+        records.append(record)
+        entries[entry] = text
+        if s.derivation_refutes.get(d.rule_id) is not None:   # the Refuted cell names the slice's refuter record file
+            entries[repo / lineage_reads.refutations_file(a.edition, s.name)] = \
+                lineage_reads.refutation_lines(a.edition, s)
+    out = pathlib.Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    write_atomic(out, json.dumps({"batch": f"lineage-derivation:{state.name}", "records": records}, indent=1,
+                                 ensure_ascii=False) + "\n")
+    refused_file = out.with_name(out.stem + ".refused.json")
+    write_atomic(refused_file, json.dumps({"refused": refused, "recorded-already": already}, indent=1,
+                                          ensure_ascii=False) + "\n")
+    if not a.dry_run:
+        for path, text in entries.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8", newline="\n")
+        if entries:
+            register.write_extract(repo)
+    by_reason = collections.Counter(why for r in refused for why in {y.split(":", 1)[0] for y in r["reasons"]})
+    print(f"derivation-batch: {len(records)} derivation(s) -> {out}"
+          f"{' (dry run: no register row written)' if a.dry_run else f'; {len(entries)} register and refuter file(s) written'}; "
+          f"refused {len(refused)} {dict(sorted(by_reason.items()))}; recorded already {len(already)} -> {refused_file}\n"
           f"  validate: python scripts/spec/record_verdicts.py --edition {a.edition} --dry-run {out}", flush=True)
     return 0
 
@@ -1393,7 +1477,8 @@ def import_reads(year: int, reads: pathlib.Path, asked: pathlib.Path | None, rec
     print(f"import-reads: {len(slices)} slice(s) ({len(written)} written or rewritten under {record}); {summary['rules']} "
           f"rule(s): kept before the evidence check {summary['kept']}, refused {summary['refused-by-reason']}, work "
           f"{summary['work']} -> {state}\n"
-          f"  then: python scripts/spec/audit_batch.py change-batch --edition {year} --state {state} --out BATCH", flush=True)
+          f"  then, for each kind it lists: python scripts/spec/audit_batch.py change-batch | own-verdict-batch | "
+          f"derivation-batch --edition {year} --state {state} --out BATCH", flush=True)
     return 0
 
 
@@ -1456,6 +1541,16 @@ def build_parser() -> argparse.ArgumentParser:
     ov.add_argument("--state", required=True, help="the run import-reads wrote")
     ov.add_argument("--out", required=True, help="the batch file to write")
     ov.add_argument("--repo", default=str(spec_pdf.REPO), help="the repository whose store's records are left as they are")
+    dv = sub.add_parser("derivation-batch", help="write an imported run's derivations (a read's proposal its refuter "
+                                                 "UPHELD): their section 8 register rows and refuter records in the "
+                                                 "tree, their store records as a record_verdicts batch")
+    dv.add_argument("--edition", type=int, required=True, help="the older held edition whose derivations are written")
+    dv.add_argument("--state", required=True, help="the run import-reads wrote")
+    dv.add_argument("--out", required=True, help="the batch file to write")
+    dv.add_argument("--signature", required=True, help="the section 8 Signed cell: a key of the schema's derivation "
+                                                       "signatures (`claude: <date>`), added by the signing decision")
+    dv.add_argument("--dry-run", action="store_true", help="write the batch and its refused list, nothing in the tree")
+    dv.add_argument("--repo", default=str(spec_pdf.REPO), help="the repository whose register and store are written")
     ir = sub.add_parser("import-reads", help="start a run from the reads of an older edition's rules (a fleet's reader "
                                              "and refuter files): the tracked read records, and the run's map and "
                                              "verify passes, for change-batch --state")
@@ -1484,6 +1579,8 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         return change_batch(a)
     if a.cmd == "own-verdict-batch":
         return own_verdict_batch(a)
+    if a.cmd == "derivation-batch":
+        return derivation_batch(a)
     state = pathlib.Path(a.state)
     if a.cmd == "results":
         disp = dispositions(state)
