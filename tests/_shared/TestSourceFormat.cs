@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// <item>a conformance-suite case states it in its header (<c>*&gt; source-format:</c>, which the generator requires and
 /// <c>ConformanceSuiteRunner</c> passes);</item>
 /// <item>a NIST CCVS program and a sample are fixed form (<see cref="InitialReferenceFormat.Fixed"/>, the CLI's default,
-/// §2023:7.3.24.3 2));</item>
+/// §2023:7.3.24.3 GR2);</item>
 /// <item>program text written inside a C# test is free form (<see cref="Inline"/>): it is written from column 1 with no
 /// sequence or indicator area, and free form is the documented selection available at every edition
 /// (<see cref="InitialReferenceFormat.Free"/>; docs/CONFORMANCE.md DOC-A.1-158). A test whose program exercises a fixed-form

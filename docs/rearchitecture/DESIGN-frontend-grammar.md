@@ -1157,9 +1157,11 @@ reference formats, and the only place source comments are recognized. Its model:
   `IsFixedForm` runs only under `auto` — no detector can be the default, because the sequence area may hold any
   character (§2023:6.3.2) and text past margin R is legal, so every detector misreads some conforming fixed-form text.
   Library text starts in the format in effect for its COPY statement (§2023:7.3.24.3 3)).
-  ⚠ The test harnesses (conformance, characterization) pass `auto`, and the detector's past-column-72 veto reads
-  2,905 of the 3,576 conformance sources as FREE form, so most goldens do not exercise the CLI's fixed-form reading
-  (kb/Work PB1757, measured 2026-09-30; `tests/conformance/README.md` states the contract).
+  **No test harness lets the detector choose** (kb/Work PB1757, PB6033; R57): a conformance-suite case states its format
+  in its header, program text written inside a C# test is free form, stated (`tests/_shared/TestSourceFormat.cs`), a
+  version-matrix row states `sourceFormat`, and a test of a fixed-form rule, a NIST program and the characterization
+  corpus state fixed; `TestSourceFormatDriftTests` holds `auto` to the detector's own tests. (Measured 2026-09-30: the
+  detector's past-column-72 veto had read 2,905 of the 3,576 goldens of the old corpus as free form.)
 - **ONE line-entry stage: `PhysicalLines`** (`PhysicalLines.cs`, kb/Work PB1800 / PB1586 / PB1496 / PB1803) — the only
   place decoded source or library text becomes LINES, called once, at the entry of `NormalizeToFreeFormMapped` (main
   source and library text alike). It owns the four determinations ISO §2023:6.1 leaves to the implementor:
